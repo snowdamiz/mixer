@@ -1,0 +1,242 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:189:33: error: cannot find type 'PublicSwitchQuery' in scope
+187 |                 "frame": ["x": frame.minX, "y": frame.minY, "width": frame.width, "height": frame.height]]
+188 |     }
+189 |     private struct SwitchQuery: PublicSwitchQuery {
+    |                                 `- error: cannot find type 'PublicSwitchQuery' in scope
+190 |         let settings: XCUIApplication
+191 |         let takeSnapshot: (XCUIElement) -> [String: Any]
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:206:71: error: cannot find type 'PublicSwitchSelection' in scope
+204 |         }
+205 |     }
+206 |     private func resolveSwitch(_ settings: XCUIApplication) throws -> PublicSwitchSelection.Resolved<XCUIElement> {
+    |                                                                       `- error: cannot find type 'PublicSwitchSelection' in scope
+207 |         try PublicSwitchSelection.resolve(SwitchQuery(settings: settings, takeSnapshot: { self.snapshot(settings, $0) }))
+208 |     }
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:193:31: warning: call to main actor-isolated instance method 'matching' in a synchronous nonisolated context [#ActorIsolatedCall]
+191 |         let takeSnapshot: (XCUIElement) -> [String: Any]
+192 |         private var parents: XCUIElementQuery {
+193 |             settings.switches.matching(NSPredicate(format: "identifier == %@ AND label == %@", "FKAEnabledSwitch", "Full Keyboard Access"))
+    |                               `- warning: call to main actor-isolated instance method 'matching' in a synchronous nonisolated context [#ActorIsolatedCall]
+194 |         }
+195 |         func parentCount() -> Int { parents.count }
+
+XCUIAutomation.XCUIElementQuery.matching:2:22: note: calls to instance method 'matching' from outside of its actor context are implicitly asynchronous
+1 | class XCUIElementQuery {
+2 | @MainActor open func matching(_ predicate: NSPredicate) -> XCUIElementQuery}
+  |                      |- note: calls to instance method 'matching' from outside of its actor context are implicitly asynchronous
+  |                      `- note: main actor isolation inferred from conformance to protocol 'XCUIElementTypeQueryProvider'
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:193:22: warning: main actor-isolated property 'switches' can not be referenced from a nonisolated context
+191 |         let takeSnapshot: (XCUIElement) -> [String: Any]
+192 |         private var parents: XCUIElementQuery {
+193 |             settings.switches.matching(NSPredicate(format: "identifier == %@ AND label == %@", "FKAEnabledSwitch", "Full Keyboard Access"))
+    |                      `- warning: main actor-isolated property 'switches' can not be referenced from a nonisolated context
+194 |         }
+195 |         func parentCount() -> Int { parents.count }
+
+/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCUIAutomation.framework/Headers/XCUIElementTypeQueryProvider.h:54:46: note: property declared here
+ 52 | @property (readonly, copy) XCUIElementQuery *pickers;
+ 53 | @property (readonly, copy) XCUIElementQuery *pickerWheels;
+ 54 | @property (readonly, copy) XCUIElementQuery *switches;
+    |                                              `- note: property declared here
+ 55 | @property (readonly, copy) XCUIElementQuery *toggles;
+ 56 | @property (readonly, copy) XCUIElementQuery *links;
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:195:45: warning: main actor-isolated property 'count' can not be referenced from a nonisolated context
+193 |             settings.switches.matching(NSPredicate(format: "identifier == %@ AND label == %@", "FKAEnabledSwitch", "Full Keyboard Access"))
+194 |         }
+195 |         func parentCount() -> Int { parents.count }
+    |              |                              `- warning: main actor-isolated property 'count' can not be referenced from a nonisolated context
+    |              `- note: add '@MainActor' to make instance method 'parentCount()' part of global actor 'MainActor'
+196 |         func parent(at index: Int) -> XCUIElement { parents.element(boundBy: index) }
+197 |         func childSwitchCount(_ parent: XCUIElement) -> Int { parent.children(matching: .switch).count }
+
+/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCUIAutomation.framework/Headers/XCUIElementQuery.h:29:33: note: property declared here
+27 | 
+28 | /*! Evaluates the query at the time it is called and returns the number of matches found. */
+29 | @property (readonly) NSUInteger count;
+   |                                 `- note: property declared here
+30 | 
+31 | /*! Returns an element that will resolve to the index into the query's result set. */
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:196:61: warning: call to main actor-isolated instance method 'element(boundBy:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+194 |         }
+195 |         func parentCount() -> Int { parents.count }
+196 |         func parent(at index: Int) -> XCUIElement { parents.element(boundBy: index) }
+    |              |                                              `- warning: call to main actor-isolated instance method 'element(boundBy:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    |              `- note: add '@MainActor' to make instance method 'parent(at:)' part of global actor 'MainActor'
+197 |         func childSwitchCount(_ parent: XCUIElement) -> Int { parent.children(matching: .switch).count }
+198 |         func childSwitch(_ parent: XCUIElement, at index: Int) -> XCUIElement { parent.children(matching: .switch).element(boundBy: index) }
+
+XCUIAutomation.XCUIElementQuery.element:2:22: note: calls to instance method 'element(boundBy:)' from outside of its actor context are implicitly asynchronous
+1 | class XCUIElementQuery {
+2 | @MainActor open func element(boundBy index: Int) -> XCUIElement}
+  |                      |- note: calls to instance method 'element(boundBy:)' from outside of its actor context are implicitly asynchronous
+  |                      `- note: main actor isolation inferred from conformance to protocol 'XCUIElementTypeQueryProvider'
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:197:98: warning: main actor-isolated property 'count' can not be referenced from a nonisolated context
+195 |         func parentCount() -> Int { parents.count }
+196 |         func parent(at index: Int) -> XCUIElement { parents.element(boundBy: index) }
+197 |         func childSwitchCount(_ parent: XCUIElement) -> Int { parent.children(matching: .switch).count }
+    |              |                                                                                   `- warning: main actor-isolated property 'count' can not be referenced from a nonisolated context
+    |              `- note: add '@MainActor' to make instance method 'childSwitchCount' part of global actor 'MainActor'
+198 |         func childSwitch(_ parent: XCUIElement, at index: Int) -> XCUIElement { parent.children(matching: .switch).element(boundBy: index) }
+199 |         func descendantSwitchCount(_ leaf: XCUIElement) -> Int { leaf.descendants(matching: .switch).count }
+
+/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCUIAutomation.framework/Headers/XCUIElementQuery.h:29:33: note: property declared here
+27 | 
+28 | /*! Evaluates the query at the time it is called and returns the number of matches found. */
+29 | @property (readonly) NSUInteger count;
+   |                                 `- note: property declared here
+30 | 
+31 | /*! Returns an element that will resolve to the index into the query's result set. */
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:197:70: warning: call to main actor-isolated instance method 'children(matching:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+195 |         func parentCount() -> Int { parents.count }
+196 |         func parent(at index: Int) -> XCUIElement { parents.element(boundBy: index) }
+197 |         func childSwitchCount(_ parent: XCUIElement) -> Int { parent.children(matching: .switch).count }
+    |              |                                                       `- warning: call to main actor-isolated instance method 'children(matching:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    |              `- note: add '@MainActor' to make instance method 'childSwitchCount' part of global actor 'MainActor'
+198 |         func childSwitch(_ parent: XCUIElement, at index: Int) -> XCUIElement { parent.children(matching: .switch).element(boundBy: index) }
+199 |         func descendantSwitchCount(_ leaf: XCUIElement) -> Int { leaf.descendants(matching: .switch).count }
+
+XCUIAutomation.XCUIElement.children:2:22: note: calls to instance method 'children(matching:)' from outside of its actor context are implicitly asynchronous
+1 | class XCUIElement {
+2 | @MainActor open func children(matching type: XCUIElement.ElementType) -> XCUIElementQuery}
+  |                      `- note: calls to instance method 'children(matching:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:198:116: warning: call to main actor-isolated instance method 'element(boundBy:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+196 |         func parent(at index: Int) -> XCUIElement { parents.element(boundBy: index) }
+197 |         func childSwitchCount(_ parent: XCUIElement) -> Int { parent.children(matching: .switch).count }
+198 |         func childSwitch(_ parent: XCUIElement, at index: Int) -> XCUIElement { parent.children(matching: .switch).element(boundBy: index) }
+    |              |                                                                                                     `- warning: call to main actor-isolated instance method 'element(boundBy:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    |              `- note: add '@MainActor' to make instance method 'childSwitch(_:at:)' part of global actor 'MainActor'
+199 |         func descendantSwitchCount(_ leaf: XCUIElement) -> Int { leaf.descendants(matching: .switch).count }
+200 |         func snapshot(_ element: XCUIElement) -> [String: Any] { takeSnapshot(element) }
+
+XCUIAutomation.XCUIElementQuery.element:2:22: note: calls to instance method 'element(boundBy:)' from outside of its actor context are implicitly asynchronous
+1 | class XCUIElementQuery {
+2 | @MainActor open func element(boundBy index: Int) -> XCUIElement}
+  |                      |- note: calls to instance method 'element(boundBy:)' from outside of its actor context are implicitly asynchronous
+  |                      `- note: main actor isolation inferred from conformance to protocol 'XCUIElementTypeQueryProvider'
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:198:88: warning: call to main actor-isolated instance method 'children(matching:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+196 |         func parent(at index: Int) -> XCUIElement { parents.element(boundBy: index) }
+197 |         func childSwitchCount(_ parent: XCUIElement) -> Int { parent.children(matching: .switch).count }
+198 |         func childSwitch(_ parent: XCUIElement, at index: Int) -> XCUIElement { parent.children(matching: .switch).element(boundBy: index) }
+    |              |                                                                         `- warning: call to main actor-isolated instance method 'children(matching:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    |              `- note: add '@MainActor' to make instance method 'childSwitch(_:at:)' part of global actor 'MainActor'
+199 |         func descendantSwitchCount(_ leaf: XCUIElement) -> Int { leaf.descendants(matching: .switch).count }
+200 |         func snapshot(_ element: XCUIElement) -> [String: Any] { takeSnapshot(element) }
+
+XCUIAutomation.XCUIElement.children:2:22: note: calls to instance method 'children(matching:)' from outside of its actor context are implicitly asynchronous
+1 | class XCUIElement {
+2 | @MainActor open func children(matching type: XCUIElement.ElementType) -> XCUIElementQuery}
+  |                      `- note: calls to instance method 'children(matching:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:199:102: warning: main actor-isolated property 'count' can not be referenced from a nonisolated context
+197 |         func childSwitchCount(_ parent: XCUIElement) -> Int { parent.children(matching: .switch).count }
+198 |         func childSwitch(_ parent: XCUIElement, at index: Int) -> XCUIElement { parent.children(matching: .switch).element(boundBy: index) }
+199 |         func descendantSwitchCount(_ leaf: XCUIElement) -> Int { leaf.descendants(matching: .switch).count }
+    |              |                                                                                       `- warning: main actor-isolated property 'count' can not be referenced from a nonisolated context
+    |              `- note: add '@MainActor' to make instance method 'descendantSwitchCount' part of global actor 'MainActor'
+200 |         func snapshot(_ element: XCUIElement) -> [String: Any] { takeSnapshot(element) }
+201 |         func screenFrame() -> [String: Double] {
+
+/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCUIAutomation.framework/Headers/XCUIElementQuery.h:29:33: note: property declared here
+27 | 
+28 | /*! Evaluates the query at the time it is called and returns the number of matches found. */
+29 | @property (readonly) NSUInteger count;
+   |                                 `- note: property declared here
+30 | 
+31 | /*! Returns an element that will resolve to the index into the query's result set. */
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:199:71: warning: call to main actor-isolated instance method 'descendants(matching:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+197 |         func childSwitchCount(_ parent: XCUIElement) -> Int { parent.children(matching: .switch).count }
+198 |         func childSwitch(_ parent: XCUIElement, at index: Int) -> XCUIElement { parent.children(matching: .switch).element(boundBy: index) }
+199 |         func descendantSwitchCount(_ leaf: XCUIElement) -> Int { leaf.descendants(matching: .switch).count }
+    |              |                                                        `- warning: call to main actor-isolated instance method 'descendants(matching:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    |              `- note: add '@MainActor' to make instance method 'descendantSwitchCount' part of global actor 'MainActor'
+200 |         func snapshot(_ element: XCUIElement) -> [String: Any] { takeSnapshot(element) }
+201 |         func screenFrame() -> [String: Double] {
+
+XCUIAutomation.XCUIElement.descendants:2:22: note: calls to instance method 'descendants(matching:)' from outside of its actor context are implicitly asynchronous
+1 | class XCUIElement {
+2 | @MainActor open func descendants(matching type: XCUIElement.ElementType) -> XCUIElementQuery}
+  |                      `- note: calls to instance method 'descendants(matching:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:202:30: warning: main actor-isolated property 'frame' can not be referenced from a nonisolated context
+199 |         func descendantSwitchCount(_ leaf: XCUIElement) -> Int { leaf.descendants(matching: .switch).count }
+200 |         func snapshot(_ element: XCUIElement) -> [String: Any] { takeSnapshot(element) }
+201 |         func screenFrame() -> [String: Double] {
+    |              `- note: add '@MainActor' to make instance method 'screenFrame()' part of global actor 'MainActor'
+202 |             let f = settings.frame
+    |                              `- warning: main actor-isolated property 'frame' can not be referenced from a nonisolated context
+203 |             return ["x": f.minX, "y": f.minY, "width": f.width, "height": f.height]
+204 |         }
+
+/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCUIAutomation.framework/Headers/XCUIElementAttributes.h:38:29: note: property declared here
+ 36 | 
+ 37 | /*! The frame of the element in the screen coordinate space. */
+ 38 | @property (readonly) CGRect frame;
+    |                             `- note: property declared here
+ 39 | 
+ 40 | /*! The raw value attribute of the element. Depending on the element, the actual type can vary. */
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:207:13: error: cannot find 'PublicSwitchSelection' in scope
+205 |     }
+206 |     private func resolveSwitch(_ settings: XCUIApplication) throws -> PublicSwitchSelection.Resolved<XCUIElement> {
+207 |         try PublicSwitchSelection.resolve(SwitchQuery(settings: settings, takeSnapshot: { self.snapshot(settings, $0) }))
+    |             `- error: cannot find 'PublicSwitchSelection' in scope
+208 |     }
+209 |     private struct SwitchCapture { let state: [String: Any]; let witness: [String: Any]; let sequence: Int; let finished: Double }
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:285:17: error: cannot find 'PublicSwitchSelection' in scope
+283 |             let actionTarget = try resolveSwitch(settings)
+284 |             let started = now
+285 |             try PublicSwitchSelection.validateAction(actionTarget, beforeParent: before.state, beforeWitness: before.witness, beforeFinished: before.finished, started: started)
+    |                 `- error: cannot find 'PublicSwitchSelection' in scope
+286 |             let finished: Double
+287 |             if initial == "0" {
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:328:47: error: cannot find 'XCTSkip' in scope
+326 |     }
+327 |     private func launchCase(_ name: String, initial: Bool) throws -> XCUIApplication {
+328 |         guard Self.settingsReady else { throw XCTSkip("Public Settings setup did not pass; dependent application input remains unrun") }
+    |                                               `- error: cannot find 'XCTSkip' in scope
+329 |         caseName = name
+330 |         let target = XCUIApplication(bundleIdentifier: diagnostic); target.terminate()
+
+/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestSkipping.h:18:9: note: macro 'XCTSkip' unavailable: function like macros not supported
+16 |  * @param ... An optional supplementary description of why the test is being skipped. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+17 | */
+18 | #define XCTSkip(...) \
+   |         `- note: macro 'XCTSkip' unavailable: function like macros not supported
+19 |     _XCTPrimitiveSkip(__VA_ARGS__)
+20 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-root-review/owned-typecheck/ToggleUITests.swift:430:56: error: cannot find 'XCTFail' in scope
+428 |         let result = try bridge("evaluate", ["keyboardWitness": witness, "focusDiagnostic": focusDiagnostic])
+429 |         try jsonAttachment("Strict keyboard verdict " + phase, result)
+430 |         guard result["passed"] as? Bool == true else { XCTFail("Strict native keyboard evidence failed: \(result)"); throw Failure.focus("Strict keyboard verdict failed") }
+    |                                                        `- error: cannot find 'XCTFail' in scope
+431 |         return after
+432 |     }
+
+/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:45:9: note: macro 'XCTFail' unavailable: function like macros not supported
+ 43 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 44 | */
+ 45 | #define XCTFail(...) \
+    |         `- note: macro 'XCTFail' unavailable: function like macros not supported
+ 46 |     _XCTPrimitiveFail(nil, __VA_ARGS__)
+ 47 | 
+
+[#ActorIsolatedCall]: <https://docs.swift.org/compiler/documentation/diagnostics/actor-isolated-call>

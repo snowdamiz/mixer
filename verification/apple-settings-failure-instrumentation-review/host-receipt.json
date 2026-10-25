@@ -1,0 +1,273 @@
+{
+  "assemblies": {
+    "derivative": {
+      "bytes": 11077,
+      "sha256": "f9e2b72071f989f0ffc9a44f3199237471f3eba0241bf0f01be84c669e7eea3d"
+    },
+    "original": {
+      "bytes": 9314,
+      "sha256": "5256237b11ac7f8206a330116a8db3bf2dd9721ff131cbc1a20240f674be28ba"
+    }
+  },
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation/verify.py",
+        "--expected-handoff-sha256",
+        "d637e80716b9407028f059dd44673e09cd74f536d7bec2909fa02a0da5b40190"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "stdout": "{\"acceptedDiagnosisMembersVerified\": 10, \"exactSourceBoundaryVerified\": true, \"gaAccepted\": false, \"handoffSHA256\": \"d637e80716b9407028f059dd44673e09cd74f536d7bec2909fa02a0da5b40190\", \"hostControlsPassed\": 19, \"membersVerified\": 26, \"nativeRetrySelected\": false, \"nativeRuntimeExecuted\": false, \"retainedAttempts\": 4, \"schema\": 1, \"verified\": true, \"writesPerformed\": 0}\n"
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+        "--version"
+      ],
+      "exitCode": 0,
+      "stderr": "swift-driver version: 1.148.6 ",
+      "stdout": "Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)\nTarget: arm64-apple-macosx28.0\n"
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "arm64-apple-macosx26.0",
+        "-sdk",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+        "-module-cache-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-review/scratch/module-cache",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation/original/DiagnosticTransport.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-review/scratch/original/main.swift",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-review/scratch/original/controls"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-review/scratch/original/controls",
+        "completed-callback"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "stdout": "REVIEW_CONTROL {\"case\":\"completed-callback\",\"passed\":true,\"requests\":1}\n"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-review/scratch/original/controls",
+        "clipped-timeout"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "stdout": "REVIEW_CONTROL {\"case\":\"clipped-timeout\",\"passed\":true,\"requests\":1}\n"
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "arm64-apple-macosx26.0",
+        "-sdk",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+        "-module-cache-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-review/scratch/module-cache",
+        "-D",
+        "INSTRUMENTED",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation/derivative/SettingsFailureDiagnostic.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation/derivative/DiagnosticTransport.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-review/scratch/derivative/main.swift",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-review/scratch/derivative/controls"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-review/scratch/derivative/controls",
+        "completed-callback"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "stdout": "REVIEW_CONTROL {\"case\":\"completed-callback\",\"passed\":true,\"requests\":1}\n"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-review/scratch/derivative/controls",
+        "clipped-timeout"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "stdout": "MIXER_SETTINGS_FIRST_FAILURE {\"absoluteDeadlineUptime\":941288.67195437511,\"actualAllowanceSeconds\":0.019985833438113332,\"beginUptime\":941288.65196854167,\"branch\":\"semaphore-expiration\",\"chunkCount\":652,\"chunkIndex\":651,\"endUptime\":941288.68597283342,\"errorCode\":null,\"generation\":\"12345678-1234-4234-8234-1234567890ab\",\"kind\":\"chunk\",\"overallDeadlineClipped\":true,\"requestOrdinal\":10,\"schema\":1,\"sequence\":9,\"slot\":\"settings-2500-png\",\"stage\":null,\"start\":false,\"status\":null,\"taskIdentifier\":1}\nREVIEW_CONTROL {\"case\":\"clipped-timeout\",\"passed\":true,\"requests\":1}\n"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-review/scratch/derivative/controls",
+        "identity-boundaries"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "stdout": "REVIEW_CONTROL {\"case\":\"identity-boundaries\",\"passed\":true,\"records\":16}\n"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-review/scratch/derivative/controls",
+        "sink-failure-before-output"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "stdout": "REVIEW_CONTROL {\"case\":\"sink-failure-before-output\",\"passed\":true,\"sinkCalls\":1}\n"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-failure-instrumentation-review/scratch/derivative/controls",
+        "reentrant-sink"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "stdout": "REVIEW_CONTROL {\"case\":\"reentrant-sink\",\"passed\":true,\"sinkCalls\":1}\n"
+    }
+  ],
+  "controls": [
+    {
+      "case": "completed-callback",
+      "diagnostics": [],
+      "result": {
+        "case": "completed-callback",
+        "passed": true,
+        "requests": 1
+      },
+      "variant": "original"
+    },
+    {
+      "case": "clipped-timeout",
+      "diagnostics": [],
+      "result": {
+        "case": "clipped-timeout",
+        "passed": true,
+        "requests": 1
+      },
+      "variant": "original"
+    },
+    {
+      "case": "completed-callback",
+      "diagnostics": [],
+      "result": {
+        "case": "completed-callback",
+        "passed": true,
+        "requests": 1
+      },
+      "variant": "derivative"
+    },
+    {
+      "case": "clipped-timeout",
+      "diagnostics": [
+        {
+          "absoluteDeadlineUptime": 941288.6719543751,
+          "actualAllowanceSeconds": 0.019985833438113332,
+          "beginUptime": 941288.6519685417,
+          "branch": "semaphore-expiration",
+          "chunkCount": 652,
+          "chunkIndex": 651,
+          "endUptime": 941288.6859728334,
+          "errorCode": null,
+          "generation": "12345678-1234-4234-8234-1234567890ab",
+          "kind": "chunk",
+          "overallDeadlineClipped": true,
+          "requestOrdinal": 10,
+          "schema": 1,
+          "sequence": 9,
+          "slot": "settings-2500-png",
+          "stage": null,
+          "start": false,
+          "status": null,
+          "taskIdentifier": 1
+        }
+      ],
+      "result": {
+        "case": "clipped-timeout",
+        "passed": true,
+        "requests": 1
+      },
+      "variant": "derivative"
+    },
+    {
+      "case": "identity-boundaries",
+      "diagnostics": [],
+      "result": {
+        "case": "identity-boundaries",
+        "passed": true,
+        "records": 16
+      },
+      "variant": "derivative"
+    },
+    {
+      "case": "sink-failure-before-output",
+      "diagnostics": [],
+      "result": {
+        "case": "sink-failure-before-output",
+        "passed": true,
+        "sinkCalls": 1
+      },
+      "variant": "derivative"
+    },
+    {
+      "case": "reentrant-sink",
+      "diagnostics": [],
+      "result": {
+        "case": "reentrant-sink",
+        "passed": true,
+        "sinkCalls": 1
+      },
+      "variant": "derivative"
+    }
+  ],
+  "executions": 7,
+  "focusedGroups": 5,
+  "observedUTC": "2026-10-25T04:28:48.730134+00:00",
+  "packetVerification": {
+    "acceptedDiagnosisMembersVerified": 10,
+    "exactSourceBoundaryVerified": true,
+    "gaAccepted": false,
+    "handoffSHA256": "d637e80716b9407028f059dd44673e09cd74f536d7bec2909fa02a0da5b40190",
+    "hostControlsPassed": 19,
+    "membersVerified": 26,
+    "nativeRetrySelected": false,
+    "nativeRuntimeExecuted": false,
+    "retainedAttempts": 4,
+    "schema": 1,
+    "verified": true,
+    "writesPerformed": 0
+  },
+  "passed": true,
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "reviewSource": {
+    "bytes": 7307,
+    "sha256": "6f3e347958d1cc1b7b3db62949068d44938cbd2f7f2db95a3c0edd2c0f0e4f0f"
+  },
+  "runnerSource": {
+    "bytes": 6629,
+    "sha256": "f28ede157931a1f39fb46cc2b4d8438885c7f2ba2c4dca010082b0ba8837854b"
+  },
+  "schema": 1,
+  "scope": "Frozen packet verification and five focused independent host groups; no native execution or queries",
+  "scratchAbsent": true,
+  "sdk": {
+    "path": "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+    "settings": {
+      "bytes": 7774,
+      "sha256": "f8d005f09381389167f9e0aeaa169bc9e7dff162ef22ca2fd8e98df7ff1acafe"
+    }
+  },
+  "swiftTool": {
+    "bytes": 171036592,
+    "path": "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+    "sha256": "2ed38571e92c0283091838c1649e27650ad9c99950288e883c7b2dc6c4ce89fb"
+  }
+}

@@ -1,0 +1,130 @@
+TAP version 13
+# Subtest: Linux basename comm accepts only canonical installed executable and vnode
+ok 1 - Linux basename comm accepts only canonical installed executable and vnode
+  ---
+  duration_ms: 1.086917
+  type: 'test'
+  ...
+# Subtest: wrong owner is never an executable candidate
+ok 2 - wrong owner is never an executable candidate
+  ---
+  duration_ms: 0.380041
+  type: 'test'
+  ...
+# Subtest: same basename at a different executable path cannot authorize a kill
+ok 3 - same basename at a different executable path cannot authorize a kill
+  ---
+  duration_ms: 0.097375
+  type: 'test'
+  ...
+# Subtest: same path with a different executable vnode cannot authorize a kill
+ok 4 - same path with a different executable vnode cannot authorize a kill
+  ---
+  duration_ms: 0.081875
+  type: 'test'
+  ...
+# Subtest: one exact candidate may coexist with a readable different direct child
+ok 5 - one exact candidate may coexist with a readable different direct child
+  ---
+  duration_ms: 0.1715
+  type: 'test'
+  ...
+# Subtest: missing candidate fails closed
+ok 6 - missing candidate fails closed
+  ---
+  duration_ms: 0.062875
+  type: 'test'
+  ...
+# Subtest: multiple exact candidates fail closed
+ok 7 - multiple exact candidates fail closed
+  ---
+  duration_ms: 0.125
+  type: 'test'
+  ...
+# Subtest: duplicate candidate PID fails closed
+ok 8 - duplicate candidate PID fails closed
+  ---
+  duration_ms: 0.061583
+  type: 'test'
+  ...
+# Subtest: unreadable or vanished candidate exe fails closed even with another exact match
+ok 9 - unreadable or vanished candidate exe fails closed even with another exact match
+  ---
+  duration_ms: 0.349791
+  type: 'test'
+  ...
+# Subtest: missing or unreadable installed executable fails closed
+ok 10 - missing or unreadable installed executable fails closed
+  ---
+  duration_ms: 0.357084
+  type: 'test'
+  ...
+# Subtest: deleted proc executable target fails closed
+ok 11 - deleted proc executable target fails closed
+  ---
+  duration_ms: 0.121334
+  type: 'test'
+  ...
+# Subtest: unreadable executable vnode fails closed
+ok 12 - unreadable executable vnode fails closed
+  ---
+  duration_ms: 0.066541
+  type: 'test'
+  ...
+# Subtest: Darwin retains direct-parent exact full-path comm selection
+ok 13 - Darwin retains direct-parent exact full-path comm selection
+  ---
+  duration_ms: 0.211708
+  type: 'test'
+  ...
+# Subtest: unsupported platform fails closed
+ok 14 - unsupported platform fails closed
+  ---
+  duration_ms: 0.05
+  type: 'test'
+  ...
+# Subtest: recheck losing the direct parent sends no signal
+ok 15 - recheck losing the direct parent sends no signal
+  ---
+  duration_ms: 0.631917
+  type: 'test'
+  ...
+# Subtest: recheck with a different exact PID sends no signal
+ok 16 - recheck with a different exact PID sends no signal
+  ---
+  duration_ms: 0.123667
+  type: 'test'
+  ...
+# Subtest: recheck becoming unreadable sends no signal
+ok 17 - recheck becoming unreadable sends no signal
+  ---
+  duration_ms: 0.068334
+  type: 'test'
+  ...
+# Subtest: recheck changing installed and running vnode sends no signal
+ok 18 - recheck changing installed and running vnode sends no signal
+  ---
+  duration_ms: 0.066292
+  type: 'test'
+  ...
+# Subtest: two matching observations send exactly SIGKILL to the exact owned PID
+ok 19 - two matching observations send exactly SIGKILL to the exact owned PID
+  ---
+  duration_ms: 0.058625
+  type: 'test'
+  ...
+# Subtest: live host identity kills and reaps only this test's exact direct child
+ok 20 - live host identity kills and reaps only this test's exact direct child
+  ---
+  duration_ms: 91.942375
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 100.359166

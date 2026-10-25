@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "status": "source-review-gap-to-repair-before-component-acceptance",
+  "reviewedSourceSHA256": "1153fd613303d583d1b52a3d2ce99d6a2396e93b16c1ba5cfa0f5898e88e796d",
+  "priorRun": "runs/20261025T041703772Z",
+  "finding": "A noncooperative timeout retained the unresolved task slot, but eventual settlement only cleared it. Repeated known late unavailable/rejected outcomes could leave delivery failures/backoff unchanged.",
+  "requiredRepair": "Retain exact-ticket settled outcomes and apply bounded finish CAS during future scheduled invocations, without letting an unavailable shard prevent healthy-shard progress.",
+  "priorRuntimeTestsDoNotCoverThisFinding": true
+}

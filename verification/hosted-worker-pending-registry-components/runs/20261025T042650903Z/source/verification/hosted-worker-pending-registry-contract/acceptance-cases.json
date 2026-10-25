@@ -1,0 +1,427 @@
+{
+  "schema_version": 1,
+  "status": "definitions-only-runtime-pending",
+  "required_runtime": "Actual current controller code in cross-DO workerd SQLite storage; synthetic clock/provider; excluded driver; no public HTTP during scheduled recovery phase.",
+  "case_fields": "Fault boundaries name candidate hooks to add. Required observations must be asserted against durable storage and independently observable provider/claim call history, not a model self-report.",
+  "cases": [
+    {
+      "id": "registration_precommit",
+      "group": "discovery",
+      "setup": "Fresh valid A identity; no operation row or registry record.",
+      "fault": "register.before_sync",
+      "actions": [
+        "Issue authenticated A ensure; interrupt registry durability before ACK.",
+        "Restart both DOs and read exact storage."
+      ],
+      "required": [
+        "No operation row/effect/provider call/claim before durable registration acknowledgement.",
+        "At most one pending A registry record; uncertain registration result cannot authorize work."
+      ]
+    },
+    {
+      "id": "registration_lost_ack",
+      "group": "discovery",
+      "setup": "Fresh A.",
+      "fault": "register.after_sync_before_ack",
+      "actions": [
+        "Drop registration ACK; retry same identity after restart."
+      ],
+      "required": [
+        "Same stable record ID, allocation index, shard and identity bytes.",
+        "One permanent allocation; no double operation or launch."
+      ]
+    },
+    {
+      "id": "registration_orphan",
+      "group": "discovery",
+      "setup": "A registered at tracked version 0.",
+      "fault": "command.after_registration_before_local_intent",
+      "actions": [
+        "Kill operation; disable public HTTP and operation alarms.",
+        "Invoke scheduled audit twice; later issue independent valid authenticated A command."
+      ],
+      "required": [
+        "Scheduled recovery returns empty_orphan without creating an operation row/effect/guard.",
+        "A stays pending and occupies its permanent slot.",
+        "Later command must independently pass current immutable/guard/clock checks."
+      ]
+    },
+    {
+      "id": "intent_track_crash_gap",
+      "group": "discovery",
+      "setup": "A pre-registered; local intent and outbox committed.",
+      "fault": "command.after_local_sync_before_track",
+      "actions": [
+        "Kill workerd before track/alarm; restart with public HTTP disabled and alarm set/retries faulted.",
+        "Invoke only independent scheduled event."
+      ],
+      "required": [
+        "A is found through earlier durable registration.",
+        "Existing outbox/intent replayed; no new authority fabricated.",
+        "Provider call can occur only after durable intent barrier plus current final authority check."
+      ]
+    },
+    {
+      "id": "track_lost_ack",
+      "group": "ordering",
+      "setup": "A local intent version 9007199254740993; registry accepts its exact projection.",
+      "fault": "track.after_sync_before_ack",
+      "actions": [
+        "Drop ACK; restart and replay outbox."
+      ],
+      "required": [
+        "Exact equal-version retry returns duplicate.",
+        "No number rounding; local outbox clears only matching exact version/projection."
+      ]
+    },
+    {
+      "id": "track_older_ack_cas",
+      "group": "ordering",
+      "setup": "A outbox v9007199254740993 in flight; newer command writes v9007199254740994.",
+      "fault": "track.hold_ack",
+      "actions": [
+        "Deliver older ACK after newer outbox commit; flush newest."
+      ],
+      "required": [
+        "Old ACK cannot erase new outbox.",
+        "Registry and local ACK watermarks never decrease."
+      ]
+    },
+    {
+      "id": "track_conflict_and_stale",
+      "group": "ordering",
+      "setup": "Registry holds exact A v9007199254740994 projection.",
+      "fault": "none",
+      "actions": [
+        "Send older version, equal-version changed projection, then same-key different identity/hash/generation."
+      ],
+      "required": [
+        "Older request is stale without mutation.",
+        "Equal-version conflict and identity conflict fail closed; no second allocation or provider call."
+      ]
+    },
+    {
+      "id": "track_newer_registry_than_local",
+      "group": "restore",
+      "setup": "Registry holds A positive version above restored local row.",
+      "fault": "fixture.restore_local_older",
+      "actions": [
+        "Call recoverKnown and ordinary authenticated command."
+      ],
+      "required": [
+        "Retained registry watermark is not overwritten.",
+        "Operation is quarantined; no launch/claim or reconstruction of clock history."
+      ]
+    },
+    {
+      "id": "effect_barrier_final_authority",
+      "group": "ordering",
+      "setup": "A prepared launch/claim has exact registry barrier version.",
+      "fault": "barrier.after_registry_ack",
+      "actions": [
+        "Change owner/revision/desired stop, immutable identity or qualified clock while awaiting barrier.",
+        "Release and attempt final dispatch/grant."
+      ],
+      "required": [
+        "Every changed current authority/identity/time check denies new launch/grant.",
+        "Clock-only final history write creates later outbox without an infinite flush/sample loop.",
+        "Claim has no await after final current-state transaction/output gate."
+      ]
+    },
+    {
+      "id": "dispatch_uncertain_no_retry",
+      "group": "safety",
+      "setup": "Registered A with durable launch-dispatched marker.",
+      "fault": "effect.after_dispatch_sync_before_provider_or_ack",
+      "actions": [
+        "Kill before call, after call and after remote effect in separate fresh fixtures.",
+        "Audit recovery with provider initially absent then delayed inert/running."
+      ],
+      "required": [
+        "Never clear launch_dispatched or launch a replacement.",
+        "Reconcile original identity only; retain ambiguity until sufficient proof."
+      ]
+    },
+    {
+      "id": "claim_consumption_barrier",
+      "group": "safety",
+      "setup": "A inert supervisor with unissued claim.",
+      "fault": "claim.after_consume_before_registry_ack",
+      "actions": [
+        "Lose registry ACK or crash; retry claim after restart; then deliver stop."
+      ],
+      "required": [
+        "No grant before consumed-claim barrier ACK and V2 final current identity/time check.",
+        "Consumed claim is never reset and lost grant never produces second grant.",
+        "Audit itself never calls claim."
+      ]
+    },
+    {
+      "id": "stop_registry_outage",
+      "group": "safety",
+      "setup": "A already registered with committed desired stop and owned unresolved work; clock unqualified.",
+      "fault": "registry.unavailable",
+      "actions": [
+        "Invoke alarm and identity-only audit recovery.",
+        "Restore registry; flush stop/terminal outbox."
+      ],
+      "required": [
+        "Committed stop still reaches original provider cleanup with unavailable registry/clock.",
+        "No launch/claim/result acceptance or capacity release derives from registry.",
+        "Definitive terminal still requires unchanged descendants/ticket drain proof."
+      ]
+    },
+    {
+      "id": "first_stop_preregistration",
+      "group": "safety",
+      "setup": "Fresh B identity; registry unavailable.",
+      "fault": "register.unavailable",
+      "actions": [
+        "Issue B first stop; recover registry and retry under independently live guard."
+      ],
+      "required": [
+        "No initial operation row/effect before preregistration.",
+        "After registration, persisted stop is permanent and ensure cannot reopen it."
+      ]
+    },
+    {
+      "id": "terminal_outbox_lost_ack",
+      "group": "retention",
+      "setup": "A terminal accepted only after definitive drain; local terminal outbox committed.",
+      "fault": "terminal.after_local_sync_then_after_track_sync_before_ack",
+      "actions": [
+        "Crash at both boundaries in fresh fixtures; restart/audit; issue later ensure/query."
+      ],
+      "required": [
+        "Registry remains pending until matching terminal track commits.",
+        "Terminal digest uses exact local durable bytes and no result body enters registry.",
+        "Terminal receipt/identity/operation safety state remain permanent; no reactivation."
+      ]
+    },
+    {
+      "id": "terminal_stale_finish",
+      "group": "retention",
+      "setup": "A wake in flight, then newer permanent terminal track commits.",
+      "fault": "wake.hold_reply",
+      "actions": [
+        "Deliver old pending/failed wake reply and higher-version nonterminal track."
+      ],
+      "required": [
+        "No old reply or newer nonterminal projection can reopen quiescent terminal identity.",
+        "Terminal state and retention slot remain unchanged."
+      ]
+    },
+    {
+      "id": "page_fairness_wrap",
+      "group": "audit",
+      "setup": "All 16 buckets have >32 pending identities; mixed quiet terminal records, attention rows and allocations at 1/4096.",
+      "fault": "none",
+      "actions": [
+        "Invoke repeated scheduled runs with no public HTTP; capture each durable cursor.",
+        "Interrupt runs after a partial page and restart."
+      ],
+      "required": [
+        "At most 32 records/65536 bytes per page and no duplicates within page wrap.",
+        "Only examined rows advance per-shard cursor; shards rotate before any hot shard drains.",
+        "Every pending identity is eventually visited in a fixed progressing population; attention is included."
+      ]
+    },
+    {
+      "id": "eight_wake_cap",
+      "group": "bounds",
+      "setup": "At least nine eligible records on first shard and eligible records on every other shard.",
+      "fault": "none",
+      "actions": [
+        "Invoke one scheduled run then another."
+      ],
+      "required": [
+        "First run starts at most eight recovery RPCs and at most 16 pages/512 examinations.",
+        "Ninth record is retained for a later fair visit, with next shard persisted.",
+        "Counters include failed and timed-out starts."
+      ]
+    },
+    {
+      "id": "page_byte_cap",
+      "group": "bounds",
+      "setup": "Maximum legal canonical identities and closed delivery metadata; enough records to exceed byte cap before 32.",
+      "fault": "none",
+      "actions": [
+        "Read a page and continue from last examined index."
+      ],
+      "required": [
+        "Encoded page never exceeds 65536 bytes; no unbounded toArray/all-registry scan.",
+        "Byte truncation cannot skip unreturned/unexamined rows or break wrap fairness."
+      ]
+    },
+    {
+      "id": "concurrent_audit_and_cas",
+      "group": "audit",
+      "setup": "One fixed coordinator; A scan version in flight.",
+      "fault": "audit.hold_rpc_then_interrupt",
+      "actions": [
+        "Invoke concurrent duplicate schedule; advance A track version while old reservation reply is held.",
+        "Restart coordinator and deliver old reservation completion."
+      ],
+      "required": [
+        "Live coordinator starts one unresolved wake/run; duplicate invocation reports busy.",
+        "Durable run/reservation CAS rejects stale completion.",
+        "Interrupted run remains a receipt; no assumption old RPC was cancelled; duplicate recovery cannot duplicate launch/grant."
+      ]
+    },
+    {
+      "id": "audit_retry_attention_revisit",
+      "group": "audit",
+      "setup": "A recovery keeps failing or returns empty_orphan; other records progress.",
+      "fault": "wake.repeated_unavailable",
+      "actions": [
+        "Run enough fair visits to cross failure 8 and saturate 32, then recover A."
+      ],
+      "required": [
+        "needs_attention set at eight, failures saturate32, skip_visits bounded0..7.",
+        "A remains pending and attempts automatically resume at least every eighth visit.",
+        "Recovery needs no customer request or manual safety-state reset; successful delivery resets delivery backoff.",
+        "scan_due is read-only for delivery/backoff metadata; only reserve_wake decrements skip_visits once per run/record; duplicate scans/reservations cannot double decrement."
+      ]
+    },
+    {
+      "id": "audit_unresolved_timeout",
+      "group": "bounds",
+      "setup": "First wake promise ignores cancellation and remains unresolved; at least eight other eligible records.",
+      "fault": "wake.noncooperative",
+      "actions": [
+        "Invoke audit; expire 2500ms caller wait; observe until budget completion then settle held task."
+      ],
+      "required": [
+        "No second wake starts in that invocation while task unresolved.",
+        "Timeout is unknown, not cancellation proof; bounded receipt/attention and retained pending identity.",
+        "Owned task cleanup is independently observed or explicitly failed, never reported as clean from timeout alone.",
+        "All page/reserve/finish waits count toward the same24000ms invocation budget; reserve/finish timeout retains pending/unknown reservation, never fabricated cancellation or success."
+      ]
+    },
+    {
+      "id": "registry_shard_outage",
+      "group": "availability",
+      "setup": "One fixed shard unavailable; others have pending operations, including committed stops.",
+      "fault": "shard.scan_unavailable",
+      "actions": [
+        "Run schedules across wrap; restore shard and repeat."
+      ],
+      "required": [
+        "Failed shard row cursor retained; next-shard cursor advances; other shards progress.",
+        "Failed registration/track cannot authorize new effect/grant.",
+        "Restored shard's pending records remain discoverable without customer HTTP."
+      ]
+    },
+    {
+      "id": "capacity_exact_profile",
+      "group": "bounds",
+      "setup": "Synthetic valid identities selected for one canonical shard, using fixed actual limit4096.",
+      "fault": "none",
+      "actions": [
+        "Register4096 identities; retry last; register4097th new identity.",
+        "Audit existing records, terminal replay and committed-stop recovery at capacity."
+      ],
+      "required": [
+        "First4096 permanent slots allocated once; duplicate registration succeeds without allocation.",
+        "4097th fails before operation allocation/mutation; no arbitrary/fallback shard.",
+        "No eviction/TTL/delete/reuse; existing audit/stop/terminal behavior continues."
+      ]
+    },
+    {
+      "id": "canonical_shards_identity",
+      "group": "codec",
+      "setup": "Source-bound ASCII/Unicode/quoting identities plus deterministic fixtures for first hex digits0..f.",
+      "fault": "none",
+      "actions": [
+        "Recompute current operationKey and versioned identity tuple; request caller-selected shard/generation variations."
+      ],
+      "required": [
+        "All16 buckets map exactly from first lowercase operationKey nibble.",
+        "Same immutable key conflicting bytes rejected; no normalization or float conversion.",
+        "Unknown/missing keys/oversize fields and caller shard routing rejected."
+      ]
+    },
+    {
+      "id": "missing_positive_ledger",
+      "group": "restore",
+      "setup": "Registry A tracked positive version, operation row missing; separate B version0 orphan.",
+      "fault": "fixture.missing_operation_storage",
+      "actions": [
+        "Recover A and B; issue later A command."
+      ],
+      "required": [
+        "A gets bounded persistent quarantine fence without synthetic operation/guard; new work unavailable.",
+        "B returns empty_orphan and remains pending; neither wake creates an operation."
+      ]
+    },
+    {
+      "id": "generation_namespace_restore",
+      "group": "restore",
+      "setup": "A consumed claim/stop in current namespace; registry or operation generation differs or storage rolled back.",
+      "fault": "fixture.wrong_generation_or_restore",
+      "actions": [
+        "Attempt scheduled recovery, registered command and enrollment."
+      ],
+      "required": [
+        "No fallback namespace, reset, replacement or quarantine clearing.",
+        "Matching two restored copies is not claimed nonrollbackable authority.",
+        "Original safety identities retained; independent restore authority remains pending."
+      ]
+    },
+    {
+      "id": "schema_migration_enrollment",
+      "group": "restore",
+      "setup": "Actual schema1/schema2 rows covering terminal, desired stop, launch-dispatched and consumed claim states.",
+      "fault": "none",
+      "actions": [
+        "Migrate to3 and explicitly enroll known matching identities; attempt enrollment of missing/wrong identity."
+      ],
+      "required": [
+        "Preserve every V2 clock-floor/safety/result field; quarantine new effects.",
+        "Existing stop can still enforce cleanup; enrollment cannot clear quarantine or create missing row.",
+        "No namespace enumeration or claimed complete legacy discovery."
+      ]
+    },
+    {
+      "id": "qualified_clock_unchanged",
+      "group": "safety",
+      "setup": "Registered A pending intent with stale/expiry-boundary/backward/unqualified clock cases.",
+      "fault": "clock.synthetic_variants",
+      "actions": [
+        "Audit/recover then independently request claim."
+      ],
+      "required": [
+        "No registry projection/ticket changes lease/clock floor or grants authority.",
+        "All frozen V2 final-time/rollback behaviors remain; definite deadline stop only under existing lower-bound rule."
+      ]
+    },
+    {
+      "id": "counter_exhaustion",
+      "group": "bounds",
+      "setup": "State/run/wake TEXT sequence at9223372036854775807; failure counter32.",
+      "fault": "fixture.counter_max",
+      "actions": [
+        "Try transitions/reservation/run; inspect restart state."
+      ],
+      "required": [
+        "Overflow fails closed without wrap, erasure, replacement identity or partial SQL commit.",
+        "Failure counter remains32; permanent pending/terminal safety record retained with attention."
+      ]
+    },
+    {
+      "id": "production_closure_and_cleanup",
+      "group": "integration",
+      "setup": "Candidate production build and excluded three-class fixture runtime.",
+      "fault": "both_success_and_failed_case_cleanup",
+      "actions": [
+        "Run existing20 identity controls and71 controller groups plus all registry cases.",
+        "Audit compiled import closure, credentials/source sinks and owned storage/tasks/processes/EOF."
+      ],
+      "required": [
+        "No new dependency or test clock/provider/control in production import closure.",
+        "Every command/source/output/time/version/cleanup is bound in fresh receipt.",
+        "No unrelated process/storage mutation; deployed/provider/clock/restore/native/GA gates remain unpassed."
+      ]
+    }
+  ]
+}

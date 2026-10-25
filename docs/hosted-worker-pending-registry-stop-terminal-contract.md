@@ -1,0 +1,11 @@
+# Stop cleanup and terminal admission
+
+This clarification preserves the selected pending-registry contract's distinction between enforcing an already committed stop and declaring the operation drained. Registry or qualified-clock delivery failure must never prevent owned stop/cleanup, but that exception does not itself admit a stopped/completed terminal observation.
+
+A terminal transition still requires the exact current effect and immutable resource, current durable desired-stop state, and an actual provider observation proving absence, descendants gone and every launch settled. In addition, the operation must retain its matching registration, have the exact stop effect barrier covered by the registry acknowledgement watermark, and accept a valid monotonic qualified clock sample. A valid expired run guard does not prevent cleanup completion: terminal admission does not require renewing or extending run authority. A missing/conflicting identity or permanent quarantine fence is not cleared by cleanup evidence.
+
+If those checks are unavailable, cleanup may finish physically while the ledger remains stop-pending with its latest outbox and next recovery hint. No terminal/drained response or capacity-release authority is synthesized. A later recovery may finish admission using the existing safe cleanup/reconciliation path once its delivery and clock checks pass. This adds no provider action per invocation, no retry loop, no renewed launch/claim permission and no result acceptance during outage.
+
+Terminal commit and track remain separate: once admitted, exact terminal bytes and the latest outbox commit atomically; terminal tracking may later lose its acknowledgement and replay idempotently. The registry becomes quiescent only through matching terminal track. The prior controller's normal stop proof remains mandatory; registry acknowledgement is only a delivery barrier.
+
+The isolated Engine/Ledger candidate must cover registry outage, qualified-clock outage, expired run authority with restored valid clock, stale/conflicting identity and lost terminal acknowledgement with actual workerd/SQLite controls before integration. This contract selects behavior; it records no runtime pass or deployed qualification.

@@ -1,0 +1,157 @@
+--- original/ToggleUITests.swift
++++ derivative/ToggleUITests.swift
+@@ -9,16 +9,34 @@
+     private var generation = ""
+     private var sequence = 0
+     private var transport = DiagnosticTransportState()
++    private let firstFailureDiagnostic = SettingsFirstFailureDiagnostic()
+     private let lock = NSRecursiveLock()
+     private final class Box: @unchecked Sendable { var data: Data?; var status: Int?; var error: Error? }
+     enum Failure: Error { case budget, bridge, upload, setup(String) }
+     private var now: Double { ProcessInfo.processInfo.systemUptime }
+     private func post(_ record: [String: Any]) throws -> [String: Any] {
+-        let remaining = try transport.begin(now: now)
++        var context = SettingsPostFailureContext(requestOrdinal: transport.requests + 1, beginUptime: now,
++                                                 absoluteDeadlineUptime: transport.deadline)
++        func diagnose(_ branch: SettingsPostFailureBranch, status: Int? = nil, errorCode: Int? = nil) {
++            firstFailureDiagnostic.record(record, context: context, endUptime: now, branch: branch, status: status, errorCode: errorCode)
++        }
++        let remaining: Double
++        do { remaining = try transport.begin(now: context.beginUptime) }
++        catch {
++            switch error {
++            case DiagnosticTransportFailure.deadline: diagnose(.beginDeadline)
++            case DiagnosticTransportFailure.requestLimit: diagnose(.beginRequestLimit)
++            default: diagnose(.beginPriorFailure)
++            }
++            throw error
++        }
++        context.actualAllowanceSeconds = remaining
+         let env = ProcessInfo.processInfo.environment
+-        guard let base = env["MIXER_BRIDGE_URL"], let cap = env["MIXER_BRIDGE_CAPABILITY"], let url = URL(string: base + "/evaluate") else { throw Failure.bridge }
+-        let body = try JSONSerialization.data(withJSONObject: ["settingsDiagnostic": record], options: [.sortedKeys])
+-        guard body.count <= 8192 else { throw Failure.upload }
++        guard let base = env["MIXER_BRIDGE_URL"], let cap = env["MIXER_BRIDGE_CAPABILITY"], let url = URL(string: base + "/evaluate") else { diagnose(.configuration); throw Failure.bridge }
++        let body: Data
++        do { body = try JSONSerialization.data(withJSONObject: ["settingsDiagnostic": record], options: [.sortedKeys]) }
++        catch { diagnose(.serialization, errorCode: (error as NSError).code); throw error }
++        guard body.count <= 8192 else { diagnose(.bodyLimit); throw Failure.upload }
+         var request = URLRequest(url: url, timeoutInterval: remaining)
+         request.httpMethod = "POST"; request.httpBody = body
+         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+@@ -27,9 +45,24 @@
+         let task = URLSession.shared.dataTask(with: request) { data, response, error in
+             box.data = data; box.status = (response as? HTTPURLResponse)?.statusCode; box.error = error; done.signal()
+         }
++        context.taskIdentifier = task.taskIdentifier
+         task.resume()
+-        guard done.wait(timeout: .now() + remaining) == .success else { task.cancel(); throw transport.latch(.network("request timeout within existing2second budget")) }
+-        return try transport.response(status: box.status, data: box.data, networkError: box.error.map { String(describing: $0) })
++        guard done.wait(timeout: .now() + remaining) == .success else {
++            task.cancel()
++            let originalFailure = transport.latch(.network("request timeout within existing2second budget"))
++            diagnose(.semaphoreExpiration)
++            throw originalFailure
++        }
++        do { return try transport.response(status: box.status, data: box.data, networkError: box.error.map { String(describing: $0) }) }
++        catch {
++            // Only the successful semaphore path reads the completed callback box.
++            switch error {
++            case DiagnosticTransportFailure.network: diagnose(.foundationError, status: box.status, errorCode: (box.error as NSError?)?.code)
++            case DiagnosticTransportFailure.http: diagnose(.httpRejection, status: box.status)
++            default: diagnose(.invalidResponse, status: box.status)
++            }
++            throw error
++        }
+     }
+     func start() throws {
+         lock.lock(); defer { lock.unlock() }
+--- /dev/null
++++ derivative/SettingsFailureDiagnostic.swift
+@@ -0,0 +1,86 @@
++import Foundation
++
++/// Local-only, bounded metadata. Never retain or emit URL, headers, response text,
++/// snapshot/detail dictionaries, capability values, hashes, or payload bytes.
++struct SettingsPostFailureContext {
++    let requestOrdinal: Int
++    let beginUptime: Double
++    let absoluteDeadlineUptime: Double
++    var actualAllowanceSeconds: Double?
++    var taskIdentifier: Int?
++}
++
++enum SettingsPostFailureBranch: String {
++    case beginDeadline = "begin-deadline"
++    case beginRequestLimit = "begin-request-limit"
++    case beginPriorFailure = "begin-prior-failure"
++    case configuration, serialization
++    case bodyLimit = "body-limit"
++    case semaphoreExpiration = "semaphore-expiration"
++    case foundationError = "foundation-error"
++    case httpRejection = "http-rejection"
++    case invalidResponse = "invalid-response"
++}
++
++/// This latch is independent of, and cannot replace, DiagnosticTransportState's
++/// original failure. Select one record under a lock; never call into the bridge.
++final class SettingsFirstFailureDiagnostic: @unchecked Sendable {
++    private let lock = NSLock()
++    private var selected = false
++    private let emit: (String) throws -> Void
++    init(emit: @escaping (String) throws -> Void = { print($0) }) { self.emit = emit }
++
++    private static func integer(_ value: Any?, range: ClosedRange<Int>) -> Int? {
++        guard let value, type(of: value) == Int.self, let result = value as? Int,
++              range.contains(result) else { return nil }
++        return result
++    }
++    private static func generation(_ value: Any?) -> String? {
++        guard let value = value as? String, value.utf8.count == 36,
++              let uuid = UUID(uuidString: value), uuid.uuidString.lowercased() == value.lowercased() else { return nil }
++        return value
++    }
++    private static func slot(_ value: Any?) -> String? {
++        guard let value = value as? String, value.utf8.count == 16 || value.utf8.count == 17 else { return nil }
++        let parts = value.split(separator: "-", omittingEmptySubsequences: false)
++        guard parts.count == 3, parts[0] == "settings", parts[1].utf8.count == 4,
++              parts[1].utf8.allSatisfy({ (48...57).contains($0) }),
++              let number = Int(parts[1]), (1...2500).contains(number),
++              parts[2] == "ax" || parts[2] == "png" else { return nil }
++        return value
++    }
++    func record(_ record: [String: Any], context: SettingsPostFailureContext,
++                endUptime: Double, branch: SettingsPostFailureBranch,
++                status: Int? = nil, errorCode: Int? = nil) {
++        lock.lock()
++        guard !selected else { lock.unlock(); return }
++        selected = true
++        lock.unlock()
++        // Diagnostics are ancillary: every failure here is swallowed after the
++        // first selection, so it cannot replace the original error or retry.
++        let kinds = ["start", "mark", "observe", "chunk"]
++        let stages = ["settings-launched", "route-tap", "switch-action", "terminate-before", "terminate-after",
++                      "test-case-finished", "suite-finished", "bundle-finished", "route-search", "route-opened",
++                      "before-switch", "after-switch", "poll", "terminal"]
++        let kind = (record["kind"] as? String).flatMap { kinds.contains($0) ? $0 : nil }
++        let stage = (record["stage"] as? String).flatMap { stages.contains($0) ? $0 : nil }
++        func number(_ value: Double?) -> Any { value.flatMap { $0.isFinite ? $0 : nil }.map { $0 as Any } ?? NSNull() }
++        let values: [String: Any] = [
++            "schema": 1, "kind": kind as Any? ?? NSNull(), "start": kind == "start",
++            "generation": Self.generation(record["generation"]) as Any? ?? NSNull(),
++            "sequence": (kind == "start" ? 0 : Self.integer(record["sequence"], range: 1...2500)) as Any? ?? NSNull(),
++            "stage": stage as Any? ?? NSNull(), "slot": Self.slot(record["slot"]) as Any? ?? NSNull(),
++            "chunkIndex": Self.integer(record["index"], range: 0...651) as Any? ?? NSNull(),
++            "chunkCount": Self.integer(record["count"], range: 1...652) as Any? ?? NSNull(),
++            "requestOrdinal": context.requestOrdinal, "taskIdentifier": context.taskIdentifier as Any? ?? NSNull(),
++            "beginUptime": number(context.beginUptime), "endUptime": number(endUptime),
++            "absoluteDeadlineUptime": number(context.absoluteDeadlineUptime),
++            "actualAllowanceSeconds": number(context.actualAllowanceSeconds),
++            "overallDeadlineClipped": context.actualAllowanceSeconds.map { $0 < 2.0 } as Any? ?? NSNull(),
++            "branch": branch.rawValue, "status": status as Any? ?? NSNull(), "errorCode": errorCode as Any? ?? NSNull()
++        ]
++        guard let data = try? JSONSerialization.data(withJSONObject: values, options: [.sortedKeys]),
++              data.count <= 2048, let json = String(data: data, encoding: .utf8) else { return }
++        try? emit("MIXER_SETTINGS_FIRST_FAILURE " + json)
++    }
++}

@@ -1,0 +1,333 @@
+--- /dev/null
++++ b/hosted-worker-controller/src/pending-types.ts
+@@ -0,0 +1,33 @@
++import type {PendingIdentity,RegistrationReceipt,Projection,RecoveryDisposition,WakeTicket} from './public-contract.js';
++export const MAX=9223372036854775807n;
++export const encoder=new TextEncoder();
++export interface PendingConfig {generation:string;operationsNamespace:string;registryNamespace:string}
++export interface PendingEnv {MIXER_PENDING_CONFIG?:string;PENDING_REGISTRY:DurableObjectNamespace;PENDING_AUDIT:DurableObjectNamespace;OPERATIONS:DurableObjectNamespace}
++export function invalid():never{throw new Error('pending_invalid');}
++export function exact(v:unknown,keys:readonly string[]):Record<string,unknown>{if(!v||typeof v!=='object'||Array.isArray(v)||Object.keys(v).length!==keys.length||keys.some(k=>!Object.hasOwn(v,k)))invalid();return v as Record<string,unknown>;}
++export function hex(v:unknown,bits=256):string{if(typeof v!=='string'||v.length!==bits/4||!/^[0-9a-f]+$/.test(v))invalid();return v;}
++export function decimal(v:unknown):string{if(typeof v!=='string'||!/^(0|[1-9][0-9]{0,18})$/.test(v)||BigInt(v)>MAX)invalid();return v;}
++export function integer(v:unknown,min:number,max:number):number{if(typeof v!=='number'||!Number.isInteger(v)||v<min||v>max)invalid();return v;}
++export function principal(v:unknown):string{if(typeof v!=='string'||v.length<1||v.length>128||!/^[\x20-\x7e]+$/.test(v))invalid();return v;}
++export function config(env:PendingEnv):PendingConfig{const c=exact(JSON.parse(env.MIXER_PENDING_CONFIG??'null'),['generation','operationsNamespace','registryNamespace']);return {generation:hex(c.generation),operationsNamespace:principal(c.operationsNamespace),registryNamespace:principal(c.registryNamespace)};}
++export function registryName(c:PendingConfig,index:number):string{return JSON.stringify(['mixer-worker-pending-registry-v1',c.generation,c.operationsNamespace,c.registryNamespace,integer(index,0,15)]);}
++export function auditName(c:PendingConfig):string{return JSON.stringify(['mixer-worker-pending-audit-v1',c.generation,c.operationsNamespace,c.registryNamespace]);}
++export const randomId=():string=>Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,'0')).join('');
++export const sha=async(s:string):Promise<string>=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',encoder.encode(s))),n=>n.toString(16).padStart(2,'0')).join('');
++export function identityBytes(i:PendingIdentity):string{return JSON.stringify(['mixer-worker-pending-identity-v1',i.namespaceGeneration,i.environmentId,i.poolId,i.controllerId,i.platform,i.operationKey,i.operationId,i.immutableSha256]);}
++export function identityFromBytes(s:string):PendingIdentity{const v=JSON.parse(s) as string[];return {namespaceGeneration:v[1]!,environmentId:v[2]!,poolId:v[3]!,controllerId:v[4]!,platform:v[5]! as 'ios'|'android',operationKey:v[6]!,operationId:v[7]!,immutableSha256:v[8]!};}
++export async function identity(v:unknown,c:PendingConfig):Promise<{value:PendingIdentity;bytes:string;digest:string;shard:number}>{
++ const p=exact(v,['namespaceGeneration','environmentId','poolId','controllerId','platform','operationKey','operationId','immutableSha256']);
++ const i:PendingIdentity={namespaceGeneration:hex(p.namespaceGeneration),environmentId:principal(p.environmentId),poolId:principal(p.poolId),controllerId:principal(p.controllerId),platform:p.platform as 'ios'|'android',operationKey:hex(p.operationKey),operationId:hex(p.operationId),immutableSha256:hex(p.immutableSha256)};
++ if(i.namespaceGeneration!==c.generation||!['ios','android'].includes(i.platform))invalid();
++ const bytes=identityBytes(i);if(encoder.encode(bytes).length>2048)invalid();
++ if(await sha(JSON.stringify(['mixer-worker-controller-do-v1',i.environmentId,i.poolId,i.controllerId,i.operationId]))!==i.operationKey)invalid();
++ return {value:i,bytes,digest:await sha(bytes),shard:parseInt(i.operationKey[0]!,16)};
++}
++export function receipt(v:unknown,c:PendingConfig):RegistrationReceipt{const r=exact(v,['identityDigest','namespaceGeneration','recordId','shard','allocationIndex']);if(r.namespaceGeneration!==c.generation)invalid();return {identityDigest:hex(r.identityDigest),namespaceGeneration:hex(r.namespaceGeneration),recordId:hex(r.recordId,128),shard:integer(r.shard,0,15),allocationIndex:integer(r.allocationIndex,1,4096)};}
++export function projection(v:unknown):Projection{if(!v||typeof v!=='object')invalid();const p=v as Record<string,unknown>;if(p.kind==='pending'){exact(p,['kind','nextDueUs']);return {kind:'pending',nextDueUs:p.nextDueUs===null?null:decimal(p.nextDueUs)};}exact(p,['kind','nextDueUs','phase','evidenceSha256']);if(p.kind!=='terminal'||p.nextDueUs!==null||!['completed','stopped'].includes(p.phase as string))invalid();return {kind:'terminal',nextDueUs:null,phase:p.phase as 'completed'|'stopped',evidenceSha256:hex(p.evidenceSha256)};}
++export function ticket(v:unknown,c:PendingConfig):WakeTicket{const t=exact(v,['runId','wakeId','receipt','trackedVersion','attemptSequence']);return {runId:decimal(t.runId),wakeId:hex(t.wakeId,128),receipt:receipt(t.receipt,c),trackedVersion:decimal(t.trackedVersion),attemptSequence:decimal(t.attemptSequence)};}
++export function disposition(v:unknown):RecoveryDisposition{if(!v||typeof v!=='object')invalid();const d=v as Record<string,unknown>;if(d.status==='pending'){exact(d,['status','stateVersion']);return {status:'pending',stateVersion:decimal(d.stateVersion)};}if(d.status==='terminal'){exact(d,['status','stateVersion','projection']);const p=projection(d.projection);if(p.kind!=='terminal')invalid();return {status:'terminal',stateVersion:decimal(d.stateVersion),projection:p};}exact(d,['status']);if(!['empty_orphan','quarantined','busy','unavailable','conflict'].includes(d.status as string))invalid();return {status:d.status} as RecoveryDisposition;}
++export function same(a:unknown,b:unknown):boolean{return JSON.stringify(a)===JSON.stringify(b);}
++export function next(v:string):string{const n=BigInt(decimal(v))+1n;if(n>MAX)throw new Error('pending_exhausted');return String(n);}
++export async function wait<T>(promise:Promise<T>,ms:number):Promise<{ok:true;value:T}|{ok:false}>{let timer:ReturnType<typeof setTimeout>|undefined;try{return await Promise.race([promise.then(value=>({ok:true as const,value}),()=>({ok:false as const})),new Promise<{ok:false}>(resolve=>{timer=setTimeout(()=>resolve({ok:false}),ms);})]);}finally{if(timer!==undefined)clearTimeout(timer);}}
+--- /dev/null
++++ b/hosted-worker-controller/src/public-contract.ts
+@@ -0,0 +1,112 @@
++// Type-only proposed interface. No production implementation or test override.
++export type Decimal = string; // canonical 0..9223372036854775807, validated at runtime
++export type Hex64 = string;
++export type Hex128 = string;
++export interface PendingIdentity {
++  namespaceGeneration: Hex64;
++  environmentId: string;
++  poolId: string;
++  controllerId: string;
++  platform: "ios" | "android";
++  operationKey: Hex64;
++  operationId: Hex64;
++  immutableSha256: Hex64;
++}
++export interface RegistrationReceipt {
++  identityDigest: Hex64;
++  namespaceGeneration: Hex64;
++  recordId: Hex128;
++  shard: number; // internally recomputed 0..15; never caller-selected routing
++  allocationIndex: number; // 1..4096, permanent; no reuse
++}
++export type RegistrationResult =
++  | { status: "registered" | "duplicate"; receipt: RegistrationReceipt }
++  | { status: "unavailable" | "capacity" | "conflict" };
++export interface PendingProjection {
++  kind: "pending";
++  nextDueUs: Decimal | null; // exact hint only
++}
++export interface TerminalProjection {
++  kind: "terminal";
++  nextDueUs: null;
++  phase: "completed" | "stopped";
++  evidenceSha256: Hex64; // hash of exact durable local terminal JSON, no result body
++}
++export type Projection = PendingProjection | TerminalProjection;
++export interface TrackInput {
++  receipt: RegistrationReceipt;
++  stateVersion: Decimal;
++  projection: Projection;
++}
++export type TrackAck =
++  | { status: "accepted" | "duplicate"; stateVersion: Decimal }
++  | { status: "stale"; stateVersion: Decimal }
++  | { status: "unavailable" | "conflict" };
++export interface ScanCursor {
++  afterAllocationIndex: number; // 0..4096, bounded internal index
++}
++export interface ScannedPending {
++  identity: PendingIdentity;
++  receipt: RegistrationReceipt;
++  stateVersion: Decimal;
++  needsAttention: boolean;
++  skipVisits: number; // 0..7, never hides the row from scans
++}
++export interface PendingPage {
++  records: readonly ScannedPending[]; // <=32 and encoded page <=65536 bytes
++  wrapped: boolean;
++}
++export interface WakeTicket {
++  runId: Decimal;
++  wakeId: Hex128;
++  receipt: RegistrationReceipt;
++  trackedVersion: Decimal;
++  attemptSequence: Decimal;
++}
++export type WakeReservation =
++  | { status: "reserved"; ticket: WakeTicket }
++  | { status: "duplicate" | "stale" | "backoff" | "terminal" | "unavailable" };
++export type RecoveryDisposition =
++  | { status: "pending"; stateVersion: Decimal }
++  | { status: "terminal"; stateVersion: Decimal; projection: TerminalProjection }
++  | { status: "empty_orphan" | "quarantined" | "busy" | "unavailable" | "conflict" };
++export interface PendingRegistry {
++  register(identity: PendingIdentity): Promise<RegistrationResult>;
++  track(input: TrackInput): Promise<TrackAck>;
++}
++export interface PendingRegistryShard extends PendingRegistry {
++  // Read-only: never decrements backoff, reserves delivery or advances cursor.
++  scan_due(cursor: ScanCursor, limit: number): Promise<PendingPage>;
++  // Sole skipVisits decrement; duplicate (runId,recordId) cannot decrement twice.
++  reserve_wake(recordId: Hex128, expectedTrackVersion: Decimal, runId: Decimal): Promise<WakeReservation>;
++  finish_wake(ticket: WakeTicket, disposition: RecoveryDisposition): Promise<"accepted" | "stale" | "unavailable">;
++}
++export interface KnownOperationRecovery {
++  recoverKnown(identity: PendingIdentity, receipt: RegistrationReceipt, ticket: WakeTicket): Promise<RecoveryDisposition>;
++  // Maintenance can enroll only an already existing exact matching row.
++  // It never clears migration/restore/clock quarantine or constructs authority.
++  enrollExisting(identity: PendingIdentity): Promise<"enrolled" | "missing" | "conflict" | "unavailable">;
++}
++export interface AuditSummary {
++  status: "finished" | "bounded" | "busy" | "unavailable";
++  runId: Decimal | null;
++  pages: number; // <=16
++  examined: number; // <=512
++  wakesStarted: number; // <=8, including timeouts/failures
++  needsAttention: boolean;
++}
++export interface PendingAuditCoordinator {
++  runScheduled(): Promise<AuditSummary>;
++}
++export interface PersistedRegistryBarrier {
++  registration: RegistrationReceipt;
++  acknowledgedVersion: Decimal;
++  effectBarrierVersion: Decimal | null;
++  claimBarrierVersion: Decimal | null;
++}
++export interface CoalescedTrackOutbox {
++  stateVersion: Decimal;
++  nextDueUs: Decimal | null;
++  // Local bytes only; hash outside SQL transaction, never send bytes to registry.
++  terminal: null | { phase: "completed" | "stopped"; exactJson: string };
++}
+--- /dev/null
++++ b/hosted-worker-controller/src/registry-schema.sql
+@@ -0,0 +1,10 @@
++CREATE TABLE IF NOT EXISTS pending_registry_meta(singleton INTEGER PRIMARY KEY CHECK(singleton=1),version INTEGER NOT NULL CHECK(version=1),config TEXT NOT NULL,shard INTEGER NOT NULL CHECK(shard BETWEEN 0 AND 15),allocated INTEGER NOT NULL CHECK(allocated BETWEEN 0 AND 4096));
++CREATE TABLE IF NOT EXISTS pending_registry_record(
++ allocation_index INTEGER PRIMARY KEY CHECK(allocation_index BETWEEN 1 AND 4096),
++ operation_key TEXT NOT NULL UNIQUE,identity_bytes TEXT NOT NULL,identity_digest TEXT NOT NULL UNIQUE,record_id TEXT NOT NULL UNIQUE,
++ state_version TEXT NOT NULL,projection_json TEXT NOT NULL,pending INTEGER NOT NULL CHECK(pending IN(0,1)),
++ failures INTEGER NOT NULL CHECK(failures BETWEEN 0 AND 32),skip_visits INTEGER NOT NULL CHECK(skip_visits BETWEEN 0 AND 7),needs_attention INTEGER NOT NULL CHECK(needs_attention IN(0,1)),
++ attempt_sequence TEXT NOT NULL,last_run_id TEXT,last_visit TEXT CHECK(last_visit IS NULL OR last_visit IN('reserved','backoff')),
++ ticket_json TEXT,disposition_json TEXT
++);
++CREATE INDEX IF NOT EXISTS pending_registry_due ON pending_registry_record(pending,allocation_index);
+--- /dev/null
++++ b/hosted-worker-controller/src/pending-registry.ts
+@@ -0,0 +1,71 @@
++import {DurableObject} from 'cloudflare:workers';
++import schema from './registry-schema.sql';
++import type {PendingIdentity,RegistrationReceipt,RegistrationResult,TrackInput,TrackAck,ScanCursor,PendingPage,ScannedPending,WakeReservation,WakeTicket,RecoveryDisposition,PendingRegistryShard} from './public-contract.js';
++import {PendingEnv,PendingConfig,config,registryName,identity,identityFromBytes,receipt,projection,decimal,integer,hex,exact,same,next,randomId,ticket,disposition,encoder,wait} from './pending-types.js';
++interface Row extends Record<string,SqlStorageValue>{allocation_index:number;operation_key:string;identity_bytes:string;identity_digest:string;record_id:string;state_version:string;projection_json:string;pending:number;failures:number;skip_visits:number;needs_attention:number;attempt_sequence:string;last_run_id:string|null;last_visit:string|null;ticket_json:string|null;disposition_json:string|null}
++const initial=JSON.stringify({kind:'pending',nextDueUs:null});
++export class MixerPendingRegistryShard extends DurableObject<PendingEnv> implements PendingRegistryShard {
++ private c:PendingConfig|null=null;private shard=-1;private available=false;
++ constructor(ctx:DurableObjectState,env:PendingEnv){super(ctx,env);try{
++  const c=config(env);this.c=c;
++  for(let i=0;i<16;i++)if(ctx.id.equals(env.PENDING_REGISTRY.idFromName(registryName(c,i))))this.shard=i;
++  if(this.shard<0)throw new Error('pending_namespace');
++  ctx.storage.transactionSync(()=>{
++   const exists=ctx.storage.sql.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='pending_registry_meta'").toArray();
++   if(exists.length){const m=ctx.storage.sql.exec<{version:number;config:string;shard:number}>('SELECT version,config,shard FROM pending_registry_meta').toArray();if(m.length!==1||m[0]!.version!==1||m[0]!.config!==JSON.stringify(c)||m[0]!.shard!==this.shard)throw new Error('pending_schema_config');}
++   if(!exists.length&&ctx.storage.sql.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='pending_registry_record'").toArray().length)throw new Error('pending_schema_missing');
++   ctx.storage.sql.exec(schema);ctx.storage.sql.exec('INSERT OR IGNORE INTO pending_registry_meta(singleton,version,config,shard,allocated) VALUES(1,1,?,?,0)',JSON.stringify(c),this.shard);
++  });this.available=true;
++ }catch{this.available=false;}}
++ private row(id:string):Row|null{return this.ctx.storage.sql.exec<Row>('SELECT * FROM pending_registry_record WHERE record_id=?',id).toArray()[0]??null;}
++ private receipt(r:Row):RegistrationReceipt{return {identityDigest:r.identity_digest,namespaceGeneration:this.c!.generation,recordId:r.record_id,shard:this.shard,allocationIndex:r.allocation_index};}
++ private matches(r:Row,p:RegistrationReceipt):boolean{return same(this.receipt(r),p);}
++ private bounded(r:Row):void{if(encoder.encode(JSON.stringify(r)).length>4096)throw new Error('pending_record_limit');}
++ async register(value:PendingIdentity):Promise<RegistrationResult>{if(!this.available)return {status:'unavailable'};try{
++  const i=await identity(value,this.c!);if(i.shard!==this.shard)return {status:'conflict'};const id=randomId();
++  const result=this.ctx.storage.transactionSync<RegistrationResult>(()=>{
++   const old=this.ctx.storage.sql.exec<Row>('SELECT * FROM pending_registry_record WHERE operation_key=? OR identity_digest=?',i.value.operationKey,i.digest).toArray();
++   if(old.length)return old.length===1&&old[0]!.identity_bytes===i.bytes&&old[0]!.identity_digest===i.digest?{status:'duplicate',receipt:this.receipt(old[0]!)}:{status:'conflict'};
++   const n=this.ctx.storage.sql.exec<{allocated:number}>('SELECT allocated FROM pending_registry_meta WHERE singleton=1').toArray()[0]!.allocated;if(n>=4096)return {status:'capacity'};
++   this.ctx.storage.sql.exec('INSERT INTO pending_registry_record(allocation_index,operation_key,identity_bytes,identity_digest,record_id,state_version,projection_json,pending,failures,skip_visits,needs_attention,attempt_sequence) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',n+1,i.value.operationKey,i.bytes,i.digest,id,'0',initial,1,0,0,0,'0');
++   this.bounded(this.row(id)!);this.ctx.storage.sql.exec('UPDATE pending_registry_meta SET allocated=? WHERE singleton=1',n+1);return {status:'registered',receipt:this.receipt(this.row(id)!)};
++  });await this.ctx.storage.sync();return result;
++ }catch(error){return {status:error instanceof Error&&error.message==='pending_invalid'?'conflict':'unavailable'};}}
++ async track(input:TrackInput):Promise<TrackAck>{if(!this.available)return {status:'unavailable'};try{
++  const a=exact(input,['receipt','stateVersion','projection']),p=receipt(a.receipt,this.c!),version=decimal(a.stateVersion),body=JSON.stringify(projection(a.projection));
++  const result=this.ctx.storage.transactionSync<TrackAck>(()=>{const r=this.row(p.recordId);if(!r||!this.matches(r,p))return {status:'conflict'};
++   if(BigInt(version)<BigInt(r.state_version))return {status:'stale',stateVersion:r.state_version};
++   if(version===r.state_version)return body===r.projection_json?{status:'duplicate',stateVersion:version}:{status:'conflict'};
++   if(!r.pending)return {status:'conflict'};
++   this.ctx.storage.sql.exec('UPDATE pending_registry_record SET state_version=?,projection_json=?,pending=?,ticket_json=NULL,disposition_json=NULL WHERE record_id=?',version,body,projection(a.projection).kind==='terminal'?0:1,p.recordId);this.bounded(this.row(p.recordId)!);return {status:'accepted',stateVersion:version};});
++  await this.ctx.storage.sync();return result;
++ }catch(error){return {status:error instanceof Error&&error.message==='pending_invalid'?'conflict':'unavailable'};}}
++ async scan_due(cursor:ScanCursor,limit:number):Promise<PendingPage>{if(!this.available)throw new Error('pending_unavailable');exact(cursor,['afterAllocationIndex']);const after=integer(cursor.afterAllocationIndex,0,4096),count=integer(limit,1,32);const records:ScannedPending[]=[];let wrapped=false;
++  // Two bounded indexed iterators, never an all-record materialization or offset.
++  for(const tail of [true,false]){const rows=tail?this.ctx.storage.sql.exec<Row>('SELECT * FROM pending_registry_record WHERE pending=1 AND allocation_index>? ORDER BY allocation_index LIMIT ?',after,count):this.ctx.storage.sql.exec<Row>('SELECT * FROM pending_registry_record WHERE pending=1 AND allocation_index<=? ORDER BY allocation_index LIMIT ?',after,count-records.length);
++   for(const r of rows){const item:ScannedPending={identity:identityFromBytes(r.identity_bytes),receipt:this.receipt(r),stateVersion:r.state_version,needsAttention:r.needs_attention===1,skipVisits:r.skip_visits};const didWrap:boolean=wrapped||!tail;
++    if(encoder.encode(JSON.stringify({records:[...records,item],wrapped:didWrap})).length>65536)return {records,wrapped};records.push(item);wrapped=didWrap;if(records.length===count)return {records,wrapped};}
++  }return {records,wrapped};
++ }
++ async reserve_wake(recordId:string,expectedTrackVersion:string,runId:string):Promise<WakeReservation>{if(!this.available)return {status:'unavailable'};try{hex(recordId,128);decimal(expectedTrackVersion);decimal(runId);
++  const result=this.ctx.storage.transactionSync<WakeReservation>(()=>{const r=this.row(recordId);if(!r)return {status:'stale'};if(!r.pending)return {status:'terminal'};if(r.state_version!==expectedTrackVersion)return {status:'stale'};
++   if(r.last_run_id!==null&&BigInt(runId)<=BigInt(r.last_run_id))return {status:'duplicate'};
++   if(r.skip_visits>0){this.ctx.storage.sql.exec("UPDATE pending_registry_record SET skip_visits=skip_visits-1,last_run_id=?,last_visit='backoff' WHERE record_id=?",runId,recordId);return {status:'backoff'};}
++   const sequence=next(r.attempt_sequence),t:WakeTicket={runId,wakeId:randomId(),receipt:this.receipt(r),trackedVersion:r.state_version,attemptSequence:sequence};
++   this.ctx.storage.sql.exec("UPDATE pending_registry_record SET attempt_sequence=?,last_run_id=?,last_visit='reserved',ticket_json=?,disposition_json=NULL WHERE record_id=?",sequence,runId,JSON.stringify(t),recordId);this.bounded(this.row(recordId)!);return {status:'reserved',ticket:t};});await this.ctx.storage.sync();return result;
++ }catch(error){if(error instanceof Error&&error.message==='pending_exhausted'){try{this.ctx.storage.sql.exec('UPDATE pending_registry_record SET needs_attention=1 WHERE record_id=? AND state_version=? AND pending=1',recordId,expectedTrackVersion);await this.ctx.storage.sync();}catch{}}return {status:'unavailable'};}}
++ async finish_wake(value:WakeTicket,result:RecoveryDisposition):Promise<'accepted'|'stale'|'unavailable'>{if(!this.available)return 'unavailable';try{const t=ticket(value,this.c!),d=disposition(result);
++  const status=this.ctx.storage.transactionSync<'accepted'|'stale'>(()=>{const r=this.row(t.receipt.recordId);if(!r||!r.pending||!this.matches(r,t.receipt)||r.state_version!==t.trackedVersion||r.ticket_json!==JSON.stringify(t)||r.disposition_json!==null)return 'stale';
++   // Recovery dispositions update delivery only. Exact terminal tracking is the
++   // sole authority to make a registry record quiescent.
++   const success=(d.status==='pending'||d.status==='terminal')&&BigInt(d.stateVersion)>=BigInt(t.trackedVersion);
++   const failures=success?0:Math.min(32,r.failures+1),skip=success?0:Math.min(7,2**Math.min(failures,3)-1);
++   this.ctx.storage.sql.exec('UPDATE pending_registry_record SET failures=?,skip_visits=?,needs_attention=?,disposition_json=? WHERE record_id=?',failures,skip,failures>=8?1:0,JSON.stringify(d),t.receipt.recordId);this.bounded(this.row(t.receipt.recordId)!);return 'accepted';});await this.ctx.storage.sync();return status;
++ }catch{return 'unavailable';}}
++}
++// Caller-side routing is fixed and independently validates full identity bytes.
++export class RegistryPort {
++ constructor(private env:PendingEnv){}
++ async register(i:PendingIdentity):Promise<RegistrationResult>{try{const c=config(this.env),v=await identity(i,c),s=this.env.PENDING_REGISTRY.get(this.env.PENDING_REGISTRY.idFromName(registryName(c,v.shard))) as unknown as PendingRegistryShard;const r=await wait(s.register(v.value),250);if(!r.ok)return {status:'unavailable'};const result=r.value;if(result.status==='registered'||result.status==='duplicate'){exact(result,['status','receipt']);const p=receipt(result.receipt,c);if(p.identityDigest!==v.digest||p.shard!==v.shard)throw new Error('pending_receipt');return {status:result.status,receipt:p};}exact(result,['status']);if(!['unavailable','capacity','conflict'].includes(result.status))throw new Error('pending_registration');return result;}catch{return {status:'unavailable'};}}
++ async track(a:TrackInput):Promise<TrackAck>{try{const c=config(this.env);exact(a,['receipt','stateVersion','projection']);const p=receipt(a.receipt,c);decimal(a.stateVersion);projection(a.projection);const s=this.env.PENDING_REGISTRY.get(this.env.PENDING_REGISTRY.idFromName(registryName(c,p.shard))) as unknown as PendingRegistryShard;const r=await wait(s.track(a),250);if(!r.ok)return {status:'unavailable'};const result=r.value;if(result.status==='accepted'||result.status==='duplicate'||result.status==='stale'){exact(result,['status','stateVersion']);decimal(result.stateVersion);if(result.status!=='stale'&&result.stateVersion!==a.stateVersion)throw new Error('pending_ack');return result;}exact(result,['status']);if(!['unavailable','conflict'].includes(result.status))throw new Error('pending_ack');return result;}catch{return {status:'unavailable'};}}
++}
+--- /dev/null
++++ b/hosted-worker-controller/src/pending-audit.ts
+@@ -0,0 +1,92 @@
++import {DurableObject} from 'cloudflare:workers';
++import type {AuditSummary,PendingAuditCoordinator,PendingRegistryShard,KnownOperationRecovery,PendingPage,ScannedPending,RecoveryDisposition,WakeTicket} from './public-contract.js';
++import {PendingEnv,PendingConfig,config,auditName,registryName,next,wait,integer,exact,identity,receipt,decimal,ticket,disposition,same,encoder} from './pending-types.js';
++interface Meta extends Record<string,SqlStorageValue>{run_sequence:string;next_shard:number;cursors:string;current_json:string|null}
++interface Completion {ticket:WakeTicket;disposition:RecoveryDisposition}
++const schema=`CREATE TABLE IF NOT EXISTS pending_audit_meta(singleton INTEGER PRIMARY KEY CHECK(singleton=1),version INTEGER NOT NULL CHECK(version=1),config TEXT NOT NULL,run_sequence TEXT NOT NULL,next_shard INTEGER NOT NULL CHECK(next_shard BETWEEN 0 AND 15),cursors TEXT NOT NULL,current_json TEXT);
++CREATE TABLE IF NOT EXISTS pending_audit_summary(slot INTEGER PRIMARY KEY CHECK(slot BETWEEN 0 AND 31),receipt_json TEXT NOT NULL);
++CREATE TABLE IF NOT EXISTS pending_audit_completion(shard INTEGER PRIMARY KEY CHECK(shard BETWEEN 0 AND 15),value TEXT CHECK(value IS NULL OR length(CAST(value AS BLOB))<=2048));`;
++interface Current {summary:AuditSummary;interrupted:boolean}
++export class MixerPendingAuditCoordinator extends DurableObject<PendingEnv> implements PendingAuditCoordinator {
++ private c:PendingConfig|null=null;private available=false;private active=false;private unresolvedWake:Promise<unknown>|null=null;
++ private completionMemory:(Completion|null)[]=Array(16).fill(null);
++ constructor(ctx:DurableObjectState,env:PendingEnv){super(ctx,env);try{const c=config(env);this.c=c;if(!ctx.id.equals(env.PENDING_AUDIT.idFromName(auditName(c))))throw new Error('pending_namespace');
++  ctx.storage.transactionSync(()=>{const exists=ctx.storage.sql.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='pending_audit_meta'").toArray();if(exists.length){const rows=ctx.storage.sql.exec<{version:number;config:string}>('SELECT version,config FROM pending_audit_meta').toArray();if(rows.length!==1||rows[0]!.version!==1||rows[0]!.config!==JSON.stringify(c))throw new Error('pending_schema_config');}
++   ctx.storage.sql.exec(schema);ctx.storage.sql.exec("INSERT OR IGNORE INTO pending_audit_meta(singleton,version,config,run_sequence,next_shard,cursors) VALUES(1,1,?,'0',0,?)",JSON.stringify(c),JSON.stringify(Array(16).fill(0)));
++   for(let i=0;i<16;i++)ctx.storage.sql.exec('INSERT OR IGNORE INTO pending_audit_completion(shard,value) VALUES(?,NULL)',i);
++   const m=this.meta();decimal(m.run_sequence);integer(m.next_shard,0,15);this.cursors(m);for(const r of ctx.storage.sql.exec<{shard:number;value:string}>('SELECT shard,value FROM pending_audit_completion WHERE value IS NOT NULL LIMIT 16'))this.completion(r.value,r.shard);
++  });this.available=true;
++ }catch{this.available=false;}}
++ private meta():Meta{return this.ctx.storage.sql.exec<Meta>('SELECT run_sequence,next_shard,cursors,current_json FROM pending_audit_meta WHERE singleton=1').toArray()[0]!;}
++ private cursors(m:Meta):number[]{const a=JSON.parse(m.cursors) as unknown[];if(!Array.isArray(a)||a.length!==16)throw new Error('pending_cursors');return a.map(v=>integer(v,0,4096));}
++ private archive(current:string):void{const c=JSON.parse(current) as Current;const run=decimal(c.summary.runId);const slot=Number(BigInt(run)%32n);this.ctx.storage.sql.exec('INSERT INTO pending_audit_summary(slot,receipt_json) VALUES(?,?) ON CONFLICT(slot) DO UPDATE SET receipt_json=excluded.receipt_json',slot,current);}
++ private checkpoint(run:string,shard:number,cursor:number|undefined,s:AuditSummary,interrupted=false):boolean{return this.ctx.storage.transactionSync(()=>{const m=this.meta();if(m.run_sequence!==run)return false;const cursors=this.cursors(m);if(cursor!==undefined)cursors[shard]=cursor;this.ctx.storage.sql.exec('UPDATE pending_audit_meta SET next_shard=?,cursors=?,current_json=? WHERE singleton=1',(shard+1)%16,JSON.stringify(cursors),JSON.stringify({summary:s,interrupted}));return true;});}
++ private completion(bytes:string,shard:number):Completion{if(encoder.encode(bytes).length>2048)throw new Error('pending_completion_limit');const v=exact(JSON.parse(bytes),['ticket','disposition']);const t=ticket(v.ticket,this.c!);if(t.receipt.shard!==integer(shard,0,15))throw new Error('pending_completion_shard');const result={ticket:t,disposition:disposition(v.disposition)};if(JSON.stringify(result)!==bytes)throw new Error('pending_completion_bytes');return result;}
++ private completionBytes(c:Completion):string{const bytes=JSON.stringify(c);this.completion(bytes,c.ticket.receipt.shard);return bytes;}
++ private storedCompletion(shard:number):string|null{return this.ctx.storage.sql.exec<{value:string|null}>('SELECT value FROM pending_audit_completion WHERE shard=?',shard).toArray()[0]!.value;}
++ private saveCompletion(c:Completion):void{const bytes=this.completionBytes(c),shard=c.ticket.receipt.shard;this.ctx.storage.transactionSync(()=>{const old=this.storedCompletion(shard);if(old!==null&&old!==bytes)throw new Error('pending_completion_conflict');if(old===null)this.ctx.storage.sql.exec('UPDATE pending_audit_completion SET value=? WHERE shard=? AND value IS NULL',bytes,shard);});}
++ private retain(c:Completion):boolean{const shard=c.ticket.receipt.shard,old=this.completionMemory[shard];if(old!==null&&old!==undefined&&!same(old,c)){this.available=false;return false;}this.completionMemory[shard]=c;
++  // Actual settlement callback: one bounded synchronous local write only.
++  // Failed persistence keeps the exact memory value; a later run retries it.
++  try{this.saveCompletion(c);return true;}catch{return false;}
++ }
++ private async page(v:unknown):Promise<PendingPage>{const p=exact(v,['records','wrapped']);if(!Array.isArray(p.records)||p.records.length>32||typeof p.wrapped!=='boolean'||encoder.encode(JSON.stringify(v)).length>65536)throw new Error('pending_page');const seen=new Set<number>();const out:ScannedPending[]=[];for(const x of p.records){const r=exact(x,['identity','receipt','stateVersion','needsAttention','skipVisits']);const i=await identity(r.identity,this.c!),p=receipt(r.receipt,this.c!);if(i.digest!==p.identityDigest||i.shard!==p.shard||typeof r.needsAttention!=='boolean'||seen.has(p.allocationIndex))throw new Error('pending_page');seen.add(p.allocationIndex);out.push({identity:i.value,receipt:p,stateVersion:decimal(r.stateVersion),needsAttention:r.needsAttention,skipVisits:integer(r.skipVisits,0,7)});}return {records:out,wrapped:p.wrapped};}
++ async runScheduled():Promise<AuditSummary>{const empty=(status:AuditSummary['status']):AuditSummary=>({status,runId:null,pages:0,examined:0,wakesStarted:0,needsAttention:status==='unavailable'});if(!this.available)return empty('unavailable');if(this.active||this.unresolvedWake)return empty('busy');this.active=true;
++  const started=performance.now(),remaining=()=>Math.max(0,24000-(performance.now()-started));let summary=empty('bounded'),run:string|null=null;
++  try{
++   const initial=this.ctx.storage.transactionSync(()=>{for(const c of this.completionMemory)if(c)this.saveCompletion(c);const m=this.meta(),n=next(m.run_sequence);if(m.current_json)this.archive(m.current_json);summary={...summary,runId:n};this.ctx.storage.sql.exec('UPDATE pending_audit_meta SET run_sequence=?,current_json=? WHERE singleton=1',n,JSON.stringify({summary,interrupted:true}));return {run:n,start:m.next_shard,cursors:this.cursors(m)};});run=initial.run;
++   // This output gate establishes retained-completion durability before any RPC.
++   if(!(await wait(this.ctx.storage.sync(),Math.min(250,remaining()))).ok){summary.needsAttention=true;return summary;}
++   let halted=false;
++   for(let offset=0;offset<16&&!halted;offset++){
++    if(summary.pages>=16||summary.examined>=512||summary.wakesStarted>=8||remaining()<250){halted=true;break;}
++    const shard=(initial.start+offset)%16,port=this.env.PENDING_REGISTRY.get(this.env.PENDING_REGISTRY.idFromName(registryName(this.c!,shard))) as unknown as PendingRegistryShard;
++    if(!this.checkpoint(run,shard,undefined,summary,true))throw new Error('pending_run_stale');
++    const saved=this.storedCompletion(shard);
++    if(saved!==null){const completion=this.completion(saved,shard);if(!['pending','terminal'].includes(completion.disposition.status))summary.needsAttention=true;
++     const done=await wait(port.finish_wake(completion.ticket,completion.disposition),250);
++     if(!done.ok||!['accepted','stale'].includes(done.value)){summary.needsAttention=true;continue;}
++     this.ctx.storage.transactionSync(()=>{if(this.meta().run_sequence!==run||this.storedCompletion(shard)!==saved)throw new Error('pending_completion_clear_cas');this.ctx.storage.sql.exec('UPDATE pending_audit_completion SET value=NULL WHERE shard=? AND value=?',shard,saved);});
++     if(remaining()<250)throw new Error('pending_completion_clear_budget');
++     if(!(await wait(this.ctx.storage.sync(),250)).ok)throw new Error('pending_completion_clear_unknown');
++     const local=this.completionMemory[shard];if(local&&this.completionBytes(local)===saved)this.completionMemory[shard]=null;
++    }
++    if(remaining()<250){halted=true;break;}
++    summary.pages++;
++    const call=await wait(port.scan_due({afterAllocationIndex:initial.cursors[shard]!},32),250);let page:PendingPage;
++    if(!call.ok){summary.needsAttention=true;this.checkpoint(run,shard,undefined,summary,true);continue;}
++    try{page=await this.page(call.value);}catch{summary.needsAttention=true;this.checkpoint(run,shard,undefined,summary,true);continue;}
++    for(const record of page.records){
++     if(summary.examined>=512||summary.wakesStarted>=8||remaining()<3000){halted=true;break;}
++     if(record.receipt.shard!==shard)throw new Error('pending_page_shard');
++     summary.examined++;summary.needsAttention ||= record.needsAttention;
++     if(!this.checkpoint(run,shard,record.receipt.allocationIndex,summary,true))throw new Error('pending_run_stale');
++     const reserved=await wait(port.reserve_wake(record.receipt.recordId,record.stateVersion,run),250);
++     if(!reserved.ok){summary.needsAttention=true;continue;}
++     const r=reserved.value;exact(r,r.status==='reserved'?['status','ticket']:['status']);
++     if(r.status!=='reserved'){if(!['duplicate','stale','backoff','terminal','unavailable'].includes(r.status))throw new Error('pending_reservation');if(r.status==='unavailable')summary.needsAttention=true;continue;}
++     const t=ticket(r.ticket,this.c!);if(t.runId!==run||t.trackedVersion!==record.stateVersion||!same(t.receipt,record.receipt))throw new Error('pending_ticket');
++     if(remaining()<2750){summary.needsAttention=true;halted=true;break;}
++     summary.wakesStarted++;if(!this.checkpoint(run,shard,record.receipt.allocationIndex,summary,true))throw new Error('pending_run_stale');
++     const operation=this.env.OPERATIONS.get(this.env.OPERATIONS.idFromName(record.identity.operationKey)) as unknown as KnownOperationRecovery;
++     let timedOut=false,outcome:RecoveryDisposition|null=null;
++     const wake=Promise.resolve().then(()=>operation.recoverKnown(record.identity,record.receipt,t)).then(value=>{try{return disposition(value);}catch{return {status:'unavailable'} as RecoveryDisposition;}},()=>({status:'unavailable'} as RecoveryDisposition));
++     this.unresolvedWake=wake;void wake.then(d=>{outcome=d;if(timedOut)this.retain({ticket:t,disposition:d});if(this.unresolvedWake===wake)this.unresolvedWake=null;});
++     const result=await wait(wake,Math.min(2500,remaining()-250));
++     if(!result.ok){timedOut=true;if(outcome!==null)this.retain({ticket:t,disposition:outcome});summary.needsAttention=true;halted=true;break;}
++     const d=result.value;if(!['pending','terminal'].includes(d.status))summary.needsAttention=true;
++     if(remaining()<250){if(!this.retain({ticket:t,disposition:d}))throw new Error('pending_completion_persist');summary.needsAttention=true;halted=true;break;}
++     const finished=await wait(port.finish_wake(t,d),250);
++     if(!finished.ok||!['accepted','stale'].includes(finished.value)){if(!this.retain({ticket:t,disposition:d}))throw new Error('pending_completion_persist');summary.needsAttention=true;break;}
++    }
++    this.checkpoint(run,shard,undefined,summary,true);
++   }
++   summary.status=halted?'bounded':'finished';
++   this.ctx.storage.transactionSync(()=>{const m=this.meta();if(m.run_sequence===run){const value=JSON.stringify({summary,interrupted:false});this.ctx.storage.sql.exec('UPDATE pending_audit_meta SET current_json=? WHERE singleton=1',value);this.archive(value);}});
++   if(remaining()>=250){if(!(await wait(this.ctx.storage.sync(),250)).ok)summary.needsAttention=true;}else summary.needsAttention=true;
++   return summary;
++  }catch{summary.status='unavailable';summary.needsAttention=true;if(run!==null){try{this.ctx.storage.transactionSync(()=>{const m=this.meta();if(m.run_sequence===run)this.ctx.storage.sql.exec('UPDATE pending_audit_meta SET current_json=? WHERE singleton=1',JSON.stringify({summary,interrupted:true}));});}catch{}}
++   return summary;
++  }finally{this.active=false;}
++ }
++}

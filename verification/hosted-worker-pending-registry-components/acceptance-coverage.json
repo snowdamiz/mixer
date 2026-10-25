@@ -1,0 +1,188 @@
+{
+  "schema": 1,
+  "status": "components-only-not-full-30-case-acceptance",
+  "requiredCases": 30,
+  "fullAcceptanceCasesClaimedPassed": 0,
+  "cases": [
+    {
+      "id": "registration_precommit",
+      "componentGroup": "durable-registration-lost-ACK-and-precommit-SIGKILL",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "Registry pre-call/no-allocation boundary only. Authenticated operation allocation/effect ordering remains pending."
+    },
+    {
+      "id": "registration_lost_ack",
+      "componentGroup": "durable-registration-lost-ACK-and-precommit-SIGKILL",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "Actual registration commit/ACK loss/SIGKILL/retry preserves exact UUID/index/identity. Real operation/launch integration pending."
+    },
+    {
+      "id": "registration_orphan",
+      "componentGroup": "automatic-orphan-attention-revisit-success-with-no-customer-HTTP",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "Version-zero registry remains pending across independent scheduled empty_orphan returns and attention revisit. Recovery adapter is excluded; no actual ledger/guard later command exists."
+    },
+    {
+      "id": "intent_track_crash_gap",
+      "componentGroup": null,
+      "status": "engine-integration-pending",
+      "evidence": "Requires real operation local intent/outbox, alarm failure and effect barrier integration."
+    },
+    {
+      "id": "track_lost_ack",
+      "componentGroup": "TEXT-versions-order-conflict-retention-and-track-lost-ACK",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "Actual registry track commit/ACK loss/SIGKILL/exact duplicate above2^53. Real local outbox acknowledgement CAS pending."
+    },
+    {
+      "id": "track_older_ack_cas",
+      "componentGroup": "scan-pure-reserve-backoff-dedup-and-stale-CAS",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "Registry versions and reservations never regress. Actual operation outbox/ACK CAS pending."
+    },
+    {
+      "id": "track_conflict_and_stale",
+      "componentGroup": "TEXT-versions-order-conflict-retention-and-track-lost-ACK",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "Older/equal-conflicting/newer tracks and same-key identity/digest/generation conflict exercised against SQLite."
+    },
+    {
+      "id": "track_newer_registry_than_local",
+      "componentGroup": null,
+      "status": "engine-integration-pending",
+      "evidence": "Requires actual local ledger regression and persistent operation quarantine fence."
+    },
+    {
+      "id": "effect_barrier_final_authority",
+      "componentGroup": null,
+      "status": "engine-integration-pending",
+      "evidence": "Requires exact real effect/claim barrier and V2 final authority/clock integration."
+    },
+    {
+      "id": "dispatch_uncertain_no_retry",
+      "componentGroup": null,
+      "status": "engine-integration-pending",
+      "evidence": "Requires actual engine dispatch marker and independently observed provider-call history."
+    },
+    {
+      "id": "claim_consumption_barrier",
+      "componentGroup": null,
+      "status": "engine-integration-pending",
+      "evidence": "Requires actual engine consumed-claim barrier and runner claim entry."
+    },
+    {
+      "id": "stop_registry_outage",
+      "componentGroup": null,
+      "status": "engine-integration-pending",
+      "evidence": "Requires actual durable stop enforcement under registry/clock outage and original provider cleanup."
+    },
+    {
+      "id": "first_stop_preregistration",
+      "componentGroup": null,
+      "status": "engine-integration-pending",
+      "evidence": "Requires real authenticated first-stop pre-registration entry and permanent local stop."
+    },
+    {
+      "id": "terminal_outbox_lost_ack",
+      "componentGroup": "TEXT-versions-order-conflict-retention-and-track-lost-ACK",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "Registry terminal commit/lost ACK/SIGKILL/exact retry and permanent retention exercised. Actual terminal local bytes, outbox and provider drain proof pending."
+    },
+    {
+      "id": "terminal_stale_finish",
+      "componentGroup": "TEXT-versions-order-conflict-retention-and-track-lost-ACK",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "Old finish and higher-version nonterminal track cannot reactivate retained terminal record. A retained late failed completion is stale against a newer terminal track across real restart, then clears without reactivation or failure overwrite."
+    },
+    {
+      "id": "page_fairness_wrap",
+      "componentGroup": "all-16-shard-fair-cursors-eight-wakes-and-independent-scheduled-entry",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "528 pending identities/all16 shards/80 actual test scheduled events, partial cursors, restart,32-row wrap and permanent attention tests. Actual engine recovery pending."
+    },
+    {
+      "id": "eight_wake_cap",
+      "componentGroup": "all-16-shard-fair-cursors-eight-wakes-and-independent-scheduled-entry",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "Eight actual recovery starts, ninth retained; durable next-shard rotation. Synthetic recovery does not qualify engine actions."
+    },
+    {
+      "id": "page_byte_cap",
+      "componentGroup": "32-record-page-wrap-and-maximum-legal-bytes",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "Maximum legal ASCII principals with quote/backslash expansion fit32 records under65536 bytes; cap enforced. Byte truncation branch unreachable under this closed profile and not claimed tested."
+    },
+    {
+      "id": "concurrent_audit_and_cas",
+      "componentGroup": "noncooperative-timeout-live-busy-real-interruption-and-later-settlement",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "Concurrent live busy, one unresolved recovery, interrupted real SIGKILL receipt/cursors; direct stale ticket/version CAS tests. Duplicate launch/grant behavior needs actual engine."
+    },
+    {
+      "id": "audit_retry_attention_revisit",
+      "componentGroup": "failure-saturation-permanent-attention-and-counter-overflow",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "35 failed attempts,263 visits, max8-visit gap, saturation32; separate real scheduled orphan reaches attention and resumes success without customer HTTP."
+    },
+    {
+      "id": "audit_unresolved_timeout",
+      "componentGroup": "noncooperative-timeout-live-busy-real-interruption-and-later-settlement",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "Actual noncooperative promise2500ms unknown timeout/busy/settlement; reserve/finish250ms ACK timeouts and actual shared24000ms budget exercised. No cancellation inferred. Selected completion amendment now covers16 bounded slots,8 known late unavailable/rejected failures\u2192attention, actual local SQLite write/clear aborts, restart, unknown ordinary finish ACK and exact-CAS replay."
+    },
+    {
+      "id": "registry_shard_outage",
+      "componentGroup": "shard-outage-reserve-finish-timeouts-and-schema-config-fences",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "One delayed unavailable shard retains its cursor while others recover; config conflict unavailable after restart. Actual effects/stop gating pending. Retained completion outage blocks only its shard; three healthy-shard starts proceed while the affected shard remains at one start."
+    },
+    {
+      "id": "capacity_exact_profile",
+      "componentGroup": "fixed-4096-capacity-permanent-slots-existing-track-and-audit",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "Actual4096/4097 lifetime slot boundary, duplicate, terminal replay, scan/audit and real restart; actual stop enforcement/initial operation mutation pending."
+    },
+    {
+      "id": "canonical_shards_identity",
+      "componentGroup": "canonical-17-vectors-and-closed-identities",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "All17 frozen independent vectors, all16 buckets, complete canonical UTF8 tuple, invalid unknown/nonASCII/oversize/uppercase/wrong route/hash/generation rejected."
+    },
+    {
+      "id": "missing_positive_ledger",
+      "componentGroup": null,
+      "status": "engine-integration-pending",
+      "evidence": "Registry can store positive watermark but actual missing-ledger persistent quarantine is next slice."
+    },
+    {
+      "id": "generation_namespace_restore",
+      "componentGroup": "shard-outage-reserve-finish-timeouts-and-schema-config-fences",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "Exact configured namespace names, generation input and persistent config mismatch fail closed. No restore/PITR/nonrollbackable authority qualified."
+    },
+    {
+      "id": "schema_migration_enrollment",
+      "componentGroup": null,
+      "status": "engine-integration-pending",
+      "evidence": "Actual operation schema1/2 to3 migration/enrollment/quarantine intentionally pending."
+    },
+    {
+      "id": "qualified_clock_unchanged",
+      "componentGroup": null,
+      "status": "engine-integration-pending",
+      "evidence": "No clock source/lease authority in components. Actual V2 recovery path/clock tests remain integration pending."
+    },
+    {
+      "id": "counter_exhaustion",
+      "componentGroup": "failure-saturation-permanent-attention-and-counter-overflow",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "Canonical TEXT versions above2^53/maxint64; wake/run overflow and failure32 retention across restart. Actual operation state-version exhaustion is next slice."
+    },
+    {
+      "id": "production_closure_and_cleanup",
+      "componentGroup": "all-component-groups",
+      "status": "component-evidence-only-full-case-not-claimed",
+      "evidence": "Source-bound component build/17 runtime groups/owned-process identity suite/EOF/PID/storage cleanup. Full current controller71 runtime regression and real three-class integration remain root/integration responsibility."
+    }
+  ]
+}

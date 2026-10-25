@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "status": "proposal-only-requires-fresh-root-selection-before-target",
+  "liveSourceClosure": "b28da766c84b6353a4511e2fc3fbcb0d4302d5b8a5a74da1ee3d7fb776ca2c11",
+  "targetExecutedByThisPacket": false,
+  "targetAttemptsSelectedByThisPacket": 0,
+  "copyOnlySourceChanges": [
+    "src/experimental/cache/borrowed.rs: cfg(test) default-no-op observer methods on DecodeMeter; site notifications adjacent to existing work calls; completed-decode notification after existing decoded counter publication",
+    "src/experimental_swift_reactor/cache.rs: original CacheControl::work result recorded after the original work_with_wasi call; cfg(test) SwiftMode meter/site/decode events; direct check counts only if selected",
+    "src/experimental_swift_reactor/cache_tests.rs: append fixed-size test-only observer and finite controls",
+    "src/experimental_swift_reactor/lifecycle_tests.rs: append include of a fresh diagnostic harness only"
+  ],
+  "observerSites": [
+    "constructor", "lookup_header", "free_pin_probe", "resident_probe",
+    "scan_policy", "scan", "empty_slot_search", "victim_probe",
+    "plan_count", "build_policy", "build", "publication"
+  ],
+  "fixedState": {
+    "successfulCreditsBySite": 12,
+    "workCallsBySite": 12,
+    "firstRejectedWorkRecord": 1,
+    "freePinProbeLengthHistogramBins": 65,
+    "residentHitProbeLengthHistogramBins": 65,
+    "completedDecodeSeenBitmapAbsoluteIndexCapacity": 80000,
+    "completedDecodeSeenBitmapU64Words": 1250,
+    "completedDecodeSeenBitmapBytes": 10000,
+    "firstRepeatedFunctionSamplesMaximum": 16,
+    "boundedSampleSemantics": "first 16 distinct completed redecode identities; not a top-function ranking; untracked repeated completion occurrences explicitly counted",
+    "dynamicPerFunctionMap": false,
+    "perCreditOutput": false,
+    "observerChargedToProductionRuntimeLedger": false
+  },
+  "hookRules": [
+    "Record successful n only if the original work_with_wasi result is Ok; never include rejected requested n in successful sum",
+    "Keep the original amount, cursor, failure object, sticky first failure, checks, limit, deadline, hooks, and returned result unchanged",
+    "Use site callbacks before original work calls so a blocked credit retains the exact site; record one first rejection and attempted amount",
+    "Mark the seen bit only for a successfully published completed decode, after original usage.decoded; distinct+repeated must equal authoritative completed decodes",
+    "Reject observer validity for an out-of-range absolute function index without authorizing execution or changing VM failure; selected target validates 34+79832<80000",
+    "Frozen Legacy Meter retains the default no-op observer methods; no changes to shared decoding or cache algorithms",
+    "Emit fixed snapshots at construction, Initialize, Corpus 1 completion/failure, Corpus 2 completion/failure, and final cleanup; no guest-loop text output"
+  ],
+  "exactSourceSeams": {
+    "DecodeMeterTraitAdditionsCfgTestOnly": [
+      "fn diagnostic_site(&mut self, _: u8) {}",
+      "fn diagnostic_lookup_done(&mut self, _: bool) {}",
+      "fn diagnostic_decode_completed(&mut self, _: u32) {}"
+    ],
+    "SwiftMeterOverridesCfgTestOnly": "Forward the three methods to appended cache_tests observer; SwiftMode::meter begins the absolute-function observation; no struct fields added",
+    "borrowedPinHeader": "diagnostic_site(lookup_header) before existing first meter.work(1)",
+    "borrowedPinFreeSearch": "diagnostic_site(free_pin_probe) before existing pins iterator; close its histogram when resident_probe begins",
+    "borrowedPinResidentSearch": "diagnostic_site(resident_probe) before existing slots iterator; diagnostic_lookup_done(true) after hit counter update, false after miss counter update",
+    "borrowedPinPlanning": "diagnostic_site(empty_slot_search) before existing work(slots.len); diagnostic_site(victim_probe) before oldest-selection loop; diagnostic_site(plan_count) before work(MAX_ENTRIES)",
+    "borrowedPinPublication": "diagnostic_decode_completed(function) immediately after existing usage_mut().decoded and before existing slot.set; it has no work or authority",
+    "SwiftModeScan": "diagnostic_site(scan_policy) before policy(snapshot,body,meter); diagnostic_site(scan) before scan_borrowed",
+    "SwiftModeBuildPayload": "diagnostic_site(build_policy) before policy(snapshot,body,meter); diagnostic_site(build) before build_borrowed, including its allocation checks",
+    "CacheControlWork": "Preserve checkpoint; store original self.control.work_with_wasi result; observe site/function/n/result after return without mutating it; return original result",
+    "constructorAndPublication": "Set constructor before original constructor work; publication before original publication check; zero credits there are a valid observation",
+    "fixedSerialization": "Emit counters, histograms, first rejection, bitmap population and at most 16 identity samples; never serialize bitmap words; observer payload capped at 16384 bytes per snapshot"
+  },
+  "harnessChanges": [
+    "Fresh copied harness from the sealed after-cache harness; retain existing validation, run, WASI budgets, grants, target input, corpus, owner operations, parity checks and consuming cleanup",
+    "Reset observer before construction; append aggregate observer snapshots next to existing lifecycle snapshots, before assertion panic and after failure drain",
+    "Require successful credit sums equal original runtime cache_work at every snapshot; require hit/miss/complete/eviction reconciliation",
+    "Emit first blocked site separately from terminal post-drain snapshot; label observer memory/overhead external and test-only",
+    "Preserve exact first typed failure and cleanup observations; no expected CacheWork failure coercion to success"
+  ],
+  "driverChanges": [
+    "Create a new packet directory and fresh isolated source/build; never edit or execute the old sealed packet",
+    "Replace the prior single lifecycle include allowlist with the exact four copied source transforms, retaining byte-complete 132-file baseline identity and before/after checks",
+    "Hash baseline, copied transforms, observer, harness, driver, tools, target, corpus/input closure, budgets, fresh executable and complete argv",
+    "Run bounded small observer controls including hot hit positions, 64/65 cycles, exact successful sums and finite work/cancellation failure prefixes before proposing a target",
+    "Present a fresh proposed command and new executable to root for exact selection; existing after-cache root selection grants no authority for this changed executable",
+    "Require a root-authored selection bound to all exact hashes and argv plus exclusive one-shot target-attempt marker; absence or mismatch refuses target execution",
+    "Retain original outer timeout and runtime budgets, finite output, fresh process group observation, failure logs, unchanged live closure checks and owned scratch cleanup"
+  ],
+  "scopeLimits": [
+    "Successful credit attribution and exact repeated completed-decode totals; no CPU profile or target performance speedup attribution",
+    "Bounded function samples establish identities only for the sampled repeated functions; no complete frequency/reuse-distance ranking",
+    "Observer overhead can change elapsed time and deadline outcome; runtime deadline remains unchanged and any such result is reported literally",
+    "No fresh target compilation/preparation/execution has been selected or performed for this proposal",
+    "No full-corpus, public/legacy, native/device, signed release, FieldLog published-package or GA acceptance"
+  ]
+}

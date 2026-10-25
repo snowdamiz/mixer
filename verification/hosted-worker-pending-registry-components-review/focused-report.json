@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "scope": "independent-actual-workerd-cross-DO-SQLite-focused-components-only",
+  "results": [
+    {
+      "id": "late-rejection-with-local-write-failure-and-lost-finish-ACK",
+      "status": "passed",
+      "elapsedMs": 3220.656958
+    },
+    {
+      "id": "audit-missing-schema-meta-with-surviving-completion",
+      "status": "failed",
+      "error": "AssertionError [ERR_ASSERTION]: Unknown/missing audit schema metadata must fail closed, without reinitializing surviving safety tables\n+ actual - expected\n\n+ 'finished'\n- 'unavailable'\n\n    at file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-registry-components-review/focused-controls.mjs:91:10\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async control (file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-registry-components-review/focused-controls.mjs:44:93)\n    at async file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-registry-components-review/focused-controls.mjs:78:1",
+      "elapsedMs": 2789.597209
+    }
+  ],
+  "observations": {
+    "lateFailure": {
+      "exactSavedBytes": "{\"ticket\":{\"runId\":\"1\",\"wakeId\":\"066323e9e4f782660ad63a390eecade9\",\"receipt\":{\"identityDigest\":\"321646b6670d370d42b53652d63b0341b09388951cf6ccd5e1f439115354d053\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"681190443d0f8ebc7133ec16bd23654b\",\"shard\":0,\"allocationIndex\":1},\"trackedVersion\":\"0\",\"attemptSequence\":\"1\"},\"disposition\":{\"status\":\"unavailable\"}}",
+      "memoryFallback": true,
+      "unknownFinishAckRetained": true,
+      "restartRetained": true,
+      "finishNotDoubleCounted": true,
+      "healthyShardProgress": true
+    },
+    "missingMeta": {
+      "previousRun": "1",
+      "survivingCompletion": "{\"ticket\":{\"runId\":\"1\",\"wakeId\":\"6ffa19d8d88e3b24566f7ad69bec2057\",\"receipt\":{\"identityDigest\":\"35ebdf7b3559bb230c776508b08d87c639f70979905b887b17714933bb83f8df\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"016189d83c646f8f3d80c38b3b38aba7\",\"shard\":0,\"allocationIndex\":1},\"trackedVersion\":\"0\",\"attemptSequence\":\"1\"},\"disposition\":{\"status\":\"unavailable\"}}",
+      "reinitializedMeta": [
+        {
+          "singleton": 1,
+          "version": 1,
+          "config": "{\"generation\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"operationsNamespace\":\"component-operation-test\",\"registryNamespace\":\"component-registry-test\"}",
+          "run_sequence": "0",
+          "next_shard": 0,
+          "cursors": "[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]",
+          "current_json": null
+        }
+      ],
+      "result": {
+        "status": "finished",
+        "runId": "1",
+        "pages": 16,
+        "examined": 1,
+        "wakesStarted": 0,
+        "needsAttention": true
+      },
+      "registryAfter": {
+        "allocation_index": 1,
+        "operation_key": "0ba50a536b6c5ea26b70bbeccffe6d9a37820ef82dba8aeb917589fa59cd04ef",
+        "identity_bytes": "[\"mixer-worker-pending-identity-v1\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"review-components\",\"pool\",\"controller\",\"ios\",\"0ba50a536b6c5ea26b70bbeccffe6d9a37820ef82dba8aeb917589fa59cd04ef\",\"0fc74b8ff5a68ec7956e0b795e40166373a48dbcbdd6a4538eccabed022ad5e2\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"]",
+        "identity_digest": "35ebdf7b3559bb230c776508b08d87c639f70979905b887b17714933bb83f8df",
+        "record_id": "016189d83c646f8f3d80c38b3b38aba7",
+        "state_version": "0",
+        "projection_json": "{\"kind\":\"pending\",\"nextDueUs\":null}",
+        "pending": 1,
+        "failures": 1,
+        "skip_visits": 1,
+        "needs_attention": 0,
+        "attempt_sequence": "1",
+        "last_run_id": "1",
+        "last_visit": "reserved",
+        "ticket_json": "{\"runId\":\"1\",\"wakeId\":\"6ffa19d8d88e3b24566f7ad69bec2057\",\"receipt\":{\"identityDigest\":\"35ebdf7b3559bb230c776508b08d87c639f70979905b887b17714933bb83f8df\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"016189d83c646f8f3d80c38b3b38aba7\",\"shard\":0,\"allocationIndex\":1},\"trackedVersion\":\"0\",\"attemptSequence\":\"1\"}",
+        "disposition_json": "{\"status\":\"unavailable\"}",
+        "version_type": "text",
+        "sequence_type": "text"
+      }
+    }
+  },
+  "cleanup": [
+    {
+      "kind": "SIGKILL",
+      "pid": 24960,
+      "parentPid": 24959,
+      "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+      "signal": "SIGKILL",
+      "identitySource": "darwin-ps-full-path-comm",
+      "parentRechecked": true
+    },
+    {
+      "persist": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-registry-components-review/runtime-scratch/mixer-pending-components-review-owned-AnAMQ2",
+      "storageRemoved": true,
+      "disposed": true,
+      "ownedProcesses": [
+        {
+          "pid": 24960,
+          "parentPid": 24959,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        },
+        {
+          "pid": 24972,
+          "parentPid": 24959,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "kind": "SIGKILL",
+      "pid": 24977,
+      "parentPid": 24959,
+      "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+      "signal": "SIGKILL",
+      "identitySource": "darwin-ps-full-path-comm",
+      "parentRechecked": true
+    },
+    {
+      "persist": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-registry-components-review/runtime-scratch/mixer-pending-components-review-owned-4oPcfd",
+      "storageRemoved": true,
+      "disposed": true,
+      "ownedProcesses": [
+        {
+          "pid": 24977,
+          "parentPid": 24959,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        },
+        {
+          "pid": 24986,
+          "parentPid": 24959,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    }
+  ],
+  "engineIntegration": false,
+  "deployedQualification": false,
+  "gaAccepted": false
+}
