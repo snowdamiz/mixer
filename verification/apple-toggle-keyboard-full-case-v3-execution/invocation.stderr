@@ -1,0 +1,32 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-full-case-v3-execution/run_selected.py", line 159, in <module>
+    main()
+    ~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-full-case-v3-execution/run_selected.py", line 130, in main
+    result = harness.run(SEAL, 'interaction')
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-full-case-preparation-v3/composition.py", line 144, in <lambda>
+    h.run=lambda reviewed_seal,scope="interaction":orchestration.run(h,bindings,RUNTIME_ROOTS,reviewed_seal,scope)
+                                                   ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-full-case-preparation-v3/orchestration.py", line 132, in run
+    if outcome.first is not None:raise outcome.first.with_traceback(outcome.traceback)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-full-case-preparation-v3/orchestration.py", line 78, in run
+    xctest_exit=commands.run(argv,timeout=600,check=False)[0]
+                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-full-case-preparation-v3/attachment_export.py", line 51, in run
+    return super().run(argv, *args, **kwargs)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-full-case-preparation-v3/inputs/runtime/verification/apple-toggle-pan-origin-correction/harness.py", line 124, in run
+    stdout, stderr = process.communicate(timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 1221, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 2154, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 1268, in _check_timeout
+    raise TimeoutExpired(
+    ...<2 lines>...
+            stderr=b''.join(stderr_seq) if stderr_seq else None)
+subprocess.TimeoutExpired: Command '['/Applications/Xcode_26.6.app/Contents/Developer/usr/bin/xcodebuild', 'test-without-building', '-xctestrun', '/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-toggle-xctest-xwpu1cmd/session.xctestrun', '-destination', 'platform=iOS Simulator,id=5DA3B1BA-F867-4595-BEC4-52F8957A06FE', '-parallel-testing-enabled', 'NO', '-maximum-concurrent-test-simulator-destinations', '1', '-resultBundlePath', '/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-toggle-xctest-xwpu1cmd/session.xcresult', '-only-testing:MixerToggleUITests/ToggleUITests/test000PublicSettingsFullKeyboardAccess', '-only-testing:MixerToggleUITests/ToggleUITests/test010EnabledFromOff', '-only-testing:MixerToggleUITests/ToggleUITests/test020EnabledFromOn', '-only-testing:MixerToggleUITests/ToggleUITests/test030StaleFromOff', '-only-testing:MixerToggleUITests/ToggleUITests/test040StaleFromOn', '-only-testing:MixerToggleUITests/ToggleUITests/test050DisabledFromOff', '-only-testing:MixerToggleUITests/ToggleUITests/test060DisabledFromOn']' timed out after 600 seconds
