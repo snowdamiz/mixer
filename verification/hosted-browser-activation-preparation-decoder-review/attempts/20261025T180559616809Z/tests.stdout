@@ -1,0 +1,49 @@
+Running ExUnit with seed: 750462, max_cases: 30
+
+.............
+
+  1) test call trace observes only pure selected validators and runtime builtins (MixerActivationPreparationDecoderReviewTest)
+     verification/hosted-browser-activation-preparation-decoder-review/review_tests.exs:588
+     Refute with in failed
+     code:  refute function in [
+              :system_time,
+              :monotonic_time,
+              :time_offset,
+              :timestamp,
+              :date,
+              :time,
+              :localtime,
+              :universaltime,
+              :put,
+              :erase,
+              :send,
+              :spawn,
+              :spawn_link,
+              :spawn_monitor,
+              :open_port,
+              :register,
+              :unregister,
+              :exit,
+              :halt,
+              :process_flag,
+              :load_nif,
+              :send_after,
+              :start_timer
+            ]
+     left:  :send
+     right: [:system_time, :monotonic_time, :time_offset, :timestamp, :date,
+             :time, :localtime, :universaltime, :put, :erase, :send,
+             :spawn, :spawn_link, :spawn_monitor, :open_port,
+             :register, :unregister, :exit, :halt, :process_flag,
+             :load_nif, :send_after, :start_timer]
+     stacktrace:
+       verification/hosted-browser-activation-preparation-decoder-review/review_tests.exs:667: anonymous fn/2 in MixerActivationPreparationDecoderReviewTest."test call trace observes only pure selected validators and runtime builtins"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       verification/hosted-browser-activation-preparation-decoder-review/review_tests.exs:662: (test)
+
+..............
+Finished in 0.06 seconds (0.00s async, 0.06s sync)
+
+Result: 27/28 passed
+Failed: 1 test
+MIXER_ACTIVATION_REVIEW_RESULT=%{total: 28, failures: 1, excluded: 0, skipped: 0}

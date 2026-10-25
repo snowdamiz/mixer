@@ -1,0 +1,254 @@
+hosted/deps/oban/lib/oban/migrations/postgres/v05.ex:1:defmodule Oban.Migrations.Postgres.V05 do
+hosted/deps/oban/lib/oban/migrations/postgres/v05.ex:6:  def up(%{prefix: prefix}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v05.ex:7:    drop_if_exists index(:oban_jobs, [:scheduled_at], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v05.ex:8:    drop_if_exists index(:oban_jobs, [:queue], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v05.ex:9:    drop_if_exists index(:oban_jobs, [:state], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v05.ex:11:    create_if_not_exists index(:oban_jobs, [:queue, :state, :scheduled_at, :id], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v05.ex:14:  def down(%{prefix: prefix, quoted_prefix: quoted}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v05.ex:15:    drop_if_exists index(:oban_jobs, [:queue, :state, :scheduled_at, :id], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v05.ex:17:    state = "#{quoted}.oban_job_state"
+hosted/deps/oban/lib/oban/migrations/postgres/v05.ex:19:    create_if_not_exists index(:oban_jobs, [:queue], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v05.ex:20:    create_if_not_exists index(:oban_jobs, [:state], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v05.ex:22:    create index(:oban_jobs, [:scheduled_at],
+hosted/deps/oban/lib/oban/migrations/postgres/v05.ex:24:             prefix: prefix
+hosted/deps/oban/lib/oban/migrations/postgres/v07.ex:1:defmodule Oban.Migrations.Postgres.V07 do
+hosted/deps/oban/lib/oban/migrations/postgres/v07.ex:6:  def up(%{prefix: prefix}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v07.ex:8:                           :oban_jobs,
+hosted/deps/oban/lib/oban/migrations/postgres/v07.ex:11:                           prefix: prefix,
+hosted/deps/oban/lib/oban/migrations/postgres/v07.ex:12:                           name: :oban_jobs_attempted_at_id_index
+hosted/deps/oban/lib/oban/migrations/postgres/v07.ex:16:  def down(%{prefix: prefix}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v07.ex:17:    drop_if_exists index(:oban_jobs, [:attempted_at, :id], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v09.ex:1:defmodule Oban.Migrations.Postgres.V09 do
+hosted/deps/oban/lib/oban/migrations/postgres/v09.ex:6:  def up(%{prefix: prefix, quoted_prefix: quoted}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v09.ex:7:    alter table(:oban_jobs, prefix: prefix) do
+hosted/deps/oban/lib/oban/migrations/postgres/v09.ex:12:    execute "ALTER TYPE #{quoted}.oban_job_state ADD VALUE IF NOT EXISTS 'cancelled'"
+hosted/deps/oban/lib/oban/migrations/postgres/v09.ex:14:    create_if_not_exists index(:oban_jobs, [:state, :queue, :priority, :scheduled_at, :id],
+hosted/deps/oban/lib/oban/migrations/postgres/v09.ex:15:                           prefix: prefix
+hosted/deps/oban/lib/oban/migrations/postgres/v09.ex:19:  def down(%{prefix: prefix, quoted_prefix: quoted}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v09.ex:20:    alter table(:oban_jobs, prefix: prefix) do
+hosted/deps/oban/lib/oban/migrations/postgres/v09.ex:25:    execute "UPDATE #{quoted}.oban_jobs SET state = 'discarded' WHERE state = 'cancelled'"
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:1:defmodule Oban.Migrations.Postgres.V02 do
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:6:  def up(%{prefix: prefix, quoted_prefix: quoted}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:8:    drop_if_exists index(:oban_jobs, [:scheduled_at], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:10:    state = "#{quoted}.oban_job_state"
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:12:    create index(:oban_jobs, [:scheduled_at],
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:14:             prefix: prefix
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:17:    create constraint(:oban_jobs, :worker_length,
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:19:             prefix: prefix
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:22:    create constraint(:oban_jobs, :queue_length,
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:24:             prefix: prefix
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:28:    CREATE OR REPLACE FUNCTION #{quoted}.oban_wrap_id(value bigint) RETURNS int AS $$
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:36:  def down(%{prefix: prefix, quoted_prefix: quoted}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:37:    drop_if_exists constraint(:oban_jobs, :queue_length, prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:38:    drop_if_exists constraint(:oban_jobs, :worker_length, prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:40:    drop_if_exists index(:oban_jobs, [:scheduled_at], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:41:    create index(:oban_jobs, [:scheduled_at], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v02.ex:43:    execute("DROP FUNCTION IF EXISTS #{quoted}.oban_wrap_id(value bigint)")
+hosted/deps/oban/lib/oban/migrations/postgres/v04.ex:1:defmodule Oban.Migrations.Postgres.V04 do
+hosted/deps/oban/lib/oban/migrations/postgres/v04.ex:6:  def up(%{quoted_prefix: quoted}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v04.ex:7:    execute("DROP FUNCTION IF EXISTS #{quoted}.oban_wrap_id(value bigint)")
+hosted/deps/oban/lib/oban/migrations/postgres/v04.ex:10:  def down(%{quoted_prefix: quoted}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v04.ex:12:    CREATE OR REPLACE FUNCTION #{quoted}.oban_wrap_id(value bigint) RETURNS int AS $$
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:1:defmodule Oban.Migrations.Postgres.V10 do
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:6:  def up(%{prefix: prefix}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:7:    # These didn't have defaults out of consideration for older PG versions
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:8:    alter table(:oban_jobs, prefix: prefix) do
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:14:    create constraint(:oban_jobs, :priority_range,
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:16:             prefix: prefix
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:19:    create constraint(:oban_jobs, :positive_max_attempts,
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:21:             prefix: prefix
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:24:    create constraint(:oban_jobs, :attempt_range,
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:26:             prefix: prefix
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:30:    drop_if_exists index(:oban_jobs, [:args], name: :oban_jobs_args_vector, prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:31:    drop_if_exists index(:oban_jobs, [:worker], name: :oban_jobs_worker_gist, prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:33:    drop_if_exists index(:oban_jobs, [:attempted_at],
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:34:                     name: :oban_jobs_attempted_at_id_index,
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:35:                     prefix: prefix
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:39:    create_if_not_exists index(:oban_jobs, [:args], using: :gin, prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:40:    create_if_not_exists index(:oban_jobs, [:meta], using: :gin, prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:43:  def down(%{prefix: prefix}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:44:    alter table(:oban_jobs, prefix: prefix) do
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:49:    drop_if_exists constraint(:oban_jobs, :attempt_range, prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:50:    drop_if_exists constraint(:oban_jobs, :positive_max_attempts, prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v10.ex:51:    drop_if_exists constraint(:oban_jobs, :priority_range, prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:1:defmodule Oban.Migrations.Postgres.V01 do
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:6:  def up(%{create_schema: create?, prefix: prefix} = opts) do
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:7:    %{escaped_prefix: escaped, quoted_prefix: quoted} = opts
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:9:    if create?, do: execute("CREATE SCHEMA IF NOT EXISTS #{quoted}")
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:15:                   WHERE typname = 'oban_job_state'
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:17:        CREATE TYPE #{quoted}.oban_job_state AS ENUM (
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:31:    create_if_not_exists table(:oban_jobs, primary_key: false, prefix: prefix) do
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:33:      add :state, :"#{quoted}.oban_job_state", null: false, default: "available"
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:53:    create_if_not_exists index(:oban_jobs, [:queue], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:54:    create_if_not_exists index(:oban_jobs, [:state], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:55:    create_if_not_exists index(:oban_jobs, [:scheduled_at], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:58:    CREATE OR REPLACE FUNCTION #{quoted}.oban_jobs_notify() RETURNS trigger AS $$
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:64:        channel = '#{escaped}.oban_insert';
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:72:        channel = '#{escaped}.oban_update';
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:83:    execute "DROP TRIGGER IF EXISTS oban_notify ON #{quoted}.oban_jobs"
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:86:    CREATE TRIGGER oban_notify
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:87:    AFTER INSERT OR UPDATE OF state ON #{quoted}.oban_jobs
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:88:    FOR EACH ROW EXECUTE PROCEDURE #{quoted}.oban_jobs_notify();
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:92:  def down(%{prefix: prefix, quoted_prefix: quoted}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:93:    execute "DROP TRIGGER IF EXISTS oban_notify ON #{quoted}.oban_jobs"
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:94:    execute "DROP FUNCTION IF EXISTS #{quoted}.oban_jobs_notify()"
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:96:    drop_if_exists table(:oban_jobs, prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v01.ex:98:    execute "DROP TYPE IF EXISTS #{quoted}.oban_job_state"
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:1:defmodule Oban.Migrations.Postgres.V08 do
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:6:  def up(%{escaped_prefix: escaped, prefix: prefix, quoted_prefix: quoted}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:7:    alter table(:oban_jobs, prefix: prefix) do
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:13:    alter table(:oban_jobs, prefix: prefix) do
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:18:    drop_if_exists index(:oban_jobs, [:queue, :state, :scheduled_at, :id], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:20:    create_if_not_exists index(:oban_jobs, [:state, :queue, :priority, :scheduled_at, :id],
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:21:                           prefix: prefix
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:25:    CREATE OR REPLACE FUNCTION #{quoted}.oban_jobs_notify() RETURNS trigger AS $$
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:31:        channel = '#{escaped}.oban_insert';
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:42:    execute "DROP TRIGGER IF EXISTS oban_notify ON #{quoted}.oban_jobs"
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:45:    CREATE TRIGGER oban_notify
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:46:    AFTER INSERT ON #{quoted}.oban_jobs
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:47:    FOR EACH ROW EXECUTE PROCEDURE #{quoted}.oban_jobs_notify();
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:51:  def down(%{escaped_prefix: escaped, prefix: prefix, quoted_prefix: quoted}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:52:    drop_if_exists index(:oban_jobs, [:queue, :state, :priority, :scheduled_at, :id],
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:53:                     prefix: prefix
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:56:    create_if_not_exists index(:oban_jobs, [:queue, :state, :scheduled_at, :id], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:58:    alter table(:oban_jobs, prefix: prefix) do
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:65:    CREATE OR REPLACE FUNCTION #{quoted}.oban_jobs_notify() RETURNS trigger AS $$
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:71:        channel = '#{escaped}.oban_insert';
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:79:        channel = '#{escaped}.oban_update';
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:90:    execute "DROP TRIGGER IF EXISTS oban_notify ON #{quoted}.oban_jobs"
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:93:    CREATE TRIGGER oban_notify
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:94:    AFTER INSERT OR UPDATE OF state ON #{quoted}.oban_jobs
+hosted/deps/oban/lib/oban/migrations/postgres/v08.ex:95:    FOR EACH ROW EXECUTE PROCEDURE #{quoted}.oban_jobs_notify();
+hosted/deps/oban/lib/oban/migrations/postgres/v06.ex:1:defmodule Oban.Migrations.Postgres.V06 do
+hosted/deps/oban/lib/oban/migrations/postgres/v06.ex:6:  def up(_opts) do
+hosted/deps/oban/lib/oban/migrations/postgres/v06.ex:7:    # This used to modify oban_beats, which aren't included anymore
+hosted/deps/oban/lib/oban/migrations/postgres/v06.ex:12:    # This used to modify oban_beats, which aren't included anymore
+hosted/deps/oban/lib/oban/migrations/postgres/v03.ex:1:defmodule Oban.Migrations.Postgres.V03 do
+hosted/deps/oban/lib/oban/migrations/postgres/v03.ex:6:  def up(%{prefix: prefix}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v03.ex:7:    alter table(:oban_jobs, prefix: prefix) do
+hosted/deps/oban/lib/oban/migrations/postgres/v03.ex:12:  def down(%{prefix: prefix}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v03.ex:13:    alter table(:oban_jobs, prefix: prefix) do
+hosted/deps/oban/lib/oban/migration.ex:4:  defdelegate up(opts \\ []), to: Oban.Migration
+hosted/deps/oban/lib/oban/migration.ex:5:  defdelegate down(opts \\ []), to: Oban.Migration
+hosted/deps/oban/lib/oban/migration.ex:28:    def up, do: Oban.Migrations.up()
+hosted/deps/oban/lib/oban/migration.ex:34:  This will run all of Oban's versioned migrations for your database.
+hosted/deps/oban/lib/oban/migration.ex:42:  Migrations between versions are idempotent. As new versions are released, you may need to run
+hosted/deps/oban/lib/oban/migration.ex:46:  mix ecto.gen.migration upgrade_oban_to_v14
+hosted/deps/oban/lib/oban/migration.ex:50:  `Oban.Migration`, passing a version number:
+hosted/deps/oban/lib/oban/migration.ex:56:    def up, do: Oban.Migrations.up(version: 14)
+hosted/deps/oban/lib/oban/migration.ex:58:    def down, do: Oban.Migrations.down(version: 13)
+hosted/deps/oban/lib/oban/migration.ex:64:  Oban supports namespacing through PostgreSQL schemas, also called "prefixes" in Ecto. With
+hosted/deps/oban/lib/oban/migration.ex:65:  prefixes your jobs table can reside outside of your primary schema (usually public) and you can
+hosted/deps/oban/lib/oban/migration.ex:68:  To use a prefix you first have to specify it within your migration:
+hosted/deps/oban/lib/oban/migration.ex:74:    def up, do: Oban.Migrations.up(prefix: "private")
+hosted/deps/oban/lib/oban/migration.ex:76:    def down, do: Oban.Migrations.down(prefix: "private")
+hosted/deps/oban/lib/oban/migration.ex:81:  that schema. With the database migrated you'll then specify the prefix in your configuration:
+hosted/deps/oban/lib/oban/migration.ex:85:    prefix: "private",
+hosted/deps/oban/lib/oban/migration.ex:98:    def up, do: Oban.Migrations.up(prefix: "private", create_schema: false)
+hosted/deps/oban/lib/oban/migration.ex:100:    def down, do: Oban.Migrations.down(prefix: "private")
+hosted/deps/oban/lib/oban/migration.ex:113:  Alternatively, if you'd like a more automated approach, try using the [oban_migrations_sql][sql]
+hosted/deps/oban/lib/oban/migration.ex:116:  [sql]: https://github.com/btwb/oban_migrations_sql
+hosted/deps/oban/lib/oban/migration.ex:122:  Migrates storage up to the latest version.
+hosted/deps/oban/lib/oban/migration.ex:127:  Migrates storage down to the previous version.
+hosted/deps/oban/lib/oban/migration.ex:132:  Identifies the last migrated version.
+hosted/deps/oban/lib/oban/migration.ex:134:  @callback migrated_version(Keyword.t()) :: non_neg_integer()
+hosted/deps/oban/lib/oban/migration.ex:137:  Run the `up` changes for all migrations between the initial version and the current version.
+hosted/deps/oban/lib/oban/migration.ex:141:  Run all migrations up to the current version:
+hosted/deps/oban/lib/oban/migration.ex:145:  Run migrations up to a specified version:
+hosted/deps/oban/lib/oban/migration.ex:147:      Oban.Migration.up(version: 2)
+hosted/deps/oban/lib/oban/migration.ex:149:  Run migrations in an alternate prefix:
+hosted/deps/oban/lib/oban/migration.ex:151:      Oban.Migration.up(prefix: "payments")
+hosted/deps/oban/lib/oban/migration.ex:153:  Run migrations in an alternate prefix but don't try to create the schema:
+hosted/deps/oban/lib/oban/migration.ex:155:      Oban.Migration.up(prefix: "payments", create_schema: false)
+hosted/deps/oban/lib/oban/migration.ex:161:  def up(opts \\ []) when is_list(opts) do
+hosted/deps/oban/lib/oban/migration.ex:166:  Get the current migration version.
+hosted/deps/oban/lib/oban/migration.ex:170:      Oban.Migration.current_version()
+hosted/deps/oban/lib/oban/migration.ex:172:  def current_version(opts \\ []) when is_list(opts) do
+hosted/deps/oban/lib/oban/migration.ex:173:    migrator(opts).current_version()
+hosted/deps/oban/lib/oban/migration.ex:177:  Run the `down` changes for all migrations between the current version and the initial version.
+hosted/deps/oban/lib/oban/migration.ex:181:  Run all migrations from current version down to the first:
+hosted/deps/oban/lib/oban/migration.ex:185:  Run migrations down to and including a specified version:
+hosted/deps/oban/lib/oban/migration.ex:187:      Oban.Migration.down(version: 5)
+hosted/deps/oban/lib/oban/migration.ex:189:  Run migrations in an alternate prefix:
+hosted/deps/oban/lib/oban/migration.ex:191:      Oban.Migration.down(prefix: "payments")
+hosted/deps/oban/lib/oban/migration.ex:198:  Check the latest version the database is migrated to.
+hosted/deps/oban/lib/oban/migration.ex:202:      Oban.Migration.migrated_version()
+hosted/deps/oban/lib/oban/migration.ex:204:  def migrated_version(opts \\ []) when is_list(opts) do
+hosted/deps/oban/lib/oban/migration.ex:205:    migrator(opts).migrated_version(opts)
+hosted/deps/oban/lib/oban/migration.ex:211:    current = current_version(opts)
+hosted/deps/oban/lib/oban/migration.ex:212:    version = unboxed_run(opts, fn -> migrated_version(opts) end)
+hosted/deps/oban/lib/oban/migration.ex:215:      version == 0 ->
+hosted/deps/oban/lib/oban/migration.ex:217:        Oban migrations have not been run. The oban_jobs table does not exist.
+hosted/deps/oban/lib/oban/migration.ex:228:              def up, do: Oban.Migrations.up()
+hosted/deps/oban/lib/oban/migration.ex:233:      version < current ->
+hosted/deps/oban/lib/oban/migration.ex:235:        Oban migrations are outdated. Found version #{version}, but version #{current} is required.
+hosted/deps/oban/lib/oban/migration.ex:246:              def up, do: Oban.Migrations.up(version: #{current})
+hosted/deps/oban/lib/oban/migration.ex:247:              def down, do: Oban.Migrations.down(version: #{version})
+hosted/deps/oban/lib/oban/migration.ex:272:      Ecto.Adapters.Postgres -> Oban.Migrations.Postgres
+hosted/deps/oban/lib/oban/migrations/postgres/v13.ex:1:defmodule Oban.Migrations.Postgres.V13 do
+hosted/deps/oban/lib/oban/migrations/postgres/v13.ex:6:  def up(%{prefix: prefix}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v13.ex:7:    create_if_not_exists index(:oban_jobs, [:state, :cancelled_at], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v13.ex:8:    create_if_not_exists index(:oban_jobs, [:state, :discarded_at], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v13.ex:11:  def down(%{prefix: prefix}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v13.ex:12:    drop_if_exists index(:oban_jobs, [:state, :discarded_at], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v13.ex:13:    drop_if_exists index(:oban_jobs, [:state, :cancelled_at], prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres.ex:1:defmodule Oban.Migrations.Postgres do
+hosted/deps/oban/lib/oban/migrations/postgres.ex:8:  @initial_version 1
+hosted/deps/oban/lib/oban/migrations/postgres.ex:9:  @current_version 14
+hosted/deps/oban/lib/oban/migrations/postgres.ex:10:  @default_prefix "public"
+hosted/deps/oban/lib/oban/migrations/postgres.ex:13:  def initial_version, do: @initial_version
+hosted/deps/oban/lib/oban/migrations/postgres.ex:16:  def current_version, do: @current_version
+hosted/deps/oban/lib/oban/migrations/postgres.ex:19:  def up(opts) do
+hosted/deps/oban/lib/oban/migrations/postgres.ex:20:    opts = with_defaults(opts, @current_version)
+hosted/deps/oban/lib/oban/migrations/postgres.ex:21:    initial = migrated_version(opts)
+hosted/deps/oban/lib/oban/migrations/postgres.ex:25:        change(@initial_version..opts.version, :up, opts)
+hosted/deps/oban/lib/oban/migrations/postgres.ex:27:      initial < opts.version ->
+hosted/deps/oban/lib/oban/migrations/postgres.ex:28:        change((initial + 1)..opts.version, :up, opts)
+hosted/deps/oban/lib/oban/migrations/postgres.ex:37:    opts = with_defaults(opts, @initial_version)
+hosted/deps/oban/lib/oban/migrations/postgres.ex:38:    initial = max(migrated_version(opts), @initial_version)
+hosted/deps/oban/lib/oban/migrations/postgres.ex:40:    if initial >= opts.version do
+hosted/deps/oban/lib/oban/migrations/postgres.ex:41:      change(initial..opts.version//-1, :down, opts)
+hosted/deps/oban/lib/oban/migrations/postgres.ex:46:  def migrated_version(opts) do
+hosted/deps/oban/lib/oban/migrations/postgres.ex:47:    opts = with_defaults(opts, @initial_version)
+hosted/deps/oban/lib/oban/migrations/postgres.ex:50:    escaped_prefix = Map.fetch!(opts, :escaped_prefix)
+hosted/deps/oban/lib/oban/migrations/postgres.ex:56:    WHERE pg_class.relname = 'oban_jobs'
+hosted/deps/oban/lib/oban/migrations/postgres.ex:57:    AND pg_namespace.nspname = '#{escaped_prefix}'
+hosted/deps/oban/lib/oban/migrations/postgres.ex:62:      {:ok, %{rows: [[version]]}} when is_binary(version) -> String.to_integer(version)
+hosted/deps/oban/lib/oban/migrations/postgres.ex:73:      |> apply(direction, [opts])
+hosted/deps/oban/lib/oban/migrations/postgres.ex:77:      :up -> record_version(opts, Enum.max(range))
+hosted/deps/oban/lib/oban/migrations/postgres.ex:78:      :down -> record_version(opts, Enum.min(range) - 1)
+hosted/deps/oban/lib/oban/migrations/postgres.ex:82:  defp record_version(_opts, 0), do: :ok
+hosted/deps/oban/lib/oban/migrations/postgres.ex:84:  defp record_version(%{prefix: prefix}, version) do
+hosted/deps/oban/lib/oban/migrations/postgres.ex:85:    execute "COMMENT ON TABLE #{inspect(prefix)}.oban_jobs IS '#{version}'"
+hosted/deps/oban/lib/oban/migrations/postgres.ex:88:  defp with_defaults(opts, version) do
+hosted/deps/oban/lib/oban/migrations/postgres.ex:89:    opts = Enum.into(opts, %{prefix: @default_prefix, version: version})
+hosted/deps/oban/lib/oban/migrations/postgres.ex:92:    |> Map.put(:quoted_prefix, inspect(opts.prefix))
+hosted/deps/oban/lib/oban/migrations/postgres.ex:93:    |> Map.put(:escaped_prefix, String.replace(opts.prefix, "'", "''"))
+hosted/deps/oban/lib/oban/migrations/postgres.ex:95:    |> Map.put_new(:create_schema, opts.prefix != @default_prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v14.ex:1:defmodule Oban.Migrations.Postgres.V14 do
+hosted/deps/oban/lib/oban/migrations/postgres/v14.ex:6:  def up(%{quoted_prefix: quoted}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v14.ex:8:    ALTER TYPE #{quoted}.oban_job_state ADD VALUE IF NOT EXISTS 'suspended' BEFORE 'scheduled'
+hosted/deps/oban/lib/oban/migrations/postgres/v14.ex:12:  def down(%{quoted_prefix: quoted}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v14.ex:13:    execute "UPDATE #{quoted}.oban_jobs SET state = 'scheduled' WHERE state = 'suspended'"
+hosted/deps/oban/lib/oban/migrations/postgres/v12.ex:1:defmodule Oban.Migrations.Postgres.V12 do
+hosted/deps/oban/lib/oban/migrations/postgres/v12.ex:6:  def up(%{prefix: prefix, quoted_prefix: quoted}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v12.ex:7:    drop constraint(:oban_jobs, :priority_range, prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v12.ex:9:    create constraint(:oban_jobs, :non_negative_priority,
+hosted/deps/oban/lib/oban/migrations/postgres/v12.ex:12:             prefix: prefix
+hosted/deps/oban/lib/oban/migrations/postgres/v12.ex:15:    execute "DROP TRIGGER IF EXISTS oban_notify ON #{quoted}.oban_jobs"
+hosted/deps/oban/lib/oban/migrations/postgres/v12.ex:16:    execute "DROP FUNCTION IF EXISTS #{quoted}.oban_jobs_notify()"
+hosted/deps/oban/lib/oban/migrations/postgres/v12.ex:19:  def down(%{escaped_prefix: escaped, prefix: prefix, quoted_prefix: quoted}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v12.ex:20:    drop constraint(:oban_jobs, :non_negative_priority, prefix: prefix)
+hosted/deps/oban/lib/oban/migrations/postgres/v12.ex:22:    create constraint(:oban_jobs, :priority_range,
+hosted/deps/oban/lib/oban/migrations/postgres/v12.ex:25:             prefix: prefix
+hosted/deps/oban/lib/oban/migrations/postgres/v12.ex:29:    CREATE OR REPLACE FUNCTION #{quoted}.oban_jobs_notify() RETURNS trigger AS $$
+hosted/deps/oban/lib/oban/migrations/postgres/v12.ex:35:        channel = '#{escaped}.oban_insert';
+hosted/deps/oban/lib/oban/migrations/postgres/v12.ex:47:    CREATE TRIGGER oban_notify
+hosted/deps/oban/lib/oban/migrations/postgres/v12.ex:48:    AFTER INSERT ON #{quoted}.oban_jobs
+hosted/deps/oban/lib/oban/migrations/postgres/v12.ex:49:    FOR EACH ROW EXECUTE PROCEDURE #{quoted}.oban_jobs_notify();
+hosted/deps/oban/lib/oban/migrations/postgres/v11.ex:1:defmodule Oban.Migrations.Postgres.V11 do
+hosted/deps/oban/lib/oban/migrations/postgres/v11.ex:6:  def up(%{prefix: prefix, quoted_prefix: quoted, unlogged: unlogged?}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v11.ex:7:    create_if_not_exists table(:oban_peers, primary_key: false, prefix: prefix) do
+hosted/deps/oban/lib/oban/migrations/postgres/v11.ex:15:      execute "ALTER TABLE #{quoted}.oban_peers SET UNLOGGED"
+hosted/deps/oban/lib/oban/migrations/postgres/v11.ex:19:  def down(%{prefix: prefix}) do
+hosted/deps/oban/lib/oban/migrations/postgres/v11.ex:20:    drop table(:oban_peers, prefix: prefix)

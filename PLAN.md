@@ -27,7 +27,9 @@ Lifecycle, discovery and constructor Engine runs pass all three jobs.
 The catalog prerequisite is pushed as `9d5c40ee`; selected storage/migrations pass,
 but its broader job stops at Mix formatting before tests. The terminal-newline
 correction passes the actual formatter and fresh 26-method PostgreSQL 17 and
-20-method independent PostgreSQL 16 replays. Corrected CI is pending.
+20-method independent PostgreSQL 16 replays. Corrected `6baf9acc` Phoenix CI
+passes every step; its Engine run remains active. The preceding catalog Engine
+run passes all three jobs.
 See [the integrated scope](docs/hosted-browser-session-integration.md).
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
@@ -153,9 +155,16 @@ The full plan remains incomplete; no GA gate is promoted.
    is enabled. Function/type catalog checks now pass 26 producer PostgreSQL 17 and 20
    independent PostgreSQL 16 methods, with root source/output/cleanup acceptance.
    Their named partial result has no consumer and cannot authorize readiness.
-   The separate complete relation/policy/grant matrix is being specified; a pure
-   activation-preparation decoder is the next isolated source lane.
-   Forty runtime adversity cases remain pending. See
+   The pure activation-preparation decoder now passes 19 producer methods,
+   11 existing snapshot regressions and 29 independent methods, with root
+   source/output/format acceptance. It proves shape only; the future owner must
+   compare retained claims, current identity and configuration before use.
+   The corrected relation contract passes 12 producer and 16 independent
+   source checks, including both incoming principal foreign keys. Its 48 runtime
+   cases remain pending; separate PG16/17 representation qualification is underway.
+   The additive preparation SQL helper has 39 producer PG17 methods passing and
+   is in independent review; no migration or caller is enabled. Forty owner
+   runtime adversity cases also remain pending. See
    [constructor review](docs/hosted-browser-runtime-constructor-review.md),
    [catalog review](docs/hosted-browser-catalog-surface-review.md) and
    [fixture repair](docs/hosted-browser-storage-ci-fixture.md).

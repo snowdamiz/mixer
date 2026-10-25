@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "attempt_id": "20261025T180905529550Z",
+  "scope": "independent selected ordinary ActivationPreparation/Vault/StoredSnapshot host shape review",
+  "result": "passed",
+  "frozen_decoder_sha256": "e208e159719dd29ff75186667404cb6018391a2ecc3b8a3534db131d1bc281f5",
+  "sources": {
+    "hosted/lib/mixer_hosted/browser_auth/vault.ex": {
+      "sha256": "e376cdd7305a520c61e716e3f4fcd3f5493e280ff5424ba822516f9a6f4281b2",
+      "input_copy": "attempts/20261025T180905529550Z/inputs/hosted/lib/mixer_hosted/browser_auth/vault.ex"
+    },
+    "hosted/lib/mixer_hosted/browser_auth/stored_snapshot.ex": {
+      "sha256": "ce92f99c3990bf9ddd0fbf5d8c7d329ea63bb5dc31ec3df4922907b19986cd3e",
+      "input_copy": "attempts/20261025T180905529550Z/inputs/hosted/lib/mixer_hosted/browser_auth/stored_snapshot.ex"
+    },
+    "hosted/lib/mixer_hosted/browser_auth/activation_preparation.ex": {
+      "sha256": "e208e159719dd29ff75186667404cb6018391a2ecc3b8a3534db131d1bc281f5",
+      "input_copy": "attempts/20261025T180905529550Z/inputs/hosted/lib/mixer_hosted/browser_auth/activation_preparation.ex"
+    },
+    "docs/hosted-browser-lifecycle-runtime-contract.md": {
+      "sha256": "faad9be11adf9bb9501bd7007811dc893562c878026ea7734c3104ceabbc0d82",
+      "input_copy": "attempts/20261025T180905529550Z/inputs/docs/hosted-browser-lifecycle-runtime-contract.md"
+    },
+    "docs/hosted-browser-activation-preparation-decoder-review.md": {
+      "sha256": "30dc1019320ee964304db5e473deeb038ec051f9422ae9db2dc267eece389247",
+      "input_copy": "attempts/20261025T180905529550Z/inputs/docs/hosted-browser-activation-preparation-decoder-review.md"
+    },
+    "verification/hosted-browser-activation-preparation-decoder-review/review_tests.exs": {
+      "sha256": "5140424dabe2213f5210483575878bbcc37f035ea2dd1dbd3f4b3f896d81ea72",
+      "input_copy": "attempts/20261025T180905529550Z/inputs/review_tests.exs"
+    },
+    "verification/hosted-browser-activation-preparation-decoder-review/run.py": {
+      "sha256": "5f0077cb9e726cfe8ed1b1ac59e694870e4c022e696755896c81d4468e282cc2",
+      "input_copy": "attempts/20261025T180905529550Z/inputs/run.py"
+    }
+  },
+  "tools": {
+    "elixir": "/opt/homebrew/bin/elixir",
+    "elixirc": "/opt/homebrew/bin/elixirc",
+    "python3": "/opt/homebrew/bin/python3"
+  },
+  "commands": [
+    {
+      "name": "revision",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "started_at": "2026-10-25T18:09:05.533208+00:00",
+      "exit_code": 0,
+      "stdout": "revision.stdout",
+      "stderr": "revision.stderr"
+    },
+    {
+      "name": "tracked-tree",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "started_at": "2026-10-25T18:09:05.539688+00:00",
+      "exit_code": 0,
+      "stdout": "tracked-tree.stdout",
+      "stderr": "tracked-tree.stderr"
+    },
+    {
+      "name": "elixir-version",
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "started_at": "2026-10-25T18:09:05.547858+00:00",
+      "exit_code": 0,
+      "stdout": "elixir-version.stdout",
+      "stderr": "elixir-version.stderr"
+    },
+    {
+      "name": "python-version",
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "started_at": "2026-10-25T18:09:05.682958+00:00",
+      "exit_code": 0,
+      "stdout": "python-version.stdout",
+      "stderr": "python-version.stderr"
+    },
+    {
+      "name": "compile",
+      "argv": [
+        "elixirc",
+        "--warnings-as-errors",
+        "-o",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-activation-decoder-review-63nm9x9t/ebin",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/lib/mixer_hosted/browser_auth/vault.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/lib/mixer_hosted/browser_auth/stored_snapshot.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/lib/mixer_hosted/browser_auth/activation_preparation.ex"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "started_at": "2026-10-25T18:09:05.691297+00:00",
+      "exit_code": 0,
+      "stdout": "compile.stdout",
+      "stderr": "compile.stderr"
+    },
+    {
+      "name": "compiled-imports",
+      "argv": [
+        "elixir",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-activation-decoder-review-63nm9x9t/ebin",
+        "-e",
+        "for module <- [MixerHosted.BrowserAuth.ActivationPreparation, MixerHosted.BrowserAuth.StoredSnapshot, MixerHosted.BrowserAuth.Vault] do {:ok, {^module, chunks}} = :beam_lib.chunks(:code.which(module), [:imports]); IO.inspect({module, chunks}, limit: :infinity) end"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "started_at": "2026-10-25T18:09:06.041467+00:00",
+      "exit_code": 0,
+      "stdout": "compiled-imports.stdout",
+      "stderr": "compiled-imports.stderr"
+    },
+    {
+      "name": "format",
+      "argv": [
+        "elixir",
+        "-e",
+        "p = hd(System.argv()); text = File.read!(p); expected = IO.iodata_to_binary(Code.format_string!(text)) <> \"\\n\"; if text != expected, do: System.halt(1)",
+        "--",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-activation-preparation-decoder-review/review_tests.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "started_at": "2026-10-25T18:09:06.201196+00:00",
+      "exit_code": 0,
+      "stdout": "format.stdout",
+      "stderr": "format.stderr"
+    },
+    {
+      "name": "whitespace",
+      "argv": [
+        "python3",
+        "-c",
+        "from pathlib import Path; import ast; import sys; paths = [Path(p) for p in sys.argv[1:]]; ast.parse(paths[0].read_text()); assert all(not any(line.rstrip(' \\t') != line for line in p.read_text().splitlines()) for p in paths); print('Selected Python syntax and whitespace pass')",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-activation-preparation-decoder-review/run.py",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-activation-preparation-decoder-review/review_tests.exs",
+        "/Users/andreyyurlov/Documents/dev/mixer/docs/hosted-browser-activation-preparation-decoder-review.md"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "started_at": "2026-10-25T18:09:06.365142+00:00",
+      "exit_code": 0,
+      "stdout": "whitespace.stdout",
+      "stderr": "whitespace.stderr"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "elixir",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-activation-decoder-review-63nm9x9t/ebin",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-activation-preparation-decoder-review/review_tests.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "started_at": "2026-10-25T18:09:06.387703+00:00",
+      "exit_code": 0,
+      "stdout": "tests.stdout",
+      "stderr": "tests.stderr"
+    }
+  ],
+  "limitations": [
+    "shape only; no SQL projection/helper/catalog/owner binding/readiness or route acceptance",
+    "no current verifier/OIDC/provider/key custody/deployment/GA qualification",
+    "no broad hosted application, Mix discovery or database started",
+    "computer use, screen capture, UI automation, native runtime and physical phones remain paused and unrun",
+    "no frozen catalog-inspector/authority-driver or rejected Worker V2 read/import/execute",
+    "effect tracing covers selected concrete success/error executions; source and compiled imports additionally reviewed"
+  ],
+  "cleanup": {
+    "owned_scratch": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-activation-decoder-review-63nm9x9t",
+    "removed": true,
+    "native_or_capture_processes_started": false,
+    "database_started": false,
+    "process_discovery_performed": false
+  },
+  "selected_tree_sha256": "dd27f7165d6054204712515e10e4986d39642eb59e12b81e514ed7a204e2ffd3",
+  "revision": "9d5c40ee1eb6eee8b93255a0102e9af1dc6ecdaa",
+  "tracked-tree": "83b9d1f1bafcfb89bb233222c2f5047599b15779",
+  "elixir-version": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+  "python-version": "Python 3.14.8",
+  "compiled_beams": {
+    "Elixir.Inspect.MixerHosted.BrowserAuth.ActivationPreparation.beam": "6d6431f43c4ff97ce614444c37c5940af29b2c98699098ed756903fe3c759d62",
+    "Elixir.Inspect.MixerHosted.BrowserAuth.StoredSnapshot.Envelope.beam": "d781399f4521763feb5963c38fe6188a0d2074067457617ce6d2a03cf69185d9",
+    "Elixir.Inspect.MixerHosted.BrowserAuth.StoredSnapshot.beam": "d38c72e8eb4e5c005d165a802f063adce58d15b4cf7e03d85e084e2cdb8fb2d8",
+    "Elixir.Inspect.MixerHosted.BrowserAuth.Vault.Active.beam": "052bcb5b6e012a22054836a9ebd63f4f9a85787c37b54f202b1b678a4b6734da",
+    "Elixir.Inspect.MixerHosted.BrowserAuth.Vault.Key.beam": "b30e0b8c208de57771d627e29696e508577104a748ea262f0344e2a256b0cbcf",
+    "Elixir.Inspect.MixerHosted.BrowserAuth.Vault.Preauth.beam": "a992db0f01b8f22673f6b4b3d89e42ce51f9251ae63fbfa354323b507e774c0e",
+    "Elixir.Inspect.MixerHosted.BrowserAuth.Vault.Sealed.beam": "574842e0f8f6ab722c8986d3f7a2fb5004ab751044c7c7620b30cf20fae9e067",
+    "Elixir.Inspect.MixerHosted.BrowserAuth.Vault.Verifier.beam": "fef7f4555d44efdc54142e6f0b0ad14c0f65ba52d36c1626a9ee67b46ce891bc",
+    "Elixir.MixerHosted.BrowserAuth.ActivationPreparation.beam": "6766ae57551b8a74729e14f4a1899c0235f877bad207524637a35042b10152d3",
+    "Elixir.MixerHosted.BrowserAuth.StoredSnapshot.Envelope.beam": "7b6e5f31b5624ccc641ca476c378c2fdafb4417c5d9e554c2c1abdb1a824c74c",
+    "Elixir.MixerHosted.BrowserAuth.StoredSnapshot.beam": "f653c9c2eea860b386c66a9ef154ec407f819e54d5788276da9a46f93ca957e7",
+    "Elixir.MixerHosted.BrowserAuth.Vault.Active.beam": "3be99bdb34553db6701cc4d12381b8ef2244c25890519b77e8357f88e11f66d9",
+    "Elixir.MixerHosted.BrowserAuth.Vault.Key.beam": "d0a07d5defb00cb50f6b0ecb31eb94c0b0f6dc1c5720ebc51649b080edd55e22",
+    "Elixir.MixerHosted.BrowserAuth.Vault.Preauth.beam": "82125ad059255544202951b246d75c379feba34f7c1c4a5cf4d13b41d1fc2cde",
+    "Elixir.MixerHosted.BrowserAuth.Vault.Sealed.beam": "48825d0f8d25db0bde127e6a840a6a2707a2b48ab95cba53be063553d3ef7cce",
+    "Elixir.MixerHosted.BrowserAuth.Vault.Verifier.beam": "f583482719344202bbaea4a597257f1ab3ae29a264d4c7ba41a054c7bbf978f9",
+    "Elixir.MixerHosted.BrowserAuth.Vault.beam": "e625e82ac5e4e1d66b0691677a3cf8da8bb04ed2052abac5416625da65082288"
+  },
+  "tests": {
+    "methods": 29,
+    "failures": 0,
+    "skipped": 0
+  },
+  "source_stability": "all selected live sources and review controls match pre-run copies",
+  "finished_at": "2026-10-25T18:09:06.916700+00:00"
+}

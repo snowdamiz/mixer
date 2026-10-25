@@ -285,11 +285,23 @@ and 20 independent methods on PostgreSQL 16.15. Root audited 14 source, 803
 dependency and 49 output bindings and cleanup; selected warnings-as-errors
 compilation passes. This is only `:function_surface_verified`: tests explicitly
 show that missing relation/policy/grant admission remains a separate requirement.
-No consumer, pool, Store or readiness wiring exists. The full relation matrix and
-a pure activation-preparation decoder are underway; all forty runtime adversity
-cases remain pending. See [catalog review](docs/hosted-browser-catalog-surface-review.md),
+No consumer, pool, Store or readiness wiring exists. The pure activation
+preparation decoder passes 19 producer methods, 11 existing snapshot regressions
+and 29 independent methods. Root audited 13 source and 38 output bindings and
+actual Mix formatting. Its exact six-field result proves shape; the future owner
+must compare the retained claim, current identity and current configuration.
+The corrected relation contract passes 12 producer and 16 independent source
+checks, with both incoming principal foreign keys included. Root verified 62
+input, four read-only context and 99 output bindings. All 48 relation runtime
+cases and forty owner runtime cases remain pending. PG16/17 representation
+qualification has started. The additive preparation SQL helper passes 39 producer
+PG17 methods and awaits independent review; no migration or caller is enabled. See [catalog review](docs/hosted-browser-catalog-surface-review.md),
 [contract review](docs/hosted-browser-lifecycle-runtime-contract-review.md) and
 [constructor acceptance](verification/hosted-browser-runtime-constructor-review/root-acceptance.json).
+
+The [decoder review](docs/hosted-browser-activation-preparation-decoder-review.md)
+and [relation contract review](docs/hosted-browser-relation-admission-contract-review.md)
+record the accepted component scope and remaining owner/runtime work.
 
 ## Delivery and pending qualification
 
@@ -299,8 +311,9 @@ storage/migrations, then fails Mix formatting before broader tests: one extra
 terminal newline in each new product module. Root corrected only terminal LF
 bytes and reran the actual formatter, selected warnings-as-errors compile,
 26 PostgreSQL 17 producer methods and 20 independent PostgreSQL 16 methods.
-All pass, with cleanup. Fresh corrected CI is pending; Engine `40219535273` is
-running. See [correction](docs/hosted-browser-catalog-format-correction.md) and
+All pass, with cleanup. Corrected `6baf9acc` Phoenix `40220447677` passes
+every step; Engine `40220447676` remains running. The preceding catalog Engine
+`40219535273` passes all three jobs. See [correction](docs/hosted-browser-catalog-format-correction.md) and
 [delivery](verification/github-delivery-browser-catalog/receipt.json).
 
 The reviewed constructor slice and storage-fixture repair are pushed as

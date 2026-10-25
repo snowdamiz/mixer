@@ -317,9 +317,11 @@ Return exactly:
 
 Snapshot uses the existing exact StoredSnapshot format with status `claimed` and
 its erased attempt cipher. A new closed `ActivationPreparation.decode/1` validates
-all six top-level keys/types, delegates snapshot decoding and binds all fields
-to the owner-retained claim/access identity/current config. The decoder proves
-shape only. Metadata grants no permission or future validity. Decode does not
+all six top-level keys/types and delegates snapshot decoding. The trusted
+lifecycle owner must then compare the complete decoded fields with its retained
+claim, current access identity and current configuration before use. The decoder
+proves shape only and cannot perform those comparisons from its one argument.
+Metadata grants no permission or future validity. Decode does not
 synthesize an authenticated session, membership or provider verification.
 
 The preparation snapshot supplies existing browser/vault revision/generation and

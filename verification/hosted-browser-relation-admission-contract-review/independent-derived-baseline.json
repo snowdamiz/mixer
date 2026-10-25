@@ -1,0 +1,4194 @@
+{
+  "scope": "Ordinary source derived structure only, not live PostgreSQL expectation forms",
+  "relations": {
+    "public.mixer_browser_sessions": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "bytea",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "cookie_digest",
+          "type": "bytea",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "epoch",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "revision",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "generation",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "csrf_digest",
+          "type": "bytea",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "created_at",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "last_seen_at",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "absolute_expires_at",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "idle_expires_at",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "expected_profile_id",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "expected_profile_version",
+          "type": "integer",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "initial_config_digest",
+          "type": "bytea",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "config_digest",
+          "type": "bytea",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "profile_id",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "profile_version",
+          "type": "integer",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "principal_id",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "family_id",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "credential_ref",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "credential_revision",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "audit_sequence",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        }
+      ],
+      "checks": [
+        [
+          "octet_length",
+          "(",
+          "id",
+          ")",
+          "=",
+          "16"
+        ],
+        [
+          "octet_length",
+          "(",
+          "cookie_digest",
+          ")",
+          "=",
+          "32"
+        ],
+        [
+          "status",
+          "in",
+          "(",
+          "'preauth'",
+          ",",
+          "'active'",
+          ",",
+          "'revoked'",
+          ",",
+          "'expired'",
+          ")"
+        ],
+        [
+          "epoch",
+          "between",
+          "1",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "revision",
+          "between",
+          "1",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "generation",
+          "~",
+          "'^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$'"
+        ],
+        [
+          "octet_length",
+          "(",
+          "csrf_digest",
+          ")",
+          "=",
+          "32"
+        ],
+        [
+          "created_at",
+          "between",
+          "0",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "last_seen_at",
+          ">=",
+          "created_at"
+        ],
+        [
+          "absolute_expires_at",
+          ">",
+          "created_at",
+          "and",
+          "absolute_expires_at",
+          "<=",
+          "9007199254740991"
+        ],
+        [
+          "idle_expires_at",
+          ">",
+          "created_at",
+          "and",
+          "idle_expires_at",
+          "<=",
+          "absolute_expires_at"
+        ],
+        [
+          "octet_length",
+          "(",
+          "expected_profile_id",
+          ")",
+          "between",
+          "1",
+          "and",
+          "128"
+        ],
+        [
+          "expected_profile_version",
+          ">",
+          "0"
+        ],
+        [
+          "octet_length",
+          "(",
+          "initial_config_digest",
+          ")",
+          "=",
+          "32"
+        ],
+        [
+          "octet_length",
+          "(",
+          "config_digest",
+          ")",
+          "=",
+          "32"
+        ],
+        [
+          "audit_sequence",
+          "between",
+          "1",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "(",
+          "profile_id",
+          "is",
+          "null",
+          "and",
+          "profile_version",
+          "is",
+          "null",
+          "and",
+          "principal_id",
+          "is",
+          "null",
+          "and",
+          "family_id",
+          "is",
+          "null",
+          "and",
+          "credential_ref",
+          "is",
+          "null",
+          "and",
+          "credential_revision",
+          "is",
+          "null",
+          "and",
+          "status",
+          "<>",
+          "'active'",
+          ")",
+          "or",
+          "(",
+          "profile_id",
+          "is",
+          "not",
+          "null",
+          "and",
+          "profile_version",
+          "is",
+          "not",
+          "null",
+          "and",
+          "principal_id",
+          "is",
+          "not",
+          "null",
+          "and",
+          "family_id",
+          "is",
+          "not",
+          "null",
+          "and",
+          "credential_ref",
+          "is",
+          "not",
+          "null",
+          "and",
+          "credential_revision",
+          "is",
+          "not",
+          "null",
+          "and",
+          "credential_revision",
+          "between",
+          "1",
+          "and",
+          "9007199254740991",
+          "and",
+          "status",
+          "<>",
+          "'preauth'",
+          ")"
+        ]
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "unique": [
+        [
+          "cookie_digest"
+        ]
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "profile_id",
+            "profile_version",
+            "credential_ref"
+          ],
+          "relation": "public.mixer_authz_credentials",
+          "referenced_columns": [
+            "profile_id",
+            "profile_version",
+            "reference"
+          ],
+          "match": "s",
+          "on_update": "a",
+          "on_delete": "a",
+          "deferrable": false,
+          "initially_deferred": false
+        },
+        {
+          "columns": [
+            "family_id",
+            "profile_id",
+            "profile_version",
+            "principal_id"
+          ],
+          "relation": "public.mixer_authz_families",
+          "referenced_columns": [
+            "id",
+            "profile_id",
+            "profile_version",
+            "principal_id"
+          ],
+          "match": "s",
+          "on_update": "a",
+          "on_delete": "a",
+          "deferrable": false,
+          "initially_deferred": false
+        }
+      ],
+      "extra_indexes": []
+    },
+    "public.mixer_browser_session_vault": {
+      "columns": [
+        {
+          "name": "browser_id",
+          "type": "bytea",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "epoch",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "session_revision",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "vault_generation",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "ciphertext_version",
+          "type": "integer",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "envelope_kind",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "key_id",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "iv",
+          "type": "bytea",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "tag",
+          "type": "bytea",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "ciphertext",
+          "type": "bytea",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        }
+      ],
+      "checks": [
+        [
+          "epoch",
+          "between",
+          "1",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "session_revision",
+          "between",
+          "1",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "vault_generation",
+          "between",
+          "1",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "ciphertext_version",
+          "=",
+          "1"
+        ],
+        [
+          "envelope_kind",
+          "in",
+          "(",
+          "'preauth'",
+          ",",
+          "'active'",
+          ",",
+          "'erased'",
+          ")"
+        ],
+        [
+          "(",
+          "envelope_kind",
+          "=",
+          "'erased'",
+          "and",
+          "key_id",
+          "is",
+          "null",
+          "and",
+          "iv",
+          "is",
+          "null",
+          "and",
+          "tag",
+          "is",
+          "null",
+          "and",
+          "ciphertext",
+          "is",
+          "null",
+          ")",
+          "or",
+          "(",
+          "envelope_kind",
+          "in",
+          "(",
+          "'preauth'",
+          ",",
+          "'active'",
+          ")",
+          "and",
+          "key_id",
+          "is",
+          "not",
+          "null",
+          "and",
+          "key_id",
+          "~",
+          "'^[A-Za-z0-9._-]{1,128}$'",
+          "and",
+          "iv",
+          "is",
+          "not",
+          "null",
+          "and",
+          "octet_length",
+          "(",
+          "iv",
+          ")",
+          "=",
+          "12",
+          "and",
+          "tag",
+          "is",
+          "not",
+          "null",
+          "and",
+          "octet_length",
+          "(",
+          "tag",
+          ")",
+          "=",
+          "16",
+          "and",
+          "ciphertext",
+          "is",
+          "not",
+          "null",
+          "and",
+          "octet_length",
+          "(",
+          "ciphertext",
+          ")",
+          "between",
+          "1",
+          "and",
+          "8192",
+          ")"
+        ]
+      ],
+      "primary_key": [
+        "browser_id"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "browser_id"
+          ],
+          "relation": "public.mixer_browser_sessions",
+          "referenced_columns": [
+            "id"
+          ],
+          "match": "s",
+          "on_update": "a",
+          "on_delete": "a",
+          "deferrable": false,
+          "initially_deferred": false
+        }
+      ],
+      "extra_indexes": []
+    },
+    "public.mixer_browser_oidc_attempts": {
+      "columns": [
+        {
+          "name": "state_digest",
+          "type": "bytea",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "browser_id",
+          "type": "bytea",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "browser_epoch",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "browser_revision",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "cookie_digest",
+          "type": "bytea",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "generation",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "config_digest",
+          "type": "bytea",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "profile_id",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "profile_version",
+          "type": "integer",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "issuer",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "client_id",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "redirect_uri",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "return_route",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "nonce_digest",
+          "type": "bytea",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "created_at",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "expires_at",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "claim_digest",
+          "type": "bytea",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "claimed_at",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "claim_expires_at",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "completion_reason",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "ciphertext_version",
+          "type": "integer",
+          "nullable": false,
+          "default": "1",
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "key_id",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "iv",
+          "type": "bytea",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "tag",
+          "type": "bytea",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "ciphertext",
+          "type": "bytea",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        }
+      ],
+      "checks": [
+        [
+          "octet_length",
+          "(",
+          "state_digest",
+          ")",
+          "=",
+          "32"
+        ],
+        [
+          "browser_epoch",
+          "between",
+          "1",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "browser_revision",
+          "between",
+          "1",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "octet_length",
+          "(",
+          "cookie_digest",
+          ")",
+          "=",
+          "32"
+        ],
+        [
+          "generation",
+          "~",
+          "'^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$'"
+        ],
+        [
+          "octet_length",
+          "(",
+          "config_digest",
+          ")",
+          "=",
+          "32"
+        ],
+        [
+          "octet_length",
+          "(",
+          "profile_id",
+          ")",
+          "between",
+          "1",
+          "and",
+          "128"
+        ],
+        [
+          "profile_version",
+          ">",
+          "0"
+        ],
+        [
+          "octet_length",
+          "(",
+          "issuer",
+          ")",
+          "between",
+          "1",
+          "and",
+          "2048"
+        ],
+        [
+          "octet_length",
+          "(",
+          "client_id",
+          ")",
+          "between",
+          "1",
+          "and",
+          "256"
+        ],
+        [
+          "octet_length",
+          "(",
+          "redirect_uri",
+          ")",
+          "between",
+          "1",
+          "and",
+          "2048"
+        ],
+        [
+          "return_route",
+          "=",
+          "'workspace'"
+        ],
+        [
+          "octet_length",
+          "(",
+          "nonce_digest",
+          ")",
+          "=",
+          "32"
+        ],
+        [
+          "created_at",
+          "between",
+          "0",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "expires_at",
+          ">",
+          "created_at",
+          "and",
+          "expires_at",
+          "<=",
+          "created_at",
+          "+",
+          "300",
+          "and",
+          "expires_at",
+          "<=",
+          "9007199254740991"
+        ],
+        [
+          "status",
+          "in",
+          "(",
+          "'pending'",
+          ",",
+          "'claimed'",
+          ",",
+          "'provider_rejected'",
+          ",",
+          "'completed'",
+          ",",
+          "'failed'",
+          ",",
+          "'superseded'",
+          ")"
+        ],
+        [
+          "octet_length",
+          "(",
+          "claim_digest",
+          ")",
+          "=",
+          "32"
+        ],
+        [
+          "completion_reason",
+          "in",
+          "(",
+          "'provider_rejected'",
+          ",",
+          "'exchange_failed'",
+          ",",
+          "'oidc_failed'",
+          ",",
+          "'identity_failed'",
+          ",",
+          "'session_failed'",
+          ",",
+          "'completed'",
+          ",",
+          "'superseded'",
+          ",",
+          "'expired'",
+          ",",
+          "'logout'",
+          ")"
+        ],
+        [
+          "ciphertext_version",
+          "=",
+          "1"
+        ],
+        [
+          "(",
+          "status",
+          "=",
+          "'pending'",
+          "and",
+          "claim_digest",
+          "is",
+          "null",
+          "and",
+          "claimed_at",
+          "is",
+          "null",
+          "and",
+          "claim_expires_at",
+          "is",
+          "null",
+          "and",
+          "completion_reason",
+          "is",
+          "null",
+          "and",
+          "key_id",
+          "is",
+          "not",
+          "null",
+          "and",
+          "key_id",
+          "~",
+          "'^[A-Za-z0-9._-]{1,128}$'",
+          "and",
+          "iv",
+          "is",
+          "not",
+          "null",
+          "and",
+          "octet_length",
+          "(",
+          "iv",
+          ")",
+          "=",
+          "12",
+          "and",
+          "tag",
+          "is",
+          "not",
+          "null",
+          "and",
+          "octet_length",
+          "(",
+          "tag",
+          ")",
+          "=",
+          "16",
+          "and",
+          "ciphertext",
+          "is",
+          "not",
+          "null",
+          "and",
+          "octet_length",
+          "(",
+          "ciphertext",
+          ")",
+          "between",
+          "1",
+          "and",
+          "8192",
+          ")",
+          "or",
+          "(",
+          "status",
+          "<>",
+          "'pending'",
+          "and",
+          "key_id",
+          "is",
+          "null",
+          "and",
+          "iv",
+          "is",
+          "null",
+          "and",
+          "tag",
+          "is",
+          "null",
+          "and",
+          "ciphertext",
+          "is",
+          "null",
+          "and",
+          "(",
+          "(",
+          "status",
+          "=",
+          "'claimed'",
+          "and",
+          "completion_reason",
+          "is",
+          "null",
+          "and",
+          "claim_digest",
+          "is",
+          "not",
+          "null",
+          "and",
+          "claimed_at",
+          "is",
+          "not",
+          "null",
+          "and",
+          "claim_expires_at",
+          "is",
+          "not",
+          "null",
+          "and",
+          "claimed_at",
+          ">=",
+          "created_at",
+          "and",
+          "claim_expires_at",
+          ">",
+          "claimed_at",
+          "and",
+          "claim_expires_at",
+          "<=",
+          "expires_at",
+          ")",
+          "or",
+          "(",
+          "completion_reason",
+          "is",
+          "not",
+          "null",
+          "and",
+          "(",
+          "(",
+          "status",
+          "=",
+          "'provider_rejected'",
+          "and",
+          "completion_reason",
+          "=",
+          "'provider_rejected'",
+          ")",
+          "or",
+          "(",
+          "status",
+          "=",
+          "'completed'",
+          "and",
+          "completion_reason",
+          "=",
+          "'completed'",
+          "and",
+          "claim_digest",
+          "is",
+          "not",
+          "null",
+          ")",
+          "or",
+          "(",
+          "status",
+          "=",
+          "'failed'",
+          "and",
+          "completion_reason",
+          "in",
+          "(",
+          "'exchange_failed'",
+          ",",
+          "'oidc_failed'",
+          ",",
+          "'identity_failed'",
+          ",",
+          "'session_failed'",
+          ")",
+          "and",
+          "claim_digest",
+          "is",
+          "not",
+          "null",
+          ")",
+          "or",
+          "(",
+          "status",
+          "=",
+          "'superseded'",
+          "and",
+          "completion_reason",
+          "in",
+          "(",
+          "'superseded'",
+          ",",
+          "'expired'",
+          ",",
+          "'logout'",
+          ")",
+          ")",
+          ")",
+          ")",
+          ")",
+          ")"
+        ]
+      ],
+      "primary_key": [
+        "state_digest"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "browser_id"
+          ],
+          "relation": "public.mixer_browser_sessions",
+          "referenced_columns": [
+            "id"
+          ],
+          "match": "s",
+          "on_update": "a",
+          "on_delete": "a",
+          "deferrable": false,
+          "initially_deferred": false
+        }
+      ],
+      "extra_indexes": [
+        {
+          "name": "mixer_browser_one_attempt",
+          "unique": true,
+          "columns": [
+            "browser_id",
+            "browser_epoch"
+          ],
+          "predicate": [
+            "status",
+            "in",
+            "(",
+            "'pending'",
+            ",",
+            "'claimed'",
+            ")"
+          ]
+        }
+      ]
+    },
+    "public.mixer_browser_session_events": {
+      "columns": [
+        {
+          "name": "browser_id",
+          "type": "bytea",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "sequence",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "audit_schema",
+          "type": "integer",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "operation",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "outcome",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "request_id",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "recorded_at",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "old_revision",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "new_revision",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "old_epoch",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "new_epoch",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "old_status",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "new_status",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "config_digest",
+          "type": "bytea",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "attempt_state_digest",
+          "type": "bytea",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "profile_id",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "profile_version",
+          "type": "integer",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "principal_id",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "family_id",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "issuer_hash",
+          "type": "bytea",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "subject_hash",
+          "type": "bytea",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "client_hash",
+          "type": "bytea",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "credential_hash",
+          "type": "bytea",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "profile_revision",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "binding_revision",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "principal_revision",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "family_revision",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "credential_revision",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "token_issued_at",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "token_expires_at",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        }
+      ],
+      "checks": [
+        [
+          "sequence",
+          "between",
+          "1",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "audit_schema",
+          "=",
+          "1"
+        ],
+        [
+          "operation",
+          "in",
+          "(",
+          "'bootstrap'",
+          ",",
+          "'begin'",
+          ",",
+          "'claim'",
+          ",",
+          "'provider_reject'",
+          ",",
+          "'fail_claim'",
+          ",",
+          "'activate'",
+          ",",
+          "'replace'",
+          ",",
+          "'logout'",
+          ",",
+          "'expire'",
+          ")"
+        ],
+        [
+          "outcome",
+          "in",
+          "(",
+          "'created'",
+          ",",
+          "'pending'",
+          ",",
+          "'claimed'",
+          ",",
+          "'provider_rejected'",
+          ",",
+          "'failed'",
+          ",",
+          "'active'",
+          ",",
+          "'revoked'",
+          ",",
+          "'expired'",
+          ")"
+        ],
+        [
+          "request_id",
+          "~",
+          "'^[0-9a-f]{32}$'"
+        ],
+        [
+          "recorded_at",
+          "between",
+          "0",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "new_revision",
+          "between",
+          "1",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "new_epoch",
+          "between",
+          "1",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "new_status",
+          "in",
+          "(",
+          "'preauth'",
+          ",",
+          "'active'",
+          ",",
+          "'revoked'",
+          ",",
+          "'expired'",
+          ")"
+        ],
+        [
+          "octet_length",
+          "(",
+          "config_digest",
+          ")",
+          "=",
+          "32"
+        ],
+        [
+          "octet_length",
+          "(",
+          "attempt_state_digest",
+          ")",
+          "=",
+          "32"
+        ],
+        [
+          "octet_length",
+          "(",
+          "issuer_hash",
+          ")",
+          "=",
+          "32"
+        ],
+        [
+          "octet_length",
+          "(",
+          "subject_hash",
+          ")",
+          "=",
+          "32"
+        ],
+        [
+          "octet_length",
+          "(",
+          "client_hash",
+          ")",
+          "=",
+          "32"
+        ],
+        [
+          "octet_length",
+          "(",
+          "credential_hash",
+          ")",
+          "=",
+          "32"
+        ],
+        [
+          "(",
+          "sequence",
+          "=",
+          "1",
+          "and",
+          "operation",
+          "=",
+          "'bootstrap'",
+          "and",
+          "old_revision",
+          "is",
+          "null",
+          "and",
+          "old_epoch",
+          "is",
+          "null",
+          "and",
+          "old_status",
+          "is",
+          "null",
+          "and",
+          "new_revision",
+          "=",
+          "1",
+          "and",
+          "new_epoch",
+          "=",
+          "1",
+          "and",
+          "new_status",
+          "=",
+          "'preauth'",
+          "and",
+          "outcome",
+          "=",
+          "'created'",
+          ")",
+          "or",
+          "(",
+          "sequence",
+          ">",
+          "1",
+          "and",
+          "old_revision",
+          "is",
+          "not",
+          "null",
+          "and",
+          "old_revision",
+          "between",
+          "1",
+          "and",
+          "9007199254740991",
+          "and",
+          "old_epoch",
+          "is",
+          "not",
+          "null",
+          "and",
+          "old_epoch",
+          "between",
+          "1",
+          "and",
+          "9007199254740991",
+          "and",
+          "old_status",
+          "is",
+          "not",
+          "null",
+          "and",
+          "old_status",
+          "in",
+          "(",
+          "'preauth'",
+          ",",
+          "'active'",
+          ")",
+          "and",
+          "(",
+          "(",
+          "operation",
+          "=",
+          "'begin'",
+          "and",
+          "outcome",
+          "=",
+          "'pending'",
+          "and",
+          "new_status",
+          "=",
+          "old_status",
+          "and",
+          "new_revision",
+          "=",
+          "old_revision",
+          "+",
+          "1",
+          "and",
+          "new_epoch",
+          "=",
+          "old_epoch",
+          "+",
+          "1",
+          ")",
+          "or",
+          "(",
+          "operation",
+          "=",
+          "'claim'",
+          "and",
+          "outcome",
+          "=",
+          "'claimed'",
+          "and",
+          "new_status",
+          "=",
+          "old_status",
+          "and",
+          "new_revision",
+          "=",
+          "old_revision",
+          "and",
+          "new_epoch",
+          "=",
+          "old_epoch",
+          ")",
+          "or",
+          "(",
+          "operation",
+          "=",
+          "'provider_reject'",
+          "and",
+          "outcome",
+          "=",
+          "'provider_rejected'",
+          "and",
+          "new_status",
+          "=",
+          "old_status",
+          "and",
+          "new_revision",
+          "=",
+          "old_revision",
+          "and",
+          "new_epoch",
+          "=",
+          "old_epoch",
+          ")",
+          "or",
+          "(",
+          "operation",
+          "=",
+          "'fail_claim'",
+          "and",
+          "outcome",
+          "=",
+          "'failed'",
+          "and",
+          "new_status",
+          "=",
+          "old_status",
+          "and",
+          "new_revision",
+          "=",
+          "old_revision",
+          "and",
+          "new_epoch",
+          "=",
+          "old_epoch",
+          ")",
+          "or",
+          "(",
+          "operation",
+          "=",
+          "'activate'",
+          "and",
+          "outcome",
+          "=",
+          "'active'",
+          "and",
+          "old_status",
+          "=",
+          "'preauth'",
+          "and",
+          "new_status",
+          "=",
+          "'active'",
+          "and",
+          "new_revision",
+          "=",
+          "old_revision",
+          "+",
+          "1",
+          "and",
+          "new_epoch",
+          "=",
+          "old_epoch",
+          "+",
+          "1",
+          ")",
+          "or",
+          "(",
+          "operation",
+          "=",
+          "'replace'",
+          "and",
+          "outcome",
+          "=",
+          "'active'",
+          "and",
+          "old_status",
+          "=",
+          "'active'",
+          "and",
+          "new_status",
+          "=",
+          "'active'",
+          "and",
+          "new_revision",
+          "=",
+          "old_revision",
+          "+",
+          "1",
+          "and",
+          "new_epoch",
+          "=",
+          "old_epoch",
+          "+",
+          "1",
+          ")",
+          "or",
+          "(",
+          "operation",
+          "=",
+          "'logout'",
+          "and",
+          "outcome",
+          "=",
+          "'revoked'",
+          "and",
+          "new_status",
+          "=",
+          "'revoked'",
+          "and",
+          "new_revision",
+          "=",
+          "old_revision",
+          "+",
+          "1",
+          "and",
+          "new_epoch",
+          "=",
+          "old_epoch",
+          "+",
+          "1",
+          ")",
+          "or",
+          "(",
+          "operation",
+          "=",
+          "'expire'",
+          "and",
+          "outcome",
+          "=",
+          "'expired'",
+          "and",
+          "new_status",
+          "=",
+          "'expired'",
+          "and",
+          "new_revision",
+          "=",
+          "old_revision",
+          "+",
+          "1",
+          "and",
+          "new_epoch",
+          "=",
+          "old_epoch",
+          "+",
+          "1",
+          ")",
+          ")",
+          ")"
+        ],
+        [
+          "(",
+          "operation",
+          "in",
+          "(",
+          "'activate'",
+          ",",
+          "'replace'",
+          ")",
+          "and",
+          "token_issued_at",
+          "is",
+          "not",
+          "null",
+          "and",
+          "token_expires_at",
+          ">",
+          "token_issued_at",
+          "and",
+          "issuer_hash",
+          "is",
+          "not",
+          "null",
+          "and",
+          "subject_hash",
+          "is",
+          "not",
+          "null",
+          "and",
+          "client_hash",
+          "is",
+          "not",
+          "null",
+          "and",
+          "credential_hash",
+          "is",
+          "not",
+          "null",
+          ")",
+          "or",
+          "(",
+          "operation",
+          "not",
+          "in",
+          "(",
+          "'activate'",
+          ",",
+          "'replace'",
+          ")",
+          "and",
+          "token_issued_at",
+          "is",
+          "null",
+          "and",
+          "token_expires_at",
+          "is",
+          "null",
+          "and",
+          "issuer_hash",
+          "is",
+          "null",
+          "and",
+          "subject_hash",
+          "is",
+          "null",
+          "and",
+          "client_hash",
+          "is",
+          "null",
+          "and",
+          "credential_hash",
+          "is",
+          "null",
+          ")"
+        ]
+      ],
+      "primary_key": [
+        "browser_id",
+        "sequence"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "browser_id"
+          ],
+          "relation": "public.mixer_browser_sessions",
+          "referenced_columns": [
+            "id"
+          ],
+          "match": "s",
+          "on_update": "a",
+          "on_delete": "a",
+          "deferrable": false,
+          "initially_deferred": false
+        }
+      ],
+      "extra_indexes": []
+    },
+    "public.mixer_authz_profiles": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "issuer",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "client_id",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "identity_class",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "state_revision",
+          "type": "bigint",
+          "nullable": false,
+          "default": "1",
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        }
+      ],
+      "checks": [
+        [
+          "octet_length",
+          "(",
+          "id",
+          ")",
+          "between",
+          "1",
+          "and",
+          "128"
+        ],
+        [
+          "version",
+          ">",
+          "0"
+        ],
+        [
+          "octet_length",
+          "(",
+          "issuer",
+          ")",
+          "between",
+          "1",
+          "and",
+          "2048"
+        ],
+        [
+          "octet_length",
+          "(",
+          "client_id",
+          ")",
+          "between",
+          "1",
+          "and",
+          "256"
+        ],
+        [
+          "identity_class",
+          "in",
+          "(",
+          "'human'",
+          ",",
+          "'service'",
+          ")"
+        ],
+        [
+          "state_revision",
+          "between",
+          "1",
+          "and",
+          "9007199254740991"
+        ]
+      ],
+      "primary_key": [
+        "id",
+        "version"
+      ],
+      "unique": [
+        [
+          "id",
+          "version",
+          "identity_class"
+        ]
+      ],
+      "foreign_keys": [],
+      "extra_indexes": []
+    },
+    "public.mixer_authz_principals": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "identity_class",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "not_before",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "revision",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        }
+      ],
+      "checks": [
+        [
+          "octet_length",
+          "(",
+          "id",
+          ")",
+          "between",
+          "1",
+          "and",
+          "128"
+        ],
+        [
+          "identity_class",
+          "in",
+          "(",
+          "'human'",
+          ",",
+          "'service'",
+          ")"
+        ],
+        [
+          "not_before",
+          "between",
+          "0",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "revision",
+          "between",
+          "1",
+          "and",
+          "9007199254740991"
+        ]
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "unique": [
+        [
+          "id",
+          "identity_class"
+        ]
+      ],
+      "foreign_keys": [],
+      "extra_indexes": []
+    },
+    "public.mixer_authz_bindings": {
+      "columns": [
+        {
+          "name": "profile_id",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "profile_version",
+          "type": "integer",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "subject",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "identity_class",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "principal_id",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "revision",
+          "type": "bigint",
+          "nullable": false,
+          "default": "1",
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        }
+      ],
+      "checks": [
+        [
+          "octet_length",
+          "(",
+          "subject",
+          ")",
+          "between",
+          "1",
+          "and",
+          "256"
+        ],
+        [
+          "revision",
+          "between",
+          "1",
+          "and",
+          "9007199254740991"
+        ]
+      ],
+      "primary_key": [
+        "profile_id",
+        "profile_version",
+        "subject"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "profile_id",
+            "profile_version",
+            "identity_class"
+          ],
+          "relation": "public.mixer_authz_profiles",
+          "referenced_columns": [
+            "id",
+            "version",
+            "identity_class"
+          ],
+          "match": "s",
+          "on_update": "a",
+          "on_delete": "a",
+          "deferrable": false,
+          "initially_deferred": false
+        },
+        {
+          "columns": [
+            "principal_id",
+            "identity_class"
+          ],
+          "relation": "public.mixer_authz_principals",
+          "referenced_columns": [
+            "id",
+            "identity_class"
+          ],
+          "match": "s",
+          "on_update": "a",
+          "on_delete": "a",
+          "deferrable": false,
+          "initially_deferred": false
+        }
+      ],
+      "extra_indexes": []
+    },
+    "public.mixer_authz_families": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "profile_id",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "profile_version",
+          "type": "integer",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "principal_id",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "not_before",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "expires_at",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "revision",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        }
+      ],
+      "checks": [
+        [
+          "octet_length",
+          "(",
+          "id",
+          ")",
+          "between",
+          "1",
+          "and",
+          "128"
+        ],
+        [
+          "not_before",
+          "between",
+          "0",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "expires_at",
+          "between",
+          "0",
+          "and",
+          "9007199254740991",
+          "and",
+          "expires_at",
+          ">",
+          "not_before"
+        ],
+        [
+          "revision",
+          "between",
+          "1",
+          "and",
+          "9007199254740991"
+        ]
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "unique": [
+        [
+          "id",
+          "profile_id",
+          "profile_version",
+          "principal_id"
+        ]
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "principal_id"
+          ],
+          "relation": "public.mixer_authz_principals",
+          "referenced_columns": [
+            "id"
+          ],
+          "match": "s",
+          "on_update": "a",
+          "on_delete": "a",
+          "deferrable": false,
+          "initially_deferred": false
+        },
+        {
+          "columns": [
+            "profile_id",
+            "profile_version"
+          ],
+          "relation": "public.mixer_authz_profiles",
+          "referenced_columns": [
+            "id",
+            "version"
+          ],
+          "match": "s",
+          "on_update": "a",
+          "on_delete": "a",
+          "deferrable": false,
+          "initially_deferred": false
+        }
+      ],
+      "extra_indexes": []
+    },
+    "public.mixer_authz_credentials": {
+      "columns": [
+        {
+          "name": "profile_id",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "profile_version",
+          "type": "integer",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "reference",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "principal_id",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "family_id",
+          "type": "text",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "not_before",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "expires_at",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        },
+        {
+          "name": "revision",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "identity": "",
+          "generated": "",
+          "typmod": -1,
+          "dimensions": 0
+        }
+      ],
+      "checks": [
+        [
+          "octet_length",
+          "(",
+          "reference",
+          ")",
+          "between",
+          "1",
+          "and",
+          "256"
+        ],
+        [
+          "not_before",
+          "between",
+          "0",
+          "and",
+          "9007199254740991"
+        ],
+        [
+          "expires_at",
+          "between",
+          "0",
+          "and",
+          "9007199254740991",
+          "and",
+          "expires_at",
+          ">",
+          "not_before"
+        ],
+        [
+          "revision",
+          "between",
+          "1",
+          "and",
+          "9007199254740991"
+        ]
+      ],
+      "primary_key": [
+        "profile_id",
+        "profile_version",
+        "reference"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "family_id",
+            "profile_id",
+            "profile_version",
+            "principal_id"
+          ],
+          "relation": "public.mixer_authz_families",
+          "referenced_columns": [
+            "id",
+            "profile_id",
+            "profile_version",
+            "principal_id"
+          ],
+          "match": "s",
+          "on_update": "a",
+          "on_delete": "a",
+          "deferrable": false,
+          "initially_deferred": false
+        }
+      ],
+      "extra_indexes": []
+    }
+  },
+  "policies": {
+    "public.mixer_browser_sessions": [
+      {
+        "name": "mixer_browser_read",
+        "command": "SELECT",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": [
+          "true"
+        ],
+        "check": null
+      },
+      {
+        "name": "mixer_browser_insert",
+        "command": "INSERT",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": null,
+        "check": [
+          "true"
+        ]
+      },
+      {
+        "name": "mixer_browser_update",
+        "command": "UPDATE",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": [
+          "true"
+        ],
+        "check": [
+          "true"
+        ]
+      }
+    ],
+    "public.mixer_browser_session_vault": [
+      {
+        "name": "mixer_browser_read",
+        "command": "SELECT",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": [
+          "true"
+        ],
+        "check": null
+      },
+      {
+        "name": "mixer_browser_insert",
+        "command": "INSERT",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": null,
+        "check": [
+          "true"
+        ]
+      },
+      {
+        "name": "mixer_browser_update",
+        "command": "UPDATE",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": [
+          "true"
+        ],
+        "check": [
+          "true"
+        ]
+      }
+    ],
+    "public.mixer_browser_oidc_attempts": [
+      {
+        "name": "mixer_browser_read",
+        "command": "SELECT",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": [
+          "true"
+        ],
+        "check": null
+      },
+      {
+        "name": "mixer_browser_insert",
+        "command": "INSERT",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": null,
+        "check": [
+          "true"
+        ]
+      },
+      {
+        "name": "mixer_browser_update",
+        "command": "UPDATE",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": [
+          "true"
+        ],
+        "check": [
+          "true"
+        ]
+      }
+    ],
+    "public.mixer_browser_session_events": [
+      {
+        "name": "mixer_browser_read",
+        "command": "SELECT",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": [
+          "true"
+        ],
+        "check": null
+      },
+      {
+        "name": "mixer_browser_insert",
+        "command": "INSERT",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": null,
+        "check": [
+          "true"
+        ]
+      }
+    ],
+    "public.mixer_authz_profiles": [
+      {
+        "name": "scoped_read",
+        "command": "SELECT",
+        "roles": [
+          "PUBLIC"
+        ],
+        "permissive": true,
+        "using": [
+          "id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.profile_id'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "version",
+          "::",
+          "text",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.profile_version'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "issuer",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.issuer'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "client_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.client_id'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "identity_class",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.identity_class'",
+          ",",
+          "true",
+          ")"
+        ],
+        "check": null
+      },
+      {
+        "name": "scoped_lock",
+        "command": "UPDATE",
+        "roles": [
+          "PUBLIC"
+        ],
+        "permissive": true,
+        "using": [
+          "id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.profile_id'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "version",
+          "::",
+          "text",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.profile_version'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "issuer",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.issuer'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "client_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.client_id'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "identity_class",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.identity_class'",
+          ",",
+          "true",
+          ")"
+        ],
+        "check": [
+          "false"
+        ]
+      },
+      {
+        "name": "mixer_browser_read",
+        "command": "SELECT",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": [
+          "true"
+        ],
+        "check": null
+      },
+      {
+        "name": "mixer_browser_lock",
+        "command": "UPDATE",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": [
+          "true"
+        ],
+        "check": [
+          "false"
+        ]
+      }
+    ],
+    "public.mixer_authz_principals": [
+      {
+        "name": "scoped_read",
+        "command": "SELECT",
+        "roles": [
+          "PUBLIC"
+        ],
+        "permissive": true,
+        "using": [
+          "id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.principal_id'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "(",
+          "exists",
+          "(",
+          "select",
+          "1",
+          "from",
+          "public",
+          ".",
+          "mixer_authz_bindings",
+          "b",
+          "where",
+          "b",
+          ".",
+          "principal_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.principal_id'",
+          ",",
+          "true",
+          ")",
+          ")",
+          ")"
+        ],
+        "check": null
+      },
+      {
+        "name": "scoped_lock",
+        "command": "UPDATE",
+        "roles": [
+          "PUBLIC"
+        ],
+        "permissive": true,
+        "using": [
+          "id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.principal_id'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "(",
+          "exists",
+          "(",
+          "select",
+          "1",
+          "from",
+          "public",
+          ".",
+          "mixer_authz_bindings",
+          "b",
+          "where",
+          "b",
+          ".",
+          "principal_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.principal_id'",
+          ",",
+          "true",
+          ")",
+          ")",
+          ")"
+        ],
+        "check": [
+          "false"
+        ]
+      },
+      {
+        "name": "mixer_browser_read",
+        "command": "SELECT",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": [
+          "true"
+        ],
+        "check": null
+      },
+      {
+        "name": "mixer_browser_lock",
+        "command": "UPDATE",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": [
+          "true"
+        ],
+        "check": [
+          "false"
+        ]
+      }
+    ],
+    "public.mixer_authz_bindings": [
+      {
+        "name": "scoped_read",
+        "command": "SELECT",
+        "roles": [
+          "PUBLIC"
+        ],
+        "permissive": true,
+        "using": [
+          "profile_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.profile_id'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "profile_version",
+          "::",
+          "text",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.profile_version'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "subject",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.subject'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "identity_class",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.identity_class'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "exists",
+          "(",
+          "select",
+          "1",
+          "from",
+          "public",
+          ".",
+          "mixer_authz_profiles",
+          "p",
+          "where",
+          "p",
+          ".",
+          "id",
+          "=",
+          "profile_id",
+          "and",
+          "p",
+          ".",
+          "version",
+          "=",
+          "profile_version",
+          ")"
+        ],
+        "check": null
+      },
+      {
+        "name": "scoped_lock",
+        "command": "UPDATE",
+        "roles": [
+          "PUBLIC"
+        ],
+        "permissive": true,
+        "using": [
+          "profile_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.profile_id'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "profile_version",
+          "::",
+          "text",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.profile_version'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "subject",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.subject'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "identity_class",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.identity_class'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "exists",
+          "(",
+          "select",
+          "1",
+          "from",
+          "public",
+          ".",
+          "mixer_authz_profiles",
+          "p",
+          "where",
+          "p",
+          ".",
+          "id",
+          "=",
+          "profile_id",
+          "and",
+          "p",
+          ".",
+          "version",
+          "=",
+          "profile_version",
+          ")"
+        ],
+        "check": [
+          "false"
+        ]
+      },
+      {
+        "name": "mixer_browser_read",
+        "command": "SELECT",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": [
+          "true"
+        ],
+        "check": null
+      }
+    ],
+    "public.mixer_authz_families": [
+      {
+        "name": "scoped_read",
+        "command": "SELECT",
+        "roles": [
+          "PUBLIC"
+        ],
+        "permissive": true,
+        "using": [
+          "principal_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.principal_id'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "(",
+          "exists",
+          "(",
+          "select",
+          "1",
+          "from",
+          "public",
+          ".",
+          "mixer_authz_bindings",
+          "b",
+          "where",
+          "b",
+          ".",
+          "principal_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.principal_id'",
+          ",",
+          "true",
+          ")",
+          ")",
+          ")",
+          "and",
+          "profile_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.profile_id'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "profile_version",
+          "::",
+          "text",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.profile_version'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.family_id'",
+          ",",
+          "true",
+          ")"
+        ],
+        "check": null
+      },
+      {
+        "name": "scoped_lock",
+        "command": "UPDATE",
+        "roles": [
+          "PUBLIC"
+        ],
+        "permissive": true,
+        "using": [
+          "principal_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.principal_id'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "(",
+          "exists",
+          "(",
+          "select",
+          "1",
+          "from",
+          "public",
+          ".",
+          "mixer_authz_bindings",
+          "b",
+          "where",
+          "b",
+          ".",
+          "principal_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.principal_id'",
+          ",",
+          "true",
+          ")",
+          ")",
+          ")",
+          "and",
+          "profile_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.profile_id'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "profile_version",
+          "::",
+          "text",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.profile_version'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.family_id'",
+          ",",
+          "true",
+          ")"
+        ],
+        "check": [
+          "false"
+        ]
+      },
+      {
+        "name": "mixer_browser_read",
+        "command": "SELECT",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": [
+          "true"
+        ],
+        "check": null
+      },
+      {
+        "name": "mixer_browser_insert",
+        "command": "INSERT",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": null,
+        "check": [
+          "true"
+        ]
+      },
+      {
+        "name": "mixer_browser_update",
+        "command": "UPDATE",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": [
+          "true"
+        ],
+        "check": [
+          "true"
+        ]
+      }
+    ],
+    "public.mixer_authz_credentials": [
+      {
+        "name": "scoped_read",
+        "command": "SELECT",
+        "roles": [
+          "PUBLIC"
+        ],
+        "permissive": true,
+        "using": [
+          "principal_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.principal_id'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "(",
+          "exists",
+          "(",
+          "select",
+          "1",
+          "from",
+          "public",
+          ".",
+          "mixer_authz_bindings",
+          "b",
+          "where",
+          "b",
+          ".",
+          "principal_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.principal_id'",
+          ",",
+          "true",
+          ")",
+          ")",
+          ")",
+          "and",
+          "profile_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.profile_id'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "profile_version",
+          "::",
+          "text",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.profile_version'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "reference",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.credential_ref'",
+          ",",
+          "true",
+          ")"
+        ],
+        "check": null
+      },
+      {
+        "name": "scoped_lock",
+        "command": "UPDATE",
+        "roles": [
+          "PUBLIC"
+        ],
+        "permissive": true,
+        "using": [
+          "principal_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.principal_id'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "(",
+          "exists",
+          "(",
+          "select",
+          "1",
+          "from",
+          "public",
+          ".",
+          "mixer_authz_bindings",
+          "b",
+          "where",
+          "b",
+          ".",
+          "principal_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.principal_id'",
+          ",",
+          "true",
+          ")",
+          ")",
+          ")",
+          "and",
+          "profile_id",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.profile_id'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "profile_version",
+          "::",
+          "text",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.profile_version'",
+          ",",
+          "true",
+          ")",
+          "and",
+          "reference",
+          "=",
+          "current_setting",
+          "(",
+          "'mixer.authz.credential_ref'",
+          ",",
+          "true",
+          ")"
+        ],
+        "check": [
+          "false"
+        ]
+      },
+      {
+        "name": "mixer_browser_read",
+        "command": "SELECT",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": [
+          "true"
+        ],
+        "check": null
+      },
+      {
+        "name": "mixer_browser_insert",
+        "command": "INSERT",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": null,
+        "check": [
+          "true"
+        ]
+      },
+      {
+        "name": "mixer_browser_update",
+        "command": "UPDATE",
+        "roles": [
+          "$writer"
+        ],
+        "permissive": true,
+        "using": [
+          "true"
+        ],
+        "check": [
+          "true"
+        ]
+      }
+    ]
+  },
+  "writer_grants": {
+    "public.mixer_browser_sessions": {
+      "table": [
+        "SELECT",
+        "INSERT"
+      ],
+      "update_columns": [
+        "cookie_digest",
+        "status",
+        "epoch",
+        "revision",
+        "generation",
+        "csrf_digest",
+        "last_seen_at",
+        "absolute_expires_at",
+        "idle_expires_at",
+        "profile_id",
+        "profile_version",
+        "principal_id",
+        "family_id",
+        "credential_ref",
+        "credential_revision",
+        "audit_sequence"
+      ]
+    },
+    "public.mixer_browser_session_vault": {
+      "table": [
+        "SELECT",
+        "INSERT"
+      ],
+      "update_columns": [
+        "epoch",
+        "session_revision",
+        "vault_generation",
+        "ciphertext_version",
+        "envelope_kind",
+        "key_id",
+        "iv",
+        "tag",
+        "ciphertext"
+      ]
+    },
+    "public.mixer_browser_oidc_attempts": {
+      "table": [
+        "SELECT",
+        "INSERT"
+      ],
+      "update_columns": [
+        "status",
+        "claim_digest",
+        "claimed_at",
+        "claim_expires_at",
+        "completion_reason",
+        "key_id",
+        "iv",
+        "tag",
+        "ciphertext"
+      ]
+    },
+    "public.mixer_browser_session_events": {
+      "table": [
+        "SELECT",
+        "INSERT"
+      ],
+      "update_columns": []
+    },
+    "public.mixer_authz_profiles": {
+      "table": [
+        "SELECT"
+      ],
+      "update_columns": [
+        "state_revision"
+      ]
+    },
+    "public.mixer_authz_principals": {
+      "table": [
+        "SELECT"
+      ],
+      "update_columns": [
+        "revision"
+      ]
+    },
+    "public.mixer_authz_bindings": {
+      "table": [
+        "SELECT"
+      ],
+      "update_columns": []
+    },
+    "public.mixer_authz_families": {
+      "table": [
+        "SELECT",
+        "INSERT"
+      ],
+      "update_columns": [
+        "active",
+        "revision"
+      ]
+    },
+    "public.mixer_authz_credentials": {
+      "table": [
+        "SELECT",
+        "INSERT"
+      ],
+      "update_columns": [
+        "active",
+        "revision"
+      ]
+    }
+  },
+  "user_triggers": [
+    {
+      "relation": "public.mixer_browser_sessions",
+      "name": "mixer_browser_integrity",
+      "function": "public.mixer_browser_integrity()",
+      "timing": "AFTER",
+      "events": [
+        "INSERT",
+        "UPDATE"
+      ],
+      "constraint": true,
+      "deferrable": true,
+      "initially_deferred": true
+    },
+    {
+      "relation": "public.mixer_browser_session_vault",
+      "name": "mixer_browser_integrity",
+      "function": "public.mixer_browser_integrity()",
+      "timing": "AFTER",
+      "events": [
+        "INSERT",
+        "UPDATE"
+      ],
+      "constraint": true,
+      "deferrable": true,
+      "initially_deferred": true
+    },
+    {
+      "relation": "public.mixer_browser_oidc_attempts",
+      "name": "mixer_browser_integrity",
+      "function": "public.mixer_browser_attempt_integrity()",
+      "timing": "AFTER",
+      "events": [
+        "INSERT",
+        "UPDATE"
+      ],
+      "constraint": true,
+      "deferrable": true,
+      "initially_deferred": true
+    },
+    {
+      "relation": "public.mixer_browser_session_events",
+      "name": "mixer_browser_integrity",
+      "function": "public.mixer_browser_event_integrity()",
+      "timing": "AFTER",
+      "events": [
+        "INSERT"
+      ],
+      "constraint": true,
+      "deferrable": true,
+      "initially_deferred": true
+    },
+    {
+      "relation": "public.mixer_browser_session_events",
+      "name": "mixer_browser_immutable",
+      "function": "public.mixer_browser_event_immutable()",
+      "timing": "BEFORE",
+      "events": [
+        "UPDATE",
+        "DELETE"
+      ],
+      "constraint": false,
+      "deferrable": false,
+      "initially_deferred": false
+    }
+  ],
+  "incoming_foreign_keys": [
+    {
+      "source_relation": "public.mixer_authz_memberships",
+      "columns": [
+        "principal_id"
+      ],
+      "relation": "public.mixer_authz_principals",
+      "referenced_columns": [
+        "id"
+      ],
+      "match": "s",
+      "on_update": "a",
+      "on_delete": "a",
+      "deferrable": false,
+      "initially_deferred": false
+    },
+    {
+      "source_relation": "public.mixer_customer_idempotency",
+      "columns": [
+        "principal_id"
+      ],
+      "relation": "public.mixer_authz_principals",
+      "referenced_columns": [
+        "id"
+      ],
+      "match": "s",
+      "on_update": "a",
+      "on_delete": "a",
+      "deferrable": false,
+      "initially_deferred": false
+    }
+  ],
+  "counts_by_relation": {
+    "public.mixer_browser_sessions": [
+      22,
+      17,
+      1,
+      1,
+      2,
+      2,
+      1,
+      3
+    ],
+    "public.mixer_browser_session_vault": [
+      10,
+      6,
+      1,
+      0,
+      1,
+      1,
+      1,
+      3
+    ],
+    "public.mixer_browser_oidc_attempts": [
+      26,
+      20,
+      1,
+      0,
+      1,
+      2,
+      1,
+      3
+    ],
+    "public.mixer_browser_session_events": [
+      30,
+      17,
+      1,
+      0,
+      1,
+      1,
+      2,
+      2
+    ],
+    "public.mixer_authz_profiles": [
+      7,
+      6,
+      1,
+      1,
+      0,
+      2,
+      0,
+      4
+    ],
+    "public.mixer_authz_principals": [
+      5,
+      4,
+      1,
+      1,
+      0,
+      2,
+      0,
+      4
+    ],
+    "public.mixer_authz_bindings": [
+      7,
+      2,
+      1,
+      0,
+      2,
+      1,
+      0,
+      3
+    ],
+    "public.mixer_authz_families": [
+      8,
+      4,
+      1,
+      1,
+      2,
+      2,
+      0,
+      5
+    ],
+    "public.mixer_authz_credentials": [
+      9,
+      4,
+      1,
+      0,
+      1,
+      1,
+      0,
+      5
+    ]
+  },
+  "function_source_bindings": {
+    "mixer_browser_integrity": {
+      "bytes": 3088,
+      "sha256": "73a64461ec0b58883f8a00f2812d841b21e256b928eff9f3d49f7e1858e2bc8b"
+    },
+    "mixer_browser_attempt_integrity": {
+      "bytes": 2591,
+      "sha256": "53df540108e47ea52babdb9a6b8f189a29db3377b685fc03df6ee8524fce4e48"
+    },
+    "mixer_browser_event_integrity": {
+      "bytes": 817,
+      "sha256": "5d2954184e72ae4d2e1b3e8eaeeede6a39ef09f50881500c860c23ba29930038"
+    },
+    "mixer_browser_event_immutable": {
+      "bytes": 81,
+      "sha256": "732c26c1546911c92038539c53a349687c6f584472b1a846a7701834dd4243c6"
+    }
+  }
+}

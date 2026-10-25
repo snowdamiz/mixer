@@ -1,0 +1,482 @@
+[
+  {
+    "id": "T01",
+    "dimension": "transaction",
+    "requirement": "No transaction, foreign/nested Store context, request-selected Repo or role map denies before relation query.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "T02",
+    "dimension": "transaction",
+    "requirement": "Original monotonic deadline expired at entry, after each query, during reduction, or at return raises closed unavailable and rollback.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "T03",
+    "dimension": "transaction",
+    "requirement": "No deadline renewal: all queries use positive remaining milliseconds, queue:false, no retry under pool exhaustion or cancellation.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "T04",
+    "dimension": "transaction",
+    "requirement": "Owner/session/role prerequisites are current in same transaction; current_user/session_user mismatch or disabled JIT policy denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "R01",
+    "dimension": "relation",
+    "requirement": "Missing relation, duplicate name from wrong namespace, extra browser-prefixed relation, or wrong relation owner denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "R02",
+    "dimension": "relation",
+    "requirement": "View, foreign table, partitioned/unlogged/temporary/typed table, inheritance edge, rewrite rule, or partition attachment denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "R03",
+    "dimension": "relation",
+    "requirement": "ENABLE RLS or FORCE RLS disabled denies, including owner bypass fixture shortcuts.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "R04",
+    "dimension": "relation",
+    "requirement": "Concurrent operator DDL is serialized operationally; fresh per-operation check detects observed drift, never claims atomic protection against owner.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "C01",
+    "dimension": "column",
+    "requirement": "Missing, extra, duplicate ordinal/name, reordered, dropped or inherited user column denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "C02",
+    "dimension": "column",
+    "requirement": "Change bytea/text/int4/int8/bool OID, typmod, dimensions, collation or introduce domain/array type denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "C03",
+    "dimension": "column",
+    "requirement": "Any changed NOT NULL, identity, generated expression, or unreviewed default denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "C04",
+    "dimension": "column",
+    "requirement": "Only attempts.ciphertext_version, profiles.state_revision and bindings.revision default 1; remove/change default denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "C05",
+    "dimension": "column",
+    "requirement": "Fast-default attmissingval for two ALTER-added revision columns is admitted only through reviewed major-specific representation; forged/oversized missing value denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "K01",
+    "dimension": "constraint",
+    "requirement": "Remove, duplicate or append CHECK including true constraint denies by multiset counts.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "K02",
+    "dimension": "constraint",
+    "requirement": "Weaken digest length, bound, status, linkage, cipher erasure or audit transition expression denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "K03",
+    "dimension": "constraint",
+    "requirement": "Wrong FK target/key order/match/action/operator identity, NOT VALID, deferrability or inheritance flags denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "K04",
+    "dimension": "constraint",
+    "requirement": "Wrong PK/UNIQUE keys or a replacement index with no exact constraint linkage denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "K05",
+    "dimension": "constraint",
+    "requirement": "Constraint-trigger pg_constraint rows must link one-to-one to four exact user triggers, not be filtered as unexpected CHECKs.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "K06",
+    "dimension": "constraint",
+    "requirement": "All incoming/outgoing FK RI triggers are enabled and bound to pg_catalog RI functions; disable or replace internal RI trigger denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "I01",
+    "dimension": "index",
+    "requirement": "Missing, extra or duplicate semantic index (renamed or same keys) denies; explicit one_attempt name exact.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "I02",
+    "dimension": "index",
+    "requirement": "One-attempt partial predicate loses pending or claimed, includes terminal status, or becomes true denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "I03",
+    "dimension": "index",
+    "requirement": "Invalid/not ready/not live/non-immediate/exclusion/nulls-not-distinct index denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "I04",
+    "dimension": "index",
+    "requirement": "Changed key order, INCLUDE, expression, btree opclass/collation/direction/null order or backing constraint/index link denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "G01",
+    "dimension": "trigger",
+    "requirement": "Missing/extra trigger or disable/replica/always enablement change denies exact user trigger set.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "G02",
+    "dimension": "trigger",
+    "requirement": "Changed AFTER/BEFORE/event/ROW, UPDATE OF filter, WHEN, arguments, transition table or parent clone denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "G03",
+    "dimension": "trigger",
+    "requirement": "Deferred integrity trigger becomes non-deferrable/not initially deferred or constraint row missing denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "G04",
+    "dimension": "trigger",
+    "requirement": "Same-named trigger function has changed OID linkage, overload, prosrc bytes, owner/config/language/SECURITY DEFINER or ACL denies via prerequisite join.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "P01",
+    "dimension": "policy",
+    "requirement": "Missing or extra policy including restrictive policy denies complete multiset.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "P02",
+    "dimension": "policy",
+    "requirement": "Add permissive PUBLIC or ordinary-runtime OR policy denies even if old policies unchanged.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "P03",
+    "dimension": "policy",
+    "requirement": "Change accepted ordinary PUBLIC target to ordinary role or add role; change command/permissiveness/USING/WITH CHECK denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "P04",
+    "dimension": "policy",
+    "requirement": "Change scoped_read exact profile/binding/linkage/current_setting predicate or scoped_lock false check denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "P05",
+    "dimension": "policy",
+    "requirement": "Add directory_read to any of these five authz or four browser tables denies; directory policies on other three relations remain outside exact-nine claim.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "P06",
+    "dimension": "policy",
+    "requirement": "Browser read/insert/update targets exact writer singleton; lifecycle/ordinary role, true/false/NULL changes deny.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "A01",
+    "dimension": "acl",
+    "requirement": "Lifecycle receives any direct table/column SELECT/DML/REFERENCES/TRIGGER/TRUNCATE or PG17 MAINTAIN denies, including PUBLIC/default/inherited routes.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "A02",
+    "dimension": "acl",
+    "requirement": "Writer table-level UPDATE, DELETE/TRUNCATE/REFERENCES/TRIGGER/MAINTAIN, grant option, extra column grant or immutable-key UPDATE denies.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "A03",
+    "dimension": "acl",
+    "requirement": "Writer missing SELECT/INSERT or exact mutable-column grant denies; effective column rights derived from table grants must not be mistaken for explicit column ACL.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "A04",
+    "dimension": "acl",
+    "requirement": "Ordinary receives browser table/column privilege or authz mutation grant denies; ordinary authz table SELECT remains required.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "A05",
+    "dimension": "acl",
+    "requirement": "Any nonowner grant to unreviewed third-party role or PUBLIC, including grant-option route or implicit owner privilege confusion, denies exact ACL map.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "A06",
+    "dimension": "acl",
+    "requirement": "Writer/lifecycle direct or indirect grant on tenant/membership, writable view/foreign table, relation/schema ownership or unreviewed SECURITY DEFINER path denies broader composition, not just nine-table query.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "V01",
+    "dimension": "canonicalization",
+    "requirement": "Independently installed accepted source fixtures on PG16 and PG17 yield reviewed per-major deparse forms; no learning expected values from attacked catalog.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "V02",
+    "dimension": "canonicalization",
+    "requirement": "String literal containing whitespace, quotes or qualification must survive comparison; generic whitespace/regex semantic rewrite is forbidden.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "V03",
+    "dimension": "canonicalization",
+    "requirement": "PG17 MAINTAIN ACL token is explicitly denied; PG16 unknown privilege token or unsupported server major fails closed.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "V04",
+    "dimension": "canonicalization",
+    "requirement": "OIDs resolve to qualified builtin identities/operators/opclasses/collations, not hardcoded installation OIDs or search_path output.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "V05",
+    "dimension": "canonicalization",
+    "requirement": "Every result family exercises cap, cap+1, oversized scalar/array/definition, NULL, malformed/duplicate rows and decoder overrun deny.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "J01",
+    "dimension": "composition",
+    "requirement": "Function/type success alone and relation success alone cannot mark owner storage_ready or enable route; conjunction with trusted owner provenance remains pending.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "J02",
+    "dimension": "composition",
+    "requirement": "Function prerequisite trigger OIDs and relation trigger tgfoid compared in same admitted transaction before Store SQL.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "J03",
+    "dimension": "composition",
+    "requirement": "Unknown v2 preparation helper/type or mixed manifest version denies until explicit reviewed additive selection.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  },
+  {
+    "id": "J04",
+    "dimension": "composition",
+    "requirement": "No data rows, secrets, provider calls, migration/grant/repair or cached result used by relation admission; redacted failure rolls back without readiness.",
+    "status": "pending_runtime",
+    "postgres": [
+      "16",
+      "17"
+    ]
+  }
+]
