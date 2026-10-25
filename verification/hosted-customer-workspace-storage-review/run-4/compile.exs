@@ -1,0 +1,6 @@
+files = System.argv()
+result = Kernel.ParallelCompiler.compile_to_path(files, System.fetch_env!("MIXER_WORKSPACE_REVIEW_BEAMS"), return_diagnostics: true)
+accepted = match?({:ok, _, %{compile_warnings: [], runtime_warnings: []}}, result)
+IO.inspect(result, label: "structured_compiler_result", limit: :infinity, printable_limit: :infinity)
+File.write!(System.fetch_env!("MIXER_WORKSPACE_REVIEW_COMPILE_RESULT"), Jason.encode!(%{accepted: accepted, structured_result: inspect(result, limit: :infinity, printable_limit: :infinity)}))
+System.halt(if accepted, do: 0, else: 1)

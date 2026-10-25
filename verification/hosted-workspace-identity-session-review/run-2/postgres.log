@@ -1,0 +1,38 @@
+2026-10-25 09:50:49.458 EDT [85285] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-25 09:50:49.459 EDT [85285] LOG:  listening on IPv4 address "127.0.0.1", port 59220
+2026-10-25 09:50:49.459 EDT [85285] LOG:  listening on Unix socket "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity-session-review-vehc2avo/.s.PGSQL.59220"
+2026-10-25 09:50:49.462 EDT [85288] LOG:  database system was shut down at 2026-10-25 09:50:49 EDT
+2026-10-25 09:50:49.464 EDT [85285] LOG:  database system is ready to accept connections
+2026-10-25 09:51:01.004 EDT [85375] ERROR:  canceling statement due to lock timeout
+2026-10-25 09:51:01.004 EDT [85375] CONTEXT:  while locking tuple (0,1) in relation "mixer_authz_profiles"
+	SQL statement "SELECT 1 FROM public.mixer_authz_profiles WHERE id = current_setting('mixer.authz.profile_id', true) AND version::text = current_setting('mixer.authz.profile_version', true) FOR SHARE"
+	PL/pgSQL function public.mixer_authz_lock_profiles() line 3 at PERFORM
+2026-10-25 09:51:01.004 EDT [85375] STATEMENT:  SELECT public.mixer_authz_lock_profiles()
+2026-10-25 09:51:01.049 EDT [85351] ERROR:  new row for relation "mixer_authz_profiles" violates check constraint "mixer_authz_profiles_state_revision_check"
+2026-10-25 09:51:01.049 EDT [85351] DETAIL:  Failing row contains (profile, 1, https://issuer.example, client, human, t, 0).
+2026-10-25 09:51:01.049 EDT [85351] STATEMENT:  UPDATE public.mixer_authz_profiles SET state_revision=$1
+2026-10-25 09:51:01.049 EDT [85352] ERROR:  new row for relation "mixer_authz_profiles" violates check constraint "mixer_authz_profiles_state_revision_check"
+2026-10-25 09:51:01.049 EDT [85352] DETAIL:  Failing row contains (profile, 1, https://issuer.example, client, human, t, -1).
+2026-10-25 09:51:01.049 EDT [85352] STATEMENT:  UPDATE public.mixer_authz_profiles SET state_revision=$1
+2026-10-25 09:51:01.049 EDT [85353] ERROR:  new row for relation "mixer_authz_profiles" violates check constraint "mixer_authz_profiles_state_revision_check"
+2026-10-25 09:51:01.049 EDT [85353] DETAIL:  Failing row contains (profile, 1, https://issuer.example, client, human, t, 9007199254740992).
+2026-10-25 09:51:01.049 EDT [85353] STATEMENT:  UPDATE public.mixer_authz_profiles SET state_revision=$1
+2026-10-25 09:51:01.050 EDT [85348] ERROR:  new row for relation "mixer_authz_bindings" violates check constraint "mixer_authz_bindings_revision_check"
+2026-10-25 09:51:01.050 EDT [85348] DETAIL:  Failing row contains (profile, 1, subject, human, person, t, 0).
+2026-10-25 09:51:01.050 EDT [85348] STATEMENT:  UPDATE public.mixer_authz_bindings SET revision=$1
+2026-10-25 09:51:01.050 EDT [85351] ERROR:  new row for relation "mixer_authz_bindings" violates check constraint "mixer_authz_bindings_revision_check"
+2026-10-25 09:51:01.050 EDT [85351] DETAIL:  Failing row contains (profile, 1, subject, human, person, t, -1).
+2026-10-25 09:51:01.050 EDT [85351] STATEMENT:  UPDATE public.mixer_authz_bindings SET revision=$1
+2026-10-25 09:51:01.050 EDT [85352] ERROR:  new row for relation "mixer_authz_bindings" violates check constraint "mixer_authz_bindings_revision_check"
+2026-10-25 09:51:01.050 EDT [85352] DETAIL:  Failing row contains (profile, 1, subject, human, person, t, 9007199254740992).
+2026-10-25 09:51:01.050 EDT [85352] STATEMENT:  UPDATE public.mixer_authz_bindings SET revision=$1
+2026-10-25 09:51:01.790 EDT [85427] ERROR:  could not obtain lock on row in relation "mixer_authz_profiles"
+2026-10-25 09:51:01.790 EDT [85427] STATEMENT:  SELECT 1 FROM public.mixer_authz_profiles FOR UPDATE NOWAIT
+2026-10-25 09:51:01.792 EDT [85428] ERROR:  could not obtain lock on row in relation "mixer_authz_principals"
+2026-10-25 09:51:01.792 EDT [85428] STATEMENT:  SELECT 1 FROM public.mixer_authz_principals FOR UPDATE NOWAIT
+2026-10-25 09:51:01.793 EDT [85426] ERROR:  could not obtain lock on row in relation "mixer_authz_families"
+2026-10-25 09:51:01.793 EDT [85426] STATEMENT:  SELECT 1 FROM public.mixer_authz_families FOR UPDATE NOWAIT
+2026-10-25 09:51:01.793 EDT [85427] ERROR:  could not obtain lock on row in relation "mixer_authz_credentials"
+2026-10-25 09:51:01.793 EDT [85427] STATEMENT:  SELECT 1 FROM public.mixer_authz_credentials FOR UPDATE NOWAIT
+2026-10-25 09:51:01.937 EDT [85285] LOG:  received immediate shutdown request
+2026-10-25 09:51:01.938 EDT [85285] LOG:  database system is shut down

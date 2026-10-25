@@ -1,0 +1,25 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+
+  1) test all six roles and three explicit binding modes have precise discovery semantics (MixerHosted.CustomerWorkspaceTest)
+     hosted/test/mixer_hosted/customer_workspace_test.exs:268
+     match (=) failed
+     code:  assert {:ok, %{organizations: [org], next_cursor: nil}} = orgs()
+     left:  {:ok, %{organizations: [org], next_cursor: nil}}
+     right: {:error, :authorization_unavailable}
+     stacktrace:
+       hosted/test/mixer_hosted/customer_workspace_test.exs:274: anonymous fn/3 in MixerHosted.CustomerWorkspaceTest."test all six roles and three explicit binding modes have precise discovery semantics"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted/customer_workspace_test.exs:269: (test)
+
+...............
+09:55:16.018 [error] Postgrex.Protocol (#PID<0.197.0> ({Postgrex.Protocol, "mixer_customer_workspace"})) disconnected: ** (Postgrex.Error) ERROR 23505 (unique_violation) duplicate key value violates unique constraint "workspace_commit_probe_id_key"
+
+    table: workspace_commit_probe
+    constraint: workspace_commit_probe_id_key
+...
+Finished in 5.1 seconds (0.00s async, 5.1s sync)
+
+Result: 18/19 passed
+Failed: 1 test

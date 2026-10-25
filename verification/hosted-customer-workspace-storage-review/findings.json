@@ -1,0 +1,33 @@
+{
+  "open": [],
+  "resolved": [
+    {
+      "behavioral_verification": "24 producer + 9 independent PostgreSQL controls pass on corrected source; zero skips or exclusions",
+      "corrected_sha256": "3ca97ed522b3d088dd098829d27dbd9c81bfb52c399dcf4efd3e377d121c5e34",
+      "correction": "Root changed only repo to _repo; reviewer made no product edits.",
+      "evidence": "run-4/compile-result.json and negative-warning-control/receipt.json",
+      "file": "hosted/lib/mixer_hosted/customer_workspace/storage.ex",
+      "finding": "Unused repo argument in empty witness clause produces a compiler diagnostic, violating the strict zero-diagnostic source gate. Legacy elixirc exit-code gate accepted it.",
+      "line": 207,
+      "original_sha256": "70ab23191691cfaa9282515012a119da44d5c2277b7782de0497132c7e2ac085"
+    }
+  ],
+  "review_fixture_attempts": [
+    {
+      "attempt": "run-1",
+      "status": "24+9 behavioral pass; legacy compile gate accepted unused-repo warning; migration ordering and unused review-helper warnings"
+    },
+    {
+      "attempt": "run-2",
+      "status": "24+9 behavioral pass; legacy compile gate accepted unused-repo warning"
+    },
+    {
+      "attempt": "run-3",
+      "status": "Strict corrected-source compile clean; baseline24 pass; independent8/9. Review future-issued token negative was created at now+31 before20cases and crossed into allowed30-second skew. Corrected fixture to now+60; no product change."
+    },
+    {
+      "attempt": "run-4",
+      "status": "Strict corrected-source compile clean;24+9 pass; current acceptance packet"
+    }
+  ]
+}

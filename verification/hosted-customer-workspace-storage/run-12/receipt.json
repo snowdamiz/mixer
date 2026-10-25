@@ -1,0 +1,141 @@
+{
+  "cleanup": {
+    "postgres_started": false,
+    "scratch_removed": true
+  },
+  "commands": [
+    {
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "exit_code": 0,
+      "name": "elixir-version",
+      "output": "elixir-version.log"
+    },
+    {
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "exit_code": 0,
+      "name": "python-version",
+      "output": "python-version.log"
+    },
+    {
+      "argv": [
+        "pg_config",
+        "--bindir"
+      ],
+      "exit_code": 0,
+      "name": "postgres-bindir",
+      "output": "postgres-bindir.log"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "--version"
+      ],
+      "exit_code": 0,
+      "name": "postgres-version",
+      "output": "postgres-version.log"
+    },
+    {
+      "argv": [
+        "mix",
+        "format",
+        "--check-formatted",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/lib/mixer_hosted/customer_workspace.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/lib/mixer_hosted/customer_workspace/input.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/lib/mixer_hosted/customer_workspace/storage.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/priv/repo/migrations/20261025000006_add_customer_workspace_discovery.exs",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/test/mixer_hosted/customer_workspace_test.exs"
+      ],
+      "exit_code": 0,
+      "name": "format",
+      "output": "format.log"
+    },
+    {
+      "argv": [
+        "elixir",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/telemetry/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/decimal/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/db_connection/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/ecto/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/ecto_sql/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/postgrex/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/jason/ebin",
+        "-e",
+        "result = Kernel.ParallelCompiler.compile_to_path(System.argv(), \"/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-workspace-dg601fte/beams\", return_diagnostics: true); case result do {:ok, _, %{compile_warnings: [], runtime_warnings: []}} -> :ok; _ -> IO.inspect(result); System.halt(1) end",
+        "--",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/lib/mixer_hosted/repo.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/lib/mixer_hosted/identity/encoding.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/lib/mixer_hosted/identity/verified_identity.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/lib/mixer_hosted/identity/bounded_json.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/lib/mixer_hosted/authorization/scope.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/lib/mixer_hosted/authorization/policy.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/lib/mixer_hosted/authorization/postgres/session.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/lib/mixer_hosted/authorization/transaction/snapshot.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/lib/mixer_hosted/authorization/transaction/context.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/lib/mixer_hosted/customer_workspace.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/lib/mixer_hosted/customer_workspace/input.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/lib/mixer_hosted/customer_workspace/storage.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/priv/repo/migrations/20261025000004_add_authorization_state_revisions.exs",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-workspace-storage/run-12/inputs/hosted/priv/repo/migrations/20261025000006_add_customer_workspace_discovery.exs"
+      ],
+      "exit_code": 1,
+      "name": "compile",
+      "output": "compile.log"
+    }
+  ],
+  "dependency_manifest_sha256": "c544378354d431a88740973b97517211c514bcad9a51616cb6188cf6ee502645",
+  "failure": "compile failed (1); see preserved log",
+  "finished_unix": 1792937544.301773,
+  "input_sha256": {
+    "docs/hosted-customer-workspace-storage.md": "037794ecb24b7c9e40b007ae9417f613cab50cc6033f8a52b8ce5ca817122744",
+    "hosted/lib/mixer_hosted/authorization/policy.ex": "53a60ab1055d82d3bfc3e89bf67925b190fb3f6feb5a9e326a58b935b78f94d1",
+    "hosted/lib/mixer_hosted/authorization/postgres/session.ex": "80e0b2e942aca1c93daf61f77962be44e0ea3769787fa518af2144c4f8bfeb33",
+    "hosted/lib/mixer_hosted/authorization/scope.ex": "b98c7c6f2f3592bf2fcfd0890d86bb503e3c9cdd6558fa1c7b0766ddb61c7b7a",
+    "hosted/lib/mixer_hosted/authorization/transaction/context.ex": "36c10584932aca726e855891f8c7ef54e35a19625a922cc779fe0eb6238b0bfc",
+    "hosted/lib/mixer_hosted/authorization/transaction/snapshot.ex": "39bae74a8022ea9884874f8e457568a073fd798fa87ebf901e9b896062528599",
+    "hosted/lib/mixer_hosted/customer_workspace.ex": "ea897c99ee520bc57d9dfd086ff7e102b042d2750d91f404561bdc048ebcf8e6",
+    "hosted/lib/mixer_hosted/customer_workspace/input.ex": "0ede3d8032b9703375f4d4bddd35567979ab8b454278eaaf4adfb8ca91c45fbc",
+    "hosted/lib/mixer_hosted/customer_workspace/storage.ex": "70ab23191691cfaa9282515012a119da44d5c2277b7782de0497132c7e2ac085",
+    "hosted/lib/mixer_hosted/identity/bounded_json.ex": "6f2dfd7ec4c6b85e25e61feb53cc26591129ca484b308ee1d49497fe695eb2e6",
+    "hosted/lib/mixer_hosted/identity/encoding.ex": "565338c3669fb9578e086510d6f7d06135958049c918a7df3f3558474e8e01f4",
+    "hosted/lib/mixer_hosted/identity/verified_identity.ex": "02ea302abedbf10555792ae5284f8eb41113edd11bc83c3e869bdbee7b68ae4d",
+    "hosted/lib/mixer_hosted/repo.ex": "034e56f300c8677adc71cee8b63d86825588cbc26a9ec155d9670cbd0a5329ec",
+    "hosted/mix.exs": "ade39cb685e8f78d7d62ab1517db38e572094dcf9bc9ec21f91b9b6b3bd3cbe2",
+    "hosted/mix.lock": "59e6fe5d6bc76ae0057745fe7eb3fb292f225b6a37cd1c99c214f9447c60ff8a",
+    "hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs": "110997b341449a04135296b000c6434f84526305c2f70c16b1e51f38dffc3f6c",
+    "hosted/priv/repo/migrations/20261025000004_add_authorization_state_revisions.exs": "5248990524d1c2504847fdff2f107a952d850acf8ff5fcdb8e7b0ef77e38bcd7",
+    "hosted/priv/repo/migrations/20261025000006_add_customer_workspace_discovery.exs": "43140162ceaf87b58bcdcdf820a9b95b7ae465a873193ac61c7a725a18bde875",
+    "hosted/test/mixer_hosted/customer_workspace_test.exs": "44e3bf6878577806ab5a166f0721bf6cb4d6bda018734d1783bf2dbd382bd459",
+    "verification/hosted-customer-workspace-storage/run.py": "3e4bdba030b6481963ef736907bed570b0bc71944959e855f882e9b2cfcaec2b"
+  },
+  "live_source_changes_during_run": [],
+  "output_sha256": {
+    "compile.log": "3f45e609a7c94f9f00881e4d6a84cb22d21d5a36420eef2c7063c9b914273152",
+    "elixir-version.log": "e4842abcc5a4123360869209376098ff19e6fe8e0dc1b9c27a96ef8c2d07d878",
+    "format.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-bindir.log": "c0139761f2b73177a095265360fc669ce0f4b03f4d0a3272aa06974ead476bd8",
+    "postgres-version.log": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2",
+    "python-version.log": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+  },
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "revision_provenance": "root-supplied current HEAD; copied input tree records uncommitted source",
+  "scope": "Customer workspace discovery against restricted runtime PostgreSQL; selected-row locking, strict cursors, names and identity checks. Host-only synthetic database; no production identity/provider, Neon/Cloudflare, lifecycle writer, native/device/store or GA acceptance.",
+  "scratch": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-workspace-dg601fte",
+  "source_revision": "6ed7df4f147b3a3254dab91dd3224b9513f586a8",
+  "source_tree_sha256": "0d188aba3d48924045ee433c7e33a39189afc3fe002124e2c538e9d5b90d9261",
+  "started_unix": 1792937542.8697789,
+  "success": false
+}

@@ -15,7 +15,12 @@ defmodule MixerHosted.Identity.AccessTokenVerifier do
 
   alias MixerHosted.Identity.{BoundedJSON, Encoding, TrustSnapshot, VerifiedIdentity}
 
-  @scopes ["mixer.artifact.read", "mixer.artifact.upload", "mixer.audit.read"]
+  @scopes [
+    "mixer.artifact.read",
+    "mixer.artifact.upload",
+    "mixer.audit.read",
+    "mixer.workspace.read"
+  ]
 
   @spec verify(binary(), integer(), TrustSnapshot.t() | nil) ::
           {:ok, VerifiedIdentity.t()} | {:error, :unauthenticated | :identity_unavailable}

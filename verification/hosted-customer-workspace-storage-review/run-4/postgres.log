@@ -1,0 +1,247 @@
+2026-10-25 10:14:10.315 EDT [96097] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-25 10:14:10.315 EDT [96097] LOG:  listening on IPv4 address "127.0.0.1", port 61633
+2026-10-25 10:14:10.315 EDT [96097] LOG:  listening on Unix socket "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-workspace-storage-review-cry4px56/.s.PGSQL.61633"
+2026-10-25 10:14:10.318 EDT [96100] LOG:  database system was shut down at 2026-10-25 10:14:10 EDT
+2026-10-25 10:14:10.321 EDT [96097] LOG:  database system is ready to accept connections
+2026-10-25 10:14:12.796 EDT [96162] ERROR:  new row for relation "mixer_authz_organizations" violates check constraint "mixer_authz_organizations_display_name_check"
+2026-10-25 10:14:12.796 EDT [96162] DETAIL:  Failing row contains (org-a, t, ).
+2026-10-25 10:14:12.796 EDT [96162] STATEMENT:  UPDATE public.mixer_authz_organizations SET display_name = '' WHERE id = 'org-a'
+2026-10-25 10:14:12.799 EDT [96163] ERROR:  new row for relation "mixer_authz_organizations" violates check constraint "mixer_authz_organizations_display_name_check"
+2026-10-25 10:14:12.799 EDT [96163] DETAIL:  Failing row contains (org-a, t, éééééééééééééééééééééééééééééééé...).
+2026-10-25 10:14:12.799 EDT [96163] STATEMENT:  UPDATE public.mixer_authz_organizations SET display_name = $1 WHERE id = 'org-a'
+2026-10-25 10:14:13.377 EDT [96153] ERROR:  permission denied for table mixer_authz_organizations
+2026-10-25 10:14:13.377 EDT [96153] STATEMENT:  UPDATE public.mixer_authz_organizations SET active = false
+2026-10-25 10:14:13.593 EDT [96153] ERROR:  duplicate key value violates unique constraint "workspace_commit_probe_id_key"
+2026-10-25 10:14:13.593 EDT [96153] STATEMENT:  COMMIT
+2026-10-25 10:14:18.138 EDT [96230] ERROR:  permission denied for table mixer_authz_organizations
+2026-10-25 10:14:18.138 EDT [96230] STATEMENT:  INSERT INTO public.mixer_authz_organizations(id,active) VALUES ('new',true)
+2026-10-25 10:14:18.142 EDT [96234] ERROR:  permission denied for table mixer_authz_memberships
+2026-10-25 10:14:18.142 EDT [96234] STATEMENT:  UPDATE public.mixer_authz_memberships SET active=false
+2026-10-25 10:14:18.142 EDT [96233] ERROR:  permission denied for table mixer_authz_projects
+2026-10-25 10:14:18.142 EDT [96233] STATEMENT:  DELETE FROM public.mixer_authz_projects
+2026-10-25 10:14:18.184 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_profiles"
+2026-10-25 10:14:18.184 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_profiles WHERE id=$1 AND version=1 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.184 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_principals"
+2026-10-25 10:14:18.184 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_principals WHERE id=$1 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.185 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_families"
+2026-10-25 10:14:18.185 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_families WHERE id=$1 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.185 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_credentials"
+2026-10-25 10:14:18.185 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_credentials WHERE reference=$1 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.186 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_organization_heads"
+2026-10-25 10:14:18.186 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_organization_heads WHERE organization_id=$1 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.186 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_organization_heads"
+2026-10-25 10:14:18.186 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_organization_heads WHERE organization_id=$1 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.186 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.186 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.187 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.187 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.445 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_organization_heads"
+2026-10-25 10:14:18.445 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_organization_heads WHERE organization_id=$1 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.446 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.446 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.447 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.447 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.448 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.448 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.448 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.448 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.449 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.449 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.450 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.450 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.451 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.451 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.451 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.451 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.452 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.452 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.452 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.452 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.452 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.452 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.453 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.453 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.453 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.453 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.453 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.453 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.454 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.454 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.454 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.454 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.454 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.454 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.455 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.455 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.455 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.455 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.456 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.456 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.456 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.456 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.456 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.456 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.457 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.457 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.457 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.457 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.457 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.457 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.458 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.458 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.458 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.458 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.459 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.459 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.459 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.459 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.459 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.459 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.460 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.460 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.460 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.460 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.460 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.460 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.460 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.460 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.460 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.460 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.460 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.460 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.461 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.461 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.461 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.461 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.461 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.461 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.462 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.462 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.462 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.462 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.462 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.462 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.462 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.462 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.463 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.463 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.463 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.463 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.463 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.463 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.464 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.464 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.464 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.464 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.464 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.464 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.464 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.464 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.465 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.465 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.465 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.465 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.465 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.465 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.465 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.465 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.466 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.466 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.466 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.466 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.466 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.466 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.467 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.467 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.467 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.467 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.467 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.467 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.468 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.468 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.468 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.468 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.468 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.468 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.468 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.468 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.469 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.469 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.469 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.469 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.469 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.469 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.469 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.469 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.470 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.470 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.470 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.470 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.470 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.470 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.470 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.470 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.470 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.470 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.471 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.471 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.471 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.471 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.471 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.471 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.471 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.471 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.472 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.472 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.472 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.472 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.472 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.472 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.472 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.472 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.473 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.473 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.473 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.473 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.473 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.473 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.474 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.474 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.474 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.474 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.474 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.474 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.474 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.474 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.475 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.475 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.475 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.475 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.475 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.475 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.475 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.475 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.475 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.475 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.476 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.476 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.476 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.476 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.476 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.476 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.476 EDT [96236] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.476 EDT [96236] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.477 EDT [96235] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.477 EDT [96235] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.477 EDT [96237] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.477 EDT [96237] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.477 EDT [96238] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.477 EDT [96238] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.477 EDT [96241] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.477 EDT [96241] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:18.478 EDT [96232] ERROR:  could not obtain lock on row in relation "mixer_authz_project_heads"
+2026-10-25 10:14:18.478 EDT [96232] STATEMENT:  SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id=$1 AND project_id=$2 FOR UPDATE NOWAIT
+2026-10-25 10:14:19.123 EDT [96233] ERROR:  duplicate key value violates unique constraint "workspace_commit_probe_id_key"
+2026-10-25 10:14:19.123 EDT [96233] STATEMENT:  COMMIT
+2026-10-25 10:14:19.601 EDT [96097] LOG:  received immediate shutdown request
+2026-10-25 10:14:19.602 EDT [96097] LOG:  database system is shut down

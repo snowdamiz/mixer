@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "status": "source-reviewed-design-not-runtime-qualified",
+  "action": "workspace.read",
+  "required_scope": "mixer.workspace.read",
+  "identity_class": "human",
+  "facade": {"module": "MixerHosted.CustomerWorkspace", "organizations_arities": [2, 3], "projects_arities": [3, 4], "page_keys": ["limit", "cursor"], "optional_final_argument": "trusted-server-repo"},
+  "roles": ["administrator", "billing_manager", "developer", "owner", "release_manager", "viewer"],
+  "directory_modes": ["", "organizations", "projects"],
+  "routes": {
+    "organizations": {
+      "path": "/v3/orgs",
+      "methods": ["GET", "HEAD"],
+      "required_query": [],
+      "optional_query": ["limit", "cursor"],
+      "envelope_keys": ["organizations", "next_cursor"],
+      "row_keys": ["id", "display_name", "organization_roles"],
+      "roles_field": "organization_roles",
+      "roles_may_be_empty": true,
+      "cursor_keys": ["v", "kind", "after"]
+    },
+    "projects": {
+      "path": "/v3/projects",
+      "methods": ["GET", "HEAD"],
+      "required_query": ["organization_id"],
+      "optional_query": ["limit", "cursor"],
+      "envelope_keys": ["projects", "next_cursor"],
+      "row_keys": ["organization_id", "id", "display_name", "roles"],
+      "roles_field": "roles",
+      "roles_may_be_empty": false,
+      "cursor_keys": ["v", "kind", "organization_id", "after"]
+    }
+  },
+  "pagination": {
+    "limit_default": 50,
+    "limit_min": 1,
+    "limit_max": 100,
+    "cursor_encoded_max_bytes": 1400,
+    "cursor_decoded_max_bytes": 1024,
+    "cursor_version": 1,
+    "cursor_encoding": "canonical-unpadded-base64url-compact-utf8-json",
+    "order": "postgresql-C-collation-id-ascending",
+    "consistency": "fresh-authorization-each-page-weak-cross-request-pagination"
+  },
+  "display_name": {"nullable": true, "utf8_max_bytes": 256, "utf8_min_bytes": 1, "fallback": "id-only-when-null"},
+  "id": {"source_predicate": "MixerHosted.Authorization.Scope.identifier?/1", "utf8_min_bytes": 1, "utf8_max_bytes": 128},
+  "transaction": {"maximum_ms": 5000, "lock_timeout_ms": 500, "maximum_organization_page_org_heads": 101, "maximum_organization_page_project_heads": 101, "maximum_project_page_org_heads": 1, "maximum_project_page_project_heads": 102},
+  "boundaries": {
+    "no_artifact_authority": true,
+    "no_external_callback": true,
+    "no_mutation_or_provisioning_endpoint": true,
+    "native_capture_and_physical_checks": "paused-or-pending",
+    "production_and_ga_qualification": "pending"
+  }
+}

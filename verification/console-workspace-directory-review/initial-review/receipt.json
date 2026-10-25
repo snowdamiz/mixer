@@ -1,0 +1,81 @@
+{
+  "scope": "Read-only source, host and compiled SSR review before any correction",
+  "source_revision": "c0334a9958df1f1d973310bbbdfc1ac8ec8912f9",
+  "source_tree_sha256": "31d2070538d1f1249633fad81874b0be542d14f68cd82bf234ed100f0f9b21df",
+  "source_manifest": "source-manifest.json",
+  "findings": [
+    {
+      "id": "workspace-whitespace-identity",
+      "priority": "P2",
+      "status": "confirmed_before_correction",
+      "trigger": {
+        "organization_id": " ",
+        "project_id": "  ",
+        "display_name": null
+      },
+      "actual": "Both row buttons have empty accessible names and no readable visible identity",
+      "evidence": [
+        "03-ssr-probe.txt",
+        "ssr-probe.json",
+        "whitespace-identities.html"
+      ],
+      "source_locations": [
+        "console/src/components/WorkspaceDirectory.tsx:96",
+        "console/src/components/WorkspaceDirectory.tsx:130",
+        "console/src/components/WorkspaceDirectory.tsx:158",
+        "console/src/domain/workspace-directory.ts:137"
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "cwd": "console",
+      "command": "node --test tests/workspace-directory*.test.mjs tests/brand-parity.test.mjs",
+      "exit_code": 0,
+      "output": "01-focused-host-tests.txt",
+      "tests": 22
+    },
+    {
+      "cwd": "console",
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "output": "02-typecheck.txt"
+    },
+    {
+      "cwd": ".",
+      "command": "node verification/console-workspace-directory-review/ssr-probe.mjs initial-review",
+      "exit_code": 0,
+      "output": "03-ssr-probe.txt"
+    }
+  ],
+  "offline_image_inspection": [
+    {
+      "tool": "view_image",
+      "path": "verification/website-light-refinement/desktop-home.jpg",
+      "detail": "high",
+      "new_capture": false,
+      "scope": "historical style reference only"
+    },
+    {
+      "tool": "view_image",
+      "path": "verification/console-build-overview-root-review/final-320.jpg",
+      "detail": "high",
+      "new_capture": false,
+      "scope": "historical style reference only"
+    }
+  ],
+  "discovery_failure": "04-evidence-discovery.json",
+  "production_sources_modified": false,
+  "git_mutations": false,
+  "cleanup": {
+    "owned_ssr_temporary_directories_remaining": [],
+    "persistent_servers_started": false,
+    "browser_capture_or_native_processes_started": false
+  },
+  "limitations": [
+    "No current browser/mobile/zoom/touch/screen-reader runtime check under pause.",
+    "WorkspaceDirectory not routed in reviewed App.tsx; API/session integration belongs to root.",
+    "Historical screenshots do not verify current workspace layout.",
+    "No deployed/customer/operational/GA acceptance."
+  ]
+}

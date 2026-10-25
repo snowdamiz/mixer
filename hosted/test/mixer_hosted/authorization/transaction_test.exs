@@ -298,6 +298,66 @@ defmodule MixerHosted.Authorization.TransactionTest do
     assert {:error, :invalid_request} = F.run(fn _ -> flunk() end, F.identity(), "audit.read")
   end
 
+  test "identity-only preparation clears tenant and directory selection without artifact authority" do
+    identity = F.identity()
+
+    settings = ~w(organization_id project_id application_id environment_id directory_mode)
+
+    assert {:ok, linkage} =
+             Runtime.checkout(fn ->
+               for key <- settings do
+                 F.runtime_sql("SELECT set_config($1,'inherited',false)", ["mixer.authz." <> key])
+               end
+
+               try do
+                 Runtime.transaction(fn ->
+                   linkage =
+                     MixerHosted.Authorization.Postgres.Session.prepare_identity!(
+                       Runtime,
+                       MixerHosted.Authorization.Policy.identity_key(identity)
+                     )
+
+                   assert [["", "", "", "", ""]] =
+                            F.runtime_sql("""
+                            SELECT current_setting('mixer.authz.organization_id'),
+                              current_setting('mixer.authz.project_id'),
+                              current_setting('mixer.authz.application_id'),
+                              current_setting('mixer.authz.environment_id'),
+                              current_setting('mixer.authz.directory_mode')
+                            """).rows
+
+                   refute Context.active?()
+
+                   assert [] ==
+                            F.runtime_sql("SELECT id FROM public.mixer_authz_organizations").rows
+
+                   linkage
+                 end)
+               after
+                 for key <- settings do
+                   F.runtime_sql("SELECT set_config($1,'',false)", ["mixer.authz." <> key])
+                 end
+               end
+             end)
+
+    assert linkage.principal_id == "person"
+    assert linkage.family_id == "family"
+  end
+
+  test "changing directory mode invalidates artifact context and rolls back prior effects" do
+    for mode <- ["organizations", "projects"] do
+      assert {:error, :authorization_unavailable} =
+               F.run(fn ctx ->
+                 Context.effect!(ctx, Runtime, "artifact.read", F.target(), fn _ -> F.probe!() end)
+
+                 F.runtime_sql("SELECT set_config('mixer.authz.directory_mode',$1,true)", [mode])
+                 {:ok, :must_not_commit}
+               end)
+
+      assert [] == F.sql("SELECT id FROM public.transaction_probe").rows
+    end
+  end
+
   test "invalid identity action target and nested invocation fail before a callback" do
     for {i, a, t} <- [
           {nil, "artifact.read", F.target()},

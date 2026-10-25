@@ -215,19 +215,39 @@ distributed admission, provider deployment and full Go parity remain pending.
 See [the HTTP checkpoint](docs/hosted-customer-artifact-http-checkpoint.md) and
 [root acceptance](verification/hosted-customer-artifact-http-root-acceptance/attempt-2/acceptance.json).
 
+## Customer workspace discovery
+
+The reviewed local workspace slice is accepted: authenticated organization/project
+discovery, exact-scope tokens, nullable names, canonical pagination, selected-row
+RLS/locking and commit-safe responses now join the actual default Phoenix
+Endpoint/Repo. The real console client passes that same HTTP join. Eleven methods
+cover 65 raw socket responses plus Node pagination/full-ID requests; all owned
+resources are cleaned. The website-branded selector and client pass all 68 console
+host tests and a static build. Independent storage and client reviews have no open
+findings after the recorded compiler/UI/scope corrections. The selector is still a
+controlled component; App/login/session composition and browser/CORS/runtime
+acceptance remain pending. Counts overlap and no GA gate is promoted. See
+[the workspace checkpoint](docs/hosted-customer-workspace-checkpoint.md) and
+[root acceptance](verification/hosted-customer-workspace-root-acceptance/attempt-2/acceptance.json).
+
 ## Delivery and pending qualification
 
-Latest checkpoint `c0334a99` is pushed to `origin/main` and remote main matches.
+Latest pushed checkpoint `6ed7df4f` repairs the cold bearer pipeline compile order.
+Phoenix CI `40199934265` and Engine CI `40199934237` both pass with no skips.
+See [the completed observation](verification/github-ci-6ed7df4f/observation-3/receipt.json).
+The reviewed workspace slice above is prepared for the next authorized delivery.
+
+Prior checkpoint `c0334a99` was pushed to `origin/main` and remote main was verified.
 It contains the reviewed customer HTTP routes, canonical path/digest binding,
 ordinary CI fixture and retained local evidence. Phoenix CI `40197780896` failed
-at cold router compilation; Engine CI `40197780881` remains running. Neither is
-accepted as a complete exact-push verification. The compile-order repair uses
-compiler-aware dependency checks and passes 64 scoped host tests, including a
+at cold router compilation; Engine CI `40197780881` passes with no skips. The
+checkpoint therefore was not accepted as a complete exact-push verification.
+The compile-order repair uses compiler-aware dependency checks and passes 64 scoped host tests, including a
 regression that reproduced the original failure. See
 [the repair](docs/hosted-bearer-cold-compile.md) and
 [local evidence](verification/hosted-bearer-cold-compile/acceptance.json). See
 [the delivery receipt](verification/github-delivery-customer-artifact-http/delivery-receipt.json)
-and [CI observation](verification/github-ci-c0334a99/observation-4/receipt.json).
+and [CI observation](verification/github-ci-c0334a99/observation-5/receipt.json).
 
 Prior console checkpoint `c4e1f571` is pushed to `origin/main`.
 It contains the two reviewed console color corrections and updated delivery

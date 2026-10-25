@@ -1,0 +1,32 @@
+     warning: default values for the optional arguments in the private function tuple_blocked?/3 are never used
+     │
+ 137 │   defp tuple_blocked?(table, condition, params \\ []) do
+     │        ~
+     │
+     └─ verification/hosted-customer-workspace-storage-review/storage_review_test.exs:137:8: MixerHosted.CustomerWorkspace.StorageReviewTest (module)
+
+    warning: unused alias Session
+    │
+  6 │   alias MixerHosted.Authorization.Postgres.Session
+    │   ~
+    │
+    └─ verification/hosted-customer-workspace-storage-review/storage_review_test.exs:6:3
+
+Running ExUnit with seed: 0, max_cases: 1
+
+
+10:07:28.647 [warning] You are running migration 20261025000005 but an older migration with version 20261025000006 has already run.
+
+This can be an issue if you have already ran 20261025000006 in production because a new deployment may migrate 20261025000005 but a rollback command would revert 20261025000006 instead of 20261025000005.
+
+If this can be an issue, we recommend to rollback 20261025000005 and change it to a version later than 20261025000006.
+
+.......
+10:07:30.120 [error] Postgrex.Protocol (#PID<0.206.0> ({Postgrex.Protocol, "mixer_customer_workspace"})) disconnected: ** (Postgrex.Error) ERROR 23505 (unique_violation) duplicate key value violates unique constraint "workspace_commit_probe_id_key"
+
+    table: workspace_commit_probe
+    constraint: workspace_commit_probe_id_key
+..
+Finished in 2.0 seconds (0.00s async, 2.0s sync)
+
+Result: 9 passed

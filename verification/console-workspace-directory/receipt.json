@@ -1,0 +1,121 @@
+{
+  "kind": "console_workspace_directory_host_slice",
+  "recorded_at_utc": "2026-10-25T13:47:47.583532+00:00",
+  "source_revision": "c0334a9958df1f1d973310bbbdfc1ac8ec8912f9",
+  "source_tree_sha256": "1d85d7bb7d9e3fde75d62a5ccfcb0e29473d1b642932d4d387b3683066a4211c",
+  "source_manifest": "source-manifest.json",
+  "environment": "macOS darwin-arm64 host; Node and Elixir command line only; no browser or native runtime",
+  "scope": [
+    "strict organization/project response boundary",
+    "controlled selection and scoped view state",
+    "reusable branded SolidJS component",
+    "compiled SSR and host contract tests"
+  ],
+  "commands": [
+    {
+      "cwd": "console/",
+      "command": "node --test tests/workspace-directory*.test.mjs",
+      "output": "01-host-tests.txt",
+      "exit_code": 1,
+      "scope": "17 passed, 3 failed test-fixture default-argument cases"
+    },
+    {
+      "cwd": "console/",
+      "command": "npm run typecheck",
+      "output": "02-typecheck.txt",
+      "exit_code": 0,
+      "scope": "strict TypeScript source check"
+    },
+    {
+      "cwd": "console/",
+      "command": "node --test tests/workspace-directory*.test.mjs",
+      "output": "03-host-tests.txt",
+      "exit_code": 0,
+      "scope": "20 passed after fixture correction"
+    },
+    {
+      "cwd": "console/",
+      "command": "npm run build",
+      "output": "04-static-build.txt",
+      "exit_code": 0,
+      "scope": "strict TypeScript and existing console production bundle"
+    },
+    {
+      "cwd": "console/",
+      "command": "node --test tests/brand-parity.test.mjs",
+      "output": "05-brand-parity.txt",
+      "exit_code": 0,
+      "scope": "shared ordered website root tokens and exact Flick/favicon byte parity"
+    },
+    {
+      "cwd": "console/",
+      "command": "node --test tests/workspace-directory*.test.mjs",
+      "output": "06-host-tests-empty-cursor-scope-parity.txt",
+      "exit_code": 0,
+      "scope": "21 passed including empty-page cursor and standalone Elixir Scope parity"
+    },
+    {
+      "cwd": "console/",
+      "command": "npm run typecheck",
+      "output": "07-typecheck.txt",
+      "exit_code": 0,
+      "scope": "strict TypeScript source check"
+    },
+    {
+      "cwd": "console/",
+      "command": "node --test tests/workspace-directory*.test.mjs",
+      "output": "08-final-host-tests.txt",
+      "exit_code": 0,
+      "scope": "21 passed after sparse-array strictness"
+    },
+    {
+      "cwd": "console/",
+      "command": "npm run build",
+      "output": "09-final-static-build.txt",
+      "exit_code": 0,
+      "scope": "final strict TypeScript and existing console production bundle"
+    },
+    {
+      "cwd": "console/",
+      "command": "node --test tests/workspace-directory*.test.mjs",
+      "output": "10-final-host-tests.txt",
+      "exit_code": 0,
+      "scope": "21 passed with populated-page malformed-cursor cases"
+    }
+  ],
+  "diff_check": {
+    "cwd": ".",
+    "command": "git diff --check -- console/src/domain/workspace-directory.ts console/src/components/WorkspaceDirectory.tsx console/src/components/workspace-directory.css console/tests/workspace-directory-domain.test.mjs console/tests/workspace-directory-render.tsx console/tests/workspace-directory-scope-parity.test.mjs console/tests/workspace-directory-view.test.mjs docs/console-workspace-directory.md",
+    "exit_code": 0,
+    "stdout": "",
+    "note": "Owned files were new/untracked; whitespace was also inspected in source. Root owns staged delivery."
+  },
+  "first_attempt_failure": {
+    "output": "01-host-tests.txt",
+    "cause": "Three rejection fixtures passed undefined through factory default arguments, producing valid default fields; fixtures corrected to overwrite fields directly. The production validators did not require correction for these failures."
+  },
+  "contract_review_additions": [
+    "empty page requires null next_cursor",
+    "85 selected ID vectors match actual standalone Scope.identifier? helper",
+    "sparse response arrays fail closed"
+  ],
+  "brand_evidence": {
+    "source": "website/src/styles.css",
+    "shared_tokens": "console/src/brand.css",
+    "test": "05-brand-parity.txt",
+    "new_assets": [],
+    "new_dependencies": [],
+    "visual_browser_review": "pending under pause"
+  },
+  "limitations": [
+    "Actual API client, session and App.tsx composition belong to root lane; this is not connected runtime evidence.",
+    "Production build ran before component integration; unreferenced component can be tree-shaken. Focused SSR independently compiles/renders WorkspaceDirectory.",
+    "Browser interaction, keyboard/screen-reader runtime and visual layout review pending under computer-use/capture pause.",
+    "No native runtime tests or physical-device runs; no signing, store, deployment, customer or operational gate qualifies.",
+    "G22 and all specified GA reviewer acceptance remain pending."
+  ],
+  "cleanup": "cleanup.json",
+  "delivery": "No Git mutation, commit or push by this lane; root owns coherent integration/delivery.",
+  "frozen_lanes": "No frozen inspector, authority driver, outbound worker or forbidden hosted test runner imported, compiled, executed, wrapped or retried.",
+  "final_source_validation": "11-source-validation.json"
+}

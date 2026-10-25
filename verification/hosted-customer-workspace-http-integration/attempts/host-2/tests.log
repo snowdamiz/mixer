@@ -1,0 +1,204 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+
+  1) test production default verifier and scope reject before withheld bodies (MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest)
+     hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:397
+     ** (Protocol.UndefinedError) protocol Jason.Encoder not implemented for Tuple, Jason.Encoder protocol must always be explicitly implemented
+
+     Got value:
+
+         {"connection", "close"}
+
+     code: for path <- ["/v3/orgs", projects("org-a")] do
+     stacktrace:
+       (jason 1.4.5) lib/jason.ex:164: Jason.encode!/2
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:91: MixerHosted.CustomerWorkspaceHTTPFixture.record/1
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:353: MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest.request/7
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:402: anonymous fn/3 in MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest."test production default verifier and scope reject before withheld bodies"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:400: (test)
+
+
+
+  2) test closed current names roles default repo and HEAD wire suppression (MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest)
+     hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:466
+     ** (Protocol.UndefinedError) protocol Jason.Encoder not implemented for Tuple, Jason.Encoder protocol must always be explicitly implemented
+
+     Got value:
+
+         {"connection", "close"}
+
+     code: org = request(ctx, "organization exact preserved display name", "GET", "/v3/orgs")
+     stacktrace:
+       (jason 1.4.5) lib/jason.ex:164: Jason.encode!/2
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:91: MixerHosted.CustomerWorkspaceHTTPFixture.record/1
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:353: MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest.request/7
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:467: (test)
+
+
+
+  3) test query carries full Scope identifiers and real null names without path normalization (MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest)
+     hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:498
+     ** (Protocol.UndefinedError) protocol Jason.Encoder not implemented for Tuple, Jason.Encoder protocol must always be explicitly implemented
+
+     Got value:
+
+         {"connection", "close"}
+
+     code: for {org, n} <- Enum.with_index(ids) do
+     stacktrace:
+       (jason 1.4.5) lib/jason.ex:164: Jason.encode!/2
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:91: MixerHosted.CustomerWorkspaceHTTPFixture.record/1
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:353: MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest.request/7
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:506: anonymous fn/3 in MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest."test query carries full Scope identifiers and real null names without path normalization"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:502: (test)
+
+
+
+  4) test organization and project pagination remains private and fresh (MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest)
+     hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:531
+     ** (Protocol.UndefinedError) protocol Jason.Encoder not implemented for Tuple, Jason.Encoder protocol must always be explicitly implemented
+
+     Got value:
+
+         {"connection", "close"}
+
+     code: first = json(request(ctx, "organization first page", "GET", "/v3/orgs?limit=1"))
+     stacktrace:
+       (jason 1.4.5) lib/jason.ex:164: Jason.encode!/2
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:91: MixerHosted.CustomerWorkspaceHTTPFixture.record/1
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:353: MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest.request/7
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:537: (test)
+
+
+
+  5) test organization versus exact project roles never broaden project visibility (MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest)
+     hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:596
+     ** (Protocol.UndefinedError) protocol Jason.Encoder not implemented for Tuple, Jason.Encoder protocol must always be explicitly implemented
+
+     Got value:
+
+         {"connection", "close"}
+
+     code: page = json(request(ctx, "organization role provenance", "GET", "/v3/orgs"))
+     stacktrace:
+       (jason 1.4.5) lib/jason.ex:164: Jason.encode!/2
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:91: MixerHosted.CustomerWorkspaceHTTPFixture.record/1
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:353: MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest.request/7
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:602: (test)
+
+
+
+  6) test committed membership credential and label updates never reuse positive authority (MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest)
+     hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:633
+     ** (Protocol.UndefinedError) protocol Jason.Encoder not implemented for Tuple, Jason.Encoder protocol must always be explicitly implemented
+
+     Got value:
+
+         {"connection", "close"}
+
+     code: assert request(ctx, "before membership revocation", "GET", projects("org-a")).status == 200
+     stacktrace:
+       (jason 1.4.5) lib/jason.ex:164: Jason.encode!/2
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:91: MixerHosted.CustomerWorkspaceHTTPFixture.record/1
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:353: MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest.request/7
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:634: (test)
+
+
+
+  7) test malformed duplicate and alternative token queries reject before withheld body (MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest)
+     hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:677
+     ** (Protocol.UndefinedError) protocol Jason.Encoder not implemented for Tuple, Jason.Encoder protocol must always be explicitly implemented
+
+     Got value:
+
+         {"connection", "close"}
+
+     code: for {path, code} <- cases,
+     stacktrace:
+       (jason 1.4.5) lib/jason.ex:164: Jason.encode!/2
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:91: MixerHosted.CustomerWorkspaceHTTPFixture.record/1
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:353: MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest.request/7
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:697: anonymous fn/3 in MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest."test malformed duplicate and alternative token queries reject before withheld body"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:694: (test)
+
+
+
+  8) test nonempty streaming and encoded bodies reject without interpretation (MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest)
+     hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:715
+     ** (Protocol.UndefinedError) protocol Jason.Encoder not implemented for Tuple, Jason.Encoder protocol must always be explicitly implemented
+
+     Got value:
+
+         {"connection", "close"}
+
+     code: error(request(ctx, "nonempty GET body", "GET", "/v3/orgs", "private"), 400, "invalid_request")
+     stacktrace:
+       (jason 1.4.5) lib/jason.ex:164: Jason.encode!/2
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:91: MixerHosted.CustomerWorkspaceHTTPFixture.record/1
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:353: MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest.request/7
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:716: (test)
+
+
+
+  9) test bad current metadata and missing head fail closed with generic unavailable (MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest)
+     hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:759
+     ** (Protocol.UndefinedError) protocol Jason.Encoder not implemented for Tuple, Jason.Encoder protocol must always be explicitly implemented
+
+     Got value:
+
+         {"connection", "close"}
+
+     code: request(ctx, "invalid stored name fails closed", "GET", "/v3/orgs"),
+     stacktrace:
+       (jason 1.4.5) lib/jason.ex:164: Jason.encode!/2
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:91: MixerHosted.CustomerWorkspaceHTTPFixture.record/1
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:353: MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest.request/7
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:767: (test)
+
+
+
+ 10) test actual default repository backend loss after final local read discloses no page (MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest)
+     hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:791
+     ** (Protocol.UndefinedError) protocol Jason.Encoder not implemented for Tuple, Jason.Encoder protocol must always be explicitly implemented
+
+     Got value:
+
+         {"connection", "close"}
+
+     code: failed = request(ctx, "default Repo precommit backend loss", "GET", projects("org-a"))
+     stacktrace:
+       (jason 1.4.5) lib/jason.ex:164: Jason.encode!/2
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:91: MixerHosted.CustomerWorkspaceHTTPFixture.record/1
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:353: MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest.request/7
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:815: (test)
+
+
+
+ 11) test actual compiled console client joins the production Phoenix directory (MixerHostedWeb.CustomerWorkspaceHTTPIntegrationTest)
+     hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:839
+     file:///private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-workspace-http-4nnktmed/node/api/workspace-client.js:177
+                     throw new WorkspaceClientError(error.code);
+                           ^
+
+     WorkspaceClientError: Workspace request permission_denied
+         at request (file:///private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-workspace-http-4nnktmed/node/api/workspace-client.js:177:23)
+         at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+         at async file:///private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-workspace-http-4nnktmed/node/driver.mjs:6:12 {
+       code: 'permission_denied'
+     }
+
+     Node.js v22.23.3
+
+     code: assert status == 0, out
+     stacktrace:
+       hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs:856: (test)
+
+
+Finished in 0.7 seconds (0.00s async, 0.7s sync)
+
+Result: 0/11 passed
+Failed: 11 tests

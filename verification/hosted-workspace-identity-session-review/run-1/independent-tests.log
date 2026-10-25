@@ -1,0 +1,28 @@
+Running ExUnit with seed: 0, max_cases: 1
+Excluding tags: [:customer_transaction_db]
+
+
+
+  1) test identity helper locks all four identity rows while tenant heads are concurrently locked (MixerHosted.Authorization.IdentitySessionIndependentReviewTest)
+     verification/hosted-workspace-identity-session-review/identity_session_review_test.exs:61
+     Assertion with == failed
+     code:  assert actual ==
+              ~w(mixer_authz_credentials mixer_authz_families mixer_authz_principals mixer_authz_profiles)
+     left:  ["mixer_authz_credentials", "mixer_authz_credentials_pkey",
+             "mixer_authz_families",
+             "mixer_authz_families_id_profile_id_profile_version_principa_key",
+             "mixer_authz_families_pkey", "mixer_authz_principals",
+             "mixer_authz_principals_id_identity_class_key",
+             "mixer_authz_principals_pkey", "mixer_authz_profiles",
+             "mixer_authz_profiles_id_version_identity_class_key",
+             "mixer_authz_profiles_pkey"]
+     right: ["mixer_authz_credentials", "mixer_authz_families",
+             "mixer_authz_principals", "mixer_authz_profiles"]
+     stacktrace:
+       verification/hosted-workspace-identity-session-review/identity_session_review_test.exs:97: (test)
+
+.....
+Finished in 0.2 seconds (0.00s async, 0.2s sync)
+
+Result: 5/6 passed, 20 excluded
+Failed: 1 test

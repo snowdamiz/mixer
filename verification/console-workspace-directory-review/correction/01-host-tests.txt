@@ -1,0 +1,200 @@
+TAP version 13
+# Subtest: console identity matches the existing Mixer website tokens and logo bytes
+ok 1 - console identity matches the existing Mixer website tokens and logo bytes
+  ---
+  duration_ms: 5.887125
+  type: 'test'
+  ...
+# Subtest: workspace boundary keeps exact Unicode IDs, names and all six sorted roles without adding organization grants
+ok 2 - workspace boundary keeps exact Unicode IDs, names and all six sorted roles without adding organization grants
+  ---
+  duration_ms: 1.971333
+  type: 'test'
+  ...
+# Subtest: display names preserve supplied spacing and wildcard; only null falls back to the identifier
+ok 3 - display names preserve supplied spacing and wildcard; only null falls back to the identifier
+  ---
+  duration_ms: 0.153791
+  type: 'test'
+  ...
+# Subtest: whitespace identity markers distinguish exact identifiers without changing snapshots, selections or stored names
+ok 4 - whitespace identity markers distinguish exact identifiers without changing snapshots, selections or stored names
+  ---
+  duration_ms: 0.549125
+  type: 'test'
+  ...
+# Subtest: both page boundaries reject unknown/missing fields, duplicates and overfull pages
+ok 5 - both page boundaries reject unknown/missing fields, duplicates and overfull pages
+  ---
+  duration_ms: 0.553375
+  type: 'test'
+  ...
+# Subtest: full identifier and display text limits reject controls, invalid Unicode and overflow
+ok 6 - full identifier and display text limits reject controls, invalid Unicode and overflow
+  ---
+  duration_ms: 0.895167
+  type: 'test'
+  ...
+# Subtest: organization roles may be empty but project roles must be canonical, sorted, unique and nonempty
+ok 7 - organization roles may be empty but project roles must be canonical, sorted, unique and nonempty
+  ---
+  duration_ms: 0.399708
+  type: 'test'
+  ...
+# Subtest: pagination is a bounded opaque cursor and is never decoded, rewritten or treated as a total
+ok 8 - pagination is a bounded opaque cursor and is never decoded, rewritten or treated as a total
+  ---
+  duration_ms: 0.486542
+  type: 'test'
+  ...
+# Subtest: every project row must match the exact selected organization
+ok 9 - every project row must match the exact selected organization
+  ---
+  duration_ms: 0.267
+  type: 'test'
+  ...
+# Subtest: snapshots are deeply copied and frozen without mutating caller-owned input
+ok 10 - snapshots are deeply copied and frozen without mutating caller-owned input
+  ---
+  duration_ms: 0.538167
+  type: 'test'
+  ...
+# Subtest: selection resolves only current validated rows and never manufactures roles or project access
+ok 11 - selection resolves only current validated rows and never manufactures roles or project access
+  ---
+  duration_ms: 0.575834
+  type: 'test'
+  ...
+# Subtest: switching organization hides stale project payloads and selections, including failure states
+ok 12 - switching organization hides stale project payloads and selections, including failure states
+  ---
+  duration_ms: 0.168333
+  type: 'test'
+  ...
+# Subtest: loading, authentication, unavailable and errors replace stale selections without retaining rows
+ok 13 - loading, authentication, unavailable and errors replace stale selections without retaining rows
+  ---
+  duration_ms: 0.111833
+  type: 'test'
+  ...
+# Subtest: malformed ready data and unsupported controlled states fail closed
+ok 14 - malformed ready data and unsupported controlled states fail closed
+  ---
+  duration_ms: 0.103708
+  type: 'test'
+  ...
+# Subtest: identifier Unicode/control/noncharacter acceptance matches the actual standalone Elixir Scope helper
+ok 15 - identifier Unicode/control/noncharacter acceptance matches the actual standalone Elixir Scope helper
+  ---
+  duration_ms: 506.0615
+  type: 'test'
+  ...
+# Subtest: compiled Solid view uses semantic sections, current selection and separate organization/project roles
+ok 16 - compiled Solid view uses semantic sections, current selection and separate organization/project roles
+  ---
+  duration_ms: 2.443166
+  type: 'test'
+  ...
+# Subtest: null names fall back to exact IDs and untrusted labels render only as escaped text
+not ok 17 - null names fall back to exact IDs and untrusted labels render only as escaped text
+  ---
+  duration_ms: 0.852458
+  type: 'test'
+  location: '/Users/andreyyurlov/Documents/dev/mixer/console/tests/workspace-directory-view.test.mjs:41:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /<bdi>org:second<\/bdi>/. Input:
+    
+    '<section data-hk="00" class="workspace-directory" aria-labelledby="workspace-directory-heading"><header class="page-heading"><p class="eyebrow">Your workspace</p><h1 id="workspace-directory-heading">Organizations &amp; projects</h1><p>Choose an organization and project to continue.</p></header><div class="workspace-directory-columns"><section class="workspace-directory-panel" aria-labelledby="workspace-organizations-heading"><header class="workspace-directory-heading"><span class="workspace-directory-symbol"><svg data-hk="010" viewBox="0 0 24 24" aria-hidden="true"><rect data-hk="0110" x="3" y="3" width="7" height="7" rx="1.5"></rect><rect data-hk="0111" x="14" y="3" width="7" height="7" rx="1.5"></rect><rect data-hk="0112" x="3" y="14" width="7" height="7" rx="1.5"></rect><rect data-hk="0113" x="14" y="14" width="7" height="7" rx="1.5"></rect></svg></span><div><h2 id="workspace-organizations-heading">Organizations</h2><p>The organizations you can access.</p></div></header><ul data-hk="02200" class="workspace-directory-list" aria-label="Organizations"><li data-hk="022010" class="workspace-directory-row workspace-row-selected"><button type="button" class="workspace-row-button" aria-pressed="true"><span class="workspace-row-identity"><span class="workspace-row-name"><bdi data-hk="02201100">&lt;img src=x onerror="alert(1)"></bdi></span><code data-hk="0220120"><bdi>org:北/..</bdi></code></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></button><div data-hk="0220130" class="workspace-roles"><p data-hk="02201310">Project access</p></div></li><li data-hk="022014" class="workspace-directory-row "><button type="button" class="workspace-row-button" aria-pressed="false"><span class="workspace-row-identity"><span class="workspace-row-name"><bdi data-hk="02201500">org:second</bdi></span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></button><div data-hk="0220170" class="workspace-roles"><p data-hk="02201710">Organization roles</p><ul data-hk="02201711" aria-label="Your organization roles"><li data-hk="022017120">Administrator</li><li data-hk="022017121">Owner</li></ul></div></li></ul></section><section class="workspace-directory-panel" aria-labelledby="workspace-projects-heading"><header class="workspace-directory-heading"><span class="workspace-directory-symbol"><svg data-hk="030" viewBox="0 0 24 24" aria-hidden="true"><path data-hk="0310" d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm-8 4.5 8 4.5 8-4.5M12 12v9m-4-16 8 4.5"></path></svg></span><div><h2 id="workspace-projects-heading">Projects</h2><p><bdi data-hk="04000">&lt;img src=x onerror="alert(1)"></bdi></p></div></header><ul data-hk="05200" class="workspace-directory-list" aria-label="Projects"><li data-hk="052010" class="workspace-directory-row workspace-row-selected"><button type="button" class="workspace-row-button" aria-pressed="true"><span class="workspace-row-identity"><span class="workspace-row-name"><bdi data-hk="05201100">&lt;img src=x onerror="alert(1)"></bdi></span><code data-hk="0520120"><bdi>project/one</bdi></code></span><span class="workspace-selection-mark" aria-hidden="true"><svg data-hk="0520130" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"></path></svg></span></button><div data-hk="0520140" class="workspace-roles"><p data-hk="05201410">Project roles</p><ul data-hk="05201411" aria-label="Your project roles"><li data-hk="052014120">Developer</li><li data-hk="052014121">Release manager</li></ul></div></li><li data-hk="052015" class="workspace-directory-row "><button type="button" class="workspace-row-button" aria-pressed="false"><span class="workspace-row-identity"><span class="workspace-row-name"><bdi data-hk="05201600">project:two</bdi></span></span><span class="workspace-selection-mark" aria-hidden="true"><svg data-hk="0520180" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"></path></svg></span></button><div data-hk="0520190" class="workspace-roles"><p data-hk="05201910">Project roles</p><ul data-hk="05201911" aria-label="Your project roles"><li data-hk="052019120">Viewer</li></ul></div></li></ul></section></div><p data-hk="060" class="workspace-current-selection" role="status" aria-live="polite" aria-atomic="true"><span class="status status-passed"><span class="status-dot" aria-hidden="true"></span>Selected project</span><strong><bdi data-hk="06100">&lt;img src=x onerror="alert(1)"></bdi></strong></p></section>'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: '<section data-hk="00" class="workspace-directory" aria-labelledby="workspace-directory-heading"><header class="page-heading"><p class="eyebrow">Your workspace</p><h1 id="workspace-directory-heading">Organizations &amp; projects</h1><p>Choose an organization and project to continue.</p></header><div class="workspace-directory-columns"><section class="workspace-directory-panel" aria-labelledby="workspace-organizations-heading"><header class="workspace-directory-heading"><span class="workspace-directory-symbol"><svg data-hk="010" viewBox="0 0 24 24" aria-hidden="true"><rect data-hk="0110" x="3" y="3" width="7" height="7" rx="1.5"></rect><rect data-hk="0111" x="14" y="3" width="7" height="7" rx="1.5"></rect><rect data-hk="0112" x="3" y="14" width="7" height="7" rx="1.5"></rect><rect data-hk="0113" x="14" y="14" width="7" height="7" rx="1.5"></rect></svg></span><div><h2 id="workspace-organizations-heading">Organizations</h2><p>The organizations you can access.</p></div></header><ul data-hk="02200" class="workspace-directory-list" aria-label="Organizations"><li data-hk="022010" class="workspace-directory-row workspace-row-selected"><button type="button" class="workspace-row-button" aria-pressed="true"><span class="workspace-row-identity"><span class="workspace-row-name"><bdi data-hk="02201100">&lt;img src=x onerror="alert(1)"></bdi></span><code data-hk="0220120"><bdi>org:北/..</bdi></code></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></button><div data-hk="0220130" class="workspace-roles"><p data-hk="02201310">Project access</p></div></li><li data-hk="022014" class="workspace-directory-row "><button type="button" class="workspace-row-button" aria-pressed="false"><span class="workspace-row-identity"><span class="workspace-row-name"><bdi data-hk="02201500">org:second</bdi></span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></button><div data-hk="0220170" class="workspace-roles"><p data-hk="02201710">Organization roles</p><ul data-hk="02201711" aria-label="Your organization roles"><li data-hk="022017120">Administrator</li><li data-hk="022017121">Owner</li></ul></div></li></ul></section><section class="workspace-directory-panel" aria-labelledby="workspace-projects-heading"><header class="workspace-directory-heading"><span class="workspace-directory-symbol"><svg data-hk="030" viewBox="0 0 24 24" aria-hidden="true"><path data-hk="0310" d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm-8 4.5 8 4.5 8-4.5M12 12v9m-4-16 8 4.5"></path></svg></span><div><h2 id="workspace-projects-heading">Projects</h2><p><bdi data-hk="04000">&lt;img src=x onerror="alert(1)"></bdi></p></div></header><ul data-hk="05200" class="workspace-directory-list" aria-label="Projects"><li data-hk="052010" class="workspace-directory-row workspace-row-selected"><button type="button" class="workspace-row-button" aria-pressed="true"><span class="workspace-row-identity"><span class="workspace-row-name"><bdi data-hk="05201100">&lt;img src=x onerror="alert(1)"></bdi></span><code data-hk="0520120"><bdi>project/one</bdi></code></span><span class="workspace-selection-mark" aria-hidden="true"><svg data-hk="0520130" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"></path></svg></span></button><div data-hk="0520140" class="workspace-roles"><p data-hk="05201410">Project roles</p><ul data-hk="05201411" aria-label="Your project roles"><li data-hk="052014120">Developer</li><li data-hk="052014121">Release manager</li></ul></div></li><li data-hk="052015" class="workspace-directory-row "><button type="button" class="workspace-row-button" aria-pressed="false"><span class="workspace-row-identity"><span class="workspace-row-name"><bdi data-hk="05201600">project:two</bdi></span></span><span class="workspace-selection-mark" aria-hidden="true"><svg data-hk="0520180" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"></path></svg></span></button><div data-hk="0520190" class="workspace-roles"><p data-hk="05201910">Project roles</p><ul data-hk="05201911" aria-label="Your project roles"><li data-hk="052019120">Viewer</li></ul></div></li></ul></section></div><p data-hk="060" class="workspace-current-selection" role="status" aria-live="polite" aria-atomic="true"><span class="status status-passed"><span class="status-dot" aria-hidden="true"></span>Selected project</span><strong><bdi data-hk="06100">&lt;img src=x onerror="alert(1)"></bdi></strong></p></section>'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/workspace-directory-view.test.mjs:47:51)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: unnamed ASCII and Unicode whitespace IDs have readable distinct button, header and selection identities
+ok 18 - unnamed ASCII and Unicode whitespace IDs have readable distinct button, header and selection identities
+  ---
+  duration_ms: 1.029375
+  type: 'test'
+  ...
+# Subtest: nonnull names remain exact even when blank-looking; whitespace IDs have a separate readable marker
+not ok 19 - nonnull names remain exact even when blank-looking; whitespace IDs have a separate readable marker
+  ---
+  duration_ms: 0.404625
+  type: 'test'
+  location: '/Users/andreyyurlov/Documents/dev/mixer/console/tests/workspace-directory-view.test.mjs:75:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /<bdi>  Studio  <\/bdi>/. Input:
+    
+    '<section data-hk="00" class="workspace-directory" aria-labelledby="workspace-directory-heading"><header class="page-heading"><p class="eyebrow">Your workspace</p><h1 id="workspace-directory-heading">Organizations &amp; projects</h1><p>Choose an organization and project to continue.</p></header><div class="workspace-directory-columns"><section class="workspace-directory-panel" aria-labelledby="workspace-organizations-heading"><header class="workspace-directory-heading"><span class="workspace-directory-symbol"><svg data-hk="010" viewBox="0 0 24 24" aria-hidden="true"><rect data-hk="0110" x="3" y="3" width="7" height="7" rx="1.5"></rect><rect data-hk="0111" x="14" y="3" width="7" height="7" rx="1.5"></rect><rect data-hk="0112" x="3" y="14" width="7" height="7" rx="1.5"></rect><rect data-hk="0113" x="14" y="14" width="7" height="7" rx="1.5"></rect></svg></span><div><h2 id="workspace-organizations-heading">Organizations</h2><p>The organizations you can access.</p></div></header><ul data-hk="02200" class="workspace-directory-list" aria-label="Organizations"><li data-hk="022010" class="workspace-directory-row workspace-row-selected"><button type="button" class="workspace-row-button" aria-pressed="true"><span class="workspace-row-identity"><span class="workspace-row-name"><bdi data-hk="02201100">  Studio  </bdi></span><code data-hk="0220120"><bdi>"\\u0020"</bdi></code></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></button><div data-hk="0220130" class="workspace-roles"><p data-hk="02201310">Project access</p></div></li></ul></section><section class="workspace-directory-panel" aria-labelledby="workspace-projects-heading"><header class="workspace-directory-heading"><span class="workspace-directory-symbol"><svg data-hk="030" viewBox="0 0 24 24" aria-hidden="true"><path data-hk="0310" d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm-8 4.5 8 4.5 8-4.5M12 12v9m-4-16 8 4.5"></path></svg></span><div><h2 id="workspace-projects-heading">Projects</h2><p><bdi data-hk="04000">  Studio  </bdi></p></div></header><ul data-hk="05200" class="workspace-directory-list" aria-label="Projects"><li data-hk="052010" class="workspace-directory-row workspace-row-selected"><button type="button" class="workspace-row-button" aria-pressed="true"><span class="workspace-row-identity"><span class="workspace-row-name"><bdi data-hk="05201100"> </bdi></span><code data-hk="0520120"><bdi>"\\u0020\\u0020"</bdi></code></span><span class="workspace-selection-mark" aria-hidden="true"><svg data-hk="0520130" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"></path></svg></span></button><div data-hk="0520140" class="workspace-roles"><p data-hk="05201410">Project roles</p><ul data-hk="05201411" aria-label="Your project roles"><li data-hk="052014120">Viewer</li></ul></div></li></ul></section></div><p data-hk="060" class="workspace-current-selection" role="status" aria-live="polite" aria-atomic="true"><span class="status status-passed"><span class="status-dot" aria-hidden="true"></span>Selected project</span><strong><bdi data-hk="06100"> </bdi></strong></p></section>'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: '<section data-hk="00" class="workspace-directory" aria-labelledby="workspace-directory-heading"><header class="page-heading"><p class="eyebrow">Your workspace</p><h1 id="workspace-directory-heading">Organizations &amp; projects</h1><p>Choose an organization and project to continue.</p></header><div class="workspace-directory-columns"><section class="workspace-directory-panel" aria-labelledby="workspace-organizations-heading"><header class="workspace-directory-heading"><span class="workspace-directory-symbol"><svg data-hk="010" viewBox="0 0 24 24" aria-hidden="true"><rect data-hk="0110" x="3" y="3" width="7" height="7" rx="1.5"></rect><rect data-hk="0111" x="14" y="3" width="7" height="7" rx="1.5"></rect><rect data-hk="0112" x="3" y="14" width="7" height="7" rx="1.5"></rect><rect data-hk="0113" x="14" y="14" width="7" height="7" rx="1.5"></rect></svg></span><div><h2 id="workspace-organizations-heading">Organizations</h2><p>The organizations you can access.</p></div></header><ul data-hk="02200" class="workspace-directory-list" aria-label="Organizations"><li data-hk="022010" class="workspace-directory-row workspace-row-selected"><button type="button" class="workspace-row-button" aria-pressed="true"><span class="workspace-row-identity"><span class="workspace-row-name"><bdi data-hk="02201100">  Studio  </bdi></span><code data-hk="0220120"><bdi>"\\u0020"</bdi></code></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></button><div data-hk="0220130" class="workspace-roles"><p data-hk="02201310">Project access</p></div></li></ul></section><section class="workspace-directory-panel" aria-labelledby="workspace-projects-heading"><header class="workspace-directory-heading"><span class="workspace-directory-symbol"><svg data-hk="030" viewBox="0 0 24 24" aria-hidden="true"><path data-hk="0310" d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm-8 4.5 8 4.5 8-4.5M12 12v9m-4-16 8 4.5"></path></svg></span><div><h2 id="workspace-projects-heading">Projects</h2><p><bdi data-hk="04000">  Studio  </bdi></p></div></header><ul data-hk="05200" class="workspace-directory-list" aria-label="Projects"><li data-hk="052010" class="workspace-directory-row workspace-row-selected"><button type="button" class="workspace-row-button" aria-pressed="true"><span class="workspace-row-identity"><span class="workspace-row-name"><bdi data-hk="05201100"> </bdi></span><code data-hk="0520120"><bdi>"\\u0020\\u0020"</bdi></code></span><span class="workspace-selection-mark" aria-hidden="true"><svg data-hk="0520130" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"></path></svg></span></button><div data-hk="0520140" class="workspace-roles"><p data-hk="05201410">Project roles</p><ul data-hk="05201411" aria-label="Your project roles"><li data-hk="052014120">Viewer</li></ul></div></li></ul></section></div><p data-hk="060" class="workspace-current-selection" role="status" aria-live="polite" aria-atomic="true"><span class="status status-passed"><span class="status-dot" aria-hidden="true"></span>Selected project</span><strong><bdi data-hk="06100"> </bdi></strong></p></section>'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/workspace-directory-view.test.mjs:83:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: organization-only and completely empty workspaces have distinct honest empty states
+ok 20 - organization-only and completely empty workspaces have distinct honest empty states
+  ---
+  duration_ms: 0.374583
+  type: 'test'
+  ...
+# Subtest: loading, unavailable, unauthenticated and failures never retain rows or project selection
+ok 21 - loading, unavailable, unauthenticated and failures never retain rows or project selection
+  ---
+  duration_ms: 1.177
+  type: 'test'
+  ...
+# Subtest: project loading/error/auth/unavailable states preserve organization choice but hide stale projects
+ok 22 - project loading/error/auth/unavailable states preserve organization choice but hide stale projects
+  ---
+  duration_ms: 0.699166
+  type: 'test'
+  ...
+# Subtest: mismatched organization payload and stale selected IDs cannot expose another project's data
+ok 23 - mismatched organization payload and stale selected IDs cannot expose another project's data
+  ---
+  duration_ms: 0.613041
+  type: 'test'
+  ...
+# Subtest: next-page controls reflect only validated server cursors and available handlers
+ok 24 - next-page controls reflect only validated server cursors and available handlers
+  ---
+  duration_ms: 0.790583
+  type: 'test'
+  ...
+# Subtest: all malformed role/name data fails closed instead of fabricating names or access labels
+ok 25 - all malformed role/name data fails closed instead of fabricating names or access labels
+  ---
+  duration_ms: 0.561125
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 23
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 584.411625

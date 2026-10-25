@@ -327,7 +327,7 @@ defmodule MixerHosted.Identity.AccessTokenVerifierTest do
     end
   end
 
-  test "scope is bounded OAuth syntax and only the exact three names survive", c do
+  test "scope is bounded OAuth syntax and only exact supported names survive", c do
     claims =
       Map.merge(c.claims, %{
         "scope" => "owner project:* mixer.artifact.read",
@@ -384,6 +384,47 @@ defmodule MixerHosted.Identity.AccessTokenVerifierTest do
                @now,
                c.snapshot
              )
+  end
+
+  test "signed workspace scope survives exactly without granting artifact or claimed roles", c do
+    for scope <- ["mixer.workspace.read", "owner mixer.workspace.read project:*"] do
+      claims =
+        Map.merge(c.claims, %{"scope" => scope, "roles" => ["owner"], "organization" => "other"})
+
+      assert {:ok, %VerifiedIdentity{scopes: ["mixer.workspace.read"]} = identity} =
+               AccessTokenVerifier.verify(sign(c, claims), @now, c.snapshot)
+
+      refute Map.has_key?(identity, :roles)
+      refute Map.has_key?(identity, :organization)
+    end
+
+    for scope <- [
+          "mixer.workspace",
+          "mixer.workspace.read.extra",
+          "mixer.workspace.*",
+          "MIXER.workspace.read"
+        ] do
+      assert {:ok, %VerifiedIdentity{scopes: []}} =
+               AccessTokenVerifier.verify(
+                 sign(c, %{c.claims | "scope" => scope}),
+                 @now,
+                 c.snapshot
+               )
+    end
+
+    all = "mixer.workspace.read " <> c.claims["scope"]
+
+    assert {:ok, %VerifiedIdentity{scopes: scopes}} =
+             AccessTokenVerifier.verify(sign(c, %{c.claims | "scope" => all}), @now, c.snapshot)
+
+    assert scopes == [
+             "mixer.artifact.read",
+             "mixer.artifact.upload",
+             "mixer.audit.read",
+             "mixer.workspace.read"
+           ]
+
+    reject(c, sign(c, %{c.claims | "scope" => "mixer.workspace.read mixer.workspace.read"}))
   end
 
   test "expiry is exclusive, future skew is at most 30 and times are bounded integers", c do

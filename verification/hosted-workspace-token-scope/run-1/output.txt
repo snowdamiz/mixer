@@ -1,0 +1,44 @@
+Running ExUnit with seed: 0, max_cases: 8
+
+..
+
+  1) test none and genuine unsupported RSA/HMAC/EC/EdDSA signatures cannot widen policy (MixerHosted.Identity.AccessTokenVerifierTest)
+     /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-workspace-token-scope/run-1/inputs/hosted/test/mixer_hosted/identity/access_token_verifier_test.exs:145
+     Assertion with == failed
+     code:  assert JOSE.json_module() == :jose_json_jason
+     left:  :jose_json_otp
+     right: :jose_json_jason
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-workspace-token-scope/run-1/inputs/hosted/test/mixer_hosted/identity/access_token_verifier_test.exs:173: (test)
+
+.......
+
+  2) test signed workspace scope survives exactly without granting artifact or claimed roles (MixerHosted.Identity.AccessTokenVerifierTest)
+     /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-workspace-token-scope/run-1/inputs/hosted/test/mixer_hosted/identity/access_token_verifier_test.exs:389
+     match (=) failed
+     code:  assert {:ok, %VerifiedIdentity{scopes: ["mixer.workspace.read"]} = identity} =
+              AccessTokenVerifier.verify(sign(c, claims), @now, c.snapshot)
+     left:  {:ok, %MixerHosted.Identity.VerifiedIdentity{scopes: ["mixer.workspace.read"]} = identity}
+     right: {:ok,
+             %MixerHosted.Identity.VerifiedIdentity{
+               profile_id: "synthetic-rfc9068-rs256-v1",
+               profile_version: 1,
+               issuer: "https://issuer.invalid/oauth",
+               subject: "subject-1",
+               client_id: "registered-client",
+               credential_ref: "credential-1",
+               issued_at: 1799999999,
+               expires_at: 1800000299,
+               identity_class: :human,
+               scopes: []
+             }}
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-workspace-token-scope/run-1/inputs/hosted/test/mixer_hosted/identity/access_token_verifier_test.exs:394: anonymous fn/3 in MixerHosted.Identity.AccessTokenVerifierTest."test signed workspace scope survives exactly without granting artifact or claimed roles"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-workspace-token-scope/run-1/inputs/hosted/test/mixer_hosted/identity/access_token_verifier_test.exs:390: (test)
+
+......
+Finished in 0.5 seconds (0.1s on load, 0.00s async, 0.3s sync)
+
+Result: 15/17 passed
+Failed: 2 tests

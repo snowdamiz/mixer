@@ -1,0 +1,142 @@
+diff --git a/hosted/lib/mixer_hosted/authorization/postgres/session.ex b/hosted/lib/mixer_hosted/authorization/postgres/session.ex
+index 0af520bb9..3a529b39e 100644
+--- a/hosted/lib/mixer_hosted/authorization/postgres/session.ex
++++ b/hosted/lib/mixer_hosted/authorization/postgres/session.ex
+@@ -5,15 +5,31 @@ defmodule MixerHosted.Authorization.Postgres.Session do
+   @locks ~w(profiles principals families credentials organization_heads project_heads)
+ 
+   def prepare!(repo, lookup) do
++    linkage = prepare_identity_scope!(repo, lookup.identity, lookup.target)
++    lock!(repo, "organization_heads", :not_found)
++    lock!(repo, "project_heads", :not_found)
++    linkage
++  end
++
++  # Read-only directory callers must separately validate current identity state,
++  # select and lock their bounded tenant rows, and recheck before commit. This
++  # helper supplies only linkage and identity locks, never artifact authority.
++  def prepare_identity!(repo, identity) do
++    prepare_identity_scope!(repo, identity, %{
++      organization_id: nil,
++      project_id: nil,
++      application_id: nil,
++      environment_id: nil
++    })
++  end
++
++  defp prepare_identity_scope!(repo, i, scope) do
+     query!(repo, "SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
+     query!(repo, "SET LOCAL statement_timeout = '5000ms'")
+     query!(repo, "SET LOCAL lock_timeout = '500ms'")
+     query!(repo, "SET LOCAL idle_in_transaction_session_timeout = '5000ms'")
+     topology!(repo)
+ 
+-    i = lookup.identity
+-    scope = lookup.target
+-
+     context!(repo,
+       profile_id: i.profile_id,
+       profile_version: Integer.to_string(i.profile_version),
+@@ -27,7 +43,8 @@ defmodule MixerHosted.Authorization.Postgres.Session do
+       application_id: scope.application_id,
+       environment_id: scope.environment_id,
+       principal_id: nil,
+-      family_id: nil
++      family_id: nil,
++      directory_mode: nil
+     )
+ 
+     lock!(repo, "profiles", :unauthenticated)
+@@ -50,8 +67,6 @@ defmodule MixerHosted.Authorization.Postgres.Session do
+     context!(repo, family_id: family)
+     lock!(repo, "families", :unauthenticated)
+     lock!(repo, "credentials", :unauthenticated)
+-    lock!(repo, "organization_heads", :not_found)
+-    lock!(repo, "project_heads", :not_found)
+     %{principal_id: principal, family_id: family}
+   end
+ 
+diff --git a/hosted/lib/mixer_hosted/authorization/transaction/context.ex b/hosted/lib/mixer_hosted/authorization/transaction/context.ex
+index a415b8e5a..5d556da67 100644
+--- a/hosted/lib/mixer_hosted/authorization/transaction/context.ex
++++ b/hosted/lib/mixer_hosted/authorization/transaction/context.ex
+@@ -29,7 +29,7 @@ defmodule MixerHosted.Authorization.Transaction.Context do
+     :idempotency_conflict,
+     :storage_unavailable
+   ]
+-  @settings ~w(profile_id profile_version issuer subject client_id identity_class credential_ref organization_id project_id application_id environment_id principal_id family_id action transaction_marker token_issued_at token_expires_at required_scope phase)
++  @settings ~w(profile_id profile_version issuer subject client_id identity_class credential_ref organization_id project_id application_id environment_id principal_id family_id action transaction_marker token_issued_at token_expires_at required_scope phase directory_mode)
+   @enforce_keys [
+     :owner,
+     :repo,
+diff --git a/hosted/test/mixer_hosted/authorization/transaction_test.exs b/hosted/test/mixer_hosted/authorization/transaction_test.exs
+index fc2e4b756..e1ad9c5d1 100644
+--- a/hosted/test/mixer_hosted/authorization/transaction_test.exs
++++ b/hosted/test/mixer_hosted/authorization/transaction_test.exs
+@@ -298,6 +298,66 @@ defmodule MixerHosted.Authorization.TransactionTest do
+     assert {:error, :invalid_request} = F.run(fn _ -> flunk() end, F.identity(), "audit.read")
+   end
+ 
++  test "identity-only preparation clears tenant and directory selection without artifact authority" do
++    identity = F.identity()
++
++    settings = ~w(organization_id project_id application_id environment_id directory_mode)
++
++    assert {:ok, linkage} =
++             Runtime.checkout(fn ->
++               for key <- settings do
++                 F.runtime_sql("SELECT set_config($1,'inherited',false)", ["mixer.authz." <> key])
++               end
++
++               try do
++                 Runtime.transaction(fn ->
++                   linkage =
++                     MixerHosted.Authorization.Postgres.Session.prepare_identity!(
++                       Runtime,
++                       MixerHosted.Authorization.Policy.identity_key(identity)
++                     )
++
++                   assert [["", "", "", "", ""]] =
++                            F.runtime_sql("""
++                            SELECT current_setting('mixer.authz.organization_id'),
++                              current_setting('mixer.authz.project_id'),
++                              current_setting('mixer.authz.application_id'),
++                              current_setting('mixer.authz.environment_id'),
++                              current_setting('mixer.authz.directory_mode')
++                            """).rows
++
++                   refute Context.active?()
++
++                   assert [] ==
++                            F.runtime_sql("SELECT id FROM public.mixer_authz_organizations").rows
++
++                   linkage
++                 end)
++               after
++                 for key <- settings do
++                   F.runtime_sql("SELECT set_config($1,'',false)", ["mixer.authz." <> key])
++                 end
++               end
++             end)
++
++    assert linkage.principal_id == "person"
++    assert linkage.family_id == "family"
++  end
++
++  test "changing directory mode invalidates artifact context and rolls back prior effects" do
++    for mode <- ["organizations", "projects"] do
++      assert {:error, :authorization_unavailable} =
++               F.run(fn ctx ->
++                 Context.effect!(ctx, Runtime, "artifact.read", F.target(), fn _ -> F.probe!() end)
++
++                 F.runtime_sql("SELECT set_config('mixer.authz.directory_mode',$1,true)", [mode])
++                 {:ok, :must_not_commit}
++               end)
++
++      assert [] == F.sql("SELECT id FROM public.transaction_probe").rows
++    end
++  end
++
+   test "invalid identity action target and nested invocation fail before a callback" do
+     for {i, a, t} <- [
+           {nil, "artifact.read", F.target()},

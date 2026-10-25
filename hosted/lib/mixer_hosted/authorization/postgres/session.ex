@@ -5,14 +5,30 @@ defmodule MixerHosted.Authorization.Postgres.Session do
   @locks ~w(profiles principals families credentials organization_heads project_heads)
 
   def prepare!(repo, lookup) do
+    linkage = prepare_identity_scope!(repo, lookup.identity, lookup.target)
+    lock!(repo, "organization_heads", :not_found)
+    lock!(repo, "project_heads", :not_found)
+    linkage
+  end
+
+  # Read-only directory callers must separately validate current identity state,
+  # select and lock their bounded tenant rows, and recheck before commit. This
+  # helper supplies only linkage and identity locks, never artifact authority.
+  def prepare_identity!(repo, identity) do
+    prepare_identity_scope!(repo, identity, %{
+      organization_id: nil,
+      project_id: nil,
+      application_id: nil,
+      environment_id: nil
+    })
+  end
+
+  defp prepare_identity_scope!(repo, i, scope) do
     query!(repo, "SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
     query!(repo, "SET LOCAL statement_timeout = '5000ms'")
     query!(repo, "SET LOCAL lock_timeout = '500ms'")
     query!(repo, "SET LOCAL idle_in_transaction_session_timeout = '5000ms'")
     topology!(repo)
-
-    i = lookup.identity
-    scope = lookup.target
 
     context!(repo,
       profile_id: i.profile_id,
@@ -27,7 +43,8 @@ defmodule MixerHosted.Authorization.Postgres.Session do
       application_id: scope.application_id,
       environment_id: scope.environment_id,
       principal_id: nil,
-      family_id: nil
+      family_id: nil,
+      directory_mode: nil
     )
 
     lock!(repo, "profiles", :unauthenticated)
@@ -50,8 +67,6 @@ defmodule MixerHosted.Authorization.Postgres.Session do
     context!(repo, family_id: family)
     lock!(repo, "families", :unauthenticated)
     lock!(repo, "credentials", :unauthenticated)
-    lock!(repo, "organization_heads", :not_found)
-    lock!(repo, "project_heads", :not_found)
     %{principal_id: principal, family_id: family}
   end
 

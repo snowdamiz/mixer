@@ -101,6 +101,15 @@ its older pending/selected statements do not override the current state.
    admission and full Go parity remain pending. See
    [the HTTP checkpoint](docs/hosted-customer-artifact-http-checkpoint.md).
 
+   Customer workspace discovery now passes local acceptance through the production
+   Endpoint/default verifier/default Repo and actual console client. The branded
+   selector preserves website styling. All 68 console host tests and build pass;
+   the real HTTP join passes 11 methods plus Node calls. Shared identity/storage,
+   HTTP and client reviews are recorded. App/login/session/browser composition,
+   provider operation and all GA gates remain pending. Standard CI is wired for
+   the required client join. See
+   [the workspace checkpoint](docs/hosted-customer-workspace-checkpoint.md).
+
 The frozen hosted catalog-inspector/authority-driver lanes and rejected outbound
 Worker transport V2 lane remain isolated and unaccepted. Do not read, import,
 execute or retry those frozen lanes. An interrupted review is not a pass.

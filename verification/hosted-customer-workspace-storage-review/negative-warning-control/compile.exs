@@ -1,0 +1,5 @@
+result = Kernel.ParallelCompiler.compile_to_path(System.argv(), System.fetch_env!("MIXER_WARNING_CONTROL_BEAMS"), return_diagnostics: true)
+accepted = match?({:ok, _, %{compile_warnings: [], runtime_warnings: []}}, result)
+IO.inspect(result, label: "structured_compiler_result", limit: :infinity, printable_limit: :infinity)
+File.write!(System.fetch_env!("MIXER_WARNING_CONTROL_RESULT"), Jason.encode!(%{accepted: accepted, structured_result: inspect(result, limit: :infinity, printable_limit: :infinity)}))
+System.halt(if accepted, do: 0, else: 1)

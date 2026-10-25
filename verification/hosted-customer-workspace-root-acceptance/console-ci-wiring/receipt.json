@@ -1,0 +1,58 @@
+{
+  "observed_at": "2026-10-25T14:29:46.052081+00:00",
+  "source_revision": "6ed7df4f147b3a3254dab91dd3224b9513f586a8",
+  "sources": {
+    ".github/workflows/console.yml": "039873409976a615b3eb5a1c47e8728229eb4da9b1af9e4e3d113867e588f5ac",
+    ".github/workflows/hosted.yml": "4756d54f2c9b9c085054da25aed61696dc6bdc3f5d2dfce6b787db351e5ca294",
+    "hosted/.tool-versions": "6286da51456f864e5f1d8f2280e6de86d6fb1ee4517c40819760ec54d203c846",
+    "hosted/lib/mixer_hosted/authorization/scope.ex": "b98c7c6f2f3592bf2fcfd0890d86bb503e3c9cdd6558fa1c7b0766ddb61c7b7a",
+    "console/tests/workspace-directory-scope-parity.test.mjs": "7e2d526ed5c58b842648ad166e5ef76baa5931a69309fca0fd6f2bcf46bf881d",
+    "console/src/domain/workspace-directory.ts": "ee23d78e263ead8fe9d3c5b68c88f44e9a5d9a8b2a20fe709db9ab8fe6c8f4dc"
+  },
+  "commands": [
+    {
+      "argv": [
+        "ruby",
+        "-e",
+        "require \"yaml\"; a=YAML.safe_load_file(\".github/workflows/console.yml\"); b=YAML.safe_load_file(\".github/workflows/hosted.yml\"); s=a[\"jobs\"][\"console\"][\"steps\"]; x=s.find {|e| e[\"uses\"]&.start_with?(\"erlef/setup-beam@\")}; y=b[\"jobs\"][\"phoenix\"][\"steps\"].find {|e| e[\"uses\"]&.start_with?(\"erlef/setup-beam@\")}; abort \"runtime mismatch\" unless x==y; s.each {|e| if e[\"run\"]; IO.popen([\"bash\",\"-n\"],\"w\") {|p| p.write(e[\"run\"])}; abort \"invalid shell\" unless $?.success?; end }; [\"push\",\"pull_request\"].each {|event| [\"hosted/lib/mixer_hosted/authorization/scope.ex\",\"hosted/.tool-versions\"].each {|p| abort \"missing filter\" unless a[true][event][\"paths\"].include?(p)}}; puts \"Pinned runtime and trigger parity; shell syntax valid\""
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout_sha256": "e5765ebbe9a3a992ae0ce73c23edcd9410112674f271bacaf6784f1ef9e2ad78",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "node",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout_sha256": "33e26f35db6e57ce0c486ddc815fe966867e4f649e418eaf323f75f4720eb8e9",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout_sha256": "44fe1d5e597ef84e0b6859be8ef275ca7da40d28005c64ea6a103835caa29081",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "node",
+        "--test",
+        "tests/workspace-directory-scope-parity.test.mjs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/console",
+      "exit_code": 0,
+      "stdout_sha256": "328e2a3b45002a145aa6d6f1a1893d29f5519a27e04c423349a2fffcd7cfe12d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "qualification": "Console CI setup correction verified locally. One test covers 85 actual standalone Elixir Scope vectors. Full prior console acceptance unchanged; exact pushed CI pending.",
+  "cleanup": "No services, listeners, native instances or capture started."
+}

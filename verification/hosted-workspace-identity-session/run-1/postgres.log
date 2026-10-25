@@ -1,0 +1,30 @@
+2026-10-25 09:41:18.286 EDT [82739] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-25 09:41:18.287 EDT [82739] LOG:  listening on IPv4 address "127.0.0.1", port 58384
+2026-10-25 09:41:18.287 EDT [82739] LOG:  listening on Unix socket "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-artifact-facade-cfiw116n/.s.PGSQL.58384"
+2026-10-25 09:41:18.290 EDT [82743] LOG:  database system was shut down at 2026-10-25 09:41:18 EDT
+2026-10-25 09:41:18.293 EDT [82739] LOG:  database system is ready to accept connections
+2026-10-25 09:41:31.008 EDT [82872] ERROR:  canceling statement due to lock timeout
+2026-10-25 09:41:31.008 EDT [82872] CONTEXT:  while locking tuple (0,1) in relation "mixer_authz_profiles"
+	SQL statement "SELECT 1 FROM public.mixer_authz_profiles WHERE id = current_setting('mixer.authz.profile_id', true) AND version::text = current_setting('mixer.authz.profile_version', true) FOR SHARE"
+	PL/pgSQL function public.mixer_authz_lock_profiles() line 3 at PERFORM
+2026-10-25 09:41:31.008 EDT [82872] STATEMENT:  SELECT public.mixer_authz_lock_profiles()
+2026-10-25 09:41:31.070 EDT [82799] ERROR:  new row for relation "mixer_authz_profiles" violates check constraint "mixer_authz_profiles_state_revision_check"
+2026-10-25 09:41:31.070 EDT [82799] DETAIL:  Failing row contains (profile, 1, https://issuer.example, client, human, t, 0).
+2026-10-25 09:41:31.070 EDT [82799] STATEMENT:  UPDATE public.mixer_authz_profiles SET state_revision=$1
+2026-10-25 09:41:31.070 EDT [82801] ERROR:  new row for relation "mixer_authz_profiles" violates check constraint "mixer_authz_profiles_state_revision_check"
+2026-10-25 09:41:31.070 EDT [82801] DETAIL:  Failing row contains (profile, 1, https://issuer.example, client, human, t, -1).
+2026-10-25 09:41:31.070 EDT [82801] STATEMENT:  UPDATE public.mixer_authz_profiles SET state_revision=$1
+2026-10-25 09:41:31.070 EDT [82797] ERROR:  new row for relation "mixer_authz_profiles" violates check constraint "mixer_authz_profiles_state_revision_check"
+2026-10-25 09:41:31.070 EDT [82797] DETAIL:  Failing row contains (profile, 1, https://issuer.example, client, human, t, 9007199254740992).
+2026-10-25 09:41:31.070 EDT [82797] STATEMENT:  UPDATE public.mixer_authz_profiles SET state_revision=$1
+2026-10-25 09:41:31.071 EDT [82800] ERROR:  new row for relation "mixer_authz_bindings" violates check constraint "mixer_authz_bindings_revision_check"
+2026-10-25 09:41:31.071 EDT [82800] DETAIL:  Failing row contains (profile, 1, subject, human, person, t, 0).
+2026-10-25 09:41:31.071 EDT [82800] STATEMENT:  UPDATE public.mixer_authz_bindings SET revision=$1
+2026-10-25 09:41:31.071 EDT [82799] ERROR:  new row for relation "mixer_authz_bindings" violates check constraint "mixer_authz_bindings_revision_check"
+2026-10-25 09:41:31.071 EDT [82799] DETAIL:  Failing row contains (profile, 1, subject, human, person, t, -1).
+2026-10-25 09:41:31.071 EDT [82799] STATEMENT:  UPDATE public.mixer_authz_bindings SET revision=$1
+2026-10-25 09:41:31.071 EDT [82801] ERROR:  new row for relation "mixer_authz_bindings" violates check constraint "mixer_authz_bindings_revision_check"
+2026-10-25 09:41:31.071 EDT [82801] DETAIL:  Failing row contains (profile, 1, subject, human, person, t, 9007199254740992).
+2026-10-25 09:41:31.071 EDT [82801] STATEMENT:  UPDATE public.mixer_authz_bindings SET revision=$1
+2026-10-25 09:41:31.230 EDT [82739] LOG:  received immediate shutdown request
+2026-10-25 09:41:31.231 EDT [82739] LOG:  database system is shut down

@@ -1,0 +1,124 @@
+--- initial/console/src/components/WorkspaceDirectory.tsx
++++ corrected/console/src/components/WorkspaceDirectory.tsx
+@@ -1,5 +1,5 @@
+ import { createMemo, For, Match, Show, Switch } from "solid-js";
+-import { resolveWorkspaceDirectory, workspaceDisplayName } from "../domain/workspace-directory.js";
++import { resolveWorkspaceDirectory, workspaceDisplayName, workspaceIdentifierMarker } from "../domain/workspace-directory.js";
+ import type { WorkspaceDirectoryState, WorkspaceFailure, WorkspaceRole } from "../domain/workspace-directory.js";
+ import "./workspace-directory.css";
+ 
+@@ -31,6 +31,13 @@
+       <For each={props.roles}>{role => <li>{roleLabels[role]}</li>}</For>
+     </ul>
+   </Show></div>;
++}
++
++function IdentityName(props: { row: { readonly id: string; readonly display_name: string | null }; project?: boolean }) {
++  const marker = () => props.row.display_name === null ? workspaceIdentifierMarker(props.row.id) : null;
++  return <Show when={marker()} fallback={<bdi>{workspaceDisplayName(props.row)}</bdi>}>{value => <>
++    {props.project ? "Project" : "Organization"} ID <code class="workspace-identity-marker"><bdi>{value()}</bdi></code>
++  </>}</Show>;
+ }
+ 
+ type MessageState = { readonly kind: "loading" | "unauthenticated" | "unavailable" | "invalid" | "unselected" } |
+@@ -93,8 +100,8 @@
+                   <button type="button" class="workspace-row-button"
+                     aria-pressed={view().selectedOrganization?.id === organization.id}
+                     onClick={() => props.onSelectOrganization(organization.id)}>
+-                    <span class="workspace-row-identity"><span class="workspace-row-name"><bdi>{workspaceDisplayName(organization)}</bdi></span>
+-                      <Show when={organization.display_name !== null}><code><bdi>{organization.id}</bdi></code></Show></span>
++                    <span class="workspace-row-identity"><span class="workspace-row-name"><IdentityName row={organization} /></span>
++                      <Show when={organization.display_name !== null}><code><bdi>{workspaceIdentifierMarker(organization.id) ?? organization.id}</bdi></code></Show></span>
+                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+                   </button>
+                   <Roles roles={organization.organization_roles} />
+@@ -114,7 +121,7 @@
+       <section class="workspace-directory-panel" aria-labelledby="workspace-projects-heading">
+         <header class="workspace-directory-heading"><span class="workspace-directory-symbol"><WorkspaceSymbol project /></span>
+           <div><h2 id="workspace-projects-heading">Projects</h2><p><Show when={view().selectedOrganization}
+-            fallback="Select an organization to get started.">{organization => <bdi>{workspaceDisplayName(organization())}</bdi>}</Show></p></div>
++            fallback="Select an organization to get started.">{organization => <IdentityName row={organization()} />}</Show></p></div>
+         </header>
+         <Switch>
+           <Match when={projects()}><Show when={projects()}>{page => <>
+@@ -127,8 +134,8 @@
+                   <button type="button" class="workspace-row-button"
+                     aria-pressed={view().selectedProject?.id === project.id}
+                     onClick={() => props.onSelectProject({ organizationId: project.organization_id, projectId: project.id })}>
+-                    <span class="workspace-row-identity"><span class="workspace-row-name"><bdi>{workspaceDisplayName(project)}</bdi></span>
+-                      <Show when={project.display_name !== null}><code><bdi>{project.id}</bdi></code></Show></span>
++                    <span class="workspace-row-identity"><span class="workspace-row-name"><IdentityName row={project} project /></span>
++                      <Show when={project.display_name !== null}><code><bdi>{workspaceIdentifierMarker(project.id) ?? project.id}</bdi></code></Show></span>
+                     <span class="workspace-selection-mark" aria-hidden="true"><Show when={view().selectedProject?.id === project.id}
+                       fallback={<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>}><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></Show></span>
+                   </button>
+@@ -155,7 +162,7 @@
+     </div>
+     <Show when={view().selectedProject}>{project => <p class="workspace-current-selection" role="status" aria-live="polite" aria-atomic="true">
+       <span class="status status-passed"><span class="status-dot" aria-hidden="true"/>Selected project</span>
+-      <strong><bdi>{workspaceDisplayName(project())}</bdi></strong>
++      <strong><IdentityName row={project()} project /></strong>
+     </p>}</Show>
+   </section>;
+ }
+--- initial/console/src/components/workspace-directory.css
++++ corrected/console/src/components/workspace-directory.css
+@@ -18,6 +18,8 @@
+ .workspace-row-identity { display: grid; gap: 4px; min-width: 0; }
+ .workspace-row-name { font-size: 14px; font-weight: 600; line-height: 1.45; overflow-wrap: anywhere; }
+ .workspace-row-identity code { font-size: 10px; color: var(--muted); }
++.workspace-identity-marker { font-weight: 400; font-size: .85em; }
++.workspace-row-name .workspace-identity-marker { font-size: 11px; }
+ .workspace-roles p { font-size: 10px; color: var(--muted); }
+ .workspace-roles ul { display: flex; flex-wrap: wrap; gap: 5px; list-style: none; padding: 0; margin: 7px 0 0; }
+ .workspace-roles li { font-size: 10px; color: var(--muted); background: var(--cream); border-radius: 4px; padding: 3px 7px; }
+--- initial/console/src/domain/workspace-directory.ts
++++ corrected/console/src/domain/workspace-directory.ts
+@@ -78,7 +78,7 @@
+   return true;
+ }
+ 
+-function identifier(value: unknown): value is string {
++export function isWorkspaceIdentifier(value: unknown): value is string {
+   return printable(value, 128) && value !== "*";
+ }
+ 
+@@ -107,7 +107,7 @@
+     (input.organizations.length > 0 || input.next_cursor === null), "Invalid organization page");
+   const ids = new Set<string>();
+   const organizations = Array.from(input.organizations, value => {
+-    requireValid(object(value, ["id", "display_name", "organization_roles"]) && identifier(value.id) &&
++    requireValid(object(value, ["id", "display_name", "organization_roles"]) && isWorkspaceIdentifier(value.id) &&
+       displayName(value.display_name) && !ids.has(value.id), "Invalid organization row");
+     ids.add(value.id);
+     return Object.freeze({ id: value.id, display_name: value.display_name,
+@@ -118,14 +118,14 @@
+ 
+ /** A project page is valid only for the organization selected by the caller. */
+ export function parseWorkspaceProjects(input: unknown, organizationId: string): WorkspaceProjectPage {
+-  requireValid(identifier(organizationId), "Invalid selected organization");
++  requireValid(isWorkspaceIdentifier(organizationId), "Invalid selected organization");
+   requireValid(object(input, ["projects", "next_cursor"]) && Array.isArray(input.projects) &&
+     input.projects.length <= 100 && cursor(input.next_cursor) &&
+     (input.projects.length > 0 || input.next_cursor === null), "Invalid project page");
+   const ids = new Set<string>();
+   const projects = Array.from(input.projects, value => {
+     requireValid(object(value, ["organization_id", "id", "display_name", "roles"]) &&
+-      value.organization_id === organizationId && identifier(value.id) && displayName(value.display_name) &&
++      value.organization_id === organizationId && isWorkspaceIdentifier(value.id) && displayName(value.display_name) &&
+       !ids.has(value.id), "Invalid project row");
+     ids.add(value.id);
+     return Object.freeze({ organization_id: organizationId, id: value.id, display_name: value.display_name,
+@@ -136,6 +136,12 @@
+ 
+ export function workspaceDisplayName(row: { readonly id: string; readonly display_name: string | null }): string {
+   return row.display_name ?? row.id;
++}
++
++/** A visible identity annotation only; never use it as a request or selection ID. */
++export function workspaceIdentifierMarker(identifier: string): string | null {
++  if (!/^\s+$/u.test(identifier)) return null;
++  return `"${Array.from(identifier, character => `\\u${character.codePointAt(0)!.toString(16).padStart(4, "0")}`).join("")}"`;
+ }
+ 
+ function loadState(value: Record<string, unknown>, scoped: boolean): LoadState | null {

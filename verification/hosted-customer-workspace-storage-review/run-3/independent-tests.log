@@ -1,0 +1,31 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+
+  1) test raw directory SELECT guards require every exact identity and context field and isolate actors (MixerHosted.CustomerWorkspace.StorageReviewTest)
+     verification/hosted-customer-workspace-storage-review/storage_review_test.exs:164
+     [token_issued_at: "1792937655"]
+     code: for changes <- [
+     stacktrace:
+       verification/hosted-customer-workspace-storage-review/storage_review_test.exs:192: anonymous fn/3 in MixerHosted.CustomerWorkspace.StorageReviewTest."test raw directory SELECT guards require every exact identity and context field and isolate actors"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       verification/hosted-customer-workspace-storage-review/storage_review_test.exs:191: anonymous fn/1 in MixerHosted.CustomerWorkspace.StorageReviewTest."test raw directory SELECT guards require every exact identity and context field and isolate actors"/1
+       hosted/test/mixer_hosted/customer_workspace_test.exs:10: anonymous fn/1 in MixerHosted.CustomerWorkspace.Fixture.Runtime.transaction/2
+       hosted/test/mixer_hosted/customer_workspace_test.exs:15: anonymous fn/1 in MixerHosted.CustomerWorkspace.Fixture.Runtime.prepare_transaction/2
+       (ecto 3.14.2) lib/ecto/repo/transaction.ex:11: anonymous fn/3 in Ecto.Repo.Transaction.transact/4
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+       (db_connection 2.10.2) lib/db_connection.ex:1760: DBConnection.run_transaction/5
+       verification/hosted-customer-workspace-storage-review/storage_review_test.exs:188: anonymous fn/2 in MixerHosted.CustomerWorkspace.StorageReviewTest."test raw directory SELECT guards require every exact identity and context field and isolate actors"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       verification/hosted-customer-workspace-storage-review/storage_review_test.exs:165: (test)
+
+......
+10:13:46.119 [error] Postgrex.Protocol (#PID<0.205.0> ({Postgrex.Protocol, "mixer_customer_workspace_review"})) disconnected: ** (Postgrex.Error) ERROR 23505 (unique_violation) duplicate key value violates unique constraint "workspace_commit_probe_id_key"
+
+    table: workspace_commit_probe
+    constraint: workspace_commit_probe_id_key
+..
+Finished in 1.8 seconds (0.00s async, 1.8s sync)
+
+Result: 8/9 passed
+Failed: 1 test

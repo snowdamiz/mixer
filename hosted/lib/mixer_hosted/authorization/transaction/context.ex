@@ -29,7 +29,7 @@ defmodule MixerHosted.Authorization.Transaction.Context do
     :idempotency_conflict,
     :storage_unavailable
   ]
-  @settings ~w(profile_id profile_version issuer subject client_id identity_class credential_ref organization_id project_id application_id environment_id principal_id family_id action transaction_marker token_issued_at token_expires_at required_scope phase)
+  @settings ~w(profile_id profile_version issuer subject client_id identity_class credential_ref organization_id project_id application_id environment_id principal_id family_id action transaction_marker token_issued_at token_expires_at required_scope phase directory_mode)
   @enforce_keys [
     :owner,
     :repo,

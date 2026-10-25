@@ -1,0 +1,60 @@
+{
+  "scope": "Authorized correction after preserved read-only review",
+  "source_revision": "6ed7df4f147b3a3254dab91dd3224b9513f586a8",
+  "source_tree_sha256": "2f665c0101f72f25efb2a0aa58c466a078b9d6c2667dcf62cb8100a1c9cffaec",
+  "source_manifest": "source-manifest.json",
+  "finding": "workspace-whitespace-identity",
+  "finding_status": "corrected_in_host_and_SSR_scope",
+  "original_evidence": "../initial-review/receipt.json",
+  "source_diff": "product-correction.patch",
+  "exports_added": [
+    "isWorkspaceIdentifier(value: unknown): value is string (existing predicate unchanged)",
+    "workspaceIdentifierMarker(identifier: string): string | null (presentation only)"
+  ],
+  "behavior": "Null-name whitespace-only IDs have contextual visible quoted Unicode-escape identities in row buttons and selected context. Raw IDs and every stored non-null name stay unchanged.",
+  "commands": [
+    {
+      "cwd": "console",
+      "command": "node --test tests/workspace-directory*.test.mjs tests/brand-parity.test.mjs",
+      "exit_code": 1,
+      "output": "01-host-tests.txt",
+      "result": "23 passed; 2 over-specific bdi SSR attribute assertions failed"
+    },
+    {
+      "cwd": "console",
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "output": "02-typecheck.txt"
+    },
+    {
+      "cwd": ".",
+      "command": "node verification/console-workspace-directory-review/ssr-probe.mjs correction",
+      "exit_code": 0,
+      "output": "03-ssr-probe.txt"
+    },
+    {
+      "cwd": "console",
+      "command": "node --test tests/workspace-directory*.test.mjs tests/brand-parity.test.mjs",
+      "exit_code": 0,
+      "output": "04-host-tests.txt",
+      "result": "25 passed; zero skipped"
+    },
+    {
+      "cwd": ".",
+      "command": "python3 inline SHA256 source manifest / source snapshot / whitespace validation",
+      "exit_code": 0,
+      "output": "05-source-validation.json"
+    }
+  ],
+  "failed_attempt_cause": "Moving exact labels into the IdentityName subcomponent adds normal Solid SSR hydration attributes on bdi nodes. Two tests required an attribute-free opening tag; assertions corrected to allow attributes and still require exact label content.",
+  "id_integrity_evidence": "Domain tests retain exact whitespace IDs in snapshots/selected rows; source callback expressions continue to forward raw validated IDs. SSR is not a click/event or screen-reader runtime test.",
+  "branding": "Brand parity check passed; no shared tokens, logo, font, App.tsx or shared styles edited by this lane.",
+  "cleanup": "cleanup.json",
+  "git_mutations": false,
+  "limitations": [
+    "No browser/computer use/capture/native runtime under pause.",
+    "Mobile, zoom, keyboard, screen-reader and touch runtime acceptance remain pending.",
+    "No new connected session/API/deployment/customer/operational/GA evidence.",
+    "No App.tsx/session/API-client composition was added by this lane."
+  ]
+}
