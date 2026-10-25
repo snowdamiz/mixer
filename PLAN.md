@@ -50,6 +50,7 @@ Callback-contract and recorded Swift-prototype review checkpoint `6d98de42`
 now passes all three Engine CI jobs.
 Selected finite Swift completion checkpoint `68468f8f` now passes all three Engine jobs.
 Corrected analyzer design checkpoint `13ce0c2e` passes all three Engine CI jobs.
+Accepted fixture framing checkpoint `4af8b7e1` passes all three Engine CI jobs.
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
 
@@ -100,8 +101,18 @@ The full plan remains incomplete; no GA gate is promoted.
    and 845 unchanged upstream members, accepting this standalone fixture scope.
    Its reviewed logical inventory is 14,248 bytes within 41,984 reserved bytes;
    all limits remain unchanged. Framing observation grants no semantic prefix
-   validity. The next acquisition/lifecycle contract is in preparation; semantic
-   replay, real adapters, CLI/custody and target execution remain pending. See
+   validity. A narrow macOS CI runner passes the unchanged 44-method closure
+   and 13 focused runner controls locally; remote CI remains pending delivery.
+   The corrected acquisition/lifecycle contract now passes 24 producer
+   and 38 independent methods, including 5,390 oracle comparisons. Root verifies
+   773 sealed members and both preserved archives, accepting this contract only.
+   A separate fixture-envelope interface proposal is selected before Rust
+   implementation; existing framing behavior, ABI and report remain fixed.
+   The proposed 534-step setup and 128-step record debit still need a combined
+   implementation budget and lifetime proof. Semantic replay, real adapters,
+   CLI/custody and target execution remain pending. See
+   [the contract review](docs/swift-ordered-retention-analyzer-fsm-contract-review.md),
+   [the CI wiring](docs/swift-ordered-retention-analyzer-framing-ci.md) and
    [the framing foundation review](docs/swift-ordered-retention-analyzer-library-review.md). See
    [the analyzer design review](docs/swift-ordered-retention-analyzer-review.md),
    [the completion review](docs/swift-ordered-retention-diagnostic-completion-review.md),

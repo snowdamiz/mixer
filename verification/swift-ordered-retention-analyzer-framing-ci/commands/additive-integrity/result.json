@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "-c",
+    "import ast,hashlib,json,subprocess\nfrom pathlib import Path\nfor name in [\"scripts/ci/check-analyzer-framing.py\",\"scripts/ci/tests/test_analyzer_framing_runner.py\"]:\n ast.parse(Path(name).read_text(),filename=name)\np=Path(\".github/workflows/verify.yml\")\ncurrent=p.read_text()\nstart=current.index(\"      - name: Accepted standalone analyzer fixture framing\\n\")\nend=current.index(\"      - name: Generated capability schema and host lifecycle\\n\",start)\nbase=subprocess.check_output([\"git\",\"show\",\"HEAD:.github/workflows/verify.yml\"],text=True)\nif current[:start]+current[end:] != base: raise RuntimeError(\"Existing workflow commands differ\")\nprint(json.dumps({\"python_syntax\":\"passed\",\"existing_workflow_unchanged\":True,\"new_step_block_sha256\":hashlib.sha256(current[start:end].encode()).hexdigest(),\"base_workflow_sha256\":hashlib.sha256(base.encode()).hexdigest()}))\n"
+  ],
+  "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+  "started_utc": "2026-10-25T23:08:31.878649+00:00",
+  "timeout_seconds": 30,
+  "exit": 0,
+  "stdout_sha256": "947bbe400e1b9e093774485223a360eb8cbce5459c670d36e18765def31b547e",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}
