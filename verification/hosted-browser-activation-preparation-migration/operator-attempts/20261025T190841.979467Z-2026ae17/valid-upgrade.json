@@ -1,0 +1,36 @@
+{
+  "commands": [
+    "begin",
+    "set",
+    "set",
+    "set",
+    "do",
+    "grant",
+    "alter_function",
+    "revoke",
+    "alter_type",
+    "grant",
+    "grant",
+    "do",
+    "commit"
+  ],
+  "statements": [
+    "BEGIN",
+    "SET LOCAL statement_timeout='5s'",
+    "SET LOCAL lock_timeout='500ms'",
+    "SET LOCAL idle_in_transaction_session_timeout='5s'",
+    "DO $upgrade$\nDECLARE w pg_catalog.pg_roles; l pg_catalog.pg_roles; o pg_catalog.pg_roles;\nBEGIN\n  SELECT * INTO STRICT w FROM pg_catalog.pg_roles WHERE rolname='browser_writer';\n  SELECT * INTO STRICT l FROM pg_catalog.pg_roles WHERE rolname='browser_lifecycle';\n  SELECT * INTO STRICT o FROM pg_catalog.pg_roles WHERE rolname='browser_schema_owner';\n  IF w.rolcanlogin OR NOT l.rolcanlogin OR o.rolcanlogin\n    OR w.rolsuper OR w.rolbypassrls OR w.rolcreaterole OR w.rolcreatedb OR w.rolreplication OR w.rolinherit\n    OR l.rolsuper OR l.rolbypassrls OR l.rolcreaterole OR l.rolcreatedb OR l.rolreplication OR l.rolinherit\n    OR o.rolsuper OR o.rolbypassrls OR o.rolcreaterole OR o.rolcreatedb OR o.rolreplication OR o.rolinherit\n    OR EXISTS(SELECT 1 FROM pg_catalog.pg_auth_members WHERE member IN(w.oid,l.oid,o.oid) OR roleid IN(w.oid,l.oid,o.oid))\n    OR EXISTS(SELECT 1 FROM pg_catalog.pg_namespace WHERE\n      pg_catalog.has_schema_privilege(w.oid,oid,'CREATE') OR pg_catalog.has_schema_privilege(l.oid,oid,'CREATE'))\n    OR NOT pg_catalog.has_schema_privilege(w.oid,'public','USAGE')\n    OR NOT pg_catalog.has_schema_privilege(l.oid,'public','USAGE')\n    OR EXISTS(SELECT 1 FROM pg_catalog.pg_class WHERE relowner IN(w.oid,l.oid))\n    OR EXISTS(SELECT 1 FROM pg_catalog.pg_namespace WHERE nspowner IN(w.oid,l.oid))\n    OR EXISTS(SELECT 1 FROM pg_catalog.pg_database WHERE datdba IN(w.oid,l.oid))\n    OR EXISTS(SELECT 1 FROM pg_catalog.pg_database WHERE datname=pg_catalog.current_database()\n      AND (pg_catalog.has_database_privilege(w.oid,oid,'CREATE') OR pg_catalog.has_database_privilege(l.oid,oid,'CREATE')))\n    OR EXISTS(SELECT 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace\n      WHERE n.nspname='public' AND c.relkind IN('r','p','v','m','f') AND\n        (pg_catalog.has_table_privilege(l.oid,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')\n         OR pg_catalog.has_any_column_privilege(l.oid,c.oid,'SELECT,INSERT,UPDATE,REFERENCES')))\n    OR (SELECT count(*) FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace\n      WHERE n.nspname='public' AND c.relname IN('mixer_browser_sessions','mixer_browser_session_vault','mixer_browser_oidc_attempts','mixer_browser_session_events')\n        AND c.relowner=o.oid AND c.relrowsecurity AND c.relforcerowsecurity)<>4\n    OR (SELECT count(*) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_namespace n ON n.oid=t.typnamespace\n      WHERE n.nspname='public' AND t.typname IN('mixer_browser_cipher','mixer_browser_attempt','mixer_browser_verified') AND t.typowner=o.oid\n        AND pg_catalog.has_type_privilege(w.oid,t.oid,'USAGE') AND pg_catalog.has_type_privilege(l.oid,t.oid,'USAGE'))<>3\n    OR (SELECT count(*) FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace\n      WHERE n.nspname='public' AND pg_catalog.left(p.proname::text,14)='mixer_browser_' AND p.proname<>'mixer_browser_prepare_activation' AND p.proowner=w.oid)<>18\n    OR (SELECT count(*) FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace\n      WHERE n.nspname='public' AND pg_catalog.left(p.proname::text,14)='mixer_browser_' AND p.proname<>'mixer_browser_prepare_activation'\n        AND pg_catalog.has_function_privilege(l.oid,p.oid,'EXECUTE'))<>9\n    OR (SELECT typowner FROM pg_catalog.pg_type WHERE oid='public.mixer_browser_access_evidence'::pg_catalog.regtype)<>o.oid\n    OR (SELECT proowner FROM pg_catalog.pg_proc WHERE oid='public.mixer_browser_prepare_activation(bytea,bytea,bytea,bytea,bigint,public.mixer_browser_access_evidence)'::pg_catalog.regprocedure)<>o.oid\n    OR (SELECT count(*)<>1 OR bool_or(grantor<>o.oid OR grantee<>o.oid OR privilege_type<>'EXECUTE' OR is_grantable)\n        FROM pg_catalog.aclexplode(COALESCE(\n          (SELECT proacl FROM pg_catalog.pg_proc WHERE oid='public.mixer_browser_prepare_activation(bytea,bytea,bytea,bytea,bigint,public.mixer_browser_access_evidence)'::pg_catalog.regprocedure),\n          pg_catalog.acldefault('f',o.oid))))\n    OR (SELECT count(*)<>1 OR bool_or(grantor<>o.oid OR grantee<>o.oid OR privilege_type<>'USAGE' OR is_grantable)\n        FROM pg_catalog.aclexplode(COALESCE(\n          (SELECT typacl FROM pg_catalog.pg_type WHERE oid='public.mixer_browser_access_evidence'::pg_catalog.regtype),\n          pg_catalog.acldefault('T',o.oid))))\n  THEN RAISE EXCEPTION 'browser preparation provisioning denied' USING ERRCODE='42501'; END IF;\nEND $upgrade$;\n",
+    "GRANT CREATE ON SCHEMA public TO browser_writer",
+    "ALTER FUNCTION public.mixer_browser_prepare_activation(bytea,bytea,bytea,bytea,bigint,public.mixer_browser_access_evidence) OWNER TO browser_writer",
+    "REVOKE CREATE ON SCHEMA public FROM browser_writer",
+    "ALTER TYPE public.mixer_browser_access_evidence OWNER TO browser_schema_owner",
+    "GRANT USAGE ON TYPE public.mixer_browser_access_evidence TO browser_writer, browser_lifecycle",
+    "GRANT EXECUTE ON FUNCTION public.mixer_browser_prepare_activation(bytea,bytea,bytea,bytea,bigint,public.mixer_browser_access_evidence) TO browser_lifecycle",
+    "DO $finish$\nDECLARE w oid:='browser_writer'::pg_catalog.regrole;\n  l oid:='browser_lifecycle'::pg_catalog.regrole; o oid:='browser_schema_owner'::pg_catalog.regrole;\nBEGIN\n  IF pg_catalog.has_schema_privilege(w,'public','CREATE')\n    OR (SELECT proowner FROM pg_catalog.pg_proc WHERE oid='public.mixer_browser_prepare_activation(bytea,bytea,bytea,bytea,bigint,public.mixer_browser_access_evidence)'::pg_catalog.regprocedure) IS DISTINCT FROM w\n    OR (SELECT typowner FROM pg_catalog.pg_type WHERE oid='public.mixer_browser_access_evidence'::pg_catalog.regtype) IS DISTINCT FROM o\n    OR (SELECT count(*)<>2 OR count(DISTINCT grantee)<>2 OR\n          bool_or(grantor<>w OR grantee NOT IN(w,l) OR privilege_type<>'EXECUTE' OR is_grantable)\n        FROM pg_catalog.aclexplode(COALESCE(\n          (SELECT proacl FROM pg_catalog.pg_proc WHERE oid='public.mixer_browser_prepare_activation(bytea,bytea,bytea,bytea,bigint,public.mixer_browser_access_evidence)'::pg_catalog.regprocedure),\n          pg_catalog.acldefault('f',w))))\n    OR (SELECT count(*)<>3 OR count(DISTINCT grantee)<>3 OR\n          bool_or(grantor<>o OR grantee NOT IN(o,w,l) OR privilege_type<>'USAGE' OR is_grantable)\n        FROM pg_catalog.aclexplode(COALESCE(\n          (SELECT typacl FROM pg_catalog.pg_type WHERE oid='public.mixer_browser_access_evidence'::pg_catalog.regtype),\n          pg_catalog.acldefault('T',o)))) THEN\n    RAISE EXCEPTION 'browser preparation provisioning denied' USING ERRCODE='42501';\n  END IF;\nEND $finish$;\n",
+    "COMMIT"
+  ],
+  "backend_pid": 47365,
+  "session_user": "browser_admin",
+  "current_user": "browser_admin",
+  "one_connection": true
+}

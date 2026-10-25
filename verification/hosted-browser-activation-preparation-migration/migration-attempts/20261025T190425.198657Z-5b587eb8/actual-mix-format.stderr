@@ -1,0 +1,43 @@
+** (Mix) mix format failed due to --check-formatted.
+The following files are not formatted:
+
+[1m[31m/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-activation-preparation-migration/migration-attempts/20261025T190425.198657Z-5b587eb8/inputs/hosted/test/mixer_hosted/browser_auth/migration_spec.exs
+[0m
+         |
+ 61  61  |    unload()
+ 62  62  |    assert [List.last(@versions)] == Ecto.Migrator.run(Repo, path, :down, step: 1, log: false)
+     63 +|
+ 63  64  |    assert %{rows: [[nil, nil]]} =
+ 64  65  |             Repo.query!("""
+         |
+ 66  67  |                    to_regtype('public.mixer_browser_access_evidence')::text
+ 67  68  |             """)
+     69 +|
+ 68  70  |    assert baseline_surface() == baseline
+ 69  71  |    unload()
+         |
+127 129  |    end
+128 130  |
+129     -|    for {name, signature} <- Map.merge(StorageSchema.signatures(), ActivationPreparationSchema.signatures()) do
+    131 +|    for {name, signature} <-
+    132 +|          Map.merge(StorageSchema.signatures(), ActivationPreparationSchema.signatures()) do
+130 133  |      qualified = "public.#{name}(#{signature})"
+131 134  |
+         |
+161 164  |    ]
+162 165  |
+163     -|    queries = queries ++ Enum.map(~w(sessions session_vault oidc_attempts session_events), fn suffix ->
+164     -|      "SELECT to_jsonb(r) FROM public.mixer_browser_" <> suffix <> " r ORDER BY to_jsonb(r)::text"
+165     -|    end)
+    166 +|    queries =
+    167 +|      queries ++
+    168 +|        Enum.map(~w(sessions session_vault oidc_attempts session_events), fn suffix ->
+    169 +|          "SELECT to_jsonb(r) FROM public.mixer_browser_" <>
+    170 +|            suffix <> " r ORDER BY to_jsonb(r)::text"
+    171 +|        end)
+166 172  |
+167 173  |    Enum.map(queries, &Repo.query!(&1).rows)
+         |
+
+
+

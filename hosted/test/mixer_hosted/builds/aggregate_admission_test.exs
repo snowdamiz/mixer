@@ -30,7 +30,7 @@ defmodule MixerHosted.Builds.AggregateAdmissionTest do
     )
 
     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
-    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 9
+    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 10
     assert [] == Ecto.Migrator.run(Repo, path, :up, all: true)
     start_supervised!({Oban, repo: Repo, queues: false, plugins: false, testing: :manual})
     :ok
@@ -503,13 +503,14 @@ defmodule MixerHosted.Builds.AggregateAdmissionTest do
     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
 
     assert [
+             20_261_025_000_008,
              20_261_025_000_007,
              20_261_025_000_006,
              20_261_025_000_005,
              20_261_025_000_004,
              20_261_025_000_003,
              @aggregate_migration
-           ] = Ecto.Migrator.run(Repo, path, :down, step: 6)
+           ] = Ecto.Migrator.run(Repo, path, :down, step: 7)
 
     assert %{rows: [[nil]]} =
              Repo.query!("SELECT to_regclass('public.mixer_build_fleet_capacity')::text")
@@ -522,7 +523,8 @@ defmodule MixerHosted.Builds.AggregateAdmissionTest do
              20_261_025_000_004,
              20_261_025_000_005,
              20_261_025_000_006,
-             20_261_025_000_007
+             20_261_025_000_007,
+             20_261_025_000_008
            ] = Ecto.Migrator.run(Repo, path, :up, all: true)
 
     assert {Repo.one!(Reservation), Repo.one!(Lease), Repo.get!(Record, a.record.id)} == before

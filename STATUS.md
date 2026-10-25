@@ -299,8 +299,16 @@ types and unchecked ACL grantors; the accepted V1/V2 candidate repairs both.
 It passes 30 PG17 and 19 independent PG16 methods plus 10/12 compile-rejection
 controls. Original catalog 26/20 and preparation SQL 39/38 methods pass separately.
 Root verifies 464 reviewer-sealed members and six final source/output/dependency
-packets. An inert additive migration and upgrade/rollback verification are now
-in progress. See [the versioned review](docs/hosted-browser-catalog-v2-review.md).
+packets. The inert additive migration now passes independent development review:
+ten-migration integration passes separately on PG17 and PG16, alongside six
+PG17 operator methods and eleven independent PG16 adversity methods. Root
+verified 866 sealed members, 81 source, 1,137 dependency and 166 output bindings
+and cleanup. Broad ordinary CI after delivery remains pending. See
+[the migration review](docs/hosted-browser-activation-preparation-migration-review.md)
+and [the versioned review](docs/hosted-browser-catalog-v2-review.md).
+The frozen RelationCatalog candidate passes 233 PG16 and 234 PG17 methods
+with 65/66 actual mutations. Independent review is in progress, and no complete
+transaction-owner or readiness case is claimed.
 This is only `:function_surface_verified`: tests explicitly
 show that missing relation/policy/grant admission remains a separate requirement.
 No consumer, pool, Store or readiness wiring exists. The pure activation
@@ -320,7 +328,8 @@ and 38 independent PG16 methods. Review found unexpected PUBLIC grants could
 survive provisioning; initial and final exact new-object ACL checks now reject
 them, including third-party/default grants and grant options. Root accepts this
 component after auditing 22 source, 803 dependency and 62 output bindings. No
-migration, combined version-2 admission, caller or readiness is enabled. See [catalog review](docs/hosted-browser-catalog-surface-review.md),
+production migration, lifecycle caller or readiness is enabled. Explicit V2
+function admission and the inert migration are separately reviewed prerequisites. See [catalog review](docs/hosted-browser-catalog-surface-review.md),
 [contract review](docs/hosted-browser-lifecycle-runtime-contract-review.md) and
 [constructor acceptance](verification/hosted-browser-runtime-constructor-review/root-acceptance.json).
 

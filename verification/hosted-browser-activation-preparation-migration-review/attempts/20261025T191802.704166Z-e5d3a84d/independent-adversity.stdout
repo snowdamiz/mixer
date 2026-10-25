@@ -1,0 +1,30 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+PreparationMigrationReview.Test [verification/hosted-browser-activation-preparation-migration-review/review.exs]
+  * test preexisting conflicting type keeps its OID and failed up records no migration [L#104]  * test preexisting conflicting type keeps its OID and failed up records no migration (91.8ms) [L#104]
+  * test injected CREATE FUNCTION failure rolls back the preceding CREATE TYPE and migration record [L#122]  * test injected CREATE FUNCTION failure rolls back the preceding CREATE TYPE and migration record (130.7ms) [L#122]
+  * test fixed version selection round trip preserves a claimed session and actual preparation is read only [L#154]  * test fixed version selection round trip preserves a claimed session and actual preparation is read only (404.9ms) [L#154]
+  * test failed down after function DROP restores function ownership ACLs OIDs and version [L#203]  * test failed down after function DROP restores function ownership ACLs OIDs and version (159.5ms) [L#203]
+  * test disconnect at each of twelve precommit prefixes rolls back all temporary ownership and grants [L#231]  * test disconnect at each of twelve precommit prefixes rolls back all temporary ownership and grants (595.0ms) [L#231]
+  * test finish-time ACL denial aborts even after execution and type grants were issued [L#254]  * test finish-time ACL denial aborts even after execution and type grants were issued (91.1ms) [L#254]
+  * test actual runtime logins cannot provision acquire owner roles or drop helper or type [L#277]  * test actual runtime logins cannot provision acquire owner roles or drop helper or type (63.8ms) [L#277]
+
+  1) test actual runtime logins cannot provision acquire owner roles or drop helper or type (PreparationMigrationReview.Test)
+     verification/hosted-browser-activation-preparation-migration-review/review.exs:277
+     expected PostgreSQL error, got {:ok, %Postgrex.Result{command: :grant, columns: nil, rows: nil, num_rows: 0, connection_id: 174, messages: [%{code: "01007", line: "327", message: "no privileges were granted for \"public\"", file: "aclchk.c", routine: "restrict_and_check_grant", unknown: "WARNING", severity: "WARNING"}]}}
+     code: for login <- ["browser_lifecycle", "browser_ordinary"] do
+     stacktrace:
+       verification/hosted-browser-activation-preparation-migration-review/review.exs:288: anonymous fn/2 in PreparationMigrationReview.Test."test actual runtime logins cannot provision acquire owner roles or drop helper or type"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       verification/hosted-browser-activation-preparation-migration-review/review.exs:283: (test)
+
+  * test existing restricted schema owner can drop upgraded addition through database schema authority [L#337]  * test existing restricted schema owner can drop upgraded addition through database schema authority (112.3ms) [L#337]
+  * test new role memberships deny preflight atomically and removal permits the same upgrade [L#371]  * test new role memberships deny preflight atomically and removal permits the same upgrade (126.3ms) [L#371]
+  * test grant-option ACL adversity denies before modification and is preserved on error [L#402]  * test grant-option ACL adversity denies before modification and is preserved on error (163.7ms) [L#402]
+  * test repeating initial provisioning over V2 fails closed without damaging the accepted surface [L#435]  * test repeating initial provisioning over V2 fails closed without damaging the accepted surface (126.5ms) [L#435]
+
+Finished in 2.5 seconds (0.00s async, 2.5s sync)
+
+Result: 10/11 passed
+Failed: 1 test

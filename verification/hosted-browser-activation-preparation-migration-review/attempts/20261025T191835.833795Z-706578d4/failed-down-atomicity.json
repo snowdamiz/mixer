@@ -1,0 +1,102 @@
+{
+  "restored_addition": [
+    [
+      {
+        "oid": "19204",
+        "proacl": [
+          "browser_writer=X/browser_writer",
+          "browser_lifecycle=X/browser_writer"
+        ],
+        "proallargtypes": null,
+        "proargdefaults": null,
+        "proargmodes": null,
+        "proargnames": [
+          "p_cookie",
+          "p_state",
+          "p_config",
+          "p_claim",
+          "p_revision",
+          "i"
+        ],
+        "proargtypes": [
+          "17",
+          "17",
+          "17",
+          "17",
+          "20",
+          "19203"
+        ],
+        "probin": null,
+        "proconfig": [
+          "search_path=pg_catalog",
+          "statement_timeout=5s",
+          "lock_timeout=500ms",
+          "idle_in_transaction_session_timeout=5s",
+          "bytea_output=hex"
+        ],
+        "procost": 100,
+        "proisstrict": false,
+        "prokind": "f",
+        "prolang": "13632",
+        "proleakproof": false,
+        "proname": "mixer_browser_prepare_activation",
+        "pronamespace": "2200",
+        "pronargdefaults": 0,
+        "pronargs": 6,
+        "proowner": "16386",
+        "proparallel": "u",
+        "proretset": false,
+        "prorettype": "3802",
+        "prorows": 0,
+        "prosecdef": true,
+        "prosqlbody": null,
+        "prosrc": "\nDECLARE r record; b public.mixer_browser_sessions; v public.mixer_browser_session_vault;\n  a public.mixer_browser_oidc_attempts; p public.mixer_authz_profiles;\n  binding public.mixer_authz_bindings; principal public.mixer_authz_principals;\n  entered bigint; finished bigint; scope text; seen text[]:=ARRAY[]::text[]; scope_bytes integer:=0;\nBEGIN\n  entered:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;\n  IF p_cookie IS NULL OR octet_length(p_cookie)<>32 OR p_state IS NULL OR octet_length(p_state)<>32\n    OR p_config IS NULL OR octet_length(p_config)<>32 OR p_claim IS NULL OR octet_length(p_claim)<>32\n    OR p_revision IS NULL OR p_revision NOT BETWEEN 1 AND 9007199254740991\n    OR i.profile_id IS NULL OR octet_length(i.profile_id) NOT BETWEEN 1 AND 128\n    OR i.profile_version IS NULL OR i.profile_version<=0\n    OR i.issuer IS NULL OR octet_length(i.issuer) NOT BETWEEN 1 AND 2048\n    OR i.subject IS NULL OR octet_length(i.subject) NOT BETWEEN 1 AND 256\n    OR i.client_id IS NULL OR octet_length(i.client_id) NOT BETWEEN 1 AND 256\n    OR i.credential_ref IS NULL OR octet_length(i.credential_ref) NOT BETWEEN 1 AND 256\n    OR i.issued_at IS NULL OR i.issued_at NOT BETWEEN 0 AND 9007199254740991 OR i.issued_at>entered+30\n    OR i.expires_at IS NULL OR i.expires_at NOT BETWEEN 0 AND 9007199254740991\n    OR i.expires_at<=GREATEST(entered,i.issued_at) OR i.expires_at-i.issued_at>900\n    OR i.scopes IS NULL OR pg_catalog.array_ndims(i.scopes) IS DISTINCT FROM 1\n    OR pg_catalog.array_lower(i.scopes,1) IS DISTINCT FROM 1 OR pg_catalog.cardinality(i.scopes) NOT BETWEEN 1 AND 64\n    OR ('mixer.workspace.read'=ANY(i.scopes)) IS NOT TRUE\n  THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  -- PostgreSQL UTF8 text cannot contain NUL. These bounded parameter-only\n  -- checks do not read relations or create an additional MVCC snapshot.\n  FOREACH scope IN ARRAY i.scopes LOOP\n    IF scope IS NULL OR octet_length(scope) NOT BETWEEN 1 AND 1024\n      OR scope ~ '[^!#-~]' OR pg_catalog.strpos(scope,pg_catalog.chr(92))>0 OR scope=ANY(seen)\n    THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n    scope_bytes:=scope_bytes+octet_length(scope)+1;\n    IF scope_bytes>1025 THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n    seen:=pg_catalog.array_append(seen,scope);\n  END LOOP;\n  -- Every relation and the exact JSON projection share this one statement\n  -- snapshot. Unique indexes bound each join; LIMIT 2 + STRICT denies extras.\n  SELECT s AS browser,sv AS vault,oa AS attempt,ap AS profile,ab AS binding,pr AS principal,\n    pg_catalog.jsonb_build_object('browser',pg_catalog.to_jsonb(s),'vault',pg_catalog.to_jsonb(sv),'attempt',pg_catalog.to_jsonb(oa)) AS snapshot\n  INTO STRICT r\n  FROM public.mixer_browser_sessions s\n  JOIN public.mixer_browser_session_vault sv ON sv.browser_id=s.id\n  JOIN public.mixer_browser_oidc_attempts oa ON oa.state_digest=p_state AND oa.browser_id=s.id\n  LEFT JOIN public.mixer_authz_profiles ap ON ap.id=i.profile_id AND ap.version=i.profile_version\n  LEFT JOIN public.mixer_authz_bindings ab ON ab.profile_id=i.profile_id AND ab.profile_version=i.profile_version AND ab.subject=i.subject\n  LEFT JOIN public.mixer_authz_principals pr ON pr.id=ab.principal_id\n  WHERE s.cookie_digest=p_cookie\n  LIMIT 2;\n  b:=r.browser; v:=r.vault; a:=r.attempt; p:=r.profile; binding:=r.binding; principal:=r.principal;\n  finished:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;\n  -- Claim validity is checked before binding state can be disclosed.\n  IF finished<entered OR (b.status IS DISTINCT FROM 'preauth' AND b.status IS DISTINCT FROM 'active') OR b.revision IS DISTINCT FROM p_revision\n    OR b.config_digest IS DISTINCT FROM p_config OR b.epoch IS NULL OR b.epoch NOT BETWEEN 1 AND 9007199254740991\n    OR b.generation IS NULL OR b.expected_profile_id IS DISTINCT FROM i.profile_id OR b.expected_profile_version IS DISTINCT FROM i.profile_version\n    OR b.created_at IS NULL OR b.created_at NOT BETWEEN 0 AND 9007199254740991\n    OR b.last_seen_at IS NULL OR b.last_seen_at<b.created_at\n    OR b.absolute_expires_at IS NULL OR b.absolute_expires_at NOT BETWEEN 0 AND 9007199254740991\n    OR b.idle_expires_at IS NULL OR b.idle_expires_at<=b.last_seen_at OR b.idle_expires_at>b.absolute_expires_at\n    OR entered>=b.absolute_expires_at OR entered>=b.idle_expires_at OR finished>=b.absolute_expires_at OR finished>=b.idle_expires_at\n    OR v.browser_id IS DISTINCT FROM b.id OR v.epoch IS DISTINCT FROM b.epoch OR v.session_revision IS DISTINCT FROM b.revision\n    OR v.vault_generation IS NULL OR v.vault_generation NOT BETWEEN 1 AND 9007199254740991 OR v.envelope_kind IS DISTINCT FROM b.status\n    OR v.ciphertext_version IS DISTINCT FROM 1\n    OR NOT public.mixer_browser_cipher_valid(ROW(v.key_id,v.iv,v.tag,v.ciphertext)::public.mixer_browser_cipher)\n    OR a.status IS DISTINCT FROM 'claimed' OR a.browser_id IS DISTINCT FROM b.id\n    OR a.browser_epoch IS DISTINCT FROM b.epoch OR a.browser_revision IS DISTINCT FROM b.revision\n    OR a.cookie_digest IS DISTINCT FROM b.cookie_digest OR a.generation IS DISTINCT FROM b.generation OR a.config_digest IS DISTINCT FROM b.config_digest\n    OR a.created_at IS NULL OR a.created_at<b.created_at OR a.expires_at IS NULL\n    OR a.expires_at NOT BETWEEN 0 AND 9007199254740991 OR a.expires_at<=a.created_at OR a.expires_at>a.created_at+300\n    OR a.claim_digest IS DISTINCT FROM p_claim OR a.claimed_at IS NULL OR a.claimed_at< a.created_at\n    OR a.claimed_at>entered OR a.claim_expires_at IS NULL OR a.claim_expires_at<=a.claimed_at OR a.claim_expires_at>a.expires_at OR a.claim_expires_at>a.claimed_at+60\n    OR entered>=a.expires_at OR entered>=a.claim_expires_at OR finished>=a.expires_at OR finished>=a.claim_expires_at\n    OR a.profile_id IS DISTINCT FROM i.profile_id OR a.profile_version IS DISTINCT FROM i.profile_version\n    OR a.issuer IS DISTINCT FROM i.issuer OR a.client_id IS DISTINCT FROM i.client_id\n    OR a.redirect_uri IS NULL OR octet_length(a.redirect_uri) NOT BETWEEN 1 AND 2048 OR a.return_route IS DISTINCT FROM 'workspace'\n    OR a.ciphertext_version IS DISTINCT FROM 1 OR a.key_id IS NOT NULL OR a.iv IS NOT NULL OR a.tag IS NOT NULL OR a.ciphertext IS NOT NULL\n    OR a.completion_reason IS NOT NULL OR finished>=i.expires_at\n  THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  IF p.id IS NULL OR p.id IS DISTINCT FROM b.expected_profile_id OR p.version IS DISTINCT FROM b.expected_profile_version\n    OR p.active IS DISTINCT FROM true OR p.identity_class IS DISTINCT FROM 'human'\n    OR p.issuer IS DISTINCT FROM i.issuer OR p.client_id IS DISTINCT FROM i.client_id\n    OR p.state_revision IS NULL OR p.state_revision NOT BETWEEN 1 AND 9007199254740991\n  THEN RAISE EXCEPTION 'browser identity unavailable' USING ERRCODE='P0001'; END IF;\n  IF binding.profile_id IS NULL THEN\n    RAISE EXCEPTION 'browser onboarding required' USING ERRCODE='P0001';\n  END IF;\n  IF binding.profile_id IS DISTINCT FROM i.profile_id OR binding.profile_version IS DISTINCT FROM i.profile_version OR binding.subject IS DISTINCT FROM i.subject\n    OR binding.active IS DISTINCT FROM true OR binding.identity_class IS DISTINCT FROM 'human'\n    OR binding.revision IS NULL OR binding.revision NOT BETWEEN 1 AND 9007199254740991\n    OR principal.id IS NULL OR principal.id IS DISTINCT FROM binding.principal_id OR octet_length(principal.id) NOT BETWEEN 1 AND 128\n    OR principal.active IS DISTINCT FROM true OR principal.identity_class IS DISTINCT FROM 'human'\n    OR principal.revision IS NULL OR principal.revision NOT BETWEEN 1 AND 9007199254740991\n    OR principal.not_before IS NULL OR principal.not_before>entered OR i.issued_at<principal.not_before\n  THEN RAISE EXCEPTION 'browser identity unavailable' USING ERRCODE='P0001'; END IF;\n  finished:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;\n  IF finished<entered OR finished>=b.absolute_expires_at OR finished>=b.idle_expires_at\n    OR finished>=a.expires_at OR finished>=a.claim_expires_at OR finished>=i.expires_at THEN\n    RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001';\n  END IF;\n  RETURN pg_catalog.jsonb_build_object('version',1,'snapshot',r.snapshot,'principal_id',principal.id,\n    'profile_revision',p.state_revision,'binding_revision',binding.revision,'principal_revision',principal.revision);\nEXCEPTION WHEN no_data_found OR too_many_rows THEN\n  RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001';\nEND;\n",
+        "prosupport": "-",
+        "protrftypes": null,
+        "provariadic": "0",
+        "provolatile": "v"
+      }
+    ],
+    [
+      {
+        "oid": "19203",
+        "typacl": [
+          "browser_schema_owner=U/browser_schema_owner",
+          "browser_writer=U/browser_schema_owner",
+          "browser_lifecycle=U/browser_schema_owner"
+        ],
+        "typalign": "d",
+        "typanalyze": "-",
+        "typarray": "19202",
+        "typbasetype": "0",
+        "typbyval": false,
+        "typcategory": "C",
+        "typcollation": "0",
+        "typdefault": null,
+        "typdefaultbin": null,
+        "typdelim": ",",
+        "typelem": "0",
+        "typinput": "record_in",
+        "typisdefined": true,
+        "typispreferred": false,
+        "typlen": -1,
+        "typmodin": "-",
+        "typmodout": "-",
+        "typname": "mixer_browser_access_evidence",
+        "typnamespace": "2200",
+        "typndims": 0,
+        "typnotnull": false,
+        "typoutput": "record_out",
+        "typowner": "16385",
+        "typreceive": "record_recv",
+        "typrelid": "19201",
+        "typsend": "record_send",
+        "typstorage": "x",
+        "typsubscript": "-",
+        "typtype": "c",
+        "typtypmod": -1
+      }
+    ]
+  ],
+  "migration_version_retained": true
+}

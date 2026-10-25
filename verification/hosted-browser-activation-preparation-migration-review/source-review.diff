@@ -1,0 +1,397 @@
+diff --git a/hosted/test/foundation_integration_test.exs b/hosted/test/foundation_integration_test.exs
+index b1d134431..2cca16f60 100644
+--- a/hosted/test/foundation_integration_test.exs
++++ b/hosted/test/foundation_integration_test.exs
+@@ -55,7 +55,8 @@ defmodule MixerHosted.FoundationIntegrationTest do
+              20_261_025_000_004,
+              20_261_025_000_005,
+              20_261_025_000_006,
+-             20_261_025_000_007
++             20_261_025_000_007,
++             20_261_025_000_008
+            ] =
+              Ecto.Migrator.run(Repo, path, :up, all: true)
+ 
+diff --git a/hosted/test/mixer_hosted/browser_auth/migration_spec.exs b/hosted/test/mixer_hosted/browser_auth/migration_spec.exs
+index 4c1749b79..b7bc8222c 100644
+--- a/hosted/test/mixer_hosted/browser_auth/migration_spec.exs
++++ b/hosted/test/mixer_hosted/browser_auth/migration_spec.exs
+@@ -9,7 +9,7 @@ end
+ defmodule MixerBrowserMigrationFixture.Test do
+   use ExUnit.Case, async: false
+   alias MixerBrowserMigrationFixture.Repo
+-  alias MixerHosted.BrowserAuth.StorageSchema
++  alias MixerHosted.BrowserAuth.{ActivationPreparationSchema, StorageSchema}
+ 
+   @versions [
+     20_261_024_000_000,
+@@ -20,7 +20,8 @@ defmodule MixerBrowserMigrationFixture.Test do
+     20_261_025_000_004,
+     20_261_025_000_005,
+     20_261_025_000_006,
+-    20_261_025_000_007
++    20_261_025_000_007,
++    20_261_025_000_008
+   ]
+ 
+   setup_all do
+@@ -38,14 +39,14 @@ defmodule MixerBrowserMigrationFixture.Test do
+     :ok
+   end
+ 
+-  test "nine ordinary migrations remain inert and reversible under an unprivileged schema owner" do
++  test "ten ordinary migrations remain inert and reversible under an unprivileged schema owner" do
+     path = Path.expand("../../../priv/repo/migrations", __DIR__)
+     roles_before = Repo.query!("SELECT oid,rolname FROM pg_roles ORDER BY oid").rows
+     assert @versions == Ecto.Migrator.run(Repo, path, :up, all: true, log: false)
+     assert [] == Ecto.Migrator.run(Repo, path, :up, all: true, log: false)
+     assert_inert()
+ 
+-    # Existing build data predates the latest six migrations and must survive
++    # Existing build data predates the latest seven migrations and must survive
+     # their rollback/reapply. This exercises real foreign-key/policy teardown.
+     Repo.query!("""
+     INSERT INTO mixer_builds
+@@ -56,9 +57,25 @@ defmodule MixerBrowserMigrationFixture.Test do
+     """)
+ 
+     before = Repo.query!("SELECT * FROM mixer_builds ORDER BY id").rows
++    baseline = baseline_surface()
++    unload()
++    assert [List.last(@versions)] == Ecto.Migrator.run(Repo, path, :down, step: 1, log: false)
++
++    assert %{rows: [[nil, nil]]} =
++             Repo.query!("""
++             SELECT (SELECT oid::text FROM pg_proc WHERE proname='mixer_browser_prepare_activation'),
++                    to_regtype('public.mixer_browser_access_evidence')::text
++             """)
++
++    assert baseline_surface() == baseline
++    unload()
++    assert [List.last(@versions)] == Ecto.Migrator.run(Repo, path, :up, all: true, log: false)
++    assert baseline_surface() == baseline
++    assert before == Repo.query!("SELECT * FROM mixer_builds ORDER BY id").rows
++    assert_inert()
+     unload()
+     latest = Enum.drop(@versions, 3)
+-    assert Enum.reverse(latest) == Ecto.Migrator.run(Repo, path, :down, step: 6, log: false)
++    assert Enum.reverse(latest) == Ecto.Migrator.run(Repo, path, :down, step: 7, log: false)
+ 
+     assert %{rows: [[nil, nil, nil]]} =
+              Repo.query!("""
+@@ -111,7 +128,8 @@ defmodule MixerBrowserMigrationFixture.Test do
+                )
+     end
+ 
+-    for {name, signature} <- StorageSchema.signatures() do
++    for {name, signature} <-
++          Map.merge(StorageSchema.signatures(), ActivationPreparationSchema.signatures()) do
+       qualified = "public.#{name}(#{signature})"
+ 
+       assert %{rows: [[false]]} =
+@@ -120,12 +138,41 @@ defmodule MixerBrowserMigrationFixture.Test do
+                ])
+     end
+ 
++    assert %{rows: [[false, false]]} =
++             Repo.query!("""
++             SELECT has_type_privilege('migration_runtime','public.mixer_browser_access_evidence','USAGE'),
++                    EXISTS(SELECT 1 FROM pg_type t CROSS JOIN LATERAL aclexplode(t.typacl) a
++                      WHERE t.oid='public.mixer_browser_access_evidence'::regtype AND a.grantee=0)
++             """)
++
+     # Discovery remains empty before separate operator provisioning and any
+     # browser lifecycle owner are installed.
+     assert %{rows: [[nil]]} =
+              Repo.query!("SELECT public.mixer_browser_load($1,$2)", [<<0::256>>, <<1::256>>])
+   end
+ 
++  defp baseline_surface do
++    # Rows include object OIDs, exact source/ACLs, relation owners/RLS, policies,
++    # constraints and persisted data; only the new helper/type are excluded.
++    queries = [
++      "SELECT oid,proname,proowner,prosrc,proacl::text FROM pg_proc WHERE left(proname::text,14)='mixer_browser_' AND proname<>'mixer_browser_prepare_activation' ORDER BY oid",
++      "SELECT oid,typname,typowner,typacl::text FROM pg_type WHERE typname IN ('mixer_browser_cipher','mixer_browser_attempt','mixer_browser_verified') ORDER BY oid",
++      "SELECT oid,relname,relowner,relacl::text,relrowsecurity,relforcerowsecurity FROM pg_class WHERE left(relname::text,14)='mixer_browser_' AND relname<>'mixer_browser_access_evidence' ORDER BY oid",
++      "SELECT to_jsonb(p) FROM pg_policy p WHERE polrelid IN (SELECT oid FROM pg_class WHERE left(relname::text,14)='mixer_browser_' AND relname<>'mixer_browser_access_evidence') ORDER BY oid",
++      "SELECT to_jsonb(c) FROM pg_constraint c WHERE conrelid IN (SELECT oid FROM pg_class WHERE left(relname::text,14)='mixer_browser_' AND relname<>'mixer_browser_access_evidence') ORDER BY oid",
++      "SELECT to_jsonb(b) FROM public.mixer_builds b ORDER BY id"
++    ]
++
++    queries =
++      queries ++
++        Enum.map(~w(sessions session_vault oidc_attempts session_events), fn suffix ->
++          "SELECT to_jsonb(r) FROM public.mixer_browser_" <>
++            suffix <> " r ORDER BY to_jsonb(r)::text"
++        end)
++
++    Enum.map(queries, &Repo.query!(&1).rows)
++  end
++
+   defp unload do
+     for module <- [
+           MixerHosted.Repo.Migrations.AddOban,
+@@ -136,7 +183,8 @@ defmodule MixerBrowserMigrationFixture.Test do
+           MixerHosted.Repo.Migrations.AddAuthorizationStateRevisions,
+           MixerHosted.Repo.Migrations.AddCustomerArtifactStorage,
+           MixerHosted.Repo.Migrations.AddCustomerWorkspaceDiscovery,
+-          MixerHosted.Repo.Migrations.AddBrowserSessions
++          MixerHosted.Repo.Migrations.AddBrowserSessions,
++          MixerHosted.Repo.Migrations.AddBrowserActivationPreparation
+         ] do
+       :code.purge(module)
+       :code.delete(module)
+diff --git a/hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py b/hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py
+index 3f7f18fc9..de8132d69 100644
+--- a/hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py
++++ b/hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""Selected nine-migration integration; no application or frozen-lane loading."""
++"""Selected ten-migration integration; no application or frozen-lane loading."""
+ import argparse
+ import datetime
+ import hashlib
+@@ -14,24 +14,31 @@ import tempfile
+ import uuid
+ 
+ ROOT = Path(__file__).resolve().parents[4]
++BROWSER = "hosted/lib/mixer_hosted/browser_auth/"
++MODULES = ["hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
++           BROWSER + "storage_schema.ex", BROWSER + "activation_preparation_schema.ex"]
++MIGRATIONS = ["20261024000000_add_oban.exs", "20261025000000_add_build_journals.exs",
++              "20261025000001_add_build_admission.exs", "20261025000002_add_build_aggregate_limits.exs",
++              "20261025000003_add_customer_authorization.exs", "20261025000004_add_authorization_state_revisions.exs",
++              "20261025000005_add_customer_artifact_storage.exs", "20261025000006_add_customer_workspace_discovery.exs",
++              "20261025000007_add_browser_sessions.exs", "20261025000008_add_browser_activation_preparation.exs"]
++DEPS = ["telemetry", "decimal", "db_connection", "ecto", "ecto_sql", "postgrex", "jason", "oban"]
++SPEC = "hosted/test/mixer_hosted/browser_auth/migration_spec.exs"
++ASSERTIONS = ["hosted/test/foundation_integration_test.exs"] + [
++    f"hosted/test/mixer_hosted/builds/{n}_test.exs" for n in ("storage", "admission", "aggregate_admission", "coordinator")]
+ parser = argparse.ArgumentParser(description=__doc__)
+ parser.add_argument("--pg-bin", type=Path, default=Path("/opt/homebrew/opt/postgresql@17/bin"))
+ parser.add_argument("--output", type=Path, default=ROOT / "verification/hosted-browser-migration-integration/attempts")
+ args = parser.parse_args()
+ stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ") + "-" + uuid.uuid4().hex[:8]
+ out = args.output.resolve() / stamp
+-out.mkdir(parents=True, exist_ok=False)
++inputs = out / "inputs"
++inputs.mkdir(parents=True, exist_ok=False)
+ pg = args.pg_bin.resolve()
+-hosted = ROOT / "hosted"
+-schema = hosted / "lib/mixer_hosted/browser_auth/storage_schema.ex"
+-artifact_schema = hosted / "lib/mixer_hosted/customer_artifacts/schema.ex"
+-spec = Path(__file__).with_name("migration_spec.exs")
+-sources = [schema, artifact_schema, spec, Path(__file__).resolve(), hosted / "mix.lock", hosted / "mix.exs"]
+-sources += sorted((hosted / "priv/repo/migrations").glob("*.exs"))
+-sources += [hosted / "test/foundation_integration_test.exs"]
+-sources += [hosted / f"test/mixer_hosted/builds/{n}_test.exs" for n in ("storage", "admission", "aggregate_admission", "coordinator")]
+-deps = sorted(p for p in (hosted / "_build/test/lib").glob("*/ebin") if p.parent.name != "mixer_hosted")
+-assert deps, "Compile locked dependencies first; full application beams are never loaded"
++sources = MODULES + [BROWSER + "activation_preparation.ex", SPEC, str(Path(__file__).resolve().relative_to(ROOT)),
++                     "hosted/mix.lock", "hosted/mix.exs"] + ASSERTIONS
++sources += ["hosted/priv/repo/migrations/" + n for n in MIGRATIONS]
++deps = [ROOT / "hosted/_build/test/lib" / name / "ebin" for name in DEPS]
+ 
+ 
+ def digest(path):
+@@ -39,62 +46,85 @@ def digest(path):
+ 
+ 
+ def source_manifest():
+-    return {str(p.relative_to(ROOT)): digest(p) for p in sources}
++    return {rel: digest(ROOT / rel) for rel in sources}
+ 
+ 
+-before = source_manifest()
+-for source in sources:
+-    dest = out / "inputs" / source.relative_to(ROOT)
+-    dest.parent.mkdir(parents=True, exist_ok=True)
+-    shutil.copyfile(source, dest)
+-(out / "dependencies.json").write_text(json.dumps({str(p.relative_to(ROOT)): digest(p) for d in deps for p in sorted(d.glob("*.beam"))}, indent=2) + "\n")
+-receipt = {"schema": 1, "sources": before, "commands": [], "cleanup": {},
+-           "source_tree_sha256": hashlib.sha256(json.dumps(before, sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
+-           "dependency_manifest_sha256": digest(out / "dependencies.json"),
+-           "scope": "Selected nine ordinary migrations under synthetic non-superuser owner; inert runtime privileges, six-migration rollback/reapply preserving build data, complete rollback/reapply. No broad hosted harness/application/provider/native/frozen lane execution.",
+-           "pending": ["Neon/operator qualification", "Runtime lifecycle admission", "Provider/OIDC/session join", "Browser/native tests paused", "Customer and GA acceptance"]}
++receipt = {"schema": 2, "commands": [], "cleanup": {}, "dependencies": DEPS,
++           "migration_filenames": MIGRATIONS,
++           "scope": "Selected ten ordinary migrations under synthetic non-superuser schema owner; inert runtime privileges, additive-only down/up preserving baseline object OIDs/source/ACLs/tables/policies/constraints/data, seven-migration rollback/reapply preserving build data, complete rollback/reapply. Eight named locked dependency ebin directories only. No broad hosted harness/application/provider/native/frozen lane execution.",
++           "pending": ["Independent migration review", "Neon/operator qualification", "Runtime lifecycle admission",
++                       "Provider/OIDC/session join", "Browser/native tests paused", "Customer and GA acceptance"]}
+ env = dict(os.environ, ERL_FLAGS="+S 2:2", MIX_ENV="test")
+ scratch = None
++compiled = out / "compiled"
+ success = False
++before = {}
++beams = {}
+ 
+ 
+-def run(name, argv, timeout=60, check=True):
++def run(name, argv, timeout=60, check=True, cwd=inputs):
+     argv = [str(x) for x in argv]
+-    process = subprocess.Popen(argv, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+-    timed_out = False
++    entry = {"name": name, "argv": argv, "cwd": str(cwd), "timeout_seconds": timeout}
++    receipt["commands"].append(entry)
+     try:
+-        stdout, stderr = process.communicate(timeout=timeout)
+-    except subprocess.TimeoutExpired:
+-        timed_out = True
+-        os.killpg(process.pid, signal.SIGKILL)
+-        stdout, stderr = process.communicate(timeout=5)
++        process = subprocess.Popen(argv, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
++        try:
++            stdout, stderr = process.communicate(timeout=timeout)
++            entry["timed_out"] = False
++        except subprocess.TimeoutExpired:
++            os.killpg(process.pid, signal.SIGKILL)
++            stdout, stderr = process.communicate(timeout=5)
++            entry["timed_out"] = True
++        entry["exit_code"] = process.returncode
++    except OSError as error:
++        stdout, stderr = b"", str(error).encode()
++        entry.update(exit_code=None, timed_out=False, spawn_error=type(error).__name__)
+     (out / f"{name}.stdout").write_bytes(stdout)
+     (out / f"{name}.stderr").write_bytes(stderr)
+-    receipt["commands"].append({"name": name, "argv": argv, "timeout_seconds": timeout,
+-                                "exit_code": process.returncode, "timed_out": timed_out,
+-                                "stdout_sha256": hashlib.sha256(stdout).hexdigest(),
+-                                "stderr_sha256": hashlib.sha256(stderr).hexdigest()})
+-    if check and (process.returncode or timed_out):
+-        raise RuntimeError(f"{name} failed: {process.returncode}; see retained output")
+-    return process.returncode, stdout
++    entry.update(stdout_sha256=hashlib.sha256(stdout).hexdigest(), stderr_sha256=hashlib.sha256(stderr).hexdigest())
++    if check and (entry["exit_code"] != 0 or entry["timed_out"]):
++        raise RuntimeError(f"{name} failed: {entry['exit_code']}; see retained output")
++    return entry["exit_code"], stdout
+ 
+ 
+ try:
+-    receipt["source_revision"] = run("git-head", ["git", "rev-parse", "HEAD"])[1].decode().strip()
++    assert all(directory.is_dir() for directory in deps), "Compile the eight named locked dependencies first"
++    assert set(MIGRATIONS) == {p.name for p in (ROOT / "hosted/priv/repo/migrations").iterdir() if p.is_file()}, "Unexpected migration directory entry"
++    before = source_manifest()
++    for rel in sources:
++        dest = inputs / rel
++        dest.parent.mkdir(parents=True, exist_ok=True)
++        shutil.copyfile(ROOT / rel, dest)
++    beams = {str(p.relative_to(ROOT)): digest(p) for d in deps for p in sorted(d.iterdir()) if p.is_file()}
++    (out / "dependencies.json").write_text(json.dumps(beams, indent=2) + "\n")
++    receipt.update(sources=before,
++                   source_tree_sha256=hashlib.sha256(json.dumps(before, sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
++                   dependency_manifest_sha256=digest(out / "dependencies.json"))
++    receipt["source_revision"] = run("git-head", ["git", "-C", ROOT, "rev-parse", "HEAD"])[1].decode().strip()
+     run("python-version", ["python3", "--version"])
+     run("elixir-version", ["elixir", "--version"])
++    run("mix-version", ["mix", "--version"])
+     run("postgres-version", [pg / "postgres", "--version"])
++    pa = [v for p in deps for v in ["-pa", p]]
++    compiled.mkdir()
++    run("selected-compile", ["elixirc", *pa, "--warnings-as-errors", "-o", compiled, *[inputs / rel for rel in MODULES]])
++    format_sources = MODULES + [BROWSER + "activation_preparation.ex", SPEC] + ASSERTIONS + ["hosted/priv/repo/migrations/" + n for n in MIGRATIONS]
++    run("actual-mix-format", ["mix", "format", "--check-formatted", *[inputs / rel for rel in format_sources]])
+     scratch = Path(tempfile.mkdtemp(prefix="mixer-browser-migrations-"))
+     with socket.socket() as sock:
+         sock.bind(("127.0.0.1", 0))
+         port = sock.getsockname()[1]
++    receipt["owned_postgres"] = {"scratch": str(scratch), "port": port, "host": "127.0.0.1", "pg_bin": str(pg)}
+     env["MIXER_BROWSER_MIGRATION_PORT"] = str(port)
+     run("initdb", [pg / "initdb", "-D", scratch / "data", "-U", "migration_admin", "-A", "trust", "--no-locale", "-E", "UTF8"])
+     run("postgres-start", [pg / "pg_ctl", "-D", scratch / "data", "-l", out / "postgres.log", "-o", f"-h 127.0.0.1 -p {port} -k '' -c timezone=UTC", "-w", "start"])
+     run("roles", [pg / "psql", "-X", "-h", "127.0.0.1", "-p", port, "-U", "migration_admin", "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-c", "CREATE ROLE migration_owner LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT NOCREATEROLE NOCREATEDB NOREPLICATION; CREATE ROLE migration_runtime LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT NOCREATEROLE NOCREATEDB NOREPLICATION;"])
+     run("database", [pg / "createdb", "-h", "127.0.0.1", "-p", port, "-U", "migration_admin", "-O", "migration_owner", "browser_migrations"])
+-    pa = [v for p in deps for v in ["-pa", p]]
+-    run("migration-integration", ["elixir", *pa, "-r", artifact_schema, "-r", schema, "-e", f'ExUnit.start(seed: 0, trace: true); Code.require_file({json.dumps(str(spec))})'], timeout=90)
++    result = out / "result.json"
++    entrypoint = out / "selected_runner.exs"
++    entrypoint.write_text('ExUnit.start(autorun: false, seed: 0, trace: true)\nCode.require_file(' + json.dumps(str(inputs / SPEC)) + ')\nr=ExUnit.run()\nFile.write!(' + json.dumps(str(result)) + ',Jason.encode!(r))\nSystem.halt(if r.total==1 and r.failures==0 and r.skipped==0 and r.excluded==0 and Map.get(r,:invalid,0)==0, do: 0, else: 1)\n')
++    run("migration-integration", ["elixir", *pa, "-pa", compiled, entrypoint], timeout=90)
++    receipt["tests"] = json.loads(result.read_text())
+     success = True
+ except Exception as error:
+     receipt["failure"] = str(error)
+@@ -105,10 +135,15 @@ finally:
+         stopped = code == 0 and not (scratch / "data/postmaster.pid").exists()
+     if scratch is not None and stopped:
+         shutil.rmtree(scratch)
+-    receipt["cleanup"] = {"owned_postgres_stopped": stopped, "owned_scratch_removed": scratch is None or not scratch.exists()}
+-    receipt["source_unchanged"] = before == source_manifest()
+-    receipt["success"] = success and receipt["source_unchanged"] and all(receipt["cleanup"].values())
++    if compiled.exists():
++        (out / "compiled-products.json").write_text(json.dumps({p.name: digest(p) for p in sorted(compiled.iterdir()) if p.is_file()}, indent=2) + "\n")
++        shutil.rmtree(compiled)
++    receipt["cleanup"] = {"owned_postgres_stopped": stopped, "owned_scratch_removed": scratch is None or not scratch.exists(), "owned_compile_products_removed": not compiled.exists()}
++    receipt["source_unchanged"] = bool(before) and before == source_manifest()
++    receipt["dependency_changes"] = [rel for rel, value in beams.items() if digest(ROOT / rel) != value]
++    receipt["success"] = success and receipt["source_unchanged"] and not receipt["dependency_changes"] and all(receipt["cleanup"].values())
+     receipt["finished_at"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
++    receipt["outputs_sha256"] = {p.name: digest(p) for p in sorted(out.iterdir()) if p.is_file()}
+     (out / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
+     print(json.dumps({"receipt": str(out / "receipt.json"), "success": receipt["success"], "failure": receipt.get("failure"), "cleanup": receipt["cleanup"]}))
+ raise SystemExit(0 if receipt["success"] else 1)
+diff --git a/hosted/test/mixer_hosted/builds/admission_test.exs b/hosted/test/mixer_hosted/builds/admission_test.exs
+index c72a1f2da..d35e6315e 100644
+--- a/hosted/test/mixer_hosted/builds/admission_test.exs
++++ b/hosted/test/mixer_hosted/builds/admission_test.exs
+@@ -19,7 +19,7 @@ defmodule MixerHosted.Builds.AdmissionTest do
+     )
+ 
+     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
+-    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 9
++    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 10
+     assert [] == Ecto.Migrator.run(Repo, path, :up, all: true)
+     start_supervised!({Oban, repo: Repo, queues: false, plugins: false, testing: :manual})
+     :ok
+diff --git a/hosted/test/mixer_hosted/builds/aggregate_admission_test.exs b/hosted/test/mixer_hosted/builds/aggregate_admission_test.exs
+index 4c8d41e83..3b232322e 100644
+--- a/hosted/test/mixer_hosted/builds/aggregate_admission_test.exs
++++ b/hosted/test/mixer_hosted/builds/aggregate_admission_test.exs
+@@ -30,7 +30,7 @@ defmodule MixerHosted.Builds.AggregateAdmissionTest do
+     )
+ 
+     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
+-    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 9
++    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 10
+     assert [] == Ecto.Migrator.run(Repo, path, :up, all: true)
+     start_supervised!({Oban, repo: Repo, queues: false, plugins: false, testing: :manual})
+     :ok
+@@ -503,13 +503,14 @@ defmodule MixerHosted.Builds.AggregateAdmissionTest do
+     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
+ 
+     assert [
++             20_261_025_000_008,
+              20_261_025_000_007,
+              20_261_025_000_006,
+              20_261_025_000_005,
+              20_261_025_000_004,
+              20_261_025_000_003,
+              @aggregate_migration
+-           ] = Ecto.Migrator.run(Repo, path, :down, step: 6)
++           ] = Ecto.Migrator.run(Repo, path, :down, step: 7)
+ 
+     assert %{rows: [[nil]]} =
+              Repo.query!("SELECT to_regclass('public.mixer_build_fleet_capacity')::text")
+@@ -522,7 +523,8 @@ defmodule MixerHosted.Builds.AggregateAdmissionTest do
+              20_261_025_000_004,
+              20_261_025_000_005,
+              20_261_025_000_006,
+-             20_261_025_000_007
++             20_261_025_000_007,
++             20_261_025_000_008
+            ] = Ecto.Migrator.run(Repo, path, :up, all: true)
+ 
+     assert {Repo.one!(Reservation), Repo.one!(Lease), Repo.get!(Record, a.record.id)} == before
+diff --git a/hosted/test/mixer_hosted/builds/coordinator_test.exs b/hosted/test/mixer_hosted/builds/coordinator_test.exs
+index 613199a3c..deca1839a 100644
+--- a/hosted/test/mixer_hosted/builds/coordinator_test.exs
++++ b/hosted/test/mixer_hosted/builds/coordinator_test.exs
+@@ -20,7 +20,7 @@ defmodule MixerHosted.Builds.CoordinatorTest do
+     )
+ 
+     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
+-    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 9
++    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 10
+     start_supervised!({Oban, repo: Repo, queues: false, plugins: false, testing: :manual})
+     start_supervised!(Fixture)
+     :ok

@@ -1,0 +1,5 @@
+ExUnit.start(autorun: false, seed: 0, max_cases: 1, trace: true)
+Code.require_file("/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-activation-preparation-migration-review/attempts/20261025T191737.738972Z-29541ab8/inputs/verification/hosted-browser-activation-preparation-migration-review/review.exs")
+r=ExUnit.run()
+File.write!("/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-activation-preparation-migration-review/attempts/20261025T191737.738972Z-29541ab8/independent-adversity-result.json",Jason.encode!(r))
+System.halt(if r.total==11 and r.failures==0 and r.skipped==0 and r.excluded==0 and Map.get(r,:invalid,0)==0, do: 0, else: 1)

@@ -9,7 +9,7 @@ end
 defmodule MixerBrowserMigrationFixture.Test do
   use ExUnit.Case, async: false
   alias MixerBrowserMigrationFixture.Repo
-  alias MixerHosted.BrowserAuth.StorageSchema
+  alias MixerHosted.BrowserAuth.{ActivationPreparationSchema, StorageSchema}
 
   @versions [
     20_261_024_000_000,
@@ -20,7 +20,8 @@ defmodule MixerBrowserMigrationFixture.Test do
     20_261_025_000_004,
     20_261_025_000_005,
     20_261_025_000_006,
-    20_261_025_000_007
+    20_261_025_000_007,
+    20_261_025_000_008
   ]
 
   setup_all do
@@ -38,14 +39,14 @@ defmodule MixerBrowserMigrationFixture.Test do
     :ok
   end
 
-  test "nine ordinary migrations remain inert and reversible under an unprivileged schema owner" do
+  test "ten ordinary migrations remain inert and reversible under an unprivileged schema owner" do
     path = Path.expand("../../../priv/repo/migrations", __DIR__)
     roles_before = Repo.query!("SELECT oid,rolname FROM pg_roles ORDER BY oid").rows
     assert @versions == Ecto.Migrator.run(Repo, path, :up, all: true, log: false)
     assert [] == Ecto.Migrator.run(Repo, path, :up, all: true, log: false)
     assert_inert()
 
-    # Existing build data predates the latest six migrations and must survive
+    # Existing build data predates the latest seven migrations and must survive
     # their rollback/reapply. This exercises real foreign-key/policy teardown.
     Repo.query!("""
     INSERT INTO mixer_builds
@@ -56,9 +57,25 @@ defmodule MixerBrowserMigrationFixture.Test do
     """)
 
     before = Repo.query!("SELECT * FROM mixer_builds ORDER BY id").rows
+    baseline = baseline_surface()
+    unload()
+    assert [List.last(@versions)] == Ecto.Migrator.run(Repo, path, :down, step: 1, log: false)
+
+    assert %{rows: [[nil, nil]]} =
+             Repo.query!("""
+             SELECT (SELECT oid::text FROM pg_proc WHERE proname='mixer_browser_prepare_activation'),
+                    to_regtype('public.mixer_browser_access_evidence')::text
+             """)
+
+    assert baseline_surface() == baseline
+    unload()
+    assert [List.last(@versions)] == Ecto.Migrator.run(Repo, path, :up, all: true, log: false)
+    assert baseline_surface() == baseline
+    assert before == Repo.query!("SELECT * FROM mixer_builds ORDER BY id").rows
+    assert_inert()
     unload()
     latest = Enum.drop(@versions, 3)
-    assert Enum.reverse(latest) == Ecto.Migrator.run(Repo, path, :down, step: 6, log: false)
+    assert Enum.reverse(latest) == Ecto.Migrator.run(Repo, path, :down, step: 7, log: false)
 
     assert %{rows: [[nil, nil, nil]]} =
              Repo.query!("""
@@ -111,7 +128,8 @@ defmodule MixerBrowserMigrationFixture.Test do
                )
     end
 
-    for {name, signature} <- StorageSchema.signatures() do
+    for {name, signature} <-
+          Map.merge(StorageSchema.signatures(), ActivationPreparationSchema.signatures()) do
       qualified = "public.#{name}(#{signature})"
 
       assert %{rows: [[false]]} =
@@ -120,10 +138,39 @@ defmodule MixerBrowserMigrationFixture.Test do
                ])
     end
 
+    assert %{rows: [[false, false]]} =
+             Repo.query!("""
+             SELECT has_type_privilege('migration_runtime','public.mixer_browser_access_evidence','USAGE'),
+                    EXISTS(SELECT 1 FROM pg_type t CROSS JOIN LATERAL aclexplode(t.typacl) a
+                      WHERE t.oid='public.mixer_browser_access_evidence'::regtype AND a.grantee=0)
+             """)
+
     # Discovery remains empty before separate operator provisioning and any
     # browser lifecycle owner are installed.
     assert %{rows: [[nil]]} =
              Repo.query!("SELECT public.mixer_browser_load($1,$2)", [<<0::256>>, <<1::256>>])
+  end
+
+  defp baseline_surface do
+    # Rows include object OIDs, exact source/ACLs, relation owners/RLS, policies,
+    # constraints and persisted data; only the new helper/type are excluded.
+    queries = [
+      "SELECT oid,proname,proowner,prosrc,proacl::text FROM pg_proc WHERE left(proname::text,14)='mixer_browser_' AND proname<>'mixer_browser_prepare_activation' ORDER BY oid",
+      "SELECT oid,typname,typowner,typacl::text FROM pg_type WHERE typname IN ('mixer_browser_cipher','mixer_browser_attempt','mixer_browser_verified') ORDER BY oid",
+      "SELECT oid,relname,relowner,relacl::text,relrowsecurity,relforcerowsecurity FROM pg_class WHERE left(relname::text,14)='mixer_browser_' AND relname<>'mixer_browser_access_evidence' ORDER BY oid",
+      "SELECT to_jsonb(p) FROM pg_policy p WHERE polrelid IN (SELECT oid FROM pg_class WHERE left(relname::text,14)='mixer_browser_' AND relname<>'mixer_browser_access_evidence') ORDER BY oid",
+      "SELECT to_jsonb(c) FROM pg_constraint c WHERE conrelid IN (SELECT oid FROM pg_class WHERE left(relname::text,14)='mixer_browser_' AND relname<>'mixer_browser_access_evidence') ORDER BY oid",
+      "SELECT to_jsonb(b) FROM public.mixer_builds b ORDER BY id"
+    ]
+
+    queries =
+      queries ++
+        Enum.map(~w(sessions session_vault oidc_attempts session_events), fn suffix ->
+          "SELECT to_jsonb(r) FROM public.mixer_browser_" <>
+            suffix <> " r ORDER BY to_jsonb(r)::text"
+        end)
+
+    Enum.map(queries, &Repo.query!(&1).rows)
   end
 
   defp unload do
@@ -136,7 +183,8 @@ defmodule MixerBrowserMigrationFixture.Test do
           MixerHosted.Repo.Migrations.AddAuthorizationStateRevisions,
           MixerHosted.Repo.Migrations.AddCustomerArtifactStorage,
           MixerHosted.Repo.Migrations.AddCustomerWorkspaceDiscovery,
-          MixerHosted.Repo.Migrations.AddBrowserSessions
+          MixerHosted.Repo.Migrations.AddBrowserSessions,
+          MixerHosted.Repo.Migrations.AddBrowserActivationPreparation
         ] do
       :code.purge(module)
       :code.delete(module)

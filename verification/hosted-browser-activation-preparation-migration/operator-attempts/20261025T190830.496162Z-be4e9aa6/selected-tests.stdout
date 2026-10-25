@@ -1,0 +1,109 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+MixerHosted.BrowserAuth.MigrationUpgradeTest [verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs]
+  * test actual additive Ecto upgrade is inert, explicit V2 provisioning works, and operator-only down restores V1 with baseline data intact [L#102]  * test actual additive Ecto upgrade is inert, explicit V2 provisioning works, and operator-only down restores V1 with baseline data intact (101.5ms) [L#102]
+
+  1) test actual additive Ecto upgrade is inert, explicit V2 provisioning works, and operator-only down restores V1 with baseline data intact (MixerHosted.BrowserAuth.MigrationUpgradeTest)
+     verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:102
+     ** (ArgumentError) you tried to use a binary for an oid type (public.mixer_browser_prepare_activation(bytea,bytea,bytea,bytea,bigint,public.mixer_browser_access_evidence)) when an integer was expected. See https://github.com/elixir-ecto/postgrex#oid-type-encoding
+     code: assert_closed_addition()
+     stacktrace:
+       (postgrex 0.22.4) lib/postgrex/type_module.ex:1045: Postgrex.DefaultTypes.encode_params/3
+       (postgrex 0.22.4) lib/postgrex/query.ex:73: DBConnection.Query.Postgrex.Query.encode/3
+       (db_connection 2.10.2) lib/db_connection.ex:1459: DBConnection.encode/5
+       (db_connection 2.10.2) lib/db_connection.ex:1549: DBConnection.run_prepare_execute/5
+       (db_connection 2.10.2) lib/db_connection.ex:1606: DBConnection.run_with_retries/5
+       (db_connection 2.10.2) lib/db_connection.ex:810: DBConnection.parsed_prepare_execute/5
+       (db_connection 2.10.2) lib/db_connection.ex:802: DBConnection.prepare_execute/4
+       (postgrex 0.22.4) lib/postgrex.ex:353: Postgrex.query_prepare_execute/4
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:628: Ecto.Adapters.SQL.query!/4
+       verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:443: MixerHosted.BrowserAuth.MigrationUpgradeTest.assert_closed_addition/0
+       verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:122: (test)
+
+  * test malformed or duplicate role identifiers reject before producing an operator transaction [L#165]  * test malformed or duplicate role identifiers reject before producing an operator transaction (0.01ms) [L#165]
+  * test unsafe existing writer flags abort the entire one-connection upgrade [L#194]  * test unsafe existing writer flags abort the entire one-connection upgrade (32.8ms) [L#194]
+
+  2) test unsafe existing writer flags abort the entire one-connection upgrade (MixerHosted.BrowserAuth.MigrationUpgradeTest)
+     verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:194
+     ** (ArgumentError) you tried to use a binary for an oid type (public.mixer_browser_prepare_activation(bytea,bytea,bytea,bytea,bigint,public.mixer_browser_access_evidence)) when an integer was expected. See https://github.com/elixir-ecto/postgrex#oid-type-encoding
+     code: assert_closed_addition()
+     stacktrace:
+       (postgrex 0.22.4) lib/postgrex/type_module.ex:1045: Postgrex.DefaultTypes.encode_params/3
+       (postgrex 0.22.4) lib/postgrex/query.ex:73: DBConnection.Query.Postgrex.Query.encode/3
+       (db_connection 2.10.2) lib/db_connection.ex:1459: DBConnection.encode/5
+       (db_connection 2.10.2) lib/db_connection.ex:1549: DBConnection.run_prepare_execute/5
+       (db_connection 2.10.2) lib/db_connection.ex:1606: DBConnection.run_with_retries/5
+       (db_connection 2.10.2) lib/db_connection.ex:810: DBConnection.parsed_prepare_execute/5
+       (db_connection 2.10.2) lib/db_connection.ex:802: DBConnection.prepare_execute/4
+       (postgrex 0.22.4) lib/postgrex.ex:353: Postgrex.query_prepare_execute/4
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:628: Ecto.Adapters.SQL.query!/4
+       verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:443: MixerHosted.BrowserAuth.MigrationUpgradeTest.assert_closed_addition/0
+       verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:201: (test)
+
+  * test unexpected initial third-party helper or type grants deny and roll back every upgrade statement [L#211]  * test unexpected initial third-party helper or type grants deny and roll back every upgrade statement (24.2ms) [L#211]
+
+  3) test unexpected initial third-party helper or type grants deny and roll back every upgrade statement (MixerHosted.BrowserAuth.MigrationUpgradeTest)
+     verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:211
+     ** (ArgumentError) you tried to use a binary for an oid type (public.mixer_browser_prepare_activation(bytea,bytea,bytea,bytea,bigint,public.mixer_browser_access_evidence)) when an integer was expected. See https://github.com/elixir-ecto/postgrex#oid-type-encoding
+     code: for {kind, target, privilege} <- [
+     stacktrace:
+       (postgrex 0.22.4) lib/postgrex/type_module.ex:1045: Postgrex.DefaultTypes.encode_params/3
+       (postgrex 0.22.4) lib/postgrex/query.ex:73: DBConnection.Query.Postgrex.Query.encode/3
+       (db_connection 2.10.2) lib/db_connection.ex:1459: DBConnection.encode/5
+       (db_connection 2.10.2) lib/db_connection.ex:1549: DBConnection.run_prepare_execute/5
+       (db_connection 2.10.2) lib/db_connection.ex:1606: DBConnection.run_with_retries/5
+       (db_connection 2.10.2) lib/db_connection.ex:810: DBConnection.parsed_prepare_execute/5
+       (db_connection 2.10.2) lib/db_connection.ex:802: DBConnection.prepare_execute/4
+       (postgrex 0.22.4) lib/postgrex.ex:353: Postgrex.query_prepare_execute/4
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:628: Ecto.Adapters.SQL.query!/4
+       verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:467: MixerHosted.BrowserAuth.MigrationUpgradeTest.addition_surface/0
+       verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:221: anonymous fn/2 in MixerHosted.BrowserAuth.MigrationUpgradeTest."test unexpected initial third-party helper or type grants deny and roll back every upgrade statement"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:212: (test)
+
+  * test unexpected operator default privileges remain visible and make the newly migrated addition unprovisionable [L#235]  * test unexpected operator default privileges remain visible and make the newly migrated addition unprovisionable (26.7ms) [L#235]
+
+  4) test unexpected operator default privileges remain visible and make the newly migrated addition unprovisionable (MixerHosted.BrowserAuth.MigrationUpgradeTest)
+     verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:235
+     ** (ArgumentError) you tried to use a binary for an oid type (public.mixer_browser_prepare_activation(bytea,bytea,bytea,bytea,bigint,public.mixer_browser_access_evidence)) when an integer was expected. See https://github.com/elixir-ecto/postgrex#oid-type-encoding
+     code: for {kind, privilege} <- [{"FUNCTIONS", "EXECUTE"}, {"TYPES", "USAGE"}] do
+     stacktrace:
+       (postgrex 0.22.4) lib/postgrex/type_module.ex:1045: Postgrex.DefaultTypes.encode_params/3
+       (postgrex 0.22.4) lib/postgrex/query.ex:73: DBConnection.Query.Postgrex.Query.encode/3
+       (db_connection 2.10.2) lib/db_connection.ex:1459: DBConnection.encode/5
+       (db_connection 2.10.2) lib/db_connection.ex:1549: DBConnection.run_prepare_execute/5
+       (db_connection 2.10.2) lib/db_connection.ex:1606: DBConnection.run_with_retries/5
+       (db_connection 2.10.2) lib/db_connection.ex:810: DBConnection.parsed_prepare_execute/5
+       (db_connection 2.10.2) lib/db_connection.ex:802: DBConnection.prepare_execute/4
+       (postgrex 0.22.4) lib/postgrex.ex:353: Postgrex.query_prepare_execute/4
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:628: Ecto.Adapters.SQL.query!/4
+       verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:467: MixerHosted.BrowserAuth.MigrationUpgradeTest.addition_surface/0
+       verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:246: anonymous fn/2 in MixerHosted.BrowserAuth.MigrationUpgradeTest."test unexpected operator default privileges remain visible and make the newly migrated addition unprovisionable"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:236: (test)
+
+  * test operator failure after function ownership transfer rolls back owner, temporary CREATE and all grants [L#270]  * test operator failure after function ownership transfer rolls back owner, temporary CREATE and all grants (22.9ms) [L#270]
+
+  5) test operator failure after function ownership transfer rolls back owner, temporary CREATE and all grants (MixerHosted.BrowserAuth.MigrationUpgradeTest)
+     verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:270
+     ** (ArgumentError) you tried to use a binary for an oid type (public.mixer_browser_prepare_activation(bytea,bytea,bytea,bytea,bigint,public.mixer_browser_access_evidence)) when an integer was expected. See https://github.com/elixir-ecto/postgrex#oid-type-encoding
+     code: initial = addition_surface()
+     stacktrace:
+       (postgrex 0.22.4) lib/postgrex/type_module.ex:1045: Postgrex.DefaultTypes.encode_params/3
+       (postgrex 0.22.4) lib/postgrex/query.ex:73: DBConnection.Query.Postgrex.Query.encode/3
+       (db_connection 2.10.2) lib/db_connection.ex:1459: DBConnection.encode/5
+       (db_connection 2.10.2) lib/db_connection.ex:1549: DBConnection.run_prepare_execute/5
+       (db_connection 2.10.2) lib/db_connection.ex:1606: DBConnection.run_with_retries/5
+       (db_connection 2.10.2) lib/db_connection.ex:810: DBConnection.parsed_prepare_execute/5
+       (db_connection 2.10.2) lib/db_connection.ex:802: DBConnection.prepare_execute/4
+       (postgrex 0.22.4) lib/postgrex.ex:353: Postgrex.query_prepare_execute/4
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:628: Ecto.Adapters.SQL.query!/4
+       verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:467: MixerHosted.BrowserAuth.MigrationUpgradeTest.addition_surface/0
+       verification/hosted-browser-activation-preparation-migration/operator_upgrade_test.exs:275: (test)
+
+
+Finished in 0.4 seconds (0.00s async, 0.4s sync)
+
+Result: 1/6 passed
+Failed: 5 tests
