@@ -1,0 +1,5 @@
+ExUnit.start(autorun: false, seed: 0, max_cases: 1)
+Code.require_file("verification/hosted-browser-catalog-admission/function_surface_spec.exs")
+r=ExUnit.run()
+File.write!("/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-v2/attempts/v1-regression-20261025T184349.710618Z-d1fe64a4/result.json",Jason.encode!(r))
+System.halt(if r.total==26 and r.failures==0 and r.skipped==0 and r.excluded==0 and Map.get(r,:invalid,0)==0, do: 0, else: 1)

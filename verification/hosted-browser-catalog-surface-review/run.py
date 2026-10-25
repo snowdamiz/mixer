@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 BASE = Path(__file__).resolve().parent
 IMAGE = "postgres@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97"
 SOURCES = ["hosted/lib/mixer_hosted/browser_auth/" + n for n in
-           ["storage_schema.ex", "catalog_manifest.ex", "catalog.ex"]]
+           ["storage_schema.ex", "activation_preparation_schema.ex", "activation_preparation.ex", "catalog_manifest.ex", "catalog_manifest_v2.ex", "catalog.ex"]]
 SOURCES += ["hosted/test/mixer_hosted/browser_auth/storage_fixture.exs"]
 SOURCES += ["hosted/priv/repo/migrations/" + n for n in
             ["20261025000003_add_customer_authorization.exs",
@@ -25,6 +25,8 @@ SOURCES += ["hosted/priv/repo/migrations/" + n for n in
              "20261025000007_add_browser_sessions.exs"]]
 SOURCES += ["hosted/mix.lock", "verification/hosted-browser-catalog-surface-review/run.py",
             "verification/hosted-browser-catalog-surface-review/surface_review.exs"]
+MODULE_SOURCES = ["hosted/lib/mixer_hosted/browser_auth/" + n for n in
+                  ["storage_schema.ex", "activation_preparation_schema.ex", "catalog_manifest.ex", "catalog_manifest_v2.ex", "catalog.ex"]]
 DEPS = ["telemetry", "decimal", "db_connection", "ecto", "ecto_sql", "postgrex", "jason"]
 EXPECTED = 20
 
@@ -126,7 +128,7 @@ def main():
         result = out / "result.json"
         entrypoint = out / "selected_runner.exs"
         entrypoint.write_text('ExUnit.start(autorun: false, seed: 0, max_cases: 1)\nCode.require_file("verification/hosted-browser-catalog-surface-review/surface_review.exs")\nr=ExUnit.run()\nFile.write!(' + json.dumps(str(result)) + ',Jason.encode!(r))\nSystem.halt(if r.total==' + str(EXPECTED) + ' and r.failures==0 and r.skipped==0 and r.excluded==0 and Map.get(r,:invalid,0)==0, do: 0, else: 1)\n')
-        command = ["elixir"] + [arg for path in paths for arg in ["-pa", path]] + [arg for rel in SOURCES[:3] for arg in ["-r", inputs / rel]] + [entrypoint]
+        command = ["elixir"] + [arg for path in paths for arg in ["-pa", path]] + [arg for rel in MODULE_SOURCES for arg in ["-r", inputs / rel]] + [entrypoint]
         code, _ = run("independent-tests", command, check=False, timeout=60)
         receipt["tests_passed"] = code == 0
         if result.exists():

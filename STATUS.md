@@ -106,7 +106,7 @@ Root verifies 30 producer and 23 reviewer sealed members, 64 input bindings and
 the unchanged 132-file live VM closure. Phase-change regressions remain; the
 eight-credit miss cost is model arithmetic, and exact Rust work and memory are
 unmeasured. Root accepts this finite result and selects a separate isolated Rust
-feasibility experiment with fixed limits, actual hit parity and failure-prefix
+feasibility experiment with fixed limits, measured hit costs and failure-prefix
 accounting. Live integration and a full-target retry remain unselected. See
 [the independent review](docs/swift-retention-next-design-review.md) and
 [the root acceptance](verification/swift-retention-next-design-review/root-acceptance.json).
@@ -294,10 +294,14 @@ The existing URI HTTPS registry read is narrowly documented; drift fails closed.
 Function/type catalog checks now pass 26 producer methods on PostgreSQL 17.11
 and 20 independent methods on PostgreSQL 16.15. Root audited 14 source, 803
 dependency and 49 output bindings and cleanup; selected warnings-as-errors
-compilation passes. Three new PG17 probes now reproduce extra standalone
-browser-type admission and unchecked ACL grantor drift. Both-version repairs
-and explicit version-2 admission are underway; prior checks did not cover those
-gaps. This is only `:function_surface_verified`: tests explicitly
+compilation passes. Three new PG17 probes exposed extra standalone browser
+types and unchecked ACL grantors; the accepted V1/V2 candidate repairs both.
+It passes 30 PG17 and 19 independent PG16 methods plus 10/12 compile-rejection
+controls. Original catalog 26/20 and preparation SQL 39/38 methods pass separately.
+Root verifies 464 reviewer-sealed members and six final source/output/dependency
+packets. An inert additive migration and upgrade/rollback verification are now
+in progress. See [the versioned review](docs/hosted-browser-catalog-v2-review.md).
+This is only `:function_surface_verified`: tests explicitly
 show that missing relation/policy/grant admission remains a separate requirement.
 No consumer, pool, Store or readiness wiring exists. The pure activation
 preparation decoder passes 19 producer methods, 11 existing snapshot regressions
@@ -328,7 +332,7 @@ record the accepted component scope and remaining owner/runtime work.
 
 The corrected additive SQL component is pushed as `97d436b4`; all 780
 committed paths and bytes were verified. Phoenix `40222180472` passes every
-step; Engine `40222180507` remains running. No migration or caller is installed.
+step; Engine `40222180507` passes all three jobs. No migration or caller is installed.
 
 The decoder and corrected relation source contract are pushed as `0a6f110d`;
 all 317 committed paths and bytes were verified. Phoenix `40221267196` passes

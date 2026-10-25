@@ -29,8 +29,8 @@ but its broader job stops at Mix formatting before tests. The terminal-newline
 correction passes the actual formatter and fresh 26-method PostgreSQL 17 and
 20-method independent PostgreSQL 16 replays. Corrected `6baf9acc` Phoenix CI
 passes every step and its Engine run passes all three jobs. The preceding
-catalog Engine run also passes. SQL prerequisite `97d436b4` passes Phoenix CI;
-its Engine run remains active.
+catalog Engine run also passes. SQL prerequisite `97d436b4` now passes both
+Phoenix and Engine CI.
 See [the integrated scope](docs/hosted-browser-session-integration.md).
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
@@ -60,7 +60,7 @@ The full plan remains incomplete; no GA gate is promoted.
    and 18 independent methods (292 oracle cases, 46,550 transitions). Its retained
    phase regressions and estimated costs prevent an inference of target benefit.
    Root accepts the finite result and selects a separate isolated Rust feasibility
-   experiment to measure exact work, memory and hit parity. Live integration and
+   experiment to measure exact work, memory and hit costs. Live integration and
    any new full-target retry remain unselected. See
    [the reviewed finite result](docs/swift-retention-next-design-review.md),
    [the earlier unselected model](docs/swift-adaptive-retention-design.md),
@@ -162,9 +162,12 @@ The full plan remains incomplete; no GA gate is promoted.
    is enabled. Function/type catalog checks now pass 26 producer PostgreSQL 17 and 20
    independent PostgreSQL 16 methods, with root source/output/cleanup acceptance.
    Their named partial result has no consumer and cannot authorize readiness.
-   Three new PG17 probes reproduce acceptance of extra standalone browser types
-   and altered ACL grantors. Correction and explicit version-2 admission are in
-   progress; the prior passing tests did not cover those gaps.
+   Three new PG17 probes exposed extra standalone browser types and altered ACL
+   grantors; both gaps are now repaired. Explicit V1/V2 selection passes 30 PG17
+   and 19 independent PG16 methods, plus 10/12 respective compile-rejection
+   controls. Original catalog 26/20 and SQL 39/38 regressions pass separately.
+   Root accepts the partial function/type prerequisite and has selected inert
+   migration 20261025000008 with upgrade/rollback verification; it is in progress.
    The pure activation-preparation decoder now passes 19 producer methods,
    11 existing snapshot regressions and 29 independent methods, with root
    source/output/format acceptance. It proves shape only; the future owner must
@@ -180,7 +183,7 @@ The full plan remains incomplete; no GA gate is promoted.
    accepts this component; no migration or caller is enabled. Forty owner
    runtime adversity cases also remain pending. See
    [constructor review](docs/hosted-browser-runtime-constructor-review.md),
-   [catalog review](docs/hosted-browser-catalog-surface-review.md) and
+   [versioned catalog review](docs/hosted-browser-catalog-v2-review.md) and
    [fixture repair](docs/hosted-browser-storage-ci-fixture.md).
 
    The prior `1257cbf8` Phoenix CI fails the 121-project directory transaction

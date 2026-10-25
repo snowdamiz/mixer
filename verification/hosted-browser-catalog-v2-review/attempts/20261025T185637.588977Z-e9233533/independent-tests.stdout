@@ -1,0 +1,34 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+.............
+14:56:41.285 [info] The function passed as a handler with ID {MixerHosted.BrowserAuth.V2IndependentReview, #Reference<0.153738625.3106406401.177183>} is a local function.
+This means that it is either an anonymous function or a capture of a function without a module specified. That may cause a performance penalty when calling that handler. For more details see the note in `telemetry:attach/4` documentation.
+
+https://hexdocs.pm/telemetry/telemetry.html#attach/4
+
+
+  1) test both fixed projections issue their exact count plus one SQL bounds without replay (MixerHosted.BrowserAuth.V2IndependentReview)
+     verification/hosted-browser-catalog-v2-review/review.exs:362
+     Assertion with == failed
+     code:  assert Enum.map(interesting, fn sql ->
+              [_, digits] = Regex.run(~r/LIMIT ([0-9]+)\s*$/, sql)
+              String.to_integer(digits)
+            end) == caps
+     left:  [19, 28, 4, 26, 10]
+     right: [19, 28, 4, 26, 10, 19]
+     stacktrace:
+       verification/hosted-browser-catalog-v2-review/review.exs:374: anonymous fn/2 in MixerHosted.BrowserAuth.V2IndependentReview."test both fixed projections issue their exact count plus one SQL bounds without replay"/1
+       verification/hosted-browser-catalog-v2-review/review.exs:364: anonymous fn/2 in MixerHosted.BrowserAuth.V2IndependentReview."test both fixed projections issue their exact count plus one SQL bounds without replay"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       verification/hosted-browser-catalog-v2-review/review.exs:363: (test)
+
+
+14:56:41.336 [info] The function passed as a handler with ID {MixerHosted.BrowserAuth.V2IndependentReview, #Reference<0.153738625.3106406401.177836>} is a local function.
+This means that it is either an anonymous function or a capture of a function without a module specified. That may cause a performance penalty when calling that handler. For more details see the note in `telemetry:attach/4` documentation.
+
+https://hexdocs.pm/telemetry/telemetry.html#attach/4
+....
+Finished in 1.6 seconds (0.00s async, 1.6s sync)
+
+Result: 17/18 passed
+Failed: 1 test

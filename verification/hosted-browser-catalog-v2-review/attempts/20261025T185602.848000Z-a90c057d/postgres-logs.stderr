@@ -1,0 +1,78 @@
+********************************************************************************
+WARNING: POSTGRES_HOST_AUTH_METHOD has been set to "trust". This will allow
+         anyone with access to the Postgres port to access your database without
+         a password, even if POSTGRES_PASSWORD is set. See PostgreSQL
+         documentation about "trust":
+         https://www.postgresql.org/docs/current/auth-trust.html
+         In Docker's default configuration, this is effectively any other
+         container on the same system.
+
+         It is not recommended to use POSTGRES_HOST_AUTH_METHOD=trust. Replace
+         it with "-e POSTGRES_PASSWORD=password" instead to set a password in
+         "docker run".
+********************************************************************************
+initdb: warning: enabling "trust" authentication for local connections
+initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+2026-10-25 18:56:04.550 UTC [1] LOG:  starting PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-10-25 18:56:04.550 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-10-25 18:56:04.550 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2026-10-25 18:56:04.551 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-10-25 18:56:04.554 UTC [89] LOG:  database system was shut down at 2026-10-25 18:56:04 UTC
+2026-10-25 18:56:04.557 UTC [1] LOG:  database system is ready to accept connections
+2026-10-25 18:56:05.605 UTC [121] WARNING:  SET LOCAL can only be used in transaction blocks
+2026-10-25 18:56:05.606 UTC [121] WARNING:  SET LOCAL can only be used in transaction blocks
+2026-10-25 18:56:05.617 UTC [121] ERROR:  browser preparation provisioning denied
+2026-10-25 18:56:05.617 UTC [121] CONTEXT:  PL/pgSQL function inline_code_block line 18 at RAISE
+2026-10-25 18:56:05.617 UTC [121] STATEMENT:  DO $finish$
+	DECLARE w oid:='browser_writer'::pg_catalog.regrole;
+	  l oid:='browser_lifecycle'::pg_catalog.regrole; o oid:='browser_schema_owner'::pg_catalog.regrole;
+	BEGIN
+	  IF pg_catalog.has_schema_privilege(w,'public','CREATE')
+	    OR (SELECT proowner FROM pg_catalog.pg_proc WHERE oid='public.mixer_browser_prepare_activation(bytea,bytea,bytea,bytea,bigint,public.mixer_browser_access_evidence)'::pg_catalog.regprocedure) IS DISTINCT FROM w
+	    OR (SELECT typowner FROM pg_catalog.pg_type WHERE oid='public.mixer_browser_access_evidence'::pg_catalog.regtype) IS DISTINCT FROM o
+	    OR (SELECT count(*)<>2 OR count(DISTINCT grantee)<>2 OR
+	          bool_or(grantor<>w OR grantee NOT IN(w,l) OR privilege_type<>'EXECUTE' OR is_grantable)
+	        FROM pg_catalog.aclexplode(COALESCE(
+	          (SELECT proacl FROM pg_catalog.pg_proc WHERE oid='public.mixer_browser_prepare_activation(bytea,bytea,bytea,bytea,bigint,public.mixer_browser_access_evidence)'::pg_catalog.regprocedure),
+	          pg_catalog.acldefault('f',w))))
+	    OR (SELECT count(*)<>3 OR count(DISTINCT grantee)<>3 OR
+	          bool_or(grantor<>o OR grantee NOT IN(o,w,l) OR privilege_type<>'USAGE' OR is_grantable)
+	        FROM pg_catalog.aclexplode(COALESCE(
+	          (SELECT typacl FROM pg_catalog.pg_type WHERE oid='public.mixer_browser_access_evidence'::pg_catalog.regtype),
+	          pg_catalog.acldefault('T',o)))) THEN
+	    RAISE EXCEPTION 'browser preparation provisioning denied' USING ERRCODE='42501';
+	  END IF;
+	END $finish$;
+	
+2026-10-25 18:56:10.623 UTC [121] ERROR:  canceling statement due to user request
+2026-10-25 18:56:10.623 UTC [121] STATEMENT:  DROP TYPE IF EXISTS public.mixer_browser_access_evidence
+2026-10-25 18:56:10.658 UTC [129] ERROR:  schema "review_types" does not exist
+2026-10-25 18:56:10.658 UTC [129] STATEMENT:  DROP SCHEMA review_types
+2026-10-25 18:56:10.659 UTC [122] ERROR:  schema "review_types" already exists
+2026-10-25 18:56:10.659 UTC [122] STATEMENT:  CREATE SCHEMA review_types
+2026-10-25 18:56:10.659 UTC [123] ERROR:  type "mixer_browser_access_evidence" already exists
+2026-10-25 18:56:10.659 UTC [123] STATEMENT:  CREATE TYPE public.mixer_browser_access_evidence AS (profile_id text,profile_version integer,issuer text,subject text,client_id text,credential_ref text,issued_at bigint,expires_at bigint,scopes text[])
+2026-10-25 18:56:10.660 UTC [124] ERROR:  type "mixer_browser_access_evidence" already exists
+2026-10-25 18:56:10.660 UTC [124] STATEMENT:  CREATE TYPE public.mixer_browser_access_evidence AS (profile_id text,profile_version integer,issuer text,subject text,client_id text,credential_ref text,issued_at bigint,expires_at bigint,scopes text[])
+2026-10-25 18:56:10.661 UTC [123] ERROR:  type "mixer_browser_access_evidence" already exists
+2026-10-25 18:56:10.661 UTC [123] STATEMENT:  CREATE TYPE public.mixer_browser_access_evidence AS (profile_id text,profile_version integer,issuer text,subject text,client_id text,credential_ref text,issued_at bigint,expires_at bigint,scopes text[])
+2026-10-25 18:56:10.661 UTC [124] ERROR:  type "mixer_browser_access_evidence" already exists
+2026-10-25 18:56:10.661 UTC [124] STATEMENT:  CREATE TYPE public.mixer_browser_access_evidence AS (profile_id text,profile_version integer,issuer text,subject text,client_id text,credential_ref text,issued_at bigint,expires_at bigint,scopes text[])
+2026-10-25 18:56:10.662 UTC [123] ERROR:  type "mixer_browser_access_evidence" already exists
+2026-10-25 18:56:10.662 UTC [123] STATEMENT:  CREATE TYPE public.mixer_browser_access_evidence AS (profile_id text,profile_version integer,issuer text,subject text,client_id text,credential_ref text,issued_at bigint,expires_at bigint,scopes text[])
+2026-10-25 18:56:10.662 UTC [124] ERROR:  type "mixer_browser_access_evidence" already exists
+2026-10-25 18:56:10.662 UTC [124] STATEMENT:  CREATE TYPE public.mixer_browser_access_evidence AS (profile_id text,profile_version integer,issuer text,subject text,client_id text,credential_ref text,issued_at bigint,expires_at bigint,scopes text[])
+2026-10-25 18:56:10.663 UTC [123] ERROR:  type "mixer_browser_access_evidence" already exists
+2026-10-25 18:56:10.663 UTC [123] STATEMENT:  CREATE TYPE public.mixer_browser_access_evidence AS (profile_id text,profile_version integer,issuer text,subject text,client_id text,credential_ref text,issued_at bigint,expires_at bigint,scopes text[])
+2026-10-25 18:56:10.663 UTC [124] ERROR:  type "mixer_browser_access_evidence" already exists
+2026-10-25 18:56:10.663 UTC [124] STATEMENT:  CREATE TYPE public.mixer_browser_access_evidence AS (profile_id text,profile_version integer,issuer text,subject text,client_id text,credential_ref text,issued_at bigint,expires_at bigint,scopes text[])
+2026-10-25 18:56:10.664 UTC [123] ERROR:  type "mixer_browser_access_evidence" already exists
+2026-10-25 18:56:10.664 UTC [123] STATEMENT:  CREATE TYPE public.mixer_browser_access_evidence AS (profile_id text,profile_version integer,issuer text,subject text,client_id text,credential_ref text,issued_at bigint,expires_at bigint,scopes text[])
+2026-10-25 18:56:10.674 UTC [124] ERROR:  type "mixer_browser_access_evidence" already exists
+2026-10-25 18:56:10.674 UTC [124] STATEMENT:  CREATE TYPE public.mixer_browser_access_evidence AS (profile_id text,profile_version integer,issuer text,subject text,client_id text,credential_ref text,issued_at bigint,expires_at bigint,scopes text[])
+2026-10-25 18:56:10.675 UTC [123] ERROR:  type "mixer_browser_access_evidence" already exists
+2026-10-25 18:56:10.675 UTC [123] STATEMENT:  CREATE TYPE public.mixer_browser_access_evidence AS (profile_id text,profile_version integer,issuer text,subject text,client_id text,credential_ref text,issued_at bigint,expires_at bigint,scopes text[])
+2026-10-25 18:56:10.675 UTC [124] ERROR:  type "mixer_browser_access_evidence" already exists
+2026-10-25 18:56:10.675 UTC [124] STATEMENT:  CREATE TYPE public.mixer_browser_access_evidence AS (profile_id text,profile_version integer,issuer text,subject text,client_id text,credential_ref text,issued_at bigint,expires_at bigint,scopes text[])
+2026-10-25 18:56:10.676 UTC [123] ERROR:  type "mixer_browser_access_evidence" already exists
+2026-10-25 18:56:10.676 UTC [123] STATEMENT:  CREATE TYPE public.mixer_browser_access_evidence AS (profile_id text,profile_version integer,issuer text,subject text,client_id text,credential_ref text,issued_at bigint,expires_at bigint,scopes text[])

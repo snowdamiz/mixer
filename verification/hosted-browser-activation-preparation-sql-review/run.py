@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 BASE = Path(__file__).resolve().parent
 IMAGE = "postgres@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97"
 SOURCES = ["hosted/lib/mixer_hosted/browser_auth/" + n for n in
-           ["storage_schema.ex", "catalog_manifest.ex", "catalog.ex", "activation_preparation_schema.ex", "vault.ex", "stored_snapshot.ex", "activation_preparation.ex"]]
+           ["storage_schema.ex", "activation_preparation_schema.ex", "catalog_manifest.ex", "catalog_manifest_v2.ex", "catalog.ex", "vault.ex", "stored_snapshot.ex", "activation_preparation.ex"]]
 SOURCES += ["hosted/lib/mixer_hosted/identity/encoding.ex", "hosted/lib/mixer_hosted/identity/access_token_verifier.ex", "hosted/test/mixer_hosted/browser_auth/storage_fixture.exs", "docs/hosted-browser-activation-preparation-sql.md", "docs/hosted-browser-lifecycle-runtime-contract.md"]
 SOURCES += ["hosted/priv/repo/migrations/" + n for n in
             ["20261025000003_add_customer_authorization.exs",
@@ -25,6 +25,9 @@ SOURCES += ["hosted/priv/repo/migrations/" + n for n in
              "20261025000007_add_browser_sessions.exs"]]
 SOURCES += ["hosted/mix.lock", "verification/hosted-browser-activation-preparation-sql-review/run.py",
             "verification/hosted-browser-activation-preparation-sql-review/review.exs"]
+MODULE_SOURCES = ["hosted/lib/mixer_hosted/browser_auth/" + n for n in
+                  ["storage_schema.ex", "activation_preparation_schema.ex", "catalog_manifest.ex", "catalog_manifest_v2.ex", "catalog.ex", "vault.ex", "stored_snapshot.ex", "activation_preparation.ex"]]
+MODULE_SOURCES += ["hosted/lib/mixer_hosted/identity/encoding.ex"]
 DEPS = ["telemetry", "decimal", "db_connection", "ecto", "ecto_sql", "postgrex", "jason"]
 EXPECTED = 38
 
@@ -127,14 +130,14 @@ def main():
         result = out / "result.json"
         entrypoint = out / "selected_runner.exs"
         entrypoint.write_text('ExUnit.start(autorun: false, seed: 0, max_cases: 1)\nCode.require_file("verification/hosted-browser-activation-preparation-sql-review/review.exs")\nr=ExUnit.run()\nFile.write!(' + json.dumps(str(result)) + ',Jason.encode!(r))\nSystem.halt(if r.total==' + str(EXPECTED) + ' and r.failures==0 and r.skipped==0 and r.excluded==0 and Map.get(r,:invalid,0)==0, do: 0, else: 1)\n')
-        command = ["elixir"] + [arg for path in paths for arg in ["-pa", path]] + [arg for rel in SOURCES[:8] for arg in ["-r", inputs / rel]] + [entrypoint]
+        command = ["elixir"] + [arg for path in paths for arg in ["-pa", path]] + [arg for rel in MODULE_SOURCES for arg in ["-r", inputs / rel]] + [entrypoint]
         # Selected compilation and actual Mix formatter run only on the copied
         # projectless input tree; never invoke the hosted project compile.
         compiled.mkdir()
-        compile_command = ["elixirc"] + [arg for path in paths for arg in ["-pa", path]] + ["--warnings-as-errors", "-o", compiled] + [inputs / rel for rel in SOURCES[:8]]
+        compile_command = ["elixirc"] + [arg for path in paths for arg in ["-pa", path]] + ["--warnings-as-errors", "-o", compiled] + [inputs / rel for rel in MODULE_SOURCES]
         run("selected-compile", compile_command)
         run("mix-version", ["mix", "--version"])
-        run("actual-mix-format", ["mix", "format", "--check-formatted", str(inputs / SOURCES[3])])
+        run("actual-mix-format", ["mix", "format", "--check-formatted", str(inputs / "hosted/lib/mixer_hosted/browser_auth/activation_preparation_schema.ex")])
         code, _ = run("independent-tests", command, check=False, timeout=90)
         receipt["tests_passed"] = code == 0
         if result.exists():

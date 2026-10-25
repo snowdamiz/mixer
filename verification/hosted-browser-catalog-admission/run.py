@@ -25,7 +25,7 @@ OUT.mkdir(parents=True)
 sources = [BASE / "run.py", BASE / "function_surface_spec.exs",
     ROOT / "docs/hosted-browser-catalog-admission.md",
     ROOT / "hosted/mix.lock"] + [ROOT / "hosted/lib/mixer_hosted/browser_auth" / name for name in
-    ["storage_schema.ex", "catalog_manifest.ex", "catalog.ex"]] + [
+    ["storage_schema.ex", "activation_preparation_schema.ex", "activation_preparation.ex", "catalog_manifest.ex", "catalog_manifest_v2.ex", "catalog.ex"]] + [
     ROOT / "hosted/test/mixer_hosted/browser_auth/storage_fixture.exs"] + [
     ROOT / "hosted/priv/repo/migrations" / name for name in [
     "20261025000003_add_customer_authorization.exs",
@@ -101,7 +101,7 @@ try:
     command = ["elixir"]
     for directory in dependency_dirs:
         command += ["-pa", directory]
-    for name in ["storage_schema.ex", "catalog_manifest.ex", "catalog.ex"]:
+    for name in ["storage_schema.ex", "activation_preparation_schema.ex", "catalog_manifest.ex", "catalog_manifest_v2.ex", "catalog.ex"]:
         command += ["-r", ROOT / "hosted/lib/mixer_hosted/browser_auth" / name]
     command += ["-e", 'ExUnit.start(seed: 0); Code.require_file("verification/hosted-browser-catalog-admission/function_surface_spec.exs")']
     run("selected-exunit", command, env=environment, timeout=60)

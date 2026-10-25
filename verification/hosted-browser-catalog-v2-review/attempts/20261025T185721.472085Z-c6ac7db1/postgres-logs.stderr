@@ -1,0 +1,34 @@
+********************************************************************************
+WARNING: POSTGRES_HOST_AUTH_METHOD has been set to "trust". This will allow
+         anyone with access to the Postgres port to access your database without
+         a password, even if POSTGRES_PASSWORD is set. See PostgreSQL
+         documentation about "trust":
+         https://www.postgresql.org/docs/current/auth-trust.html
+         In Docker's default configuration, this is effectively any other
+         container on the same system.
+
+         It is not recommended to use POSTGRES_HOST_AUTH_METHOD=trust. Replace
+         it with "-e POSTGRES_PASSWORD=password" instead to set a password in
+         "docker run".
+********************************************************************************
+initdb: warning: enabling "trust" authentication for local connections
+initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+2026-10-25 18:57:26.749 UTC [1] LOG:  starting PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-10-25 18:57:26.750 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-10-25 18:57:26.750 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2026-10-25 18:57:26.751 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-10-25 18:57:26.752 UTC [89] LOG:  database system was shut down at 2026-10-25 18:57:26 UTC
+2026-10-25 18:57:26.756 UTC [1] LOG:  database system is ready to accept connections
+2026-10-25 18:57:28.980 UTC [127] ERROR:  permission denied for table pg_attribute
+2026-10-25 18:57:28.980 UTC [127] STATEMENT:  SELECT t.typname::pg_catalog.text,a.attname::pg_catalog.text,
+	  pg_catalog.format_type(a.atttypid,a.atttypmod),a.attnum::pg_catalog.int4,
+	  a.attisdropped,a.attnotnull,a.atthasdef,a.attgenerated::pg_catalog.text,
+	  a.attidentity::pg_catalog.text,a.attcollation=ft.typcollation,a.attndims::pg_catalog.int4
+	FROM pg_catalog.pg_type t
+	JOIN pg_catalog.pg_namespace n ON n.oid=t.typnamespace
+	JOIN pg_catalog.pg_attribute a ON a.attrelid=t.typrelid AND a.attnum>0
+	LEFT JOIN pg_catalog.pg_type ft ON ft.oid=a.atttypid
+	WHERE n.nspname='public' AND t.typname=ANY($1::pg_catalog.text[])
+	ORDER BY t.typname,a.attnum
+	LIMIT 35
+	

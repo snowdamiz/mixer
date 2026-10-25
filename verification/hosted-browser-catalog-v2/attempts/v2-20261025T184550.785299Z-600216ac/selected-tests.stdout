@@ -1,0 +1,27 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+......
+
+  1) test actual combined function source signatures parameter names settings and results match static input (MixerHosted.BrowserAuth.CatalogV2Test)
+     verification/hosted-browser-catalog-v2/catalog_v2_test.exs:195
+     Assertion with == failed
+     code:  assert args == String.replace(expected.signature, ",", ", ")
+     left:  "bytea, bytea, bytea, bytea, bigint, mixer_browser_verified, bytea, bytea, text, text, bigint, mixer_browser_cipher, text"
+     right: "bytea, bytea, bytea, bytea, bigint, public.mixer_browser_verified, bytea, bytea, text, text, bigint, public.mixer_browser_cipher, text"
+     stacktrace:
+       verification/hosted-browser-catalog-v2/catalog_v2_test.exs:207: anonymous fn/2 in MixerHosted.BrowserAuth.CatalogV2Test."test actual combined function source signatures parameter names settings and results match static input"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       verification/hosted-browser-catalog-v2/catalog_v2_test.exs:205: anonymous fn/0 in MixerHosted.BrowserAuth.CatalogV2Test."test actual combined function source signatures parameter names settings and results match static input"/1
+       verification/hosted-browser-catalog-v2/catalog_v2_test.exs:754: MixerHosted.BrowserAuth.CatalogV2Test.versioned/2
+       verification/hosted-browser-catalog-v2/catalog_v2_test.exs:196: (test)
+
+...................
+14:45:53.957 [info] The function passed as a handler with ID {MixerHosted.BrowserAuth.CatalogV2Test, #Reference<0.1592305676.1225785345.108718>} is a local function.
+This means that it is either an anonymous function or a capture of a function without a module specified. That may cause a performance penalty when calling that handler. For more details see the note in `telemetry:attach/4` documentation.
+
+https://hexdocs.pm/telemetry/telemetry.html#attach/4
+....
+Finished in 1.0 seconds (0.00s async, 1.0s sync)
+
+Result: 29/30 passed
+Failed: 1 test

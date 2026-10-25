@@ -1,0 +1,25 @@
+********************************************************************************
+WARNING: POSTGRES_HOST_AUTH_METHOD has been set to "trust". This will allow
+         anyone with access to the Postgres port to access your database without
+         a password, even if POSTGRES_PASSWORD is set. See PostgreSQL
+         documentation about "trust":
+         https://www.postgresql.org/docs/current/auth-trust.html
+         In Docker's default configuration, this is effectively any other
+         container on the same system.
+
+         It is not recommended to use POSTGRES_HOST_AUTH_METHOD=trust. Replace
+         it with "-e POSTGRES_PASSWORD=password" instead to set a password in
+         "docker run".
+********************************************************************************
+initdb: warning: enabling "trust" authentication for local connections
+initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+2026-10-25 18:54:09.509 UTC [1] LOG:  starting PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-10-25 18:54:09.510 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-10-25 18:54:09.510 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2026-10-25 18:54:09.512 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-10-25 18:54:09.515 UTC [93] LOG:  database system was shut down at 2026-10-25 18:54:09 UTC
+2026-10-25 18:54:09.519 UTC [1] LOG:  database system is ready to accept connections
+2026-10-25 18:54:12.652 UTC [91] LOG:  checkpoint starting: immediate force wait
+2026-10-25 18:54:12.697 UTC [91] LOG:  checkpoint complete: wrote 1038 buffers (6.3%); 0 WAL file(s) added, 0 removed, 1 recycled; write=0.018 s, sync=0.022 s, total=0.045 s; sync files=390, longest=0.003 s, average=0.001 s; distance=9639 kB, estimate=9639 kB; lsn=0/2288DC0, redo lsn=0/2288D88
+2026-10-25 18:54:13.787 UTC [131] ERROR:  permission denied for table pg_proc
+2026-10-25 18:54:13.787 UTC [131] STATEMENT:  SELECT DISTINCT proowner::pg_catalog.int8 FROM pg_catalog.pg_proc LIMIT 4097

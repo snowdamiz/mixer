@@ -9,7 +9,7 @@ defmodule MixerHosted.BrowserAuth.Catalog do
   `in_transaction?/0` proves connection checkout, not Store ownership/provenance.
   Neither the Repo nor these expectations may come from a request.
   """
-  alias MixerHosted.BrowserAuth.CatalogManifest
+  alias MixerHosted.BrowserAuth.{CatalogManifest, CatalogManifestV2}
 
   defmodule Unavailable do
     @moduledoc false
@@ -20,9 +20,58 @@ defmodule MixerHosted.BrowserAuth.Catalog do
   @query_limit_ms 5_000
   @catalog_row_limit 4_096
 
+  @v1 %{
+    functions: CatalogManifest.functions(),
+    returns: CatalogManifest.returns(),
+    argument_names: CatalogManifest.argument_names(),
+    composites: CatalogManifest.composites(),
+    function_count: 18,
+    function_limit: 19,
+    function_acl_limit: 28,
+    composite_count: 3,
+    composite_limit: 4,
+    field_limit: 26,
+    type_acl_limit: 10,
+    escape_limit: 19
+  }
+  @v2 %{
+    functions: CatalogManifestV2.functions(),
+    returns: CatalogManifestV2.returns(),
+    argument_names: CatalogManifestV2.argument_names(),
+    composites: CatalogManifestV2.composites(),
+    function_count: 19,
+    function_limit: 20,
+    function_acl_limit: 30,
+    composite_count: 4,
+    composite_limit: 5,
+    field_limit: 35,
+    type_acl_limit: 13,
+    escape_limit: 20
+  }
+  for manifest <- [@v1, @v2] do
+    unless map_size(manifest.functions) == manifest.function_count and
+             map_size(manifest.composites) == manifest.composite_count and
+             manifest.function_limit == manifest.function_count + 1 and
+             manifest.escape_limit == manifest.function_count + 1 and
+             manifest.function_acl_limit ==
+               manifest.function_count +
+                 Enum.count(manifest.functions, fn {_n, f} -> f.runtime_execute end) + 1 and
+             manifest.composite_limit == manifest.composite_count + 1 and
+             manifest.field_limit ==
+               Enum.sum(Enum.map(manifest.composites, fn {_n, f} -> length(f) end)) + 1 and
+             manifest.type_acl_limit == manifest.composite_count * 3 + 1 do
+      raise "reviewed browser catalog bounds are incomplete"
+    end
+  end
+
   @doc false
-  def check_function_surface!(repo, expected_roles, monotonic_deadline_ms) do
+  def check_function_surface!(repo, expected_roles, monotonic_deadline_ms),
+    do: check_function_surface!(repo, expected_roles, monotonic_deadline_ms, 1)
+
+  @doc false
+  def check_function_surface!(repo, expected_roles, monotonic_deadline_ms, version) do
     try do
+      manifest = selected_manifest!(version)
       validate_roles!(expected_roles)
       require!(is_atom(repo) and repo.in_transaction?())
       now = System.monotonic_time(:millisecond)
@@ -31,9 +80,9 @@ defmodule MixerHosted.BrowserAuth.Catalog do
       context = {repo, monotonic_deadline_ms}
       session!(context, expected_roles)
       roles!(context, expected_roles)
-      functions!(context, expected_roles)
-      composites!(context, expected_roles)
-      escape_paths!(context, expected_roles)
+      functions!(context, expected_roles, manifest)
+      composites!(context, expected_roles, manifest)
+      escape_paths!(context, expected_roles, manifest)
       remaining!(monotonic_deadline_ms)
       :function_surface_verified
     rescue
@@ -42,6 +91,12 @@ defmodule MixerHosted.BrowserAuth.Catalog do
       _, _ -> raise Unavailable
     end
   end
+
+  # Only a future trusted owner may select these integer versions. No request,
+  # map, callback or supplied module can provide a catalog expectation.
+  defp selected_manifest!(version) when version === 1, do: @v1
+  defp selected_manifest!(version) when version === 2, do: @v2
+  defp selected_manifest!(_), do: raise(Unavailable)
 
   defp validate_roles!(roles) do
     require!(is_map(roles) and Enum.sort(Map.keys(roles)) == Enum.sort(@role_keys))
@@ -233,7 +288,7 @@ defmodule MixerHosted.BrowserAuth.Catalog do
     if MapSet.equal?(found, expanded), do: found, else: reachable(expanded, edges, deadline)
   end
 
-  defp functions!(context, roles) do
+  defp functions!(context, roles, manifest) do
     rows =
       query!(
         context,
@@ -266,16 +321,16 @@ defmodule MixerHosted.BrowserAuth.Catalog do
         JOIN pg_catalog.pg_roles o ON o.oid=p.proowner
         WHERE pg_catalog.left(p.proname::pg_catalog.text,14)='mixer_browser_'
         ORDER BY n.nspname,p.proname,p.oid
-        LIMIT 19
+        LIMIT #{manifest.function_limit}
         """,
         [roles.lifecycle_login, roles.writer, roles.ordinary_runtime_login]
       )
 
-    require!(length(rows) == 18)
+    require!(length(rows) == manifest.function_count)
 
     require!(
       MapSet.new(Enum.map(rows, &Enum.at(&1, 1))) ==
-        MapSet.new(Map.keys(CatalogManifest.functions()))
+        MapSet.new(Map.keys(manifest.functions))
     )
 
     for [
@@ -307,10 +362,10 @@ defmodule MixerHosted.BrowserAuth.Catalog do
           ordinary
         ] <- rows do
       remaining!(elem(context, 1))
-      expected = Map.fetch!(CatalogManifest.functions(), name)
+      expected = Map.fetch!(manifest.functions, name)
       require!(schema == "public" and language == "plpgsql" and owner == roles.writer)
       require!(args == String.replace(expected.signature, ",", ", "))
-      require!(result == Map.fetch!(CatalogManifest.returns(), name))
+      require!(result == Map.fetch!(manifest.returns, name))
       require!(source == expected.source and is_list(settings))
       require!(Enum.sort(settings) == Enum.sort(expected.settings))
 
@@ -323,7 +378,7 @@ defmodule MixerHosted.BrowserAuth.Catalog do
         [variadic, defaults, modes, support, binary, no_sql_body] == [0, 0, nil, 0, nil, true]
       )
 
-      require!(argument_names == Map.fetch!(CatalogManifest.argument_names(), name))
+      require!(argument_names == Map.fetch!(manifest.argument_names, name))
       require!(lifecycle == expected.runtime_execute and writer and not ordinary)
     end
 
@@ -331,33 +386,34 @@ defmodule MixerHosted.BrowserAuth.Catalog do
       query!(context, """
       SELECT p.proname::pg_catalog.text,
         CASE WHEN a.grantee=0 THEN 'PUBLIC' ELSE g.rolname::pg_catalog.text END,
-        a.privilege_type,a.is_grantable
+        grantor.rolname::pg_catalog.text,a.privilege_type,a.is_grantable
       FROM pg_catalog.pg_proc p
       JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace
       CROSS JOIN LATERAL pg_catalog.aclexplode(
         COALESCE(p.proacl,pg_catalog.acldefault('f',p.proowner))) a
       LEFT JOIN pg_catalog.pg_roles g ON g.oid=a.grantee
+      LEFT JOIN pg_catalog.pg_roles grantor ON grantor.oid=a.grantor
       WHERE n.nspname='public' AND pg_catalog.left(p.proname::pg_catalog.text,14)='mixer_browser_'
-      LIMIT 28
+      LIMIT #{manifest.function_acl_limit}
       """)
 
     expected_acls =
-      Enum.flat_map(CatalogManifest.functions(), fn {name, expected} ->
-        [[name, roles.writer, "EXECUTE", false]] ++
+      Enum.flat_map(manifest.functions, fn {name, expected} ->
+        [[name, roles.writer, roles.writer, "EXECUTE", false]] ++
           if expected.runtime_execute,
-            do: [[name, roles.lifecycle_login, "EXECUTE", false]],
+            do: [[name, roles.lifecycle_login, roles.writer, "EXECUTE", false]],
             else: []
       end)
 
     require!(Enum.sort(acls) == Enum.sort(expected_acls))
   end
 
-  defp composites!(context, roles) do
+  defp composites!(context, roles, manifest) do
     rows =
       query!(
         context,
         """
-        SELECT t.typname::pg_catalog.text,t.typtype::pg_catalog.text,
+        SELECT n.nspname::pg_catalog.text,t.typname::pg_catalog.text,t.typtype::pg_catalog.text,
           o.rolname::pg_catalog.text,c.relkind::pg_catalog.text,
           pg_catalog.has_type_privilege($1::pg_catalog.text,t.oid,'USAGE'),
           pg_catalog.has_type_privilege($2::pg_catalog.text,t.oid,'USAGE'),
@@ -365,26 +421,32 @@ defmodule MixerHosted.BrowserAuth.Catalog do
         FROM pg_catalog.pg_type t
         JOIN pg_catalog.pg_namespace n ON n.oid=t.typnamespace
         JOIN pg_catalog.pg_roles o ON o.oid=t.typowner
-        JOIN pg_catalog.pg_class c ON c.oid=t.typrelid
-        WHERE n.nspname='public' AND t.typname=ANY($4::pg_catalog.text[])
-        LIMIT 4
+        LEFT JOIN pg_catalog.pg_class c ON c.oid=t.typrelid
+        WHERE pg_catalog.left(t.typname::pg_catalog.text,14)='mixer_browser_'
+          AND (c.oid IS NULL OR c.relkind='c' OR t.typname=ANY($4::pg_catalog.text[]))
+        ORDER BY n.nspname,t.typname
+        LIMIT #{manifest.composite_limit}
         """,
         [
           roles.lifecycle_login,
           roles.writer,
           roles.ordinary_runtime_login,
-          Map.keys(CatalogManifest.composites())
+          Map.keys(manifest.composites)
         ]
       )
 
-    require!(length(rows) == 3)
+    require!(length(rows) == manifest.composite_count)
 
-    for [_name, kind, owner, relation_kind, lifecycle, writer, ordinary] <- rows do
+    require!(
+      MapSet.new(Enum.map(rows, &Enum.at(&1, 1))) == MapSet.new(Map.keys(manifest.composites))
+    )
+
+    for [schema, _name, kind, owner, relation_kind, lifecycle, writer, ordinary] <- rows do
       remaining!(elem(context, 1))
 
       require!(
-        [kind, owner, relation_kind, lifecycle, writer, ordinary] ==
-          ["c", roles.relation_owner, "c", true, true, false]
+        [schema, kind, owner, relation_kind, lifecycle, writer, ordinary] ==
+          ["public", "c", roles.relation_owner, "c", true, true, false]
       )
     end
 
@@ -402,13 +464,13 @@ defmodule MixerHosted.BrowserAuth.Catalog do
         LEFT JOIN pg_catalog.pg_type ft ON ft.oid=a.atttypid
         WHERE n.nspname='public' AND t.typname=ANY($1::pg_catalog.text[])
         ORDER BY t.typname,a.attnum
-        LIMIT 26
+        LIMIT #{manifest.field_limit}
         """,
-        [Map.keys(CatalogManifest.composites())]
+        [Map.keys(manifest.composites)]
       )
 
     expected_fields =
-      for {type, fields} <- CatalogManifest.composites(),
+      for {type, fields} <- manifest.composites,
           {{name, kind}, index} <- Enum.with_index(fields, 1),
           do: [
             type,
@@ -432,27 +494,28 @@ defmodule MixerHosted.BrowserAuth.Catalog do
         """
         SELECT t.typname::pg_catalog.text,
           CASE WHEN a.grantee=0 THEN 'PUBLIC' ELSE g.rolname::pg_catalog.text END,
-          a.privilege_type,a.is_grantable
+          grantor.rolname::pg_catalog.text,a.privilege_type,a.is_grantable
         FROM pg_catalog.pg_type t
         JOIN pg_catalog.pg_namespace n ON n.oid=t.typnamespace
         CROSS JOIN LATERAL pg_catalog.aclexplode(
           COALESCE(t.typacl,pg_catalog.acldefault('T',t.typowner))) a
         LEFT JOIN pg_catalog.pg_roles g ON g.oid=a.grantee
+        LEFT JOIN pg_catalog.pg_roles grantor ON grantor.oid=a.grantor
         WHERE n.nspname='public' AND t.typname=ANY($1::pg_catalog.text[])
-        LIMIT 10
+        LIMIT #{manifest.type_acl_limit}
         """,
-        [Map.keys(CatalogManifest.composites())]
+        [Map.keys(manifest.composites)]
       )
 
     expected_acls =
-      for type <- Map.keys(CatalogManifest.composites()),
+      for type <- Map.keys(manifest.composites),
           role <- [roles.relation_owner, roles.writer, roles.lifecycle_login],
-          do: [type, role, "USAGE", false]
+          do: [type, role, roles.relation_owner, "USAGE", false]
 
     require!(Enum.sort(acls) == Enum.sort(expected_acls))
   end
 
-  defp escape_paths!(context, roles) do
+  defp escape_paths!(context, roles, manifest) do
     # Reject every callable application SECURITY DEFINER outside the exact
     # reviewed surface, including a helper in a second accessible schema.
     rows =
@@ -467,14 +530,16 @@ defmodule MixerHosted.BrowserAuth.Catalog do
         WHERE p.prosecdef AND n.nspname NOT IN ('pg_catalog','information_schema')
           AND (pg_catalog.has_function_privilege($1::pg_catalog.text,p.oid,'EXECUTE')
             OR pg_catalog.has_function_privilege($2::pg_catalog.text,p.oid,'EXECUTE'))
-        LIMIT 19
+        LIMIT #{manifest.escape_limit}
         """,
         [roles.lifecycle_login, roles.writer]
       )
 
+    require!(length(rows) == manifest.function_count)
+
     for [schema, name, lifecycle, writer] <- rows do
       remaining!(elem(context, 1))
-      expected = Map.fetch!(CatalogManifest.functions(), name)
+      expected = Map.fetch!(manifest.functions, name)
       require!(schema == "public" and writer and lifecycle == expected.runtime_execute)
     end
 

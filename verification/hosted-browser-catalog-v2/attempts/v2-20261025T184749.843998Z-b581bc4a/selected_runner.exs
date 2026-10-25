@@ -1,0 +1,5 @@
+ExUnit.start(autorun: false, seed: 0, max_cases: 1)
+Code.require_file("verification/hosted-browser-catalog-v2/catalog_v2_test.exs")
+r=ExUnit.run()
+File.write!("/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-v2/attempts/v2-20261025T184749.843998Z-b581bc4a/result.json",Jason.encode!(r))
+System.halt(if r.total==30 and r.failures==0 and r.skipped==0 and r.excluded==0 and Map.get(r,:invalid,0)==0, do: 0, else: 1)

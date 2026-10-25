@@ -23,6 +23,7 @@ SOURCES = [
     'hosted/lib/mixer_hosted/browser_auth/activation_preparation.ex',
     'hosted/lib/mixer_hosted/browser_auth/catalog.ex',
     'hosted/lib/mixer_hosted/browser_auth/catalog_manifest.ex',
+    'hosted/lib/mixer_hosted/browser_auth/catalog_manifest_v2.ex',
     'hosted/lib/mixer_hosted/browser_auth/vault.ex',
     'hosted/lib/mixer_hosted/browser_auth/stored_snapshot.ex',
     'hosted/test/mixer_hosted/browser_auth/storage_fixture.exs',
@@ -111,7 +112,7 @@ CREATE ROLE browser_ordinary LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;'''])
     for directory in DEPENDENCIES:
         command += ['-pa', directory]
     for source in ['storage_schema.ex', 'activation_preparation_schema.ex', 'vault.ex',
-                   'stored_snapshot.ex', 'activation_preparation.ex', 'catalog_manifest.ex', 'catalog.ex']:
+                   'stored_snapshot.ex', 'activation_preparation.ex', 'catalog_manifest.ex', 'catalog_manifest_v2.ex', 'catalog.ex']:
         command += ['-r', inputs / 'hosted/lib/mixer_hosted/browser_auth' / source]
     runner = ATTEMPT / 'selected_runner.exs'
     runner.write_text('ExUnit.start(autorun: false, seed: 0, max_cases: 1)\n' +
