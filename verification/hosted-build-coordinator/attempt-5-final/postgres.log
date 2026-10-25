@@ -1,0 +1,29 @@
+2026-10-24 21:03:57.519 EDT [57026] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-24 21:03:57.520 EDT [57026] LOG:  listening on IPv4 address "127.0.0.1", port 60245
+2026-10-24 21:03:57.523 EDT [57029] LOG:  database system was shut down at 2026-10-24 21:03:57 EDT
+2026-10-24 21:03:57.526 EDT [57026] LOG:  database system is ready to accept connections
+2026-10-24 21:04:08.137 EDT [57297] ERROR:  new row for relation "mixer_build_reservations" violates check constraint "mixer_build_reservations_bounds"
+2026-10-24 21:04:08.137 EDT [57297] DETAIL:  Failing row contains (20772da6-e73f-44f6-8ce1-2a49f46508cd, review-org, ios, 1, 1, f, null).
+2026-10-24 21:04:08.137 EDT [57297] STATEMENT:  UPDATE mixer_build_reservations SET held = false, terminal_event_id = NULL WHERE build_record_id = $1
+2026-10-24 21:04:08.138 EDT [57299] ERROR:  new row for relation "mixer_build_coordinator_leases" violates check constraint "mixer_build_coordinator_leases_bounds"
+2026-10-24 21:04:08.138 EDT [57299] DETAIL:  Failing row contains (20772da6-e73f-44f6-8ce1-2a49f46508cd, null, 1, 2026-10-25 01:05:08.136389).
+2026-10-24 21:04:08.138 EDT [57299] STATEMENT:  UPDATE mixer_build_coordinator_leases SET owner_id = NULL WHERE build_record_id = $1
+2026-10-24 21:04:08.139 EDT [57293] ERROR:  new row for relation "mixer_build_coordinator_leases" violates check constraint "mixer_build_coordinator_leases_bounds"
+2026-10-24 21:04:08.139 EDT [57293] DETAIL:  Failing row contains (20772da6-e73f-44f6-8ce1-2a49f46508cd, owner-one, 0, 2026-10-25 01:05:08.136389).
+2026-10-24 21:04:08.139 EDT [57293] STATEMENT:  UPDATE mixer_build_coordinator_leases SET epoch = 0 WHERE build_record_id = $1
+2026-10-24 21:04:08.140 EDT [57295] ERROR:  insert or update on table "mixer_build_reservations" violates foreign key constraint "mixer_build_reservations_build_scope_fkey"
+2026-10-24 21:04:08.140 EDT [57295] DETAIL:  Key (build_record_id, organization_id, platform)=(20772da6-e73f-44f6-8ce1-2a49f46508cd, other-org, ios) is not present in table "mixer_builds".
+2026-10-24 21:04:08.140 EDT [57295] STATEMENT:  UPDATE mixer_build_reservations SET organization_id = 'other-org' WHERE build_record_id = $1
+2026-10-24 21:04:09.924 EDT [57340] ERROR:  new row for relation "oban_jobs" violates check constraint "coordinator_reject_retry"
+2026-10-24 21:04:09.924 EDT [57340] DETAIL:  Failing row contains (44, available, builds, MixerHosted.Builds.Coordinator, {"kind": "retry", "fence": 3, "attempt": 2, "build_id": "build-c..., {}, 0, 20, 2026-10-25 01:04:09.924341, 2026-10-25 01:04:09.924341, null, null, null, null, 0, {}, {}, null).
+2026-10-24 21:04:09.924 EDT [57340] STATEMENT:  INSERT INTO "public"."oban_jobs" ("args","meta","state","max_attempts","queue","worker","errors","tags","attempt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"
+2026-10-24 21:04:09.949 EDT [57340] ERROR:  new row for relation "oban_jobs" violates check constraint "coordinator_reject_start"
+2026-10-24 21:04:09.949 EDT [57340] DETAIL:  Failing row contains (50, available, builds, MixerHosted.Builds.Coordinator, {"kind": "start", "fence": 1, "attempt": 1, "build_id": "build-c..., {}, 0, 20, 2026-10-25 01:04:09.947872, 2026-10-25 01:04:09.947872, null, null, null, null, 0, {}, {}, null).
+2026-10-24 21:04:09.949 EDT [57340] STATEMENT:  INSERT INTO "public"."oban_jobs" ("args","meta","state","max_attempts","queue","worker","errors","tags","attempt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"
+2026-10-24 21:04:35.794 EDT [57026] LOG:  received fast shutdown request
+2026-10-24 21:04:35.794 EDT [57026] LOG:  aborting any active transactions
+2026-10-24 21:04:35.795 EDT [57026] LOG:  background worker "logical replication launcher" (PID 57032) exited with exit code 1
+2026-10-24 21:04:35.795 EDT [57027] LOG:  shutting down
+2026-10-24 21:04:35.795 EDT [57027] LOG:  checkpoint starting: shutdown immediate
+2026-10-24 21:04:36.241 EDT [57027] LOG:  checkpoint complete: wrote 7889 buffers (48.2%); 0 WAL file(s) added, 0 removed, 2 recycled; write=0.286 s, sync=0.100 s, total=0.446 s; sync files=5057, longest=0.001 s, average=0.001 s; distance=38840 kB, estimate=38840 kB; lsn=0/3B08940, redo lsn=0/3B08940
+2026-10-24 21:04:36.244 EDT [57026] LOG:  database system is shut down

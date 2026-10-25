@@ -1,0 +1,27 @@
+{
+  "schema": "mixer.failed-review-attempt.v1",
+  "observed_at": "2026-10-25T01:03:35.399549+00:00",
+  "status": "retained_failed_diagnostic_attempt_not_accepted",
+  "root_receipt": "verification/hosted-build-coordinator/attempt-3-processor-diagnostic/receipt.json",
+  "root_receipt_sha256": "35b850dea52420a5b394076730c44e0b0d98b062c8235e0c653695d7e808bbbc",
+  "source_revision": "e8ab06649f122862f3ef4e3c68124af2da1af744",
+  "source_tree_sha256": "ecdfb9ba32edd96f9938e1c03bdbe2098587ea76324f2aba13426d3d92712cd5",
+  "source_archive_sha256": "41afd6052046dfbd9c73ad460886112813e6b817e793714b43abd0d38e64bcab",
+  "archive_input_count": 90,
+  "verified_command_log_count": 21,
+  "runtime_result": "Targeted processor diagnostic failed: 0/1 passed.",
+  "observed_failure": [
+    "Actual Oban.Notifiers.Postgres repeatedly failed missing :database, while explicit Ecto Repo start options selected the disposable review DB. Notifier opens its separate connection using Repo.config/0 application configuration.",
+    "Review diagnostic incorrectly called Map.take on Repo.config keyword options; it raised BadMapError and masked the initial no-callback assertion. The explicit test after-block stop/row-clear message was not observed; only ExUnit supervised-process teardown and root PostgreSQL/scratch cleanup are evidenced."
+  ],
+  "correction": [
+    "Set and restore identical dedicated Repo application env and start options; assert notifier DB identity and a real bounded gossip round-trip before pause/resume.",
+    "Use Keyword.take/Map.new and nested try/after so owned Oban shutdown and fixture-row cleanup execute even if diagnostic logging fails."
+  ],
+  "production_changes_for_this_failure": false,
+  "cleanup": {
+    "postgres_stopped": true,
+    "scratch_removed": true
+  },
+  "scope": "Independent archive/log rehash only; asynchronous processor acceptance remains pending a corrected targeted and final combined run."
+}

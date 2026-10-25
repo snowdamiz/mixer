@@ -80,11 +80,13 @@ Indexed/journal disagreement and malformed or inconsistent reservation state
 fail closed.
 
 Guarded retry is rejected while a reservation is held. After definitive release,
-the trusted caller may compose Storage's bounded retry transition, then claim
-the new queued attempt. The retained release event is checked against replayed
+`retry_multi` rechecks the current revision, released evidence and cleared owner
+under the admission lock order, then composes Storage's bounded retry transition
+with current database time. The retained release event is checked against replayed
 history before readmission. Historical tokens and terminal events cannot release
-the new attempt. These are trusted internal composition contracts; Storage is
-still independently callable and no production dispatcher is installed.
+the new attempt. `yield_multi` expires only the coordination lease, retaining
+worker occupancy and its fence. The internal Coordinator uses these contracts;
+Storage remains independently callable and no external dispatch adapter is configured.
 
 The database tests use the dedicated disposable `mixer_admission_test` database,
 real row-lock contention and direct-SQL fixture expiry. They cover last-slot

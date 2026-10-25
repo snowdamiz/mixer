@@ -1,0 +1,62 @@
+{
+  "schema": "mixer.independent-coordinator-evidence-check.v1",
+  "observed_at": "2026-10-25T01:04:51.074093+00:00",
+  "status": "passed",
+  "command": "python3 verification/hosted-build-coordinator-independent-review/verify_receipt.py",
+  "argv": [
+    "verification/hosted-build-coordinator-independent-review/verify_receipt.py"
+  ],
+  "python_version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "verifier_sha256": "c8fe80382dde4f884362afe0be60000d380dd3a43bb95503ce9afd85890d958a",
+  "root_receipt": "verification/hosted-build-coordinator/attempt-5-final/receipt.json",
+  "root_receipt_sha256": "2938f51a33476f292320c38661f050a4bbe945544829fa1801c51b607be745e0",
+  "source_revision": "e8ab06649f122862f3ef4e3c68124af2da1af744",
+  "source_tree_sha256": "c21aff5bfbfcbe113e39c7ac99747336f69b91f5b40bb7363ff2df54700c2026",
+  "source_archive_sha256": "8127ce74f177f3d354752df41a5b2f159423627b6a6c6a5015086750304b3641",
+  "verified_current_and_archived_inputs": 92,
+  "verified_command_logs": 21,
+  "scoped_inputs": {
+    "hosted/lib/mixer_hosted/builds/coordinator.ex": "1bf162cb617c8a62262c82d8a7038214bd7d229762ced511c2c33d082493e0b3",
+    "hosted/lib/mixer_hosted/builds/dispatch.ex": "a535e02f8d4a9ebf8a6c9be5a5ba89b09de0192f8987e2e9ac520af206fcb753",
+    "hosted/lib/mixer_hosted/builds/admission.ex": "f1f66e1d37380c87ca3ad3313f11e54be9cd68cc1fb4380238b854ae780e2469",
+    "verification/hosted-build-coordinator-independent-review/independent_test.exs": "c422110caf1cdf185daf5a1bc394a8183bc40ac11f036f8b5a0b222fdb3e651c",
+    "verification/hosted-build-coordinator-independent-review/processor_test.exs": "4013cbfeecbd2ff6ca30b1e7ebda064e7cb1d0752d4f3d94403a3f00764edb6c"
+  },
+  "results": {
+    "host_passed": 261,
+    "host_skipped": 2,
+    "selected_tests_included_in_total": {
+      "MixerHosted.Builds.CoordinatorTest": 19,
+      "MixerHosted.BuildCoordinatorReview.Test": 14,
+      "MixerHosted.BuildCoordinatorProcessorReview.Test": 1,
+      "MixerHosted.BuildAdmissionReview.Test": 11
+    }
+  },
+  "skipped_test_lines": [
+    "* test K03 production resolver/classifier pins public peer despite rebinding; private sink remains untouched (skipped) [L#32]",
+    "* test IS04 IS05 actual configured startup cold production DNS TLS admission and lifecycle (skipped) [L#29]"
+  ],
+  "tools": {
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "database_timezone": "UTC"
+  },
+  "checks": {
+    "current_inputs_match_archive": true,
+    "all_command_logs_match": true,
+    "asynchronous_oban_processor_exercised": true,
+    "production_coordinator_present": true,
+    "modeled_provider_helpers_absent_from_release": true,
+    "owned_oban_supervisor_stopped": true,
+    "dedicated_processor_database_rows_cleared": true,
+    "postgres_stopped": true,
+    "scratch_removed": true
+  },
+  "scope": "Real local PostgreSQL and asynchronous Oban processor with a production Coordinator worker; modeled external adapter operations.",
+  "limitations": [
+    "Synthetic adapter registries do not qualify provider persistence, authentication, hostile-code isolation, billing or exactly-once external execution.",
+    "Loopback PostgreSQL without TLS is not Neon, Cloudflare lifecycle, failover, restore or multi-replica operational evidence.",
+    "Public authorization/RLS, real build workers, queue estimates, artifact content publication, signing and GA remain pending.",
+    "Two existing Linux-only identity controls are skipped on this Mac; no native or physical-phone evidence is supplied."
+  ]
+}

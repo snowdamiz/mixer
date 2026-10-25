@@ -1,0 +1,37 @@
+{
+  "schema": "mixer.independent-review-plan.v1",
+  "status": "completed_accepted_internal_development_slice",
+  "reviewer_scope": [
+    "verification/hosted-build-coordinator-independent-review/",
+    "docs/hosted-build-coordinator-independent-review.md"
+  ],
+  "requirements": [
+    "mixer-product-plan.md#13.2",
+    "mixer-product-plan.md#13.5",
+    "mixer-product-plan.md#14"
+  ],
+  "controls": [
+    "Exact closed scope and immutable intent binding reject job redirection",
+    "Historical job replay cannot start a subsequent lifecycle attempt",
+    "Committed lifecycle start and held admission precede external ensure",
+    "Stable WorkerRef preserves external operation identity across Oban retries and coordinator lease epochs",
+    "Epoch loss before or during adapter effects cannot mutate through a stale token",
+    "Crash after external effect before journal reconciliation queries the same external operation",
+    "Cancellation and timeout retain occupancy until definite matching worker termination",
+    "Terminal historical evidence cannot release a subsequent reservation",
+    "Invalid adapter observations fail closed without release or unsupported retry",
+    "Default unconfigured adapter cannot dispatch",
+    "Only trusted deployment configuration selects an adapter; job arguments cannot select implementation",
+    "Test adapter and review fixtures are excluded from a production release"
+  ],
+  "execution_owner": "root",
+  "database": "mixer_coordinator_review_test",
+  "database_port_environment_variable": "MIXER_TEST_DATABASE_PORT",
+  "limitations": [
+    "Independent reviewer does not start databases, services, providers or native runtimes",
+    "Source review alone is not real Oban execution evidence",
+    "Synthetic trusted adapters do not qualify provider authentication, customer-code isolation, external exactly-once effects or GA",
+    "Frozen catalog inspector and authority driver remain outside scope"
+  ],
+  "final_receipt": "verification/hosted-build-coordinator-independent-review/receipt.json"
+}

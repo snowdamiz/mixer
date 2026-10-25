@@ -17,9 +17,13 @@ parser.add_argument("--output", required=True, type=Path)
 parser.add_argument("--pg-bin", default="/opt/homebrew/opt/postgresql@17/bin", type=Path)
 parser.add_argument("--additional-test", action="append", default=[], type=Path,
                     help="Explicit repository-local independent ExUnit test; bound into the receipt")
+parser.add_argument("--only-additional-tests", action="store_true",
+                    help="Run only explicitly supplied independent tests for a focused diagnostic")
 args = parser.parse_args()
 root = Path(__file__).resolve().parents[1]
 additional_tests = [p.resolve() for p in args.additional_test]
+if args.only_additional_tests and not additional_tests:
+    parser.error("--only-additional-tests requires --additional-test")
 for test in additional_tests:
     if not test.is_relative_to(root.parent) or test.suffix != ".exs" or not test.is_file():
         parser.error("additional tests must be existing repository-local .exs files")
@@ -97,6 +101,8 @@ try:
     release_code += "; " + 'Code.ensure_loaded!(MixerHosted.Billing.RawWebhookCapture)\n{:ok, {_, [atoms: atoms, exports: exports]}} = :beam_lib.chunks(:code.which(MixerHosted.Billing.RawWebhookCapture), [:atoms, :exports])\nfalse = Enum.any?(atoms, fn {_, atom} -> Atom.to_string(atom) == "Elixir.MixerRawCapture.TestClock" end)\ntrue = Enum.sort(exports) == Enum.sort(__info__: 1, capture: 1, module_info: 0, module_info: 1)\nfalse = Code.ensure_loaded?(MixerRawCapture.TestClock)\nfalse = Code.ensure_loaded?(MixerHosted.Billing.RawWebhookCaptureTest.Adapter)\nIO.inspect(%{test_clock_absent: true, test_adapter_absent: true, exports: exports}, label: "production_raw_capture_policy")\n'
     release_code += "; " + 'modules = [\n  MixerHosted.Billing.WebhookTransport,\n  MixerHosted.Billing.WebhookTransport.Sinks,\n  MixerHosted.Billing.WebhookTransport.Guard,\n  MixerHosted.Billing.WebhookTransport.Owner\n]\n\nhelpers = [\n  MixerRawCapture.TestClock,\n  MixerRawCapture.FakeAdapter,\n  MixerRawCapture.ProductionProbeAdapter,\n  MixerRawCapture.CountingAdapter,\n  MixerRawCapture.ComponentTest,\n  MixerRawCapture.WireState,\n  MixerRawCapture.LoggerHandler,\n  MixerRawCapture.PrivatePlug,\n  MixerRawCapture.WireHelpers,\n  MixerRawCapture.WireTest,\n  MixerPrivateNegative,\n  PrivateTransportEvidence,\n  PrivateTransportLogSink,\n  PrivateTransportPlug,\n  PrivateTransportHelpers,\n  PrivateTransportTest,\n  ReviewEvidence,\n  ReviewSink,\n  ReviewPlug,\n  ReviewHelpers,\n  ReviewIndependentTest,\n  MixerHosted.Billing.RawWebhookCaptureTest.Adapter,\n  MixerHosted.Billing.WebhookTransportTest,\n  MixerHosted.Billing.WebhookTransportTest.ForbiddenAdapter\n]\n\nrows = Enum.map(modules, fn module ->\n  Code.ensure_loaded!(module)\n  path = :code.which(module)\n  {:ok, {^module, [atoms: atoms, exports: exports]}} = :beam_lib.chunks(path, [:atoms, :exports])\n  names = Enum.map(atoms, fn {_, atom} -> Atom.to_string(atom) end)\n  false = Enum.any?(names, fn name ->\n    String.starts_with?(name, ["Elixir.MixerRawCapture.", "Elixir.PrivateTransport", "Elixir.Review"])\n  end)\n\n  %{\n    module: Atom.to_string(module),\n    path: List.to_string(path),\n    exports: Enum.map(exports, fn {name, arity} -> %{name: Atom.to_string(name), arity: arity} end),\n    atoms: names,\n    test_helper_atom_absent: true\n  }\nend)\n\nfalse = Enum.any?(helpers, &Code.ensure_loaded?/1)\nfalse = function_exported?(MixerHosted.Billing.WebhookTransport, :capture, 2)\nfalse = function_exported?(MixerHosted.Billing.WebhookTransport, :dispose, 1)\ntrue = Enum.sort(MixerHosted.Billing.WebhookTransport.__info__(:functions)) ==\n  Enum.sort(capture: 1, child_spec: 1, dispose: 0, init: 1, start_link: 1, start_link: 2)\n\n# This process only loads production modules. The candidate role is intentionally\n# absent: the ordinary application has no transport child or activated listener.\nnil = Process.whereis(MixerHosted.Billing.WebhookTransport.Owner)\nnil = Process.whereis(MixerHosted.Billing.WebhookTransport.Sinks)\nnil = Process.whereis(MixerHosted.Billing.WebhookTransport.Guards)\n\nresult = %{\n  status: "passed",\n  candidate_modules: rows,\n  absent_helper_modules: Enum.map(helpers, &Atom.to_string/1),\n  test_helpers_loaded: false,\n  transport_capture_clock_or_adapter_argument: false,\n  role_started: false,\n  listener_started: false,\n  scope: "Production release BEAM inspection; no transport role startup or public admission"\n}\n\nIO.inspect(result, label: "production_transport_policy", limit: :infinity)\nIO.puts("production_transport_policy: passed; 4 production modules; test helpers absent; role inactive")\n'
     release_code += "; " + 'false = Code.ensure_loaded?(MixerHosted.Test.BuildIntentWorker); false = Code.ensure_loaded?(BuildStorageReview.Worker); false = Code.ensure_loaded?(MixerHosted.BuildAdmissionReview.Worker); IO.puts("production_build_intent_test_workers: absent")'
+    release_code += "; " + 'Code.ensure_loaded!(MixerHosted.Builds.Coordinator); Code.ensure_loaded!(MixerHosted.Builds.Dispatch); false = Code.ensure_loaded?(MixerHosted.Test.BuildDispatchFixture); false = Code.ensure_loaded?(MixerHosted.BuildCoordinatorReview.Adapter); false = Code.ensure_loaded?(MixerHosted.BuildCoordinatorReview.Test); IO.puts("production_build_coordinator: present; modeled dispatch helpers: absent")'
+    release_code += "; " + 'false = Code.ensure_loaded?(MixerHosted.BuildCoordinatorProcessorReview.Adapter); false = Code.ensure_loaded?(MixerHosted.BuildCoordinatorProcessorReview.Test); IO.puts("production_build_coordinator_processor_review: absent")'
     run("release-test-exclusion", ["elixir", "-pa", str(root / "_build/prod/rel/mixer_hosted/lib/mixer_hosted-0.1.0/ebin"), "-e", release_code], prod_env)
     run("initdb", [str(args.pg_bin / "initdb"), "-D", str(scratch / "data"), "-U", "mixer_fixture",
                    "--auth-local=trust", "--auth-host=trust", "--no-locale", "-E", "UTF8"])
@@ -123,14 +129,20 @@ try:
                            "mixer_fixture", "mixer_builds_test"])
     run("createdb-admission", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                               "mixer_fixture", "mixer_admission_test"])
+    run("createdb-coordinator", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
+                                "mixer_fixture", "mixer_coordinator_test"])
     if additional_tests:
         run("createdb-builds-review", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                                       "mixer_fixture", "mixer_builds_review_test"])
         run("createdb-admission-review", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                                          "mixer_fixture", "mixer_admission_review_test"])
+        run("createdb-coordinator-review", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
+                                           "mixer_fixture", "mixer_coordinator_review_test"])
     test_argv = ["mix", "test", "--warnings-as-errors", "--seed", "0", "--trace"]
     if additional_tests:
-        test_argv.extend(["test", *map(str, additional_tests)])
+        if not args.only_additional_tests:
+            test_argv.append("test")
+        test_argv.extend(map(str, additional_tests))
     run("tests", test_argv, env)
     if before != manifest():
         raise RuntimeError("source changed during tests")
@@ -150,11 +162,12 @@ finally:
         cleanup["scratch_removed"] = not scratch.exists()
     receipt = {
         "schema": 2, "status": status, "source_tree_sha256": source_digest, "inputs": before,
+        "test_selection": "explicit independent tests only" if args.only_additional_tests else "repository suite and explicit independent tests",
         "input_paths": "repository-relative; source archive uses the same paths",
         "source_archive_sha256": digest(output / "source.tar.gz"), "commands": commands,
         "cleanup": cleanup,
         "scope": "Host application test suite, Phoenix/Bandit, real build journals, reservations and coordinator leases in disposable PostgreSQL, atomic Oban job intents and packaged release. Exact tested components are recorded in tests.log. No Neon, Cloudflare, configured identity provider, authenticated HTTP routes, deployed job processing, external-effect, native, or GA qualification.",
-        "limitations": ["Foundation probe table and job consumers are test-only; build domain schemas are production modules tested with synthetic data.",
+        "limitations": ["Foundation probe table and fixture job consumers are test-only; production build schemas and coordinator are tested with synthetic data and modeled dispatch adapters, with no production adapter configured.",
                         "Database integration uses an isolated loopback PostgreSQL fixture without TLS; production TLS options have configuration tests only.",
                         "Local delayed-job completion does not qualify Cloudflare zero-traffic wake/recovery."]
     }

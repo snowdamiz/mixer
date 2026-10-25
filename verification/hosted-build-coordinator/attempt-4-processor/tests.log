@@ -1,0 +1,101 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+MixerHosted.BuildCoordinatorProcessorReview.Test [/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-build-coordinator-independent-review/processor_test.exs]
+  * test asynchronous Oban processor consumes production Coordinator intents then persists snooze [L#123]independent_coordinator_processor_proof: %{
+  creation: %{id: 1, state: "completed", attempt: 1},
+  mode: :asynchronous_oban_processor,
+  callbacks: [:query, :ensure_started],
+  testing: :disabled,
+  worker: "MixerHosted.Builds.Coordinator",
+  successor: %{id: 2, state: "scheduled", attempt: 0},
+  held_reservations: 1
+}
+independent_coordinator_processor_before_cleanup: %{
+  queue: %{
+    name: Oban,
+    node: "Andreys-MacBook-Pro",
+    running: [],
+    queue: "builds",
+    started_at: ~U[2026-10-25 01:03:14.204315Z],
+    limit: 1,
+    paused: true,
+    updated_at: ~U[2026-10-25 01:03:14.204320Z],
+    uuid: "1b2249d7-a5a9-4701-8712-119292cfb0c9",
+    refresh_interval: 60000,
+    shutdown_started_at: nil
+  },
+  adapter: %{
+    calls: [:query, :ensure_started],
+    operation: "741d14aa1821a89412a37821aa253d5950e0c73c02c569db9530ad8758d11995",
+    test_pid: #PID<0.317.0>
+  },
+  database: [["mixer_coordinator_review_test", "UTC"]],
+  jobs: [
+    %{
+      args: %{
+        "application_id" => "processor-review-app",
+        "attempt" => 1,
+        "build_id" => "processor-review-build",
+        "build_record_id" => "1d00869b-b61f-4eaf-97c6-e0bea82a0bdf",
+        "fence" => 1,
+        "kind" => "created",
+        "organization_id" => "processor-review-org",
+        "platform" => "android",
+        "project_id" => "processor-review-project",
+        "revision" => 0
+      },
+      id: 1,
+      meta: %{},
+      state: "completed",
+      worker: "MixerHosted.Builds.Coordinator",
+      errors: [],
+      attempt: 1,
+      scheduled_at: ~U[2026-10-25 01:03:14.210614Z],
+      attempted_at: ~U[2026-10-25 01:03:14.230975Z],
+      completed_at: ~U[2026-10-25 01:03:14.239840Z]
+    },
+    %{
+      args: %{
+        "application_id" => "processor-review-app",
+        "attempt" => 1,
+        "build_id" => "processor-review-build",
+        "build_record_id" => "1d00869b-b61f-4eaf-97c6-e0bea82a0bdf",
+        "fence" => 1,
+        "kind" => "start",
+        "organization_id" => "processor-review-org",
+        "platform" => "android",
+        "project_id" => "processor-review-project",
+        "revision" => 1
+      },
+      id: 2,
+      meta: %{"snoozed" => 1},
+      state: "scheduled",
+      worker: "MixerHosted.Builds.Coordinator",
+      errors: [],
+      attempt: 0,
+      scheduled_at: ~U[2026-10-25 01:04:14.257469Z],
+      attempted_at: ~U[2026-10-25 01:03:14.247214Z],
+      completed_at: nil
+    }
+  ],
+  notifier_status: :solitary,
+  repository_connection: %{
+    port: 60133,
+    hostname: "127.0.0.1",
+    username: "mixer_fixture",
+    database: "mixer_coordinator_review_test"
+  },
+  notifier_connection: %{
+    port: 60133,
+    hostname: "127.0.0.1",
+    username: "mixer_fixture",
+    database: "mixer_coordinator_review_test"
+  }
+}
+independent_coordinator_processor_cleanup: owned Oban supervisor stopped; dedicated database rows cleared
+  * test asynchronous Oban processor consumes production Coordinator intents then persists snooze (118.9ms) [L#123]
+
+Finished in 0.4 seconds (0.00s async, 0.4s sync)
+
+Result: 1 passed

@@ -130,6 +130,55 @@ defmodule MixerHosted.Builds.Admission do
     end)
   end
 
+  @doc "Yields coordination immediately without releasing capacity or changing the worker fence."
+  def yield_multi(%Multi{} = multi, name, token) do
+    Multi.run(multi, name, fn repo, _ ->
+      with {:ok, context} <- guard(repo, token) do
+        lease = %{context.lease | expires_at: context.now}
+        persist_lease(repo, lease)
+        {:ok, result(%{context | lease: lease}, :yielded)}
+      end
+    end)
+  end
+
+  @doc "Retries only the current definitively released attempt, using locked database time."
+  def retry_multi(%Multi{} = multi, name, scope, revision, event_id, factory)
+      when is_function(factory, 1) do
+    multi
+    |> Multi.run({name, :admission}, fn repo, _ ->
+      with true <- is_integer(revision) and revision in 0..32,
+           {:ok, context} <- locked(repo, scope),
+           :ok <- valid_reservation(context),
+           true <- context.record.revision == revision,
+           %Reservation{held: false} = reservation <- context.reservation,
+           true <- reservation.attempt == context.build.attempt,
+           true <- context.build.state in @terminal,
+           true <- is_nil(context.lease.owner_id) and is_nil(context.lease.expires_at),
+           true <- released_evidence?(context, reservation.terminal_event_id) do
+        {:ok, context}
+      else
+        false -> {:error, :released_current_attempt_required}
+        nil -> {:error, :released_current_attempt_required}
+        %Reservation{} -> {:error, :released_current_attempt_required}
+        error -> error
+      end
+    end)
+    |> Multi.merge(fn changes ->
+      context = Map.fetch!(changes, {name, :admission})
+
+      Storage.transition_multi(
+        Multi.new(),
+        name,
+        scope,
+        revision,
+        event_id,
+        %{type: :retry},
+        context.now_ms,
+        factory
+      )
+    end)
+  end
+
   defp configure(repo, scope, revision, limit) do
     with {:ok, scope} <- capacity_scope(scope),
          true <- is_integer(limit) and limit in 0..10_000,
@@ -414,7 +463,7 @@ defmodule MixerHosted.Builds.Admission do
 
   defp result(context, outcome) do
     token =
-      if outcome != :released do
+      if outcome not in [:released, :yielded] do
         %Token{
           scope: Map.put(context.scope, :platform, context.build.spec.platform),
           record_id: context.record.id,

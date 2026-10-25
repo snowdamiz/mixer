@@ -1,0 +1,32 @@
+{
+  "schema": "mixer.failed-review-attempt.v1",
+  "observed_at": "2026-10-25T00:59:21.885402+00:00",
+  "status": "retained_failed_attempt_not_accepted",
+  "root_receipt": "verification/hosted-build-coordinator/attempt-1/receipt.json",
+  "root_receipt_sha256": "80b2a1972788ee5cd1644b7a032756a1be13849227698a97db8ddf06058af522",
+  "source_tree_sha256": "e6169deb5405d842380e637e1f0e5ee843de837b33a7ea02bb0dc73cebe71b63",
+  "source_archive_sha256": "3d897268e08eaa7ba5bc16014684c4194256d8ac5883bf90ef1e9ecd73f8c580",
+  "archive_input_count": 91,
+  "verified_command_log_count": 21,
+  "source_revision": "42433b2d51ccd23a99328d5998d250b74169f935",
+  "failures": [
+    {
+      "origin": "independent_test.exs",
+      "type": "test_fixture_worker_name",
+      "evidence": "Archived visibility SQL binds Atom.to_string(Coordinator), but Oban.Worker.to_string/1 strips the Elixir prefix before storage. Assertion sees zero jobs despite the committed journal and successor job.",
+      "correction": "Bind the pinned Oban.Worker.to_string/1 result."
+    },
+    {
+      "origin": "coordinator_test.exs",
+      "type": "test_fixture_expired_guard",
+      "evidence": "Archived synthetic newer ensure increments epoch but reuses the expired/yielded request expiry; adapter rejects stale instead of testing a fresh guard against the permanent tombstone.",
+      "correction": "Derive from the actual stop request, increment epoch and supply a future expiry."
+    }
+  ],
+  "production_changes_for_these_failures": false,
+  "cleanup": {
+    "postgres_stopped": true,
+    "scratch_removed": true
+  },
+  "scope": "Independent rehash of failed root archive and logs; no database, provider or native runtime started."
+}

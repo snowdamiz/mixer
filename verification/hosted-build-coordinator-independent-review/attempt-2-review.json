@@ -1,0 +1,26 @@
+{
+  "schema": "mixer.failed-review-attempt.v1",
+  "observed_at": "2026-10-25T01:01:43.918674+00:00",
+  "status": "retained_failed_async_processor_attempt_not_accepted",
+  "root_receipt": "verification/hosted-build-coordinator/attempt-2/receipt.json",
+  "root_receipt_sha256": "a37d844c87c7e1b612cc9d6f8f9d25e5726bbabdb2e8556abd4767abb00aa85d",
+  "source_revision": "e8ab06649f122862f3ef4e3c68124af2da1af744",
+  "source_tree_sha256": "b1867831c303a72ea0396ec5073ae9ab68d7c7cf23ddfa02dd04919b1fe54973",
+  "source_archive_sha256": "0fb491ee9b23e4baa07566f7cab023d1e40553b679ec7d42b7a57b0513774d19",
+  "archive_input_count": 92,
+  "verified_command_log_count": 21,
+  "passed_direct_worker_controls": {
+    "MixerHosted.Builds.CoordinatorTest": 19,
+    "MixerHosted.BuildCoordinatorReview.Test": 14
+  },
+  "runtime_result": "260/261 passed, 2 skipped; sole failure supplemental asynchronous processor callback not observed within 5000ms",
+  "observed_failure": "No query callback in an empty test mailbox after 5000ms; owned Oban supervisor stopped and review rows cleared by test after block.",
+  "cause": "Unproven by this packet because job states/error arrays and queue/notifier metadata were not retained before cleanup. Diagnostic-only supplemental test change is pending a separate root-owned targeted run.",
+  "hypothesis": "Postgres notifier resume signal before asynchronous LISTEN readiness is a possible cause; pinned Oban docs require connected notifier for pause/resume. This is a hypothesis, not an observed conclusion.",
+  "production_changes_for_this_failure": false,
+  "cleanup": {
+    "postgres_stopped": true,
+    "scratch_removed": true
+  },
+  "scope": "Independent rehash of failed root archive and logs; all producer and 14 hostile direct-perform controls pass, but asynchronous processor acceptance remains pending."
+}

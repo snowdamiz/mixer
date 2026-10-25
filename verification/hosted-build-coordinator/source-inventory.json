@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "status": "awaiting-root-database-collector-recheck",
+  "recorded_at": "2026-10-25T00:57:49.882080+00:00",
+  "source_revision": "42433b2d51ccd23a99328d5998d250b74169f935",
+  "inputs": {
+    "hosted/lib/mixer_hosted/builds/coordinator.ex": "1bf162cb617c8a62262c82d8a7038214bd7d229762ced511c2c33d082493e0b3",
+    "hosted/lib/mixer_hosted/builds/dispatch.ex": "a535e02f8d4a9ebf8a6c9be5a5ba89b09de0192f8987e2e9ac520af206fcb753",
+    "hosted/lib/mixer_hosted/builds/admission.ex": "f1f66e1d37380c87ca3ad3313f11e54be9cd68cc1fb4380238b854ae780e2469",
+    "hosted/test/mixer_hosted/builds/coordinator_test.exs": "022a8440ce4e5b14414f4b02d971d2fa4559954f4a84bb78ad4543d6349a3f57",
+    "hosted/test/support/build_dispatch_fixture.ex": "a2c601c4cdab3a2bb2683fb8564da0fa61a4bf543123b81f5ee1d63418af4c62",
+    "hosted/test/support/build_intent_worker.ex": "48f36bbc27956ce380bf2684826bcb22180636d9e81a3a3a569658f4cfb9ff48",
+    "docs/hosted-build-coordinator.md": "285b6c4886b7dd5da9c72d6900331b3e6bdf53c1b760883ff19d1d6a4101da7e"
+  },
+  "source_tree_sha256": "6abd53c2dee40d2fa048f2226f34f6b7fadfe2cc504b51be5b9f95cd27f01d96",
+  "database": "mixer_coordinator_test",
+  "scope": "Production internal Oban coordinator and explicit Dispatch behaviour; executable real PostgreSQL tests plus modeled provider registry, not external-provider execution. Root owns collector, database lifecycle and final exact-source test receipt.",
+  "limitations": [
+    "No production adapter installed; dispatcher unavailable by default.",
+    "No public API, tenant authorization, authenticated worker results or provider isolation qualification.",
+    "No Neon, Cloudflare, real native/provider execution, signing, billing or GA receipt.",
+    "Physical phones remain disconnected and deferred."
+  ],
+  "collector_pending": true,
+  "commands": [
+    {
+      "argv": [
+        "mix",
+        "format",
+        "lib/mixer_hosted/builds/coordinator.ex",
+        "lib/mixer_hosted/builds/dispatch.ex",
+        "lib/mixer_hosted/builds/admission.ex",
+        "test/support/build_dispatch_fixture.ex",
+        "test/support/build_intent_worker.ex",
+        "test/mixer_hosted/builds/coordinator_test.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "mix",
+        "format",
+        "test/mixer_hosted/builds/coordinator_test.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted",
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "producer_test_count": 19,
+  "attempt_1": {
+    "receipt": "verification/hosted-build-coordinator/attempt-1/receipt.json",
+    "status": "failed",
+    "test_failures": 2,
+    "test_repairs": [
+      "Producer tombstone control must use a newer epoch with future expiry rather than an intentionally stale request.",
+      "Independent review worker DB query uses canonical Oban worker string."
+    ],
+    "production_source_change_required": false
+  }
+}

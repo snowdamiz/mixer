@@ -1,0 +1,133 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+     warning: incompatible types given to IO.inspect/2:
+
+         IO.inspect(
+           %{
+             jobs:
+               Enum.map(
+                 MixerHosted.Repo.all(%{
+                   offset: nil,
+                   select: nil,
+                   sources: nil,
+                   prefix: nil,
+                   windows: [],
+                   aliases: %{},
+                   lock: nil,
+                   limit: nil,
+                   __struct__: Ecto.Query,
+                   from: %Ecto.Query.FromExpr{
+                     ...,
+                     source: {Oban.Job.__schema__(:source), Oban.Job},
+                     prefix: Oban.Job.__schema__(:prefix),
+                     file:
+                       "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-build-coordinator-independent-review/processor_test.exs",
+                     line: 240
+                   },
+                   joins: [],
+                   combinations: [],
+                   distinct: nil,
+                   with_ctes: nil,
+                   wheres: [],
+                   updates: [],
+                   assocs: [],
+                   preloads: [],
+                   order_bys: [
+                     %Ecto.Query.ByExpr{
+                       ...,
+                       expr: [asc: {{:., [], [{:&, [], [0]}, :id]}, [], []}],
+                       file:
+                         "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-build-coordinator-independent-review/processor_test.exs",
+                       line: 240
+                     }
+                   ],
+                   havings: [],
+                   group_bys: []
+                 }),
+                 &Map.take(&1, [
+                   :id,
+                   :worker,
+                   :state,
+                   :args,
+                   :attempt,
+                   :attempted_at,
+                   :scheduled_at,
+                   :completed_at,
+                   :errors,
+                   :meta
+                 ])
+               ),
+             queue: Oban.check_queue(queue: :builds),
+             notifier_status: Oban.Notifier.status(),
+             repository_connection:
+               Map.take(MixerHosted.Repo.config(), [:hostname, :port, :database, :username]),
+             database:
+               MixerHosted.Repo.query!("SELECT current_database(), current_setting('TimeZone')").rows,
+             adapter: Agent.get(MixerHosted.BuildCoordinatorProcessorReview.Adapter, & &1)
+           },
+           label: "independent_coordinator_processor_before_cleanup",
+           limit: :infinity,
+           printable_limit: :infinity
+         )
+
+     given types:
+
+         -none()-, non_empty_list({:label, binary()} or {:limit or :printable_limit, :infinity})
+
+     the 1st argument is empty (often represented as none()), most likely because it is the result of an expression that always fails, such as a `raise` or a previous invalid call. This causes any function called with this value to fail
+
+     type warning found at:
+     │
+ 236 │       IO.inspect(
+     │          ~
+     │
+     └─ /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-build-coordinator-independent-review/processor_test.exs:236:10: MixerHosted.BuildCoordinatorProcessorReview.Test."test asynchronous Oban processor consumes production Coordinator intents then persists snooze"/1
+
+
+MixerHosted.BuildCoordinatorProcessorReview.Test [/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-build-coordinator-independent-review/processor_test.exs]
+  * test asynchronous Oban processor consumes production Coordinator intents then persists snooze [L#96]
+21:01:38.619 [error] #PID<0.322.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+
+21:01:39.121 [error] #PID<0.322.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+
+21:01:39.622 [error] #PID<0.322.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+
+21:01:40.123 [error] #PID<0.322.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+
+21:01:40.624 [error] #PID<0.322.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+
+21:01:41.125 [error] #PID<0.322.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+
+21:01:41.626 [error] #PID<0.322.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+
+21:01:42.127 [error] #PID<0.322.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+
+21:01:42.628 [error] #PID<0.322.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+
+21:01:43.129 [error] #PID<0.322.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+
+21:01:43.630 [error] #PID<0.322.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+  * test asynchronous Oban processor consumes production Coordinator intents then persists snooze (5042.3ms) [L#96]
+
+  1) test asynchronous Oban processor consumes production Coordinator intents then persists snooze (MixerHosted.BuildCoordinatorProcessorReview.Test)
+     /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-build-coordinator-independent-review/processor_test.exs:96
+     ** (BadMapError) expected a map, got:
+
+         [
+           telemetry_prefix: [:mixer_hosted, :repo],
+           otp_app: :mixer_hosted,
+           timeout: 15000,
+           pool_size: 10
+         ]
+
+     code: try do
+     stacktrace:
+       (elixir 1.20.4) lib/map.ex:547: Map.take/2
+       /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-build-coordinator-independent-review/processor_test.exs:257: MixerHosted.BuildCoordinatorProcessorReview.Test."-test asynchronous Oban processor consumes production Coordinator intents then persists snooze/1-after$^9/0-0-"/2
+       /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-build-coordinator-independent-review/processor_test.exs:124: (test)
+
+
+Finished in 5.4 seconds (0.00s async, 5.4s sync)
+
+Result: 0/1 passed
+Failed: 1 test

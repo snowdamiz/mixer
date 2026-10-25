@@ -2,7 +2,7 @@ defmodule MixerHosted.Test.BuildIntentWorker do
   @moduledoc false
   use Oban.Worker, queue: :builds, max_attempts: 1
 
-  # Test-only, no external effect or authority. Production has no build consumer.
+  # Test-only insertion probe; production coordination requires an explicit adapter.
   @impl true
   def perform(%Oban.Job{args: args}) do
     MixerHosted.Repo.query!(

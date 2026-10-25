@@ -3,16 +3,16 @@ defmodule MixerHosted.Builds.Storage do
   Internal transactional storage for replayable per-platform build decisions.
 
   This is NOT an authorization boundary. Scope identifies data; it grants no
-  permission. No HTTP route or production consumer calls this module yet.
-  Future callers must authorize inside the same transaction using authoritative
+  permission. The internal Coordinator consumes this module; no HTTP build route
+  is enabled. Public callers must authorize in the same transaction using authoritative
   membership and storage policy. Runtime role/RLS qualification remains pending.
 
   Mutations return Ecto.Multi fragments. For an applied decision only, a trusted
   internal factory receives the exact intent and returns an Oban.Job changeset.
   The factory must not perform external effects. Both the domain mutation and
   job insert commit or roll back together with the caller's surrounding Multi.
-  No production dispatcher is supplied; the test worker demonstrates atomic
-  composition only. Jobs and lifecycle references do not grant worker authority.
+  Coordinator supplies the internal consumer, with no external adapter configured
+  by default. Jobs and lifecycle references do not grant worker authority.
   """
   import Ecto.Query
   alias Ecto.{Changeset, Multi}

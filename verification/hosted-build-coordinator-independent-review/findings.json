@@ -1,0 +1,27 @@
+{
+  "schema": "mixer.independent-review-findings.v1",
+  "status": "closed_internal_development_slice",
+  "findings": [
+    {
+      "id": "BCR-001",
+      "severity": "liveness",
+      "status": "closed_source_and_runtime_verified",
+      "description": "Queued reconciliation commits start while retaining a live lease; the new current start intent generates a distinct owner and cannot dispatch until the preceding lease expires.",
+      "required_evidence": "A committed start intent can progress without waiting for the prior invocation's full lease TTL, while unique lease ownership and epoch fencing remain intact.",
+      "source_correction": "Admission.yield_multi uses the existing live-token guard and post-lock database time, expires coordination without releasing occupancy and returns no live token. Coordinator appends yield atomically to start/expire successor intents and yields after finished callback paths."
+    },
+    {
+      "id": "BCR-002",
+      "severity": "correctness",
+      "status": "closed_source_and_runtime_verified",
+      "description": "After definitive finish releases occupancy, a current terminal intent tries to claim the terminal build; Admission rejects not_queued, so the coordinator does not reach its bounded infrastructure retry path.",
+      "required_evidence": "A retryable released terminal intent reaches Admission.retry_multi; it observes backoff, exact released evidence and CAS, with concurrent consumers creating only one subsequent attempt/job.",
+      "source_correction": "Terminal not_queued reaches Admission.retry_multi, whose capacity/build/reservation/lease lock sequence verifies current revision, exact released attempt evidence and cleared lease before replaying retry with sampled database time."
+    }
+  ],
+  "not_a_finding": [
+    "Idempotent ensure_started may repeat for an already running operation. The safety assertion is stable operation identity and one external creation, rather than a count of callback invocations."
+  ],
+  "final_root_receipt": "verification/hosted-build-coordinator/attempt-5-final/receipt.json",
+  "source_tree_sha256": "c21aff5bfbfcbe113e39c7ac99747336f69b91f5b40bb7363ff2df54700c2026"
+}

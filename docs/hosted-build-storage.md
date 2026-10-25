@@ -45,10 +45,11 @@ Creation request keys are scoped to organization/project/application/platform.
 This is internal deduplication, not principal-bound customer idempotency. The
 future authorized command layer must resolve immutable source inputs, allocate
 stable build identity, enforce policy and quota, choose trusted coordinator time,
-and authorize within the same transaction. It must also supply a real worker
-consumer with durable leases and authenticated result reconciliation before
-enabling public routes. Neither Oban's job ownership nor lifecycle fencing alone
-satisfies those requirements.
+and authorize within the same transaction. The internal Coordinator now consumes
+these intents using durable admission leases. A qualified external adapter and
+authenticated worker-result reconciliation remain required before public routes
+are enabled. Neither Oban's job ownership nor lifecycle fencing alone satisfies
+those requirements. See [the coordinator contract](hosted-build-coordinator.md).
 
 The migration adds `mixer_builds` and its bounds/unique constraints; it changes no
 existing tenant policy. Host integration uses a new disposable loopback database
