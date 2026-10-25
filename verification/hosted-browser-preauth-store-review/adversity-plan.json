@@ -1,0 +1,541 @@
+{
+  "schema_version": 1,
+  "prepared_date": "2026-10-25",
+  "state": "bounded_component_review_passed_full_matrix_pending",
+  "candidate_accepted": true,
+  "candidate_compiled_or_executed": true,
+  "postgres_started": true,
+  "native_ui_capture_started": false,
+  "control_count": 44,
+  "production_api": {
+    "runtime_owner": [
+      "start_link/1",
+      "status/0",
+      "bootstrap/1",
+      "load/1"
+    ],
+    "store": [
+      "bootstrap/2",
+      "load/1"
+    ]
+  },
+  "frozen_candidate_files": [
+    "hosted/lib/mixer_hosted/browser_auth/lifecycle_repo.ex",
+    "hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex",
+    "hosted/lib/mixer_hosted/browser_auth/preauth_draft.ex",
+    "hosted/lib/mixer_hosted/browser_auth/store.ex",
+    "docs/hosted-browser-preauth-store.md"
+  ],
+  "owner_component_only_contract": {
+    "reserve": "{:reserve, original_monotonic_deadline_ms, original_wall_seconds}",
+    "lease_fields": [
+      "owner",
+      "reference",
+      "caller",
+      "generation",
+      "deadline",
+      "started_at",
+      "runtime"
+    ],
+    "checkpoint": "{:checkpoint, lease}",
+    "finish": "{:finish, lease, expires_at_or_nil}",
+    "failed": "{:failed, lease, {:error, %Store.Failure{}}}",
+    "authority": "Actual GenServer caller plus complete retained lease equality and live fixed registered PID/config/generation/deadline checks",
+    "release_call": "{:release, lease}, authenticated via actual GenServer fromPID",
+    "expiry": "Private token separate from lease reference; legacy PIDreleasecasts ignored"
+  },
+  "environment": {
+    "postgres_major": 16,
+    "max_owned_postgres_instances": 1,
+    "lifecycle_pool_size": 2,
+    "owner_operation_cap": 32,
+    "queue": false,
+    "deadline_ms": 5000,
+    "connection_scope": "synthetic loopback random-port plaintext manual component fixture; no production constructor/TLS5432/Neon qualification"
+  },
+  "execution_gate": "Corrected producer freeze55227068... executed on selectedPG16fixture; future source changes require fresh binding",
+  "forbidden": [
+    "Application or route wiring",
+    "provider or fake verifier",
+    "production credentials",
+    "native/UI/capture/emulator/simulator/phone execution",
+    "frozen catalog-inspector or authority-driver or rejected Worker V2 reads/imports/execution",
+    "broad hosted harness",
+    "commit or push",
+    "source-rewritten fixture counted as unchanged candidate evidence"
+  ],
+  "pending_broader_gates": [
+    "production startup provenance",
+    "external custody and Neon/TLS",
+    "provider/OIDC and active current-verifier join",
+    "browser HTTP/console",
+    "native/physical devices",
+    "customer and immutable FieldLog release",
+    "operational and GA qualification"
+  ],
+  "controls": [
+    {
+      "id": "A01",
+      "group": "startup",
+      "title": "Missing actual default KeyOwner denies startup admission",
+      "scope": "component",
+      "mechanism": "Start fixed repos without the registered actual KeyOwner; no fake process name stand-in.",
+      "expected": "No storage_ready; bootstrap/load fail closed.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "A02",
+      "group": "startup",
+      "title": "Missing actual fixed LifecycleRepo or ordinary Repo denies admission",
+      "scope": "component",
+      "mechanism": "Start only each proper subset of fixed registered children.",
+      "expected": "No usable lease or SQL effect.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "A03",
+      "group": "startup",
+      "title": "Actual LifecycleRepo startup binding, env drift and dynamic selection",
+      "scope": "component",
+      "mechanism": "Require the protected init-created ETS table owner to be the actual registered fixed Repo PID, reject missing/stale/foreign-owned table and altered complete startup-option fingerprints; mutate Application config independently and test wrong dynamic repo.",
+      "expected": "Actual lifecycle startup credentials/policy covered; no substituted connection/fallback; ordinary Repo config observation is not claimed as live-startup attestation.",
+      "status": "partial_component_observations_remaining_cases_pending",
+      "executed": true
+    },
+    {
+      "id": "A04",
+      "group": "startup",
+      "title": "Startup requires current function V2 AND relation admission",
+      "scope": "component",
+      "mechanism": "Mutate one surface at a time before owner startup, then restore in the disposable database.",
+      "expected": "Either partial admission fails; only conjunction can establish internal storage_ready.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "A05",
+      "group": "startup",
+      "title": "Fixed registration, exact configured shape and startup authority",
+      "scope": "component",
+      "mechanism": "Exercise disabled/malformed settings, duplicate owner registration, forged startup invocation and direct Store admission from a foreign caller.",
+      "expected": "No alternative owner name/caller or struct-shape authority; honest disabled/unavailable state.",
+      "status": "partial_component_observations_remaining_cases_pending",
+      "executed": true
+    },
+    {
+      "id": "O01",
+      "group": "ownership",
+      "title": "Direct Store operation without live retained lease denies",
+      "scope": "owner_component",
+      "mechanism": "Call fixed Store functions with closed valid-looking draft/input but no owner-reserved lease.",
+      "expected": "Redacted admission failure and no write.",
+      "status": "partial_component_observations_remaining_cases_pending",
+      "executed": true
+    },
+    {
+      "id": "O02",
+      "group": "ownership",
+      "title": "Forged lease or added field denies",
+      "scope": "owner_component",
+      "mechanism": "Construct a copied struct or map with a made-up reference or extra key.",
+      "expected": "No supplied PID/map/process dictionary may grant authority.",
+      "status": "partial_component_observations_remaining_cases_pending",
+      "executed": true
+    },
+    {
+      "id": "O03",
+      "group": "ownership",
+      "title": "Copied lease in another process denies",
+      "scope": "owner_component",
+      "mechanism": "Transfer one actual reserved lease to a separate monitored caller.",
+      "expected": "Actual GenServer caller mismatch denies without consuming the rightful caller authority incorrectly.",
+      "status": "passed_selected_component_control",
+      "executed": true,
+      "history": "Initial3paths failed; corrected finalPG16 preserves originalslots afterfinish/failed/release/legacycast/copiedexpiry/malformedmessages."
+    },
+    {
+      "id": "O04",
+      "group": "ownership",
+      "title": "Altered retained lease field or old generation denies",
+      "scope": "owner_component",
+      "mechanism": "Change each selected lease field independently and use a lease retained across owner generation replacement.",
+      "expected": "Exact retained equality and generation continuity required.",
+      "status": "partial_component_observations_remaining_cases_pending",
+      "executed": true
+    },
+    {
+      "id": "O05",
+      "group": "ownership",
+      "title": "Original caller owns Vault, transaction and publication",
+      "scope": "end_to_end",
+      "mechanism": "Observe actual call/SQL process identities during public bootstrap/load without substituting execution.",
+      "expected": "No GenServer-owned or spawned-worker orchestration and no copied original-caller claim.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "O06",
+      "group": "ownership",
+      "title": "Nested existing lifecycle transaction denies",
+      "scope": "end_to_end",
+      "mechanism": "Invoke public owner operations from an actual fixed LifecycleRepo transaction.",
+      "expected": "No nesting, savepoint reuse or hidden transaction effect.",
+      "status": "passed_selected_component_control",
+      "executed": true
+    },
+    {
+      "id": "O07",
+      "group": "ownership",
+      "title": "Nested ordinary transaction denies",
+      "scope": "end_to_end",
+      "mechanism": "Invoke public owner operations from an actual MixerHosted.Repo transaction.",
+      "expected": "Original caller remains visible to rejection; no work relocation bypass.",
+      "status": "passed_selected_component_control",
+      "executed": true
+    },
+    {
+      "id": "O08",
+      "group": "ownership",
+      "title": "Active ordinary authorization Context denies",
+      "scope": "component",
+      "mechanism": "Bind an actual ordinary Context for a valid synthetic transaction, then invoke bootstrap/load.",
+      "expected": "No lifecycle acquisition or publication inside ordinary protected work.",
+      "status": "passed_selected_component_control",
+      "executed": true
+    },
+    {
+      "id": "P01",
+      "group": "pressure",
+      "title": "32 owner operations admitted and 33rd rejected without permit wait",
+      "scope": "owner_component",
+      "mechanism": "Use exact fixed reserve messages from 32 distinct real callers held outside SQL.",
+      "expected": "32 retained leases only; overflow denies; this is not 32-concurrent-SQL evidence.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "P02",
+      "group": "pressure",
+      "title": "Caller death releases owned permit",
+      "scope": "owner_component",
+      "mechanism": "Kill one of the 32 owned fixture callers and observe monitor cleanup.",
+      "expected": "Subsequent reservation succeeds; other callers and permits survive.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "P03",
+      "group": "pressure",
+      "title": "Release, failure, finish and expiry cannot leak or duplicate permits",
+      "scope": "owner_component",
+      "mechanism": "Exercise exact fixed owner messages, double use, stale releases and original deadline expiry.",
+      "expected": "One cleanup per lease; stale caller/reference cannot release another live permit.",
+      "status": "partial_component_observations_remaining_cases_pending",
+      "executed": true
+    },
+    {
+      "id": "P04",
+      "group": "pressure",
+      "title": "Two actual pool connections exhaust with no checkout queue",
+      "scope": "end_to_end",
+      "mechanism": "Hold both fixed lifecycle connections using bounded real transactions, then call public bootstrap/load.",
+      "expected": "Third work fails promptly without waiting for release; pool bound remains two.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "P05",
+      "group": "pressure",
+      "title": "Lifecycle pressure preserves ordinary fixed Repo",
+      "scope": "end_to_end",
+      "mechanism": "While lifecycle pool is full, issue an ordinary independent synthetic query.",
+      "expected": "Ordinary connection remains usable and no fallback supplies lifecycle capacity.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "L01",
+      "group": "continuity",
+      "title": "RuntimeOwner death or registered replacement denies held work",
+      "scope": "end_to_end",
+      "mechanism": "Suspend an observed owned request, terminate/replace the manually started owner, then resume.",
+      "expected": "No private result/cookie from old generation; no retry or automatic recovery.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "L02",
+      "group": "continuity",
+      "title": "Actual default KeyOwner death or PID replacement denies",
+      "scope": "end_to_end",
+      "mechanism": "Terminate/replace the actual registered default KeyOwner while an observed request is held.",
+      "expected": "Readiness clears; held work cannot publish. No same-PID trust-generation claim.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "L03",
+      "group": "continuity",
+      "title": "Lifecycle Repo death or replacement denies held work",
+      "scope": "end_to_end",
+      "mechanism": "Terminate/replace only the fixed fixture lifecycle Repo during a held operation.",
+      "expected": "Old pool PID/config work denied; unknown effect is not replayed.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "L04",
+      "group": "continuity",
+      "title": "Config and registered owner continuity are rechecked at release",
+      "scope": "end_to_end",
+      "mechanism": "Use observed caller suspension to change only disposable owner/config state or registration between SQL and private publication.",
+      "expected": "No stale digest/runtime/config/PID result; instrumentation scope is explicit.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "D01",
+      "group": "roundtrip",
+      "title": "Bootstrap exactly matches retained server draft",
+      "scope": "end_to_end",
+      "mechanism": "Create a real preauth row through public bootstrap and inspect it using an operator assertion connection.",
+      "expected": "Exact browser/cookie/CSRF/config/generation/counter/deadline/cipher match; only SQL-owned fresh timestamps/audit vary.",
+      "status": "partial_component_observations_remaining_cases_pending",
+      "executed": true
+    },
+    {
+      "id": "D02",
+      "group": "roundtrip",
+      "title": "Real Vault seal and open straddle transactions",
+      "scope": "end_to_end",
+      "mechanism": "Observe actual Vault calls and the fixed Repo transaction state for bootstrap then load.",
+      "expected": "Seal precedes transaction; load commit precedes open; canonical43 CSRF and exact StoredSnapshot roundtrip.",
+      "status": "partial_component_observations_remaining_cases_pending",
+      "executed": true
+    },
+    {
+      "id": "D03",
+      "group": "roundtrip",
+      "title": "Only admitted load SQL NULL returns ok nil",
+      "scope": "end_to_end",
+      "mechanism": "Use unknown/terminal/expired/config-mismatching cookie states that the fixed admitted helper returns NULL for.",
+      "expected": "Exactly {:ok,nil}; non-NULL failures never become nil.",
+      "status": "partial_component_observations_remaining_cases_pending",
+      "executed": true
+    },
+    {
+      "id": "D04",
+      "group": "roundtrip",
+      "title": "Non-NULL active, malformed or conflicting-attempt snapshot denies",
+      "scope": "end_to_end",
+      "mechanism": "Seed bounded operator-created fixture rows or observe post-admission drift while preserving unchanged candidate source.",
+      "expected": "Redacted failure; no active secret/auth/workspace result or invented attempt resumption.",
+      "status": "partial_component_observations_remaining_cases_pending",
+      "executed": true
+    },
+    {
+      "id": "D05",
+      "group": "roundtrip",
+      "title": "Closed metadata, raw cookie and typed Store inputs",
+      "scope": "component",
+      "mechanism": "Exercise exact request_id hex32, cookie canonical bounds, extra/absent fields and wrong types.",
+      "expected": "Invalid inputs deny before effect; no callback/Repo/clock/provider or destination selection.",
+      "status": "passed_selected_component_control",
+      "executed": true
+    },
+    {
+      "id": "D06",
+      "group": "roundtrip",
+      "title": "Source, context, cipher and CSRF binding failures deny",
+      "scope": "end_to_end",
+      "mechanism": "Alter each durable source/AAD/cipher/key-id/tag/CSRF/profile/version/config field in isolated synthetic rows and separately present valid but foreign envelopes.",
+      "expected": "AEAD success alone cannot satisfy retained source equality; all mismatches deny.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "C01",
+      "group": "current_admission",
+      "title": "Function/type drift after startup is detected per transaction",
+      "scope": "end_to_end",
+      "mechanism": "Alter one fixed function source/config/ACL/type after successful startup; restore before next independent control.",
+      "expected": "Current V2 function admission denies with no helper effect.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "C02",
+      "group": "current_admission",
+      "title": "Relation/policy/constraint/trigger/role drift is detected per transaction",
+      "scope": "end_to_end",
+      "mechanism": "Apply one representative relation/policy/constraint/trigger/role mutation after startup.",
+      "expected": "Current relation admission denies independently of function admission.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "C03",
+      "group": "current_admission",
+      "title": "Both admissions and effect retain the same owned connection",
+      "scope": "end_to_end",
+      "mechanism": "Observe backend identity/transaction marker across actual function and relation checks and helper execution.",
+      "expected": "No cached or separate-transaction partial result authorizes effect.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "C04",
+      "group": "current_admission",
+      "title": "Exact LOCAL settings and READ COMMITTED restore on every exit",
+      "scope": "end_to_end",
+      "mechanism": "Record observed transaction settings and connection settings before/after success, effect failure and commit failure.",
+      "expected": "Catalog-admitted settings exactly match, are LOCAL, and do not leak across pooled transactions.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "T01",
+      "group": "deadline_commit",
+      "title": "Original deadline begins before reservation, draft and seal",
+      "scope": "end_to_end",
+      "mechanism": "Trace the unchanged public entry/reserve/Vault sequence and delay an observed caller before transaction.",
+      "expected": "One initial five-second budget; no newly created SQL deadline.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "T02",
+      "group": "deadline_commit",
+      "title": "Checkout uses original absolute deadline and remaining timeout",
+      "scope": "end_to_end",
+      "mechanism": "Combine pre-checkout caller delay with a full fixed pool.",
+      "expected": "No queued acquisition or timeout reset; deny by original deadline.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "T03",
+      "group": "deadline_commit",
+      "title": "Catalog work consumes the original budget",
+      "scope": "end_to_end",
+      "mechanism": "Hold an observed catalog-stage caller or bounded catalog-related operator lock.",
+      "expected": "Remaining positive query budgets shrink and cannot reset the original deadline.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "T04",
+      "group": "deadline_commit",
+      "title": "Effect lock wait cannot extend the initial deadline",
+      "scope": "end_to_end",
+      "mechanism": "Introduce real bounded row/relation lock contention after observed current admission.",
+      "expected": "Actual wait/error is bounded by original absolute deadline and no retry occurs.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "T05",
+      "group": "deadline_commit",
+      "title": "Post-transaction Vault/open/result work cannot publish after deadline",
+      "scope": "end_to_end",
+      "mechanism": "Suspend actual caller after confirmed load commit but before final private release.",
+      "expected": "Expired monotonic budget or durable expiry denies even after successful DB work.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "T06",
+      "group": "deadline_commit",
+      "title": "Deferred COMMIT error rolls back all bootstrap writes",
+      "scope": "exact_source_fault",
+      "mechanism": "At observed post-catalog/pre-effect checkpoint confirm no write, add disposable deferred rejecting trigger as operator, then resume unchanged candidate.",
+      "expected": "Error arises at actual COMMIT; no row/audit write persists; phase/outcome redacted and accurate.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "T07",
+      "group": "deadline_commit",
+      "title": "Actual COMMIT timeout/disconnect returns unknown without retry",
+      "scope": "exact_source_fault",
+      "mechanism": "Use deferred bounded delay plus real backend termination or local transport fault at observed commit boundary.",
+      "expected": "No cookie/private success, SQL replay or fresh reconstructed cookie; readiness is invalidated as selected.",
+      "status": "pending_independent_execution",
+      "executed": false,
+      "clarification": "A received PostgreSQL severityERROR57014 can prove rollback; driver/FATAL/PANIC outcome loss remains unknown. Timeout is not automatically unknown."
+    },
+    {
+      "id": "T08",
+      "group": "deadline_commit",
+      "title": "Confirmed commit followed by response/result loss has no cookie recovery",
+      "scope": "exact_source_fault",
+      "mechanism": "Drop response or hold/kill original caller only after independent durable commit evidence.",
+      "expected": "Committed row may remain, but no result reconstruction or automatic recovery/retry.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "T09",
+      "group": "deadline_commit",
+      "title": "Wall rollback and expiry equality fail closed",
+      "scope": "component",
+      "mechanism": "Use real durable expiry/equality cases and explicit test-only owner component messages for backward wall continuity; never change host wall clock.",
+      "expected": "No expiry equality pass; component wall-message checks are not fake-clock end-to-end evidence.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "R01",
+      "group": "redaction_cleanup",
+      "title": "Closed results and actual owner diagnostics redact state and messages",
+      "scope": "component",
+      "mechanism": "Collect safe assertion fingerprints for success/failure/Inspect, actual :sys.get_status and an abnormal owned GenServer termination with synthetic state/message/reason/debug sentinels.",
+      "expected": "No raw cookie/CSRF/key/password/reference/cipher/SQL exception/private identity in errors, Inspect, sys status or crash output; direct format_status-only testing is insufficient.",
+      "status": "partial_component_observations_remaining_cases_pending",
+      "executed": true
+    },
+    {
+      "id": "R02",
+      "group": "redaction_cleanup",
+      "title": "Actual logs and telemetry preserve redaction",
+      "scope": "end_to_end",
+      "mechanism": "Capture safe owned fixture logger/telemetry assertions during positive, SQL-error, timeout and connection-error controls; distinguish standard trusted Repo-init metadata from fixed Store query events and never persist raw startup opts.",
+      "expected": "No secret/cipher/query-parameter sentinel in log or persisted receipt; explicit sensitive-query telemetry suppression verified since log:false alone is insufficient.",
+      "status": "pending_independent_execution",
+      "executed": false
+    },
+    {
+      "id": "R03",
+      "group": "redaction_cleanup",
+      "title": "Allowlisted source closure and all owned resource cleanup",
+      "scope": "receipt",
+      "mechanism": "Seal selected source/dependency inputs before/after partitions; terminate only owned PG/BEAM/tracer/proxy resources on every exit.",
+      "expected": "No frozen/broad harness import; source drift invalidates affected results; owned processes/ports gone and unrelated processes preserved.",
+      "status": "passed_selected_component_control",
+      "executed": true
+    }
+  ],
+  "candidate_implementation_sources_read": false,
+  "candidate_composition_document_read": true,
+  "pre_freeze_findings": [
+    {
+      "id": "PF01",
+      "state": "reported_to_root_and_producer_pending_selection",
+      "topic": "Ecto query telemetry is not suppressed by log:false",
+      "evidence": "hosted/deps/ecto_sql/lib/ecto/adapters/sql.ex:1303-1318",
+      "implication": "Sensitive fixed Store queries need explicit telemetry suppression or an equally accepted control; unchanged Catalog relation queries have no sealed-secret inputs."
+    },
+    {
+      "id": "PF02",
+      "state": "scope_and_receipt_capture_requirement",
+      "topic": "Standard trusted Ecto Repo-init telemetry includes full startup options",
+      "evidence": "hosted/deps/ecto/lib/ecto/repo/supervisor.ex:195-201",
+      "implication": "No claim that all internal telemetry metadata is credential-free; no unredacted capture/persistence of startup opts/password."
+    }
+  ],
+  "acceptance_scope": "Manual fixed preauth bootstrap/load only; not complete44/40/18matrices or startup/authentication/GA",
+  "selected_attempt": "attempts/20261025T200346.364145Z-pg16-beb3a7/receipt.json",
+  "independent_component_methods": 20
+}

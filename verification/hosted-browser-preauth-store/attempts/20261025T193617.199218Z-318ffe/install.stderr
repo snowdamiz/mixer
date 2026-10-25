@@ -1,0 +1,24 @@
+** (Ecto.MigrationError) Migrations failed to run because the connection pool size is less than 2.
+
+Ecto requires a pool size of at least 2 to support concurrent migrators.
+When migrations run, Ecto uses one connection to maintain a lock and
+another to run migrations.
+
+If you are running migrations with Mix, you can increase the number
+of connections via the pool size option:
+
+    mix ecto.migrate --pool-size 2
+
+If you are running the Ecto.Migrator programmatically, you can configure
+the pool size via your application config:
+
+    config :my_app, Repo,
+      ...,
+      pool_size: 2 # at least
+
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1250: Ecto.Adapters.SQL.raise_migration_pool_size_error/0
+    (ecto_sql 3.14.0) lib/ecto/adapters/postgres.ex:311: Ecto.Adapters.Postgres.lock_for_migrations/3
+    (ecto_sql 3.14.0) lib/ecto/migrator.ex:584: Ecto.Migrator.lock_for_migrations/4
+    verification/hosted-browser-preauth-store/install.exs:43: anonymous fn/2 in :elixir_compiler_0.__FILE__/1
+    (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+    verification/hosted-browser-preauth-store/install.exs:39: (file)

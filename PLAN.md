@@ -179,7 +179,7 @@ The full plan remains incomplete; no GA gate is promoted.
    methods, with root source/output/cleanup acceptance. No startup or route wiring
    is enabled. Function/type catalog checks now pass 26 producer PostgreSQL 17 and 20
    independent PostgreSQL 16 methods, with root source/output/cleanup acceptance.
-   Their named partial result has no consumer and cannot authorize readiness.
+   Their named partial result alone cannot authorize readiness.
    Three new PG17 probes exposed extra standalone browser types and altered ACL
    grantors; both gaps are now repaired. Explicit V1/V2 selection passes 30 PG17
    and 19 independent PG16 methods, plus 10/12 respective compile-rejection
@@ -188,7 +188,7 @@ The full plan remains incomplete; no GA gate is promoted.
    migration 20261025000008. Ten-migration integration passes on PG17 and
    independent PG16. Six PG17 operator methods and eleven independent PG16
    adversity methods pass separately. Root accepts this inert migration slice;
-   broader hosted CI after delivery remains pending. See
+   corrected broader Phoenix CI passes at `eec94804` as recorded above. See
    [migration review](docs/hosted-browser-activation-preparation-migration-review.md).
    The pure activation-preparation decoder now passes 19 producer methods,
    11 existing snapshot regressions and 29 independent methods, with root
@@ -203,13 +203,20 @@ The full plan remains incomplete; no GA gate is promoted.
    passes 233 PG16 and 234 PG17 methods, with 65/66 live mutation controls.
    Independent review passes 96 methods on each major, including fourteen
    denied mutations and two allowed naming equivalences. Root accepts only
-   this partial prerequisite and selects dedicated preauth Store/bootstrap/load
-   composition; no complete runtime case or readiness is claimed. See
+   this partial prerequisite. The subsequent dedicated preauth composition now
+   passes 30 PG17 producer and 20 independent PG16 component methods. Review
+   repaired foreign-caller slot release and rejected projected pending attempts.
+   Root verifies 118 producer seal entries, 358 review artifacts and selected
+   source/dependency/output bindings. This accepts manually started fixed
+   bootstrap/load and Vault roundtrips only; complete 44/40/18 matrices and
+   Application/current-identity/provider/HTTP joins remain pending. Next coordinate
+   and implement the fixed begin-login owner/Store component. See
+   [preauth review](docs/hosted-browser-preauth-store-review.md) and
    [relation review](docs/hosted-browser-relation-catalog-review.md). The additive preparation SQL helper passes 39 PG17 and 38
    independent PG16 methods after rejecting unexpected new-object grants. Root
    accepts this SQL component and the separately reviewed inert migration; no
-   lifecycle caller or readiness is enabled. Forty owner
-   runtime adversity cases also remain pending. See
+   activation-preparation caller or authentication readiness is enabled. The full
+   forty-case owner runtime matrix remains incomplete. See
    [constructor review](docs/hosted-browser-runtime-constructor-review.md),
    [versioned catalog review](docs/hosted-browser-catalog-v2-review.md) and
    [fixture repair](docs/hosted-browser-storage-ci-fixture.md).

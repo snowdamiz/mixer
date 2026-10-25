@@ -330,12 +330,20 @@ The RelationCatalog prerequisite passes 233 PG16 and 234 PG17 methods with
 including fourteen rejected mutations and two allowed naming equivalences. Root
 verifies 746 review artifacts, 74 source, 758 dependency and 73 output bindings,
 plus the producer preflight and cleanup. This accepts only the relation
-prerequisite; all 48 complete runtime cases remain incomplete. The next slice
-implements fixed preauth Store/bootstrap/load ownership and Vault roundtrips.
+prerequisite; all 48 complete runtime cases remain incomplete. The subsequent
+fixed preauth Store/bootstrap/load composition passes 30 producer PG17 and 20
+independent PG16 methods. Review repaired three caller-ownership failures and
+added valid projected pending-attempt rejection. Root verifies 118 producer seal
+entries, 358 review artifacts, final source/dependency/output bindings and cleanup.
+Manual fixed storage composition is accepted; complete 44/40/18 matrices,
+shared startup, active identity/provider and HTTP/console remain pending. The
+next slice coordinates the fixed begin-login owner/Store contract and implementation.
+See [the preauth review](docs/hosted-browser-preauth-store-review.md).
 See [the relation review](docs/hosted-browser-relation-catalog-review.md).
 This is only `:function_surface_verified`: tests explicitly
 show that missing relation/policy/grant admission remains a separate requirement.
-No consumer, pool, Store or readiness wiring exists. The pure activation
+The preauth component now composes both partial checks on its own transaction;
+no Application or authenticated-readiness wiring exists. The pure activation
 preparation decoder passes 19 producer methods, 11 existing snapshot regressions
 and 29 independent methods. Root audited 13 source and 38 output bindings and
 actual Mix formatting. Its exact six-field result proves shape; the future owner

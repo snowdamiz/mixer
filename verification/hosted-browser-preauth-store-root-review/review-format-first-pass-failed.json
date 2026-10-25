@@ -1,0 +1,36 @@
+{
+  "before_sha256": "36a333d446b342995e69e8cb06f9d9c4fbce15b7d0964ffe63241d27e0a139ae",
+  "commands": [
+    {
+      "argv": [
+        "mix",
+        "--version"
+      ],
+      "exit": 0,
+      "stdout": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:2:2] [ds:1:1:1] [async-threads:1] [jit] [dtrace]\n\nMix 1.20.4 (compiled with Erlang/OTP 29)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "mix",
+        "format",
+        "runtime_review.exs"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "mix",
+        "format",
+        "--check-formatted",
+        "runtime_review.exs"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "** (Mix) mix format failed due to --check-formatted.\nThe following files are not formatted:\n\n\u001b[1m\u001b[31m/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-root-preauth-format-d89i4fbh/runtime_review.exs\n\u001b[0m\n         |\n196 196  |        fn ->\n197 197  |          Review.denied?(RuntimeOwner.load(created.cookie))\n198     -|        end, timeout: 1000, queue: false, log: false)\n    198 +|        end,\n    199 +|        timeout: 1000,\n    200 +|        queue: false,\n    201 +|        log: false\n    202 +|      )\n199 203  |\n200 204  |    denied\n         |\n206 210  |        fn ->\n207 211  |          Review.denied?(RuntimeOwner.load(created.cookie))\n208     -|        end, timeout: 1000, queue: false, log: false)\n    212 +|        end,\n    213 +|        timeout: 1000,\n    214 +|        queue: false,\n    215 +|        log: false\n    216 +|      )\n209 217  |\n210 218  |    denied\n         |\n\n\n\n"
+    }
+  ],
+  "owned_scratch_absent": true
+}

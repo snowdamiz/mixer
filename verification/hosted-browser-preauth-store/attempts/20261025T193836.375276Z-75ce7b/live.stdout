@@ -1,0 +1,39 @@
+passed: fixed Repo actual startup options binding
+passed: arbitrary caller cannot invoke startup admission
+passed: startup admits fixed V2 function and relation conjunction
+
+15:38:39.711 [info] The function passed as a handler with ID "preauth-query-redaction" is a local function.
+This means that it is either an anonymous function or a capture of a function without a module specified. That may cause a performance penalty when calling that handler. For more details see the note in `telemetry:attach/4` documentation.
+
+https://hexdocs.pm/telemetry/telemetry.html#attach/4
+passed: real bootstrap Vault StoredSnapshot committed preauth roundtrip
+passed: actual Ecto SQL telemetry emits catalogs but no sealed bootstrap or cookie load query
+passed: private result and actual GenServer status redact source and credentials
+passed: strict metadata and malformed cookie fail without durable writes
+passed: absent canonical cookie returns no private session
+passed: foreign ordinary context and ordinary transaction deny
+passed: foreign lifecycle transaction rejects nested Store work
+passed: actual pool2 exhaustion rejects promptly with queue false
+passed: actual owner cap32 immediate reject caller death release
+passed: expired original deadline rejects owner reserve without clock injection
+passed: validly shaped stored cipher tamper fails after committed read
+passed: function pass alone cannot hide current relation trigger drift
+passed: relation pass alone cannot hide current function settings drift
+
+15:38:40.073 [error] Postgrex.Protocol (#PID<0.170.0> ({Postgrex.Protocol, "browser_storage"})) disconnected: ** (Postgrex.Error) ERROR 23514 (check_violation) fixture deferred failure
+passed: exact candidate deferred PostgreSQL COMMIT rejection rolls back all writes
+
+15:38:45.079 [error] Postgrex.Protocol (#PID<0.171.0> ({Postgrex.Protocol, "browser_storage"})) disconnected: ** (DBConnection.ConnectionError) client #PID<0.240.0> (:erlang) timed out because it queued and checked out the connection for longer than 5000ms
+
+#PID<0.240.0> (:erlang) was at location:
+
+    :prim_inet.recv0/3
+    (postgrex 0.22.4) lib/postgrex/protocol.ex:3296: Postgrex.Protocol.msg_recv/4
+    (postgrex 0.22.4) lib/postgrex/protocol.ex:2986: Postgrex.Protocol.recv_transaction/4
+    (db_connection 2.10.2) lib/db_connection/holder.ex:379: DBConnection.Holder.holder_apply/4
+    (db_connection 2.10.2) lib/db_connection.ex:1901: DBConnection.run_commit/3
+    (db_connection 2.10.2) lib/db_connection.ex:1826: DBConnection.transaction_checkin/4
+    (db_connection 2.10.2) lib/db_connection.ex:1883: DBConnection.commit/3
+    (db_connection 2.10.2) lib/db_connection.ex:1787: DBConnection.run_transaction/5
+
+FAILED: absolute original deadline includes actual deferred COMMIT wait
