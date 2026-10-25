@@ -1,0 +1,47 @@
+--- a/harness/UITests/ToggleUITests.swift
++++ b/harness/UITests/ToggleUITests.swift
+@@ -352,12 +352,21 @@
+         guard names.count <= 1 else { throw Failure.focus("Multiple native elements report focus") }
+         return names.first
+     }
+-    @discardableResult private func key(_ phase: String, _ value: String, expectedFocus: String? = nil, expectedSelection: Bool? = nil) throws -> [String: Any] {
++    @discardableResult private func key(_ phase: String, _ value: String, expectedFocus: String? = nil, expectedSelection: Bool? = nil, requiredFocusBefore: String? = nil) throws -> [String: Any] {
+         guard let app else { throw Failure.invalidResponse }
+         let toggle = app.descendants(matching: .any)["authored-toggle"].firstMatch
+         let baseline = try bridge("baseline", ["action": "native-keyboard", "geometry": ["app": rectangle(app.frame), "target": rectangle(toggle.frame)]])
+         focusDiagnosticObservations = []; focusDiagnosticObservationsDropped = 0
+         let before = try ax("before")
++        if let requiredFocusBefore {
++            let observedFocus = try focus(before)
++            let premisePassed = observedFocus == requiredFocusBefore
++            try jsonAttachment("Reference first-Tab precondition", ["schema": "mixer.apple-focus-reference-precondition.1",
++                "case": caseName, "phase": phase, "generation": baseline["generation"]!, "actionIndex": baseline["actionIndex"]!,
++                "requiredFocus": requiredFocusBefore, "observedFocus": observedFocus as Any? ?? NSNull(),
++                "passed": premisePassed, "actionInjectionCount": 0, "before": before])
++            guard premisePassed else { throw Failure.focus("Reference first-Tab precondition failed before key injection") }
++        }
+         try jsonAttachment("Before public key " + phase, ["case": caseName, "phase": phase, "key": value, "generation": baseline["generation"]!, "actionIndex": baseline["actionIndex"]!, "before": before])
+         let start = ProcessInfo.processInfo.systemUptime
+         if value == "shift-tab" { app.typeKey(XCUIKeyboardKey.tab, modifierFlags: [.shift]) }
+@@ -420,6 +429,10 @@
+         try key("disabled-space", "space", expectedSelection: initial)
+         try key("disabled-reverse", "shift-tab", expectedSelection: initial)
+     }
++    func test010ReferenceFirstTab() throws {
++        _ = try launchCase("keyboard-enabled-off", initial: false)
++        try key("acquire", "tab", requiredFocusBefore: "plain-uibutton-reference")
++    }
+     func test010EnabledFromOff() throws { try enabled(false) }
+     func test020EnabledFromOn() throws { try enabled(true) }
+     func test030StaleFromOff() throws { try stale(false) }
+--- a/source/Prototype/main.swift
++++ b/source/Prototype/main.swift
+@@ -280,7 +280,7 @@
+         super.didUpdateFocus(in: context, with: coordinator)
+         DiagnosticTrace.shared.focusContext("controller", context)
+     }
+-    override var preferredFocusEnvironments: [UIFocusEnvironment] { [toggle] }
++    override var preferredFocusEnvironments: [UIFocusEnvironment] { [referenceButton] }
+ }
+ 
+ @MainActor final class PrototypeDelegate: UIResponder, UIApplicationDelegate {

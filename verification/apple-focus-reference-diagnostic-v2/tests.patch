@@ -1,0 +1,79 @@
+--- a/verification/apple-focus-reference-diagnostic-v1/test_reference.py
++++ b/verification/apple-focus-reference-diagnostic-v2/test_reference.py
+@@ -105,9 +105,9 @@
+     def test_10_archive_corruption_fails_closed(self):
+         with tempfile.TemporaryDirectory(prefix='corrupt-control-', dir=prepare.BASE) as temporary:
+             path = Path(temporary) / 'changed.tar.gz'
+-            path.write_bytes((prepare.BASE / 'accepted-sources.tar.gz').read_bytes() + b'changed')
++            path.write_bytes((prepare.SOURCES_BASE / 'accepted-sources.tar.gz').read_bytes() + b'changed')
+             with self.assertRaises(ValueError):
+-                prepare.archive(path, {}, 'accepted/', prepare.row(prepare.BASE / 'accepted-sources.tar.gz')['sha256'])
++                prepare.archive(path, {}, 'accepted/', prepare.row(prepare.SOURCES_BASE / 'accepted-sources.tar.gz')['sha256'])
+ 
+     def test_11_ambiguous_derivation_anchor_rejected(self):
+         with self.assertRaises(ValueError): prepare.once('twice twice', 'twice', 'new')
+@@ -205,4 +205,64 @@
+         self.assertEqual(self.classify(p, v, pair)['status'], 'invalid-or-incomplete-evidence')
+ 
+ 
++    def reject_frozen_counterexample(self, name):
++        evidence = json.loads((prepare.REVIEW / 'counterexamples.json').read_bytes())
++        matches = [item for item in evidence['examples'] if item['name'] == name]
++        self.assertEqual(len(matches), 1)
++        item = matches[0]
++        self.assertIs(item['syntheticOnly'], True)
++        self.assertIs(item['actual']['singleTabDiagnosticEvidencePassed'], True)
++        result = contract.result(item['premises'], item['verdicts'], self.oracle, item['observations'])
++        self.assertEqual(result['status'], 'invalid-or-incomplete-evidence')
++        self.assertIs(result['singleTabDiagnosticEvidencePassed'], False)
++        self.assertIsNone(result['keyInjectionCount'])
++        self.assertEqual(result['returnedPublicKeyWitnessCount'], 0)
++        if not hasattr(type(self), 'regression_outcomes'): type(self).regression_outcomes = []
++        type(self).regression_outcomes.append({'name': name, 'syntheticOnly': True,
++            'input': 'Frozen independent-review counterexample', 'priorStatus': item['actual']['status'],
++            'priorDiagnosticSuccess': item['actual']['singleTabDiagnosticEvidencePassed'],
++            'status': result['status'], 'failure': result.get('failure'),
++            'singleTabDiagnosticEvidencePassed': result['singleTabDiagnosticEvidencePassed'],
++            'keyInjectionCount': result['keyInjectionCount'], 'returnedPublicKeyWitnessCount': result['returnedPublicKeyWitnessCount']})
++        for field in ['completeCaseSet', 'cursorCompletionCredit', 'runPassed', 'fullSixCaseQualification',
++                      'nativeKeyboardQualification', 'carrierAccepted', 'gaAccepted']:
++            self.assertIs(result[field], False)
++
++    def test_27_originalOraclePassed_bool_to_int_frozen_counterexample_rejected(self):
++        self.reject_frozen_counterexample('typed-original-verdict-originalOraclePassed')
++
++    def test_28_pairedFocusDisagreement_bool_to_int_frozen_counterexample_rejected(self):
++        self.reject_frozen_counterexample('typed-original-verdict-pairedFocusDisagreement')
++
++    def test_29_missingAppFocusUpdateSignal_bool_to_int_frozen_counterexample_rejected(self):
++        self.reject_frozen_counterexample('typed-original-verdict-missingAppFocusUpdateSignal')
++
++    def test_30_nativeAppFocusedBefore_bool_to_int_frozen_counterexample_rejected(self):
++        self.reject_frozen_counterexample('typed-original-verdict-nativeAppFocusedBefore')
++
++    def test_31_nativeAppFocusedAfter_bool_to_int_frozen_counterexample_rejected(self):
++        self.reject_frozen_counterexample('typed-original-verdict-nativeAppFocusedAfter')
++
++    def test_32_outer_generation_float_frozen_counterexample_rejected(self):
++        self.reject_frozen_counterexample('typed-reporting-generation')
++
++    def test_33_outer_actionIndex_float_frozen_counterexample_rejected(self):
++        self.reject_frozen_counterexample('typed-reporting-actionIndex')
++
++    def test_34_huge_integer_uptime_returns_structured_failure(self):
++        p, v, pair = self.synthetic()
++        p['before']['uptime'] = 10 ** 1000
++        result = self.classify(p, v, pair)
++        self.assertEqual(result['status'], 'invalid-or-incomplete-evidence')
++        self.assertTrue(result['failure'].startswith('OverflowError: '))
++        self.assertIs(result['singleTabDiagnosticEvidencePassed'], False)
++        self.assertIsNone(result['keyInjectionCount'])
++        if not hasattr(type(self), 'regression_outcomes'): type(self).regression_outcomes = []
++        type(self).regression_outcomes.append({'name': 'malformed-large-integer-uptime', 'syntheticOnly': True,
++            'input': 'Exact independent-review mutation: premise before uptime = 10 ** 1000',
++            'priorStatus': 'OverflowError: int too large to convert to float', 'status': result['status'],
++            'failure': result.get('failure'), 'singleTabDiagnosticEvidencePassed': result['singleTabDiagnosticEvidencePassed'],
++            'keyInjectionCount': result['keyInjectionCount'], 'returnedPublicKeyWitnessCount': result['returnedPublicKeyWitnessCount']})
++
++
+ if __name__ == '__main__': unittest.main()
