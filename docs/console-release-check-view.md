@@ -33,9 +33,14 @@ the superseded visual design are retained as historical evidence.
 
 Run `npm ci --ignore-scripts --no-audit --no-fund`, `npm run typecheck`,
 `npm test`, and `npm run build` from `console/`. Run
-`python3 verification/console-release-check-view/audit.py` from the repository
-root to verify the saved source/output bindings and browser observations.
-This audit checks saved evidence; it does not rerun the browser.
+`python3 verification/console-release-check-view/audit.py` at the original
+`67d6d045` checkout to verify its saved source/output bindings and browser
+observations. On later revisions the historical audit also checks shared root
+metadata and can reject unrelated provenance updates. The current-source review
+in `verification/console-brand-current-review/receipt.json` records the later
+`THIRD_PARTY.yml` change while confirming all console/website source, asset,
+build-output and saved browser evidence bindings remained unchanged. Neither
+check reruns the browser.
 
 The exact versions, commands, source hashes, limitations, cleanup, and independent
 review are linked from [the receipt](../verification/console-release-check-view/receipt.json).

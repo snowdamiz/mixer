@@ -1,11 +1,19 @@
-import { A, Navigate, Route, Router } from "@solidjs/router";
+import { A, Navigate, Route, Router, useLocation } from "@solidjs/router";
 import { lazy, Show } from "solid-js";
 import type { ParentProps } from "solid-js";
 import { ReleaseChecks } from "./components/ReleaseChecks.js";
+import { BuildOverview } from "./components/BuildOverview.js";
 
 const Preview = import.meta.env.DEV ? lazy(() => import("./preview/ReleaseChecksPreview.js")) : undefined;
+const BuildsPreview = import.meta.env.DEV ? lazy(() => import("./preview/BuildOverviewPreview.js")) : undefined;
 
 function Shell(props: ParentProps) {
+  const location = useLocation();
+  const section = () => {
+    if (location.pathname === "/builds" || location.pathname === "/preview/builds") return "Builds";
+    if (location.pathname === "/" || location.pathname === "/releases" || location.pathname === "/preview/release-checks") return "Releases";
+    return "Page not found";
+  };
   return <>
     <a class="skip-link" href="#main-content" target="_self">Skip to content</a>
     <div class="console-shell">
@@ -17,6 +25,7 @@ function Shell(props: ParentProps) {
         <div class="workspace-label"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Project workspace</span></div>
         <nav class="project-navigation" aria-label="Main navigation">
           <p class="navigation-label">Delivery</p>
+          <A href="/builds" activeClass="active"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm-8 4.5 8 4.5 8-4.5M12 12v9m-4-16 8 4.5"/></svg>Builds</A>
           <A href="/releases" activeClass="active"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></svg>Releases</A>
         </nav>
         <nav class="resource-navigation" aria-label="Resources">
@@ -27,7 +36,7 @@ function Shell(props: ParentProps) {
         <p class="rail-caption">One Swift app.<br/>A world of possibility.</p>
       </aside>
       <div class="console-workspace">
-        <header class="workspace-bar"><p>Workspace <span aria-hidden="true">/</span> <strong>Releases</strong></p><span class="workspace-product">Builds &amp; updates</span></header>
+        <header class="workspace-bar"><p>Workspace <span aria-hidden="true">/</span> <strong>{section()}</strong></p><span class="workspace-product">Builds &amp; updates</span></header>
         <main id="main-content" tabIndex={-1}>{props.children}</main>
         <footer class="app-footer"><span>mixer<span class="brand-period">.</span></span><span>Thoughtfully built for the things you’ll build.</span></footer>
       </div>
@@ -42,7 +51,9 @@ function NotFound() {
 export default function App() {
   return <Router root={Shell}>
     <Route path="/" component={() => <Navigate href="/releases" />} />
+    <Route path="/builds" component={() => <BuildOverview state={{ kind: "unavailable" }} />} />
     <Route path="/releases" component={() => <ReleaseChecks state={{ kind: "unavailable" }} />} />
+    <Show when={BuildsPreview}>{Component => <Route path="/preview/builds" component={Component()} />}</Show>
     <Show when={Preview}>{Component => <Route path="/preview/release-checks" component={Component()} />}</Show>
     <Route path="*" component={NotFound} />
   </Router>;
