@@ -1,0 +1,11 @@
+--- attempt-3/observer-and-controls.rs
++++ final/observer-and-controls.rs
+@@ -219,7 +219,7 @@
+     // It rejects the next defined function before cache use. Test external telemetry
+     // invalidation separately, then prove it cannot reject an otherwise valid operation.
+     let rejected=fixture(0,&[0,0x0b],79967);
+-    let failure=validate_swift_reactor(&rejected,SwiftValidationBudget::default(),&Cancellation::default()).unwrap_err();
++    let failure=match validate_swift_reactor(&rejected,SwiftValidationBudget::default(),&Cancellation::default()) {Err(f)=>f,Ok(_)=>panic!("original validator must reject the extra function")};
+     assert_eq!(failure.code,"profile_vector_limit");assert_eq!((failure.attempted,failure.limit),(79967,79966));
+     let bytes=fixture(0,&[0,0x0b],79966);
+     hooks(Hooks::default());attr_reset();let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());

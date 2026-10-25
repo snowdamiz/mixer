@@ -1,0 +1,303 @@
+--- /dev/null
++++ b/accepted/source/Prototype/PassiveLifecycleData.swift
+@@ -0,0 +1,182 @@
++import Foundation
++
++// Diagnostic data only. No UIKit, timers, input, oracle, or release authority.
++enum PassiveLifecycleSite: String, CaseIterable, Sendable { case registration, snapshot, controllerCallback = "controller-callback", carrierCallback = "carrier-callback", notification }
++enum PassiveLifecycleKind: String, CaseIterable, Sendable {
++    case appActive = "app-did-become-active", appInactive = "app-will-resign-active", appForeground = "app-will-enter-foreground", appBackground = "app-did-enter-background"
++    case windowKey = "window-did-become-key", windowNotKey = "window-did-resign-key", windowVisible = "window-did-become-visible", windowHidden = "window-did-become-hidden"
++    case sceneConnect = "scene-will-connect", sceneDisconnect = "scene-did-disconnect", sceneActive = "scene-did-activate", sceneInactive = "scene-will-deactivate", sceneForeground = "scene-will-enter-foreground", sceneBackground = "scene-did-enter-background"
++    var family: Int {
++        switch self {
++        case .appActive, .appInactive, .appForeground, .appBackground: return 0
++        case .windowKey, .windowNotKey, .windowVisible, .windowHidden: return 1
++        default: return 2
++        }
++    }
++}
++enum PassiveLifecycleAppState: String, CaseIterable, Sendable { case active, inactive, background, unknown }
++enum PassiveLifecycleSceneState: String, CaseIterable, Sendable { case absent, unattached, foregroundActive = "foreground-active", foregroundInactive = "foreground-inactive", background, unknown }
++enum PassiveLifecycleRegistration: String, CaseIterable, Sendable { case notRegistered = "not-registered", registered, invalid = "incomplete-registration", stopped }
++enum PassiveLifecycleIssue: String, CaseIterable, Sendable {
++    case count = "incomplete-count", bytes = "incomplete-bytes", counter = "incomplete-counter", timing = "incomplete-time", data = "incomplete-data", thread = "incomplete-thread", ownership = "incomplete-ownership", registration = "incomplete-registration"
++}
++
++struct PassiveLifecycleIdentity {
++    let value: String
++    init(_ object: AnyObject) { value = "0x" + String(UInt(bitPattern: Unmanaged.passUnretained(object).toOpaque()), radix: 16) }
++}
++
++// Weak references and identity comparisons shared with the host tests. The
++// adapter supplies only window.windowScene, never a scene found by enumeration.
++final class PassiveLifecycleOwnership {
++    weak var application: AnyObject?
++    weak var window: AnyObject?
++    init(application: AnyObject, window: AnyObject) { self.application = application; self.window = window }
++    func accepts(_ kind: PassiveLifecycleKind, object: AnyObject?, currentScene: AnyObject?) -> Bool {
++        guard let application, let window, let object else { return false }
++        switch kind.family {
++        case 0: return object === application
++        case 1: return object === window
++        default: return currentScene != nil && object === currentScene
++        }
++    }
++}
++
++// NotificationCenter keeps its block tokens. Their blocks retain only the fault
++// counter and weak observer. Removing/deinitializing this bag unregisters all 14.
++final class PassiveLifecycleTokens {
++    private let center: NotificationCenter
++    private var tokens: [NSObjectProtocol] = []
++    init(center: NotificationCenter) { self.center = center }
++    var count: Int { tokens.count }
++    func insert(_ token: NSObjectProtocol) -> Bool {
++        guard tokens.count < PassiveLifecycleKind.allCases.count else { center.removeObserver(token); return false }
++        tokens.append(token); return true
++    }
++    func removeAll() { for token in tokens { center.removeObserver(token) }; tokens.removeAll() }
++    deinit { removeAll() }
++}
++
++// Off-main delivery never schedules a later snapshot or touches actor state.
++// It records only a saturating fault count, merged into the next exported value.
++final class PassiveLifecycleDeliveryFaults: @unchecked Sendable {
++    private let lock = NSLock()
++    private var count = 0
++    func record() { lock.lock(); defer { lock.unlock() }; if count < PassiveLifecycleBuffer.counterLimit { count += 1 } }
++    var value: Int { lock.lock(); defer { lock.unlock() }; return count }
++}
++
++struct PassiveLifecycleSnapshot {
++    let systemUptime: Double
++    let finishedUptime: Double
++    let processIdentifier: Int
++    let site: PassiveLifecycleSite
++    let contextSequence: Int?
++    let notificationKind: PassiveLifecycleKind?
++    let notificationObjectIdentity: PassiveLifecycleIdentity?
++    let applicationState: PassiveLifecycleAppState
++    let ownedWindowIdentity: PassiveLifecycleIdentity?
++    let ownedWindowIsKey: Bool?
++    let ownedWindowSceneIdentity: PassiveLifecycleIdentity?
++    let ownedSceneActivationState: PassiveLifecycleSceneState
++}
++
++// Only the main-actor adapter mutates this buffer in the app. Host tests use the
++// same actual row validation, counters, envelope, reservation and serialization.
++final class PassiveLifecycleBuffer {
++    static let maximumRows = 64
++    static let columns = ["sequence", "systemUptime", "finishedUptime", "processIdentifier", "site", "contextSequence", "notificationKind", "notificationObjectIdentity", "applicationState", "ownedWindowIdentity", "ownedWindowIsKey", "ownedWindowSceneIdentity", "ownedSceneActivationState"]
++    static let maximumEncodedBytes = 16_384
++    static let counterLimit = 2_147_483_647
++    private(set) var registration: PassiveLifecycleRegistration = .notRegistered
++    private(set) var tokenCount = 0
++    private(set) var attempted = 0
++    private(set) var dropped = 0
++    private(set) var filtered = 0
++    private(set) var issues: Set<PassiveLifecycleIssue> = []
++    private var entries: [[String: Any]] = []
++    private var lastFinished: Double?
++    private let rowLimit: Int
++    private let countLimit: Int
++    // Finite host seams can only reduce production bounds, never raise them.
++    init(rowLimit: Int = 64, countLimit: Int = 2_147_483_647) {
++        precondition((1...Self.maximumRows).contains(rowLimit) && (1...Self.counterLimit).contains(countLimit))
++        self.rowLimit = rowLimit; self.countLimit = countLimit
++    }
++
++    func register(tokens: Int) {
++        guard registration == .notRegistered, tokens == PassiveLifecycleKind.allCases.count else {
++            registration = .invalid; issues.insert(.registration); return
++        }
++        tokenCount = tokens; registration = .registered
++    }
++    func stop() { registration = .stopped; tokenCount = 0 }
++    func ownershipEnded() {
++        // UIKit may load the root view before launch registration. Preserve the
++        // registration opportunity while truthfully recording that early gap.
++        if registration == .notRegistered { increment(&attempted); reject(.registration); return }
++        issues.insert(.ownership); stop()
++    }
++    func filteredNotification() { increment(&filtered) }
++    func invalidSite() { increment(&attempted); reject(.data) }
++    private func increment(_ value: inout Int) {
++        if value < countLimit { value += 1 } else { issues.insert(.counter) }
++    }
++    private func reject(_ issue: PassiveLifecycleIssue) { issues.insert(issue); increment(&dropped) }
++
++    private func envelope(rows: [[String: Any]], reserve: Bool = false, offMain: Int = 0) -> [String: Any] {
++        var activeIssues = issues
++        if registration != .registered { activeIssues.insert(.registration) }
++        if offMain > 0 { activeIssues.insert(.thread) }
++        if offMain >= Self.counterLimit { activeIssues.insert(.counter) }
++        let issueNames = PassiveLifecycleIssue.allCases.filter { reserve || activeIssues.contains($0) }.map(\.rawValue)
++        return ["schema": "mixer.apple-toggle.passive-lifecycle.1", "authoritative": false, "atomic": false,
++                "maximumRows": Self.maximumRows, "maximumEncodedBytes": Self.maximumEncodedBytes,
++                "registrationStatus": reserve ? PassiveLifecycleRegistration.invalid.rawValue : registration.rawValue,
++                "scopeStatus": "owned-app-window-current-scene-only", "observerTokens": reserve ? 14 : tokenCount,
++                "captureStatus": issueNames.isEmpty ? "complete" : "incomplete", "issues": issueNames,
++                "truncated": reserve || issues.contains(.count) || issues.contains(.bytes),
++                "attempted": reserve ? Self.counterLimit : attempted, "retained": rows.count,
++                "dropped": reserve ? Self.counterLimit : dropped, "filtered": reserve ? Self.counterLimit : filtered,
++                "offMainDeliveries": reserve ? Self.counterLimit : min(Self.counterLimit, max(0, offMain)), "rowSchema": "mixer.apple-toggle.passive-lifecycle-row.1", "columns": Self.columns,
++                "identityEncoding": "object-address-lowercase-hex", "entries": rows.map { row in Self.columns.map { row[$0] ?? NSNull() } }]
++    }
++    static func encode(_ value: Any) -> Data? {
++        try? JSONSerialization.data(withJSONObject: value, options: [.prettyPrinted, .sortedKeys])
++    }
++    // Includes the envelope, largest counters/statuses and a full nested field
++    // wrapper at the same depth/options used by the unchanged original persist.
++    static func encodedField(_ value: [String: Any]) -> Data? {
++        encode(["passiveLifecycleDiagnostic": value])
++    }
++    func value(offMain: Int = 0) -> [String: Any] { envelope(rows: entries, offMain: offMain) }
++    func append(_ snapshot: PassiveLifecycleSnapshot) {
++        guard attempted < countLimit else { reject(.counter); return }
++        increment(&attempted)
++        guard registration == .registered else { reject(.registration); return }
++        guard snapshot.systemUptime.isFinite, snapshot.finishedUptime.isFinite,
++              snapshot.systemUptime >= 0, snapshot.finishedUptime >= snapshot.systemUptime,
++              lastFinished.map({ snapshot.systemUptime >= $0 }) ?? true else { reject(.timing); return }
++        let callback = snapshot.site == .controllerCallback || snapshot.site == .carrierCallback
++        let notification = snapshot.site == .notification
++        guard snapshot.processIdentifier > 0, snapshot.processIdentifier <= Int(Int32.max),
++              callback ? (snapshot.contextSequence.map { $0 > 0 && $0 <= Self.counterLimit } == true) : snapshot.contextSequence == nil,
++              notification == (snapshot.notificationKind != nil), notification == (snapshot.notificationObjectIdentity != nil),
++              snapshot.ownedWindowIdentity != nil, snapshot.ownedWindowIsKey != nil,
++              (snapshot.ownedWindowSceneIdentity == nil) == (snapshot.ownedSceneActivationState == .absent) else { reject(.data); return }
++        if snapshot.applicationState == .unknown || snapshot.ownedSceneActivationState == .unknown { issues.insert(.data) }
++        guard entries.count < rowLimit else { reject(.count); return }
++        let row: [String: Any] = ["sequence": attempted, "systemUptime": snapshot.systemUptime, "finishedUptime": snapshot.finishedUptime,
++            "processIdentifier": snapshot.processIdentifier, "site": snapshot.site.rawValue,
++            "contextSequence": snapshot.contextSequence as Any? ?? NSNull(),
++            "notificationKind": snapshot.notificationKind?.rawValue as Any? ?? NSNull(),
++            "notificationObjectIdentity": snapshot.notificationObjectIdentity?.value as Any? ?? NSNull(),
++            "applicationState": snapshot.applicationState.rawValue, "ownedWindowIdentity": snapshot.ownedWindowIdentity?.value as Any? ?? NSNull(),
++            "ownedWindowIsKey": snapshot.ownedWindowIsKey as Any? ?? NSNull(),
++            "ownedWindowSceneIdentity": snapshot.ownedWindowSceneIdentity?.value as Any? ?? NSNull(),
++            "ownedSceneActivationState": snapshot.ownedSceneActivationState.rawValue]
++        let next = entries + [row]
++        guard let reserved = Self.encodedField(envelope(rows: next, reserve: true)), reserved.count <= Self.maximumEncodedBytes else { reject(.bytes); return }
++        entries = next; lastFinished = snapshot.finishedUptime
++    }
++}
+--- /dev/null
++++ b/accepted/source/Prototype/PassiveLifecycleObserver.swift
+@@ -0,0 +1,77 @@
++import UIKit
++
++/// One passive main-actor observer; never supplies an original identity or anchor.
++@MainActor final class PassiveLifecycleObserver {
++    private let buffer = PassiveLifecycleBuffer()
++    private let faults = PassiveLifecycleDeliveryFaults()
++    private var ownership: PassiveLifecycleOwnership?
++    private let tokens = PassiveLifecycleTokens(center: .default)
++    private static let notifications: [(Notification.Name, PassiveLifecycleKind)] = [
++        (UIApplication.didBecomeActiveNotification, .appActive), (UIApplication.willResignActiveNotification, .appInactive),
++        (UIApplication.willEnterForegroundNotification, .appForeground), (UIApplication.didEnterBackgroundNotification, .appBackground),
++        (UIWindow.didBecomeKeyNotification, .windowKey), (UIWindow.didResignKeyNotification, .windowNotKey),
++        (UIWindow.didBecomeVisibleNotification, .windowVisible), (UIWindow.didBecomeHiddenNotification, .windowHidden),
++        (UIScene.willConnectNotification, .sceneConnect), (UIScene.didDisconnectNotification, .sceneDisconnect),
++        (UIScene.didActivateNotification, .sceneActive), (UIScene.willDeactivateNotification, .sceneInactive),
++        (UIScene.willEnterForegroundNotification, .sceneForeground), (UIScene.didEnterBackgroundNotification, .sceneBackground)
++    ]
++    func start(application: UIApplication, window: UIWindow) {
++        guard ownership == nil, application === UIApplication.shared else { buffer.register(tokens: 0); return }
++        ownership = PassiveLifecycleOwnership(application: application, window: window)
++        for (name, kind) in Self.notifications {
++            let faults = self.faults
++            let token = NotificationCenter.default.addObserver(forName: name, object: nil, queue: nil) { [weak self, faults] note in
++                guard Thread.isMainThread else { faults.record(); return }
++                MainActor.assumeIsolated { self?.notification(kind, note) }
++            }
++            guard tokens.insert(token) else { buffer.register(tokens: 0); tokens.removeAll(); return }
++        }
++        buffer.register(tokens: tokens.count)
++        capture(site: .registration, contextSequence: nil, kind: nil, object: nil)
++    }
++    func sample(site: String, contextSequence: Int?) {
++        guard let site = PassiveLifecycleSite(rawValue: site), site == .snapshot || site == .controllerCallback || site == .carrierCallback else { buffer.invalidSite(); return }
++        capture(site: site, contextSequence: contextSequence, kind: nil, object: nil)
++    }
++    private func notification(_ kind: PassiveLifecycleKind, _ note: Notification) {
++        guard let ownership, let window = ownership.window as? UIWindow, ownership.application != nil else {
++            buffer.ownershipEnded(); tokens.removeAll(); return
++        }
++        let object = note.object as AnyObject?
++        guard ownership.accepts(kind, object: object, currentScene: window.windowScene) else { buffer.filteredNotification(); return }
++        capture(site: .notification, contextSequence: nil, kind: kind, object: object)
++    }
++    private func capture(site: PassiveLifecycleSite, contextSequence: Int?, kind: PassiveLifecycleKind?, object: AnyObject?) {
++        let started = ProcessInfo.processInfo.systemUptime
++        guard let application = ownership?.application as? UIApplication, let window = ownership?.window as? UIWindow else {
++            buffer.ownershipEnded(); tokens.removeAll(); return
++        }
++        let appState: PassiveLifecycleAppState
++        switch application.applicationState {
++        case .active: appState = .active
++        case .inactive: appState = .inactive
++        case .background: appState = .background
++        @unknown default: appState = .unknown
++        }
++        let windowIdentity = PassiveLifecycleIdentity(window)
++        let isKey = window.isKeyWindow
++        let scene = window.windowScene
++        let sceneIdentity = scene.map(PassiveLifecycleIdentity.init)
++        let sceneState: PassiveLifecycleSceneState
++        if let scene {
++            switch scene.activationState {
++            case .unattached: sceneState = .unattached
++            case .foregroundActive: sceneState = .foregroundActive
++            case .foregroundInactive: sceneState = .foregroundInactive
++            case .background: sceneState = .background
++            @unknown default: sceneState = .unknown
++            }
++        } else { sceneState = .absent }
++        let finished = ProcessInfo.processInfo.systemUptime
++        buffer.append(PassiveLifecycleSnapshot(systemUptime: started, finishedUptime: finished,
++            processIdentifier: Int(ProcessInfo.processInfo.processIdentifier), site: site, contextSequence: contextSequence,
++            notificationKind: kind, notificationObjectIdentity: object.map(PassiveLifecycleIdentity.init), applicationState: appState,
++            ownedWindowIdentity: windowIdentity, ownedWindowIsKey: isKey, ownedWindowSceneIdentity: sceneIdentity, ownedSceneActivationState: sceneState))
++    }
++    var value: [String: Any] { buffer.value(offMain: faults.value) }
++}
+--- a/accepted/source/Prototype/main.swift
++++ b/accepted/source/Prototype/main.swift
+@@ -11,6 +11,7 @@
+     let referenceButton = UIButton(type: .custom)
+     let referencePanSurface = DiagnosticPanSurface(frame: .zero)
+     let theme: UIThemeV2
++    let passiveLifecycleObserver = PassiveLifecycleObserver()
+     var allowed = true
+     var eventCount = 0
+     var eventValues: [Bool] = []
+@@ -49,6 +50,7 @@
+             guard let self else { return }
+             FocusSystemObservation.shared.capture(site: site, contextSequence: sequence, stage: self.stage, controller: self,
+                                                   controls: [self.toggle, self.referenceButton, self.nextButton])
++            self.passiveLifecycleObserver.sample(site: site, contextSequence: sequence)
+         }
+         view.backgroundColor = UIColor(white: 0.95, alpha: 1)
+         titleLabel.text = "Authored UIKit toggle"; titleLabel.font = .systemFont(ofSize: 24, weight: .bold)
+@@ -151,7 +153,7 @@
+     }
+     func persist() {
+         let trace = DiagnosticTrace.shared
+-        let result: [String:Any] = ["scope":"Isolated UIKit diagnostics; no production adapter, original candidate repair, native qualification, or physical VoiceOver qualification", "stage":stage, "state":snapshot(), "events":events, "checks":checks, "diagnosticSuiteState": diagnosticSuiteState, "diagnosticOperations": diagnosticOperations, "semanticOperations": semanticOperations, "nativeInterruptions": nativeInterruptions, "panCommitRecords": panCommitRecords, "diagnosticTrace": trace.entries, "diagnosticTraceDropped": trace.dropped, "focusContextSchema": "mixer.apple-toggle.focus-context.1", "focusContexts": trace.focusContextEntries, "focusContextDropped": trace.focusContextDropped, "focusContextRevision": trace.focusContextRevision, "reference": operationSnapshot(reference: true), "referencePan": trace.gesture(referencePanSurface.pan), "focusSystemDiagnostic": FocusSystemObservation.shared.value]
++        let result: [String:Any] = ["scope":"Isolated UIKit diagnostics; no production adapter, original candidate repair, native qualification, or physical VoiceOver qualification", "stage":stage, "state":snapshot(), "events":events, "checks":checks, "diagnosticSuiteState": diagnosticSuiteState, "diagnosticOperations": diagnosticOperations, "semanticOperations": semanticOperations, "nativeInterruptions": nativeInterruptions, "panCommitRecords": panCommitRecords, "diagnosticTrace": trace.entries, "diagnosticTraceDropped": trace.dropped, "focusContextSchema": "mixer.apple-toggle.focus-context.1", "focusContexts": trace.focusContextEntries, "focusContextDropped": trace.focusContextDropped, "focusContextRevision": trace.focusContextRevision, "reference": operationSnapshot(reference: true), "referencePan": trace.gesture(referencePanSurface.pan), "focusSystemDiagnostic": FocusSystemObservation.shared.value, "passiveLifecycleDiagnostic": passiveLifecycleObserver.value]
+         let data = try! JSONSerialization.data(withJSONObject:result, options:[.prettyPrinted,.sortedKeys])
+         try! data.write(to:documents.appendingPathComponent("observations.json"), options:.atomic)
+         try! stage.write(to:documents.appendingPathComponent("stage.txt"), atomically:true, encoding:.utf8)
+@@ -292,7 +294,9 @@
+ @MainActor final class PrototypeDelegate: UIResponder, UIApplicationDelegate {
+     var window: UIWindow?
+     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey:Any]?) -> Bool {
+-        let window = UIWindow(frame: UIScreen.main.bounds); window.rootViewController = PrototypeController()
++        let window = UIWindow(frame: UIScreen.main.bounds)
++        let controller = PrototypeController(); window.rootViewController = controller
++        controller.passiveLifecycleObserver.start(application: application, window: window)
+         window.makeKeyAndVisible(); self.window = window; return true
+     }
+ }

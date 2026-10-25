@@ -1,0 +1,436 @@
+--- accepted/src/experimental/cache/borrowed.rs
++++ isolated/src/experimental/cache/borrowed.rs
+@@ -182,6 +182,8 @@
+ }
+ pub(crate) trait DecodeMeter: sealed::Meter {
+     fn step(&mut self, _: CacheStep) {}
++    #[cfg(test)] fn diagnostic_site(&mut self, _: u8) {}
++    #[cfg(test)] fn diagnostic_completed(&mut self, _: u32) {}
+     type Failure;
+     fn error(&mut self, kind: CacheFailureKind, code: &'static str) -> Self::Failure;
+     fn check(&mut self) -> Result<(), Self::Failure>;
+@@ -727,6 +729,7 @@
+     };
+     let mut meter = M::meter(usage, operation, function);
+     meter.step(CacheStep::Lookup);
++    #[cfg(test)] meter.diagnostic_site(1);
+     meter.work(1)?;
+     let defined = parts
+         .snapshot
+@@ -737,6 +740,7 @@
+         .next_nonce
+         .checked_add(1)
+         .ok_or_else(|| meter.error(CacheFailureKind::NonceExhausted, "pin_nonce_exhausted"))?;
++    #[cfg(test)] meter.diagnostic_site(2);
+     let mut pin_slot = None;
+     for (index, record) in parts.pins.iter().enumerate() {
+         meter.work(1)?;
+@@ -770,6 +774,7 @@
+     nonce: u64,
+ ) -> Result<M::Pin, M::Failure> {
+     let function = defined.absolute_index;
++    #[cfg(test)] meter.diagnostic_site(3);
+     let hit = M::resident_lookup(parts.slots, &mut parts.scratch, function, meter)?;
+     let index = if let Some(index) = hit {
+         meter.check()?;
+@@ -810,8 +815,10 @@
+         meter.step(CacheStep::Planning);
+         let mut plan = [false; MAX_ENTRIES];
+         let mut remaining = meter.usage().resident();
++        #[cfg(test)] meter.diagnostic_site(8);
+         meter.work(parts.slots.len() as u64)?;
+         let mut empty = parts.slots.iter().position(|slot| slot.entry().is_none());
++        #[cfg(test)] meter.diagnostic_site(9);
+         while empty.is_none() || base + remaining + bytes > capacity {
+             let mut oldest: Option<usize> = None;
+             for (index, slot) in parts.slots.iter().enumerate() {
+@@ -830,6 +837,7 @@
+             remaining -= parts.slots[victim].entry().expect("selected entry").bytes;
+             empty = Some(victim);
+         }
++        #[cfg(test)] meter.diagnostic_site(10);
+         meter.work(MAX_ENTRIES as u64)?;
+         let mut evictions = 0u64;
+         for selected in &plan {
+@@ -844,6 +852,7 @@
+         for (index, selected) in plan.iter().enumerate().take(parts.slots.len()) {
+             if *selected {
+                 let bytes = parts.slots[index].entry().expect("planned entry").bytes;
++                #[cfg(test)] meter.diagnostic_site(11);
+                 M::resident_remove(parts.slots, &mut parts.scratch, index, meter)?;
+                 let old = parts.slots[index].take().expect("planned entry");
+                 M::drop_entry(old, meter)?;
+@@ -862,11 +871,13 @@
+             }
+         };
+         meter.step(CacheStep::Publication);
++        #[cfg(test)] meter.diagnostic_site(15);
+         if let Err(error) = meter.check() {
+             let _ = M::drop_entry(entry, meter);
+             let _ = meter.construction(0);
+             return Err(error);
+         }
++        #[cfg(test)] meter.diagnostic_site(14);
+         if let Err(error) =
+             M::resident_insert(parts.slots, &mut parts.scratch, function, index, meter)
+         {
+@@ -877,6 +888,7 @@
+         // Both hooks precharge their complete mutation; no fallible operation
+         // separates the index update from the infallible slot publication.
+         meter.usage_mut().decoded(next_decodes, bytes);
++        #[cfg(test)] meter.diagnostic_completed(function);
+         parts.slots[index].set(entry);
+         index
+     };
+--- accepted/src/experimental_swift_reactor/cache.rs
++++ isolated/src/experimental_swift_reactor/cache.rs
+@@ -1381,8 +1381,10 @@
+     }
+     fn work(&mut self, n: u64) -> Result<(), SwiftRunFailure> {
+         checkpoint(self.control, self.cursor);
+-        self.control
+-            .work_with_wasi(Work::Cache, n, self.cursor, self.observation())
++        let result = self.control
++            .work_with_wasi(Work::Cache, n, self.cursor, self.observation());
++        #[cfg(test)] super::cache_tests::remaining_plan_work(n, self.cursor, result.as_ref().err());
++        result
+     }
+     fn admit(&mut self, bytes: usize) -> Result<ReservationTicket, SwiftRunFailure> {
+         checkpoint(self.control, self.cursor);
+@@ -1986,6 +1988,8 @@
+     fn set_offset(&mut self, offset: usize) {
+         self.operation.cursor.offset = Some(offset);
+     }
++    #[cfg(test)] fn diagnostic_site(&mut self, site: u8) { super::cache_tests::remaining_plan_site(site); }
++    #[cfg(test)] fn diagnostic_completed(&mut self, function: u32) { super::cache_tests::remaining_plan_completed(function); }
+     fn step(&mut self, step: CacheStep) {
+         test_step(step);
+     }
+@@ -2120,6 +2124,7 @@
+             function: Some(function),
+             offset: Some(0),
+         };
++        #[cfg(test)] super::cache_tests::remaining_plan_begin(function);
+         SwiftMeter { operation, usage }
+     }
+     fn resident_lookup(
+@@ -2199,10 +2204,12 @@
+         scratch: &mut SwiftScratch<'_>,
+         meter: &mut SwiftMeter<'_, '_>,
+     ) -> Result<decode::Counts, SwiftRunFailure> {
++        #[cfg(test)] meter.diagnostic_site(4);
+         let policy = policy(snapshot, body, meter)?;
+         if scratch.plans.len() != PLAN_CAPACITY {
+             return Err(meter.error(CacheFailureKind::DecoderMismatch, "swift_plan_layout"));
+         }
++        #[cfg(test)] meter.diagnostic_site(5);
+         meter.work(1)?; // requested identity hash, collision alone never authorizes
+         let index = body.absolute_index as usize & (PLAN_CAPACITY - 1);
+         meter.work(1)?; // actual Option tag probe
+@@ -2221,12 +2228,15 @@
+                     );
+                 }
+                 meter.work(3)?; // actual three-field Counts copy; also checks stop
++                #[cfg(test)] super::cache_tests::remaining_plan_event(2);
+                 return Ok(plan.counts);
+             }
+         }
++        #[cfg(test)] super::cache_tests::remaining_plan_event(if scratch.plans[index].is_some() {1} else {0});
+         meter.step(CacheStep::ScanReset);
+         reset(scratch.patches, meter)?;
+         meter.step(CacheStep::Scan);
++        #[cfg(test)] meter.diagnostic_site(6);
+         let mut depth = 0;
+         let mut counts = decode::Counts::default();
+         let counts = decode::scan_borrowed(
+@@ -2243,7 +2253,9 @@
+         )?;
+         // Successful complete scan is the only publishing source. All checks
+         // and charges precede the single infallible full-cell replacement.
++        #[cfg(test)] meter.diagnostic_site(7);
+         meter.work(PLAN_CELL_CREDITS + 3)?;
++        #[cfg(test)] super::cache_tests::remaining_plan_event(3);
+         scratch.plans[index] = Some(ScanPlan {
+             function: body.absolute_index,
+             body_offset: body.body_offset,
+@@ -2304,10 +2316,12 @@
+         scratch: &mut SwiftScratch<'_>,
+         meter: &mut SwiftMeter<'_, '_>,
+     ) -> Result<DecodedFunction, SwiftRunFailure> {
++        #[cfg(test)] meter.diagnostic_site(12);
+         let policy = policy(snapshot, body, meter)?;
+         meter.step(CacheStep::BuildReset);
+         reset(scratch.patches, meter)?;
+         meter.step(CacheStep::Build);
++        #[cfg(test)] meter.diagnostic_site(13);
+         let mut depth = 0;
+         let mut actual = decode::Counts::default();
+         decode::build_borrowed(
+--- accepted/src/experimental_swift_reactor/cache_tests.rs
++++ isolated/src/experimental_swift_reactor/cache_tests.rs
+@@ -3857,3 +3857,265 @@
+     assert_eq!(stats.reallocations, 0);
+     finish(cache, c);
+ }
++
++// Test-only external telemetry. No guest instantiation or full target execution.
++use std::cell::RefCell;
++use std::fmt::Write as _;
++const ATTR_BITS: usize = 80_000;
++const ATTR_WORDS: usize = 1_250;
++const ATTR_OUTPUT: usize = 4_096;
++const ATTR_RANGE: u32 = 1;
++const ATTR_OVERFLOW: u32 = 2;
++const ATTR_CONTEXT: u32 = 4;
++const ATTR_OUTPUT_OVERFLOW: u32 = 8;
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++struct AttributionRejection {
++    site: usize, requested: u64, cursor_function: Option<u32>, cursor_offset: Option<usize>,
++    kind: SwiftRunFailureKind, resource: Option<SwiftRunResource>,
++    function: Option<u32>, offset: Option<usize>, attempted: u64, limit: u64,
++}
++#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
++struct AttributionTotals {
++    credits: [u64;16], calls: [u64;16], plans: [u64;4],
++    completed: u64, distinct: u64, repeated: u64,
++    scan_credits: [u64;2], scan_calls: [u64;2], scan_published: [u64;2],
++    build_credits: [u64;2], build_calls: [u64;2],
++}
++struct CurrentAttribution {
++    seen: [u64;ATTR_WORDS], totals: AttributionTotals, rejected: Option<AttributionRejection>,
++    site: usize, function: Option<u32>, repeated: bool, invalid: u32,
++}
++impl Default for CurrentAttribution {
++    fn default() -> Self { Self { seen:[0;ATTR_WORDS], totals:AttributionTotals::default(), rejected:None,
++        site:0, function:None, repeated:false, invalid:0 } }
++}
++fn attr_add(value: &mut u64, n: u64, invalid: &mut u32) {
++    if let Some(next)=value.checked_add(n) { *value=next; } else { *invalid |= ATTR_OVERFLOW; }
++}
++impl CurrentAttribution {
++    fn begin(&mut self, function: u32) {
++        self.function=Some(function);
++        if (function as usize) < ATTR_BITS {
++            self.repeated = self.seen[function as usize / 64] & (1u64 << (function as usize % 64)) != 0;
++        } else { self.invalid |= ATTR_RANGE; self.repeated=false; }
++    }
++    fn site(&mut self, site: u8) { if site<16 {self.site=site as usize;} else {self.invalid |= ATTR_CONTEXT;} }
++    fn event(&mut self, event: u8) {
++        if event>=4 {self.invalid |= ATTR_CONTEXT;return;}
++        attr_add(&mut self.totals.plans[event as usize],1,&mut self.invalid);
++        if event==2 && !self.repeated {self.invalid |= ATTR_CONTEXT;}
++        if event==3 {attr_add(&mut self.totals.scan_published[self.repeated as usize],1,&mut self.invalid);}
++    }
++    fn completed(&mut self, function: u32) {
++        if self.function!=Some(function) {self.invalid |= ATTR_CONTEXT;}
++        attr_add(&mut self.totals.completed,1,&mut self.invalid);
++        if (function as usize)>=ATTR_BITS {self.invalid |= ATTR_RANGE;return;}
++        let word=&mut self.seen[function as usize/64];let bit=1u64 << (function as usize%64);
++        if *word & bit == 0 {attr_add(&mut self.totals.distinct,1,&mut self.invalid);}
++        else {attr_add(&mut self.totals.repeated,1,&mut self.invalid);}
++        *word |= bit; // Only called after original usage.decoded publication.
++    }
++    fn work(&mut self, n:u64, cursor:Cursor, error:Option<&SwiftRunFailure>) {
++        if let Some(e)=error {
++            if self.rejected.is_none() {self.rejected=Some(AttributionRejection{site:self.site,requested:n,
++                cursor_function:cursor.function,cursor_offset:cursor.offset,kind:e.kind,resource:e.resource,
++                function:e.function,offset:e.offset,attempted:e.attempted,limit:e.limit});}
++            return; // Never include a rejected requested debit.
++        }
++        attr_add(&mut self.totals.credits[self.site],n,&mut self.invalid);
++        attr_add(&mut self.totals.calls[self.site],1,&mut self.invalid);
++        let part=self.repeated as usize;
++        if self.site==6 || self.site==13 {
++            if self.function!=cursor.function {self.invalid |= ATTR_CONTEXT;}
++            let (credits,calls)=if self.site==6 {(&mut self.totals.scan_credits,&mut self.totals.scan_calls)}
++                else {(&mut self.totals.build_credits,&mut self.totals.build_calls)};
++            attr_add(&mut credits[part],n,&mut self.invalid);attr_add(&mut calls[part],1,&mut self.invalid);
++        }
++    }
++}
++thread_local! { static CURRENT_ATTRIBUTION: RefCell<CurrentAttribution> = RefCell::new(CurrentAttribution::default()); }
++pub(super) fn remaining_plan_begin(f:u32) { CURRENT_ATTRIBUTION.with(|x| x.borrow_mut().begin(f)); }
++pub(super) fn remaining_plan_site(s:u8) { CURRENT_ATTRIBUTION.with(|x| x.borrow_mut().site(s)); }
++pub(super) fn remaining_plan_event(e:u8) { CURRENT_ATTRIBUTION.with(|x| x.borrow_mut().event(e)); }
++pub(super) fn remaining_plan_completed(f:u32) { CURRENT_ATTRIBUTION.with(|x| x.borrow_mut().completed(f)); }
++pub(super) fn remaining_plan_work(n:u64,c:Cursor,e:Option<&SwiftRunFailure>) { CURRENT_ATTRIBUTION.with(|x| x.borrow_mut().work(n,c,e)); }
++fn attr_reset() {CURRENT_ATTRIBUTION.with(|x| *x.borrow_mut()=CurrentAttribution::default());}
++fn attr_totals() -> AttributionTotals {CURRENT_ATTRIBUTION.with(|x|x.borrow().totals)}
++fn attr_check(c:&RuntimeControl,cache:&SwiftFunctionCache) {
++    CURRENT_ATTRIBUTION.with(|x|{let x=x.borrow();assert_eq!(x.invalid,0);
++        let t=x.totals;assert_eq!(t.credits.iter().sum::<u64>(),c.usage(None).cache_work);
++        assert_eq!(t.completed,cache.usage().decodes);assert_eq!(t.distinct+t.repeated,t.completed);
++        assert_eq!(t.scan_credits.iter().sum::<u64>(),t.credits[6]);assert_eq!(t.scan_calls.iter().sum::<u64>(),t.calls[6]);
++        assert_eq!(t.build_credits.iter().sum::<u64>(),t.credits[13]);assert_eq!(t.build_calls.iter().sum::<u64>(),t.calls[13]);
++        assert_eq!(t.scan_published.iter().sum::<u64>(),t.plans[3]);
++        assert_eq!(x.seen.iter().map(|w|w.count_ones() as u64).sum::<u64>(),t.distinct);
++    });
++}
++fn attr_diff(t:AttributionTotals,b:AttributionTotals)->AttributionTotals {
++    let mut d=t;
++    for i in 0..16 {d.credits[i]-=b.credits[i];d.calls[i]-=b.calls[i];}
++    for i in 0..4 {d.plans[i]-=b.plans[i];}
++    d.completed-=b.completed;d.distinct-=b.distinct;d.repeated-=b.repeated;
++    for i in 0..2 {d.scan_credits[i]-=b.scan_credits[i];d.scan_calls[i]-=b.scan_calls[i];d.scan_published[i]-=b.scan_published[i];d.build_credits[i]-=b.build_credits[i];d.build_calls[i]-=b.build_calls[i];}d
++}
++struct AttributionText {bytes:[u8;ATTR_OUTPUT],len:usize,limit:usize}
++impl AttributionText {fn new(limit:usize)->Self {Self{bytes:[0;ATTR_OUTPUT],len:0,limit:limit.min(ATTR_OUTPUT)}}}
++impl std::fmt::Write for AttributionText {
++    fn write_str(&mut self,s:&str)->std::fmt::Result {
++        let end=self.len.checked_add(s.len()).filter(|n|*n<=self.limit).ok_or(std::fmt::Error)?;
++        self.bytes[self.len..end].copy_from_slice(s.as_bytes());self.len=end;Ok(())
++    }
++}
++fn attr_format(x:&mut CurrentAttribution,out:&mut AttributionText)->bool {
++    let t=x.totals;
++    let result=(|| -> std::fmt::Result {
++        write!(out,"{{\"invalid\":{},\"credits\":{:?},\"calls\":{:?},\"plans\":{:?},\"completed\":{},\"distinct\":{},\"repeated\":{},\"scan_credits\":{:?},\"scan_calls\":{:?},\"scan_published\":{:?},\"build_credits\":{:?},\"build_calls\":{:?},\"first_rejection\":",x.invalid,t.credits,t.calls,t.plans,t.completed,t.distinct,t.repeated,t.scan_credits,t.scan_calls,t.scan_published,t.build_credits,t.build_calls)?;
++        if let Some(r)=x.rejected {
++            write!(out,"{{\"site\":{},\"requested\":{},\"cursor_function\":{},\"cursor_offset\":{},\"kind\":\"{:?}\",\"resource\":\"{:?}\",\"function\":{},\"offset\":{},\"attempted\":{},\"limit\":{}}}",r.site,r.requested,r.cursor_function.map(u64::from).unwrap_or(u64::MAX),r.cursor_offset.map(|v|v as u64).unwrap_or(u64::MAX),r.kind,r.resource,r.function.map(u64::from).unwrap_or(u64::MAX),r.offset.map(|v|v as u64).unwrap_or(u64::MAX),r.attempted,r.limit)?;
++        } else {out.write_str("null")?;}
++        out.write_str("}")
++    })();
++    if result.is_err() {x.invalid |= ATTR_OUTPUT_OVERFLOW;false} else {true}
++}
++fn attr_emit(label:&str,c:&RuntimeControl,cache:&SwiftFunctionCache,before:AttributionTotals)->u64 {
++    attr_check(c,cache);let d=attr_diff(attr_totals(),before);let work=d.credits.iter().sum::<u64>();
++    // Fixed labels are finite fixture metadata, never guest data. The reusable snapshot formatter below has no label.
++    println!("ATTR_CASE {{\"case\":\"{label}\",\"work\":{work},\"credits\":{:?},\"calls\":{:?},\"plans\":{:?},\"completed\":{},\"distinct\":{},\"repeated\":{},\"scan_credits\":{:?},\"scan_calls\":{:?},\"scan_published\":{:?},\"build_credits\":{:?},\"build_calls\":{:?},\"hits\":{},\"misses\":{},\"decodes\":{},\"evictions\":{}}}",d.credits,d.calls,d.plans,d.completed,d.distinct,d.repeated,d.scan_credits,d.scan_calls,d.scan_published,d.build_credits,d.build_calls,cache.usage().hits,cache.usage().misses,cache.usage().decodes,cache.usage().evictions);
++    work
++}
++fn attr_one(cache:&mut SwiftFunctionCache,c:&mut RuntimeControl,f:u32) {
++    let p=pin(cache,c,f,None).unwrap();cache.release(p,c,None).map_err(|e|e.failure).unwrap();attr_check(c,cache);
++}
++fn attr_finish(cache:SwiftFunctionCache,mut c:RuntimeControl) {
++    if CURRENT_ATTRIBUTION.with(|x|x.borrow().invalid)==0 {attr_check(&c,&cache);}
++    let work=c.usage(None).cache_work;
++    let _=cleanup(cache,&mut c,None);let u=c.finish_owned_cleanup(None);
++    assert_eq!(u.cache_work,work);assert_eq!(u.cleanup_invariant,None);
++    assert_eq!(u.reservations.combined.current,0);assert_eq!(u.reservations.live_tickets,0);
++    for r in [u.reservations.retained_source,u.reservations.retained_metadata,u.reservations.cache,u.reservations.state,u.reservations.wasi,u.reservations.shared,u.reservations.construction] {assert_eq!(r.current,0);}
++    for r in [u.live.active_pins,u.live.cache_entries,u.live.frames,u.live.values,u.live.controls,u.live.memory_pages] {assert_eq!(r.current,0);}
++    if CURRENT_ATTRIBUTION.with(|x|x.borrow().invalid)==0 {assert_eq!(attr_totals().credits.iter().sum::<u64>(),u.cache_work);}
++}
++#[test]
++fn current_attribution_actual_cache_finite() {
++    use crate::experimental::cache::{Operation,ControlKind};
++    for (label,helper) in [("flat_cold",vec![0,0x0b]),("nested_cold",body(0,&[2,0x40,3,0x40,1,0x0b,0x0b,0x41,0,4,0x40,1,5,1,0x0b,0x0b]))] {
++        hooks(Hooks::default());attr_reset();let bytes=fixture(0,&helper,600);let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());
++        assert_eq!(c.usage(None).cache_work,4928);attr_emit("constructor",&c,&cache,AttributionTotals::default());let before=attr_totals();
++        let p=pin(&mut cache,&mut c,34,None).unwrap();let v=cache.view(&p,&mut c,None).unwrap();
++        if label=="flat_cold" {assert_eq!(v.instructions.len(),1);assert_eq!(v.instructions[0].operation,Operation::End);}
++        else {assert_eq!(v.instructions.len(),12);assert_eq!(v.instructions[0].operation,Operation::Block{kind:ControlKind::Block,result:None,end:4,alternative:None});assert_eq!(v.instructions[1].operation,Operation::Block{kind:ControlKind::Loop,result:None,end:3,alternative:None});assert_eq!(v.instructions[6].operation,Operation::Block{kind:ControlKind::If,result:None,end:10,alternative:Some(8)});assert_eq!(v.instructions[8].operation,Operation::Else{end:10});}
++        cache.release(p,&mut c,None).map_err(|e|e.failure).unwrap();assert_eq!(attr_emit(label,&c,&cache,before),if label=="flat_cold"{164}else{245});
++        let before=attr_totals();attr_one(&mut cache,&mut c,34);assert_eq!(attr_emit("resident_hit_free_0",&c,&cache,before),8);
++        let mut held=Vec::new();for _ in 0..63 {held.push(pin(&mut cache,&mut c,34,None).unwrap());}
++        let before=attr_totals();attr_one(&mut cache,&mut c,34);assert_eq!(attr_emit("resident_hit_free_63",&c,&cache,before),71);
++        for p in held {cache.release(p,&mut c,None).map_err(|e|e.failure).unwrap();}attr_finish(cache,c);
++    }
++    for count in [64,65] {
++        hooks(Hooks::default());attr_reset();let bytes=fixture(0,&[0,0x0b],600);let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());let before=attr_totals();
++        for _ in 0..2 {for f in 34..34+count {attr_one(&mut cache,&mut c,f);}}
++        let t=attr_totals();assert_eq!(t.distinct,count as u64);assert_eq!(t.repeated,if count==65{65}else{0});
++        assert_eq!(t.plans,[count as u64,0,if count==65{65}else{0},count as u64]);
++        assert_eq!(attr_emit(if count==64{"64_cycle_twice"}else{"65_cycle_twice"},&c,&cache,before),if count==64{11015}else{25629});attr_finish(cache,c);
++    }
++    hooks(Hooks::default());attr_reset();let bytes=fixture(0,&[0,0x0b],600);let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());
++    attr_one(&mut cache,&mut c,34);for f in 35..99 {attr_one(&mut cache,&mut c,f);}
++    let before=attr_totals();attr_one(&mut cache,&mut c,34);let d=attr_diff(attr_totals(),before);assert_eq!(d.plans,[0,0,1,0]);assert_eq!(d.repeated,1);assert_eq!(d.scan_credits,[0,0]);assert_eq!(d.build_credits,[0,5]);attr_emit("evicted_IR_plan_hit",&c,&cache,before);
++    let before=attr_totals();attr_one(&mut cache,&mut c,546);let d=attr_diff(attr_totals(),before);assert_eq!(d.plans,[0,1,0,1]);assert_eq!(d.distinct,1);assert_eq!(d.scan_credits,[4,0]);attr_emit("plan_conflict_546",&c,&cache,before);
++    for f in 99..163 {attr_one(&mut cache,&mut c,f);}
++    let before=attr_totals();attr_one(&mut cache,&mut c,34);let d=attr_diff(attr_totals(),before);assert_eq!(d.plans,[0,1,0,1]);assert_eq!(d.repeated,1);assert_eq!(d.scan_credits,[0,4]);assert_eq!(d.scan_published,[0,1]);assert_eq!(d.build_credits,[0,5]);attr_emit("plan_conflict_34",&c,&cache,before);attr_finish(cache,c);
++    println!("ATTR_CONTROL original_observations=13 guest_instructions=0 initializes=0 invokes=0 cleanup_zero=true");
++}
++#[test]
++fn current_attribution_prefixes_finite() {
++    use super::cache::plan_inspection as pi;
++    let mut work_prefixes=0;let mut cancellation_prefixes=0;
++    let mut evidence=[false;6];
++    for (helper,total,scan,build) in [(vec![0,0x0b],164,4,5),(body(0,&[2,0x40,3,0x40,1,0x0b,0x0b,0x41,0,4,0x40,1,5,1,0x0b,0x0b]),245,37,53)] {
++        let bytes=fixture(0,&helper,600);
++        for shorter in 0..total {
++            hooks(Hooks::default());attr_reset();let (mut c,mut cache)=new(&bytes,SwiftRunBudget{cache_work:4928+shorter,..SwiftRunBudget::default()});
++            let f=pin(&mut cache,&mut c,34,None).unwrap_err();assert_eq!(f.kind,SwiftRunFailureKind::WorkExhausted);assert_eq!(f.resource,Some(SwiftRunResource::CacheWork));assert_eq!(f.code,"swift_run_work");assert_eq!(f.function,Some(34));assert_eq!(f.limit,4928+shorter);assert!(f.attempted>f.limit);
++            attr_check(&c,&cache);let t=attr_totals();assert_eq!(t.completed,0);assert_eq!(t.distinct,0);assert_eq!(t.repeated,0);
++            let first=CURRENT_ATTRIBUTION.with(|x|x.borrow().rejected.unwrap());
++            assert_eq!((first.kind,first.resource,first.function,first.offset,first.attempted,first.limit),(f.kind,f.resource,f.function,f.offset,f.attempted,f.limit));
++            assert_eq!((first.cursor_function,first.cursor_offset),(f.function,f.offset));assert_eq!(f.attempted,c.usage(None).cache_work+first.requested);
++            assert_eq!(pi::key(&cache,34),if t.plans[3]==1{Some(34)}else{None});
++            if t.credits[6]>0 && t.credits[6]<scan {evidence[0]=true;assert_eq!(t.plans[3],0);}
++            if first.site==7 {evidence[1]=true;assert_eq!(t.credits[6],scan);assert_eq!(t.plans[3],0);}
++            if t.plans[3]==1 && t.credits[13]==0 {evidence[2]=true;}
++            if t.credits[13]>0 && t.credits[13]<build {evidence[3]=true;assert_eq!(t.scan_published,[1,0]);}
++            if first.site==14 {evidence[4]=true;assert_eq!(t.credits[13],build);}
++            let stopped=c.usage(None).cache_work;let second=pin(&mut cache,&mut c,35,None).unwrap_err();plan_reuse_primary(f,second);
++            assert_eq!(c.usage(None).cache_work,stopped);assert_eq!(CURRENT_ATTRIBUTION.with(|x|x.borrow().rejected.unwrap()),first);
++            attr_finish(cache,c);work_prefixes+=1;
++        }
++        hooks(Hooks::default());attr_reset();let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());hooks(Hooks::default());
++        let p=pin(&mut cache,&mut c,34,None).unwrap();let checks=HOOKS.with(|h|h.get().checks);
++        cache.release(p,&mut c,None).map_err(|e|e.failure).unwrap();attr_check(&c,&cache);
++        c.cancellation().cancel();let f=pin(&mut cache,&mut c,35,None).unwrap_err();assert_eq!(f.kind,SwiftRunFailureKind::Cancelled);assert_eq!(attr_totals().completed,1);evidence[5]=true;attr_finish(cache,c);
++        for ordinal in 0..checks {
++            hooks(Hooks::default());attr_reset();let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());hooks(Hooks{cancel:Some(ordinal),..Hooks::default()});
++            let f=pin(&mut cache,&mut c,34,None).unwrap_err();hooks(Hooks::default());assert_eq!(f.kind,SwiftRunFailureKind::Cancelled);attr_check(&c,&cache);
++            let t=attr_totals();assert_eq!(t.completed,0);assert_eq!(t.distinct,0);assert_eq!(pi::key(&cache,34),if t.plans[3]==1{Some(34)}else{None});
++            let first=CURRENT_ATTRIBUTION.with(|x|x.borrow().rejected);
++            if let Some(r)=first {assert_eq!(r.kind,f.kind);assert_eq!(r.resource,f.resource);assert_eq!(r.attempted,f.attempted);assert_eq!(r.limit,f.limit);}
++            let work=c.usage(None).cache_work;plan_reuse_primary(f,pin(&mut cache,&mut c,35,None).unwrap_err());assert_eq!(c.usage(None).cache_work,work);
++            assert_eq!(CURRENT_ATTRIBUTION.with(|x|x.borrow().rejected),first);attr_finish(cache,c);cancellation_prefixes+=1;
++        }
++    }
++    assert_eq!(evidence,[true;6]);
++    println!("ATTR_PREFIX {{\"work_prefixes\":{work_prefixes},\"cancellation_prefixes\":{cancellation_prefixes},\"partial_scan\":true,\"rejected_plan_publication\":true,\"after_scan_publication\":true,\"partial_build\":true,\"resident_insert_rejection\":true,\"after_completion_cancelled\":true,\"sticky_failure_preserved\":true,\"cleanup_zero\":true}}");
++}
++#[test]
++fn current_attribution_boundaries_and_invalid_finite() {
++    let cursor=Cursor{stage:SwiftRunStage::Cache,function:Some(0),offset:Some(0)};
++    let mut x=CurrentAttribution::default();
++    for f in [0,79999] {let before=x.totals.completed;x.begin(f);assert!(!x.repeated);x.site(6);x.work(3,Cursor{function:Some(f),..cursor},None);assert_eq!(x.totals.completed,before);x.completed(f);x.begin(f);assert!(x.repeated);x.site(13);x.work(5,Cursor{function:Some(f),..cursor},None);x.completed(f);}
++    assert_eq!((x.totals.distinct,x.totals.repeated,x.totals.completed),(2,2,4));assert_eq!(x.totals.scan_credits,[6,0]);assert_eq!(x.totals.build_credits,[0,10]);assert_eq!(x.invalid,0);
++    for f in 0..ATTR_BITS as u32 {x.begin(f);x.completed(f);}assert_eq!(x.totals.distinct,80000);assert!(x.seen.iter().all(|v|*v==u64::MAX));
++    x.begin(80000);x.completed(80000);assert_eq!(x.invalid,ATTR_RANGE);assert_eq!(x.totals.distinct,80000);assert!(x.seen.iter().all(|v|*v==u64::MAX));
++    // The unchanged validator admits at most 79,966 defined functions: last absolute index 79,999.
++    // It rejects the next defined function before cache use. Test external telemetry
++    // invalidation separately, then prove it cannot reject an otherwise valid operation.
++    let rejected=fixture(0,&[0,0x0b],79967);
++    let failure=match validate_swift_reactor(&rejected,SwiftValidationBudget::default(),&Cancellation::default()) {Err(f)=>f,Ok(_)=>panic!("original validator must reject the extra function")};
++    assert_eq!(failure.code,"profile_vector_limit");assert_eq!((failure.attempted,failure.limit),(79967,79966));
++    let bytes=fixture(0,&[0,0x0b],79966);
++    hooks(Hooks::default());attr_reset();let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());
++    for f in [79999,34] {if f==34 {remaining_plan_begin(80000);}let p=pin(&mut cache,&mut c,f,None).unwrap();cache.release(p,&mut c,None).map_err(|e|e.failure).unwrap();}
++    assert_eq!(cache.usage().decodes,2);assert_eq!(cache.usage().misses,2);
++    CURRENT_ATTRIBUTION.with(|x|{let x=x.borrow();assert_eq!(x.invalid,ATTR_RANGE);assert_eq!(x.totals.completed,2);assert_eq!(x.totals.distinct,2);assert_eq!(x.totals.credits.iter().sum::<u64>(),c.usage(None).cache_work);});attr_finish(cache,c);
++    // Overflow is diagnostic invalidity, with the same original success/failure.
++    let bytes=fixture(0,&[0,0x0b],600);
++    for budget in [SwiftRunBudget::default(),SwiftRunBudget{cache_work:5088,..SwiftRunBudget::default()}] {
++        let mut primary=None;
++        for poison in [0,1,2] {
++            hooks(Hooks::default());attr_reset();let (mut c,mut cache)=new(&bytes,budget);
++            if poison==1 {CURRENT_ATTRIBUTION.with(|x|{let mut x=x.borrow_mut();x.totals.credits[13]=u64::MAX;x.totals.calls[13]=u64::MAX;x.totals.scan_published[0]=u64::MAX;});}
++            if poison==2 {CURRENT_ATTRIBUTION.with(|x|{let mut x=x.borrow_mut();let mut out=AttributionText::new(64);assert!(!attr_format(&mut x,&mut out));});}
++            match pin(&mut cache,&mut c,34,None) {
++                Ok(p)=>{assert_eq!(c.usage(None).cache_work,5092);assert_eq!(cache.usage().decodes,1);cache.release(p,&mut c,None).map_err(|e|e.failure).unwrap();},
++                Err(f)=>{if let Some(previous)=primary {plan_reuse_primary(previous,f);}else{primary=Some(f);}assert_eq!(f.resource,Some(SwiftRunResource::CacheWork));assert_eq!(cache.usage().decodes,0);},
++            }
++            if poison==1 {assert!(CURRENT_ATTRIBUTION.with(|x|x.borrow().invalid)&ATTR_OVERFLOW!=0);}else if poison==2 {assert_eq!(CURRENT_ATTRIBUTION.with(|x|x.borrow().invalid),ATTR_OUTPUT_OVERFLOW);}else{attr_check(&c,&cache);}
++            attr_finish(cache,c);
++        }
++    }
++    // Full reset is for a fresh isolated cache lifetime only.
++    for _ in 0..2 {hooks(Hooks::default());attr_reset();let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());attr_one(&mut cache,&mut c,34);let t=attr_totals();assert_eq!((t.completed,t.distinct,t.repeated),(1,1,0));assert_eq!(t.scan_credits,[4,0]);attr_finish(cache,c);}
++    println!("ATTR_BOUNDARY {{\"bitmap_bits\":80000,\"bitmap_bytes\":10000,\"full_bitmap_checked\":true,\"upper_actual_cache_index\":79999,\"index_80000_original_validator_rejected\":true,\"out_of_range_invalidates_only_observer\":true,\"overflow_preserves_original_results\":true,\"fresh_lifetime_resets\":2,\"cleanup_zero\":true}}");
++}
++#[test]
++fn current_attribution_layout_and_output_finite() {
++    let mut x=CurrentAttribution::default();let mut out=AttributionText::new(ATTR_OUTPUT);
++    assert!(attr_format(&mut x,&mut out));let ordinary_len=out.len;
++    x.totals=AttributionTotals{credits:[u64::MAX;16],calls:[u64::MAX;16],plans:[u64::MAX;4],completed:u64::MAX,distinct:u64::MAX,repeated:u64::MAX,scan_credits:[u64::MAX;2],scan_calls:[u64::MAX;2],scan_published:[u64::MAX;2],build_credits:[u64::MAX;2],build_calls:[u64::MAX;2]};x.invalid=u32::MAX;
++    x.rejected=Some(AttributionRejection{site:usize::MAX,requested:u64::MAX,cursor_function:None,cursor_offset:None,kind:SwiftRunFailureKind::UnsupportedEnvironment,resource:Some(SwiftRunResource::Reservation(SwiftReservationCategory::RetainedMetadata)),function:None,offset:None,attempted:u64::MAX,limit:u64::MAX});
++    let mut max=AttributionText::new(ATTR_OUTPUT);assert!(attr_format(&mut x,&mut max));assert!(max.len<=ATTR_OUTPUT);let max_len=max.len;
++    println!("ATTR_MAX_SNAPSHOT {}",std::str::from_utf8(&max.bytes[..max.len]).unwrap());
++    let mut short=AttributionText::new(64);x.invalid=0;assert!(!attr_format(&mut x,&mut short));assert_eq!(x.invalid,ATTR_OUTPUT_OVERFLOW);assert!(short.len<=64);
++    x=CurrentAttribution::default();x.totals.completed=u64::MAX;x.totals.distinct=u64::MAX;x.begin(1);x.completed(1);assert!(x.invalid&ATTR_OVERFLOW!=0);x.totals.plans[0]=u64::MAX;x.event(0);assert!(x.invalid&ATTR_OVERFLOW!=0);
++    x=CurrentAttribution::default();x.site(255);x.event(255);assert_eq!(x.invalid,ATTR_CONTEXT);
++    println!("ATTR_LAYOUT {{\"observer_bytes\":{},\"observer_alignment\":{},\"bitmap_bytes\":{},\"totals_bytes\":{},\"rejection_option_bytes\":{},\"formatter_bytes\":{},\"output_capacity\":{},\"ordinary_snapshot_bytes\":{ordinary_len},\"max_snapshot_bytes\":{max_len},\"output_overflow_invalidates\":true,\"external_test_only\":true}}",size_of::<CurrentAttribution>(),std::mem::align_of::<CurrentAttribution>(),size_of::<[u64;ATTR_WORDS]>(),size_of::<AttributionTotals>(),size_of::<Option<AttributionRejection>>(),size_of::<AttributionText>(),ATTR_OUTPUT);
++}

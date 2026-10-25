@@ -1,0 +1,38 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-current-attribution-observer/owned-source)
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 12.42s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-current-attribution-observer/owned-target/release/deps/mixer_vm-a260025825c8b196)
+
+thread 'experimental_swift_reactor::cache_tests::current_attribution_boundaries_and_invalid_finite' (62782874) panicked at src/experimental_swift_reactor/cache_tests.rs:209:6:
+called `Result::unwrap()` on an `Err` value: SwiftValidationFailure { kind: ResourceExhausted, code: "profile_vector_limit", function: None, offset: 1611, resource: Some(StaticPolicy), attempted: 79967, limit: 79966, usage: SwiftValidationUsage { input_visible_bytes: 321566, source_bytes: 321566, metadata_reserved: 1916, scratch_reserved: 984, metadata_peak_reserved: 1916, scratch_peak_reserved: 984, total_peak_reserved: 324466, work_used: 406235, elapsed_micros: 87, deadline_ms: 120000 } }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `--lib`

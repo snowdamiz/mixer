@@ -17,16 +17,21 @@ its older pending/selected statements do not override the current state.
    full attempt still reaches CacheWork exhaustion during Corpus 1 after
    23,358,291 guest instructions. The sealed result audit confirms all final
    reservations and live counts return to zero. A bounded remaining-work
-   diagnosis now passes finite checks. Implement the proposed fixed-memory
-   attribution observer before selecting another full run. See
+   diagnosis now passes finite checks. The fixed-memory attribution observer
+   passes four finite host tests and three independent tests. Fresh diagnostic
+   preparation passes its finite controls and is under independent review;
+   no full-target execution is selected. See
    [the integration](docs/swift-decode-plan-integration.md).
 2. **iOS shared UI:** the supplemental source and corrected frozen V7 host join
    pass independent review. Fresh generic simulator builds of both app and runner
    are accepted. A sealed host-only V8 runtime packet passes sixteen controls and
    passes nine independent review methods against those exact products. Root has
    completed one fresh V8 simulator run: Settings passes; first Tab fails. All
-   five cleanup checks pass. The recorded-result audit is complete; investigate
-   the plain-reference window and public-key lifecycle before selecting a fix.
+   five cleanup checks pass. The recorded-result audit and source lifecycle
+   diagnosis are complete. A passive window/application/scene observer passes
+   116 producer and 371 independent Foundation checks. Its fresh generic build
+   exposes a Swift 6 actor-isolation error in the UIKit notification adapter;
+   a minimal correction is pending. Native execution remains unselected.
    The frozen V7 replay anchor cannot authorize a new supplemental join.
 3. **Hosted builds:** preserve the isolated context-admission correction and its
    79 functional passes. The broader entry review stopped incomplete; the
@@ -38,7 +43,9 @@ its older pending/selected statements do not override the current state.
    compositor/resource coverage or final design parity.
 5. **Hosted product and console:** continue ordinary customer authorization,
    durable domain/job integration, connected console workflows and provider
-   qualification through the dependency graph. Preserve accurate unavailable
+   qualification through the dependency graph. The new bearer identity Plug
+   passes 47 targeted host tests and ten independent controls after review
+   repairs. Customer routes and project permissions remain pending. Preserve accurate unavailable
    states until data/auth is connected. Keep the website branding throughout.
 
 The frozen hosted catalog-inspector/authority-driver lanes and rejected outbound

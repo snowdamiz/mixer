@@ -1,0 +1,20 @@
+Running ExUnit with seed: 25169, max_cases: 1
+
+
+MixerHostedWeb.BearerIdentityCorrectionReviewTest [test/additional_controls_test.exs]
+  * test media type requires a nonempty subtype even when parameters are complete [L#28]  * test media type requires a nonempty subtype even when parameters are complete (6.2ms) [L#28]
+
+  1) test media type requires a nonempty subtype even when parameters are complete (MixerHostedWeb.BearerIdentityCorrectionReviewTest)
+     test/additional_controls_test.exs:28
+     [%{status: nil, type: "application/", halted: false, verifier_called: true}, %{status: nil, type: "application/ ", halted: false, verifier_called: true}, %{status: nil, type: "application/; charset=utf-8", halted: false, verifier_called: true}, %{status: nil, type: "application/; profile=\"one,two\"", halted: false, verifier_called: true}, %{status: nil, type: "application/; ;", halted: false, verifier_called: true}]
+     code: assert Enum.all?(observations, &(&1.status == 400 and &1.halted and not &1.verifier_called)), inspect(observations)
+     stacktrace:
+       test/additional_controls_test.exs:35: (test)
+
+  * test multiple duplicate metadata values normalize on success and each denial family [L#57]  * test multiple duplicate metadata values normalize on success and each denial family (3.1ms) [L#57]
+  * test quoted pairs validate every byte and reject dangling escapes or trailing syntax [L#38]  * test quoted pairs validate every byte and reject dangling escapes or trailing syntax (2.1ms) [L#38]
+
+Finished in 0.05 seconds (0.00s async, 0.05s sync)
+
+Result: 2/3 passed
+Failed: 1 test

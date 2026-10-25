@@ -1,0 +1,70 @@
+--- historical/harness.rs
++++ prepared/harness.rs
+@@ -7,6 +7,7 @@
+     };
+     use crate::experimental_wasi::{WasiReservations, WasiUsage};
+     use std::io::Write;
++    use crate::experimental_swift_reactor::cache_tests::{full_attribution_begin, full_attribution_snapshot, FullAttributionPhase};
+ 
+     trait Json { fn json(&self) -> String; }
+     fn quote(s: &str) -> String {
+@@ -164,6 +165,14 @@
+             state.memory.len(), std::str::from_utf8(wasi.stdout()).ok().json(),
+             std::str::from_utf8(wasi.stderr()).ok().json(), quote(&hex(wasi.stdout())),
+             quote(&hex(wasi.stderr())), owner.cache.as_ref().unwrap().usage().json()));
++        let label=match event {
++            "constructed"=>FullAttributionPhase::Constructed,"initialize"=>FullAttributionPhase::Initialize,
++            "corpus_1"=>FullAttributionPhase::Corpus1,"corpus_2"=>FullAttributionPhase::Corpus2,
++            "before_cleanup"=>FullAttributionPhase::BeforeCleanup,_=>return,
++        };
++        if let (Some(control),Some(cache))=(owner.control.as_ref(),owner.cache.as_ref()) {
++            full_attribution_snapshot(label,control.usage(None).cache_work,cache.usage().decodes,false);
++        }
+     }
+     fn completion(completed: GrowthCompletion<'_>) -> bool {
+         match completed {
+@@ -223,6 +232,7 @@
+     }
+     fn cleanup(mut owner: SwiftReactorInstance) -> bool {
+         snapshot("before_cleanup", &owner);
++        let full_final_decodes=owner.cache.as_ref().map(|cache|cache.usage().decodes);
+         if owner.state.as_ref().unwrap().frame_cleanup.bound.is_some() {
+             emit("resume_original_frame_cleanup", "true".into());
+             let mut returned = Some(owner.resume_frame_cleanup());
+@@ -246,6 +256,9 @@
+         tail.complete((owned, returned), &mut failure, &mut usage);
+         emit("final_failure", failure.json());
+         emit("final_cleanup_usage", usage.json());
++        if let (Some(u),Some(decodes))=(usage,full_final_decodes) {
++            full_attribution_snapshot(FullAttributionPhase::FinalCleanup,u.cache_work,decodes,true);
++        }
+         let u = usage.expect("consuming cleanup observation");
+         let reservations = u.reservations;
+         let empty_reservations = [reservations.retained_source.current,
+@@ -294,6 +307,7 @@
+             Err(failure) => { emit("adoption_failure", failure.json()); return false; }
+         };
+         emit("adopted_usage", pair.as_ref().unwrap().0.usage(None).json());
++        full_attribution_begin(); // Exactly once, before this original cache/control construction.
+         let mut returned = Some(SwiftReactorInstance::construct(&mut pair, grants, wasi_budget, started, Cursor { stage: SwiftRunStage::Initialization, function: Some(35), offset: None }));
+         let mut owner = match returned.take().unwrap() {
+             Ok(owner) => owner,
+@@ -303,7 +317,9 @@
+                 let dropped = control.drop_proof(proof);
+                 if let Err(failure) = dropped { emit("drop_proof_failure", failure.json()); }
+                 drop((pair, returned));
+-                emit("final_cleanup_usage", control.finish_owned_cleanup(None).json());
++                let full_final_usage=control.finish_owned_cleanup(None);
++                emit("final_cleanup_usage", full_final_usage.json());
++                full_attribution_snapshot(FullAttributionPhase::FinalCleanup,full_final_usage.cache_work,0,true);
+                 return false;
+             }
+             Err(crate::experimental_swift_reactor::execution::ConstructionFailure::Cleanup(tail)) => {
+@@ -312,6 +328,7 @@
+                 tail.complete((pair, returned), &mut failure, &mut usage);
+                 emit("construction_failure", failure.json());
+                 emit("final_cleanup_usage", usage.json());
++                if let Some(u)=usage {full_attribution_snapshot(FullAttributionPhase::FinalCleanup,u.cache_work,0,true);}
+                 return false;
+             }
+         };

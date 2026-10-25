@@ -1,0 +1,33 @@
+--- attempt-2/observer-and-controls.rs
++++ final/observer-and-controls.rs
+@@ -215,12 +215,17 @@
+     assert_eq!((x.totals.distinct,x.totals.repeated,x.totals.completed),(2,2,4));assert_eq!(x.totals.scan_credits,[6,0]);assert_eq!(x.totals.build_credits,[0,10]);assert_eq!(x.invalid,0);
+     for f in 0..ATTR_BITS as u32 {x.begin(f);x.completed(f);}assert_eq!(x.totals.distinct,80000);assert!(x.seen.iter().all(|v|*v==u64::MAX));
+     x.begin(80000);x.completed(80000);assert_eq!(x.invalid,ATTR_RANGE);assert_eq!(x.totals.distinct,80000);assert!(x.seen.iter().all(|v|*v==u64::MAX));
+-    // Actual accepted cache operation at the upper valid identity and one outside.
+-    let bytes=fixture(0,&[0,0x0b],79967);
++    // The unchanged validator admits at most 79,966 defined functions: last absolute index 79,999.
++    // It rejects the next defined function before cache use. Test external telemetry
++    // invalidation separately, then prove it cannot reject an otherwise valid operation.
++    let rejected=fixture(0,&[0,0x0b],79967);
++    let failure=validate_swift_reactor(&rejected,SwiftValidationBudget::default(),&Cancellation::default()).unwrap_err();
++    assert_eq!(failure.code,"profile_vector_limit");assert_eq!((failure.attempted,failure.limit),(79967,79966));
++    let bytes=fixture(0,&[0,0x0b],79966);
+     hooks(Hooks::default());attr_reset();let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());
+-    for f in [79999,80000] {let p=pin(&mut cache,&mut c,f,None).unwrap();cache.release(p,&mut c,None).map_err(|e|e.failure).unwrap();}
++    for f in [79999,34] {if f==34 {remaining_plan_begin(80000);}let p=pin(&mut cache,&mut c,f,None).unwrap();cache.release(p,&mut c,None).map_err(|e|e.failure).unwrap();}
+     assert_eq!(cache.usage().decodes,2);assert_eq!(cache.usage().misses,2);
+-    CURRENT_ATTRIBUTION.with(|x|{let x=x.borrow();assert_eq!(x.invalid,ATTR_RANGE);assert_eq!(x.totals.completed,2);assert_eq!(x.totals.distinct,1);assert_eq!(x.totals.credits.iter().sum::<u64>(),c.usage(None).cache_work);});attr_finish(cache,c);
++    CURRENT_ATTRIBUTION.with(|x|{let x=x.borrow();assert_eq!(x.invalid,ATTR_RANGE);assert_eq!(x.totals.completed,2);assert_eq!(x.totals.distinct,2);assert_eq!(x.totals.credits.iter().sum::<u64>(),c.usage(None).cache_work);});attr_finish(cache,c);
+     // Overflow is diagnostic invalidity, with the same original success/failure.
+     let bytes=fixture(0,&[0,0x0b],600);
+     for budget in [SwiftRunBudget::default(),SwiftRunBudget{cache_work:5088,..SwiftRunBudget::default()}] {
+@@ -239,7 +244,7 @@
+     }
+     // Full reset is for a fresh isolated cache lifetime only.
+     for _ in 0..2 {hooks(Hooks::default());attr_reset();let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());attr_one(&mut cache,&mut c,34);let t=attr_totals();assert_eq!((t.completed,t.distinct,t.repeated),(1,1,0));assert_eq!(t.scan_credits,[4,0]);attr_finish(cache,c);}
+-    println!("ATTR_BOUNDARY {{\"bitmap_bits\":80000,\"bitmap_bytes\":10000,\"full_bitmap_checked\":true,\"upper_actual_cache_index\":80000,\"out_of_range_invalidates_only_observer\":true,\"overflow_preserves_original_results\":true,\"fresh_lifetime_resets\":2,\"cleanup_zero\":true}}");
++    println!("ATTR_BOUNDARY {{\"bitmap_bits\":80000,\"bitmap_bytes\":10000,\"full_bitmap_checked\":true,\"upper_actual_cache_index\":79999,\"index_80000_original_validator_rejected\":true,\"out_of_range_invalidates_only_observer\":true,\"overflow_preserves_original_results\":true,\"fresh_lifetime_resets\":2,\"cleanup_zero\":true}}");
+ }
+ #[test]
+ fn current_attribution_layout_and_output_finite() {

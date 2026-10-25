@@ -1,0 +1,38 @@
+--- accepted-baseline/accepted/source/Prototype/main.swift
++++ candidate/accepted/source/Prototype/main.swift
+@@ -11,6 +11,7 @@
+     let referenceButton = UIButton(type: .custom)
+     let referencePanSurface = DiagnosticPanSurface(frame: .zero)
+     let theme: UIThemeV2
++    let passiveLifecycleObserver = PassiveLifecycleObserver()
+     var allowed = true
+     var eventCount = 0
+     var eventValues: [Bool] = []
+@@ -49,6 +50,7 @@
+             guard let self else { return }
+             FocusSystemObservation.shared.capture(site: site, contextSequence: sequence, stage: self.stage, controller: self,
+                                                   controls: [self.toggle, self.referenceButton, self.nextButton])
++            self.passiveLifecycleObserver.sample(site: site, contextSequence: sequence)
+         }
+         view.backgroundColor = UIColor(white: 0.95, alpha: 1)
+         titleLabel.text = "Authored UIKit toggle"; titleLabel.font = .systemFont(ofSize: 24, weight: .bold)
+@@ -151,7 +153,7 @@
+     }
+     func persist() {
+         let trace = DiagnosticTrace.shared
+-        let result: [String:Any] = ["scope":"Isolated UIKit diagnostics; no production adapter, original candidate repair, native qualification, or physical VoiceOver qualification", "stage":stage, "state":snapshot(), "events":events, "checks":checks, "diagnosticSuiteState": diagnosticSuiteState, "diagnosticOperations": diagnosticOperations, "semanticOperations": semanticOperations, "nativeInterruptions": nativeInterruptions, "panCommitRecords": panCommitRecords, "diagnosticTrace": trace.entries, "diagnosticTraceDropped": trace.dropped, "focusContextSchema": "mixer.apple-toggle.focus-context.1", "focusContexts": trace.focusContextEntries, "focusContextDropped": trace.focusContextDropped, "focusContextRevision": trace.focusContextRevision, "reference": operationSnapshot(reference: true), "referencePan": trace.gesture(referencePanSurface.pan), "focusSystemDiagnostic": FocusSystemObservation.shared.value]
++        let result: [String:Any] = ["scope":"Isolated UIKit diagnostics; no production adapter, original candidate repair, native qualification, or physical VoiceOver qualification", "stage":stage, "state":snapshot(), "events":events, "checks":checks, "diagnosticSuiteState": diagnosticSuiteState, "diagnosticOperations": diagnosticOperations, "semanticOperations": semanticOperations, "nativeInterruptions": nativeInterruptions, "panCommitRecords": panCommitRecords, "diagnosticTrace": trace.entries, "diagnosticTraceDropped": trace.dropped, "focusContextSchema": "mixer.apple-toggle.focus-context.1", "focusContexts": trace.focusContextEntries, "focusContextDropped": trace.focusContextDropped, "focusContextRevision": trace.focusContextRevision, "reference": operationSnapshot(reference: true), "referencePan": trace.gesture(referencePanSurface.pan), "focusSystemDiagnostic": FocusSystemObservation.shared.value, "passiveLifecycleDiagnostic": passiveLifecycleObserver.value]
+         let data = try! JSONSerialization.data(withJSONObject:result, options:[.prettyPrinted,.sortedKeys])
+         try! data.write(to:documents.appendingPathComponent("observations.json"), options:.atomic)
+         try! stage.write(to:documents.appendingPathComponent("stage.txt"), atomically:true, encoding:.utf8)
+@@ -292,7 +294,9 @@
+ @MainActor final class PrototypeDelegate: UIResponder, UIApplicationDelegate {
+     var window: UIWindow?
+     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey:Any]?) -> Bool {
+-        let window = UIWindow(frame: UIScreen.main.bounds); window.rootViewController = PrototypeController()
++        let window = UIWindow(frame: UIScreen.main.bounds)
++        let controller = PrototypeController(); window.rootViewController = controller
++        controller.passiveLifecycleObserver.start(application: application, window: window)
+         window.makeKeyAndVisible(); self.window = window; return true
+     }
+ }

@@ -1,0 +1,55 @@
+Running ExUnit with seed: 25068, max_cases: 1
+
+    warning: the variable "index" is accessed inside size(...) of a bitstring but it was defined outside of the match. You must precede it with the pin operator
+    │
+ 53 │       <<head::binary-size(index), byte, tail::binary>> = name
+    │                           ~
+    │
+    └─ test/independent_controls_test.exs:53:27: MixerHostedWeb.BearerIdentityIndependentReviewTest."test reserved query names reject every singly percent-encoded character"/1
+
+
+MixerHostedWeb.BearerIdentityIndependentReviewTest [test/independent_controls_test.exs]
+  * test all stale challenge and retry values are removed before generic denial [L#97]  * test all stale challenge and retry values are removed before generic denial (6.3ms) [L#97]
+
+  1) test all stale challenge and retry values are removed before generic denial (MixerHostedWeb.BearerIdentityIndependentReviewTest)
+     test/independent_controls_test.exs:97
+     Assertion with == failed
+     code:  assert get_resp_header(result, "www-authenticate") == ["Bearer"]
+     left:  ["Bearer", "stale-three"]
+     right: ["Bearer"]
+     stacktrace:
+       test/independent_controls_test.exs:104: (test)
+
+  * test consecutive successes and failures never reuse stale identity [L#108]  * test consecutive successes and failures never reuse stale identity (0.09ms) [L#108]
+  * test reserved query names reject every singly percent-encoded character [L#50]  * test reserved query names reject every singly percent-encoded character (1.1ms) [L#50]
+  * test a legal quoted comma remains a single Content-Type [L#65]  * test a legal quoted comma remains a single Content-Type (0.7ms) [L#65]
+  * test each byte in an unpadded token has the declared alphabet [L#35]  * test each byte in an unpadded token has the declared alphabet (3.1ms) [L#35]
+  * test duplicate upstream request IDs are replaced by one safe ID on denial [L#85]  * test duplicate upstream request IDs are replaced by one safe ID on denial (0.8ms) [L#85]
+
+  2) test duplicate upstream request IDs are replaced by one safe ID on denial (MixerHostedWeb.BearerIdentityIndependentReviewTest)
+     test/independent_controls_test.exs:85
+     ** (MatchError) no match of right hand side value:
+
+         ["GOG5x685sEByIHQAAEYB", "upstream-second-request-12345"]
+
+     code: result = BearerIdentity.call(original, opts)
+     stacktrace:
+       (mixer_hosted 0.1.0) lib/mixer_hosted_web/plugs/bearer_identity.ex:222: MixerHostedWeb.Plugs.BearerIdentity.reject/2
+       test/independent_controls_test.exs:90: (test)
+
+  * test malformed Content-Type parameters cannot hide a combined second media type [L#71]  * test malformed Content-Type parameters cannot hide a combined second media type (0.04ms) [L#71]
+
+  3) test malformed Content-Type parameters cannot hide a combined second media type (MixerHostedWeb.BearerIdentityIndependentReviewTest)
+     test/independent_controls_test.exs:71
+     accepted malformed Content-Type "application/json; charset=utf-8, application/x-www-form-urlencoded"
+     code: for value <- values do
+     stacktrace:
+       test/independent_controls_test.exs:80: anonymous fn/2 in MixerHostedWeb.BearerIdentityIndependentReviewTest."test malformed Content-Type parameters cannot hide a combined second media type"/1
+       (elixir 1.20.4) lib/enum.ex:1725: Enum."-map/2-lists^map/1-1-"/2
+       test/independent_controls_test.exs:77: (test)
+
+
+Finished in 0.06 seconds (0.00s async, 0.06s sync)
+
+Result: 4/7 passed
+Failed: 3 tests

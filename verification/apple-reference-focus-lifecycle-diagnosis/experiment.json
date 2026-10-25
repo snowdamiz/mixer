@@ -1,0 +1,99 @@
+{
+  "actions": "The original public Settings setup and one public Tab from the same reference-focus precondition; preserve the original oracle/actions/budgets.",
+  "experimentCount": 1,
+  "forbiddenAdditions": [
+    "focus request",
+    "extra key",
+    "tap fallback",
+    "app activation",
+    "scene migration",
+    "sleep",
+    "polling",
+    "custom key handler",
+    "budget increase",
+    "frozen V7 join import/execute",
+    "automatic retry"
+  ],
+  "gaAccepted": false,
+  "invariants": {
+    "anchoredSwitchObservationSeconds": 3,
+    "inputAction": "one original public Tab",
+    "oracle": "unchanged",
+    "phones": "disconnected-deferred",
+    "requestAllowanceSeconds": 2,
+    "settingsSessionSeconds": 29,
+    "simulators": "one owned instance maximum; preserve baseline; cleanup including failure",
+    "transportLimits": "unchanged"
+  },
+  "name": "passive-app-scene-key-window-observation-during-original-first-tab",
+  "nativeExecutionAuthorizedByThisPacket": false,
+  "observer": {
+    "atomic": false,
+    "authoritative": false,
+    "captureSites": [
+      "registration",
+      "existing focus sample",
+      "owned app lifecycle notification",
+      "owned window lifecycle notification",
+      "owned scene lifecycle notification"
+    ],
+    "captureStatusAndDroppedRequired": true,
+    "fields": [
+      "sequence",
+      "systemUptime",
+      "processIdentifier",
+      "notificationNameOrCaptureSite",
+      "notificationObjectIdentity",
+      "applicationState",
+      "ownedWindowIdentity",
+      "ownedWindowIsKey",
+      "ownedWindowSceneIdentity",
+      "ownedSceneActivationState"
+    ],
+    "mainActor": true,
+    "maximumEncodedBytes": 16384,
+    "maximumRows": 64,
+    "notifications": {
+      "UIApplication": [
+        "didBecomeActiveNotification",
+        "willResignActiveNotification",
+        "willEnterForegroundNotification",
+        "didEnterBackgroundNotification"
+      ],
+      "UIScene": [
+        "willConnectNotification",
+        "didDisconnectNotification",
+        "didActivateNotification",
+        "willDeactivateNotification",
+        "willEnterForegroundNotification",
+        "didEnterBackgroundNotification"
+      ],
+      "UIWindow": [
+        "didBecomeKeyNotification",
+        "didResignKeyNotification",
+        "didBecomeVisibleNotification",
+        "didBecomeHiddenNotification"
+      ]
+    },
+    "registration": "In diagnostic app launch before makeKeyAndVisible; record registration time and initial scope.",
+    "scope": "Diagnostic app only; window/scene notifications filtered to the retained owned objects. Do not enumerate other apps or change delegates/lifecycle.",
+    "timing": "Use original witness interval and ordered existing focus-context references. Retain non-atomic timing limits; never supply an oracle identity/anchor from diagnostic data."
+  },
+  "outcomes": [
+    {
+      "condition": "Ordered lifecycle/key transition and confirming samples accompany focus loss",
+      "meaning": "Supports transient event-ownership loss; transition initiator still unknown."
+    },
+    {
+      "condition": "Complete trace; same window key, app active, scene foreground-active at observed focus-system changes; no transition notification",
+      "meaning": "Narrows to focus-system/input support within observed active lifecycle; cannot exclude all unobserved transients or prove Apple defect."
+    },
+    {
+      "condition": "Incomplete scope/timing/size coverage or changed native traversal",
+      "meaning": "Record the exact new outcome; no causal assertion or automatic repeat; retain original V8 failure."
+    }
+  ],
+  "schema": 1,
+  "sourcePatchProvided": false,
+  "status": "proposed-only-awaiting-root-selection"
+}

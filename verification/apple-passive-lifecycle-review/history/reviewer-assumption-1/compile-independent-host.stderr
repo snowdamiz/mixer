@@ -1,0 +1,17 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-passive-lifecycle-review/HostReview.swift:119:18: warning: weak variable 'windowProbe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+117 |         let currentApp = app!
+118 |         check("current scene replacement excludes previous scene", scope.accepts(.sceneActive, object: otherScene, currentScene: otherScene) && !scope.accepts(.sceneDisconnect, object: scene, currentScene: otherScene))
+119 |         weak var windowProbe = ownedWindow
+    |                  `- warning: weak variable 'windowProbe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+120 |         ownedWindow = nil
+121 |         check("window ownership remains weak", windowProbe == nil && scope.window == nil)
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-passive-lifecycle-review/HostReview.swift:127:18: warning: weak variable 'bagProbe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+125 |         let center = NotificationCenter(), faults = PassiveLifecycleDeliveryFaults()
+126 |         var tokens: PassiveLifecycleTokens? = PassiveLifecycleTokens(center: center)
+127 |         weak var bagProbe = tokens
+    |                  `- warning: weak variable 'bagProbe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+128 |         for _ in 0..<14 {
+129 |             let token = center.addObserver(forName: .init("review-token"), object: nil, queue: nil) { _ in faults.record() }
+
+[#WeakMutability]: <https://docs.swift.org/compiler/documentation/diagnostics/weak-mutability>

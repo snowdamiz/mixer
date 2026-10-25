@@ -1,0 +1,41 @@
+{
+  "outcome": "changes_required",
+  "baseline": {
+    "passed": 47,
+    "failed": 0,
+    "skipped": 0
+  },
+  "original_independent": {
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0
+  },
+  "additional_independent": {
+    "passed": 2,
+    "failed": 1,
+    "skipped": 0
+  },
+  "original_findings_closed": [
+    "malformed Content-Type suffix acceptance",
+    "duplicate response request IDs causing MatchError",
+    "stale duplicate WWW-Authenticate and Retry-After metadata"
+  ],
+  "new_findings": [
+    {
+      "priority": 2,
+      "source": "hosted/lib/mixer_hosted_web/plugs/bearer_identity.ex:185",
+      "description": "Empty media subtypes returned by pinned Plug are accepted and reach verifier. Require a nonempty subtype before accepting the media result.",
+      "inputs": [
+        "application/",
+        "application/ ",
+        "application/; charset=utf-8",
+        "application/; profile=\"one,two\"",
+        "application/; ;"
+      ],
+      "observed": "Every input returns an unhalted connection with status null and calls verifier; expected halted400 before verifier.",
+      "test": "additional_controls_test.exs:28",
+      "log": "command-5.log"
+    }
+  ],
+  "scope": "Finite host-only development prerequisite review. No routed wire/provider/database/native/deployment/GA acceptance."
+}
