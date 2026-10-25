@@ -27,7 +27,7 @@ defmodule MixerHostedWeb.Plugs.BearerIdentity do
     verifier = Keyword.get(opts, :verifier, ConfiguredVerifier)
     clock = Keyword.get(opts, :clock, {System, :system_time, [:second]})
 
-    unless is_atom(verifier) and Code.ensure_loaded?(verifier) and
+    unless is_atom(verifier) and compiled?(verifier) and
              function_exported?(verifier, :authenticate, 2) and valid_clock?(clock) do
       raise ArgumentError, "invalid bearer identity dependencies"
     end
@@ -37,10 +37,15 @@ defmodule MixerHostedWeb.Plugs.BearerIdentity do
 
   defp valid_clock?({module, function, args})
        when is_atom(module) and is_atom(function) and is_list(args) do
-    Code.ensure_loaded?(module) and function_exported?(module, function, length(args))
+    compiled?(module) and function_exported?(module, function, length(args))
   end
 
   defp valid_clock?(_), do: false
+
+  # Plug calls init/1 while compiling its router. A sibling application module
+  # may still be compiling; waiting records that dependency without weakening
+  # the export checks or accepting a missing configured implementation.
+  defp compiled?(module), do: match?({:module, ^module}, Code.ensure_compiled(module))
 
   @impl true
   def call(conn, %{verifier: verifier, clock: clock}) do

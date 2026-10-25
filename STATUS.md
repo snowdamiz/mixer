@@ -217,7 +217,19 @@ See [the HTTP checkpoint](docs/hosted-customer-artifact-http-checkpoint.md) and
 
 ## Delivery and pending qualification
 
-Latest checkpoint `c4e1f571` is pushed to `origin/main` and remote main matches.
+Latest checkpoint `c0334a99` is pushed to `origin/main` and remote main matches.
+It contains the reviewed customer HTTP routes, canonical path/digest binding,
+ordinary CI fixture and retained local evidence. Phoenix CI `40197780896` failed
+at cold router compilation; Engine CI `40197780881` remains running. Neither is
+accepted as a complete exact-push verification. The compile-order repair uses
+compiler-aware dependency checks and passes 64 scoped host tests, including a
+regression that reproduced the original failure. See
+[the repair](docs/hosted-bearer-cold-compile.md) and
+[local evidence](verification/hosted-bearer-cold-compile/acceptance.json). See
+[the delivery receipt](verification/github-delivery-customer-artifact-http/delivery-receipt.json)
+and [CI observation](verification/github-ci-c0334a99/observation-4/receipt.json).
+
+Prior console checkpoint `c4e1f571` is pushed to `origin/main`.
 It contains the two reviewed console color corrections and updated delivery
 evidence. Console CI `40195410847` and Engine CI `40195410870` both pass with no skipped steps.
 Local console tests, TypeScript and production build already pass. See
