@@ -1,0 +1,17 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-count-plan-retention-candidate/.scratch/candidate)
+error[E0599]: no method named `test_changed_instructions` found for struct `CountPlanScanOutcome` in the current scope
+    --> src/experimental_swift_reactor/cache.rs:2610:20
+     |
+  51 | pub(crate) struct CountPlanScanOutcome {
+     | -------------------------------------- method `test_changed_instructions` not found for this struct
+...
+2610 |             counts.test_changed_instructions(),
+     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `CountPlanScanOutcome`
+     |
+help: one of the expressions' fields has a method of the same name
+     |
+2610 |             counts.counts.test_changed_instructions(),
+     |                    +++++++
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `mixer-vm` (lib test) due to 1 previous error

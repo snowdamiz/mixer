@@ -1,0 +1,646 @@
+--- a/src/experimental/cache/borrowed.rs
++++ b/src/experimental/cache/borrowed.rs
+@@ -431,6 +431,10 @@
+     where
+         'op: 'a;
+     type Scratch<'a>;
++    type ScanOutcome: Copy;
++    fn scan_counts(outcome: &Self::ScanOutcome) -> decode::Counts;
++    fn prepare_miss_publication(meter: &mut Self::Meter<'_, '_>) -> Result<(), Self::Failure>;
++    fn miss_timestamp(outcome: &Self::ScanOutcome, meter: &Self::Meter<'_, '_>) -> u64;
+     fn meter<'a, 'op>(
+         usage: &'a mut Self::Usage,
+         operation: &'a mut Self::Operation<'op>,
+@@ -477,7 +481,7 @@
+         body: FunctionSpanView<'_>,
+         scratch: &mut Self::Scratch<'_>,
+         meter: &mut Self::Meter<'_, '_>,
+-    ) -> Result<decode::Counts, Self::Failure>;
++    ) -> Result<Self::ScanOutcome, Self::Failure>;
+     fn build(
+         snapshot: &Self::Snapshot,
+         body: FunctionSpanView<'_>,
+@@ -509,6 +513,10 @@
+     where
+         'op: 'a;
+     type Scratch<'a> = ();
++    type ScanOutcome = decode::Counts;
++    fn scan_counts(outcome: &decode::Counts) -> decode::Counts { *outcome }
++    fn prepare_miss_publication(_: &mut Meter<'_>) -> Result<(), CacheFailure> { Ok(()) }
++    fn miss_timestamp(_: &decode::Counts, meter: &Meter<'_>) -> u64 { meter.work_used() }
+     fn meter<'a, 'op>(
+         usage: &'a mut CacheUsage,
+         operation: &'a mut FrozenOperation<'op>,
+@@ -771,7 +779,7 @@
+ ) -> Result<M::Pin, M::Failure> {
+     let function = defined.absolute_index;
+     let hit = M::resident_lookup(parts.slots, &mut parts.scratch, function, meter)?;
+-    let index = if let Some(index) = hit {
++    if let Some(index) = hit {
+         meter.check()?;
+         let hits = meter
+             .usage()
+@@ -779,7 +787,20 @@
+             .checked_add(1)
+             .ok_or_else(|| meter.error(CacheFailureKind::WorkExhausted, "hits_overflow"))?;
+         meter.usage_mut().hit(hits);
+-        index
++        let slot = &mut parts.slots[index];
++        meter.usage_mut().pin(
++            slot.entry().expect("resident entry").bytes,
++            slot.pins() == 0,
++        );
++        slot.set_pins(slot.pins() + 1);
++        slot.set_last_used(meter.work_used());
++        parts.pins[pin_slot] = PinRecord {
++            nonce: *parts.next_nonce,
++            entry: index,
++        };
++        let pin = M::Pin::new(parts.owner, pin_slot, *parts.next_nonce);
++        *parts.next_nonce = nonce;
++        Ok(pin)
+     } else {
+         let misses = meter
+             .usage()
+@@ -792,7 +813,8 @@
+             .decodes()
+             .checked_add(1)
+             .ok_or_else(|| meter.error(CacheFailureKind::WorkExhausted, "decodes_overflow"))?;
+-        let counts = M::scan(parts.snapshot, defined, &mut parts.scratch, meter)?;
++        let outcome = M::scan(parts.snapshot, defined, &mut parts.scratch, meter)?;
++        let counts = M::scan_counts(&outcome);
+         let bytes = counts.bytes(meter)?;
+         if bytes > meter.entry_capacity() {
+             return Err(meter.detailed(
+@@ -867,6 +889,11 @@
+             let _ = meter.construction(0);
+             return Err(error);
+         }
++        if let Err(error) = M::prepare_miss_publication(meter) {
++            let _ = M::drop_entry(entry, meter);
++            let _ = meter.construction(0);
++            return Err(error);
++        }
+         if let Err(error) =
+             M::resident_insert(parts.slots, &mut parts.scratch, function, index, meter)
+         {
+@@ -878,20 +905,19 @@
+         // separates the index update from the infallible slot publication.
+         meter.usage_mut().decoded(next_decodes, bytes);
+         parts.slots[index].set(entry);
+-        index
+-    };
+-    let slot = &mut parts.slots[index];
+-    meter.usage_mut().pin(
+-        slot.entry().expect("resident entry").bytes,
+-        slot.pins() == 0,
+-    );
+-    slot.set_pins(slot.pins() + 1);
+-    slot.set_last_used(meter.work_used());
+-    parts.pins[pin_slot] = PinRecord {
+-        nonce: *parts.next_nonce,
+-        entry: index,
+-    };
+-    let pin = M::Pin::new(parts.owner, pin_slot, *parts.next_nonce);
+-    *parts.next_nonce = nonce;
+-    Ok(pin)
+-}
++        let slot = &mut parts.slots[index];
++        meter.usage_mut().pin(
++            slot.entry().expect("resident entry").bytes,
++            slot.pins() == 0,
++        );
++        slot.set_pins(slot.pins() + 1);
++        slot.set_last_used(M::miss_timestamp(&outcome, meter));
++        parts.pins[pin_slot] = PinRecord {
++            nonce: *parts.next_nonce,
++            entry: index,
++        };
++        let pin = M::Pin::new(parts.owner, pin_slot, *parts.next_nonce);
++        *parts.next_nonce = nonce;
++        Ok(pin)
++    }
++}
+--- a/src/experimental/cache/tests.rs
++++ b/src/experimental/cache/tests.rs
+@@ -530,3 +530,39 @@
+     );
+     assert!(actual <= scratch_bytes());
+ }
++
++#[test]
++fn count_candidate_generic_exact_differential() {
++    use super::borrowed::*;
++    use std::mem::size_of;
++    println!("GENERIC_LAYOUT {{\"cache\":{},\"slot\":{},\"parts\":{},\"fields\":{},\"meter\":{},\"scratch\":{},\"scan\":{},\"result\":{}}}",
++        size_of::<FunctionCache>(),size_of::<Slot>(),size_of::<CacheParts<'static,FrozenMode>>(),
++        size_of::<CacheFields<'static,FrozenMode>>(),size_of::<Meter<'static>>(),size_of::<()>(),
++        size_of::<<FrozenMode as CacheMode>::ScanOutcome>(),size_of::<Result<<FrozenMode as CacheMode>::ScanOutcome,CacheFailure>>());
++    let bytes=module(&[1,1,0x0b],Profile::IntegerV1);
++    let mut c=cache(&bytes,Profile::IntegerV1);
++    for n in 0..6 {
++        let p=c.pin(0,&Cancellation::default()).unwrap();
++        let v=c.view(&p).unwrap();
++        println!("GENERIC_ACCESS {n} function={} locals={:?} instructions={:?} targets={:?}",v.function,v.locals,v.instructions,v.branch_targets);
++        c.release(p).unwrap();
++        println!("GENERIC_STATE {n} usage={:?} slots={:?} pins={:?}",c.usage(),c.slots.iter().map(|s|(s.entry.as_ref().map(|e|e.function),s.pins,s.last_used)).collect::<Vec<_>>(),c.pins.iter().map(|p|(p.entry,p.nonce)).collect::<Vec<_>>());
++    }
++    let mut c=cache(&bytes,Profile::IntegerV1);
++    let start=c.usage.work_used;
++    let p=c.pin(0,&Cancellation::default()).unwrap();c.release(p).unwrap();
++    let amount=c.usage.work_used-start;
++    for prefix in 0..amount {
++        let mut c=cache(&bytes,Profile::IntegerV1);c.budget.work_credits=start+prefix;
++        let e=c.pin(0,&Cancellation::default()).unwrap_err();
++        println!("GENERIC_PREFIX {prefix} {e:?}");assert_eq!(c.usage.active_pins,0);
++    }
++    for cancelled in [false,true] {
++        let mut c=cache(&bytes,Profile::IntegerV1);let cancel=Cancellation::default();
++        if cancelled { cancel.cancel(); }
++        match c.pin(0,&cancel) {
++            Ok(p)=>{ c.release(p).unwrap();println!("GENERIC_CANCEL false {:?}",c.usage()); }
++            Err(e)=>println!("GENERIC_CANCEL true {e:?}"),
++        }
++    }
++}
+--- a/src/experimental_swift_reactor/cache.rs
++++ b/src/experimental_swift_reactor/cache.rs
+@@ -41,6 +41,39 @@
+     output: Result<decode::Counts, SwiftRunFailure>,
+     init: std::ops::Range<usize>,
+ }
++
++// Root-selected isolated finite policy: no permanent state or new allocation.
++#[repr(u8)]
++#[derive(Clone, Copy)]
++enum CountPlanInsertion { Cold, Reused }
++#[repr(C)]
++#[derive(Clone, Copy)]
++pub(crate) struct CountPlanScanOutcome {
++    counts: decode::Counts,
++    insertion: CountPlanInsertion,
++    reserved: [u8; 7],
++}
++// Complete source, argument/return and caller inventories are disjoint from
++// every original inventory. Result sizes include the complete error variant.
++struct CountPlanPolicyInventory {
++    scan_created: CountPlanScanOutcome, scan_return: CountPlanScanOutcome, scan_caller: CountPlanScanOutcome,
++    result_created: Result<CountPlanScanOutcome, SwiftRunFailure>,
++    result_return: Result<CountPlanScanOutcome, SwiftRunFailure>,
++    result_caller: Result<CountPlanScanOutcome, SwiftRunFailure>,
++    index_created: usize, index_caller: usize,
++    timestamp_created: u64, timestamp_return: u64, timestamp_caller: u64,
++    original_match: bool, identity_valid: bool, reused_choice: bool, cold_choice: bool,
++    counts_borrow: &'static CountPlanScanOutcome,
++    prepare_meter: &'static mut SwiftMeter<'static, 'static>,
++    timestamp_borrow: &'static CountPlanScanOutcome,
++    timestamp_meter: &'static SwiftMeter<'static, 'static>,
++    counts_created: decode::Counts, counts_return: decode::Counts, counts_caller: decode::Counts,
++    preparation_created: Result<(), SwiftRunFailure>,
++    preparation_return: Result<(), SwiftRunFailure>,
++    preparation_caller: Result<(), SwiftRunFailure>,
++}
++const _: () = { assert!(size_of::<CountPlanScanOutcome>() == 32); };
++
+ const RESIDENT_BUCKETS: usize = 128;
+ const RESIDENT_LINKS: usize = 64;
+ const RESIDENT_INDEX_BYTES: usize = RESIDENT_BUCKETS + RESIDENT_LINKS;
+@@ -1209,6 +1242,7 @@
+         (3, size_of::<OperationScalarInventory>()),
+         (3, size_of::<ResidentIndexInventory>()),
+         (3, size_of::<PlanInventory>()),
++        (3, size_of::<CountPlanPolicyInventory>()),
+         (3, size_of::<SwiftScratch<'static>>()),
+         (3, size_of::<ResidentMatch>()),
+         (3, size_of::<Option<ResidentMatch>>()),
+@@ -2107,6 +2141,22 @@
+     where
+         'op: 'a;
+     type Scratch<'a> = SwiftScratch<'a>;
++    type ScanOutcome = CountPlanScanOutcome;
++    fn scan_counts(outcome: &CountPlanScanOutcome) -> decode::Counts {
++        // The complete borrow/read/copy boundary was precharged by scan.
++        outcome.counts
++    }
++    fn prepare_miss_publication(meter: &mut SwiftMeter<'_, '_>) -> Result<(), SwiftRunFailure> {
++        // Full preparation and later infallible choice/write, before index mutation.
++        meter.work(16)
++    }
++    fn miss_timestamp(outcome: &CountPlanScanOutcome, meter: &SwiftMeter<'_, '_>) -> u64 {
++        match outcome.insertion {
++            CountPlanInsertion::Cold => 0,
++            CountPlanInsertion::Reused => meter.work_used(),
++        }
++    }
++
+     fn meter<'a, 'op>(
+         usage: &'a mut SwiftCacheUsage,
+         operation: &'a mut CacheControl<'op>,
+@@ -2198,7 +2248,7 @@
+         body: FunctionSpanView<'_>,
+         scratch: &mut SwiftScratch<'_>,
+         meter: &mut SwiftMeter<'_, '_>,
+-    ) -> Result<decode::Counts, SwiftRunFailure> {
++    ) -> Result<CountPlanScanOutcome, SwiftRunFailure> {
+         let policy = policy(snapshot, body, meter)?;
+         if scratch.plans.len() != PLAN_CAPACITY {
+             return Err(meter.error(CacheFailureKind::DecoderMismatch, "swift_plan_layout"));
+@@ -2221,7 +2271,12 @@
+                     );
+                 }
+                 meter.work(3)?; // actual three-field Counts copy; also checks stop
+-                return Ok(plan.counts);
++                meter.work(41)?; // complete outcome + later counts extraction
++                return Ok(CountPlanScanOutcome {
++                    counts: plan.counts,
++                    insertion: CountPlanInsertion::Reused,
++                    reserved: [0; 7],
++                });
+             }
+         }
+         meter.step(CacheStep::ScanReset);
+@@ -2243,6 +2298,12 @@
+         )?;
+         // Successful complete scan is the only publishing source. All checks
+         // and charges precede the single infallible full-cell replacement.
++        meter.work(41)?; // before outcome and complete scan-plan publication
++        let outcome = CountPlanScanOutcome {
++            counts,
++            insertion: CountPlanInsertion::Cold,
++            reserved: [0; 7],
++        };
+         meter.work(PLAN_CELL_CREDITS + 3)?;
+         scratch.plans[index] = Some(ScanPlan {
+             function: body.absolute_index,
+@@ -2251,7 +2312,7 @@
+             type_index: body.type_index,
+             counts,
+         });
+-        Ok(counts)
++        Ok(outcome)
+     }
+     fn build(
+         snapshot: &ValidatedSwiftReactor,
+@@ -2546,7 +2607,7 @@
+         let result = SwiftMode::build(
+             cache.adopted.proof(),
+             body,
+-            counts.test_changed_instructions(),
++            SwiftMode::scan_counts(&counts).test_changed_instructions(),
+             &mut SwiftScratch {
+                 patches: &mut cache.patches,
+                 index: &mut cache.index,
+@@ -4847,3 +4908,51 @@
+             .collect()
+     }
+ }
++
++#[cfg(test)]
++pub(super) mod count_candidate_inspection {
++    use super::*;
++    pub fn common_shape() -> [usize;12] {
++        [size_of::<PlanInventory>(),size_of::<OperationScalarInventory>(),size_of::<OperationBorrowChainInventory>(),
++         size_of::<ConstructionScalarInventory>(),size_of::<ConstructionBorrowChainInventory>(),size_of::<SwiftSlot>(),
++         size_of::<SwiftResident>(),cache_header_bytes().unwrap(),cache_construction_bytes().unwrap(),
++         cache_operation_bytes().unwrap(),cache_cleanup_temporary_bytes().unwrap(),size_of::<Result<decode::Counts,SwiftRunFailure>>()]
++    }
++    pub fn rank_state(cache:&SwiftFunctionCache) -> Vec<(u32,usize,u64,usize)> {
++        cache.slots.iter().enumerate().filter_map(|(i,s)|s.entry().map(|e|(e.function,s.pins,s.last_used,i))).collect()
++    }
++    pub fn bad_scan(cache:&mut SwiftFunctionCache,c:&mut RuntimeControl) -> SwiftRunFailure {
++        let mut phase=cache.prepare_operation(c,None,cache_cursor()).unwrap();
++        let (body_offset,type_index)={let original=cache.proof().execution_function(34).unwrap();(original.body_offset,original.type_index)};
++        let malformed=[0,0xff,0x0b];
++        let body=FunctionSpanView { absolute_index:34,type_index,body:&malformed,body_offset };
++        let outcome=SwiftMode::scan(cache.adopted.proof(),body,
++            &mut SwiftScratch { patches:&mut cache.patches,index:&mut cache.index,plans:&mut cache.plans },
++            &mut SwiftMeter { operation:&mut phase.control,usage:&mut cache.usage });
++        let failure=outcome.err().unwrap();phase.complete(()).unwrap();failure
++    }
++}
++
++#[cfg(test)]
++mod count_candidate_inventory_probe {
++    use super::*;
++    #[test]
++    fn count_candidate_exact_implemented_inventory() {
++        use std::mem::offset_of;
++        assert_eq!(size_of::<CountPlanPolicyInventory>(),6824);
++        assert_eq!(size_of::<CountPlanScanOutcome>(),32);
++        assert_eq!(size_of::<Result<CountPlanScanOutcome,SwiftRunFailure>>(),1096);
++        assert_eq!(cache_operation_bytes().unwrap(),112822);
++        println!("COUNT_IMPLEMENTED {{\"outcome\":32,\"result\":1096,\"inventory\":6824,\"threeInventories\":20472,\"operation\":112822,\"persistentPolicyBytes\":0,\"newTickets\":0}}");
++        macro_rules! field { ($name:ident,$ty:ty)=> {println!("COUNT_FIELD {{\"name\":\"{}\",\"offset\":{},\"bytes\":{}}}",stringify!($name),offset_of!(CountPlanPolicyInventory,$name),size_of::<$ty>());}; }
++        field!(scan_created,CountPlanScanOutcome);field!(scan_return,CountPlanScanOutcome);field!(scan_caller,CountPlanScanOutcome);
++        field!(result_created,Result<CountPlanScanOutcome,SwiftRunFailure>);field!(result_return,Result<CountPlanScanOutcome,SwiftRunFailure>);field!(result_caller,Result<CountPlanScanOutcome,SwiftRunFailure>);
++        field!(index_created,usize);field!(index_caller,usize);
++        field!(timestamp_created,u64);field!(timestamp_return,u64);field!(timestamp_caller,u64);
++        field!(original_match,bool);field!(identity_valid,bool);field!(reused_choice,bool);field!(cold_choice,bool);
++        field!(counts_borrow,&'static CountPlanScanOutcome);field!(prepare_meter,&'static mut SwiftMeter<'static,'static>);
++        field!(timestamp_borrow,&'static CountPlanScanOutcome);field!(timestamp_meter,&'static SwiftMeter<'static,'static>);
++        field!(counts_created,decode::Counts);field!(counts_return,decode::Counts);field!(counts_caller,decode::Counts);
++        field!(preparation_created,Result<(),SwiftRunFailure>);field!(preparation_return,Result<(),SwiftRunFailure>);field!(preparation_caller,Result<(),SwiftRunFailure>);
++    }
++}
+--- a/src/experimental_swift_reactor/cache_tests.rs
++++ b/src/experimental_swift_reactor/cache_tests.rs
+@@ -49,6 +49,7 @@
+ }
+ pub(super) fn checkpoint(control: &RuntimeControl, _: Cursor) {
+     elision_observe_checkpoint(control);
++    count_candidate_checkpoint(control);
+     let pause = HOOKS.with(|h| {
+         let mut x = h.get();
+         let ordinal = x.checks;
+@@ -3857,3 +3858,291 @@
+     assert_eq!(stats.reallocations, 0);
+     finish(cache, c);
+ }
++
++// Fresh finite traces run unchanged against both copied engines. No guest runs.
++fn cost_trace_release(cache: &mut SwiftFunctionCache, c: &mut RuntimeControl, f: u32) {
++    let p = pin(cache, c, f, None).unwrap();
++    cache.release(p, c, None).map_err(|e| e.failure).unwrap();
++}
++fn cost_trace_report(label: &str, start: u64, cache: &SwiftFunctionCache, c: &RuntimeControl) {
++    let u = cache.usage(); let r = c.usage(None);
++    assert_eq!(r.instructions, 0);
++    assert_eq!(r.live.active_pins.current, 0);
++    assert!(r.reservations.peak_tickets <= 86);
++    println!("COST_TRACE {{\"case\":\"{label}\",\"decodes\":{},\"hits\":{},\"evictions\":{},\"traceWork\":{},\"fixedBytes\":{},\"peakTickets\":{},\"instructions\":0}}",u.decodes,u.hits,u.evictions,r.cache_work-start,u.fixed_reserved,r.reservations.peak_tickets);
++}
++fn cost_trace_fixture(lengths: &[usize]) -> Vec<u8> {
++    let mut module = fixture(0, &[0, 0x0b], lengths.len());
++    // The fixture has only its final code section after section7. Retain its
++    // independently validated ABI and replace only the finite synthetic bodies.
++    let mut cursor = 8;
++    loop {
++        let section_start=cursor; let id=module[cursor]; cursor+=1;
++        let mut length=0usize; let mut shift=0;
++        loop { let b=module[cursor]; cursor+=1; length|=usize::from(b&127)<<shift;
++            if b&128==0 { break; } shift+=7; }
++        if id==10 {
++            module.truncate(section_start);
++            let mut code=Vec::new(); uint(lengths.len() as u32,&mut code);
++            for (index,nops) in lengths.iter().enumerate() {
++                let mut body=vec![0];
++                if index==28 { body.extend([0x41,0]); }
++                else { body.extend(std::iter::repeat_n(1,*nops)); }
++                body.push(0x0b); uint(body.len() as u32,&mut code); code.extend(body);
++            }
++            section(10,&code,&mut module); return module;
++        }
++        cursor+=length;
++    }
++}
++#[test]
++fn cost_retention_common_original_traces_and_shapes() {
++    hooks(Hooks::default());
++    let helper=body(0,&[vec![1;512],vec![0x0b]].concat());
++    let bytes=plan_reuse_wide_fixture(&helper,700);
++    let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());
++    for f in 34..50 { for _ in 0..2 { cost_trace_release(&mut cache,&mut c,f); } }
++    let start=c.usage(None).cache_work;
++    for round in 0..4 {
++        for f in 100+128*round..228+128*round { cost_trace_release(&mut cache,&mut c,f); }
++        for f in 34..50 { cost_trace_release(&mut cache,&mut c,f); }
++    }
++    cost_trace_report("hot16_scan128_four_rounds",start,&cache,&c); finish(cache,c);
++    let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());
++    let start=c.usage(None).cache_work;
++    for _ in 0..3 { for f in 100..165 { cost_trace_release(&mut cache,&mut c,f); } }
++    cost_trace_report("cyclic65_three_rounds",start,&cache,&c); finish(cache,c);
++    let bytes=fixture(0,&[0,0x0b],100);
++    let (mut c,a)=adopt(&bytes,SwiftRunBudget::default());
++    let (result,alloc)=measure(||construct(&mut c,a,None)); let cache=result.unwrap();
++    assert_eq!(alloc.attempts,5); assert_eq!(alloc.reallocations,0);
++    println!("COST_SHAPE {{\"slotBytes\":{},\"residentBytes\":{},\"headerBytes\":{},\"fixedBytes\":{},\"operationBytes\":{},\"constructionBytes\":{},\"constructorWork\":{},\"allocationBytes\":{},\"payloadBytes\":{}}}",size_of::<SwiftSlot>(),size_of::<SwiftResident>(),cache_header_bytes().unwrap(),cache.usage().fixed_reserved,cache_operation_bytes().unwrap(),cache_construction_bytes().unwrap(),c.usage(None).cache_work,alloc.allocated_bytes,c.budget().cache_bytes-cache.usage().fixed_reserved);
++    finish(cache,c);
++}
++#[test]
++fn cost_retention_common_mixed_and_phase_controls() {
++    for (label,hot_cost,cold_cost) in [("expensive_hot_cheap_cold",512,0),("cheap_hot_expensive_cold",0,512),("uniform_hot_cold",32,32)] {
++        let mut lengths=vec![cold_cost;700];
++        for f in 100..116 { lengths[f-34]=hot_cost; }
++        let bytes=cost_trace_fixture(&lengths);
++        let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());
++        for f in 100..116 { for _ in 0..2 { cost_trace_release(&mut cache,&mut c,f); } }
++        let start=c.usage(None).cache_work;
++        // Four short interleaved streams, each128cold calls, then all16hot.
++        for round in 0..4 {
++            for f in 200+128*round..328+128*round { cost_trace_release(&mut cache,&mut c,f); }
++            for f in 100..116 { cost_trace_release(&mut cache,&mut c,f); }
++        }
++        cost_trace_report(label,start,&cache,&c); finish(cache,c);
++    }
++    let mut lengths=vec![0;700];
++    for f in 100..116 { lengths[f-34]=512; }
++    let bytes=cost_trace_fixture(&lengths);
++    let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());
++    for _ in 0..3 { for f in 100..116 { cost_trace_release(&mut cache,&mut c,f); } }
++    let start=c.usage(None).cache_work;
++    for _ in 0..12 { for f in 200..264 { cost_trace_release(&mut cache,&mut c,f); } }
++    cost_trace_report("expensive_old_to_cheap_cycle64_phase_shift",start,&cache,&c);
++    println!("COST_PHASE residents={:?}",inspection::elision_slots(&cache)); finish(cache,c);
++}
++#[test]
++fn cost_retention_common_hit_path_is_original() {
++    let bytes=fixture(0,&[0,0x0b],100);
++    let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());
++    for f in 34..98 { cost_trace_release(&mut cache,&mut c,f); }
++    let start=c.usage(None).cache_work;
++    let before=cache.usage();
++    let (_,alloc)=measure(||for _ in 0..4 { for f in 34..98 { cost_trace_release(&mut cache,&mut c,f); } });
++    assert_eq!(c.usage(None).cache_work-start,2048); assert_eq!(alloc.attempts,0);
++    assert_eq!(cache.usage().decodes,before.decodes); assert_eq!(cache.usage().evictions,before.evictions);
++    println!("COST_HIT work256=2048 allocations=0 decodes=0 evictions=0"); finish(cache,c);
++}
++
++const COUNT_POLICY: bool = true;
++
++// Same host instrumentation on both copies; only expected cold priority differs.
++use super::cache::count_candidate_inspection as ci;
++#[derive(Clone,Copy,Debug)]
++struct CountCheckpoint { work:u64, construction:usize, cache:usize, combined:usize,tickets:usize,pins:usize,entries:usize,step:usize }
++const COUNT_EMPTY:CountCheckpoint=CountCheckpoint {work:0,construction:0,cache:0,combined:0,tickets:0,pins:0,entries:0,step:0};
++thread_local! { static COUNT_OBSERVE:Cell<(bool,usize,[CountCheckpoint;128])>=const {Cell::new((false,0,[COUNT_EMPTY;128]))}; }
++fn count_candidate_checkpoint(control:&RuntimeControl) {
++    COUNT_OBSERVE.with(|s| { let (enabled,n,mut trace)=s.get();if enabled {
++        assert!(n<trace.len());let u=control.usage(None);
++        trace[n]=CountCheckpoint { work:u.cache_work,construction:u.reservations.construction.current,cache:u.reservations.cache.current,
++          combined:u.reservations.combined.current,tickets:u.reservations.live_tickets,pins:u.live.active_pins.current,
++          entries:u.live.cache_entries.current,step:HOOKS.with(|h|h.get().step as usize) };
++        s.set((enabled,n+1,trace));
++    }});
++}
++fn count_priority(cache:&SwiftFunctionCache,f:u32)->u64 { ci::rank_state(cache).into_iter().find(|r|r.0==f).unwrap().2 }
++fn count_seed(bytes:&[u8],budget:SwiftRunBudget,reused:bool)->(RuntimeControl,SwiftFunctionCache) {
++    let (mut c,mut cache)=new(bytes,budget);
++    if reused {cost_trace_release(&mut cache,&mut c,34);cost_trace_release(&mut cache,&mut c,35);}
++    (c,cache)
++}
++#[test]
++fn count_candidate_shape_hit_trace_and_reservation() {
++    hooks(Hooks::default());
++    let bytes=fixture(0,&[0,0x0b],100);let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());
++    cost_trace_release(&mut cache,&mut c,34);
++    println!("COUNT_SHAPE {:?}",ci::common_shape());
++    let start=c.usage(None).cache_work;let before=cache.usage();
++    let (_,alloc)=measure(||for _ in 0..256 {cost_trace_release(&mut cache,&mut c,34)});
++    assert_eq!(c.usage(None).cache_work-start,2048);assert_eq!(alloc.attempts,0);assert_eq!(alloc.allocated_bytes,0);
++    assert_eq!(cache.usage().decodes,before.decodes);assert_eq!(cache.usage().evictions,before.evictions);
++    hooks(Hooks::default());COUNT_OBSERVE.with(|s|s.set((true,0,[COUNT_EMPTY;128])));
++    let start=c.usage(None).cache_work;cost_trace_release(&mut cache,&mut c,34);
++    let (_,n,mut trace)=COUNT_OBSERVE.with(|s|{let x=s.get();s.set((false,0,[COUNT_EMPTY;128]));x});
++    for t in trace.iter_mut().take(n) {t.work-=start;println!("COUNT_HIT_CHECKPOINT {t:?}");}
++    println!("COUNT_HIT {{\"work256\":2048,\"allocations\":0,\"allocationBytes\":0,\"checkpoints\":{n},\"operationBytes\":{}}}",cache_operation_bytes().unwrap());
++    finish(cache,c);
++}
++#[test]
++fn count_candidate_original_observation_pin_borrow_and_identity() {
++    let helper=body(1,&[0x0b]);let bytes=fixture(0,&helper,600);
++    let budget=SwiftRunBudget { cache_entries:1,..SwiftRunBudget::default() };
++    let (mut c,mut cache)=new(&bytes,budget);
++    for f in [34,546,34] {cost_trace_release(&mut cache,&mut c,f);assert_eq!(count_priority(&cache,f),if COUNT_POLICY {0}else{c.usage(None).cache_work});}
++    cost_trace_release(&mut cache,&mut c,35);cost_trace_release(&mut cache,&mut c,34);
++    assert_eq!(count_priority(&cache,34),c.usage(None).cache_work);finish(cache,c);
++    for field in 0..4 {
++        let (mut c,mut cache)=count_seed(&bytes,budget,true);pi::corrupt(&mut cache,34,field);
++        let e=pin(&mut cache,&mut c,34,None).unwrap_err();
++        assert_eq!(e.code,if field<3 {"swift_plan_identity"}else{"decode_count_mismatch"});assert_eq!(c.usage(None).live.active_pins.current,0);
++        finish(cache,c);
++    }
++    // Real opaque held pin and the exact underlying instruction allocation survive turnover.
++    let (mut c,mut cache)=new(&bytes,SwiftRunBudget {cache_entries:3,..SwiftRunBudget::default()});
++    let held=pin(&mut cache,&mut c,34,None).unwrap();let ptr=cache.view(&held,&mut c,None).unwrap().instructions.as_ptr();
++    for f in 35..100 {cost_trace_release(&mut cache,&mut c,f);assert_eq!(cache.view(&held,&mut c,None).unwrap().instructions.as_ptr(),ptr);}
++    assert_eq!(cache.view(&held,&mut c,None).unwrap().function,34);cache.release(held,&mut c,None).map_err(|e|e.failure).unwrap();
++    finish(cache,c);
++    let (mut c,mut cache)=new(&bytes,budget);let e=ci::bad_scan(&mut cache,&mut c);assert_eq!(e.kind,SwiftRunFailureKind::DecoderMismatch);
++    assert_eq!(pi::count(&cache),0);assert_eq!(cache.usage().decodes,0);finish(cache,c);
++    println!("COUNT_OWNERS full_identity=4 original_collision=3 held_actual_pin_and_allocation=true failed_real_scan_no_plan=true cleanup_zero=true");
++}
++#[test]
++fn count_candidate_work_cancel_build_publication_all_prefixes() {
++    let bytes=fixture(0,&body(1,&[0,0x0e,1,0,0,0x0b]),100);
++    let base=SwiftRunBudget {cache_entries:1,..SwiftRunBudget::default()};
++    for reused in [false,true] {
++        hooks(Hooks::default());let (mut c,mut cache)=count_seed(&bytes,base,reused);
++        let before=c.usage(None).cache_work;hooks(Hooks::default());let p=pin(&mut cache,&mut c,34,None).unwrap();
++        let checks=HOOKS.with(|h|h.get().checks);let work=c.usage(None).cache_work-before;
++        cache.release(p,&mut c,None).map_err(|e|e.failure).unwrap();finish(cache,c);
++        let mut scanned_then_failed=0;let mut eviction_prefixes=std::collections::BTreeSet::new();
++        for prefix in 0..work {
++            hooks(Hooks::default());let (mut c,mut cache)=count_seed(&bytes,SwiftRunBudget {cache_work:before+prefix,..base},reused);
++            let old=ci::rank_state(&cache);let e=pin(&mut cache,&mut c,34,None).unwrap_err();
++            assert_eq!(e.resource,Some(SwiftRunResource::CacheWork));assert_eq!(c.usage(None).live.active_pins.current,0);
++            assert!(!ci::rank_state(&cache).iter().any(|r|r.0==34));
++            if pi::key(&cache,34)==Some(34) {scanned_then_failed+=1;}
++            eviction_prefixes.insert(cache.usage().evictions);
++            let stopped=c.usage(None).cache_work;let r=pin(&mut cache,&mut c,35,None).unwrap_err();plan_reuse_primary(e,r);assert_eq!(c.usage(None).cache_work,stopped);
++            if cache.usage().evictions==u64::from(reused) {assert_eq!(ci::rank_state(&cache),old);}
++            finish(cache,c);
++        }
++        assert!(scanned_then_failed>0);
++        for ordinal in 0..checks {
++            hooks(Hooks::default());let (mut c,mut cache)=count_seed(&bytes,base,reused);hooks(Hooks {cancel:Some(ordinal),..Hooks::default()});
++            let e=pin(&mut cache,&mut c,34,None).unwrap_err();hooks(Hooks::default());assert_eq!(e.kind,SwiftRunFailureKind::Cancelled);
++            assert_eq!(c.usage(None).live.active_pins.current,0);assert!(!ci::rank_state(&cache).iter().any(|r|r.0==34));finish(cache,c);
++        }
++        for allocation in 0..3 {
++            let (mut c,mut cache)=count_seed(&bytes,base,reused);
++            let (r,s)=measure_extended(Some(allocation),||pin(&mut cache,&mut c,34,None));assert!(r.is_err());assert_eq!(s.injected_failures,1);
++            assert_eq!(pi::key(&cache,34),Some(34));assert_eq!(c.usage(None).live.active_pins.current,0);finish(cache,c);
++        }
++        println!("COUNT_PREFIX reused={reused} work={work} cancellation_checks={checks} scanned_then_failed={scanned_then_failed} eviction_prefixes={eviction_prefixes:?} allocation_failures=3 cleanup_zero=true");
++    }
++}
++#[test]
++fn count_candidate_changed_memory_admission_boundary() {
++    let bytes=fixture(0,&[0,0x0b],100);let (c,cache)=new(&bytes,SwiftRunBudget::default());let resident=c.usage(None).reservations.combined.current;finish(cache,c);
++    for operation in [92350usize,112821,112822] {
++        let (mut c,cache)=new(&bytes,SwiftRunBudget {combined_bytes:resident+operation,..SwiftRunBudget::default()});
++        let (r,a)=measure(||cache.prepare_operation(&mut c,None,cache_cursor()));assert_eq!(a.attempts,0);
++        let accepted=match r {Ok(phase)=>{phase.complete(()).unwrap();true},Err(e)=>{assert_eq!(e.kind,SwiftRunFailureKind::CombinedExhausted);false}};
++        assert_eq!(accepted,operation>=cache_operation_bytes().unwrap());println!("COUNT_ADMISSION headroom={operation} accepted={accepted} ownOperationBytes={}",cache_operation_bytes().unwrap());finish(cache,c);
++    }
++}
++#[test]
++fn count_candidate_phase_and_scan_controls() {
++    let bytes=plan_reuse_wide_fixture(&[0,0x0b],1000);
++    for (label,old,cycles,expected) in [("phase_old16",16,12,if COUNT_POLICY {81}else{64}), ("phase_old64",64,12,if COUNT_POLICY {128}else{64}), ("phase_old16_long",16,64,if COUNT_POLICY {81}else{64})] {
++        let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());
++        for _ in 0..3 {for f in 100..100+old {cost_trace_release(&mut cache,&mut c,f)}}
++        let start=cache.usage().decodes;
++        for _ in 0..cycles {for f in 200..264 {cost_trace_release(&mut cache,&mut c,f)}}
++        assert_eq!(cache.usage().decodes-start,expected);println!("COUNT_PHASE {label} decodes={expected}");finish(cache,c);
++    }
++    let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());
++    for f in 100..116 {for _ in 0..2 {cost_trace_release(&mut cache,&mut c,f)}}
++    for f in 200..840 {cost_trace_release(&mut cache,&mut c,f)}
++    let retained=ci::rank_state(&cache).iter().filter(|r|(100..116).contains(&r.0)).count();
++    assert_eq!(retained,if COUNT_POLICY {16}else{0});println!("COUNT_SCAN640 retained_hot={retained}");finish(cache,c);
++    let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());
++    for _ in 0..3 {for f in 100..164 {cost_trace_release(&mut cache,&mut c,f)}}
++    let start=cache.usage().decodes;
++    for _ in 0..12 {for f in 612..676 {cost_trace_release(&mut cache,&mut c,f)}}
++    assert_eq!(cache.usage().decodes-start,if COUNT_POLICY {128}else{64});println!("COUNT_COLLISION_PHASE decodes={}",cache.usage().decodes-start);finish(cache,c);
++}
++#[test]
++fn count_candidate_three_victims_partial_prefixes_and_real_borrow() {
++    hooks(Hooks::default());let mut lengths=vec![0;100];lengths[6]=12;let bytes=cost_trace_fixture(&lengths);
++    let base=SwiftRunBudget {cache_entries:4,..SwiftRunBudget::default()};
++    let (mut c,mut cache)=new(&bytes,base);let fixed=cache.usage().fixed_reserved;
++    cost_trace_release(&mut cache,&mut c,34);let small=cache.usage().resident_bytes;
++    cost_trace_release(&mut cache,&mut c,40);let large=cache.usage().resident_bytes-small;finish(cache,c);
++    let budget=SwiftRunBudget {cache_bytes:fixed+small+large,..base};
++    fn seeded(bytes:&[u8],budget:SwiftRunBudget)->(RuntimeControl,SwiftFunctionCache,SwiftFunctionPin,usize) {
++        let (mut c,mut cache)=new(bytes,budget);let held=pin(&mut cache,&mut c,34,None).unwrap();
++        let ptr=cache.view(&held,&mut c,None).unwrap().instructions.as_ptr() as usize;
++        for f in 35..38 {cost_trace_release(&mut cache,&mut c,f)}(c,cache,held,ptr)
++    }
++    let (mut c,mut cache,held,ptr)=seeded(&bytes,budget);let before=c.usage(None).cache_work;
++    cost_trace_release(&mut cache,&mut c,40);let work=c.usage(None).cache_work-before;
++    assert_eq!(cache.usage().evictions,3);assert_eq!(cache.view(&held,&mut c,None).unwrap().instructions.as_ptr() as usize,ptr);
++    assert_eq!(ci::rank_state(&cache).len(),2);cache.release(held,&mut c,None).map_err(|e|e.failure).unwrap();finish(cache,c);
++    let mut prefixes=std::collections::BTreeSet::new();
++    for prefix in 0..work {
++        let (mut c,mut cache,held,ptr)=seeded(&bytes,SwiftRunBudget {cache_work:before+prefix,..budget});
++        let e=pin(&mut cache,&mut c,40,None).unwrap_err();assert_eq!(e.resource,Some(SwiftRunResource::CacheWork));
++        assert!(!ci::rank_state(&cache).iter().any(|r|r.0==40));prefixes.insert(cache.usage().evictions);
++        assert_eq!(cache.view(&held,&mut c,None).unwrap().instructions.as_ptr() as usize,ptr);
++        assert_eq!(c.usage(None).live.active_pins.current,1);cache.release(held,&mut c,None).map_err(|e|e.failure).unwrap();finish(cache,c);
++    }
++    assert_eq!(prefixes,[0,1,2,3].into_iter().collect());
++    println!("COUNT_MULTIVICTIM shorter_work={work} actual_completed_prefixes={prefixes:?} held_pin_and_allocation_preserved=true cleanup_zero=true");
++    let (mut c,mut cache)=new(&bytes,SwiftRunBudget {cache_entries:1,..base});let held=pin(&mut cache,&mut c,34,None).unwrap();
++    let e=pin(&mut cache,&mut c,35,None).unwrap_err();assert_eq!(e.code,"all_entries_pinned");assert_eq!(pi::key(&cache,35),Some(35));
++    assert_eq!(cache.view(&held,&mut c,None).unwrap().function,34);cache.release(held,&mut c,None).map_err(|e|e.failure).unwrap();finish(cache,c);
++}
++#[test]
++fn count_candidate_all_capacities_finite_slot_oracle() {
++    let bytes=plan_reuse_wide_fixture(&[0,0x0b],1000);let mut transitions=0;
++    for capacity in 0..=64 {
++        hooks(Hooks::default());let (mut c,mut cache)=new(&bytes,SwiftRunBudget {cache_entries:capacity,..SwiftRunBudget::default()});
++        if capacity==0 {assert!(pin(&mut cache,&mut c,100,None).is_err());assert_eq!(pi::key(&cache,100),Some(100));finish(cache,c);continue;}
++        let mut slots=vec![None::<(u32,u64)>;capacity];let mut plans=[None::<u32>;512];let mut ordinal=0;let mut seed=17u32;
++        for i in 0..384 {
++            seed=seed.wrapping_mul(1664525).wrapping_add(1013904223);
++            let function=100+(seed%70)+if i%3==0 {512}else{0};ordinal+=1;
++            let found=slots.iter().position(|s|s.is_some_and(|r|r.0==function));
++            let index=if let Some(index)=found {slots[index]=Some((function,ordinal));index} else {
++                let reused=plans[function as usize&511]==Some(function);plans[function as usize&511]=Some(function);
++                let index=slots.iter().position(Option::is_none).unwrap_or_else(||(0..capacity).min_by_key(|j|(slots[*j].unwrap().1,*j)).unwrap());
++                slots[index]=Some((function,if COUNT_POLICY&&!reused {0}else{ordinal}));index
++            };
++            cost_trace_release(&mut cache,&mut c,function);let actual=ci::rank_state(&cache);
++            assert_eq!(actual.iter().find(|r|r.0==function).unwrap().3,index);
++            for (f,pins,time,slot) in &actual {let expected=slots[*slot].unwrap();assert_eq!(*f,expected.0);assert_eq!(*pins,0);assert_eq!(*time==0,expected.1==0);}
++            let mut observed:Vec<_>=actual.iter().map(|r|(r.2,r.3,r.0)).collect();observed.sort();
++            let mut expected:Vec<_>=slots.iter().enumerate().filter_map(|(i,s)|s.map(|(f,t)|(t,i,f))).collect();expected.sort();
++            assert_eq!(observed.iter().map(|r|(r.1,r.2)).collect::<Vec<_>>(),expected.iter().map(|r|(r.1,r.2)).collect::<Vec<_>>());transitions+=1;
++        }
++        finish(cache,c);
++    }
++    println!("COUNT_ORACLE capacities=65 transitions={transitions} full_identity_collision_slots_and_order=true cleanup_zero=true");
++}

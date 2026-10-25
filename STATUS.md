@@ -104,10 +104,15 @@ The count-plan-aware cold-insertion experiment passes 24 finite producer methods
 and 18 independent methods, including 292 oracle cases and 46,550 transitions.
 Root verifies 30 producer and 23 reviewer sealed members, 64 input bindings and
 the unchanged 132-file live VM closure. Phase-change regressions remain; the
-eight-credit miss cost is model arithmetic, and exact Rust work and memory are
-unmeasured. Root accepts this finite result and selects a separate isolated Rust
-feasibility experiment with fixed limits, measured hit costs and failure-prefix
-accounting. Live integration and a full-target retry remain unselected. See
+eight-credit miss cost remains model arithmetic. The separate Rust feasibility
+experiment measures 57 added credits per miss, zero per hit, and 20,472 added
+operation reservation bytes. Three of six complete work traces regress and
+memory admission fails earlier. Two original policy observations remain failed.
+An independent 23-method offline audit confirms the recorded rejection. Root
+verifies 133 sealed members, three 132-file archives and the unchanged live VM.
+Live integration/full-target retry remain unselected; a bounded ordered
+cache-transition diagnostic design is next. See
+[the rejected Rust result audit](docs/swift-count-plan-retention-candidate-review.md),
 [the independent review](docs/swift-retention-next-design-review.md) and
 [the root acceptance](verification/swift-retention-next-design-review/root-acceptance.json).
 
@@ -306,9 +311,14 @@ verified 866 sealed members, 81 source, 1,137 dependency and 166 output bindings
 and cleanup. Broad ordinary CI after delivery remains pending. See
 [the migration review](docs/hosted-browser-activation-preparation-migration-review.md)
 and [the versioned review](docs/hosted-browser-catalog-v2-review.md).
-The frozen RelationCatalog candidate passes 233 PG16 and 234 PG17 methods
-with 65/66 actual mutations. Independent review is in progress, and no complete
-transaction-owner or readiness case is claimed.
+The RelationCatalog prerequisite passes 233 PG16 and 234 PG17 methods with
+65/66 actual mutations. Independent review passes 96 methods on each major,
+including fourteen rejected mutations and two allowed naming equivalences. Root
+verifies 746 review artifacts, 74 source, 758 dependency and 73 output bindings,
+plus the producer preflight and cleanup. This accepts only the relation
+prerequisite; all 48 complete runtime cases remain incomplete. The next slice
+implements fixed preauth Store/bootstrap/load ownership and Vault roundtrips.
+See [the relation review](docs/hosted-browser-relation-catalog-review.md).
 This is only `:function_surface_verified`: tests explicitly
 show that missing relation/policy/grant admission remains a separate requirement.
 No consumer, pool, Store or readiness wiring exists. The pure activation
@@ -322,8 +332,8 @@ input, four read-only context and 99 output bindings. All 48 relation runtime
 cases and forty owner runtime cases remain pending. PG16/17 representation
 fixtures each pass 82 semantic checks and 23/24 actual mutation controls.
 Independent review passes 427 main, 96 effect and 14 freeze/source assertions
-with overlapping coverage. Root accepts this representation evidence; production
-RelationCatalog implementation has started. The additive preparation SQL helper passes 39 PG17
+with overlapping coverage. The subsequently implemented RelationCatalog has
+now passed the separate bounded review described above. The additive preparation SQL helper passes 39 PG17
 and 38 independent PG16 methods. Review found unexpected PUBLIC grants could
 survive provisioning; initial and final exact new-object ACL checks now reject
 them, including third-party/default grants and grant options. Root accepts this

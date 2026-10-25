@@ -1,0 +1,3666 @@
+{
+  "check_keys": [
+    {
+      "columns": [
+        "revision"
+      ],
+      "expression": "((revision >= 1) AND (revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_authz_bindings"
+    },
+    {
+      "columns": [
+        "subject"
+      ],
+      "expression": "((octet_length(subject) >= 1) AND (octet_length(subject) <= 256))",
+      "relation": "public.mixer_authz_bindings"
+    },
+    {
+      "columns": [
+        "expires_at",
+        "not_before"
+      ],
+      "expression": "(((expires_at >= 0) AND (expires_at <= '9007199254740991'::bigint)) AND (expires_at > not_before))",
+      "relation": "public.mixer_authz_credentials"
+    },
+    {
+      "columns": [
+        "not_before"
+      ],
+      "expression": "((not_before >= 0) AND (not_before <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_authz_credentials"
+    },
+    {
+      "columns": [
+        "reference"
+      ],
+      "expression": "((octet_length(reference) >= 1) AND (octet_length(reference) <= 256))",
+      "relation": "public.mixer_authz_credentials"
+    },
+    {
+      "columns": [
+        "revision"
+      ],
+      "expression": "((revision >= 1) AND (revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_authz_credentials"
+    },
+    {
+      "columns": [
+        "expires_at",
+        "not_before"
+      ],
+      "expression": "(((expires_at >= 0) AND (expires_at <= '9007199254740991'::bigint)) AND (expires_at > not_before))",
+      "relation": "public.mixer_authz_families"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "expression": "((octet_length(id) >= 1) AND (octet_length(id) <= 128))",
+      "relation": "public.mixer_authz_families"
+    },
+    {
+      "columns": [
+        "not_before"
+      ],
+      "expression": "((not_before >= 0) AND (not_before <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_authz_families"
+    },
+    {
+      "columns": [
+        "revision"
+      ],
+      "expression": "((revision >= 1) AND (revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_authz_families"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "expression": "((octet_length(id) >= 1) AND (octet_length(id) <= 128))",
+      "relation": "public.mixer_authz_principals"
+    },
+    {
+      "columns": [
+        "identity_class"
+      ],
+      "expression": "(identity_class = ANY (ARRAY['human'::text, 'service'::text]))",
+      "relation": "public.mixer_authz_principals"
+    },
+    {
+      "columns": [
+        "not_before"
+      ],
+      "expression": "((not_before >= 0) AND (not_before <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_authz_principals"
+    },
+    {
+      "columns": [
+        "revision"
+      ],
+      "expression": "((revision >= 1) AND (revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_authz_principals"
+    },
+    {
+      "columns": [
+        "client_id"
+      ],
+      "expression": "((octet_length(client_id) >= 1) AND (octet_length(client_id) <= 256))",
+      "relation": "public.mixer_authz_profiles"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "expression": "((octet_length(id) >= 1) AND (octet_length(id) <= 128))",
+      "relation": "public.mixer_authz_profiles"
+    },
+    {
+      "columns": [
+        "identity_class"
+      ],
+      "expression": "(identity_class = ANY (ARRAY['human'::text, 'service'::text]))",
+      "relation": "public.mixer_authz_profiles"
+    },
+    {
+      "columns": [
+        "issuer"
+      ],
+      "expression": "((octet_length(issuer) >= 1) AND (octet_length(issuer) <= 2048))",
+      "relation": "public.mixer_authz_profiles"
+    },
+    {
+      "columns": [
+        "state_revision"
+      ],
+      "expression": "((state_revision >= 1) AND (state_revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_authz_profiles"
+    },
+    {
+      "columns": [
+        "version"
+      ],
+      "expression": "(version > 0)",
+      "relation": "public.mixer_authz_profiles"
+    },
+    {
+      "columns": [
+        "browser_epoch"
+      ],
+      "expression": "((browser_epoch >= 1) AND (browser_epoch <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "browser_revision"
+      ],
+      "expression": "((browser_revision >= 1) AND (browser_revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "expires_at",
+        "created_at"
+      ],
+      "expression": "((expires_at > created_at) AND (expires_at <= (created_at + 300)) AND (expires_at <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "status",
+        "claim_digest",
+        "claimed_at",
+        "claim_expires_at",
+        "completion_reason",
+        "key_id",
+        "iv",
+        "tag",
+        "ciphertext",
+        "created_at",
+        "expires_at"
+      ],
+      "expression": "(((status = 'pending'::text) AND (claim_digest IS NULL) AND (claimed_at IS NULL) AND (claim_expires_at IS NULL) AND (completion_reason IS NULL) AND (key_id IS NOT NULL) AND (key_id ~ '^[A-Za-z0-9._-]{1,128}$'::text) AND (iv IS NOT NULL) AND (octet_length(iv) = 12) AND (tag IS NOT NULL) AND (octet_length(tag) = 16) AND (ciphertext IS NOT NULL) AND ((octet_length(ciphertext) >= 1) AND (octet_length(ciphertext) <= 8192))) OR ((status <> 'pending'::text) AND (key_id IS NULL) AND (iv IS NULL) AND (tag IS NULL) AND (ciphertext IS NULL) AND (((status = 'claimed'::text) AND (completion_reason IS NULL) AND (claim_digest IS NOT NULL) AND (claimed_at IS NOT NULL) AND (claim_expires_at IS NOT NULL) AND (claimed_at >= created_at) AND (claim_expires_at > claimed_at) AND (claim_expires_at <= expires_at)) OR ((completion_reason IS NOT NULL) AND (((status = 'provider_rejected'::text) AND (completion_reason = 'provider_rejected'::text)) OR ((status = 'completed'::text) AND (completion_reason = 'completed'::text) AND (claim_digest IS NOT NULL)) OR ((status = 'failed'::text) AND (completion_reason = ANY (ARRAY['exchange_failed'::text, 'oidc_failed'::text, 'identity_failed'::text, 'session_failed'::text])) AND (claim_digest IS NOT NULL)) OR ((status = 'superseded'::text) AND (completion_reason = ANY (ARRAY['superseded'::text, 'expired'::text, 'logout'::text]))))))))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "ciphertext_version"
+      ],
+      "expression": "(ciphertext_version = 1)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "claim_digest"
+      ],
+      "expression": "(octet_length(claim_digest) = 32)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "client_id"
+      ],
+      "expression": "((octet_length(client_id) >= 1) AND (octet_length(client_id) <= 256))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "completion_reason"
+      ],
+      "expression": "(completion_reason = ANY (ARRAY['provider_rejected'::text, 'exchange_failed'::text, 'oidc_failed'::text, 'identity_failed'::text, 'session_failed'::text, 'completed'::text, 'superseded'::text, 'expired'::text, 'logout'::text]))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "config_digest"
+      ],
+      "expression": "(octet_length(config_digest) = 32)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "cookie_digest"
+      ],
+      "expression": "(octet_length(cookie_digest) = 32)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "created_at"
+      ],
+      "expression": "((created_at >= 0) AND (created_at <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "generation"
+      ],
+      "expression": "(generation ~ '^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$'::text)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "issuer"
+      ],
+      "expression": "((octet_length(issuer) >= 1) AND (octet_length(issuer) <= 2048))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "nonce_digest"
+      ],
+      "expression": "(octet_length(nonce_digest) = 32)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "profile_id"
+      ],
+      "expression": "((octet_length(profile_id) >= 1) AND (octet_length(profile_id) <= 128))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "profile_version"
+      ],
+      "expression": "(profile_version > 0)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "redirect_uri"
+      ],
+      "expression": "((octet_length(redirect_uri) >= 1) AND (octet_length(redirect_uri) <= 2048))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "return_route"
+      ],
+      "expression": "(return_route = 'workspace'::text)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "state_digest"
+      ],
+      "expression": "(octet_length(state_digest) = 32)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "status"
+      ],
+      "expression": "(status = ANY (ARRAY['pending'::text, 'claimed'::text, 'provider_rejected'::text, 'completed'::text, 'failed'::text, 'superseded'::text]))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "columns": [
+        "attempt_state_digest"
+      ],
+      "expression": "(octet_length(attempt_state_digest) = 32)",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "audit_schema"
+      ],
+      "expression": "(audit_schema = 1)",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "sequence",
+        "operation",
+        "old_revision",
+        "old_epoch",
+        "old_status",
+        "new_revision",
+        "new_epoch",
+        "new_status",
+        "outcome"
+      ],
+      "expression": "(((sequence = 1) AND (operation = 'bootstrap'::text) AND (old_revision IS NULL) AND (old_epoch IS NULL) AND (old_status IS NULL) AND (new_revision = 1) AND (new_epoch = 1) AND (new_status = 'preauth'::text) AND (outcome = 'created'::text)) OR ((sequence > 1) AND (old_revision IS NOT NULL) AND ((old_revision >= 1) AND (old_revision <= '9007199254740991'::bigint)) AND (old_epoch IS NOT NULL) AND ((old_epoch >= 1) AND (old_epoch <= '9007199254740991'::bigint)) AND (old_status IS NOT NULL) AND (old_status = ANY (ARRAY['preauth'::text, 'active'::text])) AND (((operation = 'begin'::text) AND (outcome = 'pending'::text) AND (new_status = old_status) AND (new_revision = (old_revision + 1)) AND (new_epoch = (old_epoch + 1))) OR ((operation = 'claim'::text) AND (outcome = 'claimed'::text) AND (new_status = old_status) AND (new_revision = old_revision) AND (new_epoch = old_epoch)) OR ((operation = 'provider_reject'::text) AND (outcome = 'provider_rejected'::text) AND (new_status = old_status) AND (new_revision = old_revision) AND (new_epoch = old_epoch)) OR ((operation = 'fail_claim'::text) AND (outcome = 'failed'::text) AND (new_status = old_status) AND (new_revision = old_revision) AND (new_epoch = old_epoch)) OR ((operation = 'activate'::text) AND (outcome = 'active'::text) AND (old_status = 'preauth'::text) AND (new_status = 'active'::text) AND (new_revision = (old_revision + 1)) AND (new_epoch = (old_epoch + 1))) OR ((operation = 'replace'::text) AND (outcome = 'active'::text) AND (old_status = 'active'::text) AND (new_status = 'active'::text) AND (new_revision = (old_revision + 1)) AND (new_epoch = (old_epoch + 1))) OR ((operation = 'logout'::text) AND (outcome = 'revoked'::text) AND (new_status = 'revoked'::text) AND (new_revision = (old_revision + 1)) AND (new_epoch = (old_epoch + 1))) OR ((operation = 'expire'::text) AND (outcome = 'expired'::text) AND (new_status = 'expired'::text) AND (new_revision = (old_revision + 1)) AND (new_epoch = (old_epoch + 1))))))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "operation",
+        "token_issued_at",
+        "token_expires_at",
+        "issuer_hash",
+        "subject_hash",
+        "client_hash",
+        "credential_hash"
+      ],
+      "expression": "(((operation = ANY (ARRAY['activate'::text, 'replace'::text])) AND (token_issued_at IS NOT NULL) AND (token_expires_at > token_issued_at) AND (issuer_hash IS NOT NULL) AND (subject_hash IS NOT NULL) AND (client_hash IS NOT NULL) AND (credential_hash IS NOT NULL)) OR ((operation <> ALL (ARRAY['activate'::text, 'replace'::text])) AND (token_issued_at IS NULL) AND (token_expires_at IS NULL) AND (issuer_hash IS NULL) AND (subject_hash IS NULL) AND (client_hash IS NULL) AND (credential_hash IS NULL)))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "client_hash"
+      ],
+      "expression": "(octet_length(client_hash) = 32)",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "config_digest"
+      ],
+      "expression": "(octet_length(config_digest) = 32)",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "credential_hash"
+      ],
+      "expression": "(octet_length(credential_hash) = 32)",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "issuer_hash"
+      ],
+      "expression": "(octet_length(issuer_hash) = 32)",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "new_epoch"
+      ],
+      "expression": "((new_epoch >= 1) AND (new_epoch <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "new_revision"
+      ],
+      "expression": "((new_revision >= 1) AND (new_revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "new_status"
+      ],
+      "expression": "(new_status = ANY (ARRAY['preauth'::text, 'active'::text, 'revoked'::text, 'expired'::text]))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "operation"
+      ],
+      "expression": "(operation = ANY (ARRAY['bootstrap'::text, 'begin'::text, 'claim'::text, 'provider_reject'::text, 'fail_claim'::text, 'activate'::text, 'replace'::text, 'logout'::text, 'expire'::text]))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "outcome"
+      ],
+      "expression": "(outcome = ANY (ARRAY['created'::text, 'pending'::text, 'claimed'::text, 'provider_rejected'::text, 'failed'::text, 'active'::text, 'revoked'::text, 'expired'::text]))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "recorded_at"
+      ],
+      "expression": "((recorded_at >= 0) AND (recorded_at <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "request_id"
+      ],
+      "expression": "(request_id ~ '^[0-9a-f]{32}$'::text)",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "sequence"
+      ],
+      "expression": "((sequence >= 1) AND (sequence <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "subject_hash"
+      ],
+      "expression": "(octet_length(subject_hash) = 32)",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "columns": [
+        "envelope_kind",
+        "key_id",
+        "iv",
+        "tag",
+        "ciphertext"
+      ],
+      "expression": "(((envelope_kind = 'erased'::text) AND (key_id IS NULL) AND (iv IS NULL) AND (tag IS NULL) AND (ciphertext IS NULL)) OR ((envelope_kind = ANY (ARRAY['preauth'::text, 'active'::text])) AND (key_id IS NOT NULL) AND (key_id ~ '^[A-Za-z0-9._-]{1,128}$'::text) AND (iv IS NOT NULL) AND (octet_length(iv) = 12) AND (tag IS NOT NULL) AND (octet_length(tag) = 16) AND (ciphertext IS NOT NULL) AND ((octet_length(ciphertext) >= 1) AND (octet_length(ciphertext) <= 8192))))",
+      "relation": "public.mixer_browser_session_vault"
+    },
+    {
+      "columns": [
+        "ciphertext_version"
+      ],
+      "expression": "(ciphertext_version = 1)",
+      "relation": "public.mixer_browser_session_vault"
+    },
+    {
+      "columns": [
+        "envelope_kind"
+      ],
+      "expression": "(envelope_kind = ANY (ARRAY['preauth'::text, 'active'::text, 'erased'::text]))",
+      "relation": "public.mixer_browser_session_vault"
+    },
+    {
+      "columns": [
+        "epoch"
+      ],
+      "expression": "((epoch >= 1) AND (epoch <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_session_vault"
+    },
+    {
+      "columns": [
+        "session_revision"
+      ],
+      "expression": "((session_revision >= 1) AND (session_revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_session_vault"
+    },
+    {
+      "columns": [
+        "vault_generation"
+      ],
+      "expression": "((vault_generation >= 1) AND (vault_generation <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_session_vault"
+    },
+    {
+      "columns": [
+        "audit_sequence"
+      ],
+      "expression": "((audit_sequence >= 1) AND (audit_sequence <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "columns": [
+        "last_seen_at",
+        "created_at"
+      ],
+      "expression": "(last_seen_at >= created_at)",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "columns": [
+        "absolute_expires_at",
+        "created_at"
+      ],
+      "expression": "((absolute_expires_at > created_at) AND (absolute_expires_at <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "columns": [
+        "idle_expires_at",
+        "created_at",
+        "absolute_expires_at"
+      ],
+      "expression": "((idle_expires_at > created_at) AND (idle_expires_at <= absolute_expires_at))",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "columns": [
+        "profile_id",
+        "profile_version",
+        "principal_id",
+        "family_id",
+        "credential_ref",
+        "credential_revision",
+        "status"
+      ],
+      "expression": "(((profile_id IS NULL) AND (profile_version IS NULL) AND (principal_id IS NULL) AND (family_id IS NULL) AND (credential_ref IS NULL) AND (credential_revision IS NULL) AND (status <> 'active'::text)) OR ((profile_id IS NOT NULL) AND (profile_version IS NOT NULL) AND (principal_id IS NOT NULL) AND (family_id IS NOT NULL) AND (credential_ref IS NOT NULL) AND (credential_revision IS NOT NULL) AND ((credential_revision >= 1) AND (credential_revision <= '9007199254740991'::bigint)) AND (status <> 'preauth'::text)))",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "columns": [
+        "config_digest"
+      ],
+      "expression": "(octet_length(config_digest) = 32)",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "columns": [
+        "cookie_digest"
+      ],
+      "expression": "(octet_length(cookie_digest) = 32)",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "columns": [
+        "created_at"
+      ],
+      "expression": "((created_at >= 0) AND (created_at <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "columns": [
+        "csrf_digest"
+      ],
+      "expression": "(octet_length(csrf_digest) = 32)",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "columns": [
+        "epoch"
+      ],
+      "expression": "((epoch >= 1) AND (epoch <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "columns": [
+        "expected_profile_id"
+      ],
+      "expression": "((octet_length(expected_profile_id) >= 1) AND (octet_length(expected_profile_id) <= 128))",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "columns": [
+        "expected_profile_version"
+      ],
+      "expression": "(expected_profile_version > 0)",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "columns": [
+        "generation"
+      ],
+      "expression": "(generation ~ '^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$'::text)",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "expression": "(octet_length(id) = 16)",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "columns": [
+        "initial_config_digest"
+      ],
+      "expression": "(octet_length(initial_config_digest) = 32)",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "columns": [
+        "revision"
+      ],
+      "expression": "((revision >= 1) AND (revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "columns": [
+        "status"
+      ],
+      "expression": "(status = ANY (ARRAY['preauth'::text, 'active'::text, 'revoked'::text, 'expired'::text]))",
+      "relation": "public.mixer_browser_sessions"
+    }
+  ],
+  "expressions": {
+    "checks": [
+      {
+        "conname": "source_0",
+        "expression": "((octet_length(subject) >= 1) AND (octet_length(subject) <= 256))",
+        "relation": "public.mixer_authz_bindings"
+      },
+      {
+        "conname": "source_1",
+        "expression": "((revision >= 1) AND (revision <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_authz_bindings"
+      },
+      {
+        "conname": "source_0",
+        "expression": "((octet_length(reference) >= 1) AND (octet_length(reference) <= 256))",
+        "relation": "public.mixer_authz_credentials"
+      },
+      {
+        "conname": "source_1",
+        "expression": "((not_before >= 0) AND (not_before <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_authz_credentials"
+      },
+      {
+        "conname": "source_2",
+        "expression": "(((expires_at >= 0) AND (expires_at <= '9007199254740991'::bigint)) AND (expires_at > not_before))",
+        "relation": "public.mixer_authz_credentials"
+      },
+      {
+        "conname": "source_3",
+        "expression": "((revision >= 1) AND (revision <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_authz_credentials"
+      },
+      {
+        "conname": "source_0",
+        "expression": "((octet_length(id) >= 1) AND (octet_length(id) <= 128))",
+        "relation": "public.mixer_authz_families"
+      },
+      {
+        "conname": "source_1",
+        "expression": "((not_before >= 0) AND (not_before <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_authz_families"
+      },
+      {
+        "conname": "source_2",
+        "expression": "(((expires_at >= 0) AND (expires_at <= '9007199254740991'::bigint)) AND (expires_at > not_before))",
+        "relation": "public.mixer_authz_families"
+      },
+      {
+        "conname": "source_3",
+        "expression": "((revision >= 1) AND (revision <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_authz_families"
+      },
+      {
+        "conname": "source_0",
+        "expression": "((octet_length(id) >= 1) AND (octet_length(id) <= 128))",
+        "relation": "public.mixer_authz_principals"
+      },
+      {
+        "conname": "source_1",
+        "expression": "(identity_class = ANY (ARRAY['human'::text, 'service'::text]))",
+        "relation": "public.mixer_authz_principals"
+      },
+      {
+        "conname": "source_2",
+        "expression": "((not_before >= 0) AND (not_before <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_authz_principals"
+      },
+      {
+        "conname": "source_3",
+        "expression": "((revision >= 1) AND (revision <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_authz_principals"
+      },
+      {
+        "conname": "source_0",
+        "expression": "((octet_length(id) >= 1) AND (octet_length(id) <= 128))",
+        "relation": "public.mixer_authz_profiles"
+      },
+      {
+        "conname": "source_1",
+        "expression": "(version > 0)",
+        "relation": "public.mixer_authz_profiles"
+      },
+      {
+        "conname": "source_2",
+        "expression": "((octet_length(issuer) >= 1) AND (octet_length(issuer) <= 2048))",
+        "relation": "public.mixer_authz_profiles"
+      },
+      {
+        "conname": "source_3",
+        "expression": "((octet_length(client_id) >= 1) AND (octet_length(client_id) <= 256))",
+        "relation": "public.mixer_authz_profiles"
+      },
+      {
+        "conname": "source_4",
+        "expression": "(identity_class = ANY (ARRAY['human'::text, 'service'::text]))",
+        "relation": "public.mixer_authz_profiles"
+      },
+      {
+        "conname": "source_5",
+        "expression": "((state_revision >= 1) AND (state_revision <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_authz_profiles"
+      },
+      {
+        "conname": "source_0",
+        "expression": "(octet_length(state_digest) = 32)",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_1",
+        "expression": "((browser_epoch >= 1) AND (browser_epoch <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_10",
+        "expression": "((octet_length(redirect_uri) >= 1) AND (octet_length(redirect_uri) <= 2048))",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_11",
+        "expression": "(return_route = 'workspace'::text)",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_12",
+        "expression": "(octet_length(nonce_digest) = 32)",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_13",
+        "expression": "((created_at >= 0) AND (created_at <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_14",
+        "expression": "((expires_at > created_at) AND (expires_at <= (created_at + 300)) AND (expires_at <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_15",
+        "expression": "(status = ANY (ARRAY['pending'::text, 'claimed'::text, 'provider_rejected'::text, 'completed'::text, 'failed'::text, 'superseded'::text]))",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_16",
+        "expression": "(octet_length(claim_digest) = 32)",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_17",
+        "expression": "(completion_reason = ANY (ARRAY['provider_rejected'::text, 'exchange_failed'::text, 'oidc_failed'::text, 'identity_failed'::text, 'session_failed'::text, 'completed'::text, 'superseded'::text, 'expired'::text, 'logout'::text]))",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_18",
+        "expression": "(ciphertext_version = 1)",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_19",
+        "expression": "(((status = 'pending'::text) AND (claim_digest IS NULL) AND (claimed_at IS NULL) AND (claim_expires_at IS NULL) AND (completion_reason IS NULL) AND (key_id IS NOT NULL) AND (key_id ~ '^[A-Za-z0-9._-]{1,128}$'::text) AND (iv IS NOT NULL) AND (octet_length(iv) = 12) AND (tag IS NOT NULL) AND (octet_length(tag) = 16) AND (ciphertext IS NOT NULL) AND ((octet_length(ciphertext) >= 1) AND (octet_length(ciphertext) <= 8192))) OR ((status <> 'pending'::text) AND (key_id IS NULL) AND (iv IS NULL) AND (tag IS NULL) AND (ciphertext IS NULL) AND (((status = 'claimed'::text) AND (completion_reason IS NULL) AND (claim_digest IS NOT NULL) AND (claimed_at IS NOT NULL) AND (claim_expires_at IS NOT NULL) AND (claimed_at >= created_at) AND (claim_expires_at > claimed_at) AND (claim_expires_at <= expires_at)) OR ((completion_reason IS NOT NULL) AND (((status = 'provider_rejected'::text) AND (completion_reason = 'provider_rejected'::text)) OR ((status = 'completed'::text) AND (completion_reason = 'completed'::text) AND (claim_digest IS NOT NULL)) OR ((status = 'failed'::text) AND (completion_reason = ANY (ARRAY['exchange_failed'::text, 'oidc_failed'::text, 'identity_failed'::text, 'session_failed'::text])) AND (claim_digest IS NOT NULL)) OR ((status = 'superseded'::text) AND (completion_reason = ANY (ARRAY['superseded'::text, 'expired'::text, 'logout'::text]))))))))",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_2",
+        "expression": "((browser_revision >= 1) AND (browser_revision <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_3",
+        "expression": "(octet_length(cookie_digest) = 32)",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_4",
+        "expression": "(generation ~ '^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$'::text)",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_5",
+        "expression": "(octet_length(config_digest) = 32)",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_6",
+        "expression": "((octet_length(profile_id) >= 1) AND (octet_length(profile_id) <= 128))",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_7",
+        "expression": "(profile_version > 0)",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_8",
+        "expression": "((octet_length(issuer) >= 1) AND (octet_length(issuer) <= 2048))",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_9",
+        "expression": "((octet_length(client_id) >= 1) AND (octet_length(client_id) <= 256))",
+        "relation": "public.mixer_browser_oidc_attempts"
+      },
+      {
+        "conname": "source_0",
+        "expression": "((sequence >= 1) AND (sequence <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_1",
+        "expression": "(audit_schema = 1)",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_10",
+        "expression": "(octet_length(attempt_state_digest) = 32)",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_11",
+        "expression": "(octet_length(issuer_hash) = 32)",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_12",
+        "expression": "(octet_length(subject_hash) = 32)",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_13",
+        "expression": "(octet_length(client_hash) = 32)",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_14",
+        "expression": "(octet_length(credential_hash) = 32)",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_15",
+        "expression": "(((sequence = 1) AND (operation = 'bootstrap'::text) AND (old_revision IS NULL) AND (old_epoch IS NULL) AND (old_status IS NULL) AND (new_revision = 1) AND (new_epoch = 1) AND (new_status = 'preauth'::text) AND (outcome = 'created'::text)) OR ((sequence > 1) AND (old_revision IS NOT NULL) AND ((old_revision >= 1) AND (old_revision <= '9007199254740991'::bigint)) AND (old_epoch IS NOT NULL) AND ((old_epoch >= 1) AND (old_epoch <= '9007199254740991'::bigint)) AND (old_status IS NOT NULL) AND (old_status = ANY (ARRAY['preauth'::text, 'active'::text])) AND (((operation = 'begin'::text) AND (outcome = 'pending'::text) AND (new_status = old_status) AND (new_revision = (old_revision + 1)) AND (new_epoch = (old_epoch + 1))) OR ((operation = 'claim'::text) AND (outcome = 'claimed'::text) AND (new_status = old_status) AND (new_revision = old_revision) AND (new_epoch = old_epoch)) OR ((operation = 'provider_reject'::text) AND (outcome = 'provider_rejected'::text) AND (new_status = old_status) AND (new_revision = old_revision) AND (new_epoch = old_epoch)) OR ((operation = 'fail_claim'::text) AND (outcome = 'failed'::text) AND (new_status = old_status) AND (new_revision = old_revision) AND (new_epoch = old_epoch)) OR ((operation = 'activate'::text) AND (outcome = 'active'::text) AND (old_status = 'preauth'::text) AND (new_status = 'active'::text) AND (new_revision = (old_revision + 1)) AND (new_epoch = (old_epoch + 1))) OR ((operation = 'replace'::text) AND (outcome = 'active'::text) AND (old_status = 'active'::text) AND (new_status = 'active'::text) AND (new_revision = (old_revision + 1)) AND (new_epoch = (old_epoch + 1))) OR ((operation = 'logout'::text) AND (outcome = 'revoked'::text) AND (new_status = 'revoked'::text) AND (new_revision = (old_revision + 1)) AND (new_epoch = (old_epoch + 1))) OR ((operation = 'expire'::text) AND (outcome = 'expired'::text) AND (new_status = 'expired'::text) AND (new_revision = (old_revision + 1)) AND (new_epoch = (old_epoch + 1))))))",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_16",
+        "expression": "(((operation = ANY (ARRAY['activate'::text, 'replace'::text])) AND (token_issued_at IS NOT NULL) AND (token_expires_at > token_issued_at) AND (issuer_hash IS NOT NULL) AND (subject_hash IS NOT NULL) AND (client_hash IS NOT NULL) AND (credential_hash IS NOT NULL)) OR ((operation <> ALL (ARRAY['activate'::text, 'replace'::text])) AND (token_issued_at IS NULL) AND (token_expires_at IS NULL) AND (issuer_hash IS NULL) AND (subject_hash IS NULL) AND (client_hash IS NULL) AND (credential_hash IS NULL)))",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_2",
+        "expression": "(operation = ANY (ARRAY['bootstrap'::text, 'begin'::text, 'claim'::text, 'provider_reject'::text, 'fail_claim'::text, 'activate'::text, 'replace'::text, 'logout'::text, 'expire'::text]))",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_3",
+        "expression": "(outcome = ANY (ARRAY['created'::text, 'pending'::text, 'claimed'::text, 'provider_rejected'::text, 'failed'::text, 'active'::text, 'revoked'::text, 'expired'::text]))",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_4",
+        "expression": "(request_id ~ '^[0-9a-f]{32}$'::text)",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_5",
+        "expression": "((recorded_at >= 0) AND (recorded_at <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_6",
+        "expression": "((new_revision >= 1) AND (new_revision <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_7",
+        "expression": "((new_epoch >= 1) AND (new_epoch <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_8",
+        "expression": "(new_status = ANY (ARRAY['preauth'::text, 'active'::text, 'revoked'::text, 'expired'::text]))",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_9",
+        "expression": "(octet_length(config_digest) = 32)",
+        "relation": "public.mixer_browser_session_events"
+      },
+      {
+        "conname": "source_0",
+        "expression": "((epoch >= 1) AND (epoch <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_browser_session_vault"
+      },
+      {
+        "conname": "source_1",
+        "expression": "((session_revision >= 1) AND (session_revision <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_browser_session_vault"
+      },
+      {
+        "conname": "source_2",
+        "expression": "((vault_generation >= 1) AND (vault_generation <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_browser_session_vault"
+      },
+      {
+        "conname": "source_3",
+        "expression": "(ciphertext_version = 1)",
+        "relation": "public.mixer_browser_session_vault"
+      },
+      {
+        "conname": "source_4",
+        "expression": "(envelope_kind = ANY (ARRAY['preauth'::text, 'active'::text, 'erased'::text]))",
+        "relation": "public.mixer_browser_session_vault"
+      },
+      {
+        "conname": "source_5",
+        "expression": "(((envelope_kind = 'erased'::text) AND (key_id IS NULL) AND (iv IS NULL) AND (tag IS NULL) AND (ciphertext IS NULL)) OR ((envelope_kind = ANY (ARRAY['preauth'::text, 'active'::text])) AND (key_id IS NOT NULL) AND (key_id ~ '^[A-Za-z0-9._-]{1,128}$'::text) AND (iv IS NOT NULL) AND (octet_length(iv) = 12) AND (tag IS NOT NULL) AND (octet_length(tag) = 16) AND (ciphertext IS NOT NULL) AND ((octet_length(ciphertext) >= 1) AND (octet_length(ciphertext) <= 8192))))",
+        "relation": "public.mixer_browser_session_vault"
+      },
+      {
+        "conname": "source_0",
+        "expression": "(octet_length(id) = 16)",
+        "relation": "public.mixer_browser_sessions"
+      },
+      {
+        "conname": "source_1",
+        "expression": "(octet_length(cookie_digest) = 32)",
+        "relation": "public.mixer_browser_sessions"
+      },
+      {
+        "conname": "source_10",
+        "expression": "((idle_expires_at > created_at) AND (idle_expires_at <= absolute_expires_at))",
+        "relation": "public.mixer_browser_sessions"
+      },
+      {
+        "conname": "source_11",
+        "expression": "((octet_length(expected_profile_id) >= 1) AND (octet_length(expected_profile_id) <= 128))",
+        "relation": "public.mixer_browser_sessions"
+      },
+      {
+        "conname": "source_12",
+        "expression": "(expected_profile_version > 0)",
+        "relation": "public.mixer_browser_sessions"
+      },
+      {
+        "conname": "source_13",
+        "expression": "(octet_length(initial_config_digest) = 32)",
+        "relation": "public.mixer_browser_sessions"
+      },
+      {
+        "conname": "source_14",
+        "expression": "(octet_length(config_digest) = 32)",
+        "relation": "public.mixer_browser_sessions"
+      },
+      {
+        "conname": "source_15",
+        "expression": "((audit_sequence >= 1) AND (audit_sequence <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_browser_sessions"
+      },
+      {
+        "conname": "source_16",
+        "expression": "(((profile_id IS NULL) AND (profile_version IS NULL) AND (principal_id IS NULL) AND (family_id IS NULL) AND (credential_ref IS NULL) AND (credential_revision IS NULL) AND (status <> 'active'::text)) OR ((profile_id IS NOT NULL) AND (profile_version IS NOT NULL) AND (principal_id IS NOT NULL) AND (family_id IS NOT NULL) AND (credential_ref IS NOT NULL) AND (credential_revision IS NOT NULL) AND ((credential_revision >= 1) AND (credential_revision <= '9007199254740991'::bigint)) AND (status <> 'preauth'::text)))",
+        "relation": "public.mixer_browser_sessions"
+      },
+      {
+        "conname": "source_2",
+        "expression": "(status = ANY (ARRAY['preauth'::text, 'active'::text, 'revoked'::text, 'expired'::text]))",
+        "relation": "public.mixer_browser_sessions"
+      },
+      {
+        "conname": "source_3",
+        "expression": "((epoch >= 1) AND (epoch <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_browser_sessions"
+      },
+      {
+        "conname": "source_4",
+        "expression": "((revision >= 1) AND (revision <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_browser_sessions"
+      },
+      {
+        "conname": "source_5",
+        "expression": "(generation ~ '^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$'::text)",
+        "relation": "public.mixer_browser_sessions"
+      },
+      {
+        "conname": "source_6",
+        "expression": "(octet_length(csrf_digest) = 32)",
+        "relation": "public.mixer_browser_sessions"
+      },
+      {
+        "conname": "source_7",
+        "expression": "((created_at >= 0) AND (created_at <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_browser_sessions"
+      },
+      {
+        "conname": "source_8",
+        "expression": "(last_seen_at >= created_at)",
+        "relation": "public.mixer_browser_sessions"
+      },
+      {
+        "conname": "source_9",
+        "expression": "((absolute_expires_at > created_at) AND (absolute_expires_at <= '9007199254740991'::bigint))",
+        "relation": "public.mixer_browser_sessions"
+      }
+    ],
+    "defaults": [
+      {
+        "attname": "revision",
+        "expression": "1",
+        "relation": "public.mixer_authz_bindings"
+      },
+      {
+        "attname": "state_revision",
+        "expression": "1",
+        "relation": "public.mixer_authz_profiles"
+      },
+      {
+        "attname": "ciphertext_version",
+        "expression": "1",
+        "relation": "public.mixer_browser_oidc_attempts"
+      }
+    ],
+    "policies": [
+      {
+        "check_expr": null,
+        "polname": "mixer_browser_read",
+        "relation": "public.mixer_authz_bindings",
+        "using_expr": "true"
+      },
+      {
+        "check_expr": "false",
+        "polname": "scoped_lock",
+        "relation": "public.mixer_authz_bindings",
+        "using_expr": "((profile_id = current_setting('mixer.authz.profile_id'::text, true)) AND ((profile_version)::text = current_setting('mixer.authz.profile_version'::text, true)) AND (subject = current_setting('mixer.authz.subject'::text, true)) AND (identity_class = current_setting('mixer.authz.identity_class'::text, true)) AND (EXISTS ( SELECT 1\n   FROM public.mixer_authz_profiles p\n  WHERE ((p.id = mixer_authz_bindings.profile_id) AND (p.version = mixer_authz_bindings.profile_version)))))"
+      },
+      {
+        "check_expr": null,
+        "polname": "scoped_read",
+        "relation": "public.mixer_authz_bindings",
+        "using_expr": "((profile_id = current_setting('mixer.authz.profile_id'::text, true)) AND ((profile_version)::text = current_setting('mixer.authz.profile_version'::text, true)) AND (subject = current_setting('mixer.authz.subject'::text, true)) AND (identity_class = current_setting('mixer.authz.identity_class'::text, true)) AND (EXISTS ( SELECT 1\n   FROM public.mixer_authz_profiles p\n  WHERE ((p.id = mixer_authz_bindings.profile_id) AND (p.version = mixer_authz_bindings.profile_version)))))"
+      },
+      {
+        "check_expr": "true",
+        "polname": "mixer_browser_insert",
+        "relation": "public.mixer_authz_credentials",
+        "using_expr": null
+      },
+      {
+        "check_expr": null,
+        "polname": "mixer_browser_read",
+        "relation": "public.mixer_authz_credentials",
+        "using_expr": "true"
+      },
+      {
+        "check_expr": "true",
+        "polname": "mixer_browser_update",
+        "relation": "public.mixer_authz_credentials",
+        "using_expr": "true"
+      },
+      {
+        "check_expr": "false",
+        "polname": "scoped_lock",
+        "relation": "public.mixer_authz_credentials",
+        "using_expr": "((principal_id = current_setting('mixer.authz.principal_id'::text, true)) AND (EXISTS ( SELECT 1\n   FROM public.mixer_authz_bindings b\n  WHERE (b.principal_id = current_setting('mixer.authz.principal_id'::text, true)))) AND (profile_id = current_setting('mixer.authz.profile_id'::text, true)) AND ((profile_version)::text = current_setting('mixer.authz.profile_version'::text, true)) AND (reference = current_setting('mixer.authz.credential_ref'::text, true)))"
+      },
+      {
+        "check_expr": null,
+        "polname": "scoped_read",
+        "relation": "public.mixer_authz_credentials",
+        "using_expr": "((principal_id = current_setting('mixer.authz.principal_id'::text, true)) AND (EXISTS ( SELECT 1\n   FROM public.mixer_authz_bindings b\n  WHERE (b.principal_id = current_setting('mixer.authz.principal_id'::text, true)))) AND (profile_id = current_setting('mixer.authz.profile_id'::text, true)) AND ((profile_version)::text = current_setting('mixer.authz.profile_version'::text, true)) AND (reference = current_setting('mixer.authz.credential_ref'::text, true)))"
+      },
+      {
+        "check_expr": "true",
+        "polname": "mixer_browser_insert",
+        "relation": "public.mixer_authz_families",
+        "using_expr": null
+      },
+      {
+        "check_expr": null,
+        "polname": "mixer_browser_read",
+        "relation": "public.mixer_authz_families",
+        "using_expr": "true"
+      },
+      {
+        "check_expr": "true",
+        "polname": "mixer_browser_update",
+        "relation": "public.mixer_authz_families",
+        "using_expr": "true"
+      },
+      {
+        "check_expr": "false",
+        "polname": "scoped_lock",
+        "relation": "public.mixer_authz_families",
+        "using_expr": "((principal_id = current_setting('mixer.authz.principal_id'::text, true)) AND (EXISTS ( SELECT 1\n   FROM public.mixer_authz_bindings b\n  WHERE (b.principal_id = current_setting('mixer.authz.principal_id'::text, true)))) AND (profile_id = current_setting('mixer.authz.profile_id'::text, true)) AND ((profile_version)::text = current_setting('mixer.authz.profile_version'::text, true)) AND (id = current_setting('mixer.authz.family_id'::text, true)))"
+      },
+      {
+        "check_expr": null,
+        "polname": "scoped_read",
+        "relation": "public.mixer_authz_families",
+        "using_expr": "((principal_id = current_setting('mixer.authz.principal_id'::text, true)) AND (EXISTS ( SELECT 1\n   FROM public.mixer_authz_bindings b\n  WHERE (b.principal_id = current_setting('mixer.authz.principal_id'::text, true)))) AND (profile_id = current_setting('mixer.authz.profile_id'::text, true)) AND ((profile_version)::text = current_setting('mixer.authz.profile_version'::text, true)) AND (id = current_setting('mixer.authz.family_id'::text, true)))"
+      },
+      {
+        "check_expr": "false",
+        "polname": "mixer_browser_lock",
+        "relation": "public.mixer_authz_principals",
+        "using_expr": "true"
+      },
+      {
+        "check_expr": null,
+        "polname": "mixer_browser_read",
+        "relation": "public.mixer_authz_principals",
+        "using_expr": "true"
+      },
+      {
+        "check_expr": "false",
+        "polname": "scoped_lock",
+        "relation": "public.mixer_authz_principals",
+        "using_expr": "((id = current_setting('mixer.authz.principal_id'::text, true)) AND (EXISTS ( SELECT 1\n   FROM public.mixer_authz_bindings b\n  WHERE (b.principal_id = current_setting('mixer.authz.principal_id'::text, true)))))"
+      },
+      {
+        "check_expr": null,
+        "polname": "scoped_read",
+        "relation": "public.mixer_authz_principals",
+        "using_expr": "((id = current_setting('mixer.authz.principal_id'::text, true)) AND (EXISTS ( SELECT 1\n   FROM public.mixer_authz_bindings b\n  WHERE (b.principal_id = current_setting('mixer.authz.principal_id'::text, true)))))"
+      },
+      {
+        "check_expr": "false",
+        "polname": "mixer_browser_lock",
+        "relation": "public.mixer_authz_profiles",
+        "using_expr": "true"
+      },
+      {
+        "check_expr": null,
+        "polname": "mixer_browser_read",
+        "relation": "public.mixer_authz_profiles",
+        "using_expr": "true"
+      },
+      {
+        "check_expr": "false",
+        "polname": "scoped_lock",
+        "relation": "public.mixer_authz_profiles",
+        "using_expr": "((id = current_setting('mixer.authz.profile_id'::text, true)) AND ((version)::text = current_setting('mixer.authz.profile_version'::text, true)) AND (issuer = current_setting('mixer.authz.issuer'::text, true)) AND (client_id = current_setting('mixer.authz.client_id'::text, true)) AND (identity_class = current_setting('mixer.authz.identity_class'::text, true)))"
+      },
+      {
+        "check_expr": null,
+        "polname": "scoped_read",
+        "relation": "public.mixer_authz_profiles",
+        "using_expr": "((id = current_setting('mixer.authz.profile_id'::text, true)) AND ((version)::text = current_setting('mixer.authz.profile_version'::text, true)) AND (issuer = current_setting('mixer.authz.issuer'::text, true)) AND (client_id = current_setting('mixer.authz.client_id'::text, true)) AND (identity_class = current_setting('mixer.authz.identity_class'::text, true)))"
+      },
+      {
+        "check_expr": "true",
+        "polname": "mixer_browser_insert",
+        "relation": "public.mixer_browser_oidc_attempts",
+        "using_expr": null
+      },
+      {
+        "check_expr": null,
+        "polname": "mixer_browser_read",
+        "relation": "public.mixer_browser_oidc_attempts",
+        "using_expr": "true"
+      },
+      {
+        "check_expr": "true",
+        "polname": "mixer_browser_update",
+        "relation": "public.mixer_browser_oidc_attempts",
+        "using_expr": "true"
+      },
+      {
+        "check_expr": "true",
+        "polname": "mixer_browser_insert",
+        "relation": "public.mixer_browser_session_events",
+        "using_expr": null
+      },
+      {
+        "check_expr": null,
+        "polname": "mixer_browser_read",
+        "relation": "public.mixer_browser_session_events",
+        "using_expr": "true"
+      },
+      {
+        "check_expr": "true",
+        "polname": "mixer_browser_insert",
+        "relation": "public.mixer_browser_session_vault",
+        "using_expr": null
+      },
+      {
+        "check_expr": null,
+        "polname": "mixer_browser_read",
+        "relation": "public.mixer_browser_session_vault",
+        "using_expr": "true"
+      },
+      {
+        "check_expr": "true",
+        "polname": "mixer_browser_update",
+        "relation": "public.mixer_browser_session_vault",
+        "using_expr": "true"
+      },
+      {
+        "check_expr": "true",
+        "polname": "mixer_browser_insert",
+        "relation": "public.mixer_browser_sessions",
+        "using_expr": null
+      },
+      {
+        "check_expr": null,
+        "polname": "mixer_browser_read",
+        "relation": "public.mixer_browser_sessions",
+        "using_expr": "true"
+      },
+      {
+        "check_expr": "true",
+        "polname": "mixer_browser_update",
+        "relation": "public.mixer_browser_sessions",
+        "using_expr": "true"
+      }
+    ],
+    "predicates": [
+      {
+        "expression": "(status = ANY (ARRAY['pending'::text, 'claimed'::text]))",
+        "relation": "public.mixer_browser_oidc_attempts"
+      }
+    ]
+  },
+  "major": 16,
+  "reviewed_inputs": {
+    "matrix": "4bc336a07621e9326bef8dee0264f03e9eb35db65cd535d10f1cd2da299889ac",
+    "ordinary_source_capture": "59d6c2f1a91458a7de3ea058bf8a1017178ea48e71e6b2a480acc7e57e9cccea",
+    "producer_receipt": "4d6545adf6e729c17a1d26db4537d61e0a2a0c812ded750f0d8f4b40500aa0b6",
+    "root_acceptance": "8ed6e6c8f1fc0c949f5da3c1b4cc83cf6acce3922a610c833f5f4b8d0fb799fd",
+    "source_compiled_oracle": "4f6a25d639669d04225a1e52ff26507ceedea48e62d0c56e96b88e838aa5bd2f"
+  },
+  "schema": 1,
+  "source_bindings": {
+    "hosted/deps/oban/lib/oban/migration.ex": "c7a38c6d46754c88134ca6a392c8ddc0ed247fa9d053f978de6cfbbb36e74382",
+    "hosted/deps/oban/lib/oban/migrations/postgres.ex": "e864523be9b76f8c2004f70ba30e6af686a0615a10bd094a7bb9bedcda0b87fc",
+    "hosted/deps/oban/lib/oban/migrations/postgres/v01.ex": "bf0a6ab289bbb8a8ed0c02f6b494afdb9863ceb6b7a60f0fa13b273e764430ab",
+    "hosted/deps/oban/lib/oban/migrations/postgres/v02.ex": "a8d0ab2ffe848194d1007a2b93c7b42a60fcaf9dc818110b4dd081b63444b2a1",
+    "hosted/deps/oban/lib/oban/migrations/postgres/v03.ex": "7cd521d6e6023dbccd294200431445be110f02f662d7c9a387c92c53c69858f9",
+    "hosted/deps/oban/lib/oban/migrations/postgres/v04.ex": "2cfa7207300553393bb3c585a5f747df60b5ec2a1550cc48fd028f0655966e5f",
+    "hosted/deps/oban/lib/oban/migrations/postgres/v05.ex": "3af6186168e64d2f24fb3c69d0f54a7cdb11b7a98e42404b770a867c54483154",
+    "hosted/deps/oban/lib/oban/migrations/postgres/v06.ex": "c04d27687848fefc3674ff7ffa9dd53a9ff3520a25bb791bc68bf46f042833b4",
+    "hosted/deps/oban/lib/oban/migrations/postgres/v07.ex": "8114e44917c9bc2032bb72f0745bd34d9cc8a8b49e3a82c8d00a4b3515cc46b3",
+    "hosted/deps/oban/lib/oban/migrations/postgres/v08.ex": "7d4e60835b73a44b385270a07ea2b7dcb1b9b95d25e1f76e86c5f03d07f71819",
+    "hosted/deps/oban/lib/oban/migrations/postgres/v09.ex": "94eb2ceeb9c6dfc2718fa930ef7f15f95f9d24842e92184d9d3079a4f9568a35",
+    "hosted/deps/oban/lib/oban/migrations/postgres/v10.ex": "413e2dba4e63853c42874269f8268896f327527bf39b5caad1f2c3b09073c9cc",
+    "hosted/deps/oban/lib/oban/migrations/postgres/v11.ex": "7f41e9a690f8880f1b8fc8f14eb18eac7a11b7345c464e69b71b3cf56cc2b307",
+    "hosted/deps/oban/lib/oban/migrations/postgres/v12.ex": "ca8df84e7456b8c1d72b985f2530f1ac63f2f308e72c95a88408b0affd6a624a",
+    "hosted/deps/oban/lib/oban/migrations/postgres/v13.ex": "f5f5cc255fc6c29fc0962c8ee1344e8011f07d5c40f242318af3fb139dfd6cbc",
+    "hosted/deps/oban/lib/oban/migrations/postgres/v14.ex": "7cd952e83aa428c684ad63962c10b32fc37837bbe3bacfa9fdb38906a9c30f0f",
+    "hosted/lib/mixer_hosted/authorization/postgres/session.ex": "8ae27291a2e0777dfde6f995cf8c1a64c6ac8e2e7b0e7660afdb7cac76382727",
+    "hosted/lib/mixer_hosted/browser_auth/storage_schema.ex": "676bb977bbe4c322caf63c1a5f40d86e7861847636029948b55cb01f6dedb6dd",
+    "hosted/lib/mixer_hosted/customer_artifacts/schema.ex": "5bd58744af4823374cc9a981b0699dc16c7d88f37bc8077a40b509cdf5426a19",
+    "hosted/mix.lock": "59e6fe5d6bc76ae0057745fe7eb3fb292f225b6a37cd1c99c214f9447c60ff8a",
+    "hosted/priv/repo/migrations/20261024000000_add_oban.exs": "c4cd9451f54eb37da9d357f8cc451dc0188134799fa5c359d754c07208bb6b3e",
+    "hosted/priv/repo/migrations/20261025000000_add_build_journals.exs": "9d848ba6c781cd018aca43989313e78320b5e970da7fc4c863a1da644a16d7f2",
+    "hosted/priv/repo/migrations/20261025000001_add_build_admission.exs": "67da842fb971ace6081c8287792acc1cc5bcb2be630dcad1fcf54b4eae2a87bb",
+    "hosted/priv/repo/migrations/20261025000002_add_build_aggregate_limits.exs": "443ede59186c0fca9454bcec319965217007c328719dbb152bdf6552901e009b",
+    "hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs": "110997b341449a04135296b000c6434f84526305c2f70c16b1e51f38dffc3f6c",
+    "hosted/priv/repo/migrations/20261025000004_add_authorization_state_revisions.exs": "5248990524d1c2504847fdff2f107a952d850acf8ff5fcdb8e7b0ef77e38bcd7",
+    "hosted/priv/repo/migrations/20261025000005_add_customer_artifact_storage.exs": "35e00750436666e22ee4a483848b9fca4fa33fa39b529dd39d27b940f0d0f681",
+    "hosted/priv/repo/migrations/20261025000006_add_customer_workspace_discovery.exs": "43140162ceaf87b58bcdcdf820a9b95b7ae465a873193ac61c7a725a18bde875",
+    "hosted/priv/repo/migrations/20261025000007_add_browser_sessions.exs": "577b38e600c55e9844bc393ccfe4dfdfb7241db7eaed449956e6a3335442710f"
+  },
+  "structure": {
+    "constraint_defaults": {
+      "check_no_inherit": false,
+      "domain": null,
+      "exclusion_operators": null,
+      "fk_delete_set_columns": null,
+      "inheritance_count": 0,
+      "key_fk_trigger_no_inherit": true,
+      "local": true,
+      "ordinary_deferrable": false,
+      "ordinary_initially_deferred": false,
+      "parent_constraint": null,
+      "validated": true
+    },
+    "incoming_foreign_keys": [
+      {
+        "columns": [
+          "principal_id"
+        ],
+        "deferrable": false,
+        "initially_deferred": false,
+        "match": "s",
+        "on_delete": "a",
+        "on_update": "a",
+        "referenced_columns": [
+          "id"
+        ],
+        "relation": "public.mixer_authz_principals",
+        "source": {
+          "end": 104,
+          "path": "hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs",
+          "start": 91
+        },
+        "source_relation": "public.mixer_authz_memberships"
+      },
+      {
+        "columns": [
+          "principal_id"
+        ],
+        "deferrable": false,
+        "initially_deferred": false,
+        "match": "s",
+        "migration": {
+          "end": 5,
+          "path": "hosted/priv/repo/migrations/20261025000005_add_customer_artifact_storage.exs",
+          "start": 3
+        },
+        "on_delete": "a",
+        "on_update": "a",
+        "referenced_columns": [
+          "id"
+        ],
+        "relation": "public.mixer_authz_principals",
+        "source": {
+          "end": 83,
+          "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+          "start": 64
+        },
+        "source_relation": "public.mixer_customer_idempotency"
+      }
+    ],
+    "index_defaults": {
+      "access_method": "pg_catalog.btree",
+      "direction": "ASC",
+      "exclusion": false,
+      "expressions": null,
+      "immediate": true,
+      "include": [],
+      "inheritance": false,
+      "live": true,
+      "null_order": "LAST",
+      "nulls_not_distinct": false,
+      "opclass_by_type": {
+        "bigint": "pg_catalog.int8_ops",
+        "bytea": "pg_catalog.bytea_ops",
+        "integer": "pg_catalog.int4_ops",
+        "text": "pg_catalog.text_ops"
+      },
+      "other_collation": null,
+      "owner": "$relation_owner",
+      "partition": false,
+      "ready": true,
+      "text_collation": "pg_catalog.default",
+      "unique": true,
+      "valid": true
+    },
+    "lifecycle_direct_grants": [],
+    "ordinary_authz_grants": [
+      "SELECT"
+    ],
+    "ordinary_browser_grants": [],
+    "policies": {
+      "public.mixer_authz_bindings": [
+        {
+          "check": null,
+          "command": "SELECT",
+          "name": "scoped_read",
+          "permissive": true,
+          "roles": [
+            "PUBLIC"
+          ],
+          "using": "profile_id = current_setting('mixer.authz.profile_id', true) AND profile_version::text = current_setting('mixer.authz.profile_version', true) AND subject = current_setting('mixer.authz.subject', true) AND identity_class = current_setting('mixer.authz.identity_class', true) AND EXISTS (SELECT 1 FROM public.mixer_authz_profiles p WHERE p.id = profile_id AND p.version = profile_version)"
+        },
+        {
+          "check": "false",
+          "command": "UPDATE",
+          "name": "scoped_lock",
+          "permissive": true,
+          "roles": [
+            "PUBLIC"
+          ],
+          "using": "profile_id = current_setting('mixer.authz.profile_id', true) AND profile_version::text = current_setting('mixer.authz.profile_version', true) AND subject = current_setting('mixer.authz.subject', true) AND identity_class = current_setting('mixer.authz.identity_class', true) AND EXISTS (SELECT 1 FROM public.mixer_authz_profiles p WHERE p.id = profile_id AND p.version = profile_version)"
+        },
+        {
+          "check": null,
+          "command": "SELECT",
+          "name": "mixer_browser_read",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": "true"
+        }
+      ],
+      "public.mixer_authz_credentials": [
+        {
+          "check": null,
+          "command": "SELECT",
+          "name": "scoped_read",
+          "permissive": true,
+          "roles": [
+            "PUBLIC"
+          ],
+          "using": "principal_id = current_setting('mixer.authz.principal_id', true) AND (EXISTS (SELECT 1 FROM public.mixer_authz_bindings b WHERE b.principal_id = current_setting('mixer.authz.principal_id', true))) AND profile_id = current_setting('mixer.authz.profile_id', true) AND profile_version::text = current_setting('mixer.authz.profile_version', true) AND reference = current_setting('mixer.authz.credential_ref', true)"
+        },
+        {
+          "check": "false",
+          "command": "UPDATE",
+          "name": "scoped_lock",
+          "permissive": true,
+          "roles": [
+            "PUBLIC"
+          ],
+          "using": "principal_id = current_setting('mixer.authz.principal_id', true) AND (EXISTS (SELECT 1 FROM public.mixer_authz_bindings b WHERE b.principal_id = current_setting('mixer.authz.principal_id', true))) AND profile_id = current_setting('mixer.authz.profile_id', true) AND profile_version::text = current_setting('mixer.authz.profile_version', true) AND reference = current_setting('mixer.authz.credential_ref', true)"
+        },
+        {
+          "check": null,
+          "command": "SELECT",
+          "name": "mixer_browser_read",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": "true"
+        },
+        {
+          "check": "true",
+          "command": "INSERT",
+          "name": "mixer_browser_insert",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": null
+        },
+        {
+          "check": "true",
+          "command": "UPDATE",
+          "name": "mixer_browser_update",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": "true"
+        }
+      ],
+      "public.mixer_authz_families": [
+        {
+          "check": null,
+          "command": "SELECT",
+          "name": "scoped_read",
+          "permissive": true,
+          "roles": [
+            "PUBLIC"
+          ],
+          "using": "principal_id = current_setting('mixer.authz.principal_id', true) AND (EXISTS (SELECT 1 FROM public.mixer_authz_bindings b WHERE b.principal_id = current_setting('mixer.authz.principal_id', true))) AND profile_id = current_setting('mixer.authz.profile_id', true) AND profile_version::text = current_setting('mixer.authz.profile_version', true) AND id = current_setting('mixer.authz.family_id', true)"
+        },
+        {
+          "check": "false",
+          "command": "UPDATE",
+          "name": "scoped_lock",
+          "permissive": true,
+          "roles": [
+            "PUBLIC"
+          ],
+          "using": "principal_id = current_setting('mixer.authz.principal_id', true) AND (EXISTS (SELECT 1 FROM public.mixer_authz_bindings b WHERE b.principal_id = current_setting('mixer.authz.principal_id', true))) AND profile_id = current_setting('mixer.authz.profile_id', true) AND profile_version::text = current_setting('mixer.authz.profile_version', true) AND id = current_setting('mixer.authz.family_id', true)"
+        },
+        {
+          "check": null,
+          "command": "SELECT",
+          "name": "mixer_browser_read",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": "true"
+        },
+        {
+          "check": "true",
+          "command": "INSERT",
+          "name": "mixer_browser_insert",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": null
+        },
+        {
+          "check": "true",
+          "command": "UPDATE",
+          "name": "mixer_browser_update",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": "true"
+        }
+      ],
+      "public.mixer_authz_principals": [
+        {
+          "check": null,
+          "command": "SELECT",
+          "name": "scoped_read",
+          "permissive": true,
+          "roles": [
+            "PUBLIC"
+          ],
+          "using": "id = current_setting('mixer.authz.principal_id', true) AND (EXISTS (SELECT 1 FROM public.mixer_authz_bindings b WHERE b.principal_id = current_setting('mixer.authz.principal_id', true)))"
+        },
+        {
+          "check": "false",
+          "command": "UPDATE",
+          "name": "scoped_lock",
+          "permissive": true,
+          "roles": [
+            "PUBLIC"
+          ],
+          "using": "id = current_setting('mixer.authz.principal_id', true) AND (EXISTS (SELECT 1 FROM public.mixer_authz_bindings b WHERE b.principal_id = current_setting('mixer.authz.principal_id', true)))"
+        },
+        {
+          "check": null,
+          "command": "SELECT",
+          "name": "mixer_browser_read",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": "true"
+        },
+        {
+          "check": "false",
+          "command": "UPDATE",
+          "name": "mixer_browser_lock",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": "true"
+        }
+      ],
+      "public.mixer_authz_profiles": [
+        {
+          "check": null,
+          "command": "SELECT",
+          "name": "scoped_read",
+          "permissive": true,
+          "roles": [
+            "PUBLIC"
+          ],
+          "using": "id = current_setting('mixer.authz.profile_id', true) AND version::text = current_setting('mixer.authz.profile_version', true) AND issuer = current_setting('mixer.authz.issuer', true) AND client_id = current_setting('mixer.authz.client_id', true) AND identity_class = current_setting('mixer.authz.identity_class', true)"
+        },
+        {
+          "check": "false",
+          "command": "UPDATE",
+          "name": "scoped_lock",
+          "permissive": true,
+          "roles": [
+            "PUBLIC"
+          ],
+          "using": "id = current_setting('mixer.authz.profile_id', true) AND version::text = current_setting('mixer.authz.profile_version', true) AND issuer = current_setting('mixer.authz.issuer', true) AND client_id = current_setting('mixer.authz.client_id', true) AND identity_class = current_setting('mixer.authz.identity_class', true)"
+        },
+        {
+          "check": null,
+          "command": "SELECT",
+          "name": "mixer_browser_read",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": "true"
+        },
+        {
+          "check": "false",
+          "command": "UPDATE",
+          "name": "mixer_browser_lock",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": "true"
+        }
+      ],
+      "public.mixer_browser_oidc_attempts": [
+        {
+          "check": null,
+          "command": "SELECT",
+          "name": "mixer_browser_read",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": "true"
+        },
+        {
+          "check": "true",
+          "command": "INSERT",
+          "name": "mixer_browser_insert",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": null
+        },
+        {
+          "check": "true",
+          "command": "UPDATE",
+          "name": "mixer_browser_update",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": "true"
+        }
+      ],
+      "public.mixer_browser_session_events": [
+        {
+          "check": null,
+          "command": "SELECT",
+          "name": "mixer_browser_read",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": "true"
+        },
+        {
+          "check": "true",
+          "command": "INSERT",
+          "name": "mixer_browser_insert",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": null
+        }
+      ],
+      "public.mixer_browser_session_vault": [
+        {
+          "check": null,
+          "command": "SELECT",
+          "name": "mixer_browser_read",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": "true"
+        },
+        {
+          "check": "true",
+          "command": "INSERT",
+          "name": "mixer_browser_insert",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": null
+        },
+        {
+          "check": "true",
+          "command": "UPDATE",
+          "name": "mixer_browser_update",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": "true"
+        }
+      ],
+      "public.mixer_browser_sessions": [
+        {
+          "check": null,
+          "command": "SELECT",
+          "name": "mixer_browser_read",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": "true"
+        },
+        {
+          "check": "true",
+          "command": "INSERT",
+          "name": "mixer_browser_insert",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": null
+        },
+        {
+          "check": "true",
+          "command": "UPDATE",
+          "name": "mixer_browser_update",
+          "permissive": true,
+          "roles": [
+            "$writer"
+          ],
+          "using": "true"
+        }
+      ]
+    },
+    "public_direct_grants": [],
+    "relation_defaults": {
+      "force_rls": true,
+      "inheritance": false,
+      "owner": "$relation_owner",
+      "partition": false,
+      "relkind": "r",
+      "relpersistence": "p",
+      "replica_identity": "d",
+      "rls": true,
+      "rules": [],
+      "schema": "public",
+      "typed_table": false,
+      "user_trigger_arguments": [],
+      "user_trigger_enabled": "O",
+      "user_trigger_row": true,
+      "user_trigger_transition_tables": null,
+      "user_trigger_when": null
+    },
+    "relations": {
+      "public.mixer_authz_bindings": {
+        "checks": [
+          "octet_length(subject) BETWEEN 1 AND 256",
+          "revision BETWEEN 1 AND 9007199254740991"
+        ],
+        "columns": [
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "profile_id",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "profile_version",
+            "nullable": false,
+            "type": "integer",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "subject",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "identity_class",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "principal_id",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "active",
+            "nullable": false,
+            "type": "boolean",
+            "typmod": -1
+          },
+          {
+            "default": "1",
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "revision",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          }
+        ],
+        "extra_indexes": [],
+        "foreign_keys": [
+          {
+            "columns": [
+              "profile_id",
+              "profile_version",
+              "identity_class"
+            ],
+            "deferrable": false,
+            "initially_deferred": false,
+            "match": "s",
+            "on_delete": "a",
+            "on_update": "a",
+            "referenced_columns": [
+              "id",
+              "version",
+              "identity_class"
+            ],
+            "relation": "public.mixer_authz_profiles"
+          },
+          {
+            "columns": [
+              "principal_id",
+              "identity_class"
+            ],
+            "deferrable": false,
+            "initially_deferred": false,
+            "match": "s",
+            "on_delete": "a",
+            "on_update": "a",
+            "referenced_columns": [
+              "id",
+              "identity_class"
+            ],
+            "relation": "public.mixer_authz_principals"
+          }
+        ],
+        "primary_key": [
+          "profile_id",
+          "profile_version",
+          "subject"
+        ],
+        "sources": [
+          {
+            "end": 35,
+            "path": "hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs",
+            "start": 25
+          },
+          {
+            "end": 16,
+            "path": "hosted/priv/repo/migrations/20261025000004_add_authorization_state_revisions.exs",
+            "start": 14
+          }
+        ],
+        "unique": []
+      },
+      "public.mixer_authz_credentials": {
+        "checks": [
+          "octet_length(reference) BETWEEN 1 AND 256",
+          "not_before BETWEEN 0 AND 9007199254740991",
+          "expires_at BETWEEN 0 AND 9007199254740991 AND expires_at > not_before",
+          "revision BETWEEN 1 AND 9007199254740991"
+        ],
+        "columns": [
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "profile_id",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "profile_version",
+            "nullable": false,
+            "type": "integer",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "reference",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "principal_id",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "family_id",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "active",
+            "nullable": false,
+            "type": "boolean",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "not_before",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "expires_at",
+            "nullable": true,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "revision",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          }
+        ],
+        "extra_indexes": [],
+        "foreign_keys": [
+          {
+            "columns": [
+              "family_id",
+              "profile_id",
+              "profile_version",
+              "principal_id"
+            ],
+            "deferrable": false,
+            "initially_deferred": false,
+            "match": "s",
+            "on_delete": "a",
+            "on_update": "a",
+            "referenced_columns": [
+              "id",
+              "profile_id",
+              "profile_version",
+              "principal_id"
+            ],
+            "relation": "public.mixer_authz_families"
+          }
+        ],
+        "primary_key": [
+          "profile_id",
+          "profile_version",
+          "reference"
+        ],
+        "sources": [
+          {
+            "end": 58,
+            "path": "hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs",
+            "start": 47
+          }
+        ],
+        "unique": []
+      },
+      "public.mixer_authz_families": {
+        "checks": [
+          "octet_length(id) BETWEEN 1 AND 128",
+          "not_before BETWEEN 0 AND 9007199254740991",
+          "expires_at BETWEEN 0 AND 9007199254740991 AND expires_at > not_before",
+          "revision BETWEEN 1 AND 9007199254740991"
+        ],
+        "columns": [
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "id",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "profile_id",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "profile_version",
+            "nullable": false,
+            "type": "integer",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "principal_id",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "active",
+            "nullable": false,
+            "type": "boolean",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "not_before",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "expires_at",
+            "nullable": true,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "revision",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          }
+        ],
+        "extra_indexes": [],
+        "foreign_keys": [
+          {
+            "columns": [
+              "principal_id"
+            ],
+            "deferrable": false,
+            "initially_deferred": false,
+            "match": "s",
+            "on_delete": "a",
+            "on_update": "a",
+            "referenced_columns": [
+              "id"
+            ],
+            "relation": "public.mixer_authz_principals"
+          },
+          {
+            "columns": [
+              "profile_id",
+              "profile_version"
+            ],
+            "deferrable": false,
+            "initially_deferred": false,
+            "match": "s",
+            "on_delete": "a",
+            "on_update": "a",
+            "referenced_columns": [
+              "id",
+              "version"
+            ],
+            "relation": "public.mixer_authz_profiles"
+          }
+        ],
+        "primary_key": [
+          "id"
+        ],
+        "sources": [
+          {
+            "end": 46,
+            "path": "hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs",
+            "start": 36
+          }
+        ],
+        "unique": [
+          [
+            "id",
+            "profile_id",
+            "profile_version",
+            "principal_id"
+          ]
+        ]
+      },
+      "public.mixer_authz_principals": {
+        "checks": [
+          "octet_length(id) BETWEEN 1 AND 128",
+          "identity_class IN ('human','service')",
+          "not_before BETWEEN 0 AND 9007199254740991",
+          "revision BETWEEN 1 AND 9007199254740991"
+        ],
+        "columns": [
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "id",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "identity_class",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "active",
+            "nullable": false,
+            "type": "boolean",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "not_before",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "revision",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          }
+        ],
+        "extra_indexes": [],
+        "foreign_keys": [],
+        "primary_key": [
+          "id"
+        ],
+        "sources": [
+          {
+            "end": 24,
+            "path": "hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs",
+            "start": 17
+          }
+        ],
+        "unique": [
+          [
+            "id",
+            "identity_class"
+          ]
+        ]
+      },
+      "public.mixer_authz_profiles": {
+        "checks": [
+          "octet_length(id) BETWEEN 1 AND 128",
+          "version > 0",
+          "octet_length(issuer) BETWEEN 1 AND 2048",
+          "octet_length(client_id) BETWEEN 1 AND 256",
+          "identity_class IN ('human','service')",
+          "state_revision BETWEEN 1 AND 9007199254740991"
+        ],
+        "columns": [
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "id",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "version",
+            "nullable": false,
+            "type": "integer",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "issuer",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "client_id",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "identity_class",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "active",
+            "nullable": false,
+            "type": "boolean",
+            "typmod": -1
+          },
+          {
+            "default": "1",
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "state_revision",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          }
+        ],
+        "extra_indexes": [],
+        "foreign_keys": [],
+        "primary_key": [
+          "id",
+          "version"
+        ],
+        "sources": [
+          {
+            "end": 16,
+            "path": "hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs",
+            "start": 8
+          },
+          {
+            "end": 10,
+            "path": "hosted/priv/repo/migrations/20261025000004_add_authorization_state_revisions.exs",
+            "start": 8
+          }
+        ],
+        "unique": [
+          [
+            "id",
+            "version",
+            "identity_class"
+          ]
+        ]
+      },
+      "public.mixer_browser_oidc_attempts": {
+        "checks": [
+          "octet_length(state_digest)=32",
+          "browser_epoch BETWEEN 1 AND 9007199254740991",
+          "browser_revision BETWEEN 1 AND 9007199254740991",
+          "octet_length(cookie_digest)=32",
+          "generation ~ '^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$'",
+          "octet_length(config_digest)=32",
+          "octet_length(profile_id) BETWEEN 1 AND 128",
+          "profile_version > 0",
+          "octet_length(issuer) BETWEEN 1 AND 2048",
+          "octet_length(client_id) BETWEEN 1 AND 256",
+          "octet_length(redirect_uri) BETWEEN 1 AND 2048",
+          "return_route='workspace'",
+          "octet_length(nonce_digest)=32",
+          "created_at BETWEEN 0 AND 9007199254740991",
+          "expires_at > created_at AND expires_at<=created_at+300 AND expires_at<=9007199254740991",
+          "status IN('pending','claimed','provider_rejected','completed','failed','superseded')",
+          "octet_length(claim_digest)=32",
+          "completion_reason IN('provider_rejected','exchange_failed','oidc_failed','identity_failed','session_failed','completed','superseded','expired','logout')",
+          "ciphertext_version=1",
+          "(status='pending' AND claim_digest IS NULL AND claimed_at IS NULL AND claim_expires_at IS NULL AND completion_reason IS NULL AND key_id IS NOT NULL AND key_id ~ '^[A-Za-z0-9._-]{1,128}$' AND iv IS NOT NULL AND octet_length(iv)=12 AND tag IS NOT NULL AND octet_length(tag)=16 AND ciphertext IS NOT NULL AND octet_length(ciphertext) BETWEEN 1 AND 8192) OR (status<>'pending' AND key_id IS NULL AND iv IS NULL AND tag IS NULL AND ciphertext IS NULL AND ((status='claimed' AND completion_reason IS NULL AND claim_digest IS NOT NULL AND claimed_at IS NOT NULL AND claim_expires_at IS NOT NULL AND claimed_at>=created_at AND claim_expires_at>claimed_at AND claim_expires_at<=expires_at) OR (completion_reason IS NOT NULL AND ((status='provider_rejected' AND completion_reason='provider_rejected') OR (status='completed' AND completion_reason='completed' AND claim_digest IS NOT NULL) OR (status='failed' AND completion_reason IN('exchange_failed','oidc_failed','identity_failed','session_failed') AND claim_digest IS NOT NULL) OR (status='superseded' AND completion_reason IN('superseded','expired','logout'))))))"
+        ],
+        "columns": [
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "state_digest",
+            "nullable": false,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "browser_id",
+            "nullable": false,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "browser_epoch",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "browser_revision",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "cookie_digest",
+            "nullable": false,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "generation",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "config_digest",
+            "nullable": false,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "profile_id",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "profile_version",
+            "nullable": false,
+            "type": "integer",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "issuer",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "client_id",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "redirect_uri",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "return_route",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "nonce_digest",
+            "nullable": false,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "created_at",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "expires_at",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "status",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "claim_digest",
+            "nullable": true,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "claimed_at",
+            "nullable": true,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "claim_expires_at",
+            "nullable": true,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "completion_reason",
+            "nullable": true,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": "1",
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "ciphertext_version",
+            "nullable": false,
+            "type": "integer",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "key_id",
+            "nullable": true,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "iv",
+            "nullable": true,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "tag",
+            "nullable": true,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "ciphertext",
+            "nullable": true,
+            "type": "bytea",
+            "typmod": -1
+          }
+        ],
+        "extra_indexes": [
+          {
+            "columns": [
+              "browser_id",
+              "browser_epoch"
+            ],
+            "name": "mixer_browser_one_attempt",
+            "predicate": "status IN('pending','claimed')",
+            "unique": true
+          }
+        ],
+        "foreign_keys": [
+          {
+            "columns": [
+              "browser_id"
+            ],
+            "deferrable": false,
+            "initially_deferred": false,
+            "match": "s",
+            "on_delete": "a",
+            "on_update": "a",
+            "referenced_columns": [
+              "id"
+            ],
+            "relation": "public.mixer_browser_sessions"
+          }
+        ],
+        "primary_key": [
+          "state_digest"
+        ],
+        "sources": [
+          {
+            "end": 369,
+            "path": "hosted/lib/mixer_hosted/browser_auth/storage_schema.ex",
+            "start": 340
+          }
+        ],
+        "unique": []
+      },
+      "public.mixer_browser_session_events": {
+        "checks": [
+          "sequence BETWEEN 1 AND 9007199254740991",
+          "audit_schema=1",
+          "operation IN('bootstrap','begin','claim','provider_reject','fail_claim','activate','replace','logout','expire')",
+          "outcome IN('created','pending','claimed','provider_rejected','failed','active','revoked','expired')",
+          "request_id ~ '^[0-9a-f]{32}$'",
+          "recorded_at BETWEEN 0 AND 9007199254740991",
+          "new_revision BETWEEN 1 AND 9007199254740991",
+          "new_epoch BETWEEN 1 AND 9007199254740991",
+          "new_status IN('preauth','active','revoked','expired')",
+          "octet_length(config_digest)=32",
+          "octet_length(attempt_state_digest)=32",
+          "octet_length(issuer_hash)=32",
+          "octet_length(subject_hash)=32",
+          "octet_length(client_hash)=32",
+          "octet_length(credential_hash)=32",
+          "(sequence=1 AND operation='bootstrap' AND old_revision IS NULL AND old_epoch IS NULL AND old_status IS NULL AND new_revision=1 AND new_epoch=1 AND new_status='preauth' AND outcome='created') OR (sequence>1 AND old_revision IS NOT NULL AND old_revision BETWEEN 1 AND 9007199254740991 AND old_epoch IS NOT NULL AND old_epoch BETWEEN 1 AND 9007199254740991 AND old_status IS NOT NULL AND old_status IN('preauth','active') AND ((operation='begin' AND outcome='pending' AND new_status=old_status AND new_revision=old_revision+1 AND new_epoch=old_epoch+1) OR (operation='claim' AND outcome='claimed' AND new_status=old_status AND new_revision=old_revision AND new_epoch=old_epoch) OR (operation='provider_reject' AND outcome='provider_rejected' AND new_status=old_status AND new_revision=old_revision AND new_epoch=old_epoch) OR (operation='fail_claim' AND outcome='failed' AND new_status=old_status AND new_revision=old_revision AND new_epoch=old_epoch) OR (operation='activate' AND outcome='active' AND old_status='preauth' AND new_status='active' AND new_revision=old_revision+1 AND new_epoch=old_epoch+1) OR (operation='replace' AND outcome='active' AND old_status='active' AND new_status='active' AND new_revision=old_revision+1 AND new_epoch=old_epoch+1) OR (operation='logout' AND outcome='revoked' AND new_status='revoked' AND new_revision=old_revision+1 AND new_epoch=old_epoch+1) OR (operation='expire' AND outcome='expired' AND new_status='expired' AND new_revision=old_revision+1 AND new_epoch=old_epoch+1)))",
+          "(operation IN('activate','replace') AND token_issued_at IS NOT NULL AND token_expires_at>token_issued_at AND issuer_hash IS NOT NULL AND subject_hash IS NOT NULL AND client_hash IS NOT NULL AND credential_hash IS NOT NULL) OR (operation NOT IN('activate','replace') AND token_issued_at IS NULL AND token_expires_at IS NULL AND issuer_hash IS NULL AND subject_hash IS NULL AND client_hash IS NULL AND credential_hash IS NULL)"
+        ],
+        "columns": [
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "browser_id",
+            "nullable": false,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "sequence",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "audit_schema",
+            "nullable": false,
+            "type": "integer",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "operation",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "outcome",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "request_id",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "recorded_at",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "old_revision",
+            "nullable": true,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "new_revision",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "old_epoch",
+            "nullable": true,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "new_epoch",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "old_status",
+            "nullable": true,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "new_status",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "config_digest",
+            "nullable": false,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "attempt_state_digest",
+            "nullable": true,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "profile_id",
+            "nullable": true,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "profile_version",
+            "nullable": true,
+            "type": "integer",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "principal_id",
+            "nullable": true,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "family_id",
+            "nullable": true,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "issuer_hash",
+            "nullable": true,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "subject_hash",
+            "nullable": true,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "client_hash",
+            "nullable": true,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "credential_hash",
+            "nullable": true,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "profile_revision",
+            "nullable": true,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "binding_revision",
+            "nullable": true,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "principal_revision",
+            "nullable": true,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "family_revision",
+            "nullable": true,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "credential_revision",
+            "nullable": true,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "token_issued_at",
+            "nullable": true,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "token_expires_at",
+            "nullable": true,
+            "type": "bigint",
+            "typmod": -1
+          }
+        ],
+        "extra_indexes": [],
+        "foreign_keys": [
+          {
+            "columns": [
+              "browser_id"
+            ],
+            "deferrable": false,
+            "initially_deferred": false,
+            "match": "s",
+            "on_delete": "a",
+            "on_update": "a",
+            "referenced_columns": [
+              "id"
+            ],
+            "relation": "public.mixer_browser_sessions"
+          }
+        ],
+        "primary_key": [
+          "browser_id",
+          "sequence"
+        ],
+        "sources": [
+          {
+            "end": 400,
+            "path": "hosted/lib/mixer_hosted/browser_auth/storage_schema.ex",
+            "start": 371
+          }
+        ],
+        "unique": []
+      },
+      "public.mixer_browser_session_vault": {
+        "checks": [
+          "epoch BETWEEN 1 AND 9007199254740991",
+          "session_revision BETWEEN 1 AND 9007199254740991",
+          "vault_generation BETWEEN 1 AND 9007199254740991",
+          "ciphertext_version=1",
+          "envelope_kind IN('preauth','active','erased')",
+          "(envelope_kind='erased' AND key_id IS NULL AND iv IS NULL AND tag IS NULL AND ciphertext IS NULL) OR (envelope_kind IN('preauth','active') AND key_id IS NOT NULL AND key_id ~ '^[A-Za-z0-9._-]{1,128}$' AND iv IS NOT NULL AND octet_length(iv)=12 AND tag IS NOT NULL AND octet_length(tag)=16 AND ciphertext IS NOT NULL AND octet_length(ciphertext) BETWEEN 1 AND 8192)"
+        ],
+        "columns": [
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "browser_id",
+            "nullable": false,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "epoch",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "session_revision",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "vault_generation",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "ciphertext_version",
+            "nullable": false,
+            "type": "integer",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "envelope_kind",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "key_id",
+            "nullable": true,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "iv",
+            "nullable": true,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "tag",
+            "nullable": true,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "ciphertext",
+            "nullable": true,
+            "type": "bytea",
+            "typmod": -1
+          }
+        ],
+        "extra_indexes": [],
+        "foreign_keys": [
+          {
+            "columns": [
+              "browser_id"
+            ],
+            "deferrable": false,
+            "initially_deferred": false,
+            "match": "s",
+            "on_delete": "a",
+            "on_update": "a",
+            "referenced_columns": [
+              "id"
+            ],
+            "relation": "public.mixer_browser_sessions"
+          }
+        ],
+        "primary_key": [
+          "browser_id"
+        ],
+        "sources": [
+          {
+            "end": 337,
+            "path": "hosted/lib/mixer_hosted/browser_auth/storage_schema.ex",
+            "start": 327
+          }
+        ],
+        "unique": []
+      },
+      "public.mixer_browser_sessions": {
+        "checks": [
+          "octet_length(id)=16",
+          "octet_length(cookie_digest)=32",
+          "status IN('preauth','active','revoked','expired')",
+          "epoch BETWEEN 1 AND 9007199254740991",
+          "revision BETWEEN 1 AND 9007199254740991",
+          "generation ~ '^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$'",
+          "octet_length(csrf_digest)=32",
+          "created_at BETWEEN 0 AND 9007199254740991",
+          "last_seen_at >= created_at",
+          "absolute_expires_at > created_at AND absolute_expires_at <=9007199254740991",
+          "idle_expires_at > created_at AND idle_expires_at <=absolute_expires_at",
+          "octet_length(expected_profile_id) BETWEEN 1 AND 128",
+          "expected_profile_version > 0",
+          "octet_length(initial_config_digest)=32",
+          "octet_length(config_digest)=32",
+          "audit_sequence BETWEEN 1 AND 9007199254740991",
+          "(profile_id IS NULL AND profile_version IS NULL AND principal_id IS NULL AND family_id IS NULL AND credential_ref IS NULL AND credential_revision IS NULL AND status<>'active') OR (profile_id IS NOT NULL AND profile_version IS NOT NULL AND principal_id IS NOT NULL AND family_id IS NOT NULL AND credential_ref IS NOT NULL AND credential_revision IS NOT NULL AND credential_revision BETWEEN 1 AND 9007199254740991 AND status<>'preauth')"
+        ],
+        "columns": [
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "id",
+            "nullable": false,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "cookie_digest",
+            "nullable": false,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "status",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "epoch",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "revision",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "generation",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "csrf_digest",
+            "nullable": false,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "created_at",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "last_seen_at",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "absolute_expires_at",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "idle_expires_at",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "expected_profile_id",
+            "nullable": false,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "expected_profile_version",
+            "nullable": false,
+            "type": "integer",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "initial_config_digest",
+            "nullable": false,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "config_digest",
+            "nullable": false,
+            "type": "bytea",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "profile_id",
+            "nullable": true,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "profile_version",
+            "nullable": true,
+            "type": "integer",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "principal_id",
+            "nullable": true,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "family_id",
+            "nullable": true,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "credential_ref",
+            "nullable": true,
+            "type": "text",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "credential_revision",
+            "nullable": true,
+            "type": "bigint",
+            "typmod": -1
+          },
+          {
+            "default": null,
+            "dimensions": 0,
+            "generated": "",
+            "identity": "",
+            "name": "audit_sequence",
+            "nullable": false,
+            "type": "bigint",
+            "typmod": -1
+          }
+        ],
+        "extra_indexes": [],
+        "foreign_keys": [
+          {
+            "columns": [
+              "profile_id",
+              "profile_version",
+              "credential_ref"
+            ],
+            "deferrable": false,
+            "initially_deferred": false,
+            "match": "s",
+            "on_delete": "a",
+            "on_update": "a",
+            "referenced_columns": [
+              "profile_id",
+              "profile_version",
+              "reference"
+            ],
+            "relation": "public.mixer_authz_credentials"
+          },
+          {
+            "columns": [
+              "family_id",
+              "profile_id",
+              "profile_version",
+              "principal_id"
+            ],
+            "deferrable": false,
+            "initially_deferred": false,
+            "match": "s",
+            "on_delete": "a",
+            "on_update": "a",
+            "referenced_columns": [
+              "id",
+              "profile_id",
+              "profile_version",
+              "principal_id"
+            ],
+            "relation": "public.mixer_authz_families"
+          }
+        ],
+        "primary_key": [
+          "id"
+        ],
+        "sources": [
+          {
+            "end": 324,
+            "path": "hosted/lib/mixer_hosted/browser_auth/storage_schema.ex",
+            "start": 302
+          }
+        ],
+        "unique": [
+          [
+            "cookie_digest"
+          ]
+        ]
+      }
+    },
+    "ri_trigger_shapes": [
+      {
+        "endpoint": "referencing",
+        "events": [
+          "INSERT"
+        ],
+        "function": "pg_catalog.RI_FKey_check_ins",
+        "timing": "AFTER"
+      },
+      {
+        "endpoint": "referencing",
+        "events": [
+          "UPDATE"
+        ],
+        "function": "pg_catalog.RI_FKey_check_upd",
+        "timing": "AFTER"
+      },
+      {
+        "endpoint": "referenced",
+        "events": [
+          "DELETE"
+        ],
+        "function": "pg_catalog.RI_FKey_noaction_del",
+        "timing": "AFTER"
+      },
+      {
+        "endpoint": "referenced",
+        "events": [
+          "UPDATE"
+        ],
+        "function": "pg_catalog.RI_FKey_noaction_upd",
+        "timing": "AFTER"
+      }
+    ],
+    "scope": "source_contract_only",
+    "user_triggers": [
+      {
+        "constraint": true,
+        "deferrable": true,
+        "events": [
+          "INSERT",
+          "UPDATE"
+        ],
+        "function": "public.mixer_browser_integrity()",
+        "initially_deferred": true,
+        "name": "mixer_browser_integrity",
+        "relation": "public.mixer_browser_sessions",
+        "source": [
+          487,
+          527
+        ],
+        "timing": "AFTER"
+      },
+      {
+        "constraint": true,
+        "deferrable": true,
+        "events": [
+          "INSERT",
+          "UPDATE"
+        ],
+        "function": "public.mixer_browser_integrity()",
+        "initially_deferred": true,
+        "name": "mixer_browser_integrity",
+        "relation": "public.mixer_browser_session_vault",
+        "source": [
+          487,
+          527
+        ],
+        "timing": "AFTER"
+      },
+      {
+        "constraint": true,
+        "deferrable": true,
+        "events": [
+          "INSERT",
+          "UPDATE"
+        ],
+        "function": "public.mixer_browser_attempt_integrity()",
+        "initially_deferred": true,
+        "name": "mixer_browser_integrity",
+        "relation": "public.mixer_browser_oidc_attempts",
+        "source": [
+          528,
+          554
+        ],
+        "timing": "AFTER"
+      },
+      {
+        "constraint": true,
+        "deferrable": true,
+        "events": [
+          "INSERT"
+        ],
+        "function": "public.mixer_browser_event_integrity()",
+        "initially_deferred": true,
+        "name": "mixer_browser_integrity",
+        "relation": "public.mixer_browser_session_events",
+        "source": [
+          558,
+          570
+        ],
+        "timing": "AFTER"
+      },
+      {
+        "constraint": false,
+        "deferrable": false,
+        "events": [
+          "UPDATE",
+          "DELETE"
+        ],
+        "function": "public.mixer_browser_event_immutable()",
+        "initially_deferred": false,
+        "name": "mixer_browser_immutable",
+        "relation": "public.mixer_browser_session_events",
+        "source": [
+          555,
+          557
+        ],
+        "timing": "BEFORE"
+      }
+    ],
+    "version": 1,
+    "writer_grants": {
+      "public.mixer_authz_bindings": {
+        "table": [
+          "SELECT"
+        ],
+        "update_columns": []
+      },
+      "public.mixer_authz_credentials": {
+        "table": [
+          "SELECT",
+          "INSERT"
+        ],
+        "update_columns": [
+          "active",
+          "revision"
+        ]
+      },
+      "public.mixer_authz_families": {
+        "table": [
+          "SELECT",
+          "INSERT"
+        ],
+        "update_columns": [
+          "active",
+          "revision"
+        ]
+      },
+      "public.mixer_authz_principals": {
+        "table": [
+          "SELECT"
+        ],
+        "update_columns": [
+          "revision"
+        ]
+      },
+      "public.mixer_authz_profiles": {
+        "table": [
+          "SELECT"
+        ],
+        "update_columns": [
+          "state_revision"
+        ]
+      },
+      "public.mixer_browser_oidc_attempts": {
+        "table": [
+          "SELECT",
+          "INSERT"
+        ],
+        "update_columns": [
+          "status",
+          "claim_digest",
+          "claimed_at",
+          "claim_expires_at",
+          "completion_reason",
+          "key_id",
+          "iv",
+          "tag",
+          "ciphertext"
+        ]
+      },
+      "public.mixer_browser_session_events": {
+        "table": [
+          "SELECT",
+          "INSERT"
+        ],
+        "update_columns": []
+      },
+      "public.mixer_browser_session_vault": {
+        "table": [
+          "SELECT",
+          "INSERT"
+        ],
+        "update_columns": [
+          "epoch",
+          "session_revision",
+          "vault_generation",
+          "ciphertext_version",
+          "envelope_kind",
+          "key_id",
+          "iv",
+          "tag",
+          "ciphertext"
+        ]
+      },
+      "public.mixer_browser_sessions": {
+        "table": [
+          "SELECT",
+          "INSERT"
+        ],
+        "update_columns": [
+          "cookie_digest",
+          "status",
+          "epoch",
+          "revision",
+          "generation",
+          "csrf_digest",
+          "last_seen_at",
+          "absolute_expires_at",
+          "idle_expires_at",
+          "profile_id",
+          "profile_version",
+          "principal_id",
+          "family_id",
+          "credential_ref",
+          "credential_revision",
+          "audit_sequence"
+        ]
+      }
+    }
+  },
+  "trigger_sources": {
+    "mixer_browser_attempt_integrity": "\nDECLARE b public.mixer_browser_sessions; e public.mixer_browser_session_events;\nBEGIN\n  SELECT * INTO STRICT b FROM public.mixer_browser_sessions WHERE id=NEW.browser_id;\n  SELECT * INTO STRICT e FROM public.mixer_browser_session_events WHERE browser_id=b.id AND sequence=b.audit_sequence;\n  IF TG_OP='UPDATE' AND (OLD.status NOT IN('pending','claimed') OR NEW.state_digest<>OLD.state_digest OR NEW.browser_id<>OLD.browser_id OR NEW.browser_epoch<>OLD.browser_epoch\n    OR NEW.browser_revision<>OLD.browser_revision OR NEW.config_digest<>OLD.config_digest OR NEW.profile_id<>OLD.profile_id OR NEW.profile_version<>OLD.profile_version\n    OR NEW.issuer<>OLD.issuer OR NEW.client_id<>OLD.client_id OR NEW.redirect_uri<>OLD.redirect_uri OR NEW.nonce_digest<>OLD.nonce_digest OR NEW.expires_at<>OLD.expires_at\n    OR NEW.cookie_digest<>OLD.cookie_digest OR NEW.generation<>OLD.generation OR NEW.created_at<>OLD.created_at\n    OR (OLD.status='claimed' AND (NEW.status NOT IN('completed','failed','superseded') OR NEW.claim_digest IS DISTINCT FROM OLD.claim_digest OR NEW.claimed_at IS DISTINCT FROM OLD.claimed_at OR NEW.claim_expires_at IS DISTINCT FROM OLD.claim_expires_at))\n    OR (OLD.status='pending' AND NEW.status NOT IN('claimed','provider_rejected','superseded')))\n  THEN RAISE EXCEPTION 'browser attempt transition invalid' USING ERRCODE='23514'; END IF;\n  IF TG_OP='INSERT' THEN\n    IF e.operation<>'begin' OR e.attempt_state_digest IS DISTINCT FROM NEW.state_digest OR NEW.status<>'pending'\n      OR NEW.browser_epoch<>b.epoch OR NEW.browser_revision<>b.revision OR NEW.cookie_digest<>b.cookie_digest OR NEW.generation<>b.generation OR NEW.config_digest<>b.config_digest\n    THEN RAISE EXCEPTION 'browser attempt event missing' USING ERRCODE='23514'; END IF;\n  ELSE\n    IF (NEW.status='claimed' AND (e.operation<>'claim' OR e.attempt_state_digest IS DISTINCT FROM NEW.state_digest))\n      OR (NEW.status='provider_rejected' AND (e.operation<>'provider_reject' OR e.attempt_state_digest IS DISTINCT FROM NEW.state_digest))\n      OR (NEW.status='completed' AND (e.operation NOT IN('activate','replace') OR e.attempt_state_digest IS DISTINCT FROM NEW.state_digest))\n      OR (NEW.status='failed' AND (e.operation<>'fail_claim' OR e.attempt_state_digest IS DISTINCT FROM NEW.state_digest))\n      OR (NEW.status='superseded' AND (e.operation NOT IN('begin','logout','expire') OR (e.operation='begin' AND e.attempt_state_digest IS NOT DISTINCT FROM NEW.state_digest)))\n    THEN RAISE EXCEPTION 'browser attempt event missing' USING ERRCODE='23514'; END IF;\n  END IF;\n  RETURN NULL;\nEND;\n\n",
+    "mixer_browser_event_immutable": "\nBEGIN RAISE EXCEPTION 'browser audit is immutable' USING ERRCODE='42501'; END;\n\n",
+    "mixer_browser_event_integrity": "\nDECLARE b public.mixer_browser_sessions; p public.mixer_browser_session_events;\nBEGIN\n  SELECT * INTO STRICT b FROM public.mixer_browser_sessions WHERE id=NEW.browser_id;\n  IF NEW.sequence>b.audit_sequence OR (NEW.sequence=b.audit_sequence AND (NEW.new_revision<>b.revision OR NEW.new_epoch<>b.epoch OR NEW.new_status<>b.status OR NEW.config_digest<>b.config_digest)) THEN\n    RAISE EXCEPTION 'orphan browser event' USING ERRCODE='23514'; END IF;\n  IF NEW.sequence>1 THEN\n    SELECT * INTO STRICT p FROM public.mixer_browser_session_events WHERE browser_id=NEW.browser_id AND sequence=NEW.sequence-1;\n    IF NEW.old_revision<>p.new_revision OR NEW.old_epoch<>p.new_epoch OR NEW.old_status<>p.new_status THEN RAISE EXCEPTION 'browser audit chain invalid' USING ERRCODE='23514'; END IF;\n  END IF;\n  RETURN NULL;\nEND;\n\n",
+    "mixer_browser_integrity": "\nDECLARE e public.mixer_browser_session_events; v public.mixer_browser_session_vault; c public.mixer_authz_credentials; b public.mixer_browser_sessions;\nBEGIN\n  IF TG_TABLE_NAME='mixer_browser_session_vault' THEN\n    SELECT * INTO STRICT b FROM public.mixer_browser_sessions WHERE id=NEW.browser_id;\n  ELSE b:=NEW;\n  END IF;\n  SELECT * INTO e FROM public.mixer_browser_session_events WHERE browser_id=b.id AND sequence=b.audit_sequence;\n  IF NOT FOUND OR e.new_revision<>b.revision OR e.new_epoch<>b.epoch OR e.new_status<>b.status OR e.config_digest<>b.config_digest THEN\n    RAISE EXCEPTION 'browser audit transition missing' USING ERRCODE='23514'; END IF;\n  IF TG_TABLE_NAME='mixer_browser_session_vault' THEN\n    IF TG_OP='INSERT' THEN\n      IF e.operation<>'bootstrap' OR NEW.vault_generation<>1 OR NEW.epoch<>1 OR NEW.session_revision<>1 THEN RAISE EXCEPTION 'browser vault initial transition invalid' USING ERRCODE='23514'; END IF;\n    ELSE\n      IF e.operation NOT IN('begin','activate','replace','logout','expire') OR NEW.browser_id<>OLD.browser_id OR NEW.vault_generation<>OLD.vault_generation+1\n        OR NEW.epoch<>OLD.epoch+1 OR NEW.session_revision<>OLD.session_revision+1\n      THEN RAISE EXCEPTION 'browser vault transition invalid' USING ERRCODE='23514'; END IF;\n    END IF;\n  END IF;\n  IF TG_TABLE_NAME='mixer_browser_sessions' THEN\n    IF TG_OP='INSERT' THEN\n      IF b.audit_sequence<>1 OR e.operation<>'bootstrap' OR e.old_revision IS NOT NULL THEN RAISE EXCEPTION 'browser initial transition invalid' USING ERRCODE='23514'; END IF;\n    ELSE\n      IF b.audit_sequence<>OLD.audit_sequence+1 OR e.old_revision<>OLD.revision OR e.old_epoch<>OLD.epoch OR e.old_status<>OLD.status OR b.id<>OLD.id\n        OR b.created_at<>OLD.created_at OR b.initial_config_digest<>OLD.initial_config_digest OR b.config_digest<>OLD.config_digest OR OLD.status IN('revoked','expired')\n        OR (b.revision=OLD.revision AND (pg_catalog.to_jsonb(b)-'audit_sequence') IS DISTINCT FROM (pg_catalog.to_jsonb(OLD)-'audit_sequence'))\n        OR b.revision NOT IN(OLD.revision,OLD.revision+1) OR b.epoch NOT IN(OLD.epoch,OLD.epoch+1)\n      THEN RAISE EXCEPTION 'browser transition invalid' USING ERRCODE='23514'; END IF;\n    END IF;\n  END IF;\n  SELECT * INTO v FROM public.mixer_browser_session_vault WHERE browser_id=b.id;\n  IF b.status IN('preauth','active') THEN\n    IF NOT FOUND OR v.epoch<>b.epoch OR v.session_revision<>b.revision OR v.envelope_kind<>b.status THEN RAISE EXCEPTION 'browser vault linkage invalid' USING ERRCODE='23514'; END IF;\n  ELSIF FOUND AND (v.ciphertext IS NOT NULL) THEN RAISE EXCEPTION 'terminal browser vault retained' USING ERRCODE='23514'; END IF;\n  IF b.status='active' THEN\n    SELECT * INTO STRICT c FROM public.mixer_authz_credentials WHERE profile_id=b.profile_id AND profile_version=b.profile_version AND reference=b.credential_ref;\n    IF c.principal_id<>b.principal_id OR c.family_id<>b.family_id OR c.revision<>b.credential_revision THEN RAISE EXCEPTION 'browser credential linkage invalid' USING ERRCODE='23514'; END IF;\n  END IF;\n  RETURN NULL;\nEND;\n\n"
+  }
+}

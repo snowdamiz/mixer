@@ -1,0 +1,300 @@
+--- a/src/experimental/cache/borrowed.rs
++++ b/src/experimental/cache/borrowed.rs
+@@ -431,6 +431,10 @@
+     where
+         'op: 'a;
+     type Scratch<'a>;
++    type ScanOutcome: Copy;
++    fn scan_counts(outcome: &Self::ScanOutcome) -> decode::Counts;
++    fn prepare_miss_publication(meter: &mut Self::Meter<'_, '_>) -> Result<(), Self::Failure>;
++    fn miss_timestamp(outcome: &Self::ScanOutcome, meter: &Self::Meter<'_, '_>) -> u64;
+     fn meter<'a, 'op>(
+         usage: &'a mut Self::Usage,
+         operation: &'a mut Self::Operation<'op>,
+@@ -477,7 +481,7 @@
+         body: FunctionSpanView<'_>,
+         scratch: &mut Self::Scratch<'_>,
+         meter: &mut Self::Meter<'_, '_>,
+-    ) -> Result<decode::Counts, Self::Failure>;
++    ) -> Result<Self::ScanOutcome, Self::Failure>;
+     fn build(
+         snapshot: &Self::Snapshot,
+         body: FunctionSpanView<'_>,
+@@ -509,6 +513,10 @@
+     where
+         'op: 'a;
+     type Scratch<'a> = ();
++    type ScanOutcome = decode::Counts;
++    fn scan_counts(outcome: &decode::Counts) -> decode::Counts { *outcome }
++    fn prepare_miss_publication(_: &mut Meter<'_>) -> Result<(), CacheFailure> { Ok(()) }
++    fn miss_timestamp(_: &decode::Counts, meter: &Meter<'_>) -> u64 { meter.work_used() }
+     fn meter<'a, 'op>(
+         usage: &'a mut CacheUsage,
+         operation: &'a mut FrozenOperation<'op>,
+@@ -771,7 +779,7 @@
+ ) -> Result<M::Pin, M::Failure> {
+     let function = defined.absolute_index;
+     let hit = M::resident_lookup(parts.slots, &mut parts.scratch, function, meter)?;
+-    let index = if let Some(index) = hit {
++    if let Some(index) = hit {
+         meter.check()?;
+         let hits = meter
+             .usage()
+@@ -779,7 +787,20 @@
+             .checked_add(1)
+             .ok_or_else(|| meter.error(CacheFailureKind::WorkExhausted, "hits_overflow"))?;
+         meter.usage_mut().hit(hits);
+-        index
++        let slot = &mut parts.slots[index];
++        meter.usage_mut().pin(
++            slot.entry().expect("resident entry").bytes,
++            slot.pins() == 0,
++        );
++        slot.set_pins(slot.pins() + 1);
++        slot.set_last_used(meter.work_used());
++        parts.pins[pin_slot] = PinRecord {
++            nonce: *parts.next_nonce,
++            entry: index,
++        };
++        let pin = M::Pin::new(parts.owner, pin_slot, *parts.next_nonce);
++        *parts.next_nonce = nonce;
++        Ok(pin)
+     } else {
+         let misses = meter
+             .usage()
+@@ -792,7 +813,8 @@
+             .decodes()
+             .checked_add(1)
+             .ok_or_else(|| meter.error(CacheFailureKind::WorkExhausted, "decodes_overflow"))?;
+-        let counts = M::scan(parts.snapshot, defined, &mut parts.scratch, meter)?;
++        let outcome = M::scan(parts.snapshot, defined, &mut parts.scratch, meter)?;
++        let counts = M::scan_counts(&outcome);
+         let bytes = counts.bytes(meter)?;
+         if bytes > meter.entry_capacity() {
+             return Err(meter.detailed(
+@@ -867,6 +889,11 @@
+             let _ = meter.construction(0);
+             return Err(error);
+         }
++        if let Err(error) = M::prepare_miss_publication(meter) {
++            let _ = M::drop_entry(entry, meter);
++            let _ = meter.construction(0);
++            return Err(error);
++        }
+         if let Err(error) =
+             M::resident_insert(parts.slots, &mut parts.scratch, function, index, meter)
+         {
+@@ -878,20 +905,19 @@
+         // separates the index update from the infallible slot publication.
+         meter.usage_mut().decoded(next_decodes, bytes);
+         parts.slots[index].set(entry);
+-        index
+-    };
+-    let slot = &mut parts.slots[index];
+-    meter.usage_mut().pin(
+-        slot.entry().expect("resident entry").bytes,
+-        slot.pins() == 0,
+-    );
+-    slot.set_pins(slot.pins() + 1);
+-    slot.set_last_used(meter.work_used());
+-    parts.pins[pin_slot] = PinRecord {
+-        nonce: *parts.next_nonce,
+-        entry: index,
+-    };
+-    let pin = M::Pin::new(parts.owner, pin_slot, *parts.next_nonce);
+-    *parts.next_nonce = nonce;
+-    Ok(pin)
+-}
++        let slot = &mut parts.slots[index];
++        meter.usage_mut().pin(
++            slot.entry().expect("resident entry").bytes,
++            slot.pins() == 0,
++        );
++        slot.set_pins(slot.pins() + 1);
++        slot.set_last_used(M::miss_timestamp(&outcome, meter));
++        parts.pins[pin_slot] = PinRecord {
++            nonce: *parts.next_nonce,
++            entry: index,
++        };
++        let pin = M::Pin::new(parts.owner, pin_slot, *parts.next_nonce);
++        *parts.next_nonce = nonce;
++        Ok(pin)
++    }
++}
+--- a/src/experimental/cache/tests.rs
++++ b/src/experimental/cache/tests.rs
+@@ -538,7 +538,7 @@
+     println!("GENERIC_LAYOUT {{\"cache\":{},\"slot\":{},\"parts\":{},\"fields\":{},\"meter\":{},\"scratch\":{},\"scan\":{},\"result\":{}}}",
+         size_of::<FunctionCache>(),size_of::<Slot>(),size_of::<CacheParts<'static,FrozenMode>>(),
+         size_of::<CacheFields<'static,FrozenMode>>(),size_of::<Meter<'static>>(),size_of::<()>(),
+-        size_of::<decode::Counts>(),size_of::<Result<decode::Counts,CacheFailure>>());
++        size_of::<<FrozenMode as CacheMode>::ScanOutcome>(),size_of::<Result<<FrozenMode as CacheMode>::ScanOutcome,CacheFailure>>());
+     let bytes=module(&[1,1,0x0b],Profile::IntegerV1);
+     let mut c=cache(&bytes,Profile::IntegerV1);
+     for n in 0..6 {
+--- a/src/experimental_swift_reactor/cache.rs
++++ b/src/experimental_swift_reactor/cache.rs
+@@ -41,6 +41,39 @@
+     output: Result<decode::Counts, SwiftRunFailure>,
+     init: std::ops::Range<usize>,
+ }
++
++// Root-selected isolated finite policy: no permanent state or new allocation.
++#[repr(u8)]
++#[derive(Clone, Copy)]
++enum CountPlanInsertion { Cold, Reused }
++#[repr(C)]
++#[derive(Clone, Copy)]
++pub(crate) struct CountPlanScanOutcome {
++    counts: decode::Counts,
++    insertion: CountPlanInsertion,
++    reserved: [u8; 7],
++}
++// Complete source, argument/return and caller inventories are disjoint from
++// every original inventory. Result sizes include the complete error variant.
++struct CountPlanPolicyInventory {
++    scan_created: CountPlanScanOutcome, scan_return: CountPlanScanOutcome, scan_caller: CountPlanScanOutcome,
++    result_created: Result<CountPlanScanOutcome, SwiftRunFailure>,
++    result_return: Result<CountPlanScanOutcome, SwiftRunFailure>,
++    result_caller: Result<CountPlanScanOutcome, SwiftRunFailure>,
++    index_created: usize, index_caller: usize,
++    timestamp_created: u64, timestamp_return: u64, timestamp_caller: u64,
++    original_match: bool, identity_valid: bool, reused_choice: bool, cold_choice: bool,
++    counts_borrow: &'static CountPlanScanOutcome,
++    prepare_meter: &'static mut SwiftMeter<'static, 'static>,
++    timestamp_borrow: &'static CountPlanScanOutcome,
++    timestamp_meter: &'static SwiftMeter<'static, 'static>,
++    counts_created: decode::Counts, counts_return: decode::Counts, counts_caller: decode::Counts,
++    preparation_created: Result<(), SwiftRunFailure>,
++    preparation_return: Result<(), SwiftRunFailure>,
++    preparation_caller: Result<(), SwiftRunFailure>,
++}
++const _: () = { assert!(size_of::<CountPlanScanOutcome>() == 32); };
++
+ const RESIDENT_BUCKETS: usize = 128;
+ const RESIDENT_LINKS: usize = 64;
+ const RESIDENT_INDEX_BYTES: usize = RESIDENT_BUCKETS + RESIDENT_LINKS;
+@@ -1209,6 +1242,7 @@
+         (3, size_of::<OperationScalarInventory>()),
+         (3, size_of::<ResidentIndexInventory>()),
+         (3, size_of::<PlanInventory>()),
++        (3, size_of::<CountPlanPolicyInventory>()),
+         (3, size_of::<SwiftScratch<'static>>()),
+         (3, size_of::<ResidentMatch>()),
+         (3, size_of::<Option<ResidentMatch>>()),
+@@ -2107,6 +2141,22 @@
+     where
+         'op: 'a;
+     type Scratch<'a> = SwiftScratch<'a>;
++    type ScanOutcome = CountPlanScanOutcome;
++    fn scan_counts(outcome: &CountPlanScanOutcome) -> decode::Counts {
++        // The complete borrow/read/copy boundary was precharged by scan.
++        outcome.counts
++    }
++    fn prepare_miss_publication(meter: &mut SwiftMeter<'_, '_>) -> Result<(), SwiftRunFailure> {
++        // Full preparation and later infallible choice/write, before index mutation.
++        meter.work(16)
++    }
++    fn miss_timestamp(outcome: &CountPlanScanOutcome, meter: &SwiftMeter<'_, '_>) -> u64 {
++        match outcome.insertion {
++            CountPlanInsertion::Cold => 0,
++            CountPlanInsertion::Reused => meter.work_used(),
++        }
++    }
++
+     fn meter<'a, 'op>(
+         usage: &'a mut SwiftCacheUsage,
+         operation: &'a mut CacheControl<'op>,
+@@ -2198,7 +2248,7 @@
+         body: FunctionSpanView<'_>,
+         scratch: &mut SwiftScratch<'_>,
+         meter: &mut SwiftMeter<'_, '_>,
+-    ) -> Result<decode::Counts, SwiftRunFailure> {
++    ) -> Result<CountPlanScanOutcome, SwiftRunFailure> {
+         let policy = policy(snapshot, body, meter)?;
+         if scratch.plans.len() != PLAN_CAPACITY {
+             return Err(meter.error(CacheFailureKind::DecoderMismatch, "swift_plan_layout"));
+@@ -2221,7 +2271,12 @@
+                     );
+                 }
+                 meter.work(3)?; // actual three-field Counts copy; also checks stop
+-                return Ok(plan.counts);
++                meter.work(41)?; // complete outcome + later counts extraction
++                return Ok(CountPlanScanOutcome {
++                    counts: plan.counts,
++                    insertion: CountPlanInsertion::Reused,
++                    reserved: [0; 7],
++                });
+             }
+         }
+         meter.step(CacheStep::ScanReset);
+@@ -2243,6 +2298,12 @@
+         )?;
+         // Successful complete scan is the only publishing source. All checks
+         // and charges precede the single infallible full-cell replacement.
++        meter.work(41)?; // before outcome and complete scan-plan publication
++        let outcome = CountPlanScanOutcome {
++            counts,
++            insertion: CountPlanInsertion::Cold,
++            reserved: [0; 7],
++        };
+         meter.work(PLAN_CELL_CREDITS + 3)?;
+         scratch.plans[index] = Some(ScanPlan {
+             function: body.absolute_index,
+@@ -2251,7 +2312,7 @@
+             type_index: body.type_index,
+             counts,
+         });
+-        Ok(counts)
++        Ok(outcome)
+     }
+     fn build(
+         snapshot: &ValidatedSwiftReactor,
+@@ -2546,7 +2607,7 @@
+         let result = SwiftMode::build(
+             cache.adopted.proof(),
+             body,
+-            counts.test_changed_instructions(),
++            SwiftMode::scan_counts(&counts).test_changed_instructions(),
+             &mut SwiftScratch {
+                 patches: &mut cache.patches,
+                 index: &mut cache.index,
+@@ -4871,3 +4932,27 @@
+         let failure=outcome.err().unwrap();phase.complete(()).unwrap();failure
+     }
+ }
++
++#[cfg(test)]
++mod count_candidate_inventory_probe {
++    use super::*;
++    #[test]
++    fn count_candidate_exact_implemented_inventory() {
++        use std::mem::offset_of;
++        assert_eq!(size_of::<CountPlanPolicyInventory>(),6824);
++        assert_eq!(size_of::<CountPlanScanOutcome>(),32);
++        assert_eq!(size_of::<Result<CountPlanScanOutcome,SwiftRunFailure>>(),1096);
++        assert_eq!(cache_operation_bytes().unwrap(),112822);
++        println!("COUNT_IMPLEMENTED {{\"outcome\":32,\"result\":1096,\"inventory\":6824,\"threeInventories\":20472,\"operation\":112822,\"persistentPolicyBytes\":0,\"newTickets\":0}}");
++        macro_rules! field { ($name:ident,$ty:ty)=> {println!("COUNT_FIELD {{\"name\":\"{}\",\"offset\":{},\"bytes\":{}}}",stringify!($name),offset_of!(CountPlanPolicyInventory,$name),size_of::<$ty>());}; }
++        field!(scan_created,CountPlanScanOutcome);field!(scan_return,CountPlanScanOutcome);field!(scan_caller,CountPlanScanOutcome);
++        field!(result_created,Result<CountPlanScanOutcome,SwiftRunFailure>);field!(result_return,Result<CountPlanScanOutcome,SwiftRunFailure>);field!(result_caller,Result<CountPlanScanOutcome,SwiftRunFailure>);
++        field!(index_created,usize);field!(index_caller,usize);
++        field!(timestamp_created,u64);field!(timestamp_return,u64);field!(timestamp_caller,u64);
++        field!(original_match,bool);field!(identity_valid,bool);field!(reused_choice,bool);field!(cold_choice,bool);
++        field!(counts_borrow,&'static CountPlanScanOutcome);field!(prepare_meter,&'static mut SwiftMeter<'static,'static>);
++        field!(timestamp_borrow,&'static CountPlanScanOutcome);field!(timestamp_meter,&'static SwiftMeter<'static,'static>);
++        field!(counts_created,decode::Counts);field!(counts_return,decode::Counts);field!(counts_caller,decode::Counts);
++        field!(preparation_created,Result<(),SwiftRunFailure>);field!(preparation_return,Result<(),SwiftRunFailure>);field!(preparation_caller,Result<(),SwiftRunFailure>);
++    }
++}
+--- a/src/experimental_swift_reactor/cache_tests.rs
++++ b/src/experimental_swift_reactor/cache_tests.rs
+@@ -3958,7 +3958,7 @@
+     println!("COST_HIT work256=2048 allocations=0 decodes=0 evictions=0"); finish(cache,c);
+ }
+ 
+-const COUNT_POLICY: bool = false;
++const COUNT_POLICY: bool = true;
+ 
+ // Same host instrumentation on both copies; only expected cold priority differs.
+ use super::cache::count_candidate_inspection as ci;

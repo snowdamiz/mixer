@@ -1,0 +1,1933 @@
+{
+  "cases": [
+    {
+      "component_methods": {
+        "16": [
+          "no transaction rejects",
+          "role shape: extra key",
+          "role shape: duplicate role",
+          "role shape: identifier injection",
+          "role shape: predefined role",
+          "role shape: NULL role",
+          "role shape: missing owner",
+          "actual session identity mismatch denies"
+        ],
+        "17": [
+          "no transaction rejects",
+          "role shape: extra key",
+          "role shape: duplicate role",
+          "role shape: identifier injection",
+          "role shape: predefined role",
+          "role shape: NULL role",
+          "role shape: missing owner",
+          "actual session identity mismatch denies"
+        ]
+      },
+      "dimension": "transaction",
+      "id": "T01",
+      "independent_review": "pending",
+      "limitations": "No trusted Store provenance, foreign/nested owner context or request-selected Repo admission is implemented.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "No transaction, foreign/nested Store context, request-selected Repo or role map denies before relation query.",
+      "status": "partial_pending_owner"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "original expired deadline rejects before SQL",
+          "future budget above original 5s cap rejects",
+          "original remaining deadline checked after every query"
+        ],
+        "17": [
+          "original expired deadline rejects before SQL",
+          "future budget above original 5s cap rejects",
+          "original remaining deadline checked after every query"
+        ]
+      },
+      "dimension": "transaction",
+      "id": "T02",
+      "independent_review": "pending",
+      "limitations": "Entry/each-query expiry passes; separately timed decoding/final-return expiry and checkout-through-commit rollback remain pending.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Original monotonic deadline expired at entry, after each query, during reduction, or at return raises closed unavailable and rollback.",
+      "status": "partial_pending_owner"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "wire family 0: driver failure redacted",
+          "wire family 0: cancellation redacted",
+          "wire family 1: driver failure redacted",
+          "wire family 1: cancellation redacted",
+          "wire family 2: driver failure redacted",
+          "wire family 2: cancellation redacted",
+          "wire family 3: driver failure redacted",
+          "wire family 3: cancellation redacted",
+          "wire family 4: driver failure redacted",
+          "wire family 4: cancellation redacted",
+          "wire family 5: driver failure redacted",
+          "wire family 5: cancellation redacted",
+          "wire family 6: driver failure redacted",
+          "wire family 6: cancellation redacted",
+          "wire family 7: driver failure redacted",
+          "wire family 7: cancellation redacted",
+          "wire family 8: driver failure redacted",
+          "wire family 8: cancellation redacted",
+          "wire family 9: driver failure redacted",
+          "wire family 9: cancellation redacted",
+          "wire family 10: driver failure redacted",
+          "wire family 10: cancellation redacted",
+          "wire family 11: driver failure redacted",
+          "wire family 11: cancellation redacted",
+          "all query timeouts monotonically decrease without reset"
+        ],
+        "17": [
+          "wire family 0: driver failure redacted",
+          "wire family 0: cancellation redacted",
+          "wire family 1: driver failure redacted",
+          "wire family 1: cancellation redacted",
+          "wire family 2: driver failure redacted",
+          "wire family 2: cancellation redacted",
+          "wire family 3: driver failure redacted",
+          "wire family 3: cancellation redacted",
+          "wire family 4: driver failure redacted",
+          "wire family 4: cancellation redacted",
+          "wire family 5: driver failure redacted",
+          "wire family 5: cancellation redacted",
+          "wire family 6: driver failure redacted",
+          "wire family 6: cancellation redacted",
+          "wire family 7: driver failure redacted",
+          "wire family 7: cancellation redacted",
+          "wire family 8: driver failure redacted",
+          "wire family 8: cancellation redacted",
+          "wire family 9: driver failure redacted",
+          "wire family 9: cancellation redacted",
+          "wire family 10: driver failure redacted",
+          "wire family 10: cancellation redacted",
+          "wire family 11: driver failure redacted",
+          "wire family 11: cancellation redacted",
+          "all query timeouts monotonically decrease without reset"
+        ]
+      },
+      "dimension": "transaction",
+      "id": "T03",
+      "independent_review": "pending",
+      "limitations": "Wire seam asserts positive remaining timeouts, queue:false, log:false and no retry. Real pool exhaustion/server cancellation and owner checkout remain pending.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "No deadline renewal: all queries use positive remaining milliseconds, queue:false, no retry under pool exhaustion or cancellation.",
+      "status": "partial_pending_owner"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual session identity mismatch denies",
+          "actual mutation: writer LOGIN flag",
+          "transaction policy: JIT enabled",
+          "transaction policy: search path",
+          "transaction policy: statement policy",
+          "transaction policy: lock policy",
+          "transaction policy: bytea output"
+        ],
+        "17": [
+          "actual session identity mismatch denies",
+          "actual mutation: writer LOGIN flag",
+          "transaction policy: JIT enabled",
+          "transaction policy: search path",
+          "transaction policy: statement policy",
+          "transaction policy: lock policy",
+          "transaction policy: bytea output"
+        ]
+      },
+      "dimension": "transaction",
+      "id": "T04",
+      "independent_review": "pending",
+      "limitations": "Current same-backend session, role flags and transaction policy are checked; complete function/owner conjunction is separate.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Owner/session/role prerequisites are current in same transaction; current_user/session_user mismatch or disabled JIT policy denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: extra browser view any schema",
+          "actual mutation: relation owner",
+          "wire family 2: cap plus one duplicate",
+          "wire family 2: NULL required field",
+          "wire family 2: untyped result map",
+          "wire family 2: wrong command kind",
+          "wire family 2: different backend",
+          "wire family 2: unexpected diagnostic messages",
+          "wire family 2: wrong field name",
+          "wire family 2: wrong row count",
+          "wire family 2: malformed rows",
+          "wire family 2: driver failure redacted",
+          "wire family 2: cancellation redacted"
+        ],
+        "17": [
+          "actual mutation: extra browser view any schema",
+          "actual mutation: relation owner",
+          "wire family 2: cap plus one duplicate",
+          "wire family 2: NULL required field",
+          "wire family 2: untyped result map",
+          "wire family 2: wrong command kind",
+          "wire family 2: different backend",
+          "wire family 2: unexpected diagnostic messages",
+          "wire family 2: wrong field name",
+          "wire family 2: wrong row count",
+          "wire family 2: malformed rows",
+          "wire family 2: driver failure redacted",
+          "wire family 2: cancellation redacted"
+        ]
+      },
+      "dimension": "relation",
+      "id": "R01",
+      "independent_review": "pending",
+      "limitations": "Actual owner/extra-namespace controls and typed relation-family controls; no exhaustive DDL variant claim.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Missing relation, duplicate name from wrong namespace, extra browser-prefixed relation, or wrong relation owner denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: external foreign table",
+          "actual mutation: rewrite rule",
+          "actual mutation: unlogged relation",
+          "actual mutation: inheritance edge"
+        ],
+        "17": [
+          "actual mutation: external foreign table",
+          "actual mutation: rewrite rule",
+          "actual mutation: unlogged relation",
+          "actual mutation: inheritance edge"
+        ]
+      },
+      "dimension": "relation",
+      "id": "R02",
+      "independent_review": "pending",
+      "limitations": "These actual variants pass; partition/typed/temp replacement variants are structurally rejected but not all individually recreated.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "View, foreign table, partitioned/unlogged/temporary/typed table, inheritance edge, rewrite rule, or partition attachment denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual lifecycle-login baseline",
+          "actual mutation: disabled FORCE RLS"
+        ],
+        "17": [
+          "actual lifecycle-login baseline",
+          "actual mutation: disabled FORCE RLS"
+        ]
+      },
+      "dimension": "relation",
+      "id": "R03",
+      "independent_review": "pending",
+      "limitations": "ENABLE/FORCE fields are both exact; the live negative explicitly disables FORCE.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "ENABLE RLS or FORCE RLS disabled denies, including owner bypass fixture shortcuts.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [],
+        "17": []
+      },
+      "dimension": "relation",
+      "id": "R04",
+      "independent_review": "pending",
+      "limitations": "Serialized operator-DDL policy and coherent owner rewriting are external operational responsibilities.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Concurrent operator DDL is serialized operationally; fresh per-operation check detects observed drift, never claims atomic protection against owner.",
+      "status": "pending_operator_policy"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: extra column",
+          "actual mutation: dropped column slot",
+          "wire family 3: cap plus one duplicate",
+          "wire family 3: NULL required field",
+          "wire family 3: untyped result map",
+          "wire family 3: wrong command kind",
+          "wire family 3: different backend",
+          "wire family 3: unexpected diagnostic messages",
+          "wire family 3: wrong field name",
+          "wire family 3: wrong row count",
+          "wire family 3: malformed rows",
+          "wire family 3: driver failure redacted",
+          "wire family 3: cancellation redacted"
+        ],
+        "17": [
+          "actual mutation: extra column",
+          "actual mutation: dropped column slot",
+          "wire family 3: cap plus one duplicate",
+          "wire family 3: NULL required field",
+          "wire family 3: untyped result map",
+          "wire family 3: wrong command kind",
+          "wire family 3: different backend",
+          "wire family 3: unexpected diagnostic messages",
+          "wire family 3: wrong field name",
+          "wire family 3: wrong row count",
+          "wire family 3: malformed rows",
+          "wire family 3: driver failure redacted",
+          "wire family 3: cancellation redacted"
+        ]
+      },
+      "dimension": "column",
+      "id": "C01",
+      "independent_review": "pending",
+      "limitations": "Ordered exact columns/contiguous ordinals and typed count/shape controls; no exhaustive reorder DDL claim.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Missing, extra, duplicate ordinal/name, reordered, dropped or inherited user column denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: changed collation",
+          "wire family 3: cap plus one duplicate",
+          "wire family 3: NULL required field",
+          "wire family 3: untyped result map",
+          "wire family 3: wrong command kind",
+          "wire family 3: different backend",
+          "wire family 3: unexpected diagnostic messages",
+          "wire family 3: wrong field name",
+          "wire family 3: wrong row count",
+          "wire family 3: malformed rows",
+          "wire family 3: driver failure redacted",
+          "wire family 3: cancellation redacted"
+        ],
+        "17": [
+          "actual mutation: changed collation",
+          "wire family 3: cap plus one duplicate",
+          "wire family 3: NULL required field",
+          "wire family 3: untyped result map",
+          "wire family 3: wrong command kind",
+          "wire family 3: different backend",
+          "wire family 3: unexpected diagnostic messages",
+          "wire family 3: wrong field name",
+          "wire family 3: wrong row count",
+          "wire family 3: malformed rows",
+          "wire family 3: driver failure redacted",
+          "wire family 3: cancellation redacted"
+        ]
+      },
+      "dimension": "column",
+      "id": "C02",
+      "independent_review": "pending",
+      "limitations": "Exact builtin type/OID joins, typmod/dimensions/collation comparison implemented; not every domain/type DDL variant is separately executed.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Change bytea/text/int4/int8/bool OID, typmod, dimensions, collation or introduce domain/array type denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: changed NOT NULL",
+          "actual mutation: changed default",
+          "actual mutation: missing default"
+        ],
+        "17": [
+          "actual mutation: changed NOT NULL",
+          "actual mutation: changed default",
+          "actual mutation: missing default"
+        ]
+      },
+      "dimension": "column",
+      "id": "C03",
+      "independent_review": "pending",
+      "limitations": "NOT NULL/default variants run live; identity/generation remain exact structural comparisons.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Any changed NOT NULL, identity, generated expression, or unreviewed default denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual lifecycle-login baseline",
+          "actual mutation: changed default",
+          "actual mutation: missing default"
+        ],
+        "17": [
+          "actual lifecycle-login baseline",
+          "actual mutation: changed default",
+          "actual mutation: missing default"
+        ]
+      },
+      "dimension": "column",
+      "id": "C04",
+      "independent_review": "pending",
+      "limitations": "All three default expressions are source-bound; actual removal/change controls pass.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Only attempts.ciphertext_version, profiles.state_revision and bindings.revision default 1; remove/change default denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: corrupt bigint fast default",
+          "actual rewrite clears admitted bigint fast defaults"
+        ],
+        "17": [
+          "actual mutation: corrupt bigint fast default",
+          "actual rewrite clears admitted bigint fast defaults"
+        ]
+      },
+      "dimension": "column",
+      "id": "C05",
+      "independent_review": "pending",
+      "limitations": "Both original {1} and actual absent-after-rewrite forms pass; bigint {2} fails on each major.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Fast-default attmissingval for two ALTER-added revision columns is admitted only through reviewed major-specific representation; forged/oversized missing value denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: extra check",
+          "actual mutation: weakened check",
+          "wire family 4: cap plus one duplicate",
+          "wire family 4: NULL required field",
+          "wire family 4: untyped result map",
+          "wire family 4: wrong command kind",
+          "wire family 4: different backend",
+          "wire family 4: unexpected diagnostic messages",
+          "wire family 4: wrong field name",
+          "wire family 4: wrong row count",
+          "wire family 4: malformed rows",
+          "wire family 4: driver failure redacted",
+          "wire family 4: cancellation redacted"
+        ],
+        "17": [
+          "actual mutation: extra check",
+          "actual mutation: weakened check",
+          "wire family 4: cap plus one duplicate",
+          "wire family 4: NULL required field",
+          "wire family 4: untyped result map",
+          "wire family 4: wrong command kind",
+          "wire family 4: different backend",
+          "wire family 4: unexpected diagnostic messages",
+          "wire family 4: wrong field name",
+          "wire family 4: wrong row count",
+          "wire family 4: malformed rows",
+          "wire family 4: driver failure redacted",
+          "wire family 4: cancellation redacted"
+        ]
+      },
+      "dimension": "constraint",
+      "id": "K01",
+      "independent_review": "pending",
+      "limitations": "Complete 80-CHECK multiset and 109-boundary cardinality are exact.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Remove, duplicate or append CHECK including true constraint denies by multiset counts.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: oversized deparse output",
+          "actual mutation: weakened check",
+          "actual mutation: oversized source node"
+        ],
+        "17": [
+          "actual mutation: oversized deparse output",
+          "actual mutation: weakened check",
+          "actual mutation: oversized source node"
+        ]
+      },
+      "dimension": "constraint",
+      "id": "K02",
+      "independent_review": "pending",
+      "limitations": "All 80 literal expressions compare exactly; selected live semantic weakening and expression bounds are exercised.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Weaken digest length, bound, status, linkage, cipher erasure or audit transition expression denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: CHECK dependency keys",
+          "actual mutation: constraint key vector 33 entries",
+          "actual mutation: unvalidated FK",
+          "actual mutation: deferred FK",
+          "actual mutation: same-named custom equality"
+        ],
+        "17": [
+          "actual mutation: CHECK dependency keys",
+          "actual mutation: constraint key vector 33 entries",
+          "actual mutation: unvalidated FK",
+          "actual mutation: deferred FK",
+          "actual mutation: same-named custom equality"
+        ]
+      },
+      "dimension": "constraint",
+      "id": "K03",
+      "independent_review": "pending",
+      "limitations": "Exact target/key/action/operator vectors are compared; selected actual operator/enforcement/vector mutations pass.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Wrong FK target/key order/match/action/operator identity, NOT VALID, deferrability or inheritance flags denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: wrong FK referenced index",
+          "automatic constraint and backing-index rename equivalence"
+        ],
+        "17": [
+          "actual mutation: wrong FK referenced index",
+          "automatic constraint and backing-index rename equivalence"
+        ]
+      },
+      "dimension": "constraint",
+      "id": "K04",
+      "independent_review": "pending",
+      "limitations": "Numeric PK/UNIQUE/FK index backlinks and ordered keys are checked; automatic diagnostic names remain equivalent.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Wrong PK/UNIQUE keys or a replacement index with no exact constraint linkage denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual lifecycle-login baseline",
+          "wire family 4: cap plus one duplicate",
+          "wire family 4: NULL required field",
+          "wire family 4: untyped result map",
+          "wire family 4: wrong command kind",
+          "wire family 4: different backend",
+          "wire family 4: unexpected diagnostic messages",
+          "wire family 4: wrong field name",
+          "wire family 4: wrong row count",
+          "wire family 4: malformed rows",
+          "wire family 4: driver failure redacted",
+          "wire family 4: cancellation redacted",
+          "wire family 6: cap plus one duplicate",
+          "wire family 6: NULL required field",
+          "wire family 6: untyped result map",
+          "wire family 6: wrong command kind",
+          "wire family 6: different backend",
+          "wire family 6: unexpected diagnostic messages",
+          "wire family 6: wrong field name",
+          "wire family 6: wrong row count",
+          "wire family 6: malformed rows",
+          "wire family 6: driver failure redacted",
+          "wire family 6: cancellation redacted"
+        ],
+        "17": [
+          "actual lifecycle-login baseline",
+          "wire family 4: cap plus one duplicate",
+          "wire family 4: NULL required field",
+          "wire family 4: untyped result map",
+          "wire family 4: wrong command kind",
+          "wire family 4: different backend",
+          "wire family 4: unexpected diagnostic messages",
+          "wire family 4: wrong field name",
+          "wire family 4: wrong row count",
+          "wire family 4: malformed rows",
+          "wire family 4: driver failure redacted",
+          "wire family 4: cancellation redacted",
+          "wire family 6: cap plus one duplicate",
+          "wire family 6: NULL required field",
+          "wire family 6: untyped result map",
+          "wire family 6: wrong command kind",
+          "wire family 6: different backend",
+          "wire family 6: unexpected diagnostic messages",
+          "wire family 6: wrong field name",
+          "wire family 6: wrong row count",
+          "wire family 6: malformed rows",
+          "wire family 6: driver failure redacted",
+          "wire family 6: cancellation redacted"
+        ]
+      },
+      "dimension": "constraint",
+      "id": "K05",
+      "independent_review": "pending",
+      "limitations": "Four user constraint rows link one-to-one to their four deferred triggers; no separate live removal-only control.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Constraint-trigger pg_constraint rows must link one-to-one to four exact user triggers, not be filtered as unexpected CHECKs.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: wrong RI opposite endpoint",
+          "actual mutation: disabled child RI",
+          "actual mutation: disabled parent RI"
+        ],
+        "17": [
+          "actual mutation: wrong RI opposite endpoint",
+          "actual mutation: disabled child RI",
+          "actual mutation: disabled parent RI"
+        ]
+      },
+      "dimension": "constraint",
+      "id": "K06",
+      "independent_review": "pending",
+      "limitations": "All twelve FK groups/48 RI triggers and both endpoints are checked on each major.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "All12 exact FK groups (10 outgoing and2 incoming memberships/customer_idempotency boundaries) have48 enabled RI triggers bound to correct endpoints and pg_catalog functions; disabling or replacing parent/child trigger denies. This does not admit the complete boundary source relations.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: extra index",
+          "actual mutation: missing partial index",
+          "actual mutation: partial index explicit name",
+          "automatic constraint and backing-index rename equivalence"
+        ],
+        "17": [
+          "actual mutation: extra index",
+          "actual mutation: missing partial index",
+          "actual mutation: partial index explicit name",
+          "automatic constraint and backing-index rename equivalence"
+        ]
+      },
+      "dimension": "index",
+      "id": "I01",
+      "independent_review": "pending",
+      "limitations": "Complete fourteen indexes; explicit partial name exact, generated names ignored.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Missing, extra or duplicate semantic index (renamed or same keys) denies; explicit one_attempt name exact.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: weakened partial predicate"
+        ],
+        "17": [
+          "actual mutation: weakened partial predicate"
+        ]
+      },
+      "dimension": "index",
+      "id": "I02",
+      "independent_review": "pending",
+      "limitations": "Removing claimed from the exact predicate is independently observed and denied.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "One-attempt partial predicate loses pending or claimed, includes terminal status, or becomes true denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: invalid index",
+          "actual mutation: index checkxmin",
+          "wire family 5: cap plus one duplicate",
+          "wire family 5: NULL required field",
+          "wire family 5: untyped result map",
+          "wire family 5: wrong command kind",
+          "wire family 5: different backend",
+          "wire family 5: unexpected diagnostic messages",
+          "wire family 5: wrong field name",
+          "wire family 5: wrong row count",
+          "wire family 5: malformed rows",
+          "wire family 5: driver failure redacted",
+          "wire family 5: cancellation redacted"
+        ],
+        "17": [
+          "actual mutation: invalid index",
+          "actual mutation: index checkxmin",
+          "wire family 5: cap plus one duplicate",
+          "wire family 5: NULL required field",
+          "wire family 5: untyped result map",
+          "wire family 5: wrong command kind",
+          "wire family 5: different backend",
+          "wire family 5: unexpected diagnostic messages",
+          "wire family 5: wrong field name",
+          "wire family 5: wrong row count",
+          "wire family 5: malformed rows",
+          "wire family 5: driver failure redacted",
+          "wire family 5: cancellation redacted"
+        ]
+      },
+      "dimension": "index",
+      "id": "I03",
+      "independent_review": "pending",
+      "limitations": "All health flags are decoded/exact; selected invalid/xmin states run live. No operational transition is qualified.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Invalid/not ready/not live/non-immediate/exclusion/nulls-not-distinct index denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: wrong opclass family",
+          "actual mutation: changed collation",
+          "wire family 5: cap plus one duplicate",
+          "wire family 5: NULL required field",
+          "wire family 5: untyped result map",
+          "wire family 5: wrong command kind",
+          "wire family 5: different backend",
+          "wire family 5: unexpected diagnostic messages",
+          "wire family 5: wrong field name",
+          "wire family 5: wrong row count",
+          "wire family 5: malformed rows",
+          "wire family 5: driver failure redacted",
+          "wire family 5: cancellation redacted"
+        ],
+        "17": [
+          "actual mutation: wrong opclass family",
+          "actual mutation: changed collation",
+          "wire family 5: cap plus one duplicate",
+          "wire family 5: NULL required field",
+          "wire family 5: untyped result map",
+          "wire family 5: wrong command kind",
+          "wire family 5: different backend",
+          "wire family 5: unexpected diagnostic messages",
+          "wire family 5: wrong field name",
+          "wire family 5: wrong row count",
+          "wire family 5: malformed rows",
+          "wire family 5: driver failure redacted",
+          "wire family 5: cancellation redacted"
+        ]
+      },
+      "dimension": "index",
+      "id": "I04",
+      "independent_review": "pending",
+      "limitations": "Key/opclass/family/input/collation numeric identity/options/linkage exact; not every index DDL variant is recreated.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Changed key order, INCLUDE, expression, btree opclass/collation/direction/null order or backing constraint/index link denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: disabled user trigger",
+          "actual mutation: user trigger explicit name",
+          "wire family 6: cap plus one duplicate",
+          "wire family 6: NULL required field",
+          "wire family 6: untyped result map",
+          "wire family 6: wrong command kind",
+          "wire family 6: different backend",
+          "wire family 6: unexpected diagnostic messages",
+          "wire family 6: wrong field name",
+          "wire family 6: wrong row count",
+          "wire family 6: malformed rows",
+          "wire family 6: driver failure redacted",
+          "wire family 6: cancellation redacted"
+        ],
+        "17": [
+          "actual mutation: disabled user trigger",
+          "actual mutation: user trigger explicit name",
+          "wire family 6: cap plus one duplicate",
+          "wire family 6: NULL required field",
+          "wire family 6: untyped result map",
+          "wire family 6: wrong command kind",
+          "wire family 6: different backend",
+          "wire family 6: unexpected diagnostic messages",
+          "wire family 6: wrong field name",
+          "wire family 6: wrong row count",
+          "wire family 6: malformed rows",
+          "wire family 6: driver failure redacted",
+          "wire family 6: cancellation redacted"
+        ]
+      },
+      "dimension": "trigger",
+      "id": "G01",
+      "independent_review": "pending",
+      "limitations": "All trigger enablement must be O; selected actual user-trigger controls pass.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Missing/extra trigger or disable/replica/always enablement change denies exact user trigger set.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: wrong RI opposite endpoint",
+          "wire family 6: cap plus one duplicate",
+          "wire family 6: NULL required field",
+          "wire family 6: untyped result map",
+          "wire family 6: wrong command kind",
+          "wire family 6: different backend",
+          "wire family 6: unexpected diagnostic messages",
+          "wire family 6: wrong field name",
+          "wire family 6: wrong row count",
+          "wire family 6: malformed rows",
+          "wire family 6: driver failure redacted",
+          "wire family 6: cancellation redacted"
+        ],
+        "17": [
+          "actual mutation: wrong RI opposite endpoint",
+          "wire family 6: cap plus one duplicate",
+          "wire family 6: NULL required field",
+          "wire family 6: untyped result map",
+          "wire family 6: wrong command kind",
+          "wire family 6: different backend",
+          "wire family 6: unexpected diagnostic messages",
+          "wire family 6: wrong field name",
+          "wire family 6: wrong row count",
+          "wire family 6: malformed rows",
+          "wire family 6: driver failure redacted",
+          "wire family 6: cancellation redacted"
+        ]
+      },
+      "dimension": "trigger",
+      "id": "G02",
+      "independent_review": "pending",
+      "limitations": "Event/argument/filter/WHEN/transition/clone fields are exact; every user-trigger variant is not separately recreated.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Changed AFTER/BEFORE/event/ROW, UPDATE OF filter, WHEN, arguments, transition table or parent clone denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual lifecycle-login baseline",
+          "wire family 6: cap plus one duplicate",
+          "wire family 6: NULL required field",
+          "wire family 6: untyped result map",
+          "wire family 6: wrong command kind",
+          "wire family 6: different backend",
+          "wire family 6: unexpected diagnostic messages",
+          "wire family 6: wrong field name",
+          "wire family 6: wrong row count",
+          "wire family 6: malformed rows",
+          "wire family 6: driver failure redacted",
+          "wire family 6: cancellation redacted"
+        ],
+        "17": [
+          "actual lifecycle-login baseline",
+          "wire family 6: cap plus one duplicate",
+          "wire family 6: NULL required field",
+          "wire family 6: untyped result map",
+          "wire family 6: wrong command kind",
+          "wire family 6: different backend",
+          "wire family 6: unexpected diagnostic messages",
+          "wire family 6: wrong field name",
+          "wire family 6: wrong row count",
+          "wire family 6: malformed rows",
+          "wire family 6: driver failure redacted",
+          "wire family 6: cancellation redacted"
+        ]
+      },
+      "dimension": "trigger",
+      "id": "G03",
+      "independent_review": "pending",
+      "limitations": "Four user triggers are deferred with exact constraint linkage; separate live deferral-only corruption remains unrun.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Deferred integrity trigger becomes non-deferrable/not initially deferred or constraint row missing denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: changed trigger body",
+          "actual mutation: changed trigger configuration",
+          "actual mutation: trigger PUBLIC execution"
+        ],
+        "17": [
+          "actual mutation: changed trigger body",
+          "actual mutation: changed trigger configuration",
+          "actual mutation: trigger PUBLIC execution"
+        ]
+      },
+      "dimension": "trigger",
+      "id": "G04",
+      "independent_review": "pending",
+      "limitations": "Relation checker resolves exact four function OIDs/source/config/owner/ACL. Complete eighteen-function/type prerequisite and same-owner conjunction remain separate.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Same-named trigger function has changed OID linkage, overload, prosrc bytes, owner/config/language/SECURITY DEFINER or ACL denies via prerequisite join.",
+      "status": "partial_pending_function_owner_join"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: extra permissive policy",
+          "actual mutation: extra restrictive policy",
+          "wire family 7: cap plus one duplicate",
+          "wire family 7: NULL required field",
+          "wire family 7: untyped result map",
+          "wire family 7: wrong command kind",
+          "wire family 7: different backend",
+          "wire family 7: unexpected diagnostic messages",
+          "wire family 7: wrong field name",
+          "wire family 7: wrong row count",
+          "wire family 7: malformed rows",
+          "wire family 7: driver failure redacted",
+          "wire family 7: cancellation redacted"
+        ],
+        "17": [
+          "actual mutation: extra permissive policy",
+          "actual mutation: extra restrictive policy",
+          "wire family 7: cap plus one duplicate",
+          "wire family 7: NULL required field",
+          "wire family 7: untyped result map",
+          "wire family 7: wrong command kind",
+          "wire family 7: different backend",
+          "wire family 7: unexpected diagnostic messages",
+          "wire family 7: wrong field name",
+          "wire family 7: wrong row count",
+          "wire family 7: malformed rows",
+          "wire family 7: driver failure redacted",
+          "wire family 7: cancellation redacted"
+        ]
+      },
+      "dimension": "policy",
+      "id": "P01",
+      "independent_review": "pending",
+      "limitations": "Complete32-policy multiset, commands/permissiveness/roles/NULL/expression fields compare exactly.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Missing or extra policy including restrictive policy denies complete multiset.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: extra permissive policy",
+          "actual mutation: writer policy to PUBLIC"
+        ],
+        "17": [
+          "actual mutation: extra permissive policy",
+          "actual mutation: writer policy to PUBLIC"
+        ]
+      },
+      "dimension": "policy",
+      "id": "P02",
+      "independent_review": "pending",
+      "limitations": "PUBLIC-target OR widening is denied with the original policies present.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Add permissive PUBLIC or ordinary-runtime OR policy denies even if old policies unchanged.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: writer policy to PUBLIC",
+          "wire scalar: policy role vector overrun"
+        ],
+        "17": [
+          "actual mutation: writer policy to PUBLIC",
+          "wire scalar: policy role vector overrun"
+        ]
+      },
+      "dimension": "policy",
+      "id": "P03",
+      "independent_review": "pending",
+      "limitations": "Exact singleton numeric role vectors and source policy fields are checked.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Change accepted ordinary PUBLIC target to ordinary role or add role; change command/permissiveness/USING/WITH CHECK denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: policy false to true",
+          "actual mutation: policy false to NULL"
+        ],
+        "17": [
+          "actual mutation: policy false to true",
+          "actual mutation: policy false to NULL"
+        ]
+      },
+      "dimension": "policy",
+      "id": "P04",
+      "independent_review": "pending",
+      "limitations": "All ordinary source-compiled predicates compare byte-for-byte, preserving NULL/false/true.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Change scoped_read exact profile/binding/linkage/current_setting predicate or scoped_lock false check denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: extra permissive policy",
+          "actual mutation: extra restrictive policy"
+        ],
+        "17": [
+          "actual mutation: extra permissive policy",
+          "actual mutation: extra restrictive policy"
+        ]
+      },
+      "dimension": "policy",
+      "id": "P05",
+      "independent_review": "pending",
+      "limitations": "Every unexpected name is rejected; directory_read itself is not separately created by this suite.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Add directory_read to any of these five authz or four browser tables denies; directory policies on other three relations remain outside exact-nine claim.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: policy false to true",
+          "actual mutation: policy false to NULL",
+          "actual mutation: writer policy to PUBLIC"
+        ],
+        "17": [
+          "actual mutation: policy false to true",
+          "actual mutation: policy false to NULL",
+          "actual mutation: writer policy to PUBLIC"
+        ]
+      },
+      "dimension": "policy",
+      "id": "P06",
+      "independent_review": "pending",
+      "limitations": "Writer singleton targets and USING/CHECK states are source-bound.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Browser read/insert/update targets exact writer singleton; lifecycle/ordinary role, true/false/NULL changes deny.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: lifecycle direct SELECT",
+          "actual mutation: PUBLIC relation SELECT",
+          "wire family 9: cap plus one duplicate",
+          "wire family 9: NULL required field",
+          "wire family 9: untyped result map",
+          "wire family 9: wrong command kind",
+          "wire family 9: different backend",
+          "wire family 9: unexpected diagnostic messages",
+          "wire family 9: wrong field name",
+          "wire family 9: wrong row count",
+          "wire family 9: malformed rows",
+          "wire family 9: driver failure redacted",
+          "wire family 9: cancellation redacted",
+          "wire family 10: cap plus one duplicate",
+          "wire family 10: NULL required field",
+          "wire family 10: untyped result map",
+          "wire family 10: wrong command kind",
+          "wire family 10: different backend",
+          "wire family 10: unexpected diagnostic messages",
+          "wire family 10: wrong field name",
+          "wire family 10: wrong row count",
+          "wire family 10: malformed rows",
+          "wire family 10: driver failure redacted",
+          "wire family 10: cancellation redacted"
+        ],
+        "17": [
+          "actual mutation: lifecycle direct SELECT",
+          "actual mutation: PUBLIC relation SELECT",
+          "wire family 9: cap plus one duplicate",
+          "wire family 9: NULL required field",
+          "wire family 9: untyped result map",
+          "wire family 9: wrong command kind",
+          "wire family 9: different backend",
+          "wire family 9: unexpected diagnostic messages",
+          "wire family 9: wrong field name",
+          "wire family 9: wrong row count",
+          "wire family 9: malformed rows",
+          "wire family 9: driver failure redacted",
+          "wire family 9: cancellation redacted",
+          "wire family 10: cap plus one duplicate",
+          "wire family 10: NULL required field",
+          "wire family 10: untyped result map",
+          "wire family 10: wrong command kind",
+          "wire family 10: different backend",
+          "wire family 10: unexpected diagnostic messages",
+          "wire family 10: wrong field name",
+          "wire family 10: wrong row count",
+          "wire family 10: malformed rows",
+          "wire family 10: driver failure redacted",
+          "wire family 10: cancellation redacted"
+        ]
+      },
+      "dimension": "acl",
+      "id": "A01",
+      "independent_review": "pending",
+      "limitations": "Raw and effective all-token table/column denial; selected actual grants pass.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Lifecycle receives any direct table/column SELECT/DML/REFERENCES/TRIGGER/TRUNCATE or PG17 MAINTAIN denies, including PUBLIC/default/inherited routes.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: writer extra table UPDATE",
+          "actual mutation: writer immutable column UPDATE",
+          "actual mutation: writer grant option"
+        ],
+        "17": [
+          "actual mutation: writer extra table UPDATE",
+          "actual mutation: writer immutable column UPDATE",
+          "actual mutation: writer grant option",
+          "actual mutation: PG17 application MAINTAIN"
+        ]
+      },
+      "dimension": "acl",
+      "id": "A02",
+      "independent_review": "pending",
+      "limitations": "PG17-specific MAINTAIN mutation runs only on PG17; all other listed controls run on both.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Writer table-level UPDATE, DELETE/TRUNCATE/REFERENCES/TRIGGER/MAINTAIN, grant option, extra column grant or immutable-key UPDATE denies.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual lifecycle-login baseline",
+          "actual mutation: missing writer INSERT",
+          "wire family 8: cap plus one duplicate",
+          "wire family 8: NULL required field",
+          "wire family 8: untyped result map",
+          "wire family 8: wrong command kind",
+          "wire family 8: different backend",
+          "wire family 8: unexpected diagnostic messages",
+          "wire family 8: wrong field name",
+          "wire family 8: wrong row count",
+          "wire family 8: malformed rows",
+          "wire family 8: driver failure redacted",
+          "wire family 8: cancellation redacted",
+          "wire family 10: cap plus one duplicate",
+          "wire family 10: NULL required field",
+          "wire family 10: untyped result map",
+          "wire family 10: wrong command kind",
+          "wire family 10: different backend",
+          "wire family 10: unexpected diagnostic messages",
+          "wire family 10: wrong field name",
+          "wire family 10: wrong row count",
+          "wire family 10: malformed rows",
+          "wire family 10: driver failure redacted",
+          "wire family 10: cancellation redacted"
+        ],
+        "17": [
+          "actual lifecycle-login baseline",
+          "actual mutation: missing writer INSERT",
+          "wire family 8: cap plus one duplicate",
+          "wire family 8: NULL required field",
+          "wire family 8: untyped result map",
+          "wire family 8: wrong command kind",
+          "wire family 8: different backend",
+          "wire family 8: unexpected diagnostic messages",
+          "wire family 8: wrong field name",
+          "wire family 8: wrong row count",
+          "wire family 8: malformed rows",
+          "wire family 8: driver failure redacted",
+          "wire family 8: cancellation redacted",
+          "wire family 10: cap plus one duplicate",
+          "wire family 10: NULL required field",
+          "wire family 10: untyped result map",
+          "wire family 10: wrong command kind",
+          "wire family 10: different backend",
+          "wire family 10: unexpected diagnostic messages",
+          "wire family 10: wrong field name",
+          "wire family 10: wrong row count",
+          "wire family 10: malformed rows",
+          "wire family 10: driver failure redacted",
+          "wire family 10: cancellation redacted"
+        ]
+      },
+      "dimension": "acl",
+      "id": "A03",
+      "independent_review": "pending",
+      "limitations": "Exact SELECT/INSERT/mutable-column raw and effective matrices checked.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Writer missing SELECT/INSERT or exact mutable-column grant denies; effective column rights derived from table grants must not be mistaken for explicit column ACL.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: ordinary browser SELECT",
+          "wire family 9: cap plus one duplicate",
+          "wire family 9: NULL required field",
+          "wire family 9: untyped result map",
+          "wire family 9: wrong command kind",
+          "wire family 9: different backend",
+          "wire family 9: unexpected diagnostic messages",
+          "wire family 9: wrong field name",
+          "wire family 9: wrong row count",
+          "wire family 9: malformed rows",
+          "wire family 9: driver failure redacted",
+          "wire family 9: cancellation redacted",
+          "wire family 10: cap plus one duplicate",
+          "wire family 10: NULL required field",
+          "wire family 10: untyped result map",
+          "wire family 10: wrong command kind",
+          "wire family 10: different backend",
+          "wire family 10: unexpected diagnostic messages",
+          "wire family 10: wrong field name",
+          "wire family 10: wrong row count",
+          "wire family 10: malformed rows",
+          "wire family 10: driver failure redacted",
+          "wire family 10: cancellation redacted"
+        ],
+        "17": [
+          "actual mutation: ordinary browser SELECT",
+          "wire family 9: cap plus one duplicate",
+          "wire family 9: NULL required field",
+          "wire family 9: untyped result map",
+          "wire family 9: wrong command kind",
+          "wire family 9: different backend",
+          "wire family 9: unexpected diagnostic messages",
+          "wire family 9: wrong field name",
+          "wire family 9: wrong row count",
+          "wire family 9: malformed rows",
+          "wire family 9: driver failure redacted",
+          "wire family 9: cancellation redacted",
+          "wire family 10: cap plus one duplicate",
+          "wire family 10: NULL required field",
+          "wire family 10: untyped result map",
+          "wire family 10: wrong command kind",
+          "wire family 10: different backend",
+          "wire family 10: unexpected diagnostic messages",
+          "wire family 10: wrong field name",
+          "wire family 10: wrong row count",
+          "wire family 10: malformed rows",
+          "wire family 10: driver failure redacted",
+          "wire family 10: cancellation redacted"
+        ]
+      },
+      "dimension": "acl",
+      "id": "A04",
+      "independent_review": "pending",
+      "limitations": "Ordinary browser denial and five authz SELECT rights exact; not each authz mutation grant is independently applied.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Ordinary receives browser table/column privilege or authz mutation grant denies; ordinary authz table SELECT remains required.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: raw ACL grantor",
+          "actual mutation: PUBLIC relation SELECT",
+          "actual mutation: third-party role SELECT",
+          "actual mutation: writer grant option"
+        ],
+        "17": [
+          "actual mutation: raw ACL grantor",
+          "actual mutation: PUBLIC relation SELECT",
+          "actual mutation: third-party role SELECT",
+          "actual mutation: writer grant option"
+        ]
+      },
+      "dimension": "acl",
+      "id": "A05",
+      "independent_review": "pending",
+      "limitations": "Raw grantor/grantee/token/grant-option tuples and owner/application separation are exact.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Any nonowner grant to unreviewed third-party role or PUBLIC, including grant-option route or implicit owner privilege confusion, denies exact ACL map.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: external foreign table",
+          "actual mutation: external membership SELECT",
+          "actual mutation: external membership column UPDATE",
+          "actual mutation: external writable view",
+          "actual mutation: external sequence USAGE",
+          "actual mutation: schema CREATE escape",
+          "actual mutation: role membership escape"
+        ],
+        "17": [
+          "actual mutation: external foreign table",
+          "actual mutation: external membership SELECT",
+          "actual mutation: external membership column UPDATE",
+          "actual mutation: external writable view",
+          "actual mutation: external sequence USAGE",
+          "actual mutation: schema CREATE escape",
+          "actual mutation: role membership escape"
+        ]
+      },
+      "dimension": "acl",
+      "id": "A06",
+      "independent_review": "pending",
+      "limitations": "Relation/schema/column/sequence escapes close here. Full SECURITY DEFINER/type/role-topology composition remains the separate prerequisite and trusted owner responsibility.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Writer/lifecycle direct or indirect grant on tenant/membership, writable view/foreign table, relation/schema ownership or unreviewed SECURITY DEFINER path denies broader composition, not just nine-table query.",
+      "status": "partial_pending_function_owner_join"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual lifecycle-login baseline",
+          "automatic constraint and backing-index rename equivalence",
+          "actual rewrite clears admitted bigint fast defaults"
+        ],
+        "17": [
+          "actual lifecycle-login baseline",
+          "automatic constraint and backing-index rename equivalence",
+          "actual rewrite clears admitted bigint fast defaults"
+        ]
+      },
+      "dimension": "canonicalization",
+      "id": "V01",
+      "independent_review": "pending",
+      "limitations": "Both selected major fixtures independently install the same explicit nine source migrations and match fixed reviewed expressions; no runtime oracle learning.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Independently installed accepted source fixtures on PG16 and PG17 yield reviewed per-major deparse forms; no learning expected values from attacked catalog.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: oversized deparse output",
+          "actual mutation: changed trigger body"
+        ],
+        "17": [
+          "actual mutation: oversized deparse output",
+          "actual mutation: changed trigger body"
+        ]
+      },
+      "dimension": "canonicalization",
+      "id": "V02",
+      "independent_review": "pending",
+      "limitations": "Whitespace literal survives into separate output-bound control; expressions and function source use exact equality without normalization.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "String literal containing whitespace, quotes or qualification must survive comparison; generic whitespace/regex semantic rewrite is forbidden.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "wire scalar: unsupported major"
+        ],
+        "17": [
+          "actual mutation: PG17 application MAINTAIN",
+          "wire scalar: unsupported major"
+        ]
+      },
+      "dimension": "canonicalization",
+      "id": "V03",
+      "independent_review": "pending",
+      "limitations": "PG16 executes no MAINTAIN probe; unknown raw tokens differ from its exact source matrix. Real unsupported server is not started.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "PG17 MAINTAIN ACL token is explicitly denied; PG16 unknown privilege token or unsupported server major fails closed.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "all four configured role names are parameterized",
+          "actual mutation: wrong RI opposite endpoint",
+          "actual mutation: wrong opclass family",
+          "actual mutation: same-named custom equality"
+        ],
+        "17": [
+          "all four configured role names are parameterized",
+          "actual mutation: wrong RI opposite endpoint",
+          "actual mutation: wrong opclass family",
+          "actual mutation: same-named custom equality"
+        ]
+      },
+      "dimension": "canonicalization",
+      "id": "V04",
+      "independent_review": "pending",
+      "limitations": "Numeric OID joins resolve qualified builtin identities; configured names are not frozen fixture identities.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "OIDs resolve to qualified builtin identities/operators/opclasses/collations, not hardcoded installation OIDs or search_path output.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual mutation: constraint key vector 33 entries",
+          "actual mutation: oversized deparse output",
+          "actual mutation: ACL 65 entry scalar cap",
+          "actual mutation: ACL 16KiB scalar cap",
+          "actual mutation: oversized source node",
+          "wire family 0: cap plus one duplicate",
+          "wire family 0: NULL required field",
+          "wire family 0: untyped result map",
+          "wire family 0: wrong command kind",
+          "wire family 0: different backend",
+          "wire family 0: unexpected diagnostic messages",
+          "wire family 0: wrong field name",
+          "wire family 0: wrong row count",
+          "wire family 0: malformed rows",
+          "wire family 0: driver failure redacted",
+          "wire family 0: cancellation redacted",
+          "wire family 1: cap plus one duplicate",
+          "wire family 1: NULL required field",
+          "wire family 1: untyped result map",
+          "wire family 1: wrong command kind",
+          "wire family 1: different backend",
+          "wire family 1: unexpected diagnostic messages",
+          "wire family 1: wrong field name",
+          "wire family 1: wrong row count",
+          "wire family 1: malformed rows",
+          "wire family 1: driver failure redacted",
+          "wire family 1: cancellation redacted",
+          "wire family 2: cap plus one duplicate",
+          "wire family 2: NULL required field",
+          "wire family 2: untyped result map",
+          "wire family 2: wrong command kind",
+          "wire family 2: different backend",
+          "wire family 2: unexpected diagnostic messages",
+          "wire family 2: wrong field name",
+          "wire family 2: wrong row count",
+          "wire family 2: malformed rows",
+          "wire family 2: driver failure redacted",
+          "wire family 2: cancellation redacted",
+          "wire family 3: cap plus one duplicate",
+          "wire family 3: NULL required field",
+          "wire family 3: untyped result map",
+          "wire family 3: wrong command kind",
+          "wire family 3: different backend",
+          "wire family 3: unexpected diagnostic messages",
+          "wire family 3: wrong field name",
+          "wire family 3: wrong row count",
+          "wire family 3: malformed rows",
+          "wire family 3: driver failure redacted",
+          "wire family 3: cancellation redacted",
+          "wire family 4: cap plus one duplicate",
+          "wire family 4: NULL required field",
+          "wire family 4: untyped result map",
+          "wire family 4: wrong command kind",
+          "wire family 4: different backend",
+          "wire family 4: unexpected diagnostic messages",
+          "wire family 4: wrong field name",
+          "wire family 4: wrong row count",
+          "wire family 4: malformed rows",
+          "wire family 4: driver failure redacted",
+          "wire family 4: cancellation redacted",
+          "wire family 5: cap plus one duplicate",
+          "wire family 5: NULL required field",
+          "wire family 5: untyped result map",
+          "wire family 5: wrong command kind",
+          "wire family 5: different backend",
+          "wire family 5: unexpected diagnostic messages",
+          "wire family 5: wrong field name",
+          "wire family 5: wrong row count",
+          "wire family 5: malformed rows",
+          "wire family 5: driver failure redacted",
+          "wire family 5: cancellation redacted",
+          "wire family 6: cap plus one duplicate",
+          "wire family 6: NULL required field",
+          "wire family 6: untyped result map",
+          "wire family 6: wrong command kind",
+          "wire family 6: different backend",
+          "wire family 6: unexpected diagnostic messages",
+          "wire family 6: wrong field name",
+          "wire family 6: wrong row count",
+          "wire family 6: malformed rows",
+          "wire family 6: driver failure redacted",
+          "wire family 6: cancellation redacted",
+          "wire family 7: cap plus one duplicate",
+          "wire family 7: NULL required field",
+          "wire family 7: untyped result map",
+          "wire family 7: wrong command kind",
+          "wire family 7: different backend",
+          "wire family 7: unexpected diagnostic messages",
+          "wire family 7: wrong field name",
+          "wire family 7: wrong row count",
+          "wire family 7: malformed rows",
+          "wire family 7: driver failure redacted",
+          "wire family 7: cancellation redacted",
+          "wire family 8: cap plus one duplicate",
+          "wire family 8: NULL required field",
+          "wire family 8: untyped result map",
+          "wire family 8: wrong command kind",
+          "wire family 8: different backend",
+          "wire family 8: unexpected diagnostic messages",
+          "wire family 8: wrong field name",
+          "wire family 8: wrong row count",
+          "wire family 8: malformed rows",
+          "wire family 8: driver failure redacted",
+          "wire family 8: cancellation redacted",
+          "wire family 9: cap plus one duplicate",
+          "wire family 9: NULL required field",
+          "wire family 9: untyped result map",
+          "wire family 9: wrong command kind",
+          "wire family 9: different backend",
+          "wire family 9: unexpected diagnostic messages",
+          "wire family 9: wrong field name",
+          "wire family 9: wrong row count",
+          "wire family 9: malformed rows",
+          "wire family 9: driver failure redacted",
+          "wire family 9: cancellation redacted",
+          "wire family 10: cap plus one duplicate",
+          "wire family 10: NULL required field",
+          "wire family 10: untyped result map",
+          "wire family 10: wrong command kind",
+          "wire family 10: different backend",
+          "wire family 10: unexpected diagnostic messages",
+          "wire family 10: wrong field name",
+          "wire family 10: wrong row count",
+          "wire family 10: malformed rows",
+          "wire family 10: driver failure redacted",
+          "wire family 10: cancellation redacted",
+          "wire family 11: cap plus one duplicate",
+          "wire family 11: NULL required field",
+          "wire family 11: untyped result map",
+          "wire family 11: wrong command kind",
+          "wire family 11: different backend",
+          "wire family 11: unexpected diagnostic messages",
+          "wire family 11: wrong field name",
+          "wire family 11: wrong row count",
+          "wire family 11: malformed rows",
+          "wire family 11: driver failure redacted",
+          "wire family 11: cancellation redacted",
+          "wire scalar: unsupported major",
+          "wire scalar: NULL versus false",
+          "wire scalar: wrong login",
+          "wire scalar: NULL OID",
+          "wire scalar: negative OID",
+          "wire scalar: oversized role identifier",
+          "wire scalar: oversized deparse output",
+          "wire scalar: distinct node bound marker",
+          "wire scalar: operator vector overrun",
+          "wire scalar: policy role vector overrun",
+          "aggregate decoded wire over 2MiB rejects with bounded individual scalars"
+        ],
+        "17": [
+          "actual mutation: constraint key vector 33 entries",
+          "actual mutation: oversized deparse output",
+          "actual mutation: ACL 65 entry scalar cap",
+          "actual mutation: ACL 16KiB scalar cap",
+          "actual mutation: oversized source node",
+          "wire family 0: cap plus one duplicate",
+          "wire family 0: NULL required field",
+          "wire family 0: untyped result map",
+          "wire family 0: wrong command kind",
+          "wire family 0: different backend",
+          "wire family 0: unexpected diagnostic messages",
+          "wire family 0: wrong field name",
+          "wire family 0: wrong row count",
+          "wire family 0: malformed rows",
+          "wire family 0: driver failure redacted",
+          "wire family 0: cancellation redacted",
+          "wire family 1: cap plus one duplicate",
+          "wire family 1: NULL required field",
+          "wire family 1: untyped result map",
+          "wire family 1: wrong command kind",
+          "wire family 1: different backend",
+          "wire family 1: unexpected diagnostic messages",
+          "wire family 1: wrong field name",
+          "wire family 1: wrong row count",
+          "wire family 1: malformed rows",
+          "wire family 1: driver failure redacted",
+          "wire family 1: cancellation redacted",
+          "wire family 2: cap plus one duplicate",
+          "wire family 2: NULL required field",
+          "wire family 2: untyped result map",
+          "wire family 2: wrong command kind",
+          "wire family 2: different backend",
+          "wire family 2: unexpected diagnostic messages",
+          "wire family 2: wrong field name",
+          "wire family 2: wrong row count",
+          "wire family 2: malformed rows",
+          "wire family 2: driver failure redacted",
+          "wire family 2: cancellation redacted",
+          "wire family 3: cap plus one duplicate",
+          "wire family 3: NULL required field",
+          "wire family 3: untyped result map",
+          "wire family 3: wrong command kind",
+          "wire family 3: different backend",
+          "wire family 3: unexpected diagnostic messages",
+          "wire family 3: wrong field name",
+          "wire family 3: wrong row count",
+          "wire family 3: malformed rows",
+          "wire family 3: driver failure redacted",
+          "wire family 3: cancellation redacted",
+          "wire family 4: cap plus one duplicate",
+          "wire family 4: NULL required field",
+          "wire family 4: untyped result map",
+          "wire family 4: wrong command kind",
+          "wire family 4: different backend",
+          "wire family 4: unexpected diagnostic messages",
+          "wire family 4: wrong field name",
+          "wire family 4: wrong row count",
+          "wire family 4: malformed rows",
+          "wire family 4: driver failure redacted",
+          "wire family 4: cancellation redacted",
+          "wire family 5: cap plus one duplicate",
+          "wire family 5: NULL required field",
+          "wire family 5: untyped result map",
+          "wire family 5: wrong command kind",
+          "wire family 5: different backend",
+          "wire family 5: unexpected diagnostic messages",
+          "wire family 5: wrong field name",
+          "wire family 5: wrong row count",
+          "wire family 5: malformed rows",
+          "wire family 5: driver failure redacted",
+          "wire family 5: cancellation redacted",
+          "wire family 6: cap plus one duplicate",
+          "wire family 6: NULL required field",
+          "wire family 6: untyped result map",
+          "wire family 6: wrong command kind",
+          "wire family 6: different backend",
+          "wire family 6: unexpected diagnostic messages",
+          "wire family 6: wrong field name",
+          "wire family 6: wrong row count",
+          "wire family 6: malformed rows",
+          "wire family 6: driver failure redacted",
+          "wire family 6: cancellation redacted",
+          "wire family 7: cap plus one duplicate",
+          "wire family 7: NULL required field",
+          "wire family 7: untyped result map",
+          "wire family 7: wrong command kind",
+          "wire family 7: different backend",
+          "wire family 7: unexpected diagnostic messages",
+          "wire family 7: wrong field name",
+          "wire family 7: wrong row count",
+          "wire family 7: malformed rows",
+          "wire family 7: driver failure redacted",
+          "wire family 7: cancellation redacted",
+          "wire family 8: cap plus one duplicate",
+          "wire family 8: NULL required field",
+          "wire family 8: untyped result map",
+          "wire family 8: wrong command kind",
+          "wire family 8: different backend",
+          "wire family 8: unexpected diagnostic messages",
+          "wire family 8: wrong field name",
+          "wire family 8: wrong row count",
+          "wire family 8: malformed rows",
+          "wire family 8: driver failure redacted",
+          "wire family 8: cancellation redacted",
+          "wire family 9: cap plus one duplicate",
+          "wire family 9: NULL required field",
+          "wire family 9: untyped result map",
+          "wire family 9: wrong command kind",
+          "wire family 9: different backend",
+          "wire family 9: unexpected diagnostic messages",
+          "wire family 9: wrong field name",
+          "wire family 9: wrong row count",
+          "wire family 9: malformed rows",
+          "wire family 9: driver failure redacted",
+          "wire family 9: cancellation redacted",
+          "wire family 10: cap plus one duplicate",
+          "wire family 10: NULL required field",
+          "wire family 10: untyped result map",
+          "wire family 10: wrong command kind",
+          "wire family 10: different backend",
+          "wire family 10: unexpected diagnostic messages",
+          "wire family 10: wrong field name",
+          "wire family 10: wrong row count",
+          "wire family 10: malformed rows",
+          "wire family 10: driver failure redacted",
+          "wire family 10: cancellation redacted",
+          "wire family 11: cap plus one duplicate",
+          "wire family 11: NULL required field",
+          "wire family 11: untyped result map",
+          "wire family 11: wrong command kind",
+          "wire family 11: different backend",
+          "wire family 11: unexpected diagnostic messages",
+          "wire family 11: wrong field name",
+          "wire family 11: wrong row count",
+          "wire family 11: malformed rows",
+          "wire family 11: driver failure redacted",
+          "wire family 11: cancellation redacted",
+          "wire scalar: unsupported major",
+          "wire scalar: NULL versus false",
+          "wire scalar: wrong login",
+          "wire scalar: NULL OID",
+          "wire scalar: negative OID",
+          "wire scalar: oversized role identifier",
+          "wire scalar: oversized deparse output",
+          "wire scalar: distinct node bound marker",
+          "wire scalar: operator vector overrun",
+          "wire scalar: policy role vector overrun",
+          "aggregate decoded wire over 2MiB rejects with bounded individual scalars"
+        ]
+      },
+      "dimension": "canonicalization",
+      "id": "V05",
+      "independent_review": "pending",
+      "limitations": "All twelve result families have cap+one/NULL/shape/kind/backend/message/fault controls, plus actual scalar/node/output bounds. Not all exhaustive combinations are claimed.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Every result family exercises cap, cap+1, oversized scalar/array/definition, NULL, malformed/duplicate rows and decoder overrun; corrected constraint cap109/sentinel110 and trigger cap53/sentinel54 deny overruns.",
+      "status": "component_controls_passed"
+    },
+    {
+      "component_methods": {
+        "16": [],
+        "17": []
+      },
+      "dimension": "composition",
+      "id": "J01",
+      "independent_review": "pending",
+      "limitations": "No trusted Store/readiness/route composition exists in this slice; neither prerequisite atom independently authorizes it.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Function/type success alone and relation success alone cannot mark owner storage_ready or enable route; conjunction with trusted owner provenance remains pending.",
+      "status": "pending_trusted_owner"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual lifecycle-login baseline",
+          "actual mutation: changed trigger body"
+        ],
+        "17": [
+          "actual lifecycle-login baseline",
+          "actual mutation: changed trigger body"
+        ]
+      },
+      "dimension": "composition",
+      "id": "J02",
+      "independent_review": "pending",
+      "limitations": "Same-backend numeric trigger joins are implemented locally; future Store must compose the complete function prerequisite on its checkout.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Function prerequisite trigger OIDs and relation trigger tgfoid compared in same admitted transaction before Store SQL.",
+      "status": "pending_trusted_owner"
+    },
+    {
+      "component_methods": {
+        "16": [],
+        "17": []
+      },
+      "dimension": "composition",
+      "id": "J03",
+      "independent_review": "pending",
+      "limitations": "No v2 function/type selection is made by this original-nine relation checker. Root owns the separate additive selection.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "Unknown v2 preparation helper/type or mixed manifest version denies until explicit reviewed additive selection.",
+      "status": "pending_function_version_selection"
+    },
+    {
+      "component_methods": {
+        "16": [
+          "actual lifecycle-login baseline",
+          "wire family 0: driver failure redacted",
+          "wire family 0: cancellation redacted",
+          "wire family 1: driver failure redacted",
+          "wire family 1: cancellation redacted",
+          "wire family 2: driver failure redacted",
+          "wire family 2: cancellation redacted",
+          "wire family 3: driver failure redacted",
+          "wire family 3: cancellation redacted",
+          "wire family 4: driver failure redacted",
+          "wire family 4: cancellation redacted",
+          "wire family 5: driver failure redacted",
+          "wire family 5: cancellation redacted",
+          "wire family 6: driver failure redacted",
+          "wire family 6: cancellation redacted",
+          "wire family 7: driver failure redacted",
+          "wire family 7: cancellation redacted",
+          "wire family 8: driver failure redacted",
+          "wire family 8: cancellation redacted",
+          "wire family 9: driver failure redacted",
+          "wire family 9: cancellation redacted",
+          "wire family 10: driver failure redacted",
+          "wire family 10: cancellation redacted",
+          "wire family 11: driver failure redacted",
+          "wire family 11: cancellation redacted"
+        ],
+        "17": [
+          "actual lifecycle-login baseline",
+          "wire family 0: driver failure redacted",
+          "wire family 0: cancellation redacted",
+          "wire family 1: driver failure redacted",
+          "wire family 1: cancellation redacted",
+          "wire family 2: driver failure redacted",
+          "wire family 2: cancellation redacted",
+          "wire family 3: driver failure redacted",
+          "wire family 3: cancellation redacted",
+          "wire family 4: driver failure redacted",
+          "wire family 4: cancellation redacted",
+          "wire family 5: driver failure redacted",
+          "wire family 5: cancellation redacted",
+          "wire family 6: driver failure redacted",
+          "wire family 6: cancellation redacted",
+          "wire family 7: driver failure redacted",
+          "wire family 7: cancellation redacted",
+          "wire family 8: driver failure redacted",
+          "wire family 8: cancellation redacted",
+          "wire family 9: driver failure redacted",
+          "wire family 9: cancellation redacted",
+          "wire family 10: driver failure redacted",
+          "wire family 10: cancellation redacted",
+          "wire family 11: driver failure redacted",
+          "wire family 11: cancellation redacted"
+        ]
+      },
+      "dimension": "composition",
+      "id": "J04",
+      "independent_review": "pending",
+      "limitations": "Production performs only bounded catalog SELECTs and returns redacted failures. Live mutation rollback is fixture isolation, not trusted Store rollback/readiness qualification.",
+      "original_status": "pending_runtime",
+      "postgres": [
+        "16",
+        "17"
+      ],
+      "requirement": "No data rows, secrets, provider calls, migration/grant/repair or cached result used by relation admission; redacted failure rolls back without readiness.",
+      "status": "partial_pending_owner_rollback"
+    }
+  ],
+  "full_contract_cases_claimed_passed": 0,
+  "schema": 1,
+  "scope": "48 exact original cases mapped; component coverage is not full owner/runtime acceptance"
+}

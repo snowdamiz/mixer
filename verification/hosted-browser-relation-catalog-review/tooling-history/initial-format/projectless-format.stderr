@@ -1,0 +1,41 @@
+** (Mix) mix format failed due to --check-formatted.
+The following files are not formatted:
+
+[1m[31m/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-relation-review-compile-v7pv6rn5/format/live.exs
+[0m
+         |
+ 31  31  |      Process.get(:review_fault).(index, result)
+ 32  32  |    else
+ 33     -|      result = Ecto.Adapters.SQL.query!(RelationReview.Login, sql, params,
+ 34     -|        timeout: timeout, queue: false, log: false)
+     33 +|      result =
+     34 +|        Ecto.Adapters.SQL.query!(RelationReview.Login, sql, params,
+     35 +|          timeout: timeout,
+     36 +|          queue: false,
+     37 +|          log: false
+     38 +|        )
+     39 +|
+ 35  40  |      Process.put(:review_rows, [{sql, params, result} | Process.get(:review_rows, [])])
+ 36  41  |      {:ok, result}
+         |
+103 108  |          policy(RelationReview.Login)
+104 109  |          check(RelationReview.Login)
+105     -|        end, log: false) === {:ok, :relation_surface_verified}
+    110 +|        end,
+    111 +|        log: false
+    112 +|      ) === {:ok, :relation_surface_verified}
+106 113  |    )
+107 114  |  end
+         |
+323 330  |              policy(RelationReview.Login)
+324 331  |              check(RelationReview.Wire)
+325     -|            end, log: false) === {:ok, :relation_surface_verified}
+    332 +|            end,
+    333 +|            log: false
+    334 +|          ) === {:ok, :relation_surface_verified}
+326 335  |        )
+327 336  |      end)
+         |
+
+
+

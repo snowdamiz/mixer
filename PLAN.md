@@ -30,8 +30,7 @@ correction passes the actual formatter and fresh 26-method PostgreSQL 17 and
 20-method independent PostgreSQL 16 replays. Corrected `6baf9acc` Phoenix CI
 passes every step and its Engine run passes all three jobs. The preceding
 catalog Engine run also passes. SQL prerequisite `97d436b4` now passes both
-Phoenix and Engine CI. Catalog V2 checkpoint `6b1dfd33` now passes Phoenix CI;
-its Engine VM/services jobs pass and Swift is running. Model checkpoint
+Phoenix and Engine CI. Catalog V2 checkpoint `6b1dfd33` now passes Phoenix and all Engine jobs. Model checkpoint
 `53672fc1` passes Engine CI.
 See [the integrated scope](docs/hosted-browser-session-integration.md).
 Computer use, capture and native runtime tests remain paused.
@@ -61,9 +60,13 @@ The full plan remains incomplete; no GA gate is promoted.
    is withheld. A second count-plan-aware cold-insertion model passes 24 producer
    and 18 independent methods (292 oracle cases, 46,550 transitions). Its retained
    phase regressions and estimated costs prevent an inference of target benefit.
-   Root accepts the finite result and selects a separate isolated Rust feasibility
-   experiment to measure exact work, memory and hit costs. Live integration and
-   any new full-target retry remain unselected. See
+   The separate isolated Rust feasibility experiment is now rejected: three of
+   six complete CacheWork traces regress, operation reservation grows by 20,472
+   bytes and memory admission fails earlier. Two original policy observations
+   remain failed. An independent 23-method offline audit confirms the recorded
+   rejection; live integration and full-target retry are unselected. Root selects
+   a bounded ordered cache-transition diagnostic design to resolve missing
+   actual call order. See [the rejection audit](docs/swift-count-plan-retention-candidate-review.md),
    [the reviewed finite result](docs/swift-retention-next-design-review.md),
    [the earlier unselected model](docs/swift-adaptive-retention-design.md),
    [the finite rejection](docs/swift-cost-retention-candidate-review.md),
@@ -184,8 +187,12 @@ The full plan remains incomplete; no GA gate is promoted.
    semantic checks, with 23/24 actual mutation controls. Independent review
    passes 427 main, 96 mutation-effect and 14 freeze/source assertions; counts
    overlap. Root accepts representation evidence. The RelationCatalog candidate
-   passes 233 PG16 and 234 PG17 methods, with 65/66 live mutation controls;
-   independent review is in progress. The additive preparation SQL helper passes 39 PG17 and 38
+   passes 233 PG16 and 234 PG17 methods, with 65/66 live mutation controls.
+   Independent review passes 96 methods on each major, including fourteen
+   denied mutations and two allowed naming equivalences. Root accepts only
+   this partial prerequisite and selects dedicated preauth Store/bootstrap/load
+   composition; no complete runtime case or readiness is claimed. See
+   [relation review](docs/hosted-browser-relation-catalog-review.md). The additive preparation SQL helper passes 39 PG17 and 38
    independent PG16 methods after rejecting unexpected new-object grants. Root
    accepts this SQL component and the separately reviewed inert migration; no
    lifecycle caller or readiness is enabled. Forty owner

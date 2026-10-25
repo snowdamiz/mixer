@@ -1,0 +1,26 @@
+2026-10-25 15:02:39.151 EDT [41683] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-25 15:02:39.152 EDT [41683] LOG:  listening on IPv4 address "127.0.0.1", port 59564
+2026-10-25 15:02:39.155 EDT [41686] LOG:  database system was shut down at 2026-10-25 15:02:39 EDT
+2026-10-25 15:02:39.158 EDT [41683] LOG:  database system is ready to accept connections
+2026-10-25 15:02:40.630 EDT [41785] ERROR:  could not identify an ordering operator for type text at character 2362
+2026-10-25 15:02:40.630 EDT [41785] HINT:  Use an explicit ordering operator or modify the query.
+2026-10-25 15:02:40.630 EDT [41785] STATEMENT:  WITH targets AS (SELECT c.oid,n.nspname::pg_catalog.text||'.'||c.relname::pg_catalog.text AS name FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE c.oid=ANY($1::pg_catalog.oid[])) SELECT x.name AS relation,a.attrelid::pg_catalog.int8 AS relid,a.attnum::pg_catalog.int4 AS number,
+	  a.attname::pg_catalog.text AS name,a.attisdropped AS dropped,a.atttypid::pg_catalog.int8 AS type_oid,
+	  tn.nspname::pg_catalog.text||'.'||t.typname::pg_catalog.text AS type,t.typbasetype::pg_catalog.int8 AS base,
+	  t.typtype::pg_catalog.text AS type_kind,a.atttypmod AS typmod,a.attndims AS dimensions,a.attnotnull AS notnull,
+	  a.attidentity::pg_catalog.text AS identity,a.attgenerated::pg_catalog.text AS generated,a.attislocal AS local,
+	  a.attinhcount AS inherited,a.atthasdef AS has_default,CASE WHEN d.adbin IS NULL THEN NULL WHEN pg_catalog.octet_length(d.adbin::pg_catalog.text)>32768 THEN '__mixer_relation_bound__' ELSE CASE WHEN pg_catalog.octet_length(pg_catalog.pg_get_expr(d.adbin,a.attrelid,false))>8192 THEN '__mixer_relation_bound__' ELSE pg_catalog.pg_get_expr(d.adbin,a.attrelid,false) END END AS default,
+	  a.atthasmissing AS has_missing,
+	  CASE WHEN a.attmissingval IS NULL THEN NULL WHEN pg_catalog.cardinality(a.attmissingval)>1 OR pg_catalog.octet_length(a.attmissingval::pg_catalog.text)>16384 THEN '__mixer_relation_bound__' ELSE a.attmissingval::pg_catalog.text END AS missing,
+	  a.attcollation::pg_catalog.int8 AS collation_oid,
+	  CASE WHEN a.attcollation=0 THEN NULL ELSE cn.nspname::pg_catalog.text||'.'||co.collname::pg_catalog.text END AS collation,
+	  (a.attcollation=0 OR (co.collprovider='d' AND co.collisdeterministic AND co.collencoding=-1 AND co.collcollate IS NULL AND co.collctype IS NULL AND co.collversion IS NULL)) AS collation_safe,
+	  a.attacl IS NULL AS acl_null,(a.attacl IS NULL OR (pg_catalog.cardinality(a.attacl)<=64 AND pg_catalog.octet_length(a.attacl::pg_catalog.text)<=16384)) AS acl_ok
+	FROM targets x JOIN pg_catalog.pg_attribute a ON a.attrelid=x.oid
+	JOIN pg_catalog.pg_type t ON t.oid=a.atttypid JOIN pg_catalog.pg_namespace tn ON tn.oid=t.typnamespace
+	LEFT JOIN pg_catalog.pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum
+	LEFT JOIN pg_catalog.pg_collation co ON co.oid=a.attcollation LEFT JOIN pg_catalog.pg_namespace cn ON cn.oid=co.collnamespace
+	WHERE a.attnum>0 ORDER BY x.name,a.attnum LIMIT 125
+	
+2026-10-25 15:02:40.878 EDT [41683] LOG:  received immediate shutdown request
+2026-10-25 15:02:40.880 EDT [41683] LOG:  database system is shut down

@@ -1,0 +1,332 @@
+[
+  {
+    "name": "CHECK dependency keys",
+    "sql": "SELECT conkey=ARRAY[2]::int2[] FROM pg_catalog.pg_constraint WHERE conrelid='public.mixer_browser_sessions'::regclass AND conname='mixer_browser_sessions_id_check'",
+    "observed": true
+  },
+  {
+    "name": "constraint key vector 33 entries",
+    "sql": "SELECT pg_catalog.cardinality(conkey)=33 FROM pg_catalog.pg_constraint WHERE conrelid='public.mixer_browser_sessions'::regclass AND conname='mixer_browser_sessions_id_check'",
+    "observed": true
+  },
+  {
+    "name": "wrong FK referenced index",
+    "sql": "SELECT conindid='public.mixer_browser_one_attempt'::regclass FROM pg_catalog.pg_constraint WHERE conrelid='public.mixer_browser_oidc_attempts'::regclass AND contype='f'",
+    "observed": true
+  },
+  {
+    "name": "wrong RI opposite endpoint",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_trigger WHERE tgrelid='public.mixer_browser_sessions'::regclass AND tgisinternal AND tgtype=5 AND tgconstrrelid='public.mixer_authz_profiles'::regclass)",
+    "observed": true
+  },
+  {
+    "name": "wrong opclass family",
+    "sql": "SELECT opcfamily=(SELECT oid FROM pg_catalog.pg_opfamily WHERE opfnamespace='pg_catalog'::regnamespace AND opfname='bytea_ops' AND opfmethod=(SELECT oid FROM pg_catalog.pg_am WHERE amname='btree')) FROM pg_catalog.pg_opclass WHERE opcnamespace='pg_catalog'::regnamespace AND opcname='text_ops' AND opcmethod=(SELECT oid FROM pg_catalog.pg_am WHERE amname='btree')",
+    "observed": true
+  },
+  {
+    "name": "raw ACL grantor",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_class c CROSS JOIN LATERAL pg_catalog.aclexplode(c.relacl) a WHERE c.oid='public.mixer_browser_sessions'::regclass AND a.grantee='browser_writer'::regrole AND a.grantor='browser_ordinary'::regrole)",
+    "observed": true
+  },
+  {
+    "name": "writer LOGIN flag",
+    "sql": "SELECT rolcanlogin FROM pg_catalog.pg_roles WHERE rolname='browser_writer'",
+    "observed": true
+  },
+  {
+    "name": "external foreign table",
+    "sql": "SELECT c.relkind='f' AND pg_catalog.has_table_privilege('browser_writer',c.oid,'SELECT') FROM pg_catalog.pg_class c WHERE c.oid='public.relation_foreign'::regclass",
+    "observed": true
+  },
+  {
+    "name": "rewrite rule",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_rewrite WHERE ev_class='public.mixer_browser_session_events'::regclass)",
+    "observed": true
+  },
+  {
+    "name": "unlogged relation",
+    "sql": "SELECT relpersistence='u' FROM pg_catalog.pg_class WHERE oid='public.mixer_browser_session_events'::regclass",
+    "observed": true
+  },
+  {
+    "name": "weakened partial predicate",
+    "sql": "SELECT pg_catalog.strpos(pg_catalog.pg_get_expr(indpred,indrelid,false),'claimed')=0 FROM pg_catalog.pg_index WHERE indexrelid='public.mixer_browser_one_attempt'::regclass",
+    "observed": true
+  },
+  {
+    "name": "oversized deparse output",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_constraint WHERE conrelid='public.mixer_browser_sessions'::regclass AND pg_catalog.octet_length(conbin::text)<=32768 AND pg_catalog.octet_length(pg_catalog.pg_get_expr(conbin,conrelid,false))>8192)",
+    "observed": true
+  },
+  {
+    "name": "extra check",
+    "sql": "SELECT count(*)=81 FROM pg_catalog.pg_constraint WHERE contype='c' AND (conrelid IN(SELECT oid FROM pg_catalog.pg_class WHERE relname LIKE 'mixer_browser_%' OR relname IN('mixer_authz_profiles','mixer_authz_principals','mixer_authz_bindings','mixer_authz_families','mixer_authz_credentials')))",
+    "observed": true
+  },
+  {
+    "name": "weakened check",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_constraint WHERE conrelid='public.mixer_browser_sessions'::regclass AND contype='c' AND pg_catalog.strpos(pg_catalog.pg_get_expr(conbin,conrelid,false),'extra')>0)",
+    "observed": true
+  },
+  {
+    "name": "NO INHERIT check",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_constraint WHERE conrelid='public.mixer_browser_sessions'::regclass AND contype='c' AND connoinherit)",
+    "observed": true
+  },
+  {
+    "name": "extra column",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_attribute WHERE attrelid='public.mixer_browser_sessions'::regclass AND attname='surprise')",
+    "observed": true
+  },
+  {
+    "name": "dropped column slot",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_attribute WHERE attrelid='public.mixer_browser_sessions'::regclass AND attnum>0 AND attisdropped)",
+    "observed": true
+  },
+  {
+    "name": "changed NOT NULL",
+    "sql": "SELECT NOT attnotnull FROM pg_catalog.pg_attribute WHERE attrelid='public.mixer_browser_sessions'::regclass AND attname='cookie_digest'",
+    "observed": true
+  },
+  {
+    "name": "changed collation",
+    "sql": "SELECT attcollation='pg_catalog.\"C\"'::regcollation FROM pg_catalog.pg_attribute WHERE attrelid='public.mixer_browser_sessions'::regclass AND attname='generation'",
+    "observed": true
+  },
+  {
+    "name": "changed default",
+    "sql": "SELECT pg_catalog.pg_get_expr(adbin,adrelid,false)='2' FROM pg_catalog.pg_attrdef WHERE adrelid='public.mixer_authz_profiles'::regclass",
+    "observed": true
+  },
+  {
+    "name": "missing default",
+    "sql": "SELECT NOT atthasdef FROM pg_catalog.pg_attribute WHERE attrelid='public.mixer_browser_oidc_attempts'::regclass AND attname='ciphertext_version'",
+    "observed": true
+  },
+  {
+    "name": "corrupt bigint fast default",
+    "sql": "SELECT atthasmissing AND attmissingval::text='{2}' FROM pg_catalog.pg_attribute WHERE attrelid='public.mixer_authz_profiles'::regclass AND attname='state_revision'",
+    "observed": true
+  },
+  {
+    "name": "missing incoming FK",
+    "sql": "SELECT NOT EXISTS(SELECT 1 FROM pg_catalog.pg_constraint WHERE conrelid='public.mixer_customer_idempotency'::regclass AND contype='f' AND confrelid='public.mixer_authz_principals'::regclass)",
+    "observed": true
+  },
+  {
+    "name": "extra incoming FK",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_constraint WHERE conrelid='public.relation_incoming'::regclass AND contype='f' AND confrelid='public.mixer_authz_principals'::regclass)",
+    "observed": true
+  },
+  {
+    "name": "unvalidated FK",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_constraint WHERE conrelid='public.mixer_browser_oidc_attempts'::regclass AND contype='f' AND NOT convalidated)",
+    "observed": true
+  },
+  {
+    "name": "deferred FK",
+    "sql": "SELECT condeferrable AND condeferred FROM pg_catalog.pg_constraint WHERE conrelid='public.mixer_browser_oidc_attempts'::regclass AND contype='f'",
+    "observed": true
+  },
+  {
+    "name": "same-named custom equality",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_operator o ON o.oid=c.conpfeqop[1] WHERE c.conrelid='public.mixer_authz_families'::regclass AND o.oprnamespace='public'::regnamespace)",
+    "observed": true
+  },
+  {
+    "name": "extra index",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_class WHERE relnamespace='public'::regnamespace AND relname='relation_extra_index' AND relkind='i')",
+    "observed": true
+  },
+  {
+    "name": "missing partial index",
+    "sql": "SELECT pg_catalog.to_regclass('public.mixer_browser_one_attempt') IS NULL",
+    "observed": true
+  },
+  {
+    "name": "partial index explicit name",
+    "sql": "SELECT pg_catalog.to_regclass('public.mixer_browser_one_attempt') IS NULL AND pg_catalog.to_regclass('public.relation_renamed_partial') IS NOT NULL",
+    "observed": true
+  },
+  {
+    "name": "invalid index",
+    "sql": "SELECT NOT indisvalid FROM pg_catalog.pg_index WHERE indexrelid='public.mixer_browser_one_attempt'::regclass",
+    "observed": true
+  },
+  {
+    "name": "index checkxmin",
+    "sql": "SELECT indcheckxmin FROM pg_catalog.pg_index WHERE indexrelid='public.mixer_browser_one_attempt'::regclass",
+    "observed": true
+  },
+  {
+    "name": "disabled user trigger",
+    "sql": "SELECT tgenabled='D' FROM pg_catalog.pg_trigger WHERE tgrelid='public.mixer_browser_sessions'::regclass AND tgname='mixer_browser_integrity'",
+    "observed": true
+  },
+  {
+    "name": "user trigger explicit name",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_trigger WHERE tgrelid='public.mixer_browser_sessions'::regclass AND tgname='relation_wrong_trigger')",
+    "observed": true
+  },
+  {
+    "name": "disabled child RI",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_trigger WHERE tgrelid='public.mixer_browser_sessions'::regclass AND tgisinternal AND tgtype=5 AND tgenabled='D')",
+    "observed": true
+  },
+  {
+    "name": "disabled parent RI",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_trigger WHERE tgrelid='public.mixer_browser_sessions'::regclass AND tgisinternal AND tgtype=9 AND tgenabled='D')",
+    "observed": true
+  },
+  {
+    "name": "changed trigger body",
+    "sql": "SELECT pg_catalog.strpos(prosrc,'-- changed')>0 FROM pg_catalog.pg_proc WHERE oid='public.mixer_browser_integrity()'::regprocedure",
+    "observed": true
+  },
+  {
+    "name": "changed trigger configuration",
+    "sql": "SELECT 'search_path=public'=ANY(proconfig) FROM pg_catalog.pg_proc WHERE oid='public.mixer_browser_integrity()'::regprocedure",
+    "observed": true
+  },
+  {
+    "name": "trigger PUBLIC execution",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_proc p CROSS JOIN LATERAL pg_catalog.aclexplode(p.proacl) a WHERE p.oid='public.mixer_browser_integrity()'::regprocedure AND a.grantee=0 AND a.privilege_type='EXECUTE')",
+    "observed": true
+  },
+  {
+    "name": "extra permissive policy",
+    "sql": "SELECT polpermissive FROM pg_catalog.pg_policy WHERE polrelid='public.mixer_authz_profiles'::regclass AND polname='relation_extra'",
+    "observed": true
+  },
+  {
+    "name": "extra restrictive policy",
+    "sql": "SELECT NOT polpermissive FROM pg_catalog.pg_policy WHERE polrelid='public.mixer_authz_profiles'::regclass AND polname='relation_extra'",
+    "observed": true
+  },
+  {
+    "name": "policy false to true",
+    "sql": "SELECT pg_catalog.pg_get_expr(polwithcheck,polrelid,false)='true' FROM pg_catalog.pg_policy WHERE polrelid='public.mixer_authz_profiles'::regclass AND polname='scoped_lock'",
+    "observed": true
+  },
+  {
+    "name": "policy false to NULL",
+    "sql": "SELECT polwithcheck IS NULL FROM pg_catalog.pg_policy WHERE polrelid='public.mixer_authz_profiles'::regclass AND polname='scoped_lock'",
+    "observed": true
+  },
+  {
+    "name": "writer policy to PUBLIC",
+    "sql": "SELECT polroles=ARRAY[0]::oid[] FROM pg_catalog.pg_policy WHERE polrelid='public.mixer_browser_sessions'::regclass AND polname='mixer_browser_read'",
+    "observed": true
+  },
+  {
+    "name": "writer extra table UPDATE",
+    "sql": "SELECT pg_catalog.has_table_privilege('browser_writer','public.mixer_browser_sessions','UPDATE')",
+    "observed": true
+  },
+  {
+    "name": "writer immutable column UPDATE",
+    "sql": "SELECT pg_catalog.has_column_privilege('browser_writer','public.mixer_browser_sessions','id','UPDATE')",
+    "observed": true
+  },
+  {
+    "name": "lifecycle direct SELECT",
+    "sql": "SELECT pg_catalog.has_table_privilege('browser_lifecycle','public.mixer_browser_sessions','SELECT')",
+    "observed": true
+  },
+  {
+    "name": "ordinary browser SELECT",
+    "sql": "SELECT pg_catalog.has_table_privilege('browser_ordinary','public.mixer_browser_sessions','SELECT')",
+    "observed": true
+  },
+  {
+    "name": "PUBLIC relation SELECT",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_class c CROSS JOIN LATERAL pg_catalog.aclexplode(c.relacl) a WHERE c.oid='public.mixer_browser_sessions'::regclass AND a.grantee=0 AND a.privilege_type='SELECT')",
+    "observed": true
+  },
+  {
+    "name": "third-party role SELECT",
+    "sql": "SELECT pg_catalog.has_table_privilege('representation_extra','public.mixer_browser_sessions','SELECT')",
+    "observed": true
+  },
+  {
+    "name": "writer grant option",
+    "sql": "SELECT pg_catalog.has_table_privilege('browser_writer','public.mixer_browser_sessions','SELECT WITH GRANT OPTION')",
+    "observed": true
+  },
+  {
+    "name": "missing writer INSERT",
+    "sql": "SELECT NOT pg_catalog.has_table_privilege('browser_writer','public.mixer_browser_sessions','INSERT')",
+    "observed": true
+  },
+  {
+    "name": "external membership SELECT",
+    "sql": "SELECT pg_catalog.has_table_privilege('browser_writer','public.mixer_authz_memberships','SELECT')",
+    "observed": true
+  },
+  {
+    "name": "external membership column UPDATE",
+    "sql": "SELECT pg_catalog.has_column_privilege('browser_writer','public.mixer_authz_memberships','principal_id','UPDATE')",
+    "observed": true
+  },
+  {
+    "name": "external writable view",
+    "sql": "SELECT pg_catalog.has_table_privilege('browser_writer','public.relation_view','UPDATE')",
+    "observed": true
+  },
+  {
+    "name": "external sequence USAGE",
+    "sql": "SELECT pg_catalog.has_sequence_privilege('browser_writer','public.relation_seq','USAGE')",
+    "observed": true
+  },
+  {
+    "name": "schema CREATE escape",
+    "sql": "SELECT pg_catalog.has_schema_privilege('browser_writer','public','CREATE')",
+    "observed": true
+  },
+  {
+    "name": "role membership escape",
+    "sql": "SELECT pg_catalog.pg_has_role('browser_lifecycle','browser_writer','MEMBER')",
+    "observed": true
+  },
+  {
+    "name": "disabled FORCE RLS",
+    "sql": "SELECT NOT relforcerowsecurity FROM pg_catalog.pg_class WHERE oid='public.mixer_browser_sessions'::regclass",
+    "observed": true
+  },
+  {
+    "name": "extra browser view any schema",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_class WHERE relnamespace='relation_escape'::regnamespace AND relname='mixer_browser_shadow' AND relkind='v')",
+    "observed": true
+  },
+  {
+    "name": "relation owner",
+    "sql": "SELECT relowner='browser_admin'::regrole FROM pg_catalog.pg_class WHERE oid='public.mixer_browser_sessions'::regclass",
+    "observed": true
+  },
+  {
+    "name": "inheritance edge",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_inherits WHERE inhparent='public.mixer_browser_sessions'::regclass)",
+    "observed": true
+  },
+  {
+    "name": "PG17 application MAINTAIN",
+    "sql": "SELECT pg_catalog.has_table_privilege('browser_writer','public.mixer_browser_sessions','MAINTAIN')",
+    "observed": true
+  },
+  {
+    "name": "ACL 65 entry scalar cap",
+    "sql": "SELECT pg_catalog.cardinality(relacl)>64 FROM pg_catalog.pg_class WHERE oid='public.mixer_browser_sessions'::regclass",
+    "observed": true
+  },
+  {
+    "name": "ACL 16KiB scalar cap",
+    "sql": "SELECT pg_catalog.cardinality(relacl)=64 AND pg_catalog.octet_length(relacl::text)>16384 FROM pg_catalog.pg_class WHERE oid='public.mixer_browser_sessions'::regclass",
+    "observed": true
+  },
+  {
+    "name": "oversized source node",
+    "sql": "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_constraint WHERE conrelid='public.mixer_browser_sessions'::regclass AND pg_catalog.octet_length(conbin::text)>32768)",
+    "observed": true
+  }
+]
