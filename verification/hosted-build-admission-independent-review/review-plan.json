@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "status": "completed-see-receipt-json",
+  "owner_scope": [
+    "docs/hosted-build-admission-independent-review.md",
+    "verification/hosted-build-admission-independent-review/"
+  ],
+  "database": "mixer_admission_review_test",
+  "database_port_environment": "MIXER_TEST_DATABASE_PORT",
+  "controls": [
+    "shared-organization-platform-quota-across-projects-and-applications",
+    "independent-platform-and-organization-quotas",
+    "concurrent-claim-single-capacity-winner",
+    "owner-epoch-expiry-and-release-history-fencing",
+    "post-lock-database-clock-and-expiry-recheck",
+    "expired-transfer-retains-one-execution-reservation",
+    "guarded-journal-and-job-atomicity-with-surrounding-multi",
+    "cancellation-and-deadline-uncertainty-retain-capacity",
+    "definitive-terminal-evidence-matches-current-reserved-attempt",
+    "historical-duplicate-does-not-release-newer-attempt"
+  ],
+  "limitations": [
+    "No DB, native, service or provider process is started by the review lane.",
+    "No public authorization, worker authentication, external-effect or GA acceptance is implied.",
+    "Physical phones remain disconnected and deferred."
+  ]
+}

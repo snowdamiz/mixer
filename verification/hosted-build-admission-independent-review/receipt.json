@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "status": "accepted-internal-development-slice",
+  "source_revision": "dcae16aa53627ce9589a7064418aad7b795bedb1",
+  "source_tree_sha256": "f370148dbd058fece3d5b4792efca9056fc7e91523be34204b8856cdd9d17b3c",
+  "verified_input_count": 86,
+  "root_receipt": "verification/hosted-build-admission/attempt-2/receipt.json",
+  "root_receipt_sha256": "2300500a16adce4f8c5f351cb6b8dcbeb69c7b0a3674d950c803a811d341277c",
+  "source_archive_sha256": "bde75ce47a6fe166bd307bf4d2489d7da6385a2db0e832769088c26a38712e3e",
+  "independent_test_sha256": "5f0d591cf99cb363dc2e2f185b79a16de1702eb0e205df9e7c7427ed97f81c13",
+  "test_output_sha256": "0df7228fed391e27115908acecad571c2473525c80c5689a18816f158c16ffa8",
+  "review_verifier_sha256": "f7b824979a0007d0f88eb48c52f23b6f42b82d5b4a55511cef8b17853bc9ec17",
+  "verification_command": "python3 verification/hosted-build-admission-independent-review/verify_receipt.py",
+  "review_python_version": "3.14.8",
+  "tool_output": {
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "database_timezone": "UTC"
+  },
+  "tool_output_sha256": {
+    "elixir-version.log": "44fe1d5e597ef84e0b6859be8ef275ca7da40d28005c64ea6a103835caa29081",
+    "postgres-version.log": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2",
+    "postgres-timezone.log": "1d403a18935b06c375efcbb06fc00561da473d20716be79f544e466870e3aec6"
+  },
+  "results": {
+    "host_passed": 227,
+    "host_linux_only_skipped": 2,
+    "admission_passed": 17,
+    "independent_passed": 11
+  },
+  "post_lock_expiry_database_epoch_ms": {
+    "transaction_begun_ms": 1792888594006,
+    "fixture_expiry_ms": 1792888594206,
+    "before_unlock_ms": 1792888594359
+  },
+  "checks": {
+    "current_inputs_match_collected_closure": true,
+    "archive_inputs_match_manifest": true,
+    "all_command_output_hashes_match": true,
+    "all_command_exits_match_expectations": true,
+    "postgres_stopped": true,
+    "scratch_removed": true
+  },
+  "corrected_findings": [
+    "Explicit non-NULL SQL CHECK branches close malformed reservation/lease pairs.",
+    "Released evidence is validated against replayed matching attempt history before readmission.",
+    "Expiry fixture assignments are UTC; observed lease expiry crosses during real lock contention."
+  ],
+  "prior_attempt": "attempt-1 retained as pre-UTC-fixture-correction evidence; attempt-2 is authoritative",
+  "scope": "Independent source review and real local PostgreSQL races, locks, expiry fixtures and atomic Oban intent persistence. Root owns runtime collection and cleanup.",
+  "limitations": [
+    "Capacity is shared per organization/platform; aggregate organization and provider-fleet quotas remain pending.",
+    "Trusted internal Storage remains callable; public authorization, RLS, worker identity, dispatch and external-effect reconciliation remain pending.",
+    "Loopback PostgreSQL without TLS is not Neon or Cloudflare operational qualification.",
+    "Two existing Linux-only identity tests are skipped on this Mac; runtime migration redefinition warnings are retained in the log.",
+    "No native, physical-phone, signing, publication, billing, customer or GA gate is accepted."
+  ]
+}

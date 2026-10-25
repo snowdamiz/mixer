@@ -22,7 +22,7 @@ defmodule MixerHosted.Builds.StorageTest do
     assert is_pid(repo)
     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
 
-    assert [20_261_024_000_000, 20_261_025_000_000] =
+    assert [20_261_024_000_000, 20_261_025_000_000, 20_261_025_000_001] =
              Ecto.Migrator.run(Repo, path, :up, all: true)
 
     assert [] = Ecto.Migrator.run(Repo, path, :up, all: true)
@@ -36,7 +36,10 @@ defmodule MixerHosted.Builds.StorageTest do
   end
 
   setup do
-    Repo.query!("TRUNCATE mixer_builds, oban_jobs, build_intent_probe")
+    Repo.query!(
+      "TRUNCATE mixer_build_coordinator_leases, mixer_build_reservations, mixer_build_capacities, mixer_builds, oban_jobs, build_intent_probe"
+    )
+
     :ok
   end
 

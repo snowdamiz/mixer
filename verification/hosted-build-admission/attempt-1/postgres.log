@@ -1,0 +1,23 @@
+2026-10-24 20:34:54.243 EDT [47934] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-24 20:34:54.244 EDT [47934] LOG:  listening on IPv4 address "127.0.0.1", port 56652
+2026-10-24 20:34:54.247 EDT [47937] LOG:  database system was shut down at 2026-10-24 20:34:54 EDT
+2026-10-24 20:34:54.250 EDT [47934] LOG:  database system is ready to accept connections
+2026-10-24 20:35:04.428 EDT [48116] ERROR:  new row for relation "mixer_build_reservations" violates check constraint "mixer_build_reservations_bounds"
+2026-10-24 20:35:04.428 EDT [48116] DETAIL:  Failing row contains (f6a4e66a-9b93-4925-8953-0980fec25e7d, review-org, ios, 1, 1, f, null).
+2026-10-24 20:35:04.428 EDT [48116] STATEMENT:  UPDATE mixer_build_reservations SET held = false, terminal_event_id = NULL WHERE build_record_id = $1
+2026-10-24 20:35:04.429 EDT [48117] ERROR:  new row for relation "mixer_build_coordinator_leases" violates check constraint "mixer_build_coordinator_leases_bounds"
+2026-10-24 20:35:04.429 EDT [48117] DETAIL:  Failing row contains (f6a4e66a-9b93-4925-8953-0980fec25e7d, null, 1, 2026-10-25 00:36:04.427617).
+2026-10-24 20:35:04.429 EDT [48117] STATEMENT:  UPDATE mixer_build_coordinator_leases SET owner_id = NULL WHERE build_record_id = $1
+2026-10-24 20:35:04.429 EDT [48114] ERROR:  new row for relation "mixer_build_coordinator_leases" violates check constraint "mixer_build_coordinator_leases_bounds"
+2026-10-24 20:35:04.429 EDT [48114] DETAIL:  Failing row contains (f6a4e66a-9b93-4925-8953-0980fec25e7d, owner-one, 0, 2026-10-25 00:36:04.427617).
+2026-10-24 20:35:04.429 EDT [48114] STATEMENT:  UPDATE mixer_build_coordinator_leases SET epoch = 0 WHERE build_record_id = $1
+2026-10-24 20:35:04.430 EDT [48111] ERROR:  insert or update on table "mixer_build_reservations" violates foreign key constraint "mixer_build_reservations_build_scope_fkey"
+2026-10-24 20:35:04.430 EDT [48111] DETAIL:  Key (build_record_id, organization_id, platform)=(f6a4e66a-9b93-4925-8953-0980fec25e7d, other-org, ios) is not present in table "mixer_builds".
+2026-10-24 20:35:04.430 EDT [48111] STATEMENT:  UPDATE mixer_build_reservations SET organization_id = 'other-org' WHERE build_record_id = $1
+2026-10-24 20:35:29.863 EDT [47934] LOG:  received fast shutdown request
+2026-10-24 20:35:29.864 EDT [47934] LOG:  aborting any active transactions
+2026-10-24 20:35:29.865 EDT [47934] LOG:  background worker "logical replication launcher" (PID 47941) exited with exit code 1
+2026-10-24 20:35:29.865 EDT [47935] LOG:  shutting down
+2026-10-24 20:35:29.865 EDT [47935] LOG:  checkpoint starting: shutdown immediate
+2026-10-24 20:35:30.179 EDT [47935] LOG:  checkpoint complete: wrote 5892 buffers (36.0%); 0 WAL file(s) added, 0 removed, 2 recycled; write=0.210 s, sync=0.071 s, total=0.315 s; sync files=3350, longest=0.001 s, average=0.001 s; distance=28582 kB, estimate=28582 kB; lsn=0/3104198, redo lsn=0/3104198
+2026-10-24 20:35:30.182 EDT [47934] LOG:  database system is shut down
