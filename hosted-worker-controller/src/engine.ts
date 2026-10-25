@@ -13,9 +13,17 @@ export class Engine {
   constructor(readonly ledger:Ledger,readonly clock:Clock,readonly provider:Provider,readonly verifier:ObjectVerifier,private hooks:Hooks=noHooks){}
   private sample(r:Row|null):Interval|null {
     const i=this.clock.sample();if(!validInterval(i))return null;
-    if(r&&i.upperUs<BigInt(r.clock_lower)){
+    if(r&&i.upperUs<BigInt(r.clock_floor)){
       r.quarantined=1;r.phase="quarantined";this.ledger.save(r,"clock_rollback");return null;
     }return i;
+  }
+  // Preserve the exact accepted interval separately from the maximum historical
+  // lower bound. Overlapping uncertainty intervals may move the latest lower
+  // bound backwards, but can never ratchet the historical bound backwards.
+  // Callers save this with the decision in the same synchronous transaction.
+  private acceptTime(r:Row,i:Interval):void {
+    r.clock_lower=String(i.lowerUs);r.clock_upper=String(i.upperUs);r.clock_qualification=i.qualificationId;
+    if(i.lowerUs>BigInt(r.clock_floor))r.clock_floor=String(i.lowerUs);
   }
   private live(r:Row,i:Interval):boolean {
     const request=JSON.parse(r.request_json) as WireRequest;
@@ -58,7 +66,7 @@ export class Engine {
       if(request.command==="ensure_started"&&!this.provider.available&&!row?.terminal_json)return err("unavailable");
       const r=row??this.ledger.initial(request,interval,identity);
       r.epoch=request.guard.epoch;r.revision=request.guard.revision;r.owner=request.guard.owner_id;r.expiry_us=request.guard.expires_at_us;
-      r.request_json=JSON.stringify(request);r.clock_lower=String(interval.lowerUs);r.clock_upper=String(interval.upperUs);r.clock_qualification=interval.qualificationId;
+      r.request_json=JSON.stringify(request);this.acceptTime(r,interval);
       if(request.command==="stop")this.stop(r);
       else if(request.command==="ensure_started"&&r.desired!=="stop"&&!r.terminal_json&&r.launch_dispatched===0){
         r.desired="run";r.phase="launch_pending";r.effect_kind="launch";r.effect_id=uuid();r.effect_state="prepared";r.effect_request_json=JSON.stringify(request);
@@ -78,7 +86,7 @@ export class Engine {
   }
   private prepare():Effect|null {
     return this.ledger.transaction(r=>{
-      if(!r||r.terminal_json||r.quarantined||!this.provider.available)return null;
+      if(!r||r.terminal_json||(r.quarantined&&r.desired!=="stop")||!this.provider.available)return null;
       const interval=this.sample(r);
       const request=JSON.parse(r.request_json) as WireRequest;
       if(interval&&interval.lowerUs>=BigInt(request.deadline_ms)*1000n)this.stop(r);
@@ -95,6 +103,7 @@ export class Engine {
       // A marked-dispatched launch is never retried, even if a crash occurred
       // before its provider call. This sacrifices liveness to avoid duplication.
       if(kind==="launch")r.launch_dispatched=1;
+      if(interval)this.acceptTime(r,interval);
       const reuse=kind===r.effect_kind&&r.effect_state==="prepared";
       r.effect_id=reuse?r.effect_id:uuid();
       if(!reuse)r.effect_request_json=r.request_json;
@@ -108,9 +117,11 @@ export class Engine {
   }
   private finalCheck(effect:Effect):boolean {
     return this.ledger.transaction(r=>{
-      if(!r||r.quarantined||r.terminal_json||r.effect_id!==effect.id||r.effect_kind!==effect.kind)return false;
+      if(!r||(r.quarantined&&effect.kind!=="stop")||r.terminal_json||r.effect_id!==effect.id||r.effect_kind!==effect.kind)return false;
       if(effect.kind==="stop")return r.desired==="stop";
-      const interval=this.sample(r);return !!interval&&r.desired==="run"&&this.sameGuard(r,effect.request)&&this.live(r,interval);
+      const interval=this.sample(r);
+      if(!interval||r.desired!=="run"||!this.sameGuard(r,effect.request)||!this.live(r,interval))return false;
+      this.acceptTime(r,interval);this.ledger.save(r,"effect_time_accepted");return true;
     });
   }
   private observation(value:unknown,identity:ResourceIdentity):ProviderObservation|null {
@@ -129,7 +140,8 @@ export class Engine {
     this.ledger.transaction(r=>{
       if(!r||r.effect_id!==effect.id||r.effect_kind!==effect.kind||r.terminal_json)return;
       const interval=this.sample(r);
-      if(r.quarantined)return;
+      if(r.quarantined&&effect.kind!=="stop")return;
+      if(interval)this.acceptTime(r,interval);
       if(effect.kind!=="stop"&&!this.sameGuard(r,effect.request)){
         r.effect_state="uncertain";this.due(r,interval);this.ledger.save(r,"stale_effect_observation");return;
       }
@@ -210,18 +222,31 @@ export class Engine {
   async claim(claim:RunnerClaim):Promise<{granted:boolean;claimId?:string}>{
     if(!this.validClaim(claim))return {granted:false};
     await this.hooks.point("before_claim_grant");
-    const answer=this.ledger.transaction(r=>{
-      if(!r||r.quarantined||r.desired!=="run"||r.terminal_json||r.claim_state!=="unissued"||r.phase!=="inert")return {granted:false};
-      const i=this.sample(r);if(!i||!this.live(r,i))return {granted:false};
-      if(claim.immutableSha256!==r.binding_hash||claim.identity.provider!==r.provider_kind||claim.identity.key!==r.provider_key||claim.identity.immutableSha256!==r.binding_hash||claim.instanceId!==r.instance_id||claim.bootId!==r.boot_id)return {granted:false};
-      r.claim_state="consumed";r.claim_id=uuid();r.phase="claim_consumed";this.ledger.save(r,"claim_consumed");return {granted:true,claimId:r.claim_id};
+    const prospective=this.ledger.transaction(r=>{
+      if(!r||r.quarantined||r.desired!=="run"||r.terminal_json||r.claim_state!=="unissued"||r.phase!=="inert")return null;
+      if(claim.immutableSha256!==r.binding_hash||claim.identity.provider!==r.provider_kind||claim.identity.key!==r.provider_key||claim.identity.immutableSha256!==r.binding_hash||claim.instanceId!==r.instance_id||claim.bootId!==r.boot_id)return null;
+      const i=this.sample(r);if(!i||!this.live(r,i))return null;
+      this.acceptTime(r,i);
+      r.claim_state="consumed";r.claim_id=uuid();r.phase="claim_consumed";this.ledger.save(r,"claim_consumed");
+      return {operation_id:r.operation_id,binding:r.binding,binding_hash:r.binding_hash,
+        epoch:r.epoch,revision:r.revision,owner:r.owner,expiry_us:r.expiry_us,
+        provider_kind:r.provider_kind,provider_key:r.provider_key,instance_id:r.instance_id,boot_id:r.boot_id,claim_id:r.claim_id};
     });
     await this.ledger.sync();await this.hooks.point("after_claim_commit");
-    // A stop may commit while durability is awaited. Never grant after it.
-    const r=this.ledger.read();const i=this.ledger.transaction(row=>this.sample(row));
-    if(!r||r.desired!=="run"||r.quarantined||!i||!this.live(r,i))return {granted:false};
-    return answer;
+    // Consumption is already durable. This is the grant's linearization point,
+    // after every await: compare the exact consumed authority and identity with
+    // the current row, then accept the exact final qualified sample atomically.
+    // No await follows this decision. The DO's default output gate confirms its
+    // final clock-history write before the response becomes externally visible.
+    return this.ledger.transaction(r=>{
+      if(!prospective||!r||r.desired!=="run"||r.quarantined||r.terminal_json||r.claim_state!=="consumed"||r.phase!=="claim_consumed")return {granted:false};
+      for(const key of Object.keys(prospective) as (keyof typeof prospective)[])if(r[key]!==prospective[key])return {granted:false};
+      const i=this.sample(r);if(!i||!this.live(r,i))return {granted:false};
+      this.acceptTime(r,i);this.ledger.save(r,"claim_grant_time_accepted");
+      return {granted:true,claimId:prospective.claim_id};
+    });
   }
+
   async report(report:RunnerReport):Promise<"accepted"|"duplicate"|"rejected">{
     if(!this.validClaim(report,true))return "rejected";
     let parsed:BuildResult;try{parsed=result(report.result);hex(report.attestationSha256);}catch{return "rejected";}
@@ -234,6 +259,7 @@ export class Engine {
     const accepted=this.ledger.transaction(current=>{
       if(!current||current.state_version!==version||current.report_hash||current.desired!=="run"||current.quarantined)return false;
       const i=this.sample(current);if(!i||!this.live(current,i))return false;
+      this.acceptTime(current,i);
       current.report_hash=hash;current.pending_result_json=JSON.stringify(parsed);this.stop(current);this.due(current,i);this.ledger.save(current,"result_pending_teardown");return true;
     });
     await this.ledger.sync();await this.arm();return accepted?"accepted":"rejected";

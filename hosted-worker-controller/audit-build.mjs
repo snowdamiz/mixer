@@ -20,5 +20,6 @@ async function visit(path){
 await visit(resolve(project,"dist/src/index.js"));
 const report={status:"passed",scope:"TypeScript-AST-static-production-module-closure-only",files,externals:[...externals],testBundleIncluded:false,
   note:"This proves static build closure; it is not a hostile-code or OTA authorization gate."};
-await writeFile(resolve(root,"verification/hosted-worker-controller-implementation/production-build-closure.json"),JSON.stringify(report,null,2)+"\n");
+if(process.env.MIXER_CONTROLLER_CLOSURE_REPORT)
+  await writeFile(resolve(process.env.MIXER_CONTROLLER_CLOSURE_REPORT),JSON.stringify(report,null,2)+"\n");
 console.log(JSON.stringify({status:"passed",productionFiles:files.length,externalModules:[...externals],testBundleIncluded:false}));

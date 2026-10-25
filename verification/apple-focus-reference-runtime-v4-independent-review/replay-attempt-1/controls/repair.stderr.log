@@ -1,0 +1,318 @@
+test_actual_bridge_and_valid_session_ax_png_publication (test_repair.FocusRepairControls.test_actual_bridge_and_valid_session_ax_png_publication) ... FAIL
+test_actual_complete_settings_then_before_premise_zero_input_inventory (test_repair.FocusRepairControls.test_actual_complete_settings_then_before_premise_zero_input_inventory) ... FAIL
+test_auxiliary_rejects_actual_attempt_reporting_failure (test_repair.FocusRepairControls.test_auxiliary_rejects_actual_attempt_reporting_failure) ... FAIL
+test_auxiliary_rejects_actual_bridge_failure (test_repair.FocusRepairControls.test_auxiliary_rejects_actual_bridge_failure) ... FAIL
+test_auxiliary_rejects_actual_retirement_uncertainty (test_repair.FocusRepairControls.test_auxiliary_rejects_actual_retirement_uncertainty) ... FAIL
+test_auxiliary_rejects_foreign_action (test_repair.FocusRepairControls.test_auxiliary_rejects_foreign_action) ... FAIL
+test_auxiliary_rejects_foreign_attempt_name (test_repair.FocusRepairControls.test_auxiliary_rejects_foreign_attempt_name) ... FAIL
+test_auxiliary_rejects_foreign_generation (test_repair.FocusRepairControls.test_auxiliary_rejects_foreign_generation) ... FAIL
+test_auxiliary_rejects_foreign_journal_device (test_repair.FocusRepairControls.test_auxiliary_rejects_foreign_journal_device) ... FAIL
+test_auxiliary_rejects_incorrect_outcome_boolean_type (test_repair.FocusRepairControls.test_auxiliary_rejects_incorrect_outcome_boolean_type) ... FAIL
+test_auxiliary_rejects_journal_linked_payload_corruption (test_repair.FocusRepairControls.test_auxiliary_rejects_journal_linked_payload_corruption) ... FAIL
+test_auxiliary_rejects_journal_linked_payload_symlink (test_repair.FocusRepairControls.test_auxiliary_rejects_journal_linked_payload_symlink) ... FAIL
+test_auxiliary_rejects_missing_attempt_outcome (test_repair.FocusRepairControls.test_auxiliary_rejects_missing_attempt_outcome) ... FAIL
+test_auxiliary_rejects_unexpected_attempt_outcome_member (test_repair.FocusRepairControls.test_auxiliary_rejects_unexpected_attempt_outcome_member) ... FAIL
+test_auxiliary_rejects_unknown_settings_name (test_repair.FocusRepairControls.test_auxiliary_rejects_unknown_settings_name) ... FAIL
+test_auxiliary_rejects_unreferenced_staged_file (test_repair.FocusRepairControls.test_auxiliary_rejects_unreferenced_staged_file) ... FAIL
+test_auxiliary_rejects_unresolved_guard (test_repair.FocusRepairControls.test_auxiliary_rejects_unresolved_guard) ... FAIL
+test_before_premise_exact_decimal_endpoint_and_one_nanosecond (test_repair.FocusRepairControls.test_before_premise_exact_decimal_endpoint_and_one_nanosecond) ... ok
+test_changed_after_uses_witness_endpoint_and_one_nanosecond (test_repair.FocusRepairControls.test_changed_after_uses_witness_endpoint_and_one_nanosecond) ... ok
+test_command_generation_exact_integer (test_repair.FocusRepairControls.test_command_generation_exact_integer) ... ok
+test_exact_decimal_nanoseconds_avoid_epoch_float_rounding (test_repair.FocusRepairControls.test_exact_decimal_nanoseconds_avoid_epoch_float_rounding) ... ok
+test_invalid_transactionstore_record_is_not_session_journal (test_repair.FocusRepairControls.test_invalid_transactionstore_record_is_not_session_journal) ... FAIL
+test_original_raw_decimal_tokens_are_used_for_import (test_repair.FocusRepairControls.test_original_raw_decimal_tokens_are_used_for_import) ... ok
+test_signature_closed_schema_all_four_fields (test_repair.FocusRepairControls.test_signature_closed_schema_all_four_fields) ... ok
+test_unchanged_signature_does_not_require_post_key_file_write (test_repair.FocusRepairControls.test_unchanged_signature_does_not_require_post_key_file_write) ... ok
+
+======================================================================
+FAIL: test_actual_bridge_and_valid_session_ax_png_publication (test_repair.FocusRepairControls.test_actual_bridge_and_valid_session_ax_png_publication)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 137, in test_actual_bridge_and_valid_session_ax_png_publication
+    value=self.probe('payload');row=value['rows'][-1];self.assertTrue(row['accepted']);self.assertGreater(row['payloadCount'],1);self.assertEqual(row['roles'],[]);self.assertEqual(row['attemptCount'],row['journalCount'])
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_actual_complete_settings_then_before_premise_zero_input_inventory (test_repair.FocusRepairControls.test_actual_complete_settings_then_before_premise_zero_input_inventory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 140, in test_actual_complete_settings_then_before_premise_zero_input_inventory
+    value=self.probe('baseline');row=value['rows'][-1];self.assertTrue(row['accepted']);self.assertEqual(row['roles'],['before','begin']);self.assertGreater(row['payloadCount'],1);self.assertEqual(row['syntheticFalsePremiseClassification'],'failed-reference-precondition');self.assertEqual(row['syntheticInjectionCount'],0)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_auxiliary_rejects_actual_attempt_reporting_failure (test_repair.FocusRepairControls.test_auxiliary_rejects_actual_attempt_reporting_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 209, in control
+    value=self.probe(stage,mutation);self.assertFalse(value['rows'][-1]['accepted'],value)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_auxiliary_rejects_actual_bridge_failure (test_repair.FocusRepairControls.test_auxiliary_rejects_actual_bridge_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 209, in control
+    value=self.probe(stage,mutation);self.assertFalse(value['rows'][-1]['accepted'],value)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_auxiliary_rejects_actual_retirement_uncertainty (test_repair.FocusRepairControls.test_auxiliary_rejects_actual_retirement_uncertainty)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 209, in control
+    value=self.probe(stage,mutation);self.assertFalse(value['rows'][-1]['accepted'],value)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_auxiliary_rejects_foreign_action (test_repair.FocusRepairControls.test_auxiliary_rejects_foreign_action)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 209, in control
+    value=self.probe(stage,mutation);self.assertFalse(value['rows'][-1]['accepted'],value)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_auxiliary_rejects_foreign_attempt_name (test_repair.FocusRepairControls.test_auxiliary_rejects_foreign_attempt_name)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 209, in control
+    value=self.probe(stage,mutation);self.assertFalse(value['rows'][-1]['accepted'],value)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_auxiliary_rejects_foreign_generation (test_repair.FocusRepairControls.test_auxiliary_rejects_foreign_generation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 209, in control
+    value=self.probe(stage,mutation);self.assertFalse(value['rows'][-1]['accepted'],value)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_auxiliary_rejects_foreign_journal_device (test_repair.FocusRepairControls.test_auxiliary_rejects_foreign_journal_device)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 209, in control
+    value=self.probe(stage,mutation);self.assertFalse(value['rows'][-1]['accepted'],value)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_auxiliary_rejects_incorrect_outcome_boolean_type (test_repair.FocusRepairControls.test_auxiliary_rejects_incorrect_outcome_boolean_type)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 209, in control
+    value=self.probe(stage,mutation);self.assertFalse(value['rows'][-1]['accepted'],value)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_auxiliary_rejects_journal_linked_payload_corruption (test_repair.FocusRepairControls.test_auxiliary_rejects_journal_linked_payload_corruption)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 209, in control
+    value=self.probe(stage,mutation);self.assertFalse(value['rows'][-1]['accepted'],value)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_auxiliary_rejects_journal_linked_payload_symlink (test_repair.FocusRepairControls.test_auxiliary_rejects_journal_linked_payload_symlink)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 209, in control
+    value=self.probe(stage,mutation);self.assertFalse(value['rows'][-1]['accepted'],value)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_auxiliary_rejects_missing_attempt_outcome (test_repair.FocusRepairControls.test_auxiliary_rejects_missing_attempt_outcome)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 209, in control
+    value=self.probe(stage,mutation);self.assertFalse(value['rows'][-1]['accepted'],value)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_auxiliary_rejects_unexpected_attempt_outcome_member (test_repair.FocusRepairControls.test_auxiliary_rejects_unexpected_attempt_outcome_member)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 209, in control
+    value=self.probe(stage,mutation);self.assertFalse(value['rows'][-1]['accepted'],value)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_auxiliary_rejects_unknown_settings_name (test_repair.FocusRepairControls.test_auxiliary_rejects_unknown_settings_name)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 209, in control
+    value=self.probe(stage,mutation);self.assertFalse(value['rows'][-1]['accepted'],value)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_auxiliary_rejects_unreferenced_staged_file (test_repair.FocusRepairControls.test_auxiliary_rejects_unreferenced_staged_file)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 209, in control
+    value=self.probe(stage,mutation);self.assertFalse(value['rows'][-1]['accepted'],value)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_auxiliary_rejects_unresolved_guard (test_repair.FocusRepairControls.test_auxiliary_rejects_unresolved_guard)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 209, in control
+    value=self.probe(stage,mutation);self.assertFalse(value['rows'][-1]['accepted'],value)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+======================================================================
+FAIL: test_invalid_transactionstore_record_is_not_session_journal (test_repair.FocusRepairControls.test_invalid_transactionstore_record_is_not_session_journal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 143, in test_invalid_transactionstore_record_is_not_session_journal
+    value=self.probe('start','invalid-lower-level-journal');self.assertFalse(value['rows'][-1]['accepted']);self.assertIn('Session journal',value['rows'][-1]['failure'])
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v4-independent-review/.scratch-vbl238ep/repo/verification/apple-focus-reference-runtime-v4/test_repair.py", line 124, in probe
+    self.assertEqual(completed.returncode,0,completed.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+    journals=sorted(old.glob('0000-settings-*.json'));first=json.loads(journals[0].read_bytes());clock=[first['receivedUptime']]
+                                                                       ~~~~~~~~^^^
+IndexError: list index out of range
+
+
+----------------------------------------------------------------------
+Ran 25 tests in 4.005s
+
+FAILED (failures=18)

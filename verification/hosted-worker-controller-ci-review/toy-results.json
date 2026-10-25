@@ -1,0 +1,84 @@
+{
+  "status": "passed-expected-negative-path-reproduced",
+  "helperSHA256": "2bf5bf923a5b97717cc96335d06c2b8d8aebd1be4a5a7ae2da2a3d392e26ba0f",
+  "checks": [
+    {
+      "name": "nonzero-exit",
+      "expectedFailure": true,
+      "recordedExit": 7,
+      "stdoutRetained": true,
+      "scratchRemoved": true
+    },
+    {
+      "name": "same-group-descendant-pipe",
+      "signals": [
+        "SIGTERM"
+      ],
+      "processGroupEmpty": true,
+      "scratchRemoved": true
+    },
+    {
+      "name": "escaped-pipe-EOF-timeout",
+      "error": "owned_output_eof_timeout: escaped-pipe",
+      "commandRecordAppended": false,
+      "stdoutRetained": false,
+      "stderrRetained": false,
+      "commandJSONRetained": false,
+      "scratchPresent": true,
+      "escapedPID": 1552,
+      "escapedGroupRetiredByToySupervisor": true
+    }
+  ],
+  "commands": [
+    {
+      "name": "nonzero",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "-e",
+        "console.log(\"expected failure output\"); process.exit(7);"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/toy-project",
+      "started": "2026-10-25T03:17:48.249Z",
+      "finished": "2026-10-25T03:17:48.273Z",
+      "pid": 1546,
+      "exitCode": 7,
+      "exitSignal": null,
+      "timedOut": false,
+      "spawnError": null,
+      "signals": [],
+      "processGroupEmpty": true,
+      "sourceDigest": "toy-helper-extracted-from-2bf5bf923a5b97717cc96335d06c2b8d8aebd1be4a5a7ae2da2a3d392e26ba0f",
+      "scratch": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/toy-output/nonzero/scratch",
+      "scratchRemoved": true,
+      "remainingTemporaryEntries": [],
+      "stdoutSHA256": "102f3b5a4e8d2ce2c8859a4d42d9dd223bbaaf7ce17f04e5547eead6d63acb2e",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "same-group-pipe",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "-e",
+        "const {spawn}=require(\"node:child_process\"); const child=spawn(process.execPath,[\"-e\",\"console.log(\\\"descendant-ready\\\");setTimeout(()=>{},60000);\"],{stdio:[\"ignore\",\"inherit\",\"inherit\"]});console.log(\"descendant-pid:\"+child.pid);setTimeout(()=>process.exit(0),200);"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/toy-project",
+      "started": "2026-10-25T03:17:48.274Z",
+      "finished": "2026-10-25T03:17:48.528Z",
+      "pid": 1547,
+      "exitCode": 0,
+      "exitSignal": null,
+      "timedOut": false,
+      "spawnError": null,
+      "signals": [
+        "SIGTERM"
+      ],
+      "processGroupEmpty": true,
+      "sourceDigest": "toy-helper-extracted-from-2bf5bf923a5b97717cc96335d06c2b8d8aebd1be4a5a7ae2da2a3d392e26ba0f",
+      "scratch": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/toy-output/same-group-pipe/scratch",
+      "scratchRemoved": true,
+      "remainingTemporaryEntries": [],
+      "stdoutSHA256": "bc43ab105f341b38f66e8c07ac9770c889f444037fb5a189d7339abea8d4ba59",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

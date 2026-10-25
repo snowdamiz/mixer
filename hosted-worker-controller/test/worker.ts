@@ -8,7 +8,7 @@ import {Effect,ObjectVerifier,Provider,ProviderObservation} from "../src/provide
 import {errorResponse,parseJSON,reply} from "../src/wire.js";
 
 interface Env extends PrincipalEnv {OPERATIONS:DurableObjectNamespace}
-interface ClockSetting {nowUs:string;errorUs:string;qualified:boolean}
+interface ClockSetting {nowUs:string;errorUs:string;qualified:boolean;qualificationId?:string}
 interface Settings {clock:ClockSetting;fault:{point:string;behavior:string}|null;observation:Partial<ProviderObservation>|null;objectVerified:boolean;barrier:boolean;holdProvider:boolean;clockSequence:ClockSetting[];alarmTicks:number}
 const defaults=():Settings=>({clock:{nowUs:"1900000000000000",errorUs:"1",qualified:true},fault:null,observation:null,objectVerified:false,barrier:false,holdProvider:false,clockSequence:[],alarmTicks:0});
 const json=(v:unknown)=>new Response(JSON.stringify(v),{headers:{"Content-Type":"application/json"}});
@@ -22,7 +22,7 @@ class SyntheticClock implements Clock {
   constructor(private store:TestStore){}
   sample():Interval|null {
     const s=this.store.get();const c=s.clockSequence.shift()??s.clock;if(s.clockSequence.length||c!==s.clock)this.store.set(s);
-    if(!c.qualified)return null;return {lowerUs:BigInt(c.nowUs)-BigInt(c.errorUs),upperUs:BigInt(c.nowUs)+BigInt(c.errorUs),qualificationId:"synthetic-verification-only"};
+    if(!c.qualified)return null;return {lowerUs:BigInt(c.nowUs)-BigInt(c.errorUs),upperUs:BigInt(c.nowUs)+BigInt(c.errorUs),qualificationId:c.qualificationId??"synthetic-verification-only"};
   }
 }
 class FixtureHooks implements Hooks {
@@ -54,12 +54,12 @@ class FixtureProvider implements Provider {
   async stop(e:Effect):Promise<ProviderObservation>{this.store.call(e);return {...this.observe(e),state:"absent",instanceId:null,bootId:null};}
   release():void {this.resolveHold?.();this.resolveHold=null;}
 }
-class FixtureVerifier implements ObjectVerifier {constructor(private store:TestStore){} async verify():Promise<boolean>{return this.store.get().objectVerified;}}
+class FixtureVerifier implements ObjectVerifier {constructor(private store:TestStore,private hooks:Hooks){} async verify():Promise<boolean>{await this.hooks.point("before_object_verify_return");return this.store.get().objectVerified;}}
 export class TestOperation extends DurableObject<Env> {
   private ledger:Ledger;private engine:Engine;private store:TestStore;private hooks:FixtureHooks;private provider:FixtureProvider;
   constructor(ctx:DurableObjectState,env:Env){
     super(ctx,env);this.ledger=new Ledger(ctx.storage);this.store=new TestStore(ctx.storage.sql);this.hooks=new FixtureHooks(this.store);this.provider=new FixtureProvider(this.store);
-    this.engine=new Engine(this.ledger,new SyntheticClock(this.store),this.provider,new FixtureVerifier(this.store),this.hooks);
+    this.engine=new Engine(this.ledger,new SyntheticClock(this.store),this.provider,new FixtureVerifier(this.store,this.hooks),this.hooks);
     ctx.blockConcurrencyWhile(()=>this.engine.recover());
   }
   async fetch(request:Request):Promise<Response>{
@@ -87,6 +87,42 @@ export class TestOperation extends DurableObject<Env> {
           case "objects":{const s=this.store.get();s.objectVerified=!!arg.value;this.store.set(s);return json({ok:true});}
           case "report":return json({status:await this.engine.report(arg as unknown as RunnerReport)});
           case "quarantine":await this.engine.quarantine();return json({ok:true});
+          // Finite, excluded V2 regression controls; no raw SQL input accepted.
+          case "schemaInfo":return json({schema:this.ctx.storage.sql.exec("SELECT version FROM controller_schema").toArray(),floorType:this.ctx.storage.sql.exec("SELECT typeof(clock_floor) AS value FROM operation").toArray()});
+          case "schema1Fixture": {
+            this.ctx.storage.transactionSync(()=>{
+              this.ctx.storage.sql.exec("ALTER TABLE operation DROP COLUMN clock_floor");
+              this.ctx.storage.sql.exec("DROP TABLE controller_schema");
+              this.ctx.storage.sql.exec("CREATE TABLE controller_schema(version INTEGER NOT NULL CHECK(version=1))");
+              this.ctx.storage.sql.exec("INSERT INTO controller_schema(version) VALUES(1)");
+            });await this.ledger.sync();return json({ok:true});
+          }
+          case "unknownSchemaFixture": {
+            this.ctx.storage.transactionSync(()=>{
+              this.ctx.storage.sql.exec("DROP TABLE controller_schema");
+              this.ctx.storage.sql.exec("CREATE TABLE controller_schema(version INTEGER NOT NULL CHECK(version=9))");
+              this.ctx.storage.sql.exec("INSERT INTO controller_schema(version) VALUES(9)");
+            });await this.ledger.sync();return json({ok:true});
+          }
+          case "unknownSchemaCheck":try{new Ledger(this.ctx.storage);return json({unavailable:false});}catch{return json({unavailable:true});}
+          case "stateVersionMaxFixture":this.ctx.storage.sql.exec("UPDATE operation SET state_version='9223372036854775807'");await this.ledger.sync();return json({ok:true});
+          case "claimIdentityFixture": {
+            this.ledger.transaction(r=>{
+              if(!r)return;
+              switch(arg.field){
+                case "claim_id":r.claim_id="b".repeat(32);break;
+                case "instance_id":r.instance_id="fixture-other-instance";break;
+                case "boot_id":r.boot_id="fixture-other-boot";break;
+                case "provider_key":r.provider_key="b".repeat(64);break;
+                case "provider_kind":r.provider_kind="external-macos";break;
+                case "operation_id":r.operation_id="b".repeat(64);break;
+                case "binding_hash":r.binding_hash="b".repeat(64);break;
+                case "binding":r.binding=r.binding+" ";break;
+                default:throw new Error("fixture_field");
+              }
+              this.ledger.save(r,"identity_fixture");
+            });await this.ledger.sync();return json({ok:true});
+          }
           case "rollback": {
             const before=this.ledger.read();try{this.ledger.transaction(r=>{if(r){r.owner="rolled-back";this.ledger.save(r,"rollback_test");}throw new Error("rollback");});}catch{}
             return json({before,after:this.ledger.read()});

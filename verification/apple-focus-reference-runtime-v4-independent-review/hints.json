@@ -1,0 +1,62 @@
+{
+  "schema": "mixer.apple-focus-reference-runtime-v4-independent-review-hints.1",
+  "reviewAccepted": false,
+  "dispatchAuthorized": false,
+  "producerHandoffSHA256": "79a8a2d5070b1f9466831089be0f2f89d1e67d3785c707879414ea2edac9ca07",
+  "packetSHA256": "4622a27a5e4c9dc9651b3eee6022e850dab1f55db3b48ac8f0daa4921b80e77a",
+  "producerHostReceiptSHA256": "771d70983473916cc8004d2c3a4893b2ce82bfc0e0a992ce657cd853fa5e35c3",
+  "sourceTreeSHA256": "696bfdd8a31be7b4d9ba49f57783625c7edbb75c126bb4696e31acc5aa0f238a",
+  "productArchiveSHA256": "0941185e39cc0171b0bf5d2aeb72738588e88b9c7b3d676f893b70c3bf644fa8",
+  "findings": [
+    {
+      "id": "F1",
+      "priority": 1,
+      "title": "Root ISO timestamp precision is truncated before ordering and freshness",
+      "source": "verification/apple-focus-reference-runtime-v4/importer.py",
+      "lines": [62, 63, 64, 65, 66, 134, 135, 136, 137, 138, 198, 202, 203, 204],
+      "tests": ["test_09_root_nanosecond_future_of_summary_must_reject", "test_10_root_subnanosecond_tail_must_reject", "test_11_fresh_root_future_by_one_ns_must_reject"],
+      "repair": "Validate canonical exactly representable root precision before datetime conversion, or preserve an exact original endpoint. Reject unsupported precision. Use the same contract for fresh=True and run ranges, including timezone offset precision."
+    },
+    {
+      "id": "F2",
+      "priority": 1,
+      "title": "Frozen composition controls consume 276 unbound historical Settings journals",
+      "source": "verification/apple-focus-reference-runtime-v4/test_repair.py",
+      "lines": [33, 34, 35],
+      "relatedSource": "verification/apple-focus-reference-runtime-v3-independent-review/run_review.py:60-65",
+      "tests": ["test_36_frozen_closure_covers_referenced_settings_journals"],
+      "repair": "Bind a complete immutable Settings journal fixture and explicit inventory before replay. Re-run all copied controls with no ambient repository reads. Preserve first closed replay and separately identified supplemental evidence.",
+      "supplementalTreeSHA256": "c5c19c9aa0520f92f904f698823a90994e89166f3693df07ced052e9e38aeb68",
+      "supplementalWasBoundByProducer": false
+    },
+    {
+      "id": "F3",
+      "priority": 2,
+      "title": "Unrepresentable raw exponent changes ambient InvalidOperation flag",
+      "source": "verification/apple-focus-reference-runtime-v4/importer.py",
+      "lines": [106, 107, 108, 109],
+      "tests": ["test_06_unrepresentable_raw_exponent_does_not_mutate_ambient_flags"],
+      "repair": "Reject unsupported exponents before context-sensitive Decimal construction or isolate construction from caller context. Preserve trap and flag state and continue rejecting unsupported tokens as incomplete evidence."
+    },
+    {
+      "id": "F4",
+      "priority": 2,
+      "title": "Incomplete V4 runtime report emits runtime.3 schema",
+      "source": "verification/apple-focus-reference-runtime-v4/adapter.py",
+      "lines": [114, 115, 116],
+      "tests": ["test_29_no_capture_runtime_output_uses_v4_schema"],
+      "repair": "Give every incomplete/early-return/failure V4 runtime report a V4 schema and retain V3 root/name/path rejection."
+    }
+  ],
+  "requiredNextBoundary": "Repaired frozen packet, independent review, then fresh root selection; no dispatch of this rejected V4 packet",
+  "nativeExecuted": false,
+  "compileRerun": false,
+  "runtimeSelected": false,
+  "runPassed": false,
+  "completeCaseSet": false,
+  "cursorCompletionCredit": false,
+  "nativeKeyboardQualification": false,
+  "carrierAccepted": false,
+  "gaAccepted": false,
+  "physicalPhones": "disconnected-deferred"
+}

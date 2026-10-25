@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "status": "reviewed-no-open-findings-for-final-source",
+  "recordedUTC": "2026-10-25T03:25:25.078894+00:00",
+  "sourceRevision": "855942a472357cdce7662b4e950bb56d46196954",
+  "finalRunnerSHA256": "bb331e5b4b477c6f5a625dca41f4e3525346c5d77982631bc7731aaa75f42d58",
+  "finalSourceSnapshot": "final/snapshot.json",
+  "initialRunnerSHA256": "2bf5bf923a5b97717cc96335d06c2b8d8aebd1be4a5a7ae2da2a3d392e26ba0f",
+  "intermediateRunnerSHA256": "8e7202ed9fd316ca8e42bfef532cb2678795ef5305071741dceec99ca4d62068",
+  "environment": {
+    "node": "v22.23.3",
+    "npm": "10.9.9",
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "findings": [
+    {
+      "id": "R1",
+      "severity": "P2",
+      "finding": "source manifest omitted six consumed acceptance/vector/fixture inputs",
+      "status": "resolved-final-manifest-and-snapshots-verified"
+    },
+    {
+      "id": "R2",
+      "severity": "P2",
+      "finding": "EOF timeout threw before output and command receipt; open streams could retain loop",
+      "status": "resolved-final-negative-control"
+    },
+    {
+      "id": "R3",
+      "severity": "P2",
+      "finding": "natural process-group probe EPERM threw before output and command receipt",
+      "status": "resolved-final-injected-and-natural-controls"
+    },
+    {
+      "id": "R4",
+      "severity": "P2",
+      "finding": "unconfirmed live direct child could retain event loop after observation ceiling",
+      "status": "resolved-final-supervised-ceiling-control"
+    }
+  ],
+  "scope": [
+    "New test/check.mjs, npm test script, audit report routing, README and CI workflow",
+    "Accepted V2 production bytes not reopened",
+    "Original regression assertions preserved by exact file hashes; unchanged28+7+36 groups observed in root check-4",
+    "Bounded independent toy controls; supervisor cleanup only for exact owned groups"
+  ],
+  "verification": {
+    "commands": "commands.json",
+    "finalControls": "final/toy-results.json",
+    "ceilingControl": "final/ceiling/supervisor-results.json",
+    "staticChecks": "final/static-checks.json",
+    "rootRunReadOnlyObservation": "root-run-observations.json",
+    "rootCheck4SourceDigest": "1be6500ebb140b468130d9eb8c0b02de9a1ab1f92b0bd69832b30c08d39deec8",
+    "rootCheck4Groups": 71,
+    "allKnownToyPIDsAbsent": true,
+    "cleanup": "cleanup-final.json"
+  },
+  "limitations": [
+    "Root full suite observed read-only and not rerun by reviewer",
+    "Timeouts used scaled scheduling; five-minute wall-time timeout not waited out",
+    "No Linux CI execution verified",
+    "No native/UI/cloud/provider/device/physical-phone/GA qualification",
+    "Environment EPERM is recorded as failure with unknown group state, never silently accepted as cleanup"
+  ],
+  "mutations": "Only assigned review report and verification directory; no Git mutations or production/shared-file edits."
+}

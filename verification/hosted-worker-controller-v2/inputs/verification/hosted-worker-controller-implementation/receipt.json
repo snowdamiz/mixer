@@ -1,0 +1,900 @@
+{
+  "schema": 1,
+  "created_at": "2026-10-25T02:41:12.377011+00:00",
+  "status": "frozen-awaiting-independent-source-review",
+  "scope": "per-operation-Worker-SQLite-DO-alarm-development-slice-only",
+  "source_revision": "no Git inspected; exact explicit source tree digest and archive supplied",
+  "source_tree_sha256": "6f47612d9bf3118fb50be51f36dc05bbd724bd60416a5cdec0b1fa6299042e95",
+  "source_archive": {
+    "path": "verification/hosted-worker-controller-implementation/source-snapshot.tar.gz",
+    "bytes": 110964,
+    "sha256": "d6894fdae991b51485e7bec04a86027f87d84261ddc527e292e072c8b8dd55b7",
+    "mode": "0o644"
+  },
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning": "xhigh",
+  "root_selection": "verification/hosted-worker-controller-root-selection/dependencies.json",
+  "commands_and_outputs": [
+    {
+      "argv": [
+        "npm",
+        "install",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "observed_exit_code": 0,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller",
+      "selected_environment": {},
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/npm-install.stdout",
+        "bytes": 25,
+        "sha256": "6a0918433553952113085588ec6fbebf33181e177c53d66d72b7ee7f04327b53",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/npm-install.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0o644"
+      }
+    },
+    {
+      "argv": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "observed_exit_code": 1,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller",
+      "selected_environment": {},
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/build-attempt-1.stdout",
+        "bytes": 1057,
+        "sha256": "bf170c1a32d8ea57a9abcac36472f6ae95557f3ec5cd555b56db34180efbdf2a",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/build-attempt-1.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0o644"
+      }
+    },
+    {
+      "argv": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "observed_exit_code": 0,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller",
+      "selected_environment": {},
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/build-attempt-2.stdout",
+        "bytes": 65,
+        "sha256": "a863920de99919fb99b58de5c53290a807de5d4e7d6a93116fe4bec543a59e50",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/build-attempt-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0o644"
+      }
+    },
+    {
+      "argv": [
+        "node",
+        "-e",
+        "import(\"./test/acceptance-driver.mjs\").then(async({createHarness})=>{const h=await createHarness({fixture:{},nowUs:\"1900000000000000\",errorUs:\"1\",clockQualified:true});try{console.log(await h.snapshot())}finally{await h.close()}})"
+      ],
+      "observed_exit_code": 1,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller",
+      "selected_environment": {},
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/runtime-smoke-attempt-1.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/runtime-smoke-attempt-1.stderr",
+        "bytes": 1869,
+        "sha256": "1267602c50a25518364d0cae403e63508878f074c2a7ee6c9f57fffae0ce280a",
+        "mode": "0o644"
+      }
+    },
+    {
+      "argv": [
+        "node",
+        "-e",
+        "import(\"./test/acceptance-driver.mjs\").then(async({createHarness})=>{const h=await createHarness({fixture:{},nowUs:\"1900000000000000\",errorUs:\"1\",clockQualified:true});try{console.log(await h.snapshot())}finally{await h.close()}})"
+      ],
+      "observed_exit_code": 0,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller",
+      "selected_environment": {},
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/runtime-smoke-attempt-2.stdout",
+        "bytes": 18,
+        "sha256": "951c1c1912655c790e1678d1b6a4373550a69d2904c4704ed8209ec84c03699d",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/runtime-smoke-attempt-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0o644"
+      }
+    },
+    {
+      "argv": [
+        "node",
+        "verification/hosted-worker-controller-contract/acceptance.mjs",
+        "--candidate",
+        "hosted-worker-controller/test/acceptance-driver.mjs"
+      ],
+      "observed_exit_code": 0,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "selected_environment": {},
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/frozen-acceptance-attempt-1.stdout",
+        "bytes": 1495,
+        "sha256": "ac319ecdbb86030392530b67065182b06a566653faf52bd347c21ef13853916d",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/frozen-acceptance-attempt-1.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0o644"
+      }
+    },
+    {
+      "argv": [
+        "npm",
+        "test"
+      ],
+      "observed_exit_code": 0,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller",
+      "selected_environment": {},
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/test-attempt-1.stdout",
+        "bytes": 3262,
+        "sha256": "4e2ff6fe4142e96ae6fa005bd67dac6fbebd9403a0f0b930b46c15e23e09d782",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/test-attempt-1.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0o644"
+      }
+    },
+    {
+      "argv": [
+        "npm",
+        "test"
+      ],
+      "observed_exit_code": 1,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller",
+      "selected_environment": {},
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/test-attempt-2.stdout",
+        "bytes": 1684,
+        "sha256": "f7351dc1c3391b19e20ab0e9cfadf699809f9976d893c7f0737ad2e0200ec924",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/test-attempt-2.stderr",
+        "bytes": 689,
+        "sha256": "ece69d4c6a915285ec2602f180eeb10f5ec211e586598554e4b55ba8689e9983",
+        "mode": "0o644"
+      }
+    },
+    {
+      "argv": [
+        "npm",
+        "test"
+      ],
+      "observed_exit_code": 0,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller",
+      "selected_environment": {},
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/test-attempt-3.stdout",
+        "bytes": 3431,
+        "sha256": "22f0bf03ea37943624af270008a899eb03216216edb27c02e90c335311584369",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/test-attempt-3.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0o644"
+      }
+    },
+    {
+      "argv": [
+        "elixir",
+        "-pa",
+        "hosted/_build/test/lib/jason/ebin",
+        "verification/hosted-worker-controller-implementation/jason-control-vectors.exs",
+        "verification/hosted-worker-controller-contract/vectors.json",
+        "verification/hosted-worker-controller-implementation/jason-control-vectors.json"
+      ],
+      "observed_exit_code": 0,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "selected_environment": {},
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/jason-control-vectors.stdout",
+        "bytes": 147,
+        "sha256": "37ab320b2b519e74bb9eabdf62bfd2023a3cc8f080a807374452d028151aee89",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/jason-control-vectors.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0o644"
+      }
+    },
+    {
+      "argv": [
+        "node",
+        "inventory.mjs"
+      ],
+      "observed_exit_code": 0,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller",
+      "selected_environment": {},
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/dependency-inventory.stdout",
+        "bytes": 106,
+        "sha256": "6eaaf401de8cb1fae593cd722711ecf4b8771e362242cea0dbdbc06882c1aad5",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/dependency-inventory.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0o644"
+      }
+    },
+    {
+      "argv": [
+        "npm",
+        "ci",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "observed_exit_code": 0,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller",
+      "selected_environment": {},
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/npm-ci.stdout",
+        "bytes": 28,
+        "sha256": "00b29a00e7473754b1e93836018e8917530334ca84fc384cbc611b97c49fd24e",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/npm-ci.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0o644"
+      }
+    },
+    {
+      "argv": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "observed_exit_code": 0,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller",
+      "selected_environment": {},
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/build-final.stdout",
+        "bytes": 65,
+        "sha256": "a863920de99919fb99b58de5c53290a807de5d4e7d6a93116fe4bec543a59e50",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/build-final.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0o644"
+      }
+    },
+    {
+      "argv": [
+        "npm",
+        "test"
+      ],
+      "observed_exit_code": 0,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller",
+      "selected_environment": {},
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/test-final.stdout",
+        "bytes": 3431,
+        "sha256": "22f0bf03ea37943624af270008a899eb03216216edb27c02e90c335311584369",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/test-final.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0o644"
+      }
+    },
+    {
+      "argv": [
+        "npm",
+        "test"
+      ],
+      "observed_exit_code": 0,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller",
+      "selected_environment": {},
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/test-final-2.stdout",
+        "bytes": 3575,
+        "sha256": "1efef64915b2cbba23666b0ba089ee64366d856256d85e1211b1b3504ff87e83",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/test-final-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0o644"
+      }
+    },
+    {
+      "argv": [
+        "npm",
+        "test"
+      ],
+      "observed_exit_code": 0,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller",
+      "selected_environment": {
+        "MIXER_CONTROLLER_TEST_REPORT": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-implementation/test-report.json"
+      },
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/test-freeze.stdout",
+        "bytes": 3575,
+        "sha256": "1efef64915b2cbba23666b0ba089ee64366d856256d85e1211b1b3504ff87e83",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/test-freeze.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0o644"
+      }
+    },
+    {
+      "argv": [
+        "node",
+        "audit-build.mjs"
+      ],
+      "observed_exit_code": 0,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller",
+      "selected_environment": {},
+      "stdout": {
+        "path": "verification/hosted-worker-controller-implementation/production-build-closure.stdout",
+        "bytes": 108,
+        "sha256": "899fbb0fb73857e789250433f6807c0377984e142fb5bc0c07584c77db4a7e09",
+        "mode": "0o644"
+      },
+      "stderr": {
+        "path": "verification/hosted-worker-controller-implementation/production-build-closure.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0o644"
+      }
+    }
+  ],
+  "tool_commands": [
+    {
+      "argv": [
+        "node",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "v22.23.3\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "npm",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "10.9.9\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "Version 5.9.3\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sw_vers"
+      ],
+      "exit_code": 0,
+      "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "node",
+        "-e",
+        "const w=require('workerd');console.log(JSON.stringify({path:w.default,version:w.version,compatibilityDate:w.compatibilityDate}))"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"path\":\"/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd\",\"version\":\"1.20260730.1\",\"compatibilityDate\":\"2026-07-30\"}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "workerd 2026-07-30\n",
+      "stderr": ""
+    }
+  ],
+  "runtime_binary_inputs": [
+    {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+      "bytes": 114566712,
+      "sha256": "b887d31d8839e80798bf3f92c416343c5db7dd9b22d7fe21bcf877f5d411936f"
+    },
+    {
+      "path": "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+      "bytes": 112925600,
+      "sha256": "68f4d07ca49e0500cc135c7e0a445093e228e42e126ac22306d045f0a8c2636b"
+    },
+    {
+      "path": "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/lib/node_modules/npm/bin/npm-cli.js",
+      "bytes": 54,
+      "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7"
+    },
+    {
+      "path": "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+      "bytes": 6658,
+      "sha256": "5cb23d89a78f75589b06fade3097e217b77e63416d61c1800f674579748c4307"
+    }
+  ],
+  "source_manifest": {
+    "path": "verification/hosted-worker-controller-implementation/source-manifest.json",
+    "bytes": 12407,
+    "sha256": "d76bdc50b1cc939ef79f50e55a26cf609b197afa6da7727d4b7d4525a61e6398",
+    "mode": "0o644"
+  },
+  "dependency_manifest": {
+    "path": "verification/hosted-worker-controller-implementation/dependency-files.json",
+    "bytes": 278148,
+    "sha256": "4dc15fbd4f2c4077f1c77368cb1dbe1ecb65619b544b3e70e72239ae1eeaeb62",
+    "mode": "0o644"
+  },
+  "jason_beams": {
+    "path": "verification/hosted-worker-controller-implementation/jason-beams.json",
+    "bytes": 6528,
+    "sha256": "90cceb44e9bb7fc9305b691163a40031037dccf79b363047ec42917fc6b539c2",
+    "mode": "0o644"
+  },
+  "artifacts": [
+    {
+      "path": "verification/hosted-worker-controller-implementation/README.md",
+      "bytes": 3118,
+      "sha256": "c6bfac6b42bd0741a5c256e0cc4ac812468c04432eb360005a5c2bdf426aaa64",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/build-attempt-1.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/build-attempt-1.stdout",
+      "bytes": 1057,
+      "sha256": "bf170c1a32d8ea57a9abcac36472f6ae95557f3ec5cd555b56db34180efbdf2a",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/build-attempt-2.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/build-attempt-2.stdout",
+      "bytes": 65,
+      "sha256": "a863920de99919fb99b58de5c53290a807de5d4e7d6a93116fe4bec543a59e50",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/build-attempt-3.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/build-attempt-3.stdout",
+      "bytes": 65,
+      "sha256": "a863920de99919fb99b58de5c53290a807de5d4e7d6a93116fe4bec543a59e50",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/build-attempt-4.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/build-attempt-4.stdout",
+      "bytes": 65,
+      "sha256": "a863920de99919fb99b58de5c53290a807de5d4e7d6a93116fe4bec543a59e50",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/build-attempt-5.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/build-attempt-5.stdout",
+      "bytes": 65,
+      "sha256": "a863920de99919fb99b58de5c53290a807de5d4e7d6a93116fe4bec543a59e50",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/build-attempt-6.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/build-attempt-6.stdout",
+      "bytes": 65,
+      "sha256": "a863920de99919fb99b58de5c53290a807de5d4e7d6a93116fe4bec543a59e50",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/build-final.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/build-final.stdout",
+      "bytes": 65,
+      "sha256": "a863920de99919fb99b58de5c53290a807de5d4e7d6a93116fe4bec543a59e50",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/cleanup.json",
+      "bytes": 1223,
+      "sha256": "ae1c464c5165094e57376d66c8406280e3ffc93ea44f2703d190835ddd7fdc39",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/collect.py",
+      "bytes": 12664,
+      "sha256": "c1e102d3490fffcdad679c53fcac3d5361bdcf2a1b4a68273dc47a50c066ea73",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/dependency-files.json",
+      "bytes": 278148,
+      "sha256": "4dc15fbd4f2c4077f1c77368cb1dbe1ecb65619b544b3e70e72239ae1eeaeb62",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/dependency-inventory.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/dependency-inventory.stdout",
+      "bytes": 106,
+      "sha256": "6eaaf401de8cb1fae593cd722711ecf4b8771e362242cea0dbdbc06882c1aad5",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/frozen-acceptance-attempt-1.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/frozen-acceptance-attempt-1.stdout",
+      "bytes": 1495,
+      "sha256": "ac319ecdbb86030392530b67065182b06a566653faf52bd347c21ef13853916d",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/jason-beams.json",
+      "bytes": 6528,
+      "sha256": "90cceb44e9bb7fc9305b691163a40031037dccf79b363047ec42917fc6b539c2",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/jason-control-vectors.exs",
+      "bytes": 2704,
+      "sha256": "70b2612a1cc7578df2c70d6619d593bdd2ee124c9029a2f336600348658e8591",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/jason-control-vectors.json",
+      "bytes": 58067,
+      "sha256": "c888db1f04ac83b527b99e0d637fcd8713bed281b30b125f20c61513033fdfa5",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/jason-control-vectors.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/jason-control-vectors.stdout",
+      "bytes": 147,
+      "sha256": "37ab320b2b519e74bb9eabdf62bfd2023a3cc8f080a807374452d028151aee89",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/npm-ci.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/npm-ci.stdout",
+      "bytes": 28,
+      "sha256": "00b29a00e7473754b1e93836018e8917530334ca84fc384cbc611b97c49fd24e",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/npm-install.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/npm-install.stdout",
+      "bytes": 25,
+      "sha256": "6a0918433553952113085588ec6fbebf33181e177c53d66d72b7ee7f04327b53",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/production-build-closure.json",
+      "bytes": 1668,
+      "sha256": "b008e648c287337360f8550d52527b20b82890b11cce0643583ea88de515242b",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/production-build-closure.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/production-build-closure.stdout",
+      "bytes": 108,
+      "sha256": "899fbb0fb73857e789250433f6807c0377984e142fb5bc0c07584c77db4a7e09",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/runtime-smoke-attempt-1.stderr",
+      "bytes": 1869,
+      "sha256": "1267602c50a25518364d0cae403e63508878f074c2a7ee6c9f57fffae0ce280a",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/runtime-smoke-attempt-1.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/runtime-smoke-attempt-2.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/runtime-smoke-attempt-2.stdout",
+      "bytes": 18,
+      "sha256": "951c1c1912655c790e1678d1b6a4373550a69d2904c4704ed8209ec84c03699d",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/source-manifest.json",
+      "bytes": 12407,
+      "sha256": "d76bdc50b1cc939ef79f50e55a26cf609b197afa6da7727d4b7d4525a61e6398",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/source-snapshot.tar.gz",
+      "bytes": 110964,
+      "sha256": "d6894fdae991b51485e7bec04a86027f87d84261ddc527e292e072c8b8dd55b7",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/test-attempt-1.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/test-attempt-1.stdout",
+      "bytes": 3262,
+      "sha256": "4e2ff6fe4142e96ae6fa005bd67dac6fbebd9403a0f0b930b46c15e23e09d782",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/test-attempt-2.stderr",
+      "bytes": 689,
+      "sha256": "ece69d4c6a915285ec2602f180eeb10f5ec211e586598554e4b55ba8689e9983",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/test-attempt-2.stdout",
+      "bytes": 1684,
+      "sha256": "f7351dc1c3391b19e20ab0e9cfadf699809f9976d893c7f0737ad2e0200ec924",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/test-attempt-3.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/test-attempt-3.stdout",
+      "bytes": 3431,
+      "sha256": "22f0bf03ea37943624af270008a899eb03216216edb27c02e90c335311584369",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/test-final-2.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/test-final-2.stdout",
+      "bytes": 3575,
+      "sha256": "1efef64915b2cbba23666b0ba089ee64366d856256d85e1211b1b3504ff87e83",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/test-final.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/test-final.stdout",
+      "bytes": 3431,
+      "sha256": "22f0bf03ea37943624af270008a899eb03216216edb27c02e90c335311584369",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/test-freeze.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/test-freeze.stdout",
+      "bytes": 3575,
+      "sha256": "1efef64915b2cbba23666b0ba089ee64366d856256d85e1211b1b3504ff87e83",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/test-report.json",
+      "bytes": 22211,
+      "sha256": "aff471bdf0177875f38a767195feb487210ad357638b1aa7188128235842a1fb",
+      "mode": "0o644"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation/verify_snapshot.py",
+      "bytes": 2233,
+      "sha256": "dd12fe3f6be7d2663ecdc7ef3ffec158898e012fcf91662022e67db3ce365123",
+      "mode": "0o644"
+    }
+  ],
+  "results": {
+    "reported_groups": 28,
+    "frozen_scenarios": 20,
+    "frozen_fixtures": 5,
+    "original_producer_vectors": 36,
+    "additional_Jason_control_vectors": 24,
+    "owned_cleanup_actions": 114,
+    "owned_SIGKILL_cases": 4,
+    "locked_dependency_entries": 58,
+    "dependency_install_scripts_executed": 0,
+    "production_module_closure_files": 9
+  },
+  "cleanup": {
+    "recorded_cleanup_actions": 114,
+    "owned_storage_paths": 110,
+    "all_owned_storage_absent": true,
+    "matching_workerd_processes": [],
+    "signals": [
+      {
+        "ownedPid": 89809,
+        "parentPid": 89683,
+        "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+        "signal": "SIGKILL"
+      },
+      {
+        "ownedPid": 89812,
+        "parentPid": 89683,
+        "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+        "signal": "SIGKILL"
+      },
+      {
+        "ownedPid": 89815,
+        "parentPid": 89683,
+        "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+        "signal": "SIGKILL"
+      },
+      {
+        "ownedPid": 89818,
+        "parentPid": 89683,
+        "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+        "signal": "SIGKILL"
+      }
+    ],
+    "process_scan_command": [
+      "/bin/ps",
+      "-axo",
+      "pid=,ppid=,comm="
+    ],
+    "other_processes_modified": false
+  },
+  "historical_attempt_limits": "Numbered logs retained; historical failed source trees were not individually archived at failure. Final source tree is fully sealed.",
+  "network": "npm public package retrieval and official documentation reading only; no provider API, account, or credential mutation",
+  "not_verified": [
+    "complete-controller",
+    "independent-audit-registry-and-scheduler",
+    "missed-wake-or-exhausted-alarm-retry-recovery",
+    "actual-Cloudflare-ingress-TLS-framing-EOF",
+    "qualified-production-clock",
+    "real-provider-images-sizing-egress-isolation",
+    "external-macOS",
+    "trusted-one-shot-supervisor-and-descendant-proof",
+    "runner-auth-and-private-R2-source-artifacts",
+    "nonrollbackable-restore-authority",
+    "hard-whole-domain-resources",
+    "Neon-Oban-zero-traffic-operations",
+    "signing-store-customer-GA"
+  ],
+  "collector_command": [
+    "python3",
+    "verification/hosted-worker-controller-implementation/collect.py"
+  ],
+  "collector_stdout_sha256": "9bda8c794d75b57f9fe4e6e6e7f948e28eb5ff0e7a8daeba1d5033f9a1bcd089"
+}

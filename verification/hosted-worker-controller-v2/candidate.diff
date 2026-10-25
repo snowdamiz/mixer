@@ -1,0 +1,621 @@
+--- original/hosted-worker-controller/dist/src/engine.d.ts
++++ candidate/hosted-worker-controller/dist/src/engine.d.ts
+@@ -26,6 +26,7 @@
+     private inFlight;
+     constructor(ledger: Ledger, clock: Clock, provider: Provider, verifier: ObjectVerifier, hooks?: Hooks);
+     private sample;
++    private acceptTime;
+     private live;
+     private stop;
+     private due;
+--- original/hosted-worker-controller/dist/src/engine.js
++++ candidate/hosted-worker-controller/dist/src/engine.js
+@@ -21,13 +21,24 @@
+         const i = this.clock.sample();
+         if (!validInterval(i))
+             return null;
+-        if (r && i.upperUs < BigInt(r.clock_lower)) {
++        if (r && i.upperUs < BigInt(r.clock_floor)) {
+             r.quarantined = 1;
+             r.phase = "quarantined";
+             this.ledger.save(r, "clock_rollback");
+             return null;
+         }
+         return i;
++    }
++    // Preserve the exact accepted interval separately from the maximum historical
++    // lower bound. Overlapping uncertainty intervals may move the latest lower
++    // bound backwards, but can never ratchet the historical bound backwards.
++    // Callers save this with the decision in the same synchronous transaction.
++    acceptTime(r, i) {
++        r.clock_lower = String(i.lowerUs);
++        r.clock_upper = String(i.upperUs);
++        r.clock_qualification = i.qualificationId;
++        if (i.lowerUs > BigInt(r.clock_floor))
++            r.clock_floor = String(i.lowerUs);
+     }
+     live(r, i) {
+         const request = JSON.parse(r.request_json);
+@@ -90,9 +101,7 @@
+             r.owner = request.guard.owner_id;
+             r.expiry_us = request.guard.expires_at_us;
+             r.request_json = JSON.stringify(request);
+-            r.clock_lower = String(interval.lowerUs);
+-            r.clock_upper = String(interval.upperUs);
+-            r.clock_qualification = interval.qualificationId;
++            this.acceptTime(r, interval);
+             if (request.command === "stop")
+                 this.stop(r);
+             else if (request.command === "ensure_started" && r.desired !== "stop" && !r.terminal_json && r.launch_dispatched === 0) {
+@@ -129,7 +138,7 @@
+     }
+     prepare() {
+         return this.ledger.transaction(r => {
+-            if (!r || r.terminal_json || r.quarantined || !this.provider.available)
++            if (!r || r.terminal_json || (r.quarantined && r.desired !== "stop") || !this.provider.available)
+                 return null;
+             const interval = this.sample(r);
+             const request = JSON.parse(r.request_json);
+@@ -154,6 +163,8 @@
+             // before its provider call. This sacrifices liveness to avoid duplication.
+             if (kind === "launch")
+                 r.launch_dispatched = 1;
++            if (interval)
++                this.acceptTime(r, interval);
+             const reuse = kind === r.effect_kind && r.effect_state === "prepared";
+             r.effect_id = reuse ? r.effect_id : uuid();
+             if (!reuse)
+@@ -171,12 +182,16 @@
+     }
+     finalCheck(effect) {
+         return this.ledger.transaction(r => {
+-            if (!r || r.quarantined || r.terminal_json || r.effect_id !== effect.id || r.effect_kind !== effect.kind)
++            if (!r || (r.quarantined && effect.kind !== "stop") || r.terminal_json || r.effect_id !== effect.id || r.effect_kind !== effect.kind)
+                 return false;
+             if (effect.kind === "stop")
+                 return r.desired === "stop";
+             const interval = this.sample(r);
+-            return !!interval && r.desired === "run" && this.sameGuard(r, effect.request) && this.live(r, interval);
++            if (!interval || r.desired !== "run" || !this.sameGuard(r, effect.request) || !this.live(r, interval))
++                return false;
++            this.acceptTime(r, interval);
++            this.ledger.save(r, "effect_time_accepted");
++            return true;
+         });
+     }
+     observation(value, identity) {
+@@ -207,8 +222,10 @@
+             if (!r || r.effect_id !== effect.id || r.effect_kind !== effect.kind || r.terminal_json)
+                 return;
+             const interval = this.sample(r);
+-            if (r.quarantined)
++            if (r.quarantined && effect.kind !== "stop")
+                 return;
++            if (interval)
++                this.acceptTime(r, interval);
+             if (effect.kind !== "stop" && !this.sameGuard(r, effect.request)) {
+                 r.effect_state = "uncertain";
+                 this.due(r, interval);
+@@ -370,28 +387,43 @@
+         if (!this.validClaim(claim))
+             return { granted: false };
+         await this.hooks.point("before_claim_grant");
+-        const answer = this.ledger.transaction(r => {
++        const prospective = this.ledger.transaction(r => {
+             if (!r || r.quarantined || r.desired !== "run" || r.terminal_json || r.claim_state !== "unissued" || r.phase !== "inert")
+-                return { granted: false };
++                return null;
++            if (claim.immutableSha256 !== r.binding_hash || claim.identity.provider !== r.provider_kind || claim.identity.key !== r.provider_key || claim.identity.immutableSha256 !== r.binding_hash || claim.instanceId !== r.instance_id || claim.bootId !== r.boot_id)
++                return null;
+             const i = this.sample(r);
+             if (!i || !this.live(r, i))
+-                return { granted: false };
+-            if (claim.immutableSha256 !== r.binding_hash || claim.identity.provider !== r.provider_kind || claim.identity.key !== r.provider_key || claim.identity.immutableSha256 !== r.binding_hash || claim.instanceId !== r.instance_id || claim.bootId !== r.boot_id)
+-                return { granted: false };
++                return null;
++            this.acceptTime(r, i);
+             r.claim_state = "consumed";
+             r.claim_id = uuid();
+             r.phase = "claim_consumed";
+             this.ledger.save(r, "claim_consumed");
+-            return { granted: true, claimId: r.claim_id };
++            return { operation_id: r.operation_id, binding: r.binding, binding_hash: r.binding_hash,
++                epoch: r.epoch, revision: r.revision, owner: r.owner, expiry_us: r.expiry_us,
++                provider_kind: r.provider_kind, provider_key: r.provider_key, instance_id: r.instance_id, boot_id: r.boot_id, claim_id: r.claim_id };
+         });
+         await this.ledger.sync();
+         await this.hooks.point("after_claim_commit");
+-        // A stop may commit while durability is awaited. Never grant after it.
+-        const r = this.ledger.read();
+-        const i = this.ledger.transaction(row => this.sample(row));
+-        if (!r || r.desired !== "run" || r.quarantined || !i || !this.live(r, i))
+-            return { granted: false };
+-        return answer;
++        // Consumption is already durable. This is the grant's linearization point,
++        // after every await: compare the exact consumed authority and identity with
++        // the current row, then accept the exact final qualified sample atomically.
++        // No await follows this decision. The DO's default output gate confirms its
++        // final clock-history write before the response becomes externally visible.
++        return this.ledger.transaction(r => {
++            if (!prospective || !r || r.desired !== "run" || r.quarantined || r.terminal_json || r.claim_state !== "consumed" || r.phase !== "claim_consumed")
++                return { granted: false };
++            for (const key of Object.keys(prospective))
++                if (r[key] !== prospective[key])
++                    return { granted: false };
++            const i = this.sample(r);
++            if (!i || !this.live(r, i))
++                return { granted: false };
++            this.acceptTime(r, i);
++            this.ledger.save(r, "claim_grant_time_accepted");
++            return { granted: true, claimId: prospective.claim_id };
++        });
+     }
+     async report(report) {
+         if (!this.validClaim(report, true))
+@@ -421,6 +453,7 @@
+             const i = this.sample(current);
+             if (!i || !this.live(current, i))
+                 return false;
++            this.acceptTime(current, i);
+             current.report_hash = hash;
+             current.pending_result_json = JSON.stringify(parsed);
+             this.stop(current);
+--- original/hosted-worker-controller/dist/src/ledger.d.ts
++++ candidate/hosted-worker-controller/dist/src/ledger.d.ts
+@@ -15,6 +15,7 @@
+     clock_lower: string;
+     clock_upper: string;
+     clock_qualification: string;
++    clock_floor: string;
+     desired: "none" | "run" | "stop";
+     phase: "unlaunched" | "launch_pending" | "inert" | "claim_consumed" | "running" | "stop_pending" | "completed" | "stopped" | "uncertain" | "quarantined";
+     provider_key: string;
+--- original/hosted-worker-controller/dist/src/ledger.js
++++ candidate/hosted-worker-controller/dist/src/ledger.js
+@@ -1,6 +1,6 @@
+ import schema from "./schema.sql";
+ import { immutableBytes, MAX } from "./wire.js";
+-const columns = ["singleton", "operation_id", "binding", "binding_hash", "request_json", "epoch", "revision", "owner", "expiry_us", "clock_lower", "clock_upper", "clock_qualification", "desired", "phase", "provider_key", "provider_kind", "state_version", "claim_state", "claim_id", "instance_id", "boot_id", "effect_id", "effect_request_json", "effect_kind", "effect_state", "launch_dispatched", "terminal_json", "report_hash", "pending_result_json", "next_due_us", "failures", "quarantined"];
++const columns = ["singleton", "operation_id", "binding", "binding_hash", "request_json", "epoch", "revision", "owner", "expiry_us", "clock_lower", "clock_upper", "clock_qualification", "clock_floor", "desired", "phase", "provider_key", "provider_kind", "state_version", "claim_state", "claim_id", "instance_id", "boot_id", "effect_id", "effect_request_json", "effect_kind", "effect_state", "launch_dispatched", "terminal_json", "report_hash", "pending_result_json", "next_due_us", "failures", "quarantined"];
+ // SQL templates derive only from this compile-time fixed identifier list.
+ const upsert = `INSERT INTO operation (${columns.join(",")}) VALUES (${columns.map(() => "?").join(",")}) ON CONFLICT(singleton) DO UPDATE SET ${columns.filter(k => k !== "singleton").map(k => `${k}=excluded.${k}`).join(",")}`;
+ export class Ledger {
+@@ -8,9 +8,29 @@
+     constructor(storage) {
+         this.storage = storage;
+         storage.transactionSync(() => {
++            const exists = storage.sql.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='controller_schema'").toArray();
++            if (exists.length) {
++                const versions = storage.sql.exec("SELECT version FROM controller_schema").toArray();
++                if (versions.length !== 1 || (versions[0].version !== 1 && versions[0].version !== 2))
++                    throw new Error("schema_unavailable");
++                if (versions[0].version === 1) {
++                    storage.sql.exec("ALTER TABLE operation ADD COLUMN clock_floor TEXT NOT NULL DEFAULT '0'");
++                    const prior = this.read();
++                    if (prior) {
++                        prior.clock_floor = prior.clock_lower;
++                        prior.quarantined = 1;
++                        this.save(prior, "schema2_quarantine");
++                    }
++                    // V1 lost accepted time samples. Preserve all safety identity and stop/
++                    // claim/terminal fields, but never infer restored execution authority.
++                    storage.sql.exec("DROP TABLE controller_schema");
++                    storage.sql.exec("CREATE TABLE controller_schema(version INTEGER NOT NULL CHECK(version=2))");
++                    storage.sql.exec("INSERT INTO controller_schema(version) VALUES(2)");
++                }
++            }
+             storage.sql.exec(schema);
+             const versions = storage.sql.exec("SELECT version FROM controller_schema").toArray();
+-            if (versions.length !== 1 || versions[0].version !== 1)
++            if (versions.length !== 1 || versions[0].version !== 2)
+                 throw new Error("schema_unavailable");
+         });
+     }
+@@ -27,7 +47,7 @@
+     initial(request, clock, identity) {
+         return { singleton: 1, operation_id: request.operation_id, binding: immutableBytes(request), binding_hash: request.immutable_sha256,
+             request_json: JSON.stringify(request), epoch: request.guard.epoch, revision: request.guard.revision, owner: request.guard.owner_id, expiry_us: request.guard.expires_at_us,
+-            clock_lower: String(clock.lowerUs), clock_upper: String(clock.upperUs), clock_qualification: clock.qualificationId,
++            clock_lower: String(clock.lowerUs), clock_upper: String(clock.upperUs), clock_qualification: clock.qualificationId, clock_floor: String(clock.lowerUs),
+             desired: "none", phase: "unlaunched", provider_key: identity.key, provider_kind: identity.provider, state_version: "0",
+             claim_state: "unissued", claim_id: null, instance_id: null, boot_id: null, effect_id: null, effect_request_json: null, effect_kind: null, effect_state: "none", launch_dispatched: 0,
+             terminal_json: null, report_hash: null, pending_result_json: null, next_due_us: null, failures: 0, quarantined: 0 };
+--- original/hosted-worker-controller/dist/src/schema.sql
++++ candidate/hosted-worker-controller/dist/src/schema.sql
+@@ -1,11 +1,11 @@
+-CREATE TABLE IF NOT EXISTS controller_schema(version INTEGER NOT NULL CHECK(version=1));
+-INSERT INTO controller_schema(version) SELECT 1 WHERE NOT EXISTS(SELECT 1 FROM controller_schema);
++CREATE TABLE IF NOT EXISTS controller_schema(version INTEGER NOT NULL CHECK(version=2));
++INSERT INTO controller_schema(version) SELECT 2 WHERE NOT EXISTS(SELECT 1 FROM controller_schema);
+ CREATE TABLE IF NOT EXISTS operation (
+  singleton INTEGER PRIMARY KEY CHECK(singleton=1),
+  operation_id TEXT NOT NULL, binding TEXT NOT NULL, binding_hash TEXT NOT NULL,
+  request_json TEXT NOT NULL, epoch TEXT NOT NULL, revision TEXT NOT NULL,
+  owner TEXT NOT NULL, expiry_us TEXT NOT NULL,
+- clock_lower TEXT NOT NULL, clock_upper TEXT NOT NULL, clock_qualification TEXT NOT NULL,
++ clock_lower TEXT NOT NULL, clock_upper TEXT NOT NULL, clock_qualification TEXT NOT NULL, clock_floor TEXT NOT NULL,
+  desired TEXT NOT NULL CHECK(desired IN ('none','run','stop')),
+  phase TEXT NOT NULL CHECK(phase IN ('unlaunched','launch_pending','inert','claim_consumed','running','stop_pending','completed','stopped','uncertain','quarantined')),
+  provider_key TEXT NOT NULL, provider_kind TEXT NOT NULL,
+--- original/hosted-worker-controller/dist/test/worker.js
++++ candidate/hosted-worker-controller/dist/test/worker.js
+@@ -28,7 +28,7 @@
+             this.store.set(s);
+         if (!c.qualified)
+             return null;
+-        return { lowerUs: BigInt(c.nowUs) - BigInt(c.errorUs), upperUs: BigInt(c.nowUs) + BigInt(c.errorUs), qualificationId: "synthetic-verification-only" };
++        return { lowerUs: BigInt(c.nowUs) - BigInt(c.errorUs), upperUs: BigInt(c.nowUs) + BigInt(c.errorUs), qualificationId: c.qualificationId ?? "synthetic-verification-only" };
+     }
+ }
+ class FixtureHooks {
+@@ -82,10 +82,12 @@
+ }
+ class FixtureVerifier {
+     store;
+-    constructor(store) {
+-        this.store = store;
+-    }
+-    async verify() { return this.store.get().objectVerified; }
++    hooks;
++    constructor(store, hooks) {
++        this.store = store;
++        this.hooks = hooks;
++    }
++    async verify() { await this.hooks.point("before_object_verify_return"); return this.store.get().objectVerified; }
+ }
+ export class TestOperation extends DurableObject {
+     ledger;
+@@ -99,7 +101,7 @@
+         this.store = new TestStore(ctx.storage.sql);
+         this.hooks = new FixtureHooks(this.store);
+         this.provider = new FixtureProvider(this.store);
+-        this.engine = new Engine(this.ledger, new SyntheticClock(this.store), this.provider, new FixtureVerifier(this.store), this.hooks);
++        this.engine = new Engine(this.ledger, new SyntheticClock(this.store), this.provider, new FixtureVerifier(this.store, this.hooks), this.hooks);
+         ctx.blockConcurrencyWhile(() => this.engine.recover());
+     }
+     async fetch(request) {
+@@ -178,6 +180,74 @@
+                     case "quarantine":
+                         await this.engine.quarantine();
+                         return json({ ok: true });
++                    // Finite, excluded V2 regression controls; no raw SQL input accepted.
++                    case "schemaInfo": return json({ schema: this.ctx.storage.sql.exec("SELECT version FROM controller_schema").toArray(), floorType: this.ctx.storage.sql.exec("SELECT typeof(clock_floor) AS value FROM operation").toArray() });
++                    case "schema1Fixture": {
++                        this.ctx.storage.transactionSync(() => {
++                            this.ctx.storage.sql.exec("ALTER TABLE operation DROP COLUMN clock_floor");
++                            this.ctx.storage.sql.exec("DROP TABLE controller_schema");
++                            this.ctx.storage.sql.exec("CREATE TABLE controller_schema(version INTEGER NOT NULL CHECK(version=1))");
++                            this.ctx.storage.sql.exec("INSERT INTO controller_schema(version) VALUES(1)");
++                        });
++                        await this.ledger.sync();
++                        return json({ ok: true });
++                    }
++                    case "unknownSchemaFixture": {
++                        this.ctx.storage.transactionSync(() => {
++                            this.ctx.storage.sql.exec("DROP TABLE controller_schema");
++                            this.ctx.storage.sql.exec("CREATE TABLE controller_schema(version INTEGER NOT NULL CHECK(version=9))");
++                            this.ctx.storage.sql.exec("INSERT INTO controller_schema(version) VALUES(9)");
++                        });
++                        await this.ledger.sync();
++                        return json({ ok: true });
++                    }
++                    case "unknownSchemaCheck": try {
++                        new Ledger(this.ctx.storage);
++                        return json({ unavailable: false });
++                    }
++                    catch {
++                        return json({ unavailable: true });
++                    }
++                    case "stateVersionMaxFixture":
++                        this.ctx.storage.sql.exec("UPDATE operation SET state_version='9223372036854775807'");
++                        await this.ledger.sync();
++                        return json({ ok: true });
++                    case "claimIdentityFixture": {
++                        this.ledger.transaction(r => {
++                            if (!r)
++                                return;
++                            switch (arg.field) {
++                                case "claim_id":
++                                    r.claim_id = "b".repeat(32);
++                                    break;
++                                case "instance_id":
++                                    r.instance_id = "fixture-other-instance";
++                                    break;
++                                case "boot_id":
++                                    r.boot_id = "fixture-other-boot";
++                                    break;
++                                case "provider_key":
++                                    r.provider_key = "b".repeat(64);
++                                    break;
++                                case "provider_kind":
++                                    r.provider_kind = "external-macos";
++                                    break;
++                                case "operation_id":
++                                    r.operation_id = "b".repeat(64);
++                                    break;
++                                case "binding_hash":
++                                    r.binding_hash = "b".repeat(64);
++                                    break;
++                                case "binding":
++                                    r.binding = r.binding + " ";
++                                    break;
++                                default: throw new Error("fixture_field");
++                            }
++                            this.ledger.save(r, "identity_fixture");
++                        });
++                        await this.ledger.sync();
++                        return json({ ok: true });
++                    }
+                     case "rollback": {
+                         const before = this.ledger.read();
+                         try {
+--- original/hosted-worker-controller/src/engine.ts
++++ candidate/hosted-worker-controller/src/engine.ts
+@@ -13,9 +13,17 @@
+   constructor(readonly ledger:Ledger,readonly clock:Clock,readonly provider:Provider,readonly verifier:ObjectVerifier,private hooks:Hooks=noHooks){}
+   private sample(r:Row|null):Interval|null {
+     const i=this.clock.sample();if(!validInterval(i))return null;
+-    if(r&&i.upperUs<BigInt(r.clock_lower)){
++    if(r&&i.upperUs<BigInt(r.clock_floor)){
+       r.quarantined=1;r.phase="quarantined";this.ledger.save(r,"clock_rollback");return null;
+     }return i;
++  }
++  // Preserve the exact accepted interval separately from the maximum historical
++  // lower bound. Overlapping uncertainty intervals may move the latest lower
++  // bound backwards, but can never ratchet the historical bound backwards.
++  // Callers save this with the decision in the same synchronous transaction.
++  private acceptTime(r:Row,i:Interval):void {
++    r.clock_lower=String(i.lowerUs);r.clock_upper=String(i.upperUs);r.clock_qualification=i.qualificationId;
++    if(i.lowerUs>BigInt(r.clock_floor))r.clock_floor=String(i.lowerUs);
+   }
+   private live(r:Row,i:Interval):boolean {
+     const request=JSON.parse(r.request_json) as WireRequest;
+@@ -58,7 +66,7 @@
+       if(request.command==="ensure_started"&&!this.provider.available&&!row?.terminal_json)return err("unavailable");
+       const r=row??this.ledger.initial(request,interval,identity);
+       r.epoch=request.guard.epoch;r.revision=request.guard.revision;r.owner=request.guard.owner_id;r.expiry_us=request.guard.expires_at_us;
+-      r.request_json=JSON.stringify(request);r.clock_lower=String(interval.lowerUs);r.clock_upper=String(interval.upperUs);r.clock_qualification=interval.qualificationId;
++      r.request_json=JSON.stringify(request);this.acceptTime(r,interval);
+       if(request.command==="stop")this.stop(r);
+       else if(request.command==="ensure_started"&&r.desired!=="stop"&&!r.terminal_json&&r.launch_dispatched===0){
+         r.desired="run";r.phase="launch_pending";r.effect_kind="launch";r.effect_id=uuid();r.effect_state="prepared";r.effect_request_json=JSON.stringify(request);
+@@ -78,7 +86,7 @@
+   }
+   private prepare():Effect|null {
+     return this.ledger.transaction(r=>{
+-      if(!r||r.terminal_json||r.quarantined||!this.provider.available)return null;
++      if(!r||r.terminal_json||(r.quarantined&&r.desired!=="stop")||!this.provider.available)return null;
+       const interval=this.sample(r);
+       const request=JSON.parse(r.request_json) as WireRequest;
+       if(interval&&interval.lowerUs>=BigInt(request.deadline_ms)*1000n)this.stop(r);
+@@ -95,6 +103,7 @@
+       // A marked-dispatched launch is never retried, even if a crash occurred
+       // before its provider call. This sacrifices liveness to avoid duplication.
+       if(kind==="launch")r.launch_dispatched=1;
++      if(interval)this.acceptTime(r,interval);
+       const reuse=kind===r.effect_kind&&r.effect_state==="prepared";
+       r.effect_id=reuse?r.effect_id:uuid();
+       if(!reuse)r.effect_request_json=r.request_json;
+@@ -108,9 +117,11 @@
+   }
+   private finalCheck(effect:Effect):boolean {
+     return this.ledger.transaction(r=>{
+-      if(!r||r.quarantined||r.terminal_json||r.effect_id!==effect.id||r.effect_kind!==effect.kind)return false;
++      if(!r||(r.quarantined&&effect.kind!=="stop")||r.terminal_json||r.effect_id!==effect.id||r.effect_kind!==effect.kind)return false;
+       if(effect.kind==="stop")return r.desired==="stop";
+-      const interval=this.sample(r);return !!interval&&r.desired==="run"&&this.sameGuard(r,effect.request)&&this.live(r,interval);
++      const interval=this.sample(r);
++      if(!interval||r.desired!=="run"||!this.sameGuard(r,effect.request)||!this.live(r,interval))return false;
++      this.acceptTime(r,interval);this.ledger.save(r,"effect_time_accepted");return true;
+     });
+   }
+   private observation(value:unknown,identity:ResourceIdentity):ProviderObservation|null {
+@@ -129,7 +140,8 @@
+     this.ledger.transaction(r=>{
+       if(!r||r.effect_id!==effect.id||r.effect_kind!==effect.kind||r.terminal_json)return;
+       const interval=this.sample(r);
+-      if(r.quarantined)return;
++      if(r.quarantined&&effect.kind!=="stop")return;
++      if(interval)this.acceptTime(r,interval);
+       if(effect.kind!=="stop"&&!this.sameGuard(r,effect.request)){
+         r.effect_state="uncertain";this.due(r,interval);this.ledger.save(r,"stale_effect_observation");return;
+       }
+@@ -210,18 +222,31 @@
+   async claim(claim:RunnerClaim):Promise<{granted:boolean;claimId?:string}>{
+     if(!this.validClaim(claim))return {granted:false};
+     await this.hooks.point("before_claim_grant");
+-    const answer=this.ledger.transaction(r=>{
+-      if(!r||r.quarantined||r.desired!=="run"||r.terminal_json||r.claim_state!=="unissued"||r.phase!=="inert")return {granted:false};
++    const prospective=this.ledger.transaction(r=>{
++      if(!r||r.quarantined||r.desired!=="run"||r.terminal_json||r.claim_state!=="unissued"||r.phase!=="inert")return null;
++      if(claim.immutableSha256!==r.binding_hash||claim.identity.provider!==r.provider_kind||claim.identity.key!==r.provider_key||claim.identity.immutableSha256!==r.binding_hash||claim.instanceId!==r.instance_id||claim.bootId!==r.boot_id)return null;
++      const i=this.sample(r);if(!i||!this.live(r,i))return null;
++      this.acceptTime(r,i);
++      r.claim_state="consumed";r.claim_id=uuid();r.phase="claim_consumed";this.ledger.save(r,"claim_consumed");
++      return {operation_id:r.operation_id,binding:r.binding,binding_hash:r.binding_hash,
++        epoch:r.epoch,revision:r.revision,owner:r.owner,expiry_us:r.expiry_us,
++        provider_kind:r.provider_kind,provider_key:r.provider_key,instance_id:r.instance_id,boot_id:r.boot_id,claim_id:r.claim_id};
++    });
++    await this.ledger.sync();await this.hooks.point("after_claim_commit");
++    // Consumption is already durable. This is the grant's linearization point,
++    // after every await: compare the exact consumed authority and identity with
++    // the current row, then accept the exact final qualified sample atomically.
++    // No await follows this decision. The DO's default output gate confirms its
++    // final clock-history write before the response becomes externally visible.
++    return this.ledger.transaction(r=>{
++      if(!prospective||!r||r.desired!=="run"||r.quarantined||r.terminal_json||r.claim_state!=="consumed"||r.phase!=="claim_consumed")return {granted:false};
++      for(const key of Object.keys(prospective) as (keyof typeof prospective)[])if(r[key]!==prospective[key])return {granted:false};
+       const i=this.sample(r);if(!i||!this.live(r,i))return {granted:false};
+-      if(claim.immutableSha256!==r.binding_hash||claim.identity.provider!==r.provider_kind||claim.identity.key!==r.provider_key||claim.identity.immutableSha256!==r.binding_hash||claim.instanceId!==r.instance_id||claim.bootId!==r.boot_id)return {granted:false};
+-      r.claim_state="consumed";r.claim_id=uuid();r.phase="claim_consumed";this.ledger.save(r,"claim_consumed");return {granted:true,claimId:r.claim_id};
+-    });
+-    await this.ledger.sync();await this.hooks.point("after_claim_commit");
+-    // A stop may commit while durability is awaited. Never grant after it.
+-    const r=this.ledger.read();const i=this.ledger.transaction(row=>this.sample(row));
+-    if(!r||r.desired!=="run"||r.quarantined||!i||!this.live(r,i))return {granted:false};
+-    return answer;
+-  }
++      this.acceptTime(r,i);this.ledger.save(r,"claim_grant_time_accepted");
++      return {granted:true,claimId:prospective.claim_id};
++    });
++  }
++
+   async report(report:RunnerReport):Promise<"accepted"|"duplicate"|"rejected">{
+     if(!this.validClaim(report,true))return "rejected";
+     let parsed:BuildResult;try{parsed=result(report.result);hex(report.attestationSha256);}catch{return "rejected";}
+@@ -234,6 +259,7 @@
+     const accepted=this.ledger.transaction(current=>{
+       if(!current||current.state_version!==version||current.report_hash||current.desired!=="run"||current.quarantined)return false;
+       const i=this.sample(current);if(!i||!this.live(current,i))return false;
++      this.acceptTime(current,i);
+       current.report_hash=hash;current.pending_result_json=JSON.stringify(parsed);this.stop(current);this.due(current,i);this.ledger.save(current,"result_pending_teardown");return true;
+     });
+     await this.ledger.sync();await this.arm();return accepted?"accepted":"rejected";
+--- original/hosted-worker-controller/src/ledger.ts
++++ candidate/hosted-worker-controller/src/ledger.ts
+@@ -5,7 +5,7 @@
+ export interface Row {
+   [key:string]:SqlStorageValue;
+   singleton:number;operation_id:string;binding:string;binding_hash:string;request_json:string;
+-  epoch:string;revision:string;owner:string;expiry_us:string;clock_lower:string;clock_upper:string;clock_qualification:string;
++  epoch:string;revision:string;owner:string;expiry_us:string;clock_lower:string;clock_upper:string;clock_qualification:string;clock_floor:string;
+   desired:"none"|"run"|"stop";phase:"unlaunched"|"launch_pending"|"inert"|"claim_consumed"|"running"|"stop_pending"|"completed"|"stopped"|"uncertain"|"quarantined";
+   provider_key:string;provider_kind:ResourceIdentity["provider"];state_version:string;
+   claim_state:"unissued"|"consumed"|"revoked";claim_id:string|null;instance_id:string|null;boot_id:string|null;
+@@ -13,15 +13,30 @@
+   launch_dispatched:number;terminal_json:string|null;report_hash:string|null;pending_result_json:string|null;
+   next_due_us:string|null;failures:number;quarantined:number;
+ }
+-const columns = ["singleton","operation_id","binding","binding_hash","request_json","epoch","revision","owner","expiry_us","clock_lower","clock_upper","clock_qualification","desired","phase","provider_key","provider_kind","state_version","claim_state","claim_id","instance_id","boot_id","effect_id","effect_request_json","effect_kind","effect_state","launch_dispatched","terminal_json","report_hash","pending_result_json","next_due_us","failures","quarantined"] as const;
++const columns = ["singleton","operation_id","binding","binding_hash","request_json","epoch","revision","owner","expiry_us","clock_lower","clock_upper","clock_qualification","clock_floor","desired","phase","provider_key","provider_kind","state_version","claim_state","claim_id","instance_id","boot_id","effect_id","effect_request_json","effect_kind","effect_state","launch_dispatched","terminal_json","report_hash","pending_result_json","next_due_us","failures","quarantined"] as const;
+ // SQL templates derive only from this compile-time fixed identifier list.
+ const upsert=`INSERT INTO operation (${columns.join(",")}) VALUES (${columns.map(()=>"?").join(",")}) ON CONFLICT(singleton) DO UPDATE SET ${columns.filter(k=>k!=="singleton").map(k=>`${k}=excluded.${k}`).join(",")}`;
+ export class Ledger {
+   constructor(readonly storage:DurableObjectStorage){
+     storage.transactionSync(()=>{
++      const exists=storage.sql.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='controller_schema'").toArray();
++      if(exists.length){
++        const versions=storage.sql.exec<{version:number}>("SELECT version FROM controller_schema").toArray();
++        if(versions.length!==1||(versions[0]!.version!==1&&versions[0]!.version!==2))throw new Error("schema_unavailable");
++        if(versions[0]!.version===1){
++          storage.sql.exec("ALTER TABLE operation ADD COLUMN clock_floor TEXT NOT NULL DEFAULT '0'");
++          const prior=this.read();
++          if(prior){prior.clock_floor=prior.clock_lower;prior.quarantined=1;this.save(prior,"schema2_quarantine");}
++          // V1 lost accepted time samples. Preserve all safety identity and stop/
++          // claim/terminal fields, but never infer restored execution authority.
++          storage.sql.exec("DROP TABLE controller_schema");
++          storage.sql.exec("CREATE TABLE controller_schema(version INTEGER NOT NULL CHECK(version=2))");
++          storage.sql.exec("INSERT INTO controller_schema(version) VALUES(2)");
++        }
++      }
+       storage.sql.exec(schema);
+       const versions=storage.sql.exec<{version:number}>("SELECT version FROM controller_schema").toArray();
+-      if(versions.length!==1||versions[0]!.version!==1)throw new Error("schema_unavailable");
++      if(versions.length!==1||versions[0]!.version!==2)throw new Error("schema_unavailable");
+     });
+   }
+   read():Row|null{return this.storage.sql.exec<Row>("SELECT * FROM operation WHERE singleton=1").toArray()[0]??null;}
+@@ -34,7 +49,7 @@
+   initial(request:WireRequest,clock:Interval,identity:ResourceIdentity):Row {
+     return {singleton:1,operation_id:request.operation_id,binding:immutableBytes(request),binding_hash:request.immutable_sha256,
+       request_json:JSON.stringify(request),epoch:request.guard.epoch,revision:request.guard.revision,owner:request.guard.owner_id,expiry_us:request.guard.expires_at_us,
+-      clock_lower:String(clock.lowerUs),clock_upper:String(clock.upperUs),clock_qualification:clock.qualificationId,
++      clock_lower:String(clock.lowerUs),clock_upper:String(clock.upperUs),clock_qualification:clock.qualificationId,clock_floor:String(clock.lowerUs),
+       desired:"none",phase:"unlaunched",provider_key:identity.key,provider_kind:identity.provider,state_version:"0",
+       claim_state:"unissued",claim_id:null,instance_id:null,boot_id:null,effect_id:null,effect_request_json:null,effect_kind:null,effect_state:"none",launch_dispatched:0,
+       terminal_json:null,report_hash:null,pending_result_json:null,next_due_us:null,failures:0,quarantined:0};
+--- original/hosted-worker-controller/src/schema.sql
++++ candidate/hosted-worker-controller/src/schema.sql
+@@ -1,11 +1,11 @@
+-CREATE TABLE IF NOT EXISTS controller_schema(version INTEGER NOT NULL CHECK(version=1));
+-INSERT INTO controller_schema(version) SELECT 1 WHERE NOT EXISTS(SELECT 1 FROM controller_schema);
++CREATE TABLE IF NOT EXISTS controller_schema(version INTEGER NOT NULL CHECK(version=2));
++INSERT INTO controller_schema(version) SELECT 2 WHERE NOT EXISTS(SELECT 1 FROM controller_schema);
+ CREATE TABLE IF NOT EXISTS operation (
+  singleton INTEGER PRIMARY KEY CHECK(singleton=1),
+  operation_id TEXT NOT NULL, binding TEXT NOT NULL, binding_hash TEXT NOT NULL,
+  request_json TEXT NOT NULL, epoch TEXT NOT NULL, revision TEXT NOT NULL,
+  owner TEXT NOT NULL, expiry_us TEXT NOT NULL,
+- clock_lower TEXT NOT NULL, clock_upper TEXT NOT NULL, clock_qualification TEXT NOT NULL,
++ clock_lower TEXT NOT NULL, clock_upper TEXT NOT NULL, clock_qualification TEXT NOT NULL, clock_floor TEXT NOT NULL,
+  desired TEXT NOT NULL CHECK(desired IN ('none','run','stop')),
+  phase TEXT NOT NULL CHECK(phase IN ('unlaunched','launch_pending','inert','claim_consumed','running','stop_pending','completed','stopped','uncertain','quarantined')),
+  provider_key TEXT NOT NULL, provider_kind TEXT NOT NULL,
+--- original/hosted-worker-controller/test/worker.ts
++++ candidate/hosted-worker-controller/test/worker.ts
+@@ -8,7 +8,7 @@
+ import {errorResponse,parseJSON,reply} from "../src/wire.js";
+ 
+ interface Env extends PrincipalEnv {OPERATIONS:DurableObjectNamespace}
+-interface ClockSetting {nowUs:string;errorUs:string;qualified:boolean}
++interface ClockSetting {nowUs:string;errorUs:string;qualified:boolean;qualificationId?:string}
+ interface Settings {clock:ClockSetting;fault:{point:string;behavior:string}|null;observation:Partial<ProviderObservation>|null;objectVerified:boolean;barrier:boolean;holdProvider:boolean;clockSequence:ClockSetting[];alarmTicks:number}
+ const defaults=():Settings=>({clock:{nowUs:"1900000000000000",errorUs:"1",qualified:true},fault:null,observation:null,objectVerified:false,barrier:false,holdProvider:false,clockSequence:[],alarmTicks:0});
+ const json=(v:unknown)=>new Response(JSON.stringify(v),{headers:{"Content-Type":"application/json"}});
+@@ -22,7 +22,7 @@
+   constructor(private store:TestStore){}
+   sample():Interval|null {
+     const s=this.store.get();const c=s.clockSequence.shift()??s.clock;if(s.clockSequence.length||c!==s.clock)this.store.set(s);
+-    if(!c.qualified)return null;return {lowerUs:BigInt(c.nowUs)-BigInt(c.errorUs),upperUs:BigInt(c.nowUs)+BigInt(c.errorUs),qualificationId:"synthetic-verification-only"};
++    if(!c.qualified)return null;return {lowerUs:BigInt(c.nowUs)-BigInt(c.errorUs),upperUs:BigInt(c.nowUs)+BigInt(c.errorUs),qualificationId:c.qualificationId??"synthetic-verification-only"};
+   }
+ }
+ class FixtureHooks implements Hooks {
+@@ -54,12 +54,12 @@
+   async stop(e:Effect):Promise<ProviderObservation>{this.store.call(e);return {...this.observe(e),state:"absent",instanceId:null,bootId:null};}
+   release():void {this.resolveHold?.();this.resolveHold=null;}
+ }
+-class FixtureVerifier implements ObjectVerifier {constructor(private store:TestStore){} async verify():Promise<boolean>{return this.store.get().objectVerified;}}
++class FixtureVerifier implements ObjectVerifier {constructor(private store:TestStore,private hooks:Hooks){} async verify():Promise<boolean>{await this.hooks.point("before_object_verify_return");return this.store.get().objectVerified;}}
+ export class TestOperation extends DurableObject<Env> {
+   private ledger:Ledger;private engine:Engine;private store:TestStore;private hooks:FixtureHooks;private provider:FixtureProvider;
+   constructor(ctx:DurableObjectState,env:Env){
+     super(ctx,env);this.ledger=new Ledger(ctx.storage);this.store=new TestStore(ctx.storage.sql);this.hooks=new FixtureHooks(this.store);this.provider=new FixtureProvider(this.store);
+-    this.engine=new Engine(this.ledger,new SyntheticClock(this.store),this.provider,new FixtureVerifier(this.store),this.hooks);
++    this.engine=new Engine(this.ledger,new SyntheticClock(this.store),this.provider,new FixtureVerifier(this.store,this.hooks),this.hooks);
+     ctx.blockConcurrencyWhile(()=>this.engine.recover());
+   }
+   async fetch(request:Request):Promise<Response>{
+@@ -87,6 +87,42 @@
+           case "objects":{const s=this.store.get();s.objectVerified=!!arg.value;this.store.set(s);return json({ok:true});}
+           case "report":return json({status:await this.engine.report(arg as unknown as RunnerReport)});
+           case "quarantine":await this.engine.quarantine();return json({ok:true});
++          // Finite, excluded V2 regression controls; no raw SQL input accepted.
++          case "schemaInfo":return json({schema:this.ctx.storage.sql.exec("SELECT version FROM controller_schema").toArray(),floorType:this.ctx.storage.sql.exec("SELECT typeof(clock_floor) AS value FROM operation").toArray()});
++          case "schema1Fixture": {
++            this.ctx.storage.transactionSync(()=>{
++              this.ctx.storage.sql.exec("ALTER TABLE operation DROP COLUMN clock_floor");
++              this.ctx.storage.sql.exec("DROP TABLE controller_schema");
++              this.ctx.storage.sql.exec("CREATE TABLE controller_schema(version INTEGER NOT NULL CHECK(version=1))");
++              this.ctx.storage.sql.exec("INSERT INTO controller_schema(version) VALUES(1)");
++            });await this.ledger.sync();return json({ok:true});
++          }
++          case "unknownSchemaFixture": {
++            this.ctx.storage.transactionSync(()=>{
++              this.ctx.storage.sql.exec("DROP TABLE controller_schema");
++              this.ctx.storage.sql.exec("CREATE TABLE controller_schema(version INTEGER NOT NULL CHECK(version=9))");
++              this.ctx.storage.sql.exec("INSERT INTO controller_schema(version) VALUES(9)");
++            });await this.ledger.sync();return json({ok:true});
++          }
++          case "unknownSchemaCheck":try{new Ledger(this.ctx.storage);return json({unavailable:false});}catch{return json({unavailable:true});}
++          case "stateVersionMaxFixture":this.ctx.storage.sql.exec("UPDATE operation SET state_version='9223372036854775807'");await this.ledger.sync();return json({ok:true});
++          case "claimIdentityFixture": {
++            this.ledger.transaction(r=>{
++              if(!r)return;
++              switch(arg.field){
++                case "claim_id":r.claim_id="b".repeat(32);break;
++                case "instance_id":r.instance_id="fixture-other-instance";break;
++                case "boot_id":r.boot_id="fixture-other-boot";break;
++                case "provider_key":r.provider_key="b".repeat(64);break;
++                case "provider_kind":r.provider_kind="external-macos";break;
++                case "operation_id":r.operation_id="b".repeat(64);break;
++                case "binding_hash":r.binding_hash="b".repeat(64);break;
++                case "binding":r.binding=r.binding+" ";break;
++                default:throw new Error("fixture_field");
++              }
++              this.ledger.save(r,"identity_fixture");
++            });await this.ledger.sync();return json({ok:true});
++          }
+           case "rollback": {
+             const before=this.ledger.read();try{this.ledger.transaction(r=>{if(r){r.owner="rolled-back";this.ledger.save(r,"rollback_test");}throw new Error("rollback");});}catch{}
+             return json({before,after:this.ledger.read()});

@@ -1,11 +1,11 @@
-CREATE TABLE IF NOT EXISTS controller_schema(version INTEGER NOT NULL CHECK(version=1));
-INSERT INTO controller_schema(version) SELECT 1 WHERE NOT EXISTS(SELECT 1 FROM controller_schema);
+CREATE TABLE IF NOT EXISTS controller_schema(version INTEGER NOT NULL CHECK(version=2));
+INSERT INTO controller_schema(version) SELECT 2 WHERE NOT EXISTS(SELECT 1 FROM controller_schema);
 CREATE TABLE IF NOT EXISTS operation (
  singleton INTEGER PRIMARY KEY CHECK(singleton=1),
  operation_id TEXT NOT NULL, binding TEXT NOT NULL, binding_hash TEXT NOT NULL,
  request_json TEXT NOT NULL, epoch TEXT NOT NULL, revision TEXT NOT NULL,
  owner TEXT NOT NULL, expiry_us TEXT NOT NULL,
- clock_lower TEXT NOT NULL, clock_upper TEXT NOT NULL, clock_qualification TEXT NOT NULL,
+ clock_lower TEXT NOT NULL, clock_upper TEXT NOT NULL, clock_qualification TEXT NOT NULL, clock_floor TEXT NOT NULL,
  desired TEXT NOT NULL CHECK(desired IN ('none','run','stop')),
  phase TEXT NOT NULL CHECK(phase IN ('unlaunched','launch_pending','inert','claim_consumed','running','stop_pending','completed','stopped','uncertain','quarantined')),
  provider_key TEXT NOT NULL, provider_kind TEXT NOT NULL,

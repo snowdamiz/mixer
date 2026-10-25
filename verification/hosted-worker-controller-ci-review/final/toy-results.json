@@ -1,0 +1,273 @@
+{
+  "status": "passed-expected-negative-path-reproduced",
+  "helperSHA256": "bb331e5b4b477c6f5a625dca41f4e3525346c5d77982631bc7731aaa75f42d58",
+  "checks": [
+    {
+      "name": "nonzero-exit",
+      "expectedFailure": true,
+      "recordedExit": 7,
+      "stdoutRetained": true,
+      "scratchRemoved": true
+    },
+    {
+      "name": "escaped-pipe-EOF-timeout",
+      "error": "controller_check_failed: escaped-pipe",
+      "eofObserved": false,
+      "eofError": "owned_output_eof_timeout: escaped-pipe",
+      "commandRecordAppended": true,
+      "stdoutRetained": true,
+      "stderrRetained": true,
+      "commandJSONRetained": true,
+      "scratchPresent": true,
+      "escapedPID": 4682,
+      "escapedGroupRetiredByToySupervisor": true
+    },
+    {
+      "name": "scaled-command-timeout",
+      "schedulingOverride": {
+        "commandTimeoutMS": 100,
+        "forceKillMS": 250
+      },
+      "helperTimerConstantsUnchanged": true,
+      "error": "controller_check_failed: scaled-command-timeout",
+      "timedOut": true,
+      "exitSignal": "SIGKILL",
+      "eofObserved": true,
+      "processGroupEmpty": true,
+      "scratchRemoved": true
+    },
+    {
+      "name": "injected-EPERM-probe",
+      "error": "controller_check_failed: injected-EPERM-probe",
+      "terminalGroupState": null,
+      "directChildTerminal": true,
+      "eofObserved": true,
+      "processGroupEmpty": false,
+      "scratchRemoved": false,
+      "processManagementErrors": [
+        {
+          "operation": "probe",
+          "code": "EPERM",
+          "message": "injected EPERM probe"
+        },
+        {
+          "operation": "probe",
+          "code": "EPERM",
+          "message": "injected EPERM probe"
+        }
+      ],
+      "stdoutRetained": true,
+      "commandJSONRetained": true
+    },
+    {
+      "name": "same-group-pipe-natural-probe",
+      "error": "controller_check_failed: same-group-pipe",
+      "pids": {
+        "parentPID": 4696,
+        "descendantPID": 4697
+      },
+      "processManagementErrors": [
+        {
+          "operation": "probe",
+          "code": "EPERM",
+          "message": "kill EPERM"
+        },
+        {
+          "operation": "probe",
+          "code": "EPERM",
+          "message": "kill EPERM"
+        },
+        {
+          "operation": "probe",
+          "code": "EPERM",
+          "message": "kill EPERM"
+        }
+      ],
+      "terminalGroupState": null,
+      "processGroupEmpty": false,
+      "scratchRemoved": false,
+      "commandJSONRetained": true
+    }
+  ],
+  "commands": [
+    {
+      "name": "nonzero",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "-e",
+        "console.log(\"expected failure output\"); process.exit(7);"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/final/toy-project",
+      "started": "2026-10-25T03:24:01.749Z",
+      "finished": "2026-10-25T03:24:01.776Z",
+      "pid": 4679,
+      "exitCode": 7,
+      "exitSignal": null,
+      "timedOut": false,
+      "spawnError": null,
+      "signals": [],
+      "processGroupEmpty": true,
+      "sourceDigest": "toy-helper-extracted-from-bb331e5b4b477c6f5a625dca41f4e3525346c5d77982631bc7731aaa75f42d58",
+      "eofObserved": true,
+      "eofError": null,
+      "directChildTerminal": true,
+      "terminalGroupState": false,
+      "processManagementErrors": [],
+      "directChildUnrefOnFailure": false,
+      "scratch": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/final/toy-output/nonzero/scratch",
+      "scratchRemoved": true,
+      "remainingTemporaryEntries": [],
+      "stdoutSHA256": "102f3b5a4e8d2ce2c8859a4d42d9dd223bbaaf7ce17f04e5547eead6d63acb2e",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "escaped-pipe",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "-e",
+        "const {spawn}=require(\"node:child_process\");const fs=require(\"node:fs\");const child=spawn(process.execPath,[\"-e\",\"console.log(\\\"descendant-ready\\\");setTimeout(()=>{},60000);\"],{detached:true,stdio:[\"ignore\",\"inherit\",\"inherit\"]});fs.writeFileSync(\"/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/final/toy-project/escaped.pid\",String(child.pid));setTimeout(()=>process.exit(0),200);"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/final/toy-project",
+      "started": "2026-10-25T03:24:01.777Z",
+      "finished": "2026-10-25T03:24:07.002Z",
+      "pid": 4681,
+      "exitCode": 0,
+      "exitSignal": null,
+      "timedOut": false,
+      "spawnError": null,
+      "signals": [],
+      "processGroupEmpty": true,
+      "sourceDigest": "toy-helper-extracted-from-bb331e5b4b477c6f5a625dca41f4e3525346c5d77982631bc7731aaa75f42d58",
+      "eofObserved": false,
+      "eofError": "owned_output_eof_timeout: escaped-pipe",
+      "directChildTerminal": true,
+      "terminalGroupState": false,
+      "processManagementErrors": [],
+      "directChildUnrefOnFailure": false,
+      "scratch": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/final/toy-output/escaped-pipe/scratch",
+      "scratchRemoved": false,
+      "remainingTemporaryEntries": [],
+      "stdoutSHA256": "1e2e88b72b4a7cfa4f7e299bffb4bcbebf9d672d273b4f421269526b3c122c21",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "scaled-command-timeout",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "-e",
+        "process.on(\"SIGTERM\",()=>{});console.log(\"term-ignored\");setInterval(()=>{},1000);"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/final/toy-project",
+      "started": "2026-10-25T03:24:07.030Z",
+      "finished": "2026-10-25T03:24:07.283Z",
+      "pid": 4694,
+      "exitCode": null,
+      "exitSignal": "SIGKILL",
+      "timedOut": true,
+      "spawnError": null,
+      "signals": [],
+      "processGroupEmpty": true,
+      "sourceDigest": "toy-helper-extracted-from-bb331e5b4b477c6f5a625dca41f4e3525346c5d77982631bc7731aaa75f42d58",
+      "eofObserved": true,
+      "eofError": null,
+      "directChildTerminal": true,
+      "terminalGroupState": false,
+      "processManagementErrors": [],
+      "directChildUnrefOnFailure": false,
+      "scratch": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/final/toy-output/scaled-command-timeout/scratch",
+      "scratchRemoved": true,
+      "remainingTemporaryEntries": [],
+      "stdoutSHA256": "fe534f941afcb10b917013b321e843f28f6a4b1dc395946d527e762bfd9410e5",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "injected-EPERM-probe",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "-e",
+        "console.log(\"probe-error-output\");"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/final/toy-project",
+      "started": "2026-10-25T03:24:07.284Z",
+      "finished": "2026-10-25T03:24:07.308Z",
+      "pid": 4695,
+      "exitCode": 0,
+      "exitSignal": null,
+      "timedOut": false,
+      "spawnError": null,
+      "signals": [],
+      "processGroupEmpty": false,
+      "sourceDigest": "toy-helper-extracted-from-bb331e5b4b477c6f5a625dca41f4e3525346c5d77982631bc7731aaa75f42d58",
+      "eofObserved": true,
+      "eofError": null,
+      "directChildTerminal": true,
+      "terminalGroupState": null,
+      "processManagementErrors": [
+        {
+          "operation": "probe",
+          "code": "EPERM",
+          "message": "injected EPERM probe"
+        },
+        {
+          "operation": "probe",
+          "code": "EPERM",
+          "message": "injected EPERM probe"
+        }
+      ],
+      "directChildUnrefOnFailure": false,
+      "scratch": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/final/toy-output/injected-EPERM-probe/scratch",
+      "scratchRemoved": false,
+      "remainingTemporaryEntries": [],
+      "stdoutSHA256": "e0b8932a63d659698ced6c82a9c18baaa011b88c13ff5e8c0f70fe33d02e3c39",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "same-group-pipe",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "-e",
+        "const {spawn}=require(\"node:child_process\");const fs=require(\"node:fs\");const child=spawn(process.execPath,[\"-e\",\"console.log(\\\"descendant-ready\\\");setTimeout(()=>{},60000);\"],{stdio:[\"ignore\",\"inherit\",\"inherit\"]});fs.writeFileSync(\"/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/final/toy-project/same-group-pids.json\",JSON.stringify({parentPID:process.pid,descendantPID:child.pid}));setTimeout(()=>process.exit(0),200);"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/final/toy-project",
+      "started": "2026-10-25T03:24:07.309Z",
+      "finished": "2026-10-25T03:24:07.534Z",
+      "pid": 4696,
+      "exitCode": 0,
+      "exitSignal": null,
+      "timedOut": false,
+      "spawnError": null,
+      "signals": [
+        "SIGTERM"
+      ],
+      "processGroupEmpty": false,
+      "sourceDigest": "toy-helper-extracted-from-bb331e5b4b477c6f5a625dca41f4e3525346c5d77982631bc7731aaa75f42d58",
+      "eofObserved": true,
+      "eofError": null,
+      "directChildTerminal": true,
+      "terminalGroupState": null,
+      "processManagementErrors": [
+        {
+          "operation": "probe",
+          "code": "EPERM",
+          "message": "kill EPERM"
+        },
+        {
+          "operation": "probe",
+          "code": "EPERM",
+          "message": "kill EPERM"
+        },
+        {
+          "operation": "probe",
+          "code": "EPERM",
+          "message": "kill EPERM"
+        }
+      ],
+      "directChildUnrefOnFailure": false,
+      "scratch": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/final/toy-output/same-group-pipe/scratch",
+      "scratchRemoved": false,
+      "remainingTemporaryEntries": [],
+      "stdoutSHA256": "1e2e88b72b4a7cfa4f7e299bffb4bcbebf9d672d273b4f421269526b3c122c21",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "authority": "Direct root coordinator messages in this delegated task, 2026-10-25 UTC",
+  "schema": "Schema 2 authorized only in isolated V2: add clock_floor TEXT for max accepted lower bound; keep existing interval fields exact; actual sample drives expiry, no clamping.",
+  "migration": "Existing schema1 rows cannot reconstruct forgotten samples. Preserve identity/claim/tombstone/result fields and quarantine them; empty schema1 upgrades normally; unknown schemas fail unavailable.",
+  "claim_boundary": "Consumption transaction plus explicit sync, then one final synchronous transaction comparing complete authority/time/identity, with no later await. Default DO output gate protects final clock-history write; test through real workerd response then hard restart. No unbounded sync/recheck loop.",
+  "quarantine_stop": "Quarantine blocks launch, claims and result acceptance, while permitting enforcement/reconciliation of an already committed permanent stop for the exact retained provider identity. Definitive drain may settle stop. Missing/unqualified time never authorizes new work.",
+  "acceptance": "Fresh independent review required; root owns eventual integration, commit, push and acceptance. Shared contract and original source/evidence unchanged."
+}

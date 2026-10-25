@@ -1,0 +1,120 @@
+{
+  "status": "passed-expected-negative-path-reproduced",
+  "helperSHA256": "8e7202ed9fd316ca8e42bfef532cb2678795ef5305071741dceec99ca4d62068",
+  "checks": [
+    {
+      "name": "nonzero-exit",
+      "expectedFailure": true,
+      "recordedExit": 7,
+      "stdoutRetained": true,
+      "scratchRemoved": true
+    },
+    {
+      "name": "escaped-pipe-EOF-timeout",
+      "error": "controller_check_failed: escaped-pipe",
+      "eofObserved": false,
+      "eofError": "owned_output_eof_timeout: escaped-pipe",
+      "commandRecordAppended": true,
+      "stdoutRetained": true,
+      "stderrRetained": true,
+      "commandJSONRetained": true,
+      "scratchPresent": true,
+      "escapedPID": 2775,
+      "escapedGroupRetiredByToySupervisor": true
+    },
+    {
+      "name": "scaled-command-timeout",
+      "schedulingOverride": {
+        "commandTimeoutMS": 100,
+        "forceKillMS": 250
+      },
+      "helperTimerConstantsUnchanged": true,
+      "error": "controller_check_failed: scaled-command-timeout",
+      "timedOut": true,
+      "exitSignal": "SIGKILL",
+      "eofObserved": true,
+      "processGroupEmpty": true,
+      "scratchRemoved": true
+    }
+  ],
+  "commands": [
+    {
+      "name": "nonzero",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "-e",
+        "console.log(\"expected failure output\"); process.exit(7);"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/post-fix/eof-timeout/toy-project",
+      "started": "2026-10-25T03:21:14.891Z",
+      "finished": "2026-10-25T03:21:14.921Z",
+      "pid": 2773,
+      "exitCode": 7,
+      "exitSignal": null,
+      "timedOut": false,
+      "spawnError": null,
+      "signals": [],
+      "processGroupEmpty": true,
+      "sourceDigest": "toy-helper-extracted-from-8e7202ed9fd316ca8e42bfef532cb2678795ef5305071741dceec99ca4d62068",
+      "eofObserved": true,
+      "eofError": null,
+      "scratch": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/post-fix/eof-timeout/toy-output/nonzero/scratch",
+      "scratchRemoved": true,
+      "remainingTemporaryEntries": [],
+      "stdoutSHA256": "102f3b5a4e8d2ce2c8859a4d42d9dd223bbaaf7ce17f04e5547eead6d63acb2e",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "escaped-pipe",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "-e",
+        "const {spawn}=require(\"node:child_process\");const fs=require(\"node:fs\");const child=spawn(process.execPath,[\"-e\",\"console.log(\\\"descendant-ready\\\");setTimeout(()=>{},60000);\"],{detached:true,stdio:[\"ignore\",\"inherit\",\"inherit\"]});fs.writeFileSync(\"/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/post-fix/eof-timeout/toy-project/escaped.pid\",String(child.pid));setTimeout(()=>process.exit(0),200);"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/post-fix/eof-timeout/toy-project",
+      "started": "2026-10-25T03:21:14.922Z",
+      "finished": "2026-10-25T03:21:20.154Z",
+      "pid": 2774,
+      "exitCode": 0,
+      "exitSignal": null,
+      "timedOut": false,
+      "spawnError": null,
+      "signals": [],
+      "processGroupEmpty": true,
+      "sourceDigest": "toy-helper-extracted-from-8e7202ed9fd316ca8e42bfef532cb2678795ef5305071741dceec99ca4d62068",
+      "eofObserved": false,
+      "eofError": "owned_output_eof_timeout: escaped-pipe",
+      "scratch": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/post-fix/eof-timeout/toy-output/escaped-pipe/scratch",
+      "scratchRemoved": false,
+      "remainingTemporaryEntries": [],
+      "stdoutSHA256": "1e2e88b72b4a7cfa4f7e299bffb4bcbebf9d672d273b4f421269526b3c122c21",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "scaled-command-timeout",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "-e",
+        "process.on(\"SIGTERM\",()=>{});console.log(\"term-ignored\");setInterval(()=>{},1000);"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/post-fix/eof-timeout/toy-project",
+      "started": "2026-10-25T03:21:20.181Z",
+      "finished": "2026-10-25T03:21:20.438Z",
+      "pid": 2793,
+      "exitCode": null,
+      "exitSignal": "SIGKILL",
+      "timedOut": true,
+      "spawnError": null,
+      "signals": [],
+      "processGroupEmpty": true,
+      "sourceDigest": "toy-helper-extracted-from-8e7202ed9fd316ca8e42bfef532cb2678795ef5305071741dceec99ca4d62068",
+      "eofObserved": true,
+      "eofError": null,
+      "scratch": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-ci-review/post-fix/eof-timeout/toy-output/scaled-command-timeout/scratch",
+      "scratchRemoved": true,
+      "remainingTemporaryEntries": [],
+      "stdoutSHA256": "fe534f941afcb10b917013b321e843f28f6a4b1dc395946d527e762bfd9410e5",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}
