@@ -12,6 +12,10 @@ on:
       - 'console/package-lock.json'
       - 'verification/hosted-customer-workspace-http-integration/node-client-driver.mjs'
       - 'verification/hosted-browser-auth-protocol/run.py'
+      - 'verification/hosted-browser-callback-ci/selected-methods.json'
+      - 'verification/hosted-browser-callback-storage/*.exs'
+      - 'verification/hosted-browser-preauth-store/live.exs'
+      - 'verification/hosted-browser-begin-login/*.exs'
   pull_request:
     paths:
       - 'hosted/**'
@@ -24,6 +28,10 @@ on:
       - 'console/package-lock.json'
       - 'verification/hosted-customer-workspace-http-integration/node-client-driver.mjs'
       - 'verification/hosted-browser-auth-protocol/run.py'
+      - 'verification/hosted-browser-callback-ci/selected-methods.json'
+      - 'verification/hosted-browser-callback-storage/*.exs'
+      - 'verification/hosted-browser-preauth-store/live.exs'
+      - 'verification/hosted-browser-begin-login/*.exs'
 permissions:
   contents: read
 jobs:
@@ -75,6 +83,14 @@ jobs:
           python3 test/mixer_hosted/browser_auth/run_migration_fixture.py \
             --pg-bin /usr/lib/postgresql/16/bin \
             --output "$RUNNER_TEMP/browser-migrations"
+      - name: Selected browser callback, preauth and begin checks
+        working-directory: hosted
+        env:
+          MIX_ENV: test
+        run: |
+          python3 -B test/mixer_hosted/browser_auth/run_callback_fixture.py \
+            --pg-bin /usr/lib/postgresql/16/bin \
+            --output "$RUNNER_TEMP/browser-callback"
       - name: Phoenix and disposable PostgreSQL host checks
         working-directory: hosted
         run: |
@@ -93,3 +109,4 @@ jobs:
             verification/hosted-browser-auth-protocol/attempts/
             verification/hosted-browser-session-storage/attempts/
             ${{ runner.temp }}/browser-migrations/
+            ${{ runner.temp }}/browser-callback/
