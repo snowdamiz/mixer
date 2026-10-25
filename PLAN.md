@@ -44,6 +44,8 @@ See [the integrated scope](docs/hosted-browser-session-integration.md).
 Ordered-diagnostic design checkpoint `ab5442a5` now passes all three Engine jobs.
 Preauth checkpoint `72340253` now passes every Phoenix CI step, including
 664 ordinary methods with two existing skips. Its Engine workflow now passes all three jobs.
+Begin-login checkpoint `273a1e48` passes every Phoenix CI step, including
+664 ordinary methods with two existing skips. Its Engine workflow passes all three jobs.
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
 
@@ -78,10 +80,13 @@ The full plan remains incomplete; no GA gate is promoted.
    rejection; live integration and full-target retry are unselected. The bounded
    ordered cache-transition diagnostic design passes 25 producer and 16 independent
    finite model methods after seven design corrections. Root verifies 73 sealed
-   members and unchanged 132-file VM closure. A separate isolated finite Rust
-   feasibility slice is selected, with exact schema coordination before hooked
-   tests. Actual layout/allocation, hook protocol, analyzer and bounded target
-   transport remain pending. See [the design review](docs/swift-ordered-retention-diagnostic-design-review.md),
+   members and unchanged 132-file VM closure. The isolated Rust prototype
+   reproduces 340 pristine and 356 candidate methods. Independent review adds
+   five writer and five hook controls, but finds three malformed CAP streams
+   mislabeled valid and incomplete memory accounting. Root verifies 305 sealed
+   members and accepts the recorded finite evidence only. A separate correction
+   is underway; full diagnostic/analyzer/target acceptance remains pending. See
+   [the prototype review](docs/swift-ordered-retention-diagnostic-rust-review.md), [the design review](docs/swift-ordered-retention-diagnostic-design-review.md),
    [the rejection audit](docs/swift-count-plan-retention-candidate-review.md),
    [the reviewed finite result](docs/swift-retention-next-design-review.md),
    [the earlier unselected model](docs/swift-adaptive-retention-design.md),
@@ -218,8 +223,13 @@ The full plan remains incomplete; no GA gate is promoted.
    284 review seal entries, exact source/output bindings and cleanup. Review
    added final caller publication checks after authoritative permit release;
    revision-stable audit races roll back. This accepts private preauth URLs only.
-   Next coordinate callback claim and private ClaimOwner ownership before provider
-   or public-route composition. See [begin-login review](docs/hosted-browser-begin-login-review.md),
+   The callback contract now passes independent source review and fourteen
+   executable contract-model methods; root verifies 154 sealed members. All 39
+   runtime cases remain pending. Typed callback discovery/claim/provider-reject
+   storage implementation is selected first, then complete supervised ClaimOwner
+   ownership and shared permit transfer before publishing a claim handle. Provider
+   and public-route composition remain pending. See [callback contract review](docs/hosted-browser-callback-claim-review.md),
+   [begin-login review](docs/hosted-browser-begin-login-review.md),
    [preauth review](docs/hosted-browser-preauth-store-review.md) and
    [relation review](docs/hosted-browser-relation-catalog-review.md). The additive preparation SQL helper passes 39 PG17 and 38
    independent PG16 methods after rejecting unexpected new-object grants. Root

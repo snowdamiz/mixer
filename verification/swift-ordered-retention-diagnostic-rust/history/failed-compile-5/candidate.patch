@@ -1,0 +1,623 @@
+--- a/src/experimental/cache/borrowed.rs
++++ b/src/experimental/cache/borrowed.rs
+@@ -431,6 +431,8 @@
+     where
+         'op: 'a;
+     type Scratch<'a>;
++    #[cfg(test)]
++    fn ordered_diagnostic(_: &mut Self::Meter<'_, '_>, _: [u64;11]) {}
+     fn meter<'a, 'op>(
+         usage: &'a mut Self::Usage,
+         operation: &'a mut Self::Operation<'op>,
+@@ -588,6 +590,8 @@
+ }
+ pub(crate) trait ReleaseControl<F>: PinDiagnostic<F> {
+     fn release_pin(&mut self) -> Result<(), F>;
++    #[cfg(test)]
++    fn ordered_release(&mut self, _: [u64;11]) {}
+ }
+ pub(crate) struct FrozenDiagnostics<'a> {
+     pub usage: &'a CacheUsage,
+@@ -701,6 +705,10 @@
+         .release(slot.entry().expect("checked entry").bytes, slot.pins() == 1);
+     slot.set_pins(slot.pins() - 1);
+     parts.pins[pin.slot()] = PinRecord::default();
++    #[cfg(test)] {
++        let entry=slot.entry().expect("checked entry");
++        operation.ordered_release([12,entry.function as u64,entry.body_offset as u64,u64::MAX,entry.type_index as u64,record.entry as u64,pin.slot() as u64,pin.nonce(),entry.bytes as u64,0,slot.pins() as u64]);
++    }
+     Ok(())
+ }
+ pub(crate) fn pin<M: CacheMode>(
+@@ -771,6 +779,7 @@
+ ) -> Result<M::Pin, M::Failure> {
+     let function = defined.absolute_index;
+     let hit = M::resident_lookup(parts.slots, &mut parts.scratch, function, meter)?;
++    #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(2,defined,hit.map_or(u64::MAX,|n|n as u64),u64::MAX,0,u64::from(hit.is_some()),0,0));
+     let index = if let Some(index) = hit {
+         meter.check()?;
+         let hits = meter
+@@ -807,6 +816,7 @@
+         if base.checked_add(bytes).is_none_or(|n| n > capacity) {
+             return Err(meter.error(CacheFailureKind::Capacity, "entry_cannot_fit"));
+         }
++        #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(5,defined,u64::MAX,u64::MAX,0,bytes as u64,base as u64,capacity as u64));
+         meter.step(CacheStep::Planning);
+         let mut plan = [false; MAX_ENTRIES];
+         let mut remaining = meter.usage().resident();
+@@ -844,15 +854,19 @@
+         for (index, selected) in plan.iter().enumerate().take(parts.slots.len()) {
+             if *selected {
+                 let bytes = parts.slots[index].entry().expect("planned entry").bytes;
++                #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(6,defined,index as u64,u64::MAX,0,bytes as u64,0,0));
+                 M::resident_remove(parts.slots, &mut parts.scratch, index, meter)?;
+                 let old = parts.slots[index].take().expect("planned entry");
++                #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(7,defined,index as u64,u64::MAX,0,bytes as u64,0,0));
+                 M::drop_entry(old, meter)?;
+                 meter.usage_mut().evicted(bytes);
++                #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(8,defined,index as u64,u64::MAX,0,bytes as u64,0,0));
+             }
+         }
+         let index =
+             empty.ok_or_else(|| meter.error(CacheFailureKind::Capacity, "no_entry_slot"))?;
+         meter.construction(bytes)?;
++        #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(9,defined,u64::MAX,u64::MAX,0,bytes as u64,0,0));
+         let decoded = M::build(parts.snapshot, defined, counts, &mut parts.scratch, meter);
+         let entry = match decoded {
+             Ok(entry) => entry,
+@@ -861,6 +875,7 @@
+                 return Err(error);
+             }
+         };
++        #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(10,defined,u64::MAX,u64::MAX,0,bytes as u64,0,0));
+         meter.step(CacheStep::Publication);
+         if let Err(error) = meter.check() {
+             let _ = M::drop_entry(entry, meter);
+@@ -893,5 +908,11 @@
+     };
+     let pin = M::Pin::new(parts.owner, pin_slot, *parts.next_nonce);
+     *parts.next_nonce = nonce;
++    #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(11,defined,index as u64,pin_slot as u64,pin.nonce(),u64::from(hit.is_none()),slot.entry().expect("resident entry").bytes as u64,slot.pins() as u64));
+     Ok(pin)
+ }
++
++#[cfg(test)]
++pub(crate) fn ordered_event(kind:u64,body:FunctionSpanView<'_>,slot:u64,pin_slot:u64,nonce:u64,a:u64,b:u64,c:u64)->[u64;11]{
++[kind,body.absolute_index as u64,body.body_offset as u64,body.body.len() as u64,body.type_index as u64,slot,pin_slot,nonce,a,b,c]
++}
+--- a/src/experimental_swift_reactor/cache.rs
++++ b/src/experimental_swift_reactor/cache.rs
+@@ -1429,6 +1429,8 @@
+     }
+ }
+ impl ReleaseControl<SwiftRunFailure> for CacheControl<'_> {
++    #[cfg(test)]
++    fn ordered_release(&mut self,event:[u64;11]){super::cache_tests::ordered_observer::observe(event,self.control.ordered_coordinates());}
+     fn release_pin(&mut self) -> Result<(), SwiftRunFailure> {
+         self.remove_live(Live::ActivePins)
+     }
+@@ -1927,6 +1929,8 @@
+         cache: &mut SwiftFunctionCache,
+         function: u32,
+     ) -> Result<SwiftFunctionPin, SwiftRunFailure> {
++        #[cfg(test)] super::cache_tests::ordered_observer::acquire(function,self.control.control.ordered_coordinates());
++        let result=(|| {
+         self.control.check_header(cache)?;
+         pin::<SwiftMode>(
+             CacheParts {
+@@ -1944,7 +1948,9 @@
+             },
+             function,
+             &mut self.control,
+-        )
++        )})();
++        #[cfg(test)] if let Err(ref failure)=result {super::cache_tests::ordered_observer::failure(failure,false);}
++        result
+     }
+     pub(crate) fn complete<T>(self, returned_phase_storage: T) -> Result<(), SwiftRunFailure> {
+         let Self {
+@@ -2095,6 +2101,8 @@
+     meter.check()
+ }
+ impl CacheMode for SwiftMode {
++    #[cfg(test)]
++    fn ordered_diagnostic(meter:&mut SwiftMeter<'_, '_>,event:[u64;11]){super::cache_tests::ordered_observer::observe(event,meter.operation.control.ordered_coordinates());}
+     type Snapshot = ValidatedSwiftReactor;
+     type Slot = SwiftSlot;
+     type Resident = SwiftResident;
+@@ -2199,6 +2207,7 @@
+         scratch: &mut SwiftScratch<'_>,
+         meter: &mut SwiftMeter<'_, '_>,
+     ) -> Result<decode::Counts, SwiftRunFailure> {
++        #[cfg(test)] Self::ordered_diagnostic(meter,ordered_event(3,body,u64::MAX,u64::MAX,0,0,0,(body.absolute_index&511) as u64));
+         let policy = policy(snapshot, body, meter)?;
+         if scratch.plans.len() != PLAN_CAPACITY {
+             return Err(meter.error(CacheFailureKind::DecoderMismatch, "swift_plan_layout"));
+@@ -2206,8 +2215,10 @@
+         meter.work(1)?; // requested identity hash, collision alone never authorizes
+         let index = body.absolute_index as usize & (PLAN_CAPACITY - 1);
+         meter.work(1)?; // actual Option tag probe
++        #[cfg(test)] let mut ordered_prior=u64::MAX;
+         if let Some(plan) = &scratch.plans[index] {
+             meter.work(1)?; // actual function identity probe
++            #[cfg(test)] {ordered_prior=plan.function as u64;}
+             if plan.function == body.absolute_index {
+                 // Probe all three remaining immutable-identity cells, including
+                 // malformed metadata. Do not short-circuit their accounting.
+@@ -2221,6 +2232,7 @@
+                     );
+                 }
+                 meter.work(3)?; // actual three-field Counts copy; also checks stop
++                #[cfg(test)] Self::ordered_diagnostic(meter,ordered_event(4,body,u64::MAX,u64::MAX,0,2,u64::MAX,index as u64));
+                 return Ok(plan.counts);
+             }
+         }
+@@ -2251,6 +2263,7 @@
+             type_index: body.type_index,
+             counts,
+         });
++        #[cfg(test)] Self::ordered_diagnostic(meter,ordered_event(4,body,u64::MAX,u64::MAX,0,u64::from(ordered_prior!=u64::MAX),ordered_prior,index as u64));
+         Ok(counts)
+     }
+     fn build(
+--- a/src/experimental_swift_reactor/cache_tests.rs
++++ b/src/experimental_swift_reactor/cache_tests.rs
+@@ -3857,3 +3857,447 @@
+     assert_eq!(stats.reallocations, 0);
+     finish(cache, c);
+ }
++
++mod ordered_wire {
++// Independently authored finite diagnostic writer; never product authority.
++use std::io::{self, Write};
++pub const ABSENT:u64=u64::MAX;
++pub const MAX_RECORDS:u64=4_194_304;
++pub const CAP:u32=1; pub const IO:u32=2; pub const CONTEXT:u32=4;
++pub const BORROW:u32=8; pub const RANGE:u32=16; pub const OVERFLOW:u32=32;
++pub const LIFECYCLE:u32=64; pub const CODE:u32=128; pub const GATE:u32=256;
++pub const HEADER_MAGIC:u64=0x315244524f58494d;
++pub const FOOTER_MAGIC:u64=0x31444e454f58494d;
++#[derive(Clone,Copy,Debug,PartialEq,Eq)]
++pub struct Record(pub [u64;16]);
++impl Record {
++    pub fn new(kind:u64,phase:u64,operation:u64,function:u64)->Self {
++        Self([0,kind,phase,operation,0,0,function,ABSENT,ABSENT,ABSENT,ABSENT,ABSENT,0,0,0,0])
++    }
++    pub fn encode(&self,out:&mut [u8;128]) {
++        for (i,n) in self.0.iter().enumerate(){out[8*i..8*i+8].copy_from_slice(&n.to_le_bytes());}
++    }
++    pub fn decode(raw:&[u8;128])->Self {
++        let mut words=[0;16];for (i,n) in words.iter_mut().enumerate(){*n=u64::from_le_bytes(raw[8*i..8*i+8].try_into().unwrap());}Self(words)
++    }
++    pub fn valid(&self,code_count:u64)->bool {
++        let w=&self.0;
++        if !(1..=14).contains(&w[1])||w[2]>5||w[0]==0{return false;}
++        let full=w[6]<80000&&w[7]!=ABSENT&&w[8]!=ABSENT&&w[9]!=ABSENT&&w[7].checked_add(w[8]).is_some();
++        let absent_body=w[7..10]==[ABSENT;3];
++        let no_slots=w[10]==ABSENT&&w[11]==ABSENT&&w[12]==0;
++        match w[1] {
++            1=>w[3]>0&&w[6]<80000&&absent_body&&no_slots&&w[13..16]==[0;3],
++            2=>w[3]>0&&full&&w[11]==ABSENT&&w[12]==0&&w[13]<=1&&w[14]==0&&w[15]==0&&if w[13]==0{w[10]==ABSENT}else{w[10]<64},
++            3=>w[3]>0&&full&&no_slots&&w[13]==0&&w[14]==0&&w[15]==w[6]&511,
++            4=>w[3]>0&&full&&no_slots&&w[13]<=2&&(if w[13]==1{w[14]<80000&&w[14]!=w[6]}else{w[14]==ABSENT})&&w[15]==w[6]&511,
++            5=>w[3]>0&&full&&no_slots&&w[13]>0&&w[14].checked_add(w[13]).is_some_and(|n|n<=w[15]),
++            6..=8=>w[3]>0&&full&&w[10]<64&&w[11]==ABSENT&&w[12]==0&&w[13]>0&&w[14..16]==[0;2],
++            9|10=>w[3]>0&&full&&no_slots&&w[13]>0&&w[14..16]==[0;2],
++            11=>w[3]>0&&full&&w[10]<64&&w[11]<64&&w[12]>0&&w[13]<=1&&w[14]>0&&(1..=64).contains(&w[15]),
++            12=>w[3]==0&&w[6]<80000&&w[7]!=ABSENT&&w[8]==ABSENT&&w[9]!=ABSENT&&w[10]<64&&w[11]<64&&w[12]>0&&w[13]>0&&w[14]==0&&w[15]<64,
++            13=>w[3]==0&&w[6]==ABSENT&&absent_body&&no_slots&&w[13]==w[2]&&w[14..16]==[0;2],
++            14=>absent_body&&(w[6]==ABSENT||w[6]<80000)&&no_slots&&(1..=21).contains(&w[13])&&(1..=code_count).contains(&w[14])&&(1..=6).contains(&w[15]),
++            _=>false,
++        }
++    }
++}
++pub fn encode_frame(words:&[u64;64])->[u8;512] {
++    let mut bytes=[0;512];for (i,n) in words.iter().enumerate(){bytes[i*8..i*8+8].copy_from_slice(&n.to_le_bytes());}bytes
++}
++pub fn header(cap:u64,mask:u64,digests:[[u8;32];4])->Option<[u8;512]> {
++    if cap==0||cap>MAX_RECORDS||mask==0||mask>=64||mask&33!=33{return None;}
++    let mut w=[0;64]; w[..10].copy_from_slice(&[HEADER_MAGIC,1,512,128,512,cap,80000,64,512,mask]);
++    let mut out=encode_frame(&w);for(i,d)in digests.iter().enumerate(){out[128+32*i..160+32*i].copy_from_slice(d);}Some(out)
++}
++pub fn valid_header(raw:&[u8;512])->bool {
++    let word=|i:usize|u64::from_le_bytes(raw[i*8..i*8+8].try_into().unwrap());
++    word(0)==HEADER_MAGIC&&word(1)==1&&word(2)==512&&word(3)==128&&word(4)==512&&
++    (1..=MAX_RECORDS).contains(&word(5))&&word(6)==80000&&word(7)==64&&word(8)==512&&
++    word(9)<64&&word(9)&33==33&&raw[80..128].iter().all(|b|*b==0)&&raw[256..].iter().all(|b|*b==0)
++}
++#[derive(Debug)]
++#[repr(C)]
++pub struct Writer<W:Write> {
++    pub buffer:[u8;4096],pub record:[u8;128],pub stored:u64,pub attempted:u64,pub dropped:u64,
++    pub used:usize,pub cap:u64,pub last_work:u64,pub last_instructions:u64,pub operation:u64,
++    pub phase:u64,pub observed_mask:u64,pub expected_mask:u64,pub attempts:u64,pub code_count:u64,
++    pub bindings:[u64;8],pub pin_failed:bool,pub terminal_failed:bool,pub ended:bool,pub flags:u32,pub sink:W,
++}
++// Every loop body executes at most 32 times, including Interrupted/short writes.
++pub fn bounded_write<W:Write>(sink:&mut W,bytes:&[u8],attempts:&mut u64)->bool {
++    let mut offset=0usize;
++    for _ in 0..32 {
++        let Some(n)=attempts.checked_add(1)else{return false;};*attempts=n;
++        let result:io::Result<usize>=sink.write(&bytes[offset..]);
++        match result {Ok(0)=>return false,Ok(n)=>{if n>bytes.len()-offset{return false;}offset+=n;if offset==bytes.len(){return true;}},Err(e)=>{if e.kind()!=io::ErrorKind::Interrupted{return false;}}}
++    }false
++}
++impl<W:Write> Writer<W> {
++    pub fn new(sink:W,cap:u64,mask:u64,code_count:u64,head:&[u8;512])->Option<Self> {
++        if !valid_header(head)||u64::from_le_bytes(head[40..48].try_into().unwrap())!=cap||u64::from_le_bytes(head[72..80].try_into().unwrap())!=mask||code_count!=24{return None;}
++        let mut out=Self {buffer:[0;4096],record:[0;128],stored:0,attempted:0,dropped:0,used:0,cap,last_work:0,last_instructions:0,operation:0,phase:0,observed_mask:1,expected_mask:mask,attempts:0,code_count,bindings:[0;8],pin_failed:false,terminal_failed:false,ended:false,flags:0,sink};
++        for (i,n) in out.bindings.iter_mut().enumerate(){*n=u64::from_le_bytes(head[128+8*i..136+8*i].try_into().unwrap());}
++        if !bounded_write(&mut out.sink,head,&mut out.attempts){out.flags|=IO;}Some(out)
++    }
++    pub fn freeze(&mut self,flags:u32){self.flags|=flags;}
++    pub fn push(&mut self,mut event:Record) {
++        if self.ended {return;}
++        match self.attempted.checked_add(1){Some(n)=>self.attempted=n,None=>{self.flags|=OVERFLOW;return;}}
++        if self.flags!=0||self.stored==self.cap {
++            if self.stored==self.cap {self.flags|=CAP;}
++            match self.dropped.checked_add(1){Some(n)=>self.dropped=n,None=>self.flags|=OVERFLOW};return;
++        }
++        event.0[0]=self.stored+1;
++        let w=&event.0;
++        if !event.valid(self.code_count){self.flags|=RANGE;self.dropped+=1;return;}
++        if w[4]<self.last_work||w[5]<self.last_instructions||w[2]<self.phase {
++            self.flags|=LIFECYCLE;self.dropped+=1;return;
++        }
++        if w[1]==13 {
++            if w[2]<=self.phase {self.flags|=LIFECYCLE;self.dropped+=1;return;}
++            self.phase=w[2];self.observed_mask|=1<<w[2];
++        }else if w[2]!=self.phase {self.flags|=LIFECYCLE;self.dropped+=1;return;}
++        if w[1]==1 {if self.pin_failed||self.terminal_failed||w[3]!=self.operation+1 {self.flags|=LIFECYCLE;self.dropped+=1;return;}self.operation=w[3];}
++        else if w[1]!=12&&w[1]!=13&&w[1]!=14&&w[3]!=self.operation {self.flags|=LIFECYCLE;self.dropped+=1;return;}
++        if w[1]==14 {if w[3]==0{if self.terminal_failed{self.flags|=LIFECYCLE;self.dropped+=1;return;}self.terminal_failed=true;}else {if w[3]!=self.operation||self.pin_failed{self.flags|=LIFECYCLE;self.dropped+=1;return;}self.pin_failed=true;}}
++        event.encode(&mut self.record);
++        self.buffer[self.used..self.used+128].copy_from_slice(&self.record);self.used+=128;
++        self.stored+=1;self.last_work=w[4];self.last_instructions=w[5];
++        if self.used==4096 {self.flush_records();}
++    }
++    pub fn flush_records(&mut self) {
++        if self.used==0||self.flags&!CAP!=0{return;}
++        if !bounded_write(&mut self.sink,&self.buffer[..self.used],&mut self.attempts){self.flags|=IO;}
++        self.used=0;
++    }
++    // Caller supplies original terminal and final-consuming ledger words only.
++    pub fn finish(&mut self,mut footer:[u64;64])->[u64;64] {
++        if self.ended {footer[9]|=LIFECYCLE as u64;return footer;}
++        self.ended=true;self.flush_records();
++        footer[0]=FOOTER_MAGIC;footer[1]=1;footer[2]=self.stored;footer[3]=self.attempted;footer[4]=self.dropped;
++        footer[5]=self.stored;footer[6]=self.last_work;footer[7]=self.last_instructions;footer[8]=self.operation;
++        footer[9]|=self.flags as u64;footer[15]=self.observed_mask;footer[33]=self.phase;footer[35]=self.cap;
++        // attempts includes the actual terminal block after the write; wire word
++        // stores the attempts before that block (closed finite bound definition).
++        footer[34]=self.attempts;footer[36..44].copy_from_slice(&self.bindings);
++        let bytes=encode_frame(&footer);
++        if !bounded_write(&mut self.sink,&bytes,&mut self.attempts){self.flags|=IO;}
++        footer
++    }
++}
++#[cfg(test)] mod tests {
++    use super::*;
++    #[derive(Debug)] struct Sink{bytes:[u8;16384],used:usize,quantum:usize,interrupts:usize,zero:bool,error:bool,calls:usize}
++    impl Sink{fn new()->Self{Self{bytes:[0;16384],used:0,quantum:usize::MAX,interrupts:0,zero:false,error:false,calls:0}}}
++    impl Write for Sink{fn write(&mut self,b:&[u8])->io::Result<usize>{self.calls+=1;if self.interrupts>0{self.interrupts-=1;return Err(io::ErrorKind::Interrupted.into());}if self.zero{return Ok(0);}if self.error{return Err(io::ErrorKind::BrokenPipe.into());}let n=b.len().min(self.quantum);self.bytes[self.used..self.used+n].copy_from_slice(&b[..n]);self.used+=n;Ok(n)}fn flush(&mut self)->io::Result<()>{Ok(())}}
++    fn writer(cap:u64)->Writer<Sink>{let h=header(cap,33,[[7;32];4]).unwrap();Writer::new(Sink::new(),cap,33,24,&h).unwrap()}
++    fn event()->Record{Record::new(1,0,1,40)}
++    #[test]fn wire_roundtrip_closed_fields(){let mut r=event();r.0[0]=1;assert!(r.valid(24));let mut b=[0;128];r.encode(&mut b);assert_eq!(Record::decode(&b),r);for i in 7..10{let mut x=r;x.0[i]=0;assert!(!x.valid(24));}let mut x=r;x.0[15]=1;assert!(!x.valid(24));}
++    #[test]fn header_closed_mutations(){let h=header(32,33,[[7;32];4]).unwrap();assert!(valid_header(&h));for i in [80,127,256,511]{let mut x=h;x[i]=1;assert!(!valid_header(&x));}for cap in [0,MAX_RECORDS+1]{assert!(header(cap,33,[[0;32];4]).is_none());}}
++    #[test]fn bounded_short_write_interrupted_zero_error(){let mut s=Sink::new();s.quantum=4;s.interrupts=2;let mut a=0;assert!(bounded_write(&mut s,&[1;120],&mut a));assert_eq!(a,32);assert_eq!(s.used,120);let mut s=Sink::new();s.interrupts=33;let mut a=0;assert!(!bounded_write(&mut s,&[1;1],&mut a));assert_eq!(a,32);for zero in [false,true]{let mut s=Sink::new();s.zero=zero;s.error=!zero;let mut a=0;assert!(!bounded_write(&mut s,&[1;1],&mut a));assert_eq!(a,1);}}
++    #[test]fn cap_prefix_tiny_positions(){for cap in 1..=32{let mut w=writer(cap);for n in 1..=cap+4{let mut r=event();r.0[3]=n;w.push(r);}let f=w.finish([0;64]);assert_eq!(f[2],cap);assert_eq!(f[3],cap+4);assert_eq!(f[4],4);assert_eq!(f[9],CAP as u64);assert_eq!(w.sink.used,1024+128*cap as usize);assert_eq!(w.attempts,3);}}
++    #[test]fn sticky_io_never_resumes(){let mut w=writer(64);w.sink.zero=true;for n in 1..=33{let mut r=event();r.0[3]=n;w.push(r);}assert_eq!(w.flags,IO);let used=w.sink.used;w.sink.zero=false;let mut r=event();r.0[3]=34;w.push(r);assert_eq!(w.stored,32);assert_eq!(w.dropped,2);assert_eq!(w.sink.used,used);}
++    #[test]fn range_lifecycle_and_overflow_sticky(){let mut w=writer(32);let mut r=event();r.0[6]=80000;w.push(r);assert_eq!(w.flags,RANGE);assert_eq!(w.attempted,w.stored+w.dropped);let mut w=writer(32);let mut r=event();r.0[3]=2;w.push(r);assert_eq!(w.flags,LIFECYCLE);let mut w=writer(32);w.attempted=u64::MAX;w.push(event());assert_eq!(w.flags,OVERFLOW);}
++    #[test]fn duplicate_finish_no_second_frame(){let mut w=writer(32);w.push(event());w.finish([0;64]);let used=w.sink.used;let f=w.finish([0;64]);assert_ne!(f[9]&LIFECYCLE as u64,0);assert_eq!(w.sink.used,used);}
++}
++
++}
++// Finite test-only owner. No field in RuntimeControl/cache/meter funds this.
++pub(super) mod ordered_observer {
++    use super::ordered_wire::*;
++    use super::super::control::*;
++    use std::cell::{Cell,RefCell};
++    use std::fs::File;
++    use std::marker::PhantomData;
++    use std::rc::Rc;
++    use std::sync::atomic::{AtomicU32,AtomicU64,Ordering};
++    const ACTIVE:u64=1<<63;const CLOSED:u64=1<<62;const INIT:u64=1<<61;
++    const COUNTS:u64=(1<<32)-1;
++    static GATE_STATE:AtomicU64=AtomicU64::new(CLOSED);
++    static FLAGS:AtomicU32=AtomicU32::new(0);
++    static NEXT:AtomicU64=AtomicU64::new(1);
++    static CURRENT:AtomicU64=AtomicU64::new(0);
++    thread_local!{
++        static OWNER:Cell<u64>=const{Cell::new(0)};
++        static WRITER:RefCell<Option<Writer<File>>>=const{RefCell::new(None)};
++    }
++    pub struct DispatchGuard{coordinate:u64,dispatches:u64,ended:bool,_single:PhantomData<Rc<()>>}
++    #[derive(Debug,Clone,Copy)]
++    pub struct EndReceipt{pub finalized:bool,pub flags:u32,pub stored:u64,pub attempted:u64,pub attempts_before:u64,pub attempts_after:u64,pub dispatches:u64,pub gate:u64}
++    // Source contract: one synchronous owning thread. Only negative tests create
++    // callback threads, at most 64, and join them. Thus count is <=64, never near
++    // the 32-bit count carry. No CAS loop, spin, wait or overflow speculation.
++    fn enter()->bool {
++        let before=GATE_STATE.fetch_add(1,Ordering::AcqRel);
++        if before&ACTIVE==0||before&CLOSED!=0 {GATE_STATE.fetch_sub(1,Ordering::Release);return false;}
++        if before&COUNTS>=64 {FLAGS.fetch_or(GATE,Ordering::Relaxed);GATE_STATE.fetch_sub(1,Ordering::Release);return false;}
++        true
++    }
++    fn leave(){GATE_STATE.fetch_sub(1,Ordering::Release);}
++    fn owner()->bool {let expected=CURRENT.load(Ordering::Acquire);OWNER.with(|o|o.get()!=0&&o.get()==expected)}
++    fn invalidate(flag:u32){FLAGS.fetch_or(flag,Ordering::Relaxed);}
++    pub fn begin(writer:Writer<File>)->Option<DispatchGuard>{
++        let old=GATE_STATE.load(Ordering::Acquire);
++        if old!=CLOSED {if enter(){invalidate(LIFECYCLE);leave();}return None;}
++        if GATE_STATE.compare_exchange(CLOSED,INIT,Ordering::AcqRel,Ordering::Acquire).is_err(){return None;}
++        let coordinate=NEXT.load(Ordering::Relaxed);
++        if coordinate==u64::MAX||NEXT.compare_exchange(coordinate,coordinate+1,Ordering::AcqRel,Ordering::Acquire).is_err(){GATE_STATE.fetch_or(CLOSED,Ordering::AcqRel);return None;}
++        FLAGS.store(0,Ordering::Relaxed);CURRENT.store(coordinate,Ordering::Release);
++        OWNER.with(|o|o.set(coordinate));WRITER.with(|w|{*w.borrow_mut()=Some(writer);});
++        if GATE_STATE.compare_exchange(INIT,ACTIVE,Ordering::AcqRel,Ordering::Acquire).is_err(){GATE_STATE.fetch_or(CLOSED,Ordering::AcqRel);return None;}
++        Some(DispatchGuard{coordinate,dispatches:0,ended:false,_single:PhantomData})
++    }
++    impl Drop for DispatchGuard {
++        fn drop(&mut self){if !self.ended&&self.coordinate==CURRENT.load(Ordering::Acquire)&&OWNER.with(Cell::get)==self.coordinate{let before=GATE_STATE.fetch_or(CLOSED,Ordering::AcqRel);if before&COUNTS==0&&owner(){WRITER.with(|w|drop(w.borrow_mut().take()));OWNER.with(|o|o.set(0));GATE_STATE.store(CLOSED,Ordering::Release);}}}
++    }
++    impl DispatchGuard {
++        pub fn dispatch<T>(&mut self,call:impl FnOnce()->T)->T {
++            assert_eq!(OWNER.with(Cell::get),self.coordinate);
++            assert_eq!(GATE_STATE.load(Ordering::Acquire),ACTIVE);
++            self.dispatches=self.dispatches.checked_add(1).unwrap();call()
++        }
++        pub fn end(mut self,footer:[u64;64])->EndReceipt {
++            self.ended=true;
++            if self.coordinate!=CURRENT.load(Ordering::Acquire)||OWNER.with(Cell::get)!=self.coordinate{return EndReceipt{finalized:false,flags:0,stored:0,attempted:0,attempts_before:0,attempts_after:0,dispatches:self.dispatches,gate:0};}
++            let previous=GATE_STATE.fetch_or(CLOSED,Ordering::AcqRel);
++            let mut receipt=EndReceipt{finalized:false,flags:FLAGS.load(Ordering::Acquire),stored:0,attempted:0,attempts_before:0,attempts_after:0,dispatches:self.dispatches,gate:previous|CLOSED};
++            // Never access WRITER if any admitted callback can still use it.
++            if previous&ACTIVE==0||previous&CLOSED!=0||previous&COUNTS!=0||!owner(){return receipt;}
++            WRITER.with(|cell|{
++                let Ok(mut state)=cell.try_borrow_mut()else{receipt.flags|=BORROW;return;};
++                let Some(writer)=state.as_mut()else{return;};
++                writer.freeze(receipt.flags);
++                if writer.observed_mask!=writer.expected_mask||writer.phase!=5{writer.freeze(LIFECYCLE);}
++                receipt.attempts_before=writer.attempts;
++                writer.finish(footer);
++                receipt.stored=writer.stored;receipt.attempted=writer.attempted;
++                receipt.flags=writer.flags;receipt.attempts_after=writer.attempts;receipt.finalized=true;
++            });receipt
++        }
++    }
++    pub fn retire_after_quiescence(){
++        let now=GATE_STATE.load(Ordering::Acquire);assert_ne!(now&CLOSED,0);assert_eq!(now&COUNTS,0);
++        WRITER.with(|w|drop(w.borrow_mut().take()));OWNER.with(|o|o.set(0));
++        GATE_STATE.store(CLOSED,Ordering::Release);
++    }
++    pub fn observe(payload:[u64;11],coordinates:(u64,u64))->bool {
++        if !enter(){return false;}
++        if !owner(){invalidate(CONTEXT);leave();return false;}
++        let accepted=WRITER.with(|cell|{
++            let Ok(mut state)=cell.try_borrow_mut()else{invalidate(BORROW);return false;};
++            let Some(writer)=state.as_mut()else{invalidate(LIFECYCLE);return false;};
++            writer.freeze(FLAGS.load(Ordering::Acquire));
++            let operation=match payload[0]{1=>match writer.operation.checked_add(1){Some(n)=>n,None=>{writer.freeze(OVERFLOW);return false;}},12|13=>0,14=>if payload[5]==ABSENT{writer.operation}else{0},_=>writer.operation};
++            let mut event=Record([0,payload[0],writer.phase,operation,coordinates.0,coordinates.1,payload[1],payload[2],payload[3],payload[4],payload[5],payload[6],payload[7],payload[8],payload[9],payload[10]]);
++            if payload[0]==13{event.0[2]=payload[8];}
++            if payload[0]==14{event.0[10]=ABSENT;}
++            writer.push(event);true
++        });leave();accepted
++    }
++    pub fn acquire(function:u32,coordinates:(u64,u64)){observe([1,function as u64,ABSENT,ABSENT,ABSENT,ABSENT,ABSENT,0,0,0,0],coordinates);}
++    pub fn phase(phase:u64,coordinates:(u64,u64)){observe([13,ABSENT,ABSENT,ABSENT,ABSENT,ABSENT,ABSENT,0,phase,0,0],coordinates);}
++    pub fn failure(f:&SwiftRunFailure,terminal:bool){
++        let code=source_code(f.code);
++        if code==0 {if enter(){invalidate(CODE);leave();}return;}
++        let operation=if terminal{0}else{ABSENT};
++        observe([14,f.function.map_or(ABSENT,|n|n as u64),ABSENT,ABSENT,ABSENT,operation,ABSENT,0,kind(f.kind),code,stage(f.stage)],(f.at_failure.cache_work,f.at_failure.instructions));
++    }
++    pub fn stage(s:SwiftRunStage)->u64{match s{SwiftRunStage::Adoption=>1,SwiftRunStage::Cache=>2,SwiftRunStage::Initialization=>3,SwiftRunStage::Invocation=>4,SwiftRunStage::Wasi=>5,SwiftRunStage::Cleanup=>6}}
++    pub fn kind(k:SwiftRunFailureKind)->u64{match k{SwiftRunFailureKind::InvalidBudget=>1,SwiftRunFailureKind::Cancelled=>2,SwiftRunFailureKind::Deadline=>3,SwiftRunFailureKind::Allocation=>4,SwiftRunFailureKind::Adoption=>5,SwiftRunFailureKind::CategoryExhausted=>6,SwiftRunFailureKind::CombinedExhausted=>7,SwiftRunFailureKind::ResourceExhausted=>8,SwiftRunFailureKind::FuelExhausted=>9,SwiftRunFailureKind::WorkExhausted=>10,SwiftRunFailureKind::HostCallLimit=>11,SwiftRunFailureKind::PinLimit=>12,SwiftRunFailureKind::FrameLimit=>13,SwiftRunFailureKind::ValueLimit=>14,SwiftRunFailureKind::ControlLimit=>15,SwiftRunFailureKind::DecoderMismatch=>16,SwiftRunFailureKind::UnsupportedEnvironment=>17,SwiftRunFailureKind::GuestTrap=>18,SwiftRunFailureKind::GuestExit=>19,SwiftRunFailureKind::Wasi=>20,SwiftRunFailureKind::Invariant=>21}}
++    pub fn cleanup(k:Option<SwiftCleanupInvariant>)->u64{match k{None=>0,Some(SwiftCleanupInvariant::ReservationOwner)=>1,Some(SwiftCleanupInvariant::ReservationUnderflow)=>2,Some(SwiftCleanupInvariant::MissingConstruction)=>3,Some(SwiftCleanupInvariant::ConstructionBound)=>4,Some(SwiftCleanupInvariant::LiveUnderflow)=>5}}
++    pub fn source_code(code:&str)->u64{match code{
++        "swift_run_cancelled"=>1,
++        "swift_run_deadline"=>2,
++        "swift_run_work"=>3,
++        "swift_run_invalid_budget"=>4,
++        "swift_run_category_capacity"=>5,
++        "swift_run_combined_capacity"=>6,
++        "swift_run_cache_entry_capacity"=>7,
++        "swift_run_unexpected_capacity"=>8,
++        "swift_cache_allocation"=>9,
++        "not_defined_function"=>10,
++        "pin_nonce_exhausted"=>11,
++        "pin_slots_exhausted"=>12,
++        "all_entries_pinned"=>13,
++        "swift_plan_identity"=>14,
++        "swift_plan_layout"=>15,
++        "swift_cache_layout_overflow"=>16,
++        "swift_run_live_limit"=>17,
++        "swift_run_fuel"=>18,
++        "entry_bytes"=>19,
++        "entry_cannot_fit"=>20,
++        "entry_size_overflow"=>21,
++        "swift_cache_index_victim"=>22,
++        "swift_cache_index_missing"=>23,
++        "swift_cache_index_insert"=>24,
++        _=>0,
++    }}
++    pub fn footer(usage:&SwiftRunUsage,failure:Option<&SwiftRunFailure>)->[u64;64]{
++        let mut w=[0;64];w[10]=usage.cache_work;w[11]=usage.instructions;w[14]=ABSENT;
++        if let Some(f)=failure{w[12]=kind(f.kind);w[13]=source_code(f.code);w[14]=stage(f.stage);w[32]=1;}
++        let r=&usage.reservations;
++        w[16..25].copy_from_slice(&[r.retained_source.current as u64,r.retained_metadata.current as u64,r.cache.current as u64,r.state.current as u64,r.wasi.current as u64,r.shared.current as u64,r.construction.current as u64,r.combined.current as u64,r.live_tickets as u64]);
++        let l=&usage.live;w[25..31].copy_from_slice(&[l.cache_entries.current as u64,l.active_pins.current as u64,l.frames.current as u64,l.values.current as u64,l.controls.current as u64,l.memory_pages.current as u64]);w[31]=cleanup(usage.cleanup_invariant);w
++    }
++    pub fn with_borrowed(call:impl FnOnce()){WRITER.with(|w|{let _held=w.borrow_mut();call();});}
++    pub fn hold_entry_for_fixture()->bool{enter()}
++    pub fn leave_for_fixture(){leave();}
++    pub fn stored_for_fixture()->u64{WRITER.with(|w|w.borrow().as_ref().unwrap().stored)}
++    pub fn flags()->u32{FLAGS.load(Ordering::Acquire)}
++    pub fn state()->u64{GATE_STATE.load(Ordering::Acquire)}
++}
++mod ordered_finite_tests {
++    use super::*;use super::ordered_observer::*;use super::ordered_wire::*;
++    use crate::experimental::cache::borrowed::PinToken;
++    use std::fs::{File,OpenOptions};use std::io::Read;use std::os::unix::fs::OpenOptionsExt;use std::path::PathBuf;
++    static FILE_ID:std::sync::atomic::AtomicU64=std::sync::atomic::AtomicU64::new(0);
++    fn owned()->(DispatchGuard,PathBuf){
++        let id=FILE_ID.fetch_add(1,std::sync::atomic::Ordering::Relaxed);
++        let path=PathBuf::from(std::env::var_os("TMPDIR").unwrap()).join(format!("ordered-{id}.bin"));
++        let file=OpenOptions::new().write(true).create_new(true).custom_flags(0x100).open(&path).unwrap();
++        assert!(file.metadata().unwrap().is_file());
++        let h=header(4096,49,[[7;32];4]).unwrap();
++        let writer=Writer::new(file,4096,49,24,&h).unwrap();(begin(writer).unwrap(),path)
++    }
++    fn read(path:&PathBuf)->Vec<Record>{let mut raw=Vec::new();File::open(path).unwrap().read_to_end(&mut raw).unwrap();assert!(raw.len()>=1024);assert_eq!((raw.len()-1024)%128,0);raw[512..raw.len()-512].chunks_exact(128).map(|r|Record::decode(r.try_into().unwrap())).collect()}
++    fn terminal(mut guard:DispatchGuard,cache:SwiftFunctionCache,mut c:RuntimeControl,failure:Option<SwiftRunFailure>)->EndReceipt {
++        if let Some(ref f)=failure{failure_observe(f);}
++        let coords=c.ordered_coordinates();phase(4,coords);
++        let cleanup_result=guard.dispatch(||super::cleanup(cache,&mut c,None));
++        if let Some(ref actual)=cleanup_result{let original=failure.as_ref().expect("cleanup failure needs actual original failure");assert_eq!(actual.kind,original.kind);assert_eq!(actual.code,original.code);}
++        let usage=c.finish_owned_cleanup(None);assert_eq!(usage.reservations.combined.current,0);assert_eq!(usage.reservations.live_tickets,0);assert_eq!(usage.live.cache_entries.current,0);assert_eq!(usage.live.active_pins.current,0);
++        phase(5,(usage.cache_work,usage.instructions));let f=footer(&usage,failure.as_ref());
++        let receipt=guard.end(f);retire_after_quiescence();receipt
++    }
++    fn failure_observe(f:&SwiftRunFailure){ordered_observer::failure(f,true);}
++    #[test]fn ordered_finite_success_nonce_release_evict_and_allocation_parity(){
++        let bytes=fixture(0,&[0,0x0b],100);
++        let run=|on:bool|{
++            let (mut c,mut cache)=new(&bytes,SwiftRunBudget{cache_entries:2,..SwiftRunBudget::default()});
++            let mut enabled=if on{Some(owned())}else{None};
++            let (result,stats)=measure(||{
++                let mut invoke=||{
++                    let p=pin(&mut cache,&mut c,34,None).unwrap();let old_nonce=p.nonce();
++                    let q=pin(&mut cache,&mut c,35,None).unwrap();cache.release(q,&mut c,None).map_err(|e|e.failure).unwrap();
++                    let q=pin(&mut cache,&mut c,36,None).unwrap();cache.release(q,&mut c,None).map_err(|e|e.failure).unwrap();
++                    let view=cache.view(&p,&mut c,None).unwrap();assert_eq!(view.function,34);cache.release(p,&mut c,None).map_err(|e|e.failure).unwrap();old_nonce
++                };
++                if let Some((ref mut g,_))=enabled{g.dispatch(invoke)}else{invoke()}
++            });
++            let u=c.usage(None);
++            let out=(result,u.cache_work,u.live,u.reservations,cache.usage(),stats.attempts,stats.allocated_bytes);
++            if let Some((g,path))=enabled{
++                let receipt=terminal(g,cache,c,None);assert!(receipt.finalized);assert_eq!(receipt.flags,0);assert_eq!(receipt.gate&((1<<32)-1),0);
++                let rows=read(&path);let pubs:Vec<_>=rows.iter().filter(|r|r.0[1]==11).collect();let releases:Vec<_>=rows.iter().filter(|r|r.0[1]==12).collect();
++                assert_eq!(pubs[0].0[12],result);assert_eq!(releases.last().unwrap().0[12],result);assert_ne!(pubs[1].0[12],result);
++                for release in releases{assert_eq!(release.0[8],ABSENT);let p=pubs.iter().find(|p|p.0[11..13]==release.0[11..13]).unwrap();assert_eq!(p.0[6],release.0[6]);assert_eq!(p.0[7],release.0[7]);assert_eq!(p.0[9..13],release.0[9..13]);}
++                assert_eq!(rows.iter().filter(|r|r.0[1]==6).count(),1);assert_eq!(rows.iter().filter(|r|r.0[1]==7).count(),1);assert_eq!(rows.iter().filter(|r|r.0[1]==8).count(),1);
++                assert!(!observe([1,34,ABSENT,ABSENT,ABSENT,ABSENT,ABSENT,0,0,0,0],(0,0)));assert_eq!(flags(),0);
++                println!("ORDERED_SUCCESS file={} events={} attempts_before={} attempts_after={} dispatches={} flags=0 actual_nonce={result}",path.display(),rows.len(),receipt.attempts_before,receipt.attempts_after,receipt.dispatches);
++            }else{finish(cache,c);}
++            out
++        };assert_eq!(run(false),run(true));
++    }
++    #[test]fn ordered_finite_cache_work_partial_and_cancellation(){
++        for cancel in [false,true]{
++            let bytes=fixture(0,&[0,0x41,1,0x1a,0x0b],100);let (mut c,mut cache)=new(&bytes,SwiftRunBudget::default());
++            let (mut guard,path)=owned();
++            if cancel{hooks(Hooks{cancel:Some(3),..Hooks::default()});}else{
++                // The original control budget is immutable; construct a separate
++                // finite owner with its original narrower authored budget.
++                let used=c.usage(None).cache_work;finish(cache,c);
++                let pair=new(&bytes,SwiftRunBudget{cache_work:used+15,..SwiftRunBudget::default()});c=pair.0;cache=pair.1;
++            }
++            let original=guard.dispatch(||pin(&mut cache,&mut c,34,None)).unwrap_err();hooks(Hooks::default());
++            assert!(matches!(original.kind,SwiftRunFailureKind::Cancelled|SwiftRunFailureKind::WorkExhausted));
++            let original_kind=original.kind;let receipt=terminal(guard,cache,c,Some(original));assert!(receipt.finalized);assert_eq!(receipt.flags,0);assert_eq!(receipt.gate&((1<<32)-1),0);
++            let rows=read(&path);assert_eq!(rows.iter().filter(|r|r.0[1]==14&&r.0[3]>0).count(),1);assert_eq!(rows.iter().filter(|r|r.0[1]==14&&r.0[3]==0).count(),1);assert!(!rows.iter().any(|r|r.0[1]==11));
++            println!("ORDERED_FAILURE original={original_kind:?} file={} events={} attempts={}",path.display(),rows.len(),receipt.attempts_after);
++        }
++    }
++    #[test]fn ordered_finite_gate_wrong_thread_borrow_duplicate_and_after_end(){
++        let (guard,_path)=owned();assert!(begin(Writer::new(OpenOptions::new().write(true).create_new(true).custom_flags(0x100).open(PathBuf::from(std::env::var_os("TMPDIR").unwrap()).join(format!("ordered-duplicate-{}.bin",FILE_ID.fetch_add(1,std::sync::atomic::Ordering::Relaxed)))).unwrap(),1,33,24,&header(1,33,[[0;32];4]).unwrap()).unwrap()).is_none());
++        // Duplicate begin intentionally invalidates the active lifetime.
++        assert_ne!(flags()&LIFECYCLE,0);
++        std::thread::spawn(||{assert!(!observe([1,34,ABSENT,ABSENT,ABSENT,ABSENT,ABSENT,0,0,0,0],(0,0)));}).join().unwrap();
++        assert_ne!(flags()&CONTEXT,0);
++        assert!(observe([1,34,ABSENT,ABSENT,ABSENT,ABSENT,ABSENT,0,0,0,0],(0,0)));
++        // Owner callback is admitted but never resumes ordinary records after
++        // the independent latch became invalid. Checked from actual TLS writer.
++        assert_eq!(ordered_observer::stored_for_fixture(),0);
++        with_borrowed(||{assert!(!observe([1,34,ABSENT,ABSENT,ABSENT,ABSENT,ABSENT,0,0,0,0],(0,0)));});assert_ne!(flags()&BORROW,0);
++        assert!(hold_entry_for_fixture());let receipt=guard.end([0;64]);assert!(!receipt.finalized);leave_for_fixture();assert!(!observe([1,34,ABSENT,ABSENT,ABSENT,ABSENT,ABSENT,0,0,0,0],(0,0)));
++        assert_eq!(state()&((1<<32)-1),0);retire_after_quiescence();
++    }
++
++    #[test]fn ordered_finite_all_pinned_retains_real_replay_pins(){
++        let bytes=fixture(0,&[0,0x0b],100);let(mut c,mut cache)=new(&bytes,SwiftRunBudget{cache_entries:2,..SwiftRunBudget::default()});let(mut g,path)=owned();
++        let (p,q)=g.dispatch(||(pin(&mut cache,&mut c,34,None).unwrap(),pin(&mut cache,&mut c,35,None).unwrap()));
++        let original=g.dispatch(||pin(&mut cache,&mut c,36,None)).unwrap_err();assert_eq!(original.code,"all_entries_pinned");
++        drop((p,q));let receipt=terminal(g,cache,c,Some(original));assert_eq!(receipt.flags,0);
++        let rows=read(&path);assert_eq!(rows.iter().filter(|r|r.0[1]==11).count(),2);assert!(!rows.iter().any(|r|r.0[1]==12||r.0[1]==6||r.0[1]==7||r.0[1]==8));
++        println!("ORDERED_ALL_PINNED file={} retained_stream_pins=2 consuming_zero=true",path.display());
++    }
++    #[test]fn ordered_finite_terminal_absent_and_independent_cursor(){
++        let bytes=fixture(0,&[0,0x0b],100);
++        // Actual original construction rejection, with no pin operation.
++        let(mut c,p)=adopt(&bytes,SwiftRunBudget{cache_bytes:0,..SwiftRunBudget::default()});let(mut g,path)=owned();
++        let original=g.dispatch(||construct(&mut c,p,None)).err().unwrap();assert!(original.function.is_none());failure_observe(&original);phase(4,c.ordered_coordinates());
++        let usage=c.finish_owned_cleanup(None);phase(5,(usage.cache_work,usage.instructions));let r=g.end(footer(&usage,Some(&original)));assert_eq!(r.flags,0);retire_after_quiescence();let rows=read(&path);assert_eq!(rows.iter().filter(|r|r.0[1]==14&&r.0[3]==0&&r.0[6]==ABSENT).count(),1);assert!(!rows.iter().any(|r|r.0[1]==1));
++        println!("ORDERED_CONSTRUCTION file={} original={}",path.display(),original.code);
++        // Original non-cache work failure with an independent actual cursor.
++        let(mut c,cache)=new(&bytes,SwiftRunBudget::default());let(mut g,path)=owned();
++        let original=g.dispatch(||c.work(Work::Execution,u64::MAX,Cursor{stage:SwiftRunStage::Invocation,function:Some(62),offset:Some(9)})).unwrap_err();
++        assert_eq!(original.function,Some(62));let r=terminal(g,cache,c,Some(original));assert_eq!(r.flags,0);let rows=read(&path);assert_eq!(rows.iter().filter(|r|r.0[1]==14&&r.0[3]==0&&r.0[6]==62).count(),1);assert!(!rows.iter().any(|r|r.0[1]==1));println!("ORDERED_TERMINAL file={} cursor=62",path.display());
++    }
++    #[test]fn ordered_finite_allocation_ordinals_original_result_parity(){
++        let bytes=fixture(0,&[0,0x41,1,0x1a,0x0b],100);
++        for ordinal in 0..=1 {
++            let run=|on:bool|{
++                let(mut c,mut cache)=new(&bytes,SwiftRunBudget::default());let mut enabled=if on{Some(owned())}else{None};
++                let(result,stats)=measure_extended(Some(ordinal),||{let invoke=||pin(&mut cache,&mut c,34,None);if let Some((ref mut g,_))=enabled{g.dispatch(invoke)}else{invoke()}});
++                let original=match result{Ok(p)=>{cache.release(p,&mut c,None).map_err(|e|e.failure).unwrap();None},Err(e)=>Some(e)};
++                let u=c.usage(None);let summary=(original.map(|f|(f.kind,f.code,f.at_failure.cache_work)),u.cache_work,u.live,u.reservations,cache.usage(),stats.attempts,stats.injected_failures,stats.allocated_bytes);
++                if let Some((g,path))=enabled{let receipt=terminal(g,cache,c,original);if original.is_some_and(|f|source_code(f.code)==0){assert_ne!(receipt.flags&CODE,0);}else{assert_eq!(receipt.flags,0);}println!("ORDERED_ALLOC ordinal={ordinal} file={} attempts={} injected={} flags={}",path.display(),stats.attempts,stats.injected_failures,receipt.flags);}else{finish(cache,c);}summary
++            };assert_eq!(run(false),run(true));
++        }
++    }
++    #[allow(dead_code)]
++    struct CallbackInventory {
++        payload:[u64;11],coordinates:(u64,u64),record:Record,body:crate::experimental::descriptors::FunctionSpanView<'static>,
++        gate_before:u64,lifetime:u64,operation:Option<u64>,sticky:u32,
++        gate:&'static std::sync::atomic::AtomicU64,latch:&'static std::sync::atomic::AtomicU32,owner:&'static Cell<u64>,
++        cell:&'static std::cell::RefCell<Option<Writer<File>>>,
++        borrow_result:Result<std::cell::RefMut<'static,Option<Writer<File>>>,std::cell::BorrowMutError>,
++        borrow:std::cell::RefMut<'static,Option<Writer<File>>>,writer:&'static mut Writer<File>,
++        file:&'static mut File,bytes:&'static [u8],offset:usize,retry:std::ops::Range<usize>,
++        result:std::io::Result<usize>,error:std::io::Error,error_kind:std::io::ErrorKind,
++        encode_words:std::slice::Iter<'static,u64>,encode_byte:[u8;8],encode_index:usize,
++        record_borrow:&'static Record,encode_output:&'static mut [u8;128],
++        checked:Option<u64>,slice:&'static [u8],attempts:&'static mut u64,
++        failure:&'static SwiftRunFailure,source_code:&'static str,source_id:u64,
++        closure_self:&'static mut CacheOperationPhase<'static>,closure_cache:&'static mut SwiftFunctionCache,
++    }
++    #[allow(dead_code)]
++    struct FrameInventory {header:[u8;512],footer_words:[u64;64],footer_parameter:[u64;64],encoded_footer:[u8;512],frame_return:[u8;512],digests:[[u8;32];4],frame_borrow:&'static[u64;64],receipt:EndReceipt,writer_option:&'static mut Option<Writer<File>>,owner_coordinate:u64,closed:u64,flags:u32,mask:u64}
++    #[allow(dead_code)]
++    struct WholeOutputInventory {pin_result:Result<SwiftFunctionPin,SwiftRunFailure>,usage:SwiftRunUsage,wasi:Option<WasiUsage>,failure_borrow:Option<&'static SwiftRunFailure>,footer_borrow:&'static SwiftRunUsage,release_result_size_only:&'static Result<(),SwiftReleaseFailure>}
++    #[test]fn ordered_finite_layout_inventory(){
++        use std::cell::RefCell;use std::sync::atomic::{AtomicU64,AtomicU32};
++        let owner=size_of::<RefCell<Option<Writer<File>>>>();
++        let atomics=3*size_of::<AtomicU64>()+size_of::<AtomicU32>()+size_of::<Cell<u64>>();
++        let helper=size_of::<CallbackInventory>();let frames=size_of::<FrameInventory>();let outputs=size_of::<WholeOutputInventory>();
++        let guard=size_of::<DispatchGuard>();let literal_bytes=502usize;
++        let subtotal=owner+atomics+3*helper+frames+outputs+guard+literal_bytes;
++        // The separate retirement move happens after footer and original consuming
++        // calls. Report its full Option owner as an extra conservative value too.
++        let retirement=size_of::<Option<Writer<File>>>();
++        let metadata=size_of::<std::fs::Metadata>()+2*size_of::<std::io::Result<std::fs::Metadata>>()+size_of::<&std::fs::Metadata>();
++        let drop_locals=7*size_of::<usize>();let total=subtotal+retirement+metadata+drop_locals;
++        println!("ORDERED_ADDITIONAL metadata_owners_results_borrow={metadata} drop_locals={drop_locals} metadata_size={} metadata_result={}",size_of::<std::fs::Metadata>(),size_of::<std::io::Result<std::fs::Metadata>>());
++        println!("ORDERED_LAYOUT writer={} writer_align={} tls={} atomics_tls={} helper={} helper_copies=3 frames={} whole_outputs={} guard={} literals={} retirement={} subtotal={} total={} cap=16384 result_pin={} result_release={} failure={} usage={} option_wasi={} io_result={} io_error={}",size_of::<Writer<File>>(),std::mem::align_of::<Writer<File>>(),owner,atomics,helper,frames,outputs,guard,literal_bytes,retirement,subtotal,total,size_of::<Result<SwiftFunctionPin,SwiftRunFailure>>(),size_of::<Result<(),SwiftReleaseFailure>>(),size_of::<SwiftRunFailure>(),size_of::<SwiftRunUsage>(),size_of::<Option<WasiUsage>>(),size_of::<std::io::Result<usize>>(),size_of::<std::io::Error>());
++        assert!(total<=16384,"complete conservative external logical inventory exceeds hard ceiling");
++    }
++
++}
+--- a/src/experimental_swift_reactor/control.rs
++++ b/src/experimental_swift_reactor/control.rs
+@@ -1766,3 +1766,8 @@
+ mod tests;
+ 
+ #[cfg(test)] impl RuntimeControl {pub(crate) fn host_test_counter(&mut self,value:u64){self.host_calls=value;}}
++
++#[cfg(test)]
++impl RuntimeControl {
++    pub(crate) fn ordered_coordinates(&self)->(u64,u64){(self.cache_work,self.instructions)}
++}

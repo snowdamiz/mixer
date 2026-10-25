@@ -1,0 +1,31 @@
+warning: constant `CONTEXT` is never used
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-diagnostic-rust-review/.scratch/writer/writer.rs:5:52
+  |
+5 | pub const CAP:u32=1; pub const IO:u32=2; pub const CONTEXT:u32=4;
+  |                                                    ^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `BORROW` is never used
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-diagnostic-rust-review/.scratch/writer/writer.rs:6:11
+  |
+6 | pub const BORROW:u32=8; pub const RANGE:u32=16; pub const OVERFLOW:u32=32;
+  |           ^^^^^^
+
+warning: constant `GATE` is never used
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-diagnostic-rust-review/.scratch/writer/writer.rs:7:63
+  |
+7 | pub const LIFECYCLE:u32=64; pub const CODE:u32=128; pub const GATE:u32=256;
+  |                                                               ^^^^
+
+warning: method `freeze` is never used
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-diagnostic-rust-review/.scratch/writer/writer.rs:82:12
+   |
+75 | impl<W:Write> Writer<W> {
+   | ----------------------- method in this implementation
+...
+82 |     pub fn freeze(&mut self,flags:u32){self.flags|=flags;}
+   |            ^^^^^^
+
+warning: 4 warnings emitted
+

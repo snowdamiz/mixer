@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "status": "proposed_for_independent_contract_review",
+  "delegation": {
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning_effort": "xhigh",
+    "context": "fresh",
+    "configuration_evidence": "parent dispatch"
+  },
+  "scope": {
+    "unit_a": "typed preauthentication storage discovery, claim and provider rejection only",
+    "unit_b": "future bounded manual supervision and private ClaimOwner join",
+    "product_implementation_authorized": false,
+    "active_browser": "fail_closed",
+    "provider_exchange": false,
+    "application_wiring": false,
+    "claim_publication_in_a": false,
+    "automatic_failure_sql_on_expiry_or_crash": false
+  },
+  "interfaces": {
+    "unit_a": [
+      "Store.discover_callback(%CallbackDraft.Discovery{})",
+      "Store.claim(%CallbackDraft.Claim{}, metadata)",
+      "Store.provider_reject(%CallbackDraft.Reject{}, metadata)"
+    ],
+    "unit_b": [
+      "RuntimeOwner.enable_claims/0",
+      "RuntimeOwner.claim_callback(raw_cookie, raw_headers, raw_query, raw_body, metadata)",
+      "RuntimeOwner.fail_claim(claim, :session_failed, metadata)"
+    ],
+    "draft_fields": {
+      "Discovery": ["lease", "cookie_digest", "state_digest"],
+      "Claim": ["lease", "source", "verifier", "claim_secret", "claim_expires_at"],
+      "Reject": ["lease", "source"],
+      "OpaqueClaim": ["owner_pid", "reference"]
+    }
+  },
+  "limits": {
+    "operation_ms": 5000,
+    "maximum_claim_ms_from_original_entry": 60000,
+    "maximum_claim_seconds_from_original_entry": 60,
+    "combined_operations_and_claims": 32,
+    "pool_size": 2,
+    "queue": false,
+    "retry": false,
+    "raw_headers_pairs": 64,
+    "raw_headers_aggregate_bytes": 16384,
+    "raw_query_max_bytes": 8192,
+    "raw_body": "",
+    "decoded_code_max_bytes": 4096,
+    "decoded_issuer_max_bytes": 2048
+  },
+  "sql_changes_required": [],
+  "catalog_changes_required": [],
+  "unit_a_owned_product_proposal": [
+    "hosted/lib/mixer_hosted/browser_auth/callback_draft.ex",
+    "hosted/lib/mixer_hosted/browser_auth/store.ex",
+    "hosted/test/mixer_hosted/browser_auth/callback_store_test.exs"
+  ],
+  "unit_b_owned_product_proposal": [
+    "hosted/lib/mixer_hosted/browser_auth/claim.ex",
+    "hosted/lib/mixer_hosted/browser_auth/claim_owner.ex",
+    "hosted/lib/mixer_hosted/browser_auth/claim_supervisor.ex",
+    "hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex",
+    "hosted/test/mixer_hosted/browser_auth/callback_claim_test.exs"
+  ],
+  "runtime_matrix": [
+    {"id": "A01", "status": "pending", "assertion": "valid preauth callback discovery returns a committed exact pending encrypted snapshot under an actual retained caller lease"},
+    {"id": "A02", "status": "pending", "assertion": "wrong cookie, state or configuration and cross-browser bindings deny without mutation"},
+    {"id": "A03", "status": "pending", "assertion": "valid durable active browser denies; malformed active data is not the only active control"},
+    {"id": "A04", "status": "pending", "assertion": "expired pending source and browser idle or absolute expiry including equality deny"},
+    {"id": "A05", "status": "pending", "assertion": "actual SQL load hides claimed, provider-rejected, completed, failed and superseded attempts; nil attempt is never resumable"},
+    {"id": "A06", "status": "pending", "assertion": "both current catalogs pass in discovery and in the separate mutating checkout; either independent drift denies"},
+    {"id": "A07", "status": "pending", "assertion": "original lease and absolute five-second deadline span both transactions and all out-of-transaction work"},
+    {"id": "A08", "status": "pending", "assertion": "exact preauth session and pending verifier Vault open occurs only after discovery commits and outside mutation transaction"},
+    {"id": "A09", "status": "pending", "assertion": "canonical verifier, source context, sealed bytes, provider fields and digest mutations fail closed before mutation"},
+    {"id": "A10", "status": "pending", "assertion": "same-checkout rediscovery full snapshot comparison detects audit-only claim or rejection race despite unchanged revision"},
+    {"id": "A11", "status": "pending", "assertion": "all source fields and both envelope contexts or ciphertext changes are compared before invoking the mutating helper"},
+    {"id": "A12", "status": "pending", "assertion": "claim uses independent raw32 secret SHA256 digest and fixed original-entry-capped expiry"},
+    {"id": "A13", "status": "pending", "assertion": "claim result browser changes only audit_sequence, session envelope is identical, exact attempt cipher is erased and claim metadata matches"},
+    {"id": "A14", "status": "pending", "assertion": "every unexpected claimed post-state field or malformed result rolls back; no private snapshot is released"},
+    {"id": "A15", "status": "pending", "assertion": "two browser SHARE upgrade contenders yield at most one durable claim and no automatic deadlock, serialization or lock retry"},
+    {"id": "A16", "status": "pending", "assertion": "concurrent begin replacement, reject, logout and expiry cannot publish a claim for obsolete source"},
+    {"id": "A17", "status": "pending", "assertion": "fixed provider rejection needs no PKCE open or claim secret and yields exact committed provider_rejected state with one audit event"},
+    {"id": "A18", "status": "pending", "assertion": "provider rejection result mismatch rolls back and replay or hidden terminal cannot produce a second receipt"},
+    {"id": "A19", "status": "pending", "assertion": "pool pressure uses fixed pool2 queue:false and leaves no transaction or settings leak"},
+    {"id": "A20", "status": "pending", "assertion": "foreign, nested ordinary or lifecycle transaction, changed Repo, malformed draft and foreign caller deny without releasing another permit"},
+    {"id": "A21", "status": "pending", "assertion": "known deferred COMMIT rejection is rolled_back; FATAL or connection loss is unknown, clears readiness and cannot be retried"},
+    {"id": "A22", "status": "pending", "assertion": "COMMIT wait obeys original deadline and known-committed owner, time or identity loss withholds private result"},
+    {"id": "A23", "status": "pending", "assertion": "actual telemetry, Inspect, owner status and recorded failure data contain no token, state, verifier, code, key, secret or cipher"},
+    {"id": "A24", "status": "pending", "assertion": "existing preauth and begin regressions remain unchanged; all owned PostgreSQL and BEAM resources are cleaned on success and failure"},
+    {"id": "B01", "status": "pending", "assertion": "absent or replaced claim supervisor prevents code consumption while existing bootstrap load and begin continue to work"},
+    {"id": "B02", "status": "pending", "assertion": "raw duplicate-preserving cookie header must match raw_cookie; current Protocol reparse rejects aliases, mixed outcomes, duplicate keys, body and wrong issuer"},
+    {"id": "B03", "status": "pending", "assertion": "dormant child and bounded startup helper belong to one reserved slot; late child cannot arm after caller, deadline or slot loss"},
+    {"id": "B04", "status": "pending", "assertion": "single combined cap32 is preserved through operation staging committed retention and terminal cleanup with no release-reserve gap"},
+    {"id": "B05", "status": "pending", "assertion": "actual original caller alone can use exact Claim; foreign copied altered unknown and second-use handles deny without mutating somebody else's slot"},
+    {"id": "B06", "status": "pending", "assertion": "unknown commit produces no retained Claim and no provider exchange; known-committed failed retention or publication leaves a consumed nonresumable SQL tombstone"},
+    {"id": "B07", "status": "pending", "assertion": "registered RuntimeOwner generation and configuration custody default KeyOwner ordinary Repo lifecycle Repo and supervisor PID continuity fence all uses"},
+    {"id": "B08", "status": "pending", "assertion": "claim wall and monotonic lifetimes begin at original operation entry; timer spoof wall rollback and exclusive expiry deny"},
+    {"id": "B09", "status": "pending", "assertion": "caller child supervisor and RuntimeOwner loss retire exact local custody and permit without automatic SQL fail or retry"},
+    {"id": "B10", "status": "pending", "assertion": "one authorized explicit session_failed transition atomically consumes local use and executes at most one separately bounded fail_claim transaction"},
+    {"id": "B11", "status": "pending", "assertion": "failure boolean true is success only after confirmed commit; unknown result invalidates readiness and never resumes local claim"},
+    {"id": "B12", "status": "pending", "assertion": "there is no completion provider current-verifier injection or authenticated readiness escape in the selected claim component"},
+    {"id": "B13", "status": "pending", "assertion": "all staged startup helper child monitor timer supervisor and fixture ownership identities are retained and cleaned without unrelated process discovery"}
+  ],
+  "broader_pending": [
+    "full original 40 owner runtime cases",
+    "full original 18 lifecycle cases",
+    "full original 48 relation cases",
+    "current access identity and OIDC provider qualification",
+    "completion preparation activation active browser claim and logout ownership",
+    "Application and HTTP or console authentication readiness",
+    "Neon TLS external custody operational and distributed qualification",
+    "native physical phones immutable FieldLog and GA acceptance"
+  ]
+}

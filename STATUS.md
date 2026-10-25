@@ -14,6 +14,8 @@ two existing skips).
 Ordered-diagnostic design checkpoint `ab5442a5` now passes all three Engine jobs.
 Preauth checkpoint `72340253` now passes every Phoenix CI step, including
 664 ordinary methods with two existing skips. Its Engine workflow now passes all three jobs.
+Begin-login checkpoint `273a1e48` passes every Phoenix CI step, including
+664 ordinary methods with two existing skips. Its Engine workflow passes all three jobs.
 Native runtime and capture remain paused.
 All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
@@ -116,10 +118,14 @@ verifies 133 sealed members, three 132-file archives and the unchanged live VM.
 Live integration/full-target retry remain unselected. The bounded ordered
 cache-transition design now passes 25 producer and 16 independent finite model
 methods after seven corrections, including finalization and premature-cap checks.
-Root verifies 73 sealed bindings and the unchanged 132-file VM closure. A separate
-isolated finite Rust feasibility slice is selected with schema coordination before
-hooked tests. Actual memory/allocation accounting, complete hooks/analyzer and
-bounded target output transport remain pending. See
+Root verifies 73 sealed bindings and the unchanged 132-file VM closure. The
+isolated Rust prototype reproduces 340 pristine and 356 candidate methods.
+Independent review adds five writer and five hook controls, but demonstrates
+three malformed CAP streams falsely labeled valid and a Python owner undercount.
+Initialization/Drop/serialization inventory remains incomplete. Root verifies
+305 sealed members and accepts recorded finite evidence only; a separate
+correction is underway. Complete diagnostic/analyzer/target acceptance remains
+pending. See [the prototype review](docs/swift-ordered-retention-diagnostic-rust-review.md),
 [the diagnostic design review](docs/swift-ordered-retention-diagnostic-design-review.md),
 [the rejected Rust result audit](docs/swift-count-plan-retention-candidate-review.md),
 [the independent review](docs/swift-retention-next-design-review.md) and
@@ -345,8 +351,13 @@ regressions and 34 independent PG16 controls. Root verifies 103 producer and
 284 review seal entries, exact source/output bindings and all owned cleanup.
 Private preauth URL publication, pending replacement, audit-counter race rollback
 and final caller deadline/continuity checks are accepted within this scope.
-Callback claim/private ClaimOwner, active identity/provider, startup and HTTP
-composition remain pending. See [begin-login review](docs/hosted-browser-begin-login-review.md).
+The callback contract passes independent source review and fourteen executable
+contract-model methods; root verifies 154 sealed members. All 39 runtime cases
+remain pending. Typed callback discovery/claim/provider-reject storage is selected
+for implementation. Complete supervised ClaimOwner ownership and shared permit
+transfer must precede publishing a claim handle. Active identity/provider, startup
+and HTTP composition remain pending. See [callback contract review](docs/hosted-browser-callback-claim-review.md)
+and [begin-login review](docs/hosted-browser-begin-login-review.md).
 See [the preauth review](docs/hosted-browser-preauth-store-review.md).
 See [the relation review](docs/hosted-browser-relation-catalog-review.md).
 This is only `:function_surface_verified`: tests explicitly

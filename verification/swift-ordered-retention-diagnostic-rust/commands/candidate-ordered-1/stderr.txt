@@ -1,0 +1,46 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-diagnostic-rust/.scratch/candidate)
+error[E0659]: `cleanup` is ambiguous
+    --> src/experimental_swift_reactor/cache_tests.rs:4158:35
+     |
+4158 |         guard.dispatch(||{assert!(cleanup(cache,&mut c,None).is_none());});
+     |                                   ^^^^^^^ ambiguous name
+     |
+     = note: ambiguous because of multiple glob imports of a name in the same module
+note: `cleanup` could refer to the function imported here
+    --> src/experimental_swift_reactor/cache_tests.rs:4143:9
+     |
+4143 |     use super::*;use super::ordered_observer::*;use super::ordered_wire::*;
+     |         ^^^^^^^^
+     = help: consider adding an explicit import of `cleanup` to disambiguate
+note: `cleanup` could also refer to the function imported here
+    --> src/experimental_swift_reactor/cache_tests.rs:4143:22
+     |
+4143 |     use super::*;use super::ordered_observer::*;use super::ordered_wire::*;
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+     = help: consider adding an explicit import of `cleanup` to disambiguate
+
+error[E0599]: no method named `nonce` found for struct `experimental_swift_reactor::cache::SwiftFunctionPin` in the current scope
+    --> src/experimental_swift_reactor/cache_tests.rs:4171:83
+     |
+4171 |                     let p=pin(&mut cache,&mut c,34,None).unwrap();let old_nonce=p.nonce();
+     |                                                                                   ^^^^^ private field, not a method
+     |
+    ::: src/experimental/cache/borrowed.rs:405:8
+     |
+ 405 |     fn nonce(&self) -> u64;
+     |        ----- the method is available for `experimental_swift_reactor::cache::SwiftFunctionPin` here
+     |
+    ::: src/experimental_swift_reactor/cache.rs:207:1
+     |
+ 207 | pub(crate) struct SwiftFunctionPin {
+     | ---------------------------------- method `nonce` not found for this struct
+     |
+     = help: items from traits can only be used if the trait is in scope
+help: trait `PinToken` which provides `nonce` is implemented but not in scope; perhaps you want to import it
+     |
+4143 +     use crate::experimental::cache::borrowed::PinToken;
+     |
+
+Some errors have detailed explanations: E0599, E0659.
+For more information about an error, try `rustc --explain E0599`.
+error: could not compile `mixer-vm` (lib test) due to 2 previous errors

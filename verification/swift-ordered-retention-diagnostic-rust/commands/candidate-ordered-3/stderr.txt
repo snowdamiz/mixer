@@ -1,0 +1,53 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-diagnostic-rust/.scratch/candidate)
+warning: field `gate` is never read
+    --> src/experimental_swift_reactor/cache_tests.rs:4027:163
+     |
+4027 | ...ct EndReceipt{pub finalized:bool,pub flags:u32,pub stored:u64,pub attempted:u64,pub attempts_before:u64,pub attempts_after:u64,pub dispatches:u64,pub gate:u64}
+     |       ---------- field in this struct                                                                                                                    ^^^^
+     |
+     = note: `EndReceipt` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 3 warnings
+    Finished `release` profile [optimized] target(s) in 23.73s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-diagnostic-rust/.scratch/build-candidate/release/deps/mixer_vm-ac98982f00b19e87)
+
+thread 'experimental_swift_reactor::cache_tests::ordered_finite_tests::ordered_finite_cache_work_partial_and_cancellation' (64880512) panicked at src/experimental_swift_reactor/cache_tests.rs:4160:27:
+assertion failed: super::cleanup(cache, &mut c, None).is_none()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'experimental_swift_reactor::cache_tests::ordered_finite_tests::ordered_finite_gate_wrong_thread_borrow_duplicate_and_after_end' (64880513) panicked at src/experimental_swift_reactor/cache_tests.rs:4154:76:
+called `Option::unwrap()` on a `None` value
+
+thread 'experimental_swift_reactor::cache_tests::ordered_finite_tests::ordered_finite_success_nonce_release_evict_and_allocation_parity' (64880514) panicked at src/experimental_swift_reactor/cache_tests.rs:4154:76:
+called `Option::unwrap()` on a `None` value
+error: test failed, to rerun pass `--lib`

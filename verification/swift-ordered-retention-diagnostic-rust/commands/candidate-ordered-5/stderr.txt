@@ -1,0 +1,14 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-diagnostic-rust/.scratch/candidate)
+error[E0596]: cannot borrow `invoke` as mutable, as it is not declared as mutable
+    --> src/experimental_swift_reactor/cache_tests.rs:4259:172
+     |
+4259 | ...n(&mut cache,&mut c,34,None);if let Some((ref mut g,_))=enabled{g.dispatch(invoke)}else{invoke()}});
+     |           ----- calling `invoke` requires mutable binding due to mutable borrow of `cache` ^^^^^^ cannot borrow as mutable
+     |
+help: consider changing this to be mutable
+     |
+4259 |                 let(result,stats)=measure_extended(Some(ordinal),||{let mut invoke=||pin(&mut cache,&mut c,34,None);if let Some((ref mut g,_))=enabled{g.dispatch(invoke)}else{invoke()}});
+     |                                                                         +++
+
+For more information about this error, try `rustc --explain E0596`.
+error: could not compile `mixer-vm` (lib test) due to 1 previous error
