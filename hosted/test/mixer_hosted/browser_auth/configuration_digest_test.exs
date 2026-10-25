@@ -19,6 +19,13 @@ defmodule MixerHosted.BrowserAuth.ConfigurationDigestTest do
     assert {:ok, digest} = ConfigurationDigest.digest(config)
     assert byte_size(digest) == 32
     assert digest == :crypto.hash(:sha256, bytes)
+    # Independent fixed-order UTF-8 JSON/SHA-256 baseline. Text admission must
+    # not change the version, field order or encoding of valid configurations.
+    assert byte_size(bytes) == 910
+
+    assert Base.encode16(digest, case: :lower) ==
+             "3116d5ef6ac718b3d2442df3648c60ab3fa1d640f73d429ed2b30490f1e2d7f3"
+
     assert {:ok, ^digest} = ConfigurationDigest.digest(Fixture.config())
   end
 

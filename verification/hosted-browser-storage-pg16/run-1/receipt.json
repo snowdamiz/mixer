@@ -1,0 +1,450 @@
+{
+  "cleanup": {
+    "owned_container_removed": true,
+    "owned_postgres_stopped": true,
+    "owned_scratch_removed": true
+  },
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 0,
+      "name": "git-head",
+      "stderr": "git-head.stderr",
+      "stdout": "git-head.stdout",
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 0,
+      "name": "elixir-version",
+      "stderr": "elixir-version.stderr",
+      "stdout": "elixir-version.stdout",
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 0,
+      "name": "python-version",
+      "stderr": "python-version.stderr",
+      "stdout": "python-version.stdout",
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "pg_config",
+        "--bindir"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 0,
+      "name": "postgres-bindir",
+      "stderr": "postgres-bindir.stderr",
+      "stdout": "postgres-bindir.stdout",
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 0,
+      "name": "postgres-client-version",
+      "stderr": "postgres-client-version.stderr",
+      "stdout": "postgres-client-version.stdout",
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "docker",
+        "version",
+        "--format",
+        "{{json .Server}}"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 0,
+      "name": "docker-version",
+      "stderr": "docker-version.stderr",
+      "stdout": "docker-version.stdout",
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "docker",
+        "image",
+        "inspect",
+        "postgres@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97",
+        "--format",
+        "{{json .}}"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 0,
+      "name": "postgres-image-inspect",
+      "stderr": "postgres-image-inspect.stderr",
+      "stdout": "postgres-image-inspect.stdout",
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "elixirc",
+        "--warnings-as-errors",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/telemetry/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/decimal/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/db_connection/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/ecto/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/ecto_sql/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/postgrex/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/jason/ebin",
+        "-o",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-storage-pg16-8_b0tyj0/beams",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs/hosted/lib/mixer_hosted/browser_auth/storage_schema.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs/hosted/lib/mixer_hosted/browser_auth/vault.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs/hosted/lib/mixer_hosted/browser_auth/stored_snapshot.ex"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 0,
+      "name": "compile",
+      "stderr": "compile.stderr",
+      "stdout": "compile.stdout",
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "docker",
+        "run",
+        "--detach",
+        "--rm",
+        "--name",
+        "mixer-browser-storage-pg16-35961-1792944842",
+        "--label",
+        "mixer.fixture=browser-storage-pg16",
+        "--publish",
+        "127.0.0.1:57557:5432",
+        "--env",
+        "POSTGRES_USER=browser_admin",
+        "--env",
+        "POSTGRES_HOST_AUTH_METHOD=trust",
+        "--env",
+        "POSTGRES_INITDB_ARGS=--no-locale -E UTF8",
+        "postgres@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97",
+        "-c",
+        "max_connections=36",
+        "-c",
+        "timezone=UTC"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 0,
+      "name": "postgres-start",
+      "stderr": "postgres-start.stderr",
+      "stdout": "postgres-start.stdout",
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_isready",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "57557",
+        "-U",
+        "browser_admin"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 2,
+      "name": "postgres-ready-0",
+      "stderr": "postgres-ready-0.stderr",
+      "stdout": "postgres-ready-0.stdout",
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_isready",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "57557",
+        "-U",
+        "browser_admin"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 2,
+      "name": "postgres-ready-1",
+      "stderr": "postgres-ready-1.stderr",
+      "stdout": "postgres-ready-1.stdout",
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_isready",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "57557",
+        "-U",
+        "browser_admin"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 2,
+      "name": "postgres-ready-2",
+      "stderr": "postgres-ready-2.stderr",
+      "stdout": "postgres-ready-2.stdout",
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_isready",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "57557",
+        "-U",
+        "browser_admin"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 2,
+      "name": "postgres-ready-3",
+      "stderr": "postgres-ready-3.stderr",
+      "stdout": "postgres-ready-3.stdout",
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_isready",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "57557",
+        "-U",
+        "browser_admin"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 2,
+      "name": "postgres-ready-4",
+      "stderr": "postgres-ready-4.stderr",
+      "stdout": "postgres-ready-4.stdout",
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_isready",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "57557",
+        "-U",
+        "browser_admin"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 0,
+      "name": "postgres-ready-5",
+      "stderr": "postgres-ready-5.stderr",
+      "stdout": "postgres-ready-5.stdout",
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-browser-storage-pg16-35961-1792944842",
+        "postgres",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 0,
+      "name": "postgres-server-version",
+      "stderr": "postgres-server-version.stderr",
+      "stdout": "postgres-server-version.stdout",
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "docker",
+        "logs",
+        "mixer-browser-storage-pg16-35961-1792944842"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 0,
+      "name": "postgres-logs",
+      "stderr": "postgres-logs.stderr",
+      "stdout": "postgres-logs.stdout",
+      "timed_out": false,
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "docker",
+        "container",
+        "inspect",
+        "mixer-browser-storage-pg16-35961-1792944842"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 0,
+      "name": "postgres-container-state",
+      "stderr": "postgres-container-state.stderr",
+      "stdout": "postgres-container-state.stdout",
+      "timed_out": false,
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "docker",
+        "stop",
+        "--timeout",
+        "5",
+        "mixer-browser-storage-pg16-35961-1792944842"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 0,
+      "name": "postgres-stop",
+      "stderr": "postgres-stop.stderr",
+      "stdout": "postgres-stop.stdout",
+      "timed_out": false,
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "docker",
+        "container",
+        "inspect",
+        "mixer-browser-storage-pg16-35961-1792944842"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-1/inputs",
+      "exit_code": 1,
+      "name": "postgres-removed",
+      "stderr": "postgres-removed.stderr",
+      "stdout": "postgres-removed.stdout",
+      "timed_out": false,
+      "timeout_seconds": 30
+    }
+  ],
+  "dependency_beams_unchanged": true,
+  "dependency_dirs": [
+    "hosted/_build/test/lib/telemetry/ebin",
+    "hosted/_build/test/lib/decimal/ebin",
+    "hosted/_build/test/lib/db_connection/ebin",
+    "hosted/_build/test/lib/ecto/ebin",
+    "hosted/_build/test/lib/ecto_sql/ebin",
+    "hosted/_build/test/lib/postgrex/ebin",
+    "hosted/_build/test/lib/jason/ebin"
+  ],
+  "dependency_manifest_sha256": "d750c4f0f2110c2d991d98110daafbcce855d4231df152cb49acfb6a2d9cb11d",
+  "failure": "unexpected pinned PostgreSQL version",
+  "finished_utc": "2026-10-25T16:14:04.640031+00:00",
+  "input_sha256": {
+    "hosted/lib/mixer_hosted/browser_auth/storage_schema.ex": "676bb977bbe4c322caf63c1a5f40d86e7861847636029948b55cb01f6dedb6dd",
+    "hosted/lib/mixer_hosted/browser_auth/stored_snapshot.ex": "ce92f99c3990bf9ddd0fbf5d8c7d329ea63bb5dc31ec3df4922907b19986cd3e",
+    "hosted/lib/mixer_hosted/browser_auth/vault.ex": "e376cdd7305a520c61e716e3f4fcd3f5493e280ff5424ba822516f9a6f4281b2",
+    "hosted/mix.exs": "ade39cb685e8f78d7d62ab1517db38e572094dcf9bc9ec21f91b9b6b3bd3cbe2",
+    "hosted/mix.lock": "59e6fe5d6bc76ae0057745fe7eb3fb292f225b6a37cd1c99c214f9447c60ff8a",
+    "hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs": "110997b341449a04135296b000c6434f84526305c2f70c16b1e51f38dffc3f6c",
+    "hosted/priv/repo/migrations/20261025000004_add_authorization_state_revisions.exs": "5248990524d1c2504847fdff2f107a952d850acf8ff5fcdb8e7b0ef77e38bcd7",
+    "hosted/priv/repo/migrations/20261025000006_add_customer_workspace_discovery.exs": "43140162ceaf87b58bcdcdf820a9b95b7ae465a873193ac61c7a725a18bde875",
+    "hosted/priv/repo/migrations/20261025000007_add_browser_sessions.exs": "577b38e600c55e9844bc393ccfe4dfdfb7241db7eaed449956e6a3335442710f",
+    "hosted/test/mixer_hosted/browser_auth/storage_fixture.exs": "9417342d3d5708d21b216383da8cb4bef381e3572036853e6f099ccf08235a06",
+    "hosted/test/mixer_hosted/browser_auth/storage_spec.exs": "2d7202653bff248341c94f33d00dbc67fe5a91c137057695578a1bbc5ba52736",
+    "verification/hosted-browser-storage-pg16/run.py": "f356832d899b1c29dc98791e10d61b8e29c9b3895cadeb357fef98f21cf53561"
+  },
+  "mixer_hosted_beams_excluded": true,
+  "output_sha256": {
+    "compile.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compile.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dependency-beams.json": "d750c4f0f2110c2d991d98110daafbcce855d4231df152cb49acfb6a2d9cb11d",
+    "docker-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docker-version.stdout": "c298955d7653e76cd8295a8444c7db8495f71d646c4c78454dd51eaad483784e",
+    "elixir-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "elixir-version.stdout": "e4842abcc5a4123360869209376098ff19e6fe8e0dc1b9c27a96ef8c2d07d878",
+    "git-head.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "git-head.stdout": "995d7e9a1c53610663814f05aed5c861cdc2f9e2d564b8430dcd3abe7a3c2fcb",
+    "postgres-bindir.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-bindir.stdout": "c0139761f2b73177a095265360fc669ce0f4b03f4d0a3272aa06974ead476bd8",
+    "postgres-client-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-client-version.stdout": "58ef21a3c0982fb44cd078785174fb495d951ea7b4384793dcf5a5985451bd2d",
+    "postgres-container-state.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-container-state.stdout": "5cbbb5b7874a8e7c8f182a8136d5b23836d1b6b82680a5d08c55c4f495b69536",
+    "postgres-image-inspect.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-image-inspect.stdout": "63ca5dd2c0c944d204631bc04d197284e0cc53ddaa2f64e42957490f8fa558cc",
+    "postgres-logs.stderr": "52adb12370302ccab276d3f827876a0e3cc09af07ac1fdd2dfc77666b35e1c50",
+    "postgres-logs.stdout": "ad1701ea74abd0b1604f27da84216e3eaa93a3e000b0b4d67e4ee98f1f15b0f6",
+    "postgres-ready-0.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-ready-0.stdout": "0868ffaee2396afa2379f3857bef451d3e80d747b9f3182cb0208d225307dde0",
+    "postgres-ready-1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-ready-1.stdout": "0868ffaee2396afa2379f3857bef451d3e80d747b9f3182cb0208d225307dde0",
+    "postgres-ready-2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-ready-2.stdout": "0868ffaee2396afa2379f3857bef451d3e80d747b9f3182cb0208d225307dde0",
+    "postgres-ready-3.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-ready-3.stdout": "0868ffaee2396afa2379f3857bef451d3e80d747b9f3182cb0208d225307dde0",
+    "postgres-ready-4.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-ready-4.stdout": "0868ffaee2396afa2379f3857bef451d3e80d747b9f3182cb0208d225307dde0",
+    "postgres-ready-5.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-ready-5.stdout": "a1528f8827e2b5f3ee3238503eb78d0ccafb68e174cd0c74f47fd319a8a71bd6",
+    "postgres-removed.stderr": "2b209f30b5a8a104f9e06ad81bba7103507303b74cab2271f481d1f59ad94a44",
+    "postgres-removed.stdout": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "postgres-server-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-server-version.stdout": "598920ba89827ec820d817542fcc8d9036126909f0635bafea7badbc75075379",
+    "postgres-start.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-start.stdout": "ad90e59eed5b22f12bbe675d459fb6653bcb00eea8333db738a6162841dd7e3f",
+    "postgres-stop.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-stop.stdout": "722bb34292b2cbc53a23cc02f498b1e17df70deb1baeeb4f2e909b4a972d7e6f",
+    "python-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "python-version.stdout": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8",
+    "source-manifest-after.json": "a5e1a9d4ab2ba5f6608176fa02e33b9ab3250f06cd4348b41a1e3d46ec9fd620"
+  },
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "postgres_endpoint": {
+    "disposable": true,
+    "host": "127.0.0.1",
+    "owned_container": "mixer-browser-storage-pg16-35961-1792944842",
+    "port": 57557
+  },
+  "postgres_image": {
+    "Architecture": "arm64",
+    "Id": "sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97",
+    "Os": "linux",
+    "RepoDigests": [
+      "postgres@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97"
+    ]
+  },
+  "postgres_server_version": "postgres (PostgreSQL) 16.15 (Debian 16.15-1.pgdg13+2)",
+  "scope": "frozen StorageSchema/Vault/StoredSnapshot, existing storage_fixture/storage_spec and ordinary migrations3/4/6/7 against seven explicit locked dependency BEAM paths excluding mixer_hosted; one disposable PostgreSQL16.15 Linux arm64 container; compatibility fixture only, no new security audit or whole-app harness, frozen lanes, provider, native or capture actions",
+  "scratch": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-storage-pg16-8_b0tyj0",
+  "source_revision": "1257cbf83f973d3ad05a3a279f94007476f7ce2b",
+  "source_tree_sha256": "ff234edfaa9ee62d4a0b5c89430aba87b2669b880a8535d62b9455b31daf64f6",
+  "source_unchanged": true,
+  "started_utc": "2026-10-25T16:14:02.943905+00:00",
+  "status": "failed"
+}

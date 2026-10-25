@@ -1,0 +1,6 @@
+Logger.configure(level: :warning)
+ExUnit.start(autorun: false, seed: 0, max_cases: 1)
+Code.require_file("/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-2/inputs/hosted/test/mixer_hosted/browser_auth/storage_spec.exs")
+result = ExUnit.run()
+File.write!("/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-pg16/run-2/test-result.json", Jason.encode!(result))
+System.halt(if result.total == 23 and result.failures == 0 and result.excluded == 0 and result.skipped == 0, do: 0, else: 1)

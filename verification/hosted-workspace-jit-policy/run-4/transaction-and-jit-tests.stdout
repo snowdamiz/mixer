@@ -1,0 +1,24 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+...............
+12:04:41.730 [error] Postgrex.Protocol (#PID<0.201.0> ({Postgrex.Protocol, "mixer_customer_transaction"})) disconnected: ** (DBConnection.ConnectionError) client #PID<0.252.0> ({MixerHosted.Authorization.TransactionTest, :"test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"}) timed out because it queued and checked out the connection for longer than 5000ms
+
+#PID<0.252.0> ({MixerHosted.Authorization.TransactionTest, :"test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"}) was at location:
+
+    (elixir 1.20.4) lib/process.ex:330: Process.sleep/1
+    hosted/test/mixer_hosted/authorization/transaction_test.exs:784: anonymous fn/1 in MixerHosted.Authorization.TransactionTest."test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"/1
+    hosted/lib/mixer_hosted/authorization.ex:82: anonymous fn/8 in MixerHosted.Authorization.with_authorized_transaction/5
+    hosted/test/mixer_hosted/authorization/transaction_test.exs:10: anonymous fn/1 in MixerHosted.Authorization.TransactionFixture.Runtime.transaction/2
+    (ecto 3.14.2) lib/ecto/repo/transaction.ex:11: anonymous fn/3 in Ecto.Repo.Transaction.transact/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:1760: DBConnection.run_transaction/5
+    hosted/lib/mixer_hosted/authorization.ex:55: MixerHosted.Authorization.with_authorized_transaction/5
+    hosted/test/mixer_hosted/authorization/transaction_test.exs:782: MixerHosted.Authorization.TransactionTest."test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"/1
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:533: ExUnit.Runner.exec_test/2
+    (stdlib 8.1) timer.erl:599: :timer.tc/2
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:455: anonymous fn/6 in ExUnit.Runner.spawn_test_monitor/4
+
+.............
+Finished in 13.7 seconds (0.00s async, 13.7s sync)
+
+Result: 28 passed

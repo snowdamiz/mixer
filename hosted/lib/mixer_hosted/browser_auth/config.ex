@@ -6,7 +6,7 @@ defmodule MixerHosted.BrowserAuth.Config do
   identity startup configuration must already admit the exact active human
   profile. Raw client secrets and vault keys are never accepted configuration.
   """
-  alias MixerHosted.Identity.{BoundedJSON, Manifest, StartupConfig}
+  alias MixerHosted.Identity.{BoundedJSON, Encoding, Manifest, StartupConfig}
 
   @derive {Inspect, only: [:mode]}
   defstruct mode: :disabled,
@@ -62,6 +62,9 @@ defmodule MixerHosted.BrowserAuth.Config do
          true <- map_size(object) == length(@fields),
          true <- Enum.all?(@fields, &Map.has_key?(object, &1)),
          1 <- object["version"],
+         true <- metadata_text?(object["profile_id"], 128),
+         true <- metadata_text?(object["client_id"], 256),
+         true <- metadata_text?(object["api_audience"], 256),
          true <- canonical_url?(object["public_origin"], :origin),
          true <- canonical_url?(object["issuer"], :issuer),
          true <-
@@ -120,6 +123,11 @@ defmodule MixerHosted.BrowserAuth.Config do
   end
 
   defp match_identity(_, _), do: :error
+
+  # Keep trust-matched browser metadata compatible with PostgreSQL/Vault text.
+  # Preserve exact UTF-8 bytes, but reject NUL before construction.
+  defp metadata_text?(value, limit),
+    do: Encoding.bounded_string?(value, limit) and :binary.match(value, <<0>>) == :nomatch
 
   # A deliberately narrow canonical deployment form: lower-case DNS host, HTTPS
   # default port, literal safe paths, no userinfo/query/fragment, no URI aliases.

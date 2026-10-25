@@ -1,0 +1,31 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+MixerBrowserMigrationFixture.Test [hosted/test/mixer_hosted/browser_auth/migration_spec.exs]
+  * test nine ordinary migrations remain inert and reversible under an unprivileged schema owner [L#41]  * test nine ordinary migrations remain inert and reversible under an unprivileged schema owner (260.2ms) [L#41]
+
+  1) test nine ordinary migrations remain inert and reversible under an unprivileged schema owner (MixerBrowserMigrationFixture.Test)
+     hosted/test/mixer_hosted/browser_auth/migration_spec.exs:41
+     ** (UndefinedFunctionError) function MixerHosted.CustomerArtifacts.Schema.statements/0 is undefined (module MixerHosted.CustomerArtifacts.Schema is not available)
+     stacktrace:
+       MixerHosted.CustomerArtifacts.Schema.statements()
+       hosted/priv/repo/migrations/20261025000005_add_customer_artifact_storage.exs:5: MixerHosted.Repo.Migrations.AddCustomerArtifactStorage.up/0
+       (ecto_sql 3.14.0) lib/ecto/migration/runner.ex:312: Ecto.Migration.Runner.perform_operation/3
+       (stdlib 8.1) timer.erl:599: :timer.tc/2
+       (ecto_sql 3.14.0) lib/ecto/migration/runner.ex:27: Ecto.Migration.Runner.run/8
+       (ecto_sql 3.14.0) lib/ecto/migrator.ex:364: Ecto.Migrator.attempt/8
+       (ecto_sql 3.14.0) lib/ecto/migrator.ex:281: anonymous fn/5 in Ecto.Migrator.do_up/5
+       (ecto_sql 3.14.0) lib/ecto/migrator.ex:336: anonymous fn/6 in Ecto.Migrator.async_migrate_maybe_in_transaction/7
+       hosted/test/mixer_hosted/browser_auth/migration_spec.exs:6: anonymous fn/1 in MixerBrowserMigrationFixture.Repo.transaction/2
+       (ecto 3.14.2) lib/ecto/repo/transaction.ex:11: anonymous fn/3 in Ecto.Repo.Transaction.transact/4
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+       (db_connection 2.10.2) lib/db_connection.ex:1760: DBConnection.run_transaction/5
+       (ecto_sql 3.14.0) lib/ecto/migrator.ex:353: Ecto.Migrator.run_maybe_in_transaction/5
+       (elixir 1.20.4) lib/task/supervised.ex:105: Task.Supervised.invoke_mfa/2
+       (elixir 1.20.4) lib/task/supervised.ex:40: Task.Supervised.reply/4
+
+
+Finished in 0.3 seconds (0.09s on load, 0.00s async, 0.2s sync)
+
+Result: 0/1 passed
+Failed: 1 test

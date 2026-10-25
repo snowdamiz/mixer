@@ -1,7 +1,11 @@
 # Implementation status
 
-Development is paused at the user's request on October 25. See
-[the saved handoff](docs/implementation-pause-2026-10-25.md). All eighteen work packages remain in scope:
+Development resumed at the user's October 25 request to continue PLAN.md. The
+[saved handoff](docs/implementation-pause-2026-10-25.md) remains historical evidence.
+Browser SQL, nine-migration integration, transaction-local JIT and trusted
+configuration text validation now pass scoped independent development review;
+exact-push CI remains pending. Native runtime and capture remain paused.
+All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
 [gates/ga.json](gates/ga.json) records eight running and thirty planned gates.
 These gate counts are not an estimate of implementation percentage.
@@ -241,8 +245,15 @@ session adapter and renders unavailable. The typed encrypted vault, configuratio
 now pass scoped host tests and independent review. Their producer suites pass
 25, 20 (including 14 existing Config methods), and 11 methods respectively;
 independent review passes 16 vault/digest plus 11 decoder groups. The SQL
-lifecycle candidate passes 18 PostgreSQL methods but remains unreviewed and
-uninstalled, with its source and evidence backed up in the pause checkpoint.
+lifecycle now passes 23 selected methods on PostgreSQL 16.15 and 17.11 after
+review repaired NULL-scope admission and expiry after unique-key waits. Six
+separate correction-review methods pass. The inert migration and all nine
+ordinary migrations pass apply/rollback/reapply with independent review.
+Browser Config text admission passes 26 producer and 32 combined independent
+methods without changing valid digest bytes. Transaction-local JIT passes 86
+selected PostgreSQL 16 methods and six independent controls with unchanged
+deadlines and verified connection-setting restoration. Counts overlap. See
+[the integrated component scope](docs/hosted-browser-session-integration.md).
 Provider exchange/ID-token validation, runtime owner, routes, ingress and actual
 login remain unimplemented or unqualified. The original storage contract defines 18 required cases;
 its case count is not interchangeable with the new candidate test count. No launch gate is promoted. See
@@ -253,6 +264,15 @@ its case count is not interchangeable with the new candidate test count. No laun
 [composition acceptance](verification/console-workspace-composition/root-acceptance/receipt.json).
 
 ## Delivery and pending qualification
+
+The resumed slice is locally accepted and prepared for authorized delivery;
+exact-push CI is pending. Previous checkpoint `1257cbf8` Phoenix CI fails the
+same first 121-project workspace read at its unchanged transaction deadline:
+608/609 methods pass with two existing skips. Its exact output is preserved in
+[the resume receipt](verification/implementation-resume-2026-10-25/receipt.json).
+Local JIT measurements support the scoped correction but do not prove that CI
+failure's cause. No new native, provider, deployment, FieldLog or GA evidence
+is claimed.
 
 Checkpoint `684bd524` is pushed to `origin/main`; remote main matches. It adds
 reviewed cookie/protocol prerequisites, the mobile navigation adjustment and

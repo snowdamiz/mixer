@@ -1,0 +1,54 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+...............
+12:03:10.670 [error] Postgrex.Protocol (#PID<0.202.0> ({Postgrex.Protocol, "mixer_customer_transaction"})) disconnected: ** (DBConnection.ConnectionError) client #PID<0.252.0> ({MixerHosted.Authorization.TransactionTest, :"test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"}) timed out because it queued and checked out the connection for longer than 5000ms
+
+#PID<0.252.0> ({MixerHosted.Authorization.TransactionTest, :"test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"}) was at location:
+
+    (elixir 1.20.4) lib/process.ex:330: Process.sleep/1
+    hosted/test/mixer_hosted/authorization/transaction_test.exs:784: anonymous fn/1 in MixerHosted.Authorization.TransactionTest."test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"/1
+    hosted/lib/mixer_hosted/authorization.ex:82: anonymous fn/8 in MixerHosted.Authorization.with_authorized_transaction/5
+    hosted/test/mixer_hosted/authorization/transaction_test.exs:10: anonymous fn/1 in MixerHosted.Authorization.TransactionFixture.Runtime.transaction/2
+    (ecto 3.14.2) lib/ecto/repo/transaction.ex:11: anonymous fn/3 in Ecto.Repo.Transaction.transact/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:1760: DBConnection.run_transaction/5
+    hosted/lib/mixer_hosted/authorization.ex:55: MixerHosted.Authorization.with_authorized_transaction/5
+    hosted/test/mixer_hosted/authorization/transaction_test.exs:782: MixerHosted.Authorization.TransactionTest."test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"/1
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:533: ExUnit.Runner.exec_test/2
+    (stdlib 8.1) timer.erl:599: :timer.tc/2
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:455: anonymous fn/6 in ExUnit.Runner.spawn_test_monitor/4
+
+.....????????
+
+  0) MixerHosted.Authorization.JitPolicySpec: failure on setup_all callback, all tests have been invalidated
+     ** (Ecto.MigrationError) Migrations failed to run because the connection pool size is less than 2.
+
+     Ecto requires a pool size of at least 2 to support concurrent migrators.
+     When migrations run, Ecto uses one connection to maintain a lock and
+     another to run migrations.
+
+     If you are running migrations with Mix, you can increase the number
+     of connections via the pool size option:
+
+         mix ecto.migrate --pool-size 2
+
+     If you are running the Ecto.Migrator programmatically, you can configure
+     the pool size via your application config:
+
+         config :my_app, Repo,
+           ...,
+           pool_size: 2 # at least
+
+     stacktrace:
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1250: Ecto.Adapters.SQL.raise_migration_pool_size_error/0
+       (ecto_sql 3.14.0) lib/ecto/adapters/postgres.ex:311: Ecto.Adapters.Postgres.lock_for_migrations/3
+       (ecto_sql 3.14.0) lib/ecto/migrator.ex:584: Ecto.Migrator.lock_for_migrations/4
+       hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:41: anonymous fn/2 in MixerHosted.Authorization.JitPolicySpec.__ex_unit_setup_all_0/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:36: MixerHosted.Authorization.JitPolicySpec.__ex_unit_setup_all_0/1
+       hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:2: MixerHosted.Authorization.JitPolicySpec.__ex_unit__/2
+
+
+Finished in 13.9 seconds (0.00s async, 13.9s sync)
+
+Result: 20 passed, 8 invalid

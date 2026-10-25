@@ -64,6 +64,17 @@ jobs:
             "$RUNNER_TEMP/workspace-client/driver.mjs"
           printf '%s\n' '{"type":"module"}' > "$RUNNER_TEMP/workspace-client/package.json"
           printf 'MIXER_WORKSPACE_HTTP_NODE_DRIVER=%s/driver.mjs\n' "$RUNNER_TEMP/workspace-client" >> "$GITHUB_ENV"
+      - name: Browser session storage and migration checks
+        working-directory: hosted
+        env:
+          MIX_ENV: test
+        run: |
+          mix deps.compile
+          python3 test/mixer_hosted/browser_auth/run_storage_fixture.py \
+            --pg-bin /usr/lib/postgresql/16/bin
+          python3 test/mixer_hosted/browser_auth/run_migration_fixture.py \
+            --pg-bin /usr/lib/postgresql/16/bin \
+            --output "$RUNNER_TEMP/browser-migrations"
       - name: Phoenix and disposable PostgreSQL host checks
         working-directory: hosted
         run: |
@@ -80,3 +91,5 @@ jobs:
           path: |
             ${{ runner.temp }}/phoenix-foundation/
             verification/hosted-browser-auth-protocol/attempts/
+            verification/hosted-browser-session-storage/attempts/
+            ${{ runner.temp }}/browser-migrations/

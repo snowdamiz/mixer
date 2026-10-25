@@ -1,0 +1,8 @@
+Application.ensure_all_started(:ecto_sql)
+Application.ensure_all_started(:postgrex)
+Logger.configure(level: :warning)
+ExUnit.start(autorun: false, seed: 0, max_cases: 1)
+Code.require_file("/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-workspace-jit-policy/run-4/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs")
+result = ExUnit.run()
+File.write!("/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-workspace-jit-policy/run-4/artifact-read-result.json", Jason.encode!(result))
+System.halt(if result.failures == 0 and result.total == 15 and result.skipped == 0 and result.excluded == 0, do: 0, else: 1)

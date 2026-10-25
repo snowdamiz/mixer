@@ -24,10 +24,22 @@ defmodule MixerHosted.Authorization.Postgres.Session do
   end
 
   defp prepare_identity_scope!(repo, i, scope) do
+    if not repo.in_transaction?(), do: repo.rollback(:authorization_unavailable)
+
     query!(repo, "SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
     query!(repo, "SET LOCAL statement_timeout = '5000ms'")
     query!(repo, "SET LOCAL lock_timeout = '500ms'")
     query!(repo, "SET LOCAL idle_in_transaction_session_timeout = '5000ms'")
+    # These bounded authorization reads must not pay LLVM compilation cost for
+    # RLS-expanded plans. LOCAL restores the connection's prior policy at either
+    # transaction outcome; never change a pooled connection's session policy.
+    query!(repo, "SET LOCAL jit = off")
+
+    case query!(repo, "SELECT pg_catalog.current_setting('jit')").rows do
+      [["off"]] -> :ok
+      _ -> repo.rollback(:authorization_unavailable)
+    end
+
     topology!(repo)
 
     context!(repo,

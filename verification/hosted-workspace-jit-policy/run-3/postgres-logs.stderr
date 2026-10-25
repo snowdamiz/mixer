@@ -1,0 +1,56 @@
+********************************************************************************
+WARNING: POSTGRES_HOST_AUTH_METHOD has been set to "trust". This will allow
+         anyone with access to the Postgres port to access your database without
+         a password, even if POSTGRES_PASSWORD is set. See PostgreSQL
+         documentation about "trust":
+         https://www.postgresql.org/docs/current/auth-trust.html
+         In Docker's default configuration, this is effectively any other
+         container on the same system.
+
+         It is not recommended to use POSTGRES_HOST_AUTH_METHOD=trust. Replace
+         it with "-e POSTGRES_PASSWORD=password" instead to set a password in
+         "docker run".
+********************************************************************************
+initdb: warning: enabling "trust" authentication for local connections
+initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+2026-10-25 16:03:23.347 UTC [1] LOG:  starting PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-10-25 16:03:23.347 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-10-25 16:03:23.347 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2026-10-25 16:03:23.349 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-10-25 16:03:23.351 UTC [64] LOG:  database system was shut down at 2026-10-25 16:03:23 UTC
+2026-10-25 16:03:23.353 UTC [1] LOG:  database system is ready to accept connections
+2026-10-25 16:03:28.780 UTC [93] ERROR:  new row for relation "mixer_authz_organizations" violates check constraint "mixer_authz_organizations_display_name_check"
+2026-10-25 16:03:28.780 UTC [93] DETAIL:  Failing row contains (org-a, t, ).
+2026-10-25 16:03:28.780 UTC [93] STATEMENT:  UPDATE public.mixer_authz_organizations SET display_name = '' WHERE id = 'org-a'
+2026-10-25 16:03:28.784 UTC [86] ERROR:  new row for relation "mixer_authz_organizations" violates check constraint "mixer_authz_organizations_display_name_check"
+2026-10-25 16:03:28.784 UTC [86] DETAIL:  Failing row contains (org-a, t, éééééééééééééééééééééééééééééééé...).
+2026-10-25 16:03:28.784 UTC [86] STATEMENT:  UPDATE public.mixer_authz_organizations SET display_name = $1 WHERE id = 'org-a'
+2026-10-25 16:03:30.108 UTC [87] ERROR:  permission denied for table mixer_authz_organizations
+2026-10-25 16:03:30.108 UTC [87] STATEMENT:  UPDATE public.mixer_authz_organizations SET active = false
+2026-10-25 16:03:30.580 UTC [87] ERROR:  duplicate key value violates unique constraint "workspace_commit_probe_id_key"
+2026-10-25 16:03:30.580 UTC [87] STATEMENT:  COMMIT
+2026-10-25 16:03:50.385 UTC [122] ERROR:  canceling statement due to lock timeout
+2026-10-25 16:03:50.385 UTC [122] CONTEXT:  while locking tuple (0,1) in relation "mixer_authz_profiles"
+	SQL statement "SELECT 1 FROM public.mixer_authz_profiles WHERE id = current_setting('mixer.authz.profile_id', true) AND version::text = current_setting('mixer.authz.profile_version', true) FOR SHARE"
+	PL/pgSQL function public.mixer_authz_lock_profiles() line 3 at PERFORM
+2026-10-25 16:03:50.385 UTC [122] STATEMENT:  SELECT public.mixer_authz_lock_profiles()
+2026-10-25 16:03:50.461 UTC [113] ERROR:  new row for relation "mixer_authz_profiles" violates check constraint "mixer_authz_profiles_state_revision_check"
+2026-10-25 16:03:50.461 UTC [113] DETAIL:  Failing row contains (profile, 1, https://issuer.example, client, human, t, 0).
+2026-10-25 16:03:50.461 UTC [113] STATEMENT:  UPDATE public.mixer_authz_profiles SET state_revision=$1
+2026-10-25 16:03:50.461 UTC [116] ERROR:  new row for relation "mixer_authz_profiles" violates check constraint "mixer_authz_profiles_state_revision_check"
+2026-10-25 16:03:50.461 UTC [116] DETAIL:  Failing row contains (profile, 1, https://issuer.example, client, human, t, -1).
+2026-10-25 16:03:50.461 UTC [116] STATEMENT:  UPDATE public.mixer_authz_profiles SET state_revision=$1
+2026-10-25 16:03:50.462 UTC [115] ERROR:  new row for relation "mixer_authz_profiles" violates check constraint "mixer_authz_profiles_state_revision_check"
+2026-10-25 16:03:50.462 UTC [115] DETAIL:  Failing row contains (profile, 1, https://issuer.example, client, human, t, 9007199254740992).
+2026-10-25 16:03:50.462 UTC [115] STATEMENT:  UPDATE public.mixer_authz_profiles SET state_revision=$1
+2026-10-25 16:03:50.462 UTC [112] ERROR:  new row for relation "mixer_authz_bindings" violates check constraint "mixer_authz_bindings_revision_check"
+2026-10-25 16:03:50.462 UTC [112] DETAIL:  Failing row contains (profile, 1, subject, human, person, t, 0).
+2026-10-25 16:03:50.462 UTC [112] STATEMENT:  UPDATE public.mixer_authz_bindings SET revision=$1
+2026-10-25 16:03:50.462 UTC [113] ERROR:  new row for relation "mixer_authz_bindings" violates check constraint "mixer_authz_bindings_revision_check"
+2026-10-25 16:03:50.462 UTC [113] DETAIL:  Failing row contains (profile, 1, subject, human, person, t, -1).
+2026-10-25 16:03:50.462 UTC [113] STATEMENT:  UPDATE public.mixer_authz_bindings SET revision=$1
+2026-10-25 16:03:50.463 UTC [116] ERROR:  new row for relation "mixer_authz_bindings" violates check constraint "mixer_authz_bindings_revision_check"
+2026-10-25 16:03:50.463 UTC [116] DETAIL:  Failing row contains (profile, 1, subject, human, person, t, 9007199254740992).
+2026-10-25 16:03:50.463 UTC [116] STATEMENT:  UPDATE public.mixer_authz_bindings SET revision=$1
+2026-10-25 16:03:51.290 UTC [133] ERROR:  division by zero
+2026-10-25 16:03:51.290 UTC [133] STATEMENT:  SELECT 1/0

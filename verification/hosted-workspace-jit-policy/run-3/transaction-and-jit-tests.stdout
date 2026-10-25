@@ -1,0 +1,84 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+...............
+12:03:49.701 [error] Postgrex.Protocol (#PID<0.202.0> ({Postgrex.Protocol, "mixer_customer_transaction"})) disconnected: ** (DBConnection.ConnectionError) client #PID<0.252.0> ({MixerHosted.Authorization.TransactionTest, :"test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"}) timed out because it queued and checked out the connection for longer than 5000ms
+
+#PID<0.252.0> ({MixerHosted.Authorization.TransactionTest, :"test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"}) was at location:
+
+    (elixir 1.20.4) lib/process.ex:330: Process.sleep/1
+    hosted/test/mixer_hosted/authorization/transaction_test.exs:784: anonymous fn/1 in MixerHosted.Authorization.TransactionTest."test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"/1
+    hosted/lib/mixer_hosted/authorization.ex:82: anonymous fn/8 in MixerHosted.Authorization.with_authorized_transaction/5
+    hosted/test/mixer_hosted/authorization/transaction_test.exs:10: anonymous fn/1 in MixerHosted.Authorization.TransactionFixture.Runtime.transaction/2
+    (ecto 3.14.2) lib/ecto/repo/transaction.ex:11: anonymous fn/3 in Ecto.Repo.Transaction.transact/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:1760: DBConnection.run_transaction/5
+    hosted/lib/mixer_hosted/authorization.ex:55: MixerHosted.Authorization.with_authorized_transaction/5
+    hosted/test/mixer_hosted/authorization/transaction_test.exs:782: MixerHosted.Authorization.TransactionTest."test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"/1
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:533: ExUnit.Runner.exec_test/2
+    (stdlib 8.1) timer.erl:599: :timer.tc/2
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:455: anonymous fn/6 in ExUnit.Runner.spawn_test_monitor/4
+
+.........
+
+  1) test workspace success and missing identity rollback restore the same checked-out connection (MixerHosted.Authorization.JitPolicySpec)
+     hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:155
+     match (=) failed
+     code:  assert {:ok, %{organizations: [%{id: "org"}], next_cursor: nil}} =
+              CustomerWorkspace.organizations(workspace_identity(), %{limit: 50}, Runtime)
+     left:  {:ok, %{organizations: [%{id: "org"}], next_cursor: nil}}
+     right: {:error, :invalid_request}
+     stacktrace:
+       hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:160: anonymous fn/0 in MixerHosted.Authorization.JitPolicySpec."test workspace success and missing identity rollback restore the same checked-out connection"/1
+       hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:247: anonymous fn/1 in MixerHosted.Authorization.JitPolicySpec.checkout/1
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+       (db_connection 2.10.2) lib/db_connection.ex:995: DBConnection.run/3
+       hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:156: (test)
+
+
+
+  2) test effective JIT mismatch fails closed before identity or topology work for both owners (MixerHosted.Authorization.JitPolicySpec)
+     hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:177
+     match (=) failed
+     code:  assert {:error, :authorization_unavailable} =
+              CustomerWorkspace.organizations(workspace_identity(), %{limit: 50}, Runtime)
+     left:  {:error, :authorization_unavailable}
+     right: {:error, :invalid_request}
+     stacktrace:
+       hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:209: anonymous fn/0 in MixerHosted.Authorization.JitPolicySpec."test effective JIT mismatch fails closed before identity or topology work for both owners"/1
+       hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:247: anonymous fn/1 in MixerHosted.Authorization.JitPolicySpec.checkout/1
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+       (db_connection 2.10.2) lib/db_connection.ex:995: DBConnection.run/3
+       hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:198: (test)
+
+
+
+  3) test unsafe runtime privileges still fail closed after local JIT preparation (MixerHosted.Authorization.JitPolicySpec)
+     hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:221
+     match (=) failed
+     code:  assert {:error, :authorization_unavailable} =
+              CustomerWorkspace.organizations(workspace_identity(), %{limit: 50}, Runtime)
+     left:  {:error, :authorization_unavailable}
+     right: {:error, :invalid_request}
+     stacktrace:
+       hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:228: (test)
+
+
+
+  4) test preparation outside an owner transaction fails before changing session settings (MixerHosted.Authorization.JitPolicySpec)
+     hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:235
+     ** (RuntimeError) cannot call rollback outside of transaction
+     code: checkout(fn ->
+     stacktrace:
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1230: Ecto.Adapters.SQL.rollback/2
+       hosted/lib/mixer_hosted/authorization/postgres/session.ex:27: MixerHosted.Authorization.Postgres.Session.prepare_identity_scope!/3
+       hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:239: anonymous fn/0 in MixerHosted.Authorization.JitPolicySpec."test preparation outside an owner transaction fails before changing session settings"/1
+       hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:247: anonymous fn/1 in MixerHosted.Authorization.JitPolicySpec.checkout/1
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+       (db_connection 2.10.2) lib/db_connection.ex:995: DBConnection.run/3
+       hosted/test/mixer_hosted/authorization/jit_policy_spec.exs:236: (test)
+
+
+Finished in 14.6 seconds (0.00s async, 14.6s sync)
+
+Result: 24/28 passed
+Failed: 4 tests

@@ -9,12 +9,16 @@ This index does not narrow or replace that specification. Use
 is preserved byte for byte in [the prior index](PLAN.history-2026-10-25.md);
 its older pending/selected statements do not override the current state.
 
-## Paused checkpoint
+## Resumed checkpoint
 
-Implementation is paused at the user's October 25 request after the reviewed
-browser-session security slice. See [the pause handoff](docs/implementation-pause-2026-10-25.md)
-for exact delivered scope, the backed-up unreviewed SQL candidate, cleanup and
-resume order. The full plan remains incomplete; no GA gate is promoted.
+Implementation resumed at the user's October 25 request to continue this plan.
+The [pause handoff](docs/implementation-pause-2026-10-25.md) preserves the delivered
+browser-session security slice and backed-up SQL candidate. The corrected SQL,
+configuration text admission and transaction-local JIT policy now pass independent
+development review. Nine-migration integration passes; exact-push CI is next.
+See [the integrated scope](docs/hosted-browser-session-integration.md).
+Computer use, capture and native runtime tests remain paused.
+The full plan remains incomplete; no GA gate is promoted.
 
 ## Current execution
 
@@ -119,16 +123,22 @@ resume order. The full plan remains incomplete; no GA gate is promoted.
    selected host methods. Independent review passes 15 transport plus 15 protocol
    methods. Counts overlap with existing suites. Selected protocol CI is wired.
    This is component acceptance: no live session is installed, no auth routes or
-   provider exchange are enabled, and the entry remains unavailable. Implement the
-   reviewed durable browser session/lifecycle contract next, followed by the
-   separately verified provider and ordinary protected-route join. The later
-   pause checkpoint accepts the vault/configuration-digest/decoder components;
-   the tested SQL candidate remains unreviewed and uninstalled. Do not treat
-   the proposed storage contract's 18 pending cases as tests already run.
+   provider exchange are enabled, and the entry remains unavailable. The durable
+   SQL lifecycle now passes 23 selected methods on PostgreSQL 16.15 and 17.11,
+   six separate correction-review methods, and nine-migration rollback/reapply.
+   Review fixed NULL-scope admission and expiry after unique-key waits. Config
+   text admission passes 26 producer and 32 combined review methods. Ordinary
+   authorization's transaction-local JIT policy passes 86 selected methods and
+   six independent controls under unchanged deadlines. Counts overlap. Next
+   implement the runtime pool/key-custody/current-verifier/provider owner join,
+   then the ordinary protected HTTP/console session workflow. The storage
+   contract's 18 complete-lifecycle cases remain a broader requirement than
+   these component tests. See [integration](docs/hosted-browser-session-integration.md).
 
-   Console CI for f2aba240 passes; Phoenix confirms the prior migration/expiry
-   fixture repairs but fails the 121-project directory transaction deadline.
-   The exact slow phase remains under diagnosis; no time limit was raised.
+   The prior `1257cbf8` Phoenix CI fails the 121-project directory transaction
+   deadline (608/609 methods pass, two skips). Exact-push CI for the reviewed JIT
+   correction remains pending; no time limit was raised and the old failure's
+   exact slow phase was not measured.
    Earlier 9a2bf16b Engine CI passes all three jobs. Provider, deployment, browser,
    customer/FieldLog and GA requirements remain pending. See
    [the workspace checkpoint](docs/hosted-customer-workspace-checkpoint.md),

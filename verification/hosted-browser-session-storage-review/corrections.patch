@@ -1,0 +1,333 @@
+--- paused/hosted/lib/mixer_hosted/browser_auth/storage_schema.ex
++++ reviewed/hosted/lib/mixer_hosted/browser_auth/storage_schema.ex
+@@ -602,6 +602,9 @@
+           VALUES(p_id,p_cookie,'preauth',1,1,p_generation,p_csrf,n,n,p_deadline,p_deadline,p_profile,p_version,p_config,p_config,1) RETURNING * INTO b;
+           INSERT INTO public.mixer_browser_session_vault(browser_id,epoch,session_revision,vault_generation,ciphertext_version,envelope_kind,key_id,iv,tag,ciphertext)
+           VALUES(b.id,b.epoch,b.revision,1,1,'preauth',p_cipher.key_id,p_cipher.iv,p_cipher.tag,p_cipher.ciphertext);
++          -- A unique insertion may wait for a concurrent transaction to abort.
++          n:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;
++          IF n>=p_deadline THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;
+           PERFORM public.mixer_browser_audit(NULL::public.mixer_browser_sessions,b,'bootstrap','created',NULL,p_request,NULL::public.mixer_browser_verified);
+           RETURN public.mixer_browser_snapshot(b.id,NULL);
+         END;
+@@ -648,6 +651,10 @@
+           INSERT INTO public.mixer_browser_oidc_attempts(state_digest,browser_id,browser_epoch,browser_revision,cookie_digest,generation,config_digest,profile_id,profile_version,
+             issuer,client_id,redirect_uri,return_route,nonce_digest,created_at,expires_at,status,key_id,iv,tag,ciphertext)
+           VALUES(a.state_digest,b.id,b.epoch,b.revision,b.cookie_digest,b.generation,b.config_digest,a.profile_id,a.profile_version,a.issuer,a.client_id,a.redirect_uri,'workspace',a.nonce_digest,n,a.expires_at,'pending',(a.cipher).key_id,(a.cipher).iv,(a.cipher).tag,(a.cipher).ciphertext);
++          -- A colliding state insertion can wait even after all explicit locks.
++          n:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;
++          IF n>=a.expires_at OR n>=o.absolute_expires_at OR n>=o.idle_expires_at THEN
++            RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;
+           PERFORM public.mixer_browser_audit(o,b,'begin','pending',a.state_digest,p_request,NULL::public.mixer_browser_verified);
+           RETURN public.mixer_browser_snapshot(b.id,a.state_digest);
+         END;
+@@ -773,7 +780,7 @@
+             OR NOT binding.active OR binding.identity_class<>'human' OR binding.revision IS DISTINCT FROM i.binding_revision
+             OR NOT principal.active OR principal.identity_class<>'human' OR principal.revision IS DISTINCT FROM i.principal_revision OR principal.not_before>n
+             OR i.issued_at IS NULL OR i.issued_at<principal.not_before OR i.issued_at>n+30 OR i.issued_at<0 OR i.expires_at IS NULL OR i.expires_at<=GREATEST(n,i.issued_at) OR i.expires_at>9007199254740991
+-            OR i.scopes IS NULL OR NOT ('mixer.workspace.read'=ANY(i.scopes)) OR cardinality(i.scopes)>64
++            OR i.scopes IS NULL OR ('mixer.workspace.read'=ANY(i.scopes)) IS NOT TRUE OR cardinality(i.scopes)>64
+             OR i.credential_ref IS NULL OR octet_length(i.credential_ref) NOT BETWEEN 1 AND 256
+             OR p_deadline IS NULL OR p_deadline<=n OR p_deadline>LEAST(i.expires_at,n+900)
+             OR p_family IS NULL OR p_family !~ '^browser_[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$'
+@@ -795,6 +802,11 @@
+           UPDATE public.mixer_browser_sessions SET cookie_digest=p_new_cookie,csrf_digest=p_new_csrf,generation=p_generation,status='active',epoch=epoch+1,revision=revision+1,
+             last_seen_at=n,absolute_expires_at=p_deadline,idle_expires_at=p_deadline,profile_id=i.profile_id,profile_version=i.profile_version,principal_id=principal.id,
+             family_id=p_family,credential_ref=i.credential_ref,credential_revision=1,audit_sequence=audit_sequence+1 WHERE id=o.id RETURNING * INTO b;
++          -- Cookie rotation also claims a unique index entry and can wait.
++          n:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;
++          IF n>=a.expires_at OR n>=a.claim_expires_at OR n>=o.absolute_expires_at OR n>=o.idle_expires_at OR n>=i.expires_at OR n>=p_deadline
++            OR (d.family_id IS NOT NULL AND old_family.expires_at IS NOT NULL AND old_family.expires_at<=n) THEN
++            RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;
+           UPDATE public.mixer_browser_session_vault SET epoch=b.epoch,session_revision=b.revision,vault_generation=vault_generation+1,envelope_kind='active',
+             key_id=p_cipher.key_id,iv=p_cipher.iv,tag=p_cipher.tag,ciphertext=p_cipher.ciphertext WHERE browser_id=b.id;
+           UPDATE public.mixer_browser_oidc_attempts SET status='completed',completion_reason='completed',key_id=NULL,iv=NULL,tag=NULL,ciphertext=NULL WHERE state_digest=p_state;
+--- paused/hosted/test/mixer_hosted/browser_auth/storage_spec.exs
++++ reviewed/hosted/test/mixer_hosted/browser_auth/storage_spec.exs
+@@ -776,6 +776,239 @@
+     assert {:error, :insufficient_privilege} = F.call(conn, :load, [F.random(), F.random()])
+     assert [["org"]] == directory_rows(conn)
+     GenServer.stop(conn)
++  end
++
++  test "independent review rechecks bootstrap expiry after a rolled-back unique insertion wait" do
++    locker = F.connection!()
++    on_exit(fn -> if Process.alive?(locker), do: GenServer.stop(locker) end)
++    Postgrex.query!(locker, "BEGIN", [])
++    other = F.bootstrap(locker)
++    deadline = F.now() + 2
++    Process.sleep(max(deadline * 1000 - System.system_time(:millisecond) - 180, 0))
++    parent = self()
++
++    task =
++      Task.async(fn ->
++        conn = F.connection!()
++        [[pid]] = Postgrex.query!(conn, "SELECT pg_backend_pid()", []).rows
++        send(parent, {:review_bootstrap_pid, pid})
++
++        result =
++          F.call(conn, :bootstrap, [
++            other.id,
++            F.random(),
++            F.token(),
++            F.random(),
++            F.random(),
++            "humans",
++            1,
++            deadline,
++            {:cipher, F.cipher()},
++            F.request()
++          ])
++
++        GenServer.stop(conn)
++        result
++      end)
++
++    assert_receive {:review_bootstrap_pid, pid}, 1_000
++    Process.sleep(100)
++
++    assert [["Lock", "transactionid"]] ==
++             F.q!(
++               Admin,
++               "SELECT wait_event_type,wait_event FROM pg_catalog.pg_stat_activity WHERE pid=$1",
++               [pid]
++             ).rows
++
++    Process.sleep(200)
++    assert F.now() >= deadline
++    Postgrex.query!(locker, "ROLLBACK", [])
++    GenServer.stop(locker)
++    assert {:error, :raise_exception} = Task.await(task)
++
++    for table <- ~w(sessions session_vault oidc_attempts session_events) do
++      column = if table == "sessions", do: "id", else: "browser_id"
++
++      assert [[0]] ==
++               F.q!(
++                 Admin,
++                 "SELECT count(*) FROM public.mixer_browser_#{table} WHERE #{column}=$1",
++                 [other.id]
++               ).rows
++    end
++  end
++
++  test "independent review rechecks begin expiry after a rolled-back unique insertion wait", %{
++    conn: c
++  } do
++    b = F.bootstrap(c)
++    locker = F.connection!()
++    on_exit(fn -> if Process.alive?(locker), do: GenServer.stop(locker) end)
++    other = F.bootstrap(locker)
++    Postgrex.query!(locker, "BEGIN", [])
++    {_other, a} = F.begin_login(locker, other)
++    deadline = F.now() + 2
++    Process.sleep(max(deadline * 1000 - System.system_time(:millisecond) - 180, 0))
++    parent = self()
++
++    task =
++      Task.async(fn ->
++        conn = F.connection!()
++        [[pid]] = Postgrex.query!(conn, "SELECT pg_backend_pid()", []).rows
++        send(parent, {:review_begin_pid, pid})
++
++        result =
++          F.call(conn, :begin, [
++            b.cookie,
++            b.csrf,
++            b.config,
++            b.revision,
++            {:attempt, %{a | expires: deadline}},
++            {:cipher, F.cipher()},
++            F.request()
++          ])
++
++        GenServer.stop(conn)
++        result
++      end)
++
++    assert_receive {:review_begin_pid, pid}, 1_000
++    Process.sleep(100)
++
++    assert [["Lock", "transactionid"]] ==
++             F.q!(
++               Admin,
++               "SELECT wait_event_type,wait_event FROM pg_catalog.pg_stat_activity WHERE pid=$1",
++               [pid]
++             ).rows
++
++    Process.sleep(200)
++    assert F.now() >= deadline
++    Postgrex.query!(locker, "ROLLBACK", [])
++    GenServer.stop(locker)
++    assert {:error, :raise_exception} = Task.await(task)
++
++    assert [[1, 1, 1]] ==
++             F.q!(
++               Admin,
++               "SELECT b.revision,b.audit_sequence,v.vault_generation FROM public.mixer_browser_sessions b JOIN public.mixer_browser_session_vault v ON v.browser_id=b.id WHERE b.id=$1",
++               [b.id]
++             ).rows
++
++    assert [[0]] ==
++             F.q!(
++               Admin,
++               "SELECT count(*) FROM public.mixer_browser_oidc_attempts WHERE browser_id=$1",
++               [b.id]
++             ).rows
++  end
++
++  test "independent review rechecks activation expiry after a rolled-back unique cookie update wait",
++       %{conn: c} do
++    b = F.bootstrap(c)
++    {b, a} = F.begin_login(c, b)
++    deadline = F.now() + 2
++    {claim, _} = F.claim(c, b, a, deadline)
++    locker = F.connection!()
++    on_exit(fn -> if Process.alive?(locker), do: GenServer.stop(locker) end)
++    Postgrex.query!(locker, "BEGIN", [])
++    other = F.bootstrap(locker)
++    identity = F.identity()
++    family = "browser_" <> F.token()
++    Process.sleep(max(deadline * 1000 - System.system_time(:millisecond) - 180, 0))
++    parent = self()
++
++    task =
++      Task.async(fn ->
++        conn = F.connection!()
++        [[pid]] = Postgrex.query!(conn, "SELECT pg_backend_pid()", []).rows
++        send(parent, {:review_activate_pid, pid})
++
++        result =
++          F.call(conn, :activate, [
++            b.cookie,
++            a.state,
++            b.config,
++            claim,
++            b.revision,
++            {:verified, identity},
++            other.cookie,
++            F.random(),
++            F.token(),
++            family,
++            F.now() + 500,
++            {:cipher, F.cipher()},
++            F.request()
++          ])
++
++        GenServer.stop(conn)
++        result
++      end)
++
++    assert_receive {:review_activate_pid, pid}, 1_000
++    Process.sleep(100)
++
++    assert [["Lock", "transactionid"]] ==
++             F.q!(
++               Admin,
++               "SELECT wait_event_type,wait_event FROM pg_catalog.pg_stat_activity WHERE pid=$1",
++               [pid]
++             ).rows
++
++    Process.sleep(200)
++    assert F.now() >= deadline
++    Postgrex.query!(locker, "ROLLBACK", [])
++    GenServer.stop(locker)
++    assert {:error, :raise_exception} = Task.await(task)
++
++    assert [["claimed", 2, 3, 2]] ==
++             F.q!(
++               Admin,
++               "SELECT a.status,b.revision,b.audit_sequence,v.vault_generation FROM public.mixer_browser_oidc_attempts a JOIN public.mixer_browser_sessions b ON b.id=a.browser_id JOIN public.mixer_browser_session_vault v ON v.browser_id=b.id WHERE a.state_digest=$1",
++               [a.state]
++             ).rows
++
++    assert [[0]] ==
++             F.q!(Admin, "SELECT count(*) FROM public.mixer_authz_families WHERE id=$1", [family]).rows
++
++    assert [[0]] ==
++             F.q!(
++               Admin,
++               "SELECT count(*) FROM public.mixer_authz_credentials WHERE reference=$1",
++               [identity.jti]
++             ).rows
++  end
++
++  for scopes <- [[nil], ["other.scope", nil]] do
++    @review_scopes scopes
++    test "independent review rejects activation scopes #{inspect(scopes)}", %{conn: c} do
++      b = F.bootstrap(c)
++      {b, a} = F.begin_login(c, b)
++      {claim, _} = F.claim(c, b, a)
++
++      assert {{:error, :raise_exception}, _, family, identity, _} =
++               F.activate(c, b, a, claim, Map.put(F.identity(), :scopes, @review_scopes))
++
++      assert [[0]] ==
++               F.q!(Admin, "SELECT count(*) FROM public.mixer_authz_families WHERE id=$1", [
++                 family
++               ]).rows
++
++      assert [[0]] ==
++               F.q!(
++                 Admin,
++                 "SELECT count(*) FROM public.mixer_authz_credentials WHERE reference=$1",
++                 [identity.jti]
++               ).rows
++
++      assert [["claimed", 2, 3]] ==
++               F.q!(
++                 Admin,
++                 "SELECT a.status,b.revision,b.audit_sequence FROM public.mixer_browser_oidc_attempts a JOIN public.mixer_browser_sessions b ON b.id=a.browser_id WHERE a.state_digest=$1",
++                 [a.state]
++               ).rows
++    end
+   end
+ 
+   test "catalog source manifest is exact and public execution is revoked" do
+--- paused/docs/hosted-browser-session-storage.md
++++ reviewed/docs/hosted-browser-session-storage.md
+@@ -161,7 +161,10 @@
+ correct cipher/AAD outside locks and publish only after this exact CAS succeeds.
+ 
+ Every temporal decision uses `clock_timestamp()` after the last lock wait.
+-Activation checks time again after unique INSERTs, which can themselves wait.
++Bootstrap and begin check time again after their unique INSERTs. Activation
++rechecks after the family/credential INSERTs and the unique cookie rotation
++UPDATE. Any of these uniqueness claims can wait for a transaction that rolls back;
++the resulting expired operation rolls back its complete mutation.
+ Equality denies attempt/claim/token/browser windows. Counters have checked
+ positive53 bounds. Fixed database timeouts supplement the owner's required
+ READ COMMITTED, queue:false, five-second total bounded transaction with no retry
+@@ -196,13 +199,13 @@
+ owned scratch data. `--pg-bin /path/to/postgresql/bin` selects an existing PostgreSQL
+ installation; the local default is Homebrew PostgreSQL 17. Every run gets a fresh
+ immutable `attempts/<timestamp>/` directory with manifests before/after execution,
+-complete selected ordinary migration inputs, locked dependency-beam hashes,
++complete selected ordinary migration hashes, locked dependency-beam hashes,
+ bounded subprocess commands and cleanup. Existing hosted application beams are
+ excluded. `latest.json` is only a mutable pointer. The retained development snapshot
+ contains the final overwritten pre-attempt logs; earlier overwritten runs were
+ not retained or reconstructed.
+ 
+-[The latest completed immutable receipt](../verification/hosted-browser-session-storage/attempts/20261025T154627.762502Z-289be41e/receipt.json) binds
++[The latest completed immutable receipt](../verification/hosted-browser-session-storage/attempts/20261025T160530.884605Z-9652e649/receipt.json) binds
+ commands, tool versions, HEAD, exact source digests, outputs and cleanup. Cases
+ cover isolated role/RLS/column grants/SET ROLE; stable preauth discovery; provider
+ error consumption; stale/cross-browser/config claims; duplicate replica claims;
+@@ -212,9 +215,15 @@
+ injection against audit/vault/attempt transitions; exact catalog source; expiry
+ both at a lock timeout and after a successful lock wait; ordinary family SHARE
+ serialization of logout/replacement; bounded expiry; and rollback/reapply with
+-ordinary directory visibility preserved. The completed run passed 18 tests, including a real synthetic-token AES-GCM
++ordinary directory visibility preserved. The completed run passed 23 tests, including a real synthetic-token AES-GCM
+ roundtrip through SQL and the typed decoder, canonical hex despite hostile caller
+ bytea output, and failed non-superuser ownership transfer rolling back completely.
++The [independent storage audit](hosted-browser-session-storage-review.md) added
++five adversarial cases. It first preserved failing runs against the paused source,
++then corrected NULL-containing scope membership and expired bootstrap/begin/
++activation results after successful unique-index waits. Required workspace scope
++membership must now be explicitly true. The reviewer authored these corrections;
++a separate correction review remains required before root acceptance.
+ Provider authentication is not established by that synthetic token. Broader AEAD
+ qualification, production pool/catalog
+ admission, current-verifier provenance, provider/OIDC, Neon/TLS/key custody,

@@ -1,7 +1,7 @@
 defmodule MixerHosted.BrowserAuth.ConfigTest do
   use ExUnit.Case, async: true
   alias MixerHosted.BrowserAuth.Config
-  alias MixerHosted.Identity.StartupConfig
+  alias MixerHosted.Identity.{Manifest, StartupConfig}
 
   def object do
     %{
@@ -66,6 +66,26 @@ defmodule MixerHosted.BrowserAuth.ConfigTest do
     config
   end
 
+  defp matching_identity(object) do
+    original = identity()
+    [entry] = original.owner_options[:manifest]
+
+    profile = %{
+      entry.profile
+      | profile_id: object["profile_id"],
+        issuer: object["issuer"],
+        client_id: object["client_id"],
+        audience: object["api_audience"]
+    }
+
+    options =
+      original.owner_options
+      |> Keyword.put(:binding, profile.profile_id)
+      |> Keyword.put(:manifest, [%{entry | profile: profile}])
+
+    %{original | owner_options: options}
+  end
+
   test "default and explicit disabled modes start no capability on either role" do
     for role <- [:api, :processor], env <- [%{}, %{"MIXER_BROWSER_AUTH_MODE" => "disabled"}] do
       assert {:ok, %Config{mode: :disabled, issuer: nil}} = Config.load(env, role, nil)
@@ -107,6 +127,93 @@ defmodule MixerHosted.BrowserAuth.ConfigTest do
     assert config.session_idle_seconds == 900
     assert config.client_auth_method == :client_secret_basic
     assert inspect(config) == "#MixerHosted.BrowserAuth.Config<mode: :configured, ...>"
+  end
+
+  test "matched trusted metadata rejects NUL before constructing a SQL or Vault config" do
+    for key <- ~w(profile_id client_id api_audience),
+        value <- [<<0>>, <<0>> <> "metadata", "meta" <> <<0>> <> "data", "metadata" <> <<0>>] do
+      object = Map.put(object(), key, value)
+      identity = matching_identity(object)
+
+      # The existing identity contract admits these exact bounded UTF-8 values.
+      # A matching manifest therefore cannot explain the browser denial.
+      assert {:ok, _} = Manifest.validate(identity.owner_options[:manifest])
+      assert {:error, :invalid_configuration} = load(object, identity)
+    end
+  end
+
+  test "matched metadata preserves exact non-NUL Unicode and existing control-byte policy" do
+    for key <- ~w(profile_id client_id api_audience),
+        value <- ["x", "é", "e\u0301", "值😀", "tab\tline\nreturn\r" <> <<1, 127>>] do
+      object = Map.put(object(), key, value)
+      assert {:ok, config} = load(object, matching_identity(object))
+      assert Map.fetch!(config, String.to_existing_atom(key)) == value
+    end
+  end
+
+  test "matched metadata bounds count UTF-8 bytes with exact endpoints" do
+    for {key, limit} <- [{"profile_id", 128}, {"client_id", 256}, {"api_audience", 256}],
+        value <- [String.duplicate("a", limit), String.duplicate("é", div(limit, 2))] do
+      object = Map.put(object(), key, value)
+      assert byte_size(value) == limit
+      assert {:ok, config} = load(object, matching_identity(object))
+      assert Map.fetch!(config, String.to_existing_atom(key)) == value
+
+      for invalid <- ["", value <> "a"] do
+        invalid_object = Map.put(object, key, invalid)
+
+        assert {:error, :invalid_configuration} =
+                 load(invalid_object, matching_identity(invalid_object))
+      end
+    end
+  end
+
+  test "malformed UTF-8 metadata fails with a fixed error in JSON and trusted manifests" do
+    for key <- ~w(profile_id client_id api_audience),
+        malformed <- [<<255>>, <<195>>, <<192, 128>>, <<237, 160, 128>>] do
+      invalid_object = Map.put(object(), key, malformed)
+
+      assert {:error, :invalid_configuration} =
+               load(object(), matching_identity(invalid_object))
+
+      raw =
+        object()
+        |> Jason.encode!()
+        |> :binary.replace(Jason.encode!(object()[key]), <<?", malformed::binary, ?">>)
+
+      assert {:error, :invalid_configuration} =
+               Config.load(
+                 %{"MIXER_BROWSER_AUTH_MODE" => "configured", "MIXER_BROWSER_AUTH_CONFIG" => raw},
+                 :api,
+                 matching_identity(invalid_object)
+               )
+    end
+  end
+
+  test "URL reference and fixed text fields already reject NUL in configured JSON" do
+    for {key, value} <- object(),
+        is_binary(value),
+        key not in ~w(profile_id client_id api_audience) do
+      object = Map.put(object(), key, value <> <<0>>)
+      assert {:error, :invalid_configuration} = load(object, matching_identity(object))
+    end
+  end
+
+  test "whole JSON byte limit still accepts an exact valid document and rejects one byte more" do
+    raw = Jason.encode!(object())
+    padded = raw <> String.duplicate(" ", 16_384 - byte_size(raw))
+
+    for {input, expected} <- [{padded, :ok}, {padded <> " ", :error}] do
+      result =
+        Config.load(
+          %{"MIXER_BROWSER_AUTH_MODE" => "configured", "MIXER_BROWSER_AUTH_CONFIG" => input},
+          :api,
+          identity()
+        )
+
+      assert elem(result, 0) == expected
+      if expected == :error, do: assert(result == {:error, :invalid_configuration})
+    end
   end
 
   test "every missing key and every extra client-controlled choice is rejected" do
