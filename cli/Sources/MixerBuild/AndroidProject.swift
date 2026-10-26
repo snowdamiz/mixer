@@ -45,6 +45,7 @@ public enum AndroidProject {
             "app/src/dev/mixer/android/AppearanceNativePathsV2.java",
             "app/src/dev/mixer/android/InstalledAppearanceV2.java",
             "app/src/dev/mixer/android/NativeEnvironmentV2.java",
+            "app/src/dev/mixer/android/AuthoredToggleInputV2.java",
             "app/src/dev/mixer/android/NativeAppearanceViewsV2.java"
         ]
         let runtime = adapter.appendingPathComponent("engine/Sources/MixerAndroidRuntime")

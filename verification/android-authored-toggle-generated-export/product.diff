@@ -1,0 +1,61 @@
+diff --git a/cli/Sources/MixerBuild/AndroidProject.swift b/cli/Sources/MixerBuild/AndroidProject.swift
+index dfcaed8f4..3a3809feb 100644
+--- a/cli/Sources/MixerBuild/AndroidProject.swift
++++ b/cli/Sources/MixerBuild/AndroidProject.swift
+@@ -45,6 +45,7 @@ public enum AndroidProject {
+             "app/src/dev/mixer/android/AppearanceNativePathsV2.java",
+             "app/src/dev/mixer/android/InstalledAppearanceV2.java",
+             "app/src/dev/mixer/android/NativeEnvironmentV2.java",
++            "app/src/dev/mixer/android/AuthoredToggleInputV2.java",
+             "app/src/dev/mixer/android/NativeAppearanceViewsV2.java"
+         ]
+         let runtime = adapter.appendingPathComponent("engine/Sources/MixerAndroidRuntime")
+diff --git a/cli/Tests/MixerBuildTests/AndroidProjectTests.swift b/cli/Tests/MixerBuildTests/AndroidProjectTests.swift
+index 9c9b31256..a2da5f971 100644
+--- a/cli/Tests/MixerBuildTests/AndroidProjectTests.swift
++++ b/cli/Tests/MixerBuildTests/AndroidProjectTests.swift
+@@ -13,7 +13,7 @@ private let repository = URL(fileURLWithPath: #filePath).deletingLastPathCompone
+     let java = ["Json.java", "UiPacket.java", "NativeRenderer.java", "NativeBridge.java", "MixerActivity.java", "NativeCoordinatorV2.java",
+                  "AppearanceDescriptorV2.java", "AppearanceGeometryV2.java", "AppearanceResolverV2.java",
+                  "AppearanceNativePathsV2.java", "InstalledAppearanceV2.java", "NativeEnvironmentV2.java",
+-                 "NativeAppearanceViewsV2.java"]
++                 "AuthoredToggleInputV2.java", "NativeAppearanceViewsV2.java"]
+     #expect(Set(try SourceDigest.files(in: root.appendingPathComponent("app/src")).map(\.lastPathComponent)) == Set(java))
+     for name in java {
+         let relative = "app/src/dev/mixer/android/\(name)"
+@@ -29,8 +29,8 @@ private let repository = URL(fileURLWithPath: #filePath).deletingLastPathCompone
+     #expect(try SourceDigest.tree(root) != digest)
+ }
+ 
+-@Test(arguments: ["edit", "remove", "rename"])
+-func androidCoordinatorSnapshotChangesInvalidateAdapterLock(_ change: String) throws {
++@Test(arguments: ["NativeCoordinatorV2.java", "AuthoredToggleInputV2.java"], ["edit", "remove", "rename"])
++func androidCoordinatorAndAuthoredToggleSnapshotChangesInvalidateAdapterLock(_ filename: String, _ change: String) throws {
+     let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-android-coordinator-lock-\(UUID().uuidString)")
+     defer { try? FileManager.default.removeItem(at: root) }
+     let sdk = root.appendingPathComponent("Generated/MixerSDK")
+@@ -49,16 +49,20 @@ func androidCoordinatorSnapshotChangesInvalidateAdapterLock(_ change: String) th
+         python_version: "host-test-only", tools: [:], metadata: [:], distributions: [:], sdk_search_path: "host-test-only"))
+     try JSONFile.write(lock, to: root.appendingPathComponent("mixer.lock"))
+     #expect(try ProjectBuild.verifyLock(root: root).android?.adapterDigest == digest)
+-    let coordinator = adapter.appendingPathComponent("app/src/dev/mixer/android/NativeCoordinatorV2.java")
++    let source = adapter.appendingPathComponent("app/src/dev/mixer/android/\(filename)")
+     switch change {
+-    case "edit": try Data("changed coordinator".utf8).write(to: coordinator)
+-    case "remove": try FileManager.default.removeItem(at: coordinator)
+-    default: try FileManager.default.moveItem(at: coordinator, to: coordinator.appendingPathExtension("renamed"))
++    case "edit": try Data("changed source".utf8).write(to: source)
++    case "remove": try FileManager.default.removeItem(at: source)
++    default: try FileManager.default.moveItem(at: source, to: source.appendingPathExtension("renamed"))
+     }
+     #expect(throws: MixerFailure.self) {
+         do { _ = try ProjectBuild.verifyLock(root: root) }
+         catch let failure as MixerFailure { #expect(failure.code == "lock.android-drift"); throw failure }
+     }
++    let direct = try ProcessRunner.run(["python3", adapter.appendingPathComponent("android-build.py").path, "build", root.path])
++    #expect(!direct.succeeded)
++    #expect(direct.output.contains("Bundled SDK or Android adapter source differs from mixer.lock."))
++    #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent(".mixer").path))
+ }
+ 
+ @Test func unsupportedAndroidRequestDoesNotCreateOrOverwriteProject() throws {

@@ -53,8 +53,9 @@ Corrected analyzer design checkpoint `13ce0c2e` passes all three Engine CI jobs.
 Accepted fixture framing checkpoint `4af8b7e1` passes all three Engine CI jobs.
 Fixture contract and framing CI checkpoint `2e4ca9a3` fails its new framing CI step
 before Rust compilation: Homebrew shim resolution selected rustup-init. The
-retained artifact is complete; a narrow dispatch repair is in progress.
+retained artifact is complete; the repaired checkpoint is recorded below.
 VM and services pass; subsequent Swift checks were skipped.
+Rustup dispatch repair `05c1ebf0` passes all three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40247799000).
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
 
@@ -107,7 +108,9 @@ The full plan remains incomplete; no GA gate is promoted.
    all limits remain unchanged. Framing observation grants no semantic prefix
    validity. The first macOS CI attempt stops before Rust compilation at
    rustup shim dispatch. Its narrow repair passes the unchanged 44-method closure
-   and 16 focused controls locally; remote qualification remains pending.
+   and 16 focused controls locally. The repaired macOS CI now passes all 44
+   methods under Rust 1.98.1; root verifies its 78-member artifact and exact
+   source bindings. All three Engine CI jobs now pass.
    The corrected acquisition/lifecycle contract now passes 24 producer
    and 38 independent methods, including 5,390 oracle comparisons. Root verifies
    773 sealed members and both preserved archives, accepting this contract only.
@@ -147,6 +150,11 @@ The full plan remains incomplete; no GA gate is promoted.
    real provider/clock dependencies and deployed schedule remain pending.
 4. **Android and cross-platform UI:** continue shared visual/interaction parity
    and public application routing from the accepted private emulator slices.
+   The generated-source repair now passes independent fresh CLI export of fourteen
+   Java files, strict Java/D8 compilation and Debug/Release source-lock checks.
+   Root verifies 303 sealed members and accepts this source-export scope. Default
+   appearance packaging and public V2 routing remain pending. See
+   [the export review](docs/android-authored-toggle-generated-export-review.md).
    Private native input acceptance is not complete public routing, TalkBack,
    compositor/resource coverage or final design parity.
 5. **Hosted product and console:** continue ordinary customer authorization,

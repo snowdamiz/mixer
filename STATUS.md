@@ -23,8 +23,9 @@ Corrected analyzer design checkpoint `13ce0c2e` passes all three Engine CI jobs.
 Accepted fixture framing checkpoint `4af8b7e1` passes all three Engine CI jobs.
 Fixture contract and framing CI checkpoint `2e4ca9a3` fails its new framing CI step
 before Rust compilation: Homebrew shim resolution selected rustup-init. The
-retained artifact is complete; a narrow dispatch repair is in progress.
+retained artifact is complete; the repaired checkpoint is recorded below.
 VM and services pass; subsequent Swift checks were skipped.
+Rustup dispatch repair `05c1ebf0` passes all three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40247799000).
 Native runtime and capture remain paused.
 All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
@@ -44,7 +45,7 @@ hosted, store, customer or operational product.
 | --- | --- | --- |
 | Swift runtime | Decode-plan reuse is integrated under unchanged limits. Four complete host contexts pass 2,314 named executions with nine inherited ignores each; the fresh live private suite passes 340 with zero ignores. | One corrected full attribution diagnostic reproduces the Corpus 1 cache-work failure at 23,358,291 instructions. Valid measurements show 61,142 repeated decodes and 53.907% of the work budget spent rebuilding previously decoded functions. Final consuming usage is zero and owned scratch is removed. The isolated segmented-LRU candidate regresses to 8,746,437 instructions under the same limit and is rejected for integration. Final consuming usage is zero, owned scratch is removed, and the failed result passes independent audit. Corpus 2 remains unrun. |
 | iOS shared UI | Private pan input has simulator evidence. V7 Settings passes; first Tab fails actual focus traversal. All five run-cleanup checks pass and the owned simulator is deleted. | The corrected frozen V7 diagnostic join and fresh app/runner builds are accepted. The V8 runtime packet passes 16 producer and nine independent host methods. The fresh V8 simulator run passes Settings but fails first Tab, with zero skips and all five cleanup checks passed. The result audit and source lifecycle diagnosis are accepted; a passive lifecycle observer passes 116 producer and 371 independent Foundation checks. The first generic build failed Swift 6 actor isolation; the minimal correction now passes a fresh app/runner build and independent review. Corrected V9 runtime preparation passes 16 producer and nine independent host methods; root accepts preparation, with no new native execution. Shared UI/public routing remains incomplete. |
-| Android shared UI | Private style/coordinator/input slices have scoped API37 emulator evidence. The latest integrated component fixture passes all 45 cases and 239 assertions; the separate pointer matrix passes 429 assertions. | Complete shared visual/interaction parity, public routing, resources/OS support, TalkBack and final physical comparison. |
+| Android shared UI | Private style/coordinator/input slices have scoped API37 emulator evidence. The integrated component fixture passes all 45 cases and 239 assertions; the separate pointer matrix passes 429 assertions. The generated-source repair passes independent fresh CLI export of fourteen Java sources, strict Java/D8 compilation and Debug/Release lock checks; root accepts 303 sealed members. | Default appearance packaging is the next source prerequisite. Complete shared visual/interaction parity, public routing, resources/OS support, TalkBack and final physical comparison. |
 | Hosted builds | Durable storage/coordinator components and registry/audit slices have host evidence. The isolated entry composition passes 922 groups; the defensive context-admission correction passes 79. | The broader entry review remains incomplete. Live Engine/entry composition, real worker/clock/provider operations, authentication, quotas and deployed schedule qualification remain pending. |
 | Console | SolidJS Builds, Releases and Workspace use the website logo, colors and fonts. All 112 console host tests/typecheck/build pass; cookie transport and protocol prerequisites have independent review. | Implement durable sessions/provider login and connect live build/release/onboarding/billing workflows; browser visual and customer gates remain pending. |
 | Hosted release/billing | Protected artifact upload/read/audit now has actual Phoenix Endpoint and PostgreSQL evidence: eight methods and 47 HTTP requests pass, with 32 transport tests and 46 combined independent controls. The earlier storage composition passes 97 methods and seven-migration checks. | Connect live console/customer sessions, complete tenant trust/lifecycle writers, distributed admission, Go migration parity, durable inbox/Oban reconciliation and selected-provider qualification. Frozen authority/inspector and rejected transport lanes remain unaccepted. |
@@ -148,7 +149,9 @@ Its reviewed logical inventory is 14,248 bytes within 41,984 reserved bytes;
 all limits remain unchanged. Framing observation grants no semantic prefix
 validity. The first macOS CI attempt stops before Rust compilation at
 rustup shim dispatch. Its narrow repair passes the unchanged 44-method closure
-and 16 focused controls locally; remote qualification remains pending.
+and 16 focused controls locally. The repaired macOS CI now passes all 44
+methods under Rust 1.98.1; root verifies its 78-member artifact and exact
+source bindings. All three Engine CI jobs now pass.
 The corrected acquisition/lifecycle contract now passes 24 producer
 and 38 independent methods, including 5,390 oracle comparisons. Root verifies
 773 sealed members and both preserved archives, accepting this contract only.

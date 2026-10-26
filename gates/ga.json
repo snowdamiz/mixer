@@ -712,7 +712,7 @@
         }
       },
       "orderedRetentionAnalyzerFramingCICandidate": {
-        "status": "rustup-repair-locally-accepted-remote-pending",
+        "status": "accepted-remote-Darwin-framing-CI",
         "doc": "docs/swift-ordered-retention-analyzer-framing-ci.md",
         "seal": "verification/swift-ordered-retention-analyzer-framing-ci/seal.json",
         "seal_sha256": "2175ba4d989c42261ae18352305e267c7dd3d7538fb5c8fdb844ea5a6f484ed6",
@@ -775,7 +775,7 @@
           }
         },
         "rustup_dispatch_repair": {
-          "status": "accepted-rustup-dispatch-repair-remote-ci-pending",
+          "status": "accepted-remote-Darwin-rustup-dispatch-repair",
           "doc": "docs/swift-ordered-retention-analyzer-framing-ci-rustup.md",
           "seal": "verification/swift-ordered-retention-analyzer-framing-ci-rustup/seal.json",
           "seal_sha256": "34439af3a4ffaad630ff51409dcedc30942f0ec29cacd72e20241a44f8776d78",
@@ -790,9 +790,40 @@
           "original_framing_members_unchanged": 894,
           "historical_ci_packet_members_verified_at_2e4": 108,
           "first_remote_and_local_failures_preserved": true,
-          "remote_qualified": false,
+          "remote_qualified": true,
           "storedPrefixValidated": false,
-          "fullReplayAccepted": false
+          "fullReplayAccepted": false,
+          "delivery": {
+            "commit": "05c1ebf0378fb479ba8595d71cde577f447d0025",
+            "status": "pushed-ci-passed",
+            "scope": "Narrow compiler launcher dispatch repair and scoped root acceptance; preserved terminal2e4CI failure/source-complete artifact; active envelope source/preparation and callback candidates excluded",
+            "ci": [
+              {
+                "databaseId": 40247799000,
+                "workflowName": "Owned engine checks",
+                "status": "completed",
+                "conclusion": "success",
+                "url": "https://github.com/snowdamiz/mixer/actions/runs/40247799000",
+                "headSha": "05c1ebf0378fb479ba8595d71cde577f447d0025"
+              }
+            ],
+            "receipt": "verification/github-delivery-analyzer-rustup-repair/receipt.json",
+            "all_jobs_and_steps_passed": true
+          },
+          "remote_framing": {
+            "run": 40247799000,
+            "commit": "05c1ebf0378fb479ba8595d71cde577f447d0025",
+            "packet": "verification/swift-ordered-retention-analyzer-framing-ci-rustup-remote/seal.json",
+            "seal_sha256": "1d5639409f05e22446f20fa022d024dd303fd56cba1646242bf790a16b1eba3c",
+            "root_acceptance": "verification/swift-ordered-retention-analyzer-framing-ci-rustup-remote-root-review/acceptance.json",
+            "members": 81,
+            "artifact_members": 78,
+            "selected_sources": 38,
+            "methods": 44,
+            "rustc": "1.98.1 aarch64-apple-darwin",
+            "python": "3.14.7",
+            "overall_CI_qualified": true
+          }
         }
       }
     },
@@ -818,8 +849,61 @@
       "id": "G05",
       "requirement": "A new developer can create and locally run a shared Swift app on physical iOS and Android using public documentation.",
       "status": "planned",
-      "evidence": [],
-      "reviewer": null
+      "evidence": [
+        "docs/android-public-appearance-routing-proposal.md",
+        "docs/android-authored-toggle-generated-export.md",
+        "docs/android-authored-toggle-generated-export-review.md",
+        "verification/android-authored-toggle-generated-export/seal.json",
+        "verification/android-authored-toggle-generated-export-review/seal.json",
+        "verification/android-authored-toggle-generated-export-root-review/acceptance.json"
+      ],
+      "reviewer": null,
+      "authoredToggleGeneratedExportCandidate": {
+        "status": "accepted-scoped-generated-source-export",
+        "scope": "Generated Android Java source closure and existing source-lock admission only",
+        "doc": "docs/android-authored-toggle-generated-export.md",
+        "proposal": "docs/android-public-appearance-routing-proposal.md",
+        "producer_seal": "verification/android-authored-toggle-generated-export/seal.json",
+        "producer_seal_sha256": "18b101a646638f16840cbec7af294da4feafda20197373c2646905554a966486",
+        "producer_members": 206,
+        "producer_bytes": 4426171,
+        "source_tree_sha256": "297b4a3cf52bdb1be0a748b3a25d93090280a4106bc21e55957d22ba9c54e408",
+        "producer_counts": {
+          "java_sources": 14,
+          "classes": 160,
+          "unchanged_authored_classes": 4,
+          "debug_release_test_functions_each": 2,
+          "parameterized_lock_cases_each": 6,
+          "actual_consumer_rejections": 6,
+          "expected_omitted_source_failure": 1
+        },
+        "dex_sha256": "420aa6339c3f62bada4e5d45174cf424fdb9019017301b2cb05c4baffc717308",
+        "independent_review": {
+          "seal": "verification/android-authored-toggle-generated-export-review/seal.json",
+          "seal_sha256": "2b7e4e3582dc579ac1d843eacea2ab9db435406bd5953bae80df1f3a96d55b73",
+          "members": 97,
+          "bytes": 2008427,
+          "checks": 784,
+          "commands": 28,
+          "consumer_rejections": 12,
+          "findings": []
+        },
+        "independent_acceptance": true,
+        "native_runtime_or_capture_started": false,
+        "public_routing_changed": false,
+        "release_or_GA_qualified": false,
+        "pending": [
+          "Public V2 routing and native lifecycle integration",
+          "Shared theme and resource packaging",
+          "API/environment/architecture qualification",
+          "TalkBack, native input/IME/scroll, compositor and parity matrices",
+          "Final physical phone acceptance",
+          "Immutable external FieldLog consumption",
+          "Release and GA qualification"
+        ],
+        "root_acceptance": "verification/android-authored-toggle-generated-export-root-review/acceptance.json",
+        "delivery": "pending root commit and CI"
+      }
     },
     {
       "id": "G06",

@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "-c",
+    "from pathlib import Path\nimport hashlib,json,subprocess\npackets=[(\"verification/swift-ordered-retention-analyzer-framing-ci\",\"2175ba4d989c42261ae18352305e267c7dd3d7538fb5c8fdb844ea5a6f484ed6\",\"2e4ca9a347f9fe3ff8684b96672723886a7b9fad\",108),(\"verification/swift-ordered-retention-analyzer-framing-ci-rustup\",\"34439af3a4ffaad630ff51409dcedc30942f0ec29cacd72e20241a44f8776d78\",\"05c1ebf0378fb479ba8595d71cde577f447d0025\",186)]\nresults=[]\nfor name,expected,revision,count in packets:\n root=Path(name)\n digest=hashlib.sha256((root/\"seal.json\").read_bytes()).hexdigest()\n if digest!=expected: raise RuntimeError(\"Historical seal changed\")\n rows=json.loads((root/\"seal.json\").read_text())[\"members\"]\n if len(rows)!=count: raise RuntimeError(\"Historical member count differs\")\n for row in rows:\n  if row[\"path\"].startswith(name+\"/\"):\n   raw=Path(row[\"path\"]).read_bytes()\n  else:\n   raw=subprocess.check_output([\"git\",\"show\",revision+\":\"+row[\"path\"]])\n  if len(raw)!=row[\"bytes\"] or hashlib.sha256(raw).hexdigest()!=row[\"sha256\"]: raise RuntimeError(\"Historical packet or Git source differs\")\n results.append({\"packet\":name,\"seal_sha256\":digest,\"members\":count,\"root_source_binding_revision\":revision,\"unchanged\":True})\nprint(json.dumps({\"historical_packets\":results}))\n"
+  ],
+  "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+  "at": "2026-10-26T00:17:33.879399+00:00",
+  "timeout_seconds": 30
+}
