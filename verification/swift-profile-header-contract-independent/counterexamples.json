@@ -1,0 +1,132 @@
+{
+  "all_real_authority_flags": false,
+  "cases": [
+    {
+      "existing_common_owner_projection_passes": true,
+      "historically_identical": false,
+      "id": "R2-same-control-different-WASI",
+      "inputs": {
+        "cache_ticket_owner": 17,
+        "construction_WASI_instance": "wasi-A",
+        "control_owner": 17,
+        "supplied_WASI_instance": "wasi-B",
+        "supplied_WASI_ticket_owner": 17
+      },
+      "source": [
+        "common-control-optional-pairing",
+        "optional-WASI-owner-check",
+        "cache-fields"
+      ]
+    },
+    {
+      "existing_common_owner_projection_passes": true,
+      "historically_identical": false,
+      "id": "R2-Some-to-None",
+      "inputs": {
+        "construction_WASI_instance": "wasi-A",
+        "supplied_WASI_instance": null
+      },
+      "source": [
+        "common-control-optional-pairing"
+      ]
+    },
+    {
+      "B_equality_after": true,
+      "before_first_attempt_after": false,
+      "encoded_header_before_equals_after": true,
+      "existing_common_owner_projection_passes_after": true,
+      "id": "R3-imported-index-failed-acquisition",
+      "inputs": {
+        "absolute_function": 0,
+        "first_failure_after": "not_defined_function",
+        "imported_functions": 34,
+        "nonce_after": 1,
+        "pins": 3,
+        "slots": 2,
+        "work_after": 4806,
+        "work_before": 4805
+      },
+      "source": [
+        "failed-imported-acquire-before-mutation",
+        "cache-header-owner-preflight",
+        "first-failure-and-live-check"
+      ],
+      "stated_cache_shape_after": true,
+      "stated_cache_shape_before": true
+    },
+    {
+      "B_equality_after": true,
+      "id": "R4-unrelated-zero-byte-Cache-ticket",
+      "inputs": {
+        "B": 15108,
+        "admission_bytes": 0,
+        "admission_category": "Cache",
+        "cache_current_after": 15108,
+        "cache_current_before": 15108,
+        "global_live_ticket_delta": 1
+      },
+      "no_unrelated_ticket_after": false,
+      "source": [
+        "safe-zero-byte-admission",
+        "category-byte-vs-global-ticket-inventory"
+      ]
+    },
+    {
+      "external_identity_established": false,
+      "id": "R1-same-structure-different-build-claim",
+      "inputs": {
+        "all_layout_numbers": "arbitrary arithmetic witnesses, never measured ABI",
+        "external_claim_A": "unavailable",
+        "external_claim_B": "different external claim",
+        "local_shape_equal": true
+      },
+      "modeled_headers_equal": true,
+      "source": [
+        "local-H-formula"
+      ]
+    },
+    {
+      "id": "R5-independent-row-snapshot",
+      "inputs": {
+        "cache_guard_proof": "sealed-owner-A",
+        "independent_row_snapshot": "sealed-owner-B",
+        "source_body_bytes_may_be_equal": true
+      },
+      "modeled_headers_equal": true,
+      "same_actual_owner_established": false,
+      "source": [
+        "row-accepts-independent-snapshot",
+        "cache-proof-and-owner-borrow"
+      ]
+    },
+    {
+      "complete_budget_equality": false,
+      "id": "all17-omitted-field-header-collision",
+      "inputs": {
+        "actual_value": 63,
+        "changed_field": "frames",
+        "selected_value": 64
+      },
+      "modeled_headers_equal": true,
+      "source": [
+        "budget-definition-maxima"
+      ]
+    },
+    {
+      "complete_budget_equality": false,
+      "id": "all17-min-slots-hides-raw-entries-difference",
+      "inputs": {
+        "actual_cache_entries": 64,
+        "both_actual_slots": 1,
+        "defined": 1,
+        "selected_cache_entries": 2
+      },
+      "modeled_headers_equal": true,
+      "source": [
+        "constructor-exact-loops-reservations"
+      ]
+    }
+  ],
+  "schema": 1,
+  "scope": "Synthetic information-loss witnesses tied to frozen source; no actual Rust execution or authority"
+}

@@ -1,0 +1,193 @@
+{
+  "schema": 1,
+  "scope": "Frozen primary source facts only",
+  "witnesses": [
+    {
+      "excerpt": "pub(crate) struct SwiftFunctionCache {\n    adopted: AdoptedProof,\n    usage: SwiftCacheUsage,\n    owner: u64,\n    next_nonce: u64,\n    slots: Vec<SwiftSlot>,\n    pins: Vec<PinRecord>,\n    patches: Vec<decode::Patch>,\n    index: Vec<u8>,\n    plans: Vec<Option<ScanPlan>>,\n    buffers: [Option<ReservationTicket>; 3],\n    header: Option<ReservationTicket>,\n}",
+      "excerpt_sha256": "1d3336de2807af0be541e47a27fb5eea7132669ee0f061b04e5080f80ee33b86",
+      "first_line": 268,
+      "full_source_bytes": 175500,
+      "full_source_sha256": "1f80f3ef02d464347d5c1d07a52b714d1fb1d101300988216fb84e20425c51c1",
+      "id": "cache-fields",
+      "last_line": 280,
+      "producer_relative_path": "inputs/vm/src/experimental_swift_reactor/cache.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    },
+    {
+      "excerpt": "fn pairing(\n    control: &mut RuntimeControl,\n    wasi: Option<&AccountedWasi>,\n    cursor: Cursor,\n) -> Result<Option<WasiUsage>, SwiftRunFailure> {\n    wasi.map(|w| w.checked_usage(control, cursor)).transpose()\n}",
+      "excerpt_sha256": "7330cc4e621a3bb6888e8ebb8ed87a5245d9b67efddf580abbe52b80b4246e00",
+      "first_line": 1337,
+      "full_source_bytes": 175500,
+      "full_source_sha256": "1f80f3ef02d464347d5c1d07a52b714d1fb1d101300988216fb84e20425c51c1",
+      "id": "common-control-optional-pairing",
+      "last_line": 1343,
+      "producer_relative_path": "inputs/vm/src/experimental_swift_reactor/cache.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    },
+    {
+      "excerpt": "    fn check_header(&mut self, cache: &SwiftFunctionCache) -> Result<(), SwiftRunFailure> {\n        pairing(self.control, self.wasi, self.cursor)?;\n        let Some(header) = cache.header.as_ref() else {\n            return Err(self.error(CacheFailureKind::InvalidPin, \"swift_cache_missing_header\"));\n        };\n        self.control\n            .check_reservation_owner(header, self.cursor, self.observation())\n    }",
+      "excerpt_sha256": "547be07d892f65176fabe3fab06f6bbdf529d34990214cf139115c5cc6f4f335",
+      "first_line": 1417,
+      "full_source_bytes": 175500,
+      "full_source_sha256": "1f80f3ef02d464347d5c1d07a52b714d1fb1d101300988216fb84e20425c51c1",
+      "id": "cache-header-owner-preflight",
+      "last_line": 1424,
+      "producer_relative_path": "inputs/vm/src/experimental_swift_reactor/cache.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    },
+    {
+      "excerpt": "    pub(crate) fn proof(&self) -> &ValidatedSwiftReactor {\n        self.adopted.proof()\n    }\n    /// Borrow-only provenance preflight for composed construction and cleanup.\n    /// Deliberately performs no ordinary checkpoint, admission, or work debit.\n    /// The caller accounts for these temporary borrows before invoking it.\n    #[allow(dead_code)] // Consumed by the separately qualified private executor.\n    pub(crate) fn check_owner(\n        &self,\n        control: &mut RuntimeControl,\n        wasi: Option<&AccountedWasi>,\n        cursor: Cursor,\n    ) -> Result<(), SwiftRunFailure> {\n        CacheControl {\n            control,\n            wasi,\n            cursor,\n        }\n        .check_header(self)\n    }",
+      "excerpt_sha256": "129e385d4ccc7b426d609f61dede9a6e15bb5f3d9516d7c886f2e6d84d2e301a",
+      "first_line": 1497,
+      "full_source_bytes": 175500,
+      "full_source_sha256": "1f80f3ef02d464347d5c1d07a52b714d1fb1d101300988216fb84e20425c51c1",
+      "id": "cache-proof-and-owner-borrow",
+      "last_line": 1516,
+      "producer_relative_path": "inputs/vm/src/experimental_swift_reactor/cache.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    },
+    {
+      "excerpt": "impl CacheConstructionPhase<'_> {\n    pub(crate) fn construct(\n        &mut self,\n        adopted: AdoptedProof,\n    ) -> Result<SwiftFunctionCache, CacheConstructionFailure> {\n        let check = pairing(self.control.control, self.control.wasi, self.control.cursor).and_then(\n            |observation| {\n                self.control\n                    .control\n                    .check_adopted_owner(&adopted, self.control.cursor, observation)\n            },\n        );\n        if let Err(failure) = check {\n            self.constructed = true;\n            return Err(CacheConstructionFailure {\n                failure,\n                rejected_adopted: Some(adopted),\n            });\n        }\n        let repeated = std::mem::replace(&mut self.constructed, true);\n        if repeated {\n            let failure = self\n                .control\n                .error(CacheFailureKind::InvalidPin, \"swift_cache_construct_once\");\n            return Err(CacheConstructionFailure {\n                failure,\n                rejected_adopted: Some(adopted),\n            });\n        }\n        let mut partial = Partial::new(adopted);\n        let result = self.construct_partial(&mut partial);\n        match result {\n            Ok((owner, usage)) => Ok(SwiftFunctionCache {\n                adopted: partial.adopted.take().expect(\"whole adopted owner\"),\n                usage,\n                owner,\n                next_nonce: 1,\n                slots: take(&mut partial.slots),\n                pins: take(&mut partial.pins),\n                patches: take(&mut partial.patches),\n                index: take(&mut partial.index),\n                plans: take(&mut partial.plans),\n                buffers: std::mem::replace(&mut partial.buffers, std::array::from_fn(|_| None)),\n                header: partial.header.take(),\n            }),\n            Err(failure) => {\n                partial.cleanup(&mut self.control);\n                Err(CacheConstructionFailure {\n                    failure,\n                    rejected_adopted: None,\n                })\n            }\n        }\n    }\n    fn construct_partial(",
+      "excerpt_sha256": "9f1be5ba2e9b0dfa3422633c5c166b6a08553295a08c2d1308f3376d26ef0b04",
+      "first_line": 1754,
+      "full_source_bytes": 175500,
+      "full_source_sha256": "1f80f3ef02d464347d5c1d07a52b714d1fb1d101300988216fb84e20425c51c1",
+      "id": "constructor-initial-fields",
+      "last_line": 1808,
+      "producer_relative_path": "inputs/vm/src/experimental_swift_reactor/cache.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    },
+    {
+      "excerpt": "    fn construct_partial(\n        &mut self,\n        partial: &mut Partial,\n    ) -> Result<(u64, SwiftCacheUsage), SwiftRunFailure> {\n        self.control.check()?;\n        let header = cache_header_bytes().ok_or_else(|| {\n            self.control\n                .error(CacheFailureKind::Capacity, \"swift_cache_layout_overflow\")\n        })?;\n        partial.header = Some(self.control.admit(header)?);\n        let budget = self.control.control.budget();\n        let entries = budget.cache_entries.min(\n            partial\n                .adopted\n                .as_ref()\n                .expect(\"proof\")\n                .proof()\n                .defined_function_count(),\n        );\n        let buffer_bytes = entries.checked_mul(size_of::<SwiftSlot>()).ok_or_else(|| {\n            self.control\n                .error(CacheFailureKind::Capacity, \"swift_cache_layout_overflow\")\n        })?;\n        partial.buffers[0] = Some(self.control.admit(buffer_bytes)?);\n        reserve(&mut partial.slots, entries, &mut self.control)?;\n        for _ in 0..entries {\n            self.control.work(1)?;\n            partial.slots.push(SwiftSlot {\n                resident: None,\n                pins: 0,\n                last_used: 0,\n            });\n        }\n        let buffer_bytes = budget\n            .active_pins\n            .checked_mul(size_of::<PinRecord>())\n            .ok_or_else(|| {\n                self.control\n                    .error(CacheFailureKind::Capacity, \"swift_cache_layout_overflow\")\n            })?;\n        partial.buffers[1] = Some(self.control.admit(buffer_bytes)?);\n        reserve(&mut partial.pins, budget.active_pins, &mut self.control)?;\n        for _ in 0..budget.active_pins {\n            self.control.work(1)?;\n            partial.pins.push(PinRecord::default());\n        }\n        let buffer_bytes = PATCH_CAPACITY\n            .checked_mul(size_of::<decode::Patch>())\n            .ok_or_else(|| {\n                self.control\n                    .error(CacheFailureKind::Capacity, \"swift_cache_layout_overflow\")\n            })?;\n        partial.buffers[2] = Some(self.control.admit(buffer_bytes)?);\n        reserve(&mut partial.patches, PATCH_CAPACITY, &mut self.control)?;\n        for _ in 0..PATCH_CAPACITY {\n            self.control.work(1)?;\n            partial.patches.push(decode::EMPTY_PATCH);\n        }\n        reserve(&mut partial.index, RESIDENT_INDEX_BYTES, &mut self.control)?;\n        for _ in 0..RESIDENT_INDEX_BYTES {\n            self.control.work(1)?;\n            partial.index.push(0);\n        }\n        // Header includes the complete payload before this allocation begins.\n        reserve(&mut partial.plans, PLAN_CAPACITY, &mut self.control)?;\n        for _ in 0..PLAN_CAPACITY {\n            self.control.work(PLAN_CELL_CREDITS)?;\n            partial.plans.push(None);\n        }\n        self.control.check()?;\n        let owner = next_owner().map_err(|_| {\n            self.control.error(\n                CacheFailureKind::IdentityExhausted,\n                \"swift_cache_owner_exhausted\",\n            )\n        })?;\n        let fixed_reserved = header\n            + entries * size_of::<SwiftSlot>()\n            + budget.active_pins * size_of::<PinRecord>()\n            + PATCH_CAPACITY * size_of::<decode::Patch>();\n        Ok((\n            owner,\n            SwiftCacheUsage {\n                fixed_reserved,\n                ..SwiftCacheUsage::default()\n            },\n        ))\n    }\n    pub(crate) fn complete<T>(",
+      "excerpt_sha256": "c0dd498aaea739ac84d7e0eb31767a82f4868a3a8b384c22a2c54fb4f07b3460",
+      "first_line": 1808,
+      "full_source_bytes": 175500,
+      "full_source_sha256": "1f80f3ef02d464347d5c1d07a52b714d1fb1d101300988216fb84e20425c51c1",
+      "id": "constructor-exact-loops-reservations",
+      "last_line": 1896,
+      "producer_relative_path": "inputs/vm/src/experimental_swift_reactor/cache.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    },
+    {
+      "excerpt": "const fn compute_cache_header_bytes() -> Option<usize> {\n    let Some(exclusive) =\n        size_of::<SwiftFunctionCache>().checked_sub(size_of::<ValidatedSwiftReactor>())\n    else {\n        return None;\n    };\n    let Some(cleanup) = compute_cache_cleanup_temporary_bytes() else {\n        return None;\n    };\n    let Some(header) = exclusive.checked_add(cleanup) else {\n        return None;\n    };\n    let Some(header) = header.checked_add(RESIDENT_INDEX_BYTES) else {\n        return None;\n    };\n    header.checked_add(PLAN_CAPACITY * size_of::<Option<ScanPlan>>())\n}\nconst fn compute_cache_construction_bytes()",
+      "excerpt_sha256": "bae93488d4d632a8bdd106c2e79e955176e27716200ee3652313d27d2c5cac6c",
+      "first_line": 1119,
+      "full_source_bytes": 175500,
+      "full_source_sha256": "1f80f3ef02d464347d5c1d07a52b714d1fb1d101300988216fb84e20425c51c1",
+      "id": "local-H-formula",
+      "last_line": 1136,
+      "producer_relative_path": "inputs/vm/src/experimental_swift_reactor/cache.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    },
+    {
+      "excerpt": "pub struct SwiftRunBudget {\n    pub source_bytes: usize,\n    pub metadata_bytes: usize,\n    pub cache_bytes: usize,\n    pub cache_entry_bytes: usize,\n    pub cache_entries: usize,\n    pub active_pins: usize,\n    pub cache_work: u64,\n    pub frames: usize,\n    pub values: usize,\n    pub controls: usize,\n    pub memory_pages: u32,\n    pub state_bytes: usize,\n    pub combined_bytes: usize,\n    pub instruction_fuel: u64,\n    pub execution_work: u64,\n    pub host_calls: u64,\n    pub deadline_ms: u64,\n}\nimpl Default for SwiftRunBudget {\n    fn default() -> Self {\n        Self {\n            source_bytes: 64 * MIB,\n            metadata_bytes: 16 * MIB,\n            cache_bytes: 16 * MIB,\n            cache_entry_bytes: 8 * MIB,\n            cache_entries: 64,\n            active_pins: 64,\n            cache_work: 64_000_000,\n            frames: 64,\n            values: 16_384,\n            controls: 4_096,\n            memory_pages: 768,\n            state_bytes: 128 * MIB,\n            combined_bytes: 256 * MIB,\n            instruction_fuel: 100_000_000,\n            execution_work: 1_000_000_000,\n            host_calls: 32_768,\n            deadline_ms: 30_000,\n        }\n    }\n}\n\n#[derive(Clone, Copy, Debug, PartialEq, Eq)]\npub enum SwiftReservationCategory",
+      "excerpt_sha256": "74d46ea97598b80ebd0d8b3cdf16906d4af608bc3b62e29e762e63d2d978d352",
+      "first_line": 21,
+      "full_source_bytes": 62827,
+      "full_source_sha256": "d31fc8429ce3f72e689c3e40581dbd319aa6d36f456263da141ad905ed108aad",
+      "id": "budget-definition-maxima",
+      "last_line": 65,
+      "producer_relative_path": "inputs/vm/src/experimental_swift_reactor/control.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    },
+    {
+      "excerpt": "pub struct SwiftReservationUsage {\n    pub current: usize,\n    pub peak: usize,\n}\n/// Logical requested capacity and explicitly modelled headers; excludes allocator\n/// overhead and is never an RSS or compiler-stack measurement.\n#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]\npub struct SwiftReservations {\n    pub retained_source: SwiftReservationUsage,\n    pub retained_metadata: SwiftReservationUsage,\n    pub cache: SwiftReservationUsage,\n    pub state: SwiftReservationUsage,\n    pub wasi: SwiftReservationUsage,\n    pub shared: SwiftReservationUsage,\n    pub construction: SwiftReservationUsage,\n    pub combined: SwiftReservationUsage,\n    pub live_tickets: usize,\n    pub peak_tickets: usize,\n}\nimpl SwiftReservations {",
+      "excerpt_sha256": "0c5a3baf460e83c386bc269fc4c813c8ca8bd13a28ebd99b161fa51c5c1303e6",
+      "first_line": 75,
+      "full_source_bytes": 62827,
+      "full_source_sha256": "d31fc8429ce3f72e689c3e40581dbd319aa6d36f456263da141ad905ed108aad",
+      "id": "category-byte-vs-global-ticket-inventory",
+      "last_line": 94,
+      "producer_relative_path": "inputs/vm/src/experimental_swift_reactor/control.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    },
+    {
+      "excerpt": "    pub(crate) fn admit_with_wasi(\n        &mut self,\n        category: SwiftReservationCategory,\n        bytes: usize,\n        cursor: Cursor,\n        wasi: Option<WasiUsage>,\n    ) -> Result<ReservationTicket, SwiftRunFailure> {\n        self.check_with_wasi(cursor, wasi)?;\n        if self.reservations.live_tickets >= MAX_RESERVATION_TICKETS {\n            return Err(self.fail(\n                cursor,\n                Fault::new(\n                    SwiftRunFailureKind::ResourceExhausted,\n                    \"swift_run_ticket_inventory\",\n                )\n                .limit(\n                    SwiftRunResource::TicketInventory,\n                    self.reservations.live_tickets as u64 + 1,\n                    MAX_RESERVATION_TICKETS as u64,\n                ),\n                wasi,\n            ));\n        }\n        let (category_next, combined_next) = self.preflight_bytes(category, bytes, cursor, wasi)?;\n        self.commit_bytes(category, category_next, combined_next);\n        self.reservations.live_tickets += 1;\n        self.reservations.peak_tickets = self\n            .reservations\n            .peak_tickets\n            .max(self.reservations.live_tickets);\n        Ok(ReservationTicket {\n            owner: self.owner,\n            category,\n            bytes,\n        })\n    }\n\n    /// Aggregate locals/instructions/targets",
+      "excerpt_sha256": "81c4710d422feb430a52e3d1ff2ff23156a2ecea43be6bcebdb7ef7e8078048f",
+      "first_line": 988,
+      "full_source_bytes": 62827,
+      "full_source_sha256": "d31fc8429ce3f72e689c3e40581dbd319aa6d36f456263da141ad905ed108aad",
+      "id": "safe-zero-byte-admission",
+      "last_line": 1025,
+      "producer_relative_path": "inputs/vm/src/experimental_swift_reactor/control.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    },
+    {
+      "excerpt": "    pub(crate) fn reservation_owner_matches(&self, ticket: &ReservationTicket) -> bool {\n        ticket.owner != 0 && ticket.owner == self.owner\n    }\n\n    pub(crate) fn check_reservation_owner(\n        &mut self,\n        ticket: &ReservationTicket,\n        cursor: Cursor,\n        wasi: Option<WasiUsage>,\n    ) -> Result<(), SwiftRunFailure> {\n        let violation = if ticket.owner != self.owner || ticket.owner == 0 {\n            Some((\n                SwiftCleanupInvariant::ReservationOwner,\n                \"swift_run_reservation_owner\",\n            ))\n        } else if self.reservations.live_tickets == 0\n            || self.reservations.category(ticket.category).current < ticket.bytes\n            || self.reservations.combined.current < ticket.bytes\n        {\n            Some((\n                SwiftCleanupInvariant::ReservationUnderflow,\n                \"swift_run_reservation_underflow\",\n            ))\n        } else {\n            None\n        };\n        if let Some((invariant, code)) = violation {\n            self.cleanup_invariant.get_or_insert(invariant);\n            return Err(self.fail(\n                cursor,\n                Fault::new(SwiftRunFailureKind::Invariant, code),\n                wasi,\n            ));\n        }\n        Ok(())\n    }\n\n    /// Cleanup-independent validation",
+      "excerpt_sha256": "0381f0bb4e56e5f1bdddcb9aadceeeedb25a006cd6e463c76b04712b1e5f6abf",
+      "first_line": 1229,
+      "full_source_bytes": 62827,
+      "full_source_sha256": "d31fc8429ce3f72e689c3e40581dbd319aa6d36f456263da141ad905ed108aad",
+      "id": "runtime-owner-not-historical-instance",
+      "last_line": 1266,
+      "producer_relative_path": "inputs/vm/src/experimental_swift_reactor/control.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    },
+    {
+      "excerpt": "    pub(crate) fn check_with_wasi(\n        &mut self,\n        cursor: Cursor,\n        wasi: Option<WasiUsage>,\n    ) -> Result<(), SwiftRunFailure> {\n        if let Some(failure) = self.first_failure {\n            return Err(failure);\n        }\n        if self.cancellation.is_cancelled() {\n            return Err(self.fail(\n                cursor,\n                Fault::new(SwiftRunFailureKind::Cancelled, \"swift_run_cancelled\"),\n                wasi,\n            ));\n        }\n        if Instant::now() >= self.deadline {\n            return Err(self.fail(\n                cursor,\n                Fault::new(SwiftRunFailureKind::Deadline, \"swift_run_deadline\"),\n                wasi,\n            ));\n        }\n        Ok(())\n    }\n\n    pub(crate) fn fail(\n        &mut self,\n        cursor: Cursor,\n        fault: Fault,\n        wasi: Option<WasiUsage>,\n    ) -> SwiftRunFailure {\n        if let Some(failure) = self.first_failure {\n            return failure;\n        }\n        let failure = SwiftRunFailure {\n            stage: cursor.stage,\n            kind: fault.kind,\n            code: fault.code,\n            function: cursor.function,\n            offset: cursor.offset,\n            resource: fault.resource,\n            attempted: fault.attempted,\n            limit: fault.limit,\n            observed_capacity: fault.observed_capacity,\n            deadline_origin: self.deadline_origin,\n            wasi_failure: fault.wasi_failure,\n            guest_exit: fault.guest_exit,\n            at_failure: self.usage(wasi),\n            after_cleanup: None,\n        };\n        self.first_failure = Some(failure);\n        failure\n    }\n\n    fn category_limit(",
+      "excerpt_sha256": "21dc8b45950e8963b0c28ec2abdd5a7357aef96259389d3c764129312c2435f3",
+      "first_line": 850,
+      "full_source_bytes": 62827,
+      "full_source_sha256": "d31fc8429ce3f72e689c3e40581dbd319aa6d36f456263da141ad905ed108aad",
+      "id": "first-failure-and-live-check",
+      "last_line": 904,
+      "producer_relative_path": "inputs/vm/src/experimental_swift_reactor/control.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    },
+    {
+      "excerpt": "    pub(crate) fn checked_usage(\n        &self,\n        control: &mut RuntimeControl,\n        cursor: Cursor,\n    ) -> Result<WasiUsage, SwiftRunFailure> {\n        let Some(header) = self.header.as_ref() else {\n            return Err(control.fail(\n                cursor,\n                Fault::new(\n                    SwiftRunFailureKind::Invariant,\n                    \"swift_run_wasi_missing_header\",\n                ),\n                None,\n            ));\n        };\n        let observation = control\n            .reservation_owner_matches(header)\n            .then(|| self.context.usage());\n        control.check_reservation_owner(header, cursor, observation)?;\n        Ok(self.context.usage())\n    }\n    pub(crate) fn stdout(",
+      "excerpt_sha256": "d9994ef1f98d3e924cff71c9c30d7ddfd281c35fcb59caa287152a3de1715107",
+      "first_line": 131,
+      "full_source_bytes": 16127,
+      "full_source_sha256": "d93fd04ad9e5eedb9f64e5b530e5b33c525425b4f3d5d390f46a7781c2adae51",
+      "id": "optional-WASI-owner-check",
+      "last_line": 152,
+      "producer_relative_path": "inputs/vm/src/experimental_wasi/accounted.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    },
+    {
+      "excerpt": "    pub(crate) fn prepare(\n        control: &mut RuntimeControl,\n        cursor: Cursor,\n    ) -> Result<WasiConstructionPhase<'_>, SwiftRunFailure> {\n        let previous_bound = control.usage(None).reservations.construction.current;\n        let bound = accounted_construction_bytes()\n            .and_then(|extra| previous_bound.checked_add(extra))\n            .ok_or_else(|| layout_failure(control, cursor))?;\n        control.enlarge_construction(bound, cursor)?;\n        Ok(WasiConstructionPhase {\n            control,\n            previous_bound,\n            constructed: false,\n            #[cfg(test)]\n            test: ConstructionTest::default(),\n        })\n    }\n\n    pub(crate) fn usage(",
+      "excerpt_sha256": "02834f1ed1eae8a0864aa9f831623a921b27e163236a63a0d5eb57b2d901e41b",
+      "first_line": 105,
+      "full_source_bytes": 16127,
+      "full_source_sha256": "d93fd04ad9e5eedb9f64e5b530e5b33c525425b4f3d5d390f46a7781c2adae51",
+      "id": "WASI-prepare-no-global-once-marker",
+      "last_line": 123,
+      "producer_relative_path": "inputs/vm/src/experimental_wasi/accounted.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    },
+    {
+      "excerpt": "pub(crate) fn pin<M: CacheMode>(\n    parts: CacheParts<'_, M>,\n    function: u32,\n    operation: &mut M::Operation<'_>,\n) -> Result<M::Pin, M::Failure> {\n    let CacheParts {\n        snapshot,\n        slots,\n        pins,\n        owner,\n        next_nonce,\n        usage,\n        scratch,\n    } = parts;\n    let mut parts = CacheFields::<M> {\n        snapshot,\n        slots,\n        pins,\n        owner,\n        next_nonce,\n        scratch,\n    };\n    let mut meter = M::meter(usage, operation, function);\n    meter.step(CacheStep::Lookup);\n    meter.work(1)?;\n    let defined = parts\n        .snapshot\n        .function(function)\n        .ok_or_else(|| meter.error(CacheFailureKind::InvalidFunction, \"not_defined_function\"))?;\n    meter.set_offset(defined.body_offset);\n    let nonce = parts\n        .next_nonce\n        .checked_add(1)\n        .ok_or_else(|| meter.error(CacheFailureKind::NonceExhausted, \"pin_nonce_exhausted\"))?;\n    let mut pin_slot = None;\n    for (index, record) in parts.pins.iter().enumerate() {\n        meter.work(1)?;\n        if record.nonce == 0 {\n            pin_slot = Some(index);\n            break;\n        }\n    }\n    let pin_slot = pin_slot\n        .ok_or_else(|| meter.error(CacheFailureKind::PinExhausted, \"pin_slots_exhausted\"))?;\n    meter.acquire_pin()?;\n    let result = pin_acquired::<M>(&mut parts, &mut meter, defined, pin_slot, nonce);\n    if result.is_err() {\n        meter.abandon_pin();\n    }\n    result\n}\npub(crate) struct CacheFields",
+      "excerpt_sha256": "dcd956ec5269f7204385522cf8c0002f19b492f48b051684d9e84b796d554999",
+      "first_line": 706,
+      "full_source_bytes": 27367,
+      "full_source_sha256": "1fb07e5aa4d1246fa9bc49f2c8a892aebce7dc9dcc8700c9699454811a20df85",
+      "id": "failed-imported-acquire-before-mutation",
+      "last_line": 757,
+      "producer_relative_path": "inputs/vm/src/experimental/cache/borrowed.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    },
+    {
+      "excerpt": "fn admit_output(output: &mut File) -> Result<(), ProfileAdapterErrorV1> {\n    let metadata = output.metadata().map_err(|_| error(5, 3, 0))?;\n    if !metadata.is_file() {\n        return Err(error(6, 3, 0));\n    }\n    let position = output.stream_position().map_err(|_| error(7, 3, 0))?;\n    if metadata.len() != 0 || position != 0 {\n        return Err(error(8, 3, 0));\n    }\n    Ok(())\n}\nfn with_progress(",
+      "excerpt_sha256": "09f8664c9caf643d33e9739f2244b4244bd4297038e9c11fb5d67ad3c4ab408b",
+      "first_line": 127,
+      "full_source_bytes": 7515,
+      "full_source_sha256": "7f4458ddadb0480fe48a5ec57cbc1a11bfa074037eb41eeeb5edd8465fff87d8",
+      "id": "unchanged-row-File-admission",
+      "last_line": 138,
+      "producer_relative_path": "inputs/verification/swift-cache-state-profile-adapter/source/vm/src/experimental_swift_reactor/diagnostic_profile.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    },
+    {
+      "excerpt": "pub(crate) fn write_profile_row_body_v1(\n    snapshot: &ValidatedSwiftReactor,\n    output: &mut File,\n) -> Result<ProfileRowsObservationV1, ProfileAdapterErrorV1> {\n    admit(snapshot)?;\n    admit_output(output)?;\n    write_body(snapshot, |bytes| output.write(bytes))\n}\n#[cfg(test)]",
+      "excerpt_sha256": "0bde51f4420983dab4e91cb4f4c08cf0efcf2415d103b9a65662d31cd98a892a",
+      "first_line": 200,
+      "full_source_bytes": 7515,
+      "full_source_sha256": "7f4458ddadb0480fe48a5ec57cbc1a11bfa074037eb41eeeb5edd8465fff87d8",
+      "id": "row-accepts-independent-snapshot",
+      "last_line": 208,
+      "producer_relative_path": "inputs/verification/swift-cache-state-profile-adapter/source/vm/src/experimental_swift_reactor/diagnostic_profile.rs",
+      "scope": "Read-only source witness; no compiled semantic/ownership or release proof"
+    }
+  ]
+}

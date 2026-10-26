@@ -1,0 +1,23 @@
+{
+  "started_utc": "2026-10-26T19:43:48.074350+00:00",
+  "completed_utc": "2026-10-26T19:43:48.124201+00:00",
+  "argv": [
+    "python3",
+    "-B",
+    "-c",
+    "import json,pathlib; p=pathlib.Path(\"verification/github-delivery-profile-row-host-acceptance/fixture-artifact-audit\"); s=json.loads((p/\"source-selection.stdout\").read_text()); c=json.loads((p/\"source-custody.json\").read_text()); a={r[\"path\"] for r in s[\"canonical_source_members\"]}; b={r[\"path\"] for r in c[\"paths\"]}; print(json.dumps({\"selection_canonical_source_members\":len(a),\"git_tree_paths\":len(b),\"selected_paths_absent_from_tree\":sorted(a-b),\"tree_paths_outside_source_selection\":sorted(b-a)},indent=2))"
+  ],
+  "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+  "exit_code": 0,
+  "timed_out": false,
+  "stdout_file": "diagnose-selection.stdout",
+  "stdout": {
+    "bytes": 210,
+    "sha256": "ec6e8ffe66b4f9248584917165cf42441a85bffee55b343f0f871753eb2944cc"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "scope": "Read-only CLI data collection or reviewed data-only auditor; no artifact extraction or execution"
+}

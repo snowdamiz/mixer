@@ -1,0 +1,87 @@
+--- completion/src/experimental/cache/borrowed.rs
++++ canonical/src/experimental/cache/borrowed.rs
+@@ -431,8 +431,6 @@
+     where
+         'op: 'a;
+     type Scratch<'a>;
+-    #[cfg(test)]
+-    fn ordered_diagnostic(_: &mut Self::Meter<'_, '_>, _: [u64;11]) {}
+     fn meter<'a, 'op>(
+         usage: &'a mut Self::Usage,
+         operation: &'a mut Self::Operation<'op>,
+@@ -590,8 +588,6 @@
+ }
+ pub(crate) trait ReleaseControl<F>: PinDiagnostic<F> {
+     fn release_pin(&mut self) -> Result<(), F>;
+-    #[cfg(test)]
+-    fn ordered_release(&mut self, _: [u64;11]) {}
+ }
+ pub(crate) struct FrozenDiagnostics<'a> {
+     pub usage: &'a CacheUsage,
+@@ -705,10 +701,6 @@
+         .release(slot.entry().expect("checked entry").bytes, slot.pins() == 1);
+     slot.set_pins(slot.pins() - 1);
+     parts.pins[pin.slot()] = PinRecord::default();
+-    #[cfg(test)] {
+-        let entry=slot.entry().expect("checked entry");
+-        operation.ordered_release([12,entry.function as u64,entry.body_offset as u64,u64::MAX,entry.type_index as u64,record.entry as u64,pin.slot() as u64,pin.nonce(),entry.bytes as u64,0,slot.pins() as u64]);
+-    }
+     Ok(())
+ }
+ pub(crate) fn pin<M: CacheMode>(
+@@ -779,7 +771,6 @@
+ ) -> Result<M::Pin, M::Failure> {
+     let function = defined.absolute_index;
+     let hit = M::resident_lookup(parts.slots, &mut parts.scratch, function, meter)?;
+-    #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(2,defined,hit.map_or(u64::MAX,|n|n as u64),u64::MAX,0,u64::from(hit.is_some()),0,0));
+     let index = if let Some(index) = hit {
+         meter.check()?;
+         let hits = meter
+@@ -816,7 +807,6 @@
+         if base.checked_add(bytes).is_none_or(|n| n > capacity) {
+             return Err(meter.error(CacheFailureKind::Capacity, "entry_cannot_fit"));
+         }
+-        #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(5,defined,u64::MAX,u64::MAX,0,bytes as u64,base as u64,capacity as u64));
+         meter.step(CacheStep::Planning);
+         let mut plan = [false; MAX_ENTRIES];
+         let mut remaining = meter.usage().resident();
+@@ -854,19 +844,15 @@
+         for (index, selected) in plan.iter().enumerate().take(parts.slots.len()) {
+             if *selected {
+                 let bytes = parts.slots[index].entry().expect("planned entry").bytes;
+-                #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(6,defined,index as u64,u64::MAX,0,bytes as u64,0,0));
+                 M::resident_remove(parts.slots, &mut parts.scratch, index, meter)?;
+                 let old = parts.slots[index].take().expect("planned entry");
+-                #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(7,defined,index as u64,u64::MAX,0,bytes as u64,0,0));
+                 M::drop_entry(old, meter)?;
+                 meter.usage_mut().evicted(bytes);
+-                #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(8,defined,index as u64,u64::MAX,0,bytes as u64,0,0));
+             }
+         }
+         let index =
+             empty.ok_or_else(|| meter.error(CacheFailureKind::Capacity, "no_entry_slot"))?;
+         meter.construction(bytes)?;
+-        #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(9,defined,u64::MAX,u64::MAX,0,bytes as u64,0,0));
+         let decoded = M::build(parts.snapshot, defined, counts, &mut parts.scratch, meter);
+         let entry = match decoded {
+             Ok(entry) => entry,
+@@ -875,7 +861,6 @@
+                 return Err(error);
+             }
+         };
+-        #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(10,defined,u64::MAX,u64::MAX,0,bytes as u64,0,0));
+         meter.step(CacheStep::Publication);
+         if let Err(error) = meter.check() {
+             let _ = M::drop_entry(entry, meter);
+@@ -908,11 +893,5 @@
+     };
+     let pin = M::Pin::new(parts.owner, pin_slot, *parts.next_nonce);
+     *parts.next_nonce = nonce;
+-    #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(11,defined,index as u64,pin_slot as u64,pin.nonce(),u64::from(hit.is_none()),slot.entry().expect("resident entry").bytes as u64,slot.pins() as u64));
+     Ok(pin)
+ }
+-
+-#[cfg(test)]
+-pub(crate) fn ordered_event(kind:u64,body:FunctionSpanView<'_>,slot:u64,pin_slot:u64,nonce:u64,a:u64,b:u64,c:u64)->[u64;11]{
+-[kind,body.absolute_index as u64,body.body_offset as u64,body.body.len() as u64,body.type_index as u64,slot,pin_slot,nonce,a,b,c]
+-}

@@ -1,0 +1,1 @@
+package android.view.accessibility;public final class AccessibilityNodeInfo {private AccessibilityNodeInfo(){}public static final int ACTION_CLICK=16,ACTION_SET_TEXT=2097152;public static final String ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE="ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE";}

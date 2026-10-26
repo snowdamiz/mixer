@@ -1,0 +1,169 @@
+--- previous/NativeRenderer.java
++++ focus-history/NativeRenderer.java
+@@ -90,6 +90,7 @@
+     private int outstandingEditorNativeCalls;
+     private NativeAppearanceViewsV2.EditorLease editorDrain,editorFinishing;
+     private NativeAppearanceViewsV2.Replacement editorReplacement;
++    private long editorLossSerial;
+     boolean editorDisposalBusyV2(){NativeEnvironmentV2.requireMain();return outstandingEditorNativeCalls!=0||editorDrain!=null||editorFinishing!=null||editorReplacement!=null;}
+     private boolean retainedEditorV2(NativeAppearanceViewsV2.Record record) {
+         if(record==null)return false;
+@@ -138,6 +139,54 @@
+         public NativeAppearanceViewsV2.Mutation mutation(){return mutationV2();}
+         public boolean editorDispatchAvailable(NativeAppearanceViewsV2.Record record){NativeEnvironmentV2.requireMain();return editorReplacement==null&&retainedEditorV2(record);}
+         public boolean editorRetained(NativeAppearanceViewsV2.Record record){NativeEnvironmentV2.requireMain();return retainedEditorV2(record);}
++        public long editorLossObservation(){
++            NativeEnvironmentV2.requireMain();
++            if(editorLossSerial==Long.MAX_VALUE){IllegalStateException failure=new IllegalStateException("editor loss observation exhausted");terminalV2(NativeEnvironmentV2.RendererCause.CANCELLATION_FAILED,failure,null);throw failure;}
++            return editorLossSerial;
++        }
++        public void editorLossObserved(NativeAppearanceViewsV2.Record record){
++            NativeEnvironmentV2.requireMain();
++            if(record==null||record.editorFence!=v2Fence||!(record.view instanceof NativeAppearanceViewsV2.NativeField)||
++                !retainedEditorV2(record)&&!record.editorConstruction()||!capturedLossSuffixV2(record))throw Json.bad("foreign editor loss observation");
++            if(editorLossSerial==Long.MAX_VALUE){IllegalStateException failure=new IllegalStateException("editor loss observation exhausted");terminalV2(NativeEnvironmentV2.RendererCause.CANCELLATION_FAILED,failure,null);throw failure;}
++            editorLossSerial++;
++            if(editorReplacement!=null)editorReplacement.lost=true;
++            if(editorLossSerial==Long.MAX_VALUE){IllegalStateException failure=new IllegalStateException("editor loss observation exhausted");terminalV2(NativeEnvironmentV2.RendererCause.CANCELLATION_FAILED,failure,null);throw failure;}
++        }
++        public void fieldPreservationBegin(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.FieldPreservation preservation){
++            NativeEnvironmentV2.requireMain();
++            if(preservation==null||preservation.record!=record||record.view!=preservation.field||record.fieldPreservation!=preservation||
++                preservation.entered||preservation.ended||preservation.counted||!retainedEditorV2(record)||!preservation.field.needsFieldPreservation()||
++                record.editorCallbackLease!=null||editorReplacement!=null||editorDrain!=null||editorFinishing!=null||v2Fence.commitFinish||
++                preservation.original.mode!=NativeAppearanceViewsV2.Mutation.Mode.TRANSACTION||preservation.original.fence!=v2Fence||
++                preservation.original.token!=v2Fence.operation||!preservation.original.current()||!fieldPreservationCurrent(preservation.candidate,record,preservation)||outstandingEditorNativeCalls==Integer.MAX_VALUE)
++                throw Json.bad("invalid field preservation entry");
++            preservation.counted=true;outstandingEditorNativeCalls++;
++        }
++        public void fieldPreservationEnd(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.FieldPreservation preservation){
++            NativeEnvironmentV2.requireMain();
++            if(preservation==null||preservation.record!=record||!preservation.endReady()||!preservation.counted||outstandingEditorNativeCalls<=0)throw Json.bad("unfinished field preservation");
++            preservation.counted=false;outstandingEditorNativeCalls--;
++        }
++        public void replacementEvent(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.Replacement replacement){
++            NativeEnvironmentV2.requireMain();
++            // Scalar exact provenance precedes the no-call same-operation exclusion.
++            if(replacement==null||record==null||replacement.record!=record||record.input!=this||record.view!=replacement.field||replacement.field.record!=record||
++                !replacement.completed||replacement.eventValue==null||replacement.stage!=NativeAppearanceViewsV2.Replacement.Stage.DONE||!replacement.endReady()||
++                replacement.original.fence!=v2Fence||replacement.original.editorLease!=null||replacement.original.replacementLease!=null||replacement.original.fieldLease!=null)
++                throw Json.bad("invalid completed replacement provenance");
++            if(replacement.eventEvaluating||replacement.eventClaimed)return;
++            replacement.eventEvaluating=true;
++            try{
++                if(editorReplacement!=null||!replacement.field.completedReplacementEligible(replacement))throw Json.bad("invalid completed replacement event");
++                if(!open(record)||editorReplacement!=null||!replacement.field.completedReplacementEligible(replacement))throw Json.bad("replacement event authority changed after getter");
++                replacement.eventClaimed=true;
++            }finally{replacement.eventEvaluating=false;}
++            interaction();
++            if(v2Fence.terminal||!replacement.original.current()||!replacement.unchangedLoss())throw Json.bad("replacement event interaction unavailable");
++            events.send(packet.event(record.id,record.generation,"textChange",replacement.eventValue));
++            // Delivery completed. No native observation or continuation postcheck here.
++        }
+         public void editorEnter(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.EditorLease lease){
+             NativeEnvironmentV2.requireMain();
+             if(lease==null||lease.record!=record||record.view!=lease.field||!retainedEditorV2(record)||lease.entered||lease.ended||outstandingEditorNativeCalls==Integer.MAX_VALUE)
+@@ -211,6 +260,16 @@
+         public void interaction(){NativeEnvironmentV2.requireMain();if(!v2Fence.inputAllowed||v2Fence.terminal||!v2Open)return;
+             if(v2Interaction==Long.MAX_VALUE){terminalV2(NativeEnvironmentV2.RendererCause.INTERACTION_EXHAUSTED,null,null);return;}v2Interaction++;}
+     };return v2Input;}
++    private static boolean lossHookV2(String hook){return hook.equals("focus")||hook.equals("windowFocus")||hook.equals("windowVisibility")||hook.equals("aggregate")||hook.equals("visibility")||hook.equals("detach");}
++    private boolean capturedLossSuffixV2(NativeAppearanceViewsV2.Record record){
++        if(record.editorConstruction())return true;
++        var lease=record.editorCallbackLease;
++        if(lease!=null&&lease.record==record&&lease.field==record.view&&lease.entered&&!lease.ended&&lossHookV2(lease.hook))return true;
++        var replacement=record.replacementCallback;
++        if(replacement!=null&&replacement==editorReplacement&&replacement.record==record&&replacement.nativeExecuting&&replacement.tuple())return true;
++        var field=record.fieldPreservation;
++        return field!=null&&field.record==record&&field.entered&&field.counted&&!field.ended&&field.callbacks>0&&!field.hooks.isEmpty()&&lossHookV2(field.hooks.peek())&&fieldPreservationCurrent(field.candidate,record,field);
++    }
+     InstalledAppearanceV2 captureInstalledV2(){
+         NativeEnvironmentV2.requireMain();requireEditorsAvailableV2();requireV2Live();
+         OwnerLifecycleV2.Token operation=v2Fence.operation;requireTransactionV2(operation);
+@@ -300,6 +359,8 @@
+         final int left,top,right,bottom,measuredWidth,measuredHeight;
+         final boolean enabled;
+         final int selectionStart,selectionEnd,scrollX,scrollY;final boolean active,checked,focused,pressed;
++        boolean forwardPreserved;
++        NativeAppearanceViewsV2.FieldPreservation preservation;
+         NativeState(NativeAppearanceViewsV2.Record record){
+             this.record=record;binding=record.binding;geometry=record.geometry;active=record.view instanceof EditText e&&(e.hasFocus()||android.view.inputmethod.BaseInputConnection.getComposingSpanStart(e.getText())>=0)||record.view instanceof TextView t&&t.isTextSelectable()&&t.getSelectionStart()>=0;
+             nativeBuffer=record.view instanceof TextView t?t.getText():null;
+@@ -476,6 +537,7 @@
+         NativeAppearanceViewsV2.Mutation mutation=v2Mutation;
+         sealScalarV2();c.gate.open=false;c.gate.canvasColor=NativeAppearanceViewsV2.color(c.plan.canvas);v2Steps=0;
+         try {
++            beginFieldPreservationsV2(c,mutation);
+             for(var entry:c.targets.entrySet()){
+                 var target=entry.getValue();var shadow=c.detached.get(entry.getKey());
+                 if(target!=shadow){boolean preserve=target.view instanceof TextView&&sameEditorBindingV2(target,shadow);
+@@ -500,12 +562,57 @@
+             c.gate.layout(0,0,root.getWidth(),root.getHeight());mutation.require();
+ 
+             NativeAppearanceViewsV2.layoutRoot(c.targets.get(c.next.root.id),root.getWidth(),root.getHeight(),c.environment.value.safeArea64(),mutation);
++            checkFieldPreservationsV2(c);
+             faultV2();c.attached=true;return c.journal;
+         }catch(RuntimeException|java.lang.Error failure){
++            rememberV2(failure);
+             if(!v2Fence.terminal)try{restoreV2(c);}catch(RuntimeException|java.lang.Error rollback){
+                 rememberV2(failure);rememberV2(rollback);terminalV2(NativeEnvironmentV2.RendererCause.ROLLBACK_FAILED,failure,v2Cleanup.firstFatal);}
++            // Report the observed field transaction failure after eligible restoration,
++            // while every captured preservation count still protects its native suffix.
++            for(NativeState state:c.journal.previous)if(state.preservation!=null&&state.preservation.entered&&!state.preservation.ended)
++                state.preservation.field.preservationFailure(failure);
+             c.used=true;v2Pending=null;if(v2Cleanup.firstFatal!=null)throw v2Cleanup.firstFatal;throw failure;
+-        }finally{v2Mutation=previousMutation;}
++        }finally{v2Mutation=previousMutation;endFieldPreservationsV2(c);}
++    }
++    private void beginFieldPreservationsV2(Candidate c,NativeAppearanceViewsV2.Mutation mutation){
++        mutation.requireMutation();
++        for(NativeState state:c.journal.previous){
++            var record=state.record;
++            if(!(record.view instanceof NativeAppearanceViewsV2.NativeField field)||!field.needsFieldPreservation())continue;
++            var shadow=c.detached.get(record.id);
++            if(c.targets.get(record.id)!=record||shadow==null||!sameEditorBindingV2(record,shadow)||!sameNativeBaseV2(state)||record.fieldPreservation!=null)
++                throw Json.bad("incompatible settled field preservation");
++            var scope=new NativeAppearanceViewsV2.FieldPreservation(field,mutation,shadow.binding,(Editable)state.nativeBuffer,this,c);
++            record.fieldPreservation=scope;state.preservation=scope;state.forwardPreserved=true;
++            try{record.input.fieldPreservationBegin(record,scope);scope.entered=true;scope.capture();
++                if(!sameNativeBaseV2(state))throw Json.bad("preserved field journal changed");scope.exact();}
++            catch(RuntimeException|java.lang.Error failure){field.preservationFailure(failure);throw failure;}
++        }
++    }
++    private void checkFieldPreservationsV2(Candidate c){
++        for(NativeState state:c.journal.previous)if(state.preservation!=null)state.preservation.exact();
++    }
++    boolean fieldPreservationCurrent(Candidate c,NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.FieldPreservation scope){
++        NativeEnvironmentV2.requireMain();
++        if(c==null||c.owner!=this||v2Pending!=c||c.used||scope.renderer!=this||c.operation!=scope.original.token||c.targets.get(record.id)!=record)return false;
++        for(NativeState state:c.journal.previous)if(state.record==record)return state.forwardPreserved&&state.preservation==scope;
++        return false;
++    }
++    private void endFieldPreservationsV2(Candidate c){
++        Throwable endFailure=null;
++        for(NativeState state:c.journal.previous){
++            var scope=state.preservation;if(scope==null||scope.ended)continue;
++            var record=state.record;
++            record.fieldPreservation=null;scope.ended=true;
++            if(!scope.entered)continue;
++            try{record.input.fieldPreservationEnd(record,scope);}
++            catch(RuntimeException|java.lang.Error failure){rememberV2(failure);scope.field.preservationFailure(failure);if(endFailure==null)endFailure=failure;}
++            // Exact count clear is the final action for this scope; no owner resumption.
++        }
++        if(endFailure!=null){if(v2Cleanup.firstFatal!=null)throw v2Cleanup.firstFatal;
++            if(v2Cleanup.primary instanceof RuntimeException primary)throw primary;
++            if(endFailure instanceof java.lang.Error fatal)throw fatal;throw (RuntimeException)endFailure;}
+     }
+     /** Scalar/reference checks and prepared swaps only. Coordinator commits engine immediately before this call. */
+     void finishV2(Candidate c,AttachmentJournal journal){
+@@ -538,7 +645,9 @@
+         requireTransactionV2(c.operation);
+         NativeAppearanceViewsV2.Mutation mutation=v2Mutation;mutation.require();
+         if(v2RollbackFault)throw new IllegalStateException("test-only rollback fault");
+-        for(NativeState state:c.journal.previous){var r=state.record;boolean preserve=state.active;r.bind(state.binding,state.geometry,preserve,mutation);
++        for(NativeState state:c.journal.previous){var r=state.record;boolean preserve=state.active||state.forwardPreserved;
++            if(state.forwardPreserved){if(state.preservation==null||state.preservation.ended||r.fieldPreservation!=state.preservation)throw Json.bad("preserved field restoration authority ended");state.preservation.exact();}
++            r.bind(state.binding,state.geometry,preserve,mutation);
+             if(!preserve&&r.view instanceof TextView text&&state.text!=null){r.changing=true;try{text.setText(state.text);mutation.require();
+ 
+                 if(text instanceof EditText edit&&state.selectionStart>=0)edit.setSelection(state.selectionStart,state.selectionEnd);mutation.require();

@@ -1,0 +1,75 @@
+--- completion/src/experimental_swift_reactor/cache.rs
++++ canonical/src/experimental_swift_reactor/cache.rs
+@@ -1429,8 +1429,6 @@
+     }
+ }
+ impl ReleaseControl<SwiftRunFailure> for CacheControl<'_> {
+-    #[cfg(test)]
+-    fn ordered_release(&mut self,event:[u64;11]){super::cache_tests::ordered_observer::observe(event,self.control.ordered_coordinates());}
+     fn release_pin(&mut self) -> Result<(), SwiftRunFailure> {
+         self.remove_live(Live::ActivePins)
+     }
+@@ -1929,8 +1927,6 @@
+         cache: &mut SwiftFunctionCache,
+         function: u32,
+     ) -> Result<SwiftFunctionPin, SwiftRunFailure> {
+-        #[cfg(test)] super::cache_tests::ordered_observer::acquire(function,self.control.control.ordered_coordinates());
+-        let result=(|| {
+         self.control.check_header(cache)?;
+         pin::<SwiftMode>(
+             CacheParts {
+@@ -1948,9 +1944,7 @@
+             },
+             function,
+             &mut self.control,
+-        )})();
+-        #[cfg(test)] if let Err(ref failure)=result {super::cache_tests::ordered_observer::failure(failure,false);}
+-        result
++        )
+     }
+     pub(crate) fn complete<T>(self, returned_phase_storage: T) -> Result<(), SwiftRunFailure> {
+         let Self {
+@@ -2101,8 +2095,6 @@
+     meter.check()
+ }
+ impl CacheMode for SwiftMode {
+-    #[cfg(test)]
+-    fn ordered_diagnostic(meter:&mut SwiftMeter<'_, '_>,event:[u64;11]){super::cache_tests::ordered_observer::observe(event,meter.operation.control.ordered_coordinates());}
+     type Snapshot = ValidatedSwiftReactor;
+     type Slot = SwiftSlot;
+     type Resident = SwiftResident;
+@@ -2207,7 +2199,6 @@
+         scratch: &mut SwiftScratch<'_>,
+         meter: &mut SwiftMeter<'_, '_>,
+     ) -> Result<decode::Counts, SwiftRunFailure> {
+-        #[cfg(test)] Self::ordered_diagnostic(meter,ordered_event(3,body,u64::MAX,u64::MAX,0,0,0,(body.absolute_index&511) as u64));
+         let policy = policy(snapshot, body, meter)?;
+         if scratch.plans.len() != PLAN_CAPACITY {
+             return Err(meter.error(CacheFailureKind::DecoderMismatch, "swift_plan_layout"));
+@@ -2215,10 +2206,8 @@
+         meter.work(1)?; // requested identity hash, collision alone never authorizes
+         let index = body.absolute_index as usize & (PLAN_CAPACITY - 1);
+         meter.work(1)?; // actual Option tag probe
+-        #[cfg(test)] let mut ordered_prior=u64::MAX;
+         if let Some(plan) = &scratch.plans[index] {
+             meter.work(1)?; // actual function identity probe
+-            #[cfg(test)] {ordered_prior=plan.function as u64;}
+             if plan.function == body.absolute_index {
+                 // Probe all three remaining immutable-identity cells, including
+                 // malformed metadata. Do not short-circuit their accounting.
+@@ -2232,7 +2221,6 @@
+                     );
+                 }
+                 meter.work(3)?; // actual three-field Counts copy; also checks stop
+-                #[cfg(test)] Self::ordered_diagnostic(meter,ordered_event(4,body,u64::MAX,u64::MAX,0,2,u64::MAX,index as u64));
+                 return Ok(plan.counts);
+             }
+         }
+@@ -2263,7 +2251,6 @@
+             type_index: body.type_index,
+             counts,
+         });
+-        #[cfg(test)] Self::ordered_diagnostic(meter,ordered_event(4,body,u64::MAX,u64::MAX,0,u64::from(ordered_prior!=u64::MAX),ordered_prior,index as u64));
+         Ok(counts)
+     }
+     fn build(

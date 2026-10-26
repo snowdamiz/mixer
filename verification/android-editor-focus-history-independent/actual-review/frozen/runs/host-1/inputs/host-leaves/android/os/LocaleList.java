@@ -1,0 +1,1 @@
+package android.os; import java.util.Locale; public final class LocaleList {private final Locale[] values; public LocaleList(Locale...values){this.values=values.clone();}public Locale get(int index){return values[index];} public boolean isEmpty(){return values.length==0;} public int size(){return values.length;}}
