@@ -19,6 +19,13 @@ Begin-login checkpoint `273a1e48` passes every Phoenix CI step, including
 Callback-contract and recorded Swift-prototype review checkpoint `6d98de42`
 now passes all three Engine CI jobs.
 Selected finite Swift completion checkpoint `68468f8f` now passes all three Engine jobs.
+Callback candidate `5595f7b6` is on the isolated `codex/browser-callback-ci` validation
+branch. Phoenix CI passes 95 selected PostgreSQL 16 methods and 664 ordinary methods
+with two existing skips. Its archive omits two hidden source inputs; a narrow upload
+repair `9f15b11f` now passes every Phoenix step. Root verifies all 65 selected source
+inputs and 123 outputs across both retained artifacts; all three Engine jobs pass. The earlier candidate VM job
+exceeded its 20-minute limit after a 13-minute-47-second checkout; three later checks
+were skipped. Independent storage acceptance remains pending.
 Corrected analyzer design checkpoint `13ce0c2e` passes all three Engine CI jobs.
 Accepted fixture framing checkpoint `4af8b7e1` passes all three Engine CI jobs.
 Fixture contract and framing CI checkpoint `2e4ca9a3` fails its new framing CI step
@@ -33,7 +40,7 @@ Android host lifecycle core `4e48ac1a` is pushed; [Engine CI](https://github.com
 Android observer/source-profile repair `b45963c0` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40272428143) passed VM/services, but Swift was cancelled at the 30-minute job limit in the existing capability step. Logs remain unavailable; the runner-capacity notice does not establish the stall cause.
 Standalone Swift fixture-envelope CI `0b8e3fd8` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40273904826) passes all 42 steps across three jobs after one bounded Swift-only rerun. Actual Rust 1.98.1 envelope qualification is verified against all 252 artifact members. The first Swift attempt timed out at checkout and remains preserved separately.
 Reviewed owner/cache-state contracts `69b0c522` pass all 42 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40284896791). This checkpoint contains contracts and retained evidence; active product implementation remains outside it.
-Independent cache-state review preparation `5c1cf075` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40290654299) passes services, but Swift fails one runner-timeout control before analyzer execution. VM remains running. A bounded test-readiness repair passes all 63 CI selection controls locally; its CI delivery is pending.
+Independent cache-state review preparation `5c1cf075` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40290654299) passes services and VM, but Swift fails one runner-timeout control before analyzer execution. A bounded test-readiness repair passes all 63 CI selection controls locally; corrected `137d3e1d` passes all 42 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40292240567).
 Native runtime and capture remain paused.
 All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
@@ -218,9 +225,22 @@ File fixtures, the sorted-victim oracle and 35 proof obligations are now sealed
 in 173 members. Root selected the bounded Rust implementation in a separate
 source closure. The independent execution driver is sealed in 1,479 members;
 nine tooling methods and 372 checks pass per mode, with zero candidate accesses
-or executions. Exact frozen candidate admission and private review seams remain
-pending. Active producer host tests do not yet constitute accepted actual File
-or source/work, memory, caller and lifetime qualification. See
+or executions in that preparation phase. Root now verifies the 454-member Rust
+candidate and admits independent public-File execution and all 35 source proofs.
+Producer validation passes 114 distinct methods per host mode and 25 API controls.
+Each mode has 29 fresh public and two private injected File cases; four older
+raw folders receive no final-run credit. Independent implementation acceptance,
+private review seams and source/work, memory, caller and lifetime qualification
+remain pending. Independent execution passes 39 public fixtures and 15 API
+controls. Seven private finalizer witnesses per mode produce three passes and
+four failures, confirming incorrect inactive-mask checks and a missing pending
+feasibility guard. The guard-only correction is frozen in 814 members; root
+verifies its custody and the 899-member initial independent review. Producer
+checks pass 119 distinct methods and 25 API dispositions per mode. Independent
+replay passes 39 public fixtures, 15 API controls and all seven private guard
+witnesses in both modes; root verifies 1,241 sealed result members. Scalar-work and lifetime proofs
+remain open. Original source and failures are preserved. These private states
+have no established public from-empty reachability. See
 [the independent review](docs/swift-semantic-adapter-terminal-review.md) and
 [root contract acceptance](verification/swift-semantic-adapter-root-review/combined-contract-acceptance.json).
 
@@ -354,9 +374,24 @@ See [the HTTP checkpoint](docs/hosted-customer-artifact-http-checkpoint.md) and
 The private Android owner contract and roster amendment are accepted after
 independent review; implementation is selected. Root verified 303 sealed members.
 Both host closures are mandatory, including fourteen actual product subjects,
-184 V2 callback barriers and five unchanged V1 positive baselines. Product tests
-and independent implementation review remain pending. Profile3 is selected; its
-exact hashes require the frozen source map. Public V2 routing remains unselected.
+184 V2 callback barriers and five unchanged V1 positive baselines. Root verifies
+1,170 candidate members and 300 current source inputs. Producer checks pass
+197 orchestration cases, 1,316 concrete matrix rows and unsigned cross-compilation.
+The candidate can mislabel completed input cancellation as still in progress;
+independent execution also finds focus invalidation posting before gate closure.
+The terminal cancellation witness keeps the core retired and gates closed but
+continues ordinary readiness probes. Explicit mutation-argument propagation and
+private fixture acquisition cleanup also need correction. Narrow repairs and
+source/host review are active. A Handler post failure after enqueue also skips
+removal and falsely records cancellation complete, with the core still retired.
+Independent review rejects candidate2 and preserves seven classified findings.
+Corrected candidate3 is frozen: root verifies 1,215 members and 306 current
+inputs; producer checks pass 214 orchestration cases, 1,323 callback rows and
+Java/SDK/D8 cross-compilation. Independent review reproduces an open concrete
+renderer gate during lifecycle-dirty successful completion, with shared draw/input
+permissions still closed. Root verifies the 128-member witness and selects a
+fourth candidate repair. CLI validation and delivery are held; partial profile3
+edits still reference candidate3. Public V2 routing remains unselected.
 See [the roster review](docs/android-private-owner-effect-roster-review.md) and
 [root selection](verification/android-private-owner-effect-integration-root-review/implementation-selection.json).
 The [selected clarification](verification/android-private-owner-effect-integration-root-review/dirty-result-clarification/selection.json) distinguishes recoverable lifecycle invalidation from stale concrete validation and permits only immediate scalar return of a completed input result after a live successor. The exact third mechanical leaf snapshot is accepted for bounded reuse after twelve independent controls and 82 assertions; it provides no product-test or Android-runtime acceptance.
@@ -456,9 +491,16 @@ Private preauth URL publication, pending replacement, audit-counter race rollbac
 and final caller deadline/continuity checks are accepted within this scope.
 The callback contract passes independent source review and fourteen executable
 contract-model methods; root verifies 154 sealed members. All 39 runtime cases
-remain pending. Typed callback discovery/claim/provider-reject storage is selected
-for implementation. Complete supervised ClaimOwner ownership and shared permit
-transfer must precede publishing a claim handle. Active identity/provider, startup
+still lack complete matrix acceptance. The typed callback storage candidate passes
+35 callback, 30 preauth and 30 begin producer methods on PostgreSQL 17. The PostgreSQL 16 review stopped before database creation after two archive
+preparation failures and an automated safety interruption; its runtime checks
+remain pending and owned scratch is removed. Separate portable Linux CI passes all 95 selected methods on PostgreSQL 16
+and 664 ordinary methods with two existing skips. The uploaded selected packet
+omits two hidden source inputs. Corrected `9f15b11f` passes every Phoenix step,
+and root verifies all 65 sources and 123 outputs across its two retained artifacts.
+This CI result does not complete the interrupted independent review. Complete supervised
+ClaimOwner ownership, shared permit transfer and a retained wall handoff must
+precede publishing a claim handle. Active identity/provider, startup
 and HTTP composition remain pending. See [callback contract review](docs/hosted-browser-callback-claim-review.md)
 and [begin-login review](docs/hosted-browser-begin-login-review.md).
 See [the preauth review](docs/hosted-browser-preauth-store-review.md).

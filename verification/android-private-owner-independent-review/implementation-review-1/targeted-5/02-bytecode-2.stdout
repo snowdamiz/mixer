@@ -1,0 +1,207 @@
+Compiled from "NativeEnvironmentV2.java"
+final class dev.mixer.android.NativeEnvironmentV2 {
+  final dev.mixer.android.AppearanceResolverV2$Environment value;
+    descriptor: Ldev/mixer/android/AppearanceResolverV2$Environment;
+
+  final int width;
+    descriptor: I
+
+  final int height;
+    descriptor: I
+
+  private final dev.mixer.android.NativeEnvironmentV2$Observer source;
+    descriptor: Ldev/mixer/android/NativeEnvironmentV2$Observer;
+
+  private final long generation;
+    descriptor: J
+
+  private final java.lang.Object windowToken;
+    descriptor: Ljava/lang/Object;
+
+  private dev.mixer.android.NativeEnvironmentV2(dev.mixer.android.NativeEnvironmentV2$Observer, dev.mixer.android.AppearanceResolverV2$Environment, int, int, java.lang.Object);
+    descriptor: (Ldev/mixer/android/NativeEnvironmentV2$Observer;Ldev/mixer/android/AppearanceResolverV2$Environment;IILjava/lang/Object;)V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: aload_1
+         6: putfield      #7                  // Field source:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+         9: aload_0
+        10: aload_2
+        11: putfield      #13                 // Field value:Ldev/mixer/android/AppearanceResolverV2$Environment;
+        14: aload_0
+        15: iload_3
+        16: putfield      #17                 // Field width:I
+        19: aload_0
+        20: iload         4
+        22: putfield      #21                 // Field height:I
+        25: aload_0
+        26: aload_1
+        27: getfield      #24                 // Field dev/mixer/android/NativeEnvironmentV2$Observer.generation:J
+        30: putfield      #30                 // Field generation:J
+        33: aload_0
+        34: aload         5
+        36: putfield      #31                 // Field windowToken:Ljava/lang/Object;
+        39: return
+      LineNumberTable:
+        line 32: 0
+        line 33: 4
+        line 34: 25
+        line 35: 39
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      40     0  this   Ldev/mixer/android/NativeEnvironmentV2;
+            0      40     1 source   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+            0      40     2 value   Ldev/mixer/android/AppearanceResolverV2$Environment;
+            0      40     3 width   I
+            0      40     4 height   I
+            0      40     5 token   Ljava/lang/Object;
+
+  boolean current(java.lang.Object);
+    descriptor: (Ljava/lang/Object;)Z
+    Code:
+         0: invokestatic  #35                 // Method requireMain:()V
+         3: aload_0
+         4: getfield      #7                  // Field source:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+         7: getfield      #38                 // Field dev/mixer/android/NativeEnvironmentV2$Observer.owner:Ldev/mixer/android/NativeRenderer;
+        10: aload_1
+        11: if_acmpne     56
+        14: aload_0
+        15: getfield      #7                  // Field source:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+        18: getfield      #42                 // Field dev/mixer/android/NativeEnvironmentV2$Observer.retired:Z
+        21: ifne          56
+        24: aload_0
+        25: getfield      #30                 // Field generation:J
+        28: aload_0
+        29: getfield      #7                  // Field source:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+        32: getfield      #24                 // Field dev/mixer/android/NativeEnvironmentV2$Observer.generation:J
+        35: lcmp
+        36: ifne          56
+        39: aload_0
+        40: getfield      #7                  // Field source:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+        43: getfield      #46                 // Field dev/mixer/android/NativeEnvironmentV2$Observer.root:Landroid/widget/FrameLayout;
+        46: invokevirtual #50                 // Method android/widget/FrameLayout.getWindowToken:()Ljava/lang/Object;
+        49: aload_0
+        50: getfield      #31                 // Field windowToken:Ljava/lang/Object;
+        53: if_acmpeq     58
+        56: iconst_0
+        57: ireturn
+        58: aload_0
+        59: getfield      #13                 // Field value:Ldev/mixer/android/AppearanceResolverV2$Environment;
+        62: aload_0
+        63: getfield      #7                  // Field source:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+        66: invokevirtual #56                 // Method dev/mixer/android/NativeEnvironmentV2$Observer.read:()Ldev/mixer/android/AppearanceResolverV2$Environment;
+        69: invokevirtual #60                 // Method dev/mixer/android/AppearanceResolverV2$Environment.equals:(Ljava/lang/Object;)Z
+        72: istore_2
+        73: iload_2
+        74: ifeq          117
+        77: aload_0
+        78: getfield      #7                  // Field source:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+        81: getfield      #42                 // Field dev/mixer/android/NativeEnvironmentV2$Observer.retired:Z
+        84: ifne          117
+        87: aload_0
+        88: getfield      #7                  // Field source:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+        91: getfield      #38                 // Field dev/mixer/android/NativeEnvironmentV2$Observer.owner:Ldev/mixer/android/NativeRenderer;
+        94: aload_1
+        95: if_acmpne     117
+        98: aload_0
+        99: getfield      #30                 // Field generation:J
+       102: aload_0
+       103: getfield      #7                  // Field source:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+       106: getfield      #24                 // Field dev/mixer/android/NativeEnvironmentV2$Observer.generation:J
+       109: lcmp
+       110: ifne          117
+       113: iconst_1
+       114: goto          118
+       117: iconst_0
+       118: ireturn
+       119: astore_2
+       120: iconst_0
+       121: ireturn
+      Exception table:
+         from    to  target type
+            58   118   119   Class java/lang/RuntimeException
+      LineNumberTable:
+        line 37: 0
+        line 38: 3
+        line 39: 46
+        line 41: 58
+        line 42: 73
+        line 44: 119
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+           73      46     2 equal   Z
+          120       2     2 unavailable   Ljava/lang/RuntimeException;
+            0     122     0  this   Ldev/mixer/android/NativeEnvironmentV2;
+            0     122     1 owner   Ljava/lang/Object;
+
+  android.widget.FrameLayout root();
+    descriptor: ()Landroid/widget/FrameLayout;
+    Code:
+         0: invokestatic  #35                 // Method requireMain:()V
+         3: aload_0
+         4: getfield      #7                  // Field source:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+         7: getfield      #46                 // Field dev/mixer/android/NativeEnvironmentV2$Observer.root:Landroid/widget/FrameLayout;
+        10: areturn
+      LineNumberTable:
+        line 46: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      11     0  this   Ldev/mixer/android/NativeEnvironmentV2;
+
+  static void requireMain();
+    descriptor: ()V
+    Code:
+         0: invokestatic  #68                 // Method android/os/Looper.myLooper:()Landroid/os/Looper;
+         3: invokestatic  #74                 // Method android/os/Looper.getMainLooper:()Landroid/os/Looper;
+         6: if_acmpeq     19
+         9: new           #77                 // class java/lang/IllegalStateException
+        12: dup
+        13: ldc           #79                 // String V2 requires UI owner thread
+        15: invokespecial #81                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        18: athrow
+        19: return
+      LineNumberTable:
+        line 48: 0
+        line 49: 19
+
+  static void unsupported();
+    descriptor: ()V
+    Code:
+         0: new           #84                 // class dev/mixer/android/AppearanceDescriptorV2$Failure
+         3: dup
+         4: getstatic     #86                 // Field dev/mixer/android/AppearanceDescriptorV2$Error.unsupportedNativeOperation:Ldev/mixer/android/AppearanceDescriptorV2$Error;
+         7: invokespecial #92                 // Method dev/mixer/android/AppearanceDescriptorV2$Failure."<init>":(Ldev/mixer/android/AppearanceDescriptorV2$Error;)V
+        10: athrow
+      LineNumberTable:
+        line 50: 0
+
+  private static int logical(int, int);
+    descriptor: (II)I
+    Code:
+         0: iload_0
+         1: i2l
+         2: ldc2_w        #95                 // long 65536l
+         5: lmul
+         6: iload_1
+         7: i2l
+         8: ldiv
+         9: lstore_2
+        10: lload_2
+        11: ldc2_w        #99                 // long 2147483647l
+        14: lcmp
+        15: ifle          21
+        18: invokestatic  #101                // Method unsupported:()V
+        21: lload_2
+        22: l2i
+        23: ireturn
+      LineNumberTable:
+        line 294: 0
+        line 295: 10
+        line 296: 21
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      24     0 pixel   I
+            0      24     1 density   I
+           10      14     2 value   J
+}

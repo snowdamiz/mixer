@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T08:17:36.966179+00:00",
+  "context_revision": "5c1cf075be26b7a71297552723861ef893e69e7d",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "status": "candidate-2-profile-literal-integration-held-pending-input-ledger-repair",
+  "supersedes_CLI_authorization_in": "candidate-2-admission.json",
+  "admission_sha256": "77f257671008d2d6dc51530b8b3d3f954c4ce3f75eeb9edc6257a3b10805df42",
+  "candidate_manifest_sha256": "dc75c6544fdc10d25457c00782dcfb8afbcde756988ce0fd742606bb69c8c0e7",
+  "finding": "NativeOwnerV2.cancelInput classifies a completed cancellation by busyForOwnerDisposal, whose active-transaction/report terms can leave input cancellation IN_PROGRESS after its own pass completed. The selected contract keeps input cancellation distinct from coordinator disposal.",
+  "required_repair": "Use a main-checked cancellation-specific borrowed status, retain in-progress only for actual cancellation recursion, and independently preserve deferred disposal. Cover active operation/report and recursive cancellation with exact outer ledger outcomes. Freeze new source/profile bytes and rerun affected host/crosscompile checks.",
+  "independent_candidate2_source_review_authorized": true,
+  "CLI_literal_changes_authorized": false,
+  "candidate2_remains_immutable": true,
+  "implementation_accepted": false,
+  "native_runtime_or_capture_started": false,
+  "GA_qualified": false
+}

@@ -1,0 +1,36 @@
+--- original/cache_state.rs
++++ correction-1/cache_state.rs
+@@ -207,17 +207,22 @@
+     if q[3] != 0 && (q[4] == 0 || q[5] >= 80000) {
+         return false;
+     }
+-    if (q[10] | q[11] | q[12]) & !selected_mask(f.slots) != 0
+-        || q[11] & !q[10] != 0
+-        || q[12] & !q[11] != 0
+-    {
+-        return false;
+-    }
+-    if (q[3] == 7 || q[3] == 8) && (q[13] >= f.slots || q[10] & (1 << q[13]) == 0) {
+-        return false;
+-    }
+-    if (6..=10).contains(&q[3]) && (q[15] > 1 || (q[15] == 1 && q[14] >= f.slots)) {
+-        return false;
++    // Q7/Q8/Q9/Q10: planned-only fields are not read outside stages6..10.
++    // Within pending stages7/8, feasibility must hold before pending is read.
++    if (6..=10).contains(&q[3]) {
++        if (q[10] | q[11] | q[12]) & !selected_mask(f.slots) != 0
++            || q[11] & !q[10] != 0
++            || q[12] & !q[11] != 0
++        {
++            return false;
++        }
++        if q[15] > 1 || (q[15] == 1 && q[14] >= f.slots) {
++            return false;
++        }
++        if (q[3] == 7 || q[3] == 8) && (q[15] != 1 || q[13] >= f.slots || q[10] & (1 << q[13]) == 0)
++        {
++            return false;
++        }
+     }
+     if q[0] == 0
+         && (q[1] != 0 || q[2] != 0 || q[3] != 0 || q[6] != 0 || q[7] != 0 || q[8] != 0 || q[9] != 1)

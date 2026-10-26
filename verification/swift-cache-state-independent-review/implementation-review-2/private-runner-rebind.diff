@@ -1,0 +1,50 @@
+--- sealed-review-1/run_private_guards.py
++++ review-2/run_private_guards.py
+@@ -13,8 +13,8 @@
+ spec = importlib.util.spec_from_file_location('sealed_review_harness', PREP / 'harness.py')
+ h = importlib.util.module_from_spec(spec)
+ spec.loader.exec_module(h)
+-ADMISSION = ROOT / 'verification/swift-semantic-adapter-root-review/private-guard-review-admission.json'
+-ADMISSION_SHA = 'd52cb249fff84ed893e0f919cefff9095288a725ada60fa06db64743e893a586'
++ADMISSION = ROOT / 'verification/swift-semantic-adapter-root-review/guard-correction-private-review-admission.json'
++ADMISSION_SHA = '5f7c86575d45090dd73fb42b6312335ce6123f17c3ddd1c98b9e49a071f628cb'
+ OUT = HERE / 'private-guard-run-1'
+ 
+ 
+@@ -71,13 +71,20 @@
+         require(len(set(a['cases'])) == 7, 'duplicate case')
+         for c in expected:
+             require(len(c['expected_words']) == 32 and all(type(v) == int and 0 <= v < 2**64 for v in c['expected_words']), 'full32')
+-        baseline = HERE / 'candidate-snapshot/verification/swift-cache-state-implementation/source/library'
+-        product = ROOT / 'verification/swift-cache-state-implementation/source/library'
++        baseline = HERE / 'candidate-snapshot/verification/swift-cache-state-implementation/correction-1/source/library'
++        product = ROOT / 'verification/swift-cache-state-implementation/correction-1/source/library'
++        public_path = ROOT / 'verification/swift-semantic-adapter-root-review/guard-correction-public-review-admission.json'
++        public = json.loads(checked(public_path, '3230858dae7a43050c03f06c89202447f27627554302b6709df9c8f70b38f559'))
++        require(a['public_admission_sha256'] == '3230858dae7a43050c03f06c89202447f27627554302b6709df9c8f70b38f559' and a['candidate_seal_sha256'] == public['candidate_seal_sha256'], 'exact corrected rebind')
++        corrected_seal = json.loads(checked(ROOT / public['candidate_seal'], public['candidate_seal_sha256']))
++        members = {m['path']: m for m in corrected_seal['members']}
++        baseline_hashes = {Path(p).name: members[p]['sha256'] for p in public['source_members']}
++        require(set(baseline_hashes) == {'analyzer.rs', 'envelope.rs', 'cache_state.rs'}, 'corrected three-source closure')
+         source_receipt = []
+         for name, suffix in delta['append_only_utf8'].items():
+             require(name in ('analyzer.rs', 'envelope.rs', 'cache_state.rs'), 'closed source map')
+-            raw = checked(baseline / name, delta['baseline_sha256'][name])
+-            checked(product / name, delta['baseline_sha256'][name])
++            raw = checked(baseline / name, baseline_hashes[name])
++            checked(product / name, baseline_hashes[name])
+             transformed = raw + suffix.encode('utf-8')
+             bound = a['transformed_source_hashes'][name]
+             require(len(transformed) == bound['bytes'] and h.sha(transformed) == bound['sha256'], 'exact admitted append delta')
+@@ -119,9 +126,9 @@
+                     mr['cases'].append({'id': e['id'], 'expected_shape': e['expected_shape'], 'observed_shape': o['shape_guard'], 'shape_matches': e['expected_shape'] == o['shape_guard'], 'full32_matches': not differences, 'differences': differences, 'expected_words': e['expected_words'], 'observed_words': o['words']})
+             except Exception as exc:
+                 mr['protocol_failure'] = {'type': type(exc).__name__, 'message': str(exc)}
+-        for name, digest in delta['baseline_sha256'].items():
++        for name, digest in baseline_hashes.items():
+             checked(product / name, digest)
+-        result['product_baseline_hashes_unchanged_after'] = delta['baseline_sha256']
++        result['product_baseline_hashes_unchanged_after'] = baseline_hashes
+     except Exception as exc:
+         result['preflight_failure'] = {'type': type(exc).__name__, 'message': str(exc)}
+     finally:

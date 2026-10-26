@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T09:09:16.456213+00:00",
+  "status": "Q9-Q10-private-guard-defects-confirmed-isolated-correction-selected",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "command": [
+    "verification/swift-semantic-adapter-root-review/select_guard_correction.py"
+  ],
+  "script": {
+    "path": "verification/swift-semantic-adapter-root-review/select_guard_correction.py",
+    "bytes": 4406,
+    "sha256": "03d92e6d5eaa7eec42bd19d993c22d77a38961b2d685920b06741981999384b3"
+  },
+  "baseline_candidate": {
+    "path": "verification/swift-cache-state-implementation/candidate-repo-seal.json",
+    "bytes": 105235,
+    "sha256": "caceb9db9263de46ed876ff109f34eacb8fe13a9bd3ac47758f2bdac5c693ad3"
+  },
+  "private_admission": {
+    "path": "verification/swift-semantic-adapter-root-review/private-guard-review-admission.json",
+    "bytes": 3754,
+    "sha256": "d52cb249fff84ed893e0f919cefff9095288a725ada60fa06db64743e893a586"
+  },
+  "observed_evidence": [
+    {
+      "path": "verification/swift-cache-state-independent-review/implementation-review-1/private-guard-run-1/summary.json",
+      "bytes": 37054,
+      "sha256": "08be8cd17866d42994527263d7c7f4dc1e7f17582b12a964d30ec6286df3ca7a"
+    },
+    {
+      "path": "verification/swift-cache-state-independent-review/implementation-review-1/private-guard-run-1/source-receipt.json",
+      "bytes": 1065,
+      "sha256": "1ba91c1ca5a3b6c5a2e92daf7692ddfe8fe185580ae2a72ee496636fddf2a850"
+    },
+    {
+      "path": "verification/swift-cache-state-independent-review/implementation-review-1/private-guard-run-1/tool-receipt.json",
+      "bytes": 1562,
+      "sha256": "e11e37242951ada265fc98a8321a2dd286de489c2a8318f5fef12a6e85ecd980"
+    },
+    {
+      "path": "verification/swift-cache-state-independent-review/implementation-review-1/private-guard-run-1/cleanup.json",
+      "bytes": 888,
+      "sha256": "6c576eec040ba621093e984863b21e4e2544e5b5b75f330c4efb39d33d806eb9"
+    },
+    {
+      "path": "verification/swift-cache-state-independent-review/implementation-review-1/private-guard-run-1/expected-cases.json",
+      "bytes": 8714,
+      "sha256": "526b4635650a2bb65fadc8f51d04493bca1bc9b22a7e18e4f1a2b84fda5aa373"
+    }
+  ],
+  "private_observations_per_mode": {
+    "passed": 3,
+    "failed": 4
+  },
+  "scope": "Actual frozen shape_q/projection invoked with deliberately seeded private state in two binary modes; public39 still pass, ordinary-input reachability not established.",
+  "findings": [
+    "Q10: masks must not be checked outside planned stages6..10; inactive selected/taken values wrongly suppress the observation.",
+    "Q9: pending stages7/8 require feasible=true; false feasibility wrongly exposes the live observation instead of T09 poison."
+  ],
+  "selected_change": "Condition masks/feasibility read set on exact selected stage predicates; require feasible=true for pending. Preserve full32 projection, terminal precedence, old prefixes/API and all resource caps. Add independent producer controls for all stages and relevant guard boundaries.",
+  "ownership": [
+    "verification/swift-cache-state-implementation/correction-1/**"
+  ],
+  "immutable": "Every original454 member, candidate-repo-seal.json, intermediate seals and external original implementation doc remain byte-identical; new files only under correction-1.",
+  "validation": "Own focused guard controls plus applicable public/regression/API/layout and work/caller/lifetime reconciliation in both modes against exact new bytes; immutable final source/evidence manifest. Do not import/read independent expected fixtures, glue or oracle as producer implementation.",
+  "correction_doc": "Keep new correction documentation inside correction-1; do not modify the original sealed external doc.",
+  "remaining_source_review": "Independent P01-P35 and coarse scalar-block accounting reconciliation continue; further findings must be coordinated, never hidden by widening caps or changing oracle.",
+  "implementation_accepted": false,
+  "native_runtime_or_capture_started": false,
+  "GA_qualified": false
+}

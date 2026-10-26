@@ -1,0 +1,202 @@
+{
+  "schema": 1,
+  "candidate": 2,
+  "candidate_manifest_sha256": "dc75c6544fdc10d25457c00782dcfb8afbcde756988ce0fd742606bb69c8c0e7",
+  "recommendation": "reject-candidate2-for-implementation-acceptance; review repaired frozen candidate separately",
+  "findings": [
+    {
+      "id": "F01",
+      "title": "Input cancellation completion conflates unrelated coordinator activity",
+      "status": "known-root-finding-source-corroborated",
+      "families": [
+        "I14",
+        "I16",
+        "I21"
+      ],
+      "source": "native/android/app/src/dev/mixer/android/NativeOwnerV2.java",
+      "lines": [
+        220,
+        228
+      ],
+      "obligation": "Returned cancellation is distinct from active/report disposal deferral.",
+      "evidence": [
+        "candidate-2/source/native/android/app/src/dev/mixer/android/NativeOwnerV2.java"
+      ],
+      "limitation": "No additional independent runtime reproduction claimed."
+    },
+    {
+      "id": "F02",
+      "title": "Fresh input focus invalidation occurs before scalar sealing",
+      "status": "independent-runtime-confirmed",
+      "families": [
+        "I03",
+        "I06",
+        "I24"
+      ],
+      "source": "native/android/app/src/dev/mixer/android/NativeOwnerV2.java",
+      "lines": [
+        169,
+        189
+      ],
+      "related_lines": [
+        249,
+        256
+      ],
+      "obligation": "Scalar shared/current/pending closure precedes fresh probes, core effects and callbacks; every SEAL closes flags.",
+      "evidence": [
+        "targeted-2/03-fresh-input.stdout",
+        "targeted-2/03-fresh-input.stderr",
+        "targeted-3/03-fresh-input.stdout"
+      ],
+      "observation": {
+        "actual_core_dirty": true,
+        "actual_core_focused": false,
+        "draw_allowed": true,
+        "input_allowed": true,
+        "current_gate_open": true
+      },
+      "limitation": "Lifecycle positive seals correctly; the defect is nativeInput fresh acquisition plus ignored nonterminal SEAL."
+    },
+    {
+      "id": "F03",
+      "title": "Ordinary readiness probes continue after actual cancellation terminal reentry",
+      "status": "independent-runtime-confirmed-source-boundary-deviation",
+      "families": [
+        "I03",
+        "I10",
+        "I21"
+      ],
+      "source": "native/android/app/src/dev/mixer/android/NativeOwnerV2.java",
+      "lines": [
+        117,
+        123
+      ],
+      "related_source_paths": [
+        "native/android/app/src/dev/mixer/android/NativeRenderer.java",
+        "native/android/app/src/dev/mixer/android/NativeCoordinatorV2.java"
+      ],
+      "obligation": "After Gate.invalidate cancellation reenters terminal close, stop ordinary readiness probes; only consumed cleanup may continue.",
+      "evidence": [
+        "targeted-3/03-terminal.stdout",
+        "targeted-3/03-terminal.stderr"
+      ],
+      "observation": {
+        "actual_core_phase": "RETIRED",
+        "draw_allowed": false,
+        "input_allowed": false,
+        "prepare_calls": 1,
+        "destroy_calls": 1
+      },
+      "limitation": "No reopening or new operation observed. start and Work.run source counterparts require corrected separate controls."
+    },
+    {
+      "id": "F04",
+      "title": "Private renderer fixture/factory failure cleanup is incomplete",
+      "status": "independent-source-only",
+      "families": [
+        "I04",
+        "I16",
+        "I26"
+      ],
+      "source": "native/android/tests/NativeAppearanceV2Instrumentation.java",
+      "lines": [
+        48,
+        53
+      ],
+      "related_lines": [
+        75,
+        87
+      ],
+      "obligation": "Independently unwind registered observer, renderer/core and dedicated nonprimary root; preserve first ordinary/fatal.",
+      "evidence": [
+        "candidate-2/source/native/android/tests/NativeAppearanceV2Instrumentation.java"
+      ],
+      "limitation": "No native instrumentation execution or synthetic native fixture substitute; producer repair claims remain unreviewed."
+    },
+    {
+      "id": "F05",
+      "title": "Explicit immutable Mutation helper parameters and recursive propagation missing",
+      "status": "independent-source-only-mandatory-contract",
+      "families": [
+        "I07",
+        "I10",
+        "I11"
+      ],
+      "source": "native/android/app/src/dev/mixer/android/NativeAppearanceViewsV2.java",
+      "lines": [
+        139,
+        139
+      ],
+      "signatures": {
+        "Record": 139,
+        "bind": 222,
+        "measure": 389,
+        "measureList": 533,
+        "installChildren": 579,
+        "layoutRoot": 595,
+        "layout": 603
+      },
+      "callers": [
+        "NativeRenderer.prepareV2",
+        "NativeRenderer.attachV2",
+        "recursive measure/measureList/layout",
+        "Group.onLayout/titleLayout",
+        "NativeScroll.onScrollChanged"
+      ],
+      "obligation": "Selected correction lines288\u2013298 require explicit same captured Mutation through these helpers/callers.",
+      "evidence": [
+        "candidate-2/source/native/android/app/src/dev/mixer/android/NativeAppearanceViewsV2.java",
+        "candidate-2/source/native/android/app/src/dev/mixer/android/NativeRenderer.java"
+      ],
+      "limitation": "Present transactions often recapture the same retained object; no authority-minting or successor bypass claimed."
+    },
+    {
+      "id": "F06",
+      "title": "Possibly enqueued owned Work loses identity before cancellation attempt",
+      "status": "independent-runtime-confirmed",
+      "families": [
+        "I19",
+        "I20"
+      ],
+      "source": "native/android/app/src/dev/mixer/android/NativeOwnerV2.java",
+      "lines": [
+        318,
+        335
+      ],
+      "obligation": "Keep the exact possibly-enqueued owned Work until actual removeCallbacks disposition; ledger must distinguish attempt/return.",
+      "evidence": [
+        "targeted-5/03-post-failure.stdout",
+        "targeted-5/03-post-failure.stderr"
+      ],
+      "observation": {
+        "actual_queued_after_retirement": 1,
+        "actual_remove_calls": 0,
+        "handler_ledger": "RETURNED",
+        "same_primary": true,
+        "actual_core_phase": "RETIRED",
+        "JNIcreate": 0
+      },
+      "limitation": "Retained stale delivery was drained and stayed inert; no authority reopening claimed."
+    },
+    {
+      "id": "F07",
+      "title": "Ordinary helpers do not refuse CLEANUP mode explicitly",
+      "status": "root-producer-reported-independently-source-corroborated",
+      "families": [
+        "I10"
+      ],
+      "source": "native/android/app/src/dev/mixer/android/NativeAppearanceViewsV2.java",
+      "lines": [
+        66,
+        76
+      ],
+      "obligation": "Selected correction limits CLEANUP to consumed release/hide, forbidding bind/layout authority.",
+      "evidence": [
+        "candidate-2/source/native/android/app/src/dev/mixer/android/NativeAppearanceViewsV2.java"
+      ],
+      "limitation": "No production Mutation.cleanup caller exists in this frozen candidate. No reached production bypass or independent runtime proof claimed."
+    }
+  ],
+  "repairs_reviewed": false,
+  "implementation_accepted": false
+}

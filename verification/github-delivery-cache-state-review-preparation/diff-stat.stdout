@@ -1,0 +1,1790 @@
+ PLAN.md                                            |      8 +-
+ STATUS.md                                          |     10 +-
+ ...ift-cache-state-execution-review-preparation.md |    149 +
+ ...swift-cache-state-implementation-review-plan.md |    215 +
+ gates/ga.json                                      |     66 +-
+ .../github-delivery-source-contracts/ARCHIVE.md    |     17 +
+ .../github-delivery-source-contracts/PLAN.md.diff  |     56 +
+ .../STATUS.md.diff                                 |     58 +
+ .../authored-diff-check.stderr                     |      0
+ .../authored-diff-check.stdout                     |      0
+ .../base-PLAN.md.stderr                            |      0
+ .../base-PLAN.md.stdout                            |    464 +
+ .../base-STATUS.md.stderr                          |      0
+ .../base-STATUS.md.stdout                          |    660 +
+ .../base-gates-ga.json.stderr                      |      0
+ .../base-gates-ga.json.stdout                      |   4746 +
+ .../base-tree.stderr                               |      0
+ .../base-tree.stdout.zip                           |    Bin 0 -> 3358478 bytes
+ .../base-work-graph.json.stderr                    |      0
+ .../base-work-graph.json.stdout                    |   5406 +
+ .../branch-before-commit.stderr                    |      0
+ .../branch-before-commit.stdout                    |      1 +
+ .../github-delivery-source-contracts/branch.stderr |      0
+ .../github-delivery-source-contracts/branch.stdout |      1 +
+ .../ci-observation-1/command.json                  |     16 +
+ .../ci-observation-1/stderr                        |      0
+ .../ci-observation-1/stdout.json                   |      1 +
+ .../ci-observation-2/command.json                  |     16 +
+ .../ci-observation-2/stderr                        |      0
+ .../ci-observation-2/stdout.json                   |      1 +
+ .../ci-observation-3/command.json                  |     16 +
+ .../ci-observation-3/stderr                        |      0
+ .../ci-observation-3/stdout.json                   |      1 +
+ .../ci-observation-4/command.json                  |     16 +
+ .../ci-observation-4/stderr                        |      0
+ .../ci-observation-4/stdout.json                   |      1 +
+ .../ci-observation-5/command.json                  |     16 +
+ .../ci-observation-5/stderr                        |      0
+ .../ci-observation-5/stdout.json                   |      1 +
+ .../ci-observation-6/command.json                  |     16 +
+ .../ci-observation-6/stderr                        |      0
+ .../ci-observation-6/stdout.json                   |      1 +
+ .../ci-observation-7/command.json                  |     16 +
+ .../ci-observation-7/stderr                        |      0
+ .../ci-observation-7/stdout.json                   |      1 +
+ .../ci-observation-8/command.json                  |     16 +
+ .../ci-observation-8/stderr                        |      0
+ .../ci-observation-8/stdout.json                   |      1 +
+ .../ci-terminal.json                               |     44 +
+ .../github-delivery-source-contracts/commands.json |    183 +
+ .../github-delivery-source-contracts/commit.stderr |      0
+ .../github-delivery-source-contracts/commit.stdout |   1988 +
+ .../committed-head.stderr                          |      0
+ .../committed-head.stdout                          |      1 +
+ .../committed-parent.stderr                        |      0
+ .../committed-parent.stdout                        |      1 +
+ .../committed-tree.stderr                          |      0
+ .../committed-tree.stdout                          |      1 +
+ .../github-delivery-source-contracts/deliver.py    |     70 +
+ .../delivery-commands.json                         |    153 +
+ .../diff-check.stderr                              |      0
+ .../diff-check.stdout                              |   1058 +
+ .../diff-stat.stderr                               |      0
+ .../diff-stat.stdout                               |   1992 +
+ .../gh-version.stderr                              |      0
+ .../gh-version.stdout                              |      2 +
+ .../git-version.stderr                             |      0
+ .../git-version.stdout                             |      1 +
+ .../head-before-commit.stderr                      |      0
+ .../head-before-commit.stdout                      |      1 +
+ .../github-delivery-source-contracts/head.stderr   |      0
+ .../github-delivery-source-contracts/head.stdout   |      1 +
+ .../index-after-commit.stderr                      |      0
+ .../index-after-commit.stdout                      |      0
+ .../index-before.stderr                            |      0
+ .../index-before.stdout                            |      0
+ .../github-delivery-source-contracts/manifest.json |   7966 +
+ .../metadata-blob-PLAN.md.stderr                   |      0
+ .../metadata-blob-PLAN.md.stdout                   |      1 +
+ .../metadata-blob-STATUS.md.stderr                 |      0
+ .../metadata-blob-STATUS.md.stdout                 |      1 +
+ .../metadata-blob-gates-ga.json.stderr             |      0
+ .../metadata-blob-gates-ga.json.stdout             |      1 +
+ .../metadata-blob-work-graph.json.stderr           |      0
+ .../metadata-blob-work-graph.json.stdout           |      1 +
+ .../metadata-snapshots/PLAN.md                     |    484 +
+ .../metadata-snapshots/STATUS.md                   |    682 +
+ .../metadata-snapshots/gates/ga.json               |   4861 +
+ .../metadata-snapshots/work-graph.json             |   5521 +
+ .../metadata-stage-PLAN.md.stderr                  |      0
+ .../metadata-stage-PLAN.md.stdout                  |      0
+ .../metadata-stage-STATUS.md.stderr                |      0
+ .../metadata-stage-STATUS.md.stdout                |      0
+ .../metadata-stage-gates-ga.json.stderr            |      0
+ .../metadata-stage-gates-ga.json.stdout            |      0
+ .../metadata-stage-work-graph.json.stderr          |      0
+ .../metadata-stage-work-graph.json.stdout          |      0
+ .../non-metadata-paths.nul                         |    Bin 0 -> 256950 bytes
+ .../object-format.stderr                           |      0
+ .../object-format.stdout                           |      1 +
+ .../github-delivery-source-contracts/observe_ci.py |     46 +
+ .../paths-before-commit.stderr                     |      0
+ .../paths-before-commit.stdout                     |    Bin 0 -> 247304 bytes
+ .../github-delivery-source-contracts/prepare.py    |    196 +
+ .../github-delivery-source-contracts/push.stderr   |      2 +
+ .../github-delivery-source-contracts/push.stdout   |      0
+ .../github-delivery-source-contracts/receipt.json  |     26 +
+ .../remote-before-commit.stderr                    |      0
+ .../remote-before-commit.stdout                    |      1 +
+ .../remote-before.stderr                           |      0
+ .../remote-before.stdout                           |      1 +
+ .../remote-head.stderr                             |      0
+ .../remote-head.stdout                             |      1 +
+ .../selected-tree.stderr                           |      0
+ .../selected-tree.stdout                           |      1 +
+ .../selection.json                                 |  10556 +
+ .../stage-commands.json                            |    349 +
+ .../stage-head.stderr                              |      0
+ .../stage-head.stdout                              |      1 +
+ .../stage-index-before.stderr                      |      0
+ .../stage-index-before.stdout                      |      0
+ .../stage-ordinary.stderr                          |      0
+ .../stage-ordinary.stdout                          |      0
+ .../github-delivery-source-contracts/stage.py      |     85 +
+ .../staged-paths.stderr                            |      0
+ .../staged-paths.stdout                            |    Bin 0 -> 247304 bytes
+ .../validation.json                                |     12 +
+ .../api-probes/borrowed-positive.rs                |      3 +
+ .../api-probes/clone-aggregate.rs                  |      3 +
+ .../api-probes/clone-observation.rs                |      3 +
+ .../api-probes/copy-aggregate.rs                   |      3 +
+ .../api-probes/copy-observation.rs                 |      3 +
+ .../execution-preparation/api-probes/manifest.json |    170 +
+ .../api-probes/no-acceptance-boolean.rs            |      3 +
+ .../api-probes/no-old-semantic-accessor.rs         |      3 +
+ .../api-probes/no-public-budget.rs                 |      3 +
+ .../api-probes/no-public-candidate.rs              |      3 +
+ .../api-probes/no-public-constructor.rs            |      3 +
+ .../api-probes/no-public-progress.rs               |      3 +
+ .../api-probes/no-public-receipt.rs                |      3 +
+ .../api-probes/no-public-record.rs                 |      3 +
+ .../execution-preparation/api-probes/no-raw-fd.rs  |      3 +
+ .../api-probes/no-words-accessor.rs                |      3 +
+ .../api-borrowed-positive.json                     |     28 +
+ .../api-borrowed-positive.stderr                   |     10 +
+ .../api-borrowed-positive.stdout                   |      0
+ .../api-clone-aggregate.json                       |     28 +
+ .../api-clone-aggregate.stderr                     |     15 +
+ .../api-clone-aggregate.stdout                     |      0
+ .../api-clone-observation.json                     |     28 +
+ .../api-clone-observation.stderr                   |     15 +
+ .../api-clone-observation.stdout                   |      0
+ .../api-copy-aggregate.json                        |     28 +
+ .../api-copy-aggregate.stderr                      |     15 +
+ .../api-copy-aggregate.stdout                      |      0
+ .../api-copy-observation.json                      |     28 +
+ .../api-copy-observation.stderr                    |     15 +
+ .../api-copy-observation.stdout                    |      0
+ .../api-no-acceptance-boolean.json                 |     28 +
+ .../api-no-acceptance-boolean.stderr               |     20 +
+ .../api-no-acceptance-boolean.stdout               |      0
+ .../api-no-old-semantic-accessor.json              |     28 +
+ .../api-no-old-semantic-accessor.stderr            |      9 +
+ .../api-no-old-semantic-accessor.stdout            |      0
+ .../api-no-public-budget.json                      |     28 +
+ .../api-no-public-budget.stderr                    |     11 +
+ .../api-no-public-budget.stdout                    |      0
+ .../api-no-public-candidate.json                   |     28 +
+ .../api-no-public-candidate.stderr                 |     11 +
+ .../api-no-public-candidate.stdout                 |      0
+ .../api-no-public-constructor.json                 |     28 +
+ .../api-no-public-constructor.stderr               |      8 +
+ .../api-no-public-constructor.stdout               |      0
+ .../api-no-public-progress.json                    |     28 +
+ .../api-no-public-progress.stderr                  |     17 +
+ .../api-no-public-progress.stdout                  |      0
+ .../api-no-public-receipt.json                     |     28 +
+ .../api-no-public-receipt.stderr                   |     17 +
+ .../api-no-public-receipt.stdout                   |      0
+ .../api-no-public-record.json                      |     28 +
+ .../api-no-public-record.stderr                    |     11 +
+ .../api-no-public-record.stdout                    |      0
+ .../20261026T074909.943447Z/api-no-raw-fd.json     |     28 +
+ .../20261026T074909.943447Z/api-no-raw-fd.stderr   |     19 +
+ .../20261026T074909.943447Z/api-no-raw-fd.stdout   |      0
+ .../api-no-words-accessor.json                     |     28 +
+ .../api-no-words-accessor.stderr                   |      9 +
+ .../api-no-words-accessor.stdout                   |      0
+ .../commands/20261026T074909.943447Z/cleanup.json  |     18 +
+ .../commands/20261026T074909.943447Z/failure.json  |      6 +
+ .../20261026T074909.943447Z/prepare-support.json   |     21 +
+ .../20261026T074909.943447Z/prepare-support.stderr |      0
+ .../20261026T074909.943447Z/prepare-support.stdout |      1 +
+ .../20261026T074909.943447Z/protocol-controls.json |     23 +
+ .../protocol-controls.stderr                       |     28 +
+ .../protocol-controls.stdout                       |      1 +
+ .../protocol-controls/bad-authority/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/bad-authority/profile        |      1 +
+ .../protocol-controls/bad-authority/report         |      1 +
+ .../protocol-controls/bad-authority/run.json       |     23 +
+ .../protocol-controls/bad-authority/run.stderr     |      0
+ .../protocol-controls/bad-authority/run.stdout     |      1 +
+ .../protocol-controls/bad-authority/stream         |      1 +
+ .../protocol-controls/getter-0-0/context           |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-0-0/profile           |      1 +
+ .../protocol-controls/getter-0-0/report            |      1 +
+ .../protocol-controls/getter-0-0/run.json          |     23 +
+ .../protocol-controls/getter-0-0/run.stderr        |      0
+ .../protocol-controls/getter-0-0/run.stdout        |      1 +
+ .../protocol-controls/getter-0-0/stream            |      1 +
+ .../protocol-controls/getter-1-0/context           |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-1-0/profile           |      1 +
+ .../protocol-controls/getter-1-0/report            |      1 +
+ .../protocol-controls/getter-1-0/run.json          |     23 +
+ .../protocol-controls/getter-1-0/run.stderr        |      0
+ .../protocol-controls/getter-1-0/run.stdout        |      1 +
+ .../protocol-controls/getter-1-0/stream            |      1 +
+ .../protocol-controls/getter-2-0/context           |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-2-0/profile           |      1 +
+ .../protocol-controls/getter-2-0/report            |      1 +
+ .../protocol-controls/getter-2-0/run.json          |     23 +
+ .../protocol-controls/getter-2-0/run.stderr        |      0
+ .../protocol-controls/getter-2-0/run.stdout        |      1 +
+ .../protocol-controls/getter-2-0/stream            |      1 +
+ .../protocol-controls/getter-3-0/context           |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-3-0/profile           |      1 +
+ .../protocol-controls/getter-3-0/report            |      1 +
+ .../protocol-controls/getter-3-0/run.json          |     23 +
+ .../protocol-controls/getter-3-0/run.stderr        |      0
+ .../protocol-controls/getter-3-0/run.stdout        |      1 +
+ .../protocol-controls/getter-3-0/stream            |      1 +
+ .../protocol-controls/getter-4-0/context           |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-4-0/profile           |      1 +
+ .../protocol-controls/getter-4-0/report            |      1 +
+ .../protocol-controls/getter-4-0/run.json          |     23 +
+ .../protocol-controls/getter-4-0/run.stderr        |      0
+ .../protocol-controls/getter-4-0/run.stdout        |      1 +
+ .../protocol-controls/getter-4-0/stream            |      1 +
+ .../protocol-controls/getter-5-0/context           |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-5-0/profile           |      1 +
+ .../protocol-controls/getter-5-0/report            |      1 +
+ .../protocol-controls/getter-5-0/run.json          |     23 +
+ .../protocol-controls/getter-5-0/run.stderr        |      0
+ .../protocol-controls/getter-5-0/run.stdout        |      1 +
+ .../protocol-controls/getter-5-0/stream            |      1 +
+ .../protocol-controls/getter-6-0/context           |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-6-0/profile           |      1 +
+ .../protocol-controls/getter-6-0/report            |      1 +
+ .../protocol-controls/getter-6-0/run.json          |     23 +
+ .../protocol-controls/getter-6-0/run.stderr        |      0
+ .../protocol-controls/getter-6-0/run.stdout        |      1 +
+ .../protocol-controls/getter-6-0/stream            |      1 +
+ .../protocol-controls/outer-error/context          |    Bin 0 -> 5 bytes
+ .../protocol-controls/outer-error/profile          |      1 +
+ .../protocol-controls/outer-error/report           |      1 +
+ .../protocol-controls/outer-error/run.json         |     23 +
+ .../protocol-controls/outer-error/run.stderr       |      0
+ .../protocol-controls/outer-error/run.stdout       |      1 +
+ .../protocol-controls/outer-error/stream           |      1 +
+ .../protocol-controls/output-cap.json              |     22 +
+ .../protocol-controls/output-cap.stderr            |      0
+ .../protocol-controls/output-cap.stdout            |      1 +
+ .../protocol-controls/protocol-baseline/context    |    Bin 0 -> 5 bytes
+ .../protocol-controls/protocol-baseline/profile    |      1 +
+ .../protocol-controls/protocol-baseline/report     |      1 +
+ .../protocol-controls/protocol-baseline/run.json   |     23 +
+ .../protocol-controls/protocol-baseline/run.stderr |      0
+ .../protocol-controls/protocol-baseline/run.stdout |      1 +
+ .../protocol-controls/protocol-baseline/stream     |      1 +
+ .../protocol-controls/short-report/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/short-report/profile         |      1 +
+ .../protocol-controls/short-report/report          |      1 +
+ .../protocol-controls/short-report/run.json        |     23 +
+ .../protocol-controls/short-report/run.stderr      |      0
+ .../protocol-controls/short-report/run.stdout      |      1 +
+ .../protocol-controls/short-report/stream          |      1 +
+ .../protocol-controls/timeout.json                 |     22 +
+ .../protocol-controls/timeout.stderr               |      0
+ .../protocol-controls/timeout.stdout               |      0
+ .../20261026T074909.943447Z/public-driver.json     |     25 +
+ .../20261026T074909.943447Z/public-driver.stderr   |      0
+ .../20261026T074909.943447Z/public-driver.stdout   |      0
+ .../20261026T074909.943447Z/rustc-location.json    |     21 +
+ .../20261026T074909.943447Z/rustc-location.stderr  |      0
+ .../20261026T074909.943447Z/rustc-location.stdout  |      1 +
+ .../20261026T074909.943447Z/rustc-version.json     |     21 +
+ .../20261026T074909.943447Z/rustc-version.stderr   |      0
+ .../20261026T074909.943447Z/rustc-version.stdout   |      7 +
+ .../20261026T074909.943447Z/source-manifest.json   |    115 +
+ .../api-probes/borrowed-positive.rs                |      3 +
+ .../source-snapshot/api-probes/clone-aggregate.rs  |      3 +
+ .../api-probes/clone-observation.rs                |      3 +
+ .../source-snapshot/api-probes/copy-aggregate.rs   |      3 +
+ .../source-snapshot/api-probes/copy-observation.rs |      3 +
+ .../api-probes/no-acceptance-boolean.rs            |      3 +
+ .../api-probes/no-old-semantic-accessor.rs         |      3 +
+ .../source-snapshot/api-probes/no-public-budget.rs |      3 +
+ .../api-probes/no-public-candidate.rs              |      3 +
+ .../api-probes/no-public-constructor.rs            |      3 +
+ .../api-probes/no-public-progress.rs               |      3 +
+ .../api-probes/no-public-receipt.rs                |      3 +
+ .../source-snapshot/api-probes/no-public-record.rs |      3 +
+ .../source-snapshot/api-probes/no-raw-fd.rs        |      3 +
+ .../api-probes/no-words-accessor.rs                |      3 +
+ .../source-snapshot/future_runner.py               |    201 +
+ .../source-snapshot/harness.py                     |    114 +
+ .../source-snapshot/prepare_support.py             |    127 +
+ .../source-snapshot/protocol_stub.rs               |     78 +
+ .../source-snapshot/public_driver.rs               |    167 +
+ .../source-snapshot/run_preparation.py             |     71 +
+ .../source-snapshot/test_preparation.py            |    122 +
+ .../20261026T074909.943447Z/stub-library.json      |     27 +
+ .../20261026T074909.943447Z/stub-library.stderr    |      0
+ .../20261026T074909.943447Z/stub-library.stdout    |      0
+ .../commands/20261026T074909.943447Z/summary.json  |    336 +
+ .../20261026T074909.943447Z/tool-identity.json     |      9 +
+ .../api-borrowed-positive.json                     |     29 +
+ .../api-borrowed-positive.stderr                   |      2 +
+ .../api-borrowed-positive.stdout                   |      0
+ .../api-clone-aggregate.json                       |     29 +
+ .../api-clone-aggregate.stderr                     |      3 +
+ .../api-clone-aggregate.stdout                     |      0
+ .../api-clone-observation.json                     |     29 +
+ .../api-clone-observation.stderr                   |      3 +
+ .../api-clone-observation.stdout                   |      0
+ .../api-copy-aggregate.json                        |     29 +
+ .../api-copy-aggregate.stderr                      |      3 +
+ .../api-copy-aggregate.stdout                      |      0
+ .../api-copy-observation.json                      |     29 +
+ .../api-copy-observation.stderr                    |      3 +
+ .../api-copy-observation.stdout                    |      0
+ .../api-no-acceptance-boolean.json                 |     29 +
+ .../api-no-acceptance-boolean.stderr               |      3 +
+ .../api-no-acceptance-boolean.stdout               |      0
+ .../api-no-old-semantic-accessor.json              |     29 +
+ .../api-no-old-semantic-accessor.stderr            |      3 +
+ .../api-no-old-semantic-accessor.stdout            |      0
+ .../api-no-public-budget.json                      |     29 +
+ .../api-no-public-budget.stderr                    |      3 +
+ .../api-no-public-budget.stdout                    |      0
+ .../api-no-public-candidate.json                   |     29 +
+ .../api-no-public-candidate.stderr                 |      3 +
+ .../api-no-public-candidate.stdout                 |      0
+ .../api-no-public-constructor.json                 |     29 +
+ .../api-no-public-constructor.stderr               |      2 +
+ .../api-no-public-constructor.stdout               |      0
+ .../api-no-public-progress.json                    |     29 +
+ .../api-no-public-progress.stderr                  |      3 +
+ .../api-no-public-progress.stdout                  |      0
+ .../api-no-public-receipt.json                     |     29 +
+ .../api-no-public-receipt.stderr                   |      3 +
+ .../api-no-public-receipt.stdout                   |      0
+ .../api-no-public-record.json                      |     29 +
+ .../api-no-public-record.stderr                    |      3 +
+ .../api-no-public-record.stdout                    |      0
+ .../20261026T075232.295377Z/api-no-raw-fd.json     |     29 +
+ .../20261026T075232.295377Z/api-no-raw-fd.stderr   |      3 +
+ .../20261026T075232.295377Z/api-no-raw-fd.stdout   |      0
+ .../api-no-words-accessor.json                     |     29 +
+ .../api-no-words-accessor.stderr                   |      3 +
+ .../api-no-words-accessor.stdout                   |      0
+ .../commands/20261026T075232.295377Z/cleanup.json  |     18 +
+ .../20261026T075232.295377Z/prepare-support.json   |     21 +
+ .../20261026T075232.295377Z/prepare-support.stderr |      0
+ .../20261026T075232.295377Z/prepare-support.stdout |      1 +
+ .../protocol-controls-optimized.json               |     24 +
+ .../protocol-controls-optimized.stderr             |     14 +
+ .../protocol-controls-optimized.stdout             |      1 +
+ .../authority-bits-1/context                       |    Bin 0 -> 5 bytes
+ .../authority-bits-1/profile                       |      1 +
+ .../authority-bits-1/report                        |      1 +
+ .../authority-bits-1/run.json                      |     23 +
+ .../authority-bits-1/run.stderr                    |      0
+ .../authority-bits-1/run.stdout                    |      1 +
+ .../authority-bits-1/stream                        |      1 +
+ .../authority-bits-15/context                      |    Bin 0 -> 5 bytes
+ .../authority-bits-15/profile                      |      1 +
+ .../authority-bits-15/report                       |      1 +
+ .../authority-bits-15/run.json                     |     23 +
+ .../authority-bits-15/run.stderr                   |      0
+ .../authority-bits-15/run.stdout                   |      1 +
+ .../authority-bits-15/stream                       |      1 +
+ .../authority-bits-2/context                       |    Bin 0 -> 5 bytes
+ .../authority-bits-2/profile                       |      1 +
+ .../authority-bits-2/report                        |      1 +
+ .../authority-bits-2/run.json                      |     23 +
+ .../authority-bits-2/run.stderr                    |      0
+ .../authority-bits-2/run.stdout                    |      1 +
+ .../authority-bits-2/stream                        |      1 +
+ .../authority-bits-4/context                       |    Bin 0 -> 5 bytes
+ .../authority-bits-4/profile                       |      1 +
+ .../authority-bits-4/report                        |      1 +
+ .../authority-bits-4/run.json                      |     23 +
+ .../authority-bits-4/run.stderr                    |      0
+ .../authority-bits-4/run.stdout                    |      1 +
+ .../authority-bits-4/stream                        |      1 +
+ .../authority-bits-8/context                       |    Bin 0 -> 5 bytes
+ .../authority-bits-8/profile                       |      1 +
+ .../authority-bits-8/report                        |      1 +
+ .../authority-bits-8/run.json                      |     23 +
+ .../authority-bits-8/run.stderr                    |      0
+ .../authority-bits-8/run.stdout                    |      1 +
+ .../authority-bits-8/stream                        |      1 +
+ .../bad-authority/context                          |    Bin 0 -> 5 bytes
+ .../bad-authority/profile                          |      1 +
+ .../bad-authority/report                           |      1 +
+ .../bad-authority/run.json                         |     23 +
+ .../bad-authority/run.stderr                       |      0
+ .../bad-authority/run.stdout                       |      1 +
+ .../bad-authority/stream                           |      1 +
+ .../bad-reserved/context                           |    Bin 0 -> 5 bytes
+ .../bad-reserved/profile                           |      1 +
+ .../bad-reserved/report                            |      1 +
+ .../bad-reserved/run.json                          |     23 +
+ .../bad-reserved/run.stderr                        |      0
+ .../bad-reserved/run.stdout                        |      1 +
+ .../bad-reserved/stream                            |      1 +
+ .../getter-0-0-0/context                           |    Bin 0 -> 5 bytes
+ .../getter-0-0-0/profile                           |      1 +
+ .../getter-0-0-0/report                            |      1 +
+ .../getter-0-0-0/run.json                          |     23 +
+ .../getter-0-0-0/run.stderr                        |      0
+ .../getter-0-0-0/run.stdout                        |      1 +
+ .../getter-0-0-0/stream                            |      1 +
+ .../getter-1-1-0/context                           |    Bin 0 -> 5 bytes
+ .../getter-1-1-0/profile                           |      1 +
+ .../getter-1-1-0/report                            |      1 +
+ .../getter-1-1-0/run.json                          |     23 +
+ .../getter-1-1-0/run.stderr                        |      0
+ .../getter-1-1-0/run.stdout                        |      1 +
+ .../getter-1-1-0/stream                            |      1 +
+ .../getter-10-1-3/context                          |    Bin 0 -> 5 bytes
+ .../getter-10-1-3/profile                          |      1 +
+ .../getter-10-1-3/report                           |      1 +
+ .../getter-10-1-3/run.json                         |     23 +
+ .../getter-10-1-3/run.stderr                       |      0
+ .../getter-10-1-3/run.stdout                       |      1 +
+ .../getter-10-1-3/stream                           |      1 +
+ .../getter-11-1-4/context                          |    Bin 0 -> 5 bytes
+ .../getter-11-1-4/profile                          |      1 +
+ .../getter-11-1-4/report                           |      1 +
+ .../getter-11-1-4/run.json                         |     23 +
+ .../getter-11-1-4/run.stderr                       |      0
+ .../getter-11-1-4/run.stdout                       |      1 +
+ .../getter-11-1-4/stream                           |      1 +
+ .../getter-12-1-5/context                          |    Bin 0 -> 5 bytes
+ .../getter-12-1-5/profile                          |      1 +
+ .../getter-12-1-5/report                           |      1 +
+ .../getter-12-1-5/run.json                         |     23 +
+ .../getter-12-1-5/run.stderr                       |      0
+ .../getter-12-1-5/run.stdout                       |      1 +
+ .../getter-12-1-5/stream                           |      1 +
+ .../getter-13-1-6/context                          |    Bin 0 -> 5 bytes
+ .../getter-13-1-6/profile                          |      1 +
+ .../getter-13-1-6/report                           |      1 +
+ .../getter-13-1-6/run.json                         |     23 +
+ .../getter-13-1-6/run.stderr                       |      0
+ .../getter-13-1-6/run.stdout                       |      1 +
+ .../getter-13-1-6/stream                           |      1 +
+ .../getter-14-1-7/context                          |    Bin 0 -> 5 bytes
+ .../getter-14-1-7/profile                          |      1 +
+ .../getter-14-1-7/report                           |      1 +
+ .../getter-14-1-7/run.json                         |     23 +
+ .../getter-14-1-7/run.stderr                       |      0
+ .../getter-14-1-7/run.stdout                       |      1 +
+ .../getter-14-1-7/stream                           |      1 +
+ .../getter-15-1-8/context                          |    Bin 0 -> 5 bytes
+ .../getter-15-1-8/profile                          |      1 +
+ .../getter-15-1-8/report                           |      1 +
+ .../getter-15-1-8/run.json                         |     23 +
+ .../getter-15-1-8/run.stderr                       |      0
+ .../getter-15-1-8/run.stdout                       |      1 +
+ .../getter-15-1-8/stream                           |      1 +
+ .../getter-16-1-9/context                          |    Bin 0 -> 5 bytes
+ .../getter-16-1-9/profile                          |      1 +
+ .../getter-16-1-9/report                           |      1 +
+ .../getter-16-1-9/run.json                         |     23 +
+ .../getter-16-1-9/run.stderr                       |      0
+ .../getter-16-1-9/run.stdout                       |      1 +
+ .../getter-16-1-9/stream                           |      1 +
+ .../getter-17-1-10/context                         |    Bin 0 -> 5 bytes
+ .../getter-17-1-10/profile                         |      1 +
+ .../getter-17-1-10/report                          |      1 +
+ .../getter-17-1-10/run.json                        |     23 +
+ .../getter-17-1-10/run.stderr                      |      0
+ .../getter-17-1-10/run.stdout                      |      1 +
+ .../getter-17-1-10/stream                          |      1 +
+ .../getter-18-1-11/context                         |    Bin 0 -> 5 bytes
+ .../getter-18-1-11/profile                         |      1 +
+ .../getter-18-1-11/report                          |      1 +
+ .../getter-18-1-11/run.json                        |     23 +
+ .../getter-18-1-11/run.stderr                      |      0
+ .../getter-18-1-11/run.stdout                      |      1 +
+ .../getter-18-1-11/stream                          |      1 +
+ .../getter-19-1-12/context                         |    Bin 0 -> 5 bytes
+ .../getter-19-1-12/profile                         |      1 +
+ .../getter-19-1-12/report                          |      1 +
+ .../getter-19-1-12/run.json                        |     23 +
+ .../getter-19-1-12/run.stderr                      |      0
+ .../getter-19-1-12/run.stdout                      |      1 +
+ .../getter-19-1-12/stream                          |      1 +
+ .../getter-2-2-0/context                           |    Bin 0 -> 5 bytes
+ .../getter-2-2-0/profile                           |      1 +
+ .../getter-2-2-0/report                            |      1 +
+ .../getter-2-2-0/run.json                          |     23 +
+ .../getter-2-2-0/run.stderr                        |      0
+ .../getter-2-2-0/run.stdout                        |      1 +
+ .../getter-2-2-0/stream                            |      1 +
+ .../getter-20-1-13/context                         |    Bin 0 -> 5 bytes
+ .../getter-20-1-13/profile                         |      1 +
+ .../getter-20-1-13/report                          |      1 +
+ .../getter-20-1-13/run.json                        |     23 +
+ .../getter-20-1-13/run.stderr                      |      0
+ .../getter-20-1-13/run.stdout                      |      1 +
+ .../getter-20-1-13/stream                          |      1 +
+ .../getter-21-1-14/context                         |    Bin 0 -> 5 bytes
+ .../getter-21-1-14/profile                         |      1 +
+ .../getter-21-1-14/report                          |      1 +
+ .../getter-21-1-14/run.json                        |     23 +
+ .../getter-21-1-14/run.stderr                      |      0
+ .../getter-21-1-14/run.stdout                      |      1 +
+ .../getter-21-1-14/stream                          |      1 +
+ .../getter-22-1-15/context                         |    Bin 0 -> 5 bytes
+ .../getter-22-1-15/profile                         |      1 +
+ .../getter-22-1-15/report                          |      1 +
+ .../getter-22-1-15/run.json                        |     23 +
+ .../getter-22-1-15/run.stderr                      |      0
+ .../getter-22-1-15/run.stdout                      |      1 +
+ .../getter-22-1-15/stream                          |      1 +
+ .../getter-23-1-16/context                         |    Bin 0 -> 5 bytes
+ .../getter-23-1-16/profile                         |      1 +
+ .../getter-23-1-16/report                          |      1 +
+ .../getter-23-1-16/run.json                        |     23 +
+ .../getter-23-1-16/run.stderr                      |      0
+ .../getter-23-1-16/run.stdout                      |      1 +
+ .../getter-23-1-16/stream                          |      1 +
+ .../getter-24-1-17/context                         |    Bin 0 -> 5 bytes
+ .../getter-24-1-17/profile                         |      1 +
+ .../getter-24-1-17/report                          |      1 +
+ .../getter-24-1-17/run.json                        |     23 +
+ .../getter-24-1-17/run.stderr                      |      0
+ .../getter-24-1-17/run.stdout                      |      1 +
+ .../getter-24-1-17/stream                          |      1 +
+ .../getter-3-3-0/context                           |    Bin 0 -> 5 bytes
+ .../getter-3-3-0/profile                           |      1 +
+ .../getter-3-3-0/report                            |      1 +
+ .../getter-3-3-0/run.json                          |     23 +
+ .../getter-3-3-0/run.stderr                        |      0
+ .../getter-3-3-0/run.stdout                        |      1 +
+ .../getter-3-3-0/stream                            |      1 +
+ .../getter-4-4-0/context                           |    Bin 0 -> 5 bytes
+ .../getter-4-4-0/profile                           |      1 +
+ .../getter-4-4-0/report                            |      1 +
+ .../getter-4-4-0/run.json                          |     23 +
+ .../getter-4-4-0/run.stderr                        |      0
+ .../getter-4-4-0/run.stdout                        |      1 +
+ .../getter-4-4-0/stream                            |      1 +
+ .../getter-5-5-0/context                           |    Bin 0 -> 5 bytes
+ .../getter-5-5-0/profile                           |      1 +
+ .../getter-5-5-0/report                            |      1 +
+ .../getter-5-5-0/run.json                          |     23 +
+ .../getter-5-5-0/run.stderr                        |      0
+ .../getter-5-5-0/run.stdout                        |      1 +
+ .../getter-5-5-0/stream                            |      1 +
+ .../getter-6-6-0/context                           |    Bin 0 -> 5 bytes
+ .../getter-6-6-0/profile                           |      1 +
+ .../getter-6-6-0/report                            |      1 +
+ .../getter-6-6-0/run.json                          |     23 +
+ .../getter-6-6-0/run.stderr                        |      0
+ .../getter-6-6-0/run.stdout                        |      1 +
+ .../getter-6-6-0/stream                            |      1 +
+ .../getter-7-1-0/context                           |    Bin 0 -> 5 bytes
+ .../getter-7-1-0/profile                           |      1 +
+ .../getter-7-1-0/report                            |      1 +
+ .../getter-7-1-0/run.json                          |     23 +
+ .../getter-7-1-0/run.stderr                        |      0
+ .../getter-7-1-0/run.stdout                        |      1 +
+ .../getter-7-1-0/stream                            |      1 +
+ .../getter-8-1-1/context                           |    Bin 0 -> 5 bytes
+ .../getter-8-1-1/profile                           |      1 +
+ .../getter-8-1-1/report                            |      1 +
+ .../getter-8-1-1/run.json                          |     23 +
+ .../getter-8-1-1/run.stderr                        |      0
+ .../getter-8-1-1/run.stdout                        |      1 +
+ .../getter-8-1-1/stream                            |      1 +
+ .../getter-9-1-2/context                           |    Bin 0 -> 5 bytes
+ .../getter-9-1-2/profile                           |      1 +
+ .../getter-9-1-2/report                            |      1 +
+ .../getter-9-1-2/run.json                          |     23 +
+ .../getter-9-1-2/run.stderr                        |      0
+ .../getter-9-1-2/run.stdout                        |      1 +
+ .../getter-9-1-2/stream                            |      1 +
+ .../outer-error/context                            |    Bin 0 -> 5 bytes
+ .../outer-error/profile                            |      1 +
+ .../protocol-controls-optimized/outer-error/report |      1 +
+ .../outer-error/run.json                           |     23 +
+ .../outer-error/run.stderr                         |      0
+ .../outer-error/run.stdout                         |      1 +
+ .../protocol-controls-optimized/outer-error/stream |      1 +
+ .../protocol-controls-optimized/output-cap.json    |     22 +
+ .../protocol-controls-optimized/output-cap.stderr  |      0
+ .../protocol-controls-optimized/output-cap.stdout  |      1 +
+ .../preconditions/alias.json                       |     23 +
+ .../preconditions/alias.stderr                     |      1 +
+ .../preconditions/alias.stdout                     |      0
+ .../preconditions/argument-count.json              |     19 +
+ .../preconditions/argument-count.stderr            |      1 +
+ .../preconditions/argument-count.stdout            |      0
+ .../preconditions/context                          |    Bin 0 -> 5 bytes
+ .../preconditions/directory.json                   |     23 +
+ .../preconditions/directory.stderr                 |      1 +
+ .../preconditions/directory.stdout                 |      0
+ .../preconditions/existing                         |      1 +
+ .../preconditions/existing.json                    |     23 +
+ .../preconditions/existing.stderr                  |      1 +
+ .../preconditions/existing.stdout                  |      0
+ .../preconditions/missing.json                     |     23 +
+ .../preconditions/missing.stderr                   |      1 +
+ .../preconditions/missing.stdout                   |      0
+ .../preconditions/profile                          |      1 +
+ .../preconditions/stream                           |      1 +
+ .../protocol-baseline/context                      |    Bin 0 -> 5 bytes
+ .../protocol-baseline/profile                      |      1 +
+ .../protocol-baseline/report                       |      1 +
+ .../protocol-baseline/run.json                     |     23 +
+ .../protocol-baseline/run.stderr                   |      0
+ .../protocol-baseline/run.stdout                   |      1 +
+ .../protocol-baseline/stream                       |      1 +
+ .../short-report/context                           |    Bin 0 -> 5 bytes
+ .../short-report/profile                           |      1 +
+ .../short-report/report                            |      1 +
+ .../short-report/run.json                          |     23 +
+ .../short-report/run.stderr                        |      0
+ .../short-report/run.stdout                        |      1 +
+ .../short-report/stream                            |      1 +
+ .../protocol-controls-optimized/timeout.json       |     22 +
+ .../protocol-controls-optimized/timeout.stderr     |      0
+ .../protocol-controls-optimized/timeout.stdout     |      0
+ .../20261026T075232.295377Z/protocol-controls.json |     23 +
+ .../protocol-controls.stderr                       |     14 +
+ .../protocol-controls.stdout                       |      1 +
+ .../protocol-controls/authority-bits-1/context     |    Bin 0 -> 5 bytes
+ .../protocol-controls/authority-bits-1/profile     |      1 +
+ .../protocol-controls/authority-bits-1/report      |      1 +
+ .../protocol-controls/authority-bits-1/run.json    |     23 +
+ .../protocol-controls/authority-bits-1/run.stderr  |      0
+ .../protocol-controls/authority-bits-1/run.stdout  |      1 +
+ .../protocol-controls/authority-bits-1/stream      |      1 +
+ .../protocol-controls/authority-bits-15/context    |    Bin 0 -> 5 bytes
+ .../protocol-controls/authority-bits-15/profile    |      1 +
+ .../protocol-controls/authority-bits-15/report     |      1 +
+ .../protocol-controls/authority-bits-15/run.json   |     23 +
+ .../protocol-controls/authority-bits-15/run.stderr |      0
+ .../protocol-controls/authority-bits-15/run.stdout |      1 +
+ .../protocol-controls/authority-bits-15/stream     |      1 +
+ .../protocol-controls/authority-bits-2/context     |    Bin 0 -> 5 bytes
+ .../protocol-controls/authority-bits-2/profile     |      1 +
+ .../protocol-controls/authority-bits-2/report      |      1 +
+ .../protocol-controls/authority-bits-2/run.json    |     23 +
+ .../protocol-controls/authority-bits-2/run.stderr  |      0
+ .../protocol-controls/authority-bits-2/run.stdout  |      1 +
+ .../protocol-controls/authority-bits-2/stream      |      1 +
+ .../protocol-controls/authority-bits-4/context     |    Bin 0 -> 5 bytes
+ .../protocol-controls/authority-bits-4/profile     |      1 +
+ .../protocol-controls/authority-bits-4/report      |      1 +
+ .../protocol-controls/authority-bits-4/run.json    |     23 +
+ .../protocol-controls/authority-bits-4/run.stderr  |      0
+ .../protocol-controls/authority-bits-4/run.stdout  |      1 +
+ .../protocol-controls/authority-bits-4/stream      |      1 +
+ .../protocol-controls/authority-bits-8/context     |    Bin 0 -> 5 bytes
+ .../protocol-controls/authority-bits-8/profile     |      1 +
+ .../protocol-controls/authority-bits-8/report      |      1 +
+ .../protocol-controls/authority-bits-8/run.json    |     23 +
+ .../protocol-controls/authority-bits-8/run.stderr  |      0
+ .../protocol-controls/authority-bits-8/run.stdout  |      1 +
+ .../protocol-controls/authority-bits-8/stream      |      1 +
+ .../protocol-controls/bad-authority/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/bad-authority/profile        |      1 +
+ .../protocol-controls/bad-authority/report         |      1 +
+ .../protocol-controls/bad-authority/run.json       |     23 +
+ .../protocol-controls/bad-authority/run.stderr     |      0
+ .../protocol-controls/bad-authority/run.stdout     |      1 +
+ .../protocol-controls/bad-authority/stream         |      1 +
+ .../protocol-controls/bad-reserved/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/bad-reserved/profile         |      1 +
+ .../protocol-controls/bad-reserved/report          |      1 +
+ .../protocol-controls/bad-reserved/run.json        |     23 +
+ .../protocol-controls/bad-reserved/run.stderr      |      0
+ .../protocol-controls/bad-reserved/run.stdout      |      1 +
+ .../protocol-controls/bad-reserved/stream          |      1 +
+ .../protocol-controls/getter-0-0-0/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-0-0-0/profile         |      1 +
+ .../protocol-controls/getter-0-0-0/report          |      1 +
+ .../protocol-controls/getter-0-0-0/run.json        |     23 +
+ .../protocol-controls/getter-0-0-0/run.stderr      |      0
+ .../protocol-controls/getter-0-0-0/run.stdout      |      1 +
+ .../protocol-controls/getter-0-0-0/stream          |      1 +
+ .../protocol-controls/getter-1-1-0/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-1-1-0/profile         |      1 +
+ .../protocol-controls/getter-1-1-0/report          |      1 +
+ .../protocol-controls/getter-1-1-0/run.json        |     23 +
+ .../protocol-controls/getter-1-1-0/run.stderr      |      0
+ .../protocol-controls/getter-1-1-0/run.stdout      |      1 +
+ .../protocol-controls/getter-1-1-0/stream          |      1 +
+ .../protocol-controls/getter-10-1-3/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-10-1-3/profile        |      1 +
+ .../protocol-controls/getter-10-1-3/report         |      1 +
+ .../protocol-controls/getter-10-1-3/run.json       |     23 +
+ .../protocol-controls/getter-10-1-3/run.stderr     |      0
+ .../protocol-controls/getter-10-1-3/run.stdout     |      1 +
+ .../protocol-controls/getter-10-1-3/stream         |      1 +
+ .../protocol-controls/getter-11-1-4/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-11-1-4/profile        |      1 +
+ .../protocol-controls/getter-11-1-4/report         |      1 +
+ .../protocol-controls/getter-11-1-4/run.json       |     23 +
+ .../protocol-controls/getter-11-1-4/run.stderr     |      0
+ .../protocol-controls/getter-11-1-4/run.stdout     |      1 +
+ .../protocol-controls/getter-11-1-4/stream         |      1 +
+ .../protocol-controls/getter-12-1-5/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-12-1-5/profile        |      1 +
+ .../protocol-controls/getter-12-1-5/report         |      1 +
+ .../protocol-controls/getter-12-1-5/run.json       |     23 +
+ .../protocol-controls/getter-12-1-5/run.stderr     |      0
+ .../protocol-controls/getter-12-1-5/run.stdout     |      1 +
+ .../protocol-controls/getter-12-1-5/stream         |      1 +
+ .../protocol-controls/getter-13-1-6/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-13-1-6/profile        |      1 +
+ .../protocol-controls/getter-13-1-6/report         |      1 +
+ .../protocol-controls/getter-13-1-6/run.json       |     23 +
+ .../protocol-controls/getter-13-1-6/run.stderr     |      0
+ .../protocol-controls/getter-13-1-6/run.stdout     |      1 +
+ .../protocol-controls/getter-13-1-6/stream         |      1 +
+ .../protocol-controls/getter-14-1-7/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-14-1-7/profile        |      1 +
+ .../protocol-controls/getter-14-1-7/report         |      1 +
+ .../protocol-controls/getter-14-1-7/run.json       |     23 +
+ .../protocol-controls/getter-14-1-7/run.stderr     |      0
+ .../protocol-controls/getter-14-1-7/run.stdout     |      1 +
+ .../protocol-controls/getter-14-1-7/stream         |      1 +
+ .../protocol-controls/getter-15-1-8/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-15-1-8/profile        |      1 +
+ .../protocol-controls/getter-15-1-8/report         |      1 +
+ .../protocol-controls/getter-15-1-8/run.json       |     23 +
+ .../protocol-controls/getter-15-1-8/run.stderr     |      0
+ .../protocol-controls/getter-15-1-8/run.stdout     |      1 +
+ .../protocol-controls/getter-15-1-8/stream         |      1 +
+ .../protocol-controls/getter-16-1-9/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-16-1-9/profile        |      1 +
+ .../protocol-controls/getter-16-1-9/report         |      1 +
+ .../protocol-controls/getter-16-1-9/run.json       |     23 +
+ .../protocol-controls/getter-16-1-9/run.stderr     |      0
+ .../protocol-controls/getter-16-1-9/run.stdout     |      1 +
+ .../protocol-controls/getter-16-1-9/stream         |      1 +
+ .../protocol-controls/getter-17-1-10/context       |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-17-1-10/profile       |      1 +
+ .../protocol-controls/getter-17-1-10/report        |      1 +
+ .../protocol-controls/getter-17-1-10/run.json      |     23 +
+ .../protocol-controls/getter-17-1-10/run.stderr    |      0
+ .../protocol-controls/getter-17-1-10/run.stdout    |      1 +
+ .../protocol-controls/getter-17-1-10/stream        |      1 +
+ .../protocol-controls/getter-18-1-11/context       |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-18-1-11/profile       |      1 +
+ .../protocol-controls/getter-18-1-11/report        |      1 +
+ .../protocol-controls/getter-18-1-11/run.json      |     23 +
+ .../protocol-controls/getter-18-1-11/run.stderr    |      0
+ .../protocol-controls/getter-18-1-11/run.stdout    |      1 +
+ .../protocol-controls/getter-18-1-11/stream        |      1 +
+ .../protocol-controls/getter-19-1-12/context       |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-19-1-12/profile       |      1 +
+ .../protocol-controls/getter-19-1-12/report        |      1 +
+ .../protocol-controls/getter-19-1-12/run.json      |     23 +
+ .../protocol-controls/getter-19-1-12/run.stderr    |      0
+ .../protocol-controls/getter-19-1-12/run.stdout    |      1 +
+ .../protocol-controls/getter-19-1-12/stream        |      1 +
+ .../protocol-controls/getter-2-2-0/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-2-2-0/profile         |      1 +
+ .../protocol-controls/getter-2-2-0/report          |      1 +
+ .../protocol-controls/getter-2-2-0/run.json        |     23 +
+ .../protocol-controls/getter-2-2-0/run.stderr      |      0
+ .../protocol-controls/getter-2-2-0/run.stdout      |      1 +
+ .../protocol-controls/getter-2-2-0/stream          |      1 +
+ .../protocol-controls/getter-20-1-13/context       |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-20-1-13/profile       |      1 +
+ .../protocol-controls/getter-20-1-13/report        |      1 +
+ .../protocol-controls/getter-20-1-13/run.json      |     23 +
+ .../protocol-controls/getter-20-1-13/run.stderr    |      0
+ .../protocol-controls/getter-20-1-13/run.stdout    |      1 +
+ .../protocol-controls/getter-20-1-13/stream        |      1 +
+ .../protocol-controls/getter-21-1-14/context       |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-21-1-14/profile       |      1 +
+ .../protocol-controls/getter-21-1-14/report        |      1 +
+ .../protocol-controls/getter-21-1-14/run.json      |     23 +
+ .../protocol-controls/getter-21-1-14/run.stderr    |      0
+ .../protocol-controls/getter-21-1-14/run.stdout    |      1 +
+ .../protocol-controls/getter-21-1-14/stream        |      1 +
+ .../protocol-controls/getter-22-1-15/context       |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-22-1-15/profile       |      1 +
+ .../protocol-controls/getter-22-1-15/report        |      1 +
+ .../protocol-controls/getter-22-1-15/run.json      |     23 +
+ .../protocol-controls/getter-22-1-15/run.stderr    |      0
+ .../protocol-controls/getter-22-1-15/run.stdout    |      1 +
+ .../protocol-controls/getter-22-1-15/stream        |      1 +
+ .../protocol-controls/getter-23-1-16/context       |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-23-1-16/profile       |      1 +
+ .../protocol-controls/getter-23-1-16/report        |      1 +
+ .../protocol-controls/getter-23-1-16/run.json      |     23 +
+ .../protocol-controls/getter-23-1-16/run.stderr    |      0
+ .../protocol-controls/getter-23-1-16/run.stdout    |      1 +
+ .../protocol-controls/getter-23-1-16/stream        |      1 +
+ .../protocol-controls/getter-24-1-17/context       |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-24-1-17/profile       |      1 +
+ .../protocol-controls/getter-24-1-17/report        |      1 +
+ .../protocol-controls/getter-24-1-17/run.json      |     23 +
+ .../protocol-controls/getter-24-1-17/run.stderr    |      0
+ .../protocol-controls/getter-24-1-17/run.stdout    |      1 +
+ .../protocol-controls/getter-24-1-17/stream        |      1 +
+ .../protocol-controls/getter-3-3-0/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-3-3-0/profile         |      1 +
+ .../protocol-controls/getter-3-3-0/report          |      1 +
+ .../protocol-controls/getter-3-3-0/run.json        |     23 +
+ .../protocol-controls/getter-3-3-0/run.stderr      |      0
+ .../protocol-controls/getter-3-3-0/run.stdout      |      1 +
+ .../protocol-controls/getter-3-3-0/stream          |      1 +
+ .../protocol-controls/getter-4-4-0/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-4-4-0/profile         |      1 +
+ .../protocol-controls/getter-4-4-0/report          |      1 +
+ .../protocol-controls/getter-4-4-0/run.json        |     23 +
+ .../protocol-controls/getter-4-4-0/run.stderr      |      0
+ .../protocol-controls/getter-4-4-0/run.stdout      |      1 +
+ .../protocol-controls/getter-4-4-0/stream          |      1 +
+ .../protocol-controls/getter-5-5-0/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-5-5-0/profile         |      1 +
+ .../protocol-controls/getter-5-5-0/report          |      1 +
+ .../protocol-controls/getter-5-5-0/run.json        |     23 +
+ .../protocol-controls/getter-5-5-0/run.stderr      |      0
+ .../protocol-controls/getter-5-5-0/run.stdout      |      1 +
+ .../protocol-controls/getter-5-5-0/stream          |      1 +
+ .../protocol-controls/getter-6-6-0/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-6-6-0/profile         |      1 +
+ .../protocol-controls/getter-6-6-0/report          |      1 +
+ .../protocol-controls/getter-6-6-0/run.json        |     23 +
+ .../protocol-controls/getter-6-6-0/run.stderr      |      0
+ .../protocol-controls/getter-6-6-0/run.stdout      |      1 +
+ .../protocol-controls/getter-6-6-0/stream          |      1 +
+ .../protocol-controls/getter-7-1-0/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-7-1-0/profile         |      1 +
+ .../protocol-controls/getter-7-1-0/report          |      1 +
+ .../protocol-controls/getter-7-1-0/run.json        |     23 +
+ .../protocol-controls/getter-7-1-0/run.stderr      |      0
+ .../protocol-controls/getter-7-1-0/run.stdout      |      1 +
+ .../protocol-controls/getter-7-1-0/stream          |      1 +
+ .../protocol-controls/getter-8-1-1/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-8-1-1/profile         |      1 +
+ .../protocol-controls/getter-8-1-1/report          |      1 +
+ .../protocol-controls/getter-8-1-1/run.json        |     23 +
+ .../protocol-controls/getter-8-1-1/run.stderr      |      0
+ .../protocol-controls/getter-8-1-1/run.stdout      |      1 +
+ .../protocol-controls/getter-8-1-1/stream          |      1 +
+ .../protocol-controls/getter-9-1-2/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-9-1-2/profile         |      1 +
+ .../protocol-controls/getter-9-1-2/report          |      1 +
+ .../protocol-controls/getter-9-1-2/run.json        |     23 +
+ .../protocol-controls/getter-9-1-2/run.stderr      |      0
+ .../protocol-controls/getter-9-1-2/run.stdout      |      1 +
+ .../protocol-controls/getter-9-1-2/stream          |      1 +
+ .../protocol-controls/outer-error/context          |    Bin 0 -> 5 bytes
+ .../protocol-controls/outer-error/profile          |      1 +
+ .../protocol-controls/outer-error/report           |      1 +
+ .../protocol-controls/outer-error/run.json         |     23 +
+ .../protocol-controls/outer-error/run.stderr       |      0
+ .../protocol-controls/outer-error/run.stdout       |      1 +
+ .../protocol-controls/outer-error/stream           |      1 +
+ .../protocol-controls/output-cap.json              |     22 +
+ .../protocol-controls/output-cap.stderr            |      0
+ .../protocol-controls/output-cap.stdout            |      1 +
+ .../protocol-controls/preconditions/alias.json     |     23 +
+ .../protocol-controls/preconditions/alias.stderr   |      1 +
+ .../protocol-controls/preconditions/alias.stdout   |      0
+ .../preconditions/argument-count.json              |     19 +
+ .../preconditions/argument-count.stderr            |      1 +
+ .../preconditions/argument-count.stdout            |      0
+ .../protocol-controls/preconditions/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/preconditions/directory.json |     23 +
+ .../preconditions/directory.stderr                 |      1 +
+ .../preconditions/directory.stdout                 |      0
+ .../protocol-controls/preconditions/existing       |      1 +
+ .../protocol-controls/preconditions/existing.json  |     23 +
+ .../preconditions/existing.stderr                  |      1 +
+ .../preconditions/existing.stdout                  |      0
+ .../protocol-controls/preconditions/missing.json   |     23 +
+ .../protocol-controls/preconditions/missing.stderr |      1 +
+ .../protocol-controls/preconditions/missing.stdout |      0
+ .../protocol-controls/preconditions/profile        |      1 +
+ .../protocol-controls/preconditions/stream         |      1 +
+ .../protocol-controls/protocol-baseline/context    |    Bin 0 -> 5 bytes
+ .../protocol-controls/protocol-baseline/profile    |      1 +
+ .../protocol-controls/protocol-baseline/report     |      1 +
+ .../protocol-controls/protocol-baseline/run.json   |     23 +
+ .../protocol-controls/protocol-baseline/run.stderr |      0
+ .../protocol-controls/protocol-baseline/run.stdout |      1 +
+ .../protocol-controls/protocol-baseline/stream     |      1 +
+ .../protocol-controls/short-report/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/short-report/profile         |      1 +
+ .../protocol-controls/short-report/report          |      1 +
+ .../protocol-controls/short-report/run.json        |     23 +
+ .../protocol-controls/short-report/run.stderr      |      0
+ .../protocol-controls/short-report/run.stdout      |      1 +
+ .../protocol-controls/short-report/stream          |      1 +
+ .../protocol-controls/timeout.json                 |     22 +
+ .../protocol-controls/timeout.stderr               |      0
+ .../protocol-controls/timeout.stdout               |      0
+ .../20261026T075232.295377Z/public-driver.json     |     25 +
+ .../20261026T075232.295377Z/public-driver.stderr   |      0
+ .../20261026T075232.295377Z/public-driver.stdout   |      0
+ .../20261026T075232.295377Z/rustc-location.json    |     21 +
+ .../20261026T075232.295377Z/rustc-location.stderr  |      0
+ .../20261026T075232.295377Z/rustc-location.stdout  |      1 +
+ .../20261026T075232.295377Z/rustc-version.json     |     21 +
+ .../20261026T075232.295377Z/rustc-version.stderr   |      0
+ .../20261026T075232.295377Z/rustc-version.stdout   |      7 +
+ .../20261026T075232.295377Z/source-manifest.json   |    115 +
+ .../api-probes/borrowed-positive.rs                |      3 +
+ .../source-snapshot/api-probes/clone-aggregate.rs  |      3 +
+ .../api-probes/clone-observation.rs                |      3 +
+ .../source-snapshot/api-probes/copy-aggregate.rs   |      3 +
+ .../source-snapshot/api-probes/copy-observation.rs |      3 +
+ .../api-probes/no-acceptance-boolean.rs            |      3 +
+ .../api-probes/no-old-semantic-accessor.rs         |      3 +
+ .../source-snapshot/api-probes/no-public-budget.rs |      3 +
+ .../api-probes/no-public-candidate.rs              |      3 +
+ .../api-probes/no-public-constructor.rs            |      3 +
+ .../api-probes/no-public-progress.rs               |      3 +
+ .../api-probes/no-public-receipt.rs                |      3 +
+ .../source-snapshot/api-probes/no-public-record.rs |      3 +
+ .../source-snapshot/api-probes/no-raw-fd.rs        |      3 +
+ .../api-probes/no-words-accessor.rs                |      3 +
+ .../source-snapshot/future_runner.py               |    201 +
+ .../source-snapshot/harness.py                     |    130 +
+ .../source-snapshot/prepare_support.py             |    132 +
+ .../source-snapshot/protocol_stub.rs               |     78 +
+ .../source-snapshot/public_driver.rs               |    167 +
+ .../source-snapshot/run_preparation.py             |     74 +
+ .../source-snapshot/test_preparation.py            |    147 +
+ .../20261026T075232.295377Z/stub-library.json      |     27 +
+ .../20261026T075232.295377Z/stub-library.stderr    |      0
+ .../20261026T075232.295377Z/stub-library.stdout    |      0
+ .../commands/20261026T075232.295377Z/summary.json  |    364 +
+ .../20261026T075232.295377Z/tool-identity.json     |      9 +
+ .../api-borrowed-positive.json                     |     29 +
+ .../api-borrowed-positive.stderr                   |      2 +
+ .../api-borrowed-positive.stdout                   |      0
+ .../api-clone-aggregate.json                       |     29 +
+ .../api-clone-aggregate.stderr                     |      3 +
+ .../api-clone-aggregate.stdout                     |      0
+ .../api-clone-observation.json                     |     29 +
+ .../api-clone-observation.stderr                   |      3 +
+ .../api-clone-observation.stdout                   |      0
+ .../api-copy-aggregate.json                        |     29 +
+ .../api-copy-aggregate.stderr                      |      3 +
+ .../api-copy-aggregate.stdout                      |      0
+ .../api-copy-observation.json                      |     29 +
+ .../api-copy-observation.stderr                    |      3 +
+ .../api-copy-observation.stdout                    |      0
+ .../api-no-acceptance-boolean.json                 |     29 +
+ .../api-no-acceptance-boolean.stderr               |      3 +
+ .../api-no-acceptance-boolean.stdout               |      0
+ .../api-no-old-semantic-accessor.json              |     29 +
+ .../api-no-old-semantic-accessor.stderr            |      3 +
+ .../api-no-old-semantic-accessor.stdout            |      0
+ .../api-no-public-budget.json                      |     29 +
+ .../api-no-public-budget.stderr                    |      3 +
+ .../api-no-public-budget.stdout                    |      0
+ .../api-no-public-candidate.json                   |     29 +
+ .../api-no-public-candidate.stderr                 |      3 +
+ .../api-no-public-candidate.stdout                 |      0
+ .../api-no-public-constructor.json                 |     29 +
+ .../api-no-public-constructor.stderr               |      2 +
+ .../api-no-public-constructor.stdout               |      0
+ .../api-no-public-progress.json                    |     29 +
+ .../api-no-public-progress.stderr                  |      3 +
+ .../api-no-public-progress.stdout                  |      0
+ .../api-no-public-receipt.json                     |     29 +
+ .../api-no-public-receipt.stderr                   |      3 +
+ .../api-no-public-receipt.stdout                   |      0
+ .../api-no-public-record.json                      |     29 +
+ .../api-no-public-record.stderr                    |      3 +
+ .../api-no-public-record.stdout                    |      0
+ .../20261026T075747.134964Z/api-no-raw-fd.json     |     29 +
+ .../20261026T075747.134964Z/api-no-raw-fd.stderr   |      3 +
+ .../20261026T075747.134964Z/api-no-raw-fd.stdout   |      0
+ .../api-no-words-accessor.json                     |     29 +
+ .../api-no-words-accessor.stderr                   |      3 +
+ .../api-no-words-accessor.stdout                   |      0
+ .../commands/20261026T075747.134964Z/cleanup.json  |     18 +
+ .../20261026T075747.134964Z/prepare-support.json   |     21 +
+ .../20261026T075747.134964Z/prepare-support.stderr |      0
+ .../20261026T075747.134964Z/prepare-support.stdout |      1 +
+ .../protocol-controls-optimized.json               |     24 +
+ .../protocol-controls-optimized.stderr             |     14 +
+ .../protocol-controls-optimized.stdout             |      1 +
+ .../authority-bits-1/context                       |    Bin 0 -> 5 bytes
+ .../authority-bits-1/profile                       |      1 +
+ .../authority-bits-1/report                        |      1 +
+ .../authority-bits-1/run.json                      |     23 +
+ .../authority-bits-1/run.stderr                    |      0
+ .../authority-bits-1/run.stdout                    |      1 +
+ .../authority-bits-1/stream                        |      1 +
+ .../authority-bits-15/context                      |    Bin 0 -> 5 bytes
+ .../authority-bits-15/profile                      |      1 +
+ .../authority-bits-15/report                       |      1 +
+ .../authority-bits-15/run.json                     |     23 +
+ .../authority-bits-15/run.stderr                   |      0
+ .../authority-bits-15/run.stdout                   |      1 +
+ .../authority-bits-15/stream                       |      1 +
+ .../authority-bits-2/context                       |    Bin 0 -> 5 bytes
+ .../authority-bits-2/profile                       |      1 +
+ .../authority-bits-2/report                        |      1 +
+ .../authority-bits-2/run.json                      |     23 +
+ .../authority-bits-2/run.stderr                    |      0
+ .../authority-bits-2/run.stdout                    |      1 +
+ .../authority-bits-2/stream                        |      1 +
+ .../authority-bits-4/context                       |    Bin 0 -> 5 bytes
+ .../authority-bits-4/profile                       |      1 +
+ .../authority-bits-4/report                        |      1 +
+ .../authority-bits-4/run.json                      |     23 +
+ .../authority-bits-4/run.stderr                    |      0
+ .../authority-bits-4/run.stdout                    |      1 +
+ .../authority-bits-4/stream                        |      1 +
+ .../authority-bits-8/context                       |    Bin 0 -> 5 bytes
+ .../authority-bits-8/profile                       |      1 +
+ .../authority-bits-8/report                        |      1 +
+ .../authority-bits-8/run.json                      |     23 +
+ .../authority-bits-8/run.stderr                    |      0
+ .../authority-bits-8/run.stdout                    |      1 +
+ .../authority-bits-8/stream                        |      1 +
+ .../bad-authority/context                          |    Bin 0 -> 5 bytes
+ .../bad-authority/profile                          |      1 +
+ .../bad-authority/report                           |      1 +
+ .../bad-authority/run.json                         |     23 +
+ .../bad-authority/run.stderr                       |      0
+ .../bad-authority/run.stdout                       |      1 +
+ .../bad-authority/stream                           |      1 +
+ .../bad-reserved/context                           |    Bin 0 -> 5 bytes
+ .../bad-reserved/profile                           |      1 +
+ .../bad-reserved/report                            |      1 +
+ .../bad-reserved/run.json                          |     23 +
+ .../bad-reserved/run.stderr                        |      0
+ .../bad-reserved/run.stdout                        |      1 +
+ .../bad-reserved/stream                            |      1 +
+ .../getter-0-0-0/context                           |    Bin 0 -> 5 bytes
+ .../getter-0-0-0/profile                           |      1 +
+ .../getter-0-0-0/report                            |      1 +
+ .../getter-0-0-0/run.json                          |     23 +
+ .../getter-0-0-0/run.stderr                        |      0
+ .../getter-0-0-0/run.stdout                        |      1 +
+ .../getter-0-0-0/stream                            |      1 +
+ .../getter-1-1-0/context                           |    Bin 0 -> 5 bytes
+ .../getter-1-1-0/profile                           |      1 +
+ .../getter-1-1-0/report                            |      1 +
+ .../getter-1-1-0/run.json                          |     23 +
+ .../getter-1-1-0/run.stderr                        |      0
+ .../getter-1-1-0/run.stdout                        |      1 +
+ .../getter-1-1-0/stream                            |      1 +
+ .../getter-10-1-3/context                          |    Bin 0 -> 5 bytes
+ .../getter-10-1-3/profile                          |      1 +
+ .../getter-10-1-3/report                           |      1 +
+ .../getter-10-1-3/run.json                         |     23 +
+ .../getter-10-1-3/run.stderr                       |      0
+ .../getter-10-1-3/run.stdout                       |      1 +
+ .../getter-10-1-3/stream                           |      1 +
+ .../getter-11-1-4/context                          |    Bin 0 -> 5 bytes
+ .../getter-11-1-4/profile                          |      1 +
+ .../getter-11-1-4/report                           |      1 +
+ .../getter-11-1-4/run.json                         |     23 +
+ .../getter-11-1-4/run.stderr                       |      0
+ .../getter-11-1-4/run.stdout                       |      1 +
+ .../getter-11-1-4/stream                           |      1 +
+ .../getter-12-1-5/context                          |    Bin 0 -> 5 bytes
+ .../getter-12-1-5/profile                          |      1 +
+ .../getter-12-1-5/report                           |      1 +
+ .../getter-12-1-5/run.json                         |     23 +
+ .../getter-12-1-5/run.stderr                       |      0
+ .../getter-12-1-5/run.stdout                       |      1 +
+ .../getter-12-1-5/stream                           |      1 +
+ .../getter-13-1-6/context                          |    Bin 0 -> 5 bytes
+ .../getter-13-1-6/profile                          |      1 +
+ .../getter-13-1-6/report                           |      1 +
+ .../getter-13-1-6/run.json                         |     23 +
+ .../getter-13-1-6/run.stderr                       |      0
+ .../getter-13-1-6/run.stdout                       |      1 +
+ .../getter-13-1-6/stream                           |      1 +
+ .../getter-14-1-7/context                          |    Bin 0 -> 5 bytes
+ .../getter-14-1-7/profile                          |      1 +
+ .../getter-14-1-7/report                           |      1 +
+ .../getter-14-1-7/run.json                         |     23 +
+ .../getter-14-1-7/run.stderr                       |      0
+ .../getter-14-1-7/run.stdout                       |      1 +
+ .../getter-14-1-7/stream                           |      1 +
+ .../getter-15-1-8/context                          |    Bin 0 -> 5 bytes
+ .../getter-15-1-8/profile                          |      1 +
+ .../getter-15-1-8/report                           |      1 +
+ .../getter-15-1-8/run.json                         |     23 +
+ .../getter-15-1-8/run.stderr                       |      0
+ .../getter-15-1-8/run.stdout                       |      1 +
+ .../getter-15-1-8/stream                           |      1 +
+ .../getter-16-1-9/context                          |    Bin 0 -> 5 bytes
+ .../getter-16-1-9/profile                          |      1 +
+ .../getter-16-1-9/report                           |      1 +
+ .../getter-16-1-9/run.json                         |     23 +
+ .../getter-16-1-9/run.stderr                       |      0
+ .../getter-16-1-9/run.stdout                       |      1 +
+ .../getter-16-1-9/stream                           |      1 +
+ .../getter-17-1-10/context                         |    Bin 0 -> 5 bytes
+ .../getter-17-1-10/profile                         |      1 +
+ .../getter-17-1-10/report                          |      1 +
+ .../getter-17-1-10/run.json                        |     23 +
+ .../getter-17-1-10/run.stderr                      |      0
+ .../getter-17-1-10/run.stdout                      |      1 +
+ .../getter-17-1-10/stream                          |      1 +
+ .../getter-18-1-11/context                         |    Bin 0 -> 5 bytes
+ .../getter-18-1-11/profile                         |      1 +
+ .../getter-18-1-11/report                          |      1 +
+ .../getter-18-1-11/run.json                        |     23 +
+ .../getter-18-1-11/run.stderr                      |      0
+ .../getter-18-1-11/run.stdout                      |      1 +
+ .../getter-18-1-11/stream                          |      1 +
+ .../getter-19-1-12/context                         |    Bin 0 -> 5 bytes
+ .../getter-19-1-12/profile                         |      1 +
+ .../getter-19-1-12/report                          |      1 +
+ .../getter-19-1-12/run.json                        |     23 +
+ .../getter-19-1-12/run.stderr                      |      0
+ .../getter-19-1-12/run.stdout                      |      1 +
+ .../getter-19-1-12/stream                          |      1 +
+ .../getter-2-2-0/context                           |    Bin 0 -> 5 bytes
+ .../getter-2-2-0/profile                           |      1 +
+ .../getter-2-2-0/report                            |      1 +
+ .../getter-2-2-0/run.json                          |     23 +
+ .../getter-2-2-0/run.stderr                        |      0
+ .../getter-2-2-0/run.stdout                        |      1 +
+ .../getter-2-2-0/stream                            |      1 +
+ .../getter-20-1-13/context                         |    Bin 0 -> 5 bytes
+ .../getter-20-1-13/profile                         |      1 +
+ .../getter-20-1-13/report                          |      1 +
+ .../getter-20-1-13/run.json                        |     23 +
+ .../getter-20-1-13/run.stderr                      |      0
+ .../getter-20-1-13/run.stdout                      |      1 +
+ .../getter-20-1-13/stream                          |      1 +
+ .../getter-21-1-14/context                         |    Bin 0 -> 5 bytes
+ .../getter-21-1-14/profile                         |      1 +
+ .../getter-21-1-14/report                          |      1 +
+ .../getter-21-1-14/run.json                        |     23 +
+ .../getter-21-1-14/run.stderr                      |      0
+ .../getter-21-1-14/run.stdout                      |      1 +
+ .../getter-21-1-14/stream                          |      1 +
+ .../getter-22-1-15/context                         |    Bin 0 -> 5 bytes
+ .../getter-22-1-15/profile                         |      1 +
+ .../getter-22-1-15/report                          |      1 +
+ .../getter-22-1-15/run.json                        |     23 +
+ .../getter-22-1-15/run.stderr                      |      0
+ .../getter-22-1-15/run.stdout                      |      1 +
+ .../getter-22-1-15/stream                          |      1 +
+ .../getter-23-1-16/context                         |    Bin 0 -> 5 bytes
+ .../getter-23-1-16/profile                         |      1 +
+ .../getter-23-1-16/report                          |      1 +
+ .../getter-23-1-16/run.json                        |     23 +
+ .../getter-23-1-16/run.stderr                      |      0
+ .../getter-23-1-16/run.stdout                      |      1 +
+ .../getter-23-1-16/stream                          |      1 +
+ .../getter-24-1-17/context                         |    Bin 0 -> 5 bytes
+ .../getter-24-1-17/profile                         |      1 +
+ .../getter-24-1-17/report                          |      1 +
+ .../getter-24-1-17/run.json                        |     23 +
+ .../getter-24-1-17/run.stderr                      |      0
+ .../getter-24-1-17/run.stdout                      |      1 +
+ .../getter-24-1-17/stream                          |      1 +
+ .../getter-3-3-0/context                           |    Bin 0 -> 5 bytes
+ .../getter-3-3-0/profile                           |      1 +
+ .../getter-3-3-0/report                            |      1 +
+ .../getter-3-3-0/run.json                          |     23 +
+ .../getter-3-3-0/run.stderr                        |      0
+ .../getter-3-3-0/run.stdout                        |      1 +
+ .../getter-3-3-0/stream                            |      1 +
+ .../getter-4-4-0/context                           |    Bin 0 -> 5 bytes
+ .../getter-4-4-0/profile                           |      1 +
+ .../getter-4-4-0/report                            |      1 +
+ .../getter-4-4-0/run.json                          |     23 +
+ .../getter-4-4-0/run.stderr                        |      0
+ .../getter-4-4-0/run.stdout                        |      1 +
+ .../getter-4-4-0/stream                            |      1 +
+ .../getter-5-5-0/context                           |    Bin 0 -> 5 bytes
+ .../getter-5-5-0/profile                           |      1 +
+ .../getter-5-5-0/report                            |      1 +
+ .../getter-5-5-0/run.json                          |     23 +
+ .../getter-5-5-0/run.stderr                        |      0
+ .../getter-5-5-0/run.stdout                        |      1 +
+ .../getter-5-5-0/stream                            |      1 +
+ .../getter-6-6-0/context                           |    Bin 0 -> 5 bytes
+ .../getter-6-6-0/profile                           |      1 +
+ .../getter-6-6-0/report                            |      1 +
+ .../getter-6-6-0/run.json                          |     23 +
+ .../getter-6-6-0/run.stderr                        |      0
+ .../getter-6-6-0/run.stdout                        |      1 +
+ .../getter-6-6-0/stream                            |      1 +
+ .../getter-7-1-0/context                           |    Bin 0 -> 5 bytes
+ .../getter-7-1-0/profile                           |      1 +
+ .../getter-7-1-0/report                            |      1 +
+ .../getter-7-1-0/run.json                          |     23 +
+ .../getter-7-1-0/run.stderr                        |      0
+ .../getter-7-1-0/run.stdout                        |      1 +
+ .../getter-7-1-0/stream                            |      1 +
+ .../getter-8-1-1/context                           |    Bin 0 -> 5 bytes
+ .../getter-8-1-1/profile                           |      1 +
+ .../getter-8-1-1/report                            |      1 +
+ .../getter-8-1-1/run.json                          |     23 +
+ .../getter-8-1-1/run.stderr                        |      0
+ .../getter-8-1-1/run.stdout                        |      1 +
+ .../getter-8-1-1/stream                            |      1 +
+ .../getter-9-1-2/context                           |    Bin 0 -> 5 bytes
+ .../getter-9-1-2/profile                           |      1 +
+ .../getter-9-1-2/report                            |      1 +
+ .../getter-9-1-2/run.json                          |     23 +
+ .../getter-9-1-2/run.stderr                        |      0
+ .../getter-9-1-2/run.stdout                        |      1 +
+ .../getter-9-1-2/stream                            |      1 +
+ .../outer-error/context                            |    Bin 0 -> 5 bytes
+ .../outer-error/profile                            |      1 +
+ .../protocol-controls-optimized/outer-error/report |      1 +
+ .../outer-error/run.json                           |     23 +
+ .../outer-error/run.stderr                         |      0
+ .../outer-error/run.stdout                         |      1 +
+ .../protocol-controls-optimized/outer-error/stream |      1 +
+ .../protocol-controls-optimized/output-cap.json    |     22 +
+ .../protocol-controls-optimized/output-cap.stderr  |      0
+ .../protocol-controls-optimized/output-cap.stdout  |      1 +
+ .../preconditions/alias.json                       |     23 +
+ .../preconditions/alias.stderr                     |      1 +
+ .../preconditions/alias.stdout                     |      0
+ .../preconditions/argument-count.json              |     19 +
+ .../preconditions/argument-count.stderr            |      1 +
+ .../preconditions/argument-count.stdout            |      0
+ .../preconditions/context                          |    Bin 0 -> 5 bytes
+ .../preconditions/directory.json                   |     23 +
+ .../preconditions/directory.stderr                 |      1 +
+ .../preconditions/directory.stdout                 |      0
+ .../preconditions/existing                         |      1 +
+ .../preconditions/existing.json                    |     23 +
+ .../preconditions/existing.stderr                  |      1 +
+ .../preconditions/existing.stdout                  |      0
+ .../preconditions/missing.json                     |     23 +
+ .../preconditions/missing.stderr                   |      1 +
+ .../preconditions/missing.stdout                   |      0
+ .../preconditions/profile                          |      1 +
+ .../preconditions/stream                           |      1 +
+ .../protocol-baseline/context                      |    Bin 0 -> 5 bytes
+ .../protocol-baseline/profile                      |      1 +
+ .../protocol-baseline/report                       |      1 +
+ .../protocol-baseline/run.json                     |     23 +
+ .../protocol-baseline/run.stderr                   |      0
+ .../protocol-baseline/run.stdout                   |      1 +
+ .../protocol-baseline/stream                       |      1 +
+ .../short-report/context                           |    Bin 0 -> 5 bytes
+ .../short-report/profile                           |      1 +
+ .../short-report/report                            |      1 +
+ .../short-report/run.json                          |     23 +
+ .../short-report/run.stderr                        |      0
+ .../short-report/run.stdout                        |      1 +
+ .../short-report/stream                            |      1 +
+ .../protocol-controls-optimized/timeout.json       |     22 +
+ .../protocol-controls-optimized/timeout.stderr     |      0
+ .../protocol-controls-optimized/timeout.stdout     |      0
+ .../20261026T075747.134964Z/protocol-controls.json |     23 +
+ .../protocol-controls.stderr                       |     14 +
+ .../protocol-controls.stdout                       |      1 +
+ .../protocol-controls/authority-bits-1/context     |    Bin 0 -> 5 bytes
+ .../protocol-controls/authority-bits-1/profile     |      1 +
+ .../protocol-controls/authority-bits-1/report      |      1 +
+ .../protocol-controls/authority-bits-1/run.json    |     23 +
+ .../protocol-controls/authority-bits-1/run.stderr  |      0
+ .../protocol-controls/authority-bits-1/run.stdout  |      1 +
+ .../protocol-controls/authority-bits-1/stream      |      1 +
+ .../protocol-controls/authority-bits-15/context    |    Bin 0 -> 5 bytes
+ .../protocol-controls/authority-bits-15/profile    |      1 +
+ .../protocol-controls/authority-bits-15/report     |      1 +
+ .../protocol-controls/authority-bits-15/run.json   |     23 +
+ .../protocol-controls/authority-bits-15/run.stderr |      0
+ .../protocol-controls/authority-bits-15/run.stdout |      1 +
+ .../protocol-controls/authority-bits-15/stream     |      1 +
+ .../protocol-controls/authority-bits-2/context     |    Bin 0 -> 5 bytes
+ .../protocol-controls/authority-bits-2/profile     |      1 +
+ .../protocol-controls/authority-bits-2/report      |      1 +
+ .../protocol-controls/authority-bits-2/run.json    |     23 +
+ .../protocol-controls/authority-bits-2/run.stderr  |      0
+ .../protocol-controls/authority-bits-2/run.stdout  |      1 +
+ .../protocol-controls/authority-bits-2/stream      |      1 +
+ .../protocol-controls/authority-bits-4/context     |    Bin 0 -> 5 bytes
+ .../protocol-controls/authority-bits-4/profile     |      1 +
+ .../protocol-controls/authority-bits-4/report      |      1 +
+ .../protocol-controls/authority-bits-4/run.json    |     23 +
+ .../protocol-controls/authority-bits-4/run.stderr  |      0
+ .../protocol-controls/authority-bits-4/run.stdout  |      1 +
+ .../protocol-controls/authority-bits-4/stream      |      1 +
+ .../protocol-controls/authority-bits-8/context     |    Bin 0 -> 5 bytes
+ .../protocol-controls/authority-bits-8/profile     |      1 +
+ .../protocol-controls/authority-bits-8/report      |      1 +
+ .../protocol-controls/authority-bits-8/run.json    |     23 +
+ .../protocol-controls/authority-bits-8/run.stderr  |      0
+ .../protocol-controls/authority-bits-8/run.stdout  |      1 +
+ .../protocol-controls/authority-bits-8/stream      |      1 +
+ .../protocol-controls/bad-authority/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/bad-authority/profile        |      1 +
+ .../protocol-controls/bad-authority/report         |      1 +
+ .../protocol-controls/bad-authority/run.json       |     23 +
+ .../protocol-controls/bad-authority/run.stderr     |      0
+ .../protocol-controls/bad-authority/run.stdout     |      1 +
+ .../protocol-controls/bad-authority/stream         |      1 +
+ .../protocol-controls/bad-reserved/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/bad-reserved/profile         |      1 +
+ .../protocol-controls/bad-reserved/report          |      1 +
+ .../protocol-controls/bad-reserved/run.json        |     23 +
+ .../protocol-controls/bad-reserved/run.stderr      |      0
+ .../protocol-controls/bad-reserved/run.stdout      |      1 +
+ .../protocol-controls/bad-reserved/stream          |      1 +
+ .../protocol-controls/getter-0-0-0/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-0-0-0/profile         |      1 +
+ .../protocol-controls/getter-0-0-0/report          |      1 +
+ .../protocol-controls/getter-0-0-0/run.json        |     23 +
+ .../protocol-controls/getter-0-0-0/run.stderr      |      0
+ .../protocol-controls/getter-0-0-0/run.stdout      |      1 +
+ .../protocol-controls/getter-0-0-0/stream          |      1 +
+ .../protocol-controls/getter-1-1-0/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-1-1-0/profile         |      1 +
+ .../protocol-controls/getter-1-1-0/report          |      1 +
+ .../protocol-controls/getter-1-1-0/run.json        |     23 +
+ .../protocol-controls/getter-1-1-0/run.stderr      |      0
+ .../protocol-controls/getter-1-1-0/run.stdout      |      1 +
+ .../protocol-controls/getter-1-1-0/stream          |      1 +
+ .../protocol-controls/getter-10-1-3/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-10-1-3/profile        |      1 +
+ .../protocol-controls/getter-10-1-3/report         |      1 +
+ .../protocol-controls/getter-10-1-3/run.json       |     23 +
+ .../protocol-controls/getter-10-1-3/run.stderr     |      0
+ .../protocol-controls/getter-10-1-3/run.stdout     |      1 +
+ .../protocol-controls/getter-10-1-3/stream         |      1 +
+ .../protocol-controls/getter-11-1-4/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-11-1-4/profile        |      1 +
+ .../protocol-controls/getter-11-1-4/report         |      1 +
+ .../protocol-controls/getter-11-1-4/run.json       |     23 +
+ .../protocol-controls/getter-11-1-4/run.stderr     |      0
+ .../protocol-controls/getter-11-1-4/run.stdout     |      1 +
+ .../protocol-controls/getter-11-1-4/stream         |      1 +
+ .../protocol-controls/getter-12-1-5/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-12-1-5/profile        |      1 +
+ .../protocol-controls/getter-12-1-5/report         |      1 +
+ .../protocol-controls/getter-12-1-5/run.json       |     23 +
+ .../protocol-controls/getter-12-1-5/run.stderr     |      0
+ .../protocol-controls/getter-12-1-5/run.stdout     |      1 +
+ .../protocol-controls/getter-12-1-5/stream         |      1 +
+ .../protocol-controls/getter-13-1-6/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-13-1-6/profile        |      1 +
+ .../protocol-controls/getter-13-1-6/report         |      1 +
+ .../protocol-controls/getter-13-1-6/run.json       |     23 +
+ .../protocol-controls/getter-13-1-6/run.stderr     |      0
+ .../protocol-controls/getter-13-1-6/run.stdout     |      1 +
+ .../protocol-controls/getter-13-1-6/stream         |      1 +
+ .../protocol-controls/getter-14-1-7/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-14-1-7/profile        |      1 +
+ .../protocol-controls/getter-14-1-7/report         |      1 +
+ .../protocol-controls/getter-14-1-7/run.json       |     23 +
+ .../protocol-controls/getter-14-1-7/run.stderr     |      0
+ .../protocol-controls/getter-14-1-7/run.stdout     |      1 +
+ .../protocol-controls/getter-14-1-7/stream         |      1 +
+ .../protocol-controls/getter-15-1-8/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-15-1-8/profile        |      1 +
+ .../protocol-controls/getter-15-1-8/report         |      1 +
+ .../protocol-controls/getter-15-1-8/run.json       |     23 +
+ .../protocol-controls/getter-15-1-8/run.stderr     |      0
+ .../protocol-controls/getter-15-1-8/run.stdout     |      1 +
+ .../protocol-controls/getter-15-1-8/stream         |      1 +
+ .../protocol-controls/getter-16-1-9/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-16-1-9/profile        |      1 +
+ .../protocol-controls/getter-16-1-9/report         |      1 +
+ .../protocol-controls/getter-16-1-9/run.json       |     23 +
+ .../protocol-controls/getter-16-1-9/run.stderr     |      0
+ .../protocol-controls/getter-16-1-9/run.stdout     |      1 +
+ .../protocol-controls/getter-16-1-9/stream         |      1 +
+ .../protocol-controls/getter-17-1-10/context       |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-17-1-10/profile       |      1 +
+ .../protocol-controls/getter-17-1-10/report        |      1 +
+ .../protocol-controls/getter-17-1-10/run.json      |     23 +
+ .../protocol-controls/getter-17-1-10/run.stderr    |      0
+ .../protocol-controls/getter-17-1-10/run.stdout    |      1 +
+ .../protocol-controls/getter-17-1-10/stream        |      1 +
+ .../protocol-controls/getter-18-1-11/context       |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-18-1-11/profile       |      1 +
+ .../protocol-controls/getter-18-1-11/report        |      1 +
+ .../protocol-controls/getter-18-1-11/run.json      |     23 +
+ .../protocol-controls/getter-18-1-11/run.stderr    |      0
+ .../protocol-controls/getter-18-1-11/run.stdout    |      1 +
+ .../protocol-controls/getter-18-1-11/stream        |      1 +
+ .../protocol-controls/getter-19-1-12/context       |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-19-1-12/profile       |      1 +
+ .../protocol-controls/getter-19-1-12/report        |      1 +
+ .../protocol-controls/getter-19-1-12/run.json      |     23 +
+ .../protocol-controls/getter-19-1-12/run.stderr    |      0
+ .../protocol-controls/getter-19-1-12/run.stdout    |      1 +
+ .../protocol-controls/getter-19-1-12/stream        |      1 +
+ .../protocol-controls/getter-2-2-0/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-2-2-0/profile         |      1 +
+ .../protocol-controls/getter-2-2-0/report          |      1 +
+ .../protocol-controls/getter-2-2-0/run.json        |     23 +
+ .../protocol-controls/getter-2-2-0/run.stderr      |      0
+ .../protocol-controls/getter-2-2-0/run.stdout      |      1 +
+ .../protocol-controls/getter-2-2-0/stream          |      1 +
+ .../protocol-controls/getter-20-1-13/context       |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-20-1-13/profile       |      1 +
+ .../protocol-controls/getter-20-1-13/report        |      1 +
+ .../protocol-controls/getter-20-1-13/run.json      |     23 +
+ .../protocol-controls/getter-20-1-13/run.stderr    |      0
+ .../protocol-controls/getter-20-1-13/run.stdout    |      1 +
+ .../protocol-controls/getter-20-1-13/stream        |      1 +
+ .../protocol-controls/getter-21-1-14/context       |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-21-1-14/profile       |      1 +
+ .../protocol-controls/getter-21-1-14/report        |      1 +
+ .../protocol-controls/getter-21-1-14/run.json      |     23 +
+ .../protocol-controls/getter-21-1-14/run.stderr    |      0
+ .../protocol-controls/getter-21-1-14/run.stdout    |      1 +
+ .../protocol-controls/getter-21-1-14/stream        |      1 +
+ .../protocol-controls/getter-22-1-15/context       |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-22-1-15/profile       |      1 +
+ .../protocol-controls/getter-22-1-15/report        |      1 +
+ .../protocol-controls/getter-22-1-15/run.json      |     23 +
+ .../protocol-controls/getter-22-1-15/run.stderr    |      0
+ .../protocol-controls/getter-22-1-15/run.stdout    |      1 +
+ .../protocol-controls/getter-22-1-15/stream        |      1 +
+ .../protocol-controls/getter-23-1-16/context       |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-23-1-16/profile       |      1 +
+ .../protocol-controls/getter-23-1-16/report        |      1 +
+ .../protocol-controls/getter-23-1-16/run.json      |     23 +
+ .../protocol-controls/getter-23-1-16/run.stderr    |      0
+ .../protocol-controls/getter-23-1-16/run.stdout    |      1 +
+ .../protocol-controls/getter-23-1-16/stream        |      1 +
+ .../protocol-controls/getter-24-1-17/context       |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-24-1-17/profile       |      1 +
+ .../protocol-controls/getter-24-1-17/report        |      1 +
+ .../protocol-controls/getter-24-1-17/run.json      |     23 +
+ .../protocol-controls/getter-24-1-17/run.stderr    |      0
+ .../protocol-controls/getter-24-1-17/run.stdout    |      1 +
+ .../protocol-controls/getter-24-1-17/stream        |      1 +
+ .../protocol-controls/getter-3-3-0/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-3-3-0/profile         |      1 +
+ .../protocol-controls/getter-3-3-0/report          |      1 +
+ .../protocol-controls/getter-3-3-0/run.json        |     23 +
+ .../protocol-controls/getter-3-3-0/run.stderr      |      0
+ .../protocol-controls/getter-3-3-0/run.stdout      |      1 +
+ .../protocol-controls/getter-3-3-0/stream          |      1 +
+ .../protocol-controls/getter-4-4-0/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-4-4-0/profile         |      1 +
+ .../protocol-controls/getter-4-4-0/report          |      1 +
+ .../protocol-controls/getter-4-4-0/run.json        |     23 +
+ .../protocol-controls/getter-4-4-0/run.stderr      |      0
+ .../protocol-controls/getter-4-4-0/run.stdout      |      1 +
+ .../protocol-controls/getter-4-4-0/stream          |      1 +
+ .../protocol-controls/getter-5-5-0/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-5-5-0/profile         |      1 +
+ .../protocol-controls/getter-5-5-0/report          |      1 +
+ .../protocol-controls/getter-5-5-0/run.json        |     23 +
+ .../protocol-controls/getter-5-5-0/run.stderr      |      0
+ .../protocol-controls/getter-5-5-0/run.stdout      |      1 +
+ .../protocol-controls/getter-5-5-0/stream          |      1 +
+ .../protocol-controls/getter-6-6-0/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-6-6-0/profile         |      1 +
+ .../protocol-controls/getter-6-6-0/report          |      1 +
+ .../protocol-controls/getter-6-6-0/run.json        |     23 +
+ .../protocol-controls/getter-6-6-0/run.stderr      |      0
+ .../protocol-controls/getter-6-6-0/run.stdout      |      1 +
+ .../protocol-controls/getter-6-6-0/stream          |      1 +
+ .../protocol-controls/getter-7-1-0/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-7-1-0/profile         |      1 +
+ .../protocol-controls/getter-7-1-0/report          |      1 +
+ .../protocol-controls/getter-7-1-0/run.json        |     23 +
+ .../protocol-controls/getter-7-1-0/run.stderr      |      0
+ .../protocol-controls/getter-7-1-0/run.stdout      |      1 +
+ .../protocol-controls/getter-7-1-0/stream          |      1 +
+ .../protocol-controls/getter-8-1-1/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-8-1-1/profile         |      1 +
+ .../protocol-controls/getter-8-1-1/report          |      1 +
+ .../protocol-controls/getter-8-1-1/run.json        |     23 +
+ .../protocol-controls/getter-8-1-1/run.stderr      |      0
+ .../protocol-controls/getter-8-1-1/run.stdout      |      1 +
+ .../protocol-controls/getter-8-1-1/stream          |      1 +
+ .../protocol-controls/getter-9-1-2/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/getter-9-1-2/profile         |      1 +
+ .../protocol-controls/getter-9-1-2/report          |      1 +
+ .../protocol-controls/getter-9-1-2/run.json        |     23 +
+ .../protocol-controls/getter-9-1-2/run.stderr      |      0
+ .../protocol-controls/getter-9-1-2/run.stdout      |      1 +
+ .../protocol-controls/getter-9-1-2/stream          |      1 +
+ .../protocol-controls/outer-error/context          |    Bin 0 -> 5 bytes
+ .../protocol-controls/outer-error/profile          |      1 +
+ .../protocol-controls/outer-error/report           |      1 +
+ .../protocol-controls/outer-error/run.json         |     23 +
+ .../protocol-controls/outer-error/run.stderr       |      0
+ .../protocol-controls/outer-error/run.stdout       |      1 +
+ .../protocol-controls/outer-error/stream           |      1 +
+ .../protocol-controls/output-cap.json              |     22 +
+ .../protocol-controls/output-cap.stderr            |      0
+ .../protocol-controls/output-cap.stdout            |      1 +
+ .../protocol-controls/preconditions/alias.json     |     23 +
+ .../protocol-controls/preconditions/alias.stderr   |      1 +
+ .../protocol-controls/preconditions/alias.stdout   |      0
+ .../preconditions/argument-count.json              |     19 +
+ .../preconditions/argument-count.stderr            |      1 +
+ .../preconditions/argument-count.stdout            |      0
+ .../protocol-controls/preconditions/context        |    Bin 0 -> 5 bytes
+ .../protocol-controls/preconditions/directory.json |     23 +
+ .../preconditions/directory.stderr                 |      1 +
+ .../preconditions/directory.stdout                 |      0
+ .../protocol-controls/preconditions/existing       |      1 +
+ .../protocol-controls/preconditions/existing.json  |     23 +
+ .../preconditions/existing.stderr                  |      1 +
+ .../preconditions/existing.stdout                  |      0
+ .../protocol-controls/preconditions/missing.json   |     23 +
+ .../protocol-controls/preconditions/missing.stderr |      1 +
+ .../protocol-controls/preconditions/missing.stdout |      0
+ .../protocol-controls/preconditions/profile        |      1 +
+ .../protocol-controls/preconditions/stream         |      1 +
+ .../protocol-controls/protocol-baseline/context    |    Bin 0 -> 5 bytes
+ .../protocol-controls/protocol-baseline/profile    |      1 +
+ .../protocol-controls/protocol-baseline/report     |      1 +
+ .../protocol-controls/protocol-baseline/run.json   |     23 +
+ .../protocol-controls/protocol-baseline/run.stderr |      0
+ .../protocol-controls/protocol-baseline/run.stdout |      1 +
+ .../protocol-controls/protocol-baseline/stream     |      1 +
+ .../protocol-controls/short-report/context         |    Bin 0 -> 5 bytes
+ .../protocol-controls/short-report/profile         |      1 +
+ .../protocol-controls/short-report/report          |      1 +
+ .../protocol-controls/short-report/run.json        |     23 +
+ .../protocol-controls/short-report/run.stderr      |      0
+ .../protocol-controls/short-report/run.stdout      |      1 +
+ .../protocol-controls/short-report/stream          |      1 +
+ .../protocol-controls/timeout.json                 |     22 +
+ .../protocol-controls/timeout.stderr               |      0
+ .../protocol-controls/timeout.stdout               |      0
+ .../20261026T075747.134964Z/public-driver.json     |     25 +
+ .../20261026T075747.134964Z/public-driver.stderr   |      0
+ .../20261026T075747.134964Z/public-driver.stdout   |      0
+ .../20261026T075747.134964Z/rustc-location.json    |     21 +
+ .../20261026T075747.134964Z/rustc-location.stderr  |      0
+ .../20261026T075747.134964Z/rustc-location.stdout  |      1 +
+ .../20261026T075747.134964Z/rustc-version.json     |     21 +
+ .../20261026T075747.134964Z/rustc-version.stderr   |      0
+ .../20261026T075747.134964Z/rustc-version.stdout   |      7 +
+ .../20261026T075747.134964Z/source-manifest.json   |    115 +
+ .../api-probes/borrowed-positive.rs                |      3 +
+ .../source-snapshot/api-probes/clone-aggregate.rs  |      3 +
+ .../api-probes/clone-observation.rs                |      3 +
+ .../source-snapshot/api-probes/copy-aggregate.rs   |      3 +
+ .../source-snapshot/api-probes/copy-observation.rs |      3 +
+ .../api-probes/no-acceptance-boolean.rs            |      3 +
+ .../api-probes/no-old-semantic-accessor.rs         |      3 +
+ .../source-snapshot/api-probes/no-public-budget.rs |      3 +
+ .../api-probes/no-public-candidate.rs              |      3 +
+ .../api-probes/no-public-constructor.rs            |      3 +
+ .../api-probes/no-public-progress.rs               |      3 +
+ .../api-probes/no-public-receipt.rs                |      3 +
+ .../source-snapshot/api-probes/no-public-record.rs |      3 +
+ .../source-snapshot/api-probes/no-raw-fd.rs        |      3 +
+ .../api-probes/no-words-accessor.rs                |      3 +
+ .../source-snapshot/future_runner.py               |    215 +
+ .../source-snapshot/harness.py                     |    136 +
+ .../source-snapshot/prepare_support.py             |    132 +
+ .../source-snapshot/protocol_stub.rs               |     78 +
+ .../source-snapshot/public_driver.rs               |    167 +
+ .../source-snapshot/run_preparation.py             |     74 +
+ .../source-snapshot/test_preparation.py            |    153 +
+ .../20261026T075747.134964Z/stub-library.json      |     27 +
+ .../20261026T075747.134964Z/stub-library.stderr    |      0
+ .../20261026T075747.134964Z/stub-library.stdout    |      0
+ .../commands/20261026T075747.134964Z/summary.json  |    364 +
+ .../20261026T075747.134964Z/tool-identity.json     |      9 +
+ .../execution-preparation/driver-schema.json       |     90 +
+ .../execution-admission-schema.json                |     29 +
+ .../final-commands/context-revision.json           |     21 +
+ .../final-commands/context-revision.stderr         |      0
+ .../final-commands/context-revision.stdout         |      1 +
+ .../final-commands/owned-diff-check.json           |     24 +
+ .../final-commands/owned-diff-check.stderr         |      0
+ .../final-commands/owned-diff-check.stdout         |      0
+ .../execution-preparation/final-receipt.json       |     93 +
+ .../final-source-manifest.json                     |    125 +
+ .../execution-preparation/future_runner.py         |    215 +
+ .../execution-preparation/harness.py               |    136 +
+ .../execution-preparation/inputs/13-analyzer.rs    |    536 +
+ .../execution-preparation/inputs/14-envelope.rs    |    395 +
+ .../execution-preparation/inputs/custody.json      |     34 +
+ .../inputs/implementation-selection.json           |     74 +
+ .../inputs/public-getter-selection.json            |     98 +
+ .../execution-preparation/latest-preparation.json  |    364 +
+ .../execution-preparation/prepare_support.py       |    132 +
+ .../execution-preparation/private-review-plan.json |     59 +
+ .../execution-preparation/protocol_stub.rs         |     78 +
+ .../execution-preparation/public_driver.rs         |    167 +
+ .../execution-preparation/ready.json               |     25 +
+ .../execution-preparation/run_preparation.py       |     74 +
+ .../execution-preparation/seal.json                |   7409 +
+ .../execution-preparation/seal.sha256              |      1 +
+ .../execution-preparation/seal_preparation.py      |    103 +
+ .../execution-preparation/test_preparation.py      |    153 +
+ .../preaccess-ready.json                           |     22 +
+ .../preaccess/actual-file-and-api-plan.json        |     56 +
+ .../preaccess/authoring-failures.json              |     35 +
+ .../preaccess/budget-boundary-plan.json            |    170 +
+ .../preaccess/build_fixtures.py                    |    277 +
+ .../preaccess/capture_inputs.py                    |     66 +
+ .../preaccess/cleanup.json                         |     12 +
+ .../20261026T070958.365983Z/fixture-encoding.json  |     27 +
+ .../fixture-encoding.stderr                        |     14 +
+ .../fixture-encoding.stdout                        |      0
+ .../commands/20261026T070958.365983Z/summary.json  |     11 +
+ .../20261026T071009.533493Z/fixture-encoding.json  |     27 +
+ .../fixture-encoding.stderr                        |      0
+ .../fixture-encoding.stdout                        |      1 +
+ .../commands/20261026T071009.533493Z/normal.json   |     27 +
+ .../commands/20261026T071009.533493Z/normal.stderr |     29 +
+ .../commands/20261026T071009.533493Z/normal.stdout |      1 +
+ .../commands/20261026T071009.533493Z/summary.json  |     16 +
+ .../20261026T071125.967775Z/fixture-encoding.json  |     27 +
+ .../fixture-encoding.stderr                        |      0
+ .../fixture-encoding.stdout                        |      1 +
+ .../commands/20261026T071125.967775Z/normal.json   |     27 +
+ .../commands/20261026T071125.967775Z/normal.stderr |     17 +
+ .../commands/20261026T071125.967775Z/normal.stdout |      1 +
+ .../20261026T071125.967775Z/optimized.json         |     28 +
+ .../20261026T071125.967775Z/optimized.stderr       |     17 +
+ .../20261026T071125.967775Z/optimized.stdout       |      1 +
+ .../commands/20261026T071125.967775Z/summary.json  |     21 +
+ .../20261026T072010.354579Z/fixture-encoding.json  |     28 +
+ .../fixture-encoding.stderr                        |      0
+ .../fixture-encoding.stdout                        |      1 +
+ .../commands/20261026T072010.354579Z/normal.json   |     28 +
+ .../commands/20261026T072010.354579Z/normal.stderr |     17 +
+ .../commands/20261026T072010.354579Z/normal.stdout |      1 +
+ .../20261026T072010.354579Z/optimized.json         |     29 +
+ .../20261026T072010.354579Z/optimized.stderr       |     17 +
+ .../20261026T072010.354579Z/optimized.stdout       |      1 +
+ .../20261026T072010.354579Z/proof-obligations.json |     28 +
+ .../proof-obligations.stderr                       |      0
+ .../proof-obligations.stdout                       |      1 +
+ .../commands/20261026T072010.354579Z/summary.json  |     26 +
+ .../20261026T072120.893207Z/fixture-encoding.json  |     28 +
+ .../fixture-encoding.stderr                        |      0
+ .../fixture-encoding.stdout                        |      1 +
+ .../commands/20261026T072120.893207Z/normal.json   |     28 +
+ .../commands/20261026T072120.893207Z/normal.stderr |     19 +
+ .../commands/20261026T072120.893207Z/normal.stdout |      1 +
+ .../20261026T072120.893207Z/optimized.json         |     29 +
+ .../20261026T072120.893207Z/optimized.stderr       |     19 +
+ .../20261026T072120.893207Z/optimized.stdout       |      1 +
+ .../20261026T072120.893207Z/proof-obligations.json |     28 +
+ .../proof-obligations.stderr                       |      0
+ .../proof-obligations.stdout                       |      1 +
+ .../commands/20261026T072120.893207Z/summary.json  |     26 +
+ .../preaccess/final-receipt.json                   |     73 +
+ .../preaccess/fixtures/cases.json                  |  18651 +
+ .../fixtures/contexts/8c8f84a2bf55-199.bin         |    Bin 0 -> 8192 bytes
+ .../preaccess/fixtures/contexts/dcf8bfb265a6-1.bin |    Bin 0 -> 8192 bytes
+ .../fixtures/contexts/dcf8bfb265a6-10.bin          |    Bin 0 -> 8192 bytes
+ .../fixtures/contexts/dcf8bfb265a6-11.bin          |    Bin 0 -> 8192 bytes
+ .../fixtures/contexts/dcf8bfb265a6-13.bin          |    Bin 0 -> 8192 bytes
+ .../fixtures/contexts/dcf8bfb265a6-14.bin          |    Bin 0 -> 8192 bytes
+ .../fixtures/contexts/dcf8bfb265a6-15.bin          |    Bin 0 -> 8192 bytes
+ .../fixtures/contexts/dcf8bfb265a6-16.bin          |    Bin 0 -> 8192 bytes
+ .../fixtures/contexts/dcf8bfb265a6-18.bin          |    Bin 0 -> 8192 bytes
+ .../fixtures/contexts/dcf8bfb265a6-19.bin          |    Bin 0 -> 8192 bytes
+ .../preaccess/fixtures/contexts/dcf8bfb265a6-2.bin |    Bin 0 -> 8192 bytes
+ .../fixtures/contexts/dcf8bfb265a6-22.bin          |    Bin 0 -> 8192 bytes
+ .../preaccess/fixtures/contexts/dcf8bfb265a6-3.bin |    Bin 0 -> 8192 bytes
+ .../fixtures/contexts/dcf8bfb265a6-34.bin          |    Bin 0 -> 8192 bytes
+ .../preaccess/fixtures/contexts/dcf8bfb265a6-4.bin |    Bin 0 -> 8192 bytes
+ .../preaccess/fixtures/contexts/dcf8bfb265a6-5.bin |    Bin 0 -> 8192 bytes
+ .../preaccess/fixtures/contexts/dcf8bfb265a6-6.bin |    Bin 0 -> 8192 bytes
+ .../preaccess/fixtures/contexts/dcf8bfb265a6-7.bin |    Bin 0 -> 8192 bytes
+ .../preaccess/fixtures/contexts/dcf8bfb265a6-8.bin |    Bin 0 -> 8192 bytes
+ .../preaccess/fixtures/contexts/dcf8bfb265a6-9.bin |    Bin 0 -> 8192 bytes
+ .../fixtures/contexts/f4d3dfccd89e-22.bin          |    Bin 0 -> 8192 bytes
+ .../fixtures/private-semantic-witnesses.json       |    252 +
+ .../fixtures/private-victim-witnesses.json         |   4945 +
+ .../preaccess/fixtures/profiles/8c8f84a2bf55.bin   |    Bin 0 -> 2560512 bytes
+ .../preaccess/fixtures/profiles/dcf8bfb265a6.bin   |    Bin 0 -> 2560512 bytes
+ .../preaccess/fixtures/profiles/f4d3dfccd89e.bin   |    Bin 0 -> 2560512 bytes
+ .../fixtures/returned-paid-domain-exclusions.json  |     18 +
+ .../preaccess/fixtures/schema.json                 |     89 +
+ .../preaccess/fixtures/sequence-variants.json      | 116887 +++
+ .../preaccess/fixtures/stage-transitions.json      |  41802 +
+ .../preaccess/fixtures/states.json                 | 158972 ++++
+ .../preaccess/fixtures/streams/64-live-pins.bin    |    Bin 0 -> 26368 bytes
+ .../fixtures/streams/built-hit-release-closed.bin  |    Bin 0 -> 2688 bytes
+ .../preaccess/fixtures/streams/cap-stage-00.bin    |    Bin 0 -> 2048 bytes
+ .../preaccess/fixtures/streams/cap-stage-01.bin    |    Bin 0 -> 1152 bytes
+ .../preaccess/fixtures/streams/cap-stage-02.bin    |    Bin 0 -> 2304 bytes
+ .../preaccess/fixtures/streams/cap-stage-03.bin    |    Bin 0 -> 1280 bytes
+ .../preaccess/fixtures/streams/cap-stage-04.bin    |    Bin 0 -> 1408 bytes
+ .../preaccess/fixtures/streams/cap-stage-05.bin    |    Bin 0 -> 1536 bytes
+ .../preaccess/fixtures/streams/cap-stage-06.bin    |    Bin 0 -> 1664 bytes
+ .../preaccess/fixtures/streams/cap-stage-07.bin    |    Bin 0 -> 2944 bytes
+ .../preaccess/fixtures/streams/cap-stage-08.bin    |    Bin 0 -> 3072 bytes
+ .../preaccess/fixtures/streams/cap-stage-09.bin    |    Bin 0 -> 1792 bytes
+ .../preaccess/fixtures/streams/cap-stage-10.bin    |    Bin 0 -> 1920 bytes
+ .../fixtures/streams/duplicate-release.bin         |    Bin 0 -> 2688 bytes
+ .../fixtures/streams/empty-invalid-footer.bin      |    Bin 0 -> 1024 bytes
+ .../empty-present-last-victim-destination.bin      |    Bin 0 -> 3712 bytes
+ .../fixtures/streams/failure-stage-00.bin          |    Bin 0 -> 2304 bytes
+ .../fixtures/streams/failure-stage-01.bin          |    Bin 0 -> 1408 bytes
+ .../fixtures/streams/failure-stage-02.bin          |    Bin 0 -> 2560 bytes
+ .../fixtures/streams/failure-stage-03.bin          |    Bin 0 -> 1536 bytes
+ .../fixtures/streams/failure-stage-04.bin          |    Bin 0 -> 1664 bytes
+ .../fixtures/streams/failure-stage-05.bin          |    Bin 0 -> 1792 bytes
+ .../fixtures/streams/failure-stage-06.bin          |    Bin 0 -> 1920 bytes
+ .../fixtures/streams/failure-stage-07.bin          |    Bin 0 -> 3200 bytes
+ .../fixtures/streams/failure-stage-08.bin          |    Bin 0 -> 3328 bytes
+ .../fixtures/streams/failure-stage-09.bin          |    Bin 0 -> 2048 bytes
+ .../fixtures/streams/failure-stage-10.bin          |    Bin 0 -> 2176 bytes
+ .../streams/failure-then-forbidden-resume.bin      |    Bin 0 -> 2432 bytes
+ .../streams/failure-with-live-pin-release-tail.bin |    Bin 0 -> 2560 bytes
+ .../fixtures/streams/first-free-reuse.bin          |    Bin 0 -> 2688 bytes
+ .../streams/first-record-terminal-failure.bin      |    Bin 0 -> 1280 bytes
+ .../streams/full-pin-table-lookup-refused.bin      |    Bin 0 -> 26496 bytes
+ .../fixtures/streams/late-footer-invalid.bin       |    Bin 0 -> 2688 bytes
+ .../fixtures/streams/one-slot-eviction.bin         |    Bin 0 -> 3712 bytes
+ .../fixtures/streams/phase-only-closed.bin         |    Bin 0 -> 1152 bytes
+ .../streams/plan-collision-replacement.bin         |    Bin 0 -> 3712 bytes
+ .../fixtures/streams/plan-match-known-bytes.bin    |    Bin 0 -> 5248 bytes
+ .../fixtures/streams/undefined-acquire-cap.bin     |    Bin 0 -> 1152 bytes
+ .../fixtures/streams/undefined-acquire-failure.bin |    Bin 0 -> 1408 bytes
+ .../preaccess/fixtures/terminal-full32.json        | 192188 +++++
+ .../preaccess/fixtures/word-mutations.json         | 715694 ++++++++++++++++++
+ .../preaccess/input-custody.json                   |   3472 +
+ .../preaccess/inputs/AGENTS.md                     |     55 +
+ .../preaccess/inputs/PLAN.md                       |    497 +
+ .../docs/swift-semantic-adapter-contract-review.md |    159 +
+ .../docs/swift-semantic-adapter-prerequisite.md    |    383 +
+ .../swift-semantic-adapter-terminal-correction.md  |    238 +
+ .../docs/swift-semantic-adapter-terminal-review.md |    132 +
+ .../preaccess/inputs/mixer-product-plan.md         |   1366 +
+ .../preaccess/seal.json                            |    117 +
+ .../review-1/seal.json                             |    189 +
+ .../contract.json                                  |    362 +
+ .../input-manifest.json                            |    214 +
+ .../inputs/05-swift-ordered-retention-analyzer.md  |    800 +
+ ...wift-ordered-retention-analyzer-fsm-contract.md |    564 +
+ .../inputs/13-analyzer.rs                          |    536 +
+ .../inputs/14-envelope.rs                          |    395 +
+ ...andidate__src__experimental__cache__borrowed.rs |    918 +
+ ...date__src__experimental_swift_reactor__cache.rs |   4862 +
+ ...ft-ordered-retention-diagnostic-rust__writer.rs |    167 +
+ ...-ordered-retention-diagnostic-rust__observer.rs |    329 +
+ .../swift-semantic-adapter-prerequisite/seal.json  |    772 +
+ .../source-seams.json                              |    161 +
+ .../test-design.json                               |   1170 +
+ .../combined-contract-acceptance.json              |     92 +
+ .../expected-cases.json                            |   4069 +
+ .../seal.json                                      |    687 +
+ .../source-bindings.json                           |     76 +
+ .../source-normalization-cases.json                |    540 +
+ .../terminal-contract.json                         |    382 +
+ .../preaccess/seal.json                            |    502 +
+ .../review-1/seal.json                             |   1064 +
+ .../preaccess/latest-controls.json                 |     36 +
+ .../preaccess/oracle.py                            |    345 +
+ .../preaccess/private-controls.json                |    410 +
+ .../preaccess/proof-obligations.json               |    439 +
+ .../preaccess/run_controls.py                      |     46 +
+ .../preaccess/seal-preparation-failure.json        |     10 +
+ .../preaccess/seal.json                            |    879 +
+ .../preaccess/seal.sha256                          |      1 +
+ .../preaccess/seal_preaccess.py                    |    102 +
+ .../preaccess/source-manifest.json                 |     51 +
+ .../preaccess/source-provenance.json               |    241 +
+ .../preaccess/syntax-inventory.json                |   1344 +
+ .../preaccess/terminal_oracle.py                   |     77 +
+ .../preaccess/test_controls.py                     |    210 +
+ .../preaccess/tooling.json                         |     47 +
+ .../preaccess/write_obligations.py                 |    165 +
+ .../accept_execution_preparation.py                |     98 +
+ .../execution-preparation-acceptance.json          |     31 +
+ .../implementation-selection.json                  |     74 +
+ .../public-getter-selection.json                   |     98 +
+ .../select_implementation.py                       |     92 +
+ work-graph.json                                    |     66 +-
+ 1789 files changed, 1351245 insertions(+), 12 deletions(-)

@@ -1,0 +1,3326 @@
+#![feature(prelude_import)]
+//! Fixture-only framing foundation. No semantic replay or acceptance authority.
+#![forbid(unsafe_code)]
+extern crate std;
+#[prelude_import]
+use std::prelude::rust_2021::*;
+use std::collections::TryReserveError;
+use std::fs::File;
+use std::io::{self, Read, Seek, Write};
+use std::os::unix::fs::MetadataExt;
+
+pub const ARENA_BYTES: usize = 8_388_608;
+pub const TRANSIENT_CAP: usize = 65_536;
+pub const STEP_LIMIT: u64 = 268_435_456;
+pub const REPORT_BYTES: usize = 49_152;
+pub const AGGREGATE_REPORT_CAP: usize = 65_536;
+const REPORT_RESERVE: u64 = 3_000_000;
+const IO_RESERVE: u64 = 263_584;
+const SETUP_CAP: u64 = 65_536;
+const RECORD_PREFLIGHT: u64 = 8_192;
+const RECORD_STEPS: u64 = 22;
+const ABSENT: u64 = u64::MAX;
+const MAX_RECORDS: u64 = 4_194_304;
+const STREAM_CAP: u64 = 536_871_936;
+const PROFILE_BYTES: u64 = 2_560_512;
+const CONTEXT_BYTES: u64 = 8_192;
+const HEADER_MAGIC: u64 = 0x3152_4452_4f58_494d;
+const FOOTER_MAGIC: u64 = 0x3144_4e45_4f58_494d;
+const PROFILE_MAGIC: u64 = u64::from_le_bytes(*b"MIXPRF01");
+const FIXTURE_MAGIC: u64 = u64::from_le_bytes(*b"MIXFIX01");
+const REPORT_MAGIC: u64 = u64::from_le_bytes(*b"MIXANL01");
+
+/// Fixed failure observation. No error text, original-result substitution or heap owner.
+#[repr(C)]
+pub struct AnalyzerError {
+    pub code: u32,
+    pub stage: u32,
+    pub offset: u64,
+    pub record: u64,
+    pub reserved: u64,
+}
+#[automatically_derived]
+#[doc(hidden)]
+unsafe impl ::core::clone::TrivialClone for AnalyzerError { }
+#[automatically_derived]
+impl ::core::clone::Clone for AnalyzerError {
+    #[inline]
+    fn clone(&self) -> AnalyzerError {
+        let _: ::core::clone::AssertParamIsClone<u32>;
+        let _: ::core::clone::AssertParamIsClone<u64>;
+        *self
+    }
+}
+#[automatically_derived]
+impl ::core::marker::Copy for AnalyzerError { }
+#[automatically_derived]
+impl ::core::fmt::Debug for AnalyzerError {
+    #[inline]
+    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+        ::core::fmt::Formatter::debug_struct_field5_finish(f, "AnalyzerError",
+            "code", &self.code, "stage", &self.stage, "offset", &self.offset,
+            "record", &self.record, "reserved", &&self.reserved)
+    }
+}
+#[automatically_derived]
+impl ::core::marker::StructuralPartialEq for AnalyzerError { }
+#[automatically_derived]
+impl ::core::cmp::PartialEq for AnalyzerError {
+    #[inline]
+    fn eq(&self, other: &AnalyzerError) -> bool {
+        self.code == other.code && self.stage == other.stage &&
+                    self.offset == other.offset && self.record == other.record
+            && self.reserved == other.reserved
+    }
+}
+#[automatically_derived]
+impl ::core::cmp::Eq for AnalyzerError {
+    #[inline]
+    #[doc(hidden)]
+    #[coverage(off)]
+    fn assert_fields_are_eq(&self) {
+        let _: ::core::cmp::AssertParamIsEq<u32>;
+        let _: ::core::cmp::AssertParamIsEq<u64>;
+    }
+}
+fn error(code: u32, stage: u32, offset: u64, record: u64) -> AnalyzerError {
+    AnalyzerError { code, stage, offset, record, reserved: 0 }
+}
+const BOUNDS: u32 = 1;
+const ALLOCATION: u32 = 2;
+const CAPACITY: u32 = 3;
+const BUDGET: u32 = 4;
+const INPUT: u32 = 5;
+const IO_ERROR: u32 = 6;
+const IO_EXHAUSTED: u32 = 7;
+const IO_ZERO: u32 = 8;
+const IO_OVERREPORTED: u32 = 9;
+const SCHEMA: u32 = 10;
+const IDENTITY: u32 = 11;
+const COORDINATE: u32 = 12;
+const FLAGS: u32 = 13;
+const DRIFT: u32 = 14;
+const BINDING: u32 = 15;
+const OUTPUT: u32 = 16;
+const INTERNAL: u32 = 17;
+const ARENA_STAGE: u32 = 1;
+const ADMISSION_STAGE: u32 = 2;
+const CONTEXT_STAGE: u32 = 3;
+const PROFILE_STAGE: u32 = 4;
+const HEADER_STAGE: u32 = 5;
+const RECORD_STAGE: u32 = 6;
+const FOOTER_STAGE: u32 = 7;
+const OUTPUT_STAGE: u32 = 8;
+
+/// Uses only existing design decision IDs. There is deliberately no accepted variant.
+#[repr(u64)]
+pub enum Decision { Invalid = 3, AnalysisLimited = 4, Unavailable = 5, }
+#[automatically_derived]
+#[doc(hidden)]
+unsafe impl ::core::clone::TrivialClone for Decision { }
+#[automatically_derived]
+impl ::core::clone::Clone for Decision {
+    #[inline]
+    fn clone(&self) -> Decision { *self }
+}
+#[automatically_derived]
+impl ::core::marker::Copy for Decision { }
+#[automatically_derived]
+impl ::core::fmt::Debug for Decision {
+    #[inline]
+    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+        ::core::fmt::Formatter::write_str(f,
+            match self {
+                Decision::Invalid => "Invalid",
+                Decision::AnalysisLimited => "AnalysisLimited",
+                Decision::Unavailable => "Unavailable",
+            })
+    }
+}
+#[automatically_derived]
+impl ::core::marker::StructuralPartialEq for Decision { }
+#[automatically_derived]
+impl ::core::cmp::PartialEq for Decision {
+    #[inline]
+    fn eq(&self, other: &Decision) -> bool {
+        let __self_discr = ::core::intrinsics::discriminant_value(self);
+        let __arg1_discr = ::core::intrinsics::discriminant_value(other);
+        __self_discr == __arg1_discr
+    }
+}
+#[automatically_derived]
+impl ::core::cmp::Eq for Decision {
+    #[inline]
+    #[doc(hidden)]
+    #[coverage(off)]
+    fn assert_fields_are_eq(&self) {}
+}
+#[repr(C)]
+pub struct ReplayOutcome {
+    pub decision: Decision,
+    /// Closed syntactic framing count; never an accepted semantic record count.
+    pub framed_records: u64,
+    pub physical_records: u64,
+    pub report_bytes: u64,
+    pub steps_used: u64,
+    pub input_bytes_read: u64,
+    pub input_attempts: u64,
+    pub output_attempts: u64,
+    pub observation: AnalyzerError,
+    fixture_framing: u64,
+}
+#[automatically_derived]
+#[doc(hidden)]
+unsafe impl ::core::clone::TrivialClone for ReplayOutcome { }
+#[automatically_derived]
+impl ::core::clone::Clone for ReplayOutcome {
+    #[inline]
+    fn clone(&self) -> ReplayOutcome {
+        let _: ::core::clone::AssertParamIsClone<Decision>;
+        let _: ::core::clone::AssertParamIsClone<u64>;
+        let _: ::core::clone::AssertParamIsClone<AnalyzerError>;
+        *self
+    }
+}
+#[automatically_derived]
+impl ::core::marker::Copy for ReplayOutcome { }
+#[automatically_derived]
+impl ::core::fmt::Debug for ReplayOutcome {
+    #[inline]
+    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+        let names: &'static _ =
+            &["decision", "framed_records", "physical_records",
+                        "report_bytes", "steps_used", "input_bytes_read",
+                        "input_attempts", "output_attempts", "observation",
+                        "fixture_framing"];
+        let values: &[&dyn ::core::fmt::Debug] =
+            &[&self.decision, &self.framed_records, &self.physical_records,
+                        &self.report_bytes, &self.steps_used,
+                        &self.input_bytes_read, &self.input_attempts,
+                        &self.output_attempts, &self.observation,
+                        &&self.fixture_framing];
+        ::core::fmt::Formatter::debug_struct_fields_finish(f, "ReplayOutcome",
+            names, values)
+    }
+}
+#[automatically_derived]
+impl ::core::marker::StructuralPartialEq for ReplayOutcome { }
+#[automatically_derived]
+impl ::core::cmp::PartialEq for ReplayOutcome {
+    #[inline]
+    fn eq(&self, other: &ReplayOutcome) -> bool {
+        self.framed_records == other.framed_records &&
+                                            self.physical_records == other.physical_records &&
+                                        self.report_bytes == other.report_bytes &&
+                                    self.steps_used == other.steps_used &&
+                                self.input_bytes_read == other.input_bytes_read &&
+                            self.input_attempts == other.input_attempts &&
+                        self.output_attempts == other.output_attempts &&
+                    self.fixture_framing == other.fixture_framing &&
+                self.decision == other.decision &&
+            self.observation == other.observation
+    }
+}
+#[automatically_derived]
+impl ::core::cmp::Eq for ReplayOutcome {
+    #[inline]
+    #[doc(hidden)]
+    #[coverage(off)]
+    fn assert_fields_are_eq(&self) {
+        let _: ::core::cmp::AssertParamIsEq<Decision>;
+        let _: ::core::cmp::AssertParamIsEq<u64>;
+        let _: ::core::cmp::AssertParamIsEq<AnalyzerError>;
+    }
+}
+impl ReplayOutcome {
+    pub const fn fixture_framing_observed(&self) -> bool {
+        self.fixture_framing == 1
+    }
+    pub const fn stored_prefix_validated(&self) -> bool { false }
+    pub const fn full_replay_accepted(&self) -> bool { false }
+}
+
+struct Region {
+    base: usize,
+    rows: usize,
+    stride: usize,
+}
+#[automatically_derived]
+#[doc(hidden)]
+unsafe impl ::core::clone::TrivialClone for Region { }
+#[automatically_derived]
+impl ::core::clone::Clone for Region {
+    #[inline]
+    fn clone(&self) -> Region {
+        let _: ::core::clone::AssertParamIsClone<usize>;
+        *self
+    }
+}
+#[automatically_derived]
+impl ::core::marker::Copy for Region { }
+const FUNCTION: Region = Region { base: 0, rows: 80_000, stride: 96 };
+const RESIDENT: Region = Region { base: 7_680_000, rows: 64, stride: 64 };
+const PIN: Region = Region { base: 7_684_096, rows: 64, stride: 48 };
+const PLAN: Region = Region { base: 7_687_168, rows: 512, stride: 40 };
+const RECENCY: Region = Region { base: 7_707_648, rows: 64, stride: 8 };
+const WINDOW: Region = Region { base: 7_708_160, rows: 128, stride: 128 };
+const HISTOGRAM: Region = Region { base: 7_724_544, rows: 396, stride: 8 };
+const TOP: Region = Region { base: 7_727_712, rows: 32, stride: 64 };
+const SCALAR: Region = Region { base: 7_729_760, rows: 512, stride: 8 };
+const CONTEXT: Region = Region { base: 7_733_856, rows: 1024, stride: 8 };
+const BLOCK: Region = Region { base: 7_742_048, rows: 1, stride: 65_536 };
+const REPORT: Region = Region { base: 7_807_584, rows: 8192, stride: 8 };
+const REGIONS: [Region; 12] =
+    [FUNCTION, RESIDENT, PIN, PLAN, RECENCY, WINDOW, HISTOGRAM, TOP, SCALAR,
+            CONTEXT, BLOCK, REPORT];
+
+struct Arena {
+    bytes: Vec<u8>,
+}
+impl Arena {
+    fn new(budget: &mut Budget) -> Result<Self, AnalyzerError> {
+        Self::new_with(budget, |v, n| v.try_reserve_exact(n))
+    }
+    fn new_with(budget: &mut Budget,
+        reserve: fn(&mut Vec<u8>, usize) -> Result<(), TryReserveError>)
+        -> Result<Self, AnalyzerError> {
+        let mut bytes = Vec::new();
+        reserve(&mut bytes,
+                    ARENA_BYTES).map_err(|_|
+                    error(ALLOCATION, ARENA_STAGE, 0, 0))?;
+        if bytes.capacity() != ARENA_BYTES {
+            return Err(error(CAPACITY, ARENA_STAGE, 0, 0));
+        }
+        let zero = [0u8; 8];
+        for _ in 0..ARENA_BYTES / 8 {
+            budget.replay(1)?;
+            bytes.extend_from_slice(&zero);
+        }
+        let mut end = 0usize;
+        for region in REGIONS {
+            budget.setup(1)?;
+            let next =
+                region.rows.checked_mul(region.stride).and_then(|n|
+                                region.base.checked_add(n)).ok_or(error(BOUNDS, ARENA_STAGE,
+                            0, 0))?;
+            if region.base != end || next > ARENA_BYTES {
+                return Err(error(BOUNDS, ARENA_STAGE, 0, 0));
+            }
+            end = next;
+        }
+        let mut arena = Self { bytes };
+        for i in 0..64 {
+            budget.setup(1)?;
+            arena.put64(RESIDENT, i, 8, ABSENT)?;
+            arena.put64(PIN, i, 0, ABSENT)?;
+            arena.put64(RECENCY, i, 0, ABSENT)?;
+        }
+        for i in 0..512 {
+            budget.setup(1)?;
+            arena.put64(PLAN, i, 0, ABSENT)?;
+        }
+        for i in 0..128 {
+            budget.setup(1)?;
+            arena.put64(WINDOW, i, 14 * 8, ABSENT)?;
+        }
+        for i in 0..32 { budget.setup(1)?; arena.put64(TOP, i, 0, ABSENT)?; }
+        Ok(arena)
+    }
+    fn range(region: Region, index: usize, field: usize, width: usize)
+        -> Result<std::ops::Range<usize>, AnalyzerError> {
+        let fail = error(BOUNDS, ARENA_STAGE, 0, 0);
+        if index >= region.rows ||
+                field.checked_add(width).is_none_or(|n| n > region.stride) {
+            return Err(fail);
+        }
+        let start =
+            index.checked_mul(region.stride).and_then(|n|
+                                region.base.checked_add(n)).and_then(|n|
+                            n.checked_add(field)).ok_or(fail)?;
+        let end = start.checked_add(width).ok_or(fail)?;
+        let region_end =
+            region.rows.checked_mul(region.stride).and_then(|n|
+                            region.base.checked_add(n)).ok_or(fail)?;
+        if end > region_end || region_end > ARENA_BYTES { return Err(fail); }
+        Ok(start..end)
+    }
+    fn get64(&self, region: Region, row: usize, field: usize)
+        -> Result<u64, AnalyzerError> {
+        let bytes =
+            self.bytes.get(Self::range(region, row, field,
+                                8)?).ok_or(error(BOUNDS, ARENA_STAGE, 0, 0))?;
+        let mut value = [0; 8];
+        value.copy_from_slice(bytes);
+        Ok(u64::from_le_bytes(value))
+    }
+    fn put64(&mut self, region: Region, row: usize, field: usize, value: u64)
+        -> Result<(), AnalyzerError> {
+        let bytes =
+            self.bytes.get_mut(Self::range(region, row, field,
+                                8)?).ok_or(error(BOUNDS, ARENA_STAGE, 0, 0))?;
+        bytes.copy_from_slice(&value.to_le_bytes());
+        Ok(())
+    }
+    fn get32(&self, region: Region, row: usize, field: usize)
+        -> Result<u32, AnalyzerError> {
+        let bytes =
+            self.bytes.get(Self::range(region, row, field,
+                                4)?).ok_or(error(BOUNDS, ARENA_STAGE, 0, 0))?;
+        let mut value = [0; 4];
+        value.copy_from_slice(bytes);
+        Ok(u32::from_le_bytes(value))
+    }
+    fn put32(&mut self, region: Region, row: usize, field: usize, value: u32)
+        -> Result<(), AnalyzerError> {
+        let bytes =
+            self.bytes.get_mut(Self::range(region, row, field,
+                                4)?).ok_or(error(BOUNDS, ARENA_STAGE, 0, 0))?;
+        bytes.copy_from_slice(&value.to_le_bytes());
+        Ok(())
+    }
+}
+
+struct Budget {
+    limit: u64,
+    replay_left: u64,
+    replay_spent: u64,
+    io_spent: u64,
+    setup_spent: u64,
+    report_spent: u64,
+    read_bytes: u64,
+}
+#[automatically_derived]
+#[doc(hidden)]
+unsafe impl ::core::clone::TrivialClone for Budget { }
+#[automatically_derived]
+impl ::core::clone::Clone for Budget {
+    #[inline]
+    fn clone(&self) -> Budget {
+        let _: ::core::clone::AssertParamIsClone<u64>;
+        *self
+    }
+}
+#[automatically_derived]
+impl ::core::marker::Copy for Budget { }
+#[automatically_derived]
+impl ::core::fmt::Debug for Budget {
+    #[inline]
+    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+        let names: &'static _ =
+            &["limit", "replay_left", "replay_spent", "io_spent",
+                        "setup_spent", "report_spent", "read_bytes"];
+        let values: &[&dyn ::core::fmt::Debug] =
+            &[&self.limit, &self.replay_left, &self.replay_spent,
+                        &self.io_spent, &self.setup_spent, &self.report_spent,
+                        &&self.read_bytes];
+        ::core::fmt::Formatter::debug_struct_fields_finish(f, "Budget", names,
+            values)
+    }
+}
+impl Budget {
+    fn new(limit: u64) -> Result<Self, AnalyzerError> {
+        if limit > STEP_LIMIT {
+            return Err(error(BUDGET, ARENA_STAGE, 0, 0));
+        }
+        let replay_left =
+            limit.checked_sub(REPORT_RESERVE +
+                            IO_RESERVE).ok_or(error(BUDGET, ARENA_STAGE, 0, 0))?;
+        Ok(Self {
+                limit,
+                replay_left,
+                replay_spent: 0,
+                io_spent: 0,
+                setup_spent: 0,
+                report_spent: 0,
+                read_bytes: 0,
+            })
+    }
+    fn replay(&mut self, n: u64) -> Result<(), AnalyzerError> {
+        self.replay_left =
+            self.replay_left.checked_sub(n).ok_or(error(BUDGET, RECORD_STAGE,
+                        0, 0))?;
+        self.replay_spent += n;
+        Ok(())
+    }
+    fn setup(&mut self, n: u64) -> Result<(), AnalyzerError> {
+        if self.setup_spent.checked_add(n).is_none_or(|v| v > SETUP_CAP) {
+            return Err(error(BUDGET, ADMISSION_STAGE, 0, 0));
+        }
+        self.replay(n)?;
+        self.setup_spent += n;
+        Ok(())
+    }
+    fn io(&mut self) -> Result<(), AnalyzerError> {
+        if self.io_spent == IO_RESERVE {
+            return Err(error(BUDGET, ADMISSION_STAGE, 0, 0));
+        }
+        self.io_spent += 1;
+        Ok(())
+    }
+    fn report(&mut self, n: u64) -> Result<(), AnalyzerError> {
+        if self.report_spent.checked_add(n).is_none_or(|v| v > REPORT_RESERVE)
+            {
+            return Err(error(BUDGET, OUTPUT_STAGE, 0, 0));
+        }
+        self.report_spent += n;
+        Ok(())
+    }
+    fn used(&self) -> u64 {
+        self.replay_spent + self.io_spent + self.report_spent
+    }
+}
+
+#[repr(C)]
+struct Stamp {
+    fields: [u64; 8],
+    regular: u64,
+}
+#[automatically_derived]
+#[doc(hidden)]
+unsafe impl ::core::clone::TrivialClone for Stamp { }
+#[automatically_derived]
+impl ::core::clone::Clone for Stamp {
+    #[inline]
+    fn clone(&self) -> Stamp {
+        let _: ::core::clone::AssertParamIsClone<[u64; 8]>;
+        let _: ::core::clone::AssertParamIsClone<u64>;
+        *self
+    }
+}
+#[automatically_derived]
+impl ::core::marker::Copy for Stamp { }
+#[automatically_derived]
+impl ::core::fmt::Debug for Stamp {
+    #[inline]
+    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+        ::core::fmt::Formatter::debug_struct_field2_finish(f, "Stamp",
+            "fields", &self.fields, "regular", &&self.regular)
+    }
+}
+#[automatically_derived]
+impl ::core::marker::StructuralPartialEq for Stamp { }
+#[automatically_derived]
+impl ::core::cmp::PartialEq for Stamp {
+    #[inline]
+    fn eq(&self, other: &Stamp) -> bool {
+        self.regular == other.regular && self.fields == other.fields
+    }
+}
+#[automatically_derived]
+impl ::core::cmp::Eq for Stamp {
+    #[inline]
+    #[doc(hidden)]
+    #[coverage(off)]
+    fn assert_fields_are_eq(&self) {
+        let _: ::core::cmp::AssertParamIsEq<[u64; 8]>;
+        let _: ::core::cmp::AssertParamIsEq<u64>;
+    }
+}
+impl Stamp {
+    fn len(self) -> u64 { self.fields[3] }
+}
+trait InputFile: Read {
+    fn stamp(&mut self)
+    -> io::Result<Stamp>;
+    fn position(&mut self)
+    -> io::Result<u64>;
+}
+trait OutputFile: Write {
+    fn stamp(&mut self)
+    -> io::Result<Stamp>;
+    fn position(&mut self)
+    -> io::Result<u64>;
+}
+fn file_stamp(file: &File) -> io::Result<Stamp> {
+    let m = file.metadata()?;
+    Ok(Stamp {
+            fields: [m.dev(), m.ino(), u64::from(m.mode()), m.len(),
+                    m.mtime() as u64, m.mtime_nsec() as u64, m.ctime() as u64,
+                    m.ctime_nsec() as u64],
+            regular: u64::from(m.is_file()),
+        })
+}
+impl InputFile for File {
+    fn stamp(&mut self) -> io::Result<Stamp> { file_stamp(self) }
+    fn position(&mut self) -> io::Result<u64> { self.stream_position() }
+}
+impl OutputFile for File {
+    fn stamp(&mut self) -> io::Result<Stamp> { file_stamp(self) }
+    fn position(&mut self) -> io::Result<u64> { self.stream_position() }
+}
+
+/// Each assembled input block and each EOF probe gets at most 32 attempts.
+fn bounded_read<T: Read>(input: &mut T, out: &mut [u8], budget: &mut Budget,
+    stage: u32, offset: u64) -> Result<(), AnalyzerError> {
+    let mut done = 0usize;
+    for _ in 0..32 {
+        budget.io()?;
+        let result = input.read(&mut out[done..]);
+        match result {
+            Ok(0) =>
+                return Err(error(IO_ZERO, stage, offset + done as u64, 0)),
+            Ok(n) => {
+                if n > out.len() - done {
+                    return Err(error(IO_OVERREPORTED, stage,
+                                offset + done as u64, 0));
+                }
+                budget.read_bytes += n as u64;
+                done += n;
+                if done == out.len() { return Ok(()); }
+            }
+            Err(e) => {
+                if e.kind() != io::ErrorKind::Interrupted {
+                    return Err(error(IO_ERROR, stage, offset + done as u64, 0));
+                }
+            }
+        }
+    }
+    Err(error(IO_EXHAUSTED, stage, offset + done as u64, 0))
+}
+fn eof<T: Read>(input: &mut T, budget: &mut Budget, stage: u32, offset: u64)
+    -> Result<(), AnalyzerError> {
+    let mut byte = [0; 1];
+    for _ in 0..32 {
+        budget.io()?;
+        match input.read(&mut byte) {
+            Ok(0) => return Ok(()),
+            Ok(1) => {
+                budget.read_bytes += 1;
+                return Err(error(INPUT, stage, offset, 0));
+            }
+            Ok(_) => return Err(error(IO_OVERREPORTED, stage, offset, 0)),
+            Err(e) =>
+                if e.kind() != io::ErrorKind::Interrupted {
+                    return Err(error(IO_ERROR, stage, offset, 0));
+                },
+        }
+    }
+    Err(error(IO_EXHAUSTED, stage, offset, 0))
+}
+struct Reader {
+    length: u64,
+    loaded: u64,
+    consumed: u64,
+    used: usize,
+    cursor: usize,
+    stage: u32,
+}
+#[automatically_derived]
+#[doc(hidden)]
+unsafe impl ::core::clone::TrivialClone for Reader { }
+#[automatically_derived]
+impl ::core::clone::Clone for Reader {
+    #[inline]
+    fn clone(&self) -> Reader {
+        let _: ::core::clone::AssertParamIsClone<u64>;
+        let _: ::core::clone::AssertParamIsClone<usize>;
+        let _: ::core::clone::AssertParamIsClone<u32>;
+        *self
+    }
+}
+#[automatically_derived]
+impl ::core::marker::Copy for Reader { }
+impl Reader {
+    fn new(length: u64, stage: u32) -> Self {
+        Self { length, loaded: 0, consumed: 0, used: 0, cursor: 0, stage }
+    }
+    fn take<T: InputFile>(&mut self, input: &mut T, arena: &mut Arena,
+        out: &mut [u8], budget: &mut Budget) -> Result<(), AnalyzerError> {
+        if self.consumed.checked_add(out.len() as
+                        u64).is_none_or(|v| v > self.length) {
+            return Err(error(INPUT, self.stage, self.consumed, 0));
+        }
+        let mut done = 0usize;
+        // Caller requests <=512 bytes. At most two buffer slices/refills.
+        if out.len() > 512 {
+            return Err(error(INTERNAL, self.stage, self.consumed, 0));
+        }
+        for _ in 0..2 {
+            if self.cursor == self.used {
+                let n = (self.length - self.loaded).min(65_536) as usize;
+                if n == 0 {
+                    return Err(error(INPUT, self.stage, self.consumed, 0));
+                }
+                let block =
+                    arena.bytes.get_mut(BLOCK.base..BLOCK.base +
+                                        n).ok_or(error(BOUNDS, ARENA_STAGE, 0, 0))?;
+                bounded_read(input, block, budget, self.stage, self.loaded)?;
+                self.loaded += n as u64;
+                self.used = n;
+                self.cursor = 0;
+            }
+            let n = (out.len() - done).min(self.used - self.cursor);
+            out[done..done +
+                            n].copy_from_slice(&arena.bytes[BLOCK.base +
+                                self.cursor..BLOCK.base + self.cursor + n]);
+            done += n;
+            self.cursor += n;
+            self.consumed += n as u64;
+            if done == out.len() { return Ok(()); }
+        }
+        Err(error(INTERNAL, self.stage, self.consumed, 0))
+    }
+    fn words<T: InputFile>(&mut self, input: &mut T, arena: &mut Arena,
+        budget: &mut Budget, words: &mut [u64]) -> Result<(), AnalyzerError> {
+        if words.len() > 64 {
+            return Err(error(INTERNAL, self.stage, self.consumed, 0));
+        }
+        let mut raw = [0u8; 512];
+        self.take(input, arena, &mut raw[..words.len() * 8], budget)?;
+        for (i, word) in words.iter_mut().enumerate() {
+            let mut value = [0; 8];
+            value.copy_from_slice(&raw[8 * i..8 * i + 8]);
+            *word = u64::from_le_bytes(value);
+        }
+        Ok(())
+    }
+}
+
+struct Fixture {
+    cap: u64,
+    mask: u64,
+    extent: u64,
+    types: u64,
+    slots: u64,
+    pins: u64,
+    base: u64,
+    capacity: u64,
+    entry: u64,
+}
+#[automatically_derived]
+#[doc(hidden)]
+unsafe impl ::core::clone::TrivialClone for Fixture { }
+#[automatically_derived]
+impl ::core::clone::Clone for Fixture {
+    #[inline]
+    fn clone(&self) -> Fixture {
+        let _: ::core::clone::AssertParamIsClone<u64>;
+        *self
+    }
+}
+#[automatically_derived]
+impl ::core::marker::Copy for Fixture { }
+fn fixture_context<T: InputFile>(input: &mut T, arena: &mut Arena,
+    budget: &mut Budget) -> Result<Fixture, AnalyzerError> {
+    let mut reader = Reader::new(CONTEXT_BYTES, CONTEXT_STAGE);
+    for i in 0..1024 {
+        budget.setup(1)?;
+        let mut word = [0; 1];
+        reader.words(input, arena, budget, &mut word)?;
+        arena.put64(CONTEXT, i, 0, word[0])?;
+    }
+    eof(input, budget, CONTEXT_STAGE, CONTEXT_BYTES)?;
+    let mut words = [0u64; 16];
+    for (i, v) in words.iter_mut().enumerate() {
+        budget.setup(1)?;
+        *v = arena.get64(CONTEXT, i, 0)?;
+    }
+    // This is explicitly a NEW finite-fixture schema, never VerifiedBindingView.
+    if words[0] != FIXTURE_MAGIC {
+        return Err(error(BINDING, CONTEXT_STAGE, 0, 0));
+    }
+    if words[1..4] != [1, CONTEXT_BYTES, 1] || words[4] == 0 ||
+                                                            words[4] > MAX_RECORDS || words[5] >= 64 ||
+                                                    words[5] & 33 != 33 || words[6] == ABSENT ||
+                                            words[7] > u32::MAX as u64 || !(1..=64).contains(&words[8])
+                                    || !(1..=64).contains(&words[9]) || words[10] != 1 ||
+                            words[11] == ABSENT || words[12] == ABSENT ||
+                    words[11] > words[12] || words[13] == ABSENT ||
+            words[14..16] != [0, 0] {
+        return Err(error(SCHEMA, CONTEXT_STAGE, 0, 0));
+    }
+    // Words16..47 are eight opaque fixture digest echoes; remainder is reserved.
+    for i in 48..1024 {
+        budget.setup(1)?;
+        if arena.get64(CONTEXT, i, 0)? != 0 {
+            return Err(error(SCHEMA, CONTEXT_STAGE, i as u64 * 8, 0));
+        }
+    }
+    Ok(Fixture {
+            cap: words[4],
+            mask: words[5],
+            extent: words[6],
+            types: words[7],
+            slots: words[8],
+            pins: words[9],
+            base: words[11],
+            capacity: words[12],
+            entry: words[13],
+        })
+}
+fn profile<T: InputFile>(input: &mut T, arena: &mut Arena,
+    budget: &mut Budget, f: Fixture) -> Result<(), AnalyzerError> {
+    let mut reader = Reader::new(PROFILE_BYTES, PROFILE_STAGE);
+    let mut header = [0; 64];
+    reader.words(input, arena, budget, &mut header)?;
+    budget.setup(64)?;
+    let expected =
+        [PROFILE_MAGIC, 1, 512, 32, 80_000, f.extent, f.types, f.slots,
+                f.pins, 1, f.base, f.capacity, f.entry, 0, 0, 0];
+    if header[..16] != expected || header[48..64] != [0; 16] {
+        return Err(error(SCHEMA, PROFILE_STAGE, 0, 0));
+    }
+    // Baseline/candidate/schema must match explicit fixture echoes. Other profile
+    // digest slots are opaque and unverified; this foundation has no hash authority.
+    for (p, c) in [(16usize, 40usize), (20, 44), (28, 20)] {
+        for i in 0..4 {
+            budget.setup(1)?;
+            if header[p + i] != arena.get64(CONTEXT, c + i, 0)? {
+                return Err(error(IDENTITY, PROFILE_STAGE, (p + i) as u64 * 8,
+                            0));
+            }
+        }
+    }
+    for row in 0..80_000 {
+        budget.replay(8)?;
+        let mut w = [0; 4];
+        reader.words(input, arena, budget, &mut w)?;
+        let defined = w[0] as u32;
+        let ty = w[0] >> 32;
+        if defined > 1 || w[3] != 0 ||
+                    (defined == 0 &&
+                            (ty != u32::MAX as u64 || w[1] != ABSENT || w[2] != 0)) ||
+                (defined == 1 &&
+                        (ty >= f.types || w[1] == ABSENT || w[2] == ABSENT ||
+                                w[1].checked_add(w[2]).is_none_or(|end| end > f.extent))) {
+            return Err(error(SCHEMA, PROFILE_STAGE, 512 + row as u64 * 32,
+                        0));
+        }
+        arena.put64(FUNCTION, row, 0, w[1])?;
+        arena.put64(FUNCTION, row, 8, w[2])?;
+        arena.put32(FUNCTION, row, 16, ty as u32)?;
+        arena.put32(FUNCTION, row, 20, defined)?;
+        arena.put32(FUNCTION, row, 40, u32::MAX)?;
+    }
+    eof(input, budget, PROFILE_STAGE, PROFILE_BYTES)
+}
+
+fn header(arena: &Arena, h: &[u64; 64], f: Fixture, budget: &mut Budget)
+    -> Result<(), AnalyzerError> {
+    budget.setup(64)?;
+    if h[..10] !=
+                    [HEADER_MAGIC, 1, 512, 128, 512, f.cap, 80_000, 64, 512,
+                            f.mask] || h[10..16] != [0; 6] || h[32..64] != [0; 32] {
+        return Err(error(SCHEMA, HEADER_STAGE, 0, 0));
+    }
+    // selection/schema/baseline/candidate, all explicitly synthetic echoes.
+    for (p, c) in [(16usize, 16usize), (20, 20), (24, 40), (28, 44)] {
+        for i in 0..4 {
+            budget.setup(1)?;
+            if h[p + i] != arena.get64(CONTEXT, c + i, 0)? {
+                return Err(error(IDENTITY, HEADER_STAGE, (p + i) as u64 * 8,
+                            0));
+            }
+        }
+    }
+    Ok(())
+}
+fn full_identity(arena: &Arena, w: &[u64; 16], f: Fixture, release: bool)
+    -> bool {
+    let function = w[6];
+    if function >= 80_000 || w[7] == ABSENT || w[9] >= f.types ||
+            w[9] > u32::MAX as u64 {
+        return false;
+    }
+    let row = function as usize;
+    if arena.get32(FUNCTION, row, 20) != Ok(1) ||
+                arena.get64(FUNCTION, row, 0) != Ok(w[7]) ||
+            arena.get32(FUNCTION, row, 16) != Ok(w[9] as u32) {
+        return false;
+    }
+    if release {
+        w[8] == ABSENT
+    } else {
+        w[8] != ABSENT && arena.get64(FUNCTION, row, 8) == Ok(w[8]) &&
+            w[7].checked_add(w[8]).is_some_and(|n| n <= f.extent)
+    }
+}
+/// Closed field validation and immutable-profile join ONLY. This is no FSM.
+fn record_fields(arena: &Arena, w: &[u64; 16], f: Fixture) -> bool {
+    if w[0] == 0 || !(1..=14).contains(&w[1]) || w[2] > 5 { return false; }
+    let absent_body = w[7..10] == [ABSENT; 3];
+    let no_slots = w[10] == ABSENT && w[11] == ABSENT && w[12] == 0;
+    let operation_body = w[3] > 0 && full_identity(arena, w, f, false);
+    match w[1] {
+        1 =>
+            w[3] > 0 && w[6] < 80_000 && absent_body && no_slots &&
+                w[13..16] == [0; 3],
+        2 =>
+            operation_body && w[11] == ABSENT && w[12] == 0 && w[13] <= 1 &&
+                    w[14..16] == [0; 2] &&
+                if w[13] == 0 { w[10] == ABSENT } else { w[10] < f.slots },
+        3 =>
+            operation_body && no_slots && w[13..15] == [0; 2] &&
+                w[15] == w[6] & 511,
+        4 =>
+            operation_body && no_slots && w[13] <= 2 &&
+                    (if w[13] == 1 {
+                            w[14] < 80_000 && w[14] != w[6]
+                        } else { w[14] == ABSENT }) && w[15] == w[6] & 511,
+        5 =>
+            operation_body && no_slots && w[13] > 0 && w[13] <= f.entry &&
+                        w[14] == f.base && w[15] == f.capacity &&
+                w[14].checked_add(w[13]).is_some_and(|n| n <= w[15]),
+        6..=8 =>
+            operation_body && w[10] < f.slots && w[11] == ABSENT && w[12] == 0
+                    && w[13] > 0 && w[14..16] == [0; 2],
+        9 | 10 =>
+            operation_body && no_slots && w[13] > 0 && w[13] <= f.entry &&
+                w[14..16] == [0; 2],
+        11 =>
+            operation_body && w[10] < f.slots && w[11] < f.pins && w[12] > 0
+                        && w[13] <= 1 && w[14] > 0 && (1..=f.pins).contains(&w[15]),
+        12 =>
+            w[3] == 0 && full_identity(arena, w, f, true) && w[10] < f.slots
+                                && w[11] < f.pins && w[12] > 0 && w[13] > 0 && w[14] == 0 &&
+                w[15] < f.pins,
+        13 =>
+            w[3] == 0 && w[6] == ABSENT && absent_body && no_slots &&
+                    w[13] == w[2] && w[14..16] == [0; 2],
+        14 =>
+            absent_body && (w[6] == ABSENT || w[6] < 80_000) && no_slots &&
+                        (1..=21).contains(&w[13]) && (1..=24).contains(&w[14]) &&
+                (1..=6).contains(&w[15]),
+        _ => false,
+    }
+}
+struct Framing {
+    framed: u64,
+    physical: u64,
+    last_work: u64,
+    last_instructions: u64,
+    last_operation: u64,
+    phase: u64,
+    mask: u64,
+    flags: u64,
+    footer_stored: u64,
+    complete: bool,
+    limited: bool,
+}
+#[automatically_derived]
+#[doc(hidden)]
+unsafe impl ::core::clone::TrivialClone for Framing { }
+#[automatically_derived]
+impl ::core::clone::Clone for Framing {
+    #[inline]
+    fn clone(&self) -> Framing {
+        let _: ::core::clone::AssertParamIsClone<u64>;
+        let _: ::core::clone::AssertParamIsClone<bool>;
+        *self
+    }
+}
+#[automatically_derived]
+impl ::core::marker::Copy for Framing { }
+impl Framing {
+    fn new(physical: u64) -> Self {
+        Self {
+            framed: 0,
+            physical,
+            last_work: 0,
+            last_instructions: 0,
+            last_operation: 0,
+            phase: 0,
+            mask: 1,
+            flags: 0,
+            footer_stored: 0,
+            complete: false,
+            limited: false,
+        }
+    }
+    fn coordinate(&mut self, w: &[u64; 16]) -> bool {
+        if w[0] != self.framed + 1 || w[4] < self.last_work ||
+                w[5] < self.last_instructions {
+            return false;
+        }
+        if w[1] == 13 {
+            if w[2] <= self.phase || self.mask & (1 << w[2]) != 0 {
+                return false;
+            }
+            self.phase = w[2];
+            self.mask |= 1 << w[2];
+        } else if w[2] != self.phase { return false; }
+        // This checks only the writer's operation coordinates, not stage ordering.
+        if w[1] == 1 {
+            if self.last_operation.checked_add(1) != Some(w[3]) {
+                return false;
+            }
+            self.last_operation = w[3];
+        } else if ![12, 13, 14].contains(&w[1]) && w[3] != self.last_operation
+            {
+            return false;
+        } else if w[1] == 14 && w[3] != 0 && w[3] != self.last_operation {
+            return false;
+        }
+        self.last_work = w[4];
+        self.last_instructions = w[5];
+        self.framed += 1;
+        true
+    }
+}
+fn footer(h: &[u64; 64], w: &[u64; 64], length: u64, s: &mut Framing,
+    budget: &mut Budget) -> Result<(), AnalyzerError> {
+    budget.setup(64)?;
+    s.footer_stored = w[2];
+    s.flags = w[9];
+    let fail = error(SCHEMA, FOOTER_STAGE, length - 512, 0);
+    if w[0] != FOOTER_MAGIC || w[1] != 1 || w[2] > h[5] || w[2] != s.physical
+                                                                || w[5] != w[2] || w[2].checked_add(w[4]) != Some(w[3]) ||
+                                                        w[9] >= 512 || w[35] != h[5] || w[34] > 4_194_336 ||
+                                            w[10] < w[6] || w[11] < w[7] || w[15] >= 64 || w[33] > 5 ||
+                            w[31] > 5 || w[32] > 1 || w[44..64] != [0; 20] ||
+                w[36..44] != h[16..24] ||
+            w[2].checked_mul(128).and_then(|n| n.checked_add(1024)) !=
+                Some(length) {
+        return Err(fail);
+    }
+    if w[12] == 0 {
+        if w[13] != 0 || w[14] != ABSENT || w[32] != 0 { return Err(fail); }
+    } else if w[12] > 21 || w[13] > 24 || (w[13] == 0 && w[9] & 128 == 0) ||
+                !(1..=6).contains(&w[14]) || w[32] != 1 {
+        return Err(fail);
+    }
+    if w[9] & !1 != 0 {
+        return Err(error(FLAGS, FOOTER_STAGE, length - 512 + 72, 0));
+    }
+    if w[9] == 0 {
+        if w[4] != 0 || w[15] != h[9] || w[33] != 5 { return Err(fail); }
+    } else if w[2] != h[5] || w[3] <= w[2] || w[4] == 0 || w[15] != h[9] ||
+            w[33] != 5 {
+        return Err(fail);
+    }
+    if !s.limited {
+        if w[6] != s.last_work || w[7] != s.last_instructions ||
+                w[8] != s.last_operation {
+            return Err(error(COORDINATE, FOOTER_STAGE, length - 512, 0));
+        }
+        if w[9] == 0 && (w[33] != s.phase || w[15] != s.mask) {
+            return Err(error(COORDINATE, FOOTER_STAGE, length - 512, 0));
+        }
+        if w[9] == 1 && (s.phase > w[33] || s.mask & !w[15] != 0) {
+            return Err(error(COORDINATE, FOOTER_STAGE, length - 512, 0));
+        }
+    }
+    Ok(())
+}
+fn walk<T: InputFile>(input: &mut T, arena: &mut Arena, budget: &mut Budget,
+    f: Fixture, length: u64, s: &mut Framing) -> Result<(), AnalyzerError> {
+    let mut reader = Reader::new(length, HEADER_STAGE);
+    let mut h = [0; 64];
+    reader.words(input, arena, budget, &mut h)?;
+    header(arena, &h, f, budget)?;
+    reader.stage = RECORD_STAGE;
+    for index in 0..s.physical {
+        if budget.replay_left < RECORD_PREFLIGHT { s.limited = true; break; }
+        budget.replay(RECORD_STEPS)?;
+        let mut w = [0; 16];
+        reader.words(input, arena, budget, &mut w)?;
+        let offset = 512 + index * 128;
+        if !record_fields(arena, &w, f) {
+            return Err(error(SCHEMA, RECORD_STAGE, offset, index + 1));
+        }
+        if !s.coordinate(&w) {
+            return Err(error(COORDINATE, RECORD_STAGE, offset, index + 1));
+        }
+    }
+    if s.limited {
+        // Drain record bytes only. The footer is still independently checked.
+        let target = length - 512;
+        while reader.consumed < target {
+            budget.setup(1)?;
+            let available = (reader.used - reader.cursor) as u64;
+            let n = available.min(target - reader.consumed);
+            reader.cursor += n as usize;
+            reader.consumed += n;
+            if reader.consumed == target { break; }
+            if reader.cursor != reader.used {
+                return Err(error(INTERNAL, RECORD_STAGE, reader.consumed, 0));
+            }
+            let count = (reader.length - reader.loaded).min(65_536) as usize;
+            bounded_read(input,
+                    &mut arena.bytes[BLOCK.base..BLOCK.base + count], budget,
+                    RECORD_STAGE, reader.loaded)?;
+            reader.loaded += count as u64;
+            reader.used = count;
+            reader.cursor = 0;
+        }
+    }
+    reader.stage = FOOTER_STAGE;
+    let mut foot = [0; 64];
+    reader.words(input, arena, budget, &mut foot)?;
+    footer(&h, &foot, length, s, budget)?;
+    eof(input, budget, FOOTER_STAGE, length)?;
+    s.complete = !s.limited;
+    Ok(())
+}
+
+fn initial<I: InputFile>(input: &mut I, budget: &mut Budget)
+    -> Result<Stamp, AnalyzerError> {
+    budget.setup(2)?;
+    let stamp =
+        input.stamp().map_err(|_| error(IO_ERROR, ADMISSION_STAGE, 0, 0))?;
+    let position =
+        input.position().map_err(|_| error(IO_ERROR, ADMISSION_STAGE, 0, 0))?;
+    if stamp.regular != 1 || position != 0 {
+        return Err(error(INPUT, ADMISSION_STAGE, position, 0));
+    }
+    Ok(stamp)
+}
+fn stable<I: InputFile>(input: &mut I, before: Stamp, budget: &mut Budget)
+    -> Result<(), AnalyzerError> {
+    budget.setup(1)?;
+    if input.stamp().map_err(|_| error(IO_ERROR, ADMISSION_STAGE, 0, 0))? !=
+            before {
+        return Err(error(DRIFT, ADMISSION_STAGE, 0, 0));
+    }
+    Ok(())
+}
+fn output_safety<S: InputFile, P: InputFile, C: InputFile,
+    O: OutputFile>(stream: &mut S, profile: &mut P, context: &mut C,
+    output: &mut O, budget: &mut Budget) -> Result<Stamp, AnalyzerError> {
+    budget.setup(15)?; // four metadata, position, four outer/six pairwise loops
+    let a =
+        stream.stamp().map_err(|_| error(IO_ERROR, ADMISSION_STAGE, 0, 0))?;
+    let b =
+        profile.stamp().map_err(|_| error(IO_ERROR, ADMISSION_STAGE, 0, 0))?;
+    let c =
+        context.stamp().map_err(|_| error(IO_ERROR, ADMISSION_STAGE, 0, 0))?;
+    let d = output.stamp().map_err(|_| error(IO_ERROR, OUTPUT_STAGE, 0, 0))?;
+    let pos =
+        output.position().map_err(|_| error(IO_ERROR, OUTPUT_STAGE, 0, 0))?;
+    if d.regular != 1 || d.len() != 0 || pos != 0 {
+        return Err(error(OUTPUT, OUTPUT_STAGE, pos, 0));
+    }
+    let all = [a, b, c, d];
+    for i in 0..4 {
+        if all[i].fields[1] == 0 {
+            return Err(error(BINDING, ADMISSION_STAGE, 0, 0));
+        }
+        for j in i + 1..4 {
+            if all[i].fields[..2] == all[j].fields[..2] {
+                return Err(error(BINDING, ADMISSION_STAGE, 0, 0));
+            }
+        }
+    }
+    Ok(d)
+}
+fn write_report<O: OutputFile>(output: &mut O, output_initial: Stamp,
+    arena: &mut Arena, budget: &mut Budget, outcome: &mut ReplayOutcome,
+    s: Framing) -> Result<(), AnalyzerError> {
+    // Semantic metrics, digests unavailable without fixture context, and all
+    // reserved bytes stay zero. No semantic arena rows are copied to the report.
+    let mut header = [0u64; 32];
+    header[0] = REPORT_MAGIC;
+    header[1] = 1;
+    header[2] = REPORT_BYTES as u64;
+    header[3] = outcome.decision as u64;
+    header[4] = 0;
+    header[5] = 0;
+    header[6] = s.physical;
+    header[7] = s.footer_stored;
+    header[10] =
+        match outcome.decision {
+            Decision::Invalid =>
+                if outcome.observation.code == FLAGS { 9 } else { 8 },
+            Decision::AnalysisLimited => 1,
+            Decision::Unavailable => 7,
+        };
+    header[14] = s.flags;
+    header[15] = outcome.fixture_framing;
+    header[22] = ABSENT;
+    header[29] =
+        if (IO_ERROR..=IO_OVERREPORTED).contains(&outcome.observation.code) {
+            outcome.observation.code as u64
+        } else { 0 };
+    header[30] = outcome.observation.record;
+    // Count all 6144 fixed 8-byte serializations, including the reserved zeros.
+    for row in 0..REPORT_BYTES / 8 {
+        budget.report(1)?;
+        arena.put64(REPORT, row, 0, 0)?;
+    }
+    for (i, value) in header.iter().enumerate() {
+        budget.report(1)?;
+        arena.put64(REPORT, i, 0, *value)?;
+    }
+    // Explicit opaque echoes. They are never validated cryptographic bindings.
+    for i in 0..32 {
+        budget.report(1)?;
+        let value = arena.get64(CONTEXT, 16 + i, 0)?;
+        arena.put64(REPORT, 32 + i, 0, value)?;
+    }
+    let output_before =
+        output.stamp().map_err(|_| error(IO_ERROR, OUTPUT_STAGE, 0, 0))?;
+    let output_position =
+        output.position().map_err(|_| error(IO_ERROR, OUTPUT_STAGE, 0, 0))?;
+    budget.report(2)?;
+    if output_before != output_initial || output_before.regular != 1 ||
+                output_before.len() != 0 || output_position != 0 {
+        return Err(error(OUTPUT, OUTPUT_STAGE, output_position, 0));
+    }
+    // Reserve all 32 attempts before encoding the final steps field: steps_used
+    // is the conservative consumed/reserved authored cost, not a measured count.
+    budget.report(35)?; // final step-field encode, <=32 writes, two post-write calls
+    outcome.steps_used = budget.used();
+    arena.put64(REPORT, 9, 0, outcome.steps_used)?;
+    let bytes = &arena.bytes[REPORT.base..REPORT.base + REPORT_BYTES];
+    let mut done = 0usize;
+    for _ in 0..32 {
+        outcome.output_attempts += 1;
+        match output.write(&bytes[done..]) {
+            Ok(0) => return Err(error(IO_ZERO, OUTPUT_STAGE, done as u64, 0)),
+            Ok(n) => {
+                if n > bytes.len() - done {
+                    return Err(error(IO_OVERREPORTED, OUTPUT_STAGE, done as u64,
+                                0));
+                }
+                done += n;
+                if done == bytes.len() { break; }
+            }
+            Err(e) =>
+                if e.kind() != io::ErrorKind::Interrupted {
+                    return Err(error(IO_ERROR, OUTPUT_STAGE, done as u64, 0));
+                },
+        }
+    }
+    if done != REPORT_BYTES {
+        return Err(error(IO_EXHAUSTED, OUTPUT_STAGE, done as u64, 0));
+    }
+    let after =
+        output.stamp().map_err(|_|
+                    error(IO_ERROR, OUTPUT_STAGE, done as u64, 0))?;
+    let position =
+        output.position().map_err(|_|
+                    error(IO_ERROR, OUTPUT_STAGE, done as u64, 0))?;
+    if after.regular != 1 || after.len() != REPORT_BYTES as u64 ||
+                after.fields[..3] != output_before.fields[..3] ||
+            position != REPORT_BYTES as u64 {
+        return Err(error(DRIFT, OUTPUT_STAGE, done as u64, 0));
+    }
+    outcome.report_bytes = REPORT_BYTES as u64;
+    Ok(())
+}
+
+/// All four arguments are safe borrows of already-open files. The caller owns
+/// their lifetime and must supply distinct, quiescent regular files at offset0;
+/// output is an empty exclusive file. This library does not prove host custody.
+/// Only MIXFIX01 fixture contexts are supported. Real adapters are unavailable.
+pub fn analyze_fixture(stream: &mut File, profile_file: &mut File,
+    context: &mut File, output: &mut File)
+    -> Result<ReplayOutcome, AnalyzerError> {
+    analyze_core(stream, profile_file, context, output, STEP_LIMIT)
+}
+fn observe_inputs<S: InputFile, P: InputFile,
+    C: InputFile>(stream: &mut S, profile_file: &mut P, context: &mut C,
+    arena: &mut Arena, budget: &mut Budget, s: &mut Framing)
+    -> Result<bool, AnalyzerError> {
+    let before_s = initial(stream, budget)?;
+    let before_p = initial(profile_file, budget)?;
+    let before_c = initial(context, budget)?;
+    if before_s.len() < 1024 || before_s.len() > STREAM_CAP ||
+                    (before_s.len() - 1024) % 128 != 0 ||
+                before_p.len() != PROFILE_BYTES ||
+            before_c.len() != CONTEXT_BYTES {
+        return Err(error(INPUT, ADMISSION_STAGE, 0, 0));
+    }
+    s.physical = (before_s.len() - 1024) / 128;
+    let f = fixture_context(context, arena, budget)?;
+    profile(profile_file, arena, budget, f)?;
+    walk(stream, arena, budget, f, before_s.len(), s)?;
+    stable(stream, before_s, budget)?;
+    stable(profile_file, before_p, budget)?;
+    stable(context, before_c, budget)?;
+    Ok(s.complete)
+}
+fn analyze_core<S: InputFile, P: InputFile, C: InputFile,
+    O: OutputFile>(stream: &mut S, profile_file: &mut P, context: &mut C,
+    output: &mut O, limit: u64) -> Result<ReplayOutcome, AnalyzerError> {
+    let mut budget = Budget::new(limit)?;
+    // No report is attempted unless a fresh, distinct output can be established.
+    // Existing File borrows do not by themselves establish inode/OFD ownership.
+    let output_initial =
+        output_safety(stream, profile_file, context, output, &mut budget)?;
+    let mut arena = Arena::new(&mut budget)?;
+    let mut s = Framing::new(0);
+    let mut observation = error(BINDING, CONTEXT_STAGE, 0, 0);
+    let mut decision = Decision::Unavailable;
+    let mut framed = false;
+    let result =
+        observe_inputs(stream, profile_file, context, &mut arena, &mut budget,
+            &mut s);
+    if let Err(e) = result {
+        observation = e;
+        decision =
+            if e.code == BINDING {
+                Decision::Unavailable
+            } else if e.code == BUDGET {
+                Decision::AnalysisLimited
+            } else { Decision::Invalid };
+    } else if s.limited {
+        observation =
+            error(BUDGET, RECORD_STAGE, 512 + s.framed * 128, s.framed + 1);
+        decision = Decision::AnalysisLimited;
+    } else { framed = result.unwrap_or(false); }
+    let mut outcome =
+        ReplayOutcome {
+            decision,
+            framed_records: s.framed,
+            physical_records: s.physical,
+            report_bytes: 0,
+            steps_used: 0,
+            input_bytes_read: budget.read_bytes,
+            input_attempts: budget.io_spent,
+            output_attempts: 0,
+            observation,
+            fixture_framing: u64::from(framed),
+        };
+    write_report(output, output_initial, &mut arena, &mut budget,
+            &mut outcome, s)?;
+    if budget.used() > budget.limit {
+        return Err(error(BUDGET, OUTPUT_STAGE, 0, 0));
+    }
+    Ok(outcome)
+}
+
+
+#[path = "envelope.rs"]
+mod fixture_envelope {
+    //! Separate safe-File fixture envelope. No replay, binding or release authority.
+    use super::*;
+    const SETUP_ENVELOPE: u64 = 534;
+    const FINISH_ENVELOPE: u64 = 47;
+    const RECORD_ENVELOPE: u64 = 425;
+    const SETUP_WRAPPER: u64 = 42;
+    const FINAL_WRAPPER: u64 = 42;
+    const UNDERFUNDED_GUARD: u64 = 112;
+    const WRAPPER_GROUPS: [u64; 9] = [1, 3, 1, 2, 3, 2, 1, 5, 6];
+    const WRAPPER_STEPS: u64 =
+        WRAPPER_GROUPS[0] + WRAPPER_GROUPS[1] + WRAPPER_GROUPS[2] +
+                                WRAPPER_GROUPS[3] + WRAPPER_GROUPS[4] + WRAPPER_GROUPS[5] +
+                    WRAPPER_GROUPS[6] + WRAPPER_GROUPS[7] + WRAPPER_GROUPS[8];
+    const COMBINED_RECORD: u64 =
+        RECORD_STEPS + RECORD_ENVELOPE + WRAPPER_STEPS;
+    const CELLS: [usize; 12] =
+        [7, 9, 10, 11, 12, 13, 14, 64, 65, 66, 160, 161];
+    const PAYLOAD: usize = 888;
+    type Candidate2048 = [u8; 2048];
+    const _: () =
+        if !(COMBINED_RECORD <= RECORD_PREFLIGHT &&
+                        SCALAR.base + 161 * 8 + 8 <= ARENA_BYTES &&
+                    PAYLOAD + 12 * 8 <= 2048) {
+            ::core::panicking::panic("assertion failed: COMBINED_RECORD <= RECORD_PREFLIGHT &&\n        SCALAR.base + 161 * 8 + 8 <= ARENA_BYTES && PAYLOAD + 12 * 8 <= 2048")
+        };
+    #[repr(u64)]
+    pub enum FixtureEnvelopeBoundaryV1 {
+        Unavailable = 0,
+        ClosedEnvelopeObserved = 1,
+        CapCutUnknownTail = 2,
+        Refused = 3,
+        AnalysisLimited = 4,
+        InternalPoisoned = 5,
+    }
+    #[automatically_derived]
+    impl ::core::fmt::Debug for FixtureEnvelopeBoundaryV1 {
+        #[inline]
+        fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+            ::core::fmt::Formatter::write_str(f,
+                match self {
+                    FixtureEnvelopeBoundaryV1::Unavailable => "Unavailable",
+                    FixtureEnvelopeBoundaryV1::ClosedEnvelopeObserved =>
+                        "ClosedEnvelopeObserved",
+                    FixtureEnvelopeBoundaryV1::CapCutUnknownTail =>
+                        "CapCutUnknownTail",
+                    FixtureEnvelopeBoundaryV1::Refused => "Refused",
+                    FixtureEnvelopeBoundaryV1::AnalysisLimited =>
+                        "AnalysisLimited",
+                    FixtureEnvelopeBoundaryV1::InternalPoisoned =>
+                        "InternalPoisoned",
+                })
+        }
+    }
+    #[automatically_derived]
+    impl ::core::marker::StructuralPartialEq for FixtureEnvelopeBoundaryV1 { }
+    #[automatically_derived]
+    impl ::core::cmp::PartialEq for FixtureEnvelopeBoundaryV1 {
+        #[inline]
+        fn eq(&self, other: &FixtureEnvelopeBoundaryV1) -> bool {
+            let __self_discr = ::core::intrinsics::discriminant_value(self);
+            let __arg1_discr = ::core::intrinsics::discriminant_value(other);
+            __self_discr == __arg1_discr
+        }
+    }
+    #[automatically_derived]
+    impl ::core::cmp::Eq for FixtureEnvelopeBoundaryV1 {
+        #[inline]
+        #[doc(hidden)]
+        #[coverage(off)]
+        fn assert_fields_are_eq(&self) {}
+    }
+    #[repr(u64)]
+    pub enum FixtureEnvelopeReasonV1 {
+        Observed = 0,
+        Steps = 1,
+        Shape = 2,
+        Coordinate = 3,
+        TerminalPhase = 4,
+        Phase = 5,
+        ReleaseOpen = 6,
+        TerminalFailure = 7,
+        PinFailure = 8,
+        ForbiddenResume = 9,
+        Acquire = 10,
+        Identity = 11,
+        Stage = 12,
+        PublicationForm = 13,
+        CheckedAccess = 14,
+        InternalPoisoned = 15,
+        FramingUnavailable = 16,
+        FramingInvalid = 17,
+        FramingLimited = 18,
+        EnvelopeUnavailable = 19,
+        UnavailableState = 20,
+        IncompleteBoundary = 21,
+    }
+    #[automatically_derived]
+    impl ::core::fmt::Debug for FixtureEnvelopeReasonV1 {
+        #[inline]
+        fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+            ::core::fmt::Formatter::write_str(f,
+                match self {
+                    FixtureEnvelopeReasonV1::Observed => "Observed",
+                    FixtureEnvelopeReasonV1::Steps => "Steps",
+                    FixtureEnvelopeReasonV1::Shape => "Shape",
+                    FixtureEnvelopeReasonV1::Coordinate => "Coordinate",
+                    FixtureEnvelopeReasonV1::TerminalPhase => "TerminalPhase",
+                    FixtureEnvelopeReasonV1::Phase => "Phase",
+                    FixtureEnvelopeReasonV1::ReleaseOpen => "ReleaseOpen",
+                    FixtureEnvelopeReasonV1::TerminalFailure =>
+                        "TerminalFailure",
+                    FixtureEnvelopeReasonV1::PinFailure => "PinFailure",
+                    FixtureEnvelopeReasonV1::ForbiddenResume =>
+                        "ForbiddenResume",
+                    FixtureEnvelopeReasonV1::Acquire => "Acquire",
+                    FixtureEnvelopeReasonV1::Identity => "Identity",
+                    FixtureEnvelopeReasonV1::Stage => "Stage",
+                    FixtureEnvelopeReasonV1::PublicationForm =>
+                        "PublicationForm",
+                    FixtureEnvelopeReasonV1::CheckedAccess => "CheckedAccess",
+                    FixtureEnvelopeReasonV1::InternalPoisoned =>
+                        "InternalPoisoned",
+                    FixtureEnvelopeReasonV1::FramingUnavailable =>
+                        "FramingUnavailable",
+                    FixtureEnvelopeReasonV1::FramingInvalid => "FramingInvalid",
+                    FixtureEnvelopeReasonV1::FramingLimited => "FramingLimited",
+                    FixtureEnvelopeReasonV1::EnvelopeUnavailable =>
+                        "EnvelopeUnavailable",
+                    FixtureEnvelopeReasonV1::UnavailableState =>
+                        "UnavailableState",
+                    FixtureEnvelopeReasonV1::IncompleteBoundary =>
+                        "IncompleteBoundary",
+                })
+        }
+    }
+    #[automatically_derived]
+    impl ::core::marker::StructuralPartialEq for FixtureEnvelopeReasonV1 { }
+    #[automatically_derived]
+    impl ::core::cmp::PartialEq for FixtureEnvelopeReasonV1 {
+        #[inline]
+        fn eq(&self, other: &FixtureEnvelopeReasonV1) -> bool {
+            let __self_discr = ::core::intrinsics::discriminant_value(self);
+            let __arg1_discr = ::core::intrinsics::discriminant_value(other);
+            __self_discr == __arg1_discr
+        }
+    }
+    #[automatically_derived]
+    impl ::core::cmp::Eq for FixtureEnvelopeReasonV1 {
+        #[inline]
+        #[doc(hidden)]
+        #[coverage(off)]
+        fn assert_fields_are_eq(&self) {}
+    }
+    #[repr(C)]
+    pub struct FixtureEnvelopeObservationV1 {
+        boundary: FixtureEnvelopeBoundaryV1,
+        reason: FixtureEnvelopeReasonV1,
+        observed_records: u64,
+        state: u64,
+        phase: u64,
+        mask: u64,
+        last_operation: u64,
+        active_operation: u64,
+        requested_function: u64,
+        pin_failure: u64,
+        terminal_failure: u64,
+        last_work: u64,
+        last_instructions: u64,
+        envelope_debit: u64,
+        full_replay_accepted: u64,
+        stored_prefix_validated: u64,
+    }
+    #[automatically_derived]
+    impl ::core::fmt::Debug for FixtureEnvelopeObservationV1 {
+        #[inline]
+        fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+            let names: &'static _ =
+                &["boundary", "reason", "observed_records", "state", "phase",
+                            "mask", "last_operation", "active_operation",
+                            "requested_function", "pin_failure", "terminal_failure",
+                            "last_work", "last_instructions", "envelope_debit",
+                            "full_replay_accepted", "stored_prefix_validated"];
+            let values: &[&dyn ::core::fmt::Debug] =
+                &[&self.boundary, &self.reason, &self.observed_records,
+                            &self.state, &self.phase, &self.mask, &self.last_operation,
+                            &self.active_operation, &self.requested_function,
+                            &self.pin_failure, &self.terminal_failure, &self.last_work,
+                            &self.last_instructions, &self.envelope_debit,
+                            &self.full_replay_accepted, &&self.stored_prefix_validated];
+            ::core::fmt::Formatter::debug_struct_fields_finish(f,
+                "FixtureEnvelopeObservationV1", names, values)
+        }
+    }
+    impl FixtureEnvelopeObservationV1 {
+        pub fn boundary(&self) -> &FixtureEnvelopeBoundaryV1 {
+            &self.boundary
+        }
+        pub fn reason(&self) -> &FixtureEnvelopeReasonV1 { &self.reason }
+        pub fn observed_records(&self) -> u64 { self.observed_records }
+        pub fn state(&self) -> u64 { self.state }
+        pub fn phase(&self) -> u64 { self.phase }
+        pub fn mask(&self) -> u64 { self.mask }
+        pub fn last_operation(&self) -> u64 { self.last_operation }
+        pub fn active_operation(&self) -> u64 { self.active_operation }
+        pub fn requested_function(&self) -> u64 { self.requested_function }
+        pub fn pin_failure(&self) -> u64 { self.pin_failure }
+        pub fn terminal_failure(&self) -> u64 { self.terminal_failure }
+        pub fn last_work(&self) -> u64 { self.last_work }
+        pub fn last_instructions(&self) -> u64 { self.last_instructions }
+        /// Cumulative prepaid envelope credits; never a leaf execution count.
+        pub fn envelope_debit(&self) -> u64 { self.envelope_debit }
+        pub const fn stored_prefix_validated(&self) -> bool { false }
+        pub const fn full_replay_accepted(&self) -> bool { false }
+        pub const fn semantic_metrics_valid(&self) -> bool { false }
+    }
+    #[repr(C)]
+    pub struct FixtureEnvelopeOutcomeV1 {
+        framing: ReplayOutcome,
+        envelope: FixtureEnvelopeObservationV1,
+    }
+    #[automatically_derived]
+    impl ::core::fmt::Debug for FixtureEnvelopeOutcomeV1 {
+        #[inline]
+        fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+            ::core::fmt::Formatter::debug_struct_field2_finish(f,
+                "FixtureEnvelopeOutcomeV1", "framing", &self.framing,
+                "envelope", &&self.envelope)
+        }
+    }
+    impl FixtureEnvelopeOutcomeV1 {
+        pub fn framing(&self) -> &ReplayOutcome { &self.framing }
+        pub fn envelope(&self) -> &FixtureEnvelopeObservationV1 {
+            &self.envelope
+        }
+        pub const fn stored_prefix_validated(&self) -> bool { false }
+        pub const fn full_replay_accepted(&self) -> bool { false }
+    }
+    #[repr(C)]
+    struct StepBudget {
+        remaining: u64,
+        spent: u64,
+    }
+    #[repr(C)]
+    struct CheckedPair {
+        status: u64,
+        value: u64,
+    }
+    #[repr(C)]
+    struct FixtureEnvelopeReplyV1 {
+        words: [u64; 16],
+    }
+    #[repr(C)]
+    struct FixtureEnvelopeProgressV1 {
+        reply_valid: u64,
+        debit: u64,
+        reply: FixtureEnvelopeReplyV1,
+    }
+    struct FixtureDecodedRecordV1<'a> {
+        words: &'a [u64; 16],
+    }
+    fn word_at(bytes: &[u8], offset: usize) -> CheckedPair {
+        let Some(tail) =
+            bytes.get(offset..) else {
+                return CheckedPair { status: 0, value: 0 };
+            };
+        let Some(array) =
+            tail.first_chunk::<8>() else {
+                return CheckedPair { status: 0, value: 0 };
+            };
+        CheckedPair { status: 1, value: u64::from_le_bytes(*array) }
+    }
+    fn reply(status: u64, reason: u64, s: &[u64; 12], debit: u64)
+        -> FixtureEnvelopeReplyV1 {
+        FixtureEnvelopeReplyV1 {
+            words: [status, reason, s[0], s[7], s[4], s[5], s[3], s[8], s[9],
+                    s[11], s[10], s[1], s[2], debit, 0, 0],
+        }
+    }
+    fn poisoned(debit: u64) -> FixtureEnvelopeReplyV1 {
+        FixtureEnvelopeReplyV1 {
+            words: [3, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, debit, 0, 0],
+        }
+    }
+    fn shape(w: &[u64; 16]) -> bool {
+        let k = w[1];
+        let f = w[6];
+        if k == 0 || k > 14 || w[2] > 5 { return false; }
+        let absent = w[7] == ABSENT && w[8] == ABSENT && w[9] == ABSENT;
+        let no_slots = w[10] == ABSENT && w[11] == ABSENT && w[12] == 0;
+        let full =
+            f < 80_000 && w[7] != ABSENT && w[8] != ABSENT &&
+                    w[9] <= u32::MAX as u64 && w[7] <= ABSENT - w[8];
+        match k {
+            1 =>
+                w[3] > 0 && f < 80_000 && absent && no_slots && w[13] == 0 &&
+                        w[14] == 0 && w[15] == 0,
+            2 =>
+                w[3] > 0 && full && w[11] == ABSENT && w[12] == 0 &&
+                            w[14] == 0 && w[15] == 0 &&
+                    ((w[13] == 0 && w[10] == ABSENT) ||
+                            (w[13] == 1 && w[10] < 64)),
+            3 =>
+                w[3] > 0 && full && no_slots && w[13] == 0 && w[14] == 0 &&
+                    w[15] == (f & 511),
+            4 =>
+                w[3] > 0 && full && no_slots && w[15] == (f & 511) &&
+                    (((w[13] == 0 || w[13] == 2) && w[14] == ABSENT) ||
+                            (w[13] == 1 && w[14] < 80_000 && w[14] != f)),
+            5 =>
+                w[3] > 0 && full && no_slots && w[13] > 0 && w[14] <= w[15] &&
+                    w[13] <= w[15] - w[14],
+            6..=8 =>
+                w[3] > 0 && full && w[10] < 64 && w[11] == ABSENT &&
+                                w[12] == 0 && w[13] > 0 && w[14] == 0 && w[15] == 0,
+            9 | 10 =>
+                w[3] > 0 && full && no_slots && w[13] > 0 && w[14] == 0 &&
+                    w[15] == 0,
+            11 =>
+                w[3] > 0 && full && w[10] < 64 && w[11] < 64 && w[12] > 0 &&
+                                w[13] <= 1 && w[14] > 0 && w[15] > 0 && w[15] <= 64,
+            12 =>
+                w[3] == 0 && f < 80_000 && w[7] != ABSENT && w[8] == ABSENT &&
+                                            w[9] <= u32::MAX as u64 && w[10] < 64 && w[11] < 64 &&
+                                w[12] > 0 && w[13] > 0 && w[14] == 0 && w[15] < 64,
+            13 =>
+                w[3] == 0 && f == ABSENT && absent && no_slots &&
+                            w[13] == w[2] && w[14] == 0 && w[15] == 0,
+            14 =>
+                absent && (f == ABSENT || f < 80_000) && no_slots && w[13] > 0
+                                    && w[13] <= 21 && w[14] > 0 && w[14] <= 24 && w[15] > 0 &&
+                    w[15] <= 6,
+            _ => false,
+        }
+    }
+    fn observe_fixture_envelope_v1(arena: &mut [u8],
+        candidate: &mut Candidate2048, record: &FixtureDecodedRecordV1<'_>,
+        steps: &mut StepBudget) -> FixtureEnvelopeReplyV1 {
+        if arena.len() < 7_731_056 { return poisoned(0); }
+        if steps.spent != 0 { return poisoned(0); }
+        let underfunded = steps.remaining < RECORD_ENVELOPE;
+        if !underfunded {
+            steps.remaining -= RECORD_ENVELOPE;
+            steps.spent = RECORD_ENVELOPE;
+        }
+        let mut prior = [0u64; 12];
+        let mut word = [0u8; 8];
+        word.copy_from_slice(&arena[7_729_816..7_729_824]);
+        prior[0] = u64::from_le_bytes(word);
+        word.copy_from_slice(&arena[7_729_832..7_729_840]);
+        prior[1] = u64::from_le_bytes(word);
+        word.copy_from_slice(&arena[7_729_840..7_729_848]);
+        prior[2] = u64::from_le_bytes(word);
+        word.copy_from_slice(&arena[7_729_848..7_729_856]);
+        prior[3] = u64::from_le_bytes(word);
+        word.copy_from_slice(&arena[7_729_856..7_729_864]);
+        prior[4] = u64::from_le_bytes(word);
+        word.copy_from_slice(&arena[7_729_864..7_729_872]);
+        prior[5] = u64::from_le_bytes(word);
+        word.copy_from_slice(&arena[7_729_872..7_729_880]);
+        prior[6] = u64::from_le_bytes(word);
+        word.copy_from_slice(&arena[7_730_272..7_730_280]);
+        prior[7] = u64::from_le_bytes(word);
+        word.copy_from_slice(&arena[7_730_280..7_730_288]);
+        prior[8] = u64::from_le_bytes(word);
+        word.copy_from_slice(&arena[7_730_288..7_730_296]);
+        prior[9] = u64::from_le_bytes(word);
+        word.copy_from_slice(&arena[7_731_040..7_731_048]);
+        prior[10] = u64::from_le_bytes(word);
+        word.copy_from_slice(&arena[7_731_048..7_731_056]);
+        prior[11] = u64::from_le_bytes(word);
+        if underfunded { return reply(2, 1, &prior, 0); }
+        if prior[7] > 10 || prior[4] > 5 || prior[5] >= 64 || prior[6] >= 64
+                    || prior[10] > 1 || prior[11] > 1 {
+            return poisoned(RECORD_ENVELOPE);
+        }
+        let w = record.words;
+        if !shape(w) { return reply(2, 2, &prior, RECORD_ENVELOPE); }
+        if prior[0] == ABSENT || w[0] != prior[0] + 1 || w[4] < prior[1] ||
+                w[5] < prior[2] {
+            return reply(2, 3, &prior, RECORD_ENVELOPE);
+        }
+        if prior[4] == 5 { return reply(2, 4, &prior, RECORD_ENVELOPE); }
+        let mut next = prior;
+        if w[1] == 13 {
+            if prior[7] != 0 || w[2] <= prior[4] ||
+                    prior[5] & (1 << w[2]) != 0 {
+                return reply(2, 5, &prior, RECORD_ENVELOPE);
+            }
+            next[4] = w[2];
+            next[5] |= 1 << w[2];
+        } else {
+            if w[2] != prior[4] {
+                return reply(2, 5, &prior, RECORD_ENVELOPE);
+            }
+            if w[1] == 12 {
+                if prior[7] != 0 {
+                    return reply(2, 6, &prior, RECORD_ENVELOPE);
+                }
+            } else if w[1] == 14 {
+                if w[3] == 0 {
+                    if prior[7] != 0 || prior[10] != 0 {
+                        return reply(2, 7, &prior, RECORD_ENVELOPE);
+                    }
+                    next[10] = 1;
+                } else {
+                    if prior[7] == 0 || prior[11] != 0 || prior[10] != 0 ||
+                            w[3] != prior[8] {
+                        return reply(2, 8, &prior, RECORD_ENVELOPE);
+                    }
+                    next[7] = 0;
+                    next[11] = 1;
+                }
+            } else {
+                if prior[10] != 0 || prior[11] != 0 {
+                    return reply(2, 9, &prior, RECORD_ENVELOPE);
+                }
+                if w[1] == 1 {
+                    if prior[7] != 0 || prior[4] >= 4 || prior[3] == ABSENT ||
+                            w[3] != prior[3] + 1 {
+                        return reply(2, 10, &prior, RECORD_ENVELOPE);
+                    }
+                    next[7] = 1;
+                    next[3] = w[3];
+                    next[8] = w[3];
+                    next[9] = w[6];
+                } else {
+                    if w[3] != prior[8] || w[6] != prior[9] {
+                        return reply(2, 11, &prior, RECORD_ENVELOPE);
+                    }
+                    if w[1] == 2 {
+                        if prior[7] != 1 {
+                            return reply(2, 12, &prior, RECORD_ENVELOPE);
+                        }
+                        next[7] = if w[13] == 1 { 2 } else { 3 };
+                    } else if w[1] == 11 {
+                        if !((prior[7] == 2 && w[13] == 0) ||
+                                        (prior[7] == 10 && w[13] == 1)) {
+                            return reply(2, 13, &prior, RECORD_ENVELOPE);
+                        }
+                        next[7] = 0;
+                    } else {
+                        let (before, after) =
+                            match w[1] {
+                                3 => (3, 4),
+                                4 => (4, 5),
+                                5 => (5, 6),
+                                6 => (6, 7),
+                                7 => (7, 8),
+                                8 => (8, 6),
+                                9 => (6, 9),
+                                10 => (9, 10),
+                                _ => return poisoned(RECORD_ENVELOPE),
+                            };
+                        if prior[7] != before {
+                            return reply(2, 12, &prior, RECORD_ENVELOPE);
+                        }
+                        next[7] = after;
+                    }
+                }
+            }
+        }
+        next[0] = w[0];
+        next[1] = w[4];
+        next[2] = w[5];
+        candidate[888..896].copy_from_slice(&next[0].to_le_bytes());
+        candidate[896..904].copy_from_slice(&next[1].to_le_bytes());
+        candidate[904..912].copy_from_slice(&next[2].to_le_bytes());
+        candidate[912..920].copy_from_slice(&next[3].to_le_bytes());
+        candidate[920..928].copy_from_slice(&next[4].to_le_bytes());
+        candidate[928..936].copy_from_slice(&next[5].to_le_bytes());
+        candidate[936..944].copy_from_slice(&next[6].to_le_bytes());
+        candidate[944..952].copy_from_slice(&next[7].to_le_bytes());
+        candidate[952..960].copy_from_slice(&next[8].to_le_bytes());
+        candidate[960..968].copy_from_slice(&next[9].to_le_bytes());
+        candidate[968..976].copy_from_slice(&next[10].to_le_bytes());
+        candidate[976..984].copy_from_slice(&next[11].to_le_bytes());
+        arena[7_729_816..7_729_824].copy_from_slice(&candidate[888..896]);
+        arena[7_729_832..7_729_840].copy_from_slice(&candidate[896..904]);
+        arena[7_729_840..7_729_848].copy_from_slice(&candidate[904..912]);
+        arena[7_729_848..7_729_856].copy_from_slice(&candidate[912..920]);
+        arena[7_729_856..7_729_864].copy_from_slice(&candidate[920..928]);
+        arena[7_729_864..7_729_872].copy_from_slice(&candidate[928..936]);
+        arena[7_729_872..7_729_880].copy_from_slice(&candidate[936..944]);
+        arena[7_730_272..7_730_280].copy_from_slice(&candidate[944..952]);
+        arena[7_730_280..7_730_288].copy_from_slice(&candidate[952..960]);
+        arena[7_730_288..7_730_296].copy_from_slice(&candidate[960..968]);
+        arena[7_731_040..7_731_048].copy_from_slice(&candidate[968..976]);
+        arena[7_731_048..7_731_056].copy_from_slice(&candidate[976..984]);
+        reply(1, 0, &next, RECORD_ENVELOPE)
+    }
+    fn reason_from_leaf(value: u64) -> FixtureEnvelopeReasonV1 {
+        match value {
+            0 => FixtureEnvelopeReasonV1::Observed,
+            1 => FixtureEnvelopeReasonV1::Steps,
+            2 => FixtureEnvelopeReasonV1::Shape,
+            3 => FixtureEnvelopeReasonV1::Coordinate,
+            4 => FixtureEnvelopeReasonV1::TerminalPhase,
+            5 => FixtureEnvelopeReasonV1::Phase,
+            6 => FixtureEnvelopeReasonV1::ReleaseOpen,
+            7 => FixtureEnvelopeReasonV1::TerminalFailure,
+            8 => FixtureEnvelopeReasonV1::PinFailure,
+            9 => FixtureEnvelopeReasonV1::ForbiddenResume,
+            10 => FixtureEnvelopeReasonV1::Acquire,
+            11 => FixtureEnvelopeReasonV1::Identity,
+            12 => FixtureEnvelopeReasonV1::Stage,
+            13 => FixtureEnvelopeReasonV1::PublicationForm,
+            14 => FixtureEnvelopeReasonV1::CheckedAccess,
+            15 => FixtureEnvelopeReasonV1::InternalPoisoned,
+            _ => FixtureEnvelopeReasonV1::UnavailableState,
+        }
+    }
+    fn project(p: &FixtureEnvelopeProgressV1,
+        boundary: FixtureEnvelopeBoundaryV1, reason: FixtureEnvelopeReasonV1,
+        extent: bool) -> FixtureEnvelopeObservationV1 {
+        let w = &p.reply.words;
+        FixtureEnvelopeObservationV1 {
+            boundary,
+            reason,
+            observed_records: if extent { w[2] } else { 0 },
+            state: if extent { w[3] } else { 0 },
+            phase: if extent { w[4] } else { 0 },
+            mask: if extent { w[5] } else { 0 },
+            last_operation: if extent { w[6] } else { 0 },
+            active_operation: if extent { w[7] } else { 0 },
+            requested_function: if extent { w[8] } else { 0 },
+            pin_failure: if extent { w[9] } else { 0 },
+            terminal_failure: if extent { w[10] } else { 0 },
+            last_work: if extent { w[11] } else { 0 },
+            last_instructions: if extent { w[12] } else { 0 },
+            envelope_debit: p.debit,
+            full_replay_accepted: 0,
+            stored_prefix_validated: 0,
+        }
+    }
+    fn finalize(p: &FixtureEnvelopeProgressV1, s: &Framing,
+        input: &Result<bool, AnalyzerError>, arena: &Arena)
+        -> FixtureEnvelopeObservationV1 {
+        use FixtureEnvelopeBoundaryV1 as B;
+        use FixtureEnvelopeReasonV1 as R;
+        if let Err(e) = input {
+            let reason =
+                if e.code == BINDING {
+                    R::FramingUnavailable
+                } else if e.code == BUDGET {
+                    R::FramingLimited
+                } else { R::FramingInvalid };
+            return project(p, B::Unavailable, reason, false);
+        }
+        if s.flags > 1 ||
+                !((s.complete && !s.limited &&
+                                    #[allow(non_exhaustive_omitted_patterns)] match input {
+                                        Ok(true) => true,
+                                        _ => false,
+                                    }) ||
+                            (s.limited && !s.complete &&
+                                    #[allow(non_exhaustive_omitted_patterns)] match input {
+                                        Ok(false) => true,
+                                        _ => false,
+                                    })) {
+            return project(p, B::Unavailable, R::UnavailableState, false);
+        }
+        if p.reply_valid == 0 {
+            return project(p, B::Unavailable, R::EnvelopeUnavailable, false);
+        }
+        if p.reply_valid != 1 {
+            return project(p, B::Unavailable, R::UnavailableState, false);
+        }
+        if p.reply.words[0] == 3 || p.reply.words[1] == 15 {
+            return project(p,
+                    if s.limited {
+                        B::AnalysisLimited
+                    } else { B::InternalPoisoned }, R::InternalPoisoned, false);
+        }
+        if !(1..=2).contains(&p.reply.words[0]) || p.reply.words[1] > 14 ||
+                                        (p.reply.words[0] == 1 && p.reply.words[1] != 0) ||
+                                    (p.reply.words[0] == 2 && p.reply.words[1] == 0) ||
+                                p.reply.words[3] > 10 || p.reply.words[4] > 5 ||
+                        p.reply.words[5] >= 64 || p.reply.words[9] > 1 ||
+                p.reply.words[10] > 1 {
+            return project(p, B::Unavailable, R::UnavailableState, false);
+        }
+        if s.limited {
+            return project(p, B::AnalysisLimited,
+                    if p.reply.words[0] == 2 {
+                        reason_from_leaf(p.reply.words[1])
+                    } else { R::FramingLimited }, true);
+        }
+        if p.reply.words[0] == 2 {
+            return project(p, B::Refused, reason_from_leaf(p.reply.words[1]),
+                    true);
+        }
+        if s.flags == 1 {
+            return project(p, B::CapCutUnknownTail, R::Observed, true);
+        }
+        let expected = word_at(&arena.bytes, SCALAR.base + 8 * CELLS[6]);
+        if expected.status != 1 {
+            return project(p, B::InternalPoisoned, R::InternalPoisoned,
+                    false);
+        }
+        if p.reply.words[3] == 0 && p.reply.words[4] == 5 &&
+                p.reply.words[5] == expected.value {
+            project(p, B::ClosedEnvelopeObserved, R::Observed, true)
+        } else { project(p, B::Refused, R::IncompleteBoundary, true) }
+    }
+    fn leaf_pending(p: &FixtureEnvelopeProgressV1) -> bool {
+        if p.reply_valid == 0 { return true; }
+        if p.reply_valid != 1 || p.reply.words[0] == 3 ||
+                p.reply.words[1] == 15 {
+            return false;
+        }
+        p.reply.words[0] == 1
+    }
+    fn reply_debit_valid(reply: &FixtureEnvelopeReplyV1, steps: &StepBudget)
+        -> bool {
+        if steps.spent == RECORD_ENVELOPE {
+            return steps.remaining == 0 && reply.words[13] == RECORD_ENVELOPE;
+        }
+        if steps.spent != 0 || reply.words[13] != 0 { return false; }
+        if reply.words[1] == 15 { return reply.words[0] == 3; }
+        reply.words[1] == 1 && reply.words[0] == 2 &&
+            steps.remaining < RECORD_ENVELOPE
+    }
+    fn walk_fixture_envelope_v1<T: InputFile>(input: &mut T,
+        arena: &mut Arena, budget: &mut Budget, f: Fixture, length: u64,
+        s: &mut Framing, p: &mut FixtureEnvelopeProgressV1)
+        -> Result<(), AnalyzerError> {
+        let mut reader = Reader::new(length, HEADER_STAGE);
+        let mut h = [0; 64];
+        reader.words(input, arena, budget, &mut h)?;
+        header(arena, &h, f, budget)?;
+        budget.setup(SETUP_ENVELOPE)?;
+        p.debit += SETUP_ENVELOPE;
+        budget.report(FINISH_ENVELOPE)?;
+        p.debit += FINISH_ENVELOPE;
+        budget.report(UNDERFUNDED_GUARD)?;
+        let mut candidate: Candidate2048 = [0u8; 2048];
+        if arena.bytes.len() != ARENA_BYTES {
+            return Err(error(INTERNAL, ARENA_STAGE, 0, 0));
+        }
+        for i in 0..12 {
+            let value = if i == 5 { 1 } else if i == 6 { f.mask } else { 0 };
+            let at = SCALAR.base + CELLS[i] * 8;
+            arena.bytes[at..at + 8].copy_from_slice(&value.to_le_bytes());
+        }
+        reader.stage = RECORD_STAGE;
+        for index in 0..s.physical {
+            if budget.replay_left < RECORD_PREFLIGHT {
+                s.limited = true;
+                break;
+            }
+            budget.replay(COMBINED_RECORD)?;
+            p.debit += RECORD_ENVELOPE;
+            let mut w = [0; 16];
+            reader.words(input, arena, budget, &mut w)?;
+            let offset = 512 + index * 128;
+            if !record_fields(arena, &w, f) {
+                return Err(error(SCHEMA, RECORD_STAGE, offset, index + 1));
+            }
+            if !s.coordinate(&w) {
+                return Err(error(COORDINATE, RECORD_STAGE, offset,
+                            index + 1));
+            }
+            if leaf_pending(p) {
+                let record = FixtureDecodedRecordV1 { words: &w };
+                let mut steps =
+                    StepBudget { remaining: RECORD_ENVELOPE, spent: 0 };
+                let received =
+                    observe_fixture_envelope_v1(&mut arena.bytes,
+                        &mut candidate, &record, &mut steps);
+                p.reply = received;
+                p.reply_valid = 1;
+                if !reply_debit_valid(&p.reply, &steps) {
+                    p.reply = poisoned(RECORD_ENVELOPE);
+                }
+            }
+        }
+        if s.limited {
+            let target = length - 512;
+            while reader.consumed < target {
+                budget.setup(1)?;
+                let available = (reader.used - reader.cursor) as u64;
+                let n = available.min(target - reader.consumed);
+                reader.cursor += n as usize;
+                reader.consumed += n;
+                if reader.consumed == target { break; }
+                if reader.cursor != reader.used {
+                    return Err(error(INTERNAL, RECORD_STAGE, reader.consumed,
+                                0));
+                }
+                let count =
+                    (reader.length - reader.loaded).min(65_536) as usize;
+                bounded_read(input,
+                        &mut arena.bytes[BLOCK.base..BLOCK.base + count], budget,
+                        RECORD_STAGE, reader.loaded)?;
+                reader.loaded += count as u64;
+                reader.used = count;
+                reader.cursor = 0;
+            }
+        }
+        reader.stage = FOOTER_STAGE;
+        let mut foot = [0; 64];
+        reader.words(input, arena, budget, &mut foot)?;
+        footer(&h, &foot, length, s, budget)?;
+        eof(input, budget, FOOTER_STAGE, length)?;
+        s.complete = !s.limited;
+        Ok(())
+    }
+    fn observe_inputs_fixture_envelope_v1<S: InputFile, P: InputFile,
+        C: InputFile>(stream: &mut S, profile_file: &mut P, context: &mut C,
+        arena: &mut Arena, budget: &mut Budget, s: &mut Framing,
+        p: &mut FixtureEnvelopeProgressV1) -> Result<bool, AnalyzerError> {
+        let before_s = initial(stream, budget)?;
+        let before_p = initial(profile_file, budget)?;
+        let before_c = initial(context, budget)?;
+        if before_s.len() < 1024 || before_s.len() > STREAM_CAP ||
+                        (before_s.len() - 1024) % 128 != 0 ||
+                    before_p.len() != PROFILE_BYTES ||
+                before_c.len() != CONTEXT_BYTES {
+            return Err(error(INPUT, ADMISSION_STAGE, 0, 0));
+        }
+        s.physical = (before_s.len() - 1024) / 128;
+        let f = fixture_context(context, arena, budget)?;
+        profile(profile_file, arena, budget, f)?;
+        walk_fixture_envelope_v1(stream, arena, budget, f, before_s.len(), s,
+                p)?;
+        stable(stream, before_s, budget)?;
+        stable(profile_file, before_p, budget)?;
+        stable(context, before_c, budget)?;
+        Ok(s.complete)
+    }
+    fn analyze_fixture_envelope_core<S: InputFile, P: InputFile, C: InputFile,
+        O: OutputFile>(stream: &mut S, profile_file: &mut P, context: &mut C,
+        output: &mut O, limit: u64)
+        -> Result<FixtureEnvelopeOutcomeV1, AnalyzerError> {
+        let mut budget = Budget::new(limit)?;
+        budget.setup(SETUP_WRAPPER)?;
+        budget.report(FINAL_WRAPPER)?;
+        let output_initial =
+            output_safety(stream, profile_file, context, output,
+                    &mut budget)?;
+        let mut arena = Arena::new(&mut budget)?;
+        let mut s = Framing::new(0);
+        let mut p =
+            FixtureEnvelopeProgressV1 {
+                reply_valid: 0,
+                debit: 0,
+                reply: FixtureEnvelopeReplyV1 { words: [0; 16] },
+            };
+        let result =
+            observe_inputs_fixture_envelope_v1(stream, profile_file, context,
+                &mut arena, &mut budget, &mut s, &mut p);
+        let mut observation = error(BINDING, CONTEXT_STAGE, 0, 0);
+        let mut decision = Decision::Unavailable;
+        let mut framed = false;
+        if let Err(e) = result {
+            observation = e;
+            decision =
+                if e.code == BINDING {
+                    Decision::Unavailable
+                } else if e.code == BUDGET {
+                    Decision::AnalysisLimited
+                } else { Decision::Invalid };
+        } else if s.limited {
+            observation =
+                error(BUDGET, RECORD_STAGE, 512 + s.framed * 128,
+                    s.framed + 1);
+            decision = Decision::AnalysisLimited;
+        } else { framed = result.unwrap_or(false); }
+        let envelope = finalize(&p, &s, &result, &arena);
+        let mut framing =
+            ReplayOutcome {
+                decision,
+                framed_records: s.framed,
+                physical_records: s.physical,
+                report_bytes: 0,
+                steps_used: 0,
+                input_bytes_read: budget.read_bytes,
+                input_attempts: budget.io_spent,
+                output_attempts: 0,
+                observation,
+                fixture_framing: u64::from(framed),
+            };
+        write_report(output, output_initial, &mut arena, &mut budget,
+                &mut framing, s)?;
+        if budget.used() > budget.limit {
+            return Err(error(BUDGET, OUTPUT_STAGE, 0, 0));
+        }
+        Ok(FixtureEnvelopeOutcomeV1 { framing, envelope })
+    }
+    /// Separate fixture-only safe-File boundary. Caller owns distinct, quiescent
+    /// regular Files at offset0 and empty exclusive output, as in analyze_fixture.
+    pub fn analyze_fixture_envelope_v1(stream: &mut File,
+        profile_file: &mut File, context: &mut File, output: &mut File)
+        -> Result<FixtureEnvelopeOutcomeV1, AnalyzerError> {
+        analyze_fixture_envelope_core(stream, profile_file, context, output,
+            STEP_LIMIT)
+    }
+    #[path = "cache_state.rs"]
+    mod cache_state {
+        //! Standalone fixture-only successful cache transitions. No release authority.
+        use super::*;
+        const SEMANTIC_RECORD: u64 = 7680;
+        const CACHE_COMBINED: u64 = 8151;
+        const SEMANTIC_SETUP: u64 = 512;
+        const SEMANTIC_FINISH: u64 = 256;
+        const SEMANTIC_GUARD: u64 = 128;
+        const SC: usize = 1688;
+        const EXTRA_CELLS: [usize; 2] = [71, 78];
+        const ROW_CELLS: [usize; 10] =
+            [21, 22, 23, 17, 128, 130, 131, 137, 84, 141];
+        #[repr(u64)]
+        pub enum FixtureCacheStateBoundaryV1 {
+            Unavailable = 0,
+            ClosedFixtureObserved = 1,
+            CapCutUnknownTail = 2,
+            Refused = 3,
+            AnalysisLimited = 4,
+            InternalPoisoned = 5,
+            ApplicabilityUnavailable = 6,
+        }
+        #[automatically_derived]
+        impl ::core::fmt::Debug for FixtureCacheStateBoundaryV1 {
+            #[inline]
+            fn fmt(&self, f: &mut ::core::fmt::Formatter)
+                -> ::core::fmt::Result {
+                ::core::fmt::Formatter::write_str(f,
+                    match self {
+                        FixtureCacheStateBoundaryV1::Unavailable => "Unavailable",
+                        FixtureCacheStateBoundaryV1::ClosedFixtureObserved =>
+                            "ClosedFixtureObserved",
+                        FixtureCacheStateBoundaryV1::CapCutUnknownTail =>
+                            "CapCutUnknownTail",
+                        FixtureCacheStateBoundaryV1::Refused => "Refused",
+                        FixtureCacheStateBoundaryV1::AnalysisLimited =>
+                            "AnalysisLimited",
+                        FixtureCacheStateBoundaryV1::InternalPoisoned =>
+                            "InternalPoisoned",
+                        FixtureCacheStateBoundaryV1::ApplicabilityUnavailable =>
+                            "ApplicabilityUnavailable",
+                    })
+            }
+        }
+        #[automatically_derived]
+        impl ::core::marker::StructuralPartialEq for
+            FixtureCacheStateBoundaryV1 {
+        }
+        #[automatically_derived]
+        impl ::core::cmp::PartialEq for FixtureCacheStateBoundaryV1 {
+            #[inline]
+            fn eq(&self, other: &FixtureCacheStateBoundaryV1) -> bool {
+                let __self_discr =
+                    ::core::intrinsics::discriminant_value(self);
+                let __arg1_discr =
+                    ::core::intrinsics::discriminant_value(other);
+                __self_discr == __arg1_discr
+            }
+        }
+        #[automatically_derived]
+        impl ::core::cmp::Eq for FixtureCacheStateBoundaryV1 {
+            #[inline]
+            #[doc(hidden)]
+            #[coverage(off)]
+            fn assert_fields_are_eq(&self) {}
+        }
+        #[repr(u64)]
+        pub enum FixtureCacheStateReasonV1 {
+            Observed = 0,
+            Steps = 1,
+            FramingUnavailable = 2,
+            FramingInvalid = 3,
+            EnvelopeRefused = 4,
+            EnvelopeUnavailable = 5,
+            Identity = 6,
+            Resident = 7,
+            Plan = 8,
+            Victim = 9,
+            Bytes = 10,
+            Token = 11,
+            Nonce = 12,
+            Invariant = 13,
+            FailureApplicability = 14,
+            IncompleteBoundary = 15,
+            InternalPoison = 16,
+            OutputUnavailable = 17,
+        }
+        #[automatically_derived]
+        impl ::core::fmt::Debug for FixtureCacheStateReasonV1 {
+            #[inline]
+            fn fmt(&self, f: &mut ::core::fmt::Formatter)
+                -> ::core::fmt::Result {
+                ::core::fmt::Formatter::write_str(f,
+                    match self {
+                        FixtureCacheStateReasonV1::Observed => "Observed",
+                        FixtureCacheStateReasonV1::Steps => "Steps",
+                        FixtureCacheStateReasonV1::FramingUnavailable =>
+                            "FramingUnavailable",
+                        FixtureCacheStateReasonV1::FramingInvalid =>
+                            "FramingInvalid",
+                        FixtureCacheStateReasonV1::EnvelopeRefused =>
+                            "EnvelopeRefused",
+                        FixtureCacheStateReasonV1::EnvelopeUnavailable =>
+                            "EnvelopeUnavailable",
+                        FixtureCacheStateReasonV1::Identity => "Identity",
+                        FixtureCacheStateReasonV1::Resident => "Resident",
+                        FixtureCacheStateReasonV1::Plan => "Plan",
+                        FixtureCacheStateReasonV1::Victim => "Victim",
+                        FixtureCacheStateReasonV1::Bytes => "Bytes",
+                        FixtureCacheStateReasonV1::Token => "Token",
+                        FixtureCacheStateReasonV1::Nonce => "Nonce",
+                        FixtureCacheStateReasonV1::Invariant => "Invariant",
+                        FixtureCacheStateReasonV1::FailureApplicability =>
+                            "FailureApplicability",
+                        FixtureCacheStateReasonV1::IncompleteBoundary =>
+                            "IncompleteBoundary",
+                        FixtureCacheStateReasonV1::InternalPoison =>
+                            "InternalPoison",
+                        FixtureCacheStateReasonV1::OutputUnavailable =>
+                            "OutputUnavailable",
+                    })
+            }
+        }
+        #[automatically_derived]
+        impl ::core::marker::StructuralPartialEq for FixtureCacheStateReasonV1
+            {
+        }
+        #[automatically_derived]
+        impl ::core::cmp::PartialEq for FixtureCacheStateReasonV1 {
+            #[inline]
+            fn eq(&self, other: &FixtureCacheStateReasonV1) -> bool {
+                let __self_discr =
+                    ::core::intrinsics::discriminant_value(self);
+                let __arg1_discr =
+                    ::core::intrinsics::discriminant_value(other);
+                __self_discr == __arg1_discr
+            }
+        }
+        #[automatically_derived]
+        impl ::core::cmp::Eq for FixtureCacheStateReasonV1 {
+            #[inline]
+            #[doc(hidden)]
+            #[coverage(off)]
+            fn assert_fields_are_eq(&self) {}
+        }
+        #[repr(C)]
+        pub struct FixtureCacheStateObservationV1 {
+            boundary: FixtureCacheStateBoundaryV1,
+            reason: FixtureCacheStateReasonV1,
+            extent: [u64; 30],
+        }
+        #[automatically_derived]
+        impl ::core::fmt::Debug for FixtureCacheStateObservationV1 {
+            #[inline]
+            fn fmt(&self, f: &mut ::core::fmt::Formatter)
+                -> ::core::fmt::Result {
+                ::core::fmt::Formatter::debug_struct_field3_finish(f,
+                    "FixtureCacheStateObservationV1", "boundary",
+                    &self.boundary, "reason", &self.reason, "extent",
+                    &&self.extent)
+            }
+        }
+        impl FixtureCacheStateObservationV1 {
+            pub fn boundary(&self) -> &FixtureCacheStateBoundaryV1 {
+                &self.boundary
+            }
+            pub fn reason(&self) -> &FixtureCacheStateReasonV1 {
+                &self.reason
+            }
+            pub const fn stored_prefix_validated(&self) -> bool { false }
+            pub const fn full_replay_accepted(&self) -> bool { false }
+            pub const fn semantic_metrics_valid(&self) -> bool { false }
+            pub const fn real_binding_verified(&self) -> bool { false }
+        }
+        #[repr(C)]
+        pub struct FixtureCacheStateOutcomeV1 {
+            framing: ReplayOutcome,
+            envelope: FixtureEnvelopeObservationV1,
+            cache_state: FixtureCacheStateObservationV1,
+        }
+        #[automatically_derived]
+        impl ::core::fmt::Debug for FixtureCacheStateOutcomeV1 {
+            #[inline]
+            fn fmt(&self, f: &mut ::core::fmt::Formatter)
+                -> ::core::fmt::Result {
+                ::core::fmt::Formatter::debug_struct_field3_finish(f,
+                    "FixtureCacheStateOutcomeV1", "framing", &self.framing,
+                    "envelope", &self.envelope, "cache_state",
+                    &&self.cache_state)
+            }
+        }
+        impl FixtureCacheStateOutcomeV1 {
+            pub fn framing(&self) -> &ReplayOutcome { &self.framing }
+            pub fn envelope(&self) -> &FixtureEnvelopeObservationV1 {
+                &self.envelope
+            }
+            pub fn cache_state(&self) -> &FixtureCacheStateObservationV1 {
+                &self.cache_state
+            }
+            pub const fn stored_prefix_validated(&self) -> bool { false }
+            pub const fn full_replay_accepted(&self) -> bool { false }
+            pub const fn semantic_metrics_valid(&self) -> bool { false }
+            pub const fn real_binding_verified(&self) -> bool { false }
+        }
+        #[repr(C)]
+        struct Progress {
+            calls: u64,
+            latch: u64,
+            q: [u64; 16],
+        }
+        impl Progress {
+            fn terminal(&self) -> u64 { self.latch & 255 }
+            fn first_pin(&self) -> u64 {
+                let n = self.latch >> 8;
+                if n == 0 { ABSENT } else { n - 1 }
+            }
+            fn latch_terminal(&mut self, n: u64) {
+                self.latch = (self.latch & !255) | n;
+            }
+            fn remember_pin(&mut self, n: u64) {
+                self.latch =
+                    (self.latch & 255) |
+                        if n == ABSENT { 0 } else { (n + 1) << 8 };
+            }
+        }
+        #[repr(C)]
+        struct Paid {
+            setup: u64,
+            finish: u64,
+            records: u64,
+        }
+        #[repr(C)]
+        struct SemanticReply {
+            status: u64,
+            reason: u64,
+            debit: u64,
+        }
+        struct Loan<'a> {
+            record: &'a FixtureDecodedRecordV1<'a>,
+            config: &'a Fixture,
+        }
+        fn ld(b: &[u8], at: usize) -> u64 {
+            u64::from_le_bytes(*b[at..at +
+                                        8].first_chunk::<8>().expect("proved eight-byte range"))
+        }
+        fn st(b: &mut [u8], at: usize, n: u64) {
+            b[at..at + 8].copy_from_slice(&n.to_le_bytes());
+        }
+        fn cq(c: &Candidate2048, i: usize) -> u64 { ld(c, SC + 8 * i) }
+        fn sq(c: &mut Candidate2048, i: usize, n: u64) {
+            st(c, SC + 8 * i, n);
+        }
+        fn rr(b: &[u8], row: usize, field: usize) -> u64 {
+            ld(b, RESIDENT.base + 64 * row + 8 * field)
+        }
+        fn pr(b: &[u8], row: usize, field: usize) -> u64 {
+            ld(b, PIN.base + 48 * row + 8 * field)
+        }
+        fn pl(b: &[u8], row: usize, field: usize) -> u64 {
+            ld(b, PLAN.base + 40 * row + 8 * field)
+        }
+        fn reject(reason: u64) -> SemanticReply {
+            SemanticReply { status: 2, reason, debit: SEMANTIC_RECORD }
+        }
+        fn poison(debit: u64) -> SemanticReply {
+            SemanticReply { status: 3, reason: 16, debit }
+        }
+        fn selected_mask(slots: u64) -> u64 {
+            if slots == 64 { ABSENT } else { (1u64 << slots) - 1 }
+        }
+        fn shape_q(q: &[u64; 16], calls: u64, latch: u64, n: u64, f: &Fixture)
+            -> bool {
+            if q[0] > n || calls > n || q[3] > 10 || q[6] > f.slots ||
+                                q[8] > f.pins || q[9] == 0 || (q[6] == 0) != (q[7] == 0) ||
+                    (q[8] > 0 && q[6] == 0) {
+                return false;
+            }
+            if q[3] != 0 && (q[4] == 0 || q[5] >= 80000) { return false; }
+            if (q[10] | q[11] | q[12]) & !selected_mask(f.slots) != 0 ||
+                        q[11] & !q[10] != 0 || q[12] & !q[11] != 0 {
+                return false;
+            }
+            if (q[3] == 7 || q[3] == 8) &&
+                    (q[13] >= f.slots || q[10] & (1 << q[13]) == 0) {
+                return false;
+            }
+            if (6..=10).contains(&q[3]) &&
+                    (q[15] > 1 || (q[15] == 1 && q[14] >= f.slots)) {
+                return false;
+            }
+            if q[0] == 0 &&
+                    (q[1] != 0 || q[2] != 0 || q[3] != 0 || q[6] != 0 ||
+                                    q[7] != 0 || q[8] != 0 || q[9] != 1) {
+                return false;
+            }
+            if latch == 0 {
+                calls == q[0] && q[0] == n && calls > 0
+            } else {
+                (latch == 1 || (6..=14).contains(&latch)) && calls == q[0] + 1
+                    && calls <= n
+            }
+        }
+        fn merge(c: &mut Candidate2048) {
+            let mut src = 512;
+            let mut dst = 1024;
+            let mut width = 1;
+            while width < 64 {
+                let mut base = 0;
+                while base < 64 {
+                    let mut left = base;
+                    let mid = base + width;
+                    let end = base + 2 * width;
+                    let mut right = mid;
+                    for out in base..end {
+                        let take_left =
+                            if left == mid {
+                                false
+                            } else if right == end {
+                                true
+                            } else {
+                                let a = ld(c, src + left * 8);
+                                let b = ld(c, src + right * 8);
+                                b == ABSENT ||
+                                    (a != ABSENT &&
+                                            ld(c, a as usize * 8) <= ld(c, b as usize * 8))
+                            };
+                        let index_at =
+                            if take_left {
+                                let at = src + left * 8;
+                                left += 1;
+                                at
+                            } else { let at = src + right * 8; right += 1; at };
+                        c.copy_within(index_at..index_at + 8, dst + out * 8);
+                    }
+                    base = end;
+                }
+                std::mem::swap(&mut src, &mut dst);
+                width *= 2;
+            }
+        }
+        fn commit_succeeded() -> bool { { true } }
+        fn semantic(b: &mut [u8], c: &mut Candidate2048, loan: &Loan<'_>,
+            p: &Progress, steps: &mut StepBudget) -> SemanticReply {
+            if b.len() != ARENA_BYTES || steps.spent != 0 {
+                return poison(0);
+            }
+            if steps.remaining < SEMANTIC_RECORD {
+                return SemanticReply { status: 2, reason: 1, debit: 0 };
+            }
+            steps.remaining -= SEMANTIC_RECORD;
+            steps.spent = SEMANTIC_RECORD;
+            let w = loan.record.words;
+            let f = loan.config;
+            if f.slots == 0 || f.slots > 64 || f.pins == 0 || f.pins > 64 ||
+                            p.terminal() != 0 || p.latch >> 8 > f.pins || p.q[3] > 10 {
+                return poison(SEMANTIC_RECORD);
+            }
+            if w[1] == 14 { return reject(14); }
+            for i in 0..16 { sq(c, i, p.q[i]); }
+            sq(c, 16, p.first_pin());
+            for i in 0..2 {
+                sq(c, 17 + i, ld(b, SCALAR.base + EXTRA_CELLS[i] * 8));
+            }
+            let mut resident_delta = ABSENT;
+            let mut pin_delta = ABSENT;
+            let mut plan_delta = ABSENT;
+            let mut total = 0u64;
+            let mut count = 0u64;
+            let mut found = ABSENT;
+            let mut first_empty = ABSENT;
+            let mut first_pin = ABSENT;
+            let mut resident_pins = 0u64;
+            let mut live_tokens = 0u64;
+            let mut release_nonce_matches = 0u64;
+            for slot in 0..f.slots as usize {
+                let occupied = rr(b, slot, 0);
+                let function = rr(b, slot, 1);
+                let bytes = rr(b, slot, 2);
+                let pins = rr(b, slot, 3);
+                if occupied > 1 || pins > f.pins || rr(b, slot, 6) != 0 ||
+                        rr(b, slot, 7) != 0 {
+                    return reject(13);
+                }
+                if occupied == 1 {
+                    resident_pins += pins;
+                    if function >= 80000 || bytes == 0 || bytes > f.entry {
+                        return reject(13);
+                    }
+                    let Some(sum) =
+                        total.checked_add(bytes) else { return reject(10); };
+                    total = sum;
+                    count += 1;
+                    if function == w[6] {
+                        if found != ABSENT { return reject(7); }
+                        found = slot as u64;
+                    }
+                } else if function != ABSENT || bytes != 0 || pins != 0 {
+                    return reject(13);
+                } else if first_empty == ABSENT { first_empty = slot as u64; }
+                st(c, slot * 8, rr(b, slot, 4));
+                st(c, 512 + slot * 8,
+                    if occupied == 1 && pins == 0 {
+                        slot as u64
+                    } else { ABSENT });
+            }
+            for slot in f.slots as usize..64 {
+                st(c, slot * 8, 0);
+                st(c, 512 + slot * 8, ABSENT);
+            }
+            for pin in 0..f.pins as usize {
+                let entry = pr(b, pin, 0);
+                let nonce = pr(b, pin, 1);
+                if entry == ABSENT {
+                    if nonce != 0 { return reject(13); }
+                    if first_pin == ABSENT { first_pin = pin as u64; }
+                } else {
+                    if entry >= f.slots || nonce == 0 || nonce >= p.q[9] ||
+                                rr(b, entry as usize, 0) != 1 ||
+                            rr(b, entry as usize, 3) == 0 {
+                        return reject(13);
+                    }
+                    live_tokens += 1;
+                    if w[1] == 12 && nonce == w[12] {
+                        release_nonce_matches += 1;
+                    }
+                }
+            }
+            if release_nonce_matches > 1 { return reject(11); }
+            if resident_pins != p.q[8] || live_tokens != p.q[8] {
+                return reject(13);
+            }
+            if count != p.q[6] || total != p.q[7] || p.q[8] > f.pins ||
+                    p.q[9] == 0 {
+                return reject(13);
+            }
+            let body = w[6] as usize;
+            if !#[allow(non_exhaustive_omitted_patterns)] match w[1] {
+                            1 | 13 => true,
+                            _ => false,
+                        } &&
+                    (body >= 80000 ||
+                            u32::from_le_bytes(*b[FUNCTION.base + body * 96 +
+                                                            20..FUNCTION.base + body * 96 +
+                                                            24].first_chunk::<4>().unwrap()) != 1) {
+                return reject(6);
+            }
+            match w[1] {
+                1 => {
+                    sq(c, 16, ABSENT);
+                    sq(c, 17, ABSENT);
+                    sq(c, 18, 0);
+                    sq(c, 10, 0);
+                    sq(c, 11, 0);
+                    sq(c, 12, 0);
+                    sq(c, 13, ABSENT);
+                    sq(c, 14, ABSENT);
+                    sq(c, 15, 0);
+                }
+                2 => {
+                    if p.q[9] == ABSENT { return reject(12); }
+                    if first_pin == ABSENT { return reject(11); }
+                    if (w[13] == 0 && found != ABSENT) ||
+                            (w[13] == 1 && found != w[10]) {
+                        return reject(7);
+                    }
+                    sq(c, 16, first_pin);
+                    sq(c, 17, found);
+                }
+                3 | 4 => {
+                    let cell = (w[6] & 511) as usize;
+                    let prior = pl(b, cell, 0);
+                    let outcome =
+                        if prior == ABSENT {
+                            0
+                        } else if prior == w[6] { 2 } else { 1 };
+                    if outcome == 2 &&
+                            (pl(b, cell, 1) != w[7] || pl(b, cell, 2) != w[8] ||
+                                    pl(b, cell, 3) != w[9]) {
+                        return reject(8);
+                    }
+                    if w[1] == 4 {
+                        if w[13] != outcome ||
+                                w[14] != (if outcome == 1 { prior } else { ABSENT }) {
+                            return reject(8);
+                        }
+                        if outcome != 2 {
+                            for i in 0..5 {
+                                st(c, 1648 + i * 8,
+                                    if i == 0 { w[6] } else if i < 4 { w[6 + i] } else { 0 });
+                            }
+                            plan_delta = cell as u64;
+                        }
+                    }
+                }
+                5 => {
+                    let cell = (w[6] & 511) as usize;
+                    if pl(b, cell, 0) != w[6] || pl(b, cell, 1) != w[7] ||
+                                pl(b, cell, 2) != w[8] || pl(b, cell, 3) != w[9] {
+                        return reject(8);
+                    }
+                    if pl(b, cell, 4) != 0 && pl(b, cell, 4) != w[13] {
+                        return reject(10);
+                    }
+                    if w[13] == 0 || w[13] > f.entry || w[14] != f.base ||
+                                w[15] != f.capacity ||
+                            f.base.checked_add(w[13]).is_none_or(|v| v > f.capacity) {
+                        return reject(10);
+                    }
+                    c[1648..1688].copy_from_slice(&b[PLAN.base +
+                                        40 * cell..PLAN.base + 40 * cell + 40]);
+                    st(c, 1680, w[13]);
+                    plan_delta = cell as u64;
+                    sq(c, 18, w[13]);
+                    merge(c);
+                    let headroom = f.capacity - f.base - w[13];
+                    let mut remaining = total;
+                    let mut mask = 0;
+                    let mut destination = first_empty;
+                    for i in 0..64 {
+                        if remaining <= headroom && destination != ABSENT { break; }
+                        let slot = ld(c, 512 + i * 8);
+                        if slot == ABSENT { break; }
+                        let Some(next) =
+                            remaining.checked_sub(rr(b, slot as usize,
+                                    2)) else { return reject(13); };
+                        remaining = next;
+                        mask |= 1 << slot;
+                        destination = slot;
+                    }
+                    let feasible =
+                        destination != ABSENT && remaining <= headroom;
+                    sq(c, 10, mask);
+                    sq(c, 11, 0);
+                    sq(c, 12, 0);
+                    sq(c, 13, ABSENT);
+                    sq(c, 14, if feasible { destination } else { ABSENT });
+                    sq(c, 15, u64::from(feasible));
+                }
+                6..=8 => {
+                    if p.q[15] != 1 { return reject(9); }
+                    let outstanding = p.q[10] & !p.q[12];
+                    let expected =
+                        if outstanding == 0 {
+                            ABSENT
+                        } else { outstanding.trailing_zeros() as u64 };
+                    if w[10] != expected || expected >= f.slots {
+                        return reject(9);
+                    }
+                    let slot = expected as usize;
+                    if w[1] == 6 {
+                        if rr(b, slot, 0) != 1 || rr(b, slot, 3) != 0 ||
+                                rr(b, slot, 2) != w[13] {
+                            return reject(9);
+                        }
+                        sq(c, 13, expected);
+                    } else if w[1] == 7 {
+                        if p.q[13] != expected || rr(b, slot, 0) != 1 ||
+                                    rr(b, slot, 3) != 0 || rr(b, slot, 2) != w[13] {
+                            return reject(9);
+                        }
+                        c.copy_within(1944..2008, 1536);
+                        st(c, 1544, ABSENT);
+                        resident_delta = expected;
+                        sq(c, 6, count - 1);
+                        sq(c, 7, total - w[13]);
+                        sq(c, 11, p.q[11] | (1 << expected));
+                    } else {
+                        if p.q[13] != expected || p.q[11] & (1 << expected) == 0 ||
+                                rr(b, slot, 0) != 0 {
+                            return reject(9);
+                        }
+                        if w[13] != ld(b, SCALAR.base + 138 * 8) {
+                            return reject(9);
+                        }
+                        sq(c, 12, p.q[12] | (1 << expected));
+                        sq(c, 13, ABSENT);
+                    }
+                }
+                9 | 10 => {
+                    if p.q[15] != 1 || p.q[12] != p.q[10] || w[13] != cq(c, 18)
+                        {
+                        return reject(if w[13] != cq(c, 18) { 10 } else { 9 });
+                    }
+                }
+                11 => {
+                    if w[12] != p.q[9] || p.q[9] == ABSENT {
+                        return reject(12);
+                    }
+                    if first_pin != cq(c, 16) || w[11] != first_pin ||
+                            first_pin >= f.pins {
+                        return reject(11);
+                    }
+                    let slot = if w[13] == 0 { cq(c, 17) } else { p.q[14] };
+                    if slot >= f.slots || w[10] != slot { return reject(7); }
+                    let slot = slot as usize;
+                    if w[13] == 0 {
+                        if rr(b, slot, 0) != 1 || rr(b, slot, 1) != w[6] ||
+                                rr(b, slot, 2) != w[14] {
+                            return reject(7);
+                        }
+                        c[1536..1600].copy_from_slice(&b[RESIDENT.base +
+                                            slot * 64..RESIDENT.base + slot * 64 + 64]);
+                    } else {
+                        if p.q[15] != 1 || p.q[10] != p.q[12] || rr(b, slot, 0) != 0
+                                || w[14] != cq(c, 18) {
+                            return reject(9);
+                        }
+                        c.copy_within(1944..2008, 1536);
+                        st(c, 1536, 1);
+                        st(c, 1544, w[6]);
+                        st(c, 1552, w[14]);
+                        st(c, 1576, w[3]);
+                        sq(c, 6, count + 1);
+                        let Some(sum) =
+                            total.checked_add(w[14]) else { return reject(10); };
+                        sq(c, 7, sum);
+                    }
+                    let prior_pins = ld(c, 1560);
+                    let Some(pins) =
+                        prior_pins.checked_add(1) else { return reject(11); };
+                    if w[15] != pins || pins > f.pins || p.q[8] == f.pins {
+                        return reject(11);
+                    }
+                    st(c, 1560, pins);
+                    st(c, 1568, w[4]);
+                    st(c, 1600, slot as u64);
+                    st(c, 1608, w[12]);
+                    st(c, 1616, w[3]);
+                    st(c, 1624, w[3]);
+                    st(c, 1632, w[4]);
+                    st(c, 1640, w[5]);
+                    resident_delta = slot as u64;
+                    pin_delta = first_pin;
+                    sq(c, 8, p.q[8] + 1);
+                    sq(c, 9, p.q[9] + 1);
+                }
+                12 => {
+                    let slot = w[10] as usize;
+                    let pin = w[11] as usize;
+                    if slot >= f.slots as usize || pin >= f.pins as usize ||
+                                pr(b, pin, 0) != w[10] || pr(b, pin, 1) != w[12] {
+                        return reject(11);
+                    }
+                    if rr(b, slot, 0) != 1 || rr(b, slot, 1) != w[6] ||
+                                        rr(b, slot, 2) != w[13] || rr(b, slot, 3) == 0 ||
+                                p.q[8] == 0 || w[15] != rr(b, slot, 3) - 1 {
+                        return reject(11);
+                    }
+                    c[1536..1600].copy_from_slice(&b[RESIDENT.base +
+                                        slot * 64..RESIDENT.base + slot * 64 + 64]);
+                    st(c, 1560, w[15]);
+                    for i in 0..6 {
+                        st(c, 1600 + i * 8, if i == 0 { ABSENT } else { 0 });
+                    }
+                    resident_delta = w[10];
+                    pin_delta = w[11];
+                    sq(c, 8, p.q[8] - 1);
+                }
+                13 => {}
+                _ => return poison(SEMANTIC_RECORD),
+            }
+            sq(c, 0, w[0]);
+            sq(c, 1, w[4]);
+            sq(c, 2, w[5]);
+            let stage =
+                match w[1] {
+                    1 => 1,
+                    2 => { if w[13] == 1 { 2 } else { 3 } }
+                    3 => 4,
+                    4 => 5,
+                    5 | 8 => 6,
+                    6 => 7,
+                    7 => 8,
+                    9 => 9,
+                    10 => 10,
+                    _ => 0,
+                };
+            sq(c, 3, stage);
+            sq(c, 4, if stage == 0 { 0 } else { w[3] });
+            sq(c, 5, if stage == 0 { ABSENT } else { w[6] });
+            if resident_delta != ABSENT {
+                let at = RESIDENT.base + resident_delta as usize * 64;
+                b[at..at + 64].copy_from_slice(&c[1536..1600]);
+                if !commit_succeeded() {
+                    return SemanticReply {
+                            status: 3,
+                            reason: 16,
+                            debit: SEMANTIC_RECORD,
+                        };
+                }
+            }
+            if pin_delta != ABSENT {
+                let at = PIN.base + pin_delta as usize * 48;
+                b[at..at + 48].copy_from_slice(&c[1600..1648]);
+            }
+            if plan_delta != ABSENT {
+                let at = PLAN.base + plan_delta as usize * 40;
+                b[at..at + 40].copy_from_slice(&c[1648..1688]);
+            }
+            for i in 0..10 {
+                let source = SC + (6 + i) * 8;
+                let destination = SCALAR.base + ROW_CELLS[i] * 8;
+                b[destination..destination +
+                                8].copy_from_slice(&c[source..source + 8]);
+            }
+            for i in 0..2 {
+                let source = SC + (17 + i) * 8;
+                let destination = SCALAR.base + EXTRA_CELLS[i] * 8;
+                b[destination..destination +
+                                8].copy_from_slice(&c[source..source + 8]);
+            }
+            if w[1] == 6 { st(b, SCALAR.base + 138 * 8, w[13]); }
+            SemanticReply { status: 1, reason: 0, debit: SEMANTIC_RECORD }
+        }
+        fn cleanup(b: &[u8], c: &mut Candidate2048) -> bool {
+            if b.len() != ARENA_BYTES { return false; }
+            let zero = [0u8; 8];
+            for i in 0..256 {
+                let at = i * 8;
+                c[at..at + 8].copy_from_slice(&zero);
+            }
+            for i in 0..12 {
+                let source = SCALAR.base + CELLS[i] * 8;
+                let destination = 888 + i * 8;
+                c[destination..destination +
+                                8].copy_from_slice(&b[source..source + 8]);
+            }
+            true
+        }
+        impl FixtureCacheStateObservationV1 {
+            pub fn observed_records(&self) -> u64 { self.extent[0] }
+            pub fn cache_state_records(&self) -> u64 { self.extent[1] }
+            pub fn stop_record(&self) -> u64 { self.extent[2] }
+            pub fn last_sequence(&self) -> u64 { self.extent[3] }
+            pub fn last_work(&self) -> u64 { self.extent[4] }
+            pub fn last_instructions(&self) -> u64 { self.extent[5] }
+            pub fn active_operation(&self) -> u64 { self.extent[6] }
+            pub fn requested_function(&self) -> u64 { self.extent[7] }
+            pub fn resident_count(&self) -> u64 { self.extent[8] }
+            pub fn resident_bytes(&self) -> u64 { self.extent[9] }
+            pub fn held_pins(&self) -> u64 { self.extent[10] }
+            pub fn next_nonce(&self) -> u64 { self.extent[11] }
+            pub fn active_plan_cell(&self) -> u64 { self.extent[12] }
+            pub fn selected_mask(&self) -> u64 { self.extent[13] }
+            pub fn taken_mask(&self) -> u64 { self.extent[14] }
+            pub fn committed_mask(&self) -> u64 { self.extent[15] }
+            pub fn pending_victim(&self) -> u64 { self.extent[16] }
+            pub fn destination(&self) -> u64 { self.extent[17] }
+            pub fn failure_coordinate(&self) -> u64 { self.extent[18] }
+            pub fn semantic_debit(&self) -> u64 { self.extent[19] }
+            pub fn semantic_setup_paid(&self) -> u64 { self.extent[20] }
+            pub fn semantic_finish_paid(&self) -> u64 { self.extent[21] }
+            pub fn fixture_state_observed(&self) -> u64 { self.extent[22] }
+            pub fn tail_unknown(&self) -> u64 { self.extent[23] }
+            pub fn reserved0(&self) -> u64 { self.extent[28] }
+            pub fn reserved1(&self) -> u64 { self.extent[29] }
+        }
+        fn why(n: u64) -> FixtureCacheStateReasonV1 {
+            use FixtureCacheStateReasonV1::*;
+            match n {
+                0 => Observed,
+                1 => Steps,
+                2 => FramingUnavailable,
+                3 => FramingInvalid,
+                4 => EnvelopeRefused,
+                5 => EnvelopeUnavailable,
+                6 => Identity,
+                7 => Resident,
+                8 => Plan,
+                9 => Victim,
+                10 => Bytes,
+                11 => Token,
+                12 => Nonce,
+                13 => Invariant,
+                14 => FailureApplicability,
+                15 => IncompleteBoundary,
+                16 => InternalPoison,
+                _ => OutputUnavailable,
+            }
+        }
+        fn projection(p: &Progress, paid: &Paid, s: &Framing,
+            input: &Result<bool, AnalyzerError>,
+            env: &FixtureEnvelopeObservationV1, f: Option<&Fixture>)
+            -> FixtureCacheStateObservationV1 {
+            use FixtureCacheStateBoundaryV1 as B;
+            let mut z =
+                FixtureCacheStateObservationV1 {
+                    boundary: B::Unavailable,
+                    reason: why(5),
+                    extent: [0; 30],
+                };
+            z.extent[19] =
+                512 * paid.setup + 256 * paid.finish + 7680 * paid.records;
+            z.extent[20] = paid.setup;
+            z.extent[21] = paid.finish;
+            if let Err(e) = input {
+                z.boundary =
+                    if e.code == BUDGET {
+                        B::AnalysisLimited
+                    } else { B::Unavailable };
+                z.reason =
+                    why(if e.code == BINDING {
+                            2
+                        } else if e.code == BUDGET { 1 } else { 3 });
+                return z;
+            }
+            if #[allow(non_exhaustive_omitted_patterns)] match env.reason() {
+                        FixtureEnvelopeReasonV1::InternalPoisoned => true,
+                        _ => false,
+                    } || p.terminal() == 16 {
+                z.boundary = B::InternalPoisoned;
+                z.reason = why(16);
+                return z;
+            }
+            if p.latch >> 8 > 64 || f.is_some_and(|v| p.latch >> 8 > v.pins)
+                            || p.calls > paid.records ||
+                        (p.calls == 0 && p.terminal() != 0) ||
+                    (p.terminal() != 0 && p.terminal() != 1 &&
+                            !(6..=14).contains(&p.terminal())) {
+                z.boundary = B::InternalPoisoned;
+                z.reason = why(16);
+                return z;
+            }
+            let child =
+                match (env.boundary(), env.reason()) {
+                    (FixtureEnvelopeBoundaryV1::Unavailable,
+                        FixtureEnvelopeReasonV1::EnvelopeUnavailable |
+                        FixtureEnvelopeReasonV1::UnavailableState) => 0,
+                    (FixtureEnvelopeBoundaryV1::Refused, _) => 1,
+                    (FixtureEnvelopeBoundaryV1::AnalysisLimited,
+                        FixtureEnvelopeReasonV1::Steps |
+                        FixtureEnvelopeReasonV1::Shape |
+                        FixtureEnvelopeReasonV1::Coordinate |
+                        FixtureEnvelopeReasonV1::TerminalPhase |
+                        FixtureEnvelopeReasonV1::Phase |
+                        FixtureEnvelopeReasonV1::ReleaseOpen |
+                        FixtureEnvelopeReasonV1::TerminalFailure |
+                        FixtureEnvelopeReasonV1::PinFailure |
+                        FixtureEnvelopeReasonV1::ForbiddenResume |
+                        FixtureEnvelopeReasonV1::Acquire |
+                        FixtureEnvelopeReasonV1::Identity |
+                        FixtureEnvelopeReasonV1::Stage |
+                        FixtureEnvelopeReasonV1::PublicationForm |
+                        FixtureEnvelopeReasonV1::CheckedAccess) => 1,
+                    (FixtureEnvelopeBoundaryV1::AnalysisLimited,
+                        FixtureEnvelopeReasonV1::FramingLimited) if
+                        #[allow(non_exhaustive_omitted_patterns)] match input {
+                                    Ok(false) => true,
+                                    _ => false,
+                                } && s.limited && !s.complete => 2,
+                    (FixtureEnvelopeBoundaryV1::CapCutUnknownTail,
+                        FixtureEnvelopeReasonV1::Observed) if
+                        #[allow(non_exhaustive_omitted_patterns)] match input {
+                                        Ok(true) => true,
+                                        _ => false,
+                                    } && s.complete && !s.limited && s.flags == 1 => {
+                        3
+                    }
+                    (FixtureEnvelopeBoundaryV1::ClosedEnvelopeObserved,
+                        FixtureEnvelopeReasonV1::Observed) if
+                        #[allow(non_exhaustive_omitted_patterns)] match input {
+                                        Ok(true) => true,
+                                        _ => false,
+                                    } && s.complete && !s.limited && s.flags == 0 => 4,
+                    _ => 0,
+                };
+            if child == 0 { return z; }
+            if child == 1 {
+                z.boundary = B::Refused;
+                z.reason = why(4);
+                return z;
+            }
+            if p.calls == 0 && p.terminal() == 0 { return z; }
+            let Some(f) =
+                f else {
+                    z.boundary = B::InternalPoisoned;
+                    z.reason = why(16);
+                    return z;
+                };
+            if p.calls > paid.records || s.framed > paid.records ||
+                        !shape_q(&p.q, p.calls, p.terminal(), s.framed, f) ||
+                    (p.terminal() == 0 && child == 4 && p.q[3] != 0) {
+                z.boundary = B::InternalPoisoned;
+                z.reason = why(16);
+                return z;
+            }
+            let q = &p.q;
+            let stage = q[3];
+            let active = stage != 0;
+            let planned = (6..=10).contains(&stage);
+            let pending = stage == 7 || stage == 8;
+            z.boundary =
+                if p.terminal() == 14 {
+                    B::ApplicabilityUnavailable
+                } else if p.terminal() == 1 {
+                    B::AnalysisLimited
+                } else if p.terminal() != 0 {
+                    B::Refused
+                } else if child == 2 {
+                    B::AnalysisLimited
+                } else if child == 3 {
+                    B::CapCutUnknownTail
+                } else { B::ClosedFixtureObserved };
+            z.reason =
+                why(if p.terminal() != 0 {
+                        p.terminal()
+                    } else if child == 2 { 1 } else { 0 });
+            z.extent[0] = s.framed;
+            z.extent[1] = q[0];
+            z.extent[2] =
+                if p.terminal() != 0 {
+                    q[0] + 1
+                } else if child == 2 { s.framed + 1 } else { 0 };
+            z.extent[3] = q[0];
+            z.extent[4] = q[1];
+            z.extent[5] = q[2];
+            z.extent[6] = if active { q[4] } else { 0 };
+            z.extent[7] = if active { q[5] } else { ABSENT };
+            z.extent[8] = q[6];
+            z.extent[9] = q[7];
+            z.extent[10] = q[8];
+            z.extent[11] = q[9];
+            z.extent[12] =
+                if (3..=10).contains(&stage) { q[5] & 511 } else { ABSENT };
+            z.extent[13] = if planned { q[10] } else { 0 };
+            z.extent[14] = if planned { q[11] } else { 0 };
+            z.extent[15] = if planned { q[12] } else { 0 };
+            z.extent[16] = if pending { q[13] } else { ABSENT };
+            z.extent[17] = if planned && q[15] == 1 { q[14] } else { ABSENT };
+            z.extent[18] = if p.terminal() == 14 { q[0] + 1 } else { 0 };
+            z.extent[22] = 1;
+            z.extent[23] = u64::from(p.terminal() != 0 || child != 4);
+            z
+        }
+        fn cache_walk<T: InputFile>(input: &mut T, arena: &mut Arena,
+            budget: &mut Budget, f: &Fixture, length: u64, s: &mut Framing,
+            e: &mut FixtureEnvelopeProgressV1, p: &mut Progress,
+            paid: &mut Paid) -> Result<(), AnalyzerError> {
+            let mut reader = Reader::new(length, HEADER_STAGE);
+            let mut h = [0; 64];
+            reader.words(input, arena, budget, &mut h)?;
+            header(arena, &h, *f, budget)?;
+            budget.setup(SETUP_ENVELOPE)?;
+            e.debit += SETUP_ENVELOPE;
+            budget.report(FINISH_ENVELOPE)?;
+            e.debit += FINISH_ENVELOPE;
+            budget.report(UNDERFUNDED_GUARD)?;
+            budget.report(SEMANTIC_GUARD)?;
+            if arena.bytes.len() != ARENA_BYTES {
+                return Err(error(INTERNAL, ARENA_STAGE, 0, 0));
+            }
+            let mut candidate: Candidate2048 = [0; 2048];
+            for i in 0..12 {
+                let at = SCALAR.base + CELLS[i] * 8;
+                st(&mut arena.bytes, at,
+                    if i == 5 { 1 } else if i == 6 { f.mask } else { 0 });
+            }
+            p.q[5] = ABSENT;
+            p.q[9] = 1;
+            p.q[13] = ABSENT;
+            p.q[14] = ABSENT;
+            st(&mut arena.bytes, SCALAR.base + 17 * 8, 1);
+            st(&mut arena.bytes, SCALAR.base + 24 * 8, f.slots);
+            st(&mut arena.bytes, SCALAR.base + 25 * 8, f.pins);
+            st(&mut arena.bytes, SCALAR.base + 26 * 8, f.base);
+            st(&mut arena.bytes, SCALAR.base + 27 * 8, f.capacity);
+            st(&mut arena.bytes, SCALAR.base + 28 * 8, f.entry);
+            reader.stage = RECORD_STAGE;
+            for index in 0..s.physical {
+                if budget.replay_left < RECORD_PREFLIGHT {
+                    s.limited = true;
+                    break;
+                }
+                budget.replay(CACHE_COMBINED)?;
+                e.debit += RECORD_ENVELOPE;
+                paid.records += 1;
+                let mut w = [0; 16];
+                reader.words(input, arena, budget, &mut w)?;
+                let offset = 512 + index * 128;
+                if !record_fields(arena, &w, *f) {
+                    return Err(error(SCHEMA, RECORD_STAGE, offset, index + 1));
+                }
+                if !s.coordinate(&w) {
+                    return Err(error(COORDINATE, RECORD_STAGE, offset,
+                                index + 1));
+                }
+                if p.terminal() != 16 && leaf_pending(e) {
+                    let record = FixtureDecodedRecordV1 { words: &w };
+                    let mut steps =
+                        StepBudget { remaining: RECORD_ENVELOPE, spent: 0 };
+                    let received =
+                        observe_fixture_envelope_v1(&mut arena.bytes,
+                            &mut candidate, &record, &mut steps);
+                    e.reply = received;
+                    e.reply_valid = 1;
+                    if !reply_debit_valid(&e.reply, &steps) {
+                        e.reply = poisoned(RECORD_ENVELOPE);
+                        p.latch_terminal(16);
+                    }
+                    if e.reply.words[0] == 3 || e.reply.words[1] == 15 {
+                        p.latch_terminal(16);
+                    }
+                    if p.terminal() == 0 && e.reply.words[0] == 1 &&
+                            e.reply.words[1] == 0 {
+                        if arena.bytes.len() != ARENA_BYTES {
+                            p.latch_terminal(16);
+                        } else {
+                            let loan = Loan { record: &record, config: f };
+                            let mut semantic_steps =
+                                StepBudget { remaining: SEMANTIC_RECORD, spent: 0 };
+                            let received =
+                                semantic(&mut arena.bytes, &mut candidate, &loan, p,
+                                    &mut semantic_steps);
+                            p.calls += 1;
+                            if received.status == 1 && received.reason == 0 &&
+                                            received.debit == SEMANTIC_RECORD &&
+                                        semantic_steps.spent == SEMANTIC_RECORD &&
+                                    semantic_steps.remaining == 0 {
+                                for i in 0..16 { p.q[i] = cq(&candidate, i); }
+                                p.remember_pin(cq(&candidate, 16));
+                            } else if received.status == 2 &&
+                                        (received.reason == 1 ||
+                                                (6..=14).contains(&received.reason)) &&
+                                    ((received.debit == SEMANTIC_RECORD &&
+                                                        semantic_steps.spent == SEMANTIC_RECORD &&
+                                                    semantic_steps.remaining == 0) ||
+                                            (received.reason == 1 && received.debit == 0 &&
+                                                        semantic_steps.spent == 0 &&
+                                                    semantic_steps.remaining < SEMANTIC_RECORD)) {
+                                p.latch_terminal(received.reason);
+                            } else { p.latch_terminal(16); }
+                            if !cleanup(&arena.bytes, &mut candidate) {
+                                p.latch_terminal(16);
+                            }
+                        }
+                    }
+                }
+            }
+            if s.limited {
+                let target = length - 512;
+                while reader.consumed < target {
+                    budget.setup(1)?;
+                    let available = (reader.used - reader.cursor) as u64;
+                    let n = available.min(target - reader.consumed);
+                    reader.cursor += n as usize;
+                    reader.consumed += n;
+                    if reader.consumed == target { break; }
+                    if reader.cursor != reader.used {
+                        return Err(error(INTERNAL, RECORD_STAGE, reader.consumed,
+                                    0));
+                    }
+                    let count =
+                        (reader.length - reader.loaded).min(65536) as usize;
+                    bounded_read(input,
+                            &mut arena.bytes[BLOCK.base..BLOCK.base + count], budget,
+                            RECORD_STAGE, reader.loaded)?;
+                    reader.loaded += count as u64;
+                    reader.used = count;
+                    reader.cursor = 0;
+                }
+            }
+            reader.stage = FOOTER_STAGE;
+            let mut foot = [0; 64];
+            reader.words(input, arena, budget, &mut foot)?;
+            footer(&h, &foot, length, s, budget)?;
+            eof(input, budget, FOOTER_STAGE, length)?;
+            s.complete = !s.limited;
+            Ok(())
+        }
+        fn cache_inputs<S: InputFile, P: InputFile,
+            C: InputFile>(stream: &mut S, profile_file: &mut P,
+            context: &mut C, arena: &mut Arena, budget: &mut Budget,
+            s: &mut Framing, e: &mut FixtureEnvelopeProgressV1,
+            p: &mut Progress, paid: &mut Paid, config: &mut Option<Fixture>)
+            -> Result<bool, AnalyzerError> {
+            let before_s = initial(stream, budget)?;
+            let before_p = initial(profile_file, budget)?;
+            let before_c = initial(context, budget)?;
+            if before_s.len() < 1024 || before_s.len() > STREAM_CAP ||
+                            (before_s.len() - 1024) % 128 != 0 ||
+                        before_p.len() != PROFILE_BYTES ||
+                    before_c.len() != CONTEXT_BYTES {
+                return Err(error(INPUT, ADMISSION_STAGE, 0, 0));
+            }
+            s.physical = (before_s.len() - 1024) / 128;
+            let f = fixture_context(context, arena, budget)?;
+            profile(profile_file, arena, budget, f)?;
+            *config = Some(f);
+            cache_walk(stream, arena, budget, &f, before_s.len(), s, e, p,
+                    paid)?;
+            stable(stream, before_s, budget)?;
+            stable(profile_file, before_p, budget)?;
+            stable(context, before_c, budget)?;
+            Ok(s.complete)
+        }
+        macro_rules! cache_body {
+            ($input_s:ident,$input_p:ident,$input_c:ident,$output_f:ident,$limit:expr)
+            =>
+            {{
+                    let stream = $input_s; let profile_file = $input_p; let
+                    context = $input_c; let output = $output_f; let limit =
+                    $limit; let mut budget = Budget::new(limit)?;
+                    budget.setup(SETUP_WRAPPER)?; budget.report(FINAL_WRAPPER)?;
+                    budget.report(SEMANTIC_FINISH)?;
+                    budget.setup(SEMANTIC_SETUP)?; let mut paid = Paid
+                    { setup: 1, finish: 1, records: 0, }; let output_initial =
+                    output_safety(stream, profile_file, context, output, &mut
+                    budget)?; let mut arena = Arena::new(&mut budget)?; let mut
+                    s = Framing::new(0); let mut e = FixtureEnvelopeProgressV1
+                    {
+                        reply_valid: 0, debit: 0, reply: FixtureEnvelopeReplyV1
+                        { words: [0; 16] },
+                    }; let mut p = Progress { calls: 0, latch: 0, q: [0; 16], };
+                    let mut config = None; let result =
+                    cache_inputs(stream, profile_file, context, &mut arena, &mut
+                    budget, &mut s, &mut e, &mut p, &mut paid, &mut config,);
+                    let mut observation = error(BINDING, CONTEXT_STAGE, 0, 0);
+                    let mut decision = Decision::Unavailable; let mut framed =
+                    false; if let Err(err) = result
+                    {
+                        observation = err; decision = if err.code == BINDING
+                        { Decision::Unavailable } else if err.code == BUDGET
+                        { Decision::AnalysisLimited } else { Decision::Invalid };
+                    } else if s.limited
+                    {
+                        observation =
+                        error(BUDGET, RECORD_STAGE, 512 + s.framed * 128, s.framed +
+                        1); decision = Decision::AnalysisLimited;
+                    } else { framed = result.unwrap_or(false); } let envelope =
+                    finalize(&e, &s, &result, &arena); let cache_state =
+                    projection(&p, &paid, &s, &result, &envelope,
+                    config.as_ref()); let mut framing = ReplayOutcome
+                    {
+                        decision, framed_records: s.framed, physical_records:
+                        s.physical, report_bytes: 0, steps_used: 0,
+                        input_bytes_read: budget.read_bytes, input_attempts:
+                        budget.io_spent, output_attempts: 0, observation,
+                        fixture_framing: u64::from(framed),
+                    };
+                    write_report(output, output_initial, &mut arena, &mut
+                    budget, &mut framing, s,)?; if budget.used() > budget.limit
+                    { return Err(error(BUDGET, OUTPUT_STAGE, 0, 0)); }
+                    Ok(FixtureCacheStateOutcomeV1
+                    { framing, envelope, cache_state, })
+                }};
+        }
+        /// Four distinct, quiescent regular Files at offset0; empty exclusive output.
+        /// Only parsed synthetic MIXFIX01/MIXPRF01 identity is observed.
+        pub fn analyze_fixture_cache_state_v1(stream: &mut File,
+            profile_file: &mut File, context: &mut File, output: &mut File)
+            -> Result<FixtureCacheStateOutcomeV1, AnalyzerError> {
+            {
+                let stream = stream;
+                let profile_file = profile_file;
+                let context = context;
+                let output = output;
+                let limit = STEP_LIMIT;
+                let mut budget = Budget::new(limit)?;
+                budget.setup(SETUP_WRAPPER)?;
+                budget.report(FINAL_WRAPPER)?;
+                budget.report(SEMANTIC_FINISH)?;
+                budget.setup(SEMANTIC_SETUP)?;
+                let mut paid = Paid { setup: 1, finish: 1, records: 0 };
+                let output_initial =
+                    output_safety(stream, profile_file, context, output,
+                            &mut budget)?;
+                let mut arena = Arena::new(&mut budget)?;
+                let mut s = Framing::new(0);
+                let mut e =
+                    FixtureEnvelopeProgressV1 {
+                        reply_valid: 0,
+                        debit: 0,
+                        reply: FixtureEnvelopeReplyV1 { words: [0; 16] },
+                    };
+                let mut p = Progress { calls: 0, latch: 0, q: [0; 16] };
+                let mut config = None;
+                let result =
+                    cache_inputs(stream, profile_file, context, &mut arena,
+                        &mut budget, &mut s, &mut e, &mut p, &mut paid,
+                        &mut config);
+                let mut observation = error(BINDING, CONTEXT_STAGE, 0, 0);
+                let mut decision = Decision::Unavailable;
+                let mut framed = false;
+                if let Err(err) = result {
+                    observation = err;
+                    decision =
+                        if err.code == BINDING {
+                            Decision::Unavailable
+                        } else if err.code == BUDGET {
+                            Decision::AnalysisLimited
+                        } else { Decision::Invalid };
+                } else if s.limited {
+                    observation =
+                        error(BUDGET, RECORD_STAGE, 512 + s.framed * 128,
+                            s.framed + 1);
+                    decision = Decision::AnalysisLimited;
+                } else { framed = result.unwrap_or(false); }
+                let envelope = finalize(&e, &s, &result, &arena);
+                let cache_state =
+                    projection(&p, &paid, &s, &result, &envelope,
+                        config.as_ref());
+                let mut framing =
+                    ReplayOutcome {
+                        decision,
+                        framed_records: s.framed,
+                        physical_records: s.physical,
+                        report_bytes: 0,
+                        steps_used: 0,
+                        input_bytes_read: budget.read_bytes,
+                        input_attempts: budget.io_spent,
+                        output_attempts: 0,
+                        observation,
+                        fixture_framing: u64::from(framed),
+                    };
+                write_report(output, output_initial, &mut arena, &mut budget,
+                        &mut framing, s)?;
+                if budget.used() > budget.limit {
+                    return Err(error(BUDGET, OUTPUT_STAGE, 0, 0));
+                }
+                Ok(FixtureCacheStateOutcomeV1 {
+                        framing,
+                        envelope,
+                        cache_state,
+                    })
+            }
+        }
+    }
+    pub use cache_state::{
+        analyze_fixture_cache_state_v1, FixtureCacheStateBoundaryV1,
+        FixtureCacheStateReasonV1, FixtureCacheStateObservationV1,
+        FixtureCacheStateOutcomeV1,
+    };
+}
+pub use fixture_envelope::{
+    analyze_fixture_envelope_v1, FixtureEnvelopeBoundaryV1,
+    FixtureEnvelopeReasonV1, FixtureEnvelopeObservationV1,
+    FixtureEnvelopeOutcomeV1,
+};
+pub use fixture_envelope::{
+    analyze_fixture_cache_state_v1, FixtureCacheStateBoundaryV1,
+    FixtureCacheStateReasonV1, FixtureCacheStateObservationV1,
+    FixtureCacheStateOutcomeV1,
+};

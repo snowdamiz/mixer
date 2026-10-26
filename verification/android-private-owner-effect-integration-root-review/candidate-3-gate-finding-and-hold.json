@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T09:40:21.676119+00:00",
+  "command": [
+    "verification/android-private-owner-effect-integration-root-review/record_candidate3_gate_finding.py"
+  ],
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "script": {
+    "bytes": 4901,
+    "sha256": "090a143c23f2577863107eaf438c081c2d56e435c62bc44de192424e6e112907"
+  },
+  "context_revision": "137d3e1d833fcaee08244b439e50c2c42723bddd",
+  "status": "candidate-3-concrete-gate-dirty-completion-failure-confirmed-CLI-held",
+  "candidate_manifest_sha256": "c5bed3d89498abe0f9d9ee2547e74f4b26d2f29a05c9744e09b61d47259ecb6b",
+  "witness_seal": {
+    "path": "verification/android-private-owner-independent-review/implementation-review-2/targeted-6/witness-seal.json",
+    "bytes": 25883,
+    "sha256": "f0bf0150fed64e0e3b47da17e7432ffa1d32d1ae34f2c678b478fc6429e9f1e2"
+  },
+  "witness_members_verified": 128,
+  "witness_bytes_verified": 1396374,
+  "result": {
+    "mode": "active-lifecycle-dirty",
+    "lifecycleDirtyDuringActualPrepare": true,
+    "inputCancellationReturnedWhileCoordinatorBusy": true,
+    "laterDrainPosted": true,
+    "actualCurrentGateOpenAtPost": true,
+    "sharedAuthorityOpenAtPost": false,
+    "actualCorePhase": "LIVE",
+    "actualCoreDirty": true,
+    "actualQueuedDrains": 1,
+    "JNIcommitCalls": 1,
+    "actualPostFrames": [
+      "dev.mixer.android.NativeOwnerV2.post(Ldev/mixer/android/NativeOwnerV2$Work;)V@15:336",
+      "dev.mixer.android.NativeOwnerV2.process(Ljava/util/List;[B)V@244:277",
+      "dev.mixer.android.NativeOwnerV2.operate(Ldev/mixer/android/OwnerLifecycleV2$Decision;[B)V@236:319",
+      "dev.mixer.android.NativeOwnerV2.process(Ljava/util/List;[B)V@378:288",
+      "dev.mixer.android.NativeOwnerV2$Work.run()V@201:67"
+    ]
+  },
+  "scope_limit": "Concrete gate closure violated; shared draw/input permissions remained false. No native runtime or released product qualification.",
+  "supersedes_profile_selection": {
+    "path": "verification/android-private-owner-effect-integration-root-review/candidate-3-profile-selection.json",
+    "bytes": 2297,
+    "sha256": "bc6ffacdd63674ba1c6d3a5bbf8c86f965e191d22113056157c116255e73b542"
+  },
+  "CLI_state": "Four root-owned source/test edits contain candidate-3 profile hashes. No CLI build/tests or delivery started; rebind only after corrected candidate freeze and root selection.",
+  "selected_repair": "Retain successful lifecycle-dirty commit/finish/core.complete(committed=true). Scalar-close current/pending concrete gates before completion bookkeeping hooks or later post callbacks; publish only for clean current core completion, outside the commit-to-finish interval.",
+  "required_controls": [
+    "lifecycle-only dirty completion and one drain",
+    "completionFault boundary",
+    "clean current successor publication",
+    "observer-stale abort remains distinct",
+    "no callback/capture/allocation added to commit-to-finish interval"
+  ],
+  "profile_literal_validation_or_delivery_authorized": false,
+  "implementation_accepted": false,
+  "native_runtime_or_capture_started": false,
+  "GA_qualified": false
+}

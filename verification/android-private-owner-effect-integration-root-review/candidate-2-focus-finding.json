@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T08:33:51.424160+00:00",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "context_revision": "137d3e1d833fcaee08244b439e50c2c42723bddd",
+  "status": "candidate-2-additional-focus-ordering-defect-confirmed-in-independent-host-evidence",
+  "candidate_manifest_sha256": "dc75c6544fdc10d25457c00782dcfb8afbcde756988ce0fd742606bb69c8c0e7",
+  "evidence_files": {
+    "verification/android-private-owner-independent-review/implementation-review-1/targeted-2/03-fresh-input.stdout": {
+      "bytes": 881,
+      "sha256": "ad8ff444035d474c5691197cc5adc7ac95a10c4a23c37fd4a2f17402203ac52f"
+    },
+    "verification/android-private-owner-independent-review/implementation-review-1/targeted-2/03-fresh-input.stderr": {
+      "bytes": 322,
+      "sha256": "ad22ab95bd3eeb5f23ec99200e082cf33415ac21754b037d17d82413f9c8aa93"
+    },
+    "verification/android-private-owner-independent-review/implementation-review-1/targeted-2/03-fresh-input.command.json": {
+      "bytes": 20995,
+      "sha256": "46baeb12201fc1f73a7a2cb6abcbac00f464b6d1739af5d836f55747e86f2a2b"
+    },
+    "verification/android-private-owner-independent-review/implementation-review-1/targeted-2/03-lifecycle.stdout": {
+      "bytes": 477,
+      "sha256": "c8db07ecee4a8404361b15b4bedd0155edc783c498435e645932bf9583159f2b"
+    },
+    "verification/android-private-owner-independent-review/implementation-review-1/targeted-2/03-lifecycle.command.json": {
+      "bytes": 20993,
+      "sha256": "fe2215c6ebf5c1c530162a2cdbaedb4db40a029b8c82cf94225f85d36cfcbabe"
+    },
+    "verification/android-private-owner-independent-review/implementation-review-1/targeted-2/cleanup.json": {
+      "bytes": 332,
+      "sha256": "c6a8a6347182219445f0b0538790e2bea351a6ce87c8f45c96a38f99c1b29b9d"
+    },
+    "verification/android-private-owner-independent-review/implementation-review-1/targeted-2/compiled-class-hashes.json": {
+      "bytes": 46269,
+      "sha256": "60b23bc2f7fb12856c7a0bddcb20d7023db90955f679c0f9702588626d3a887a"
+    },
+    "verification/android-private-owner-independent-review/implementation-review-1/targeted-2/explicit-sources.list": {
+      "bytes": 19492,
+      "sha256": "315fc3df9f39c50c5c94b8f1541de981699648e98a37320b0f8b5b6f830d0c7e"
+    }
+  },
+  "result": {
+    "mode": "fresh-input",
+    "focusFlippedAtNativeReturn": true,
+    "queuedCallbackObserved": true,
+    "drawAllowedAtPost": true,
+    "inputAllowedAtPost": true,
+    "actualCurrentGateOpenAtPost": true,
+    "actualCoreDirtyAtPost": true,
+    "actualCoreFocusedAtPost": false,
+    "JNIprepareCalls": 1,
+    "frames": [
+      "dev.mixer.android.NativeOwnerV2.post(Ldev/mixer/android/NativeOwnerV2$Work;)V@10:320",
+      "dev.mixer.android.NativeOwnerV2.process(Ljava/util/List;[B)V@236:261",
+      "dev.mixer.android.NativeOwnerV2.seedFocus()V@47:189",
+      "dev.mixer.android.NativeOwnerV2.nativeInput([B)V@32:173",
+      "dev.mixer.android.NativeRenderer$2.event(Ldev/mixer/android/NativeAppearanceViewsV2$Record;Ljava/lang/String;Ljava/lang/Object;)V@48:125",
+      "dev.mixer.android.NativeAppearanceViewsV2$Record$1.afterTextChanged(Landroid/text/Editable;)V@40:204",
+      "dev.mixer.android.NativeAppearanceViewsV2$NativeField$1.commitText(Ljava/lang/CharSequence;I)Z@43:726"
+    ]
+  },
+  "control": {
+    "mode": "lifecycle",
+    "focusFlippedAtNativeReturn": false,
+    "queuedCallbackObserved": true,
+    "drawAllowedAtPost": false,
+    "inputAllowedAtPost": false,
+    "actualCurrentGateOpenAtPost": false,
+    "actualCoreDirtyAtPost": true,
+    "actualCoreFocusedAtPost": true,
+    "JNIprepareCalls": 1,
+    "frames": [
+      "dev.mixer.android.NativeOwnerV2.post(Ldev/mixer/android/NativeOwnerV2$Work;)V@10:320",
+      "dev.mixer.android.NativeOwnerV2.process(Ljava/util/List;[B)V@236:261",
+      "dev.mixer.android.NativeOwnerV2.onResume()V@32:119"
+    ]
+  },
+  "scope": "Root read-only verification of observed independent actual-source host result. Independent review closure still in progress.",
+  "finding": "Fresh focus detection from actual IME event dirties real core before shared/current gates are sealed; Handler.post callback observes them open. No new JNI prepare/commit is inferred.",
+  "repair_authorized": "Capture admitted actual presentation; seal before fresh focus/core calls; recheck terminal and exact core admission; process every SEAL as scalar gate closure without duplicating cancellation or serial advancement. Preserve completed input successor behavior.",
+  "profile_literal_migration_held": true,
+  "implementation_accepted": false,
+  "native_runtime_or_capture_started": false,
+  "GA_qualified": false
+}

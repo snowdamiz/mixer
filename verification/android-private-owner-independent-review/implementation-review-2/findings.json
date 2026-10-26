@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "candidate": 3,
+  "candidate_manifest_sha256": "c5bed3d89498abe0f9d9ee2547e74f4b26d2f29a05c9744e09b61d47259ecb6b",
+  "unresolved": [
+    {
+      "id": "F08",
+      "status": "independent-runtime-confirmed",
+      "title": "Concrete gate reopened before dirty completion callback",
+      "families": [
+        "I06",
+        "I09",
+        "I19",
+        "I22"
+      ],
+      "sources": {
+        "NativeRenderer.java": [
+          403,
+          403
+        ],
+        "NativeOwnerV2.java": [
+          316,
+          331
+        ]
+      },
+      "evidence": "targeted-6/03-active-lifecycle-dirty.stdout",
+      "failed_assertion": "targeted-6/03-active-lifecycle-dirty.stderr",
+      "witness_seal_sha256": "f0bf0150fed64e0e3b47da17e7432ffa1d32d1ae34f2c678b478fc6429e9f1e2",
+      "observation": {
+        "shared_authority_open": false,
+        "current_gate_open": true,
+        "actual_core_phase": "LIVE",
+        "actual_core_dirty": true,
+        "queued_drains": 1,
+        "commit_calls": 1
+      },
+      "required_repair": "Scalar-close concrete gates before completion bookkeeping/queue callbacks; preserve successful lifecycle-dirty completion and clean current scalar publication outside commit-to-finish.",
+      "limitation": "Concrete gate source-boundary deviation; no shared authority reopening or extra engine operation claimed."
+    }
+  ],
+  "prior_findings": {
+    "F01": "actual active cancellation RETURNED positive in targeted6",
+    "F02": "retained focus control passes",
+    "F03": "onResume terminal control passes; start/Work cases pending",
+    "F04": "source-only independent unwind review; native runtime pending",
+    "F05": "explicit parameter/caller source review; full live recursive positive pending",
+    "F06": "retained plus3 deferred-post runtime controls pass",
+    "F07": "13 actual helper families \u00d7 stale/CLEANUP =26 before-native refusals"
+  },
+  "recommendation": "reject-candidate3; review repaired separately admitted candidate4",
+  "repairs_after3_reviewed": false,
+  "implementation_accepted": false
+}

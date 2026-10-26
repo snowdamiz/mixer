@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "source_sha256": "d0e2ec2998f70958e10a7dbf33742917ced66cd4559bafb88bcabe8b221a54db",
+  "status": "structural reconciliation completed; complete work and lifetime proof not accepted",
+  "optimizer_elision_assumed": false,
+  "unused_credits_or_global_margin_transferred": false,
+  "scope": "Independent manual source review of the original frozen Rust, not producer counters, harnesses or models",
+  "group6": {
+    "ceiling": 640,
+    "producer_claim": 637,
+    "claimed_margin": 3,
+    "helper_distinction": {
+      "st_and_sq": "cache_state.rs156-164: n.to_le_bytes creates an8-byte array result, then the fixed store copies8 bytes; sq additionally computes SC+8*i and forwards the borrow/scalars. Producer assigns two copy units and one<=16-scalar-operation group. Exact complete scalar/argument/helper partition still requires reconciliation.",
+      "direct_commit_and_restore": "748-756 and779-784 directly copy canonical already-LE bytes. No ld, to_le_bytes, LE-array return, or decode/re-encode occurs. Each fixed copy needs its own copy unit plus all checked source/destination/address/borrow/loop work.",
+      "ld_comparison": "149-154 returns u64 from an8-byte dereference passed to from_le_bytes. It has a different value flow than st; exact comparison4-load accounting cannot simply inherit the conservative st bound. The producer broad ledger does not give a reproducible<=16-operation block map."
+    },
+    "shared_structural_segments": [
+      {"lines": "702-725", "operations": "six final coordinate/stage sq", "producer_groups": 18},
+      {"lines": "748-756", "operations": "ten ROW_CELLS and two EXTRA_CELLS fixed8-byte copies, two loops", "producer_groups": 24},
+      {"lines": "774-778", "operations": "one8-byte zero initializer,256 explicit8-byte destination stores", "producer_groups": 513},
+      {"lines": "779-784", "operations": "twelve direct8-byte arena envelope-cell restores into Candidate888..984-exclusive", "producer_groups": 24},
+      {"lines": "705-725,729-759,770-792", "operations": "stage match, row predicates, conditional pending-byte path, helper/loop prologues and final tests, cleanup length and returned/received status", "producer_groups": 4, "independently_closed": false}
+    ],
+    "branch_reconciliation": [
+      {"kind": "AcquireBegin1", "lines": "448-457", "delta": "nine sq", "event_groups_assuming_producer_primitive_bounds": 27, "row_commit_groups": 0, "claimed_complete_groups": 610},
+      {"kind": "Lookup2", "lines": "469-470", "delta": "two sq", "event_groups_assuming_producer_primitive_bounds": 6, "row_commit_groups": 0, "claimed_complete_groups": 589},
+      {"kind": "PlanBegin3", "lines": "472-508", "delta": "no staged delta", "event_groups_assuming_producer_primitive_bounds": 0, "row_commit_groups": 0, "claimed_complete_groups": 583},
+      {"kind": "PlanEnd4-empty-conflict", "lines": "491-505", "delta": "five st into plan40", "event_groups_assuming_producer_primitive_bounds": 15, "row_commit_groups": 2, "claimed_complete_groups": 600},
+      {"kind": "PlanEnd4-match", "lines": "487-507", "delta": "no staged delta", "event_groups_assuming_producer_primitive_bounds": 0, "row_commit_groups": 0, "claimed_complete_groups": 583},
+      {"kind": "MissReady5", "lines": "529-562", "delta": "one direct40-byte row copy, one st, seven sq; sort and prefix excluded", "event_groups_assuming_producer_primitive_bounds": 26, "row_commit_groups": 2, "claimed_complete_groups": 611},
+      {"kind": "EvictBegin6", "lines": "578-582,758-759", "delta": "one sq plus pending-byte st in arena", "event_groups_assuming_producer_primitive_bounds": 6, "row_commit_groups": 0, "claimed_complete_groups": 589},
+      {"kind": "Taken7", "lines": "591-596", "delta": "zero-tail64 copy, one st, three sq", "event_groups_assuming_producer_primitive_bounds": 14, "row_commit_groups": 2, "claimed_complete_groups": 599},
+      {"kind": "Commit8", "lines": "605-606", "delta": "two sq", "event_groups_assuming_producer_primitive_bounds": 6, "row_commit_groups": 0, "claimed_complete_groups": 589},
+      {"kind": "BuildBegin9-BuildReady10", "lines": "609-613", "delta": "no staged delta", "event_groups_assuming_producer_primitive_bounds": 0, "row_commit_groups": 0, "claimed_complete_groups": 583},
+      {"kind": "PinPublished11-built", "lines": "637-666", "delta": "zero-tail64 copy; resident six st (1536,1544,1552,1576,1560,1568); pin six st (1600..1640); four sq (count,bytes,pins,nonce)", "event_groups_assuming_producer_primitive_bounds": 50, "row_commit_groups": 4, "claimed_complete_groups": 637},
+      {"kind": "PinPublished11-hit", "lines": "630-666", "delta": "resident64 copy; resident two st; pin six st; two sq", "event_groups_assuming_producer_primitive_bounds": 32, "row_commit_groups": 4, "claimed_complete_groups": 619},
+      {"kind": "Release12", "lines": "687-695", "delta": "resident64 copy; resident one st; pin six st; one sq", "event_groups_assuming_producer_primitive_bounds": 26, "row_commit_groups": 4, "claimed_complete_groups": 613},
+      {"kind": "Phase13", "lines": "697", "delta": "no staged delta", "event_groups_assuming_producer_primitive_bounds": 0, "row_commit_groups": 0, "claimed_complete_groups": 583},
+      {"kind": "Failure14", "lines": "333-335", "delta": "return before scratch staging; caller still cleans/restores", "event_groups_assuming_producer_primitive_bounds": 0, "row_commit_groups": 0, "claimed_complete_groups": null}
+    ],
+    "independent_conclusion": "The branch structure and copy/store counts reconcile the producer arithmetic. They do not independently establish that each helper/direct-copy iteration and every shared administrative path fits its asserted scalar blocks. In particular the four-group administrative row has no exact named list assigning the two scalar-commit-loop final tests, clear/restore final tests, stage match, all row/pending predicates, helper scalar transfers and cleanup status. The restore iteration also needs a closed count for CELLS index read/check, both arithmetic expressions, range construction/checks, two borrows, copy length guard, iteration state and received unit. With only3 claimed groups remaining, a broad claim is insufficient. No numeric cap overrun is asserted."
+  },
+  "reserved_tail_induction": {
+    "initial": "cache_walk1092 initializes sole Candidate to zero once, after all required reservations",
+    "first_envelope": "unchanged envelope observe199-210 writes only888..984-exclusive; subsequent arena commits do not write Candidate elsewhere",
+    "semantic_write_ranges_exclusive": [[0,512],[512,1024],[1024,1536],[1536,1600],[1600,1648],[1648,1688],[1688,1944]],
+    "reserved_tail": [1944,2048],
+    "zero_row_source": [1944,2008],
+    "zero_row_destination": [1536,1600],
+    "normal_exit": "cleanup zeroes all2048 bytes and restores only888..984-exclusive, reestablishing tail zero",
+    "poison_exit": "caller terminal16 suppresses both later leaves; damaged Candidate never reused",
+    "source_induction_supported": true,
+    "private_fault_execution_credit": 0
+  },
+  "macro_and_place_review": {
+    "public_body": "analyze_fixture_cache_state_v1 expands cache_body directly at1392; generic forwarding cache_core1374-1383 is cfg(test) and absent from the compiled public library/private default bins",
+    "positive_complete_places": [
+      {"place": "Progress initializer/source and outer p", "birth": "1286-1310 after reservations", "last_use": "1343 projection", "role": "control1280; initializer phase must be explicitly reconciled"},
+      {"place": "Paid literal/source and outer paid", "birth": "1293-1297 after1/1 admissions", "last_use": "1343 projection", "role": "wire256"},
+      {"place": "config None/Some source and outer Option<Fixture>", "birth": "1311,1272", "last_use": "1343 config.as_ref", "role": "setup256; parsed Fixture and inherited returned Result/view mapping must be explicit"},
+      {"place": "Loan/StepBudget source and leaf received borrows/reply", "birth": "1160-1176", "last_use": "1180-1203 audit and snapshot", "role": "control1280; loan ends before cleanup1204"},
+      {"place": "observation z extent initializer/source and public cache_state received", "birth": "905-909,1343", "last_use": "1370 aggregate payload or outer Err drop", "role": "report2896"},
+      {"place": "aggregate constructor/source, Ok payload, function Result source and immediate external caller received Result", "birth": "1367-1371/public1392", "last_use": "external return or drop", "role": "report2896; actual public Result488<=512 measured"},
+      {"place": "caught result and err, observation error, early Budget/Arena/output Result/error branches", "birth": "1286-1299,1312-1341,1356-1365", "last_use": "matching catch/propagation; no new aggregate on early admission/output failure", "role": "inherited fixed error roles and report128 errors; exact subplace map pending"}
+    ],
+    "producer_index_deficiencies": [
+      "Progress ledger says lexical_birth1067/cache_walk while p is constructed1306-1310 in public macro.",
+      "Paid ledger says lexical_birth1246/cache_inputs while literal is1293-1297 in public macro.",
+      "Helper192, Option112, leaf locals256 and wire remainder174 are named buckets without a per-source/received/drop simultaneous-place list.",
+      "Aggregate/Result rows point only at public macro invocation1386-1393 and must expand source/constructor/Ok payload/external received movements rather than size alone.",
+      "No new private compiler layout probe was admitted for helper/alignment/Option places; producer measurements are not independent execution credit."
+    ],
+    "independent_conclusion": "The production forwarding Result layer is absent, but this alone does not prove every complete value movement or the fixed29344 lexical role union. Wrong lexical birth indices and coarse source/received/helper/Option attribution must be corrected or independently replaced without consuming unassigned margin. No stack/RSS or measured numeric overrun claim is made."
+  }
+}

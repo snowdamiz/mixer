@@ -1,0 +1,238 @@
+Compiled from "NativeRenderer.java"
+class dev.mixer.android.NativeRenderer$2 implements dev.mixer.android.NativeAppearanceViewsV2$Input {
+  final dev.mixer.android.NativeRenderer this$0;
+    descriptor: Ldev/mixer/android/NativeRenderer;
+
+  dev.mixer.android.NativeRenderer$2(dev.mixer.android.NativeRenderer);
+    descriptor: (Ldev/mixer/android/NativeRenderer;)V
+    Code:
+         0: aload_0
+         1: aload_1
+         2: putfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+         5: aload_0
+         6: invokespecial #7                  // Method java/lang/Object."<init>":()V
+         9: return
+      LineNumberTable:
+        line 111: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      10     0  this   Ldev/mixer/android/NativeRenderer$2;
+            0      10     1 this$0   Ldev/mixer/android/NativeRenderer;
+
+  public dev.mixer.android.NativeAppearanceViewsV2$Mutation mutation();
+    descriptor: ()Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;
+    Code:
+         0: aload_0
+         1: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+         4: invokevirtual #13                 // Method dev/mixer/android/NativeRenderer.mutationV2:()Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;
+         7: areturn
+      LineNumberTable:
+        line 112: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       8     0  this   Ldev/mixer/android/NativeRenderer$2;
+
+  public boolean draw();
+    descriptor: ()Z
+    Code:
+         0: aload_0
+         1: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+         4: invokevirtual #19                 // Method dev/mixer/android/NativeRenderer.presentationCurrentV2:()Z
+         7: ireturn
+      LineNumberTable:
+        line 113: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       8     0  this   Ldev/mixer/android/NativeRenderer$2;
+
+  public boolean open(dev.mixer.android.NativeAppearanceViewsV2$Record);
+    descriptor: (Ldev/mixer/android/NativeAppearanceViewsV2$Record;)Z
+    Code:
+         0: invokestatic  #23                 // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+         7: getfield      #28                 // Field dev/mixer/android/NativeRenderer.v2Fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        10: getfield      #32                 // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        13: ifne          29
+        16: aload_0
+        17: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+        20: getfield      #28                 // Field dev/mixer/android/NativeRenderer.v2Fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        23: getfield      #38                 // Field dev/mixer/android/NativeOwnerV2$Fence.inputAllowed:Z
+        26: ifne          31
+        29: iconst_0
+        30: ireturn
+        31: aload_0
+        32: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+        35: getfield      #28                 // Field dev/mixer/android/NativeRenderer.v2Fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        38: getfield      #41                 // Field dev/mixer/android/NativeOwnerV2$Fence.presentation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        41: astore_2
+        42: aload_0
+        43: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+        46: invokevirtual #19                 // Method dev/mixer/android/NativeRenderer.presentationCurrentV2:()Z
+        49: ifeq          116
+        52: aload_0
+        53: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+        56: getfield      #45                 // Field dev/mixer/android/NativeRenderer.v2Records:Ljava/util/Map;
+        59: aload_1
+        60: getfield      #49                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.id:Ljava/lang/String;
+        63: invokeinterface #55,  2           // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+        68: aload_1
+        69: if_acmpne     116
+        72: aload_1
+        73: getfield      #61                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+        76: invokevirtual #65                 // Method android/view/View.isEnabled:()Z
+        79: ifeq          116
+        82: aload_1
+        83: getfield      #61                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+        86: invokevirtual #70                 // Method android/view/View.isAttachedToWindow:()Z
+        89: ifeq          116
+        92: aload_1
+        93: getfield      #61                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+        96: invokevirtual #73                 // Method android/view/View.isShown:()Z
+        99: ifeq          116
+       102: aload_1
+       103: getfield      #61                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       106: invokevirtual #76                 // Method android/view/View.hasWindowFocus:()Z
+       109: ifeq          116
+       112: iconst_1
+       113: goto          117
+       116: iconst_0
+       117: istore_3
+       118: iload_3
+       119: ifeq          170
+       122: aload_0
+       123: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+       126: getfield      #28                 // Field dev/mixer/android/NativeRenderer.v2Fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       129: getfield      #32                 // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+       132: ifne          170
+       135: aload_0
+       136: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+       139: getfield      #28                 // Field dev/mixer/android/NativeRenderer.v2Fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       142: getfield      #38                 // Field dev/mixer/android/NativeOwnerV2$Fence.inputAllowed:Z
+       145: ifeq          170
+       148: aload_2
+       149: ifnull        170
+       152: aload_2
+       153: aload_0
+       154: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+       157: getfield      #28                 // Field dev/mixer/android/NativeRenderer.v2Fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       160: getfield      #41                 // Field dev/mixer/android/NativeOwnerV2$Fence.presentation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       163: if_acmpne     170
+       166: iconst_1
+       167: goto          171
+       170: iconst_0
+       171: ireturn
+       172: astore_3
+       173: aload_0
+       174: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+       177: getstatic     #81                 // Field dev/mixer/android/NativeEnvironmentV2$RendererCause.CURRENT_CHECK_FATAL:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+       180: aload_3
+       181: aload_3
+       182: invokevirtual #87                 // Method dev/mixer/android/NativeRenderer.terminalV2:(Ldev/mixer/android/NativeEnvironmentV2$RendererCause;Ljava/lang/Throwable;Ljava/lang/Error;)V
+       185: aload_3
+       186: athrow
+      Exception table:
+         from    to  target type
+            42   171   172   Class java/lang/Error
+      LineNumberTable:
+        line 115: 0
+        line 116: 3
+        line 117: 31
+        line 119: 42
+        line 120: 86
+        line 121: 118
+        line 122: 172
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+          118      54     3  open   Z
+          173      14     3 fatal   Ljava/lang/Error;
+            0     187     0  this   Ldev/mixer/android/NativeRenderer$2;
+            0     187     1 record   Ldev/mixer/android/NativeAppearanceViewsV2$Record;
+           42     145     2 presentation   Ldev/mixer/android/OwnerLifecycleV2$Token;
+
+  public void event(dev.mixer.android.NativeAppearanceViewsV2$Record, java.lang.String, java.lang.Object);
+    descriptor: (Ldev/mixer/android/NativeAppearanceViewsV2$Record;Ljava/lang/String;Ljava/lang/Object;)V
+    Code:
+         0: aload_0
+         1: aload_1
+         2: invokevirtual #91                 // Method open:(Ldev/mixer/android/NativeAppearanceViewsV2$Record;)Z
+         5: ifne          9
+         8: return
+         9: aload_0
+        10: invokevirtual #95                 // Method interaction:()V
+        13: aload_0
+        14: aload_1
+        15: invokevirtual #91                 // Method open:(Ldev/mixer/android/NativeAppearanceViewsV2$Record;)Z
+        18: ifeq          53
+        21: aload_0
+        22: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+        25: getfield      #98                 // Field dev/mixer/android/NativeRenderer.events:Ldev/mixer/android/NativeRenderer$Events;
+        28: aload_0
+        29: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+        32: getfield      #102                // Field dev/mixer/android/NativeRenderer.packet:Ldev/mixer/android/UiPacket;
+        35: aload_1
+        36: getfield      #49                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.id:Ljava/lang/String;
+        39: aload_1
+        40: getfield      #106                // Field dev/mixer/android/NativeAppearanceViewsV2$Record.generation:Ljava/lang/String;
+        43: aload_2
+        44: aload_3
+        45: invokevirtual #109                // Method dev/mixer/android/UiPacket.event:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)[B
+        48: invokeinterface #115,  2          // InterfaceMethod dev/mixer/android/NativeRenderer$Events.send:([B)V
+        53: return
+      LineNumberTable:
+        line 125: 0
+        line 126: 53
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      54     0  this   Ldev/mixer/android/NativeRenderer$2;
+            0      54     1 record   Ldev/mixer/android/NativeAppearanceViewsV2$Record;
+            0      54     2  name   Ljava/lang/String;
+            0      54     3 value   Ljava/lang/Object;
+
+  public void interaction();
+    descriptor: ()V
+    Code:
+         0: invokestatic  #23                 // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+         7: getfield      #28                 // Field dev/mixer/android/NativeRenderer.v2Fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        10: getfield      #38                 // Field dev/mixer/android/NativeOwnerV2$Fence.inputAllowed:Z
+        13: ifeq          39
+        16: aload_0
+        17: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+        20: getfield      #28                 // Field dev/mixer/android/NativeRenderer.v2Fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        23: getfield      #32                 // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        26: ifne          39
+        29: aload_0
+        30: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+        33: getfield      #121                // Field dev/mixer/android/NativeRenderer.v2Open:Z
+        36: ifne          40
+        39: return
+        40: aload_0
+        41: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+        44: getfield      #124                // Field dev/mixer/android/NativeRenderer.v2Interaction:J
+        47: ldc2_w        #130                // long 9223372036854775807l
+        50: lcmp
+        51: ifne          67
+        54: aload_0
+        55: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+        58: getstatic     #132                // Field dev/mixer/android/NativeEnvironmentV2$RendererCause.INTERACTION_EXHAUSTED:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        61: aconst_null
+        62: aconst_null
+        63: invokevirtual #87                 // Method dev/mixer/android/NativeRenderer.terminalV2:(Ldev/mixer/android/NativeEnvironmentV2$RendererCause;Ljava/lang/Throwable;Ljava/lang/Error;)V
+        66: return
+        67: aload_0
+        68: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+        71: dup
+        72: getfield      #124                // Field dev/mixer/android/NativeRenderer.v2Interaction:J
+        75: lconst_1
+        76: ladd
+        77: putfield      #124                // Field dev/mixer/android/NativeRenderer.v2Interaction:J
+        80: return
+      LineNumberTable:
+        line 127: 0
+        line 128: 40
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      81     0  this   Ldev/mixer/android/NativeRenderer$2;
+}

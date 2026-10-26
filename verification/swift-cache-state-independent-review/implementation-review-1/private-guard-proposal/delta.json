@@ -1,0 +1,19 @@
+{
+  "additional_file": "reviewer_private.rs",
+  "additional_file_sha256": "8535c7f6e531016b57cdfa68863aa4af64460c4688732d4a91587532395fe630",
+  "append_only_utf8": {
+    "analyzer.rs": "\nfn main(){fixture_envelope::independent_review_run();}\n",
+    "cache_state.rs": "\n#[path=\"reviewer_private.rs\"]\npub(super) mod independent_review;\n",
+    "envelope.rs": "\npub(crate) fn independent_review_run(){cache_state::independent_review::run();}\n"
+  },
+  "baseline_sha256": {
+    "analyzer.rs": "ad039daac5de9ea811da70261ae6591dfe6846e23bea1a87fc013755b502af6e",
+    "cache_state.rs": "d0e2ec2998f70958e10a7dbf33742917ced66cd4559bafb88bcabe8b221a54db",
+    "envelope.rs": "11aee91058837ba13a9000c44d30e93049f3011be46ea9493110bb81b8ab4798"
+  },
+  "compile_plan": "Direct rustc --edition=2021 analyzer.rs -o owned-private-guard-binary; default bin crate; no --test and no --cfg test. Existing producer/old test modules remain disabled.",
+  "execution_authorized": false,
+  "product_originals_changed": false,
+  "public_library_API_added": false,
+  "visibility": "Only crate/super-visible entrypoints in the separately instrumented binary overlay; product library source/exports untouched."
+}
