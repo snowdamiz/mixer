@@ -1,0 +1,1435 @@
+Compiled from "Json.java"
+final class dev.mixer.android.Json$Num {
+  final java.lang.String raw;
+    descriptor: Ljava/lang/String;
+
+  dev.mixer.android.Json$Num(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: aload_1
+         6: putfield      #7                  // Field raw:Ljava/lang/String;
+         9: return
+      LineNumberTable:
+        line 10: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      10     0  this   Ldev/mixer/android/Json$Num;
+            0      10     1   raw   Ljava/lang/String;
+
+  java.lang.String unsigned();
+    descriptor: ()Ljava/lang/String;
+    Code:
+         0: aload_0
+         1: getfield      #7                  // Field raw:Ljava/lang/String;
+         4: invokevirtual #13                 // Method java/lang/String.length:()I
+         7: bipush        20
+         9: if_icmpgt     43
+        12: aload_0
+        13: getfield      #7                  // Field raw:Ljava/lang/String;
+        16: ldc           #19                 // String 0|[1-9][0-9]*
+        18: invokevirtual #21                 // Method java/lang/String.matches:(Ljava/lang/String;)Z
+        21: ifeq          43
+        24: new           #25                 // class java/math/BigInteger
+        27: dup
+        28: aload_0
+        29: getfield      #7                  // Field raw:Ljava/lang/String;
+        32: invokespecial #27                 // Method java/math/BigInteger."<init>":(Ljava/lang/String;)V
+        35: invokevirtual #30                 // Method java/math/BigInteger.bitLength:()I
+        38: bipush        64
+        40: if_icmple     49
+        43: ldc           #33                 // String unsigned integer
+        45: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        48: athrow
+        49: aload_0
+        50: getfield      #7                  // Field raw:Ljava/lang/String;
+        53: areturn
+      LineNumberTable:
+        line 11: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      54     0  this   Ldev/mixer/android/Json$Num;
+
+  double number();
+    descriptor: ()D
+    Code:
+         0: aload_0
+         1: getfield      #7                  // Field raw:Ljava/lang/String;
+         4: invokestatic  #41                 // Method java/lang/Double.parseDouble:(Ljava/lang/String;)D
+         7: dstore_1
+         8: dload_1
+         9: invokestatic  #47                 // Method java/lang/Double.isFinite:(D)Z
+        12: ifne          21
+        15: ldc           #51                 // String finite number
+        17: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        20: athrow
+        21: dload_1
+        22: dreturn
+      LineNumberTable:
+        line 12: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      23     0  this   Ldev/mixer/android/Json$Num;
+            8      15     1     d   D
+}
+Compiled from "Json.java"
+final class dev.mixer.android.Json$Parser {
+  final java.lang.String s;
+    descriptor: Ljava/lang/String;
+
+  int i;
+    descriptor: I
+
+  int count;
+    descriptor: I
+
+  dev.mixer.android.Json$Parser(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: aload_1
+         6: putfield      #7                  // Field s:Ljava/lang/String;
+         9: return
+      LineNumberTable:
+        line 21: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      10     0  this   Ldev/mixer/android/Json$Parser;
+            0      10     1     s   Ljava/lang/String;
+
+  void space();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: getfield      #13                 // Field i:I
+         4: aload_0
+         5: getfield      #7                  // Field s:Ljava/lang/String;
+         8: invokevirtual #17                 // Method java/lang/String.length:()I
+        11: if_icmpge     46
+        14: ldc           #23                 // String  \t\r\n
+        16: aload_0
+        17: getfield      #7                  // Field s:Ljava/lang/String;
+        20: aload_0
+        21: getfield      #13                 // Field i:I
+        24: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+        27: invokevirtual #29                 // Method java/lang/String.indexOf:(I)I
+        30: iflt          46
+        33: aload_0
+        34: dup
+        35: getfield      #13                 // Field i:I
+        38: iconst_1
+        39: iadd
+        40: putfield      #13                 // Field i:I
+        43: goto          0
+        46: return
+      LineNumberTable:
+        line 22: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      47     0  this   Ldev/mixer/android/Json$Parser;
+
+  char take();
+    descriptor: ()C
+    Code:
+         0: aload_0
+         1: getfield      #13                 // Field i:I
+         4: aload_0
+         5: getfield      #7                  // Field s:Ljava/lang/String;
+         8: invokevirtual #17                 // Method java/lang/String.length:()I
+        11: if_icmpne     20
+        14: ldc           #33                 // String truncated JSON
+        16: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        19: athrow
+        20: aload_0
+        21: getfield      #7                  // Field s:Ljava/lang/String;
+        24: aload_0
+        25: dup
+        26: getfield      #13                 // Field i:I
+        29: dup_x1
+        30: iconst_1
+        31: iadd
+        32: putfield      #13                 // Field i:I
+        35: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+        38: ireturn
+      LineNumberTable:
+        line 23: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      39     0  this   Ldev/mixer/android/Json$Parser;
+
+  java.lang.Object value(int);
+    descriptor: (I)Ljava/lang/Object;
+    Code:
+         0: iload_1
+         1: sipush        196
+         4: if_icmpgt     23
+         7: aload_0
+         8: dup
+         9: getfield      #41                 // Field count:I
+        12: iconst_1
+        13: iadd
+        14: dup_x1
+        15: putfield      #41                 // Field count:I
+        18: ldc           #44                 // int 100000
+        20: if_icmple     29
+        23: ldc           #45                 // String JSON construction limit
+        25: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        28: athrow
+        29: aload_0
+        30: invokevirtual #47                 // Method space:()V
+        33: aload_0
+        34: invokevirtual #50                 // Method take:()C
+        37: istore_2
+        38: iload_2
+        39: bipush        34
+        41: if_icmpne     49
+        44: aload_0
+        45: invokevirtual #54                 // Method string:()Ljava/lang/String;
+        48: areturn
+        49: iload_2
+        50: bipush        123
+        52: if_icmpne     230
+        55: new           #58                 // class java/util/LinkedHashMap
+        58: dup
+        59: invokespecial #60                 // Method java/util/LinkedHashMap."<init>":()V
+        62: astore_3
+        63: aload_0
+        64: invokevirtual #47                 // Method space:()V
+        67: aload_0
+        68: getfield      #13                 // Field i:I
+        71: aload_0
+        72: getfield      #7                  // Field s:Ljava/lang/String;
+        75: invokevirtual #17                 // Method java/lang/String.length:()I
+        78: if_icmpge     109
+        81: aload_0
+        82: getfield      #7                  // Field s:Ljava/lang/String;
+        85: aload_0
+        86: getfield      #13                 // Field i:I
+        89: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+        92: bipush        125
+        94: if_icmpne     109
+        97: aload_0
+        98: dup
+        99: getfield      #13                 // Field i:I
+       102: iconst_1
+       103: iadd
+       104: putfield      #13                 // Field i:I
+       107: aload_3
+       108: areturn
+       109: aload_0
+       110: invokevirtual #47                 // Method space:()V
+       113: aload_0
+       114: invokevirtual #50                 // Method take:()C
+       117: bipush        34
+       119: if_icmpeq     128
+       122: ldc           #61                 // String object key
+       124: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       127: athrow
+       128: aload_0
+       129: invokevirtual #54                 // Method string:()Ljava/lang/String;
+       132: astore        4
+       134: aload_3
+       135: aload         4
+       137: invokeinterface #63,  2           // InterfaceMethod java/util/Map.containsKey:(Ljava/lang/Object;)Z
+       142: ifne          157
+       145: aload_3
+       146: invokeinterface #69,  1           // InterfaceMethod java/util/Map.size:()I
+       151: sipush        16384
+       154: if_icmplt     163
+       157: ldc           #72                 // String duplicate/too many keys
+       159: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       162: athrow
+       163: aload_0
+       164: invokevirtual #47                 // Method space:()V
+       167: aload_0
+       168: invokevirtual #50                 // Method take:()C
+       171: bipush        58
+       173: if_icmpeq     182
+       176: ldc           #74                 // String object colon
+       178: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       181: athrow
+       182: aload_3
+       183: aload         4
+       185: aload_0
+       186: iload_1
+       187: iconst_1
+       188: iadd
+       189: invokevirtual #76                 // Method value:(I)Ljava/lang/Object;
+       192: invokeinterface #80,  3           // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       197: pop
+       198: aload_0
+       199: invokevirtual #47                 // Method space:()V
+       202: aload_0
+       203: invokevirtual #50                 // Method take:()C
+       206: istore_2
+       207: iload_2
+       208: bipush        125
+       210: if_icmpne     215
+       213: aload_3
+       214: areturn
+       215: iload_2
+       216: bipush        44
+       218: if_icmpeq     227
+       221: ldc           #84                 // String object comma
+       223: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       226: athrow
+       227: goto          109
+       230: iload_2
+       231: bipush        91
+       233: if_icmpne     351
+       236: new           #86                 // class java/util/ArrayList
+       239: dup
+       240: invokespecial #88                 // Method java/util/ArrayList."<init>":()V
+       243: astore_3
+       244: aload_0
+       245: invokevirtual #47                 // Method space:()V
+       248: aload_0
+       249: getfield      #13                 // Field i:I
+       252: aload_0
+       253: getfield      #7                  // Field s:Ljava/lang/String;
+       256: invokevirtual #17                 // Method java/lang/String.length:()I
+       259: if_icmpge     290
+       262: aload_0
+       263: getfield      #7                  // Field s:Ljava/lang/String;
+       266: aload_0
+       267: getfield      #13                 // Field i:I
+       270: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+       273: bipush        93
+       275: if_icmpne     290
+       278: aload_0
+       279: dup
+       280: getfield      #13                 // Field i:I
+       283: iconst_1
+       284: iadd
+       285: putfield      #13                 // Field i:I
+       288: aload_3
+       289: areturn
+       290: aload_3
+       291: invokeinterface #89,  1           // InterfaceMethod java/util/List.size:()I
+       296: sipush        16384
+       299: if_icmplt     308
+       302: ldc           #92                 // String array bound
+       304: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       307: athrow
+       308: aload_3
+       309: aload_0
+       310: iload_1
+       311: iconst_1
+       312: iadd
+       313: invokevirtual #76                 // Method value:(I)Ljava/lang/Object;
+       316: invokeinterface #94,  2           // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       321: pop
+       322: aload_0
+       323: invokevirtual #47                 // Method space:()V
+       326: aload_0
+       327: invokevirtual #50                 // Method take:()C
+       330: istore_2
+       331: iload_2
+       332: bipush        93
+       334: if_icmpne     339
+       337: aload_3
+       338: areturn
+       339: iload_2
+       340: bipush        44
+       342: if_icmpeq     290
+       345: ldc           #97                 // String array comma
+       347: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       350: athrow
+       351: iload_2
+       352: bipush        116
+       354: if_icmpne     368
+       357: aload_0
+       358: ldc           #99                 // String rue
+       360: invokevirtual #101                // Method literal:(Ljava/lang/String;)V
+       363: iconst_1
+       364: invokestatic  #105                // Method java/lang/Boolean.valueOf:(Z)Ljava/lang/Boolean;
+       367: areturn
+       368: iload_2
+       369: bipush        102
+       371: if_icmpne     385
+       374: aload_0
+       375: ldc           #111                // String alse
+       377: invokevirtual #101                // Method literal:(Ljava/lang/String;)V
+       380: iconst_0
+       381: invokestatic  #105                // Method java/lang/Boolean.valueOf:(Z)Ljava/lang/Boolean;
+       384: areturn
+       385: iload_2
+       386: bipush        110
+       388: if_icmpne     399
+       391: aload_0
+       392: ldc           #113                // String ull
+       394: invokevirtual #101                // Method literal:(Ljava/lang/String;)V
+       397: aconst_null
+       398: areturn
+       399: aload_0
+       400: dup
+       401: getfield      #13                 // Field i:I
+       404: iconst_1
+       405: isub
+       406: dup_x1
+       407: putfield      #13                 // Field i:I
+       410: istore_3
+       411: aload_0
+       412: getfield      #7                  // Field s:Ljava/lang/String;
+       415: aload_0
+       416: getfield      #13                 // Field i:I
+       419: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+       422: bipush        45
+       424: if_icmpne     437
+       427: aload_0
+       428: dup
+       429: getfield      #13                 // Field i:I
+       432: iconst_1
+       433: iadd
+       434: putfield      #13                 // Field i:I
+       437: aload_0
+       438: getfield      #13                 // Field i:I
+       441: aload_0
+       442: getfield      #7                  // Field s:Ljava/lang/String;
+       445: invokevirtual #17                 // Method java/lang/String.length:()I
+       448: if_icmplt     457
+       451: ldc           #115                // String number
+       453: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       456: athrow
+       457: aload_0
+       458: getfield      #7                  // Field s:Ljava/lang/String;
+       461: aload_0
+       462: getfield      #13                 // Field i:I
+       465: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+       468: bipush        48
+       470: if_icmpne     486
+       473: aload_0
+       474: dup
+       475: getfield      #13                 // Field i:I
+       478: iconst_1
+       479: iadd
+       480: putfield      #13                 // Field i:I
+       483: goto          551
+       486: aload_0
+       487: getfield      #13                 // Field i:I
+       490: istore        4
+       492: aload_0
+       493: getfield      #13                 // Field i:I
+       496: aload_0
+       497: getfield      #7                  // Field s:Ljava/lang/String;
+       500: invokevirtual #17                 // Method java/lang/String.length:()I
+       503: if_icmpge     536
+       506: aload_0
+       507: getfield      #7                  // Field s:Ljava/lang/String;
+       510: aload_0
+       511: getfield      #13                 // Field i:I
+       514: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+       517: invokestatic  #117                // Method digit:(C)Z
+       520: ifeq          536
+       523: aload_0
+       524: dup
+       525: getfield      #13                 // Field i:I
+       528: iconst_1
+       529: iadd
+       530: putfield      #13                 // Field i:I
+       533: goto          492
+       536: aload_0
+       537: getfield      #13                 // Field i:I
+       540: iload         4
+       542: if_icmpne     551
+       545: ldc           #115                // String number
+       547: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       550: athrow
+       551: aload_0
+       552: getfield      #13                 // Field i:I
+       555: aload_0
+       556: getfield      #7                  // Field s:Ljava/lang/String;
+       559: invokevirtual #17                 // Method java/lang/String.length:()I
+       562: if_icmpge     656
+       565: aload_0
+       566: getfield      #7                  // Field s:Ljava/lang/String;
+       569: aload_0
+       570: getfield      #13                 // Field i:I
+       573: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+       576: bipush        46
+       578: if_icmpne     656
+       581: aload_0
+       582: dup
+       583: getfield      #13                 // Field i:I
+       586: iconst_1
+       587: iadd
+       588: putfield      #13                 // Field i:I
+       591: aload_0
+       592: getfield      #13                 // Field i:I
+       595: istore        4
+       597: aload_0
+       598: getfield      #13                 // Field i:I
+       601: aload_0
+       602: getfield      #7                  // Field s:Ljava/lang/String;
+       605: invokevirtual #17                 // Method java/lang/String.length:()I
+       608: if_icmpge     641
+       611: aload_0
+       612: getfield      #7                  // Field s:Ljava/lang/String;
+       615: aload_0
+       616: getfield      #13                 // Field i:I
+       619: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+       622: invokestatic  #117                // Method digit:(C)Z
+       625: ifeq          641
+       628: aload_0
+       629: dup
+       630: getfield      #13                 // Field i:I
+       633: iconst_1
+       634: iadd
+       635: putfield      #13                 // Field i:I
+       638: goto          597
+       641: aload_0
+       642: getfield      #13                 // Field i:I
+       645: iload         4
+       647: if_icmpne     656
+       650: ldc           #121                // String fraction
+       652: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       655: athrow
+       656: aload_0
+       657: getfield      #13                 // Field i:I
+       660: aload_0
+       661: getfield      #7                  // Field s:Ljava/lang/String;
+       664: invokevirtual #17                 // Method java/lang/String.length:()I
+       667: if_icmpge     833
+       670: aload_0
+       671: getfield      #7                  // Field s:Ljava/lang/String;
+       674: aload_0
+       675: getfield      #13                 // Field i:I
+       678: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+       681: bipush        101
+       683: if_icmpeq     702
+       686: aload_0
+       687: getfield      #7                  // Field s:Ljava/lang/String;
+       690: aload_0
+       691: getfield      #13                 // Field i:I
+       694: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+       697: bipush        69
+       699: if_icmpne     833
+       702: aload_0
+       703: dup
+       704: getfield      #13                 // Field i:I
+       707: iconst_1
+       708: iadd
+       709: putfield      #13                 // Field i:I
+       712: aload_0
+       713: getfield      #13                 // Field i:I
+       716: aload_0
+       717: getfield      #7                  // Field s:Ljava/lang/String;
+       720: invokevirtual #17                 // Method java/lang/String.length:()I
+       723: if_icmpge     768
+       726: aload_0
+       727: getfield      #7                  // Field s:Ljava/lang/String;
+       730: aload_0
+       731: getfield      #13                 // Field i:I
+       734: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+       737: bipush        43
+       739: if_icmpeq     758
+       742: aload_0
+       743: getfield      #7                  // Field s:Ljava/lang/String;
+       746: aload_0
+       747: getfield      #13                 // Field i:I
+       750: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+       753: bipush        45
+       755: if_icmpne     768
+       758: aload_0
+       759: dup
+       760: getfield      #13                 // Field i:I
+       763: iconst_1
+       764: iadd
+       765: putfield      #13                 // Field i:I
+       768: aload_0
+       769: getfield      #13                 // Field i:I
+       772: istore        4
+       774: aload_0
+       775: getfield      #13                 // Field i:I
+       778: aload_0
+       779: getfield      #7                  // Field s:Ljava/lang/String;
+       782: invokevirtual #17                 // Method java/lang/String.length:()I
+       785: if_icmpge     818
+       788: aload_0
+       789: getfield      #7                  // Field s:Ljava/lang/String;
+       792: aload_0
+       793: getfield      #13                 // Field i:I
+       796: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+       799: invokestatic  #117                // Method digit:(C)Z
+       802: ifeq          818
+       805: aload_0
+       806: dup
+       807: getfield      #13                 // Field i:I
+       810: iconst_1
+       811: iadd
+       812: putfield      #13                 // Field i:I
+       815: goto          774
+       818: aload_0
+       819: getfield      #13                 // Field i:I
+       822: iload         4
+       824: if_icmpne     833
+       827: ldc           #123                // String exponent
+       829: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       832: athrow
+       833: new           #125                // class dev/mixer/android/Json$Num
+       836: dup
+       837: aload_0
+       838: getfield      #7                  // Field s:Ljava/lang/String;
+       841: iload_3
+       842: aload_0
+       843: getfield      #13                 // Field i:I
+       846: invokevirtual #127                // Method java/lang/String.substring:(II)Ljava/lang/String;
+       849: invokespecial #131                // Method dev/mixer/android/Json$Num."<init>":(Ljava/lang/String;)V
+       852: astore        4
+       854: aload         4
+       856: invokevirtual #133                // Method dev/mixer/android/Json$Num.number:()D
+       859: pop2
+       860: aload         4
+       862: areturn
+      LineNumberTable:
+        line 25: 0
+        line 26: 38
+        line 27: 49
+        line 28: 230
+        line 29: 351
+        line 30: 399
+        line 31: 551
+        line 32: 656
+        line 33: 833
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+          134      93     4     k   Ljava/lang/String;
+           63     167     3     m   Ljava/util/Map;
+          244     107     3     a   Ljava/util/List;
+          492      59     4     b   I
+          597      59     4     b   I
+          774      59     4     b   I
+            0     863     0  this   Ldev/mixer/android/Json$Parser;
+            0     863     1 depth   I
+           38     825     2     c   C
+          411     452     3 start   I
+          854       9     4     n   Ldev/mixer/android/Json$Num;
+
+  static int asciiHex(char);
+    descriptor: (C)I
+    Code:
+         0: iload_0
+         1: bipush        48
+         3: if_icmplt     17
+         6: iload_0
+         7: bipush        57
+         9: if_icmpgt     17
+        12: iload_0
+        13: bipush        48
+        15: isub
+        16: ireturn
+        17: iload_0
+        18: bipush        65
+        20: if_icmplt     37
+        23: iload_0
+        24: bipush        70
+        26: if_icmpgt     37
+        29: iload_0
+        30: bipush        65
+        32: isub
+        33: bipush        10
+        35: iadd
+        36: ireturn
+        37: iload_0
+        38: bipush        97
+        40: if_icmplt     57
+        43: iload_0
+        44: bipush        102
+        46: if_icmpgt     57
+        49: iload_0
+        50: bipush        97
+        52: isub
+        53: bipush        10
+        55: iadd
+        56: ireturn
+        57: iconst_m1
+        58: ireturn
+      LineNumberTable:
+        line 35: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      59     0     c   C
+
+  static boolean digit(char);
+    descriptor: (C)Z
+    Code:
+         0: iload_0
+         1: bipush        48
+         3: if_icmplt     16
+         6: iload_0
+         7: bipush        57
+         9: if_icmpgt     16
+        12: iconst_1
+        13: goto          17
+        16: iconst_0
+        17: ireturn
+      LineNumberTable:
+        line 36: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      18     0     c   C
+
+  void literal(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+    Code:
+         0: iconst_0
+         1: istore_2
+         2: iload_2
+         3: aload_1
+         4: invokevirtual #17                 // Method java/lang/String.length:()I
+         7: if_icmpge     34
+        10: aload_0
+        11: invokevirtual #50                 // Method take:()C
+        14: aload_1
+        15: iload_2
+        16: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+        19: if_icmpeq     28
+        22: ldc           #136                // String literal
+        24: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        27: athrow
+        28: iinc          2, 1
+        31: goto          2
+        34: return
+      LineNumberTable:
+        line 37: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            2      32     2     j   I
+            0      35     0  this   Ldev/mixer/android/Json$Parser;
+            0      35     1 suffix   Ljava/lang/String;
+
+  java.lang.String string();
+    descriptor: ()Ljava/lang/String;
+    Code:
+         0: new           #137                // class java/lang/StringBuilder
+         3: dup
+         4: invokespecial #139                // Method java/lang/StringBuilder."<init>":()V
+         7: astore_1
+         8: aload_0
+         9: invokevirtual #50                 // Method take:()C
+        12: istore_2
+        13: iload_2
+        14: bipush        34
+        16: if_icmpne     22
+        19: goto          241
+        22: iload_2
+        23: bipush        32
+        25: if_icmpge     34
+        28: ldc           #140                // String string control
+        30: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        33: athrow
+        34: iload_2
+        35: bipush        92
+        37: if_icmpne     217
+        40: aload_0
+        41: invokevirtual #50                 // Method take:()C
+        44: istore_2
+        45: iload_2
+        46: lookupswitch  { // 9
+                      34: 128
+                      47: 128
+                      92: 128
+                      98: 131
+                     102: 137
+                     110: 143
+                     114: 149
+                     116: 155
+                     117: 161
+                 default: 211
+            }
+       128: goto          217
+       131: bipush        8
+       133: istore_2
+       134: goto          217
+       137: bipush        12
+       139: istore_2
+       140: goto          217
+       143: bipush        10
+       145: istore_2
+       146: goto          217
+       149: bipush        13
+       151: istore_2
+       152: goto          217
+       155: bipush        9
+       157: istore_2
+       158: goto          217
+       161: iconst_0
+       162: istore_3
+       163: iconst_0
+       164: istore        4
+       166: iload         4
+       168: iconst_4
+       169: if_icmpge     205
+       172: aload_0
+       173: invokevirtual #50                 // Method take:()C
+       176: invokestatic  #142                // Method asciiHex:(C)I
+       179: istore        5
+       181: iload         5
+       183: ifge          192
+       186: ldc           #146                // String unicode escape
+       188: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       191: athrow
+       192: iload_3
+       193: iconst_4
+       194: ishl
+       195: iload         5
+       197: ior
+       198: istore_3
+       199: iinc          4, 1
+       202: goto          166
+       205: iload_3
+       206: i2c
+       207: istore_2
+       208: goto          217
+       211: ldc           #148                // String string escape
+       213: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       216: athrow
+       217: aload_1
+       218: iload_2
+       219: invokevirtual #150                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+       222: pop
+       223: aload_1
+       224: invokevirtual #154                // Method java/lang/StringBuilder.length:()I
+       227: ldc           #155                // int 1048576
+       229: if_icmple     238
+       232: ldc           #156                // String string allocation
+       234: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       237: athrow
+       238: goto          8
+       241: aload_1
+       242: invokevirtual #158                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+       245: astore_2
+       246: iconst_0
+       247: istore_3
+       248: iload_3
+       249: aload_2
+       250: invokevirtual #17                 // Method java/lang/String.length:()I
+       253: if_icmpge     319
+       256: aload_2
+       257: iload_3
+       258: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+       261: istore        4
+       263: iload         4
+       265: invokestatic  #161                // Method java/lang/Character.isHighSurrogate:(C)Z
+       268: ifeq          299
+       271: iinc          3, 1
+       274: iload_3
+       275: aload_2
+       276: invokevirtual #17                 // Method java/lang/String.length:()I
+       279: if_icmpeq     293
+       282: aload_2
+       283: iload_3
+       284: invokevirtual #25                 // Method java/lang/String.charAt:(I)C
+       287: invokestatic  #166                // Method java/lang/Character.isLowSurrogate:(C)Z
+       290: ifne          313
+       293: ldc           #169                // String unpaired surrogate
+       295: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       298: athrow
+       299: iload         4
+       301: invokestatic  #166                // Method java/lang/Character.isLowSurrogate:(C)Z
+       304: ifeq          313
+       307: ldc           #169                // String unpaired surrogate
+       309: invokestatic  #35                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       312: athrow
+       313: iinc          3, 1
+       316: goto          248
+       319: aload_2
+       320: areturn
+      LineNumberTable:
+        line 38: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+          181      18     5     h   I
+          166      39     4     k   I
+          163      48     3     n   I
+           13     225     2     c   C
+          263      50     4     c   C
+          248      71     3     j   I
+            0     321     0  this   Ldev/mixer/android/Json$Parser;
+            8     313     1     b   Ljava/lang/StringBuilder;
+          246      75     2  text   Ljava/lang/String;
+}
+Compiled from "Json.java"
+final class dev.mixer.android.Json {
+  dev.mixer.android.Json();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: return
+      LineNumberTable:
+        line 8: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Ldev/mixer/android/Json;
+
+  static java.lang.IllegalArgumentException bad(java.lang.String);
+    descriptor: (Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+    Code:
+         0: new           #7                  // class java/lang/IllegalArgumentException
+         3: dup
+         4: aload_0
+         5: invokespecial #9                  // Method java/lang/IllegalArgumentException."<init>":(Ljava/lang/String;)V
+         8: areturn
+      LineNumberTable:
+        line 14: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       9     0  text   Ljava/lang/String;
+
+  static java.lang.Object parse(byte[]);
+    descriptor: ([B)Ljava/lang/Object;
+    Code:
+         0: aload_0
+         1: ifnull        11
+         4: aload_0
+         5: arraylength
+         6: ldc           #12                 // int 1048576
+         8: if_icmple     17
+        11: ldc           #13                 // String message bytes
+        13: invokestatic  #15                 // Method bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        16: athrow
+        17: getstatic     #21                 // Field java/nio/charset/StandardCharsets.UTF_8:Ljava/nio/charset/Charset;
+        20: invokevirtual #27                 // Method java/nio/charset/Charset.newDecoder:()Ljava/nio/charset/CharsetDecoder;
+        23: getstatic     #33                 // Field java/nio/charset/CodingErrorAction.REPORT:Ljava/nio/charset/CodingErrorAction;
+        26: invokevirtual #39                 // Method java/nio/charset/CharsetDecoder.onMalformedInput:(Ljava/nio/charset/CodingErrorAction;)Ljava/nio/charset/CharsetDecoder;
+        29: getstatic     #33                 // Field java/nio/charset/CodingErrorAction.REPORT:Ljava/nio/charset/CodingErrorAction;
+        32: invokevirtual #45                 // Method java/nio/charset/CharsetDecoder.onUnmappableCharacter:(Ljava/nio/charset/CodingErrorAction;)Ljava/nio/charset/CharsetDecoder;
+        35: aload_0
+        36: invokestatic  #48                 // Method java/nio/ByteBuffer.wrap:([B)Ljava/nio/ByteBuffer;
+        39: invokevirtual #54                 // Method java/nio/charset/CharsetDecoder.decode:(Ljava/nio/ByteBuffer;)Ljava/nio/CharBuffer;
+        42: invokevirtual #58                 // Method java/nio/CharBuffer.toString:()Ljava/lang/String;
+        45: astore_1
+        46: goto          56
+        49: astore_2
+        50: ldc           #66                 // String UTF-8
+        52: invokestatic  #15                 // Method bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        55: athrow
+        56: new           #68                 // class dev/mixer/android/Json$Parser
+        59: dup
+        60: aload_1
+        61: invokespecial #70                 // Method dev/mixer/android/Json$Parser."<init>":(Ljava/lang/String;)V
+        64: astore_2
+        65: aload_2
+        66: iconst_0
+        67: invokevirtual #71                 // Method dev/mixer/android/Json$Parser.value:(I)Ljava/lang/Object;
+        70: astore_3
+        71: aload_2
+        72: invokevirtual #75                 // Method dev/mixer/android/Json$Parser.space:()V
+        75: aload_2
+        76: getfield      #78                 // Field dev/mixer/android/Json$Parser.i:I
+        79: aload_1
+        80: invokevirtual #82                 // Method java/lang/String.length:()I
+        83: if_icmpeq     92
+        86: ldc           #88                 // String trailing JSON
+        88: invokestatic  #15                 // Method bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        91: athrow
+        92: aload_3
+        93: areturn
+      Exception table:
+         from    to  target type
+            17    46    49   Class java/nio/charset/CharacterCodingException
+      LineNumberTable:
+        line 16: 0
+        line 17: 17
+        line 18: 56
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+           46       3     1  text   Ljava/lang/String;
+           50       6     2     e   Ljava/nio/charset/CharacterCodingException;
+            0      94     0  data   [B
+           56      38     1  text   Ljava/lang/String;
+           65      29     2     p   Ldev/mixer/android/Json$Parser;
+           71      23     3 value   Ljava/lang/Object;
+
+  static byte[] encode(java.lang.Object);
+    descriptor: (Ljava/lang/Object;)[B
+    Code:
+         0: new           #90                 // class java/lang/StringBuilder
+         3: dup
+         4: invokespecial #92                 // Method java/lang/StringBuilder."<init>":()V
+         7: astore_1
+         8: aload_1
+         9: aload_0
+        10: invokestatic  #93                 // Method write:(Ljava/lang/StringBuilder;Ljava/lang/Object;)V
+        13: aload_1
+        14: invokevirtual #97                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+        17: getstatic     #21                 // Field java/nio/charset/StandardCharsets.UTF_8:Ljava/nio/charset/Charset;
+        20: invokevirtual #98                 // Method java/lang/String.getBytes:(Ljava/nio/charset/Charset;)[B
+        23: astore_2
+        24: aload_2
+        25: arraylength
+        26: ldc           #12                 // int 1048576
+        28: if_icmple     37
+        31: ldc           #102                // String encoded message bytes
+        33: invokestatic  #15                 // Method bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        36: athrow
+        37: aload_2
+        38: areturn
+      LineNumberTable:
+        line 40: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      39     0 value   Ljava/lang/Object;
+            8      31     1   out   Ljava/lang/StringBuilder;
+           24      15     2     b   [B
+
+  static void write(java.lang.StringBuilder, java.lang.Object);
+    descriptor: (Ljava/lang/StringBuilder;Ljava/lang/Object;)V
+    Code:
+         0: aload_1
+         1: ifnonnull     12
+         4: aload_0
+         5: ldc           #104                // String null
+         7: invokevirtual #106                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        10: pop
+        11: return
+        12: aload_1
+        13: instanceof    #110                // class java/lang/Boolean
+        16: ifeq          26
+        19: aload_0
+        20: aload_1
+        21: invokevirtual #112                // Method java/lang/StringBuilder.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+        24: pop
+        25: return
+        26: aload_1
+        27: instanceof    #115                // class dev/mixer/android/Json$Num
+        30: ifeq          46
+        33: aload_0
+        34: aload_1
+        35: checkcast     #115                // class dev/mixer/android/Json$Num
+        38: getfield      #117                // Field dev/mixer/android/Json$Num.raw:Ljava/lang/String;
+        41: invokevirtual #106                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        44: pop
+        45: return
+        46: aload_1
+        47: instanceof    #83                 // class java/lang/String
+        50: ifeq          314
+        53: aload_0
+        54: bipush        34
+        56: invokevirtual #121                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+        59: pop
+        60: aload_1
+        61: checkcast     #83                 // class java/lang/String
+        64: astore_2
+        65: iconst_0
+        66: istore_3
+        67: iload_3
+        68: aload_2
+        69: invokevirtual #82                 // Method java/lang/String.length:()I
+        72: if_icmpge     138
+        75: aload_2
+        76: iload_3
+        77: invokevirtual #124                // Method java/lang/String.charAt:(I)C
+        80: istore        4
+        82: iload         4
+        84: invokestatic  #128                // Method java/lang/Character.isHighSurrogate:(C)Z
+        87: ifeq          118
+        90: iinc          3, 1
+        93: iload_3
+        94: aload_2
+        95: invokevirtual #82                 // Method java/lang/String.length:()I
+        98: if_icmpeq     112
+       101: aload_2
+       102: iload_3
+       103: invokevirtual #124                // Method java/lang/String.charAt:(I)C
+       106: invokestatic  #134                // Method java/lang/Character.isLowSurrogate:(C)Z
+       109: ifne          132
+       112: ldc           #137                // String unpaired surrogate
+       114: invokestatic  #15                 // Method bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       117: athrow
+       118: iload         4
+       120: invokestatic  #134                // Method java/lang/Character.isLowSurrogate:(C)Z
+       123: ifeq          132
+       126: ldc           #137                // String unpaired surrogate
+       128: invokestatic  #15                 // Method bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       131: athrow
+       132: iinc          3, 1
+       135: goto          67
+       138: iconst_0
+       139: istore_3
+       140: iload_3
+       141: aload_2
+       142: invokevirtual #82                 // Method java/lang/String.length:()I
+       145: if_icmpge     306
+       148: aload_2
+       149: iload_3
+       150: invokevirtual #124                // Method java/lang/String.charAt:(I)C
+       153: istore        4
+       155: iload         4
+       157: lookupswitch  { // 5
+                       9: 248
+                      10: 228
+                      13: 238
+                      34: 208
+                      92: 218
+                 default: 258
+            }
+       208: aload_0
+       209: ldc           #139                // String \\\"
+       211: invokevirtual #106                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       214: pop
+       215: goto          300
+       218: aload_0
+       219: ldc           #141                // String \\\\
+       221: invokevirtual #106                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       224: pop
+       225: goto          300
+       228: aload_0
+       229: ldc           #143                // String \\n
+       231: invokevirtual #106                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       234: pop
+       235: goto          300
+       238: aload_0
+       239: ldc           #145                // String \\r
+       241: invokevirtual #106                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       244: pop
+       245: goto          300
+       248: aload_0
+       249: ldc           #147                // String \\t
+       251: invokevirtual #106                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       254: pop
+       255: goto          300
+       258: iload         4
+       260: bipush        32
+       262: if_icmpge     293
+       265: aload_0
+       266: getstatic     #149                // Field java/util/Locale.ROOT:Ljava/util/Locale;
+       269: ldc           #155                // String \\u%04x
+       271: iconst_1
+       272: anewarray     #2                  // class java/lang/Object
+       275: dup
+       276: iconst_0
+       277: iload         4
+       279: invokestatic  #157                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+       282: aastore
+       283: invokestatic  #163                // Method java/lang/String.format:(Ljava/util/Locale;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+       286: invokevirtual #106                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       289: pop
+       290: goto          300
+       293: aload_0
+       294: iload         4
+       296: invokevirtual #121                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+       299: pop
+       300: iinc          3, 1
+       303: goto          140
+       306: aload_0
+       307: bipush        34
+       309: invokevirtual #121                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+       312: pop
+       313: return
+       314: aload_1
+       315: instanceof    #167                // class java/util/Map
+       318: ifeq          422
+       321: aload_0
+       322: bipush        123
+       324: invokevirtual #121                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+       327: pop
+       328: iconst_0
+       329: istore_2
+       330: aload_1
+       331: checkcast     #167                // class java/util/Map
+       334: invokeinterface #169,  1          // InterfaceMethod java/util/Map.entrySet:()Ljava/util/Set;
+       339: invokeinterface #173,  1          // InterfaceMethod java/util/Set.iterator:()Ljava/util/Iterator;
+       344: astore_3
+       345: aload_3
+       346: invokeinterface #179,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+       351: ifeq          414
+       354: aload_3
+       355: invokeinterface #185,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+       360: astore        4
+       362: aload         4
+       364: checkcast     #189                // class java/util/Map$Entry
+       367: astore        5
+       369: iload_2
+       370: ifeq          380
+       373: aload_0
+       374: bipush        44
+       376: invokevirtual #121                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+       379: pop
+       380: iconst_1
+       381: istore_2
+       382: aload_0
+       383: aload         5
+       385: invokeinterface #191,  1          // InterfaceMethod java/util/Map$Entry.getKey:()Ljava/lang/Object;
+       390: invokestatic  #93                 // Method write:(Ljava/lang/StringBuilder;Ljava/lang/Object;)V
+       393: aload_0
+       394: bipush        58
+       396: invokevirtual #121                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+       399: pop
+       400: aload_0
+       401: aload         5
+       403: invokeinterface #194,  1          // InterfaceMethod java/util/Map$Entry.getValue:()Ljava/lang/Object;
+       408: invokestatic  #93                 // Method write:(Ljava/lang/StringBuilder;Ljava/lang/Object;)V
+       411: goto          345
+       414: aload_0
+       415: bipush        125
+       417: invokevirtual #121                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+       420: pop
+       421: return
+       422: ldc           #197                // String unencodable value
+       424: invokestatic  #15                 // Method bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       427: athrow
+      LineNumberTable:
+        line 41: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+           82      50     4     u   C
+           67      71     3     j   I
+          155     145     4     c   C
+          140     166     3     i   I
+           65     249     2     s   Ljava/lang/String;
+          369      42     5 entry   Ljava/util/Map$Entry;
+          362      49     4     e   Ljava/lang/Object;
+          330      92     2 comma   Z
+            0     428     0   out   Ljava/lang/StringBuilder;
+            0     428     1     v   Ljava/lang/Object;
+
+  static java.util.Map<java.lang.String, java.lang.Object> object(java.lang.Object);
+    descriptor: (Ljava/lang/Object;)Ljava/util/Map;
+    Code:
+         0: aload_0
+         1: instanceof    #167                // class java/util/Map
+         4: ifne          13
+         7: ldc           #199                // String object expected
+         9: invokestatic  #15                 // Method bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        12: athrow
+        13: aload_0
+        14: checkcast     #167                // class java/util/Map
+        17: areturn
+      LineNumberTable:
+        line 42: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      18     0     v   Ljava/lang/Object;
+
+  static java.util.List<java.lang.Object> array(java.lang.Object);
+    descriptor: (Ljava/lang/Object;)Ljava/util/List;
+    Code:
+         0: aload_0
+         1: instanceof    #201                // class java/util/List
+         4: ifne          13
+         7: ldc           #203                // String array expected
+         9: invokestatic  #15                 // Method bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        12: athrow
+        13: aload_0
+        14: checkcast     #201                // class java/util/List
+        17: areturn
+      LineNumberTable:
+        line 43: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      18     0     v   Ljava/lang/Object;
+
+  static java.lang.String string(java.lang.Object);
+    descriptor: (Ljava/lang/Object;)Ljava/lang/String;
+    Code:
+         0: aload_0
+         1: instanceof    #83                 // class java/lang/String
+         4: ifne          13
+         7: ldc           #205                // String string expected
+         9: invokestatic  #15                 // Method bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        12: athrow
+        13: aload_0
+        14: checkcast     #83                 // class java/lang/String
+        17: areturn
+      LineNumberTable:
+        line 44: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      18     0     v   Ljava/lang/Object;
+
+  static java.lang.String uint(java.lang.Object);
+    descriptor: (Ljava/lang/Object;)Ljava/lang/String;
+    Code:
+         0: aload_0
+         1: instanceof    #115                // class dev/mixer/android/Json$Num
+         4: ifne          13
+         7: ldc           #207                // String integer expected
+         9: invokestatic  #15                 // Method bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        12: athrow
+        13: aload_0
+        14: checkcast     #115                // class dev/mixer/android/Json$Num
+        17: invokevirtual #209                // Method dev/mixer/android/Json$Num.unsigned:()Ljava/lang/String;
+        20: areturn
+      LineNumberTable:
+        line 45: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      21     0     v   Ljava/lang/Object;
+
+  static boolean bool(java.lang.Object);
+    descriptor: (Ljava/lang/Object;)Z
+    Code:
+         0: aload_0
+         1: instanceof    #110                // class java/lang/Boolean
+         4: ifne          13
+         7: ldc           #212                // String bool expected
+         9: invokestatic  #15                 // Method bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        12: athrow
+        13: aload_0
+        14: checkcast     #110                // class java/lang/Boolean
+        17: invokevirtual #214                // Method java/lang/Boolean.booleanValue:()Z
+        20: ireturn
+      LineNumberTable:
+        line 46: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      21     0     v   Ljava/lang/Object;
+
+  static void keys(java.util.Map<java.lang.String, java.lang.Object>, java.lang.String...);
+    descriptor: (Ljava/util/Map;[Ljava/lang/String;)V
+    Code:
+         0: aload_0
+         1: invokeinterface #217,  1          // InterfaceMethod java/util/Map.keySet:()Ljava/util/Set;
+         6: new           #220                // class java/util/HashSet
+         9: dup
+        10: aload_1
+        11: invokestatic  #222                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+        14: invokespecial #228                // Method java/util/HashSet."<init>":(Ljava/util/Collection;)V
+        17: invokeinterface #231,  2          // InterfaceMethod java/util/Set.equals:(Ljava/lang/Object;)Z
+        22: ifne          31
+        25: ldc           #235                // String unknown/missing fields
+        27: invokestatic  #15                 // Method bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        30: athrow
+        31: return
+      LineNumberTable:
+        line 47: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      32     0     m   Ljava/util/Map;
+            0      32     1 names   [Ljava/lang/String;
+
+  static java.util.Map<java.lang.String, java.lang.Object> map(java.lang.Object...);
+    descriptor: ([Ljava/lang/Object;)Ljava/util/Map;
+    Code:
+         0: new           #237                // class java/util/LinkedHashMap
+         3: dup
+         4: invokespecial #239                // Method java/util/LinkedHashMap."<init>":()V
+         7: astore_1
+         8: iconst_0
+         9: istore_2
+        10: iload_2
+        11: aload_0
+        12: arraylength
+        13: if_icmpge     40
+        16: aload_1
+        17: aload_0
+        18: iload_2
+        19: aaload
+        20: checkcast     #83                 // class java/lang/String
+        23: aload_0
+        24: iload_2
+        25: iconst_1
+        26: iadd
+        27: aaload
+        28: invokeinterface #240,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        33: pop
+        34: iinc          2, 2
+        37: goto          10
+        40: aload_1
+        41: areturn
+      LineNumberTable:
+        line 48: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+           10      30     2     i   I
+            0      42     0 pairs   [Ljava/lang/Object;
+            8      34     1     m   Ljava/util/Map;
+}
+Compiled from "NativeAppearanceViewsV2.java"
+class dev.mixer.android.NativeAppearanceViewsV2$1 {
+  static final int[] $SwitchMap$dev$mixer$android$AppearanceResolverV2$ButtonRole;
+    descriptor: [I
+
+  static final int[] $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$VerticalAlignment;
+    descriptor: [I
+
+  static {};
+    descriptor: ()V
+    Code:
+         0: invokestatic  #1                  // Method dev/mixer/android/AppearanceDescriptorV2$VerticalAlignment.values:()[Ldev/mixer/android/AppearanceDescriptorV2$VerticalAlignment;
+         3: arraylength
+         4: newarray       int
+         6: putstatic     #7                  // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$VerticalAlignment:[I
+         9: getstatic     #7                  // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$VerticalAlignment:[I
+        12: getstatic     #13                 // Field dev/mixer/android/AppearanceDescriptorV2$VerticalAlignment.top:Ldev/mixer/android/AppearanceDescriptorV2$VerticalAlignment;
+        15: invokevirtual #17                 // Method dev/mixer/android/AppearanceDescriptorV2$VerticalAlignment.ordinal:()I
+        18: iconst_1
+        19: iastore
+        20: goto          24
+        23: astore_0
+        24: getstatic     #7                  // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$VerticalAlignment:[I
+        27: getstatic     #23                 // Field dev/mixer/android/AppearanceDescriptorV2$VerticalAlignment.center:Ldev/mixer/android/AppearanceDescriptorV2$VerticalAlignment;
+        30: invokevirtual #17                 // Method dev/mixer/android/AppearanceDescriptorV2$VerticalAlignment.ordinal:()I
+        33: iconst_2
+        34: iastore
+        35: goto          39
+        38: astore_0
+        39: getstatic     #7                  // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$VerticalAlignment:[I
+        42: getstatic     #26                 // Field dev/mixer/android/AppearanceDescriptorV2$VerticalAlignment.bottom:Ldev/mixer/android/AppearanceDescriptorV2$VerticalAlignment;
+        45: invokevirtual #17                 // Method dev/mixer/android/AppearanceDescriptorV2$VerticalAlignment.ordinal:()I
+        48: iconst_3
+        49: iastore
+        50: goto          54
+        53: astore_0
+        54: getstatic     #7                  // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$VerticalAlignment:[I
+        57: getstatic     #29                 // Field dev/mixer/android/AppearanceDescriptorV2$VerticalAlignment.firstTextBaseline:Ldev/mixer/android/AppearanceDescriptorV2$VerticalAlignment;
+        60: invokevirtual #17                 // Method dev/mixer/android/AppearanceDescriptorV2$VerticalAlignment.ordinal:()I
+        63: iconst_4
+        64: iastore
+        65: goto          69
+        68: astore_0
+        69: getstatic     #7                  // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$VerticalAlignment:[I
+        72: getstatic     #32                 // Field dev/mixer/android/AppearanceDescriptorV2$VerticalAlignment.lastTextBaseline:Ldev/mixer/android/AppearanceDescriptorV2$VerticalAlignment;
+        75: invokevirtual #17                 // Method dev/mixer/android/AppearanceDescriptorV2$VerticalAlignment.ordinal:()I
+        78: iconst_5
+        79: iastore
+        80: goto          84
+        83: astore_0
+        84: invokestatic  #35                 // Method dev/mixer/android/AppearanceResolverV2$ButtonRole.values:()[Ldev/mixer/android/AppearanceResolverV2$ButtonRole;
+        87: arraylength
+        88: newarray       int
+        90: putstatic     #40                 // Field $SwitchMap$dev$mixer$android$AppearanceResolverV2$ButtonRole:[I
+        93: getstatic     #40                 // Field $SwitchMap$dev$mixer$android$AppearanceResolverV2$ButtonRole:[I
+        96: getstatic     #43                 // Field dev/mixer/android/AppearanceResolverV2$ButtonRole.normal:Ldev/mixer/android/AppearanceResolverV2$ButtonRole;
+        99: invokevirtual #47                 // Method dev/mixer/android/AppearanceResolverV2$ButtonRole.ordinal:()I
+       102: iconst_1
+       103: iastore
+       104: goto          108
+       107: astore_0
+       108: getstatic     #40                 // Field $SwitchMap$dev$mixer$android$AppearanceResolverV2$ButtonRole:[I
+       111: getstatic     #48                 // Field dev/mixer/android/AppearanceResolverV2$ButtonRole.destructive:Ldev/mixer/android/AppearanceResolverV2$ButtonRole;
+       114: invokevirtual #47                 // Method dev/mixer/android/AppearanceResolverV2$ButtonRole.ordinal:()I
+       117: iconst_2
+       118: iastore
+       119: goto          123
+       122: astore_0
+       123: getstatic     #40                 // Field $SwitchMap$dev$mixer$android$AppearanceResolverV2$ButtonRole:[I
+       126: getstatic     #51                 // Field dev/mixer/android/AppearanceResolverV2$ButtonRole.cancel:Ldev/mixer/android/AppearanceResolverV2$ButtonRole;
+       129: invokevirtual #47                 // Method dev/mixer/android/AppearanceResolverV2$ButtonRole.ordinal:()I
+       132: iconst_3
+       133: iastore
+       134: goto          138
+       137: astore_0
+       138: return
+      Exception table:
+         from    to  target type
+             9    20    23   Class java/lang/NoSuchFieldError
+            24    35    38   Class java/lang/NoSuchFieldError
+            39    50    53   Class java/lang/NoSuchFieldError
+            54    65    68   Class java/lang/NoSuchFieldError
+            69    80    83   Class java/lang/NoSuchFieldError
+            93   104   107   Class java/lang/NoSuchFieldError
+           108   119   122   Class java/lang/NoSuchFieldError
+           123   134   137   Class java/lang/NoSuchFieldError
+      LineNumberTable:
+        line 506: 0
+        line 382: 84
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+}

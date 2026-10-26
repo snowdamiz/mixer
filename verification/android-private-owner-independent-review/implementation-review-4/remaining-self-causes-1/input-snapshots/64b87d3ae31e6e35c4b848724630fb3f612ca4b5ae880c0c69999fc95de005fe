@@ -1,0 +1,176 @@
+package dev.mixer.android;
+
+import android.app.Activity;
+import android.os.Handler;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputConnection;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.Switch;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Set;
+
+/** Independently authored continuation against actual C5 bodies and admitted mechanical leaves. */
+public final class IndependentRemainingReview {
+    private IndependentRemainingReview() {}
+    private static int assertions,cases;
+    private static void check(boolean value,String message){assertions++;if(!value)throw new AssertionError(message);}
+    private static Object get(Object target,String name){try{Field f=target.getClass().getDeclaredField(name);f.setAccessible(true);return f.get(target);}catch(ReflectiveOperationException failure){throw new AssertionError(failure);}}
+    private static Throwable call(Runnable action){try{action.run();return null;}catch(RuntimeException|Error failure){return failure;}}
+    private static Object invoke(Object target,String name,Class<?>[] types,Object...args){try{Method m=target.getClass().getDeclaredMethod(name,types);m.setAccessible(true);return m.invoke(target,args);}catch(InvocationTargetException failure){Throwable cause=failure.getCause();if(cause instanceof RuntimeException ordinary)throw ordinary;if(cause instanceof Error fatal)throw fatal;throw new AssertionError(cause);}catch(ReflectiveOperationException failure){throw new AssertionError(failure);}}
+    private static final class Ordinary extends RuntimeException{private static final long serialVersionUID=1L;Ordinary(){super("independent remaining ordinary",null,false,false);}}
+    private static final class Fatal extends Error{private static final long serialVersionUID=1L;Fatal(){super("independent remaining fatal");}}
+    private static final class Fixture implements AutoCloseable{
+        final Path inputs;final Activity activity=new Activity();final FrameLayout root=new FrameLayout(activity);
+        final NativeOwnerV2 owner;final OwnerLifecycleV2 core;final NativeOwnerV2.Fence fence;final Handler handler;
+        Fixture(Path inputs,String packet)throws Exception{
+            this.inputs=inputs;ConcreteHostProbe.reset();NativeBridge.reset();root.layout(0,0,320,480);root.hostAttach(new Object());
+            activity.assets.put(InstalledAppearanceV2.DESCRIPTOR,Files.readAllBytes(inputs.resolve("independent-descriptor.json")));NativeBridge.preparedPacket=Files.readAllBytes(inputs.resolve(packet));
+            owner=new NativeOwnerV2(activity,root);core=(OwnerLifecycleV2)get(owner,"core");fence=(NativeOwnerV2.Fence)get(owner,"fence");handler=(Handler)get(owner,"handler");
+        }
+        NativeCoordinatorV2 coordinator(){Object held=get(owner,"coordinator");if(held==null)held=get(owner,"opening");return (NativeCoordinatorV2)held;}
+        NativeRenderer renderer(){return (NativeRenderer)get(coordinator(),"renderer");}
+        NativeEnvironmentV2.Observer observer(){return (NativeEnvironmentV2.Observer)get(owner,"observer");}
+        void live(){owner.start();owner.onResume();check(handler.drainOne(),"real initial delivery");check(owner.hasCommittedPresentation()&&fence.drawAllowed&&fence.inputAllowed,"actual clean initial publication");}
+        @Override public void close(){ConcreteHostProbe.hook=null;Throwable failure=call(owner::close);check(failure==null||failure==owner.cleanupLedger().firstFatal(),"final close keeps exact first fatal");ConcreteHostProbe.reset();NativeBridge.reset();}
+    }
+    private static void row(String family,String name,String variant){cases++;System.out.println("{\"family\":\""+family+"\",\"name\":\""+name+"\",\"variant\":\""+variant+"\",\"passed\":true}");}
+    private static final String[] FORWARDS={"beginBatchEdit","endBatchEdit","clearMetaKeyStates","closeConnection","commitText","setComposingText","commitTextAttributes","setComposingTextAttributes","setComposingRegion","setComposingRegionAttributes","finishComposingText","deleteSurroundingText","deleteSurroundingTextInCodePoints","setSelection","performEditorAction","sendKeyEvent","setImeConsumesInput","commitCompletion"};
+    private static String leaf(String name){return name.equals("commitTextAttributes")?"commitTextWithAttributes":name.equals("setComposingTextAttributes")?"setComposingTextWithAttributes":name.equals("setComposingRegionAttributes")?"setComposingRegion":name;}
+    private static Object ime(InputConnection c,String family){return switch(family){
+        case "beginBatchEdit"->c.beginBatchEdit();case "endBatchEdit"->c.endBatchEdit();case "clearMetaKeyStates"->c.clearMetaKeyStates(0);
+        case "closeConnection"->{c.closeConnection();yield null;}
+        case "commitText"->c.commitText("beta",1);case "setComposingText"->c.setComposingText("beta",1);
+        case "commitTextAttributes"->c.commitText("beta",1,null);case "setComposingTextAttributes"->c.setComposingText("beta",1,null);
+        case "setComposingRegion"->c.setComposingRegion(0,1);case "setComposingRegionAttributes"->c.setComposingRegion(0,1,null);
+        case "finishComposingText"->c.finishComposingText();case "deleteSurroundingText"->c.deleteSurroundingText(0,0);case "deleteSurroundingTextInCodePoints"->c.deleteSurroundingTextInCodePoints(0,0);
+        case "setSelection"->c.setSelection(0,0);case "performEditorAction"->c.performEditorAction(0);
+        case "sendKeyEvent"->c.sendKeyEvent(new android.view.KeyEvent(android.view.KeyEvent.ACTION_UP,0,0));case "setImeConsumesInput"->c.setImeConsumesInput(true);
+        case "commitCompletion"->c.commitCompletion(new android.view.inputmethod.CompletionInfo(0,0,"beta"));default->throw new AssertionError(family);
+    };}
+    private static void imeFamilies(Path inputs)throws Exception{
+        String[] variants={"exact-current","synchronous-successor","dirty-at-entry","terminal-at-entry","stale-record","dirty-before-return","terminal-before-return","fatal-before-return"};
+        for(String family:FORWARDS)for(String variant:variants)try(Fixture f=new Fixture(inputs,"matrix-packet-base.json")){
+            f.live();var renderer=f.renderer();EditText edit=(EditText)renderer.view("field");edit.requestFocus();edit.setSelection(0,edit.getText().length());InputConnection connection=edit.onCreateInputConnection(new EditorInfo());check(connection!=null,"actual connection acquired");
+            var original=f.fence.presentation;var originalRecord=renderer.inspectV2().get("field");var originalBinding=originalRecord.binding;
+            NativeBridge.preparedPacket=Files.readAllBytes(inputs.resolve(family.startsWith("deleteSurrounding")?"remaining-inputs/field-empty.json":"matrix-packet-changed.json"));
+            if(variant.equals("dirty-at-entry"))f.owner.onPause();else if(variant.equals("terminal-at-entry"))f.owner.close();else if(variant.equals("stale-record")){edit.clearFocus();NativeBridge.preparedPacket=Files.readAllBytes(inputs.resolve("remaining-inputs/stale-field-removed.json"));renderer.view("button").performClick();check(renderer.inspectV2().get("field")!=originalRecord,"real successor removes original record; phase="+f.core.snapshot().phase()+" primary="+f.owner.cleanupLedger().primary());}
+            ConcreteHostProbe.reset();int prepareBefore=NativeBridge.prepareCalls,commitBefore=NativeBridge.commitCalls;boolean[] reached={false},textWatcher={false};Fatal fatal=new Fatal();Object[] result={null};
+            ConcreteHostProbe.hook=(method,phase)->{
+                var event=ConcreteHostProbe.lastEvent();
+                if(method.equals("NativeBridge.prepareV2")&&phase.equals("entry")&&event.productionFrames.stream().anyMatch(frame->frame.className().contains("NativeAppearanceViewsV2$Record$")&&frame.methodName().equals("afterTextChanged")))textWatcher[0]=true;
+                if(!reached[0]&&method.equals("BaseInputConnection."+leaf(family))&&phase.equals("beforeReturn")){
+                    reached[0]=true;
+                    if(variant.equals("synchronous-successor")&&f.fence.presentation==original)edit.hostReplace(0,edit.getText().length(),"beta");
+                    if(variant.equals("dirty-before-return"))f.owner.onPause();else if(variant.equals("terminal-before-return"))f.owner.close();else if(variant.equals("fatal-before-return"))throw fatal;
+                }
+            };
+            Throwable escaped=call(()->result[0]=ime(connection,family));ConcreteHostProbe.hook=null;
+            boolean refuses=variant.endsWith("at-entry")||variant.equals("stale-record");long delegateEntries=ConcreteHostProbe.events().stream().filter(e->e.method.startsWith("BaseInputConnection.")&&e.phase.equals("entry")).count();
+            if(refuses){check(!reached[0]&&delegateEntries==0,"closed/stale concrete record refuses with zero native delegates");check(escaped==null&&(result[0]==null||Boolean.FALSE.equals(result[0])),"entry refusal result");check(NativeBridge.prepareCalls==prepareBefore&&NativeBridge.commitCalls==commitBefore,"refusal emits no engine operation");}
+            else{
+                check(reached[0]&&delegateEntries==1,"exact forwarding family delegates once");
+                if(variant.equals("synchronous-successor")){
+                    check(f.fence.presentation!=original&&f.fence.presentation==f.core.snapshot().presentation()&&f.fence.operation==null&&f.fence.drawAllowed&&f.fence.inputAllowed&&!f.core.snapshot().dirty(),"real synchronous clean successor completes through owner/core");
+                    check(NativeBridge.prepareCalls==prepareBefore+1&&NativeBridge.commitCalls==commitBefore+1&&textWatcher[0],"actual Editable TextWatcher synchronously dispatches and commits exactly once");
+                    check(originalRecord.binding!=originalBinding&&originalRecord.binding.nativeFieldValue().equals(family.startsWith("deleteSurrounding")?"":"beta"),"actual retained record now has committed successor binding");
+                    check(family.equals("closeConnection")?escaped instanceof IllegalStateException:escaped==null,"void close postcheck refuses old scope; boolean completed result returns immediately");
+                }else if(variant.equals("fatal-before-return"))check(escaped==fatal,"every reachable forwarding family preserves exact observed Error");
+                else if(variant.endsWith("before-return")){check(!f.fence.drawAllowed&&!f.fence.inputAllowed,"dirty/terminal delegate callback seals authority before return");check(family.equals("closeConnection")?escaped instanceof IllegalStateException:escaped==null&&!Boolean.TRUE.equals(result[0]),"closed completed result cannot claim success");}
+                else check(escaped==null,"exact current delegate completes");
+            }
+            row("IME-forward",family,variant);
+        }
+        String[] refusals={"replaceText","performPrivateCommand","performHandwritingGesture","previewHandwritingGesture","commitCorrection","commitContent"};
+        for(String family:refusals)for(String variant:new String[]{"exact-current","dirty","terminal","stale"})try(Fixture f=new Fixture(inputs,"matrix-packet-base.json")){
+            f.live();var renderer=f.renderer();EditText edit=(EditText)renderer.view("field");edit.requestFocus();InputConnection c=edit.onCreateInputConnection(new EditorInfo());check(c!=null,"actual refusal connection");
+            if(variant.equals("dirty"))f.owner.onPause();else if(variant.equals("terminal"))f.owner.close();else if(variant.equals("stale")){edit.clearFocus();NativeBridge.preparedPacket=Files.readAllBytes(inputs.resolve("remaining-inputs/stale-field-removed.json"));renderer.view("button").performClick();}
+            ConcreteHostProbe.reset();int prepare=NativeBridge.prepareCalls;int[] callbacks={0},reported={-1};Object result=switch(family){case "replaceText"->c.replaceText(0,0,"beta",1,null);case "performPrivateCommand"->c.performPrivateCommand("private",null);case "previewHandwritingGesture"->c.previewHandwritingGesture(null,null);case "commitCorrection"->c.commitCorrection(null);case "commitContent"->c.commitContent(null,0,null);case "performHandwritingGesture"->{c.performHandwritingGesture(null,Runnable::run,value->{callbacks[0]++;reported[0]=value;});yield null;}default->throw new AssertionError();};
+            check(result==null||Boolean.FALSE.equals(result),"explicit nonforwarding refusal");check(ConcreteHostProbe.events().stream().noneMatch(e->e.method.startsWith("BaseInputConnection.")||e.method.startsWith("InputConnectionWrapper.")),"all refusal overrides forward zero native calls");check(NativeBridge.prepareCalls==prepare,"refusal starts no owner operation");if(family.equals("performHandwritingGesture"))check(callbacks[0]==1&&reported[0]==InputConnection.HANDWRITING_GESTURE_RESULT_UNSUPPORTED,"handwriting unsupported result explicit exactly once");row("IME-refusal",family,variant);
+        }
+    }
+    private static List<NativeAppearanceViewsV2.Record> roster(NativeRenderer renderer){
+        List<NativeAppearanceViewsV2.Record> values=new ArrayList<>();var current=(NativeAppearanceViewsV2.Record[])get(renderer,"v2Roster");int count=(Integer)get(renderer,"v2RosterCount");for(int i=0;i<count;i++)values.add(current[i]);
+        Object pending=get(renderer,"v2Pending");if(pending!=null)for(String name:new String[]{"target","detached"}){var records=(NativeAppearanceViewsV2.Record[])get(pending,name+"Roster");int n=(Integer)get(pending,name+"Count");for(int i=0;i<n;i++)values.add(records[i]);}
+        Set<NativeAppearanceViewsV2.Record> unique=Collections.newSetFromMap(new IdentityHashMap<>());return values.stream().filter(unique::add).toList();
+    }
+    private static void cancelPass(Fixture f,NativeRenderer renderer,String scope,int position,String failureMode){
+        List<NativeAppearanceViewsV2.Record> records=roster(renderer);var toggles=records.stream().filter(r->r.view instanceof Switch).toList();check(toggles.size()>=3,"actual first/middle/last cancellation records available");
+        for(var r:toggles)r.view.pressed=true; // Primitive mechanical platform pressed state only; no product authority is assigned.
+        var selected=toggles.get(position==0?0:position==1?toggles.size()/2:toggles.size()-1);int before=renderer.cleanupLedger().attempts();long serial=f.fence.sealSerial+1;boolean[] fired={false};Ordinary ordinary=new Ordinary();Fatal fatal=new Fatal();int[] selectedCalls={0};List<Long> observedClaims=new ArrayList<>();
+        ConcreteHostProbe.hook=(method,phase)->{var event=ConcreteHostProbe.lastEvent();if(method.equals("View.setPressed")&&phase.equals("entry")&&event.receiver==selected.view){selectedCalls[0]++;check(!observedClaims.contains(selected.cancelClaim),"one concrete cleanup attempt per selected record per serial");observedClaims.add(selected.cancelClaim);if(!fired[0]){fired[0]=true;check(selected.cancelClaim==serial,"record claim consumed before concrete cleanup callback");check(!f.fence.drawAllowed&&!f.fence.inputAllowed,"cancellation enters behind scalar barrier");if(failureMode.equals("ordinary"))throw ordinary;if(failureMode.equals("fatal"))throw fatal;if(failureMode.startsWith("recursive")){long entered=f.fence.sealSerial;f.owner.onPause();check(f.fence.sealSerial==entered+1&&renderer.cleanupLedger().inProgress(),"recursive serial request advances without nested cancellation pass");if(failureMode.equals("recursive-renderer"))renderer.cancelInputV2(f.fence.sealSerial);}}}};
+        Throwable escaped=call(f.owner::onPause);ConcreteHostProbe.hook=null;
+        check(fired[0]&&observedClaims.stream().filter(claim->claim==serial).count()==1,"selected record cleanup attempted exactly once in original serial; later terminal serial is separate");check(renderer.cleanupLedger().attempts()-before>=records.size(),"all actual unique current/pending roster records independently attempted");for(var r:records)check(r.cancelClaim>=serial,"every stable current/pending record claim consumed");
+        check(!renderer.cleanupLedger().inProgress()&&renderer.cleanupLedger().consumedSerial()>=serial&&renderer.cleanupLedger().consumedSerial()<=f.fence.sealSerial,"consumed renderer claim never resets and remains bounded by exact sealed serial");if(failureMode.startsWith("recursive")){check((Long)get(f.coordinator(),"cancellationSerial")==f.fence.sealSerial,"successful coordinator coalesces newest recursive serial");check(renderer.cleanupLedger().consumedSerial()==(failureMode.equals("recursive")?serial:f.fence.sealSerial),"renderer consumes exact delivered serial; coordinator-only recursive request is absorbed at coordinator");}check(failureMode.equals("fatal")?escaped==fatal:escaped==null,"originating owner cancellation error policy");
+        if(failureMode.equals("ordinary")||failureMode.equals("fatal")){check(f.fence.terminal&&f.core.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED,"failed cancellation emits terminal retirement");check(renderer.cleanupLedger().primary()==(failureMode.equals("fatal")?fatal:ordinary),"cancellation first primary identity");}
+        else {int count=renderer.cleanupLedger().attempts();f.coordinator().cancelInputFromOwner(f.fence.sealSerial);check(renderer.cleanupLedger().attempts()==count,"same consumed coordinator serial never repeats a roster");f.owner.onPause();check(renderer.cleanupLedger().attempts()==count+records.size(),"new serial independently visits every actual record once");}
+        row("cancellation",scope+"-"+position,failureMode);
+    }
+    private static void cancellation(Path inputs)throws Exception{
+        for(int position=0;position<3;position++)for(String mode:new String[]{"ordinary","fatal","recursive","recursive-renderer"})try(Fixture f=new Fixture(inputs,"remaining-inputs/roster-base.json")){f.live();cancelPass(f,f.renderer(),"current",position,mode);}
+        for(int position=0;position<3;position++)for(String mode:new String[]{"ordinary","fatal","recursive","recursive-renderer"})try(Fixture f=new Fixture(inputs,"remaining-inputs/roster-base.json")){
+            f.live();NativeRenderer renderer=f.renderer();NativeBridge.preparedPacket=Files.readAllBytes(inputs.resolve("remaining-inputs/roster-next.json"));boolean[] pending={false};int selected=position;
+            ConcreteHostProbe.hook=(method,phase)->{if(!pending[0]&&phase.equals("entry")&&get(renderer,"v2Pending")!=null ){pending[0]=true;ConcreteHostProbe.hook=null;cancelPass(f,renderer,"current-plus-pending",selected,mode);}};
+            Throwable escaped=call(()->renderer.view("go").performClick());ConcreteHostProbe.hook=null;check(pending[0],"actual fully prepared pending Candidate published before next concrete validation/attachment effect");check(escaped==null||escaped==f.owner.cleanupLedger().firstFatal(),"pending operation preserves exact first fatal");
+        }
+    }
+    private static void clearTouch(Path inputs)throws Exception{
+        for(int slot=0;slot<3;slot++)for(String phase:new String[]{"entry","beforeReturn"})for(boolean fatal:new boolean[]{false,true})try(Fixture f=new Fixture(inputs,"matrix-packet-base.json")){
+            f.live();Switch toggle=(Switch)f.renderer().view("toggle");var geometry=(AuthoredToggleInputV2.Geometry)invoke(toggle,"authoredGeometry",new Class<?>[0]);float x=(float)geometry.offCenter(),y=geometry.trackY()+geometry.trackHeight()/2;
+            check(toggle.onTouchEvent(MotionEvent.obtain(100,100,MotionEvent.ACTION_DOWN,x,y,0)),"actual gesture DOWN");check(toggle.onTouchEvent(MotionEvent.obtain(100,120,MotionEvent.ACTION_MOVE,x+20,y,0)),"actual gesture drag owns parent interception");Object parent=get(toggle,"disallowedParent");check(parent!=null,"real drag acquired disallowed parent");
+            String[] names={"View.setPressed","View.invalidate","View.requestDisallowInterceptTouchEvent"};int[] attempts={0,0,0};boolean[] fired={false};int selected=slot;Ordinary ordinary=new Ordinary();Fatal marker=new Fatal();
+            ConcreteHostProbe.hook=(method,point)->{Object receiver=ConcreteHostProbe.lastEvent().receiver;for(int i=0;i<3;i++)if(method.equals(names[i])&&receiver==(i==2?parent:toggle)){if(point.equals("entry"))attempts[i]++;if(i==selected&&point.equals(phase)&&!fired[0]){fired[0]=true;check(get(toggle,"downParent")==null&&get(toggle,"disallowedParent")==null,"touch ownership cleared before first cleanup callback");invoke(toggle,"cancelTouch",new Class<?>[0]);if(fatal)throw marker;throw ordinary;}}};
+            Throwable escaped=call(()->invoke(toggle,"cancelTouch",new Class<?>[0]));ConcreteHostProbe.hook=null;check(fired[0]&&attempts[0]==1&&attempts[1]==1&&attempts[2]==1,"all three clearTouch cleanup attempts survive each independent fault and recursive cancel");check(escaped==(fatal?marker:ordinary),"clearTouch originating failure identity");int parentCalls=ConcreteHostProbe.count("View.requestDisallowInterceptTouchEvent","entry"),prepareCalls=NativeBridge.prepareCalls;invoke(toggle,"cancelTouch",new Class<?>[0]);check(ConcreteHostProbe.count("View.requestDisallowInterceptTouchEvent","entry")==parentCalls&&get(toggle,"disallowedParent")==null&&get(toggle,"downParent")==null,"consumed retained-parent release never repeats, including uncertain pressed-state retry");check(NativeBridge.prepareCalls==prepareCalls,"touch cleanup never emits feature input");int count=ConcreteHostProbe.events().size();invoke(toggle,"cancelTouch",new Class<?>[0]);check(ConcreteHostProbe.events().size()==count,"after primitive pressed state clears, repeated cleanup is inert");row("clearTouch",names[slot],phase+(fatal?"-fatal":"-ordinary"));
+        }
+    }
+    private static void reports(Path inputs)throws Exception{
+        for(var cause:NativeEnvironmentV2.RendererCause.values())for(String variant:new String[]{"null","ordinary","fatal","distinct-primary-fatal"})try(Fixture f=new Fixture(inputs,"matrix-packet-base.json")){
+            f.live();var observer=f.observer();var renderer=f.renderer();Ordinary ordinary=new Ordinary();Fatal fatal=new Fatal();Throwable primary=variant.equals("null")?null:variant.equals("fatal")?fatal:ordinary;Error firstFatal=variant.equals("fatal")||variant.equals("distinct-primary-fatal")?fatal:null;
+            check(call(()->observer.rendererTerminal(new NativeRenderer(f.activity,ignored->{}),cause,primary,firstFatal)) instanceof IllegalArgumentException,"foreign typed renderer source rejected before authority changes");check(!f.fence.terminal,"foreign report cannot retire actual owner");
+            long generation=(Long)get(observer,"generation");var captured=observer.capture();Throwable escaped=call(()->observer.rendererTerminal(renderer,cause,primary,firstFatal));
+            check(escaped==firstFatal,"typed report preserves explicit fatal identity");check(f.owner.cleanupLedger().rendererCause()==cause&&f.owner.cleanupLedger().primary()==primary&&f.owner.cleanupLedger().firstFatal()==firstFatal,"all typed cause and diagnostic variants retain exact identities");check(f.fence.terminal&&!f.fence.drawAllowed&&!f.fence.inputAllowed&&f.core.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED,"typed report seals real owner/core");check((Long)get(observer,"generation")==generation&&(Boolean)get(observer,"retired")&&!captured.current(renderer),"typed terminal revokes retained capture by scalar retirement without inventing invalidation generation");
+            int events=ConcreteHostProbe.events().size(),destroy=NativeBridge.destroyCalls;call(()->observer.rendererTerminal(renderer,NativeEnvironmentV2.RendererCause.CANCELLATION_FAILED,new Ordinary(),new Fatal()));call(f.owner::close);check(ConcreteHostProbe.events().size()==events&&NativeBridge.destroyCalls==destroy&&destroy==1,"typed terminal claim consumes report and disposal exactly once");check(f.owner.cleanupLedger().rendererCause()==cause&&f.owner.cleanupLedger().primary()==primary&&f.owner.cleanupLedger().firstFatal()==firstFatal,"repeat report never replaces first cause/P/F");row("typed-report",cause.name(),variant);
+        }
+    }
+    private static void selfCauses(Path inputs)throws Exception{
+        for(var cause:NativeEnvironmentV2.RendererCause.values())try(Fixture f=new Fixture(inputs,"matrix-packet-base.json")){
+            f.live();var renderer=f.renderer();Ordinary ordinary=new Ordinary();Fatal fatal=new Fatal();boolean[] fired={false};NativeBridge.preparedPacket=Files.readAllBytes(inputs.resolve("matrix-packet-echo.json"));
+            Runnable action;
+            switch(cause){
+                case INTERACTION_EXHAUSTED->{renderer.testExhaustInteractionV2();action=()->renderer.view("button").performClick();}
+                case CAPTURE_FAILED->{f.activity.assets.put(InstalledAppearanceV2.DESCRIPTOR,Files.readAllBytes(inputs.resolve("remaining-inputs/descriptor-format.json")));action=()->renderer.view("button").performClick();}
+                case ROLLBACK_FAILED->{renderer.testFaultV2(-1,true);NativeBridge.commitStatus=1;action=()->renderer.view("button").performClick();}
+                case CURRENT_CHECK_FATAL->{ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&phase.equals("entry")&&method.equals("Activity.isDestroyed")&&ConcreteHostProbe.lastEvent().productionFrames.stream().anyMatch(frame->frame.className().equals("dev.mixer.android.NativeEnvironmentV2")&&frame.methodName().equals("current"))){fired[0]=true;throw fatal;}};action=()->renderer.view("button").performClick();}
+                case CANCELLATION_FAILED->{Switch toggle=(Switch)renderer.view("toggle");toggle.pressed=true;ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&phase.equals("entry")&&method.equals("View.setPressed")&&ConcreteHostProbe.lastEvent().receiver==toggle){fired[0]=true;throw ordinary;}};action=f.owner::onPause;}
+                case TERMINAL_VALIDATION_FAILED->action=renderer::retireV2;
+                default->throw new AssertionError(cause);
+            }
+            Throwable escaped=call(action);ConcreteHostProbe.hook=null;check(f.owner.cleanupLedger().rendererCause()==cause,"actual self-retirement trigger reports its exact cause "+cause);check(f.fence.terminal&&!f.fence.drawAllowed&&!f.fence.inputAllowed&&f.core.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED,"actual self-retirement cause reaches shared owner/core barrier");check(NativeBridge.destroyCalls==1,"actual self-retirement disposes once");if(cause==NativeEnvironmentV2.RendererCause.CURRENT_CHECK_FATAL)check(fired[0]&&escaped==fatal&&f.owner.cleanupLedger().firstFatal()==fatal,"actual current fatal retains originating Error identity");else check(escaped==null,"ordinary self-retirement follows originating owner policy");row("actual-self-cause",cause.name(),"real-selected-trigger");
+        }
+    }
+    private static void decoders(Path inputs)throws Exception{
+        for(Path path:Files.list(inputs.resolve("remaining-inputs")).filter(p->p.getFileName().toString().startsWith("descriptor-")).sorted().toList())try(Fixture f=new Fixture(inputs,"matrix-packet-base.json")){
+            f.activity.assets.put(InstalledAppearanceV2.DESCRIPTOR,Files.readAllBytes(path));ConcreteHostProbe.reset();f.owner.start();f.owner.onResume();check(f.handler.drainOne(),"malformed descriptor actual operation delivered");
+            check(f.core.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED&&f.owner.cleanupLedger().primary()!=null,"actual installed decoder rejects malformed independent descriptor");check(NativeBridge.prepareCalls==0&&NativeBridge.commitCalls==0,"descriptor rejection occurs before prepare/commit");check(ConcreteHostProbe.events().stream().noneMatch(e->e.method.equals("View.<init>")||e.method.equals("ViewGroup.addView")),"no concrete view construction/attachment before descriptor rejection");row("descriptor-negative",path.getFileName().toString(),"actual-installed-decode");
+        }
+        for(Path path:Files.list(inputs.resolve("remaining-inputs")).filter(p->p.getFileName().toString().startsWith("packet-")).sorted().toList())try(Fixture f=new Fixture(inputs,"matrix-packet-base.json")){
+            NativeBridge.preparedPacket=Files.readAllBytes(path);ConcreteHostProbe.reset();f.owner.start();f.owner.onResume();check(f.handler.drainOne(),"malformed packet actual operation delivered");
+            check(f.core.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED&&f.owner.cleanupLedger().primary()!=null,"actual Json/UiPacket rejects independent malformed packet");check(NativeBridge.prepareCalls==1&&NativeBridge.commitCalls==0&&NativeBridge.abortCalls==1,"decoder rejection precedes commit and consumes authentic candidate abort");check(ConcreteHostProbe.events().stream().noneMatch(e->e.method.equals("View.<init>")||e.method.equals("ViewGroup.addView")),"no view mutation/construction/attachment before packet rejection");row("packet-negative",path.getFileName().toString(),"actual-Json-UiPacket");
+        }
+        try(Fixture f=new Fixture(inputs,"matrix-packet-base.json")){f.live();check(ConcreteHostProbe.count("ViewGroup.addView","entry")>0&&ConcreteHostProbe.count("View.layout","entry")>0,"positive independent packet reaches real concrete construction/attachment/layout");NativeBridge.preparedPacket=Files.readAllBytes(inputs.resolve("matrix-packet-changed.json"));EditText edit=(EditText)f.renderer().view("field");edit.requestFocus();edit.setSelection(0,edit.getText().length());check(edit.onCreateInputConnection(new EditorInfo()).commitText("beta",1)&&NativeBridge.commitCalls==2,"positive real decoder witness reaches actual input and successor commit");row("decoder-positive","independent-literal","layout-and-input");}
+    }
+    public static void main(String[] args)throws Exception{
+        Path inputs=Path.of(args[0]);switch(args[1]){case "IME"->imeFamilies(inputs);case "cancellation"->cancellation(inputs);case "clearTouch"->clearTouch(inputs);case "reports"->reports(inputs);case "self-causes"->selfCauses(inputs);case "decoders"->decoders(inputs);default->throw new AssertionError(args[1]);}
+        System.out.println("{\"scope\":\"independent C5 remaining selected host obligations\",\"mode\":\""+args[1]+"\",\"cases\":"+cases+",\"assertions\":"+assertions+"}");
+    }
+}

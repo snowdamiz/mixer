@@ -43,6 +43,7 @@ Reviewed owner/cache-state contracts `69b0c522` pass all 42 steps across three [
 Independent cache-state review preparation `5c1cf075` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40290654299) passes services and VM, but Swift fails one runner-timeout control before analyzer execution. A bounded test-readiness repair passes all 63 CI selection controls locally; corrected `137d3e1d` passes all 42 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40292240567).
 Native runtime and capture remain paused.
 Review evidence checkpoint `99f8a0a7` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40303522601) passes all 42 steps across three jobs. This checkpoint preserves immutable candidates/reviews and root metadata, with no canonical product or CLI changes.
+Host review evidence `d275c072` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40308561680) passes all 42 steps across three jobs. It preserves candidate4/CLI review and 192 semantic cases; canonical implementation edits remain outside this checkpoint.
 All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
 [gates/ga.json](gates/ga.json) records eight running and thirty planned gates.
@@ -250,10 +251,37 @@ selected per-site block model: subtotal657 before administration; restore-only
 literals would leave645. The bounds are conditional, not measured runtime
 overruns. Root selects fixed-endpoint scalar-commit and restore copies under
 unchanged caps, with complete corrected work/lifetime proofs still required.
-The selected correction is now in progress. Three admitted public batches on the
+The selected correction is frozen in 570 members. Producer qualification passes
+122 distinct methods and 25 API dispositions per compiler mode, with 23 fresh
+layouts; complete work and lifetime proofs remain open. Three admitted public batches on the
 guard correction add 192 passing cases: 64 words, 64 transitions and 64 sequences.
 Root verifies 1,416 result members and removal of all six hashed products. No new
 private execution or work/lifetime acceptance follows from these semantic passes.
+Two G3 comparison-load proposals remain unselected because their apparent fit
+depends on an unselected scalar-operation granularity. The third per-comparison
+view and fourth whole-sort view proposals expose further source-model obstacles;
+no G3/G4 implementation change is selected. A separate G6 audit identifies a
+conditional 665-group core. Independent review rejects the named zero-array
+variant's inherited memory-role assignment and supports an anonymous-array
+alternative with a clear-block bound of 189 groups. Root selects that alternative
+for isolated correction3 through the explicit
+[clear amendment](docs/swift-cache-state-clear128-selection.md). Correction3 is
+frozen in 570 verified members. Fresh host qualification passes 122 distinct
+methods, 25 API dispositions and 23 layouts per mode, including 29 public and two
+private four-File cases. All fourteen owned products were hashed and removed.
+The complete G6 component-source ledger is accepted after an independent
+slice-receiver correction: 512 production groups and 514 with private faults,
+within 640. Combined work/lifetime proofs and independent implementation
+acceptance remain open; the original exact 511-group claim stays preserved.
+Independent review rejects the byte-index sorting proposal: its assignments alone
+require at least 1,080 G4 groups against the 768 cap. Independent finite models pass,
+but the proposal also changes primitive accounting and duplicates caller ownership.
+A cached-head alternative also fails its finite G3/G4 bounds; a distinct
+fixed-array source proposal is active. The complete correction3 lifetime proposal
+is frozen for independent review. No sorting implementation or layout amendment
+is selected.
+Zero-debit guard replies retain their separate terminal-guard ownership. No cap
+increase or combined acceptance follows.
 
 Independent iOS source review found two host-diagnostic completeness defects:
 substituted original AX/app data and reordered callback references could be
@@ -412,6 +440,29 @@ Independent review adds 63 host commands, three copied-consumer methods and
 48 refusals across eight fixtures. Root verifies 658 review members and accepts
 the bounded CLI scope. Complete owner source/callback/legacy qualification and
 canonical delivery remain open.
+Final classification corrects direct callback coverage to 1,316 rows: 1,295
+primitive/constructor rows and 21 exact helper-boundary witnesses. Seven
+measure-helper rows still need direct debugger timing; their nested rows retain
+complementary scope without duplicate credit. F09 is independently confirmed:
+later fatal engine disposal replaces an earlier ordinary renderer failure in
+the outer owner's primary slot. The core retires and gates remain closed.
+The complete rejected review is frozen in 3,589 verified members. Its historical
+source map binds 35 groups and 153 check sites; full expansion of the 447 reported
+historical vectors and broader cancellation and decoder/IME families remains
+pending. Root selects the narrow candidate5 repair to collect retained component
+failures before the thrown fatal error. Candidate5 is frozen in 1,772 verified
+members: 222 orchestration cases, 14,477 renderer checks and Java/SDK/D8
+compilation pass. The strengthened tests reproduce candidate4's failure.
+Exact source-profile CLI qualification now has independent host acceptance:
+683 review members are verified, including stale candidate4-profile refusal
+without lock mutation. The complete owner review is now accepted for bounded
+private development: 8,550 members are verified, all 1,323 direct matrix rows and
+514 continuation cases pass. Two observer-target replacement vectors remain
+source-only/native-pending. Canonical delivery is selected; public V2 remains
+unselected. The new
+JVM CI recipe passes locally: 216 orchestration cases, 14,477 renderer checks and
+162 observer cases. Its shell-precondition quoting defect is corrected; remote
+Linux/JDK17 execution is pending. Native runtime tests stay paused.
 See [the roster review](docs/android-private-owner-effect-roster-review.md) and
 [root selection](verification/android-private-owner-effect-integration-root-review/implementation-selection.json).
 The [selected clarification](verification/android-private-owner-effect-integration-root-review/dirty-result-clarification/selection.json) distinguishes recoverable lifecycle invalidation from stale concrete validation and permits only immediate scalar return of a completed input result after a live successor. The exact third mechanical leaf snapshot is accepted for bounded reuse after twelve independent controls and 82 assertions; it provides no product-test or Android-runtime acceptance.

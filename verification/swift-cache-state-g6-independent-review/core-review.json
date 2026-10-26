@@ -1,0 +1,194 @@
+{
+  "schema": 1,
+  "status": "665 qualified lower/core independently reproduced; not a complete upper/unconditional overrun",
+  "source_sha256": "6f128e861478c4c871460115397976b39e6cd3a4807a8825b5b04959e1930a00",
+  "built_payload_segments": [
+    {
+      "id": "event",
+      "lines": [
+        642,
+        671
+      ],
+      "payload_groups": 33,
+      "derivation": "zero-tail64 copy1 +12 resident/pin st*2 +4 sq*2"
+    },
+    {
+      "id": "staged_prior_pin",
+      "lines": [
+        653,
+        653
+      ],
+      "payload_groups": 1,
+      "derivation": "ld input [u8;8] -> from_le_bytes by-value argument; computes staged pins, conservatively G6"
+    },
+    {
+      "id": "final_sq",
+      "lines": [
+        707,
+        730
+      ],
+      "payload_groups": 12,
+      "derivation": "six sq at0..5, each LE-array return copy1 + destination store copy1"
+    },
+    {
+      "id": "rows",
+      "lines": [
+        734,
+        747
+      ],
+      "payload_groups": 2,
+      "derivation": "resident64 and pin48 commit; plan_delta absent on built branch"
+    },
+    {
+      "id": "scalar_commits",
+      "lines": [
+        753,
+        764
+      ],
+      "payload_groups": 12,
+      "derivation": "12 exact literal8-byte Candidate->arena copies"
+    },
+    {
+      "id": "old_clear",
+      "lines": [
+        781,
+        785
+      ],
+      "payload_groups": 257,
+      "derivation": "zero8 source->local binding copy1 plus256 distinct destination8-byte copies"
+    },
+    {
+      "id": "restores",
+      "lines": [
+        786,
+        797
+      ],
+      "payload_groups": 12,
+      "derivation": "12 exact literal8-byte arena->Candidate restores"
+    }
+  ],
+  "payload_total": 329,
+  "clear_scalar_core": [
+    {
+      "id": "C01",
+      "operation": "i source -> multiplication operand",
+      "units": 1
+    },
+    {
+      "id": "C02",
+      "operation": "literal8 -> multiplication operand",
+      "units": 1
+    },
+    {
+      "id": "C03",
+      "operation": "multiply i*8",
+      "units": 1
+    },
+    {
+      "id": "C04",
+      "operation": "result -> local at",
+      "units": 1
+    },
+    {
+      "id": "C05",
+      "operation": "at -> Range.start source field",
+      "units": 1
+    },
+    {
+      "id": "C06",
+      "operation": "at -> endpoint-add operand",
+      "units": 1
+    },
+    {
+      "id": "C07",
+      "operation": "literal8 -> endpoint-add operand",
+      "units": 1
+    },
+    {
+      "id": "C08",
+      "operation": "add at+8",
+      "units": 1
+    },
+    {
+      "id": "C09",
+      "operation": "end result -> Range.end source field",
+      "units": 1
+    },
+    {
+      "id": "C10",
+      "operation": "Range.start -> received index start",
+      "units": 1
+    },
+    {
+      "id": "C11",
+      "operation": "Range.end -> received index end",
+      "units": 1
+    },
+    {
+      "id": "C12",
+      "operation": "ordered-range predicate",
+      "units": 1
+    },
+    {
+      "id": "C13",
+      "operation": "upper-bound predicate",
+      "units": 1
+    },
+    {
+      "id": "C14",
+      "operation": "Candidate base+start address formation",
+      "units": 1
+    },
+    {
+      "id": "C15",
+      "operation": "end-start length formation",
+      "units": 1
+    },
+    {
+      "id": "C16",
+      "operation": "view.data -> copy receiver.data",
+      "units": 1
+    },
+    {
+      "id": "C17",
+      "operation": "view.len -> copy receiver.len",
+      "units": 1
+    },
+    {
+      "id": "C18",
+      "operation": "zero address -> source slice argument.data",
+      "units": 1
+    },
+    {
+      "id": "C19",
+      "operation": "literal8 -> source slice argument.len",
+      "units": 1
+    },
+    {
+      "id": "C20",
+      "operation": "copy length equality",
+      "units": 1
+    },
+    {
+      "id": "C21",
+      "operation": "copy unit/control -> caller continuation",
+      "units": 1
+    }
+  ],
+  "iterations": 256,
+  "scalars": 5376,
+  "globally_pooled_scalar_blocks": 336,
+  "ordered_ids_sha256": "0bc6b4453b0cb18de0d9d4aff0a6432f59dd5ff60c789bcd3e661f93dc22c9d8",
+  "qualified_core_total": 665,
+  "scope": "One scalar handles one machine word or primitive arithmetic/predicate/control operation. Range/view components and literal/input/binding edges are distinct. Source+received belong to one transfer, not two duplicate debits. No per-site rounding.",
+  "not_complete": [
+    "256 loop iterations and257 next/Option/guard controls",
+    "all helper scalar operands/returns/view/receiver places",
+    "all administration/event arithmetic/checks",
+    "zero8 repeat construction fields/inputs",
+    "actual cleanup caller/guard/return",
+    "all G1/G6 overlap reconciliation"
+  ],
+  "st_sq": "Each call has exactly two distinct8-byte payload moves in this model: to_le_bytes return->temporary and temporary->fixed destination. By contrast ld contributes one input array copy and scalar returns; do not inherit st copies for ld.",
+  "grouping_limit": "The component grammar is disclosed and consistent with earlier grain objections; binding text does not uniquely define it.665 is source-model lower/core evidence, not runtime work or final cap acceptance."
+}

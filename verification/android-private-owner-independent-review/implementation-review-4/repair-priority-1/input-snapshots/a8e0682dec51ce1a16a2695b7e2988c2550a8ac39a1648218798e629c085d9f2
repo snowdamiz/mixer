@@ -1,0 +1,206 @@
+package dev.mixer.android;
+import android.app.Activity;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.Window;
+import android.widget.FrameLayout;
+import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+/** Independent contract cases against actual owner/core/Observer; no producer harness or model. */
+public final class IndependentOwnerContractReview {
+    private IndependentOwnerContractReview(){}
+    private static int assertions,cases;
+    private static final String[] ADDS={"Context.registerComponentCallbacks","View.addOnLayoutChangeListener","View.addOnAttachStateChangeListener","ViewTreeObserver.addOnWindowFocusChangeListener","View.setOnApplyWindowInsetsListener","UiModeManager.addContrastChangeListener","AccessibilityManager.addHighContrastTextStateChangeListener","ContentResolver.registerContentObserver"};
+    private static final String[] REMOVES={"Context.unregisterComponentCallbacks","View.removeOnLayoutChangeListener","View.removeOnAttachStateChangeListener","ViewTreeObserver.removeOnWindowFocusChangeListener","View.setOnApplyWindowInsetsListener","UiModeManager.removeContrastChangeListener","AccessibilityManager.removeHighContrastTextStateChangeListener","ContentResolver.unregisterContentObserver"};
+    private static void check(boolean value,String message){assertions++;if(!value)throw new AssertionError(message);}
+    private static Object get(Object target,String name){try{Field f=target.getClass().getDeclaredField(name);f.setAccessible(true);return f.get(target);}catch(ReflectiveOperationException failure){throw new AssertionError(failure);}}
+    private static void counter(Object target,String name,long value){try{Field f=target.getClass().getDeclaredField(name);f.setAccessible(true);f.setLong(target,value);}catch(ReflectiveOperationException failure){throw new AssertionError(failure);}}
+    private static Throwable call(Runnable action){try{action.run();return null;}catch(RuntimeException|Error failure){return failure;}}
+    private static final class Ordinary extends RuntimeException{private static final long serialVersionUID=1L;Ordinary(){super("independent owner contract ordinary");}}
+    private static final class Fatal extends Error{private static final long serialVersionUID=1L;Fatal(){super("independent owner contract fatal");}}
+    private static final class SuppressionDisabledOrdinary extends RuntimeException{private static final long serialVersionUID=1L;SuppressionDisabledOrdinary(){super("independent first renderer disposal ordinary",null,false,false);}}
+    private static final class Fixture implements AutoCloseable {
+        final Activity activity=new Activity();final FrameLayout root=new FrameLayout(activity);
+        final NativeOwnerV2 owner;final OwnerLifecycleV2 core;final NativeOwnerV2.Fence fence;final Handler handler;
+        Fixture(Path inputs,boolean attached)throws Exception{
+            ConcreteHostProbe.reset();NativeBridge.reset();root.layout(0,0,320,480);if(attached)root.hostAttach(new Object());
+            activity.assets.put(InstalledAppearanceV2.DESCRIPTOR,Files.readAllBytes(inputs.resolve("independent-descriptor.json")));NativeBridge.preparedPacket=Files.readAllBytes(inputs.resolve("matrix-packet-base.json"));
+            owner=new NativeOwnerV2(activity,root);core=(OwnerLifecycleV2)get(owner,"core");fence=(NativeOwnerV2.Fence)get(owner,"fence");handler=(Handler)get(owner,"handler");
+        }
+        NativeEnvironmentV2.Observer observer(){return (NativeEnvironmentV2.Observer)get(owner,"observer");}
+        NativeCoordinatorV2 coordinator(){return (NativeCoordinatorV2)get(owner,"coordinator");}
+        NativeRenderer renderer(){return (NativeRenderer)get(coordinator(),"renderer");}
+        void live(){owner.start();owner.onResume();check(handler.drainOne(),"actual owner queued initial drain");check(owner.hasCommittedPresentation()&&core.snapshot().phase()==OwnerLifecycleV2.Phase.LIVE&&!core.snapshot().dirty(),"actual initial clean publication");}
+        @Override public void close(){ConcreteHostProbe.hook=null;Throwable failure=call(owner::close);if(failure!=null)check(failure==owner.cleanupLedger().firstFatal(),"final repeated close retains first fatal");ConcreteHostProbe.reset();NativeBridge.reset();}
+    }
+    private static void registration(Path inputs)throws Exception {
+        for(int slot=0;slot<8;slot++)for(String phase:new String[]{"entry","beforeReturn"})for(boolean fatal:new boolean[]{false,true}){
+            try(Fixture f=new Fixture(inputs,false)){
+                int selected=slot;Ordinary ordinary=new Ordinary();Fatal marker=new Fatal();boolean[] fired={false};
+                ConcreteHostProbe.hook=(method,position)->{if(!fired[0]&&method.equals(ADDS[selected])&&position.equals(phase)){fired[0]=true;if(fatal)throw marker;throw ordinary;}};
+                Throwable escaped=call(f.owner::start);ConcreteHostProbe.hook=null;
+                check(fired[0],"exact observer acquisition boundary reached");check(f.core.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED,"actual owner retires registration failure");
+                check(!f.fence.drawAllowed&&!f.fence.inputAllowed&&NativeBridge.createCalls==0,"registration cannot acquire engine after failure");
+                check(fatal?escaped==marker:escaped==null,"registration originating owner fatal policy");
+                var ledger=f.observer().cleanupLedger();for(int i=0;i<8;i++)check(ledger.state(i)==(i<=slot?NativeEnvironmentV2.Observer.RETURNED:NativeEnvironmentV2.Observer.UNATTEMPTED),"exact possibly-owned acquisition prefix unwinds independently");
+                check(ledger.primary()==(fatal?marker:ordinary),"observer first primary identity");
+                for(int i=slot+1;i<8;i++)check(ConcreteHostProbe.count(ADDS[i],"entry")==0,"no later listener acquisition");cases++;
+            }
+        }
+    }
+    private static void registrationReentry(Path inputs)throws Exception{
+        for(int slot=0;slot<8;slot++)for(String phase:new String[]{"entry","beforeReturn"})try(Fixture f=new Fixture(inputs,false)){
+            int selected=slot;boolean[] fired={false};ConcreteHostProbe.hook=(method,position)->{if(!fired[0]&&method.equals(ADDS[selected])&&position.equals(phase)){fired[0]=true;f.owner.close();check(f.owner.cleanupLedger().unregister()==NativeOwnerV2.Outcome.DEFERRED,"owner unregister remains deferred inside actual add");check(f.observer().cleanupLedger().state(selected)==NativeEnvironmentV2.Observer.POSSIBLY_OWNED,"acquiring native slot not falsely returned");}};
+            f.owner.start();ConcreteHostProbe.hook=null;check(fired[0],"exact add reentry reached");check(f.core.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED&&NativeBridge.createCalls==0,"terminal add reentry never opens owner");
+            for(int i=0;i<8;i++)check(f.observer().cleanupLedger().state(i)==(i<=slot?NativeEnvironmentV2.Observer.RETURNED:NativeEnvironmentV2.Observer.UNATTEMPTED),"reentry add unwind exact slots");cases++;
+        }
+    }
+    private static void removal(Path inputs)throws Exception{
+        for(int slot=0;slot<8;slot++)for(String phase:new String[]{"entry","beforeReturn"})for(boolean fatal:new boolean[]{false,true})try(Fixture f=new Fixture(inputs,false)){
+            f.owner.start();ConcreteHostProbe.reset();int selected=slot;Ordinary ordinary=new Ordinary();Fatal marker=new Fatal();boolean[] fired={false};
+            ConcreteHostProbe.hook=(method,position)->{if(!fired[0]&&method.equals(REMOVES[selected])&&position.equals(phase)){fired[0]=true;check(f.fence.terminal&&!f.fence.drawAllowed&&!f.fence.inputAllowed,"removal callback sees scalar terminal barrier");if(fatal)throw marker;throw ordinary;}};
+            Throwable escaped=call(f.owner::close);ConcreteHostProbe.hook=null;check(fired[0],"exact native removal boundary reached");check(fatal?escaped==marker:escaped==null,"first fatal removal escapes after independent attempts");
+            var ledger=f.observer().cleanupLedger();for(int i=0;i<8;i++){check(ConcreteHostProbe.count(REMOVES[i],"entry")==1,"every independent remove attempted once");check(ledger.state(i)==(i==slot?NativeEnvironmentV2.Observer.FAILED_UNCERTAIN:NativeEnvironmentV2.Observer.RETURNED),"truthful eight-slot returned versus uncertain ledger");}
+            check(ledger.primary()==(fatal?marker:ordinary),"observer retains exact removal primary");if(fatal)check(ledger.firstFatal()==marker,"observer retains exact first fatal");
+            int before=ConcreteHostProbe.events().size();call(f.owner::close);check(ConcreteHostProbe.events().size()==before,"consumed observer slots do not retry");cases++;
+        }
+    }
+    private static void readiness(Path inputs)throws Exception{
+        for(int kind=0;kind<6;kind++)try(Fixture f=new Fixture(inputs,true)){
+            Window window=f.activity.window;Object token=f.root.windowToken;var insets=f.root.rootInsets;
+            switch(kind){case 0->f.root.attached=false;case 1->f.activity.window=null;case 2->f.root.windowToken=null;case 3->f.root.layout(0,0,0,480);case 4->f.root.layout(0,0,320,0);case 5->f.root.rootInsets=null;default->throw new AssertionError();}
+            f.owner.start();f.owner.onResume();check(NativeBridge.createCalls==0&&f.handler.queued()==0,"not-ready actual root never creates or polls");
+            f.root.attached=true;f.root.windowToken=token;f.root.rootInsets=insets;f.activity.window=window;f.root.layout(0,0,320,480);f.observer().invalidate();
+            check(f.handler.queued()==1,"actual ready notification leaves one work identity");check(f.handler.drainOne(),"actual ready work delivered");check(f.owner.hasCommittedPresentation()&&NativeBridge.createCalls==1,"fresh ready delivery publishes actual session");cases++;
+        }
+        try(Fixture f=new Fixture(inputs,false)){f.owner.start();f.root.treeObserver.alive=false;ConcreteHostProbe.reset();f.owner.close();check(f.observer().cleanupLedger().state(3)==NativeEnvironmentV2.Observer.DEAD_TARGET_UNCERTAIN,"dead original focus target is uncertain");check(ConcreteHostProbe.count(REMOVES[3],"entry")==0,"dead focus target removal is not fabricated");for(int i=0;i<8;i++)if(i!=3)check(ConcreteHostProbe.count(REMOVES[i],"entry")==1,"dead focus target does not skip later removes");cases++;}
+    }
+    private static void mainAndExhaustion(Path inputs)throws Exception{
+        try(Fixture f=new Fixture(inputs,true)){
+            f.live();var owned=(NativeCoordinatorV2)get(f.owner,"coordinator");var renderer=(NativeRenderer)get(owned,"renderer");var observer=f.observer();f.owner.close();ConcreteHostProbe.reset();
+            List<Runnable> entries=List.of(f.owner::onResume,f.owner::onPause,f.owner::onStop,f.owner::close,()->f.owner.hasCommittedPresentation(),()->f.owner.cleanupLedger(),observer::register,observer::invalidate,observer::close,observer::ready,observer::capture,observer::onLowMemory,()->observer.bindRenderer(renderer),renderer::retireV2,renderer::inspectV2,renderer::cleanupLedger,renderer::testRetiredV2,owned::renderInitial,owned::refreshEnvironment,()->owned.dispatchInput(null),owned::closeFromOwner,owned::cleanupLedger,owned::isRetired,owned::hasCommittedPresentation,owned::busyForOwnerDisposal,owned::inputCancellationInProgress,()->owned.cancelInputFromOwner(1),()->f.core.snapshot(),()->f.core.lifetime());
+            Looper.hostSetMain(false);try{for(Runnable entry:entries)check(call(entry) instanceof IllegalStateException,"actual main Looper check precedes retired/stale return");}finally{Looper.hostReset();}
+            check(ConcreteHostProbe.events().isEmpty(),"off-main entries perform no native leaf work");cases++;
+        }
+        try(Fixture f=new Fixture(inputs,true)){f.live();counter(f.fence,"sealSerial",Long.MAX_VALUE);f.owner.onPause();check(f.fence.sealSerial==Long.MAX_VALUE&&f.fence.terminal,"seal serial exhausts without wrap");check(f.owner.cleanupLedger().cause()==NativeOwnerV2.Cause.SEAL_SERIAL_EXHAUSTED&&f.core.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED,"actual core retires exact serial cause");check(NativeBridge.destroyCalls==1,"serial exhaustion independently disposes engine");cases++;}
+        try(Fixture f=new Fixture(inputs,true)){f.live();NativeCoordinatorV2 coordinator=(NativeCoordinatorV2)get(f.owner,"coordinator");NativeRenderer renderer=(NativeRenderer)get(coordinator,"renderer");renderer.testExhaustInteractionV2();int prepares=NativeBridge.prepareCalls;renderer.view("button").performClick();check(f.fence.terminal&&f.core.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED,"actual interaction exhaustion retires owner");check(f.owner.cleanupLedger().rendererCause()==NativeEnvironmentV2.RendererCause.INTERACTION_EXHAUSTED&&NativeBridge.prepareCalls==prepares,"exact typed report precedes feature input");cases++;}
+    }
+    private static final class Core {
+        final Object activity=new Object(),root=new Object(),window=new Object(),resource=new Object();
+        final OwnerLifecycleV2 actual;final OwnerLifecycleV2.Token lifetime;
+        Core(){this(0);}Core(long epoch){actual=new OwnerLifecycleV2(NativeOwnerV2::requireMain,activity,root,epoch);lifetime=actual.lifetime();}
+        OwnerLifecycleV2.WindowFacts facts(){return new OwnerLifecycleV2.WindowFacts(activity,root,false,true,window,320,480,true);}
+        List<OwnerLifecycleV2.Decision> bounded(List<OwnerLifecycleV2.Decision> result){check(result.size()<=OwnerLifecycleV2.MAX_DECISIONS,"real core decisions bounded");return result;}
+        OwnerLifecycleV2.Decision one(List<OwnerLifecycleV2.Decision> result,OwnerLifecycleV2.Kind kind){bounded(result);return result.stream().filter(d->d.kind()==kind).findFirst().orElseThrow(()->new AssertionError("missing real decision "+kind));}
+        OwnerLifecycleV2.Decision opening(){one(actual.windowChanged(lifetime,facts()),OwnerLifecycleV2.Kind.QUEUE_DRAIN);return one(actual.drain(lifetime,actual.snapshot().pendingDrain(),facts()),OwnerLifecycleV2.Kind.OPEN_INITIAL);}
+        void live(){var open=opening();bounded(actual.complete(open.token(),resource,true,null));check(actual.snapshot().phase()==OwnerLifecycleV2.Phase.LIVE&&!actual.snapshot().dirty(),"actual core clean initial completion");}
+        void refresh(){var drain=actual.snapshot().pendingDrain();check(drain!=null,"real pending drain exists");var op=one(actual.drain(lifetime,drain,facts()),OwnerLifecycleV2.Kind.REFRESH_COMMITTED);bounded(actual.complete(op.token(),resource,true,null));}
+    }
+    private static void actualCore(){
+        Core c=new Core();var open=c.opening();for(int i=0;i<7;i++)c.bounded(c.actual.invalidate(c.lifetime));check(c.actual.snapshot().pendingDrain()==null&&c.actual.permits(open.token()),"busy real operation retains immutable identity without queued drain");c.bounded(c.actual.complete(open.token(),c.resource,true,null));check(c.actual.snapshot().dirty()&&c.actual.snapshot().pendingDrain()!=null,"committed dirty real operation leaves one drain");c.refresh();check(!c.actual.snapshot().dirty(),"actual later refresh clears dirty");cases++;
+        c.bounded(c.actual.resume(c.lifetime));c.refresh();c.bounded(c.actual.focusChanged(c.lifetime,true));c.refresh();var p=c.actual.snapshot().presentation();check(c.actual.admitsInput(c.lifetime,p),"real foreground focused presentation admits input");var input=c.one(c.actual.dispatchInput(c.lifetime,p),OwnerLifecycleV2.Kind.DISPATCH_INPUT);check(c.actual.dispatchInput(c.lifetime,p).isEmpty(),"real core serializes input");c.bounded(c.actual.pause(c.lifetime));c.bounded(c.actual.complete(input.token(),c.resource,true,null));check(!c.actual.admitsInput(c.lifetime,p)&&c.actual.snapshot().dirty(),"stale presentation cannot regain input");c.refresh();check(!c.actual.admitsInput(c.lifetime,c.actual.snapshot().presentation()),"background clean presentation remains noninteractive");cases++;
+        Core foreign=new Core();var before=c.actual.snapshot();check(c.actual.complete(foreign.lifetime,new Object(),true,null).isEmpty()&&c.actual.snapshot().equals(before),"foreign real token completion inert");check(c.actual.invalidate(foreign.lifetime).isEmpty(),"foreign lifetime cannot dirty owner");cases++;
+        for(int kind=0;kind<6;kind++){Core x=new Core();x.live();Object activity=kind==0?new Object():x.activity,root=kind==1?new Object():x.root,window=kind==5?new Object():kind==4?null:x.window;var f=new OwnerLifecycleV2.WindowFacts(activity,root,kind==2,kind!=3,window,320,480,true);var effects=x.bounded(x.actual.windowChanged(x.lifetime,f));check(x.actual.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED&&effects.get(0).kind()==OwnerLifecycleV2.Kind.SEAL,"foreign/destroyed/lost actual window seals first");check(effects.stream().anyMatch(d->d.kind()==OwnerLifecycleV2.Kind.CLOSE&&d.resource()==x.resource),"exact actual resource receives terminal close");cases++;}
+        for(int kind=0;kind<3;kind++){Core x=new Core();x.live();x.bounded(x.actual.windowChanged(x.lifetime,new OwnerLifecycleV2.WindowFacts(x.activity,x.root,false,true,x.window,kind==0?0:320,kind==1?0:480,kind!=2)));check(x.actual.snapshot().phase()==OwnerLifecycleV2.Phase.LIVE&&x.actual.snapshot().dirty()&&x.actual.snapshot().pendingDrain()==null,"temporary size/insets loss preserves resource without polling");x.bounded(x.actual.windowChanged(x.lifetime,x.facts()));check(x.actual.snapshot().pendingDrain()!=null,"ready restoration queues once");cases++;}
+        for(boolean committed:new boolean[]{false,true}){Core x=new Core();var operation=x.opening();var close=x.bounded(x.actual.close(x.lifetime));check(close.stream().noneMatch(d->d.kind()==OwnerLifecycleV2.Kind.CLOSE),"actual busy open close defers resource release");var late=x.bounded(x.actual.complete(operation.token(),x.resource,committed,null));check(x.actual.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED&&late.stream().filter(d->d.kind()==OwnerLifecycleV2.Kind.CLOSE).count()==1,"late acquired real resource closes exactly once");check(x.actual.complete(operation.token(),x.resource,true,null).isEmpty(),"duplicate actual completion inert");cases++;}
+        Core failed=new Core();failed.live();var original=failed.actual.snapshot().resource();failed.bounded(failed.actual.invalidate(failed.lifetime));var refresh=failed.one(failed.actual.drain(failed.lifetime,failed.actual.snapshot().pendingDrain(),failed.facts()),OwnerLifecycleV2.Kind.REFRESH_COMMITTED);failed.bounded(failed.actual.complete(refresh.token(),new Object(),true,null));check(failed.actual.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED&&failed.actual.snapshot().resource()==original,"actual refresh completion cannot replace resource");cases++;
+        Core cleanup=new Core();cleanup.live();var effects=cleanup.bounded(cleanup.actual.close(cleanup.lifetime));Object first=new Object(),later=new Object();for(var effect:effects)if(effect.kind()==OwnerLifecycleV2.Kind.CANCEL_QUEUED||effect.kind()==OwnerLifecycleV2.Kind.UNREGISTER||effect.kind()==OwnerLifecycleV2.Kind.CLOSE){cleanup.actual.cleanupComplete(effect.token(),first);cleanup.actual.cleanupComplete(effect.token(),later);}var end=cleanup.actual.snapshot();check(!end.cancelPending()&&!end.unregisterPending()&&!end.closePending()&&end.resource()==null,"independent actual cleanup completion consumes all slots");check(end.cancelFailure()==first&&end.unregisterFailure()==first&&end.closeFailure()==first,"actual cleanup token keeps first identity");cases++;
+        Core overflow=new Core(Long.MAX_VALUE);overflow.bounded(overflow.actual.invalidate(overflow.lifetime));check(overflow.actual.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED&&overflow.actual.snapshot().terminalReason()==OwnerLifecycleV2.Reason.EPOCH_EXHAUSTED&&overflow.actual.snapshot().epoch()==Long.MAX_VALUE,"actual core epoch does not wrap");cases++;
+    }
+    private static void observerProvenance(Path inputs)throws Exception{
+        Activity activity=new Activity();FrameLayout root=new FrameLayout(activity);root.layout(0,0,320,480);root.hostAttach(new Object());
+        List<NativeEnvironmentV2.Change> notices=new ArrayList<>();long[] notifiedGeneration={0};
+        var observer=new NativeEnvironmentV2.Observer(activity,root,(source,change,cause,primary,fatal)->{notices.add(change);notifiedGeneration[0]=(Long)get(source,"generation");});
+        var fence=new NativeOwnerV2.Fence();var renderer=new NativeRenderer(activity,ignored->{throw new AssertionError("provenance-only observer cannot send input");},observer,fence);
+        check(ConcreteHostProbe.count(ADDS[0],"entry")==0,"Observer construction does not acquire listeners");
+        check(call(observer::capture) instanceof RuntimeException,"unregistered observer cannot capture");
+        check(call(()->observer.bindRenderer(renderer)) instanceof IllegalStateException,"binding requires successful READY registration");observer.register();observer.bindRenderer(renderer);
+        check(call(()->observer.bindRenderer(renderer)) instanceof IllegalStateException,"even same renderer cannot bind twice");
+        NativeEnvironmentV2 captured=observer.capture();check(captured.current(renderer)&&!captured.current(new Object()),"actual capture uses exact registered renderer provenance");
+        long generation=(Long)get(observer,"generation");observer.invalidate();check(notifiedGeneration[0]==generation+1&&notices.get(notices.size()-1)==NativeEnvironmentV2.Change.INVALIDATED,"actual generation advances before sink");check(!captured.current(renderer),"old actual generation cannot validate after notice");
+        NativeEnvironmentV2 tuple=observer.capture();root.windowToken=new Object();check(!tuple.current(renderer),"same scalar tuple with foreign window token is stale");
+        counter(observer,"generation",Long.MAX_VALUE);observer.invalidate();check((Long)get(observer,"generation")==Long.MAX_VALUE&&notices.get(notices.size()-1)==NativeEnvironmentV2.Change.EPOCH_EXHAUSTED,"Observer epoch exhausts without wrap");observer.close();cases++;
+        try(Fixture f=new Fixture(inputs,true)){f.live();var owner=f.observer();var actual=f.renderer();check(call(()->owner.rendererTerminal(new NativeRenderer(f.activity,ignored->{}),NativeEnvironmentV2.RendererCause.CAPTURE_FAILED,null,null)) instanceof IllegalArgumentException,"foreign renderer cannot report terminal on live observer");
+            Ordinary primary=new Ordinary();Fatal marker=new Fatal();Throwable escaped=call(()->owner.rendererTerminal(actual,NativeEnvironmentV2.RendererCause.CAPTURE_FAILED,primary,marker));
+            check(escaped==marker&&f.fence.terminal&&f.core.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED,"exact renderer report reaches actual owner/core and preserves fatal");
+            check(f.owner.cleanupLedger().primary()==primary&&f.owner.cleanupLedger().firstFatal()==marker,"separate first primary/fatal identities survive typed sink");int destroys=NativeBridge.destroyCalls;call(()->owner.rendererTerminal(actual,NativeEnvironmentV2.RendererCause.CANCELLATION_FAILED,new Ordinary(),new Fatal()));check(NativeBridge.destroyCalls==destroys&&f.owner.cleanupLedger().rendererCause()==NativeEnvironmentV2.RendererCause.CAPTURE_FAILED,"typed sink consumed once retains original cause");cases++;}
+    }
+    private static void successorScope(Path inputs)throws Exception{
+        try(Fixture f=new Fixture(inputs,true)){
+            f.live();NativeRenderer renderer=f.renderer();OwnerLifecycleV2.Token original=f.fence.presentation;Object oldGate=get(renderer,"v2Gate");NativeBridge.preparedPacket=Files.readAllBytes(inputs.resolve("matrix-packet-echo.json"));boolean[] successor={false};int[] forbidden={0};
+            ConcreteHostProbe.reset();ConcreteHostProbe.hook=(method,phase)->{
+                var event=ConcreteHostProbe.lastEvent();boolean scroll=!event.productionFrames.isEmpty()&&event.productionFrames.get(0).className().equals("dev.mixer.android.NativeAppearanceViewsV2$NativeScroll")&&event.productionFrames.get(0).methodName().equals("onScrollChanged");
+                if(!successor[0]&&scroll&&method.equals("View.setVisibility")&&phase.equals("beforeReturn")&&event.receiver==renderer.inspectV2().get("navigation").header){
+                    successor[0]=true;renderer.view("button").performClick();check(f.fence.presentation!=original&&f.fence.drawAllowed&&f.fence.inputAllowed,"real synchronous clean input publishes successor during old scroll callback");
+                }else if(successor[0]&&scroll&&phase.equals("entry")&&(method.equals("View.setVisibility")||method.equals("View.invalidate")))forbidden[0]++;
+            };
+            Throwable escaped=call(()->renderer.view("list").scrollTo(0,10000));ConcreteHostProbe.hook=null;
+            check(successor[0]&&escaped instanceof IllegalStateException,"old captured live scope fails after actual successor");check(forbidden[0]==0,"old scroll cannot continue compact visibility or invalidate with new token");
+            check(!f.fence.terminal&&f.fence.drawAllowed&&f.fence.inputAllowed&&f.core.snapshot().phase()==OwnerLifecycleV2.Phase.LIVE&&!f.core.snapshot().dirty(),"expired old scope preserves legitimate clean successor");check(get(renderer,"v2Gate")==oldGate,"same actual gate identity reused through successor");cases++;
+        }
+    }
+    private static void engineDispositions(Path inputs)throws Exception{
+        for(int status=1;status<=8;status++)try(Fixture f=new Fixture(inputs,true)){
+            f.live();NativeCoordinatorV2 coordinator=f.coordinator();NativeBridge.preparedPacket=Files.readAllBytes(inputs.resolve("matrix-packet-echo.json"));NativeBridge.commitStatus=status;Throwable escaped=call(()->f.renderer().view("button").performClick());
+            check(escaped==null&&f.fence.terminal&&f.core.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED,"actual owner handles ordinary commit rejection as failed operation");
+            check(NativeBridge.abortCalls==(status<=7?1:0),"only known returned commit disposition authorizes exact engine-token abort");
+            check(coordinator.cleanupLedger().rollback()==(status==2||status==8?NativeCoordinatorV2.Outcome.NOT_REQUESTED:NativeCoordinatorV2.Outcome.RETURNED),"terminal/unknown disposition cannot claim trusted rollback");
+            check(NativeBridge.destroyCalls==1,"failed actual operation releases known session independently");cases++;
+        }
+        for(String boundary:new String[]{"prepare","commit","abort","destroy","renderer"})for(boolean fatal:new boolean[]{false,true})try(Fixture f=new Fixture(inputs,true)){
+            f.live();NativeCoordinatorV2 coordinator=f.coordinator();NativeRenderer renderer=f.renderer();Ordinary ordinary=new Ordinary();Fatal marker=new Fatal();Throwable selected=fatal?marker:ordinary;
+            NativeBridge.preparedPacket=Files.readAllBytes(inputs.resolve("matrix-packet-echo.json"));
+            switch(boundary){case "prepare"->NativeBridge.prepareFailure=selected;case "commit"->NativeBridge.commitFailure=selected;case "abort"->{NativeBridge.commitStatus=1;NativeBridge.abortFailure=selected;}case "destroy"->NativeBridge.destroyFailure=selected;case "renderer"->{boolean[] fired={false};Object gate=get(renderer,"v2Gate");ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&method.equals("View.setVisibility")&&phase.equals("entry")&&ConcreteHostProbe.lastEvent().receiver==gate){fired[0]=true;ConcreteHostProbe.fail(selected);}};}default->throw new AssertionError();}
+            Throwable escaped=call(boundary.equals("destroy")||boundary.equals("renderer")?f.owner::close:()->renderer.view("button").performClick());ConcreteHostProbe.hook=null;
+            check(f.fence.terminal&&f.core.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED,"actual fault path retires authority");check(fatal?escaped==marker:escaped==null,"actual owner fatal policy preserves selected marker");
+            check(NativeBridge.destroyCalls==1,"independent destroy attempt survives other fault slots");
+            if(boundary.equals("prepare")||boundary.equals("commit"))check(NativeBridge.abortCalls==0,"unknown interrupted JNI outcome cannot fabricate abort authority");
+            if(boundary.equals("abort"))check(coordinator.cleanupLedger().abort()==NativeCoordinatorV2.Outcome.FAILED_UNCERTAIN&&coordinator.cleanupLedger().abortFailure()==selected,"truthful interrupted abort ledger");
+            if(boundary.equals("destroy"))check(coordinator.cleanupLedger().engine()==NativeCoordinatorV2.Outcome.FAILED_UNCERTAIN&&coordinator.cleanupLedger().engineFailure()==selected,"truthful destroy failure ledger");
+            if(boundary.equals("renderer"))check(coordinator.cleanupLedger().renderer()==NativeCoordinatorV2.Outcome.FAILED_UNCERTAIN&&coordinator.cleanupLedger().rendererFailure()==selected,"renderer failure does not skip engine release");cases++;
+        }
+        try(Fixture f=new Fixture(inputs,true)){f.live();var coordinator=f.coordinator();var renderer=f.renderer();renderer.testFaultV2(-1,true);NativeBridge.preparedPacket=Files.readAllBytes(inputs.resolve("matrix-packet-echo.json"));NativeBridge.commitStatus=1;renderer.view("button").performClick();check(coordinator.cleanupLedger().rollback()==NativeCoordinatorV2.Outcome.FAILED_UNCERTAIN&&f.owner.cleanupLedger().rendererCause()==NativeEnvironmentV2.RendererCause.ROLLBACK_FAILED,"actual rollback failure reports one typed terminal and uncertainty");check(NativeBridge.abortCalls==1&&NativeBridge.destroyCalls==1,"rollback failure preserves independent known abort and session disposal");cases++;}
+    }
+    private static void disposalPriority(Path inputs)throws Exception{
+        for(String variant:new String[]{"ordinary-only","fatal-only","ordinary-then-fatal"})try(Fixture f=new Fixture(inputs,true)){
+            f.live();NativeCoordinatorV2 coordinator=f.coordinator();NativeRenderer renderer=f.renderer();SuppressionDisabledOrdinary ordinary=new SuppressionDisabledOrdinary();Fatal fatal=new Fatal();Object gate=get(renderer,"v2Gate");boolean[] attempted={false};
+            if(!variant.equals("fatal-only"))ConcreteHostProbe.hook=(method,phase)->{if(!attempted[0]&&method.equals("View.setVisibility")&&phase.equals("entry")&&ConcreteHostProbe.lastEvent().receiver==gate){attempted[0]=true;check(f.fence.terminal&&!f.fence.drawAllowed&&!f.fence.inputAllowed,"disposal callback enters after terminal scalar barrier");throw ordinary;}};
+            if(!variant.equals("ordinary-only"))NativeBridge.destroyFailure=fatal;
+            Throwable escaped=call(f.owner::close);ConcreteHostProbe.hook=null;var ledger=coordinator.cleanupLedger();var outer=f.owner.cleanupLedger();
+            System.out.println("{\"scope\":\"independent explicit owner close disposal priority\",\"variant\":\""+variant+"\",\"suppressionDisabledOrdinary\":true,\"rendererAttempt\":"+attempted[0]+",\"destroyAttempts\":"+NativeBridge.destroyCalls+",\"rendererOutcome\":\""+ledger.renderer()+"\",\"engineOutcome\":\""+ledger.engine()+"\",\"coordinatorPrimaryIsA\":"+(ledger.primary()==ordinary)+",\"coordinatorPrimaryIsE\":"+(ledger.primary()==fatal)+",\"coordinatorFatalIsE\":"+(ledger.firstFatal()==fatal)+",\"ownerPrimaryIsA\":"+(outer.primary()==ordinary)+",\"ownerPrimaryIsE\":"+(outer.primary()==fatal)+",\"ownerFatalIsE\":"+(outer.firstFatal()==fatal)+",\"escapingIsE\":"+(escaped==fatal)+",\"coreRetired\":"+(f.core.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED)+",\"draw\":"+f.fence.drawAllowed+",\"input\":"+f.fence.inputAllowed+"}");
+            check(NativeBridge.destroyCalls==1&&f.core.snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED&&!f.fence.drawAllowed&&!f.fence.inputAllowed,"independent disposal attempts complete without authority reopening");
+            check(variant.equals("ordinary-only")?escaped==null:escaped==fatal&&outer.firstFatal()==fatal,"first fatal identity and originating owner policy");
+            if(!variant.equals("fatal-only"))check(ledger.primary()==ordinary&&ledger.rendererFailure()==ordinary,"coordinator retains earlier renderer ordinary A");
+            if(!variant.equals("ordinary-only"))check(ledger.firstFatal()==fatal&&ledger.engineFailure()==fatal,"coordinator retains later engine fatal E independently");
+            check(outer.primary()==(variant.equals("fatal-only")?fatal:ordinary),"outer owner collects coordinator's retained earliest primary before later thrown fatal");
+            var snapshot=f.core.snapshot();check(!snapshot.closePending()&&snapshot.resource()==null&&snapshot.closeFailure()==(variant.equals("ordinary-only")?null:fatal),"actual close cleanup token preserves thrown outcome independently of primary ledger");
+            check(outer.coordinator()==(variant.equals("ordinary-only")?NativeOwnerV2.Outcome.RETURNED:NativeOwnerV2.Outcome.FAILED_UNCERTAIN),"coordinator outcome describes return versus thrown error");
+            int eventCount=ConcreteHostProbe.events().size();Throwable repeated=call(f.owner::close);check(repeated==escaped&&NativeBridge.destroyCalls==1&&ConcreteHostProbe.events().size()==eventCount,"repeat close keeps original failure and never retries disposal");cases++;
+        }
+    }
+    private static void disposalPriorityEarlier(Path inputs)throws Exception{
+        for(boolean priorFatal:new boolean[]{false,true})try(Fixture f=new Fixture(inputs,true)){
+            f.live();var coordinator=f.coordinator();var renderer=f.renderer();var primary=new SuppressionDisabledOrdinary();var firstFatal=new Fatal();var disposalOrdinary=new SuppressionDisabledOrdinary();var laterFatal=new Fatal();Object gate=get(renderer,"v2Gate");boolean[] reached={false};
+            ConcreteHostProbe.hook=(method,phase)->{if(!reached[0]&&method.equals("View.setVisibility")&&phase.equals("entry")&&ConcreteHostProbe.lastEvent().receiver==gate){reached[0]=true;throw disposalOrdinary;}};
+            NativeBridge.destroyFailure=laterFatal;
+            Throwable escaped=call(()->f.observer().rendererTerminal(renderer,NativeEnvironmentV2.RendererCause.CAPTURE_FAILED,primary,priorFatal?firstFatal:null));ConcreteHostProbe.hook=null;
+            check(reached[0]&&NativeBridge.destroyCalls==1,"all actual renderer and engine disposal slots attempted");
+            check(coordinator.cleanupLedger().primary()==disposalOrdinary&&coordinator.cleanupLedger().firstFatal()==laterFatal,"coordinator local A then E retained separately");
+            check(f.owner.cleanupLedger().primary()==primary&&f.owner.cleanupLedger().firstFatal()==(priorFatal?firstFatal:laterFatal),"earlier owner primary and fatal cannot be replaced by collected disposal ledger");
+            check(escaped==(priorFatal?firstFatal:laterFatal),"originating owner throws exact earliest fatal");
+            var coreEnd=f.core.snapshot();check(coreEnd.phase()==OwnerLifecycleV2.Phase.RETIRED&&!coreEnd.closePending()&&coreEnd.resource()==null&&coreEnd.closeFailure()==laterFatal,"authentic cleanup token completes with actual thrown coordinator failure");
+            check(f.owner.cleanupLedger().coordinator()==NativeOwnerV2.Outcome.FAILED_UNCERTAIN&&f.owner.cleanupLedger().coordinatorFailure()==laterFatal,"truthful owner disposal outcome retains thrown coordinator identity");
+            int events=ConcreteHostProbe.events().size();int destroys=NativeBridge.destroyCalls;Throwable repeated=call(f.owner::close);check(repeated==escaped&&NativeBridge.destroyCalls==destroys&&ConcreteHostProbe.events().size()==events,"repeated close preserves fatal identity and consumes disposal slots");
+            check(!f.fence.drawAllowed&&!f.fence.inputAllowed&&f.fence.terminal,"no retired authority reopens");cases++;
+            System.out.println("{\"scope\":\"candidate5 earlier-owner repair control\",\"earlierFatal\":"+priorFatal+",\"passed\":true}");
+        }
+    }
+    public static void main(String[] args)throws Exception{
+        Path inputs=Path.of(args[0]);if(args.length>1&&args[1].equals("disposal-priority")){disposalPriority(inputs);disposalPriorityEarlier(inputs);}else{registration(inputs);registrationReentry(inputs);removal(inputs);readiness(inputs);mainAndExhaustion(inputs);actualCore();observerProvenance(inputs);successorScope(inputs);engineDispositions(inputs);}
+        System.out.println("{\"scope\":\"independent actual owner/core/Observer contract controls; historical vector mapping separate\",\"cases\":"+cases+",\"assertions\":"+assertions+"}");
+    }
+}

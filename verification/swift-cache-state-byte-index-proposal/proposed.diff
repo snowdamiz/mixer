@@ -1,0 +1,271 @@
+--- C3/cache_state.rs
++++ PROPOSED/cache_state.rs
+@@ -244,8 +244,11 @@
+ #[cfg(test)]
+ static SORT_MOVES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+ fn merge(c: &mut Candidate2048) {
+-    let mut src = 512;
+-    let mut dst = 1024;
++    let (time_bytes, indices) = c.split_at_mut(512);
++    let (timestamps, _) = time_bytes.as_chunks::<8>();
++    // indices is the disjoint existing Candidate[512..2048] region.
++    let mut src = 0;
++    let mut dst = 512;
+     let mut width = 1;
+     while width < 64 {
+         let mut base = 0;
+@@ -254,7 +257,8 @@
+             let mid = base + width;
+             let end = base + 2 * width;
+             let mut right = mid;
+-            for out in base..end {
++            let mut out = base;
++            while out < end {
+                 let take_left = if left == mid {
+                     false
+                 } else if right == end {
+@@ -262,26 +266,29 @@
+                 } else {
+                     #[cfg(test)]
+                     SORT_COMPARISONS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+-                    let a = ld(c, src + left * 8);
+-                    let b = ld(c, src + right * 8);
+-                    b == ABSENT || (a != ABSENT && ld(c, a as usize * 8) <= ld(c, b as usize * 8))
++                    let a = indices[src + left];
++                    let b = indices[src + right];
++                    b == u8::MAX
++                        || (a != u8::MAX
++                            && u64::from_le_bytes(timestamps[a as usize])
++                                <= u64::from_le_bytes(timestamps[b as usize]))
+                 };
+-                let index_at = if take_left {
+-                    let at = src + left * 8;
++                if take_left {
++                    indices[dst + out] = indices[src + left];
+                     left += 1;
+-                    at
+                 } else {
+-                    let at = src + right * 8;
++                    indices[dst + out] = indices[src + right];
+                     right += 1;
+-                    at
+-                };
+-                c.copy_within(index_at..index_at + 8, dst + out * 8);
++                }
++                out += 1;
+                 #[cfg(test)]
+                 SORT_MOVES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+             }
+             base = end;
+         }
+-        std::mem::swap(&mut src, &mut dst);
++        let old_src = src;
++        src = dst;
++        dst = old_src;
+         width *= 2;
+     }
+ }
+@@ -358,83 +365,80 @@
+     let mut resident_pins = 0u64;
+     let mut live_tokens = 0u64;
+     let mut release_nonce_matches = 0u64;
+-    // Shared one-pass bounded probes; no retained auxiliary invariant map.
+-    for slot in 0..f.slots as usize {
+-        let occupied = rr(b, slot, 0);
+-        let function = rr(b, slot, 1);
+-        let bytes = rr(b, slot, 2);
+-        let pins = rr(b, slot, 3);
+-        if occupied > 1 || pins > f.pins || rr(b, slot, 6) != 0 || rr(b, slot, 7) != 0 {
+-            return reject(13);
+-        }
+-        if occupied == 1 {
+-            // At most64 rows and at most64 pins per row prove this sum <=4096.
+-            resident_pins += pins;
+-            if function >= 80000 || bytes == 0 || bytes > f.entry {
+-                return reject(13);
+-            }
+-            let Some(sum) = total.checked_add(bytes) else {
+-                return reject(10);
+-            };
+-            total = sum;
+-            count += 1;
+-            if function == w[6] {
+-                if found != ABSENT {
+-                    return reject(7);
+-                }
+-                found = slot as u64;
+-            }
+-        } else if function != ABSENT || bytes != 0 || pins != 0 {
+-            return reject(13);
+-        } else if first_empty == ABSENT {
+-            first_empty = slot as u64;
+-        }
+-        st(c, slot * 8, rr(b, slot, 4));
+-        st(
+-            c,
+-            512 + slot * 8,
+-            if occupied == 1 && pins == 0 {
+-                slot as u64
+-            } else {
+-                ABSENT
+-            },
+-        );
+-    }
+-    for slot in f.slots as usize..64 {
+-        st(c, slot * 8, 0);
+-        st(c, 512 + slot * 8, ABSENT);
+-    }
+-    for pin in 0..f.pins as usize {
+-        let entry = pr(b, pin, 0);
+-        let nonce = pr(b, pin, 1);
+-        if entry == ABSENT {
+-            if nonce != 0 {
+-                return reject(13);
+-            }
+-            if first_pin == ABSENT {
+-                first_pin = pin as u64;
+-            }
+-        } else {
+-            if entry >= f.slots
+-                || nonce == 0
+-                || nonce >= p.q[9]
+-                || rr(b, entry as usize, 0) != 1
+-                || rr(b, entry as usize, 3) == 0
++    // G2. This lexical shared arena view ends before later mutable arena work.
++    {
++        let (arena_words, _) = b.as_chunks::<8>();
++        let (time_bytes, index_bytes) = c.split_at_mut(512);
++        let (timestamp_words, _) = time_bytes.as_chunks_mut::<8>();
++        let resident_word_base = RESIDENT.base / 8;
++        let pin_word_base = PIN.base / 8;
++        let resident_limit = f.slots as usize;
++        let pin_limit = f.pins as usize;
++        let mut slot = 0;
++        while slot < resident_limit {
++            let occupied = u64::from_le_bytes(arena_words[resident_word_base + slot * 8]);
++            let function = u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 1]);
++            let bytes = u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 2]);
++            let pins = u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 3]);
++            if occupied > 1 || pins > f.pins
++                || u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 6]) != 0
++                || u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 7]) != 0
+             {
+                 return reject(13);
+             }
+-            live_tokens += 1;
+-            if w[1] == 12 && nonce == w[12] {
+-                release_nonce_matches += 1;
+-            }
+-        }
+-    }
+-    if release_nonce_matches > 1 {
+-        return reject(11);
+-    }
+-    if resident_pins != p.q[8] || live_tokens != p.q[8] {
+-        return reject(13);
+-    }
++            if occupied == 1 {
++                resident_pins += pins;
++                if function >= 80000 || bytes == 0 || bytes > f.entry {
++                    return reject(13);
++                }
++                let Some(sum) = total.checked_add(bytes) else {
++                    return reject(10);
++                };
++                total = sum;
++                count += 1;
++                if function == w[6] {
++                    if found != ABSENT {
++                        return reject(7);
++                    }
++                    found = slot as u64;
++                }
++            } else if function != ABSENT || bytes != 0 || pins != 0 {
++                return reject(13);
++            } else if first_empty == ABSENT {
++                first_empty = slot as u64;
++            }
++            let last_used = u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 4]);
++            timestamp_words[slot] = last_used.to_le_bytes();
++            index_bytes[slot] = if occupied == 1 && pins == 0 { slot as u8 } else { u8::MAX };
++            index_bytes[512 + slot] = u8::MAX;
++            slot += 1;
++        }
++        while slot < 64 {
++            timestamp_words[slot] = 0u64.to_le_bytes();
++            index_bytes[slot] = u8::MAX;
++            index_bytes[512 + slot] = u8::MAX;
++            slot += 1;
++        }
++        let mut pin = 0;
++        while pin < pin_limit {
++            let entry = u64::from_le_bytes(arena_words[pin_word_base + pin * 6]);
++            let nonce = u64::from_le_bytes(arena_words[pin_word_base + pin * 6 + 1]);
++            if entry == ABSENT {
++                if nonce != 0 { return reject(13); }
++                if first_pin == ABSENT { first_pin = pin as u64; }
++            } else {
++                if entry >= f.slots || nonce == 0 || nonce >= p.q[9]
++                    || u64::from_le_bytes(arena_words[resident_word_base + entry as usize * 8]) != 1
++                    || u64::from_le_bytes(arena_words[resident_word_base + entry as usize * 8 + 3]) == 0
++                { return reject(13); }
++                live_tokens += 1;
++                if w[1] == 12 && nonce == w[12] { release_nonce_matches += 1; }
++            }
++            pin += 1;
++        }
++    }
++    if release_nonce_matches > 1 { return reject(11); }
++    if resident_pins != p.q[8] || live_tokens != p.q[8] { return reject(13); }
+     if count != p.q[6] || total != p.q[7] || p.q[8] > f.pins || p.q[9] == 0 {
+         return reject(13);
+     }
+@@ -536,27 +540,32 @@
+             plan_delta = cell as u64;
+             sq(c, 18, w[13]);
+             merge(c);
+-            // The preceding checked base+request guard proves both subtractions.
+-            // Compare remaining bytes with one exact headroom value; no repeated
+-            // Option/closure/Result owners occur in the bounded prefix loop.
++            // G5. Exact prior successful base+request guard proves subtraction.
+             let headroom = f.capacity - f.base - w[13];
+             let mut remaining = total;
+             let mut mask = 0;
+             let mut destination = first_empty;
+-            for i in 0..64 {
+-                if remaining <= headroom && destination != ABSENT {
+-                    break;
++            {
++                let (arena_words, _) = b.as_chunks::<8>();
++                let resident_word_base = RESIDENT.base / 8;
++                let mut i = 0;
++                while i < 64 {
++                    if remaining <= headroom && destination != ABSENT { break; }
++                    let slot_byte = c[512 + i];
++                    if slot_byte == u8::MAX { break; }
++                    // 255 never reaches this zero extension. No signed value.
++                    let slot = slot_byte as u64;
++                    let bytes = u64::from_le_bytes(
++                        arena_words[resident_word_base + slot as usize * 8 + 2]
++                    );
++                    let Some(next) = remaining.checked_sub(bytes) else {
++                        return reject(13);
++                    };
++                    remaining = next;
++                    mask |= 1 << slot;
++                    destination = slot;
++                    i += 1;
+                 }
+-                let slot = ld(c, 512 + i * 8);
+-                if slot == ABSENT {
+-                    break;
+-                }
+-                let Some(next) = remaining.checked_sub(rr(b, slot as usize, 2)) else {
+-                    return reject(13);
+-                };
+-                remaining = next;
+-                mask |= 1 << slot;
+-                destination = slot;
+             }
+             let feasible = destination != ABSENT && remaining <= headroom;
+             sq(c, 10, mask);

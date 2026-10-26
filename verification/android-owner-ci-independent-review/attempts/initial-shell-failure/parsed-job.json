@@ -1,0 +1,35 @@
+{
+  "runs-on": "ubuntu-24.04",
+  "steps": [
+    {
+      "uses": "actions/checkout@v4"
+    },
+    {
+      "name": "Private Android owner orchestration on the JVM",
+      "run": ": \"${JAVA_HOME_17_X64:?The runner's official JDK 17 is required}\"\npython3 -B native/android/tests/run-private-owner-host.py \\\n  --jdk \"$JAVA_HOME_17_X64\" --closure A \\\n  --evidence \"$RUNNER_TEMP/android-owner-orchestration\"\n",
+      "timeout-minutes": 5
+    },
+    {
+      "name": "Private Android renderer callback matrix on the JVM",
+      "run": ": \"${JAVA_HOME_17_X64:?The runner's official JDK 17 is required}\"\npython3 -B native/android/tests/run-private-owner-host.py \\\n  --jdk \"$JAVA_HOME_17_X64\" --closure B \\\n  --evidence \"$RUNNER_TEMP/android-owner-renderer\"\n",
+      "timeout-minutes": 7
+    },
+    {
+      "name": "Android environment observer host regressions",
+      "run": ": \"${JAVA_HOME_17_X64:?The runner's official JDK 17 is required}\"\npython3 -B native/android/tests/run-environment-observer-host.py \\\n  --jdk \"$JAVA_HOME_17_X64\" \\\n  --evidence \"$RUNNER_TEMP/android-owner-observer\"\n",
+      "timeout-minutes": 2
+    },
+    {
+      "if": "always()",
+      "name": "Preserve private Android owner host evidence",
+      "uses": "actions/upload-artifact@v4",
+      "with": {
+        "if-no-files-found": "warn",
+        "name": "android-owner-host-${{ github.sha }}",
+        "path": "${{ runner.temp }}/android-owner-*/",
+        "retention-days": 14
+      }
+    }
+  ],
+  "timeout-minutes": 15
+}

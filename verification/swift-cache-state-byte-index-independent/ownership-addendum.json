@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "status": "additional bounded ownership defect; original rejection remains immutable",
+  "original_independent_seal_sha256": "c4162bea405595b62fcb576ed616a5ff75ab6c6401c56092e7f0b3946a857883",
+  "finding_id": "BI-IR-04",
+  "severity": "blocks a direct unchanged-G6 plus proposed-G3 combined ledger join",
+  "selected_G6_source": "verification/swift-cache-state-g6-complete/ledger.py:300-301",
+  "selected_G6_operations": [
+    "c thin reference reborrow",
+    "c pointer source -> merge received c",
+    "merge call entry boundary; body owned G3/G4",
+    "merge received-unit statement continuation; implicit unit/callee return owned G4"
+  ],
+  "proposal_source": "verification/swift-cache-state-byte-index-proposal/source_checks.py:91-101,172",
+  "proposal_G3_operations": ["merge_arg_thin", "merge_param_thin", "merge_call", "merge_unit_return", "merge_unit_received"],
+  "issue": "The selected G6 explicitly retains four merge caller-only boundary scalars. The proposal instead owns the thin argument/parameter/call and unit return/receive in G3 while claiming G6 unchanged. At least the three argument/receive/call edges are therefore assigned to both owners if the packets are joined without correction; the actual caller continuation and callee implicit unit/return also require explicit selected-owner mapping.",
+  "required_action": "Keep selected G6 caller-only boundaries in G6 and callee implicit unit/return ownership in the selected G3/G4 partition. The next distinct proposal must list every source/received/caller edge exactly once. Any desired ownership amendment requires an explicit root selection; it cannot be silently inferred from unchanged bytes.",
+  "source_body_and_actual_caller_bytes_identical": true,
+  "clarification_of_original_seal": "The original body/suffix equality and exact-C3 G6 bound binding remain true. That equality does not establish that the proposal's changed event owners can be composed directly with selected G6. No combined ledger was accepted by the original review.",
+  "G4_necessary_floor_unchanged": {"scalars": 17280, "groups": 1080, "cap": 768},
+  "product_or_proposal_repair": false,
+  "compiler_runtime_native_UI_capture_or_process_inventory_execution": false,
+  "numeric_caps_or_original_seals_mutated": false
+}

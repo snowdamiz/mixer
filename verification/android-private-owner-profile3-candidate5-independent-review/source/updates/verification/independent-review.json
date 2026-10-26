@@ -1,0 +1,250 @@
+{
+  "schemaVersion": 1,
+  "reviewedBaseCommit": "e218e8d9af0785691e9d620830c123323b02c223",
+  "createdAt": "2026-10-22T22:08:37.627206+00:00",
+  "reviewer": {
+    "model": "gpt-6.1-sol",
+    "reasoningEffort": "xhigh",
+    "relationship": "Swift SDK implementer; independent of update-verifier implementation by coordinator"
+  },
+  "source": {
+    "algorithm": "SHA256 of canonical JSON source file entries sorted by path",
+    "digest": "fe89b2007e6abba96bb9099feddb1b5b717e4c1d4ede80c2a9711cf6337e6739",
+    "files": [
+      {
+        "path": "contracts/release-v1.json",
+        "sha256": "a867e9a8a6a7ba4789daeae1736b63c1fb296805a1093d11e0a6059befbee729",
+        "bytes": 6207
+      },
+      {
+        "path": "updates/Package.resolved",
+        "sha256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+        "bytes": 656
+      },
+      {
+        "path": "updates/Package.swift",
+        "sha256": "e15daa7e344eb2dd502a2437b67822fe759c07404172f83f175c497af5170e51",
+        "bytes": 753
+      },
+      {
+        "path": "updates/README.md",
+        "sha256": "795dc92f0760d7771cd823655212152772c82af0b95670879b46431d1deb1043",
+        "bytes": 3589
+      },
+      {
+        "path": "updates/Sources/MixerUpdateTool/main.swift",
+        "sha256": "38e244f41b1c12ef3c3f01838cc7aa360a6cba5955f4a07e3673c70ac54ac98f",
+        "bytes": 2702
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/CanonicalValue.swift",
+        "sha256": "9d378b14b7a768fe2a176b888b668ce33bcbb7fca79df2c5647197cacadcf954",
+        "bytes": 6168
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/StrictJSON.swift",
+        "sha256": "52952e49cc90961e3179d82809219b817b1bd4c3cb55613d2c732b62d05dcdf6",
+        "bytes": 3937
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/UpdateInputFile.swift",
+        "sha256": "56d5221c04a2015cf9f8d5ab66c1a60bbf3cacd20854d10c194c7c514eb91c5d",
+        "bytes": 1624
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/Verifier.swift",
+        "sha256": "7383bf2780008d0a0406652827cfbe16d03a9b4d4d1a97e09700658b3eb2b90c",
+        "bytes": 18898
+      },
+      {
+        "path": "updates/Tests/MixerUpdatesTests/AdversarialTests.swift",
+        "sha256": "a5791ff9987af8a7098759109544aa64ccb18ff93e6bddc8a14881307c2a215a",
+        "bytes": 10828
+      },
+      {
+        "path": "updates/Tests/MixerUpdatesTests/Fixtures/signed-release-v1.json",
+        "sha256": "d9bfa9505a83898c7ca397719e5ca6794d39e28eb8d3bd5897f1958f7801e2d7",
+        "bytes": 6537
+      },
+      {
+        "path": "updates/Tests/MixerUpdatesTests/VerifierTests.swift",
+        "sha256": "210fa666acdb9ac274710faeb701f698d0822f7c1c7e5fe20399bd2ce3316917",
+        "bytes": 6518
+      }
+    ]
+  },
+  "sourceUnchangedDuringRun": true,
+  "environment": {
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0\nswift-driver version: 1.168.6",
+    "androidSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "xcode": "Xcode 27.1\nBuild version 27A9275",
+    "androidManifestHostXcode": "Xcode 26.6\nBuild version 17F113",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+  },
+  "commands": [
+    {
+      "name": "host-tests",
+      "command": [
+        "swift",
+        "test",
+        "--package-path",
+        "updates"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "startedAt": "2026-10-22T22:08:10.288157+00:00",
+      "endedAt": "2026-10-22T22:08:11.817304+00:00",
+      "exitCode": 0,
+      "scope": "macOS host tests and static Go-to-Swift signature/canonical vector",
+      "output": "updates/verification/independent-review/host-tests.log"
+    },
+    {
+      "name": "ios-build",
+      "command": [
+        "swift",
+        "build",
+        "--package-path",
+        "updates",
+        "--target",
+        "MixerUpdates",
+        "--triple",
+        "arm64-apple-ios17.0",
+        "--sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.1.sdk",
+        "--scratch-path",
+        "updates/.build/ios"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "startedAt": "2026-10-22T22:08:11.817387+00:00",
+      "endedAt": "2026-10-22T22:08:13.953001+00:00",
+      "exitCode": 0,
+      "scope": "unsigned iOS arm64 verifier library cross-compilation only",
+      "output": "updates/verification/independent-review/ios-build.log"
+    },
+    {
+      "name": "android-build",
+      "command": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift",
+        "build",
+        "--package-path",
+        "updates",
+        "--swift-sdks-path",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks",
+        "--swift-sdk",
+        "aarch64-unknown-linux-android28",
+        "--static-swift-stdlib",
+        "-c",
+        "release",
+        "--product",
+        "mixer-update",
+        "--scratch-path",
+        "updates/.build/android"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "startedAt": "2026-10-22T22:08:13.953101+00:00",
+      "endedAt": "2026-10-22T22:08:29.340610+00:00",
+      "exitCode": 0,
+      "scope": "Android aarch64 API28 release verifier CLI cross-compilation only",
+      "output": "updates/verification/independent-review/android-build.log",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer"
+      }
+    },
+    {
+      "name": "cli-vector",
+      "command": [
+        "swift",
+        "run",
+        "--package-path",
+        "updates",
+        "-c",
+        "release",
+        "mixer-update",
+        "verify",
+        "--manifest",
+        "updates/.build/review-inputs/manifest.json",
+        "--payload",
+        "updates/.build/review-inputs/module.wasm",
+        "--host",
+        "updates/.build/review-inputs/host.json",
+        "--roots",
+        "updates/.build/review-inputs/roots.json",
+        "--assignment",
+        "updates/.build/review-inputs/assignment.json",
+        "--channel",
+        "beta",
+        "--installation",
+        "fixture-installation-1",
+        "--last-sequence",
+        "6",
+        "--now",
+        "1792627300"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "startedAt": "2026-10-22T22:08:29.340714+00:00",
+      "endedAt": "2026-10-22T22:08:37.618561+00:00",
+      "exitCode": 0,
+      "scope": "Host release CLI static vector; verifies exact artifact identity, sequence, cohort and explicit non-activation flags",
+      "output": "updates/verification/independent-review/cli-vector.log"
+    }
+  ],
+  "cliAssertions": {
+    "status": true,
+    "artifactIdentity": true,
+    "sequence": true,
+    "cohort": true,
+    "notActivated": true,
+    "noVMClaim": true,
+    "noPolicyClaim": true
+  },
+  "reviewScope": [
+    "direct pinned roots and artifact/assignment scopes, roles, revocation and validity",
+    "canonical CBOR model, ordering, unsigned types and resource limits",
+    "strict JSON duplicates, Unicode, unsupported fields and resource bounds",
+    "payload size/hash and assignment runtime/channel/sequence/cohort binding",
+    "VerifiedArtifact authority across verifier configurations and time",
+    "bounded CLI input reads"
+  ],
+  "findings": [
+    {
+      "id": "UPD-R01",
+      "severity": "P1",
+      "status": "fixed",
+      "description": "A VerifiedArtifact token from another or earlier verifier configuration bypassed current artifact-key role, public key, revocation or validity restrictions during assignment acceptance",
+      "reproduction": "Initial regressions accepted six invalid root configurations and an artifact after key expiry",
+      "fix": "Retain private artifact signature and reauthorize under receiving verifier current roots/time",
+      "initialOutput": "updates/verification/independent-review/initial-regression-failures.log"
+    },
+    {
+      "id": "UPD-R02",
+      "severity": "P2",
+      "status": "fixed",
+      "description": "Synthesized pinned configuration decoding silently ignored unknown installed-runtime/scope/resource-limit/trust-root fields",
+      "fix": "Require exact keys on all four installed configuration objects",
+      "initialOutput": "updates/verification/independent-review/initial-regression-failures.log"
+    },
+    {
+      "id": "UPD-R03",
+      "severity": "P2",
+      "status": "fixed",
+      "description": "CLI checked file size then read with unbounded Data(contentsOf:), permitting excessive allocation if a file grew after metadata check",
+      "fix": "Regular-file check plus bounded chunk reads with one-byte overflow detection; actual stream bounds tested separately from early metadata check"
+    }
+  ],
+  "dependenciesChanged": false,
+  "privateSigningMaterialPersisted": false,
+  "unqualified": [
+    "external cryptographic/security audit",
+    "formal proof",
+    "continuous coverage-guided fuzzing",
+    "hostile filesystem mutation timing and I/O deadline qualification",
+    "physical-device verification of this exact review tree",
+    "mobile durable assignment state and crash-recovery integration",
+    "W10/GA acceptance"
+  ],
+  "authorizesOTAByItself": false,
+  "executesGuest": false,
+  "persistsSequence": false,
+  "activatesCandidate": false,
+  "scopedChecksPassed": true
+}

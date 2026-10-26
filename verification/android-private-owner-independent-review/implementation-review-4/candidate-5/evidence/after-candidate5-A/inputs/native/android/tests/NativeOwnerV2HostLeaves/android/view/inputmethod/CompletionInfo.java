@@ -1,0 +1,1 @@
+package android.view.inputmethod;public class CompletionInfo {private final CharSequence text;public CompletionInfo(long id,int position,CharSequence text){this.text=text;}public CharSequence getText(){return text;}}

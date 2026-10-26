@@ -23,7 +23,14 @@ public final class NativeEnvironmentV2ObserverHostTests {
     private record Fixture(Activity activity, FrameLayout root, NativeRenderer renderer) {
         Fixture() { this(new Activity()); }
         private Fixture(Activity activity) { this(activity, new FrameLayout(activity), new NativeRenderer()); }
-        NativeEnvironmentV2.Observer open() { return new NativeEnvironmentV2.Observer(renderer, activity, root); }
+        NativeEnvironmentV2.Observer allocate() {
+            renderer.context=activity;
+            return new NativeEnvironmentV2.Observer(activity,root,(source,change,cause,primary,fatal)->{
+                renderer.environmentInvalidatedV2();
+                if(change!=NativeEnvironmentV2.Change.INVALIDATED)source.close();
+            });
+        }
+        NativeEnvironmentV2.Observer open() { NativeEnvironmentV2.Observer observer=allocate();observer.register();observer.bindRenderer(renderer);return observer; }
     }
     private static void check(boolean value, String message) { if (!value) throw new AssertionError(message); }
     private static Object field(Object object, String name) {
@@ -66,6 +73,17 @@ public final class NativeEnvironmentV2ObserverHostTests {
             () -> attach.onViewAttachedToWindow(observer.root), () -> attach.onViewDetachedFromWindow(observer.root),
             () -> focus.onWindowFocusChanged(false), () -> insets.onApplyWindowInsets(observer.root,new WindowInsets()),
             () -> contrast.onContrastChanged(1), () -> high.onHighContrastTextStateChanged(true), () -> motion.onChange(false), observer::invalidate);
+    }
+    private static void twoPhase() {
+        ObserverHostProbe.reset();Fixture f=new Fixture();NativeEnvironmentV2.Observer o=f.allocate();
+        check(ObserverHostProbe.calls.isEmpty(),"constructor acquired listeners");unsupported(o::capture);
+        check(thrown(()->o.bindRenderer(f.renderer)) instanceof IllegalStateException,"premature binding");
+        o.register();unsupported(o::capture);check(thrown(o::register) instanceof IllegalStateException,"repeat registration");
+        o.bindRenderer(f.renderer);check(o.capture().current(f.renderer),"bound capture");
+        check(thrown(()->o.bindRenderer(f.renderer)) instanceof IllegalStateException,"same renderer rebound");
+        NativeRenderer foreign=new NativeRenderer();foreign.context=new Activity();
+        check(thrown(()->o.rendererTerminal(foreign,NativeEnvironmentV2.RendererCause.CAPTURE_FAILED,null,null)) instanceof IllegalArgumentException,"foreign terminal report");
+        check(o.capture().current(f.renderer),"foreign report changed authority");o.close();cases++;
     }
     private static void clean() {
         ObserverHostProbe.reset(); Fixture f = new Fixture(); NativeEnvironmentV2.Observer o=f.open();
@@ -164,7 +182,7 @@ public final class NativeEnvironmentV2ObserverHostTests {
         }
     }
     public static void main(String[] args) {
-        clean();acquisitionFailures();cleanupFailures();reentry();lateAndThreads();terminalsAndTargets();
+        twoPhase();clean();acquisitionFailures();cleanupFailures();reentry();lateAndThreads();terminalsAndTargets();
         System.out.println("PASS " + cases + " production Observer host cases; faulting Android leaves only; native runtime pending");
     }
 }

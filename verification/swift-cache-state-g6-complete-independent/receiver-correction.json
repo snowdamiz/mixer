@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "status": "independent proposed correction; root selection required",
+  "source_sha256": "0ab577c36f9836539181ba5156bdfbc7764ea065266e68d94b431da5fdb47ea8",
+  "sites": [596, 642],
+  "source": "c.copy_within(1944..2008, 1536);",
+  "frozen_template_scalars": 39,
+  "frozen_receiver_rows_replaced": [
+    "Candidate within receiver reborrow",
+    "Candidate pointer -> within received receiver"
+  ],
+  "complete_receiver_rows": [
+    {"id": "W.R01", "operation": "Candidate array address formation", "scalar_units": 1},
+    {"id": "W.R02", "operation": "exclusive Candidate receiver reborrow creation", "scalar_units": 1},
+    {"id": "W.R03", "operation": "Candidate address -> coerced receiver slice.data source", "scalar_units": 1},
+    {"id": "W.R04", "operation": "Candidate length2048 -> coerced receiver slice.len source", "scalar_units": 1},
+    {"id": "W.R05", "operation": "receiver slice.data source -> copy_within received receiver.data", "scalar_units": 1},
+    {"id": "W.R06", "operation": "receiver slice.len source -> copy_within received receiver.len", "scalar_units": 1}
+  ],
+  "existing_rows_rebound_without_extra_debit": [
+    "Candidate length2048 -> upper right becomes received receiver.len -> upper right",
+    "Candidate length2048 -> destination-check right becomes received receiver.len -> destination-check right",
+    "Candidate length2048 -> subtraction left becomes received receiver.len -> subtraction left",
+    "Candidate base -> source-address left becomes received receiver.data -> source-address left",
+    "Candidate base -> destination-address left becomes received receiver.data -> destination-address left"
+  ],
+  "net_scalar_addition_per_executed_site": 4,
+  "corrected_template_scalars": 43,
+  "payload_copies_unchanged": [{"bytes": 64, "copies": 1, "scope": "overlap-safe existing Candidate source/destination payload"}],
+  "local_phases": [
+    {"phase": "receiver preparation", "places": {"Candidate_array_address_source": 8, "exclusive_array_reference_source": 8, "coerced_slice_source": 16}, "scope": "source call expression; the existing Candidate2048 payload is not duplicated"},
+    {"phase": "method entry and bounds", "places": {"copy_within_received_receiver": 16, "Range_source": 16, "Range_received": 16, "destination_source": 8, "destination_received": 8}, "scope": "receiver/source and received endpoints coexist during their actual transfers; the two-word Range is never one scalar shortcut"},
+    {"phase": "bounds and payload copy", "places": {"received_receiver": 16, "received_Range": 16, "received_destination": 8, "count_local": 8, "available_local": 8, "source_address": 8, "destination_address": 8, "predicate_operands_each_up_to": 8, "predicate_bool": 1}, "scope": "call body; ordinary completed guard primitives are not all made simultaneous; aliasing payload endpoints remain existing Candidate bytes"},
+    {"phase": "return and continuation", "places": {"returned_unit_source": 0, "caller_received_unit": 0}, "scope": "charged control and unit continuation; receiver reborrow ends with the source statement"}
+  ],
+  "additional_cleanup_caller_inventory_gap": {"source": "cache_walk.arena: &mut Arena", "bytes": 8, "scope": "named received caller parameter through cache_walk block; used at source1227 before Vec bytes field projection", "distinction": "not the existing arena.bytes Vec24 owner and not either returned/shared slice16", "additional_work_debit": 0, "reason": "operation row already charged; local source owner was not enumerated"},
+  "role_or_whole_lifetime_fit_claimed": false,
+  "numeric_caps_changed": false,
+  "frozen_packet_mutation": false
+}

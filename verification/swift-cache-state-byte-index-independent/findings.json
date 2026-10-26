@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "status": "required revision; exact proposed implementation selection rejected",
+  "proposal_source_sha256": "0b6ab81f1fc65742171b1023d2929e9dc8536d5cb66388ea2aa36109f5fa715d",
+  "proposal_seal_sha256": "d4cad24a902d5a8551fa51a93b445382be59027e129ac2f65408bd22666ae736",
+  "binding_C3_sha256": "0ab577c36f9836539181ba5156bdfbc7764ea065266e68d94b431da5fdb47ea8",
+  "findings": [
+    {
+      "id": "BI-IR-01",
+      "severity": "blocks unchanged G4 cap768",
+      "proposal_sites": ["primitive-grammar.md:18-24", "source_checks.py:12", "source/cache_state.rs.txt:276-283"],
+      "issue": "Six-event indexing removes the selected component model's index receiver/received reference, index/operand/result transfers, returned reference, dereference and assignment unit/continuation edges. Every output executes one RHS and one LHS index, regardless of chosen side.",
+      "necessary_floor": {"scalars_per_read_with_offset": 24, "scalars_per_write_with_offset": 21, "outputs": 384, "scalars": 17280, "groups_of_at_most16": 1080, "cap": 768},
+      "floor_not_static_impossible_path_union": true,
+      "required_action": "Preserve this proposal and use a distinct source design and complete selected-model ledger. Do not spend G3 spare, raise a cap or select the six-event primitive silently."
+    },
+    {
+      "id": "BI-IR-02",
+      "severity": "blocks producer G2/G3/G4/G5 completeness claims",
+      "proposal_sites": ["primitive-grammar.md:8-16", "source_checks.py:114-125", "source_checks.py:150-225"],
+      "issue": "The new rule includes integer operand reads and literal arithmetic operands inside one arithmetic primitive. The selected correction3 grammar explicitly counts operand source-to-received and result-source-to-target edges, and materializes all Region constant fields before projection. Probe/prefix field and arithmetic templates do not follow that selected grammar.",
+      "required_action": "Reconstruct all affected groups under one explicitly selected grammar. This bounded rejection supplies no incomplete replacement G2/G3/G5 maximum and accepts none of their claimed bounds."
+    },
+    {
+      "id": "BI-IR-03",
+      "severity": "source accounting and local lifetime reconciliation required",
+      "proposal_sites": ["source_checks.py:108-118", "phase-lifetime-inventory.md:36"],
+      "issue": "checked_add/checked_sub model tag and active payload component transfers as complete Option movement. The selected exact-C3 model charges each actual full Option<u64>/Option<usize> source-to-received16-byte movement as a bounded payload copy, with pattern/tag/payload scalar work separately. The phase table's tag+8 description is not complete Option16 source/received storage.",
+      "required_action": "Retain complete Options, all actual view/helper/source/received frames and original caller owners in the next ledger and phase inventory. Keep the whole29344 union pending."
+    }
+  ],
+  "source_seam_result": "Only the admitted merge/G2/G5 regions differ; all other source and the complete actual outer caller/cleanup suffix match exact C3.",
+  "G6_join": "Selected G6 bodies and actual caller boundaries are unchanged after the explicit three-region mask; no new G6 acceptance or new full-source acceptance is inferred.",
+  "mathematical_behavior": "Finite independent sort/prefix/address/padding models pass; no functional defect found in reviewed representation and order seams.",
+  "layout_permission": "A64x8/B64x8 is binding until root explicitly selects a private64-byte amendment. This rejection does not select that amendment or implement it.",
+  "obvious_Rust_source_issue": "No obvious new syntax or escaping overlap found by manual review; compiler/borrow checking not run and not accepted.",
+  "all_group_caps_unchanged": [256, 2560, 2568, 768, 640, 640, 248],
+  "whole_role_union_accepted": false,
+  "implementation_or_compiler_or_runtime_accepted": false,
+  "GA_qualified": false,
+  "repair_attempted_in_this_review": false,
+  "scope": {"source_only": true, "producer_execution_or_import": false, "UI_capture_native_or_process_inventory": false, "old_packet_or_product_mutation": false, "commits_pushes_publication_or_messages_to_customers": false}
+}

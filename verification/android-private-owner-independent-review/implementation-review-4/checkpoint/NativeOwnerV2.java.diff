@@ -1,0 +1,17 @@
+--- admitted-C4/native/android/app/src/dev/mixer/android/NativeOwnerV2.java
++++ admitted-C5/native/android/app/src/dev/mixer/android/NativeOwnerV2.java
+@@ -396,7 +396,13 @@
+         ledger.coordinator = Outcome.ATTEMPTED;
+         Throwable failure = null;
+         try { owned.closeFromOwner(); ledger.coordinator = Outcome.RETURNED; }
+-        catch (RuntimeException | Error caught) { failure = caught; ledger.coordinatorFailure = caught; ledger.coordinator = Outcome.FAILED_UNCERTAIN; remember(caught); }
++        catch (RuntimeException | Error caught) { failure = caught; ledger.coordinatorFailure = caught; ledger.coordinator = Outcome.FAILED_UNCERTAIN; }
++        finally {
++            NativeCoordinatorV2.CleanupLedger retained = owned.cleanupLedger();
++            remember(retained.primary());
++            remember(retained.firstFatal());
++        }
++        remember(failure);
+         completeCleanup(token, failure);
+     }
+     private void settle() {

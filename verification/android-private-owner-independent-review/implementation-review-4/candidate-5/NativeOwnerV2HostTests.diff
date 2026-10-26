@@ -1,0 +1,53 @@
+--- candidate4/native/android/tests/NativeOwnerV2HostTests.java
++++ candidate5/native/android/tests/NativeOwnerV2HostTests.java
+@@ -165,7 +165,33 @@
+    OwnerHostProbe.hook=(m,p)->{if(m.equals("Renderer.dispose")&&p.equals("entry")){OwnerHostProbe.hook=null;throw ordinary;}};
+    check(thrown(f.owner::close)==fatal,"later cleanup fatal demoted");check(f.renderer().disposals==1&&NativeBridge.destroyCalls==1,"independent cleanup skipped");
+    check(f.coordinator().cleanupLedger().rendererFailure()==ordinary&&f.coordinator().cleanupLedger().firstFatal()==fatal,"coordinator fixed diagnostics lost");
++   check(f.coordinator().cleanupLedger().primary()==ordinary&&f.owner.cleanupLedger().primary()==ordinary&&f.owner.cleanupLedger().firstFatal()==fatal,"owner failed to collect retained ordinary before fatal");
+   }catch(Fatal expected){}cases++;
++ }
++ private static void disposalPriority(){
++  for(String variant:List.of("successful","ordinary-only","fatal-only","ordinary-then-fatal","earlier-primary","earlier-primary-and-fatal")){
++   RuntimeException ordinary=new IllegalStateException("disposal ordinary A"),earlierPrimary=new IllegalStateException("earlier owner primary P");
++   Fatal fatal=new Fatal("disposal fatal E"),earlierFatal=new Fatal("earlier owner fatal F");
++   boolean rendererFails=!variant.equals("successful")&&!variant.equals("fatal-only"),engineFails=!variant.equals("successful")&&!variant.equals("ordinary-only"),earlier=variant.startsWith("earlier-"),hasEarlierFatal=variant.equals("earlier-primary-and-fatal");
++   Fixture f=new Fixture(true);
++   try{
++    f.ready();NativeCoordinatorV2 coordinator=f.coordinator();
++    if(earlier){check(caught(()->f.renderer().terminal(NativeEnvironmentV2.RendererCause.CAPTURE_FAILED,earlierPrimary,hasEarlierFatal?earlierFatal:null))==(hasEarlierFatal?earlierFatal:null),"earlier report escape identity");check(f.queue.queued()==1&&NativeBridge.destroyCalls==0,"earlier report did not defer exact disposal");}
++    if(engineFails)NativeBridge.destroyFailure=fatal;
++    OwnerHostProbe.hook=(method,phase)->{if(rendererFails&&method.equals("Renderer.dispose")&&phase.equals("entry"))throw ordinary;};
++    Throwable escaped=caught(earlier?()->f.queue.drainAll(4):f.owner::close);OwnerHostProbe.hook=null;
++    Throwable componentPrimary=rendererFails?ordinary:engineFails?fatal:null;Error expectedFatal=hasEarlierFatal?earlierFatal:engineFails?fatal:null;
++    check(escaped==expectedFatal,"disposal priority escaping first fatal "+variant);
++    check(coordinator.cleanupLedger().primary()==componentPrimary&&coordinator.cleanupLedger().firstFatal()==(engineFails?fatal:null),"component retained identities "+variant);
++    check(f.owner.cleanupLedger().primary()==(earlier?earlierPrimary:componentPrimary)&&f.owner.cleanupLedger().firstFatal()==expectedFatal,"outer retained identities/precedence "+variant);
++    check(f.owner.cleanupLedger().coordinator()==(rendererFails||engineFails?NativeOwnerV2.Outcome.FAILED_UNCERTAIN:NativeOwnerV2.Outcome.RETURNED)&&f.owner.cleanupLedger().coordinatorFailure()==(engineFails?fatal:rendererFails?ordinary:null),"disposal outcome identity "+variant);
++    check(f.fence().terminal&&!f.fence().drawAllowed&&!f.fence().inputAllowed&&coordinator.isRetired()&&f.core().snapshot().phase()==OwnerLifecycleV2.Phase.RETIRED&&!f.core().snapshot().closePending(),"disposal did not retire actual core/close gates "+variant);
++    check(f.renderer().disposals==1&&NativeBridge.destroyCalls==1,"disposal skipped owned release "+variant);
++    for(int i=0;i<2;i++)check(caught(f.owner::close)==expectedFatal,"repeated close lost first fatal "+variant);
++    check(f.renderer().disposals==1&&NativeBridge.destroyCalls==1&&f.queue.queued()==0,"repeated close repeated consumed disposition "+variant);
++    check(f.owner.cleanupLedger().primary()==(earlier?earlierPrimary:componentPrimary)&&f.owner.cleanupLedger().firstFatal()==expectedFatal,"repeated close replaced diagnostics "+variant);
++   }finally{OwnerHostProbe.hook=null;caught(f::close);}cases++;
++  }
+  }
+  private static void latePostCleanup(){
+   for(String phase:List.of("entry","beforeReturn"))for(boolean fatalKind:new boolean[]{false,true}){
+@@ -263,7 +289,8 @@
+   for(String nativePhase:List.of("entry","beforeReturn"))for(String enginePhase:List.of("entry","beforeReturn")){
+    Fatal fatal=new Fatal("destroy fatal");RuntimeException primary=new IllegalStateException("dispose ordinary");
+    try(Fixture f=new Fixture(true)){
+-    f.ready();OwnerHostProbe.hook=(method,phase)->{if(method.equals("Renderer.dispose")&&phase.equals(nativePhase))throw primary;if(method.equals("NativeBridge.destroy")&&phase.equals(enginePhase))throw fatal;};caught(f.owner::close);OwnerHostProbe.hook=null;
++    f.ready();OwnerHostProbe.hook=(method,phase)->{if(method.equals("Renderer.dispose")&&phase.equals(nativePhase))throw primary;if(method.equals("NativeBridge.destroy")&&phase.equals(enginePhase))throw fatal;};check(caught(f.owner::close)==fatal,"combined cleanup escaping fatal identity");OwnerHostProbe.hook=null;
++    check(f.owner.cleanupLedger().primary()==primary&&f.owner.cleanupLedger().firstFatal()==fatal,"combined cleanup owner diagnostic order");
+     check(f.renderer().disposals==1&&OwnerHostProbe.count("NativeBridge.destroy","entry")==1,"combined cleanup owners not attempted");check(f.coordinator().cleanupLedger().rendererFailure()==primary&&f.coordinator().cleanupLedger().engineFailure()==fatal,"combined cleanup diagnostics");caught(f.owner::close);check(OwnerHostProbe.count("NativeBridge.destroy","entry")==1,"combined cleanup repeated");migrated.add("migrated.independent-disposal."+nativePhase+"."+enginePhase);
+    }catch(Fatal expected){check(expected==fatal,"combined cleanup fatal identity");}cases++;
+   }
+@@ -376,5 +403,5 @@
+   try(Fixture f=new Fixture(true)){f.ready();f.fence().sealSerial=Long.MAX_VALUE;f.owner.onPause();check(f.fence().terminal&&f.fence().sealSerial==Long.MAX_VALUE,"serial wrapped");check(f.owner.cleanupLedger().cause()==NativeOwnerV2.Cause.SEAL_SERIAL_EXHAUSTED,"serial cause lost");}
+   try(Fixture f=new Fixture(true)){f.ready();NativeCoordinatorV2 coordinator=f.coordinator();check(caught(coordinator::renderInitial) instanceof IllegalStateException,"ownerless duplicate initial admitted");check(caught(()->coordinator.dispatchInput(new byte[]{1})) instanceof IllegalStateException,"programmatic input bypass admitted");check(caught(coordinator::refreshEnvironment) instanceof IllegalStateException,"programmatic refresh bypass admitted");f.owner.close();Looper.hostSetMain(false);try{for(Runnable call:List.<Runnable>of(coordinator::renderInitial,()->coordinator.dispatchInput(new byte[]{1}),coordinator::refreshEnvironment,coordinator::closeFromOwner,coordinator::isRetired,coordinator::hasCommittedPresentation,coordinator::cleanupLedger,f.owner::onResume,f.owner::onPause,f.owner::onStop,f.owner::close,f.owner::hasCommittedPresentation,f.owner::cleanupLedger,()->f.observer().invalidate()))check(thrown(call) instanceof IllegalStateException,"stale entry skipped real thread check");}finally{Looper.hostReset();}}cases++;
+  }
+- public static void main(String[] args)throws Exception{descriptor=Files.readAllBytes(Path.of(args[0]));inertAndReadiness();registrationTerminalCallback();registrationCoreFault();staleAndWindow();inputAndRefresh();reentry();focusAdmission();completionPublication();observerDuringOperation();terminalReports();schedulingAndCleanup();latePostCleanup();migratedFaults();migratedCommitAndCleanup();migratedCombinedVectors();migratedHiddenOutcomesAndInputFatal();migratedLifecycle();cancellationLedger();successfulDispositionAfterFailure();unreportedCompletion();exhaustionAndThreads();if(args.length>1)Files.writeString(Path.of(args[1]),String.join("\n",migrated)+"\n");System.out.println("PASS actual owner/core/coordinator/observer closure A cases="+cases+" assertions="+checks+"; renderer leaf only, native runtime pending");}
++ public static void main(String[] args)throws Exception{descriptor=Files.readAllBytes(Path.of(args[0]));inertAndReadiness();registrationTerminalCallback();registrationCoreFault();staleAndWindow();inputAndRefresh();reentry();focusAdmission();completionPublication();observerDuringOperation();terminalReports();schedulingAndCleanup();disposalPriority();latePostCleanup();migratedFaults();migratedCommitAndCleanup();migratedCombinedVectors();migratedHiddenOutcomesAndInputFatal();migratedLifecycle();cancellationLedger();successfulDispositionAfterFailure();unreportedCompletion();exhaustionAndThreads();if(args.length>1)Files.writeString(Path.of(args[1]),String.join("\n",migrated)+"\n");System.out.println("PASS actual owner/core/coordinator/observer closure A cases="+cases+" assertions="+checks+"; renderer leaf only, native runtime pending");}
+ }

@@ -1,0 +1,51 @@
+// PROPOSAL ONLY. Not compiled, executed, selected, or product source.
+// G3 owns this call's complete source/received borrow and view construction.
+fn merge(c: &mut Candidate2048) {
+    let (time_bytes, indices) = c.split_at_mut(512);
+    let (timestamps, _) = time_bytes.as_chunks::<8>();
+    // indices is the disjoint existing Candidate[512..2048] region.
+    let mut src = 0;
+    let mut dst = 512;
+    let mut width = 1;
+    while width < 64 {
+        let mut base = 0;
+        while base < 64 {
+            let mut left = base;
+            let mid = base + width;
+            let end = base + 2 * width;
+            let mut right = mid;
+            let mut out = base;
+            while out < end {
+                let take_left = if left == mid {
+                    false
+                } else if right == end {
+                    true
+                } else {
+                    #[cfg(test)]
+                    SORT_COMPARISONS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    let a = indices[src + left];
+                    let b = indices[src + right];
+                    b == u8::MAX
+                        || (a != u8::MAX
+                            && u64::from_le_bytes(timestamps[a as usize])
+                                <= u64::from_le_bytes(timestamps[b as usize]))
+                };
+                if take_left {
+                    indices[dst + out] = indices[src + left];
+                    left += 1;
+                } else {
+                    indices[dst + out] = indices[src + right];
+                    right += 1;
+                }
+                out += 1;
+                #[cfg(test)]
+                SORT_MOVES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            }
+            base = end;
+        }
+        let old_src = src;
+        src = dst;
+        dst = old_src;
+        width *= 2;
+    }
+}

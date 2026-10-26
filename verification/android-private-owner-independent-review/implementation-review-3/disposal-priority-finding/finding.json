@@ -1,0 +1,117 @@
+{
+  "id": "F09",
+  "candidate": 4,
+  "status": "confirmed; implementation rejected",
+  "subject": "NativeOwnerV2.closePending fails to collect retained coordinator primary before later thrown fatal",
+  "variants": [
+    {
+      "scope": "independent explicit owner close disposal priority",
+      "variant": "ordinary-only",
+      "suppressionDisabledOrdinary": true,
+      "rendererAttempt": true,
+      "destroyAttempts": 1,
+      "rendererOutcome": "FAILED_UNCERTAIN",
+      "engineOutcome": "RETURNED",
+      "coordinatorPrimaryIsA": true,
+      "coordinatorPrimaryIsE": false,
+      "coordinatorFatalIsE": false,
+      "ownerPrimaryIsA": true,
+      "ownerPrimaryIsE": false,
+      "ownerFatalIsE": false,
+      "escapingIsE": false,
+      "coreRetired": true,
+      "draw": false,
+      "input": false
+    },
+    {
+      "scope": "independent explicit owner close disposal priority",
+      "variant": "fatal-only",
+      "suppressionDisabledOrdinary": true,
+      "rendererAttempt": false,
+      "destroyAttempts": 1,
+      "rendererOutcome": "RETURNED",
+      "engineOutcome": "FAILED_UNCERTAIN",
+      "coordinatorPrimaryIsA": false,
+      "coordinatorPrimaryIsE": true,
+      "coordinatorFatalIsE": true,
+      "ownerPrimaryIsA": false,
+      "ownerPrimaryIsE": true,
+      "ownerFatalIsE": true,
+      "escapingIsE": true,
+      "coreRetired": true,
+      "draw": false,
+      "input": false
+    },
+    {
+      "scope": "independent explicit owner close disposal priority",
+      "variant": "ordinary-then-fatal",
+      "suppressionDisabledOrdinary": true,
+      "rendererAttempt": true,
+      "destroyAttempts": 1,
+      "rendererOutcome": "FAILED_UNCERTAIN",
+      "engineOutcome": "FAILED_UNCERTAIN",
+      "coordinatorPrimaryIsA": true,
+      "coordinatorPrimaryIsE": false,
+      "coordinatorFatalIsE": true,
+      "ownerPrimaryIsA": false,
+      "ownerPrimaryIsE": true,
+      "ownerFatalIsE": true,
+      "escapingIsE": true,
+      "coreRetired": true,
+      "draw": false,
+      "input": false
+    }
+  ],
+  "controls_passed": [
+    "ordinary-only",
+    "fatal-only"
+  ],
+  "failing_variant": "ordinary-then-fatal",
+  "ordinary_identity": "suppression-disabled ordinary A thrown by actual current-gate disposal View.setVisibility entry",
+  "fatal_identity": "fatal E thrown by actual engine destroy leaf",
+  "contract": {
+    "correction": {
+      "path": "verification/android-private-owner-independent-review/preaccess/inputs/docs/android-private-owner-effect-integration-correction.md",
+      "lines": [
+        "94-99",
+        "215-220"
+      ]
+    },
+    "proposal": {
+      "path": "verification/android-private-owner-independent-review/preaccess/inputs/docs/android-private-owner-effect-integration-proposal.md",
+      "lines": [
+        "110-114",
+        "305-313"
+      ]
+    },
+    "root_interpretation": "Owner collects component retained first primary and first fatal; nested retention alone is insufficient. Existing earlier owner primary/fatal wins."
+  },
+  "source_anchors": [
+    {
+      "path": "native/android/app/src/dev/mixer/android/NativeOwnerV2.java",
+      "lines": "390-400",
+      "observation": "closePending remembers only caught throwable"
+    },
+    {
+      "path": "native/android/app/src/dev/mixer/android/NativeCoordinatorV2.java",
+      "lines": "188-195",
+      "observation": "closeFromOwner throws retained fatal when a disposal slot throws Error"
+    },
+    {
+      "path": "native/android/app/src/dev/mixer/android/NativeCoordinatorV2.java",
+      "lines": "218-235",
+      "observation": "Independent renderer then engine disposal retains first primary A and first fatal E"
+    }
+  ],
+  "narrow_repair_direction": "Collect retained coordinator primary and first fatal before remembering the caught throwable, preserving existing owner priorities. Preserve thrown E, exact coordinator failure/outcome, core cleanup completion token/failure and closed gates.",
+  "limits": [
+    "Host-only actual14 + admitted leaf3, no native/JNI reclamation claim",
+    "No candidate source edits",
+    "Three variants invoked; no manufactured assertion count or implementation acceptance"
+  ],
+  "cleanup": {
+    "owned_children_reaped": true,
+    "exclusive_scratch_removed": true,
+    "native_or_capture_started": false
+  }
+}

@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+"""Enumerate frozen historical source inputs; never run/import a historical harness/model."""
+from pathlib import Path
+from collections import Counter
+from itertools import product
+import hashlib,json,shutil
+HERE=Path(__file__).resolve().parent
+ROOT=HERE.parents[2]
+def read(p):return json.loads(p.read_text())
+def rec(p):
+ b=p.read_bytes();return dict(bytes=len(b),sha256=hashlib.sha256(b).hexdigest())
+def main():
+ out=HERE/'final-evidence';out.mkdir(exist_ok=True);frozen=HERE/'historical-source-enumeration';frozen.mkdir(exist_ok=True)
+ old=read(HERE.parent/'implementation-review-3/final-evidence/historical-migration.json')
+ actual=[]
+ for path in sorted((HERE/'remaining-final-3').glob('02-*.stdout')):
+  for line in path.read_text().splitlines():
+   if line.startswith('{'):
+    row=json.loads(line)
+    if row.get('passed'):actual.append(dict(**row,evidence=str(path.relative_to(HERE))))
+ def evidence(family,contains=''):
+  found=[dict(family=r['family'],name=r['name'],variant=r['variant'],evidence=r['evidence']) for r in actual if r['family']==family and contains in r['name']]
+  assert found,(family,contains)
+  return found
+ core_names={
+ 'readiness':'readiness','freshProbe':'freshProbe','dirtyBurst':'dirtyBurst','invalidationDuringOperations':'invalidationDuringOperations','temporarySize':'temporarySize','closeBeforeReadyAndStaleQueue':'closeBeforeReadyAndStaleQueue','closeDuringOpen':'closeDuringOpen-and-failedOpenWithResource','failedOpenWithResource':'closeDuringOpen-and-failedOpenWithResource','inputSerializationAndReentrantTerminal':'inputSerializationAndReentrantTerminal-refreshDetachAndNeverReturn','refreshDetachAndNeverReturn':'inputSerializationAndReentrantTerminal-refreshDetachAndNeverReturn','foreignAndDuplicateCompletions':'foreignAndDuplicateCompletions','operationCannotReplaceResource':'operationCannotReplaceResource-failedRefreshAndInput','stalePresentationAndInputDirty':'stalePresentationAndInputDirty','windowRetirementMatrix':'windowRetirementMatrix','pauseFocusConfig':'pauseFocusConfig','failuresAndIndependentCleanup':'failuresAndIndependentCleanup','failedRefreshAndInput':'operationCannotReplaceResource-failedRefreshAndInput','overflow':'overflow','recreationAndIdentityEquality':'recreationAndIdentityEquality','wrongThreadEveryEntry':'wrongThreadEveryEntry','boundedLongRun':'boundedLongRun','malformedFactsAndUnknownOutcome':'malformedFactsAndUnknownOutcome'}
+ observer_names={'twoPhase':'twoPhase-clean','clean':'twoPhase-clean','acquisitionFailures':None,'cleanupFailures':'all-cleanup-failures','reentry':'reentry','lateAndThreads':'lateAndThreads','terminalsAndTargets':'terminalsAndTargets'}
+ coordinator_names={'success':'success','prepareAndAttachmentFaults':'prepareAndAttachmentFaults-acquisition','commitDispositions':'commitDispositions','cleanupFaults':'cleanupFaults','nativeInputAndEnvironment':'nativeInputAndEnvironment-refresh','lifecycle':'lifecycle-reentry'}
+ sources=[];allchecks=[]
+ for source in old['sources']:
+  path=ROOT/source['path'];assert rec(path)==source['source'];copy=frozen/path.name
+  if not copy.exists():shutil.copy2(path,copy)
+  assert rec(copy)==source['source'];lines=copy.read_text().splitlines();groups=[]
+  for g in source['groups']:
+   name=g['method'];family='history-core' if name in core_names else 'history-observer' if name in observer_names else 'history-coordinator';pointer=(core_names if family=='history-core' else observer_names if family=='history-observer' else coordinator_names)[name]
+   ev=evidence(family,pointer) if pointer is not None else [dict(evidence='owner-contract-1/02-run.stdout',family='actual owner/Observer',name='registration all8 slots x entry/return x ordinary/fatal',variant='32 exact independently authored controls')]
+   disposition='Selected actual contract controls overlap this historical source group; no historical harness/model run and no one-to-one pass count inferred.'
+   if name in ['prepareAndAttachmentFaults','commitDispositions']:disposition='Historical isolated retry/session-reuse expectations superseded by selected joined lifetime: every failed initial/input operation retires both owners. Actual known1..7 and unknown-1/8/MAX controls run for initial/input; no old retry pass is claimed.'
+   if name=='cleanupFaults':ev+= [dict(evidence='repair-priority-2/02-run.stdout',name='exact F09 plus earlier owner P/F and repeated close',family='repair',variant='5 controls')]
+   if name in ['success','nativeInputAndEnvironment']:ev+=evidence('IME-forward')+ [dict(evidence='targeted-1',name='accepted/fresh input; retained refresh; actual completion boundaries',family='actual targeted',variant='19 separately measured modes')]
+   if name=='reentry':ev+=evidence('history-observer','registration-invalidation')+evidence('history-observer','registration-owner-failure')
+   if name=='terminalsAndTargets':disposition+=' Exact original/dead receiver isolation executed. Historical replacement-focus/resolver variants are source-only/native-pending because admitted leaf3 target references are final; no replacement host pass credited.'
+   checks=[];ordinals=Counter()
+   for check in g['historical_check_call_sites']:
+    line=check['line'];assert hashlib.sha256(lines[line-1].encode()).hexdigest()==check['source_line_sha256'];ordinals[line]+=1
+    identifier=f'{path.stem}:{name}:L{line}:check{ordinals[line]}'
+    item=dict(id=identifier,**check,selected_families=g['selected_families'],independent_evidence=ev,disposition=disposition,unique_outcome_count_claim=False)
+    if name=='terminalsAndTargets' and line in [173,175,176,177]:item['source_only_native_pending']='Historical source replaces focus target/resolver. Product captures original final receiver and uses it in cleanup; admitted leaves cannot execute replacement. Corresponding exact/dead target controls are complementary, never replacement credit.'
+    if family=='history-coordinator' and name in ['prepareAndAttachmentFaults','commitDispositions','cleanupFaults','nativeInputAndEnvironment']:item['model_seam_limit']='Historical packet-copy/allocation/discard/finish and real JNI effect flags do not create actual method fault boundaries. Actual callback barriers, returned dispositions and failure cleanup are executed; uninjectable allocation/JNI internals and prohibited commit/finish callback seams are classified separately below.'
+    checks.append(item);allchecks.append(item)
+   groups.append(dict(method=name,line=g['line'],selected_families=g['selected_families'],checks=checks,source_group_migrated=True,independent_evidence=ev,disposition=disposition))
+  sources.append(dict(source_path=source['path'],retained_source=str(copy.relative_to(HERE)),source=rec(copy),historical_reported_counter=source['historical_reported_count'],execution_or_import=False,groups=groups))
+ # Expand the actual named coordinator source scenario loops, as provenance records only.
+ vectors=[]
+ def add(group,name,axes=None,status='selected-host-semantic-control',note=''):
+  vectors.append(dict(id='HCO:'+group+':'+name,group=group,historical_axes=axes or {},status=status,note=note,source_counter_or_model_is_oracle=False))
+ for name in ['initial-and-input-success-order-opaque-sign-bit-token','environment-only-exact-retained-packet-no-engine-transaction']:add('success',name)
+ stages=['capture.installed','capture.environment','engine.prepare.before','engine.prepare.delivery','engine.token','engine.packet.copy','renderer.prepare','environment.current','renderer.attach.preflight','renderer.attach.mutation','renderer.attach.return','renderer.validate']
+ for stage,error in product(stages,[False,True]):add('prepareAndAttachmentFaults','initial-'+stage+('-Error' if error else '-exception'),dict(stage=stage,error=error),status='source-only-allocation-or-opaque-JNI-internal' if stage in ['engine.prepare.delivery','engine.token','engine.packet.copy'] else 'selected-host-semantic-control-with-exact-callback-coverage',note='Selected joined failure retires; historical recoverable retry rejected. No producer fault flag promoted to an actual boundary.')
+ for name in ['stale-after-prepare-discards-unattached-candidate','prepare-null-delivery-retires-without-invented-token','prepare-invalid-zero-token-retires']:add('prepareAndAttachmentFaults',name,note='Mechanical Candidate rejects invalid token/null before delivery; actual absent/unknown outcome fails closed with no invented abort. No JNI runtime claim.')
+ for code in range(1,8):add('commitDispositions','known-commit-code-'+str(code)+'-confirmed-abort',dict(status=code),note='Host initial/input statuses executed; historical reusable-session expectation rejected by selected joined lifetime.')
+ for stage,error in product(['engine.commit.before','engine.commit.after'],[False,True]):add('commitDispositions','unknown-commit-'+stage+('-Error' if error else '-exception'),dict(stage=stage,error=error),note='Actual callback/throw refusal and disposal observed. Before/after real engine side effect remains opaque JNI/native-pending.')
+ for code,effect in product([-1,8,2147483647],[False,True]):add('commitDispositions',f'unexpected-commit-code-{code}-effect-{str(effect).lower()}',dict(status=code,modeled_engine_effect=effect),status='host-status-covered-real-engine-effect-native-pending',note='Two modeled-effect flags overlap one actual host returned-status policy; never count as two real engine outcomes.')
+ for stage in ['renderer.finish.before','renderer.finish.after']:add('commitDispositions','successful-commit-then-'+stage+'-failure',dict(stage=stage),status='historical-callback-seam-excluded-by-selected-contract',note='Actual successful commit/finish has scalar swaps/direct call only. Completion boundary fault tests run after interval; no synthetic callback injected here.')
+ for code in [0,1,2,3,4,5,6,7,99]:add('cleanupFaults','abort-code-'+str(code),dict(abort_status=code))
+ for stage,error in product(['engine.abort','renderer.rollback.before','renderer.rollback.after'],[False,True]):add('cleanupFaults','cleanup-'+stage+('-Error' if error else '-exception'),dict(stage=stage,error=error),note='Actual abort ordinary/fatal and rollback failure/timing callback controls; suppression array size is not the oracle. Exact P/F ledger identities are checked.')
+ for stage in ['renderer.discard.before','renderer.discard.after']:add('cleanupFaults','cleanup-'+stage,dict(stage=stage),status='historical-model-seam-absent-source-reviewed',note='Valid actual discard is consumed scalar state with main/identity checks. No native callback or model fault flag is invented.')
+ for stage in ['renderer.attach.preflight','renderer.attach.mutation']:add('cleanupFaults','attach-throw-and-abort-throw-'+stage,dict(stage=stage),note='Actual seven-case attachment barriers and independent abort failure ledger controls overlap, not unique additional passes.')
+ for native,engine in product(['renderer.dispose.before','renderer.dispose.after'],['engine.destroy.before','engine.destroy.after']):add('cleanupFaults','both-owner-cleanup-fail-'+native+'-'+engine,dict(renderer_phase=native,engine_phase=engine),note='All four actual phase pairs freshly run; exact A/E and repeated close; entry event is attempt even if counted leaf body has not incremented.')
+ add('cleanupFaults','transaction-retirement-attempts-both-disposals-despite-errors',note='Joined failed operations, ordinary/fatal disposal controls and exact F09 P/F controls overlap; exact ledger slots replace unbounded suppressed-list expectations.')
+ for stage in ['capture.installed','capture.environment','engine.prepare.before','engine.packet.copy','renderer.prepare','environment.current','renderer.attach.preflight','renderer.attach.mutation','renderer.validate','engine.commit.before']:add('nativeInputAndEnvironment','failed-native-input-'+stage,dict(stage=stage),status='source-only-copy-allocation-internal' if stage=='engine.packet.copy' else 'selected-actual-input-and-callback-matrix-coverage',note='Unacknowledged edit is not synthetically restored; owner/core failure lifetime retires. Full real IME OS effects remain native-pending.')
+ for code in range(1,8):add('nativeInputAndEnvironment','native-input-known-commit-code-'+str(code)+'-still-retires',dict(status=code))
+ for name in ['programmatic-rejected-input-still-throws','native-callback-stale-before-attach-discards-then-retires','native-callback-propagates-discard-Error']:add('nativeInputAndEnvironment',name,status='selected-direct-authority-or-source-only-discard-seam',note='Actual coordinator entries require current core operation; direct outside-operation calls refuse before effects. Valid scalar discard has no fabricated Error flag.')
+ for stage in ['engine.packet.copy','engine.commit.after','renderer.finish.before']:add('nativeInputAndEnvironment','native-callback-propagates-Error-'+stage,dict(stage=stage),status='source-only-copy-or-excluded-finish-seam' if stage!='engine.commit.after' else 'actual-fatal-callback-covered')
+ for stage in ['engine.abort','renderer.rollback.before','renderer.dispose.before','engine.destroy.before']:add('nativeInputAndEnvironment','native-callback-propagates-suppressed-cleanup-Error-'+stage,dict(stage=stage),note='Exact fatal identity propagates after independent attempts; no suppression graph traversal required.')
+ for stage in ['renderer.prepare','renderer.validate','renderer.finish.before']:add('nativeInputAndEnvironment','unexpected-reentrant-native-callback-'+stage,dict(stage=stage),status='excluded-finish-callback-seam' if stage=='renderer.finish.before' else 'selected-busy-input-refusal-covered',note='Selected actual owner nativeInput returns while active/sealed with zero capture/effects/buffering; historical model throwing policy is superseded.')
+ for stage in ['capture.installed','capture.environment','renderer.prepare','environment.current','renderer.attach.preflight','renderer.attach.mutation','renderer.validate','renderer.finish.before','renderer.finish.after']:add('nativeInputAndEnvironment','failed-environment-only-'+stage,dict(stage=stage),status='excluded-finish-callback-seam' if stage.startswith('renderer.finish') else 'actual-environment-only-failure-covered',note='All executable fresh refresh failure families preserve zero prepare/commit/abort JNI deltas; no fabricated new revision.')
+ for name in ['environment-only-stale-unattached-discard','environment-only-rollback-failure-still-disposes-both']:add('nativeInputAndEnvironment',name)
+ add('lifecycle','closed-and-uninitialized-operation-rejection',note='Selected coordinator needs authentic core operation; fresh direct mutation is not public API. Actual off-main/reentrant/stale/retired guards and real initial publication exercised.')
+ for action,stage in product(['initial','input','environment','close'],['capture.installed','renderer.prepare','renderer.validate','renderer.finish.before']):add('lifecycle','reentrant-'+action+'-during-'+stage,dict(action=action,stage=stage),status='excluded-finish-callback-seam' if stage=='renderer.finish.before' else 'selected-actual-reentry-covered',note='Actual four executable stages x four coordinator entries plus busy owner input run. Synthetic installed/finish flags never create callbacks in pure bodies.')
+ for name in ['main-looper-confinement-including-lifecycle-and-queries','creation-failure-disposes-native-owner','creation-zero-handle-disposes-native-owner']:add('lifecycle',name)
+ assert len(vectors)==133,len(vectors)
+ observer=[]
+ def obs(group,axes,status='selected-host-semantic-control',note=''):
+  suffix=','.join(f'{k}={v}' for k,v in axes.items()) or 'sequence';observer.append(dict(id='HO:'+group+':'+suffix,group=group,historical_axes=axes,status=status,note=note,source_counter_or_model_is_oracle=False))
+ obs('twoPhase',{});obs('clean',{})
+ for slot,phase,fatal in product(range(8),['entry','beforeReturn'],[False,True]):obs('acquisitionFailures',dict(slot=slot,phase=phase,fatal=fatal));obs('cleanupFailures',dict(slot=slot,phase=phase,fatal=fatal))
+ obs('cleanupFailures',dict(all_ordinary=True))
+ for slot in range(8):obs('cleanupFailures',dict(all_failed_fatal_slot=slot))
+ for adding,phase,slot,detach in product([True,False],['entry','beforeReturn'],range(8),[False,True]):obs('reentry',dict(adding=adding,phase=phase,slot=slot,detach=detach))
+ for slot in range(8):obs('reentry',dict(registration_invalidation_slot=slot));obs('reentry',dict(registration_owner_fatal_slot=slot),note='Actual joined owner fatal injection reaches real sink/probe; old programmable renderer notification not reused.')
+ obs('lateAndThreads',{})
+ obs('terminalsAndTargets',dict(epoch_exhaustion=True));obs('terminalsAndTargets',dict(detach=True));obs('terminalsAndTargets',dict(replace_focus_and_resolver=True),status='SOURCE-ONLY/NATIVE-PENDING',note='Historical lines170-173; admitted leaf3 has final View.treeObserver and Context.resolver. Production final focusTarget/resolver captured in constructor and used directly at cleanup; exact original receiver host checks are complementary only.')
+ obs('terminalsAndTargets',dict(dead_original_then_replace_focus=True),status='SOURCE-ONLY/NATIVE-PENDING',note='Historical lines174-177; dead original host control executes, replacement does not. Captured final receiver isolation source reviewed; no replacement host pass.')
+ for fatal in [False,True]:obs('terminalsAndTargets',dict(owner_failure_fatal=fatal),note='Selected joined sink contains ordinary failure after terminal sealing; actual shared changed body executed during registration and actual core failure controls. Original renderer programmable notification oracle not reused.')
+ assert len(observer)==162,len(observer)
+ checkids={v['id'] for v in allchecks};assert len(sources)==3 and sum(len(s['groups']) for s in sources)==35 and len(allchecks)==153 and len(checkids)==153
+ result=dict(scope='Completed source-case expansion and selected-contract migration ledger; provenance counters never independent pass totals',sources=sources,historical_group_count=35,historical_check_call_sites=153,named_coordinator_source_scenarios=133,expanded_observer_source_case_sequences=162,core_source_groups=22,declared_previous_report_counters=[133,141,173],sum447_is_unique_outcomes=False,counter_explanation='133 coordinator scenario source expansions; frozen Observer source expands162 case sequences, while141 is prior provenance; core has22 run groups and repeated check calls including5000 refreshes. These units differ and overlap. Never invent447 unique implementation passes.',coordinator_source_vectors=vectors,observer_source_vectors=observer,core_group_parameter_sequences=[dict(method=g,independent_evidence=evidence('history-core',n)) for g,n in core_names.items()],independent_host_cases_in_final_continuation=len(actual),all_historical_harness_execution_or_import=False,source_only_native_pending_vector_ids=[v['id'] for v in observer if v['status']=='SOURCE-ONLY/NATIVE-PENDING'],other_source_only_limits=['Actual allocation/packet-copy OOM/internal JNI effects remain source or native evidence; counted host leaves cannot qualify them.','Historical callback flags inside valid scalar discard or successful commit/finish are absent in selected actual bodies and never become synthetic host passes.','Never-returned native work stays pending; bounded actual core observation does not invent completion or prove JNI reclaim.'],migration_review_complete=True,all_historical_dynamic_vectors_host_passed=False)
+ (out/'historical-migration.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps({k:v for k,v in result.items() if k not in ['sources','coordinator_source_vectors','observer_source_vectors','core_group_parameter_sequences']}))
+if __name__=='__main__':main()

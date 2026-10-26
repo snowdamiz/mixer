@@ -1,0 +1,77 @@
+    // G2. This lexical shared arena view ends before later mutable arena work.
+    {
+        let (arena_words, _) = b.as_chunks::<8>();
+        let (time_bytes, index_bytes) = c.split_at_mut(512);
+        let (timestamp_words, _) = time_bytes.as_chunks_mut::<8>();
+        let resident_word_base = RESIDENT.base / 8;
+        let pin_word_base = PIN.base / 8;
+        let resident_limit = f.slots as usize;
+        let pin_limit = f.pins as usize;
+        let mut slot = 0;
+        while slot < resident_limit {
+            let occupied = u64::from_le_bytes(arena_words[resident_word_base + slot * 8]);
+            let function = u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 1]);
+            let bytes = u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 2]);
+            let pins = u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 3]);
+            if occupied > 1 || pins > f.pins
+                || u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 6]) != 0
+                || u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 7]) != 0
+            {
+                return reject(13);
+            }
+            if occupied == 1 {
+                resident_pins += pins;
+                if function >= 80000 || bytes == 0 || bytes > f.entry {
+                    return reject(13);
+                }
+                let Some(sum) = total.checked_add(bytes) else {
+                    return reject(10);
+                };
+                total = sum;
+                count += 1;
+                if function == w[6] {
+                    if found != ABSENT {
+                        return reject(7);
+                    }
+                    found = slot as u64;
+                }
+            } else if function != ABSENT || bytes != 0 || pins != 0 {
+                return reject(13);
+            } else if first_empty == ABSENT {
+                first_empty = slot as u64;
+            }
+            let last_used = u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 4]);
+            timestamp_words[slot] = last_used.to_le_bytes();
+            index_bytes[slot] = if occupied == 1 && pins == 0 { slot as u8 } else { u8::MAX };
+            index_bytes[512 + slot] = u8::MAX;
+            slot += 1;
+        }
+        while slot < 64 {
+            timestamp_words[slot] = 0u64.to_le_bytes();
+            index_bytes[slot] = u8::MAX;
+            index_bytes[512 + slot] = u8::MAX;
+            slot += 1;
+        }
+        let mut pin = 0;
+        while pin < pin_limit {
+            let entry = u64::from_le_bytes(arena_words[pin_word_base + pin * 6]);
+            let nonce = u64::from_le_bytes(arena_words[pin_word_base + pin * 6 + 1]);
+            if entry == ABSENT {
+                if nonce != 0 { return reject(13); }
+                if first_pin == ABSENT { first_pin = pin as u64; }
+            } else {
+                if entry >= f.slots || nonce == 0 || nonce >= p.q[9]
+                    || u64::from_le_bytes(arena_words[resident_word_base + entry as usize * 8]) != 1
+                    || u64::from_le_bytes(arena_words[resident_word_base + entry as usize * 8 + 3]) == 0
+                { return reject(13); }
+                live_tokens += 1;
+                if w[1] == 12 && nonce == w[12] { release_nonce_matches += 1; }
+            }
+            pin += 1;
+        }
+    }
+    if release_nonce_matches > 1 { return reject(11); }
+    if resident_pins != p.q[8] || live_tokens != p.q[8] { return reject(13); }
+    if count != p.q[6] || total != p.q[7] || p.q[8] > f.pins || p.q[9] == 0 {
+        return reject(13);
+    }

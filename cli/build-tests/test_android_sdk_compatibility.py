@@ -149,13 +149,14 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
             renamed.rename(path)
 
     def test_profile_missing_unknown_mismatched_and_configuration_missing_android_lock(self):
-        for change in ['missing-android', 'legacy', 'profile-1', 'unknown', 'digest', 'default']:
+        for change in ['missing-android', 'legacy', 'profile-1', 'profile-2', 'unknown', 'digest', 'default']:
             with self.subTest(change=change):
                 self.refresh_lock()
                 value = self.lock_value
                 if change == 'missing-android': value.pop('android')
                 elif change == 'legacy': value['android'].pop('profile')
                 elif change == 'profile-1': value['android']['profile']['id'] = 'mixer.android-source-pair.1'
+                elif change == 'profile-2': value['android']['profile']['id'] = 'mixer.android-source-pair.2'
                 elif change == 'unknown': value['android']['profile']['id'] = 'unknown'
                 elif change == 'digest': value['android']['profile']['sdk_compatibility_sha256'] = '0' * 64
                 else: value['android']['profile']['default_descriptor'] = {'bytes': 1, 'sha256': '0' * 64}
@@ -171,6 +172,24 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
                 self.refresh_lock()
                 self.reject()
         observer.write_bytes(original)
+
+    def test_owner_and_core_edits_removals_and_renames_refuse_recomputed_locks(self):
+        for filename in ['NativeOwnerV2.java', 'OwnerLifecycleV2.java']:
+            source = self.adapter / 'app/src/dev/mixer/android' / filename
+            original = source.read_bytes()
+            renamed = source.with_suffix('.renamed')
+            for change in ['same-size', 'remove', 'rename']:
+                with self.subTest(filename=filename, change=change):
+                    try:
+                        if change == 'same-size': source.write_bytes(b'x' * len(original))
+                        elif change == 'remove': source.unlink()
+                        else: source.rename(renamed)
+                        self.refresh_lock()
+                        self.reject()
+                    finally:
+                        renamed.unlink(missing_ok=True)
+                        source.write_bytes(original)
+                        self.refresh_lock()
 
     def test_topology_rejection_precedes_all_required_source_reads(self):
         item = self.sdk / 'unrelated-東京'

@@ -1,0 +1,96 @@
+{
+  "G6_body_and_actual_outer_caller_boundary_identical": true,
+  "Rust_compilation_or_borrow_acceptance": false,
+  "changed_regions_only": [
+    {
+      "new_lines": [
+        246,
+        294
+      ],
+      "new_sha256": "e92ee1b1896acef063bb188f5c2470b8024b6c14a09fc818ab4dc8e49d0a6184",
+      "old_lines": [
+        246,
+        287
+      ],
+      "old_sha256": "fd26dbcd96b536828dca5b8949e68ba3deefb6bac0d5cdad1bb47c7d403a94b9",
+      "region": "merge"
+    },
+    {
+      "new_lines": [
+        368,
+        444
+      ],
+      "new_sha256": "837896ab30dee08bc593bc76991dc5eb3a0be2520c14d0721e61f8223f7b49ad",
+      "old_lines": [
+        361,
+        440
+      ],
+      "old_sha256": "8ac1d3db6262bf4599b4f4b31026e1eb674b7d9181e5e6f19b6d5121bca960e0",
+      "region": "G2"
+    },
+    {
+      "new_lines": [
+        543,
+        570
+      ],
+      "new_sha256": "2e8bc3e6b70f545996bf006520d6cdfd4ff90e8fb5d42b92afa6aae1228f2285",
+      "old_lines": [
+        539,
+        561
+      ],
+      "old_sha256": "6c64ef99d0bb05390882a6634c451ae7ba3e7f2eba90d5e7454dfbc80cb241fa",
+      "region": "G5"
+    }
+  ],
+  "cleanup_and_entire_suffix_sha256": "bd48a53bbbe3200567f4437211f56aa9adf2c8a0b68c81a4992466240e984d7f",
+  "exact_twelve_restore_and_sixteen_anonymous_clear_preserved": true,
+  "masked_all_other_source_identical": true,
+  "old_source": {
+    "bytes": 47006,
+    "path": "verification/swift-cache-state-implementation/correction-3/source/library/cache_state.rs",
+    "sha256": "0ab577c36f9836539181ba5156bdfbc7764ea065266e68d94b431da5fdb47ea8"
+  },
+  "proposed_source": {
+    "bytes": 48655,
+    "path": "verification/swift-cache-state-byte-index-proposal/source/cache_state.rs.txt",
+    "sha256": "0b6ab81f1fc65742171b1023d2929e9dc8536d5cb66388ea2aa36109f5fa715d"
+  },
+  "restore_arena_addresses": [
+    7729816,
+    7729832,
+    7729840,
+    7729848,
+    7729856,
+    7729864,
+    7729872,
+    7730272,
+    7730280,
+    7730288,
+    7731040,
+    7731048
+  ],
+  "source_expression_to_independent_model_bindings": [
+    "let (time_bytes, indices) = c.split_at_mut(512);",
+    "let (timestamps, _) = time_bytes.as_chunks::<8>();",
+    "let mut src = 0;",
+    "let mut dst = 512;",
+    "while width < 64 {",
+    "while base < 64 {",
+    "while out < end {",
+    "let a = indices[src + left];",
+    "let b = indices[src + right];",
+    "b == u8::MAX",
+    "a != u8::MAX",
+    "u64::from_le_bytes(timestamps[a as usize])",
+    "<= u64::from_le_bytes(timestamps[b as usize])",
+    "indices[dst + out] = indices[src + left];",
+    "indices[dst + out] = indices[src + right];",
+    "left += 1;",
+    "right += 1;",
+    "out += 1;",
+    "let old_src = src;",
+    "src = dst;",
+    "dst = old_src;",
+    "width *= 2;"
+  ]
+}

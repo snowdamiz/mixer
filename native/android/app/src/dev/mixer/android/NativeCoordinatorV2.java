@@ -4,261 +4,236 @@ import android.app.Activity;
 import android.os.Looper;
 import android.widget.FrameLayout;
 
-/** Private ordinary JNI/native owner. Public Activity and signed transport do not use it. */
-final class NativeCoordinatorV2 implements AutoCloseable {
+/** Private transaction owner. Construction acquires no engine session or native presentation. */
+final class NativeCoordinatorV2 {
+    enum Outcome { NOT_REQUESTED, ATTEMPTED, RETURNED, FAILED_UNCERTAIN }
+    static final class CleanupLedger {
+        private Outcome renderer = Outcome.NOT_REQUESTED, engine = Outcome.NOT_REQUESTED;
+        private Outcome abort = Outcome.NOT_REQUESTED, rollback = Outcome.NOT_REQUESTED, discard = Outcome.NOT_REQUESTED;
+        private Throwable abortFailure, rollbackFailure, discardFailure;
+        private Throwable rendererFailure, engineFailure, primary;
+        private Error firstFatal;
+        Outcome abort() { requireMain(); return abort; }
+        Outcome rollback() { requireMain(); return rollback; }
+        Outcome discard() { requireMain(); return discard; }
+        Throwable abortFailure() { requireMain(); return abortFailure; }
+        Throwable rollbackFailure() { requireMain(); return rollbackFailure; }
+        Throwable discardFailure() { requireMain(); return discardFailure; }
+        Outcome renderer() { requireMain(); return renderer; }
+        Outcome engine() { requireMain(); return engine; }
+        Throwable rendererFailure() { requireMain(); return rendererFailure; }
+        Throwable engineFailure() { requireMain(); return engineFailure; }
+        Throwable primary() { requireMain(); return primary; }
+        Error firstFatal() { requireMain(); return firstFatal; }
+    }
     private final Activity activity;
     private final FrameLayout root;
     private final NativeRenderer renderer;
+    private final NativeOwnerV2.Fence fence;
+    private final CleanupLedger ledger = new CleanupLedger();
     private long session;
     private byte[] committedPacket;
-    private RuntimeException lastNativeInputFailure;
-    private boolean active;
-    private boolean retired;
+    private boolean active, retired, disposed, cancellation;
+    private long cancellationSerial, requestedSerial;
+    private OwnerLifecycleV2.Token operation;
 
-    NativeCoordinatorV2(Activity activity, FrameLayout root) {
+    NativeCoordinatorV2(Activity activity, FrameLayout root, NativeEnvironmentV2.Observer observer,
+                        NativeOwnerV2.Fence fence, NativeRenderer.Events nativeInput) {
         requireMain();
-        if (activity == null || root == null) throw new IllegalArgumentException("V2 window required");
-        this.activity = activity;
-        this.root = root;
-        renderer = new NativeRenderer(activity, this::nativeInput);
-        try {
-            session = NativeBridge.create();
-            if (session == 0) throw new IllegalStateException("V2 session creation failed");
-        } catch (RuntimeException | Error failure) {
-            retire(failure);
-            throw failure;
-        }
+        if (activity == null || root == null || observer == null || fence == null || nativeInput == null ||
+            observer.activity != activity || observer.root != root)
+            throw new IllegalArgumentException("V2 bound window required");
+        this.activity = activity; this.root = root; this.fence = fence;
+        renderer = new NativeRenderer(activity, nativeInput, observer, fence);
+        observer.bindRenderer(renderer);
     }
-
     void renderInitial() {
         enter();
         try {
-            if (committedPacket != null) throw new IllegalStateException("V2 already initialized");
-            transact(0, null, false);
-        } finally {
-            active = false;
-        }
+            if (session != 0 || committedPacket != null) throw new IllegalStateException("V2 already initialized");
+            session = NativeBridge.create();
+            checkOperation();
+            if (session == 0) throw new IllegalStateException("V2 session creation failed");
+            transact(0, null);
+        } catch (RuntimeException | Error failure) { remember(failure); retireScalar(); throw failure; }
+        finally { leave(); }
     }
-
-    /** Programmatic ordinary input transaction; the native callback contains retired rejections. */
     void dispatchInput(byte[] envelope) {
         enter();
         try {
             if (committedPacket == null) throw new IllegalStateException("V2 requires initial render");
-            transact(1, envelope, true);
-        } finally {
-            active = false;
-        }
+            transact(1, envelope);
+        } catch (RuntimeException | Error failure) { remember(failure); retireScalar(); throw failure; }
+        finally { leave(); }
     }
-
-    /** Contain an ordinary rejected control edit only after both owners have retired. */
-    private void nativeInput(byte[] envelope) {
-        requireMain();
-        if (active) {
-            IllegalStateException failure = new IllegalStateException("V2 reentrant native input");
-            retire(failure);
-            rethrowNestedError(failure);
-            throw failure;
-        }
-        if (retired) throw new IllegalStateException("V2 coordinator retired");
-        try {
-            dispatchInput(envelope);
-        } catch (RuntimeException failure) {
-            if (!retired) throw failure;
-            lastNativeInputFailure = failure;
-            rethrowNestedError(failure);
-        }
-    }
-
-    private void transact(int operation, byte[] input, boolean nativeInput) {
+    private void transact(int engineOperation, byte[] input) {
         long token = 0;
-        boolean prepareAttempted = false;
-        boolean delivered = false;
-        boolean attachAttempted = false;
-        boolean commitAttempted = false;
-        boolean knownRejection = false;
-        boolean engineClosed = false;
+        boolean prepareAttempted = false, delivered = false, commitAttempted = false, knownRejection = false, terminalRejection = false, attachAttempted = false;
         NativeRenderer.Candidate candidate = null;
         NativeRenderer.AttachmentJournal journal = null;
         try {
-            InstalledAppearanceV2 installed = renderer.captureInstalledV2();
-            NativeEnvironmentV2 environment = renderer.captureEnvironmentV2(activity, root);
+            InstalledAppearanceV2 installed = renderer.captureInstalledV2(); checkOperation();
+            NativeEnvironmentV2 environment = renderer.captureEnvironmentV2(activity, root); checkOperation();
             prepareAttempted = true;
-            NativeBridge.Candidate prepared = NativeBridge.prepareV2(session, operation, input);
-            // Retain the opaque bit pattern before any defensive packet-copy allocation.
+            NativeBridge.Candidate prepared = NativeBridge.prepareV2(session, engineOperation, input);
             token = prepared.token();
+            delivered = true; checkOperation();
             if (token == 0) throw new IllegalStateException("V2 invalid engine token");
-            delivered = true;
             byte[] packet = prepared.packet();
-            candidate = renderer.prepareV2(packet, installed, environment);
-            if (!environment.current(renderer))
-                throw new IllegalStateException("V2 environment changed during preparation");
+            candidate = renderer.prepareV2(packet, installed, environment); checkOperation();
+            if (!environment.current(renderer)) throw new IllegalStateException("V2 environment changed during preparation");
+            checkOperation();
             attachAttempted = true;
-            journal = renderer.attachV2(candidate, root);
-            renderer.validateAttachedV2(candidate, journal);
+            journal = renderer.attachV2(candidate, root); checkOperation();
+            renderer.validateAttachedV2(candidate, journal); checkOperation();
             commitAttempted = true;
-            int status = NativeBridge.commitV2(session, token);
-            if (status == 0) {
-                // No callbacks, captures, allocations or native mutation between these calls.
-                renderer.finishV2(candidate, journal);
-                committedPacket = packet;
-                return;
-            }
-            knownRejection = status >= 1 && status <= 7;
-            engineClosed = status == 2;
-            throw new IllegalStateException("V2 engine commit rejected: " + status);
+            fence.commitFinish = true;
+            try {
+                int status = NativeBridge.commitV2(session, token);
+                if (status == 0) {
+                    renderer.finishV2(candidate, journal);
+                    committedPacket = packet;
+                    return;
+                }
+                knownRejection = status >= 1 && status <= 7;
+                terminalRejection = status == 2;
+                throw new IllegalStateException("V2 engine commit rejected: " + status);
+            } finally { fence.commitFinish = false; }
         } catch (RuntimeException | Error failure) {
-            // A reentrant native callback may already have retired both owned sides.
-            if (retired) throw failure;
-            // JNI delivery can destroy the session; a thrown commit may already have committed.
-            boolean unknown = (prepareAttempted && !delivered)
-                || (commitAttempted && !knownRejection);
-            boolean mustRetire = unknown || engineClosed || nativeInput || !prepareAttempted;
-            boolean abortConfirmed = false;
-            Throwable abortFailure = null;
-            Throwable cleanupFailure = null;
+            remember(failure);
+            try { renderer.reportDeferredTerminalV2(); } catch (RuntimeException | Error cleanup) { remember(cleanup); }
+            boolean unknown = prepareAttempted && !delivered || commitAttempted && !knownRejection;
             if (!unknown && token != 0) {
+                ledger.abort = Outcome.ATTEMPTED;
                 try {
-                    abortConfirmed = NativeBridge.abortV2(session, token) == 0;
-                } catch (RuntimeException | Error cleanup) {
-                    abortFailure = cleanup;
-                }
-                if (!abortConfirmed) mustRetire = true;
+                    if (NativeBridge.abortV2(session, token) == 0) ledger.abort = Outcome.RETURNED;
+                    else { ledger.abort = Outcome.FAILED_UNCERTAIN; retireScalar(); }
+                } catch (RuntimeException | Error cleanup) { ledger.abort = Outcome.FAILED_UNCERTAIN; ledger.abortFailure = cleanup; remember(cleanup); retireScalar(); }
             }
-            // An attach throw may precede its consuming catch. Null journal proves nothing.
-            if (attachAttempted && journal == null) mustRetire = true;
-            else if (!unknown && abortConfirmed && !engineClosed && candidate != null) {
-                try {
-                    if (journal != null) renderer.rollbackV2(candidate, journal);
-                    else renderer.discardV2(candidate);
-                } catch (RuntimeException | Error cleanup) {
-                    cleanupFailure = cleanup;
-                    mustRetire = true;
-                }
+            if (terminalRejection) retireScalar();
+            if (!fence.terminal && !unknown && candidate != null) {
+                if (journal != null) rollback(candidate,journal);
+                else if (!attachAttempted) discard(candidate);
             }
-            if (mustRetire) retire(failure);
-            suppress(failure, abortFailure);
-            suppress(failure, cleanupFailure);
+            retireScalar();
+            if (ledger.firstFatal != null) throw ledger.firstFatal;
             throw failure;
         }
     }
-
-    /** Reapply exactly the retained packet using a fresh concrete capture; no engine transaction. */
+    /** Uses this exact retained byte[] and performs no engine operation or revision advance. */
     void refreshEnvironment() {
         enter();
+        NativeRenderer.Candidate candidate = null;
+        NativeRenderer.AttachmentJournal journal = null;
+        boolean attachAttempted = false;
         try {
             if (committedPacket == null) throw new IllegalStateException("V2 requires initial render");
-            NativeRenderer.Candidate candidate = null;
-            NativeRenderer.AttachmentJournal journal = null;
-            boolean attachAttempted = false;
-            boolean finishAttempted = false;
-            try {
-                InstalledAppearanceV2 installed = renderer.captureInstalledV2();
-                NativeEnvironmentV2 environment = renderer.captureEnvironmentV2(activity, root);
-                candidate = renderer.prepareV2(committedPacket, installed, environment);
-                if (!environment.current(renderer))
-                    throw new IllegalStateException("V2 environment changed during preparation");
-                attachAttempted = true;
-                journal = renderer.attachV2(candidate, root);
-                renderer.validateAttachedV2(candidate, journal);
-                finishAttempted = true;
-                renderer.finishV2(candidate, journal);
-            } catch (RuntimeException | Error failure) {
-                if (retired) throw failure;
-                Throwable cleanupFailure = null;
-                // Never guess whether a throwing attach or finish consumed its candidate.
-                if (!finishAttempted && candidate != null && (!attachAttempted || journal != null)) {
-                    try {
-                        if (journal != null) renderer.rollbackV2(candidate, journal);
-                        else renderer.discardV2(candidate);
-                    } catch (RuntimeException | Error cleanup) {
-                        cleanupFailure = cleanup;
-                    }
-                }
-                // A stale/unsupported environment cannot reopen an old capture as current.
-                retire(failure);
-                suppress(failure, cleanupFailure);
-                throw failure;
+            InstalledAppearanceV2 installed = renderer.captureInstalledV2(); checkOperation();
+            NativeEnvironmentV2 environment = renderer.captureEnvironmentV2(activity, root); checkOperation();
+            candidate = renderer.prepareV2(committedPacket, installed, environment); checkOperation();
+            if (!environment.current(renderer)) throw new IllegalStateException("V2 environment changed during refresh");
+            attachAttempted = true;
+            journal = renderer.attachV2(candidate, root); checkOperation();
+            renderer.validateAttachedV2(candidate, journal); checkOperation();
+            renderer.finishV2(candidate, journal);
+        } catch (RuntimeException | Error failure) {
+            remember(failure);
+            if (!fence.terminal && candidate != null) {
+                if (journal != null) rollback(candidate,journal);
+                else if (!attachAttempted) discard(candidate);
             }
-        } finally {
-            active = false;
-        }
+            retireScalar();
+            try { renderer.reportDeferredTerminalV2(); } catch (RuntimeException | Error cleanup) { remember(cleanup); }
+            if (ledger.firstFatal != null) throw ledger.firstFatal;
+            throw failure;
+        } finally { leave(); }
     }
-
+    private void rollback(NativeRenderer.Candidate candidate,NativeRenderer.AttachmentJournal journal) {
+        ledger.rollback = Outcome.ATTEMPTED;
+        try { renderer.rollbackV2(candidate,journal); ledger.rollback = Outcome.RETURNED; }
+        catch (RuntimeException | Error cleanup) { ledger.rollback = Outcome.FAILED_UNCERTAIN; ledger.rollbackFailure = cleanup; remember(cleanup); }
+    }
+    private void discard(NativeRenderer.Candidate candidate) {
+        ledger.discard = Outcome.ATTEMPTED;
+        try { renderer.discardV2(candidate); ledger.discard = Outcome.RETURNED; }
+        catch (RuntimeException | Error cleanup) { ledger.discard = Outcome.FAILED_UNCERTAIN; ledger.discardFailure = cleanup; remember(cleanup); }
+    }
+    void sealGatesScalar() { renderer.sealScalarV2(); }
+    void publishGatesScalar(OwnerLifecycleV2.Token presentation) {
+        if (active || retired || committedPacket == null || fence.commitFinish)
+            throw new IllegalStateException("V2 coordinator cannot publish presentation");
+        renderer.publishScalarV2(presentation);
+    }
+    void cancelInputFromOwner(long serial) {
+        requireMain();
+        if (serial != fence.sealSerial || fence.drawAllowed || fence.inputAllowed)
+            throw new IllegalStateException("V2 cancellation requires exact sealed serial");
+        if (serial > requestedSerial) requestedSerial = serial;
+        if (cancellation || serial <= cancellationSerial) return;
+        cancellation = true;
+        try {
+            cancellationSerial = serial;
+            renderer.cancelInputV2(serial);
+            cancellationSerial = requestedSerial;
+        } catch (RuntimeException | Error failure) { remember(failure); throw failure; }
+        finally { cancellation = false; }
+    }
+    boolean inputCancellationInProgress() {
+        requireMain(); return cancellation || renderer.cancellationInProgressV2();
+    }
+    boolean busyForOwnerDisposal() { requireMain(); return active || cancellation || fence.rendererReportActive; }
     boolean isRetired() { requireMain(); return retired; }
     boolean hasCommittedPresentation() { requireMain(); return !retired && committedPacket != null; }
-    RuntimeException lastNativeInputFailure() { requireMain(); return lastNativeInputFailure; }
-
-    @Override public void close() {
-        enter();
-        try {
-            retire(null);
-        } finally {
-            active = false;
-        }
+    CleanupLedger cleanupLedger() { requireMain(); return ledger; }
+    void closeFromOwner() {
+        requireMain();
+        if (busyForOwnerDisposal()) throw new IllegalStateException("V2 coordinator disposal deferred");
+        retireScalar(); disposeOnce();
+        // Disposition reports its own release slots; an earlier operation primary is retained separately.
+        if (ledger.rendererFailure instanceof Error || ledger.engineFailure instanceof Error) throw ledger.firstFatal;
+        if (ledger.rendererFailure instanceof RuntimeException failure) throw failure;
+        if (ledger.engineFailure instanceof RuntimeException failure) throw failure;
     }
-
     private void enter() {
         requireMain();
-        if (retired) throw new IllegalStateException("V2 coordinator retired");
-        if (active) throw new IllegalStateException("V2 coordinator reentrant call");
-        active = true;
+        if (retired || fence.terminal) throw new IllegalStateException("V2 coordinator retired");
+        if (active || cancellation || fence.rendererReportActive) throw new IllegalStateException("V2 coordinator reentrant call");
+        operation = fence.operation;
+        if (operation == null) throw new IllegalStateException("V2 owner operation required");
+        active = true; sealGatesScalar();
     }
-
+    private void checkOperation() {
+        if (fence.terminal || operation == null || operation != fence.operation)
+            throw new IllegalStateException("V2 transaction authority lost");
+    }
+    private void leave() {
+        active = false; operation = null;
+        if (retired && !cancellation && !fence.rendererReportActive) disposeOnce();
+        if (ledger.firstFatal != null) throw ledger.firstFatal;
+    }
+    private void retireScalar() {
+        retired = true; fence.terminal = true; fence.drawAllowed = false; fence.inputAllowed = false;
+        sealGatesScalar(); committedPacket = null;
+    }
+    private void disposeOnce() {
+        if (disposed) return;
+        disposed = true;
+        long owned = session; session = 0; committedPacket = null;
+        ledger.renderer = Outcome.ATTEMPTED;
+        try { renderer.disposeV2(); ledger.renderer = Outcome.RETURNED; }
+        catch (RuntimeException | Error failure) { ledger.rendererFailure = failure; ledger.renderer = Outcome.FAILED_UNCERTAIN; remember(failure); }
+        if (owned != 0) {
+            ledger.engine = Outcome.ATTEMPTED;
+            try { NativeBridge.destroy(owned); ledger.engine = Outcome.RETURNED; }
+            catch (RuntimeException | Error failure) { ledger.engineFailure = failure; ledger.engine = Outcome.FAILED_UNCERTAIN; remember(failure); }
+        }
+    }
+    private void remember(Throwable failure) {
+        if (failure == null) return;
+        if (ledger.primary == null) ledger.primary = failure;
+        if (failure instanceof Error fatal && ledger.firstFatal == null) ledger.firstFatal = fatal;
+    }
     private static void requireMain() {
-        if (Looper.myLooper() != Looper.getMainLooper())
-            throw new IllegalStateException("V2 coordinator requires main Looper");
-    }
-
-    /** Publish closure first, then attempt both owners even if either disposal fails. */
-    private void retire(Throwable primary) {
-        if (retired) return;
-        retired = true;
-        committedPacket = null;
-        long ownedSession = session;
-        session = 0;
-        Throwable nativeFailure = null;
-        Throwable engineFailure = null;
-        try {
-            renderer.disposeV2();
-        } catch (RuntimeException | Error failure) {
-            nativeFailure = failure;
-        }
-        try {
-            if (ownedSession != 0) NativeBridge.destroy(ownedSession);
-        } catch (RuntimeException | Error failure) {
-            engineFailure = failure;
-        }
-        if (primary != null) {
-            suppress(primary, nativeFailure);
-            suppress(primary, engineFailure);
-        } else if (nativeFailure != null) {
-            suppress(nativeFailure, engineFailure);
-            if (nativeFailure instanceof RuntimeException runtime) throw runtime;
-            throw (Error) nativeFailure;
-        } else if (engineFailure instanceof RuntimeException runtime) {
-            throw runtime;
-        } else if (engineFailure != null) {
-            throw (Error) engineFailure;
-        }
-    }
-
-    private static void suppress(Throwable primary, Throwable secondary) {
-        if (secondary != null && secondary != primary) primary.addSuppressed(secondary);
-    }
-
-    /** A RuntimeException wrapper must not turn a cleanup Error/OOM into an ordinary rejection. */
-    private static void rethrowNestedError(Throwable failure) {
-        java.util.ArrayDeque<Throwable> pending = new java.util.ArrayDeque<>();
-        java.util.IdentityHashMap<Throwable, Boolean> seen = new java.util.IdentityHashMap<>();
-        pending.add(failure);
-        while (!pending.isEmpty()) {
-            Throwable current = pending.removeFirst();
-            if (seen.put(current, Boolean.TRUE) != null) continue;
-            if (current instanceof Error fatal) throw fatal;
-            Throwable cause = current.getCause();
-            if (cause != null) pending.add(cause);
-            for (Throwable secondary : current.getSuppressed()) pending.add(secondary);
-        }
+        if (Looper.myLooper() != Looper.getMainLooper()) throw new IllegalStateException("V2 coordinator requires main Looper");
     }
 }

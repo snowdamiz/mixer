@@ -31,6 +31,18 @@ public final class NativeCoordinatorV2IntegrationInstrumentation extends Instrum
         checks++;
     }
 
+    private static NativeCoordinatorV2 coordinator(NativeOwnerV2 owner) {
+        try {Field field=NativeOwnerV2.class.getDeclaredField("coordinator");field.setAccessible(true);return (NativeCoordinatorV2)field.get(owner);}
+        catch(ReflectiveOperationException failure){throw new AssertionError(failure);}
+    }
+    private void awaitPresentation(NativeOwnerV2 owner) {
+        for(int attempt=0;attempt<100;attempt++){
+            boolean[] ready={false};onMain(()->ready[0]=owner.hasCommittedPresentation());if(ready[0])return;
+            try{Thread.sleep(20);}catch(InterruptedException failure){Thread.currentThread().interrupt();throw new AssertionError(failure);}
+            waitForIdleSync();
+        }
+        throw new AssertionError("actual owner readiness did not publish");
+    }
     private static byte[] retained(NativeCoordinatorV2 coordinator) {
         try {
             Field field = NativeCoordinatorV2.class.getDeclaredField("committedPacket");
@@ -62,35 +74,44 @@ public final class NativeCoordinatorV2IntegrationInstrumentation extends Instrum
             activity = (NativeCoordinatorV2IntegrationActivity) startActivitySync(intent);
             waitForIdleSync();
             NativeCoordinatorV2IntegrationActivity window = activity;
+            awaitPresentation(window.owner);
+            byte[][] initialHolder=new byte[2][];
             onMain(() -> {
                 check(window.root.isAttachedToWindow() && window.root.getWidth() > 0
                     && window.root.getHeight() > 0 && window.root.hasWindowFocus(), "actual attached focused window");
-                window.coordinator = new NativeCoordinatorV2(window, window.root);
-                window.coordinator.renderInitial();
-                check(window.coordinator.hasCommittedPresentation(), "ordinary JNI/Swift/native initial commit");
-                byte[] initial = retained(window.coordinator);
+                NativeCoordinatorV2 joined=coordinator(window.owner);
+                check(window.owner.hasCommittedPresentation(), "ordinary JNI/Swift/native initial commit");
+                byte[] initial = retained(joined);initialHolder[0]=initial;initialHolder[1]=initial.clone();
                 UiPacket initialPacket = UiPacket.decode(initial);
                 check(initialPacket.nodes.containsKey("task.1"), "actual ordinary Swift checklist packet");
-                window.coordinator.refreshEnvironment();
-                check(retained(window.coordinator) == initial, "environment-only retains exact packet reference");
-                check(Arrays.equals(retained(window.coordinator), initial), "environment-only exact bytes");
+                // Refresh is driven through the owner and its real queued drain below.
+                window.owner.onPause();
+            });
+            waitForIdleSync();awaitPresentation(window.owner);
+            onMain(() -> {
+                NativeCoordinatorV2 joined=coordinator(window.owner);
+                window.owner.onResume();
+            });
+            waitForIdleSync();awaitPresentation(window.owner);
+            onMain(() -> {
+                NativeCoordinatorV2 joined=coordinator(window.owner);
+                byte[] initial=initialHolder[0];UiPacket initialPacket=UiPacket.decode(initial);
+                check(retained(joined) == initial, "environment-only retains exact packet reference");
+                check(Arrays.equals(retained(joined), initialHolder[1]), "environment-only exact bytes");
                 Switch toggle = window.root.findViewWithTag("mixer.task.1");
                 check(toggle != null && toggle.isAttachedToWindow() && toggle.isShown()
                     && toggle.isEnabled() && toggle.hasWindowFocus(), "actual native Switch is eligible for input");
                 boolean previous = toggle.isChecked();
                 check(toggle.performClick(), "actual native click accepted");
-                UiPacket next = UiPacket.decode(retained(window.coordinator));
+                UiPacket next = UiPacket.decode(retained(joined));
                 check(new BigInteger(next.revision).compareTo(new BigInteger(initialPacket.revision)) > 0,
                     "native input advances the ordinary Swift document revision");
                 check(next.nodes.get("task.1").flag("value", previous) != previous,
                     "Swift committed the toggle input");
-                check(toggle.isChecked() != previous && window.coordinator.hasCommittedPresentation(),
+                check(toggle.isChecked() != previous && window.owner.hasCommittedPresentation(),
                     "actual native toggle agrees with committed Swift packet");
-                boolean rejected = false;
-                try { window.coordinator.dispatchInput(new byte[] { '!' }); }
-                catch (RuntimeException expected) { rejected = true; }
-                check(rejected && window.coordinator.isRetired()
-                    && !window.coordinator.hasCommittedPresentation(), "rejected input retires both owners");
+                window.owner.onPause();
+                check(!window.owner.cleanupLedger().coreCompletionUnreported(),"owner retained exact core completion");
             });
             result.putString("scope", "actual JNI/Swift/native smoke test only; no complete native/IME/physical/GA acceptance");
             result.putInt("checks", checks);
@@ -103,7 +124,7 @@ public final class NativeCoordinatorV2IntegrationInstrumentation extends Instrum
                 try {
                     onMain(() -> {
                         try {
-                            if (window.coordinator != null && !window.coordinator.isRetired()) window.coordinator.close();
+                            if (window.owner != null) window.owner.close();
                         } finally {
                             window.finish();
                         }

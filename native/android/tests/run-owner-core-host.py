@@ -11,8 +11,8 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[3]
-PACKET = ROOT / "verification/android-public-owner-core"
-SOURCES = ["native/android/owner-core/src/dev/mixer/android/OwnerLifecycleV2.java",
+PACKET = ROOT / "verification/android-private-owner-integration-implementation/core-regression"
+SOURCES = ["native/android/app/src/dev/mixer/android/OwnerLifecycleV2.java",
            "native/android/tests/OwnerLifecycleV2HostTests.java"]
 DEFAULT_JDK = "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home"
 

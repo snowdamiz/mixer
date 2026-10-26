@@ -1,6 +1,40 @@
 # Android private owner profile3 CLI integration
 
-The compiled `mixer.android-source-pair.3` policy now binds the exact frozen
+## Current candidate5 checkpoint
+
+The compiled `mixer.android-source-pair.3` policy now binds candidate5's repaired
+owner. Only the `NativeOwnerV2.java` identity and adapter projection changed from
+candidate4. The adapter projection is
+`c5df444d5be8f7d422dedde7786b0232f24db1b295288da3cc3fce31a27f5b59`;
+the profile ID, SDK, default descriptor and wire contract are unchanged.
+[Root selection](../verification/android-private-owner-effect-integration-root-review/candidate-5-profile-selection.json)
+first permitted bounded CLI qualification. The subsequent
+[owner acceptance](../verification/android-private-owner-effect-integration-root-review/candidate-5-owner-acceptance.json)
+accepts the exact private development host/source slice and selects coherent
+canonical delivery with the reviewed CLI and JVM CI wiring.
+
+The [new qualification packet](../verification/android-private-owner-profile3-integration/candidate5-qualification/manifest.json)
+is frozen in 1,008 members (7,073,964 bytes), SHA-256
+`31e034832247144f6f042006f4725dbf0242408ec33d61b9d1cedaa688b90ec4`.
+Its 356-source isolated snapshot passes fresh Debug/Release builds, thirteen
+focused Swift methods per mode, thirty Python methods per mode, actual creation
+and export, and copied app factory/reducer/revision tests. All seventy-two
+expected CLI/driver refusals pass. The complete packet records 101 commands,
+thirty-nine hashed and removed products, five removed scratch trees and separate
+Release binary identities before and after the test build's relink.
+
+All 311 candidate5 source inputs match after validation. Earlier packets and
+their failures are preserved. Independent CLI review now passes 69 commands,
+including 54 refusals across nine fixtures and three copied-consumer methods.
+Root verifies its 683-member packet and accepts the bounded CLI scope. Independent
+owner review now also passes: 1,323 direct callback rows and 514 continuation
+cases, with all 8,550 sealed members verified. Two observer-target replacement
+vectors remain source-only/native-pending. No native runtime, device, signed
+release, public V2 or GA acceptance follows from this host checkpoint.
+
+## Historical candidate4 qualification
+
+The previous compiled `mixer.android-source-pair.3` policy bound the exact frozen
 candidate4 private owner sources. Root selected this bounded CLI rebinding in
 [the exact selection receipt](../verification/android-private-owner-effect-integration-root-review/candidate-4-profile-selection.json)
 (`fc0e083821790e12c1c12b709f2a8e7c44a40ff457e4183853ef6adbdd919106`).

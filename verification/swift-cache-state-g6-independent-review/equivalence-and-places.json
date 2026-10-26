@@ -1,0 +1,160 @@
+{
+  "schema": 1,
+  "ranges": [
+    [
+      0,
+      128
+    ],
+    [
+      128,
+      256
+    ],
+    [
+      256,
+      384
+    ],
+    [
+      384,
+      512
+    ],
+    [
+      512,
+      640
+    ],
+    [
+      640,
+      768
+    ],
+    [
+      768,
+      896
+    ],
+    [
+      896,
+      1024
+    ],
+    [
+      1024,
+      1152
+    ],
+    [
+      1152,
+      1280
+    ],
+    [
+      1280,
+      1408
+    ],
+    [
+      1408,
+      1536
+    ],
+    [
+      1536,
+      1664
+    ],
+    [
+      1664,
+      1792
+    ],
+    [
+      1792,
+      1920
+    ],
+    [
+      1920,
+      2048
+    ]
+  ],
+  "coverage": "Every byte0..2048 written zero exactly once in both alternatives; then exact old12 restores and cfg(test) fault suffix.",
+  "prefix_suffix": "Anonymous proposal differs only in old clear block. Named proposal additionally changes its clear comment. All remaining source bytes match exactly; no new2048 initializer, by-value Candidate, helper or API.",
+  "source_safety": "All16 destination ranges have literal endpoints0<=start<end<=2048 and length128. Each source is exactly128 bytes, so Index/copy length checks succeed for every sized Candidate without callback, resize, allocation or fallible conversion after first store. Checks remain charged; no compiler removal is credited.",
+  "named": {
+    "source_place128": 128,
+    "received_local128": 128,
+    "binding_peak": 256,
+    "old_binding_peak": 16,
+    "increase": 240,
+    "steady_local_increase": 120,
+    "lifetime": "zero128 named local ends at explicit inner block before restores",
+    "wire_issue": "256 peak plus live Paid24=280 exceeds wire256 if inherited assignment unchanged"
+  },
+  "anonymous": {
+    "place_proof": "Borrowing the repeat-array value creates one anonymous128-byte placed temporary. There is no let identifier receiving that full array and no by-value array parameter: copy_from_slice receives a shared slice. The array is initialized in that sole place; no second128-byte array owner is inferred from mere expression composition.",
+    "scope": "Each temporary/borrow belongs to its expression statement and ends before the next statement. No reference escapes copy_from_slice. No promotion or optimization credit is used. Repeat operand0 is evaluated once for each statement, not once across statements.",
+    "wire_base": {
+      "temporary_array": 128,
+      "live_Paid_received": 24,
+      "subtotal": 152
+    },
+    "remaining_simultaneous_places": [
+      {
+        "place": "repeat u8 operand and const usize length input",
+        "bytes_up_to": 9,
+        "hypothesis": "control/helper or wire explicitly; even adding9 to base gives161, not a whole-role proof"
+      },
+      {
+        "place": "cleanup b slice16 and c thin mutable pointer8 received parameters",
+        "bytes": 24,
+        "hypothesis": "control/helper inherited function arguments; alive throughout cleanup"
+      },
+      {
+        "place": "caller cleanup borrow-source views matching b/c parameters",
+        "bytes": 24,
+        "hypothesis": "caller/control source/received ownership; do not erase by argument optimization"
+      },
+      {
+        "place": "Range source and Index received",
+        "bytes": 32,
+        "hypothesis": "helper role; both16-byte values"
+      },
+      {
+        "place": "Index thin receiver source and received",
+        "bytes": 16,
+        "hypothesis": "helper role"
+      },
+      {
+        "place": "projected destination slice source/caller receive/copy receiver",
+        "bytes": 48,
+        "hypothesis": "helper role; three pointer/length pairs"
+      },
+      {
+        "place": "shared array reference plus source slice and received source slice",
+        "bytes": 40,
+        "hypothesis": "helper role;8+16+16"
+      },
+      {
+        "place": "largest predicate operand pair and bool",
+        "bytes": 17,
+        "hypothesis": "helper/control phase; earlier address/range operands may end sooner, but full map required"
+      },
+      {
+        "place": "ordinary semantic reply source/received and Loan/StepBudget/Progress",
+        "hypothesis": "remain in existing control roles with explicit last-use/drop before/during cleanup; not reassigned to wire"
+      },
+      {
+        "place": "cleanup returned/received bool",
+        "hypothesis": "occurs after anonymous clear temporary ends; original caller effect role still needs proof"
+      }
+    ],
+    "helper_local_sum_example": 153,
+    "helper_sum_definition": "32 Range +16 thin Index receiver +48 destination fat views +40 source borrow/views +17 predicate pair/bool =153; received/caller cleanup handles separately24+24, repeat inputs separately9.",
+    "role_acceptance": "These are explicit assignment hypotheses, not acceptance that original helper192/control/wire remainder fits every phase or full29344 union. Full caller/leaf overlap and all existing owners must be reconciled."
+  },
+  "primary_semantic_references": [
+    {
+      "url": "https://doc.rust-lang.org/reference/expressions/array-expr.html",
+      "use": "Repeat0 operand evaluated once, then Copy value supplies128 elements; usize constant length."
+    },
+    {
+      "url": "https://doc.rust-lang.org/reference/expressions/operator-expr.html#borrow-operators",
+      "use": "Borrow of a value creates a temporary place; no separate by-value array call argument."
+    },
+    {
+      "url": "https://doc.rust-lang.org/reference/destructors.html#temporary-scopes",
+      "use": "Method-call argument temporary falls within expression statement scope; no escaping reference or lifetime-extending let."
+    }
+  ],
+  "full_role_union_accepted": false,
+  "stack_RSS_layout_measured": false
+}

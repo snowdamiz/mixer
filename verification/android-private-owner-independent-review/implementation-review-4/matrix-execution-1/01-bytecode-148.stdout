@@ -1,0 +1,1895 @@
+Compiled from "NativeEnvironmentV2.java"
+final class dev.mixer.android.NativeEnvironmentV2$Observer$CleanupLedger {
+  private final dev.mixer.android.NativeEnvironmentV2$Observer source;
+    descriptor: Ldev/mixer/android/NativeEnvironmentV2$Observer;
+
+  private dev.mixer.android.NativeEnvironmentV2$Observer$CleanupLedger(dev.mixer.android.NativeEnvironmentV2$Observer);
+    descriptor: (Ldev/mixer/android/NativeEnvironmentV2$Observer;)V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: aload_1
+         6: putfield      #7                  // Field source:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+         9: return
+      LineNumberTable:
+        line 202: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      10     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer$CleanupLedger;
+            0      10     1 source   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+
+  int state(int);
+    descriptor: (I)I
+    Code:
+         0: invokestatic  #13                 // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: getfield      #7                  // Field source:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+         7: getfield      #18                 // Field dev/mixer/android/NativeEnvironmentV2$Observer.cleanup:[I
+        10: iload_1
+        11: iaload
+        12: ireturn
+      LineNumberTable:
+        line 203: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      13     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer$CleanupLedger;
+            0      13     1  slot   I
+
+  java.lang.Throwable failure(int);
+    descriptor: (I)Ljava/lang/Throwable;
+    Code:
+         0: invokestatic  #13                 // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: getfield      #7                  // Field source:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+         7: getfield      #24                 // Field dev/mixer/android/NativeEnvironmentV2$Observer.cleanupFailures:[Ljava/lang/Throwable;
+        10: iload_1
+        11: aaload
+        12: areturn
+      LineNumberTable:
+        line 204: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      13     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer$CleanupLedger;
+            0      13     1  slot   I
+
+  java.lang.Throwable primary();
+    descriptor: ()Ljava/lang/Throwable;
+    Code:
+         0: invokestatic  #13                 // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: getfield      #7                  // Field source:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+         7: getfield      #28                 // Field dev/mixer/android/NativeEnvironmentV2$Observer.primaryFailure:Ljava/lang/Throwable;
+        10: areturn
+      LineNumberTable:
+        line 205: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      11     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer$CleanupLedger;
+
+  java.lang.Error firstFatal();
+    descriptor: ()Ljava/lang/Error;
+    Code:
+         0: invokestatic  #13                 // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: getfield      #7                  // Field source:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+         7: getfield      #32                 // Field dev/mixer/android/NativeEnvironmentV2$Observer.fatalFailure:Ljava/lang/Error;
+        10: areturn
+      LineNumberTable:
+        line 206: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      11     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer$CleanupLedger;
+}
+Compiled from "NativeEnvironmentV2.java"
+final class dev.mixer.android.NativeEnvironmentV2$Observer implements java.lang.AutoCloseable,android.content.ComponentCallbacks {
+  private dev.mixer.android.NativeRenderer owner;
+    descriptor: Ldev/mixer/android/NativeRenderer;
+
+  private final dev.mixer.android.NativeEnvironmentV2$Sink sink;
+    descriptor: Ldev/mixer/android/NativeEnvironmentV2$Sink;
+
+  private boolean registrationStarted;
+    descriptor: Z
+
+  private boolean terminalReported;
+    descriptor: Z
+
+  private dev.mixer.android.NativeEnvironmentV2$RendererCause rendererCause;
+    descriptor: Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+
+  final android.app.Activity activity;
+    descriptor: Landroid/app/Activity;
+
+  final android.widget.FrameLayout root;
+    descriptor: Landroid/widget/FrameLayout;
+
+  private long generation;
+    descriptor: J
+
+  private boolean retired;
+    descriptor: Z
+
+  private boolean initialized;
+    descriptor: Z
+
+  private final android.app.UiModeManager modes;
+    descriptor: Landroid/app/UiModeManager;
+
+  private final android.view.accessibility.AccessibilityManager accessibility;
+    descriptor: Landroid/view/accessibility/AccessibilityManager;
+
+  private final android.content.ContentResolver resolver;
+    descriptor: Landroid/content/ContentResolver;
+
+  private final android.view.ViewTreeObserver focusTarget;
+    descriptor: Landroid/view/ViewTreeObserver;
+
+  private int pending;
+    descriptor: I
+
+  private int acquiring;
+    descriptor: I
+
+  static final int UNATTEMPTED;
+    descriptor: I
+
+  static final int POSSIBLY_OWNED;
+    descriptor: I
+
+  static final int REMOVING;
+    descriptor: I
+
+  static final int RETURNED;
+    descriptor: I
+
+  static final int FAILED_UNCERTAIN;
+    descriptor: I
+
+  static final int DEAD_TARGET_UNCERTAIN;
+    descriptor: I
+
+  private final int[] cleanup;
+    descriptor: [I
+
+  private final java.lang.Throwable[] cleanupFailures;
+    descriptor: [Ljava/lang/Throwable;
+
+  private java.lang.Throwable primaryFailure;
+    descriptor: Ljava/lang/Throwable;
+
+  private java.lang.Error fatalFailure;
+    descriptor: Ljava/lang/Error;
+
+  private boolean diagnosticsAttached;
+    descriptor: Z
+
+  private final android.app.UiModeManager$ContrastChangeListener contrast;
+    descriptor: Landroid/app/UiModeManager$ContrastChangeListener;
+
+  private final android.view.accessibility.AccessibilityManager$HighContrastTextStateChangeListener highContrast;
+    descriptor: Landroid/view/accessibility/AccessibilityManager$HighContrastTextStateChangeListener;
+
+  private final android.view.View$OnLayoutChangeListener layout;
+    descriptor: Landroid/view/View$OnLayoutChangeListener;
+
+  private final android.view.View$OnAttachStateChangeListener attachment;
+    descriptor: Landroid/view/View$OnAttachStateChangeListener;
+
+  private final android.view.ViewTreeObserver$OnWindowFocusChangeListener windowFocus;
+    descriptor: Landroid/view/ViewTreeObserver$OnWindowFocusChangeListener;
+
+  private final android.view.View$OnApplyWindowInsetsListener insets;
+    descriptor: Landroid/view/View$OnApplyWindowInsetsListener;
+
+  private final android.database.ContentObserver motion;
+    descriptor: Landroid/database/ContentObserver;
+
+  private final dev.mixer.android.NativeEnvironmentV2$Observer$CleanupLedger ledger;
+    descriptor: Ldev/mixer/android/NativeEnvironmentV2$Observer$CleanupLedger;
+
+  dev.mixer.android.NativeEnvironmentV2$Observer(android.app.Activity, android.widget.FrameLayout, dev.mixer.android.NativeEnvironmentV2$Sink);
+    descriptor: (Landroid/app/Activity;Landroid/widget/FrameLayout;Ldev/mixer/android/NativeEnvironmentV2$Sink;)V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: lconst_1
+         6: putfield      #7                  // Field generation:J
+         9: aload_0
+        10: iconst_m1
+        11: putfield      #13                 // Field acquiring:I
+        14: aload_0
+        15: bipush        8
+        17: newarray       int
+        19: putfield      #17                 // Field cleanup:[I
+        22: aload_0
+        23: bipush        8
+        25: anewarray     #21                 // class java/lang/Throwable
+        28: putfield      #23                 // Field cleanupFailures:[Ljava/lang/Throwable;
+        31: aload_0
+        32: aload_0
+        33: invokedynamic #27,  0             // InvokeDynamic #0:onContrastChanged:(Ldev/mixer/android/NativeEnvironmentV2$Observer;)Landroid/app/UiModeManager$ContrastChangeListener;
+        38: putfield      #31                 // Field contrast:Landroid/app/UiModeManager$ContrastChangeListener;
+        41: aload_0
+        42: aload_0
+        43: invokedynamic #35,  0             // InvokeDynamic #1:onHighContrastTextStateChanged:(Ldev/mixer/android/NativeEnvironmentV2$Observer;)Landroid/view/accessibility/AccessibilityManager$HighContrastTextStateChangeListener;
+        48: putfield      #39                 // Field highContrast:Landroid/view/accessibility/AccessibilityManager$HighContrastTextStateChangeListener;
+        51: aload_0
+        52: aload_0
+        53: invokedynamic #43,  0             // InvokeDynamic #2:onLayoutChange:(Ldev/mixer/android/NativeEnvironmentV2$Observer;)Landroid/view/View$OnLayoutChangeListener;
+        58: putfield      #47                 // Field layout:Landroid/view/View$OnLayoutChangeListener;
+        61: aload_0
+        62: new           #51                 // class dev/mixer/android/NativeEnvironmentV2$Observer$1
+        65: dup
+        66: aload_0
+        67: invokespecial #53                 // Method dev/mixer/android/NativeEnvironmentV2$Observer$1."<init>":(Ldev/mixer/android/NativeEnvironmentV2$Observer;)V
+        70: putfield      #56                 // Field attachment:Landroid/view/View$OnAttachStateChangeListener;
+        73: aload_0
+        74: aload_0
+        75: invokedynamic #60,  0             // InvokeDynamic #3:onWindowFocusChanged:(Ldev/mixer/android/NativeEnvironmentV2$Observer;)Landroid/view/ViewTreeObserver$OnWindowFocusChangeListener;
+        80: putfield      #64                 // Field windowFocus:Landroid/view/ViewTreeObserver$OnWindowFocusChangeListener;
+        83: aload_0
+        84: aload_0
+        85: invokedynamic #68,  0             // InvokeDynamic #4:onApplyWindowInsets:(Ldev/mixer/android/NativeEnvironmentV2$Observer;)Landroid/view/View$OnApplyWindowInsetsListener;
+        90: putfield      #72                 // Field insets:Landroid/view/View$OnApplyWindowInsetsListener;
+        93: aload_0
+        94: new           #76                 // class dev/mixer/android/NativeEnvironmentV2$Observer$2
+        97: dup
+        98: aload_0
+        99: new           #78                 // class android/os/Handler
+       102: dup
+       103: invokestatic  #80                 // Method android/os/Looper.getMainLooper:()Landroid/os/Looper;
+       106: invokespecial #86                 // Method android/os/Handler."<init>":(Landroid/os/Looper;)V
+       109: invokespecial #89                 // Method dev/mixer/android/NativeEnvironmentV2$Observer$2."<init>":(Ldev/mixer/android/NativeEnvironmentV2$Observer;Landroid/os/Handler;)V
+       112: putfield      #92                 // Field motion:Landroid/database/ContentObserver;
+       115: aload_0
+       116: new           #96                 // class dev/mixer/android/NativeEnvironmentV2$Observer$CleanupLedger
+       119: dup
+       120: aload_0
+       121: invokespecial #98                 // Method dev/mixer/android/NativeEnvironmentV2$Observer$CleanupLedger."<init>":(Ldev/mixer/android/NativeEnvironmentV2$Observer;)V
+       124: putfield      #99                 // Field ledger:Ldev/mixer/android/NativeEnvironmentV2$Observer$CleanupLedger;
+       127: invokestatic  #103                // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+       130: getstatic     #108                // Field android/os/Build$VERSION.SDK_INT:I
+       133: bipush        36
+       135: if_icmplt     146
+       138: aload_2
+       139: invokevirtual #113                // Method android/widget/FrameLayout.getContext:()Landroid/content/Context;
+       142: aload_1
+       143: if_acmpeq     149
+       146: invokestatic  #119                // Method dev/mixer/android/NativeEnvironmentV2.unsupported:()V
+       149: aload_0
+       150: aload_3
+       151: invokestatic  #122                // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+       154: checkcast     #128                // class dev/mixer/android/NativeEnvironmentV2$Sink
+       157: putfield      #130                // Field sink:Ldev/mixer/android/NativeEnvironmentV2$Sink;
+       160: aload_0
+       161: aload_1
+       162: putfield      #134                // Field activity:Landroid/app/Activity;
+       165: aload_0
+       166: aload_2
+       167: putfield      #138                // Field root:Landroid/widget/FrameLayout;
+       170: aload_0
+       171: aload_1
+       172: ldc           #142                // class android/app/UiModeManager
+       174: invokevirtual #144                // Method android/app/Activity.getSystemService:(Ljava/lang/Class;)Ljava/lang/Object;
+       177: checkcast     #142                // class android/app/UiModeManager
+       180: invokestatic  #122                // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+       183: checkcast     #142                // class android/app/UiModeManager
+       186: putfield      #150                // Field modes:Landroid/app/UiModeManager;
+       189: aload_0
+       190: aload_1
+       191: ldc           #154                // class android/view/accessibility/AccessibilityManager
+       193: invokevirtual #144                // Method android/app/Activity.getSystemService:(Ljava/lang/Class;)Ljava/lang/Object;
+       196: checkcast     #154                // class android/view/accessibility/AccessibilityManager
+       199: invokestatic  #122                // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+       202: checkcast     #154                // class android/view/accessibility/AccessibilityManager
+       205: putfield      #156                // Field accessibility:Landroid/view/accessibility/AccessibilityManager;
+       208: aload_0
+       209: aload_1
+       210: invokevirtual #160                // Method android/app/Activity.getContentResolver:()Landroid/content/ContentResolver;
+       213: invokestatic  #122                // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+       216: checkcast     #164                // class android/content/ContentResolver
+       219: putfield      #166                // Field resolver:Landroid/content/ContentResolver;
+       222: aload_0
+       223: aload_2
+       224: invokevirtual #170                // Method android/widget/FrameLayout.getViewTreeObserver:()Landroid/view/ViewTreeObserver;
+       227: invokestatic  #122                // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+       230: checkcast     #174                // class android/view/ViewTreeObserver
+       233: putfield      #176                // Field focusTarget:Landroid/view/ViewTreeObserver;
+       236: return
+      LineNumberTable:
+        line 100: 0
+        line 67: 4
+        line 73: 9
+        line 77: 14
+        line 78: 22
+        line 82: 31
+        line 83: 41
+        line 84: 51
+        line 89: 61
+        line 93: 73
+        line 94: 83
+        line 95: 93
+        line 208: 115
+        line 101: 127
+        line 103: 130
+        line 104: 149
+        line 105: 170
+        line 106: 189
+        line 107: 208
+        line 108: 222
+        line 109: 236
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0     237     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+            0     237     1 activity   Landroid/app/Activity;
+            0     237     2  root   Landroid/widget/FrameLayout;
+            0     237     3  sink   Ldev/mixer/android/NativeEnvironmentV2$Sink;
+
+  void register();
+    descriptor: ()V
+    Code:
+         0: invokestatic  #103                // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: getfield      #180                // Field registrationStarted:Z
+         7: ifne          17
+        10: aload_0
+        11: getfield      #184                // Field retired:Z
+        14: ifeq          27
+        17: new           #187                // class java/lang/IllegalStateException
+        20: dup
+        21: ldc           #189                // String V2 observer registration is one shot
+        23: invokespecial #191                // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        26: athrow
+        27: aload_0
+        28: iconst_1
+        29: putfield      #180                // Field registrationStarted:Z
+        32: aload_0
+        33: iconst_0
+        34: invokevirtual #194                // Method begin:(I)V
+        37: aload_0
+        38: getfield      #134                // Field activity:Landroid/app/Activity;
+        41: aload_0
+        42: invokevirtual #198                // Method android/app/Activity.registerComponentCallbacks:(Landroid/content/ComponentCallbacks;)V
+        45: aload_0
+        46: invokevirtual #202                // Method completed:()V
+        49: aload_0
+        50: iconst_1
+        51: invokevirtual #194                // Method begin:(I)V
+        54: aload_0
+        55: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+        58: aload_0
+        59: getfield      #47                 // Field layout:Landroid/view/View$OnLayoutChangeListener;
+        62: invokevirtual #205                // Method android/widget/FrameLayout.addOnLayoutChangeListener:(Landroid/view/View$OnLayoutChangeListener;)V
+        65: aload_0
+        66: invokevirtual #202                // Method completed:()V
+        69: aload_0
+        70: iconst_2
+        71: invokevirtual #194                // Method begin:(I)V
+        74: aload_0
+        75: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+        78: aload_0
+        79: getfield      #56                 // Field attachment:Landroid/view/View$OnAttachStateChangeListener;
+        82: invokevirtual #209                // Method android/widget/FrameLayout.addOnAttachStateChangeListener:(Landroid/view/View$OnAttachStateChangeListener;)V
+        85: aload_0
+        86: invokevirtual #202                // Method completed:()V
+        89: aload_0
+        90: iconst_3
+        91: invokevirtual #194                // Method begin:(I)V
+        94: aload_0
+        95: getfield      #176                // Field focusTarget:Landroid/view/ViewTreeObserver;
+        98: aload_0
+        99: getfield      #64                 // Field windowFocus:Landroid/view/ViewTreeObserver$OnWindowFocusChangeListener;
+       102: invokevirtual #213                // Method android/view/ViewTreeObserver.addOnWindowFocusChangeListener:(Landroid/view/ViewTreeObserver$OnWindowFocusChangeListener;)V
+       105: aload_0
+       106: invokevirtual #202                // Method completed:()V
+       109: aload_0
+       110: iconst_4
+       111: invokevirtual #194                // Method begin:(I)V
+       114: aload_0
+       115: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+       118: aload_0
+       119: getfield      #72                 // Field insets:Landroid/view/View$OnApplyWindowInsetsListener;
+       122: invokevirtual #217                // Method android/widget/FrameLayout.setOnApplyWindowInsetsListener:(Landroid/view/View$OnApplyWindowInsetsListener;)V
+       125: aload_0
+       126: invokevirtual #202                // Method completed:()V
+       129: aload_0
+       130: iconst_5
+       131: invokevirtual #194                // Method begin:(I)V
+       134: aload_0
+       135: getfield      #150                // Field modes:Landroid/app/UiModeManager;
+       138: aload_0
+       139: getfield      #134                // Field activity:Landroid/app/Activity;
+       142: invokevirtual #221                // Method android/app/Activity.getMainExecutor:()Ljava/util/concurrent/Executor;
+       145: aload_0
+       146: getfield      #31                 // Field contrast:Landroid/app/UiModeManager$ContrastChangeListener;
+       149: invokevirtual #225                // Method android/app/UiModeManager.addContrastChangeListener:(Ljava/util/concurrent/Executor;Landroid/app/UiModeManager$ContrastChangeListener;)V
+       152: aload_0
+       153: invokevirtual #202                // Method completed:()V
+       156: aload_0
+       157: bipush        6
+       159: invokevirtual #194                // Method begin:(I)V
+       162: aload_0
+       163: getfield      #156                // Field accessibility:Landroid/view/accessibility/AccessibilityManager;
+       166: aload_0
+       167: getfield      #134                // Field activity:Landroid/app/Activity;
+       170: invokevirtual #221                // Method android/app/Activity.getMainExecutor:()Ljava/util/concurrent/Executor;
+       173: aload_0
+       174: getfield      #39                 // Field highContrast:Landroid/view/accessibility/AccessibilityManager$HighContrastTextStateChangeListener;
+       177: invokevirtual #229                // Method android/view/accessibility/AccessibilityManager.addHighContrastTextStateChangeListener:(Ljava/util/concurrent/Executor;Landroid/view/accessibility/AccessibilityManager$HighContrastTextStateChangeListener;)V
+       180: aload_0
+       181: invokevirtual #202                // Method completed:()V
+       184: aload_0
+       185: bipush        7
+       187: invokevirtual #194                // Method begin:(I)V
+       190: aload_0
+       191: getfield      #166                // Field resolver:Landroid/content/ContentResolver;
+       194: ldc           #235                // String animator_duration_scale
+       196: invokestatic  #237                // Method android/provider/Settings$Global.getUriFor:(Ljava/lang/String;)Landroid/net/Uri;
+       199: iconst_0
+       200: aload_0
+       201: getfield      #92                 // Field motion:Landroid/database/ContentObserver;
+       204: invokevirtual #241                // Method android/content/ContentResolver.registerContentObserver:(Landroid/net/Uri;ZLandroid/database/ContentObserver;)V
+       207: aload_0
+       208: invokevirtual #202                // Method completed:()V
+       211: aload_0
+       212: iconst_1
+       213: putfield      #245                // Field initialized:Z
+       216: goto          274
+       219: astore_1
+       220: aload_0
+       221: iconst_1
+       222: putfield      #184                // Field retired:Z
+       225: aload_0
+       226: iconst_m1
+       227: putfield      #13                 // Field acquiring:I
+       230: aload_0
+       231: aload_1
+       232: invokevirtual #252                // Method remember:(Ljava/lang/Throwable;)V
+       235: aload_0
+       236: getfield      #130                // Field sink:Ldev/mixer/android/NativeEnvironmentV2$Sink;
+       239: aload_0
+       240: getstatic     #256                // Field dev/mixer/android/NativeEnvironmentV2$Change.REGISTRATION_FAILED:Ldev/mixer/android/NativeEnvironmentV2$Change;
+       243: aconst_null
+       244: aload_0
+       245: getfield      #262                // Field primaryFailure:Ljava/lang/Throwable;
+       248: aload_0
+       249: getfield      #266                // Field fatalFailure:Ljava/lang/Error;
+       252: invokeinterface #270,  6          // InterfaceMethod dev/mixer/android/NativeEnvironmentV2$Sink.changed:(Ldev/mixer/android/NativeEnvironmentV2$Observer;Ldev/mixer/android/NativeEnvironmentV2$Change;Ldev/mixer/android/NativeEnvironmentV2$RendererCause;Ljava/lang/Throwable;Ljava/lang/Error;)V
+       257: goto          266
+       260: astore_2
+       261: aload_0
+       262: aload_2
+       263: invokevirtual #252                // Method remember:(Ljava/lang/Throwable;)V
+       266: aload_0
+       267: invokevirtual #274                // Method cleanupAll:()V
+       270: aload_0
+       271: invokevirtual #277                // Method throwFailure:()V
+       274: return
+      Exception table:
+         from    to  target type
+            32   216   219   Class java/lang/RuntimeException
+            32   216   219   Class java/lang/Error
+           235   257   260   Class java/lang/RuntimeException
+           235   257   260   Class java/lang/Error
+      LineNumberTable:
+        line 111: 0
+        line 112: 3
+        line 113: 27
+        line 115: 32
+        line 116: 49
+        line 117: 69
+        line 118: 89
+        line 119: 109
+        line 120: 129
+        line 121: 156
+        line 122: 184
+        line 123: 196
+        line 122: 204
+        line 123: 207
+        line 124: 211
+        line 131: 216
+        line 125: 219
+        line 126: 220
+        line 127: 230
+        line 128: 235
+        line 129: 257
+        line 130: 266
+        line 132: 274
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+          261       5     2 report   Ljava/lang/Throwable;
+          220      54     1 failure   Ljava/lang/Throwable;
+            0     275     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+
+  private void begin(int);
+    descriptor: (I)V
+    Code:
+         0: aload_0
+         1: getfield      #184                // Field retired:Z
+         4: ifeq          18
+         7: new           #187                // class java/lang/IllegalStateException
+        10: dup
+        11: ldc_w         #280                // String V2 observer retired during registration
+        14: invokespecial #191                // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        17: athrow
+        18: aload_0
+        19: iload_1
+        20: putfield      #13                 // Field acquiring:I
+        23: aload_0
+        24: dup
+        25: getfield      #282                // Field pending:I
+        28: iconst_1
+        29: iload_1
+        30: ishl
+        31: ior
+        32: putfield      #282                // Field pending:I
+        35: aload_0
+        36: getfield      #17                 // Field cleanup:[I
+        39: iload_1
+        40: iconst_1
+        41: iastore
+        42: return
+      LineNumberTable:
+        line 134: 0
+        line 135: 18
+        line 136: 42
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      43     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+            0      43     1  slot   I
+
+  private void completed();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: iconst_m1
+         2: putfield      #13                 // Field acquiring:I
+         5: aload_0
+         6: getfield      #184                // Field retired:Z
+         9: ifeq          23
+        12: new           #187                // class java/lang/IllegalStateException
+        15: dup
+        16: ldc_w         #280                // String V2 observer retired during registration
+        19: invokespecial #191                // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        22: athrow
+        23: return
+      LineNumberTable:
+        line 138: 0
+        line 139: 5
+        line 140: 23
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      24     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+
+  private void remember(java.lang.Throwable);
+    descriptor: (Ljava/lang/Throwable;)V
+    Code:
+         0: aload_0
+         1: iconst_0
+         2: putfield      #285                // Field diagnosticsAttached:Z
+         5: aload_0
+         6: getfield      #262                // Field primaryFailure:Ljava/lang/Throwable;
+         9: ifnonnull     17
+        12: aload_0
+        13: aload_1
+        14: putfield      #262                // Field primaryFailure:Ljava/lang/Throwable;
+        17: aload_1
+        18: instanceof    #250                // class java/lang/Error
+        21: ifeq          39
+        24: aload_0
+        25: getfield      #266                // Field fatalFailure:Ljava/lang/Error;
+        28: ifnonnull     39
+        31: aload_0
+        32: aload_1
+        33: checkcast     #250                // class java/lang/Error
+        36: putfield      #266                // Field fatalFailure:Ljava/lang/Error;
+        39: return
+      LineNumberTable:
+        line 142: 0
+        line 143: 5
+        line 144: 17
+        line 145: 39
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      40     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+            0      40     1 failure   Ljava/lang/Throwable;
+
+  private static void suppress(java.lang.Throwable, java.lang.Throwable);
+    descriptor: (Ljava/lang/Throwable;Ljava/lang/Throwable;)V
+    Code:
+         0: aload_1
+         1: ifnull        9
+         4: aload_1
+         5: aload_0
+         6: if_acmpne     10
+         9: return
+        10: aload_0
+        11: aload_1
+        12: invokevirtual #288                // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+        15: goto          19
+        18: astore_2
+        19: return
+      Exception table:
+         from    to  target type
+            10    15    18   Class java/lang/Throwable
+      LineNumberTable:
+        line 147: 0
+        line 148: 10
+        line 149: 15
+        line 150: 19
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      20     0 target   Ljava/lang/Throwable;
+            0      20     1 detail   Ljava/lang/Throwable;
+
+  private void throwFailure();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: getfield      #266                // Field fatalFailure:Ljava/lang/Error;
+         4: ifnonnull     14
+         7: aload_0
+         8: getfield      #262                // Field primaryFailure:Ljava/lang/Throwable;
+        11: goto          18
+        14: aload_0
+        15: getfield      #266                // Field fatalFailure:Ljava/lang/Error;
+        18: astore_1
+        19: aload_1
+        20: ifnonnull     24
+        23: return
+        24: aload_0
+        25: getfield      #285                // Field diagnosticsAttached:Z
+        28: ifne          79
+        31: aload_0
+        32: iconst_1
+        33: putfield      #285                // Field diagnosticsAttached:Z
+        36: aload_1
+        37: aload_0
+        38: getfield      #262                // Field primaryFailure:Ljava/lang/Throwable;
+        41: invokestatic  #291                // Method suppress:(Ljava/lang/Throwable;Ljava/lang/Throwable;)V
+        44: aload_0
+        45: getfield      #23                 // Field cleanupFailures:[Ljava/lang/Throwable;
+        48: astore_2
+        49: aload_2
+        50: arraylength
+        51: istore_3
+        52: iconst_0
+        53: istore        4
+        55: iload         4
+        57: iload_3
+        58: if_icmpge     79
+        61: aload_2
+        62: iload         4
+        64: aaload
+        65: astore        5
+        67: aload_1
+        68: aload         5
+        70: invokestatic  #291                // Method suppress:(Ljava/lang/Throwable;Ljava/lang/Throwable;)V
+        73: iinc          4, 1
+        76: goto          55
+        79: aload_1
+        80: instanceof    #250                // class java/lang/Error
+        83: ifeq          91
+        86: aload_1
+        87: checkcast     #250                // class java/lang/Error
+        90: athrow
+        91: aload_1
+        92: checkcast     #248                // class java/lang/RuntimeException
+        95: athrow
+      LineNumberTable:
+        line 152: 0
+        line 153: 19
+        line 154: 24
+        line 155: 31
+        line 156: 36
+        line 157: 44
+        line 159: 79
+        line 160: 91
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+           67       6     5 detail   Ljava/lang/Throwable;
+            0      96     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+           19      77     1 failure   Ljava/lang/Throwable;
+
+  void bindRenderer(dev.mixer.android.NativeRenderer);
+    descriptor: (Ldev/mixer/android/NativeRenderer;)V
+    Code:
+         0: invokestatic  #103                // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_1
+         4: ifnull        40
+         7: aload_0
+         8: getfield      #184                // Field retired:Z
+        11: ifne          40
+        14: aload_0
+        15: getfield      #245                // Field initialized:Z
+        18: ifeq          40
+        21: aload_0
+        22: getfield      #295                // Field owner:Ldev/mixer/android/NativeRenderer;
+        25: ifnonnull     40
+        28: aload_1
+        29: aload_0
+        30: getfield      #134                // Field activity:Landroid/app/Activity;
+        33: aload_0
+        34: invokevirtual #299                // Method dev/mixer/android/NativeRenderer.belongsToV2:(Landroid/content/Context;Ldev/mixer/android/NativeEnvironmentV2$Observer;)Z
+        37: ifne          51
+        40: new           #187                // class java/lang/IllegalStateException
+        43: dup
+        44: ldc_w         #305                // String V2 observer renderer binding rejected
+        47: invokespecial #191                // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        50: athrow
+        51: aload_0
+        52: aload_1
+        53: putfield      #295                // Field owner:Ldev/mixer/android/NativeRenderer;
+        56: return
+      LineNumberTable:
+        line 163: 0
+        line 164: 3
+        line 165: 40
+        line 166: 51
+        line 167: 56
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      57     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+            0      57     1 renderer   Ldev/mixer/android/NativeRenderer;
+
+  void retireScalarFromOwner();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: iconst_1
+         2: putfield      #184                // Field retired:Z
+         5: return
+      LineNumberTable:
+        line 169: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       6     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+
+  boolean ready();
+    descriptor: ()Z
+    Code:
+         0: invokestatic  #103                // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: getfield      #245                // Field initialized:Z
+         7: ifeq          21
+        10: aload_0
+        11: getfield      #184                // Field retired:Z
+        14: ifne          21
+        17: iconst_1
+        18: goto          22
+        21: iconst_0
+        22: ireturn
+      LineNumberTable:
+        line 170: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      23     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+
+  void invalidate();
+    descriptor: ()V
+    Code:
+         0: invokestatic  #103                // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: getfield      #184                // Field retired:Z
+         7: ifeq          11
+        10: return
+        11: aload_0
+        12: getfield      #7                  // Field generation:J
+        15: ldc2_w        #309                // long 9223372036854775807l
+        18: lcmp
+        19: ifne          30
+        22: aload_0
+        23: getstatic     #311                // Field dev/mixer/android/NativeEnvironmentV2$Change.EPOCH_EXHAUSTED:Ldev/mixer/android/NativeEnvironmentV2$Change;
+        26: invokevirtual #314                // Method terminalNotification:(Ldev/mixer/android/NativeEnvironmentV2$Change;)V
+        29: return
+        30: aload_0
+        31: dup
+        32: getfield      #7                  // Field generation:J
+        35: lconst_1
+        36: ladd
+        37: putfield      #7                  // Field generation:J
+        40: aload_0
+        41: getstatic     #318                // Field dev/mixer/android/NativeEnvironmentV2$Change.INVALIDATED:Ldev/mixer/android/NativeEnvironmentV2$Change;
+        44: invokevirtual #321                // Method notifyOwner:(Ldev/mixer/android/NativeEnvironmentV2$Change;)V
+        47: return
+      LineNumberTable:
+        line 172: 0
+        line 173: 3
+        line 174: 11
+        line 175: 30
+        line 176: 40
+        line 177: 47
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      48     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+
+  private void terminalNotification(dev.mixer.android.NativeEnvironmentV2$Change);
+    descriptor: (Ldev/mixer/android/NativeEnvironmentV2$Change;)V
+    Code:
+         0: invokestatic  #103                // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: getfield      #184                // Field retired:Z
+         7: ifeq          11
+        10: return
+        11: aload_0
+        12: iconst_1
+        13: putfield      #184                // Field retired:Z
+        16: aload_0
+        17: aload_1
+        18: invokevirtual #321                // Method notifyOwner:(Ldev/mixer/android/NativeEnvironmentV2$Change;)V
+        21: return
+      LineNumberTable:
+        line 179: 0
+        line 180: 3
+        line 181: 11
+        line 182: 16
+        line 183: 21
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      22     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+            0      22     1 change   Ldev/mixer/android/NativeEnvironmentV2$Change;
+
+  private void notifyOwner(dev.mixer.android.NativeEnvironmentV2$Change);
+    descriptor: (Ldev/mixer/android/NativeEnvironmentV2$Change;)V
+    Code:
+         0: aload_0
+         1: getfield      #130                // Field sink:Ldev/mixer/android/NativeEnvironmentV2$Sink;
+         4: aload_0
+         5: aload_1
+         6: aconst_null
+         7: aconst_null
+         8: aconst_null
+         9: invokeinterface #270,  6          // InterfaceMethod dev/mixer/android/NativeEnvironmentV2$Sink.changed:(Ldev/mixer/android/NativeEnvironmentV2$Observer;Ldev/mixer/android/NativeEnvironmentV2$Change;Ldev/mixer/android/NativeEnvironmentV2$RendererCause;Ljava/lang/Throwable;Ljava/lang/Error;)V
+        14: goto          36
+        17: astore_2
+        18: aload_0
+        19: iconst_1
+        20: putfield      #184                // Field retired:Z
+        23: aload_0
+        24: aload_2
+        25: invokevirtual #252                // Method remember:(Ljava/lang/Throwable;)V
+        28: aload_0
+        29: invokevirtual #274                // Method cleanupAll:()V
+        32: aload_0
+        33: invokevirtual #277                // Method throwFailure:()V
+        36: return
+      Exception table:
+         from    to  target type
+             0    14    17   Class java/lang/RuntimeException
+             0    14    17   Class java/lang/Error
+      LineNumberTable:
+        line 185: 0
+        line 188: 14
+        line 186: 17
+        line 187: 18
+        line 189: 36
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+           18      18     2 failure   Ljava/lang/Throwable;
+            0      37     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+            0      37     1 change   Ldev/mixer/android/NativeEnvironmentV2$Change;
+
+  void rendererTerminal(dev.mixer.android.NativeRenderer, dev.mixer.android.NativeEnvironmentV2$RendererCause, java.lang.Throwable, java.lang.Error);
+    descriptor: (Ldev/mixer/android/NativeRenderer;Ldev/mixer/android/NativeEnvironmentV2$RendererCause;Ljava/lang/Throwable;Ljava/lang/Error;)V
+    Code:
+         0: invokestatic  #103                // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: getfield      #184                // Field retired:Z
+         7: ifne          17
+        10: aload_0
+        11: getfield      #324                // Field terminalReported:Z
+        14: ifeq          18
+        17: return
+        18: aload_1
+        19: aload_0
+        20: getfield      #295                // Field owner:Ldev/mixer/android/NativeRenderer;
+        23: if_acmpne     34
+        26: aload_1
+        27: ifnull        34
+        30: aload_2
+        31: ifnonnull     45
+        34: new           #327                // class java/lang/IllegalArgumentException
+        37: dup
+        38: ldc_w         #329                // String foreign V2 renderer terminal report
+        41: invokespecial #331                // Method java/lang/IllegalArgumentException."<init>":(Ljava/lang/String;)V
+        44: athrow
+        45: aload_0
+        46: aload_2
+        47: putfield      #332                // Field rendererCause:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        50: aload_0
+        51: iconst_1
+        52: putfield      #324                // Field terminalReported:Z
+        55: aload_0
+        56: iconst_1
+        57: putfield      #184                // Field retired:Z
+        60: aload_3
+        61: ifnull        69
+        64: aload_0
+        65: aload_3
+        66: invokevirtual #252                // Method remember:(Ljava/lang/Throwable;)V
+        69: aload         4
+        71: ifnull        87
+        74: aload_0
+        75: getfield      #266                // Field fatalFailure:Ljava/lang/Error;
+        78: ifnonnull     87
+        81: aload_0
+        82: aload         4
+        84: putfield      #266                // Field fatalFailure:Ljava/lang/Error;
+        87: aload_0
+        88: getfield      #130                // Field sink:Ldev/mixer/android/NativeEnvironmentV2$Sink;
+        91: aload_0
+        92: getstatic     #336                // Field dev/mixer/android/NativeEnvironmentV2$Change.RENDERER_TERMINAL:Ldev/mixer/android/NativeEnvironmentV2$Change;
+        95: aload_0
+        96: getfield      #332                // Field rendererCause:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        99: aload_3
+       100: aload         4
+       102: invokeinterface #270,  6          // InterfaceMethod dev/mixer/android/NativeEnvironmentV2$Sink.changed:(Ldev/mixer/android/NativeEnvironmentV2$Observer;Ldev/mixer/android/NativeEnvironmentV2$Change;Ldev/mixer/android/NativeEnvironmentV2$RendererCause;Ljava/lang/Throwable;Ljava/lang/Error;)V
+       107: return
+      LineNumberTable:
+        line 191: 0
+        line 192: 3
+        line 193: 18
+        line 194: 34
+        line 195: 45
+        line 196: 60
+        line 197: 69
+        line 198: 87
+        line 199: 107
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0     108     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+            0     108     1 renderer   Ldev/mixer/android/NativeRenderer;
+            0     108     2 cause   Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+            0     108     3 primary   Ljava/lang/Throwable;
+            0     108     4 firstFatal   Ljava/lang/Error;
+
+  dev.mixer.android.NativeEnvironmentV2$Observer$CleanupLedger cleanupLedger();
+    descriptor: ()Ldev/mixer/android/NativeEnvironmentV2$Observer$CleanupLedger;
+    Code:
+         0: invokestatic  #103                // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: getfield      #99                 // Field ledger:Ldev/mixer/android/NativeEnvironmentV2$Observer$CleanupLedger;
+         7: areturn
+      LineNumberTable:
+        line 209: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       8     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+
+  private void cleanupAll();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: iconst_1
+         2: putfield      #184                // Field retired:Z
+         5: iconst_0
+         6: istore_1
+         7: iload_1
+         8: bipush        8
+        10: if_icmpge     277
+        13: iconst_1
+        14: iload_1
+        15: ishl
+        16: istore_2
+        17: aload_0
+        18: getfield      #282                // Field pending:I
+        21: iload_2
+        22: iand
+        23: ifeq          271
+        26: aload_0
+        27: getfield      #13                 // Field acquiring:I
+        30: iload_1
+        31: if_icmpne     37
+        34: goto          271
+        37: aload_0
+        38: dup
+        39: getfield      #282                // Field pending:I
+        42: iload_2
+        43: iconst_m1
+        44: ixor
+        45: iand
+        46: putfield      #282                // Field pending:I
+        49: aload_0
+        50: getfield      #17                 // Field cleanup:[I
+        53: iload_1
+        54: iconst_2
+        55: iastore
+        56: iload_1
+        57: tableswitch   { // 0 to 7
+                       0: 104
+                       1: 115
+                       2: 129
+                       3: 143
+                       4: 177
+                       5: 188
+                       6: 202
+                       7: 216
+                 default: 230
+            }
+       104: aload_0
+       105: getfield      #134                // Field activity:Landroid/app/Activity;
+       108: aload_0
+       109: invokevirtual #339                // Method android/app/Activity.unregisterComponentCallbacks:(Landroid/content/ComponentCallbacks;)V
+       112: goto          241
+       115: aload_0
+       116: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+       119: aload_0
+       120: getfield      #47                 // Field layout:Landroid/view/View$OnLayoutChangeListener;
+       123: invokevirtual #342                // Method android/widget/FrameLayout.removeOnLayoutChangeListener:(Landroid/view/View$OnLayoutChangeListener;)V
+       126: goto          241
+       129: aload_0
+       130: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+       133: aload_0
+       134: getfield      #56                 // Field attachment:Landroid/view/View$OnAttachStateChangeListener;
+       137: invokevirtual #345                // Method android/widget/FrameLayout.removeOnAttachStateChangeListener:(Landroid/view/View$OnAttachStateChangeListener;)V
+       140: goto          241
+       143: aload_0
+       144: getfield      #176                // Field focusTarget:Landroid/view/ViewTreeObserver;
+       147: invokevirtual #348                // Method android/view/ViewTreeObserver.isAlive:()Z
+       150: ifne          163
+       153: aload_0
+       154: getfield      #17                 // Field cleanup:[I
+       157: iload_1
+       158: iconst_5
+       159: iastore
+       160: goto          271
+       163: aload_0
+       164: getfield      #176                // Field focusTarget:Landroid/view/ViewTreeObserver;
+       167: aload_0
+       168: getfield      #64                 // Field windowFocus:Landroid/view/ViewTreeObserver$OnWindowFocusChangeListener;
+       171: invokevirtual #352                // Method android/view/ViewTreeObserver.removeOnWindowFocusChangeListener:(Landroid/view/ViewTreeObserver$OnWindowFocusChangeListener;)V
+       174: goto          241
+       177: aload_0
+       178: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+       181: aconst_null
+       182: invokevirtual #217                // Method android/widget/FrameLayout.setOnApplyWindowInsetsListener:(Landroid/view/View$OnApplyWindowInsetsListener;)V
+       185: goto          241
+       188: aload_0
+       189: getfield      #150                // Field modes:Landroid/app/UiModeManager;
+       192: aload_0
+       193: getfield      #31                 // Field contrast:Landroid/app/UiModeManager$ContrastChangeListener;
+       196: invokevirtual #355                // Method android/app/UiModeManager.removeContrastChangeListener:(Landroid/app/UiModeManager$ContrastChangeListener;)V
+       199: goto          241
+       202: aload_0
+       203: getfield      #156                // Field accessibility:Landroid/view/accessibility/AccessibilityManager;
+       206: aload_0
+       207: getfield      #39                 // Field highContrast:Landroid/view/accessibility/AccessibilityManager$HighContrastTextStateChangeListener;
+       210: invokevirtual #359                // Method android/view/accessibility/AccessibilityManager.removeHighContrastTextStateChangeListener:(Landroid/view/accessibility/AccessibilityManager$HighContrastTextStateChangeListener;)V
+       213: goto          241
+       216: aload_0
+       217: getfield      #166                // Field resolver:Landroid/content/ContentResolver;
+       220: aload_0
+       221: getfield      #92                 // Field motion:Landroid/database/ContentObserver;
+       224: invokevirtual #363                // Method android/content/ContentResolver.unregisterContentObserver:(Landroid/database/ContentObserver;)V
+       227: goto          241
+       230: new           #367                // class java/lang/AssertionError
+       233: dup
+       234: ldc_w         #369                // String Unknown observer slot
+       237: invokespecial #371                // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+       240: athrow
+       241: aload_0
+       242: getfield      #17                 // Field cleanup:[I
+       245: iload_1
+       246: iconst_3
+       247: iastore
+       248: goto          271
+       251: astore_3
+       252: aload_0
+       253: getfield      #17                 // Field cleanup:[I
+       256: iload_1
+       257: iconst_4
+       258: iastore
+       259: aload_0
+       260: getfield      #23                 // Field cleanupFailures:[Ljava/lang/Throwable;
+       263: iload_1
+       264: aload_3
+       265: aastore
+       266: aload_0
+       267: aload_3
+       268: invokevirtual #252                // Method remember:(Ljava/lang/Throwable;)V
+       271: iinc          1, 1
+       274: goto          7
+       277: return
+      Exception table:
+         from    to  target type
+            56   160   251   Class java/lang/RuntimeException
+            56   160   251   Class java/lang/Error
+           163   248   251   Class java/lang/RuntimeException
+           163   248   251   Class java/lang/Error
+      LineNumberTable:
+        line 211: 0
+        line 212: 5
+        line 213: 13
+        line 215: 17
+        line 216: 37
+        line 218: 56
+        line 219: 104
+        line 220: 115
+        line 221: 129
+        line 223: 143
+        line 224: 163
+        line 225: 177
+        line 226: 188
+        line 227: 202
+        line 228: 216
+        line 229: 230
+        line 231: 241
+        line 234: 248
+        line 232: 251
+        line 233: 252
+        line 212: 271
+        line 236: 277
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+          252      19     3 failure   Ljava/lang/Throwable;
+           17     254     2   bit   I
+            7     270     1  slot   I
+            0     278     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+
+  dev.mixer.android.NativeEnvironmentV2 capture();
+    descriptor: ()Ldev/mixer/android/NativeEnvironmentV2;
+    Code:
+         0: invokestatic  #103                // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: getfield      #184                // Field retired:Z
+         7: ifne          24
+        10: aload_0
+        11: getfield      #245                // Field initialized:Z
+        14: ifeq          24
+        17: aload_0
+        18: getfield      #295                // Field owner:Ldev/mixer/android/NativeRenderer;
+        21: ifnonnull     27
+        24: invokestatic  #119                // Method dev/mixer/android/NativeEnvironmentV2.unsupported:()V
+        27: new           #104                // class dev/mixer/android/NativeEnvironmentV2
+        30: dup
+        31: aload_0
+        32: aload_0
+        33: invokevirtual #374                // Method read:()Ldev/mixer/android/AppearanceResolverV2$Environment;
+        36: aload_0
+        37: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+        40: invokevirtual #378                // Method android/widget/FrameLayout.getWidth:()I
+        43: aload_0
+        44: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+        47: invokevirtual #382                // Method android/widget/FrameLayout.getHeight:()I
+        50: aload_0
+        51: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+        54: invokevirtual #385                // Method android/widget/FrameLayout.getWindowToken:()Ljava/lang/Object;
+        57: invokespecial #389                // Method dev/mixer/android/NativeEnvironmentV2."<init>":(Ldev/mixer/android/NativeEnvironmentV2$Observer;Ldev/mixer/android/AppearanceResolverV2$Environment;IILjava/lang/Object;)V
+        60: areturn
+      LineNumberTable:
+        line 238: 0
+        line 239: 3
+        line 240: 27
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      61     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+
+  dev.mixer.android.AppearanceResolverV2$Environment read();
+    descriptor: ()Ldev/mixer/android/AppearanceResolverV2$Environment;
+    Code:
+         0: invokestatic  #103                // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: getfield      #184                // Field retired:Z
+         7: ifne          67
+        10: aload_0
+        11: getfield      #245                // Field initialized:Z
+        14: ifeq          67
+        17: aload_0
+        18: getfield      #134                // Field activity:Landroid/app/Activity;
+        21: invokevirtual #392                // Method android/app/Activity.isDestroyed:()Z
+        24: ifne          67
+        27: aload_0
+        28: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+        31: invokevirtual #395                // Method android/widget/FrameLayout.isAttachedToWindow:()Z
+        34: ifeq          67
+        37: aload_0
+        38: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+        41: invokevirtual #385                // Method android/widget/FrameLayout.getWindowToken:()Ljava/lang/Object;
+        44: ifnull        67
+        47: aload_0
+        48: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+        51: invokevirtual #378                // Method android/widget/FrameLayout.getWidth:()I
+        54: ifle          67
+        57: aload_0
+        58: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+        61: invokevirtual #382                // Method android/widget/FrameLayout.getHeight:()I
+        64: ifgt          70
+        67: invokestatic  #119                // Method dev/mixer/android/NativeEnvironmentV2.unsupported:()V
+        70: aload_0
+        71: getfield      #134                // Field activity:Landroid/app/Activity;
+        74: invokevirtual #398                // Method android/app/Activity.getResources:()Landroid/content/res/Resources;
+        77: invokevirtual #402                // Method android/content/res/Resources.getConfiguration:()Landroid/content/res/Configuration;
+        80: astore_1
+        81: aload_0
+        82: getfield      #134                // Field activity:Landroid/app/Activity;
+        85: invokevirtual #398                // Method android/app/Activity.getResources:()Landroid/content/res/Resources;
+        88: invokevirtual #408                // Method android/content/res/Resources.getDisplayMetrics:()Landroid/util/DisplayMetrics;
+        91: astore_2
+        92: aload_2
+        93: getfield      #412                // Field android/util/DisplayMetrics.density:F
+        96: f2d
+        97: invokestatic  #418                // Method dev/mixer/android/AppearanceGeometryV2.normalizeDensity:(D)I
+       100: istore_3
+       101: iconst_1
+       102: fconst_1
+       103: aload_2
+       104: invokestatic  #426                // Method android/util/TypedValue.applyDimension:(IFLandroid/util/DisplayMetrics;)F
+       107: f2d
+       108: dstore        4
+       110: iconst_2
+       111: ldc_w         #430                // float 17.0f
+       114: aload_2
+       115: invokestatic  #426                // Method android/util/TypedValue.applyDimension:(IFLandroid/util/DisplayMetrics;)F
+       118: f2d
+       119: dstore        6
+       121: dload         6
+       123: dload         4
+       125: ddiv
+       126: dstore        8
+       128: dload         4
+       130: invokestatic  #431                // Method java/lang/Double.isFinite:(D)Z
+       133: ifeq          184
+       136: dload         4
+       138: dconst_0
+       139: dcmpg
+       140: ifle          184
+       143: dload         6
+       145: invokestatic  #431                // Method java/lang/Double.isFinite:(D)Z
+       148: ifeq          184
+       151: dload         6
+       153: dconst_0
+       154: dcmpg
+       155: ifle          184
+       158: dload         8
+       160: invokestatic  #431                // Method java/lang/Double.isFinite:(D)Z
+       163: ifeq          184
+       166: dload         8
+       168: ldc2_w        #437                // double 14.0d
+       171: dcmpg
+       172: iflt          184
+       175: dload         8
+       177: ldc2_w        #439                // double 53.0d
+       180: dcmpl
+       181: ifle          187
+       184: invokestatic  #119                // Method dev/mixer/android/NativeEnvironmentV2.unsupported:()V
+       187: dload         8
+       189: ldc2_w        #441                // double 64.0d
+       192: dmul
+       193: ldc2_w        #443                // double 0.5d
+       196: dadd
+       197: invokestatic  #445                // Method java/lang/Math.floor:(D)D
+       200: d2i
+       201: istore        10
+       203: bipush        12
+       205: newarray       int
+       207: dup
+       208: iconst_0
+       209: sipush        896
+       212: iastore
+       213: dup
+       214: iconst_1
+       215: sipush        960
+       218: iastore
+       219: dup
+       220: iconst_2
+       221: sipush        1024
+       224: iastore
+       225: dup
+       226: iconst_3
+       227: sipush        1088
+       230: iastore
+       231: dup
+       232: iconst_4
+       233: sipush        1216
+       236: iastore
+       237: dup
+       238: iconst_5
+       239: sipush        1344
+       242: iastore
+       243: dup
+       244: bipush        6
+       246: sipush        1472
+       249: iastore
+       250: dup
+       251: bipush        7
+       253: sipush        1792
+       256: iastore
+       257: dup
+       258: bipush        8
+       260: sipush        2112
+       263: iastore
+       264: dup
+       265: bipush        9
+       267: sipush        2560
+       270: iastore
+       271: dup
+       272: bipush        10
+       274: sipush        3008
+       277: iastore
+       278: dup
+       279: bipush        11
+       281: sipush        3392
+       284: iastore
+       285: astore        11
+       287: iconst_0
+       288: istore        12
+       290: iconst_1
+       291: istore        13
+       293: iload         13
+       295: aload         11
+       297: arraylength
+       298: if_icmpge     336
+       301: aload         11
+       303: iload         13
+       305: iaload
+       306: iload         10
+       308: isub
+       309: invokestatic  #451                // Method java/lang/Math.abs:(I)I
+       312: aload         11
+       314: iload         12
+       316: iaload
+       317: iload         10
+       319: isub
+       320: invokestatic  #451                // Method java/lang/Math.abs:(I)I
+       323: if_icmpgt     330
+       326: iload         13
+       328: istore        12
+       330: iinc          13, 1
+       333: goto          293
+       336: aload_0
+       337: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+       340: invokevirtual #455                // Method android/widget/FrameLayout.getRootWindowInsets:()Landroid/view/WindowInsets;
+       343: astore        13
+       345: aload         13
+       347: ifnonnull     353
+       350: invokestatic  #119                // Method dev/mixer/android/NativeEnvironmentV2.unsupported:()V
+       353: aload         13
+       355: invokestatic  #459                // Method android/view/WindowInsets$Type.systemBars:()I
+       358: invokestatic  #464                // Method android/view/WindowInsets$Type.displayCutout:()I
+       361: ior
+       362: invokevirtual #467                // Method android/view/WindowInsets.getInsets:(I)Landroid/graphics/Insets;
+       365: astore        14
+       367: iconst_2
+       368: newarray       int
+       370: astore        15
+       372: aload_0
+       373: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+       376: aload         15
+       378: invokevirtual #473                // Method android/widget/FrameLayout.getLocationInWindow:([I)V
+       381: aload_0
+       382: getfield      #134                // Field activity:Landroid/app/Activity;
+       385: invokevirtual #477                // Method android/app/Activity.getWindow:()Landroid/view/Window;
+       388: invokevirtual #481                // Method android/view/Window.getDecorView:()Landroid/view/View;
+       391: astore        16
+       393: iconst_0
+       394: aload         14
+       396: getfield      #487                // Field android/graphics/Insets.top:I
+       399: aload         15
+       401: iconst_1
+       402: iaload
+       403: isub
+       404: invokestatic  #492                // Method java/lang/Math.max:(II)I
+       407: istore        17
+       409: iconst_0
+       410: aload         14
+       412: getfield      #496                // Field android/graphics/Insets.left:I
+       415: aload         15
+       417: iconst_0
+       418: iaload
+       419: isub
+       420: invokestatic  #492                // Method java/lang/Math.max:(II)I
+       423: istore        18
+       425: iconst_0
+       426: aload         15
+       428: iconst_0
+       429: iaload
+       430: aload_0
+       431: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+       434: invokevirtual #378                // Method android/widget/FrameLayout.getWidth:()I
+       437: iadd
+       438: aload         16
+       440: invokevirtual #499                // Method android/view/View.getWidth:()I
+       443: aload         14
+       445: getfield      #502                // Field android/graphics/Insets.right:I
+       448: isub
+       449: isub
+       450: invokestatic  #492                // Method java/lang/Math.max:(II)I
+       453: istore        19
+       455: iconst_0
+       456: aload         15
+       458: iconst_1
+       459: iaload
+       460: aload_0
+       461: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+       464: invokevirtual #382                // Method android/widget/FrameLayout.getHeight:()I
+       467: iadd
+       468: aload         16
+       470: invokevirtual #505                // Method android/view/View.getHeight:()I
+       473: aload         14
+       475: getfield      #506                // Field android/graphics/Insets.bottom:I
+       478: isub
+       479: isub
+       480: invokestatic  #492                // Method java/lang/Math.max:(II)I
+       483: istore        20
+       485: aload_0
+       486: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+       489: invokevirtual #509                // Method android/widget/FrameLayout.getLayoutDirection:()I
+       492: iconst_1
+       493: if_icmpne     500
+       496: iconst_1
+       497: goto          501
+       500: iconst_0
+       501: istore        21
+       503: aload_1
+       504: getfield      #512                // Field android/content/res/Configuration.fontWeightAdjustment:I
+       507: istore        22
+       509: iload         22
+       511: ldc_w         #517                // int 2147483647
+       514: if_icmpeq     522
+       517: iload         22
+       519: ifne          544
+       522: aload_0
+       523: getfield      #156                // Field accessibility:Landroid/view/accessibility/AccessibilityManager;
+       526: invokevirtual #518                // Method android/view/accessibility/AccessibilityManager.isHighContrastTextEnabled:()Z
+       529: ifne          544
+       532: aload_0
+       533: getfield      #150                // Field modes:Landroid/app/UiModeManager;
+       536: invokevirtual #521                // Method android/app/UiModeManager.getContrast:()F
+       539: fconst_0
+       540: fcmpl
+       541: ifle          547
+       544: invokestatic  #119                // Method dev/mixer/android/NativeEnvironmentV2.unsupported:()V
+       547: aload_0
+       548: getfield      #166                // Field resolver:Landroid/content/ContentResolver;
+       551: ldc           #235                // String animator_duration_scale
+       553: fconst_1
+       554: invokestatic  #525                // Method android/provider/Settings$Global.getFloat:(Landroid/content/ContentResolver;Ljava/lang/String;F)F
+       557: fstore        23
+       559: fload         23
+       561: invokestatic  #529                // Method java/lang/Float.isFinite:(F)Z
+       564: ifeq          574
+       567: fload         23
+       569: fconst_0
+       570: fcmpg
+       571: ifge          577
+       574: invokestatic  #119                // Method dev/mixer/android/NativeEnvironmentV2.unsupported:()V
+       577: new           #534                // class dev/mixer/android/AppearanceResolverV2$Environment
+       580: dup
+       581: aload_1
+       582: getfield      #536                // Field android/content/res/Configuration.uiMode:I
+       585: bipush        48
+       587: iand
+       588: bipush        32
+       590: if_icmpne     599
+       593: getstatic     #539                // Field dev/mixer/android/AppearanceResolverV2$Scheme.dark:Ldev/mixer/android/AppearanceResolverV2$Scheme;
+       596: goto          602
+       599: getstatic     #545                // Field dev/mixer/android/AppearanceResolverV2$Scheme.light:Ldev/mixer/android/AppearanceResolverV2$Scheme;
+       602: iload         21
+       604: ifeq          613
+       607: getstatic     #548                // Field dev/mixer/android/AppearanceResolverV2$Direction.rightToLeft:Ldev/mixer/android/AppearanceResolverV2$Direction;
+       610: goto          616
+       613: getstatic     #554                // Field dev/mixer/android/AppearanceResolverV2$Direction.leftToRight:Ldev/mixer/android/AppearanceResolverV2$Direction;
+       616: invokestatic  #557                // Method dev/mixer/android/AppearanceDescriptorV2$Profile.values:()[Ldev/mixer/android/AppearanceDescriptorV2$Profile;
+       619: iload         12
+       621: aaload
+       622: iload_3
+       623: new           #563                // class dev/mixer/android/AppearanceResolverV2$Viewport
+       626: dup
+       627: aload_0
+       628: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+       631: invokevirtual #378                // Method android/widget/FrameLayout.getWidth:()I
+       634: iload_3
+       635: invokestatic  #565                // Method dev/mixer/android/NativeEnvironmentV2.logical:(II)I
+       638: i2l
+       639: aload_0
+       640: getfield      #138                // Field root:Landroid/widget/FrameLayout;
+       643: invokevirtual #382                // Method android/widget/FrameLayout.getHeight:()I
+       646: iload_3
+       647: invokestatic  #565                // Method dev/mixer/android/NativeEnvironmentV2.logical:(II)I
+       650: i2l
+       651: invokespecial #568                // Method dev/mixer/android/AppearanceResolverV2$Viewport."<init>":(JJ)V
+       654: new           #571                // class dev/mixer/android/AppearanceResolverV2$SafeArea
+       657: dup
+       658: iload         17
+       660: iload_3
+       661: invokestatic  #565                // Method dev/mixer/android/NativeEnvironmentV2.logical:(II)I
+       664: i2l
+       665: iload         21
+       667: ifeq          675
+       670: iload         19
+       672: goto          677
+       675: iload         18
+       677: iload_3
+       678: invokestatic  #565                // Method dev/mixer/android/NativeEnvironmentV2.logical:(II)I
+       681: i2l
+       682: iload         20
+       684: iload_3
+       685: invokestatic  #565                // Method dev/mixer/android/NativeEnvironmentV2.logical:(II)I
+       688: i2l
+       689: iload         21
+       691: ifeq          699
+       694: iload         18
+       696: goto          701
+       699: iload         19
+       701: iload_3
+       702: invokestatic  #565                // Method dev/mixer/android/NativeEnvironmentV2.logical:(II)I
+       705: i2l
+       706: invokespecial #573                // Method dev/mixer/android/AppearanceResolverV2$SafeArea."<init>":(JJJJ)V
+       709: aload_1
+       710: invokevirtual #576                // Method android/content/res/Configuration.getLocales:()Landroid/os/LocaleList;
+       713: iconst_0
+       714: invokevirtual #580                // Method android/os/LocaleList.get:(I)Ljava/util/Locale;
+       717: invokevirtual #586                // Method java/util/Locale.toLanguageTag:()Ljava/lang/String;
+       720: new           #592                // class dev/mixer/android/AppearanceResolverV2$Accessibility
+       723: dup
+       724: iconst_0
+       725: iconst_0
+       726: fload         23
+       728: fconst_0
+       729: fcmpl
+       730: ifne          737
+       733: iconst_1
+       734: goto          738
+       737: iconst_0
+       738: invokespecial #594                // Method dev/mixer/android/AppearanceResolverV2$Accessibility."<init>":(ZZZ)V
+       741: aload_0
+       742: getfield      #7                  // Field generation:J
+       745: invokestatic  #597                // Method java/lang/Long.toString:(J)Ljava/lang/String;
+       748: invokespecial #601                // Method dev/mixer/android/AppearanceResolverV2$Environment."<init>":(Ldev/mixer/android/AppearanceResolverV2$Scheme;Ldev/mixer/android/AppearanceResolverV2$Direction;Ldev/mixer/android/AppearanceDescriptorV2$Profile;ILdev/mixer/android/AppearanceResolverV2$Viewport;Ldev/mixer/android/AppearanceResolverV2$SafeArea;Ljava/lang/String;Ldev/mixer/android/AppearanceResolverV2$Accessibility;Ljava/lang/String;)V
+       751: areturn
+      LineNumberTable:
+        line 243: 0
+        line 244: 3
+        line 245: 51
+        line 246: 70
+        line 247: 81
+        line 248: 92
+        line 249: 101
+        line 250: 110
+        line 251: 121
+        line 252: 128
+        line 253: 160
+        line 254: 187
+        line 255: 203
+        line 256: 287
+        line 257: 290
+        line 258: 301
+        line 257: 330
+        line 259: 336
+        line 260: 345
+        line 261: 353
+        line 262: 367
+        line 263: 381
+        line 265: 393
+        line 266: 409
+        line 267: 425
+        line 268: 455
+        line 269: 485
+        line 270: 503
+        line 271: 509
+        line 272: 526
+        line 273: 547
+        line 274: 559
+        line 275: 577
+        line 276: 581
+        line 277: 593
+        line 278: 602
+        line 279: 616
+        line 280: 631
+        line 281: 661
+        line 282: 685
+        line 283: 710
+        line 284: 745
+        line 275: 751
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+          293      43    13     i   I
+            0     752     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+           81     671     1 config   Landroid/content/res/Configuration;
+           92     660     2 metrics   Landroid/util/DisplayMetrics;
+          101     651     3 density   I
+          110     642     4    dp   D
+          121     631     6    sp   D
+          128     624     8  body   D
+          203     549    10 body64   I
+          287     465    11 anchors   [I
+          290     462    12 selected   I
+          345     407    13 captured   Landroid/view/WindowInsets;
+          367     385    14 insets   Landroid/graphics/Insets;
+          372     380    15 location   [I
+          393     359    16 decor   Landroid/view/View;
+          409     343    17   top   I
+          425     327    18  left   I
+          455     297    19 right   I
+          485     267    20 bottom   I
+          503     249    21   rtl   Z
+          509     243    22 adjustment   I
+          559     193    23 animator   F
+
+  public void onConfigurationChanged(android.content.res.Configuration);
+    descriptor: (Landroid/content/res/Configuration;)V
+    Code:
+         0: aload_0
+         1: invokevirtual #604                // Method invalidate:()V
+         4: return
+      LineNumberTable:
+        line 286: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+            0       5     1 configuration   Landroid/content/res/Configuration;
+
+  public void onLowMemory();
+    descriptor: ()V
+    Code:
+         0: invokestatic  #103                // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: return
+      LineNumberTable:
+        line 287: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       4     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+
+  public void close();
+    descriptor: ()V
+    Code:
+         0: invokestatic  #103                // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: iconst_1
+         5: putfield      #184                // Field retired:Z
+         8: aload_0
+         9: invokevirtual #274                // Method cleanupAll:()V
+        12: aload_0
+        13: invokevirtual #277                // Method throwFailure:()V
+        16: return
+      LineNumberTable:
+        line 289: 0
+        line 290: 8
+        line 291: 16
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      17     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+
+  private android.view.WindowInsets lambda$new$4(android.view.View, android.view.WindowInsets);
+    descriptor: (Landroid/view/View;Landroid/view/WindowInsets;)Landroid/view/WindowInsets;
+    Code:
+         0: aload_0
+         1: invokevirtual #604                // Method invalidate:()V
+         4: aload_2
+         5: areturn
+      LineNumberTable:
+        line 94: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       6     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+            0       6     1  view   Landroid/view/View;
+            0       6     2 value   Landroid/view/WindowInsets;
+
+  private void lambda$new$3(boolean);
+    descriptor: (Z)V
+    Code:
+         0: aload_0
+         1: invokevirtual #604                // Method invalidate:()V
+         4: return
+      LineNumberTable:
+        line 93: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+            0       5     1 focused   Z
+
+  private void lambda$new$2(android.view.View, int, int, int, int, int, int, int, int);
+    descriptor: (Landroid/view/View;IIIIIIII)V
+    Code:
+         0: invokestatic  #103                // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: getfield      #184                // Field retired:Z
+         7: ifeq          11
+        10: return
+        11: iload_2
+        12: iload         6
+        14: if_icmpne     37
+        17: iload_3
+        18: iload         7
+        20: if_icmpne     37
+        23: iload         4
+        25: iload         8
+        27: if_icmpne     37
+        30: iload         5
+        32: iload         9
+        34: if_icmpeq     41
+        37: aload_0
+        38: invokevirtual #604                // Method invalidate:()V
+        41: return
+      LineNumberTable:
+        line 85: 0
+        line 86: 3
+        line 87: 11
+        line 88: 41
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      42     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+            0      42     1     v   Landroid/view/View;
+            0      42     2     l   I
+            0      42     3     t   I
+            0      42     4     r   I
+            0      42     5     b   I
+            0      42     6    ol   I
+            0      42     7    ot   I
+            0      42     8    or   I
+            0      42     9    ob   I
+
+  private void lambda$new$1(boolean);
+    descriptor: (Z)V
+    Code:
+         0: aload_0
+         1: invokevirtual #604                // Method invalidate:()V
+         4: return
+      LineNumberTable:
+        line 83: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+            0       5     1 ignored   Z
+
+  private void lambda$new$0(float);
+    descriptor: (F)V
+    Code:
+         0: aload_0
+         1: invokevirtual #604                // Method invalidate:()V
+         4: return
+      LineNumberTable:
+        line 82: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Ldev/mixer/android/NativeEnvironmentV2$Observer;
+            0       5     1 ignored   F
+}
+Compiled from "NativeEnvironmentV2.java"
+final class dev.mixer.android.NativeEnvironmentV2$RendererCause extends java.lang.Enum<dev.mixer.android.NativeEnvironmentV2$RendererCause> {
+  public static final dev.mixer.android.NativeEnvironmentV2$RendererCause INTERACTION_EXHAUSTED;
+    descriptor: Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+
+  public static final dev.mixer.android.NativeEnvironmentV2$RendererCause CAPTURE_FAILED;
+    descriptor: Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+
+  public static final dev.mixer.android.NativeEnvironmentV2$RendererCause ROLLBACK_FAILED;
+    descriptor: Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+
+  public static final dev.mixer.android.NativeEnvironmentV2$RendererCause CURRENT_CHECK_FATAL;
+    descriptor: Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+
+  public static final dev.mixer.android.NativeEnvironmentV2$RendererCause CANCELLATION_FAILED;
+    descriptor: Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+
+  public static final dev.mixer.android.NativeEnvironmentV2$RendererCause TERMINAL_VALIDATION_FAILED;
+    descriptor: Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+
+  private static final dev.mixer.android.NativeEnvironmentV2$RendererCause[] $VALUES;
+    descriptor: [Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+
+  public static dev.mixer.android.NativeEnvironmentV2$RendererCause[] values();
+    descriptor: ()[Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+    Code:
+         0: getstatic     #22                 // Field $VALUES:[Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+         3: invokevirtual #26                 // Method "[Ldev/mixer/android/NativeEnvironmentV2$RendererCause;".clone:()Ljava/lang/Object;
+         6: checkcast     #27                 // class "[Ldev/mixer/android/NativeEnvironmentV2$RendererCause;"
+         9: areturn
+      LineNumberTable:
+        line 53: 0
+
+  public static dev.mixer.android.NativeEnvironmentV2$RendererCause valueOf(java.lang.String);
+    descriptor: (Ljava/lang/String;)Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+    Code:
+         0: ldc           #1                  // class dev/mixer/android/NativeEnvironmentV2$RendererCause
+         2: aload_0
+         3: invokestatic  #31                 // Method java/lang/Enum.valueOf:(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Enum;
+         6: checkcast     #1                  // class dev/mixer/android/NativeEnvironmentV2$RendererCause
+         9: areturn
+      LineNumberTable:
+        line 53: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      10     0  name   Ljava/lang/String;
+
+  private dev.mixer.android.NativeEnvironmentV2$RendererCause();
+    descriptor: (Ljava/lang/String;I)V
+    Code:
+         0: aload_0
+         1: aload_1
+         2: iload_2
+         3: invokespecial #37                 // Method java/lang/Enum."<init>":(Ljava/lang/String;I)V
+         6: return
+      LineNumberTable:
+        line 53: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       7     0  this   Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+
+  private static dev.mixer.android.NativeEnvironmentV2$RendererCause[] $values();
+    descriptor: ()[Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+    Code:
+         0: bipush        6
+         2: anewarray     #1                  // class dev/mixer/android/NativeEnvironmentV2$RendererCause
+         5: dup
+         6: iconst_0
+         7: getstatic     #3                  // Field INTERACTION_EXHAUSTED:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        10: aastore
+        11: dup
+        12: iconst_1
+        13: getstatic     #7                  // Field CAPTURE_FAILED:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        16: aastore
+        17: dup
+        18: iconst_2
+        19: getstatic     #10                 // Field ROLLBACK_FAILED:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        22: aastore
+        23: dup
+        24: iconst_3
+        25: getstatic     #13                 // Field CURRENT_CHECK_FATAL:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        28: aastore
+        29: dup
+        30: iconst_4
+        31: getstatic     #16                 // Field CANCELLATION_FAILED:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        34: aastore
+        35: dup
+        36: iconst_5
+        37: getstatic     #19                 // Field TERMINAL_VALIDATION_FAILED:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        40: aastore
+        41: areturn
+      LineNumberTable:
+        line 53: 0
+
+  static {};
+    descriptor: ()V
+    Code:
+         0: new           #1                  // class dev/mixer/android/NativeEnvironmentV2$RendererCause
+         3: dup
+         4: ldc           #41                 // String INTERACTION_EXHAUSTED
+         6: iconst_0
+         7: invokespecial #42                 // Method "<init>":(Ljava/lang/String;I)V
+        10: putstatic     #3                  // Field INTERACTION_EXHAUSTED:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        13: new           #1                  // class dev/mixer/android/NativeEnvironmentV2$RendererCause
+        16: dup
+        17: ldc           #43                 // String CAPTURE_FAILED
+        19: iconst_1
+        20: invokespecial #42                 // Method "<init>":(Ljava/lang/String;I)V
+        23: putstatic     #7                  // Field CAPTURE_FAILED:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        26: new           #1                  // class dev/mixer/android/NativeEnvironmentV2$RendererCause
+        29: dup
+        30: ldc           #44                 // String ROLLBACK_FAILED
+        32: iconst_2
+        33: invokespecial #42                 // Method "<init>":(Ljava/lang/String;I)V
+        36: putstatic     #10                 // Field ROLLBACK_FAILED:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        39: new           #1                  // class dev/mixer/android/NativeEnvironmentV2$RendererCause
+        42: dup
+        43: ldc           #45                 // String CURRENT_CHECK_FATAL
+        45: iconst_3
+        46: invokespecial #42                 // Method "<init>":(Ljava/lang/String;I)V
+        49: putstatic     #13                 // Field CURRENT_CHECK_FATAL:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        52: new           #1                  // class dev/mixer/android/NativeEnvironmentV2$RendererCause
+        55: dup
+        56: ldc           #46                 // String CANCELLATION_FAILED
+        58: iconst_4
+        59: invokespecial #42                 // Method "<init>":(Ljava/lang/String;I)V
+        62: putstatic     #16                 // Field CANCELLATION_FAILED:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        65: new           #1                  // class dev/mixer/android/NativeEnvironmentV2$RendererCause
+        68: dup
+        69: ldc           #47                 // String TERMINAL_VALIDATION_FAILED
+        71: iconst_5
+        72: invokespecial #42                 // Method "<init>":(Ljava/lang/String;I)V
+        75: putstatic     #19                 // Field TERMINAL_VALIDATION_FAILED:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        78: invokestatic  #48                 // Method $values:()[Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        81: putstatic     #22                 // Field $VALUES:[Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+        84: return
+      LineNumberTable:
+        line 53: 0
+        line 54: 39
+        line 53: 78
+}
+Compiled from "NativeEnvironmentV2.java"
+interface dev.mixer.android.NativeEnvironmentV2$Sink {
+  public abstract void changed(dev.mixer.android.NativeEnvironmentV2$Observer, dev.mixer.android.NativeEnvironmentV2$Change, dev.mixer.android.NativeEnvironmentV2$RendererCause, java.lang.Throwable, java.lang.Error);
+    descriptor: (Ldev/mixer/android/NativeEnvironmentV2$Observer;Ldev/mixer/android/NativeEnvironmentV2$Change;Ldev/mixer/android/NativeEnvironmentV2$RendererCause;Ljava/lang/Throwable;Ljava/lang/Error;)V
+}

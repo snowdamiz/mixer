@@ -1,5 +1,6 @@
 package dev.mixer.android;
 
+import android.widget.FrameLayout;
 import android.app.Instrumentation;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -36,6 +37,83 @@ public final class NativeAppearanceV2Instrumentation extends Instrumentation {
     private Bundle arguments;
     private long revision=1;private byte[] lastPublishedBytes;private final Map<String,Long> generations=new java.util.LinkedHashMap<>();
     @Override public void onCreate(Bundle args){super.onCreate(args);arguments=args;start();}
+    /** Renderer-only fixture: real core tokens and one independently owned observer/root. */
+    private final java.util.IdentityHashMap<NativeRenderer,RendererFixture> rendererFixtures=new java.util.IdentityHashMap<>();
+    private Throwable fixturePrimaryFailure;private java.lang.Error fixtureFirstFatal;
+    private void rememberFixtureFailure(Throwable failure){if(fixturePrimaryFailure==null)fixturePrimaryFailure=failure;if(failure instanceof java.lang.Error fatal&&fixtureFirstFatal==null)fixtureFirstFatal=fatal;}
+    private void throwFixtureFailure(){if(fixtureFirstFatal!=null)throw fixtureFirstFatal;if(fixturePrimaryFailure instanceof RuntimeException ordinary)throw ordinary;}
+    private final class RendererFixture implements AutoCloseable,NativeEnvironmentV2.Sink {
+        final android.app.Activity activity;final FrameLayout root;
+        final NativeOwnerV2.Fence fence=new NativeOwnerV2.Fence();
+        final OwnerLifecycleV2 core;final OwnerLifecycleV2.Token lifetime;
+        final NativeEnvironmentV2.Observer observer;final NativeRenderer renderer;
+        boolean closed;
+        RendererFixture(android.app.Activity activity,FrameLayout root,NativeRenderer.Events events){
+            NativeEnvironmentV2.requireMain();this.activity=activity;this.root=root;
+            core=new OwnerLifecycleV2(NativeEnvironmentV2::requireMain,activity,root);lifetime=core.lifetime();
+            observer=new NativeEnvironmentV2.Observer(activity,root,this);NativeRenderer acquired=null;
+            try {
+                observer.register();acquired=new NativeRenderer(activity,events,observer,fence);renderer=acquired;observer.bindRenderer(renderer);
+                core.resume(lifetime);core.focusChanged(lifetime,root.hasWindowFocus());
+            }catch(RuntimeException|java.lang.Error failure){
+                rememberFixtureFailure(failure);closed=true;fence.terminal=true;fence.drawAllowed=false;fence.inputAllowed=false;
+                if(acquired!=null)acquired.sealScalarV2();
+                try{observer.close();}catch(RuntimeException|java.lang.Error cleanup){rememberFixtureFailure(cleanup);}
+                try{if(acquired!=null)acquired.disposeV2();}catch(RuntimeException|java.lang.Error cleanup){rememberFixtureFailure(cleanup);}
+                try{core.close(lifetime);}catch(RuntimeException|java.lang.Error cleanup){rememberFixtureFailure(cleanup);}
+                throwFixtureFailure();throw failure;
+            }
+        }
+        OwnerLifecycleV2.WindowFacts facts(){return new OwnerLifecycleV2.WindowFacts(activity,root,activity.isDestroyed(),root.isAttachedToWindow(),activity.getWindow(),root.getWidth(),root.getHeight(),root.getRootWindowInsets()!=null);}
+        void begin(){
+            if(fence.operation!=null)return;if(closed||fence.terminal)throw new IllegalStateException("renderer fixture retired");
+            fence.drawAllowed=false;fence.inputAllowed=false;renderer.sealScalarV2();
+            core.invalidate(lifetime);core.windowChanged(lifetime,facts());OwnerLifecycleV2.Token drain=core.snapshot().pendingDrain();
+            if(drain==null)throw new IllegalStateException("renderer fixture awaits actual root readiness");
+            for(var decision:core.drain(lifetime,drain,facts()))if(decision.kind()==OwnerLifecycleV2.Kind.OPEN_INITIAL||decision.kind()==OwnerLifecycleV2.Kind.REFRESH_COMMITTED)fence.operation=decision.token();
+            if(fence.operation==null)throw new IllegalStateException("real core operation absent");
+        }
+        void finished(){
+            OwnerLifecycleV2.Token completed=fence.operation;core.complete(completed,renderer,true,null);fence.operation=null;
+            var state=core.snapshot();fence.presentation=state.presentation();fence.drawAllowed=!state.dirty()&&state.phase()==OwnerLifecycleV2.Phase.LIVE&&state.operation()==null&&state.pendingDrain()==null&&state.presentation()!=null&&state.resource()==renderer;
+            fence.inputAllowed=fence.drawAllowed&&state.foreground()&&state.focused();
+            if(fence.drawAllowed)renderer.publishScalarV2(state.presentation());else renderer.sealScalarV2();
+        }
+        @Override public void changed(NativeEnvironmentV2.Observer source,NativeEnvironmentV2.Change change,NativeEnvironmentV2.RendererCause cause,Throwable primary,java.lang.Error fatal){
+            if(source!=observer)throw new IllegalArgumentException("foreign fixture observer");
+            fence.drawAllowed=false;fence.inputAllowed=false;if(renderer!=null)renderer.sealScalarV2();
+            if(change==NativeEnvironmentV2.Change.INVALIDATED)core.invalidate(lifetime);else{fence.terminal=true;core.close(lifetime);}
+            if(fatal!=null)throw fatal;
+        }
+        @Override public void close(){
+            NativeEnvironmentV2.requireMain();if(closed)return;closed=true;fence.terminal=true;fence.drawAllowed=false;fence.inputAllowed=false;renderer.sealScalarV2();
+            try{observer.close();}catch(RuntimeException|java.lang.Error failure){rememberFixtureFailure(failure);}
+            try{renderer.disposeV2();}catch(RuntimeException|java.lang.Error failure){rememberFixtureFailure(failure);}
+            try{core.close(lifetime);}catch(RuntimeException|java.lang.Error failure){rememberFixtureFailure(failure);}
+            try{if(root!=NativeAppearanceV2Instrumentation.this.activity.root&&root.getParent() instanceof android.view.ViewGroup parent)parent.removeView(root);}catch(RuntimeException|java.lang.Error failure){rememberFixtureFailure(failure);}
+            throwFixtureFailure();
+        }
+    }
+    private NativeRenderer newRenderer(android.app.Activity context,NativeRenderer.Events events,boolean primary){
+        if(primary&&renderer!=null)closeRenderer(renderer);
+        fixturePrimaryFailure=null;fixtureFirstFatal=null;
+        FrameLayout root=primary?activity.root:new FrameLayout(context);
+        RendererFixture acquired=null;
+        try {
+            if(!primary){activity.root.addView(root,new FrameLayout.LayoutParams(-1,-1));root.layout(0,0,activity.root.getWidth(),activity.root.getHeight());root.setVisibility(View.INVISIBLE);}
+            acquired=new RendererFixture(context,root,events);rendererFixtures.put(acquired.renderer,acquired);return acquired.renderer;
+        }catch(RuntimeException|java.lang.Error failure){
+            rememberFixtureFailure(failure);
+            try{if(acquired!=null)acquired.close();}catch(RuntimeException|java.lang.Error cleanup){rememberFixtureFailure(cleanup);}
+            try{if(!primary&&root.getParent() instanceof android.view.ViewGroup parent)parent.removeView(root);}catch(RuntimeException|java.lang.Error cleanup){rememberFixtureFailure(cleanup);}
+            throwFixtureFailure();throw failure;
+        }
+    }
+    private RendererFixture fixture(NativeRenderer renderer){RendererFixture fixture=rendererFixtures.get(renderer);if(fixture==null)throw new AssertionError("unowned renderer fixture");return fixture;}
+    private InstalledAppearanceV2 captureInstalled(NativeRenderer renderer){fixture(renderer).begin();return renderer.captureInstalledV2();}
+    private NativeEnvironmentV2 captureEnvironment(NativeRenderer renderer,android.app.Activity activity,FrameLayout root){RendererFixture fixture=fixture(renderer);if(fixture.activity!=activity||fixture.root!=root)throw new IllegalArgumentException("foreign fixture root");fixture.begin();return renderer.captureEnvironmentV2(activity,root);}
+    private void finishRenderer(NativeRenderer renderer,NativeRenderer.Candidate candidate,NativeRenderer.AttachmentJournal journal){renderer.finishV2(candidate,journal);fixture(renderer).finished();}
+    private void closeRenderer(NativeRenderer renderer){RendererFixture fixture=rendererFixtures.get(renderer);if(fixture!=null)fixture.close();}
     private void check(boolean value,String message){if(!value)throw new AssertionError(message);checks++;}
     private void reject(Runnable action,String message){try{action.run();throw new AssertionError("accepted "+message);}catch(IllegalArgumentException expected){checks++;}}
     private static Json.Num num(long value){return new Json.Num(Long.toString(value));}
@@ -70,9 +148,9 @@ public final class NativeAppearanceV2Instrumentation extends Instrumentation {
         for(int i=0;i<15;i++)children.add(text("tail"+i,"Native scrolling row "+i,"body"));
         return packet(node("navigation","navigation",Json.map("title","Shared appearance V2"),List.of(node("list","list",Map.of(),children))),version);
     }
-    private void publish(byte[] bytes){NativeEnvironmentV2 env=renderer.captureEnvironmentV2(activity,activity.root);
+    private void publish(byte[] bytes){NativeEnvironmentV2 env=captureEnvironment(renderer,activity,activity.root);
         NativeRenderer.Candidate c=renderer.prepareV2(bytes,installed,env);NativeRenderer.AttachmentJournal j=renderer.attachV2(c,activity.root);
-        renderer.validateAttachedV2(c,j);renderer.finishV2(c,j);lastPublishedBytes=bytes.clone();}
+        renderer.validateAttachedV2(c,j);finishRenderer(renderer,c,j);lastPublishedBytes=bytes.clone();}
     private void save(String name,Bitmap bitmap){try(FileOutputStream out=new FileOutputStream(new File(activity.getFilesDir(),name))){
         if(!bitmap.compress(Bitmap.CompressFormat.PNG,100,out))throw new AssertionError("bitmap encode");}catch(java.io.IOException failure){throw new AssertionError(failure);}}
     private void software(String name){Bitmap bitmap=Bitmap.createBitmap(activity.root.getWidth(),activity.root.getHeight(),Bitmap.Config.ARGB_8888);
@@ -120,7 +198,7 @@ public final class NativeAppearanceV2Instrumentation extends Instrumentation {
     private void saveBytes(String name,byte[] bytes){try(FileOutputStream out=new FileOutputStream(new File(activity.getFilesDir(),name))){out.write(bytes);}catch(java.io.IOException failure){throw new AssertionError(failure);}}
     private static Json.Num n(long value){return new Json.Num(Long.toString(value));}
     private void export(String name){
-        NativeEnvironmentV2 env=renderer.captureEnvironmentV2(activity,activity.root);var e=env.value;
+        NativeEnvironmentV2 env=captureEnvironment(renderer,activity,activity.root);var e=env.value;
         List<Object> nodes=new ArrayList<>();for(var entry:renderer.inspectV2().entrySet()){
             var r=entry.getValue();View view=r.view;int[] origin=new int[2];view.getLocationInWindow(origin);var box=r.geometry.box;
             Map<String,Object> item=Json.map("id",r.id,"kind",r.kind,"generation",r.generation,"nativeClass",view.getClass().getName(),
@@ -138,17 +216,17 @@ public final class NativeAppearanceV2Instrumentation extends Instrumentation {
             "environment",Json.map("scheme",e.scheme().name(),"direction",e.direction().name(),"profile",e.profile().name(),"density1024",n(e.density1024()),"viewportWidth64",n(e.viewport().width64()),"viewportHeight64",n(e.viewport().height64()),"safeTop64",n(e.safeArea64().top()),"safeLeading64",n(e.safeArea64().leading()),"safeBottom64",n(e.safeArea64().bottom()),"safeTrailing64",n(e.safeArea64().trailing()),"locale",e.localeIdentifier(),"generation",e.generation()),"nodes",nodes)));
     }
     private void basic(){
-        renderer=new NativeRenderer(activity,events::add);installed=renderer.captureInstalledV2();byte[] owned=installed.descriptorCopy();owned[0]='!';
+        renderer=newRenderer(activity,events::add,true);installed=captureInstalled(renderer);byte[] owned=installed.descriptorCopy();owned[0]='!';
         check(installed.descriptorCopy()[0]=='{',"captured descriptor defensive copy");
-        NativeEnvironmentV2 env=renderer.captureEnvironmentV2(activity,activity.root);
+        NativeEnvironmentV2 env=captureEnvironment(renderer,activity,activity.root);
         check(env.value.profile()==AppearanceDescriptorV2.Profile.l,"actual SP17/DIP1 profile l");
         byte[] bytes=scene(revision++,"native",false);saveBytes("all-ten-packet.json",bytes);saveBytes("appearance-descriptor.json",installed.descriptorCopy());NativeRenderer.Candidate candidate=renderer.prepareV2(bytes,installed,env);Arrays.fill(bytes,(byte)'!');
         check(activity.root.getChildCount()==0,"prepare leaves live root untouched");
         reject(()->renderer.prepareV2(scene(99,"native",false),installed,env),"second pending candidate");
-        NativeRenderer foreign=new NativeRenderer(activity,ignored->{});reject(()->foreign.attachV2(candidate,activity.root),"foreign candidate");
+        NativeRenderer foreign=newRenderer(activity,ignored->{},false);reject(()->foreign.attachV2(candidate,activity.root),"foreign candidate");
         NativeRenderer.AttachmentJournal journal=renderer.attachV2(candidate,activity.root);check(renderer.packet==null,"native attach does not commit packet");
-        renderer.validateAttachedV2(candidate,journal);renderer.finishV2(candidate,journal);
-        reject(()->renderer.finishV2(candidate,journal),"replayed candidate");
+        renderer.validateAttachedV2(candidate,journal);finishRenderer(renderer,candidate,journal);
+        reject(()->finishRenderer(renderer,candidate,journal),"replayed candidate");
         check(renderer.view("button") instanceof Button&&renderer.view("field") instanceof EditText&&renderer.view("toggle") instanceof Switch&&renderer.view("list") instanceof ScrollView,"real native input/list objects");
         TextView body=(TextView)renderer.view("body");check(body.getLayout()!=null&&body.getLayout().getHeight()<=body.getHeight(),"actual native layout fits grown text");
         check(!body.getIncludeFontPadding(),"no native font padding");
@@ -172,14 +250,14 @@ public final class NativeAppearanceV2Instrumentation extends Instrumentation {
         check(((TextView)renderer.view("body")).getCurrentTextColor()==NativeAppearanceViewsV2.color(paints.text().body()),"inherited-disabled ordinary Text keeps exact role ink");software("disabled-software.png");
         publish(scene(revision++,"native",false));check(events.isEmpty(),"disabled binding/repaint emits no guest event");
         UiPacket acknowledged=renderer.packet;byte[] environmentOnly=lastPublishedBytes.clone();activity.root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        NativeRenderer.Candidate environmental=renderer.prepareV2(environmentOnly,installed,renderer.captureEnvironmentV2(activity,activity.root));Arrays.fill(environmentOnly,(byte)'!');
-        NativeRenderer.AttachmentJournal environmentJournal=renderer.attachV2(environmental,activity.root);renderer.validateAttachedV2(environmental,environmentJournal);renderer.finishV2(environmental,environmentJournal);
+        NativeRenderer.Candidate environmental=renderer.prepareV2(environmentOnly,installed,captureEnvironment(renderer,activity,activity.root));Arrays.fill(environmentOnly,(byte)'!');
+        NativeRenderer.AttachmentJournal environmentJournal=renderer.attachV2(environmental,activity.root);renderer.validateAttachedV2(environmental,environmentJournal);finishRenderer(renderer,environmental,environmentJournal);
         check(renderer.packet==acknowledged&&renderer.view("button")==stable&&stable.getLayoutDirection()==View.LAYOUT_DIRECTION_RTL,"exact-byte environment-only commit retains exact packet/revision/native identity");
         activity.root.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);publish(lastPublishedBytes.clone());
         check(renderer.packet==acknowledged&&events.isEmpty(),"environment-only candidate bytes owned defensively and event silent");
         Map<String,Object> changed=Json.object(Json.parse(lastPublishedBytes));Json.object(Json.object(Json.object(changed.get("document")).get("root")).get("properties")).put("accessibilityHint","changed at same revision");
-        reject(()->renderer.prepareV2(encode(changed),installed,renderer.captureEnvironmentV2(activity,activity.root)),"changed bytes at same revision");
-        reject(()->renderer.prepareV2(scene(0,"native",false),installed,renderer.captureEnvironmentV2(activity,activity.root)),"older packet cannot become environment-only update");
+        reject(()->renderer.prepareV2(encode(changed),installed,captureEnvironment(renderer,activity,activity.root)),"changed bytes at same revision");
+        reject(()->renderer.prepareV2(scene(0,"native",false),installed,captureEnvironment(renderer,activity,activity.root)),"older packet cannot become environment-only update");
         ((Button)stable).performClick();check(events.size()==1,"one actual Button activation");events.clear();
         ((Switch)renderer.view("toggle")).performClick();check(events.size()==1,"one actual Switch value change");
         check(!((Switch)renderer.view("toggle")).isChecked(),"native transient input can differ from acknowledged packet");
@@ -193,47 +271,47 @@ public final class NativeAppearanceV2Instrumentation extends Instrumentation {
         // Every concrete node-bind/parent step plus root and layout attachment is faulted.
         int nodes=renderer.packet.nodes.size();
         for(int step=0;step<2*nodes+2;step++){
-            renderer.testFaultV2(step,false);NativeRenderer.Candidate c=renderer.prepareV2(scene(revision++,"changed",true),installed,renderer.captureEnvironmentV2(activity,activity.root));
+            renderer.testFaultV2(step,false);NativeRenderer.Candidate c=renderer.prepareV2(scene(revision++,"changed",true),installed,captureEnvironment(renderer,activity,activity.root));
             boolean failed=false;try{renderer.attachV2(c,activity.root);}catch(IllegalStateException expected){failed=true;}
             check(failed,"injected attachment step "+step);check(renderer.packet.revision.equals(base),"rollback retains exact packet revision");
             check(activity.root.getChildAt(0)==root&&renderer.view("button")==button,"rollback retains native hierarchy identity");
             check(((EditText)renderer.view("field")).getText().toString().equals("native"),"rollback restores inactive native editor value");
         }
         renderer.testFaultV2(-1,false);((Button)button).performClick();check(events.size()==1,"old tree callback after every rollback");events.clear();
-        NativeRenderer.Candidate focus=renderer.prepareV2(scene(revision++,"native",false),installed,renderer.captureEnvironmentV2(activity,activity.root));
+        NativeRenderer.Candidate focus=renderer.prepareV2(scene(revision++,"native",false),installed,captureEnvironment(renderer,activity,activity.root));
         check(renderer.view("toggle").requestFocusFromTouch(),"actual native focus transition while candidate pending");
         reject(()->renderer.attachV2(focus,activity.root),"native focus invalidates candidate epoch");renderer.discardV2(focus);button.requestFocusFromTouch();
-        NativeRenderer.Candidate pressed=renderer.prepareV2(scene(revision++,"native",false),installed,renderer.captureEnvironmentV2(activity,activity.root));
+        NativeRenderer.Candidate pressed=renderer.prepareV2(scene(revision++,"native",false),installed,captureEnvironment(renderer,activity,activity.root));
         boolean wasPressed=button.isPressed();button.setPressed(!wasPressed);reject(()->renderer.attachV2(pressed,activity.root),"pressed-only native state invalidates exact snapshot");renderer.discardV2(pressed);button.setPressed(wasPressed);
-        NativeEnvironmentV2 captured=renderer.captureEnvironmentV2(activity,activity.root);NativeRenderer.Candidate staleWindow=renderer.prepareV2(scene(revision++,"native",false),installed,captured);
+        NativeEnvironmentV2 captured=captureEnvironment(renderer,activity,activity.root);NativeRenderer.Candidate staleWindow=renderer.prepareV2(scene(revision++,"native",false),installed,captured);
         activity.root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);reject(()->renderer.attachV2(staleWindow,activity.root),"stale actual window direction");renderer.discardV2(staleWindow);activity.root.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
-        NativeRenderer.Candidate staleBase=renderer.prepareV2(scene(revision++,"native",false),installed,renderer.captureEnvironmentV2(activity,activity.root));
+        NativeRenderer.Candidate staleBase=renderer.prepareV2(scene(revision++,"native",false),installed,captureEnvironment(renderer,activity,activity.root));
         UiPacket original=renderer.packet;renderer.packet=UiPacket.decode(scene(revision++,"native",false));reject(()->renderer.attachV2(staleBase,activity.root),"exact base packet identity");renderer.packet=original;renderer.discardV2(staleBase);
         Object huge=node("huge","hStack",Json.map("spacing",num(256)),List.of(node("one","button",Json.map("label","one"),List.of()),node("two","button",Json.map("label","two"),List.of()),node("three","button",Json.map("label","three"),List.of())));
-        reject(()->renderer.prepareV2(packet(huge,revision++),installed,renderer.captureEnvironmentV2(activity,activity.root)),"negative child width/invalid aggregate geometry");
+        reject(()->renderer.prepareV2(packet(huge,revision++),installed,captureEnvironment(renderer,activity,activity.root)),"negative child width/invalid aggregate geometry");
         Object nested=node("nestedList","list",Map.of(),List.of(node("nestedStack","vStack",Map.of(),List.of(node("nestedButton","button",Json.map("label","nested"),List.of())))));
-        reject(()->renderer.prepareV2(packet(nested,revision++),installed,renderer.captureEnvironmentV2(activity,activity.root)),"nested control row has no unproved hit routing");
+        reject(()->renderer.prepareV2(packet(nested,revision++),installed,captureEnvironment(renderer,activity,activity.root)),"nested control row has no unproved hit routing");
         Object indirect=node("indirectNav","navigation",Json.map("title","Indirect"),List.of(node("navOverlay","zStack",Map.of(),List.of(node("indirectList","list",Map.of(),List.of(text("indirectText","row","body")))))));
-        reject(()->renderer.prepareV2(packet(indirect,revision++),installed,renderer.captureEnvironmentV2(activity,activity.root)),"indirect navigation/container/List compact relayout is unqualified");
+        reject(()->renderer.prepareV2(packet(indirect,revision++),installed,captureEnvironment(renderer,activity,activity.root)),"indirect navigation/container/List compact relayout is unqualified");
         check(renderer.packet.revision.equals(base)&&activity.root.getChildAt(0)==root&&renderer.view("button")==button,"indirect navigation rejection leaves live tuple unchanged");
 
-        NativeEnvironmentV2 stale=renderer.captureEnvironmentV2(activity,activity.root);NativeRenderer.Candidate c=renderer.prepareV2(scene(revision++,"native",false),installed,stale);
-        NativeRenderer.Candidate replaced=c;renderer.captureInstalledV2();reject(()->renderer.attachV2(replaced,activity.root),"replaced installed capture");renderer.discardV2(c);installed=renderer.captureInstalledV2();
-        c=renderer.prepareV2(scene(revision++,"native",false),installed,renderer.captureEnvironmentV2(activity,activity.root));
+        NativeEnvironmentV2 stale=captureEnvironment(renderer,activity,activity.root);NativeRenderer.Candidate c=renderer.prepareV2(scene(revision++,"native",false),installed,stale);
+        NativeRenderer.Candidate replaced=c;captureInstalled(renderer);reject(()->renderer.attachV2(replaced,activity.root),"replaced installed capture");renderer.discardV2(c);installed=captureInstalled(renderer);
+        c=renderer.prepareV2(scene(revision++,"native",false),installed,captureEnvironment(renderer,activity,activity.root));
         NativeRenderer.Candidate attached=c;NativeRenderer.AttachmentJournal j=renderer.attachV2(attached,activity.root);renderer.rollbackV2(attached,j);
         check(renderer.packet.revision.equals(base),"explicit post-attach rollback retains base");
         reject(()->renderer.attachV2(attached,activity.root),"aborted candidate reuse");
     }
     private void editing(){
         // Separate shallow scene makes native editor ancestry/frame unchanged across an accepted echo.
-        renderer.disposeV2();renderer=new NativeRenderer(activity,events::add);activity.root.removeAllViews();installed=renderer.captureInstalledV2();revision=1000;
+        closeRenderer(renderer);renderer=newRenderer(activity,events::add,true);activity.root.removeAllViews();installed=captureInstalled(renderer);revision=1000;
         Object field=node("editingField","textField",Json.map("label","Edit","value","hello"),List.of());
         publish(packet(node("editingRoot","vStack",Json.map("alignment","leading"),List.of(field)),revision++));
         EditText editor=(EditText)renderer.view("editingField");editor.requestFocus();editor.setSelection(1,4);Editable identity=editor.getText();
         InputConnection connection=editor.onCreateInputConnection(new EditorInfo());check(connection!=null,"native InputConnection");
         connection.setComposingRegion(1,4);int start=BaseInputConnection.getComposingSpanStart(identity),end=BaseInputConnection.getComposingSpanEnd(identity);
         check(start==1&&end==4,"actual native composing span");
-        NativeRenderer.Candidate composingOnly=renderer.prepareV2(packet(node("editingRoot","vStack",Json.map("alignment","leading"),List.of(field)),revision++),installed,renderer.captureEnvironmentV2(activity,activity.root));
+        NativeRenderer.Candidate composingOnly=renderer.prepareV2(packet(node("editingRoot","vStack",Json.map("alignment","leading"),List.of(field)),revision++),installed,captureEnvironment(renderer,activity,activity.root));
         connection.setComposingRegion(0,2);reject(()->renderer.attachV2(composingOnly,activity.root),"composing-only span mutation invalidates exact snapshot");renderer.discardV2(composingOnly);
         check(BaseInputConnection.getComposingSpanStart(identity)==0&&BaseInputConnection.getComposingSpanEnd(identity)==2,"stale-candidate rejection does not restore composing spans");connection.setComposingRegion(1,4);
         int selectionStart=editor.getSelectionStart(),selectionEnd=editor.getSelectionEnd();
@@ -246,9 +324,9 @@ public final class NativeAppearanceV2Instrumentation extends Instrumentation {
         check(editor.getSelectionStart()==1&&editor.getSelectionEnd()==4&&BaseInputConnection.getComposingSpanStart(identity)==start&&BaseInputConnection.getComposingSpanEnd(identity)==end,"native selection/composition retained without restore");
         Object conflict=node("editingField","textField",Json.map("label","Edit","value","conflict"),List.of());
         reject(()->renderer.prepareV2(packet(node("editingRoot","vStack",Json.map("alignment","leading"),List.of(conflict)),revision++),installed,
-            renderer.captureEnvironmentV2(activity,activity.root)),"conflicting composition before attachment");
+            captureEnvironment(renderer,activity,activity.root)),"conflicting composition before attachment");
         check(editor.getText()==identity&&editor.getText().toString().equals("hello")&&BaseInputConnection.getComposingSpanStart(identity)==1,"rejection leaves actual composing editor untouched");
-        NativeRenderer.Candidate selection=renderer.prepareV2(packet(node("editingRoot","vStack",Json.map("alignment","leading"),List.of(field)),revision++),installed,renderer.captureEnvironmentV2(activity,activity.root));
+        NativeRenderer.Candidate selection=renderer.prepareV2(packet(node("editingRoot","vStack",Json.map("alignment","leading"),List.of(field)),revision++),installed,captureEnvironment(renderer,activity,activity.root));
         editor.setSelection(0);reject(()->renderer.attachV2(selection,activity.root),"native selection invalidates candidate epoch");renderer.discardV2(selection);editor.setSelection(1,4);
         events.clear();connection.setComposingText("abc",1);check(events.size()==1,"one native composing proposal event");
         String transientText=editor.getText().toString();int transientStart=BaseInputConnection.getComposingSpanStart(identity),transientEnd=BaseInputConnection.getComposingSpanEnd(identity);
@@ -259,16 +337,16 @@ public final class NativeAppearanceV2Instrumentation extends Instrumentation {
         check(editor.getText()==identity&&events.size()==1,"engine echo preserves native Editable and has no extra event");
         connection.finishComposingText();connection.performEditorAction(EditorInfo.IME_ACTION_DONE);check(events.size()==2,"native submit at most once");events.clear();
         software("editing-software.png");
-        NativeRenderer.Candidate candidate=renderer.prepareV2(packet(node("editingRoot","vStack",Json.map("alignment","leading"),List.of(echo)),revision++),installed,renderer.captureEnvironmentV2(activity,activity.root));
+        NativeRenderer.Candidate candidate=renderer.prepareV2(packet(node("editingRoot","vStack",Json.map("alignment","leading"),List.of(echo)),revision++),installed,captureEnvironment(renderer,activity,activity.root));
         renderer.testFaultV2(0,true);try{renderer.attachV2(candidate,activity.root);throw new AssertionError("fault missing");}catch(IllegalStateException expected){checks++;}
-        check(renderer.testRetiredV2(),"rollback failure retires gated presentation");reject(()->renderer.captureInstalledV2(),"retired owner");
+        check(renderer.testRetiredV2(),"rollback failure retires gated presentation");reject(()->captureInstalled(renderer),"retired owner");
     }
     private void environmentGates(){
-        renderer.disposeV2();activity.root.removeAllViews();renderer=new NativeRenderer(activity,events::add);installed=renderer.captureInstalledV2();publish(scene(revision++,"native",false));
+        closeRenderer(renderer);activity.root.removeAllViews();renderer=newRenderer(activity,events::add,true);installed=captureInstalled(renderer);publish(scene(revision++,"native",false));
         Button button=(Button)renderer.view("button");int width=activity.root.getWidth(),height=activity.root.getHeight();
         activity.root.layout(0,0,width-3,height);button.performClick();
         check(events.isEmpty()&&!((NativeAppearanceViewsV2.Gate)activity.root.getChildAt(0)).open,"actual root layout invalidation immediately gates old native actions/presentation");
-        activity.root.layout(0,0,width,height);renderer.captureEnvironmentV2(activity,activity.root);button.performClick();
+        activity.root.layout(0,0,width,height);captureEnvironment(renderer,activity,activity.root);button.performClick();
         check(events.isEmpty(),"valid recapture alone cannot reopen committed gate");publish(lastPublishedBytes.clone());button.performClick();
         check(events.size()==1,"successful environment transaction reopens native input");events.clear();
         android.content.res.Configuration original=new android.content.res.Configuration(activity.getResources().getConfiguration());
@@ -276,15 +354,15 @@ public final class NativeAppearanceV2Instrumentation extends Instrumentation {
             android.content.res.Configuration bold=new android.content.res.Configuration(original);bold.fontWeightAdjustment=50;
             activity.getResources().updateConfiguration(bold,activity.getResources().getDisplayMetrics());button.performClick();
             check(events.isEmpty()&&!((NativeAppearanceViewsV2.Gate)activity.root.getChildAt(0)).open,"synchronous committed native tuple check suppresses unsupported bold-context action before listener");
-            reject(()->renderer.captureEnvironmentV2(activity,activity.root),"unsupported committed native environment recapture");
+            reject(()->captureEnvironment(renderer,activity,activity.root),"unsupported committed native environment recapture");
             check(renderer.testRetiredV2()&&activity.root.getChildAt(0).getVisibility()==View.INVISIBLE,"unsupported recapture retires gated old owner");button.performClick();check(events.isEmpty(),"retired unsupported environment cannot deliver old action");
         }finally{activity.getResources().updateConfiguration(original,activity.getResources().getDisplayMetrics());}
-        renderer.disposeV2();activity.root.removeAllViews();renderer=new NativeRenderer(activity,events::add);installed=renderer.captureInstalledV2();publish(scene(revision++,"native",false));
+        closeRenderer(renderer);activity.root.removeAllViews();renderer=newRenderer(activity,events::add,true);installed=captureInstalled(renderer);publish(scene(revision++,"native",false));
         renderer.testExhaustInteractionV2();((Button)renderer.view("button")).performClick();
         check(renderer.testRetiredV2()&&events.isEmpty(),"checked interaction epoch overflow retires before action send");
     }
     private void buttonInsets(){
-        renderer=new NativeRenderer(activity,events::add);installed=renderer.captureInstalledV2();
+        renderer=newRenderer(activity,events::add,true);installed=captureInstalled(renderer);
         Object shortButton=node("insetShort","button",Json.map("label","Short"),List.of());
         Object longButton=node("insetLong","button",Json.map("label","A long native button label with enough words to wrap under a finite width proposal and preserve every measured line"),List.of());
         publish(packet(node("insetRoot","vStack",Json.map("alignment","leading"),List.of(shortButton,longButton)),revision++));
@@ -308,14 +386,14 @@ public final class NativeAppearanceV2Instrumentation extends Instrumentation {
         double[] targets={14.05,15,16,17,19,21,23,28,33,40,47,52.95};List<Object> reports=new ArrayList<>();
         for(int index=0;index<targets.length;index++){
             float scale=scaleFor(targets[index]);int current=index;
-            ui(()->{renderer.disposeV2();activity.finish();});
+            ui(()->{closeRenderer(renderer);activity.finish();});
             android.content.res.Configuration config=new android.content.res.Configuration();config.fontScale=scale;
             boolean dark=index%2!=0,rtl=index%3==0;
             config.uiMode=dark?android.content.res.Configuration.UI_MODE_NIGHT_YES:android.content.res.Configuration.UI_MODE_NIGHT_NO;
             config.setLocale(java.util.Locale.forLanguageTag(rtl?"ar":"en-US"));config.setLayoutDirection(java.util.Locale.forLanguageTag(rtl?"ar":"en-US"));
             NativeAppearanceV2Activity.testConfiguration=config;
             activity=(NativeAppearanceV2Activity)startActivitySync(new Intent(getTargetContext(),NativeAppearanceV2Activity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));waitForIdleSync();
-            ui(()->{renderer=new NativeRenderer(activity,events::add);installed=renderer.captureInstalledV2();NativeEnvironmentV2 env=renderer.captureEnvironmentV2(activity,activity.root);
+            ui(()->{renderer=newRenderer(activity,events::add,true);installed=captureInstalled(renderer);NativeEnvironmentV2 env=captureEnvironment(renderer,activity,activity.root);
                 check(env.value.profile()==AppearanceDescriptorV2.Profile.values()[current],"actual nonlinear Activity preference profile "+current+" got "+env.value.profile());
                 check((env.value.scheme()==AppearanceResolverV2.Scheme.dark)==dark,"actual Activity night configuration");
                 check((env.value.direction()==AppearanceResolverV2.Direction.rightToLeft)==rtl,"actual Activity locale/direction configuration");
@@ -352,7 +430,7 @@ public final class NativeAppearanceV2Instrumentation extends Instrumentation {
         long now=SystemClock.uptimeMillis();MotionEvent down=MotionEvent.obtain(now,now,MotionEvent.ACTION_DOWN,x,y,0),cancel=MotionEvent.obtain(now,now+30,MotionEvent.ACTION_CANCEL,x,y,0);
         check(getUiAutomation().injectInputEvent(down,true)&&getUiAutomation().injectInputEvent(cancel,true),"injected native cancellation");down.recycle();cancel.recycle();}
     private void paired(){
-        renderer.disposeV2();activity.root.removeAllViews();renderer=new NativeRenderer(activity,events::add);installed=renderer.captureInstalledV2();
+        closeRenderer(renderer);activity.root.removeAllViews();renderer=newRenderer(activity,events::add,true);installed=captureInstalled(renderer);
         try(java.io.InputStream stream=activity.getAssets().open("NativeAppearanceV2/paired-packet.bin")){byte[] bytes=stream.readAllBytes();publish(bytes);saveBytes("paired-packet.bin",bytes);}
         catch(java.io.IOException failure){throw new AssertionError(failure);}
         check(((TextView)renderer.view("selectable")).isTextSelectable(),"shared actual Swift packet selectable native TextView");
@@ -362,15 +440,15 @@ public final class NativeAppearanceV2Instrumentation extends Instrumentation {
     }
     private void pairedSelectionFault(){
         TextView selectable=(TextView)renderer.view("selectable");check(selectable.getText() instanceof android.text.Spannable,"real selectable native Spannable");
-        NativeRenderer.Candidate selected=renderer.prepareV2(lastPublishedBytes.clone(),installed,renderer.captureEnvironmentV2(activity,activity.root));
+        NativeRenderer.Candidate selected=renderer.prepareV2(lastPublishedBytes.clone(),installed,captureEnvironment(renderer,activity,activity.root));
         android.text.Selection.setSelection((android.text.Spannable)selectable.getText(),0,5);
         reject(()->renderer.attachV2(selected,activity.root),"plain selectable TextView selection invalidates exact snapshot without listener");renderer.discardV2(selected);
         check(selectable.getSelectionStart()==0&&selectable.getSelectionEnd()==5,"stale selection remains native; no restore claimed");
     }
     private Object semanticSection(String id,String title,List<Object> children){return node(id,"section",Json.map("title",title),children);}
     private void sections(boolean rtl){
-        renderer.disposeV2();activity.root.removeAllViews();activity.root.setLayoutDirection(rtl?View.LAYOUT_DIRECTION_RTL:View.LAYOUT_DIRECTION_LTR);
-        renderer=new NativeRenderer(activity,events::add);installed=renderer.captureInstalledV2();
+        closeRenderer(renderer);activity.root.removeAllViews();activity.root.setLayoutDirection(rtl?View.LAYOUT_DIRECTION_RTL:View.LAYOUT_DIRECTION_LTR);
+        renderer=newRenderer(activity,events::add,true);installed=captureInstalled(renderer);
         Object z=node("sectionOverlay","zStack",Json.map("alignment","center"),List.of(semanticSection("sectionShort","Short",List.of(text("sectionX","x","body"))),text("sectionLonger","Longer label","body")));
         Object h=node("sectionHorizontal","hStack",Map.of(),List.of(semanticSection("sectionHShort","Short",List.of(text("sectionHX","x","body"))),text("sectionHLonger","Longer label","body")));
         Object only=semanticSection("sectionOnly","Header only",List.of());
@@ -420,8 +498,8 @@ public final class NativeAppearanceV2Instrumentation extends Instrumentation {
         return baseline<0?-1:child.view.getTop()+baseline;
     }
     private void sectionBaselines(boolean rtl){
-        if(renderer!=null)renderer.disposeV2();activity.root.removeAllViews();activity.root.setLayoutDirection(rtl?View.LAYOUT_DIRECTION_RTL:View.LAYOUT_DIRECTION_LTR);
-        renderer=new NativeRenderer(activity,events::add);installed=renderer.captureInstalledV2();
+        if(renderer!=null)closeRenderer(renderer);activity.root.removeAllViews();activity.root.setLayoutDirection(rtl?View.LAYOUT_DIRECTION_RTL:View.LAYOUT_DIRECTION_LTR);
+        renderer=newRenderer(activity,events::add,true);installed=captureInstalled(renderer);
         var alignment=installed.configuration.android.stacks().hStackAlignment();check(alignment==AppearanceDescriptorV2.VerticalAlignment.firstTextBaseline||alignment==AppearanceDescriptorV2.VerticalAlignment.lastTextBaseline,"baseline comes from admitted packaged theme default");
         Object headed=semanticSection("baselineHeaded","Header",List.of(text("baselineBody","Body first\nBody last","body")));
         Object headerOnly=semanticSection("baselineHeaderOnly","Header first\nHeader last",List.of());
@@ -446,7 +524,7 @@ public final class NativeAppearanceV2Instrumentation extends Instrumentation {
     }
     private void baselineEdgeCase(String id,Object section,boolean accepted,boolean firstAvailable,boolean lastAvailable){
         byte[] bytes=packet(baselineRow(id+"H",section),revision++);
-        if(!accepted){reject(()->renderer.prepareV2(bytes,installed,renderer.captureEnvironmentV2(activity,activity.root)),"required selected unavailable Section edge "+id);return;}
+        if(!accepted){reject(()->renderer.prepareV2(bytes,installed,captureEnvironment(renderer,activity,activity.root)),"required selected unavailable Section edge "+id);return;}
         publish(bytes);var r=renderer.inspectV2().get(id);
         check((r.geometry.firstBaseline>=0)==firstAvailable&&(r.geometry.lastBaseline>=0)==lastAvailable,"Section preserves selected unavailable edge without header/neighbor fallback "+id);
     }
@@ -459,7 +537,7 @@ public final class NativeAppearanceV2Instrumentation extends Instrumentation {
             Map<String,Object> properties=kind.equals("textField")?Json.map("label","Field","value","bound"):kind.equals("button")?Json.map("label","Button"):Json.map("label","On","value",true);
             Object control=node("baselineControl"+kind,kind,properties,List.of());
             byte[] direct=packet(node("baselineDirect"+kind,"hStack",Map.of(),List.of(control,text("baselineDirectPeer"+kind,"Peer","body"))),revision++);
-            reject(()->renderer.prepareV2(direct,installed,renderer.captureEnvironmentV2(activity,activity.root)),"required native control baseline unavailable "+kind);
+            reject(()->renderer.prepareV2(direct,installed,captureEnvironment(renderer,activity,activity.root)),"required native control baseline unavailable "+kind);
             baselineEdgeCase("baselineHead"+kind,semanticSection("baselineHead"+kind,"Header",List.of(control)),!last,true,false);
             baselineEdgeCase("baselineNoHead"+kind,semanticSection("baselineNoHead"+kind,"",List.of(control)),false,false,false);
             baselineEdgeCase("baselineUnselected"+kind,semanticSection("baselineUnselected"+kind,"",List.of(control,text("baselineAfter"+kind,"Tail","body"))),last,false,true);
@@ -480,8 +558,8 @@ public final class NativeAppearanceV2Instrumentation extends Instrumentation {
         activity=(NativeAppearanceV2Activity)startActivitySync(new Intent(getTargetContext(),NativeAppearanceV2Activity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         waitForIdleSync();
         String expected=arguments==null?null:arguments.getString("captureRejection");
-        if(expected!=null){ui(()->{NativeRenderer owner=new NativeRenderer(activity,ignored->{});
-            try{owner.captureInstalledV2();throw new AssertionError("invalid installed capture accepted");}catch(AppearanceDescriptorV2.Failure failure){check(failure.code.name().equals(expected),"actual AssetManager complete-catalog rejection "+failure.code);}});
+        if(expected!=null){ui(()->{NativeRenderer owner=newRenderer(activity,ignored->{},false);
+            try{captureInstalled(owner);throw new AssertionError("invalid installed capture accepted");}catch(AppearanceDescriptorV2.Failure failure){check(failure.code.name().equals(expected),"actual AssetManager complete-catalog rejection "+failure.code);}});
         }else if(arguments!=null&&"true".equals(arguments.getString("buttonInsets"))){
             ui(this::buttonInsets);hardware("inset");
         }else if(arguments!=null&&"true".equals(arguments.getString("sectionBaseline"))){

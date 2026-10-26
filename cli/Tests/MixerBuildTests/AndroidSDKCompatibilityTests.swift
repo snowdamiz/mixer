@@ -51,8 +51,8 @@ private func allAdmissionEntrypoints(_ root: URL, code: String = "android.sdk-co
 
 @Test func androidCompatibilityLinkedSDKAndTypedDefaultMatchCompiledPolicy() throws {
     let p = AndroidSDKCompatibility.profile
-    #expect(p.id == "mixer.android-source-pair.2")
-    #expect(p.sdk_files.count == 22); #expect(p.adapter_files.count == 20)
+    #expect(p.id == "mixer.android-source-pair.3")
+    #expect(p.sdk_files.count == 22); #expect(p.adapter_files.count == 22)
     try AndroidSDKCompatibility.admitInput(sdk: compatibilityRepository.appendingPathComponent("sdk"), adapter: compatibilityRepository.appendingPathComponent("native/android"))
     let value = try UIAppearanceDescriptorCodecV2.mixerDefaultV2()
     let bytes = try UIAppearanceDescriptorCodecV2.canonicalData(value)
@@ -143,7 +143,7 @@ func androidCompatibilityExactInventoryTypeLengthAndHashRefuseBeforeGenericSourc
     }
 }
 
-@Test(arguments: ["missing-file", "missing-lock", "legacy", "profile-1", "unknown", "digest", "default"])
+@Test(arguments: ["missing-file", "missing-lock", "legacy", "profile-1", "profile-2", "unknown", "digest", "default"])
 func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(_ change: String) throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-profile-lock-\(UUID().uuidString)")
     defer { try? FileManager.default.removeItem(at: root) }
@@ -152,6 +152,7 @@ func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(
     case "missing-file", "missing-lock": lock.android = nil
     case "legacy": lock.android?.profile = nil
     case "profile-1": lock.android?.profile?.id = "mixer.android-source-pair.1"
+    case "profile-2": lock.android?.profile?.id = "mixer.android-source-pair.2"
     case "unknown": lock.android?.profile?.id = "unknown"
     case "digest": lock.android?.profile?.sdk_compatibility_sha256 = String(repeating: "0", count: 64)
     default: lock.android?.profile?.default_descriptor.bytes += 1

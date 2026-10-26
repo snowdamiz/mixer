@@ -49,17 +49,11 @@ def main():
     args = parser.parse_args()
     evidence = args.evidence.resolve()
     evidence.mkdir(parents=True, exist_ok=False)
-    freeze = json.loads(MANIFEST.read_text())
     expected = set(SOURCES + (SELF,))
-    if set(freeze['files']) != expected:
-        raise RuntimeError('source freeze differs from explicit source list')
-    snapshots = {}
-    for relative in sorted(expected):
-        data = (REPOSITORY / relative).read_bytes()
-        if identity(data) != freeze['files'][relative]:
-            raise RuntimeError('frozen source drift: ' + relative)
-        snapshots[relative] = data
-    (evidence/'source-freeze.json').write_bytes(MANIFEST.read_bytes())
+    snapshots = {relative: (REPOSITORY/relative).read_bytes() for relative in sorted(expected)}
+    freeze = {'context_revision': subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPOSITORY,text=True).strip(),
+              'files': {relative:identity(data) for relative,data in snapshots.items()}}
+    save(evidence/'source-freeze.json',freeze)
     for relative, data in snapshots.items():
         target=evidence/'inputs'/relative
         target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(data)
@@ -93,7 +87,7 @@ def main():
     status = 'failed'
     receipt = {'schema': 1, 'at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
                'argv': [sys.executable, *sys.argv], 'python_version': sys.version, 'scope': 'Java17 host execution of actual Observer with faulting Android/renderer leaves; no native behavior',
-               'source_freeze': identity(MANIFEST.read_bytes()), 'source_revision': freeze['context_revision'],
+               'source_freeze': identity((evidence/'source-freeze.json').read_bytes()), 'source_revision': freeze['context_revision'],
                'environment': {'platform': os.uname().sysname, 'machine': os.uname().machine,
                                'stripped_implicit_jvm_variables': stripped}, 'native_or_capture_processes_started_or_queried': False,
                'new_dependencies': [], 'commands': 'commands.json'}

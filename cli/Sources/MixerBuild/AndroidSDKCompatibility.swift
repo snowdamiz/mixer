@@ -68,12 +68,12 @@ struct AndroidSDKProfile: Codable, Sendable {
 }
 
 enum AndroidSDKCompatibility {
-    // Selected frozen 22 + 20 map. Never infer or refresh from a selected SDK,
+    // Selected frozen 22 + 22 map. Never infer or refresh from a selected SDK,
     // mutable lock, resource, environment, or successful local build.
     static let profile: AndroidSDKProfile = {
         try! JSONDecoder().decode(AndroidSDKProfile.self, from: Data(#"""
         {
-          "adapter_compatibility_sha256": "43f22eeaa7480ef9c0a8fdb50addff4edaeea83319488605c5db3b2d782f1ef5",
+          "adapter_compatibility_sha256": "c5df444d5be8f7d422dedde7786b0232f24db1b295288da3cc3fce31a27f5b59",
           "adapter_files": {
             "Sources/MixerAndroidRuntime/DocumentSession.swift": {
               "bytes": 4128,
@@ -116,24 +116,32 @@ enum AndroidSDKCompatibility {
               "sha256": "cc383f5f358714de5a55c65f205fd7e296ab8166657160c38059ca8ac7f4351c"
             },
             "app/src/dev/mixer/android/NativeAppearanceViewsV2.java": {
-              "bytes": 63675,
-              "sha256": "8b1eee816f4df8e56f9848f4ce839ec1394ec1a77d9d8e4355af9e46ddd1ac7f"
+              "bytes": 81532,
+              "sha256": "a217d0b178869f3e5c3fc2d80f30f559a22c76a303195e62bfcb73d3cce91cce"
             },
             "app/src/dev/mixer/android/NativeBridge.java": {
               "bytes": 1076,
               "sha256": "3e7faa3904fef5955426b9fa9993c77b61203fe605f675d73cd81bcf073306a3"
             },
             "app/src/dev/mixer/android/NativeCoordinatorV2.java": {
-              "bytes": 11398,
-              "sha256": "60815a168e9801813f1f9f373d48c2b1deeb74127eb066166a5ab58ff30a6967"
+              "bytes": 13468,
+              "sha256": "16597f90e5f9989404d88a94d35c531a06c964cd9a40dde94cc54c0aaaec5587"
             },
             "app/src/dev/mixer/android/NativeEnvironmentV2.java": {
-              "bytes": 14318,
-              "sha256": "814b00b91b458c1287cb9c924c099fc2e647e42501b09e09acd711fbe5b54dac"
+              "bytes": 17379,
+              "sha256": "b852f3d31dd5dfb9526fe04ca049d314cfe868d004f4510fa2c7b10e3dfc14e1"
+            },
+            "app/src/dev/mixer/android/NativeOwnerV2.java": {
+              "bytes": 23743,
+              "sha256": "056aa51d07e765b59a3859ce76090477a24211c973b63336406ff4b0d4102269"
             },
             "app/src/dev/mixer/android/NativeRenderer.java": {
-              "bytes": 36197,
-              "sha256": "90c6fdae2a5f21015b91a885f6078d8041deccbfe3bba7b69b7fb716e535498a"
+              "bytes": 47378,
+              "sha256": "fa523aa1c9cd2f11a77022b008a5e983c8fda697a93e2a76585c01f79f50d725"
+            },
+            "app/src/dev/mixer/android/OwnerLifecycleV2.java": {
+              "bytes": 12473,
+              "sha256": "4282e8284212fb042a139f597d9f34f061f6f27673e918a52f1f784e6fe9ebb6"
             },
             "app/src/dev/mixer/android/UiPacket.java": {
               "bytes": 8877,
@@ -160,7 +168,7 @@ enum AndroidSDKCompatibility {
             "bytes": 9587,
             "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
           },
-          "id": "mixer.android-source-pair.2",
+          "id": "mixer.android-source-pair.3",
           "schema": 1,
           "sdk_compatibility_sha256": "4c2e74bbdb1c060ffa2219ed378d11ed390e7a4454b95df4a2ee72074bb9b5a7",
           "sdk_files": {

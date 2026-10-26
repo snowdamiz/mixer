@@ -43,8 +43,51 @@ final class NativeAppearanceViewsV2 {
     private NativeAppearanceViewsV2() {}
     interface Input {
         boolean open(Record record);
+        boolean draw();
         void event(Record record, String event, Object value);
         void interaction();
+        Mutation mutation();
+    }
+    /** Captured direct authority; never asks the allocating lifecycle core from native code. */
+    static final class Mutation {
+        enum Mode { TRANSACTION, LIVE_PRESENTATION, CLEANUP }
+        final Mode mode;
+        final NativeOwnerV2.Fence fence;
+        final OwnerLifecycleV2.Token token;
+        private Mutation(Mode mode, NativeOwnerV2.Fence fence, OwnerLifecycleV2.Token token) {
+            this.mode=mode; this.fence=fence; this.token=token;
+        }
+        static Mutation transaction(NativeOwnerV2.Fence fence, OwnerLifecycleV2.Token token) {
+            Mutation result=new Mutation(Mode.TRANSACTION,fence,token); result.require(); return result;
+        }
+        static Mutation live(NativeOwnerV2.Fence fence) {
+            Mutation result=new Mutation(Mode.LIVE_PRESENTATION,fence,fence.presentation); result.require(); return result;
+        }
+        static Mutation cleanup(NativeOwnerV2.Fence fence) { return new Mutation(Mode.CLEANUP,fence,null); }
+        boolean current() {
+            return mode==Mode.CLEANUP ? !fence.drawAllowed&&!fence.inputAllowed :
+                !fence.terminal&&token!=null&&(mode==Mode.TRANSACTION ? token==fence.operation : token==fence.presentation&&fence.drawAllowed);
+        }
+        void require() {
+            if(mode==Mode.CLEANUP) {
+                if(fence.drawAllowed||fence.inputAllowed)throw new IllegalStateException("cleanup requires sealed authority");
+            } else if(fence.terminal||token==null||(mode==Mode.TRANSACTION ? token!=fence.operation :
+                token!=fence.presentation||!fence.drawAllowed))throw new IllegalStateException("V2 mutation authority lost");
+        }
+        void requireMutation() {
+            if(mode==Mode.CLEANUP)throw new IllegalStateException("cleanup cannot authorize V2 bind/layout");
+            require();
+        }
+        boolean result(boolean result) {
+            // Observe the original captured scope after the delegate. A completed result is not a new mutation.
+            if(mode!=Mode.LIVE_PRESENTATION){require();return result;}
+            boolean same=!fence.terminal&&token!=null&&token==fence.presentation&&fence.drawAllowed;
+            if(same)return result;
+            // A synchronous accepted feature event can publish a successor before the delegate returns.
+            // No native call, event, mutation, or replacement scope is acquired on this return path.
+            return token!=null&&!fence.terminal&&fence.drawAllowed&&fence.presentation!=null&&token!=fence.presentation&&result;
+        }
+        <T> T result(T result) { require(); return result; }
     }
     record Binding(AppearanceResolverV2.Plan plan, AppearanceResolverV2.Node node,
                    UiPacket.Node source, AppearanceDescriptorV2.Theme theme,
@@ -89,105 +132,179 @@ final class NativeAppearanceViewsV2 {
         Binding binding;
         Geometry geometry;
         boolean changing;int preparedScrollY;
-        Record(Context context, UiPacket.Node source, Input input) {
+        long cancelClaim;
+        Throwable cancellationOrdinary;java.lang.Error cancellationFatal;
+        private void cancellationFailure(Throwable failure){
+            if(failure instanceof RuntimeException&&cancellationOrdinary==null)cancellationOrdinary=failure;
+            if(failure instanceof java.lang.Error fatal&&cancellationFatal==null)cancellationFatal=fatal;
+        }
+        private Mutation scoped;
+        Mutation mutation() { NativeEnvironmentV2.requireMain();return scoped!=null?scoped:input.mutation(); }
+        Record(Context context, UiPacket.Node source, Input input, Mutation mutation) {
+            mutation.requireMutation();scoped=mutation;
             id=source.id; generation=source.generation; kind=source.kind; this.input=input;
+            try {
             Group container=null; TextView title=null, small=null;
             switch(kind) {
-                case "text" -> view=new TextView(context);
-                case "button" -> view=new NativeButton(context,this);
-                case "textField" -> view=new NativeField(context,this);
-                case "toggle" -> view=new NativeSwitch(context,this);
-                case "list" -> { container=new Group(context,this); NativeScroll scroll=new NativeScroll(context,this);
-                    scroll.addView(container,new ScrollView.LayoutParams(-1,-2)); view=scroll; }
-                default -> { container=new Group(context,this); view=container;
-                    if(kind.equals("section")||kind.equals("navigation")) { title=new TextView(context);
-                        container.addView(title); if(kind.equals("navigation")){small=new TextView(context);container.addView(small);} }
+                case "text" -> { view=new TextView(context);mutation.require(); }
+                case "button" -> { view=new NativeButton(context,this);mutation.require(); }
+                case "textField" -> { view=new NativeField(context,this);mutation.require(); }
+                case "toggle" -> { view=new NativeSwitch(context,this);mutation.require(); }
+                case "list" -> { container=new Group(context,this);mutation.require();
+ NativeScroll scroll=new NativeScroll(context,this);mutation.require();
+
+                    scroll.addView(container,new ScrollView.LayoutParams(-1,-2));mutation.require();
+ view=scroll; }
+                default -> { container=new Group(context,this);mutation.require();
+ view=container;
+                    if(kind.equals("section")||kind.equals("navigation")) { title=new TextView(context);mutation.require();
+
+                        container.addView(title);mutation.require();
+ if(kind.equals("navigation")){small=new TextView(context);mutation.require();
+container.addView(small);mutation.require();
+} }
                 }
             }
             group=container; header=title; compact=small;
-            view.setId(View.generateViewId()); view.setTag(id);
-            view.setBackground(null);view.setBackgroundTintList(null);view.setBackgroundTintMode(null); view.setElevation(0); view.setStateListAnimator(null);
-            view.setDefaultFocusHighlightEnabled(false); view.setPadding(0,0,0,0);
-            view.setMinimumWidth(0); view.setMinimumHeight(0);
-            view.setOnFocusChangeListener((changed,focused)->{if(input.open(this))input.interaction();});
-            if(view instanceof TextView text) defaults(text);
-            if(header!=null)defaults(header); if(compact!=null)defaults(compact);
-            if(kind.equals("button")&&view instanceof Button button) button.setOnClickListener(ignored -> { if(input.open(this)) input.event(this,"activate",null); });
+            view.setId(View.generateViewId());mutation.require();
+ view.setTag(id);mutation.require();
+
+            view.setBackground(null);mutation.require();
+view.setBackgroundTintList(null);mutation.require();
+view.setBackgroundTintMode(null);mutation.require();
+ view.setElevation(0);mutation.require();
+ view.setStateListAnimator(null);mutation.require();
+
+            view.setDefaultFocusHighlightEnabled(false);mutation.require();
+ view.setPadding(0,0,0,0);mutation.require();
+
+            view.setMinimumWidth(0);mutation.require();
+ view.setMinimumHeight(0);mutation.require();
+
+            view.setOnFocusChangeListener((changed,focused)->{if(input.open(this))input.interaction();});mutation.require();
+
+            if(view instanceof TextView text) defaults(text,mutation);
+            if(header!=null)defaults(header,mutation); if(compact!=null)defaults(compact,mutation);
+            if(kind.equals("button")&&view instanceof Button button) button.setOnClickListener(ignored -> { if(input.open(this)) input.event(this,"activate",null); });mutation.require();
+
             if(view instanceof EditText edit) {
-                edit.setSingleLine(true); edit.setHorizontallyScrolling(true);
-                edit.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-                edit.setImeOptions(EditorInfo.IME_ACTION_DONE);
+                edit.setSingleLine(true);mutation.require();
+ edit.setHorizontallyScrolling(true);mutation.require();
+
+                edit.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);mutation.require();
+
+                edit.setImeOptions(EditorInfo.IME_ACTION_DONE);mutation.require();
+
                 edit.setFilters(new InputFilter[]{(src,start,end,dst,dstart,dend)-> {
                     if(changing)return null;
                     if(!input.open(this))return dst.subSequence(dstart,dend);
                     String proposed=dst.subSequence(0,dstart).toString()+src.subSequence(start,end)+dst.subSequence(dend,dst.length());
                     // systemSans intentionally admits native script/emoji fallback.
                     return validBuffer(proposed) ? null : dst.subSequence(dstart,dend);
-                }});
+                }});mutation.require();
+
                 edit.addTextChangedListener(new TextWatcher(){
                     public void beforeTextChanged(CharSequence s,int start,int count,int after){}
                     public void onTextChanged(CharSequence s,int start,int before,int count){}
                     public void afterTextChanged(Editable value){if(!changing&&input.open(Record.this))input.event(Record.this,"textChange",value.toString());}
-                });
+                });mutation.require();
+
                 edit.setOnEditorActionListener((field,action,event)-> {
                     if(action==EditorInfo.IME_ACTION_DONE&&input.open(this)&&binding.source.actions.containsKey("submit")) {
                         input.event(this,"submit",null);return true;
                     }return false;
-                });
+                });mutation.require();
+
             }
             if(view instanceof Switch toggle) toggle.setOnCheckedChangeListener((button,checked)-> {
                 if(!changing&&input.open(this))input.event(this,"valueChange",checked);
-                toggle.invalidate();
-            });
+                if(input.open(this)){Mutation callbackScope=mutation();callbackScope.require();toggle.invalidate();callbackScope.require();}
+            });mutation.require();
+            } finally { scoped=null; }
         }
         void cancelToggleInput() { if(view instanceof NativeSwitch toggle)toggle.cancelTouch(); }
-        void bind(Binding next, Geometry measured, boolean preserveEditor) {
-            cancelToggleInput();boolean previousChanging=changing;changing=true;
+        void bind(Binding next, Geometry measured, boolean preserveEditor, Mutation mutation) {
+            mutation.requireMutation();Mutation previousScope=scoped;scoped=mutation;
+            boolean previousChanging=changing;
             try {
+                cancelToggleInput();mutation.require();changing=true;
                 binding=next; geometry=measured;
                 if(!preserveEditor) {
-                    view.setEnabled(!next.node.disabled());
-                    view.setLayoutDirection(next.rtl()?View.LAYOUT_DIRECTION_RTL:View.LAYOUT_DIRECTION_LTR);
-                    view.setTag(next.source.text("accessibilityIdentifier",id));
-                    view.setContentDescription(next.source.text("accessibilityLabel",kind.equals("textField")?next.source.text("label",""):null));
-                    view.setTooltipText(next.source.text("accessibilityHint",null));
-                    if(android.os.Build.VERSION.SDK_INT>=30)view.setStateDescription(next.source.text("accessibilityValue",null));
+                    view.setEnabled(!next.node.disabled());mutation.require();
+
+                    view.setLayoutDirection(next.rtl()?View.LAYOUT_DIRECTION_RTL:View.LAYOUT_DIRECTION_LTR);mutation.require();
+
+                    view.setTag(next.source.text("accessibilityIdentifier",id));mutation.require();
+
+                    view.setContentDescription(next.source.text("accessibilityLabel",kind.equals("textField")?next.source.text("label",""):null));mutation.require();
+
+                    view.setTooltipText(next.source.text("accessibilityHint",null));mutation.require();
+
+                    if(android.os.Build.VERSION.SDK_INT>=30)view.setStateDescription(next.source.text("accessibilityValue",null));mutation.require();
+
                     if(next.node.recipe() instanceof TextRecipe r) {
-                        TextView text=(TextView)view; text(text,r.text(),next);text.setTextIsSelectable(r.text().selectable());
-                        text.setTextColor(color(((TextPaints)next.plan.style(id,false,false).paints()).foreground()));
+                        TextView text=(TextView)view; text(text,r.text(),next,mutation);text.setTextIsSelectable(r.text().selectable());mutation.require();
+
+                        text.setTextColor(color(((TextPaints)next.plan.style(id,false,false).paints()).foreground()));mutation.require();
+
                     } else if(next.node.recipe() instanceof ButtonRecipe r) {
-                        NativeButton button=(NativeButton)view;text(button,r.text(),next);button.setAllCaps(false);
-                        button.setBackground(new ControlDrawable(this,false));button.setTextColor(buttonColors(next,r));
+                        NativeButton button=(NativeButton)view;text(button,r.text(),next,mutation);button.setAllCaps(false);mutation.require();
+
+                        button.setBackground(new ControlDrawable(this,false));mutation.require();
+button.setTextColor(buttonColors(next,r));mutation.require();
+
                     } else if(next.node.recipe() instanceof FieldRecipe r) {
-                        NativeField field=(NativeField)view;Text value=r.text();text(field,new Text(next.nativeFieldValue(),value.role(),value.metrics(),value.selectable(),value.maximumLines()),next);field.setHint(r.label());
-                        field.setGravity((next.rtl()?Gravity.RIGHT:Gravity.LEFT)|Gravity.CENTER_VERTICAL);
+                        NativeField field=(NativeField)view;Text value=r.text();text(field,new Text(next.nativeFieldValue(),value.role(),value.metrics(),value.selectable(),value.maximumLines()),next,mutation);field.setHint(r.label());mutation.require();
+
+                        field.setGravity((next.rtl()?Gravity.RIGHT:Gravity.LEFT)|Gravity.CENTER_VERTICAL);mutation.require();
+
                         Insets in=r.metrics().insets64();field.setPadding(px(next.rtl()?in.trailing():in.leading(),next),px(in.top(),next),
-                            px(next.rtl()?in.leading():in.trailing(),next),px(in.bottom(),next));
-                        field.setBackground(new ControlDrawable(this,true));field.setTextColor(fieldColors(next,false));
-                        field.setHintTextColor(fieldColors(next,true));
-                        field.setTextCursorDrawable(new Cursor(this));
-                        field.setTextSelectHandle(new Handle(this));field.setTextSelectHandleLeft(new Handle(this));field.setTextSelectHandleRight(new Handle(this));
+                            px(next.rtl()?in.leading():in.trailing(),next),px(in.bottom(),next));mutation.require();
+
+                        field.setBackground(new ControlDrawable(this,true));mutation.require();
+field.setTextColor(fieldColors(next,false));mutation.require();
+
+                        field.setHintTextColor(fieldColors(next,true));mutation.require();
+
+                        field.setTextCursorDrawable(new Cursor(this));mutation.require();
+
+                        field.setTextSelectHandle(new Handle(this));mutation.require();
+field.setTextSelectHandleLeft(new Handle(this));mutation.require();
+field.setTextSelectHandleRight(new Handle(this));mutation.require();
+
                         field.refreshPaint();
                     } else if(next.node.recipe() instanceof ToggleRecipe r) {
-                        NativeSwitch toggle=(NativeSwitch)view;text(toggle,r.text(),next);toggle.setChecked(next.nativeToggleValue());
-                        toggle.setSwitchMinWidth(px(r.metrics().trackWidth64(),next));toggle.setSwitchPadding(px(r.metrics().labelGap64(),next));
-                        toggle.setThumbDrawable(new Empty(px(r.metrics().thumbWidth64(),next),px(r.metrics().thumbHeight64(),next)));
-                        toggle.setTrackDrawable(new Empty(px(r.metrics().trackWidth64(),next),px(r.metrics().trackHeight64(),next)));
-                        toggle.setSplitTrack(false);toggle.setShowText(false);toggle.setThumbTextPadding(0);
+                        NativeSwitch toggle=(NativeSwitch)view;text(toggle,r.text(),next,mutation);toggle.setChecked(next.nativeToggleValue());mutation.require();
+
+                        toggle.setSwitchMinWidth(px(r.metrics().trackWidth64(),next));mutation.require();
+toggle.setSwitchPadding(px(r.metrics().labelGap64(),next));mutation.require();
+
+                        toggle.setThumbDrawable(new Empty(px(r.metrics().thumbWidth64(),next),px(r.metrics().thumbHeight64(),next)));mutation.require();
+
+                        toggle.setTrackDrawable(new Empty(px(r.metrics().trackWidth64(),next),px(r.metrics().trackHeight64(),next)));mutation.require();
+
+                        toggle.setSplitTrack(false);mutation.require();
+toggle.setShowText(false);mutation.require();
+toggle.setThumbTextPadding(0);mutation.require();
+
                         toggle.track=AppearanceNativePathsV2.make(AppearanceGeometryV2.track(),next.density());
                         toggle.thumb=AppearanceNativePathsV2.make(AppearanceGeometryV2.thumb(),next.density());
                         toggle.refreshPaint();
                     }
                 }
                 if(next.node.recipe() instanceof SectionRecipe r&&header!=null) bindTitle(header,r.header(),next,
-                    ((SectionPaints)next.plan.style(id,false,false).paints()).header());
+                    ((SectionPaints)next.plan.style(id,false,false).paints()).header(),mutation);
                 if(next.node.recipe() instanceof NavigationRecipe r&&header!=null) {
                     NavigationPaints colors=(NavigationPaints)next.plan.style(id,false,false).paints();
-                    bindTitle(header,r.expandedTitle(),next,colors.expanded());bindTitle(compact,r.compactTitle(),next,colors.compact());compact.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL);
-                    header.setVisibility(!measured.collapsed&&r.expandedTitle()!=null?View.VISIBLE:View.INVISIBLE);compact.setVisibility(measured.collapsed&&r.compactTitle()!=null?View.VISIBLE:View.INVISIBLE);
+                    bindTitle(header,r.expandedTitle(),next,colors.expanded(),mutation);bindTitle(compact,r.compactTitle(),next,colors.compact(),mutation);compact.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL);mutation.require();
+
+                    header.setVisibility(!measured.collapsed&&r.expandedTitle()!=null?View.VISIBLE:View.INVISIBLE);mutation.require();
+compact.setVisibility(measured.collapsed&&r.compactTitle()!=null?View.VISIBLE:View.INVISIBLE);mutation.require();
+
                 }
-                view.invalidate();
-            } finally { changing=previousChanging; }
+                view.invalidate();mutation.require();
+
+            } finally { changing=previousChanging; scoped=previousScope; }
         }
     }
     private static boolean plainProposal(CharSequence value,boolean composing){
@@ -200,26 +317,53 @@ final class NativeAppearanceViewsV2 {
         for(int i=0;i<value.length();i++){char c=value.charAt(i);if(Character.isHighSurrogate(c)){if(++i>=value.length()||!Character.isLowSurrogate(value.charAt(i)))return false;}else if(Character.isLowSurrogate(c))return false;}
         return value.getBytes(java.nio.charset.StandardCharsets.UTF_8).length<=16384;
     }
-    private static void defaults(TextView text) {
-        text.setIncludeFontPadding(false);text.setFallbackLineSpacing(true);text.setPadding(0,0,0,0);
-        text.setAllCaps(false);text.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE);text.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);text.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
-        text.setMinWidth(0);text.setMinHeight(0);text.setMinimumWidth(0);text.setMinimumHeight(0);
-        text.setCompoundDrawablePadding(0);text.setCompoundDrawables(null,null,null,null);
-        text.setLetterSpacing(0);text.setTextScaleX(1);text.setShadowLayer(0,0,0,0);
-        text.setGravity(Gravity.TOP|Gravity.START);text.setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY);
-        text.setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NORMAL);
+    private static void defaults(TextView text,Mutation mutation) {mutation.requireMutation();
+        text.setIncludeFontPadding(false);mutation.require();
+text.setFallbackLineSpacing(true);mutation.require();
+text.setPadding(0,0,0,0);mutation.require();
+
+        text.setAllCaps(false);mutation.require();
+text.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE);mutation.require();
+text.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);mutation.require();
+text.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);mutation.require();
+
+        text.setMinWidth(0);mutation.require();
+text.setMinHeight(0);mutation.require();
+text.setMinimumWidth(0);mutation.require();
+text.setMinimumHeight(0);mutation.require();
+
+        text.setCompoundDrawablePadding(0);mutation.require();
+text.setCompoundDrawables(null,null,null,null);mutation.require();
+
+        text.setLetterSpacing(0);mutation.require();
+text.setTextScaleX(1);mutation.require();
+text.setShadowLayer(0,0,0,0);mutation.require();
+
+        text.setGravity(Gravity.TOP|Gravity.START);mutation.require();
+text.setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY);mutation.require();
+
+        text.setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NORMAL);mutation.require();
+
     }
-    private static void text(TextView view, Text text, Binding binding) {
-        if(!view.getText().toString().equals(text.value()))view.setText(text.value());
-        view.setTextSize(TypedValue.COMPLEX_UNIT_PX,(float)AppearanceGeometryV2.pixelCoordinate(text.metrics().size64(),binding.density()));
-        view.setTypeface(Typeface.create(Typeface.create("sans-serif",Typeface.NORMAL),text.metrics().weight().value,false));
-        view.setTextLocales(new android.os.LocaleList(java.util.Locale.forLanguageTag(binding.plan.environment.localeIdentifier())));
-        view.setMaxLines(text.maximumLines()==null?Integer.MAX_VALUE:text.maximumLines());
-        view.setEllipsize(text.maximumLines()==null?null:TextUtils.TruncateAt.END);
+    private static void text(TextView view, Text text, Binding binding,Mutation mutation) {mutation.requireMutation();
+        if(!view.getText().toString().equals(text.value()))view.setText(text.value());mutation.require();
+
+        view.setTextSize(TypedValue.COMPLEX_UNIT_PX,(float)AppearanceGeometryV2.pixelCoordinate(text.metrics().size64(),binding.density()));mutation.require();
+
+        view.setTypeface(Typeface.create(Typeface.create("sans-serif",Typeface.NORMAL),text.metrics().weight().value,false));mutation.require();
+
+        view.setTextLocales(new android.os.LocaleList(java.util.Locale.forLanguageTag(binding.plan.environment.localeIdentifier())));mutation.require();
+
+        view.setMaxLines(text.maximumLines()==null?Integer.MAX_VALUE:text.maximumLines());mutation.require();
+
+        view.setEllipsize(text.maximumLines()==null?null:TextUtils.TruncateAt.END);mutation.require();
+
     }
-    private static void bindTitle(TextView view, Text text, Binding binding, Color ink) {
-        view.setVisibility(text==null?View.GONE:View.VISIBLE);
-        if(text!=null){text(view,text,binding);view.setTextColor(color(ink));}
+    private static void bindTitle(TextView view, Text text, Binding binding, Color ink,Mutation mutation) {mutation.requireMutation();
+        view.setVisibility(text==null?View.GONE:View.VISIBLE);mutation.require();
+
+        if(text!=null){text(view,text,binding,mutation);view.setTextColor(color(ink));mutation.require();
+}
     }
     private static ColorStateList buttonColors(Binding b,ButtonRecipe recipe) {
         ButtonStates s=buttonStates(b,recipe.role());
@@ -248,19 +392,24 @@ final class NativeAppearanceViewsV2 {
     static void fail(){throw new Failure(Error.layout);}
 
     /** Actual native measurement, followed by checked logical aggregation. Never mutates a live record. */
-    static void measure(Record r,Map<String,Record> records,long availableWidth,long availableHeight) {
+    static void measure(Record r,Map<String,Record> records,long availableWidth,long availableHeight,Mutation mutation) {
+        mutation.requireMutation();Mutation previous=r.scoped;r.scoped=mutation;
+        try {
         extent(availableWidth);extent(availableHeight);if(availableWidth<=0)fail();
         Binding b=r.binding;r.geometry=new Geometry();Geometry g=r.geometry;
         if(r.view instanceof TextView text) {
             long reserve=0;
             if(b.node.recipe() instanceof ToggleRecipe t)reserve=sum(t.metrics().trackWidth64(),t.metrics().labelGap64());
             if(b.node.recipe() instanceof ButtonRecipe t){Insets in=t.metrics().labelInsets64();reserve=sum(in.leading(),in.trailing());
-                text.setGravity(Gravity.CENTER);text.setPadding(px(b.rtl()?in.trailing():in.leading(),b),px(in.top(),b),px(b.rtl()?in.leading():in.trailing(),b),px(in.bottom(),b));}
+                text.setGravity(Gravity.CENTER);mutation.require();
+text.setPadding(px(b.rtl()?in.trailing():in.leading(),b),px(in.top(),b),px(b.rtl()?in.leading():in.trailing(),b),px(in.bottom(),b));mutation.require();
+}
             if(b.node.recipe() instanceof FieldRecipe t)reserve=sum(t.metrics().insets64().leading(),t.metrics().insets64().trailing());
             if(availableWidth<=reserve)fail();
             // Switch's native layout reserves its actual authored drawable width and gap.
             int maximum=px(availableWidth,b);if(maximum<=0)fail();
-            text.measure(View.MeasureSpec.makeMeasureSpec(maximum,View.MeasureSpec.AT_MOST),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));
+            text.measure(View.MeasureSpec.makeMeasureSpec(maximum,View.MeasureSpec.AT_MOST),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));mutation.require();
+
             if(text.getLayout()==null)fail();
             long nativeHeight=logical(text.getLayout().getHeight(),b);
             long width=logical(text.getMeasuredWidth(),b),height=nativeHeight;
@@ -272,21 +421,22 @@ final class NativeAppearanceViewsV2 {
                 width=availableWidth;height=Math.max(g.semanticHeight,t.metrics().minimumHitHeight64());}
             else g.semanticHeight=height;
             if(width>availableWidth)fail();g.box=new Box(0,0,width,height);
-            text.measure(View.MeasureSpec.makeMeasureSpec(px(width,b),View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(px(height,b),View.MeasureSpec.EXACTLY));
+            text.measure(View.MeasureSpec.makeMeasureSpec(px(width,b),View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(px(height,b),View.MeasureSpec.EXACTLY));mutation.require();
+
             // The shared first-consumer subset exposes baseline scalars only for ordinary text.
             // Native control carriers/custom label drawing do not establish matching shaped baselines.
             if(b.node.recipe() instanceof TextRecipe){int first=text.getBaseline();if(first<0)fail();g.firstBaseline=logical(first,b);
                 g.lastBaseline=sum(g.firstBaseline,logical(text.getLayout().getLineBaseline(text.getLayout().getLineCount()-1)-text.getLayout().getLineBaseline(0),b));}return;
         }
-        if(b.node.recipe() instanceof ListRecipe list) {measureList(r,records,list,availableWidth,availableHeight);return;}
+        if(b.node.recipe() instanceof ListRecipe list) {measureList(r,records,list,availableWidth,availableHeight,mutation);return;}
         if(b.node.recipe() instanceof SectionRecipe section&&section.context() instanceof ListGroup) {
             // Its List assigns row policy and group clip using its own exact recipe.
             return;
         }
         List<String> ids=b.node.childIDs();long width=0,height=0;
         if(b.node.recipe() instanceof NavigationRecipe nav) {
-            long compact=title(r.compact,nav.compactTitle(),availableWidth,nav.metrics().compactInsets64(),b);
-            long expanded=title(r.header,nav.expandedTitle(),availableWidth,nav.metrics().expandedInsets64(),b);
+            long compact=title(r.compact,nav.compactTitle(),availableWidth,nav.metrics().compactInsets64(),b,mutation);
+            long expanded=title(r.header,nav.expandedTitle(),availableWidth,nav.metrics().expandedInsets64(),b,mutation);
             g.compactBar=Math.max(nav.metrics().minimumCompactBar64(),compact);
             g.expandedBar=nav.expandedTitle()==null?g.compactBar:Math.max(nav.metrics().minimumExpandedBar64(),sum(g.compactBar,expanded));
             g.overflow=g.expandedBar-g.compactBar;
@@ -298,16 +448,19 @@ final class NativeAppearanceViewsV2 {
                 availableWidth-nav.metrics().expandedInsets64().leading()-nav.metrics().expandedInsets64().trailing(),eh);
             g.compact=new Box(b.rtl()?nav.metrics().compactInsets64().trailing():nav.metrics().compactInsets64().leading(),nav.metrics().compactInsets64().top()+(g.compactBar-nav.metrics().compactInsets64().top()-nav.metrics().compactInsets64().bottom()-ch)/2,
                 availableWidth-nav.metrics().compactInsets64().leading()-nav.metrics().compactInsets64().trailing(),ch);
-            r.header.setVisibility(!collapsed&&nav.expandedTitle()!=null?View.VISIBLE:View.INVISIBLE);
-            r.compact.setVisibility(collapsed&&nav.compactTitle()!=null?View.VISIBLE:View.INVISIBLE);
-            if(availableHeight<bar)fail();Record child=records.get(ids.get(0));measure(child,records,availableWidth,availableHeight-bar);
+            r.header.setVisibility(!collapsed&&nav.expandedTitle()!=null?View.VISIBLE:View.INVISIBLE);mutation.require();
+
+            r.compact.setVisibility(collapsed&&nav.compactTitle()!=null?View.VISIBLE:View.INVISIBLE);mutation.require();
+
+            if(availableHeight<bar)fail();Record child=records.get(ids.get(0));measure(child,records,availableWidth,availableHeight-bar,mutation);
             g.children.put(child.id,new Box(0,bar,availableWidth,Math.min(child.geometry.box.height,availableHeight-bar)));
             g.box=new Box(0,0,availableWidth,availableHeight);g.semanticHeight=availableHeight;return;
         }
         long titleWidth=0,titleHeight=0,titleFirst=-1,titleLast=-1,gap=0;
         if(b.node.recipe() instanceof SectionRecipe s) {
             if(s.header()!=null){
-                r.header.measure(View.MeasureSpec.makeMeasureSpec(px(availableWidth,b),View.MeasureSpec.AT_MOST),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));
+                r.header.measure(View.MeasureSpec.makeMeasureSpec(px(availableWidth,b),View.MeasureSpec.AT_MOST),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));mutation.require();
+
                 if(r.header.getLayout()==null)fail();titleWidth=logical(r.header.getMeasuredWidth(),b);titleHeight=logical(r.header.getLayout().getHeight(),b);
                 if(titleWidth>availableWidth)fail();
                 int first=r.header.getBaseline();if(first>=0){titleFirst=logical(first,b);
@@ -321,7 +474,7 @@ final class NativeAppearanceViewsV2 {
             b.node.recipe() instanceof SectionRecipe s?s.contentGaps64():List.of();
         long gapsTotal=0;for(int item:gaps)gapsTotal=sum(gapsTotal,item);
         for(String id:ids) {
-            Record child=records.get(id);measure(child,records,availableWidth,availableHeight);
+            Record child=records.get(id);measure(child,records,availableWidth,availableHeight,mutation);
             width=horizontal?sum(width,child.geometry.box.width):Math.max(width,child.geometry.box.width);
             height=overlay?Math.max(height,child.geometry.box.height):horizontal?Math.max(height,child.geometry.box.height):sum(height,child.geometry.box.height);
         }
@@ -332,7 +485,7 @@ final class NativeAppearanceViewsV2 {
             width=0;height=0;
             for(int index=0;index<ids.size();index++) {
                 Record child=records.get(ids.get(index));child.geometry=new Geometry();
-                measure(child,records,quotient+(index<remainder?1:0),availableHeight);
+                measure(child,records,quotient+(index<remainder?1:0),availableHeight,mutation);
                 width=sum(width,child.geometry.box.width);height=Math.max(height,child.geometry.box.height);
             }
         }
@@ -370,20 +523,23 @@ final class NativeAppearanceViewsV2 {
             g.firstBaseline=titleFirst>=0?sum(g.header.y,titleFirst):-1;
             if(ids.isEmpty())g.lastBaseline=titleLast>=0?sum(g.header.y,titleLast):-1;
         }
+        } finally { r.scoped=previous; }
     }
     private static long scrollOffset(Map<String,Record> records,List<String> ids,Binding binding) {
         for(String id:ids){Record r=records.get(id);if(r.view instanceof ScrollView)return logical(r.preparedScrollY,binding);
             long value=scrollOffset(records,r.binding.node.childIDs(),binding);if(value>0)return value;}return 0;
     }
-    private static long title(TextView view,Text text,long available,Insets in,Binding b) {
+    private static long title(TextView view,Text text,long available,Insets in,Binding b,Mutation mutation) {mutation.requireMutation();
         if(text==null)return 0;long reserve=sum(in.leading(),in.trailing());if(available<=reserve)fail();
-        view.measure(View.MeasureSpec.makeMeasureSpec(px(available-reserve,b),View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));
+        view.measure(View.MeasureSpec.makeMeasureSpec(px(available-reserve,b),View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));mutation.require();
+
         if(view.getLayout()==null)fail();return sum(logical(view.getMeasuredHeight(),b),in.top(),in.bottom());
     }
     private static long align(HorizontalAlignment alignment,long parent,long child,boolean rtl) {
         return alignment==HorizontalAlignment.center?(parent-child)/2:(alignment==HorizontalAlignment.trailing)!=rtl?parent-child:0;
     }
-    private static void measureList(Record r,Map<String,Record> records,ListRecipe list,long width,long availableHeight) {
+    private static void measureList(Record r,Map<String,Record> records,ListRecipe list,long width,long availableHeight,Mutation mutation) {
+        mutation.requireMutation();
         Binding b=r.binding;Geometry g=r.geometry;GroupedList m=list.metrics();long groupWidth=width-2L*m.outerHorizontal64();
         if(groupWidth<sum(m.contentInsets64().leading(),m.contentInsets64().trailing()))fail();long y=0;
         for(AppearanceResolverV2.Group item:list.groups()) {
@@ -393,7 +549,7 @@ final class NativeAppearanceViewsV2 {
             Record section=item.source() instanceof SectionSource s?records.get(s.identity().id()):null;
             if(section!=null)section.geometry=new Geometry();Geometry owner=section==null?g:section.geometry;long localY=section==null?y:0;
             if(section!=null) {
-                long headerHeight=title(section.header,item.header(),groupWidth,new Insets(0,0,0,0),b);
+                long headerHeight=title(section.header,item.header(),groupWidth,new Insets(0,0,0,0),b,mutation);
                 if(item.header()!=null)owner.header=new Box(0,0,groupWidth,headerHeight);
                 localY=sum(localY,headerHeight,item.headerToRowsGap64());
             }
@@ -401,7 +557,7 @@ final class NativeAppearanceViewsV2 {
             for(int index=0;index<item.rowIdentities().size();index++) {
                 Record row=records.get(item.rowIdentities().get(index).id());
                 long contentWidth=groupWidth-m.contentInsets64().leading()-m.contentInsets64().trailing();
-                measure(row,records,contentWidth,availableHeight);
+                measure(row,records,contentWidth,availableHeight,mutation);
                 long semantic=row.geometry.semanticHeight;
                 long rowHeight=Math.max(list.rowHeightFloor64(),sum(semantic,m.contentInsets64().top(),m.contentInsets64().bottom()));
                 long childHeight=Math.max(row.geometry.box.height,semantic);
@@ -428,68 +584,88 @@ final class NativeAppearanceViewsV2 {
         g.contentHeight=sum(y,list.trailingPadding64());g.box=new Box(0,0,width,Math.min(g.contentHeight,availableHeight));g.semanticHeight=g.box.height;
     }
 
-    static void installChildren(Record r,Map<String,Record> records) {
+    static void installChildren(Record r,Map<String,Record> records,Mutation mutation) {
+        mutation.requireMutation();
         if(r.group==null)return;
         List<View> desired=new ArrayList<>();if(r.header!=null)desired.add(r.header);if(r.compact!=null)desired.add(r.compact);
         for(String id:r.binding.node.childIDs())desired.add(records.get(id).view);
-        for(int index=r.group.getChildCount()-1;index>=0;index--)if(!desired.contains(r.group.getChildAt(index)))r.group.removeViewAt(index);
+        for(int index=r.group.getChildCount()-1;index>=0;index--)if(!desired.contains(r.group.getChildAt(index))){r.group.removeViewAt(index);mutation.require();}
+
         for(int index=0;index<desired.size();index++) {
             View child=desired.get(index);if(index<r.group.getChildCount()&&r.group.getChildAt(index)==child)continue;
-            if(child.getParent() instanceof ViewGroup previous)previous.removeView(child);
-            r.group.addView(child,index,new ViewGroup.LayoutParams(-2,-2));
+            if(child.getParent() instanceof ViewGroup previous)previous.removeView(child);mutation.require();
+
+            r.group.addView(child,index,new ViewGroup.LayoutParams(-2,-2));mutation.require();
+
         }
         r.group.records=records;
     }
-    static void layoutRoot(Record root,int width,int height,SafeArea safe) {
+    static void layoutRoot(Record root,int width,int height,SafeArea safe,Mutation mutation) {
+        mutation.requireMutation();
         Binding b=root.binding;long left=b.rtl()?safe.trailing():safe.leading();
         long logicalWidth=b.plan.environment.viewport().width64()-safe.leading()-safe.trailing();
         long logicalHeight=b.plan.environment.viewport().height64()-safe.top()-safe.bottom();
         root.geometry.box=new Box(left,safe.top(),logicalWidth,logicalHeight);
-        layout(root,left,safe.top(),0,0);
+        layout(root,left,safe.top(),0,0,mutation);
     }
-    private static void layout(Record r,long absoluteX,long absoluteY,long parentX,long parentY) {
+    private static void layout(Record r,long absoluteX,long absoluteY,long parentX,long parentY,Mutation mutation) {
+        mutation.requireMutation();Mutation previous=r.scoped;r.scoped=mutation;
+        try {
         Binding b=r.binding;Box frame=r.geometry.box;
         if(r.group!=null){r.group.absoluteX=absoluteX;r.group.absoluteY=absoluteY;}
         int left=px(absoluteX,b)-px(parentX,b),top=px(absoluteY,b)-px(parentY,b);
         int width=px(sum(absoluteX,frame.width),b)-px(absoluteX,b),height=px(sum(absoluteY,frame.height),b)-px(absoluteY,b);
-        r.view.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY));
-        r.view.layout(left,top,left+width,top+height);
-        if(r.view instanceof NativeScroll)r.group.layout(0,0,width,px(r.geometry.contentHeight,b));
+        r.view.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY));mutation.require();
+
+        r.view.layout(left,top,left+width,top+height);mutation.require();
+
+        if(r.view instanceof NativeScroll)r.group.layout(0,0,width,px(r.geometry.contentHeight,b));mutation.require();
+        } finally { r.scoped=previous; }
     }
     static final class Group extends ViewGroup {
         final Record record;Map<String,Record> records=Map.of();long absoluteX,absoluteY;
-        Group(Context context,Record record){super(context);this.record=record;setWillNotDraw(false);setClipChildren(false);setClipToPadding(false);}
-        @Override protected void onMeasure(int width,int height){setMeasuredDimension(View.MeasureSpec.getSize(width),record.geometry==null?0:
-            record.kind.equals("list")?px(record.geometry.contentHeight,record.binding):View.MeasureSpec.getSize(height));}
-        @Override protected void onLayout(boolean changed,int l,int t,int right,int bottom) {
-            if(record.geometry==null)return;Geometry g=record.geometry;Binding b=record.binding;
-            titleLayout(record.header,g.header,b);titleLayout(record.compact,g.compact,b);
-            for(String id:b.node.childIDs()) {Record child=records.get(id);Box box=g.children.get(id);if(child==null||box==null)continue;
-                child.geometry.box=box;NativeAppearanceViewsV2.layout(child,sum(absoluteX,box.x),sum(absoluteY,box.y),absoluteX,absoluteY);}
+        Group(Context context,Record record){super(context);this.record=record;Mutation mutation=record.mutation();mutation.require();setWillNotDraw(false);mutation.require();setClipChildren(false);mutation.require();setClipToPadding(false);mutation.require();}
+        @Override protected void onMeasure(int width,int height){NativeEnvironmentV2.requireMain();if(record==null)return;Mutation mutation=record.mutation();mutation.require();setMeasuredDimension(View.MeasureSpec.getSize(width),record.geometry==null?0:
+            record.kind.equals("list")?px(record.geometry.contentHeight,record.binding):View.MeasureSpec.getSize(height));mutation.require();}
+        @Override protected void onLayout(boolean changed,int l,int t,int right,int bottom) {NativeEnvironmentV2.requireMain();
+            if(record==null||record.geometry==null)return;Mutation mutation=record.mutation();onLayout(changed,l,t,right,bottom,mutation);
         }
-        private void titleLayout(TextView view,Box box,Binding b){if(view==null||box==null)return;
+        void onLayout(boolean changed,int l,int t,int right,int bottom,Mutation mutation) {
+            mutation.requireMutation();Geometry g=record.geometry;Binding b=record.binding;
+            titleLayout(record.header,g.header,b,mutation);titleLayout(record.compact,g.compact,b,mutation);
+            for(String id:b.node.childIDs()) {Record child=records.get(id);Box box=g.children.get(id);if(child==null||box==null)continue;
+                child.geometry.box=box;NativeAppearanceViewsV2.layout(child,sum(absoluteX,box.x),sum(absoluteY,box.y),absoluteX,absoluteY,mutation);mutation.require();
+}
+        }
+        private void titleLayout(TextView view,Box box,Binding b,Mutation mutation){if(record==null||view==null||box==null)return;mutation.requireMutation();
             int l=px(sum(absoluteX,box.x),b)-px(absoluteX,b),t=px(sum(absoluteY,box.y),b)-px(absoluteY,b);
             int w=px(sum(absoluteX,box.x,box.width),b)-px(sum(absoluteX,box.x),b),h=px(sum(absoluteY,box.y,box.height),b)-px(sum(absoluteY,box.y),b);
-            view.measure(View.MeasureSpec.makeMeasureSpec(w,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(h,View.MeasureSpec.EXACTLY));view.layout(l,t,l+w,t+h);}
-        @Override protected void onDraw(Canvas canvas) {
-            if(record.binding==null)return;Binding b=record.binding;
+            view.measure(View.MeasureSpec.makeMeasureSpec(w,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(h,View.MeasureSpec.EXACTLY));mutation.require();
+view.layout(l,t,l+w,t+h);mutation.require();
+}
+        @Override protected void onDraw(Canvas canvas) {NativeEnvironmentV2.requireMain();
+            if(record==null||record.binding==null||!record.input.draw())return;Mutation mutation=record.mutation();mutation.require();Binding b=record.binding;
             if(record.kind.equals("navigation")||record.kind.equals("list"))canvas.drawColor(color(b.palette().canvas()));
-            Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);paint.setColor(color(b.palette().surface()));
+            Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);paint.setColor(color(b.palette().surface()));mutation.require();
+
             for(GroupDrawing group:record.geometry.groups){int save=canvas.save();translate(canvas,group.box,b);canvas.drawPath(group.path,paint);canvas.restoreToCount(save);}
         }
         private void translate(Canvas canvas,Box box,Binding b){canvas.translate(px(sum(absoluteX,box.x),b)-px(absoluteX,b),px(sum(absoluteY,box.y),b)-px(absoluteY,b));}
-        @Override protected boolean drawChild(Canvas canvas,View child,long time) {
+        @Override protected boolean drawChild(Canvas canvas,View child,long time) {NativeEnvironmentV2.requireMain();
+            if(record==null||!record.input.draw())return false;Mutation mutation=record.mutation();mutation.require();
             Integer clip=record.geometry==null?null:record.geometry.clips.get(childRecordID(child));
-            if(clip==null)return super.drawChild(canvas,child,time);
+            if(clip==null)return mutation.result(super.drawChild(canvas,child,time));
             GroupDrawing group=record.geometry.groups.get(clip);int save=canvas.save();Binding b=record.binding;
             int dx=px(sum(absoluteX,group.box.x),b)-px(absoluteX,b),dy=px(sum(absoluteY,group.box.y),b)-px(absoluteY,b);
             canvas.translate(dx,dy);canvas.clipPath(group.path);canvas.translate(-dx,-dy);
-            boolean result=super.drawChild(canvas,child,time);canvas.restoreToCount(save);return result;
+            boolean result=super.drawChild(canvas,child,time);mutation.require();canvas.restoreToCount(save);mutation.require();return result;
         }
         private String childRecordID(View view){for(var entry:records.entrySet())if(entry.getValue().view==view)return entry.getKey();return null;}
-        @Override protected void dispatchDraw(Canvas canvas) {
-            super.dispatchDraw(canvas);if(record.binding==null)return;Binding b=record.binding;GroupedList m=b.theme.groupedList();
-            Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);paint.setColor(color(b.palette().separator()));
+        @Override protected void dispatchDraw(Canvas canvas) {NativeEnvironmentV2.requireMain();
+            if(record==null||!record.input.draw())return;Mutation mutation=record.mutation();mutation.require();
+            super.dispatchDraw(canvas);mutation.require();if(record.binding==null)return;Binding b=record.binding;GroupedList m=b.theme.groupedList();
+            Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);paint.setColor(color(b.palette().separator()));mutation.require();
+
             for(GroupDrawing group:record.geometry.groups) {
                 int save=canvas.save();translate(canvas,group.box,b);canvas.clipPath(group.path);
                 float leading=(float)AppearanceGeometryV2.pixelCoordinate(m.separatorInset64(),b.density());
@@ -502,43 +678,47 @@ final class NativeAppearanceViewsV2 {
     }
     static final class NativeScroll extends ScrollView {
         final Record record;
-        NativeScroll(Context context,Record record){super(context);this.record=record;setFillViewport(false);setClipToPadding(false);setOverScrollMode(OVER_SCROLL_NEVER);setVerticalScrollBarEnabled(false);}
-        @Override protected void onScrollChanged(int l,int t,int oldl,int oldt){super.onScrollChanged(l,t,oldl,oldt);
+        NativeScroll(Context context,Record record){super(context);this.record=record;Mutation mutation=record.mutation();mutation.require();setFillViewport(false);mutation.require();setClipToPadding(false);mutation.require();setOverScrollMode(OVER_SCROLL_NEVER);mutation.require();setVerticalScrollBarEnabled(false);mutation.require();}
+        @Override protected void onScrollChanged(int l,int t,int oldl,int oldt){NativeEnvironmentV2.requireMain();if(record==null)return;Mutation mutation=record.mutation();mutation.require();super.onScrollChanged(l,t,oldl,oldt);mutation.require();
             if(record.binding==null||t==oldt||!record.input.open(record))return;record.input.interaction();
             for(var parent=getParent();parent instanceof View view;parent=view.getParent())if(view instanceof Group group&&group.record.binding.node.recipe() instanceof NavigationRecipe nav){
                 Record owner=group.record;Geometry g=owner.geometry;Binding b=owner.binding;
                 boolean collapsed=g.overflow==0||logical(t,b)>=g.overflow;
                 boolean previously=g.collapsed;g.collapsed=collapsed;
                 if(collapsed==previously)return;
-                owner.header.setVisibility(!collapsed&&nav.expandedTitle()!=null?View.VISIBLE:View.INVISIBLE);
-                owner.compact.setVisibility(collapsed&&nav.compactTitle()!=null?View.VISIBLE:View.INVISIBLE);
+                owner.header.setVisibility(!collapsed&&nav.expandedTitle()!=null?View.VISIBLE:View.INVISIBLE);mutation.require();
+
+                owner.compact.setVisibility(collapsed&&nav.compactTitle()!=null?View.VISIBLE:View.INVISIBLE);mutation.require();
+
                 String childID=b.node.childIDs().get(0);Box child=g.children.get(childID);
                 long bar=collapsed?g.compactBar:g.expandedBar;
                 g.children.put(childID,new Box(child.x,bar,child.width,g.box.height-bar));
-                group.onLayout(true,group.getLeft(),group.getTop(),group.getRight(),group.getBottom());group.invalidate();return;
+                group.onLayout(true,group.getLeft(),group.getTop(),group.getRight(),group.getBottom(),mutation);mutation.require();
+                group.invalidate();mutation.require();
+return;
             }
         }
     }
     static final class Gate extends FrameLayout {
         boolean open;int canvasColor;final NativeRenderer owner;
-        Gate(Context context,NativeRenderer owner){super(context);this.owner=owner;setClipChildren(false);setClipToPadding(false);setWillNotDraw(false);}
-        private boolean current(){return open&&owner.presentationCurrentV2();}
-        @Override protected void onDraw(Canvas canvas){if(current())canvas.drawColor(canvasColor);}
-        @Override protected void dispatchDraw(Canvas canvas){if(current())super.dispatchDraw(canvas);}
-        @Override public boolean dispatchTouchEvent(MotionEvent event){return !current()||super.dispatchTouchEvent(event);}
-        @Override public boolean dispatchKeyEvent(android.view.KeyEvent event){return !current()||super.dispatchKeyEvent(event);}
-        @Override protected void onLayout(boolean changed,int l,int t,int r,int b){/* prepared frames only */}
+        Gate(Context context,NativeRenderer owner){super(context);this.owner=owner;Mutation mutation=owner.mutationV2();mutation.require();setClipChildren(false);mutation.require();setClipToPadding(false);mutation.require();setWillNotDraw(false);mutation.require();}
+        private boolean current(){NativeEnvironmentV2.requireMain();return owner!=null&&owner.drawAllowedV2()&&open&&owner.presentationCurrentV2();}
+        @Override protected void onDraw(Canvas canvas){NativeEnvironmentV2.requireMain();if(current())canvas.drawColor(canvasColor);}
+        @Override protected void dispatchDraw(Canvas canvas){NativeEnvironmentV2.requireMain();if(!current())return;Mutation mutation=owner.mutationV2();mutation.require();super.dispatchDraw(canvas);mutation.require();}
+        @Override public boolean dispatchTouchEvent(MotionEvent event){NativeEnvironmentV2.requireMain();if(!current())return true;Mutation mutation=owner.mutationV2();mutation.require();return mutation.result(super.dispatchTouchEvent(event));}
+        @Override public boolean dispatchKeyEvent(android.view.KeyEvent event){NativeEnvironmentV2.requireMain();if(!current())return true;Mutation mutation=owner.mutationV2();mutation.require();return mutation.result(super.dispatchKeyEvent(event));}
+        @Override protected void onLayout(boolean changed,int l,int t,int r,int b){NativeEnvironmentV2.requireMain();/* prepared frames only */}
     }
     private static final class NativeButton extends Button {
-        NativeButton(Context context,Record record){super(context);setAllCaps(false);setGravity(Gravity.CENTER);}
+        NativeButton(Context context,Record record){super(context);Mutation mutation=record.mutation();mutation.require();setAllCaps(false);mutation.require();setGravity(Gravity.CENTER);mutation.require();}
     }
     private static final class NativeField extends EditText {
         final Record record;
         NativeField(Context context,Record record){super(context);this.record=record;}
-        void refreshPaint(){if(record!=null&&record.binding!=null)setHighlightColor(color(fieldPaint(record).selection()));}
-        @Override protected void drawableStateChanged(){super.drawableStateChanged();refreshPaint();}
+        void refreshPaint(){if(record!=null&&record.binding!=null){Mutation mutation=record.mutation();mutation.require();setHighlightColor(color(fieldPaint(record).selection()));mutation.require();}}
+        @Override protected void drawableStateChanged(){NativeEnvironmentV2.requireMain();if(record==null)return;Mutation mutation=record.mutation();mutation.require();super.drawableStateChanged();mutation.require();refreshPaint();}
         private boolean proposal(CharSequence value,boolean composing){
-            if(!record.input.open(record)||!hasFocus()||!plainProposal(value,composing))return false;Editable buffer=getText();
+            if(record==null||!record.input.open(record)||!hasFocus()||!plainProposal(value,composing))return false;Editable buffer=getText();
             int start=getSelectionStart(),end=getSelectionEnd();
             int cs=android.view.inputmethod.BaseInputConnection.getComposingSpanStart(buffer),ce=android.view.inputmethod.BaseInputConnection.getComposingSpanEnd(buffer);
             if(cs>=0&&ce>=0){start=cs;end=ce;}if(start<0||end<0)return false;
@@ -546,66 +726,72 @@ final class NativeAppearanceViewsV2 {
             String proposed=buffer.subSequence(0,left).toString()+value+buffer.subSequence(right,buffer.length());
             return validBuffer(proposed);
         }
-        @Override public android.view.inputmethod.InputConnection onCreateInputConnection(EditorInfo info){
-            android.view.inputmethod.InputConnection nativeConnection=super.onCreateInputConnection(info);if(nativeConnection==null)return null;
+        @Override public android.view.inputmethod.InputConnection onCreateInputConnection(EditorInfo info){NativeEnvironmentV2.requireMain();
+            if(record==null||!record.input.open(record))return null;Mutation mutation=record.mutation();mutation.require();
+            android.view.inputmethod.InputConnection nativeConnection=super.onCreateInputConnection(info);mutation.require();if(nativeConnection==null)return null;
             return new android.view.inputmethod.InputConnectionWrapper(nativeConnection,false){
                 private boolean open(){return record.input.open(record)&&hasFocus();}
-                @Override public boolean commitText(CharSequence text,int position){return proposal(text,false)&&super.commitText(text,position);}
-                @Override public boolean setComposingText(CharSequence text,int position){return proposal(text,true)&&super.setComposingText(text,position);}
-                @Override public boolean commitText(CharSequence text,int position,android.view.inputmethod.TextAttribute attributes){return proposal(text,false)&&super.commitText(text,position,attributes);}
-                @Override public boolean setComposingText(CharSequence text,int position,android.view.inputmethod.TextAttribute attributes){return proposal(text,true)&&super.setComposingText(text,position,attributes);}
-                @Override public boolean setComposingRegion(int start,int end){return open()&&super.setComposingRegion(start,end);}
-                @Override public boolean setComposingRegion(int start,int end,android.view.inputmethod.TextAttribute attributes){return open()&&super.setComposingRegion(start,end,attributes);}
-                @Override public boolean finishComposingText(){return open()&&super.finishComposingText();}
-                @Override public boolean deleteSurroundingText(int before,int after){return open()&&super.deleteSurroundingText(before,after);}
-                @Override public boolean deleteSurroundingTextInCodePoints(int before,int after){return open()&&super.deleteSurroundingTextInCodePoints(before,after);}
-                @Override public boolean setSelection(int start,int end){return open()&&super.setSelection(start,end);}
-                @Override public boolean performEditorAction(int action){return open()&&super.performEditorAction(action);}
-                @Override public boolean sendKeyEvent(android.view.KeyEvent event){int value=event.getUnicodeChar();
-                    return open()&&(event.getAction()!=android.view.KeyEvent.ACTION_DOWN||value==0||Character.isValidCodePoint(value)&&proposal(new String(Character.toChars(value)),false))&&super.sendKeyEvent(event);}
-                @Override public boolean replaceText(int start,int end,CharSequence text,int position,android.view.inputmethod.TextAttribute attributes){return false;}
-                @Override public boolean performPrivateCommand(String action,android.os.Bundle data){return false;}
-                @Override public boolean setImeConsumesInput(boolean consumes){return open()&&super.setImeConsumesInput(consumes);}
-                @Override public void performHandwritingGesture(android.view.inputmethod.HandwritingGesture gesture,java.util.concurrent.Executor executor,java.util.function.IntConsumer result){if(executor!=null&&result!=null)executor.execute(()->result.accept(android.view.inputmethod.InputConnection.HANDWRITING_GESTURE_RESULT_UNSUPPORTED));}
-                @Override public boolean previewHandwritingGesture(android.view.inputmethod.PreviewableHandwritingGesture gesture,android.os.CancellationSignal cancellation){return false;}
-                @Override public boolean commitCompletion(android.view.inputmethod.CompletionInfo value){return value!=null&&proposal(value.getText(),false)&&super.commitCompletion(value);}
-                @Override public boolean commitCorrection(android.view.inputmethod.CorrectionInfo value){return false;}
-                @Override public boolean commitContent(android.view.inputmethod.InputContentInfo content,int flags,android.os.Bundle options){return false;}
+                @Override public boolean beginBatchEdit(){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();return mutation.result(super.beginBatchEdit());}
+                @Override public boolean endBatchEdit(){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();return mutation.result(super.endBatchEdit());}
+                @Override public boolean clearMetaKeyStates(int states){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();return mutation.result(super.clearMetaKeyStates(states));}
+                @Override public void closeConnection(){NativeEnvironmentV2.requireMain();if(!open())return;Mutation mutation=record.mutation();mutation.require();super.closeConnection();mutation.require();}
+                @Override public boolean commitText(CharSequence text,int position){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();return proposal(text,false)&&mutation.result(super.commitText(text,position));}
+                @Override public boolean setComposingText(CharSequence text,int position){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();return proposal(text,true)&&mutation.result(super.setComposingText(text,position));}
+                @Override public boolean commitText(CharSequence text,int position,android.view.inputmethod.TextAttribute attributes){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();return proposal(text,false)&&mutation.result(super.commitText(text,position,attributes));}
+                @Override public boolean setComposingText(CharSequence text,int position,android.view.inputmethod.TextAttribute attributes){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();return proposal(text,true)&&mutation.result(super.setComposingText(text,position,attributes));}
+                @Override public boolean setComposingRegion(int start,int end){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();return open()&&mutation.result(super.setComposingRegion(start,end));}
+                @Override public boolean setComposingRegion(int start,int end,android.view.inputmethod.TextAttribute attributes){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();return open()&&mutation.result(super.setComposingRegion(start,end,attributes));}
+                @Override public boolean finishComposingText(){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();return open()&&mutation.result(super.finishComposingText());}
+                @Override public boolean deleteSurroundingText(int before,int after){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();return open()&&mutation.result(super.deleteSurroundingText(before,after));}
+                @Override public boolean deleteSurroundingTextInCodePoints(int before,int after){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();return open()&&mutation.result(super.deleteSurroundingTextInCodePoints(before,after));}
+                @Override public boolean setSelection(int start,int end){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();return open()&&mutation.result(super.setSelection(start,end));}
+                @Override public boolean performEditorAction(int action){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();return open()&&mutation.result(super.performEditorAction(action));}
+                @Override public boolean sendKeyEvent(android.view.KeyEvent event){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();int value=event.getUnicodeChar();
+                    return open()&&(event.getAction()!=android.view.KeyEvent.ACTION_DOWN||value==0||Character.isValidCodePoint(value)&&proposal(new String(Character.toChars(value)),false))&&mutation.result(super.sendKeyEvent(event));}
+                @Override public boolean replaceText(int start,int end,CharSequence text,int position,android.view.inputmethod.TextAttribute attributes){NativeEnvironmentV2.requireMain();return false;}
+                @Override public boolean performPrivateCommand(String action,android.os.Bundle data){NativeEnvironmentV2.requireMain();return false;}
+                @Override public boolean setImeConsumesInput(boolean consumes){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();return open()&&mutation.result(super.setImeConsumesInput(consumes));}
+                @Override public void performHandwritingGesture(android.view.inputmethod.HandwritingGesture gesture,java.util.concurrent.Executor executor,java.util.function.IntConsumer result){NativeEnvironmentV2.requireMain();if(executor!=null&&result!=null)executor.execute(()->result.accept(android.view.inputmethod.InputConnection.HANDWRITING_GESTURE_RESULT_UNSUPPORTED));}
+                @Override public boolean previewHandwritingGesture(android.view.inputmethod.PreviewableHandwritingGesture gesture,android.os.CancellationSignal cancellation){NativeEnvironmentV2.requireMain();return false;}
+                @Override public boolean commitCompletion(android.view.inputmethod.CompletionInfo value){NativeEnvironmentV2.requireMain();if(!open())return false;Mutation mutation=record.mutation();mutation.require();return value!=null&&proposal(value.getText(),false)&&mutation.result(super.commitCompletion(value));}
+                @Override public boolean commitCorrection(android.view.inputmethod.CorrectionInfo value){NativeEnvironmentV2.requireMain();return false;}
+                @Override public boolean commitContent(android.view.inputmethod.InputContentInfo content,int flags,android.os.Bundle options){NativeEnvironmentV2.requireMain();return false;}
             };
         }
-        @Override protected void onSelectionChanged(int start,int end){super.onSelectionChanged(start,end);
+        @Override protected void onSelectionChanged(int start,int end){NativeEnvironmentV2.requireMain();if(record==null)return;Mutation mutation=record.mutation();mutation.require();super.onSelectionChanged(start,end);mutation.require();
             if(record!=null&&!record.changing&&record.input.open(record))record.input.interaction();
         }
-        @Override public boolean performAccessibilityAction(int action,android.os.Bundle arguments){
-            if(!record.input.open(record))return false;
+        @Override public boolean performAccessibilityAction(int action,android.os.Bundle arguments){NativeEnvironmentV2.requireMain();
+            if(record==null||!record.input.open(record))return false;
             if(action==android.view.accessibility.AccessibilityNodeInfo.ACTION_SET_TEXT){
                 CharSequence proposed=arguments==null?null:arguments.getCharSequence(android.view.accessibility.AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE);
                 if(proposed==null||!plainProposal(proposed,false)||!validBuffer(proposed.toString()))return false;
             }
-            return super.performAccessibilityAction(action,arguments);
+            Mutation mutation=record.mutation();mutation.require();return mutation.result(super.performAccessibilityAction(action,arguments));
         }
-        @Override public boolean onKeyDown(int code,android.view.KeyEvent event){
-            if(!record.input.open(record))return true;int value=event.getUnicodeChar();
-            if(value!=0&&(!Character.isValidCodePoint(value)||!proposal(new String(Character.toChars(value)),false)))return true;return super.onKeyDown(code,event);
+        @Override public boolean onKeyDown(int code,android.view.KeyEvent event){NativeEnvironmentV2.requireMain();
+            if(record==null||!record.input.open(record))return true;int value=event.getUnicodeChar();
+            if(value!=0&&(!Character.isValidCodePoint(value)||!proposal(new String(Character.toChars(value)),false)))return true;Mutation mutation=record.mutation();mutation.require();return mutation.result(super.onKeyDown(code,event));
         }
-        @Override public boolean onTextContextMenuItem(int id){
-            if(!record.input.open(record))return false;
+        @Override public boolean onTextContextMenuItem(int id){NativeEnvironmentV2.requireMain();
+            if(record==null||!record.input.open(record))return false;
             if(id==android.R.id.paste||id==android.R.id.pasteAsPlainText){
                 android.content.ClipboardManager clipboard=getContext().getSystemService(android.content.ClipboardManager.class);
                 android.content.ClipData clip=clipboard==null?null:clipboard.getPrimaryClip();if(clip==null)return false;
                 StringBuilder proposed=new StringBuilder();for(int i=0;i<clip.getItemCount();i++){if(i>0)proposed.append('\n');CharSequence item=clip.getItemAt(i).coerceToText(getContext());if(!plainProposal(item,false))return false;proposed.append(item);}
                 if(!proposal(proposed,false))return false;
             }
-            return super.onTextContextMenuItem(id);
+            Mutation mutation=record.mutation();mutation.require();return mutation.result(super.onTextContextMenuItem(id));
         }
     }
     private static final class NativeSwitch extends Switch implements AuthoredToggleInputV2.CheckedBinding {
         final Record record;Path track,thumb;
         private final AuthoredToggleInputV2 touch = new AuthoredToggleInputV2();
         private android.view.ViewParent downParent, disallowedParent;
+        private boolean cancelling;
         private int downLeft,downTop;
         NativeSwitch(Context context,Record record){super(context);this.record=record;}
-        private boolean open(){return record!=null&&record.view==this&&!record.changing&&record.binding!=null&&
+        private boolean open(){NativeEnvironmentV2.requireMain();return record!=null&&record.view==this&&!record.changing&&record.binding!=null&&
             record.binding.node.recipe() instanceof ToggleRecipe&&record.binding.nativeToggleValue()!=null&&
             isChecked()==record.binding.nativeToggleValue()&&record.input.open(record);}
         private AuthoredToggleInputV2.Geometry authoredGeometry(){
@@ -621,12 +807,24 @@ final class NativeAppearanceViewsV2 {
         // Clear ownership before invoking a parent: a callback may synchronously rebind or retire this view.
         void cancelTouch(){clearTouch(false);}
         private void clearTouch(boolean terminal){
-            if(touch==null)return;if(terminal)touch.end();else touch.cancel();downParent=null;
+            if(touch==null||record==null||cancelling)return;
+            boolean nativeOwned=touch.active()||downParent!=null||disallowedParent!=null||isPressed();
+            if(terminal)touch.end();else touch.cancel();downParent=null;
             var parent=disallowedParent;disallowedParent=null;
-            setPressed(false);invalidate();if(parent!=null)parent.requestDisallowInterceptTouchEvent(false);
+            if(!nativeOwned)return;
+            cancelling=true;
+            Throwable ordinary=null;java.lang.Error fatal=null;
+            try{
+                try{setPressed(false);}catch(RuntimeException failure){record.cancellationFailure(failure);ordinary=failure;}catch(java.lang.Error failure){record.cancellationFailure(failure);fatal=failure;}
+                try{invalidate();}catch(RuntimeException failure){record.cancellationFailure(failure);if(ordinary==null)ordinary=failure;}catch(java.lang.Error failure){record.cancellationFailure(failure);if(fatal==null)fatal=failure;}
+                try{if(parent!=null)parent.requestDisallowInterceptTouchEvent(false);}
+                catch(RuntimeException failure){record.cancellationFailure(failure);if(ordinary==null)ordinary=failure;}catch(java.lang.Error failure){record.cancellationFailure(failure);if(fatal==null)fatal=failure;}
+            }finally{cancelling=false;}
+            if(fatal!=null){if(ordinary!=null)try{fatal.addSuppressed(ordinary);}catch(Throwable unavailable){}throw fatal;}
+            if(ordinary instanceof RuntimeException failure)throw failure;
         }
         private void endTouch(){clearTouch(true);}
-        private void syncPaint(){setPressed(touch.pressed());refreshPaint();invalidate();}
+        private void syncPaint(){Mutation mutation=record.mutation();mutation.require();setPressed(touch.pressed());mutation.require();refreshPaint();mutation.require();invalidate();mutation.require();}
         private boolean sample(int id,int count,double x,double y,long time){
             if(!fence()){cancelTouch();return false;}
             record.input.interaction(); // Local epoch only, never a feature envelope or JNI call.
@@ -636,7 +834,8 @@ final class NativeAppearanceViewsV2 {
             syncPaint();
             if(before!=AuthoredToggleInputV2.Phase.drag&&touch.phase()==AuthoredToggleInputV2.Phase.drag){
                 var parent=getParent();disallowedParent=parent;
-                if(parent!=null)parent.requestDisallowInterceptTouchEvent(true);
+                Mutation mutation=record.mutation();mutation.require();
+                if(parent!=null)parent.requestDisallowInterceptTouchEvent(true);mutation.require();
                 if(!fence()){cancelTouch();return false;}
             }
             return true;
@@ -651,7 +850,7 @@ final class NativeAppearanceViewsV2 {
                 if(!sample(id,1,event.getHistoricalX(0,h),event.getHistoricalY(0,h),event.getHistoricalEventTime(h)))return false;
             return sample(id,1,event.getX(0),event.getY(0),event.getEventTime());
         }
-        @Override public boolean onTouchEvent(MotionEvent event){
+        @Override public boolean onTouchEvent(MotionEvent event){NativeEnvironmentV2.requireMain();
             if(touch==null||record==null||event==null)return false;
             int action=event.getActionMasked(),index=event.getActionIndex();
             boolean owned=touch.ownsRemainder();
@@ -678,64 +877,74 @@ final class NativeAppearanceViewsV2 {
             if(desired!=AuthoredToggleInputV2.NO_CHANGE&&record.binding==binding&&open()&&isChecked()!=(desired==1))performClick();
             return true;
         }
-        @Override public boolean performClick(){
-            cancelTouch();if(!open())return false;
-            try{return super.performClick();}finally{AuthoredToggleInputV2.reconcile(this);refreshPaint();invalidate();}
+        @Override public boolean performClick(){NativeEnvironmentV2.requireMain();
+            if(record==null||!open())return false;Mutation mutation=record.mutation();mutation.require();cancelTouch();mutation.require();
+            try{return mutation.result(super.performClick());}finally{
+                if(mutation.current()&&open()){mutation.require();AuthoredToggleInputV2.reconcile(this);mutation.require();refreshPaint();mutation.require();invalidate();mutation.require();}
+            }
         }
-        @Override public boolean dispatchKeyEvent(android.view.KeyEvent event){
-            if(touch!=null&&touch.active())cancelTouch();
-            if(!open()){cancelTouch();return false;}return super.dispatchKeyEvent(event);
+        @Override public boolean dispatchKeyEvent(android.view.KeyEvent event){NativeEnvironmentV2.requireMain();
+            if(record==null)return false;Mutation mutation=record.mutation();mutation.require();
+            if(touch!=null&&touch.active())cancelTouch();mutation.require();
+            if(!open()){cancelTouch();return false;}return mutation.result(super.dispatchKeyEvent(event));
         }
-        @Override public boolean performAccessibilityAction(int action,android.os.Bundle arguments){
-            cancelTouch();return open()&&super.performAccessibilityAction(action,arguments);
+        @Override public boolean performAccessibilityAction(int action,android.os.Bundle arguments){NativeEnvironmentV2.requireMain();
+            if(record==null||!open())return false;Mutation mutation=record.mutation();mutation.require();
+            cancelTouch();mutation.require();return open()&&mutation.result(super.performAccessibilityAction(action,arguments));
         }
-        @Override public Boolean latestBoundChecked(){return record==null||record.binding==null?null:record.binding.nativeToggleValue();}
-        @Override public boolean nativeChecked(){return isChecked();}
-        @Override public boolean changingGuard(){return record!=null&&record.changing;}
-        @Override public void changingGuard(boolean value){if(record!=null)record.changing=value;}
-        @Override public void restoreChecked(boolean value){setChecked(value);}
+        @Override public Boolean latestBoundChecked(){NativeEnvironmentV2.requireMain();return record==null||record.binding==null?null:record.binding.nativeToggleValue();}
+        @Override public boolean nativeChecked(){NativeEnvironmentV2.requireMain();return isChecked();}
+        @Override public boolean changingGuard(){NativeEnvironmentV2.requireMain();return record!=null&&record.changing;}
+        @Override public void changingGuard(boolean value){NativeEnvironmentV2.requireMain();if(record!=null)record.changing=value;}
+        @Override public void restoreChecked(boolean value){NativeEnvironmentV2.requireMain();if(record==null)return;Mutation mutation=record.mutation();mutation.require();setChecked(value);mutation.require();}
         boolean visualChecked(){return touch!=null&&record!=null&&touch.matches(record.binding,isChecked())?touch.visualChecked():isChecked();}
-        void refreshPaint(){if(record!=null&&record.binding!=null)setTextColor(color(togglePaint(record).label()));}
-        @Override protected void drawableStateChanged(){super.drawableStateChanged();refreshPaint();}
-        @Override public void setEnabled(boolean enabled){if(!enabled)cancelTouch();super.setEnabled(enabled);}
-        @Override protected boolean setFrame(int left,int top,int right,int bottom){
-            if(left!=getLeft()||top!=getTop()||right!=getRight()||bottom!=getBottom())cancelTouch();return super.setFrame(left,top,right,bottom);
+        void refreshPaint(){if(record==null||record.binding==null||cancelling)return;Mutation mutation=record.mutation();mutation.require();setTextColor(color(togglePaint(record).label()));mutation.require();}
+        @Override protected void drawableStateChanged(){NativeEnvironmentV2.requireMain();if(record==null||cancelling)return;Mutation mutation=record.mutation();mutation.require();super.drawableStateChanged();mutation.require();refreshPaint();}
+        @Override public void setEnabled(boolean enabled){NativeEnvironmentV2.requireMain();if(record==null||touch==null||cancelling)return;Mutation mutation=record.mutation();mutation.require();cancelTouch();mutation.require();super.setEnabled(enabled);mutation.require();}
+        @Override protected boolean setFrame(int left,int top,int right,int bottom){NativeEnvironmentV2.requireMain();
+            if(record==null||touch==null||cancelling)return false;Mutation mutation=record.mutation();mutation.require();
+            if(left!=getLeft()||top!=getTop()||right!=getRight()||bottom!=getBottom())cancelTouch();mutation.require();
+            return mutation.result(super.setFrame(left,top,right,bottom));
         }
-        @Override protected void onDetachedFromWindow(){cancelTouch();super.onDetachedFromWindow();}
-        @Override protected void onAttachedToWindow(){cancelTouch();super.onAttachedToWindow();}
-        @Override protected void onVisibilityChanged(View changed,int visibility){if(visibility!=View.VISIBLE)cancelTouch();super.onVisibilityChanged(changed,visibility);}
-        @Override protected void onWindowVisibilityChanged(int visibility){if(visibility!=View.VISIBLE)cancelTouch();super.onWindowVisibilityChanged(visibility);}
-        @Override public void onWindowFocusChanged(boolean focused){if(!focused)cancelTouch();super.onWindowFocusChanged(focused);}
-        @Override protected void onFocusChanged(boolean focused,int direction,android.graphics.Rect old){if(!focused)cancelTouch();super.onFocusChanged(focused,direction,old);}
-        @Override public void onRtlPropertiesChanged(int direction){cancelTouch();super.onRtlPropertiesChanged(direction);}
-        @Override protected void onDraw(Canvas canvas) {
-            if(record==null||record.binding==null||track==null)return;Binding b=record.binding;ToggleRecipe recipe=(ToggleRecipe)b.node.recipe();ToggleMetrics m=recipe.metrics();TogglePaint colors=togglePaint(record);
+        @Override protected void onDetachedFromWindow(){NativeEnvironmentV2.requireMain();if(record==null||cancelling)return;cancelTouch();if(!record.input.draw())return;Mutation mutation=record.mutation();mutation.require();super.onDetachedFromWindow();mutation.require();}
+        @Override protected void onAttachedToWindow(){NativeEnvironmentV2.requireMain();if(record==null||cancelling)return;Mutation mutation=record.mutation();mutation.require();cancelTouch();mutation.require();super.onAttachedToWindow();mutation.require();}
+        @Override protected void onVisibilityChanged(View changed,int visibility){NativeEnvironmentV2.requireMain();if(record==null||cancelling)return;cancelTouch();if(!record.input.draw())return;Mutation mutation=record.mutation();mutation.require();super.onVisibilityChanged(changed,visibility);mutation.require();}
+        @Override protected void onWindowVisibilityChanged(int visibility){NativeEnvironmentV2.requireMain();if(record==null||cancelling)return;cancelTouch();if(!record.input.draw())return;Mutation mutation=record.mutation();mutation.require();super.onWindowVisibilityChanged(visibility);mutation.require();}
+        @Override public void onWindowFocusChanged(boolean focused){NativeEnvironmentV2.requireMain();if(record==null||cancelling)return;cancelTouch();if(!record.input.draw())return;Mutation mutation=record.mutation();mutation.require();super.onWindowFocusChanged(focused);mutation.require();}
+        @Override protected void onFocusChanged(boolean focused,int direction,android.graphics.Rect old){NativeEnvironmentV2.requireMain();if(record==null||cancelling)return;Mutation mutation=record.mutation();mutation.require();if(!focused)cancelTouch();mutation.require();super.onFocusChanged(focused,direction,old);mutation.require();}
+        @Override public void onRtlPropertiesChanged(int direction){NativeEnvironmentV2.requireMain();if(record==null||cancelling)return;Mutation mutation=record.mutation();mutation.require();cancelTouch();mutation.require();super.onRtlPropertiesChanged(direction);mutation.require();}
+        @Override protected void onDraw(Canvas canvas) {NativeEnvironmentV2.requireMain();
+            if(record==null||record.binding==null||track==null||!record.input.draw())return;Mutation mutation=record.mutation();mutation.require();Binding b=record.binding;ToggleRecipe recipe=(ToggleRecipe)b.node.recipe();ToggleMetrics m=recipe.metrics();TogglePaint colors=togglePaint(record);
             var geometry=authoredGeometry();if(geometry==null)return;
             Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);Layout text=getLayout();
             if(text!=null){int save=canvas.save();int x=b.rtl()?px(sum(m.trackWidth64(),m.labelGap64()),b):0;
                 canvas.translate(x,(getHeight()-text.getHeight())/2f);text.draw(canvas);canvas.restoreToCount(save);}
             float x=geometry.trackX(),y=geometry.trackY();
-            int save=canvas.save();canvas.translate(x,y);paint.setColor(color(colors.track()));canvas.drawPath(track,paint);
-            int clip=canvas.save();canvas.clipPath(track);paint.setColor(color(colors.overlay()));canvas.drawPath(track,paint);canvas.restoreToCount(clip);
+            int save=canvas.save();canvas.translate(x,y);paint.setColor(color(colors.track()));mutation.require();
+canvas.drawPath(track,paint);
+            int clip=canvas.save();canvas.clipPath(track);paint.setColor(color(colors.overlay()));mutation.require();
+canvas.drawPath(track,paint);canvas.restoreToCount(clip);
             double fraction=touch!=null&&touch.matches(b,isChecked())?touch.fraction():(isChecked()?1:0);
             canvas.translate((float)geometry.origin(fraction),(float)geometry.thumbY());
-            paint.setColor(color(colors.thumb()));canvas.drawPath(thumb,paint);canvas.restoreToCount(save);
-            if(isEnabled()&&isFocused()){ToggleStates states=visualChecked()?b.palette().toggle().on():b.palette().toggle().off();outline(canvas,new RectF(x,y,x+geometry.trackWidth(),y+geometry.trackHeight()),states.focus(),b,paint);}
+            paint.setColor(color(colors.thumb()));mutation.require();
+canvas.drawPath(thumb,paint);canvas.restoreToCount(save);
+            if(isEnabled()&&isFocused()){ToggleStates states=visualChecked()?b.palette().toggle().on():b.palette().toggle().off();outline(canvas,new RectF(x,y,x+geometry.trackWidth(),y+geometry.trackHeight()),states.focus(),b,paint,mutation);}
         }
     }
     private abstract static class OwnedDrawable extends Drawable {
         final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
-        @Override public void setAlpha(int alpha){if(alpha!=255)throw new IllegalArgumentException("authored alpha only");}
-        @Override public void setColorFilter(ColorFilter filter){if(filter!=null)throw new IllegalArgumentException("authored colors only");}
-        @Override public int getOpacity(){return PixelFormat.TRANSLUCENT;}
+        @Override public void setAlpha(int alpha){NativeEnvironmentV2.requireMain();if(alpha!=255)throw new IllegalArgumentException("authored alpha only");}
+        @Override public void setColorFilter(ColorFilter filter){NativeEnvironmentV2.requireMain();if(filter!=null)throw new IllegalArgumentException("authored colors only");}
+        @Override public int getOpacity(){NativeEnvironmentV2.requireMain();return PixelFormat.TRANSLUCENT;}
     }
     private static final class ControlDrawable extends OwnedDrawable {
         final Record record;final boolean field;
         ControlDrawable(Record record,boolean field){this.record=record;this.field=field;}
-        @Override public boolean isStateful(){return true;}
-        @Override protected boolean onStateChange(int[] state){invalidateSelf();return true;}
-        @Override public void draw(Canvas canvas){Binding b=record.binding;if(b==null)return;
-            if(field){FieldPaint colors=fieldPaint(record);RectF box=new RectF(getBounds());paint.setColor(color(colors.background()));canvas.drawRect(box,paint);outline(canvas,box,colors.outline(),b,paint);}
+        @Override public boolean isStateful(){NativeEnvironmentV2.requireMain();return true;}
+        @Override protected boolean onStateChange(int[] state){NativeEnvironmentV2.requireMain();invalidateSelf();return true;}
+        @Override public void draw(Canvas canvas){NativeEnvironmentV2.requireMain();Binding b=record.binding;if(b==null||!record.input.draw())return;Mutation mutation=record.mutation();mutation.require();
+            if(field){FieldPaint colors=fieldPaint(record);RectF box=new RectF(getBounds());paint.setColor(color(colors.background()));mutation.require();
+canvas.drawRect(box,paint);outline(canvas,box,colors.outline(),b,paint,mutation);}
             else {ButtonRecipe r=(ButtonRecipe)b.node.recipe();ButtonStates states=buttonStates(b,r.role());
                 ButtonPaint colors=!record.view.isEnabled()?states.disabled():record.view.isPressed()?states.pressed():states.enabled();
                 TextView text=(TextView)record.view;Layout layout=text.getLayout();float textWidth=0;
@@ -743,27 +952,34 @@ final class NativeAppearanceViewsV2 {
                 float w=textWidth+px(sum(r.metrics().labelInsets64().leading(),r.metrics().labelInsets64().trailing()),b);
                 float h=(layout==null?0:layout.getHeight())+px(sum(r.metrics().labelInsets64().top(),r.metrics().labelInsets64().bottom()),b);
                 RectF box=new RectF((text.getWidth()-w)/2,(text.getHeight()-h)/2,(text.getWidth()+w)/2,(text.getHeight()+h)/2);
-                paint.setColor(color(colors.background()));float radius=px(r.metrics().overlayRadius64(),b);canvas.drawRoundRect(box,radius,radius,paint);
-                if(record.view.isEnabled()&&record.view.isFocused())outline(canvas,box,states.focus(),b,paint);
+                paint.setColor(color(colors.background()));mutation.require();
+float radius=px(r.metrics().overlayRadius64(),b);canvas.drawRoundRect(box,radius,radius,paint);
+                if(record.view.isEnabled()&&record.view.isFocused())outline(canvas,box,states.focus(),b,paint,mutation);
             }}
     }
-    private static void outline(Canvas canvas,RectF box,Outline outline,Binding b,Paint paint){if(outline==null||outline.width64()==0)return;
+    private static void outline(Canvas canvas,RectF box,Outline outline,Binding b,Paint paint,Mutation mutation){mutation.require();if(outline==null||outline.width64()==0)return;
         float width=(float)AppearanceGeometryV2.pixelCoordinate(outline.width64(),b.density());RectF inner=new RectF(box);inner.inset(width/2,width/2);
-        paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(width);paint.setColor(color(outline.color()));float radius=(float)AppearanceGeometryV2.pixelCoordinate(outline.radius64(),b.density());
-        canvas.drawRoundRect(inner,radius,radius,paint);paint.setStyle(Paint.Style.FILL);}
+        paint.setStyle(Paint.Style.STROKE);mutation.require();
+paint.setStrokeWidth(width);mutation.require();
+paint.setColor(color(outline.color()));mutation.require();
+float radius=(float)AppearanceGeometryV2.pixelCoordinate(outline.radius64(),b.density());
+        canvas.drawRoundRect(inner,radius,radius,paint);paint.setStyle(Paint.Style.FILL);mutation.require();
+}
     private static final class Cursor extends OwnedDrawable {
         final Record record;Cursor(Record record){this.record=record;}
-        @Override public int getIntrinsicWidth(){return 2;}
-        @Override public void draw(Canvas canvas){paint.setColor(color(fieldPaint(record).caret()));canvas.drawRect(getBounds(),paint);}
+        @Override public int getIntrinsicWidth(){NativeEnvironmentV2.requireMain();return 2;}
+        @Override public void draw(Canvas canvas){NativeEnvironmentV2.requireMain();if(!record.input.draw())return;Mutation mutation=record.mutation();mutation.require();paint.setColor(color(fieldPaint(record).caret()));mutation.require();
+canvas.drawRect(getBounds(),paint);}
     }
     private static final class Handle extends OwnedDrawable {
         final Record record;Handle(Record record){this.record=record;}
-        @Override public int getIntrinsicWidth(){return 12;}@Override public int getIntrinsicHeight(){return 12;}
-        @Override public void draw(Canvas canvas){paint.setColor(color(fieldPaint(record).selection()));canvas.drawOval(new RectF(getBounds()),paint);}
+        @Override public int getIntrinsicWidth(){NativeEnvironmentV2.requireMain();return 12;}@Override public int getIntrinsicHeight(){NativeEnvironmentV2.requireMain();return 12;}
+        @Override public void draw(Canvas canvas){NativeEnvironmentV2.requireMain();if(!record.input.draw())return;Mutation mutation=record.mutation();mutation.require();paint.setColor(color(fieldPaint(record).selection()));mutation.require();
+canvas.drawOval(new RectF(getBounds()),paint);}
     }
     private static final class Empty extends OwnedDrawable {
         final int width,height;Empty(int width,int height){this.width=width;this.height=height;}
-        @Override public int getIntrinsicWidth(){return width;}@Override public int getIntrinsicHeight(){return height;}
-        @Override public void draw(Canvas canvas){}
+        @Override public int getIntrinsicWidth(){NativeEnvironmentV2.requireMain();return width;}@Override public int getIntrinsicHeight(){NativeEnvironmentV2.requireMain();return height;}
+        @Override public void draw(Canvas canvas){NativeEnvironmentV2.requireMain();}
     }
 }

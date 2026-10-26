@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "source_sha256": "0ab577c36f9836539181ba5156bdfbc7764ea065266e68d94b431da5fdb47ea8",
+  "producer_seal_sha256": "c806b2967e37978403641c0172f3d70013b1e74c0d28128236f26fb618812597",
+  "status": "finite correction required for complete exact G6 claim; no cap640 failure found",
+  "findings": [
+    {
+      "id": "G6-IR-01",
+      "severity": "blocks exact producer completeness; finite source-ledger correction",
+      "producer_source": "verification/swift-cache-state-g6-complete/ledger.py:190-202",
+      "selected_source_lines": [596, 642],
+      "issue": "copy_within is a slice method, yet its template transfers only a thin Candidate receiver and has no constructed/received slice.len. Other Candidate-to-slice helper calls charge all six component edges.",
+      "required_correction": "Replace the two receiver edges by the six named receiver rows and rebind existing length/data reads to the received slice fields. Add4 scalar operations per affected path, no payload copy.",
+      "corrected_production_maximum": {"scalars": 6737, "blocks": 422, "copies": 90, "groups": 512},
+      "corrected_private_fault_maximum": {"scalars": 6778, "blocks": 424, "copies": 90, "groups": 514},
+      "cap": 640,
+      "cap_overrun_proved": false,
+      "root_separate_addendum_required": true
+    },
+    {
+      "id": "G6-IR-02",
+      "severity": "local inventory qualification; whole lifetime remains pending",
+      "producer_source": "verification/swift-cache-state-g6-complete/local-places.json",
+      "issue": "complete_G6_local_category_inventory:true omits the copy_within receiver/Range/destination/count/address phases and cleanup's actual named outer arena reference source. The Vec24 field is not that pointer8.",
+      "required_correction": "Use receiver-correction.json for the finite call phases, enumerate the live outer arena source pointer, and retain a qualified partial inventory until the separate complete role/lifetime reconciliation.",
+      "extra_work_beyond_G6_IR_01": 0,
+      "whole_29344_or_role_fit_accepted": false
+    }
+  ],
+  "independently_checked": [
+    "Exact immutable producer14/C3 570/clear12/proposal5 member custody",
+    "Nine helper formulas derived from Rust source and selected component grammar, without producer imports or execution",
+    "Independent ordinary/staging-refusal/private-commit/cleanup-fault recipes reproduce all73 frozen path arithmetic rows",
+    "Source merge caller only inG6 and prefix542..561 inG5; prior admissionG1 staysG1",
+    "Complete st/sq LE-return8 and destination8, prior-pins ld argument8, checked Option16, loop final None16, and source/received fields",
+    "Exactly16 anonymous128 constructors with130 scalar edges each,43 metadata each and16 actual128 payload copies; no fictional initializer-array movement",
+    "Twelve final scalar commits and twelve restores, cleanup caller Vec coercion/guard, bool return, caller negation and private corruption controls",
+    "Extremal operation IDs/owner partitions/segment hashes/copy widths and ordered scalar partitions"
+  ],
+  "path_coverage_qualification": "The73 rows are conservative static source traces, not all feasible input executions. Ordinary earlier refusals are bounded by common cleanup or longer explicit staging prefixes. The unlisted simultaneous private commit+cleanup failure is bounded by its commit-failure prefix plus19 corruption scalars and is below the full built-publication cleanup-failure maximum.",
+  "scope": "Authored-source component model only; no ABI/machine/libstd-internals/runtime bound; no hidden optimizer/promotion credit",
+  "unchanged_owners": {"G1": "admission/prior/identity and initial flag births", "G3_G4": "merge body including implicit unit/callee return", "G5": "prefix542..561 including feasibility computation", "G6": "actual staging/commit/cleanup even after guard", "G7": "paid complete replies/received audit/latch", "G128": "zero-debit complete guard replies/received/terminal"},
+  "unchanged_caps": [256,2560,2568,768,640,640,248],
+  "not_accepted": ["frozen exact511 completeness", "whole29344 lifetime union", "helper192/control/wire role fits", "G3_G4 union", "implementation/runtime behavior", "dogfood release", "OTA authority", "GA qualification"],
+  "execution_limits": {"source_only": true, "product_or_compiler_or_runtime_execution": false, "native_UI_capture_or_process_inventory": false, "producer_import_or_execution": false, "frozen_packet_mutation": false, "commit_or_push": false}
+}

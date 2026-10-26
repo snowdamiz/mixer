@@ -24,7 +24,7 @@ private let repository = URL(fileURLWithPath: #filePath).deletingLastPathCompone
     let java = ["Json.java", "UiPacket.java", "NativeRenderer.java", "NativeBridge.java", "MixerActivity.java", "NativeCoordinatorV2.java",
                  "AppearanceDescriptorV2.java", "AppearanceGeometryV2.java", "AppearanceResolverV2.java",
                  "AppearanceNativePathsV2.java", "InstalledAppearanceV2.java", "NativeEnvironmentV2.java",
-                 "AuthoredToggleInputV2.java", "NativeAppearanceViewsV2.java"]
+                 "AuthoredToggleInputV2.java", "NativeAppearanceViewsV2.java", "NativeOwnerV2.java", "OwnerLifecycleV2.java"]
     #expect(Set(try SourceDigest.files(in: root.appendingPathComponent("app/src")).map(\.lastPathComponent)) == Set(java))
     for name in java {
         let relative = "app/src/dev/mixer/android/\(name)"
@@ -77,7 +77,7 @@ func androidDefaultAppearanceSnapshotChangesInvalidateAdapterLock(_ change: Stri
     #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent(".mixer").path))
 }
 
-@Test(arguments: ["NativeCoordinatorV2.java", "AuthoredToggleInputV2.java"], ["edit", "remove", "rename"])
+@Test(arguments: ["NativeCoordinatorV2.java", "AuthoredToggleInputV2.java", "NativeOwnerV2.java", "OwnerLifecycleV2.java"], ["edit", "remove", "rename"])
 func androidCoordinatorAndAuthoredToggleSnapshotChangesInvalidateAdapterLock(_ filename: String, _ change: String) throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-android-coordinator-lock-\(UUID().uuidString)")
     defer { try? FileManager.default.removeItem(at: root) }
@@ -103,6 +103,10 @@ func androidCoordinatorAndAuthoredToggleSnapshotChangesInvalidateAdapterLock(_ f
     case "remove": try FileManager.default.removeItem(at: source)
     default: try FileManager.default.moveItem(at: source, to: source.appendingPathExtension("renamed"))
     }
+    // A caller can recompute the generic lock, but cannot change the compiled
+    // source-pair policy for a changed, removed, or renamed owner/core source.
+    lock.android?.adapterDigest = try SourceDigest.tree(adapter)
+    try JSONFile.write(lock, to: root.appendingPathComponent("mixer.lock"))
     #expect(throws: MixerFailure.self) {
         do { _ = try ProjectBuild.verifyLock(root: root) }
         catch let failure as MixerFailure { #expect(failure.code == "android.sdk-compatibility"); throw failure }

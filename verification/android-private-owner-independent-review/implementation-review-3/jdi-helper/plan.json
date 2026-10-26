@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "scope": "Exactly three already-selected helper sites times seven existing variants; 21 direct timing rows replace zero-credit nested timing rows for matrix credit, without expanding count",
+  "product_source": "root admitted immutable candidate4 only; no bytecode transformation, redefinition or product field writes",
+  "cases": [
+    {
+      "site": "NativeAppearanceViewsV2:L468:C40:1",
+      "variant": "clean"
+    },
+    {
+      "site": "NativeAppearanceViewsV2:L468:C40:1",
+      "variant": "terminal-at-entry"
+    },
+    {
+      "site": "NativeAppearanceViewsV2:L468:C40:1",
+      "variant": "terminal-before-return"
+    },
+    {
+      "site": "NativeAppearanceViewsV2:L468:C40:1",
+      "variant": "dirty-at-entry"
+    },
+    {
+      "site": "NativeAppearanceViewsV2:L468:C40:1",
+      "variant": "dirty-before-return"
+    },
+    {
+      "site": "NativeAppearanceViewsV2:L468:C40:1",
+      "variant": "ordinary-throw-after-callback"
+    },
+    {
+      "site": "NativeAppearanceViewsV2:L468:C40:1",
+      "variant": "fatal-throw-after-callback"
+    },
+    {
+      "site": "NativeAppearanceViewsV2:L518:C17:1",
+      "variant": "clean"
+    },
+    {
+      "site": "NativeAppearanceViewsV2:L518:C17:1",
+      "variant": "terminal-at-entry"
+    },
+    {
+      "site": "NativeAppearanceViewsV2:L518:C17:1",
+      "variant": "terminal-before-return"
+    },
+    {
+      "site": "NativeAppearanceViewsV2:L518:C17:1",
+      "variant": "dirty-at-entry"
+    },
+    {
+      "site": "NativeAppearanceViewsV2:L518:C17:1",
+      "variant": "dirty-before-return"
+    },
+    {
+      "site": "NativeAppearanceViewsV2:L518:C17:1",
+      "variant": "ordinary-throw-after-callback"
+    },
+    {
+      "site": "NativeAppearanceViewsV2:L518:C17:1",
+      "variant": "fatal-throw-after-callback"
+    },
+    {
+      "site": "introduced:NativeAppearanceViewsV2/Group:onLayout(boolean,int,int,int,int):onLayout",
+      "variant": "clean"
+    },
+    {
+      "site": "introduced:NativeAppearanceViewsV2/Group:onLayout(boolean,int,int,int,int):onLayout",
+      "variant": "terminal-at-entry"
+    },
+    {
+      "site": "introduced:NativeAppearanceViewsV2/Group:onLayout(boolean,int,int,int,int):onLayout",
+      "variant": "terminal-before-return"
+    },
+    {
+      "site": "introduced:NativeAppearanceViewsV2/Group:onLayout(boolean,int,int,int,int):onLayout",
+      "variant": "dirty-at-entry"
+    },
+    {
+      "site": "introduced:NativeAppearanceViewsV2/Group:onLayout(boolean,int,int,int,int):onLayout",
+      "variant": "dirty-before-return"
+    },
+    {
+      "site": "introduced:NativeAppearanceViewsV2/Group:onLayout(boolean,int,int,int,int):onLayout",
+      "variant": "ordinary-throw-after-callback"
+    },
+    {
+      "site": "introduced:NativeAppearanceViewsV2/Group:onLayout(boolean,int,int,int,int):onLayout",
+      "variant": "fatal-throw-after-callback"
+    }
+  ],
+  "entry": "Break at exact caller invoke BCI before invocation; record original caller Mutation; callee method entry is separately distinguished",
+  "before_return": "Break at exact callee RETURN BCI before return, filtered by exact immediate caller instruction and original stack depth; caller continuation BCI is recorded separately, not mislabeled as before-return",
+  "injection": "Use JDI ObjectReference.invokeMethod on actual held NativeOwnerV2.close/onPause in the suspended actual main thread, then resume original frame. For throw variants, after actual onPause use ThreadReference.stop with debuggee-owned marker Throwable; qualify only if ExceptionEvent identifies exact stopped source/descriptor/BCI and original Throwable identity",
+  "authority": "Read-only JDI mirrors of actual fence/core/current/pending gate, original Mutation and token. No token construction or product state setters",
+  "oracles": "Selected contracts/preaccess: terminal actual core RETIRED/gates closed/no later prepare or commit; unchanged transaction dirty may finish closed with one later drain; expired live scope refuses before next ordinary mutation while lifecycle dirty remains nonterminal; fatal marker escapes with first identity after independent cleanup; clean authentic path retains scope and publishes/continues",
+  "scope_identity": "At callee entry/return compare actual argument Mutation uniqueID to captured caller Mutation uniqueID; compare actual token to original real core operation/presentation, not a minted token",
+  "ownership": {
+    "controller_children": 1,
+    "debuggee_children": 1,
+    "parallel_pairs": 1,
+    "row_wall_seconds": 30,
+    "per_stream_cap_bytes": 2097152,
+    "launch": "Python directly starts each debuggee with exclusive PID and loopback ephemeral JDWP socket, records address from exact owned stdout, then starts exact controller PID",
+    "cleanup": "finally terminate/wait only the two directly returned owned PIDs; no OS process inventory; no native/capture/UI runtime"
+  },
+  "failure_policy": "Preserve all tool/setup/row failures; no credit for asynchronous exception delivered away from frozen boundary, lost scope identity or missing target. If product byte changes or broad harness redesign becomes necessary, stop/report to root",
+  "replay": "Do not rerun 1302 passing direct primitive/opaque-constructor rows; retain previous nested21 separately as complementary evidence",
+  "commands": {
+    "product_compile": "javac --release 17 -g -Xlint:all -Werror -proc:none with explicit actual14+74leaf3+review debuggee/encoder sources, empty source/class paths",
+    "controller_compile": "javac --release 17 --add-modules jdk.jdi -g -Xlint:all -Werror -proc:none with only review controller source",
+    "debuggee": "same pinned java, -Xint -Xms16m -Xmx256m -Xss512k -XX:ActiveProcessorCount=2 -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=127.0.0.1:0",
+    "controller": "same pinned java --add-modules jdk.jdi; attach only returned owned loopback port; no process attachment/discovery"
+  }
+}

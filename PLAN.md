@@ -73,6 +73,7 @@ Reviewed owner/cache-state contracts `69b0c522` pass all 42 steps across three [
 Independent cache-state review preparation `5c1cf075` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40290654299) passes services and VM, but Swift fails one runner-timeout control before analyzer execution. A bounded test-readiness repair passes all 63 CI selection controls locally; corrected `137d3e1d` passes all 42 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40292240567).
 Computer use, capture and native runtime tests remain paused.
 Review evidence checkpoint `99f8a0a7` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40303522601) passes all 42 steps across three jobs. It contains immutable candidates, independent reviews and root metadata; canonical product and CLI changes remain outside it.
+Host review evidence `d275c072` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40308561680) passes all 42 steps across three jobs. It preserves candidate4/CLI review and 192 semantic cases; canonical implementation edits remain outside this checkpoint.
 The full plan remains incomplete; no GA gate is promoted.
 
 ## Current execution
@@ -202,6 +203,10 @@ The full plan remains incomplete; no GA gate is promoted.
    both compiler modes; root verifies 1,241 sealed result members. Detailed scalar-work and
    lifetime accounting remain open; original source and failures stay immutable.
    Public reachability of deliberately seeded private states is not established.
+   Two G3 comparison-load proposals remain unselected: their apparent fit depends
+   on an unselected scalar-operation granularity. The third per-comparison view
+   and fourth whole-sort view proposals also expose source-model obstacles;
+   no comparison or transfer change, or cap increase, is selected.
    Three admitted public batches add 192 passing cases: 64 words, 64 transitions
    and 64 sequences. Root verifies all 1,416 result members and six removed hashed
    products. This evidence does not close source-work or lifetime proofs.
@@ -211,6 +216,28 @@ The full plan remains incomplete; no GA gate is promoted.
    model, not measured runtime overruns. Root selects fixed-endpoint copies for
    both scalar-commit and restore loops under unchanged caps. Complete work and
    lifetime proofs remain required for the corrected source.
+   That correction is now frozen in 570 members. Producer qualification passes
+   122 distinct methods and 25 API dispositions per compiler mode, plus 23 fresh
+   layouts; these results do not close the source-work proof. A separate G6
+   component audit identifies a conditional 665-group core. Independent review
+   finds that a named 128-byte zero array conflicts with the inherited memory-role
+   assignment. Root instead selects sixteen stores borrowing anonymous 128-byte
+   arrays, with a reviewed clear-block bound of 189 groups. The explicit
+   [clear amendment](docs/swift-cache-state-clear128-selection.md) selects isolated
+   correction3. That correction is now frozen in 570 verified members. Fresh
+   host qualification passes 122 distinct methods, 25 API dispositions and 23
+   layouts per mode, including 29 public and two private four-File cases. All
+   fourteen owned products were hashed and removed. The complete G6 component-source
+   ledger is accepted after an independent slice-receiver correction: 512 production
+   groups and 514 with private faults, within 640. Combined work/lifetime proofs
+   and independent implementation acceptance remain open. Independent review rejects
+   the byte-index sorting proposal: its assignments alone require at least 1,080
+   G4 groups against the 768 cap. The cached-head alternative also fails its
+   finite G3/G4 bounds; a distinct fixed-array source proposal is active. The
+   complete correction3 lifetime proposal is frozen for independent review.
+   No layout amendment or
+   sorting implementation is selected. Guard replies retain their separately
+   reserved terminal-guard ownership.
 2. **iOS shared UI:** the supplemental source and corrected frozen V7 host join
    pass independent review. Fresh generic simulator builds of both app and runner
    are accepted. A sealed host-only V8 runtime packet passes sixteen controls and
@@ -294,6 +321,29 @@ The full plan remains incomplete; no GA gate is promoted.
    copied-consumer methods and 48 refusals across eight fixtures. Root verifies
    658 review members and accepts the bounded CLI scope. Complete owner
    source/callback/legacy qualification and canonical delivery remain open.
+   Final source classification corrects direct callback coverage to 1,316 rows:
+   1,295 primitive/constructor rows and 21 exact helper-boundary witnesses. Seven
+   measure-helper rows still use nested timing and need direct debugger checks.
+   The nested rows remain complementary evidence without duplicate credit.
+   Independent review also confirms F09: later fatal disposal can replace an
+   earlier retained ordinary failure in the outer owner ledger. Gates still
+   close correctly. The complete rejected review is frozen in 3,589 verified
+   members. Its historical source map binds 35 groups and 153 check sites;
+   expansion of all 447 reported historical vectors and broader cancellation and
+   decoder/IME families remains pending. Root selects the narrow candidate5 repair
+   to collect retained component failures before the thrown fatal error. Fresh
+   candidate5 is frozen in 1,772 verified members: 222 orchestration cases,
+   14,477 renderer checks and Java/SDK/D8 compilation pass. The strengthened
+   tests reproduce candidate4's failure. Exact source-profile CLI qualification
+   now has independent host acceptance: 683 review members are verified, including
+   stale candidate4-profile refusal without lock mutation. The complete owner
+   review is now accepted for bounded private development: 8,550 members are
+   verified, all 1,323 direct matrix rows and 514 continuation cases pass.
+   Two observer-target replacement vectors remain source-only/native-pending.
+   Canonical delivery is selected; public V2 remains unselected.
+   A new JVM CI job is prepared; its local recipe passes 216 orchestration cases,
+   14,477 renderer checks and 162 observer cases. A shell-precondition quoting
+   defect is corrected. Remote Linux/JDK17 execution remains pending.
    The reviewed clarification distinguishes lifecycle invalidation that can finish
    and queue a drain from concrete stale-capture validation that fails closed.
    Completed native input results never grant a stale scope further authority.

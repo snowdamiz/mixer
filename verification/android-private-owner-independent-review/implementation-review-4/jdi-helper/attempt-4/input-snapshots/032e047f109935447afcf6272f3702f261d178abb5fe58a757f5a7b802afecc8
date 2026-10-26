@@ -1,0 +1,87 @@
+package dev.mixer.android;
+import com.sun.jdi.*;
+import com.sun.jdi.connect.AttachingConnector;
+import com.sun.jdi.event.*;
+import com.sun.jdi.request.*;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.HexFormat;
+import java.util.List;
+
+/** Bounded exact-owned-VM JDI controller. Never modifies product fields or class bytes. */
+public final class IndependentHelperJdiController {
+    private IndependentHelperJdiController(){}
+    private static final String BASE="dev.mixer.android.NativeAppearanceViewsV2",GROUP=BASE+"$Group",SCROLL=BASE+"$NativeScroll",DEBUG="dev.mixer.android.IndependentHelperDebuggee",MUT="Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;";
+    private static final String GROUP_DESC="(ZIIII"+MUT+")V",LAYOUT_DESC="(Ldev/mixer/android/NativeAppearanceViewsV2$Record;JJJJ"+MUT+")V";
+    private static int assertions,site,entryDepth,exceptionEvents;
+    private static String variant,callerClass,callerMethod,callerDesc,calleeClass,calleeMethod,calleeDesc;
+    private static long callBci,returnBci,scopeID,tokenID;
+    private static Location injectionLocation;
+    private static boolean armed,injected,returned,calleeEntered,continued;
+    private static VirtualMachine vm;
+    private static ObjectReference mutation,marker;
+    private static final List<BreakpointRequest> breaks=new ArrayList<>();
+    private static void check(boolean value,String message){assertions++;if(!value)throw new AssertionError(message);}
+    private static ObjectReference object(Value value){check(value instanceof ObjectReference,"expected actual object reference");return (ObjectReference)value;}
+    private static Value get(ObjectReference target,String field){return target.getValue(target.referenceType().fieldByName(field));}
+    private static boolean bool(ObjectReference target,String field){return ((BooleanValue)get(target,field)).value();}
+    private static long id(Value value){return value==null?0:((ObjectReference)value).uniqueID();}
+    private static ClassType debug(){return (ClassType)vm.classesByName(DEBUG).get(0);}
+    private static ObjectReference owner(){return object(debug().getValue(debug().fieldByName("owner")));}
+    private static void logLocation(String point,Location where)throws Exception{System.out.println("{\"point\":\""+point+"\",\"class\":\""+where.declaringType().name()+"\",\"method\":\""+where.method().name()+"\",\"descriptor\":\""+where.method().signature()+"\",\"bci\":"+where.codeIndex()+",\"line\":"+where.lineNumber()+",\"method_code_sha256\":\""+HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(where.method().bytecodes()))+"\"}");}
+    private static boolean exactCaller(StackFrame frame){Location l=frame.location();return l.declaringType().name().equals(callerClass)&&l.method().name().equals(callerMethod)&&l.method().signature().equals(callerDesc)&&l.codeIndex()==callBci;}
+    private static void record(ThreadReference thread,String point)throws Exception{debug().invokeMethod(thread,debug().concreteMethodByName("record","(Ljava/lang/String;)V"),List.of(vm.mirrorOf(point)),ObjectReference.INVOKE_SINGLE_THREADED);}
+    private static void scope(StackFrame frame,boolean callee)throws Exception{
+        ObjectReference observed=callee?object(frame.getArgumentValues().get(frame.getArgumentValues().size()-1)):object(frame.getValue(frame.visibleVariableByName("mutation")));
+        if(!callee){mutation=observed;scopeID=observed.uniqueID();mutation.disableCollection();}
+        check(observed.uniqueID()==scopeID,"callee preserves exact caller Mutation reference");
+        ObjectReference token=object(get(observed,"token"));ObjectReference fence=object(get(owner(),"fence"));ObjectReference core=object(get(owner(),"core"));
+        String selected=site==1?"presentation":"operation";if(!callee){tokenID=token.uniqueID();check(id(get(fence,selected))==tokenID&&id(get(core,selected))==tokenID,"Mutation captures exact authentic actual core/fence token");}else check(token.uniqueID()==tokenID,"callee preserves original captured token after callback");
+        ObjectReference mode=object(get(observed,"mode"));String expected=site==1?"LIVE_PRESENTATION":"TRANSACTION";check(id(mode.referenceType().getValue(mode.referenceType().fieldByName(expected)))==mode.uniqueID(),"actual scope mode matches real caller");
+        System.out.println("{\"point\":\""+(callee?"calleeScope":"callerScope")+"\",\"mutationID\":"+scopeID+",\"actualTokenID\":"+token.uniqueID()+",\"mode\":\""+expected+"\"}");
+    }
+    private static void inject(ThreadReference thread,Location where)throws Exception{
+        injected=true;injectionLocation=where;for(var request:breaks)request.disable();record(thread,"beforeCallback");ObjectReference held=owner();String action=variant.startsWith("terminal")?"close":"onPause";
+        held.invokeMethod(thread,held.referenceType().methodsByName(action,"()V").get(0),List.of(),ObjectReference.INVOKE_SINGLE_THREADED);
+        ObjectReference fence=object(get(held,"fence"));check(!bool(fence,"drawAllowed")&&!bool(fence,"inputAllowed"),"actual callback closes scalar gates before original code resumes");record(thread,"afterCallback");
+        if(variant.contains("throw")){
+            marker=object(debug().getValue(debug().fieldByName(variant.startsWith("fatal")?"fatal":"ordinary")));marker.disableCollection();
+            ExceptionRequest request=vm.eventRequestManager().createExceptionRequest(marker.referenceType(),true,true);request.setSuspendPolicy(EventRequest.SUSPEND_ALL);request.enable();
+            thread.stop(marker);logLocation("requestedThrowAt",where);
+        }else if(where.declaringType().name().equals(callerClass)&&where.method().name().equals(callerMethod)&&where.method().signature().equals(callerDesc)&&where.codeIndex()==callBci)for(var request:breaks)if(!request.getProperty("kind").equals("invoke"))request.enable();
+    }
+    private static void prepare(ReferenceType type){
+        if(type.name().equals(callerClass)){Method method=type.methodsByName(callerMethod,callerDesc).get(0);for(long bci:new long[]{callBci,callBci+3}){BreakpointRequest request=vm.eventRequestManager().createBreakpointRequest(method.locationOfCodeIndex(bci));request.putProperty("kind",bci==callBci?"invoke":"callerContinuation");request.setSuspendPolicy(EventRequest.SUSPEND_ALL);request.enable();breaks.add(request);}}
+        if(type.name().equals(calleeClass)){Method method=type.methodsByName(calleeMethod,calleeDesc).get(0);for(long bci:site==3?new long[]{0,921,965,1008,1748,3796}:new long[]{0,returnBci}){BreakpointRequest request=vm.eventRequestManager().createBreakpointRequest(method.locationOfCodeIndex(bci));request.putProperty("kind",bci==0?"calleeEntry":"calleeReturn");request.setSuspendPolicy(EventRequest.SUSPEND_ALL);request.enable();breaks.add(request);}}
+    }
+    public static void main(String[] args)throws Exception{
+        int port=Integer.parseInt(args[0]);site=Integer.parseInt(args[1]);variant=args[2];
+        callerClass=site==3?"dev.mixer.android.NativeRenderer":site==1?SCROLL:GROUP;callerMethod=site==3?"prepareV2":site==1?"onScrollChanged":"onLayout";callerDesc=site==3?"([BLdev/mixer/android/InstalledAppearanceV2;Ldev/mixer/android/NativeEnvironmentV2;)Ldev/mixer/android/NativeRenderer$Candidate;":site==0?GROUP_DESC:site==1?"(IIII)V":"(ZIIII)V";callBci=site==3?933:site==0?210:site==1?415:40;
+        calleeClass=site==3?BASE:site==0?BASE:GROUP;calleeMethod=site==3?"measure":site==0?"layout":"onLayout";calleeDesc=site==3?"(Ldev/mixer/android/NativeAppearanceViewsV2$Record;Ljava/util/Map;JJ"+MUT+")V":site==0?LAYOUT_DESC:GROUP_DESC;returnBci=site==3?1748:site==0?263:221;
+        AttachingConnector connector=Bootstrap.virtualMachineManager().attachingConnectors().stream().filter(value->value.name().equals("com.sun.jdi.SocketAttach")).findFirst().orElseThrow();var parameters=connector.defaultArguments();parameters.get("hostname").setValue("127.0.0.1");parameters.get("port").setValue(Integer.toString(port));parameters.get("timeout").setValue("5000");vm=connector.attach(parameters);
+        for(String name:List.of(BASE,GROUP,SCROLL,"dev.mixer.android.NativeRenderer")){ClassPrepareRequest request=vm.eventRequestManager().createClassPrepareRequest();request.addClassFilter(name);request.setSuspendPolicy(EventRequest.SUSPEND_ALL);request.enable();}
+        System.out.println("{\"controllerPID\":"+ProcessHandle.current().pid()+",\"ownedLoopbackPort\":"+port+",\"site\":"+site+",\"variant\":\""+variant+"\"}");
+        long deadline=System.nanoTime()+25_000_000_000L;boolean done=false;vm.resume();
+        while(!done&&System.nanoTime()<deadline){EventSet set;try{set=vm.eventQueue().remove(1000);}catch(VMDisconnectedException ended){break;}if(set==null)continue;
+            for(Event event:set){
+                if(event instanceof ClassPrepareEvent prepared)prepare(prepared.referenceType());
+                else if(event instanceof BreakpointEvent breakpoint){ThreadReference thread=breakpoint.thread();String kind=(String)breakpoint.request().getProperty("kind");
+                    if(kind.equals("invoke")&&!armed){armed=true;entryDepth=thread.frameCount();logLocation("callerPreinvoke",breakpoint.location());scope(thread.frame(0),false);breakpoint.request().disable();
+                        if(site!=3&&!variant.endsWith("before-return")&&!variant.equals("clean"))inject(thread,breakpoint.location());
+                    }else if(armed&&kind.equals("callerContinuation")&&thread.frameCount()==entryDepth){continued=true;logLocation(kind,breakpoint.location());ObjectReference held=object(thread.frame(0).getValue(thread.frame(0).visibleVariableByName("mutation")));check(held.uniqueID()==scopeID&&id(get(held,"token"))==tokenID,"caller continuation retains original immutable scope/token");breakpoint.request().disable();}
+                    else if(armed&&!kind.equals("invoke")&&!kind.equals("callerContinuation")&&thread.frameCount()==entryDepth+1&&exactCaller(thread.frame(1))){
+                        scope(thread.frame(0),true);logLocation(kind,breakpoint.location());
+                        if(kind.equals("calleeEntry")){calleeEntered=true;if(site==3&&!variant.endsWith("before-return")&&!variant.equals("clean"))inject(thread,breakpoint.location());}
+                        else {returned=true;for(var request:breaks)if(!request.getProperty("kind").equals("callerContinuation"))request.disable();if(variant.endsWith("before-return"))inject(thread,breakpoint.location());}
+                    }
+                }else if(event instanceof ExceptionEvent exception){check(marker!=null&&exception.exception().uniqueID()==marker.uniqueID(),"exact requested Throwable event identity");check(exception.location().equals(injectionLocation),"asynchronous exception delivered at exact frozen preinvoke boundary");check(exception.thread().frameCount()==entryDepth+1&&exactCaller(exception.thread().frame(1)),"actual suspended throwing helper has exact selected caller invoke frame");logLocation("actualThrowCaller",exception.thread().frame(1).location());System.out.println("{\"point\":\"exceptionIdentity\",\"requestedThrowableID\":"+marker.uniqueID()+",\"observedThrowableID\":"+exception.exception().uniqueID()+"}");exceptionEvents++;logLocation("actualThrowAt",exception.location());exception.request().disable();}
+                else if(event instanceof VMDeathEvent||event instanceof VMDisconnectEvent)done=true;
+            }try{set.resume();}catch(VMDisconnectedException ended){done=true;}
+        }
+        check(done,"owned debuggee reaches terminal VM event before deadline");check(armed,"exact selected helper invocation reached");
+        if(variant.equals("clean")||variant.endsWith("before-return"))check(calleeEntered&&returned,"exact callee entry and before-return locations reached");
+        if(variant.contains("throw"))check(injected&&exceptionEvents==1,"exact requested marker delivered once");else if(!variant.equals("clean"))check(injected,"actual owner callback injected");
+        System.out.println("{\"scope\":\"exact unmodified helper breakpoint controller\",\"assertions\":"+assertions+",\"armed\":"+armed+",\"calleeEntered\":"+calleeEntered+",\"returned\":"+returned+",\"continued\":"+continued+",\"exceptionEvents\":"+exceptionEvents+"}");
+    }
+}

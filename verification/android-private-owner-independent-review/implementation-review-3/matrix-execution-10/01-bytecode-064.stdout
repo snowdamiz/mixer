@@ -1,0 +1,572 @@
+Compiled from "AppearanceNativePathsV2.java"
+final class dev.mixer.android.AppearanceNativePathsV2 {
+  private dev.mixer.android.AppearanceNativePathsV2();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: return
+      LineNumberTable:
+        line 7: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Ldev/mixer/android/AppearanceNativePathsV2;
+
+  static android.graphics.Path make(dev.mixer.android.AppearanceGeometryV2$Path, int);
+    descriptor: (Ldev/mixer/android/AppearanceGeometryV2$Path;I)Landroid/graphics/Path;
+    Code:
+         0: aload_0
+         1: ifnonnull     14
+         4: new           #7                  // class java/lang/IllegalArgumentException
+         7: dup
+         8: ldc           #9                  // String geometry is required
+        10: invokespecial #11                 // Method java/lang/IllegalArgumentException."<init>":(Ljava/lang/String;)V
+        13: athrow
+        14: lconst_0
+        15: iload_1
+        16: invokestatic  #14                 // Method dev/mixer/android/AppearanceGeometryV2.pixelCoordinate:(JI)D
+        19: pop2
+        20: new           #20                 // class android/graphics/Path
+        23: dup
+        24: invokespecial #22                 // Method android/graphics/Path."<init>":()V
+        27: astore_2
+        28: aload_2
+        29: getstatic     #23                 // Field android/graphics/Path$FillType.WINDING:Landroid/graphics/Path$FillType;
+        32: invokevirtual #29                 // Method android/graphics/Path.setFillType:(Landroid/graphics/Path$FillType;)V
+        35: aload_0
+        36: getfield      #33                 // Field dev/mixer/android/AppearanceGeometryV2$Path.commands:Ljava/util/List;
+        39: invokeinterface #39,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+        44: astore_3
+        45: aload_3
+        46: invokeinterface #45,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+        51: ifeq          312
+        54: aload_3
+        55: invokeinterface #51,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+        60: checkcast     #55                 // class dev/mixer/android/AppearanceGeometryV2$Command
+        63: astore        4
+        65: aload         4
+        67: invokevirtual #57                 // Method dev/mixer/android/AppearanceGeometryV2$Command.points:()Ljava/util/List;
+        70: astore        5
+        72: getstatic     #61                 // Field dev/mixer/android/AppearanceNativePathsV2$1.$SwitchMap$dev$mixer$android$AppearanceGeometryV2$Op:[I
+        75: aload         4
+        77: invokevirtual #67                 // Method dev/mixer/android/AppearanceGeometryV2$Command.op:()Ldev/mixer/android/AppearanceGeometryV2$Op;
+        80: invokevirtual #71                 // Method dev/mixer/android/AppearanceGeometryV2$Op.ordinal:()I
+        83: iaload
+        84: tableswitch   { // 1 to 4
+                       1: 116
+                       2: 154
+                       3: 192
+                       4: 292
+                 default: 299
+            }
+       116: aload         5
+       118: iconst_0
+       119: invokeinterface #77,  2           // InterfaceMethod java/util/List.get:(I)Ljava/lang/Object;
+       124: checkcast     #81                 // class dev/mixer/android/AppearanceGeometryV2$Point
+       127: astore        6
+       129: aload_2
+       130: aload         6
+       132: invokevirtual #83                 // Method dev/mixer/android/AppearanceGeometryV2$Point.x64:()I
+       135: iload_1
+       136: invokestatic  #86                 // Method pixel:(II)F
+       139: aload         6
+       141: invokevirtual #92                 // Method dev/mixer/android/AppearanceGeometryV2$Point.y64:()I
+       144: iload_1
+       145: invokestatic  #86                 // Method pixel:(II)F
+       148: invokevirtual #95                 // Method android/graphics/Path.moveTo:(FF)V
+       151: goto          309
+       154: aload         5
+       156: iconst_0
+       157: invokeinterface #77,  2           // InterfaceMethod java/util/List.get:(I)Ljava/lang/Object;
+       162: checkcast     #81                 // class dev/mixer/android/AppearanceGeometryV2$Point
+       165: astore        6
+       167: aload_2
+       168: aload         6
+       170: invokevirtual #83                 // Method dev/mixer/android/AppearanceGeometryV2$Point.x64:()I
+       173: iload_1
+       174: invokestatic  #86                 // Method pixel:(II)F
+       177: aload         6
+       179: invokevirtual #92                 // Method dev/mixer/android/AppearanceGeometryV2$Point.y64:()I
+       182: iload_1
+       183: invokestatic  #86                 // Method pixel:(II)F
+       186: invokevirtual #99                 // Method android/graphics/Path.lineTo:(FF)V
+       189: goto          309
+       192: aload         5
+       194: iconst_0
+       195: invokeinterface #77,  2           // InterfaceMethod java/util/List.get:(I)Ljava/lang/Object;
+       200: checkcast     #81                 // class dev/mixer/android/AppearanceGeometryV2$Point
+       203: astore        6
+       205: aload         5
+       207: iconst_1
+       208: invokeinterface #77,  2           // InterfaceMethod java/util/List.get:(I)Ljava/lang/Object;
+       213: checkcast     #81                 // class dev/mixer/android/AppearanceGeometryV2$Point
+       216: astore        7
+       218: aload         5
+       220: iconst_2
+       221: invokeinterface #77,  2           // InterfaceMethod java/util/List.get:(I)Ljava/lang/Object;
+       226: checkcast     #81                 // class dev/mixer/android/AppearanceGeometryV2$Point
+       229: astore        8
+       231: aload_2
+       232: aload         6
+       234: invokevirtual #83                 // Method dev/mixer/android/AppearanceGeometryV2$Point.x64:()I
+       237: iload_1
+       238: invokestatic  #86                 // Method pixel:(II)F
+       241: aload         6
+       243: invokevirtual #92                 // Method dev/mixer/android/AppearanceGeometryV2$Point.y64:()I
+       246: iload_1
+       247: invokestatic  #86                 // Method pixel:(II)F
+       250: aload         7
+       252: invokevirtual #83                 // Method dev/mixer/android/AppearanceGeometryV2$Point.x64:()I
+       255: iload_1
+       256: invokestatic  #86                 // Method pixel:(II)F
+       259: aload         7
+       261: invokevirtual #92                 // Method dev/mixer/android/AppearanceGeometryV2$Point.y64:()I
+       264: iload_1
+       265: invokestatic  #86                 // Method pixel:(II)F
+       268: aload         8
+       270: invokevirtual #83                 // Method dev/mixer/android/AppearanceGeometryV2$Point.x64:()I
+       273: iload_1
+       274: invokestatic  #86                 // Method pixel:(II)F
+       277: aload         8
+       279: invokevirtual #92                 // Method dev/mixer/android/AppearanceGeometryV2$Point.y64:()I
+       282: iload_1
+       283: invokestatic  #86                 // Method pixel:(II)F
+       286: invokevirtual #102                // Method android/graphics/Path.cubicTo:(FFFFFF)V
+       289: goto          309
+       292: aload_2
+       293: invokevirtual #106                // Method android/graphics/Path.close:()V
+       296: goto          309
+       299: new           #7                  // class java/lang/IllegalArgumentException
+       302: dup
+       303: ldc           #109                // String unsupported geometry operation
+       305: invokespecial #11                 // Method java/lang/IllegalArgumentException."<init>":(Ljava/lang/String;)V
+       308: athrow
+       309: goto          45
+       312: aload_2
+       313: areturn
+      LineNumberTable:
+        line 15: 0
+        line 17: 14
+        line 18: 20
+        line 19: 28
+        line 20: 35
+        line 21: 65
+        line 22: 72
+        line 24: 116
+        line 25: 129
+        line 26: 151
+        line 28: 154
+        line 29: 167
+        line 30: 189
+        line 32: 192
+        line 33: 205
+        line 34: 218
+        line 35: 231
+        line 36: 252
+        line 37: 270
+        line 35: 286
+        line 38: 289
+        line 39: 292
+        line 40: 299
+        line 42: 309
+        line 43: 312
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+          129      22     6 point   Ldev/mixer/android/AppearanceGeometryV2$Point;
+          167      22     6 point   Ldev/mixer/android/AppearanceGeometryV2$Point;
+          205      84     6 first   Ldev/mixer/android/AppearanceGeometryV2$Point;
+          218      71     7 second   Ldev/mixer/android/AppearanceGeometryV2$Point;
+          231      58     8   end   Ldev/mixer/android/AppearanceGeometryV2$Point;
+           72     237     5 points   Ljava/util/List;
+           65     244     4 command   Ldev/mixer/android/AppearanceGeometryV2$Command;
+            0     314     0 geometry   Ldev/mixer/android/AppearanceGeometryV2$Path;
+            0     314     1 density1024   I
+           28     286     2 result   Landroid/graphics/Path;
+
+  private static float pixel(int, int);
+    descriptor: (II)F
+    Code:
+         0: iload_0
+         1: i2l
+         2: iload_1
+         3: invokestatic  #14                 // Method dev/mixer/android/AppearanceGeometryV2.pixelCoordinate:(JI)D
+         6: d2f
+         7: freturn
+      LineNumberTable:
+        line 49: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       8     0 coordinate64   I
+            0       8     1 density1024   I
+}
+Compiled from "AppearanceResolverV2.java"
+class dev.mixer.android.AppearanceResolverV2$1 {
+  static final int[] $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Profile;
+    descriptor: [I
+
+  static final int[] $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Role;
+    descriptor: [I
+
+  static {};
+    descriptor: ()V
+    Code:
+         0: invokestatic  #1                  // Method dev/mixer/android/AppearanceDescriptorV2$Role.values:()[Ldev/mixer/android/AppearanceDescriptorV2$Role;
+         3: arraylength
+         4: newarray       int
+         6: putstatic     #7                  // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Role:[I
+         9: getstatic     #7                  // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Role:[I
+        12: getstatic     #13                 // Field dev/mixer/android/AppearanceDescriptorV2$Role.body:Ldev/mixer/android/AppearanceDescriptorV2$Role;
+        15: invokevirtual #17                 // Method dev/mixer/android/AppearanceDescriptorV2$Role.ordinal:()I
+        18: iconst_1
+        19: iastore
+        20: goto          24
+        23: astore_0
+        24: getstatic     #7                  // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Role:[I
+        27: getstatic     #23                 // Field dev/mixer/android/AppearanceDescriptorV2$Role.headline:Ldev/mixer/android/AppearanceDescriptorV2$Role;
+        30: invokevirtual #17                 // Method dev/mixer/android/AppearanceDescriptorV2$Role.ordinal:()I
+        33: iconst_2
+        34: iastore
+        35: goto          39
+        38: astore_0
+        39: getstatic     #7                  // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Role:[I
+        42: getstatic     #26                 // Field dev/mixer/android/AppearanceDescriptorV2$Role.title:Ldev/mixer/android/AppearanceDescriptorV2$Role;
+        45: invokevirtual #17                 // Method dev/mixer/android/AppearanceDescriptorV2$Role.ordinal:()I
+        48: iconst_3
+        49: iastore
+        50: goto          54
+        53: astore_0
+        54: getstatic     #7                  // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Role:[I
+        57: getstatic     #29                 // Field dev/mixer/android/AppearanceDescriptorV2$Role.caption:Ldev/mixer/android/AppearanceDescriptorV2$Role;
+        60: invokevirtual #17                 // Method dev/mixer/android/AppearanceDescriptorV2$Role.ordinal:()I
+        63: iconst_4
+        64: iastore
+        65: goto          69
+        68: astore_0
+        69: getstatic     #7                  // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Role:[I
+        72: getstatic     #32                 // Field dev/mixer/android/AppearanceDescriptorV2$Role.sectionHeader:Ldev/mixer/android/AppearanceDescriptorV2$Role;
+        75: invokevirtual #17                 // Method dev/mixer/android/AppearanceDescriptorV2$Role.ordinal:()I
+        78: iconst_5
+        79: iastore
+        80: goto          84
+        83: astore_0
+        84: getstatic     #7                  // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Role:[I
+        87: getstatic     #35                 // Field dev/mixer/android/AppearanceDescriptorV2$Role.navigationExpanded:Ldev/mixer/android/AppearanceDescriptorV2$Role;
+        90: invokevirtual #17                 // Method dev/mixer/android/AppearanceDescriptorV2$Role.ordinal:()I
+        93: bipush        6
+        95: iastore
+        96: goto          100
+        99: astore_0
+       100: invokestatic  #38                 // Method dev/mixer/android/AppearanceDescriptorV2$Profile.values:()[Ldev/mixer/android/AppearanceDescriptorV2$Profile;
+       103: arraylength
+       104: newarray       int
+       106: putstatic     #43                 // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Profile:[I
+       109: getstatic     #43                 // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Profile:[I
+       112: getstatic     #46                 // Field dev/mixer/android/AppearanceDescriptorV2$Profile.xs:Ldev/mixer/android/AppearanceDescriptorV2$Profile;
+       115: invokevirtual #50                 // Method dev/mixer/android/AppearanceDescriptorV2$Profile.ordinal:()I
+       118: iconst_1
+       119: iastore
+       120: goto          124
+       123: astore_0
+       124: getstatic     #43                 // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Profile:[I
+       127: getstatic     #51                 // Field dev/mixer/android/AppearanceDescriptorV2$Profile.s:Ldev/mixer/android/AppearanceDescriptorV2$Profile;
+       130: invokevirtual #50                 // Method dev/mixer/android/AppearanceDescriptorV2$Profile.ordinal:()I
+       133: iconst_2
+       134: iastore
+       135: goto          139
+       138: astore_0
+       139: getstatic     #43                 // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Profile:[I
+       142: getstatic     #54                 // Field dev/mixer/android/AppearanceDescriptorV2$Profile.m:Ldev/mixer/android/AppearanceDescriptorV2$Profile;
+       145: invokevirtual #50                 // Method dev/mixer/android/AppearanceDescriptorV2$Profile.ordinal:()I
+       148: iconst_3
+       149: iastore
+       150: goto          154
+       153: astore_0
+       154: getstatic     #43                 // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Profile:[I
+       157: getstatic     #57                 // Field dev/mixer/android/AppearanceDescriptorV2$Profile.l:Ldev/mixer/android/AppearanceDescriptorV2$Profile;
+       160: invokevirtual #50                 // Method dev/mixer/android/AppearanceDescriptorV2$Profile.ordinal:()I
+       163: iconst_4
+       164: iastore
+       165: goto          169
+       168: astore_0
+       169: getstatic     #43                 // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Profile:[I
+       172: getstatic     #60                 // Field dev/mixer/android/AppearanceDescriptorV2$Profile.xl:Ldev/mixer/android/AppearanceDescriptorV2$Profile;
+       175: invokevirtual #50                 // Method dev/mixer/android/AppearanceDescriptorV2$Profile.ordinal:()I
+       178: iconst_5
+       179: iastore
+       180: goto          184
+       183: astore_0
+       184: getstatic     #43                 // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Profile:[I
+       187: getstatic     #63                 // Field dev/mixer/android/AppearanceDescriptorV2$Profile.xxl:Ldev/mixer/android/AppearanceDescriptorV2$Profile;
+       190: invokevirtual #50                 // Method dev/mixer/android/AppearanceDescriptorV2$Profile.ordinal:()I
+       193: bipush        6
+       195: iastore
+       196: goto          200
+       199: astore_0
+       200: getstatic     #43                 // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Profile:[I
+       203: getstatic     #66                 // Field dev/mixer/android/AppearanceDescriptorV2$Profile.xxxl:Ldev/mixer/android/AppearanceDescriptorV2$Profile;
+       206: invokevirtual #50                 // Method dev/mixer/android/AppearanceDescriptorV2$Profile.ordinal:()I
+       209: bipush        7
+       211: iastore
+       212: goto          216
+       215: astore_0
+       216: getstatic     #43                 // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Profile:[I
+       219: getstatic     #69                 // Field dev/mixer/android/AppearanceDescriptorV2$Profile.a1:Ldev/mixer/android/AppearanceDescriptorV2$Profile;
+       222: invokevirtual #50                 // Method dev/mixer/android/AppearanceDescriptorV2$Profile.ordinal:()I
+       225: bipush        8
+       227: iastore
+       228: goto          232
+       231: astore_0
+       232: getstatic     #43                 // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Profile:[I
+       235: getstatic     #72                 // Field dev/mixer/android/AppearanceDescriptorV2$Profile.a2:Ldev/mixer/android/AppearanceDescriptorV2$Profile;
+       238: invokevirtual #50                 // Method dev/mixer/android/AppearanceDescriptorV2$Profile.ordinal:()I
+       241: bipush        9
+       243: iastore
+       244: goto          248
+       247: astore_0
+       248: getstatic     #43                 // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Profile:[I
+       251: getstatic     #75                 // Field dev/mixer/android/AppearanceDescriptorV2$Profile.a3:Ldev/mixer/android/AppearanceDescriptorV2$Profile;
+       254: invokevirtual #50                 // Method dev/mixer/android/AppearanceDescriptorV2$Profile.ordinal:()I
+       257: bipush        10
+       259: iastore
+       260: goto          264
+       263: astore_0
+       264: getstatic     #43                 // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Profile:[I
+       267: getstatic     #78                 // Field dev/mixer/android/AppearanceDescriptorV2$Profile.a4:Ldev/mixer/android/AppearanceDescriptorV2$Profile;
+       270: invokevirtual #50                 // Method dev/mixer/android/AppearanceDescriptorV2$Profile.ordinal:()I
+       273: bipush        11
+       275: iastore
+       276: goto          280
+       279: astore_0
+       280: getstatic     #43                 // Field $SwitchMap$dev$mixer$android$AppearanceDescriptorV2$Profile:[I
+       283: getstatic     #81                 // Field dev/mixer/android/AppearanceDescriptorV2$Profile.a5:Ldev/mixer/android/AppearanceDescriptorV2$Profile;
+       286: invokevirtual #50                 // Method dev/mixer/android/AppearanceDescriptorV2$Profile.ordinal:()I
+       289: bipush        12
+       291: iastore
+       292: goto          296
+       295: astore_0
+       296: return
+      Exception table:
+         from    to  target type
+             9    20    23   Class java/lang/NoSuchFieldError
+            24    35    38   Class java/lang/NoSuchFieldError
+            39    50    53   Class java/lang/NoSuchFieldError
+            54    65    68   Class java/lang/NoSuchFieldError
+            69    80    83   Class java/lang/NoSuchFieldError
+            84    96    99   Class java/lang/NoSuchFieldError
+           109   120   123   Class java/lang/NoSuchFieldError
+           124   135   138   Class java/lang/NoSuchFieldError
+           139   150   153   Class java/lang/NoSuchFieldError
+           154   165   168   Class java/lang/NoSuchFieldError
+           169   180   183   Class java/lang/NoSuchFieldError
+           184   196   199   Class java/lang/NoSuchFieldError
+           200   212   215   Class java/lang/NoSuchFieldError
+           216   228   231   Class java/lang/NoSuchFieldError
+           232   244   247   Class java/lang/NoSuchFieldError
+           248   260   263   Class java/lang/NoSuchFieldError
+           264   276   279   Class java/lang/NoSuchFieldError
+           280   292   295   Class java/lang/NoSuchFieldError
+      LineNumberTable:
+        line 266: 0
+        line 258: 100
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+}
+Compiled from "AppearanceResolverV2.java"
+final class dev.mixer.android.AppearanceResolverV2$Accessibility extends java.lang.Record {
+  private final boolean boldText;
+    descriptor: Z
+
+  private final boolean increasedContrast;
+    descriptor: Z
+
+  private final boolean reduceMotion;
+    descriptor: Z
+
+  dev.mixer.android.AppearanceResolverV2$Accessibility(boolean, boolean, boolean);
+    descriptor: (ZZZ)V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Record."<init>":()V
+         4: aload_0
+         5: iload_1
+         6: putfield      #7                  // Field boldText:Z
+         9: aload_0
+        10: iload_2
+        11: putfield      #13                 // Field increasedContrast:Z
+        14: aload_0
+        15: iload_3
+        16: putfield      #16                 // Field reduceMotion:Z
+        19: return
+      LineNumberTable:
+        line 26: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      20     0  this   Ldev/mixer/android/AppearanceResolverV2$Accessibility;
+            0      20     1 boldText   Z
+            0      20     2 increasedContrast   Z
+            0      20     3 reduceMotion   Z
+
+  public final java.lang.String toString();
+    descriptor: ()Ljava/lang/String;
+    Code:
+         0: aload_0
+         1: invokedynamic #19,  0             // InvokeDynamic #0:toString:(Ldev/mixer/android/AppearanceResolverV2$Accessibility;)Ljava/lang/String;
+         6: areturn
+      LineNumberTable:
+        line 26: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       7     0  this   Ldev/mixer/android/AppearanceResolverV2$Accessibility;
+
+  public final int hashCode();
+    descriptor: ()I
+    Code:
+         0: aload_0
+         1: invokedynamic #23,  0             // InvokeDynamic #0:hashCode:(Ldev/mixer/android/AppearanceResolverV2$Accessibility;)I
+         6: ireturn
+      LineNumberTable:
+        line 26: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       7     0  this   Ldev/mixer/android/AppearanceResolverV2$Accessibility;
+
+  public final boolean equals(java.lang.Object);
+    descriptor: (Ljava/lang/Object;)Z
+    Code:
+         0: aload_0
+         1: aload_1
+         2: invokedynamic #27,  0             // InvokeDynamic #0:equals:(Ldev/mixer/android/AppearanceResolverV2$Accessibility;Ljava/lang/Object;)Z
+         7: ireturn
+      LineNumberTable:
+        line 26: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       8     0  this   Ldev/mixer/android/AppearanceResolverV2$Accessibility;
+            0       8     1     o   Ljava/lang/Object;
+
+  public boolean boldText();
+    descriptor: ()Z
+    Code:
+         0: aload_0
+         1: getfield      #7                  // Field boldText:Z
+         4: ireturn
+      LineNumberTable:
+        line 26: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Ldev/mixer/android/AppearanceResolverV2$Accessibility;
+
+  public boolean increasedContrast();
+    descriptor: ()Z
+    Code:
+         0: aload_0
+         1: getfield      #13                 // Field increasedContrast:Z
+         4: ireturn
+      LineNumberTable:
+        line 26: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Ldev/mixer/android/AppearanceResolverV2$Accessibility;
+
+  public boolean reduceMotion();
+    descriptor: ()Z
+    Code:
+         0: aload_0
+         1: getfield      #16                 // Field reduceMotion:Z
+         4: ireturn
+      LineNumberTable:
+        line 26: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Ldev/mixer/android/AppearanceResolverV2$Accessibility;
+}
+Compiled from "AppearanceResolverV2.java"
+final class dev.mixer.android.AppearanceResolverV2$ButtonPaints extends java.lang.Record implements dev.mixer.android.AppearanceResolverV2$Paints {
+  private final dev.mixer.android.AppearanceDescriptorV2$ButtonPaint paint;
+    descriptor: Ldev/mixer/android/AppearanceDescriptorV2$ButtonPaint;
+
+  private final dev.mixer.android.AppearanceDescriptorV2$Outline focus;
+    descriptor: Ldev/mixer/android/AppearanceDescriptorV2$Outline;
+
+  dev.mixer.android.AppearanceResolverV2$ButtonPaints(dev.mixer.android.AppearanceDescriptorV2$ButtonPaint, dev.mixer.android.AppearanceDescriptorV2$Outline);
+    descriptor: (Ldev/mixer/android/AppearanceDescriptorV2$ButtonPaint;Ldev/mixer/android/AppearanceDescriptorV2$Outline;)V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Record."<init>":()V
+         4: aload_0
+         5: aload_1
+         6: putfield      #7                  // Field paint:Ldev/mixer/android/AppearanceDescriptorV2$ButtonPaint;
+         9: aload_0
+        10: aload_2
+        11: putfield      #13                 // Field focus:Ldev/mixer/android/AppearanceDescriptorV2$Outline;
+        14: return
+      LineNumberTable:
+        line 80: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      15     0  this   Ldev/mixer/android/AppearanceResolverV2$ButtonPaints;
+            0      15     1 paint   Ldev/mixer/android/AppearanceDescriptorV2$ButtonPaint;
+            0      15     2 focus   Ldev/mixer/android/AppearanceDescriptorV2$Outline;
+
+  public final java.lang.String toString();
+    descriptor: ()Ljava/lang/String;
+    Code:
+         0: aload_0
+         1: invokedynamic #17,  0             // InvokeDynamic #0:toString:(Ldev/mixer/android/AppearanceResolverV2$ButtonPaints;)Ljava/lang/String;
+         6: areturn
+      LineNumberTable:
+        line 80: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       7     0  this   Ldev/mixer/android/AppearanceResolverV2$ButtonPaints;
+
+  public final int hashCode();
+    descriptor: ()I
+    Code:
+         0: aload_0
+         1: invokedynamic #21,  0             // InvokeDynamic #0:hashCode:(Ldev/mixer/android/AppearanceResolverV2$ButtonPaints;)I
+         6: ireturn
+      LineNumberTable:
+        line 80: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       7     0  this   Ldev/mixer/android/AppearanceResolverV2$ButtonPaints;
+
+  public final boolean equals(java.lang.Object);
+    descriptor: (Ljava/lang/Object;)Z
+    Code:
+         0: aload_0
+         1: aload_1
+         2: invokedynamic #25,  0             // InvokeDynamic #0:equals:(Ldev/mixer/android/AppearanceResolverV2$ButtonPaints;Ljava/lang/Object;)Z
+         7: ireturn
+      LineNumberTable:
+        line 80: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       8     0  this   Ldev/mixer/android/AppearanceResolverV2$ButtonPaints;
+            0       8     1     o   Ljava/lang/Object;
+
+  public dev.mixer.android.AppearanceDescriptorV2$ButtonPaint paint();
+    descriptor: ()Ldev/mixer/android/AppearanceDescriptorV2$ButtonPaint;
+    Code:
+         0: aload_0
+         1: getfield      #7                  // Field paint:Ldev/mixer/android/AppearanceDescriptorV2$ButtonPaint;
+         4: areturn
+      LineNumberTable:
+        line 80: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Ldev/mixer/android/AppearanceResolverV2$ButtonPaints;
+
+  public dev.mixer.android.AppearanceDescriptorV2$Outline focus();
+    descriptor: ()Ldev/mixer/android/AppearanceDescriptorV2$Outline;
+    Code:
+         0: aload_0
+         1: getfield      #13                 // Field focus:Ldev/mixer/android/AppearanceDescriptorV2$Outline;
+         4: areturn
+      LineNumberTable:
+        line 80: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Ldev/mixer/android/AppearanceResolverV2$ButtonPaints;
+}

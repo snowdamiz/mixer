@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "runs": [
+    {
+      "command": "python3 -B verification/swift-cache-state-g6-complete-independent/audit.py > verification/swift-cache-state-g6-complete-independent/audit.stdout.json",
+      "exit_code": 1,
+      "phase": "independent auditor development",
+      "observed_failure": "AssertionError at expected source copy_within sites: the initial auditor searched the entire source and also found merge-body copies owned by G3/G4.",
+      "correction": "Restricted this G6 source-site assertion to semantic452..773; no product or producer file changed."
+    },
+    {
+      "command": "python3 -B verification/swift-cache-state-g6-complete-independent/audit.py > verification/swift-cache-state-g6-complete-independent/audit.stdout.json",
+      "exit_code": 0,
+      "scope": "independent source-only SHA256/component arithmetic/path audit",
+      "output": "audit.stdout.json",
+      "note": "Successful final repeat also explicitly checked unlisted combined-fault staging prefixes against the full private maximum."
+    },
+    {
+      "command": "python3 -B verification/swift-cache-state-g6-complete-independent/verify_review.py --preseal > verification/swift-cache-state-g6-complete-independent/verify.stdout.json",
+      "exit_code": 0,
+      "scope": "read-only independent-packet arithmetic/input custody verification before freezing",
+      "output": "verify.stdout.json"
+    }
+  ],
+  "no_product_or_compiler_or_runtime_execution": true
+}

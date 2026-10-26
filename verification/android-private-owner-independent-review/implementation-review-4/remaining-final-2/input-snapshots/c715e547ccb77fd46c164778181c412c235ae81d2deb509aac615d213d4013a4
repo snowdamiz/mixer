@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+"""One explicit C5 compile, bounded sequential independently authored host families."""
+from pathlib import Path
+import json,sys,tempfile,hashlib
+import run_targeted_review as runner
+HERE=Path(__file__).resolve().parent
+MODES=['IME','cancellation','clearTouch','reports','self-causes','decoders','history-core','history-observer','history-coordinator']
+def main():
+ out=HERE/(sys.argv[1] if len(sys.argv)>1 else 'remaining-final-1');out.mkdir();roster=json.loads((HERE.parent/'preaccess/site-input-map.json').read_text())['concrete_subjects'];leaves=json.loads((HERE.parent/'leaf-review-1/admission/leaf-manifest-3.json').read_text())['files'];inputs=[HERE/'candidate-5/source'/n for n in roster+sorted(leaves)]+[HERE/'IndependentRemainingReview.java'];source={str(p.relative_to(HERE)):runner.record(p) for p in inputs}
+ for p in list(sorted(HERE.glob('*.json')))+list(sorted((HERE/'remaining-inputs').glob('*'))):source[str(p.relative_to(HERE))]=runner.record(p)
+ addendum=dict(scope='Literal inputs/argv bound before final continuation execution; selected preaccess host families only',test=runner.record(HERE/'IndependentRemainingReview.java'),runner=runner.record(Path(__file__)),actual_product_sources=len(roster),unchanged_admitted_mechanical_leaves=len(leaves),modes=MODES,limits=dict(owned_test_children=1,seconds=120,stdout=2097152,stderr=2097152,heap_MiB=256),runtime_inputs={n:v for n,v in source.items() if not n.endswith('.java')},remaining='Replacement platform targets/native runtime and uninjectable allocation/JNI internals remain explicitly pending; historical counters are not outcomes')
+ (out/'input-addendum.json').write_text(json.dumps(addendum,indent=2)+'\n');source[str((out/'input-addendum.json').relative_to(HERE))]=runner.record(out/'input-addendum.json')
+ outcomes=[];parent=HERE/'remaining-final-scratch';parent.mkdir()
+ try:
+  with tempfile.TemporaryDirectory(dir=parent) as temp:
+   scratch=Path(temp);empty=scratch/'empty';classes=scratch/'classes';empty.mkdir();classes.mkdir();listing=out/'explicit-sources.list';listing.write_text(''.join(str(p)+'\n' for p in inputs))
+   for name in ['java','javac','javap']:runner.run([str(runner.JDK/name),'-version'],out/('tool-'+name),source)
+   compile=runner.run([str(runner.JDK/'javac'),'--release','17','-g','-Xlint:all','-Werror','-proc:none','-classpath',str(empty),'-sourcepath',str(empty),'-d',str(classes),'@'+str(listing)],out/'01-compile',source)
+   if compile['exit_code']!=0:print('strict compile failed; exact streams preserved');return
+   (out/'compiled-class-hashes.json').write_text(json.dumps({str(p.relative_to(classes)):runner.record(p) for p in sorted(classes.rglob('*.class'))},indent=2)+'\n')
+   reference=json.loads((HERE/'matrix-execution-1/compiled-class-hashes.json').read_text())
+   for p in classes.rglob('*.class'):
+    name=str(p.relative_to(classes))
+    if not name.startswith('dev/mixer/android/Independent'):assert reference[name]==runner.record(p),('actual source or leaf class changed',name)
+   for index,mode in enumerate(MODES):
+    result=runner.run([str(runner.JDK/'java'),'-Xms16m','-Xmx256m','-Xss512k','-XX:ActiveProcessorCount=2','-cp',str(classes),'dev.mixer.android.IndependentRemainingReview',str(HERE),mode],out/f'02-{index:02d}-{mode}',source);outcomes.append(dict(mode=mode,exit_code=result['exit_code']));print(json.dumps(outcomes[-1]),flush=True)
+ finally:
+  assert not any(parent.iterdir());parent.rmdir();(out/'cleanup.json').write_text(json.dumps(dict(owned_children_reaped=True,exclusive_scratch_removed=True,native_capture_or_process_inventory_started=False,outcomes=outcomes),indent=2)+'\n')
+if __name__=='__main__':main()

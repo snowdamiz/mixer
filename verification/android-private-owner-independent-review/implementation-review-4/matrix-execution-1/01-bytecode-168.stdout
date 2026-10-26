@@ -1,0 +1,463 @@
+Compiled from "NativeRenderer.java"
+interface dev.mixer.android.NativeRenderer$Events {
+  public abstract void send(byte[]);
+    descriptor: ([B)V
+}
+Compiled from "NativeRenderer.java"
+final class dev.mixer.android.NativeRenderer$NativeState {
+  final dev.mixer.android.NativeAppearanceViewsV2$Record record;
+    descriptor: Ldev/mixer/android/NativeAppearanceViewsV2$Record;
+
+  final dev.mixer.android.NativeAppearanceViewsV2$Binding binding;
+    descriptor: Ldev/mixer/android/NativeAppearanceViewsV2$Binding;
+
+  final dev.mixer.android.NativeAppearanceViewsV2$Geometry geometry;
+    descriptor: Ldev/mixer/android/NativeAppearanceViewsV2$Geometry;
+
+  final java.lang.CharSequence text;
+    descriptor: Ljava/lang/CharSequence;
+
+  final java.lang.CharSequence nativeBuffer;
+    descriptor: Ljava/lang/CharSequence;
+
+  final java.util.List<dev.mixer.android.NativeRenderer$CompositionSpan> composition;
+    descriptor: Ljava/util/List;
+
+  final int[] drawableState;
+    descriptor: [I
+
+  final int[] windowPosition;
+    descriptor: [I
+
+  final int left;
+    descriptor: I
+
+  final int top;
+    descriptor: I
+
+  final int right;
+    descriptor: I
+
+  final int bottom;
+    descriptor: I
+
+  final int measuredWidth;
+    descriptor: I
+
+  final int measuredHeight;
+    descriptor: I
+
+  final boolean enabled;
+    descriptor: Z
+
+  final int selectionStart;
+    descriptor: I
+
+  final int selectionEnd;
+    descriptor: I
+
+  final int scrollX;
+    descriptor: I
+
+  final int scrollY;
+    descriptor: I
+
+  final boolean active;
+    descriptor: Z
+
+  final boolean checked;
+    descriptor: Z
+
+  final boolean focused;
+    descriptor: Z
+
+  final boolean pressed;
+    descriptor: Z
+
+  dev.mixer.android.NativeRenderer$NativeState(dev.mixer.android.NativeAppearanceViewsV2$Record);
+    descriptor: (Ldev/mixer/android/NativeAppearanceViewsV2$Record;)V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: aload_1
+         6: putfield      #7                  // Field record:Ldev/mixer/android/NativeAppearanceViewsV2$Record;
+         9: aload_0
+        10: aload_1
+        11: getfield      #13                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.binding:Ldev/mixer/android/NativeAppearanceViewsV2$Binding;
+        14: putfield      #19                 // Field binding:Ldev/mixer/android/NativeAppearanceViewsV2$Binding;
+        17: aload_0
+        18: aload_1
+        19: getfield      #20                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.geometry:Ldev/mixer/android/NativeAppearanceViewsV2$Geometry;
+        22: putfield      #24                 // Field geometry:Ldev/mixer/android/NativeAppearanceViewsV2$Geometry;
+        25: aload_0
+        26: aload_1
+        27: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+        30: astore        4
+        32: aload         4
+        34: instanceof    #29                 // class android/widget/EditText
+        37: ifeq          63
+        40: aload         4
+        42: checkcast     #29                 // class android/widget/EditText
+        45: astore_3
+        46: aload_3
+        47: invokevirtual #31                 // Method android/widget/EditText.hasFocus:()Z
+        50: ifne          97
+        53: aload_3
+        54: invokevirtual #35                 // Method android/widget/EditText.getText:()Landroid/text/Editable;
+        57: invokestatic  #39                 // Method android/view/inputmethod/BaseInputConnection.getComposingSpanStart:(Ljava/lang/CharSequence;)I
+        60: ifge          97
+        63: aload_1
+        64: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+        67: astore        4
+        69: aload         4
+        71: instanceof    #45                 // class android/widget/TextView
+        74: ifeq          101
+        77: aload         4
+        79: checkcast     #45                 // class android/widget/TextView
+        82: astore_2
+        83: aload_2
+        84: invokevirtual #47                 // Method android/widget/TextView.isTextSelectable:()Z
+        87: ifeq          101
+        90: aload_2
+        91: invokevirtual #50                 // Method android/widget/TextView.getSelectionStart:()I
+        94: iflt          101
+        97: iconst_1
+        98: goto          102
+       101: iconst_0
+       102: putfield      #54                 // Field active:Z
+       105: aload_0
+       106: aload_1
+       107: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       110: astore_3
+       111: aload_3
+       112: instanceof    #45                 // class android/widget/TextView
+       115: ifeq          130
+       118: aload_3
+       119: checkcast     #45                 // class android/widget/TextView
+       122: astore_2
+       123: aload_2
+       124: invokevirtual #58                 // Method android/widget/TextView.getText:()Landroid/text/Editable;
+       127: goto          131
+       130: aconst_null
+       131: putfield      #59                 // Field nativeBuffer:Ljava/lang/CharSequence;
+       134: aload_0
+       135: aload_0
+       136: getfield      #59                 // Field nativeBuffer:Ljava/lang/CharSequence;
+       139: ifnonnull     146
+       142: aconst_null
+       143: goto          155
+       146: aload_0
+       147: getfield      #59                 // Field nativeBuffer:Ljava/lang/CharSequence;
+       150: invokeinterface #63,  1           // InterfaceMethod java/lang/CharSequence.toString:()Ljava/lang/String;
+       155: putfield      #69                 // Field text:Ljava/lang/CharSequence;
+       158: aload_0
+       159: aload_0
+       160: getfield      #59                 // Field nativeBuffer:Ljava/lang/CharSequence;
+       163: invokestatic  #72                 // Method dev/mixer/android/NativeRenderer.compositionV2:(Ljava/lang/CharSequence;)Ljava/util/List;
+       166: putfield      #78                 // Field composition:Ljava/util/List;
+       169: aload_0
+       170: aload_1
+       171: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       174: invokevirtual #82                 // Method android/view/View.getDrawableState:()[I
+       177: invokevirtual #88                 // Method "[I".clone:()Ljava/lang/Object;
+       180: checkcast     #89                 // class "[I"
+       183: putfield      #94                 // Field drawableState:[I
+       186: aload_0
+       187: iconst_2
+       188: newarray       int
+       190: putfield      #97                 // Field windowPosition:[I
+       193: aload_1
+       194: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       197: aload_0
+       198: getfield      #97                 // Field windowPosition:[I
+       201: invokevirtual #100                // Method android/view/View.getLocationInWindow:([I)V
+       204: aload_0
+       205: aload_1
+       206: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       209: invokevirtual #104                // Method android/view/View.getLeft:()I
+       212: putfield      #107                // Field left:I
+       215: aload_0
+       216: aload_1
+       217: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       220: invokevirtual #111                // Method android/view/View.getTop:()I
+       223: putfield      #114                // Field top:I
+       226: aload_0
+       227: aload_1
+       228: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       231: invokevirtual #117                // Method android/view/View.getRight:()I
+       234: putfield      #120                // Field right:I
+       237: aload_0
+       238: aload_1
+       239: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       242: invokevirtual #123                // Method android/view/View.getBottom:()I
+       245: putfield      #126                // Field bottom:I
+       248: aload_0
+       249: aload_1
+       250: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       253: invokevirtual #129                // Method android/view/View.getMeasuredWidth:()I
+       256: putfield      #132                // Field measuredWidth:I
+       259: aload_0
+       260: aload_1
+       261: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       264: invokevirtual #135                // Method android/view/View.getMeasuredHeight:()I
+       267: putfield      #138                // Field measuredHeight:I
+       270: aload_0
+       271: aload_1
+       272: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       275: invokevirtual #141                // Method android/view/View.isEnabled:()Z
+       278: putfield      #144                // Field enabled:Z
+       281: aload_0
+       282: aload_1
+       283: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       286: astore_3
+       287: aload_3
+       288: instanceof    #45                 // class android/widget/TextView
+       291: ifeq          306
+       294: aload_3
+       295: checkcast     #45                 // class android/widget/TextView
+       298: astore_2
+       299: aload_2
+       300: invokevirtual #50                 // Method android/widget/TextView.getSelectionStart:()I
+       303: goto          307
+       306: iconst_m1
+       307: putfield      #147                // Field selectionStart:I
+       310: aload_0
+       311: aload_1
+       312: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       315: astore_3
+       316: aload_3
+       317: instanceof    #45                 // class android/widget/TextView
+       320: ifeq          335
+       323: aload_3
+       324: checkcast     #45                 // class android/widget/TextView
+       327: astore_2
+       328: aload_2
+       329: invokevirtual #150                // Method android/widget/TextView.getSelectionEnd:()I
+       332: goto          336
+       335: iconst_m1
+       336: putfield      #153                // Field selectionEnd:I
+       339: aload_0
+       340: aload_1
+       341: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       344: invokevirtual #156                // Method android/view/View.getScrollX:()I
+       347: putfield      #159                // Field scrollX:I
+       350: aload_0
+       351: aload_1
+       352: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       355: invokevirtual #162                // Method android/view/View.getScrollY:()I
+       358: putfield      #165                // Field scrollY:I
+       361: aload_0
+       362: aload_1
+       363: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       366: astore_3
+       367: aload_3
+       368: instanceof    #168                // class android/widget/Switch
+       371: ifeq          390
+       374: aload_3
+       375: checkcast     #168                // class android/widget/Switch
+       378: astore_2
+       379: aload_2
+       380: invokevirtual #170                // Method android/widget/Switch.isChecked:()Z
+       383: ifeq          390
+       386: iconst_1
+       387: goto          391
+       390: iconst_0
+       391: putfield      #173                // Field checked:Z
+       394: aload_0
+       395: aload_1
+       396: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       399: invokevirtual #176                // Method android/view/View.hasFocus:()Z
+       402: putfield      #177                // Field focused:Z
+       405: aload_0
+       406: aload_1
+       407: getfield      #25                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.view:Landroid/view/View;
+       410: invokevirtual #180                // Method android/view/View.isPressed:()Z
+       413: putfield      #183                // Field pressed:Z
+       416: return
+      LineNumberTable:
+        line 219: 0
+        line 220: 4
+        line 221: 105
+        line 223: 134
+        line 224: 158
+        line 225: 169
+        line 226: 204
+        line 227: 248
+        line 228: 281
+        line 229: 310
+        line 230: 339
+        line 231: 416
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+           46      17     3     e   Landroid/widget/EditText;
+           83      14     2     t   Landroid/widget/TextView;
+          123       7     2     t   Landroid/widget/TextView;
+          299       7     2     t   Landroid/widget/TextView;
+          328       7     2     t   Landroid/widget/TextView;
+          379      11     2 value   Landroid/widget/Switch;
+            0     417     0  this   Ldev/mixer/android/NativeRenderer$NativeState;
+            0     417     1 record   Ldev/mixer/android/NativeAppearanceViewsV2$Record;
+}
+Compiled from "NativeRenderer.java"
+final class dev.mixer.android.NativeRenderer$ParentState extends java.lang.Record {
+  private final android.view.ViewGroup parent;
+    descriptor: Landroid/view/ViewGroup;
+
+  private final android.view.View[] children;
+    descriptor: [Landroid/view/View;
+
+  dev.mixer.android.NativeRenderer$ParentState(android.view.ViewGroup);
+    descriptor: (Landroid/view/ViewGroup;)V
+    Code:
+         0: aload_0
+         1: aload_1
+         2: aload_1
+         3: invokestatic  #17                 // Method dev/mixer/android/NativeRenderer.childrenV2:(Landroid/view/ViewGroup;)[Landroid/view/View;
+         6: invokespecial #23                 // Method "<init>":(Landroid/view/ViewGroup;[Landroid/view/View;)V
+         9: return
+      LineNumberTable:
+        line 271: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      10     0  this   Ldev/mixer/android/NativeRenderer$ParentState;
+            0      10     1 parent   Landroid/view/ViewGroup;
+
+  private dev.mixer.android.NativeRenderer$ParentState(android.view.ViewGroup, android.view.View[]);
+    descriptor: (Landroid/view/ViewGroup;[Landroid/view/View;)V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Record."<init>":()V
+         4: aload_0
+         5: aload_1
+         6: putfield      #7                  // Field parent:Landroid/view/ViewGroup;
+         9: aload_0
+        10: aload_2
+        11: putfield      #13                 // Field children:[Landroid/view/View;
+        14: return
+      LineNumberTable:
+        line 270: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      15     0  this   Ldev/mixer/android/NativeRenderer$ParentState;
+            0      15     1 parent   Landroid/view/ViewGroup;
+            0      15     2 children   [Landroid/view/View;
+
+  public final java.lang.String toString();
+    descriptor: ()Ljava/lang/String;
+    Code:
+         0: aload_0
+         1: invokedynamic #26,  0             // InvokeDynamic #0:toString:(Ldev/mixer/android/NativeRenderer$ParentState;)Ljava/lang/String;
+         6: areturn
+      LineNumberTable:
+        line 270: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       7     0  this   Ldev/mixer/android/NativeRenderer$ParentState;
+
+  public final int hashCode();
+    descriptor: ()I
+    Code:
+         0: aload_0
+         1: invokedynamic #30,  0             // InvokeDynamic #0:hashCode:(Ldev/mixer/android/NativeRenderer$ParentState;)I
+         6: ireturn
+      LineNumberTable:
+        line 270: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       7     0  this   Ldev/mixer/android/NativeRenderer$ParentState;
+
+  public final boolean equals(java.lang.Object);
+    descriptor: (Ljava/lang/Object;)Z
+    Code:
+         0: aload_0
+         1: aload_1
+         2: invokedynamic #34,  0             // InvokeDynamic #0:equals:(Ldev/mixer/android/NativeRenderer$ParentState;Ljava/lang/Object;)Z
+         7: ireturn
+      LineNumberTable:
+        line 270: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       8     0  this   Ldev/mixer/android/NativeRenderer$ParentState;
+            0       8     1     o   Ljava/lang/Object;
+
+  public android.view.ViewGroup parent();
+    descriptor: ()Landroid/view/ViewGroup;
+    Code:
+         0: aload_0
+         1: getfield      #7                  // Field parent:Landroid/view/ViewGroup;
+         4: areturn
+      LineNumberTable:
+        line 270: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Ldev/mixer/android/NativeRenderer$ParentState;
+
+  public android.view.View[] children();
+    descriptor: ()[Landroid/view/View;
+    Code:
+         0: aload_0
+         1: getfield      #13                 // Field children:[Landroid/view/View;
+         4: areturn
+      LineNumberTable:
+        line 270: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Ldev/mixer/android/NativeRenderer$ParentState;
+}
+Compiled from "NativeRenderer.java"
+final class dev.mixer.android.NativeRenderer$Record {
+  final android.view.View view;
+    descriptor: Landroid/view/View;
+
+  final android.view.ViewGroup children;
+    descriptor: Landroid/view/ViewGroup;
+
+  final android.widget.TextView title;
+    descriptor: Landroid/widget/TextView;
+
+  final java.lang.String kind;
+    descriptor: Ljava/lang/String;
+
+  final java.lang.String generation;
+    descriptor: Ljava/lang/String;
+
+  boolean binding;
+    descriptor: Z
+
+  android.text.TextWatcher watcher;
+    descriptor: Landroid/text/TextWatcher;
+
+  dev.mixer.android.NativeRenderer$Record(android.view.View, android.view.ViewGroup, android.widget.TextView, dev.mixer.android.UiPacket$Node);
+    descriptor: (Landroid/view/View;Landroid/view/ViewGroup;Landroid/widget/TextView;Ldev/mixer/android/UiPacket$Node;)V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: aload_1
+         6: putfield      #7                  // Field view:Landroid/view/View;
+         9: aload_0
+        10: aload_2
+        11: putfield      #13                 // Field children:Landroid/view/ViewGroup;
+        14: aload_0
+        15: aload_3
+        16: putfield      #17                 // Field title:Landroid/widget/TextView;
+        19: aload_0
+        20: aload         4
+        22: getfield      #21                 // Field dev/mixer/android/UiPacket$Node.kind:Ljava/lang/String;
+        25: putfield      #27                 // Field kind:Ljava/lang/String;
+        28: aload_0
+        29: aload         4
+        31: getfield      #28                 // Field dev/mixer/android/UiPacket$Node.generation:Ljava/lang/String;
+        34: putfield      #31                 // Field generation:Ljava/lang/String;
+        37: return
+      LineNumberTable:
+        line 15: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      38     0  this   Ldev/mixer/android/NativeRenderer$Record;
+            0      38     1     v   Landroid/view/View;
+            0      38     2     c   Landroid/view/ViewGroup;
+            0      38     3     t   Landroid/widget/TextView;
+            0      38     4     n   Ldev/mixer/android/UiPacket$Node;
+}

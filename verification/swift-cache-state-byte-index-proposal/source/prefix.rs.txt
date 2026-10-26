@@ -1,0 +1,28 @@
+            // G5. Exact prior successful base+request guard proves subtraction.
+            let headroom = f.capacity - f.base - w[13];
+            let mut remaining = total;
+            let mut mask = 0;
+            let mut destination = first_empty;
+            {
+                let (arena_words, _) = b.as_chunks::<8>();
+                let resident_word_base = RESIDENT.base / 8;
+                let mut i = 0;
+                while i < 64 {
+                    if remaining <= headroom && destination != ABSENT { break; }
+                    let slot_byte = c[512 + i];
+                    if slot_byte == u8::MAX { break; }
+                    // 255 never reaches this zero extension. No signed value.
+                    let slot = slot_byte as u64;
+                    let bytes = u64::from_le_bytes(
+                        arena_words[resident_word_base + slot as usize * 8 + 2]
+                    );
+                    let Some(next) = remaining.checked_sub(bytes) else {
+                        return reject(13);
+                    };
+                    remaining = next;
+                    mask |= 1 << slot;
+                    destination = slot;
+                    i += 1;
+                }
+            }
+            let feasible = destination != ABSENT && remaining <= headroom;

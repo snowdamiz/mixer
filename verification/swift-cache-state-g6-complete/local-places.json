@@ -1,0 +1,405 @@
+{
+  "schema": 1,
+  "source_sha256": "0ab577c36f9836539181ba5156bdfbc7764ea065266e68d94b431da5fdb47ea8",
+  "scope": "Source-semantic places and conservative lexical/statement/call scopes; not compiler stack, RSS, ABI or acceptance of29344 union.",
+  "lifetime_rules": [
+    "Each source/received endpoint is a distinct place when the model has an actual transfer; an edge is counted once. Whole byte payload source aliases existing Candidate/arena storage unless explicitly described as a produced array/Option.",
+    "No named local is retired merely at last use. Use its source lexical block end; no optimizer, slot reuse, promotion, or elision assumption.",
+    "Each statement temporary is conservatively live from its production until that expression statement ends, unless its callee return ends the callee-owned output earlier. Source and destination coexist during an actual transfer.",
+    "Scalar literal/operand/result places are instantiated per expression/operation ID; width<=8 each, bool1, unit0. Both operands and produced result are distinct where a primitive uses them. They remain within that primitive call/expression statement and may overlap its active helper frames.",
+    "Two-word Range and fat-view places use separate8-byte fields in operations but remain complete16-byte owners in this place inventory.",
+    "A full Option16 has its complete source and received16 owners during transfer, not only active tag/payload bytes; its inactive bytes are covered by the fixed-copy debit. A pointer-niche Option<&array8> is the complete8-byte source/received pointer place."
+  ],
+  "leaf_named_places": [
+    {
+      "names": [
+        "b",
+        "c",
+        "loan",
+        "p",
+        "steps"
+      ],
+      "types": [
+        "&mut[u8]",
+        "&mut Candidate2048",
+        "&Loan",
+        "&Progress",
+        "&mut StepBudget"
+      ],
+      "bytes": [
+        16,
+        8,
+        8,
+        8,
+        8
+      ],
+      "scope": "semantic received parameters through semantic return; not alive in callee after caller starts cleanup"
+    },
+    {
+      "names": [
+        "w",
+        "f"
+      ],
+      "types": [
+        "&[u64;16]",
+        "&Fixture"
+      ],
+      "bytes": [
+        8,
+        8
+      ],
+      "scope": "semantic block let bindings through semantic return; initialized/owned G1"
+    },
+    {
+      "names": [
+        "resident_delta",
+        "pin_delta",
+        "plan_delta"
+      ],
+      "type": "u64",
+      "bytes_each": 8,
+      "scope": "semantic350..773, all3 simultaneous; initializers G1, later assignments/reads G6"
+    },
+    {
+      "names": [
+        "total",
+        "count",
+        "found",
+        "first_empty",
+        "first_pin",
+        "resident_pins",
+        "live_tokens",
+        "release_nonce_matches"
+      ],
+      "type": "u64",
+      "bytes_each": 8,
+      "scope": "semantic block through return; born G1/G2, their new G6 argument reads remain separate"
+    },
+    {
+      "names": [
+        "stage"
+      ],
+      "type": "u64",
+      "bytes_each": 8,
+      "scope": "let710 through semantic return773; overlaps3 delta flags and all commit calls"
+    },
+    {
+      "names": [
+        "at"
+      ],
+      "type": "usize",
+      "bytes_each": 8,
+      "scope": "one distinct binding per resident734..744, pin745..748 or plan749..752 if block. These at locals are mutually sequential, not simultaneous across blocks."
+    }
+  ],
+  "event_arm_places": [
+    {
+      "arm": "3|4",
+      "places": {
+        "cell": 8,
+        "prior": 8,
+        "outcome": 8
+      },
+      "scope": "arm477..513; ownG1. On5-word plan stage, Range iterator16 and i8 are additional G6 locals. All end before common final stage710."
+    },
+    {
+      "arm": "5",
+      "places": {
+        "cell": 8,
+        "headroom": 8,
+        "remaining": 8,
+        "mask": 8,
+        "destination": 8,
+        "feasible": 1
+      },
+      "scope": "arm514..568. cellG1; prefix locals G5; final scalar argument reads G6. Merge callee completes before prefix; no merge helper frame overlaps final sq."
+    },
+    {
+      "arm": "6..=8",
+      "places": {
+        "outstanding": 8,
+        "expected": 8,
+        "slot": 8
+      },
+      "scope": "arm569..613; source admissionG1; arguments and staged calculationsG6. All dead by common final stage."
+    },
+    {
+      "arm": "11",
+      "places": {
+        "slot626_u64": 8,
+        "slot630_usize_shadow": 8,
+        "prior_pins653": 8,
+        "pins654": 8
+      },
+      "scope": "arm619..672. Both slot bindings conservatively coexist through arm end despite shadow. prior_pins and pins coexist with both slots and st/sq frames."
+    },
+    {
+      "arm": "11 built inner else",
+      "places": {
+        "sum648": 8
+      },
+      "scope": "else637..652; checked Option16 temporary source/received during648. sum ends before prior_pins653 exists, by actual lexical block."
+    },
+    {
+      "arm": "12",
+      "places": {
+        "slot674": 8,
+        "pin675": 8
+      },
+      "scope": "arm673..701; ownG1. Pin-reset iterator16 and per-iteration i8 add G6 locals; all arm locals end before common final stage."
+    }
+  ],
+  "helper_frames": [
+    {
+      "template": "st",
+      "received": {
+        "b_fat": 16,
+        "at": 8,
+        "n": 8
+      },
+      "caller_sources": {
+        "b_fat": 16,
+        "at_value": 8,
+        "n_value": 8
+      },
+      "extra": {
+        "to_le_bytes_received_self": 8,
+        "to_le_bytes_return_array_source": 8,
+        "received_LE_array_temporary": 8
+      },
+      "scope": "All st parameters live throughout call. LE array source8 exists in to_le_bytes call and overlaps received8 only at return transfer; received8 survives source borrow/copy until st inner statement ends. No returned array source survives callee return. Destination bytes alias existing Candidate/arena."
+    },
+    {
+      "template": "sq",
+      "received": {
+        "c_thin": 8,
+        "i": 8,
+        "n": 8
+      },
+      "caller_sources": {
+        "c_thin": 8,
+        "i": 8,
+        "n": 8
+      },
+      "scope": "sq caller source and received endpoints overlap argument transfer; received parameters remain while nested st frame is active. SC+8*i operator word operands/results belong to forwarding argument expression; nested st params are distinct."
+    },
+    {
+      "template": "ld",
+      "received": {
+        "b_fat": 16,
+        "at": 8
+      },
+      "caller_sources": {
+        "b_fat": 16,
+        "at": 8
+      },
+      "extra": {
+        "first_chunk_receiver": 16,
+        "Option_ref_array_output_source": 8,
+        "Option_ref_array_caller_received": 8,
+        "expect_self_received": 8,
+        "expect_message_source_fat": 16,
+        "expect_message_received_fat": 16,
+        "expect_return_reference_source": 8,
+        "expect_return_reference_received": 8,
+        "from_le_bytes_received_array": 8,
+        "decoded_word_source": 8,
+        "ld_designated_output": 8,
+        "caller_word_received": 8
+      },
+      "scope": "Whole ld return expression. first_chunk/expect return owners end at their callee exits; received chain values conservatively survive expression end. Array source is the proved borrowed8 bytes of existing storage, not a new zero initializer; from_le_bytes receives the full by-value array8. Message static text bytes remain static; only pointer/length source and received views are transient."
+    },
+    {
+      "template": "cq",
+      "received": {
+        "c_thin": 8,
+        "i": 8
+      },
+      "caller_sources": {
+        "c_thin": 8,
+        "i": 8
+      },
+      "scope": "cq frame remains during nested ld; scalar offset expression and scalar returned/received word each instantiated separately."
+    },
+    {
+      "template": "rr/pr/pl",
+      "received": {
+        "b_fat": 16,
+        "row": 8,
+        "field": 8
+      },
+      "caller_sources": {
+        "b_fat": 16,
+        "row": 8,
+        "field": 8
+      },
+      "scope": "These frames retain G1 ownership in the conservative admission supertrace. G6 new pins uses ld directly. Their offset operands and output words remain source/received owners; no G1 work is charged to G6."
+    }
+  ],
+  "index_copy_place_templates": [
+    {
+      "template": "one scalar array Index",
+      "places": {
+        "source_index_usize": 8,
+        "received_index_usize": 8,
+        "receiver_borrow_source_thin": 8,
+        "receiver_received_thin": 8,
+        "returned_reference_source": 8,
+        "caller_received_reference": 8,
+        "loaded_word_source": 8,
+        "actual_argument_or_binding_received": 8
+      },
+      "scope": "one indexed scalar expression including its returned reference/dereference; references end at expression statement. If p.q is projected, field address operand is an additional word; q payload is never copied as128 here."
+    },
+    {
+      "template": "one slice Range Index",
+      "places": {
+        "Range_source": 16,
+        "Range_received": 16,
+        "receiver_borrow_source": 16,
+        "receiver_received": 16,
+        "returned_view_source": 16,
+        "caller_received_view": 16
+      },
+      "scope": "one Index call/return within expression; Candidate-array receiver uses8+8 in place of16+16. Both Range fields and each view pointer/length are independently counted."
+    },
+    {
+      "template": "copy_from_slice",
+      "places": {
+        "copy_receiver_source_view": 16,
+        "copy_received_receiver": 16,
+        "source_shared_reference": 8,
+        "source_view_source": 16,
+        "copy_received_source_view": 16
+      },
+      "scope": "source argument evaluation through copy return; the two complete payload endpoints alias existing arrays except produced LE/anonymous arrays explicitly listed. Returned unit and discarded unit occupy0 bytes and have charged control operations."
+    },
+    {
+      "template": "scalar primitive",
+      "places": {
+        "left_operand_up_to": 8,
+        "right_operand_up_to": 8,
+        "result_source_up_to": 8,
+        "result_received_up_to": 8,
+        "predicate_bool": 1
+      },
+      "scope": "each generated operator occurrence/operation ID inside its source expression; unary/cast uses one operand. These are conservative typed source slots, not simultaneously summed with every earlier completed primitive in a statement."
+    },
+    {
+      "template": "Region constant base projection",
+      "places": {
+        "materialized_constant_Region_source_value": 24,
+        "projected_base_word": 8
+      },
+      "scope": "Conservatively materialize all3 constant fields in one24B source value for the field projection expression;3 component edges are charged. It ends at that expression statement, and only the base word is passed onward. No Region24 by-value argument is inferred. f fields refer to received immutable Fixture72 and are scalar reads, never full Fixture movement."
+    }
+  ],
+  "loop_places": [
+    {
+      "names": [
+        "Range source",
+        "IntoIterator received Range",
+        "returned iterator source",
+        "caller received iterator",
+        "mutable iterator binding"
+      ],
+      "bytes_each": 16,
+      "scope": "setup transfer chain; source and received coexist at each step, each preceding callee owner ends at its return. Mutable iterator binding persists to final None/for exit."
+    },
+    {
+      "names": [
+        "next receiver borrow source",
+        "next receiver received"
+      ],
+      "bytes_each": 8,
+      "scope": "each actual next call, with persistent iterator binding16"
+    },
+    {
+      "names": [
+        "next Option source",
+        "caller received Option"
+      ],
+      "bytes_each": 16,
+      "scope": "each actual next return including final None, during complete16B transfer; received Option ends after current pattern/body iteration; next source ends at call return"
+    },
+    {
+      "names": [
+        "i"
+      ],
+      "bytes_each": 8,
+      "scope": "Some pattern binding for one body iteration only; successive i bindings and helper frames do not overlap. iterator16 remains while st frame runs."
+    }
+  ],
+  "cleanup_phase": {
+    "caller_still_live": {
+      "Paid": 24,
+      "Loan": 16,
+      "semantic_steps": 16,
+      "received_SemanticReply": 24,
+      "record_words_w": 128,
+      "record_handle": 8,
+      "Candidate": 2048,
+      "arena_Vec_handle": 24
+    },
+    "caller_scope": "cache_walk admitted-loan else block1171..1230. Received reply/Loan/StepBudget remain lexically live through cleanup; they are existing control roles, not reassigned to wire. Candidate and arena payload are existing owners.",
+    "cleanup_source_handles": {
+      "b_shared_fat": 16,
+      "c_exclusive_thin": 8
+    },
+    "cleanup_received_handles": {
+      "b_shared_fat": 16,
+      "c_exclusive_thin": 8
+    },
+    "Vec_coercion_places": {
+      "Vec_reference_source": 8,
+      "Deref_received_Vec_reference": 8,
+      "returned_slice_source": 16,
+      "caller_received_slice": 16
+    },
+    "anonymous_clear": {
+      "array_instances_per_statement": 1,
+      "array_bytes": 128,
+      "repeat_operand_bytes": 1,
+      "repeat_length_operand_bytes": 8,
+      "statement_instances": 16,
+      "simultaneous_arrays": 1,
+      "scope": "Each sole anonymous array begins during its own repeat initialization and ends at that clear expression statement. No named array receiver, by-value array helper parameter or second initializer-array source exists. It cannot overlap the next anonymous array or any restore statement."
+    },
+    "clear_metadata": "Use selected independent review complete place template: Range source/received32, Candidate Index receiver source/received16, destination view source/received/copy receiver48, shared array reference/source/received fat views40, predicate operand pair/bool17. Caller/received cleanup handles and repeat inputs are additional, explicit; no helper192/whole29344 union acceptance.",
+    "restore": "No anonymous clear array survives. Twelve sequential direct-copy statement templates with source arena bytes8 and destination Candidate bytes8 aliases; all Range/view owners remain full16B types.",
+    "return_bool_places": {
+      "cleanup_output_source": 1,
+      "caller_received": 1,
+      "not_operand": 1,
+      "not_result_source": 1,
+      "caller_if_predicate": 1
+    },
+    "return_scope": "after restores/private fault, or early invalid-length return before any clear. No clear temporary survives this phase. The conditional terminal latch belongsG7 for ordinary/fault cleanup cause orG128 for zero-debit guard cause."
+  },
+  "private_fault_places": {
+    "atomic_receiver_borrow_source": 8,
+    "atomic_received_receiver": 8,
+    "swap_value_bool": 1,
+    "ordering_value_up_to": 8,
+    "returned_bool_source": 1,
+    "returned_bool_received": 1,
+    "not_operand": 1,
+    "not_result_source": 1,
+    "scope": "cfg(test) standard atomic call and returned bool branch; globals COMMIT_FAULT/CLEANUP_FAULT are static existing storage, not new local arrays. Cleanup corruption additionally has byte IndexMut source/received thin references and destination byte aliases existing Candidate."
+  },
+  "phase_order": [
+    "event arm staging (sq/st/ld nested frames)",
+    "arm exit ends all arm locals",
+    "final stage8 and delta flags24 plus sequential commit call frames",
+    "semantic callee returns; all its local/helper frames end",
+    "caller ordinary/guard reply audit in G7/G128",
+    "cleanup call, guard",
+    "sixteen statement-scoped anonymous128 arrays in sequence",
+    "twelve restores in sequence",
+    "optional private fault",
+    "bool return/caller ! branch then G7/G128 latch effect"
+  ],
+  "complete_G6_local_category_inventory": true,
+  "full_29344_union_accepted": false,
+  "role_fit_for_helper192_control_wire_accepted": false
+}

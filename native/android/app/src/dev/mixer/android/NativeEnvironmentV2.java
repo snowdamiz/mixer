@@ -37,7 +37,10 @@ final class NativeEnvironmentV2 {
         requireMain();
         if (source.owner != owner || source.retired || generation != source.generation ||
             source.root.getWindowToken() != windowToken) return false;
-        try { return value.equals(source.read()); }
+        try {
+            boolean equal = value.equals(source.read());
+            return equal && !source.retired && source.owner == owner && generation == source.generation;
+        }
         catch (RuntimeException unavailable) { return false; }
     }
     FrameLayout root() { requireMain(); return source.root; }
@@ -46,9 +49,19 @@ final class NativeEnvironmentV2 {
     }
     static void unsupported() { throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation); }
 
+    enum Change { INVALIDATED, DETACHED, EPOCH_EXHAUSTED, REGISTRATION_FAILED, RENDERER_TERMINAL }
+    enum RendererCause { INTERACTION_EXHAUSTED, CAPTURE_FAILED, ROLLBACK_FAILED,
+        CURRENT_CHECK_FATAL, CANCELLATION_FAILED, TERMINAL_VALIDATION_FAILED }
+    interface Sink {
+        void changed(Observer source, Change change, RendererCause cause, Throwable primary, Error firstFatal);
+    }
+
     /** Listeners invalidate one complete tuple; a second synchronous read closes queued-listener races. */
     static final class Observer implements AutoCloseable, ComponentCallbacks {
-        final NativeRenderer owner;
+        private NativeRenderer owner;
+        private final Sink sink;
+        private boolean registrationStarted, terminalReported;
+        private RendererCause rendererCause;
         final Activity activity;
         final FrameLayout root;
         private long generation = 1;
@@ -75,7 +88,7 @@ final class NativeEnvironmentV2 {
         };
         private final View.OnAttachStateChangeListener attachment = new View.OnAttachStateChangeListener() {
             public void onViewAttachedToWindow(View view) { invalidate(); }
-            public void onViewDetachedFromWindow(View view) { terminalNotification(); }
+            public void onViewDetachedFromWindow(View view) { terminalNotification(Change.DETACHED); }
         };
         private final ViewTreeObserver.OnWindowFocusChangeListener windowFocus = focused -> invalidate();
         private final View.OnApplyWindowInsetsListener insets = (view, value) -> { invalidate(); return value; };
@@ -84,15 +97,20 @@ final class NativeEnvironmentV2 {
         };
 
         /** The private V2 root has one inset setter owner; no competing setter is permitted. */
-        Observer(NativeRenderer owner, Activity activity, FrameLayout root) {
+        Observer(Activity activity, FrameLayout root, Sink sink) {
             requireMain();
             // Public high-contrast read/listener first exists on API36. Never invent false on earlier OSes.
             if (Build.VERSION.SDK_INT < 36 || root.getContext() != activity) unsupported();
-            this.owner = Objects.requireNonNull(owner); this.activity = activity; this.root = root;
+            this.sink = Objects.requireNonNull(sink); this.activity = activity; this.root = root;
             modes = Objects.requireNonNull(activity.getSystemService(UiModeManager.class));
             accessibility = Objects.requireNonNull(activity.getSystemService(AccessibilityManager.class));
             resolver = Objects.requireNonNull(activity.getContentResolver());
             focusTarget = Objects.requireNonNull(root.getViewTreeObserver());
+        }
+        void register() {
+            requireMain();
+            if (registrationStarted || retired) throw new IllegalStateException("V2 observer registration is one shot");
+            registrationStarted = true;
             try {
                 begin(0); activity.registerComponentCallbacks(this); completed();
                 begin(1); root.addOnLayoutChangeListener(layout); completed();
@@ -106,7 +124,10 @@ final class NativeEnvironmentV2 {
                 initialized = true;
             } catch (RuntimeException | Error failure) {
                 retired = true; acquiring = -1;
-                remember(failure); cleanupAll(); throwFailure();
+                remember(failure);
+                try { sink.changed(this, Change.REGISTRATION_FAILED, null, primaryFailure, fatalFailure); }
+                catch (RuntimeException | Error report) { remember(report); }
+                cleanupAll(); throwFailure();
             }
         }
         private void begin(int slot) {
@@ -138,26 +159,54 @@ final class NativeEnvironmentV2 {
             if (failure instanceof Error) throw (Error)failure;
             throw (RuntimeException)failure;
         }
+        void bindRenderer(NativeRenderer renderer) {
+            requireMain();
+            if (renderer == null || retired || !initialized || owner != null || !renderer.belongsToV2(activity, this))
+                throw new IllegalStateException("V2 observer renderer binding rejected");
+            owner = renderer;
+        }
+        /** Trusted scalar barrier after the owner's main check; listener disposition may still be active. */
+        void retireScalarFromOwner() { retired = true; }
+        boolean ready() { requireMain(); return initialized && !retired; }
         void invalidate() {
             requireMain();
             if (retired) return;
-            if (generation == Long.MAX_VALUE) { terminalNotification(); return; }
+            if (generation == Long.MAX_VALUE) { terminalNotification(Change.EPOCH_EXHAUSTED); return; }
             generation++;
-            notifyOwner();
+            notifyOwner(Change.INVALIDATED);
         }
-        private void terminalNotification() {
+        private void terminalNotification(Change change) {
             requireMain();
             if (retired) return;
             retired = true;
-            notifyOwner();
-            cleanupAll(); throwFailure();
+            notifyOwner(change);
         }
-        private void notifyOwner() {
-            try { owner.environmentInvalidatedV2(); }
+        private void notifyOwner(Change change) {
+            try { sink.changed(this, change, null, null, null); }
             catch (RuntimeException | Error failure) {
                 retired = true; remember(failure); cleanupAll(); throwFailure();
             }
         }
+        void rendererTerminal(NativeRenderer renderer, RendererCause cause, Throwable primary, Error firstFatal) {
+            requireMain();
+            if (retired || terminalReported) return;
+            if (renderer != owner || renderer == null || cause == null)
+                throw new IllegalArgumentException("foreign V2 renderer terminal report");
+            rendererCause = cause; terminalReported = true; retired = true;
+            if (primary != null) remember(primary);
+            if (firstFatal != null && fatalFailure == null) fatalFailure = firstFatal;
+            sink.changed(this, Change.RENDERER_TERMINAL, rendererCause, primary, firstFatal);
+        }
+        static final class CleanupLedger {
+            private final Observer source;
+            private CleanupLedger(Observer source) { this.source = source; }
+            int state(int slot) { requireMain(); return source.cleanup[slot]; }
+            Throwable failure(int slot) { requireMain(); return source.cleanupFailures[slot]; }
+            Throwable primary() { requireMain(); return source.primaryFailure; }
+            Error firstFatal() { requireMain(); return source.fatalFailure; }
+        }
+        private final CleanupLedger ledger = new CleanupLedger(this);
+        CleanupLedger cleanupLedger() { requireMain(); return ledger; }
         private void cleanupAll() {
             retired = true;
             for (int slot = 0; slot < 8; slot++) {
@@ -187,7 +236,7 @@ final class NativeEnvironmentV2 {
         }
         NativeEnvironmentV2 capture() {
             requireMain();
-            if (retired || !initialized) unsupported();
+            if (retired || !initialized || owner == null) unsupported();
             return new NativeEnvironmentV2(this, read(), root.getWidth(), root.getHeight(), root.getWindowToken());
         }
         AppearanceResolverV2.Environment read() {

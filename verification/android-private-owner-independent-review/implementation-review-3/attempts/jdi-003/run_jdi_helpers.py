@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+"""Direct owned-PID, bounded two-child JDI witness; no process discovery or product mutation."""
+from pathlib import Path
+import datetime
+import hashlib
+import json
+import os
+import re
+import selectors
+import struct
+import subprocess
+import sys
+import tempfile
+import time
+import run_targeted_review as previous
+HERE=Path(__file__).resolve().parent
+JDK=previous.JDK
+CAP=2097152
+VARIANTS=['clean','terminal-at-entry','terminal-before-return','dirty-at-entry','dirty-before-return','ordinary-throw-after-callback','fatal-throw-after-callback']
+
+def environment():
+    value=dict(os.environ)
+    for key in ['JAVA_TOOL_OPTIONS','_JAVA_OPTIONS','JDK_JAVA_OPTIONS','CLASSPATH']:value.pop(key,None)
+    return value
+
+def code_hashes(path):
+    data=path.read_bytes();position=8
+    def take(size):
+        nonlocal position
+        value=data[position:position+size];position+=size;return value
+    def u2():return int.from_bytes(take(2),'big')
+    def u4():return int.from_bytes(take(4),'big')
+    count=u2();pool={};index=1
+    while index<count:
+        tag=take(1)[0]
+        if tag==1:pool[index]=take(u2()).decode('utf-8',errors='replace')
+        elif tag in [3,4,9,10,11,12,17,18]:take(4)
+        elif tag in [5,6]:take(8);index+=1
+        elif tag in [7,8,16,19,20]:take(2)
+        elif tag==15:take(3)
+        else:raise AssertionError(('unsupported official classfile tag',tag))
+        index+=1
+    take(6);take(2*u2())
+    for _ in range(u2()):
+        take(6)
+        for _ in range(u2()):take(2);take(u4())
+    result={}
+    for _ in range(u2()):
+        take(2);name=pool[u2()];descriptor=pool[u2()]
+        for _ in range(u2()):
+            attribute=pool[u2()];raw=take(u4())
+            if attribute=='Code':
+                length=int.from_bytes(raw[4:8],'big');result[name+descriptor]=hashlib.sha256(raw[8:8+length]).hexdigest()
+    return result
+
+def pair(classes,controller_classes,out,site,variant,sources):
+    start=time.monotonic();deadline=start+30;selector=selectors.DefaultSelector();children={};buffers={};forced=None;port=None
+    def spawn(name,argv):
+        child=subprocess.Popen(argv,cwd=previous.ROOT,env=environment(),stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
+        children[name]=dict(child=child,argv=argv,pid=child.pid)
+        for stream in ['stdout','stderr']:
+            key=(name,stream);buffers[key]=bytearray();selector.register(getattr(child,stream),selectors.EVENT_READ,key)
+    debuggee=[str(JDK/'java'),'-Xint','-Xms16m','-Xmx256m','-Xss512k','-XX:ActiveProcessorCount=2','-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=127.0.0.1:0','-cp',str(classes),'dev.mixer.android.IndependentHelperDebuggee',str(HERE),str(site),variant]
+    spawn('debuggee',debuggee)
+    try:
+        while selector.get_map():
+            if time.monotonic()>deadline:forced='30-second exact-row deadline';break
+            for key,_ in selector.select(.05):
+                chunk=os.read(key.fd,65536)
+                if not chunk:selector.unregister(key.fileobj);continue
+                buffers[key.data].extend(chunk)
+                if len(buffers[key.data])>CAP:forced=str(key.data)+' stream bound';break
+            if forced:break
+            if 'controller' not in children:
+                match=re.search(rb'Listening for transport dt_socket at address: ([0-9]+)',buffers[('debuggee','stdout')])
+                if match:
+                    port=int(match[1]);spawn('controller',[str(JDK/'java'),'--add-modules','jdk.jdi','-Xms16m','-Xmx128m','-XX:ActiveProcessorCount=2','-cp',str(controller_classes),'dev.mixer.android.IndependentHelperJdiController',str(port),str(site),variant])
+            if 'controller' in children and children['controller']['child'].poll() not in [None,0]:forced='controller failed; exact owned debuggee terminated';break
+    finally:
+        for details in children.values():
+            child=details['child']
+            if child.poll() is None:child.kill()
+            details['exit_code']=child.wait(timeout=3)
+        for key in list(selector.get_map().values()):
+            try:
+                while True:
+                    chunk=os.read(key.fd,65536)
+                    if not chunk:break
+                    buffers[key.data].extend(chunk)
+            finally:selector.unregister(key.fileobj)
+        selector.close()
+        for details in children.values():details['child'].stdout.close();details['child'].stderr.close()
+    for (name,stream),raw in buffers.items():(out/f'site-{site}-{variant}-{name}.{stream}').write_bytes(bytes(raw[:CAP]))
+    receipt=dict(schema=1,source_map=sources,site=site,variant=variant,children={name:{key:value for key,value in details.items() if key!='child'} for name,details in children.items()},controller_and_debuggee_at_most_one_pair=True,owned_exact_pids_reaped=True,no_process_inventory=True,loopback_port=port,forced=forced,limits=dict(wall_seconds=30,per_stream_bytes=CAP),elapsed_seconds=round(time.monotonic()-start,6),at=datetime.datetime.now(datetime.timezone.utc).isoformat(),tools={name:previous.record((JDK/name).resolve()) for name in ['java','javac']},runner=previous.record(Path(__file__)))
+    (out/f'site-{site}-{variant}.command.json').write_text(json.dumps(receipt,indent=2)+'\n')
+    return receipt
+
+def main():
+    batch=int(sys.argv[1]);out=HERE/'jdi-helper'/f'attempt-{batch}';out.mkdir();roster=json.loads((HERE.parent/'preaccess/site-input-map.json').read_text())['concrete_subjects'];leaves=json.loads((HERE.parent/'leaf-review-1/admission/leaf-manifest-3.json').read_text())['files']
+    inputs=[HERE/'candidate-4/source'/name for name in roster+sorted(leaves)]+[HERE/'IndependentHelperDebuggee.java',HERE/'IndependentTraceEncoding.java'];controller=HERE/'IndependentHelperJdiController.java';sources={str(p.relative_to(HERE)):previous.record(p) for p in inputs+[controller]};sources['frozen-jdi-plan']=previous.record(HERE/'jdi-helper/plan-manifest.json')
+    reference=json.loads((HERE/'matrix-execution-10/compiled-class-hashes.json').read_text());scratch_parent=HERE/'jdi-scratch';scratch_parent.mkdir()
+    outcomes=[]
+    with tempfile.TemporaryDirectory(dir=scratch_parent) as tmp:
+        scratch=Path(tmp);classes=scratch/'classes';classes.mkdir();controllers=scratch/'controller';controllers.mkdir();empty=scratch/'empty';empty.mkdir();listing=out/'explicit-product-sources.list';listing.write_text(''.join(str(p)+'\n' for p in inputs))
+        result=previous.run([str(JDK/'javac'),'--release','17','-g','-Xlint:all','-Werror','-proc:none','-classpath',str(empty),'-sourcepath',str(empty),'-d',str(classes),'@'+str(listing)],out/'01-product-compile',sources)
+        if result['exit_code']!=0:print('retained independent debuggee compile failure');return
+        result=previous.run([str(JDK/'javac'),'--release','17','--add-modules','jdk.jdi','-g','-Xlint:all','-Werror','-proc:none','-classpath',str(empty),'-sourcepath',str(empty),'-d',str(controllers),str(controller)],out/'02-controller-compile',sources)
+        if result['exit_code']!=0:print('retained independent JDI controller compile failure');return
+        compiled={str(p.relative_to(classes)):previous.record(p) for p in sorted(classes.rglob('*.class'))};codes={}
+        for name,value in compiled.items():
+            if name in reference and not name.startswith('dev/mixer/android/Independent'):assert reference[name]==value,('changed product/leaf class',name)
+            if name.startswith('dev/mixer/android/NativeAppearanceViewsV2'):
+                for method,sha in code_hashes(classes/name).items():codes[name.removesuffix('.class').replace('/','.')+'#'+method]=sha
+        (out/'compiled-class-hashes.json').write_text(json.dumps(compiled,indent=2)+'\n');(out/'compiled-method-code-hashes.json').write_text(json.dumps(codes,indent=2)+'\n')
+        requested=[(site,variant) for site in range(3) for variant in VARIANTS if (site,variant) not in [(0,'clean'),(0,'fatal-throw-after-callback')]] if sys.argv[2:]==['--remaining'] else [(0,'clean')] if sys.argv[2:]==['--feasibility-clean'] else [(int(sys.argv[2]),sys.argv[3])] if len(sys.argv)>3 else [(site,variant) for site in range(3) for variant in VARIANTS]
+        for site,variant in requested:
+            result=pair(classes,controllers,out,site,variant,sources);success=result['forced'] is None and len(result['children'])==2 and all(v['exit_code']==0 for v in result['children'].values());outcomes.append(dict(site=site,variant=variant,passed=success));print(json.dumps(outcomes[-1]),flush=True)
+            if not success:break
+    assert not any(scratch_parent.iterdir());scratch_parent.rmdir();(out/'cleanup.json').write_text(json.dumps(dict(owned_exact_pids_reaped=True,exclusive_scratch_removed=True,no_process_inventory=True,native_or_capture_started=False,outcomes=outcomes),indent=2)+'\n')
+
+if __name__=='__main__':main()

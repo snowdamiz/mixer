@@ -1,0 +1,820 @@
+// UNSELECTED, FAILED SOURCE-ONLY PROPOSAL. Never compiled or executed.
+// All six64-byte constructors and all384 emit calls are explicit.
+#[repr(C)]
+struct CachedMergeCursor<'a> {
+    indices: &'a [u8],
+    timestamps: &'a [[u8; 8]],
+    lp: usize, le: usize, rp: usize, re: usize,
+    li: u16, ri: u16, lt: u64, rt: u64,
+}
+fn cached_load_heads(s: &mut CachedMergeCursor<'_>) {
+    let index = s.indices[s.lp];
+    s.li = index as u16;
+    if index != u8::MAX {
+        s.lt = u64::from_le_bytes(s.timestamps[index as usize]);
+    }
+    let index = s.indices[s.rp];
+    s.ri = index as u16;
+    if index != u8::MAX {
+        s.rt = u64::from_le_bytes(s.timestamps[index as usize]);
+    }
+}
+fn cached_emit(s: &mut CachedMergeCursor<'_>) -> u8 {
+    #[cfg(test)]
+    {
+        if s.li != 256 && s.ri != 256 {
+            SORT_COMPARISONS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        }
+        SORT_MOVES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    }
+    //255 is a real tail byte;256 is private exhausted-cursor control.
+    let take_left = if s.ri >= 255 {
+        s.li != 256
+    } else {
+        s.li < 255 && s.lt <= s.rt
+    };
+    if take_left {
+        let out = s.li as u8;
+        s.lp += 1;
+        if s.lp < s.le {
+            let index = s.indices[s.lp];
+            s.li = index as u16;
+            if index != u8::MAX {
+                s.lt = u64::from_le_bytes(s.timestamps[index as usize]);
+            }
+        } else {
+            s.li = 256;
+        }
+        out
+    } else {
+        let out = s.ri as u8;
+        s.rp += 1;
+        if s.rp < s.re {
+            let index = s.indices[s.rp];
+            s.ri = index as u16;
+            if index != u8::MAX {
+                s.rt = u64::from_le_bytes(s.timestamps[index as usize]);
+            }
+        } else {
+            s.ri = 256;
+        }
+        out
+    }
+}
+fn merge(c: &mut Candidate2048) {
+    let (time_bytes, indices) = c.split_at_mut(512);
+    let (timestamps, _) = time_bytes.as_chunks::<8>();
+    {
+        let output = {
+            let source = &indices[0..64];
+            let mut s = CachedMergeCursor {
+                indices: source, timestamps,
+                lp: 0, le: 1, rp: 1, re: 2,
+                li: 256, ri: 256, lt: 0, rt: 0,
+            };
+            cached_load_heads(&mut s);
+            [
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 2; s.le = 3;
+                    s.rp = 3; s.re = 4;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 4; s.le = 5;
+                    s.rp = 5; s.re = 6;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 6; s.le = 7;
+                    s.rp = 7; s.re = 8;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 8; s.le = 9;
+                    s.rp = 9; s.re = 10;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 10; s.le = 11;
+                    s.rp = 11; s.re = 12;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 12; s.le = 13;
+                    s.rp = 13; s.re = 14;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 14; s.le = 15;
+                    s.rp = 15; s.re = 16;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 16; s.le = 17;
+                    s.rp = 17; s.re = 18;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 18; s.le = 19;
+                    s.rp = 19; s.re = 20;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 20; s.le = 21;
+                    s.rp = 21; s.re = 22;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 22; s.le = 23;
+                    s.rp = 23; s.re = 24;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 24; s.le = 25;
+                    s.rp = 25; s.re = 26;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 26; s.le = 27;
+                    s.rp = 27; s.re = 28;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 28; s.le = 29;
+                    s.rp = 29; s.re = 30;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 30; s.le = 31;
+                    s.rp = 31; s.re = 32;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 32; s.le = 33;
+                    s.rp = 33; s.re = 34;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 34; s.le = 35;
+                    s.rp = 35; s.re = 36;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 36; s.le = 37;
+                    s.rp = 37; s.re = 38;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 38; s.le = 39;
+                    s.rp = 39; s.re = 40;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 40; s.le = 41;
+                    s.rp = 41; s.re = 42;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 42; s.le = 43;
+                    s.rp = 43; s.re = 44;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 44; s.le = 45;
+                    s.rp = 45; s.re = 46;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 46; s.le = 47;
+                    s.rp = 47; s.re = 48;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 48; s.le = 49;
+                    s.rp = 49; s.re = 50;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 50; s.le = 51;
+                    s.rp = 51; s.re = 52;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 52; s.le = 53;
+                    s.rp = 53; s.re = 54;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 54; s.le = 55;
+                    s.rp = 55; s.re = 56;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 56; s.le = 57;
+                    s.rp = 57; s.re = 58;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 58; s.le = 59;
+                    s.rp = 59; s.re = 60;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 60; s.le = 61;
+                    s.rp = 61; s.re = 62;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                {
+                    s.lp = 62; s.le = 63;
+                    s.rp = 63; s.re = 64;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+            ]
+        };
+        indices[512..576].copy_from_slice(&output);
+    }
+    {
+        let output = {
+            let source = &indices[512..576];
+            let mut s = CachedMergeCursor {
+                indices: source, timestamps,
+                lp: 0, le: 2, rp: 2, re: 4,
+                li: 256, ri: 256, lt: 0, rt: 0,
+            };
+            cached_load_heads(&mut s);
+            [
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 4; s.le = 6;
+                    s.rp = 6; s.re = 8;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 8; s.le = 10;
+                    s.rp = 10; s.re = 12;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 12; s.le = 14;
+                    s.rp = 14; s.re = 16;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 16; s.le = 18;
+                    s.rp = 18; s.re = 20;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 20; s.le = 22;
+                    s.rp = 22; s.re = 24;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 24; s.le = 26;
+                    s.rp = 26; s.re = 28;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 28; s.le = 30;
+                    s.rp = 30; s.re = 32;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 32; s.le = 34;
+                    s.rp = 34; s.re = 36;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 36; s.le = 38;
+                    s.rp = 38; s.re = 40;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 40; s.le = 42;
+                    s.rp = 42; s.re = 44;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 44; s.le = 46;
+                    s.rp = 46; s.re = 48;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 48; s.le = 50;
+                    s.rp = 50; s.re = 52;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 52; s.le = 54;
+                    s.rp = 54; s.re = 56;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 56; s.le = 58;
+                    s.rp = 58; s.re = 60;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 60; s.le = 62;
+                    s.rp = 62; s.re = 64;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+            ]
+        };
+        indices[0..64].copy_from_slice(&output);
+    }
+    {
+        let output = {
+            let source = &indices[0..64];
+            let mut s = CachedMergeCursor {
+                indices: source, timestamps,
+                lp: 0, le: 4, rp: 4, re: 8,
+                li: 256, ri: 256, lt: 0, rt: 0,
+            };
+            cached_load_heads(&mut s);
+            [
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 8; s.le = 12;
+                    s.rp = 12; s.re = 16;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 16; s.le = 20;
+                    s.rp = 20; s.re = 24;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 24; s.le = 28;
+                    s.rp = 28; s.re = 32;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 32; s.le = 36;
+                    s.rp = 36; s.re = 40;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 40; s.le = 44;
+                    s.rp = 44; s.re = 48;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 48; s.le = 52;
+                    s.rp = 52; s.re = 56;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 56; s.le = 60;
+                    s.rp = 60; s.re = 64;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+            ]
+        };
+        indices[512..576].copy_from_slice(&output);
+    }
+    {
+        let output = {
+            let source = &indices[512..576];
+            let mut s = CachedMergeCursor {
+                indices: source, timestamps,
+                lp: 0, le: 8, rp: 8, re: 16,
+                li: 256, ri: 256, lt: 0, rt: 0,
+            };
+            cached_load_heads(&mut s);
+            [
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 16; s.le = 24;
+                    s.rp = 24; s.re = 32;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 32; s.le = 40;
+                    s.rp = 40; s.re = 48;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 48; s.le = 56;
+                    s.rp = 56; s.re = 64;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+            ]
+        };
+        indices[0..64].copy_from_slice(&output);
+    }
+    {
+        let output = {
+            let source = &indices[0..64];
+            let mut s = CachedMergeCursor {
+                indices: source, timestamps,
+                lp: 0, le: 16, rp: 16, re: 32,
+                li: 256, ri: 256, lt: 0, rt: 0,
+            };
+            cached_load_heads(&mut s);
+            [
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                {
+                    s.lp = 32; s.le = 48;
+                    s.rp = 48; s.re = 64;
+                    cached_load_heads(&mut s);
+                    cached_emit(&mut s)
+                },
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+            ]
+        };
+        indices[512..576].copy_from_slice(&output);
+    }
+    {
+        let output = {
+            let source = &indices[512..576];
+            let mut s = CachedMergeCursor {
+                indices: source, timestamps,
+                lp: 0, le: 32, rp: 32, re: 64,
+                li: 256, ri: 256, lt: 0, rt: 0,
+            };
+            cached_load_heads(&mut s);
+            [
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+                cached_emit(&mut s),
+            ]
+        };
+        indices[0..64].copy_from_slice(&output);
+    }
+}

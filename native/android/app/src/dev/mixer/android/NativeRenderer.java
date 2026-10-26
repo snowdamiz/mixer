@@ -15,7 +15,14 @@ final class NativeRenderer {
         Record(View v,ViewGroup c,TextView t,UiPacket.Node n){view=v;children=c;title=t;kind=n.kind;generation=n.generation;}
     }
     private final Context context;private final Events events;private Map<String,Record>records=new HashMap<>();UiPacket packet;
-    NativeRenderer(Context c,Events e){context=c;events=e;}
+    NativeRenderer(Context c,Events e){context=c;events=e;v2Fence=null;}
+    NativeRenderer(Context c,Events e,NativeEnvironmentV2.Observer observer,NativeOwnerV2.Fence fence){
+        NativeEnvironmentV2.requireMain();context=Objects.requireNonNull(c);events=Objects.requireNonNull(e);
+        v2Environment=Objects.requireNonNull(observer);v2Fence=Objects.requireNonNull(fence);
+        if(observer.activity!=c)throw Json.bad("foreign V2 renderer context");
+    }
+    boolean belongsToV2(Context c,NativeEnvironmentV2.Observer observer){NativeEnvironmentV2.requireMain();return context==c&&v2Environment==observer&&v2Fence!=null;}
+
     private int dp(double value){return(int)Math.round(value*context.getResources().getDisplayMetrics().density);}
     View view(String id){if(v2Records.containsKey(id))return v2Records.get(id).view;Record r=records.get(id);if(r==null)throw Json.bad("missing native ID "+id);return r.view;}
     View apply(UiPacket next){
@@ -71,38 +78,88 @@ final class NativeRenderer {
     private NativeEnvironmentV2 v2CommittedEnvironment;
     private NativeAppearanceViewsV2.Gate v2Gate;
     private Candidate v2Pending;
-    private boolean v2Open=true,v2Retired;
+    private final NativeOwnerV2.Fence v2Fence;
+    private boolean v2Open,v2Retired,v2ReportClaimed,v2Disposed;
     private long v2Interaction;
     private int v2Fault=-1,v2Steps;
     private boolean v2RollbackFault;
     private NativeAppearanceViewsV2.Input v2Input;
+    private NativeAppearanceViewsV2.Mutation v2Mutation;
+    private NativeAppearanceViewsV2.Record[] v2Roster=new NativeAppearanceViewsV2.Record[4096];
+    private int v2RosterCount;
+    static final class CleanupLedger {
+        private Throwable primary;
+        private Error firstFatal;
+        private long consumedSerial,requestedSerial,pass;
+        private int attempts;
+        private boolean inProgress;
+        private NativeEnvironmentV2.RendererCause cause,deferredCause;
+        Throwable primary(){NativeEnvironmentV2.requireMain();return primary;}
+        Error firstFatal(){NativeEnvironmentV2.requireMain();return firstFatal;}
+        long consumedSerial(){NativeEnvironmentV2.requireMain();return consumedSerial;}
+        int attempts(){NativeEnvironmentV2.requireMain();return attempts;}
+        boolean inProgress(){NativeEnvironmentV2.requireMain();return inProgress;}
+    }
+    private final CleanupLedger v2Cleanup=new CleanupLedger();
+    CleanupLedger cleanupLedger(){NativeEnvironmentV2.requireMain();return v2Cleanup;}
+    NativeAppearanceViewsV2.Mutation mutationV2(){
+        NativeEnvironmentV2.requireMain();
+        if(v2Mutation!=null)return v2Mutation;
+        return NativeAppearanceViewsV2.Mutation.live(v2Fence);
+    }
+    boolean drawAllowedV2(){return v2Fence!=null&&!v2Fence.terminal&&v2Fence.drawAllowed;}
     private NativeAppearanceViewsV2.Input inputV2(){if(v2Input==null)v2Input=new NativeAppearanceViewsV2.Input(){
+        public NativeAppearanceViewsV2.Mutation mutation(){return mutationV2();}
+        public boolean draw(){return presentationCurrentV2();}
         public boolean open(NativeAppearanceViewsV2.Record record){
-            return presentationCurrentV2()&&v2Records.get(record.id)==record&&record.view.isEnabled()&&record.view.isAttachedToWindow()&&record.view.isShown()&&record.view.hasWindowFocus();
+            NativeEnvironmentV2.requireMain();
+            if(v2Fence.terminal||!v2Fence.inputAllowed)return false;
+            OwnerLifecycleV2.Token presentation=v2Fence.presentation;
+            try{
+                boolean open=presentationCurrentV2()&&v2Records.get(record.id)==record&&record.view.isEnabled()&&
+                    record.view.isAttachedToWindow()&&record.view.isShown()&&record.view.hasWindowFocus();
+                return open&&!v2Fence.terminal&&v2Fence.inputAllowed&&presentation!=null&&presentation==v2Fence.presentation;
+            }catch(java.lang.Error fatal){terminalV2(NativeEnvironmentV2.RendererCause.CURRENT_CHECK_FATAL,fatal,fatal);throw fatal;}
         }
         public void event(NativeAppearanceViewsV2.Record record,String name,Object value){
-            if(!open(record))return;interaction();if(v2Open&&!v2Retired)events.send(packet.event(record.id,record.generation,name,value));
+            if(!open(record))return;interaction();if(open(record))events.send(packet.event(record.id,record.generation,name,value));
         }
-        public void interaction(){if(!v2Open)return;if(v2Interaction==Long.MAX_VALUE){retireV2();return;}v2Interaction++;}
+        public void interaction(){NativeEnvironmentV2.requireMain();if(!v2Fence.inputAllowed||v2Fence.terminal||!v2Open)return;
+            if(v2Interaction==Long.MAX_VALUE){terminalV2(NativeEnvironmentV2.RendererCause.INTERACTION_EXHAUSTED,null,null);return;}v2Interaction++;}
     };return v2Input;}
     InstalledAppearanceV2 captureInstalledV2(){
-        requireV2Live();NativeEnvironmentV2.requireMain();
-        InstalledAppearanceV2 capture=InstalledAppearanceV2.capture(context,this);
-        v2Installed=capture;return capture;
+        NativeEnvironmentV2.requireMain();requireV2Live();
+        OwnerLifecycleV2.Token operation=v2Fence.operation;requireTransactionV2(operation);
+        try{InstalledAppearanceV2 capture=InstalledAppearanceV2.capture(context,this);requireTransactionV2(operation);
+            v2Installed=capture;return capture;
+        }catch(RuntimeException|java.lang.Error failure){terminalV2(NativeEnvironmentV2.RendererCause.CAPTURE_FAILED,failure,failure instanceof java.lang.Error fatal?fatal:null);throw failure;}
     }
     NativeEnvironmentV2 captureEnvironmentV2(android.app.Activity activity,FrameLayout root){
-        requireV2Live();NativeEnvironmentV2.requireMain();
-        if(v2Environment==null)v2Environment=new NativeEnvironmentV2.Observer(this,activity,root);
-        else if(v2Environment.activity!=activity||v2Environment.root!=root)throw Json.bad("foreign V2 window");
-        try{return v2Environment.capture();}catch(RuntimeException|java.lang.Error failure){if(v2Plan!=null)retireV2();throw failure;}
+        NativeEnvironmentV2.requireMain();requireV2Live();
+        if(v2Environment.activity!=activity||v2Environment.root!=root)throw Json.bad("foreign V2 window");
+        OwnerLifecycleV2.Token operation=v2Fence.operation;requireTransactionV2(operation);
+        try{NativeEnvironmentV2 capture=v2Environment.capture();requireTransactionV2(operation);return capture;}catch(RuntimeException|java.lang.Error failure){terminalV2(NativeEnvironmentV2.RendererCause.CAPTURE_FAILED,failure,failure instanceof java.lang.Error fatal?fatal:null);throw failure;}
     }
-    void environmentInvalidatedV2(){
-        NativeEnvironmentV2.requireMain();if(v2Plan==null)return;
-        v2Open=false;if(v2Gate!=null){v2Gate.open=false;v2Gate.invalidate();}cancelToggleInputV2();
+    void sealScalarV2(){v2Open=false;if(v2Gate!=null)v2Gate.open=false;if(v2Pending!=null)v2Pending.gate.open=false;}
+    /** Trusted owner publication after actual clean core completion; no native work or capture. */
+    void publishScalarV2(OwnerLifecycleV2.Token presentation){
+        if(v2Fence==null||v2Fence.terminal||v2Fence.commitFinish||v2Retired||v2Disposed||
+            !v2Fence.drawAllowed||presentation==null||presentation!=v2Fence.presentation||
+            v2Gate==null||v2Pending!=null||packet==null||v2CommittedEnvironment==null)
+            throw Json.bad("invalid V2 presentation publication");
+        v2Open=true;v2Gate.open=true;
     }
+    void environmentInvalidatedV2(){NativeEnvironmentV2.requireMain();sealScalarV2();if(v2Environment!=null)v2Environment.invalidate();}
     boolean presentationCurrentV2(){
-        NativeEnvironmentV2.requireMain();if(!v2Open||v2Retired)return false;
-        if(v2CommittedEnvironment==null||!v2CommittedEnvironment.current(this)){environmentInvalidatedV2();return false;}return true;
+        NativeEnvironmentV2.requireMain();if(v2Fence==null||v2Fence.terminal||!v2Fence.drawAllowed||!v2Open||v2Retired)return false;
+        try{
+            if(v2CommittedEnvironment==null||!v2CommittedEnvironment.current(this)){
+                v2Fence.drawAllowed=false;v2Fence.inputAllowed=false;sealScalarV2();v2Environment.invalidate();return false;}
+            return !v2Fence.terminal&&v2Fence.drawAllowed;
+        }catch(java.lang.Error fatal){terminalV2(NativeEnvironmentV2.RendererCause.CURRENT_CHECK_FATAL,fatal,fatal);throw fatal;}
+    }
+    private void requireTransactionV2(OwnerLifecycleV2.Token operation){
+        if(v2Fence==null||v2Fence.terminal||operation==null||operation!=v2Fence.operation)throw Json.bad("V2 transaction authority lost");
     }
     static final class Candidate {
         private final NativeRenderer owner;
@@ -113,6 +170,9 @@ final class NativeRenderer {
         private final InstalledAppearanceV2 installed;
         private final NativeEnvironmentV2 environment;
         private final long interaction;
+        private final OwnerLifecycleV2.Token operation;
+        private final NativeAppearanceViewsV2.Record[] targetRoster,detachedRoster;
+        private final int targetCount,detachedCount;
         private final NativeAppearanceViewsV2.Gate gate;
         private final AttachmentJournal journal;
         private boolean used,attached;
@@ -122,6 +182,9 @@ final class NativeRenderer {
             this.owner=owner;this.base=owner.packet;this.next=next;this.bytes=bytes;this.baseRecords=owner.v2Records;
             this.targets=targets;this.detached=detached;this.plan=plan;this.installed=installed;
             this.environment=environment;this.interaction=owner.v2Interaction;this.gate=gate;
+            operation=owner.v2Fence.operation;
+            targetRoster=targets.values().toArray(new NativeAppearanceViewsV2.Record[4096]);targetCount=targets.size();
+            detachedRoster=detached.values().toArray(new NativeAppearanceViewsV2.Record[4096]);detachedCount=detached.size();
             journal=new AttachmentJournal(this);
         }
     }
@@ -209,7 +272,12 @@ final class NativeRenderer {
     }
     private static View[] childrenV2(ViewGroup parent){View[] result=new View[parent.getChildCount()];for(int i=0;i<result.length;i++)result[i]=parent.getChildAt(i);return result;}
     Candidate prepareV2(byte[] bytes,InstalledAppearanceV2 installed,NativeEnvironmentV2 environment){
-        requireV2Live();NativeEnvironmentV2.requireMain();
+        NativeEnvironmentV2.requireMain();requireV2Live();
+        OwnerLifecycleV2.Token operation=v2Fence.operation;requireTransactionV2(operation);
+        NativeAppearanceViewsV2.Mutation previousMutation=v2Mutation;
+        v2Mutation=NativeAppearanceViewsV2.Mutation.transaction(v2Fence,operation);
+        NativeAppearanceViewsV2.Mutation mutation=v2Mutation;
+        try {
         if(v2Pending!=null)throw Json.bad("V2 candidate already pending");
         if(installed==null||installed!=v2Installed||!installed.belongsTo(this)||environment==null||!environment.current(this))throw Json.bad("stale/foreign V2 capture");
         if(bytes==null||bytes.length>1048576)throw Json.bad("V2 packet byte limit");byte[] owned=bytes.clone();UiPacket next=UiPacket.decode(owned);
@@ -222,25 +290,28 @@ final class NativeRenderer {
             if(!child.kind.equals("list")&&containsKindV2(child,"list"))throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);}
         Map<String,NativeAppearanceViewsV2.Record> detached=new LinkedHashMap<>(),targets=new LinkedHashMap<>();
         for(var node:plan.nodes){UiPacket.Node source=next.nodes.get(node.identity().id());
-            NativeAppearanceViewsV2.Record shadow=new NativeAppearanceViewsV2.Record(context,source,inputV2());
+            NativeAppearanceViewsV2.Record shadow=new NativeAppearanceViewsV2.Record(context,source,inputV2(),mutation);mutation.require();
+
             NativeAppearanceViewsV2.Geometry geometry=new NativeAppearanceViewsV2.Geometry();
             var old=v2Records.get(source.id);var binding=new NativeAppearanceViewsV2.Binding(plan,node,source,installed.configuration.android);
             if(environmentOnly&&old!=null)binding=new NativeAppearanceViewsV2.Binding(plan,node,source,installed.configuration.android,
                 old.view instanceof EditText editor?editor.getText().toString():binding.nativeFieldValue(),
                 old.view instanceof Switch toggle?Boolean.valueOf(toggle.isChecked()):binding.nativeToggleValue());
-            shadow.bind(binding,geometry,false);
+            shadow.bind(binding,geometry,false,mutation);
             detached.put(source.id,shadow);
             if(old!=null)shadow.preparedScrollY=old.view.getScrollY();targets.put(source.id,old!=null&&old.kind.equals(source.kind)&&old.generation.equals(source.generation)?old:shadow);
         }
-        for(var record:detached.values())NativeAppearanceViewsV2.installChildren(record,detached);
+        for(var record:detached.values())NativeAppearanceViewsV2.installChildren(record,detached,mutation);
         var safe=environment.value.safeArea64();long width=environment.value.viewport().width64()-safe.leading()-safe.trailing();
         long height=environment.value.viewport().height64()-safe.top()-safe.bottom();
-        NativeAppearanceViewsV2.measure(detached.get(next.root.id),detached,width,height);
-        NativeAppearanceViewsV2.layoutRoot(detached.get(next.root.id),environment.width,environment.height,safe);
+        NativeAppearanceViewsV2.measure(detached.get(next.root.id),detached,width,height,mutation);mutation.require();
+
+        NativeAppearanceViewsV2.layoutRoot(detached.get(next.root.id),environment.width,environment.height,safe,mutation);
         NativeAppearanceViewsV2.Gate gate=v2Gate==null?new NativeAppearanceViewsV2.Gate(context,this):v2Gate;
         Candidate candidate=new Candidate(this,next,owned,Collections.unmodifiableMap(targets),Collections.unmodifiableMap(detached),plan,installed,environment,gate);
         preflightEditorsV2(candidate);
-        v2Pending=candidate;return candidate;
+        requireTransactionV2(operation);v2Pending=candidate;return candidate;
+        }finally{v2Mutation=previousMutation;}
     }
     private void preflightEditorsV2(Candidate c){
         for(var previous:v2Records.values()){
@@ -279,95 +350,180 @@ final class NativeRenderer {
                 List<String> ac=new ArrayList<>(),bc=new ArrayList<>();for(var n:a.children)ac.add(n.id);for(var n:b.children)bc.add(n.id);if(!ac.equals(bc))return false;}
             current=before;}return true;}
     private void validateV2(Candidate c,boolean attached){
-        requireV2Live();NativeEnvironmentV2.requireMain();
+        NativeEnvironmentV2.requireMain();requireV2Live();
         if(c==null||c.owner!=this||v2Pending!=c||c.used||c.attached!=attached||packet!=c.base||v2Records!=c.baseRecords||v2Installed!=c.installed)throw Json.bad("stale/foreign/consumed V2 candidate");
+        requireTransactionV2(c.operation);
         if(v2Interaction!=c.interaction)throw Json.bad("stale V2 native interaction epoch "+c.interaction+" -> "+v2Interaction);
         if(!c.environment.current(this))throw Json.bad("stale V2 native environment");
         if(!attached&&!sameNativeBaseV2(c.journal))throw Json.bad("stale V2 native canvas");
     }
     AttachmentJournal attachV2(Candidate c,FrameLayout root){
         validateV2(c,false);if(root!=c.environment.root())throw Json.bad("foreign V2 root");preflightEditorsV2(c);
-        v2Open=false;c.gate.open=false;if(v2Gate!=null)v2Gate.open=false;cancelToggleInputV2();c.gate.canvasColor=NativeAppearanceViewsV2.color(c.plan.canvas);v2Steps=0;
+        NativeAppearanceViewsV2.Mutation previousMutation=v2Mutation;
+        v2Mutation=NativeAppearanceViewsV2.Mutation.transaction(v2Fence,c.operation);
+        NativeAppearanceViewsV2.Mutation mutation=v2Mutation;
+        sealScalarV2();c.gate.open=false;c.gate.canvasColor=NativeAppearanceViewsV2.color(c.plan.canvas);v2Steps=0;
         try {
             for(var entry:c.targets.entrySet()){
                 var target=entry.getValue();var shadow=c.detached.get(entry.getKey());
                 if(target!=shadow){boolean preserve=target.view instanceof TextView&&sameEditorBindingV2(target,shadow);
-                    target.bind(shadow.binding,shadow.geometry,preserve);}
+                    target.bind(shadow.binding,shadow.geometry,preserve,mutation);}
                 faultV2();
             }
-            for(var target:c.targets.values()){NativeAppearanceViewsV2.installChildren(target,c.targets);faultV2();}
+            for(var target:c.targets.values()){NativeAppearanceViewsV2.installChildren(target,c.targets,mutation);faultV2();}
             View desired=c.targets.get(c.next.root.id).view;
-            if(desired.getParent()!=c.gate){if(desired.getParent() instanceof ViewGroup previous)previous.removeView(desired);c.gate.addView(desired);}
-            for(int i=c.gate.getChildCount()-1;i>=0;i--)if(c.gate.getChildAt(i)!=desired)c.gate.removeViewAt(i);
+            if(desired.getParent()!=c.gate){if(desired.getParent() instanceof ViewGroup previous)previous.removeView(desired);mutation.require();
+c.gate.addView(desired);mutation.require();
+}
+            for(int i=c.gate.getChildCount()-1;i>=0;i--)if(c.gate.getChildAt(i)!=desired){c.gate.removeViewAt(i);mutation.require();}
+
             faultV2();
-            if(c.gate.getParent()!=root){if(c.gate.getParent() instanceof ViewGroup previous)previous.removeView(c.gate);root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));}
-            for(int i=root.getChildCount()-1;i>=0;i--)if(root.getChildAt(i)!=c.gate)root.removeViewAt(i);
-            c.gate.measure(View.MeasureSpec.makeMeasureSpec(root.getWidth(),View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(root.getHeight(),View.MeasureSpec.EXACTLY));
-            c.gate.layout(0,0,root.getWidth(),root.getHeight());
-            NativeAppearanceViewsV2.layoutRoot(c.targets.get(c.next.root.id),root.getWidth(),root.getHeight(),c.environment.value.safeArea64());
+            if(c.gate.getParent()!=root){if(c.gate.getParent() instanceof ViewGroup previous)previous.removeView(c.gate);mutation.require();
+root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));mutation.require();
+}
+            for(int i=root.getChildCount()-1;i>=0;i--)if(root.getChildAt(i)!=c.gate){root.removeViewAt(i);mutation.require();}
+
+            c.gate.measure(View.MeasureSpec.makeMeasureSpec(root.getWidth(),View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(root.getHeight(),View.MeasureSpec.EXACTLY));mutation.require();
+
+            c.gate.layout(0,0,root.getWidth(),root.getHeight());mutation.require();
+
+            NativeAppearanceViewsV2.layoutRoot(c.targets.get(c.next.root.id),root.getWidth(),root.getHeight(),c.environment.value.safeArea64(),mutation);
             faultV2();c.attached=true;return c.journal;
-        }catch(RuntimeException|java.lang.Error failure){try{restoreV2(c);}catch(RuntimeException|java.lang.Error rollback){retireV2();failure.addSuppressed(rollback);}c.used=true;v2Pending=null;throw failure;}
+        }catch(RuntimeException|java.lang.Error failure){
+            if(!v2Fence.terminal)try{restoreV2(c);}catch(RuntimeException|java.lang.Error rollback){
+                rememberV2(failure);rememberV2(rollback);terminalV2(NativeEnvironmentV2.RendererCause.ROLLBACK_FAILED,failure,v2Cleanup.firstFatal);}
+            c.used=true;v2Pending=null;if(v2Cleanup.firstFatal!=null)throw v2Cleanup.firstFatal;throw failure;
+        }finally{v2Mutation=previousMutation;}
     }
     /** Scalar/reference checks and prepared swaps only. Coordinator commits engine immediately before this call. */
     void finishV2(Candidate c,AttachmentJournal journal){
-        NativeEnvironmentV2.requireMain();
+        // Main ownership was checked before entering the scalar commit/finish interval.
         // The coordinator must call validateAttachedV2 immediately before its scalar engine commit.
         // Never read resources or invoke native layout/setters/JNI after that commit boundary.
-        if(c==null||c.owner!=this||v2Pending!=c||c.used||!c.attached||journal!=c.journal||journal.complete||v2Retired)
+        if(c==null||c.owner!=this||v2Pending!=c||c.used||!c.attached||journal!=c.journal||journal.complete)
             throw Json.bad("invalid V2 finish");
+        if(v2Retired||v2Fence.terminal||c.operation==null||c.operation!=v2Fence.operation){
+            v2Fence.terminal=true;v2Fence.drawAllowed=false;v2Fence.inputAllowed=false;sealScalarV2();
+            if(v2Cleanup.deferredCause==null)v2Cleanup.deferredCause=NativeEnvironmentV2.RendererCause.TERMINAL_VALIDATION_FAILED;
+            throw Json.bad("invalid V2 terminal finish");
+        }
         packet=c.next;v2PacketBytes=c.bytes;v2Records=c.targets;v2Plan=c.plan;v2Gate=c.gate;v2CommittedEnvironment=c.environment;
-        c.used=true;journal.complete=true;v2Pending=null;v2Open=true;c.gate.open=true;
+        c.used=true;journal.complete=true;v2Pending=null;v2Open=false;c.gate.open=false;
+        v2Roster=c.targetRoster;v2RosterCount=c.targetCount;
     }
     void validateAttachedV2(Candidate c,AttachmentJournal journal){validateV2(c,true);if(journal!=c.journal||journal.complete)throw Json.bad("foreign V2 journal");}
     void rollbackV2(Candidate c,AttachmentJournal journal){
         NativeEnvironmentV2.requireMain();if(c==null||c.owner!=this||v2Pending!=c||c.used||journal!=c.journal||journal.complete)throw Json.bad("invalid V2 rollback");
-        v2Open=false;c.gate.open=false;cancelToggleInputV2();
+        NativeAppearanceViewsV2.Mutation previousMutation=v2Mutation;
+        v2Mutation=NativeAppearanceViewsV2.Mutation.transaction(v2Fence,c.operation);
+        sealScalarV2();c.gate.open=false;
         try{restoreV2(c);c.used=true;journal.complete=true;v2Pending=null;}
-        catch(RuntimeException|java.lang.Error failure){retireV2();c.used=true;v2Pending=null;throw failure;}
+        catch(RuntimeException|java.lang.Error failure){terminalV2(NativeEnvironmentV2.RendererCause.ROLLBACK_FAILED,failure,failure instanceof java.lang.Error fatal?fatal:null);c.used=true;v2Pending=null;throw failure;}
+        finally{v2Mutation=previousMutation;}
     }
     void discardV2(Candidate c){NativeEnvironmentV2.requireMain();if(c==null||c.owner!=this||v2Pending!=c||c.used||c.attached)throw Json.bad("invalid V2 discard");c.used=true;v2Pending=null;}
     private void restoreV2(Candidate c){
+        requireTransactionV2(c.operation);
+        NativeAppearanceViewsV2.Mutation mutation=v2Mutation;mutation.require();
         if(v2RollbackFault)throw new IllegalStateException("test-only rollback fault");
-        for(NativeState state:c.journal.previous){var r=state.record;boolean preserve=state.active;r.bind(state.binding,state.geometry,preserve);
-            if(!preserve&&r.view instanceof TextView text&&state.text!=null){r.changing=true;try{text.setText(state.text);
-                if(text instanceof EditText edit&&state.selectionStart>=0)edit.setSelection(state.selectionStart,state.selectionEnd);}finally{r.changing=false;}}
+        for(NativeState state:c.journal.previous){var r=state.record;boolean preserve=state.active;r.bind(state.binding,state.geometry,preserve,mutation);
+            if(!preserve&&r.view instanceof TextView text&&state.text!=null){r.changing=true;try{text.setText(state.text);mutation.require();
+
+                if(text instanceof EditText edit&&state.selectionStart>=0)edit.setSelection(state.selectionStart,state.selectionEnd);mutation.require();
+}finally{r.changing=false;}}
         }
         for(NativeState state:c.journal.previous){var r=state.record;
-            r.changing=true;try{if(r.view instanceof Switch value)value.setChecked(state.checked);r.view.setPressed(state.pressed);}finally{r.changing=false;}
+            r.changing=true;try{if(r.view instanceof Switch value)value.setChecked(state.checked);mutation.require();
+r.view.setPressed(state.pressed);mutation.require();
+}finally{r.changing=false;}
             r.cancelToggleInput();}
-        for(ParentState parent:c.journal.parents)restoreParentV2(parent.parent,parent.children);
+        for(ParentState parent:c.journal.parents)restoreParentV2(parent.parent,parent.children,mutation);
         for(var old:c.baseRecords.values())if(old.group!=null)old.group.records=c.baseRecords;
-        restoreParentV2(c.environment.root(),c.journal.rootChildren);
+        restoreParentV2(c.environment.root(),c.journal.rootChildren,mutation);
         if(c.journal.oldGate!=null)c.journal.oldGate.canvasColor=c.journal.oldCanvas;
         if(c.journal.oldGate!=null&&c.base!=null){var old=v2Records.get(c.base.root.id);
-            NativeAppearanceViewsV2.layoutRoot(old,c.journal.rootWidth,c.journal.rootHeight,old.binding.plan().environment.safeArea64());}
-        for(NativeState state:c.journal.previous)if(state.focused&&!state.record.view.hasFocus())state.record.view.requestFocus();
-        for(NativeState state:c.journal.previous)if(state.record.view.getScrollX()!=state.scrollX||state.record.view.getScrollY()!=state.scrollY)
-            state.record.view.scrollTo(state.scrollX,state.scrollY);
-        v2Open=v2CommittedEnvironment!=null&&v2CommittedEnvironment.current(this);if(c.journal.oldGate!=null)c.journal.oldGate.open=v2Open;
+            NativeAppearanceViewsV2.layoutRoot(old,c.journal.rootWidth,c.journal.rootHeight,old.binding.plan().environment.safeArea64(),mutation);}
+        for(NativeState state:c.journal.previous)if(state.focused&&!state.record.view.hasFocus()){state.record.view.requestFocus();mutation.require();}
+
+        for(NativeState state:c.journal.previous)if(state.record.view.getScrollX()!=state.scrollX||state.record.view.getScrollY()!=state.scrollY){
+            state.record.view.scrollTo(state.scrollX,state.scrollY);mutation.require();}
+
+        sealScalarV2();
     }
-    private static void restoreParentV2(ViewGroup parent,View[] children){
-        for(int i=parent.getChildCount()-1;i>=0;i--)if(!Arrays.asList(children).contains(parent.getChildAt(i)))parent.removeViewAt(i);
+    private static void restoreParentV2(ViewGroup parent,View[] children,NativeAppearanceViewsV2.Mutation mutation){mutation.require();
+        for(int i=parent.getChildCount()-1;i>=0;i--)if(!Arrays.asList(children).contains(parent.getChildAt(i))){parent.removeViewAt(i);mutation.require();}
+
         for(int i=0;i<children.length;i++){View view=children[i];if(i<parent.getChildCount()&&parent.getChildAt(i)==view)continue;
-            if(view.getParent() instanceof ViewGroup previous)previous.removeView(view);parent.addView(view,i);}
+            if(view.getParent() instanceof ViewGroup previous)previous.removeView(view);mutation.require();
+parent.addView(view,i);mutation.require();
+}
     }
-    void disposeV2(){NativeEnvironmentV2.requireMain();retireV2();if(v2Environment!=null)v2Environment.close();}
-    private void cancelToggleInputV2(){
-        for(var record:v2Records.values())record.cancelToggleInput();
-        if(v2Pending!=null){for(var record:v2Pending.targets.values())record.cancelToggleInput();for(var record:v2Pending.detached.values())record.cancelToggleInput();}
+    void disposeV2(){
+        NativeEnvironmentV2.requireMain();if(v2Disposed)return;v2Disposed=true;
+        v2Retired=true;v2Fence.terminal=true;v2Fence.drawAllowed=false;v2Fence.inputAllowed=false;sealScalarV2();
+        Throwable failure=null;
+        try{cancelInputV2(v2Fence.sealSerial);}catch(RuntimeException|java.lang.Error cleanup){failure=cleanup;rememberV2(cleanup);}
+        try{if(v2Gate!=null)v2Gate.setVisibility(View.INVISIBLE);}catch(RuntimeException|java.lang.Error cleanup){rememberV2(cleanup);if(failure==null)failure=cleanup;}
+        try{if(v2Pending!=null&&v2Pending.gate!=v2Gate)v2Pending.gate.setVisibility(View.INVISIBLE);}catch(RuntimeException|java.lang.Error cleanup){rememberV2(cleanup);if(failure==null)failure=cleanup;}
+        if(v2Cleanup.firstFatal!=null)throw v2Cleanup.firstFatal;
+        if(failure instanceof RuntimeException ordinary)throw ordinary;
     }
-    void retireV2(){v2Retired=true;v2Open=false;if(v2Gate!=null)v2Gate.open=false;if(v2Pending!=null)v2Pending.gate.open=false;
-        cancelToggleInputV2();if(v2Gate!=null)v2Gate.setVisibility(View.INVISIBLE);if(v2Pending!=null)v2Pending.gate.setVisibility(View.INVISIBLE);}
+    boolean cancellationInProgressV2(){NativeEnvironmentV2.requireMain();return v2Cleanup.inProgress;}
+    void cancelInputV2(long serial){
+        NativeEnvironmentV2.requireMain();
+        if(serial!=v2Fence.sealSerial||v2Fence.drawAllowed||v2Fence.inputAllowed)throw Json.bad("unsealed V2 cancellation");
+        if(serial>v2Cleanup.requestedSerial)v2Cleanup.requestedSerial=serial;
+        if(v2Cleanup.inProgress||serial<=v2Cleanup.consumedSerial)return;
+        v2Cleanup.inProgress=true;v2Cleanup.consumedSerial=serial;
+        // Fixed snapshots and consumed record claims survive all recursive notices.
+        NativeAppearanceViewsV2.Record[] current=v2Roster;
+        int currentCount=v2RosterCount;
+        Candidate pending=v2Pending;
+        NativeAppearanceViewsV2.Record[] targets=pending==null?null:pending.targetRoster,detached=pending==null?null:pending.detachedRoster;
+        int targetCount=pending==null?0:pending.targetCount,detachedCount=pending==null?0:pending.detachedCount;
+        try{
+            try{if(v2Gate!=null)v2Gate.invalidate();}catch(RuntimeException|java.lang.Error failure){rememberV2(failure);}
+            cancelRosterV2(current,currentCount,serial);cancelRosterV2(targets,targetCount,serial);cancelRosterV2(detached,detachedCount,serial);
+            v2Cleanup.consumedSerial=v2Cleanup.requestedSerial;
+        }finally{v2Cleanup.inProgress=false;}
+        if(v2Cleanup.primary!=null&&!v2Disposed)terminalV2(NativeEnvironmentV2.RendererCause.CANCELLATION_FAILED,v2Cleanup.primary,v2Cleanup.firstFatal);
+        if(v2Cleanup.firstFatal!=null)throw v2Cleanup.firstFatal;
+        if(v2Cleanup.primary instanceof RuntimeException ordinary)throw ordinary;
+    }
+    private void cancelRosterV2(NativeAppearanceViewsV2.Record[] records,int count,long serial){
+        for(int i=0;i<count;i++){
+            NativeAppearanceViewsV2.Record record=records[i];if(record==null||record.cancelClaim==serial)continue;
+            record.cancelClaim=serial;v2Cleanup.attempts++;
+            try{record.cancelToggleInput();}catch(RuntimeException|java.lang.Error failure){
+                rememberV2(record.cancellationOrdinary);rememberV2(record.cancellationFatal);rememberV2(failure);
+            }
+        }
+    }
+    private void rememberV2(Throwable failure){if(failure==null)return;if(v2Cleanup.primary==null)v2Cleanup.primary=failure;
+        if(failure instanceof java.lang.Error fatal&&v2Cleanup.firstFatal==null)v2Cleanup.firstFatal=fatal;}
+    private void terminalV2(NativeEnvironmentV2.RendererCause cause,Throwable primary,java.lang.Error firstFatal){
+        v2Fence.terminal=true;v2Fence.drawAllowed=false;v2Fence.inputAllowed=false;sealScalarV2();v2Retired=true;
+        rememberV2(primary);rememberV2(firstFatal);
+        if(v2Cleanup.cause==null)v2Cleanup.cause=cause;
+        if(v2Fence.commitFinish){if(v2Cleanup.deferredCause==null)v2Cleanup.deferredCause=cause;return;}
+        if(v2ReportClaimed||v2Disposed)return;v2ReportClaimed=true;v2Fence.rendererReportActive=true;
+        try{v2Environment.rendererTerminal(this,v2Cleanup.cause,primary,firstFatal);}
+        finally{v2Fence.rendererReportActive=false;}
+    }
+    void reportDeferredTerminalV2(){NativeEnvironmentV2.requireMain();if(v2Fence.commitFinish)throw Json.bad("V2 report inside commit/finish");
+        if(v2Cleanup.deferredCause!=null){NativeEnvironmentV2.RendererCause cause=v2Cleanup.deferredCause;v2Cleanup.deferredCause=null;terminalV2(cause,v2Cleanup.primary,v2Cleanup.firstFatal);}}
+    void retireV2(){NativeEnvironmentV2.requireMain();terminalV2(NativeEnvironmentV2.RendererCause.TERMINAL_VALIDATION_FAILED,null,null);}
     private void requireV2Live(){
+        if(v2Fence==null||v2Environment==null)throw Json.bad("explicit V2 binding required");
         if(Build.VERSION.SDK_INT<36)throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
-        if(v2Retired)throw Json.bad("V2 owner retired");
+        if(v2Retired||v2Fence.terminal)throw Json.bad("V2 owner retired");
         if(packet!=null&&v2Plan==null)throw Json.bad("V2 requires a fresh native owner");
     }
     private void faultV2(){if(v2Fault>=0&&v2Steps++==v2Fault)throw new IllegalStateException("test-only V2 attachment fault");}
     // Package-private fault injection is confined to this concrete owner; it grants no native support authority.
-    void testFaultV2(int attachmentStep,boolean rollback){v2Fault=attachmentStep;v2RollbackFault=rollback;}
-    void testExhaustInteractionV2(){v2Interaction=Long.MAX_VALUE;}
-    boolean testRetiredV2(){return v2Retired;}
+    void testFaultV2(int attachmentStep,boolean rollback){NativeEnvironmentV2.requireMain();v2Fault=attachmentStep;v2RollbackFault=rollback;}
+    void testExhaustInteractionV2(){NativeEnvironmentV2.requireMain();v2Interaction=Long.MAX_VALUE;}
+    boolean testRetiredV2(){NativeEnvironmentV2.requireMain();return v2Retired;}
     Map<String,NativeAppearanceViewsV2.Record> inspectV2(){NativeEnvironmentV2.requireMain();return v2Records;}
 
 }

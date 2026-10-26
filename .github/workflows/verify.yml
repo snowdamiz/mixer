@@ -5,6 +5,41 @@ on:
 permissions:
   contents: read
 jobs:
+  android-owner-host:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Private Android owner orchestration on the JVM
+        timeout-minutes: 5
+        run: |
+          : "${JAVA_HOME_17_X64:?Official JDK 17 is required}"
+          python3 -B native/android/tests/run-private-owner-host.py \
+            --jdk "$JAVA_HOME_17_X64" --closure A \
+            --evidence "$RUNNER_TEMP/android-owner-orchestration"
+      - name: Private Android renderer callback matrix on the JVM
+        timeout-minutes: 7
+        run: |
+          : "${JAVA_HOME_17_X64:?Official JDK 17 is required}"
+          python3 -B native/android/tests/run-private-owner-host.py \
+            --jdk "$JAVA_HOME_17_X64" --closure B \
+            --evidence "$RUNNER_TEMP/android-owner-renderer"
+      - name: Android environment observer host regressions
+        timeout-minutes: 2
+        run: |
+          : "${JAVA_HOME_17_X64:?Official JDK 17 is required}"
+          python3 -B native/android/tests/run-environment-observer-host.py \
+            --jdk "$JAVA_HOME_17_X64" \
+            --evidence "$RUNNER_TEMP/android-owner-observer"
+      # Controlled Android/JNI leaves on the JVM, with no native runtime launch.
+      - name: Preserve private Android owner host evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-owner-host-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/android-owner-*/
   swift:
     runs-on: macos-15
     timeout-minutes: 30
