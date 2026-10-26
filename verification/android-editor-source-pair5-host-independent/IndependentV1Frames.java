@@ -1,0 +1,20 @@
+package dev.mixer.android;
+import java.util.*;
+/** Supplemental reviewer oracle over actual retained StackWalker frames. */
+public final class IndependentV1Frames {
+ private IndependentV1Frames() {}
+ public static void main(String[] args)throws Exception {
+  var descriptor=NativeOwnerV2ConcreteHostTests.class.getDeclaredField("descriptor");descriptor.setAccessible(true);descriptor.set(null,java.nio.file.Files.readAllBytes(java.nio.file.Path.of(args[0])));
+  List<ConcreteHostProbe.Event> captured=new ArrayList<>();ConcreteHostProbe.hook=(method,phase)->captured.add(ConcreteHostProbe.lastEvent());
+  var baseline=NativeOwnerV2ConcreteHostTests.class.getDeclaredMethod("v1Baselines");baseline.setAccessible(true);baseline.invoke(null);
+  Set<String> expected=Set.of("ViewGroup.removeViewAt","ViewGroup.addView","MarginLayoutParams.setMarginEnd","View.setLayoutParams");
+  Map<String,Set<String>> actual=new TreeMap<>();
+  for(var event:captured) if(event.phase.equals("entry")&&expected.contains(event.method))
+   for(var frame:event.productionFrames) if(frame.className().equals("dev.mixer.android.NativeRenderer")&&frame.methodName().equals("children"))
+    actual.computeIfAbsent(event.method,k->new TreeSet<>()).add(frame.className()+"#"+frame.methodName()+frame.descriptor()+"@"+frame.bytecodeIndex());
+  if(!actual.keySet().equals(expected))throw new AssertionError("V1 target set "+actual);
+  int count=0;for(var entry:actual.entrySet()){int required=entry.getKey().equals("View.setLayoutParams")?2:1;if(entry.getValue().size()!=required)throw new AssertionError("V1 distinct BCI "+entry);count+=entry.getValue().size();}
+  if(count!=5)throw new AssertionError("V1 calls "+count);
+  System.out.println("PASS independent five separate real V1 source/class/descriptor/BCI calls "+actual);
+ }
+}

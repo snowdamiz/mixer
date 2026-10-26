@@ -1,0 +1,1 @@
+Reviewer source audit initially sliced six argv elements for a five-element expected strict flag sequence (2:8 instead of 2:7). The retained compile argv already contains the required flags. Corrected only the reviewer slice; no candidate/cross run changed.

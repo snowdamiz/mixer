@@ -1,0 +1,295 @@
+{
+  "schema": 1,
+  "scope": "closed design proposal; no implementation/binding acceptance",
+  "header": {
+    "magic_ascii": "MIXPRF01",
+    "bytes": 512,
+    "word_bytes": 8,
+    "words": [
+      {
+        "index": 0,
+        "offset": 0,
+        "name": "magic"
+      },
+      {
+        "index": 1,
+        "offset": 8,
+        "name": "version"
+      },
+      {
+        "index": 2,
+        "offset": 16,
+        "name": "header_bytes"
+      },
+      {
+        "index": 3,
+        "offset": 24,
+        "name": "row_bytes"
+      },
+      {
+        "index": 4,
+        "offset": 32,
+        "name": "rows"
+      },
+      {
+        "index": 5,
+        "offset": 40,
+        "name": "source_extent"
+      },
+      {
+        "index": 6,
+        "offset": 48,
+        "name": "type_count"
+      },
+      {
+        "index": 7,
+        "offset": 56,
+        "name": "slot_limit"
+      },
+      {
+        "index": 8,
+        "offset": 64,
+        "name": "pin_limit"
+      },
+      {
+        "index": 9,
+        "offset": 72,
+        "name": "initial_nonce"
+      },
+      {
+        "index": 10,
+        "offset": 80,
+        "name": "cache_base"
+      },
+      {
+        "index": 11,
+        "offset": 88,
+        "name": "cache_capacity"
+      },
+      {
+        "index": 12,
+        "offset": 96,
+        "name": "entry_limit"
+      },
+      {
+        "index": 13,
+        "offset": 104,
+        "name": "reserved_13"
+      },
+      {
+        "index": 14,
+        "offset": 112,
+        "name": "reserved_14"
+      },
+      {
+        "index": 15,
+        "offset": 120,
+        "name": "reserved_15"
+      }
+    ],
+    "fixed_words": {
+      "1": 1,
+      "2": 512,
+      "3": 32,
+      "4": 80000,
+      "9": 1,
+      "13": 0,
+      "14": 0,
+      "15": 0
+    },
+    "digests": [
+      {
+        "index": 0,
+        "offset": 128,
+        "bytes": 32,
+        "name": "baseline",
+        "preimage": "exact accepted canonical baseline source manifest bytes; complete named member verification and source/build receipt separately required",
+        "verified_by_encoding": false
+      },
+      {
+        "index": 1,
+        "offset": 160,
+        "bytes": 32,
+        "name": "candidate",
+        "preimage": "exact accepted canonical candidate source manifest bytes including every row/header/diagnostic input; count schema reconciliation required",
+        "verified_by_encoding": false
+      },
+      {
+        "index": 2,
+        "offset": 192,
+        "bytes": 32,
+        "name": "original_input",
+        "preimage": "exact original retained immutable reactor input bytes, identical to actual owner source",
+        "verified_by_encoding": false
+      },
+      {
+        "index": 3,
+        "offset": 224,
+        "bytes": 32,
+        "name": "event_schema",
+        "preimage": "exact selected versioned event schema definition bytes including field offsets/enums/flags and writer source binding",
+        "verified_by_encoding": false
+      },
+      {
+        "index": 4,
+        "offset": 256,
+        "bytes": 32,
+        "name": "profile_adapter_binary",
+        "preimage": "exact selected compiled profile adapter executable bytes, bound to source/toolchain/build receipt",
+        "verified_by_encoding": false
+      },
+      {
+        "index": 5,
+        "offset": 288,
+        "bytes": 32,
+        "name": "layout_receipt",
+        "preimage": "exact complete accepted compiler/target/config/source-bound construction/header/Result/caller layout receipt bytes",
+        "verified_by_encoding": false
+      },
+      {
+        "index": 6,
+        "offset": 320,
+        "bytes": 32,
+        "name": "original_validated_snapshot",
+        "preimage": "exact selected stable immutable snapshot-binding record bytes; record schema/provenance currently unavailable, never Rust object image",
+        "verified_by_encoding": false
+      },
+      {
+        "index": 7,
+        "offset": 352,
+        "bytes": 32,
+        "name": "profile_row_body",
+        "preimage": "exact2560000 row-body bytes through retained descriptor, also profile subrange[512,2560512)",
+        "verified_by_encoding": false
+      }
+    ],
+    "trailing_zero_offset": 384,
+    "trailing_zero_bytes": 128,
+    "final_selection_digest_included": false
+  },
+  "profile": {
+    "rows": 80000,
+    "row_bytes": 32,
+    "row_body_bytes": 2560000,
+    "total_bytes": 2560512,
+    "row_writer_requires_empty_zero_offset_file": true,
+    "composition_requires_distinct_output": true,
+    "row_writer_block_bytes": 4096,
+    "row_writer_blocks": 625,
+    "row_writer_calls_per_block": 32,
+    "row_writer_max_calls": 20000
+  },
+  "construction": {
+    "slots_formula": "min(actual_budget.cache_entries, actual_validated_defined_functions)",
+    "pins_formula": "actual_budget.active_pins",
+    "min_slots": 1,
+    "max_slots": 64,
+    "min_pins": 1,
+    "max_pins": 64,
+    "initial_nonce": 1,
+    "patch_count": 512,
+    "resident_index_bytes": 192,
+    "plan_cells": 512,
+    "header_formula": "sizeof(SwiftFunctionCache)-sizeof(ValidatedSwiftReactor)+complete_cleanup_inventory+192+512*sizeof(Option<ScanPlan>)",
+    "fixed_formula": "header+slots*sizeof(SwiftSlot)+pins*sizeof(PinRecord)+512*sizeof(decode::Patch)",
+    "layout_values_selected": false,
+    "initial_observation_requires_same_cache_control_owner": true,
+    "zero_slots_or_pins_supported_by_existing_parser": false
+  },
+  "canonical_budget_field_order": [
+    "source_bytes",
+    "metadata_bytes",
+    "cache_bytes",
+    "cache_entry_bytes",
+    "cache_entries",
+    "active_pins",
+    "cache_work",
+    "frames",
+    "values",
+    "controls",
+    "memory_pages",
+    "state_bytes",
+    "combined_bytes",
+    "instruction_fuel",
+    "execution_work",
+    "host_calls",
+    "deadline_ms"
+  ],
+  "canonical_budget_maxima": {
+    "source_bytes": 67108864,
+    "metadata_bytes": 16777216,
+    "cache_bytes": 16777216,
+    "cache_entry_bytes": 8388608,
+    "cache_entries": 64,
+    "active_pins": 64,
+    "cache_work": 64000000,
+    "frames": 64,
+    "values": 16384,
+    "controls": 4096,
+    "memory_pages": 768,
+    "state_bytes": 134217728,
+    "combined_bytes": 268435456,
+    "instruction_fuel": 100000000,
+    "execution_work": 1000000000,
+    "host_calls": 32768,
+    "deadline_ms": 30000
+  },
+  "selected_invocation_budget": null,
+  "historical_invocation_candidate": {
+    "root_selection_sha256": "ff4a4032f201f26b184fbdcd60c60147ebc8c1acbe1ba85a654b2c574e7a9f94",
+    "selected_command_sha256": "edf7e7ab5bbd8d34376bde3fa10e4c6177c7713289838b779f051d7b834dd56a",
+    "run_budget": {
+      "source_bytes": 67108864,
+      "metadata_bytes": 16777216,
+      "cache_bytes": 16777216,
+      "cache_entry_bytes": 8388608,
+      "cache_entries": 64,
+      "active_pins": 64,
+      "cache_work": 64000000,
+      "frames": 64,
+      "values": 16384,
+      "controls": 4096,
+      "memory_pages": 768,
+      "state_bytes": 134217728,
+      "combined_bytes": 268435456,
+      "instruction_fuel": 100000000,
+      "execution_work": 1000000000,
+      "host_calls": 32768,
+      "deadline_ms": 30000
+    },
+    "new_execution_selected": false
+  },
+  "row_component_root_acceptance_sha256": "ee3ef423db5e404b58ab86c1e1123a81113e542c6af8b691e37f5932b3e42381",
+  "row_component_corrected_logical_union_bytes": 11912,
+  "row_component_with_constructor_owner_fixed_bytes": 13904,
+  "row_component_corrected_source_actions_and_requested_IO_bytes": 450652288,
+  "combined_analyzer_accounting_accepted": false,
+  "context": {
+    "bytes": 8192,
+    "selection_bytes": 4096,
+    "original_result_bytes": 2048,
+    "custody_bytes": 2048,
+    "fixture_magic_ascii": "MIXFIX01",
+    "fixture_can_gain_real_authority": false,
+    "real_schema_selected": false
+  },
+  "authority": {
+    "real_binding_verified": false,
+    "stored_prefix_validated": false,
+    "semantic_metrics_valid": false,
+    "full_replay_accepted": false,
+    "runtime_accepted": false,
+    "GA_accepted": false
+  },
+  "pending_dependencies": [
+    "root selection of exact complete diagnostic source closure and new manifest-count schema",
+    "root selection of one complete17-field invocation budget",
+    "new actual construction observer/compiler layout and full new Result/caller/lifetime/work proof",
+    "stable validated-snapshot-binding record/preimage schema and original owner custody",
+    "standard-library retained-descriptor composition/hash/source-selection/custody receipts",
+    "strict typed original result, applicable failure and final15-word ledger/lifecycle join",
+    "separate real context/replay/semantic metrics/report/CLI design and implementation acceptance",
+    "inherited writer/CODE-buffer/source accounting repairs before separate bounded full-target selection",
+    "new compiler/CI/OS qualification and native/physical/FieldLog/store/operational/GA evidence"
+  ]
+}

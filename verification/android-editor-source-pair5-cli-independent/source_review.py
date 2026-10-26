@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+"""Independent selected policy/optional boundary and test-preservation audit."""
+import hashlib,json,pathlib,re,sys,datetime
+R=pathlib.Path(__file__).resolve().parents[2];O=pathlib.Path(__file__).resolve().parent;P=R/'verification/android-editor-source-pair5-cli-integration';checks=[]
+def ck(x,label):
+ checks.append({'label':label,'passed':bool(x)})
+ if not x:raise AssertionError(label)
+H=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+f=P/'source/cli/Sources/MixerBuild/AndroidSDKCompatibility.swift';s=f.read_text();profile=json.loads(s.split('Data(#"""\n',1)[1].split('\n        """#.utf8)',1)[0]);selected=json.loads((P/'inputs/profile5.json').read_text());ck(profile==selected,'compiled Swift policy equals root selected profile5 exactly')
+oldprofile=json.loads((P/'inputs/profile4.json').read_text());ck(profile['sdk_files']==oldprofile['sdk_files'],'all22 SDK entries unchanged');ck(profile['wire']==oldprofile['wire'],'wire unchanged');ck(profile['default_descriptor']==oldprofile['default_descriptor'],'descriptor unchanged')
+diffs={k for k,v in profile['adapter_files'].items() if k not in oldprofile['adapter_files'] or oldprofile['adapter_files'][k]!=v};ck(diffs=={'app/src/dev/mixer/android/'+name for name in ['NativeAppearanceViewsV2.java','NativeRenderer.java','NativeCoordinatorV2.java','NativeEditorConnectionV2.java']},'exact four selected adapter changes');ck(all(v==profile['adapter_files'][k] for k,v in oldprofile['adapter_files'].items() if k not in diffs),'all20 unaffected adapter entries unchanged')
+extras={'app/src/dev/mixer/android/AppearanceDescriptorV1.java':(15759,'0b3afc54df5a8943d873c5ea3941d3843f233bf48ac9354b0ff1250d6017d009'),'app/src/dev/mixer/android/AppearanceResolutionV1.java':(16316,'c3737cbd05d71fb13cd4e105a212b67c946c4ebc9fbf020ba2e9bf5ceccf2934'),'app/src/dev/mixer/android/AdapterInstrumentation.java':(4209,'40e0d4643870aeee1c8ad5575aca89c1a026d7f243fe455c7920edde8fa1868c')}
+block=s.split('private static let canonicalOnlyInputFiles:',1)[1].split('\n    ]',1)[0];actual={p:(int(n),h) for p,n,h in re.findall(r'"([^"]+)": \.init\(bytes: ([0-9]+), sha256: "([0-9a-f]+)"\)',block)};ck(actual==extras,'exact separately compiled optional3 map');ck(not set(extras)&set(profile['adapter_files']),'optional3 excluded from product map');ck(len(profile['adapter_files'])==24 and len([k for k in profile['adapter_files'] if k.endswith('.java')])==18,'24adapter18Java')
+for k,(n,h) in extras.items():ck((P/'source/native/android'/k).stat().st_size==n and H(P/'source/native/android'/k)==h,'optional root selected '+k)
+raw=P/'source/cli/Sources/MixerBuild/Resources/android-build.py';rawbytes=raw.read_bytes();ck(rawbytes==(P/'artifacts/cli/MixerCLI_MixerBuild.bundle/Contents/Resources/Resources/android-build.py').read_bytes(),'archived CLI bundled template equals selected source')
+for name in ['PairFiveConsumer','FreshConsumer','RelocatedConsumer','ExportedConsumer','RoundTripConsumer']:
+ c=P/'consumers'/name/'Generated/MixerAndroid/android-build.py'
+ if not c.exists():continue
+ rendered=c.read_text();match=re.search(r"SOURCE_PROFILE_HEX = '([0-9a-f]+)'",rendered);ck(bool(match),'rendered driver hex '+name);ck(json.loads(bytes.fromhex(match.group(1)))==profile,'exact rendered selected profile '+name);ck(rendered.replace(match.group(1),'__MIXER_ANDROID_SOURCE_PROFILE_HEX__')==raw.read_text(),'exact body template '+name)
+# Every prior named suite stays present; actual assertion changes are inspected in candidate.patch.
+for rel,pattern in [('cli/Tests/MixerBuildTests/AndroidProjectTests.swift',r'func (\w+)\('),('cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift',r'func (\w+)\('),('cli/build-tests/test_android_sdk_compatibility.py',r'def (test_\w+)\(')]:
+ old=(R/rel).read_text();new=(P/'source'/rel).read_text();ck(set(re.findall(pattern,old))<=set(re.findall(pattern,new)),'all prior suite names preserved '+rel)
+for rel in ['cli/build-tests/test_android_appearance.py','cli/build-tests/test_android_staging.py']:ck(H(R/rel)==H(P/'source'/rel),'dependent suite byte unchanged '+rel)
+report={'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':[sys.executable,*sys.argv],'python_version':sys.version,'checks':checks,'passed':all(c['passed'] for c in checks),'source_projection':'6ba31109183443ab62ef8ae9e36ae3e968ec3da383c67c4cc93aa6a2a9a5131a','source_review_notes':[
+'Compiled profile is authority for selected source identity. require compares every lock field; no mutable lock/source/environment refresh is added.',
+'Canonical adapterLayout discovers optional presence by exact ASCII names, adds only pinned optional identities, validates every required/optional path type and size, then closes app/src and runtime Sources. Only then admitInput reads optional and required bytes. An optional entry cannot replace a required entry.',
+'Generated adapterLayout uses product map only and closes bridge/contracts and Java/runtime trees. Snapshot mapping remains derived from this same24-entry map. Optional extras never enter the serialized profile, projection, exported Java sources, javac roster or D8.',
+'admitProject completes descriptor, SDK and adapter topology before any untrusted pinned read. renderedDriverLayout uses the existing renderDriver and CLI-bundled template/profile, validates ordinary type/size and bounded exact hash before descriptor/SDK/adapter content and generic locks/tools.',
+'Python driver changes preserve existing duplicate-key rejection, exact schema/types/keys, projection, build-only marker decode, closed topology before pinned source reads, missing-lock refusal and checked output containment. New flags -proc:none and empty sourcepath remove annotation processing/implicit source lookup from strict Java compilation.',
+'Common ProjectBuild.verifyLock/AndroidProject.build/export/create call order is unchanged. Failure ordering is supported by actual binaries/direct driver plus generic-hasher/tool/output sentinels, not solely syntax inspection.',
+'Installed template/compiled profile and source distribution are trusted local development inputs. Existing before/after hashes observe local mutation and do not form an immutable sandbox, signature verification or OTA release authority. No broader security or native-runtime claim is made.'
+]};(O/'source-review.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps({'passed':report['passed'],'checks':len(checks)}))

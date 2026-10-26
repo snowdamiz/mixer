@@ -1,0 +1,3571 @@
+Compiled from "NativeOwnerV2.java"
+final class dev.mixer.android.NativeOwnerV2 implements java.lang.AutoCloseable,dev.mixer.android.NativeEnvironmentV2$Sink {
+  private final android.app.Activity activity;
+    descriptor: Landroid/app/Activity;
+
+  private final android.widget.FrameLayout root;
+    descriptor: Landroid/widget/FrameLayout;
+
+  private final android.os.Handler handler;
+    descriptor: Landroid/os/Handler;
+
+  private final java.lang.Runnable completionFault;
+    descriptor: Ljava/lang/Runnable;
+
+  private final dev.mixer.android.OwnerLifecycleV2 core;
+    descriptor: Ldev/mixer/android/OwnerLifecycleV2;
+
+  private final dev.mixer.android.OwnerLifecycleV2$Token lifetime;
+    descriptor: Ldev/mixer/android/OwnerLifecycleV2$Token;
+
+  private final dev.mixer.android.NativeOwnerV2$Fence fence;
+    descriptor: Ldev/mixer/android/NativeOwnerV2$Fence;
+
+  private final dev.mixer.android.NativeOwnerV2$CleanupLedger ledger;
+    descriptor: Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+
+  private dev.mixer.android.NativeEnvironmentV2$Observer observer;
+    descriptor: Ldev/mixer/android/NativeEnvironmentV2$Observer;
+
+  private dev.mixer.android.NativeCoordinatorV2 opening;
+    descriptor: Ldev/mixer/android/NativeCoordinatorV2;
+
+  private dev.mixer.android.NativeCoordinatorV2 coordinator;
+    descriptor: Ldev/mixer/android/NativeCoordinatorV2;
+
+  private dev.mixer.android.NativeOwnerV2$Work queued;
+    descriptor: Ldev/mixer/android/NativeOwnerV2$Work;
+
+  private dev.mixer.android.NativeOwnerV2$WindowIdentity window;
+    descriptor: Ldev/mixer/android/NativeOwnerV2$WindowIdentity;
+
+  private dev.mixer.android.OwnerLifecycleV2$Token activeOperation;
+    descriptor: Ldev/mixer/android/OwnerLifecycleV2$Token;
+
+  private dev.mixer.android.OwnerLifecycleV2$Token pendingUnregister;
+    descriptor: Ldev/mixer/android/OwnerLifecycleV2$Token;
+
+  private dev.mixer.android.OwnerLifecycleV2$Token pendingCloseToken;
+    descriptor: Ldev/mixer/android/OwnerLifecycleV2$Token;
+
+  private dev.mixer.android.NativeCoordinatorV2 pendingCloseResource;
+    descriptor: Ldev/mixer/android/NativeCoordinatorV2;
+
+  private boolean started;
+    descriptor: Z
+
+  private boolean registering;
+    descriptor: Z
+
+  private boolean terminalProcessed;
+    descriptor: Z
+
+  private boolean focusKnown;
+    descriptor: Z
+
+  private boolean lastFocus;
+    descriptor: Z
+
+  private boolean emergency;
+    descriptor: Z
+
+  private int effectDepth;
+    descriptor: I
+
+  dev.mixer.android.NativeOwnerV2(android.app.Activity, android.widget.FrameLayout);
+    descriptor: (Landroid/app/Activity;Landroid/widget/FrameLayout;)V
+    Code:
+         0: aload_0
+         1: aload_1
+         2: aload_2
+         3: aconst_null
+         4: invokespecial #1                  // Method "<init>":(Landroid/app/Activity;Landroid/widget/FrameLayout;Ljava/lang/Runnable;)V
+         7: return
+
+  dev.mixer.android.NativeOwnerV2(android.app.Activity, android.widget.FrameLayout, java.lang.Runnable);
+    descriptor: (Landroid/app/Activity;Landroid/widget/FrameLayout;Ljava/lang/Runnable;)V
+    Code:
+         0: aload_0
+         1: invokespecial #7                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: new           #12                 // class dev/mixer/android/NativeOwnerV2$Fence
+         8: dup
+         9: invokespecial #14                 // Method dev/mixer/android/NativeOwnerV2$Fence."<init>":()V
+        12: putfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        15: aload_0
+        16: new           #19                 // class dev/mixer/android/NativeOwnerV2$CleanupLedger
+        19: dup
+        20: invokespecial #21                 // Method dev/mixer/android/NativeOwnerV2$CleanupLedger."<init>":()V
+        23: putfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        26: invokestatic  #26                 // Method requireMain:()V
+        29: aload_0
+        30: aload_3
+        31: putfield      #29                 // Field completionFault:Ljava/lang/Runnable;
+        34: aload_0
+        35: aload_1
+        36: invokestatic  #33                 // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+        39: checkcast     #39                 // class android/app/Activity
+        42: putfield      #41                 // Field activity:Landroid/app/Activity;
+        45: aload_0
+        46: aload_2
+        47: invokestatic  #33                 // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+        50: checkcast     #45                 // class android/widget/FrameLayout
+        53: putfield      #47                 // Field root:Landroid/widget/FrameLayout;
+        56: aload_2
+        57: invokevirtual #51                 // Method android/widget/FrameLayout.getContext:()Landroid/content/Context;
+        60: aload_1
+        61: if_acmpeq     74
+        64: new           #55                 // class java/lang/IllegalArgumentException
+        67: dup
+        68: ldc           #57                 // String foreign V2 root context
+        70: invokespecial #59                 // Method java/lang/IllegalArgumentException."<init>":(Ljava/lang/String;)V
+        73: athrow
+        74: aload_0
+        75: new           #62                 // class android/os/Handler
+        78: dup
+        79: invokestatic  #64                 // Method android/os/Looper.getMainLooper:()Landroid/os/Looper;
+        82: invokespecial #70                 // Method android/os/Handler."<init>":(Landroid/os/Looper;)V
+        85: putfield      #73                 // Field handler:Landroid/os/Handler;
+        88: aload_0
+        89: new           #77                 // class dev/mixer/android/OwnerLifecycleV2
+        92: dup
+        93: invokedynamic #79,  0             // InvokeDynamic #0:requireOwner:()Ldev/mixer/android/OwnerLifecycleV2$ThreadCheck;
+        98: aload_1
+        99: aload_2
+       100: invokespecial #83                 // Method dev/mixer/android/OwnerLifecycleV2."<init>":(Ldev/mixer/android/OwnerLifecycleV2$ThreadCheck;Ljava/lang/Object;Ljava/lang/Object;)V
+       103: putfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+       106: aload_0
+       107: aload_0
+       108: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+       111: invokevirtual #90                 // Method dev/mixer/android/OwnerLifecycleV2.lifetime:()Ldev/mixer/android/OwnerLifecycleV2$Token;
+       114: putfield      #94                 // Field lifetime:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       117: return
+
+  void start();
+    descriptor: ()V
+    Code:
+         0: invokestatic  #26                 // Method requireMain:()V
+         3: aload_0
+         4: getfield      #97                 // Field started:Z
+         7: ifne          20
+        10: aload_0
+        11: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        14: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        17: ifeq          30
+        20: new           #104                // class java/lang/IllegalStateException
+        23: dup
+        24: ldc           #106                // String V2 owner start is one shot
+        26: invokespecial #108                // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        29: athrow
+        30: aload_0
+        31: iconst_1
+        32: putfield      #97                 // Field started:Z
+        35: aload_0
+        36: new           #109                // class dev/mixer/android/NativeEnvironmentV2$Observer
+        39: dup
+        40: aload_0
+        41: getfield      #41                 // Field activity:Landroid/app/Activity;
+        44: aload_0
+        45: getfield      #47                 // Field root:Landroid/widget/FrameLayout;
+        48: aload_0
+        49: invokespecial #111                // Method dev/mixer/android/NativeEnvironmentV2$Observer."<init>":(Landroid/app/Activity;Landroid/widget/FrameLayout;Ldev/mixer/android/NativeEnvironmentV2$Sink;)V
+        52: putfield      #114                // Field observer:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+        55: aload_0
+        56: iconst_1
+        57: putfield      #118                // Field registering:Z
+        60: aload_0
+        61: getfield      #114                // Field observer:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+        64: invokevirtual #121                // Method dev/mixer/android/NativeEnvironmentV2$Observer.register:()V
+        67: aload_0
+        68: iconst_0
+        69: putfield      #118                // Field registering:Z
+        72: aload_0
+        73: invokevirtual #124                // Method unregisterPending:()V
+        76: goto          91
+        79: astore_1
+        80: aload_0
+        81: iconst_0
+        82: putfield      #118                // Field registering:Z
+        85: aload_0
+        86: invokevirtual #124                // Method unregisterPending:()V
+        89: aload_1
+        90: athrow
+        91: aload_0
+        92: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        95: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        98: ifne          150
+       101: aload_0
+       102: iconst_0
+       103: invokevirtual #127                // Method seal:(Z)V
+       106: aload_0
+       107: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       110: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+       113: ifne          120
+       116: aload_0
+       117: invokevirtual #131                // Method seedFocus:()V
+       120: aload_0
+       121: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       124: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+       127: ifne          150
+       130: aload_0
+       131: aload_0
+       132: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+       135: aload_0
+       136: getfield      #94                 // Field lifetime:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       139: aload_0
+       140: invokevirtual #134                // Method probeWindow:()Ldev/mixer/android/OwnerLifecycleV2$WindowFacts;
+       143: invokevirtual #138                // Method dev/mixer/android/OwnerLifecycleV2.windowChanged:(Ldev/mixer/android/OwnerLifecycleV2$Token;Ldev/mixer/android/OwnerLifecycleV2$WindowFacts;)Ljava/util/List;
+       146: aconst_null
+       147: invokevirtual #142                // Method process:(Ljava/util/List;[B)V
+       150: aload_0
+       151: invokevirtual #146                // Method settle:()V
+       154: goto          180
+       157: astore_1
+       158: aload_0
+       159: aload_1
+       160: getstatic     #153                // Field dev/mixer/android/NativeOwnerV2$Cause.REGISTRATION_FAILED:Ldev/mixer/android/NativeOwnerV2$Cause;
+       163: invokevirtual #159                // Method fail:(Ljava/lang/Throwable;Ldev/mixer/android/NativeOwnerV2$Cause;)V
+       166: aload_0
+       167: invokevirtual #146                // Method settle:()V
+       170: goto          180
+       173: astore_2
+       174: aload_0
+       175: invokevirtual #146                // Method settle:()V
+       178: aload_2
+       179: athrow
+       180: aload_0
+       181: invokevirtual #163                // Method throwFatal:()V
+       184: return
+      Exception table:
+         from    to  target type
+            60    67    79   any
+            35   150   157   Class java/lang/RuntimeException
+            35   150   157   Class java/lang/Error
+            35   150   173   any
+           157   166   173   any
+
+  void onResume();
+    descriptor: ()V
+    Code:
+         0: invokestatic  #26                 // Method requireMain:()V
+         3: aload_0
+         4: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+         7: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        10: ifeq          14
+        13: return
+        14: aload_0
+        15: iconst_0
+        16: invokevirtual #127                // Method seal:(Z)V
+        19: aload_0
+        20: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        23: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        26: ifne          45
+        29: aload_0
+        30: aload_0
+        31: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+        34: aload_0
+        35: getfield      #94                 // Field lifetime:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        38: invokevirtual #166                // Method dev/mixer/android/OwnerLifecycleV2.resume:(Ldev/mixer/android/OwnerLifecycleV2$Token;)Ljava/util/List;
+        41: aconst_null
+        42: invokevirtual #142                // Method process:(Ljava/util/List;[B)V
+        45: aload_0
+        46: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        49: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        52: ifne          59
+        55: aload_0
+        56: invokevirtual #131                // Method seedFocus:()V
+        59: aload_0
+        60: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        63: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        66: ifne          89
+        69: aload_0
+        70: aload_0
+        71: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+        74: aload_0
+        75: getfield      #94                 // Field lifetime:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        78: aload_0
+        79: invokevirtual #134                // Method probeWindow:()Ldev/mixer/android/OwnerLifecycleV2$WindowFacts;
+        82: invokevirtual #138                // Method dev/mixer/android/OwnerLifecycleV2.windowChanged:(Ldev/mixer/android/OwnerLifecycleV2$Token;Ldev/mixer/android/OwnerLifecycleV2$WindowFacts;)Ljava/util/List;
+        85: aconst_null
+        86: invokevirtual #142                // Method process:(Ljava/util/List;[B)V
+        89: aload_0
+        90: invokevirtual #146                // Method settle:()V
+        93: goto          119
+        96: astore_1
+        97: aload_0
+        98: aload_1
+        99: getstatic     #170                // Field dev/mixer/android/NativeOwnerV2$Cause.CORE_FAILURE:Ldev/mixer/android/NativeOwnerV2$Cause;
+       102: invokevirtual #159                // Method fail:(Ljava/lang/Throwable;Ldev/mixer/android/NativeOwnerV2$Cause;)V
+       105: aload_0
+       106: invokevirtual #146                // Method settle:()V
+       109: goto          119
+       112: astore_2
+       113: aload_0
+       114: invokevirtual #146                // Method settle:()V
+       117: aload_2
+       118: athrow
+       119: aload_0
+       120: invokevirtual #163                // Method throwFatal:()V
+       123: return
+      Exception table:
+         from    to  target type
+            14    89    96   Class java/lang/RuntimeException
+            14    89    96   Class java/lang/Error
+            14    89   112   any
+            96   105   112   any
+
+  void onPause();
+    descriptor: ()V
+    Code:
+         0: invokestatic  #26                 // Method requireMain:()V
+         3: aload_0
+         4: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+         7: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        10: ifeq          14
+        13: return
+        14: aload_0
+        15: iconst_0
+        16: invokevirtual #127                // Method seal:(Z)V
+        19: aload_0
+        20: aload_0
+        21: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+        24: aload_0
+        25: getfield      #94                 // Field lifetime:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        28: invokevirtual #173                // Method dev/mixer/android/OwnerLifecycleV2.pause:(Ldev/mixer/android/OwnerLifecycleV2$Token;)Ljava/util/List;
+        31: aconst_null
+        32: invokevirtual #142                // Method process:(Ljava/util/List;[B)V
+        35: aload_0
+        36: invokevirtual #146                // Method settle:()V
+        39: goto          65
+        42: astore_1
+        43: aload_0
+        44: aload_1
+        45: getstatic     #170                // Field dev/mixer/android/NativeOwnerV2$Cause.CORE_FAILURE:Ldev/mixer/android/NativeOwnerV2$Cause;
+        48: invokevirtual #159                // Method fail:(Ljava/lang/Throwable;Ldev/mixer/android/NativeOwnerV2$Cause;)V
+        51: aload_0
+        52: invokevirtual #146                // Method settle:()V
+        55: goto          65
+        58: astore_2
+        59: aload_0
+        60: invokevirtual #146                // Method settle:()V
+        63: aload_2
+        64: athrow
+        65: aload_0
+        66: invokevirtual #163                // Method throwFatal:()V
+        69: return
+      Exception table:
+         from    to  target type
+            14    35    42   Class java/lang/RuntimeException
+            14    35    42   Class java/lang/Error
+            14    35    58   any
+            42    51    58   any
+
+  void onStop();
+    descriptor: ()V
+    Code:
+         0: invokestatic  #26                 // Method requireMain:()V
+         3: aload_0
+         4: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+         7: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        10: ifeq          14
+        13: return
+        14: aload_0
+        15: iconst_0
+        16: invokevirtual #127                // Method seal:(Z)V
+        19: aload_0
+        20: aload_0
+        21: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+        24: aload_0
+        25: getfield      #94                 // Field lifetime:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        28: invokevirtual #176                // Method dev/mixer/android/OwnerLifecycleV2.stop:(Ldev/mixer/android/OwnerLifecycleV2$Token;)Ljava/util/List;
+        31: aconst_null
+        32: invokevirtual #142                // Method process:(Ljava/util/List;[B)V
+        35: aload_0
+        36: invokevirtual #146                // Method settle:()V
+        39: goto          65
+        42: astore_1
+        43: aload_0
+        44: aload_1
+        45: getstatic     #170                // Field dev/mixer/android/NativeOwnerV2$Cause.CORE_FAILURE:Ldev/mixer/android/NativeOwnerV2$Cause;
+        48: invokevirtual #159                // Method fail:(Ljava/lang/Throwable;Ldev/mixer/android/NativeOwnerV2$Cause;)V
+        51: aload_0
+        52: invokevirtual #146                // Method settle:()V
+        55: goto          65
+        58: astore_2
+        59: aload_0
+        60: invokevirtual #146                // Method settle:()V
+        63: aload_2
+        64: athrow
+        65: aload_0
+        66: invokevirtual #163                // Method throwFatal:()V
+        69: return
+      Exception table:
+         from    to  target type
+            14    35    42   Class java/lang/RuntimeException
+            14    35    42   Class java/lang/Error
+            14    35    58   any
+            42    51    58   any
+
+  public void close();
+    descriptor: ()V
+    Code:
+         0: invokestatic  #26                 // Method requireMain:()V
+         3: aload_0
+         4: getfield      #179                // Field terminalProcessed:Z
+         7: ifne          23
+        10: aload_0
+        11: getstatic     #182                // Field dev/mixer/android/NativeOwnerV2$Cause.CLOSED:Ldev/mixer/android/NativeOwnerV2$Cause;
+        14: aconst_null
+        15: aconst_null
+        16: aconst_null
+        17: getstatic     #185                // Field dev/mixer/android/NativeEnvironmentV2$Change.EPOCH_EXHAUSTED:Ldev/mixer/android/NativeEnvironmentV2$Change;
+        20: invokevirtual #191                // Method terminate:(Ldev/mixer/android/NativeOwnerV2$Cause;Ldev/mixer/android/NativeEnvironmentV2$RendererCause;Ljava/lang/Throwable;Ljava/lang/Error;Ldev/mixer/android/NativeEnvironmentV2$Change;)V
+        23: aload_0
+        24: invokevirtual #146                // Method settle:()V
+        27: aload_0
+        28: invokevirtual #163                // Method throwFatal:()V
+        31: return
+
+  public void changed(dev.mixer.android.NativeEnvironmentV2$Observer, dev.mixer.android.NativeEnvironmentV2$Change, dev.mixer.android.NativeEnvironmentV2$RendererCause, java.lang.Throwable, java.lang.Error);
+    descriptor: (Ldev/mixer/android/NativeEnvironmentV2$Observer;Ldev/mixer/android/NativeEnvironmentV2$Change;Ldev/mixer/android/NativeEnvironmentV2$RendererCause;Ljava/lang/Throwable;Ljava/lang/Error;)V
+    Code:
+         0: invokestatic  #26                 // Method requireMain:()V
+         3: aload_1
+         4: aload_0
+         5: getfield      #114                // Field observer:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+         8: if_acmpne     15
+        11: aload_2
+        12: ifnonnull     25
+        15: new           #55                 // class java/lang/IllegalArgumentException
+        18: dup
+        19: ldc           #195                // String foreign V2 observer notice
+        21: invokespecial #59                 // Method java/lang/IllegalArgumentException."<init>":(Ljava/lang/String;)V
+        24: athrow
+        25: aload_0
+        26: getfield      #179                // Field terminalProcessed:Z
+        29: ifeq          33
+        32: return
+        33: aload_2
+        34: getstatic     #197                // Field dev/mixer/android/NativeEnvironmentV2$Change.INVALIDATED:Ldev/mixer/android/NativeEnvironmentV2$Change;
+        37: if_acmpeq     114
+        40: getstatic     #200                // Field dev/mixer/android/NativeOwnerV2$1.$SwitchMap$dev$mixer$android$NativeEnvironmentV2$Change:[I
+        43: aload_2
+        44: invokevirtual #206                // Method dev/mixer/android/NativeEnvironmentV2$Change.ordinal:()I
+        47: iaload
+        48: tableswitch   { // 1 to 3
+                       1: 76
+                       2: 82
+                       3: 88
+                 default: 94
+            }
+        76: getstatic     #210                // Field dev/mixer/android/NativeOwnerV2$Cause.DETACHED:Ldev/mixer/android/NativeOwnerV2$Cause;
+        79: goto          97
+        82: getstatic     #153                // Field dev/mixer/android/NativeOwnerV2$Cause.REGISTRATION_FAILED:Ldev/mixer/android/NativeOwnerV2$Cause;
+        85: goto          97
+        88: getstatic     #213                // Field dev/mixer/android/NativeOwnerV2$Cause.RENDERER_TERMINAL:Ldev/mixer/android/NativeOwnerV2$Cause;
+        91: goto          97
+        94: getstatic     #216                // Field dev/mixer/android/NativeOwnerV2$Cause.OBSERVER_EXHAUSTED:Ldev/mixer/android/NativeOwnerV2$Cause;
+        97: astore        6
+        99: aload_0
+       100: aload         6
+       102: aload_3
+       103: aload         4
+       105: aload         5
+       107: aload_2
+       108: invokevirtual #191                // Method terminate:(Ldev/mixer/android/NativeOwnerV2$Cause;Ldev/mixer/android/NativeEnvironmentV2$RendererCause;Ljava/lang/Throwable;Ljava/lang/Error;Ldev/mixer/android/NativeEnvironmentV2$Change;)V
+       111: goto          183
+       114: aload_0
+       115: iconst_0
+       116: invokevirtual #127                // Method seal:(Z)V
+       119: aload_0
+       120: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       123: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+       126: ifne          169
+       129: aload_0
+       130: invokevirtual #131                // Method seedFocus:()V
+       133: aload_0
+       134: aload_0
+       135: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+       138: aload_0
+       139: getfield      #94                 // Field lifetime:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       142: invokevirtual #219                // Method dev/mixer/android/OwnerLifecycleV2.invalidate:(Ldev/mixer/android/OwnerLifecycleV2$Token;)Ljava/util/List;
+       145: aconst_null
+       146: invokevirtual #142                // Method process:(Ljava/util/List;[B)V
+       149: aload_0
+       150: aload_0
+       151: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+       154: aload_0
+       155: getfield      #94                 // Field lifetime:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       158: aload_0
+       159: invokevirtual #134                // Method probeWindow:()Ldev/mixer/android/OwnerLifecycleV2$WindowFacts;
+       162: invokevirtual #138                // Method dev/mixer/android/OwnerLifecycleV2.windowChanged:(Ldev/mixer/android/OwnerLifecycleV2$Token;Ldev/mixer/android/OwnerLifecycleV2$WindowFacts;)Ljava/util/List;
+       165: aconst_null
+       166: invokevirtual #142                // Method process:(Ljava/util/List;[B)V
+       169: goto          183
+       172: astore        6
+       174: aload_0
+       175: aload         6
+       177: getstatic     #170                // Field dev/mixer/android/NativeOwnerV2$Cause.CORE_FAILURE:Ldev/mixer/android/NativeOwnerV2$Cause;
+       180: invokevirtual #159                // Method fail:(Ljava/lang/Throwable;Ldev/mixer/android/NativeOwnerV2$Cause;)V
+       183: aload_0
+       184: invokevirtual #146                // Method settle:()V
+       187: aload_0
+       188: invokevirtual #163                // Method throwFatal:()V
+       191: return
+      Exception table:
+         from    to  target type
+           114   169   172   Class java/lang/RuntimeException
+           114   169   172   Class java/lang/Error
+
+  boolean hasCommittedPresentation();
+    descriptor: ()Z
+    Code:
+         0: invokestatic  #26                 // Method requireMain:()V
+         3: aload_0
+         4: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+         7: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        10: ifne          44
+        13: aload_0
+        14: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        17: getfield      #222                // Field dev/mixer/android/NativeOwnerV2$Fence.presentation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        20: ifnull        44
+        23: aload_0
+        24: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        27: ifnull        44
+        30: aload_0
+        31: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        34: invokevirtual #229                // Method dev/mixer/android/NativeCoordinatorV2.hasCommittedPresentation:()Z
+        37: ifeq          44
+        40: iconst_1
+        41: goto          45
+        44: iconst_0
+        45: ireturn
+
+  dev.mixer.android.NativeOwnerV2$CleanupLedger cleanupLedger();
+    descriptor: ()Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+    Code:
+         0: invokestatic  #26                 // Method requireMain:()V
+         3: aload_0
+         4: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+         7: areturn
+
+  private void nativeInput(byte[]);
+    descriptor: ([B)V
+    Code:
+         0: invokestatic  #26                 // Method requireMain:()V
+         3: aload_0
+         4: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+         7: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        10: ifne          30
+        13: aload_0
+        14: getfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        17: ifnonnull     30
+        20: aload_0
+        21: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        24: getfield      #238                // Field dev/mixer/android/NativeOwnerV2$Fence.inputAllowed:Z
+        27: ifne          31
+        30: return
+        31: aload_0
+        32: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        35: getfield      #222                // Field dev/mixer/android/NativeOwnerV2$Fence.presentation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        38: astore_2
+        39: aload_0
+        40: iconst_0
+        41: invokevirtual #127                // Method seal:(Z)V
+        44: aload_0
+        45: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        48: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        51: ifne          140
+        54: aload_0
+        55: getfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        58: ifnonnull     140
+        61: aload_2
+        62: ifnull        140
+        65: aload_2
+        66: aload_0
+        67: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        70: getfield      #222                // Field dev/mixer/android/NativeOwnerV2$Fence.presentation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        73: if_acmpne     140
+        76: aload_0
+        77: invokevirtual #131                // Method seedFocus:()V
+        80: aload_0
+        81: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        84: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        87: ifne          140
+        90: aload_0
+        91: getfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        94: ifnonnull     140
+        97: aload_2
+        98: aload_0
+        99: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       102: getfield      #222                // Field dev/mixer/android/NativeOwnerV2$Fence.presentation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       105: if_acmpne     140
+       108: aload_0
+       109: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+       112: aload_0
+       113: getfield      #94                 // Field lifetime:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       116: aload_2
+       117: invokevirtual #241                // Method dev/mixer/android/OwnerLifecycleV2.admitsInput:(Ldev/mixer/android/OwnerLifecycleV2$Token;Ldev/mixer/android/OwnerLifecycleV2$Token;)Z
+       120: ifeq          140
+       123: aload_0
+       124: aload_0
+       125: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+       128: aload_0
+       129: getfield      #94                 // Field lifetime:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       132: aload_2
+       133: invokevirtual #245                // Method dev/mixer/android/OwnerLifecycleV2.dispatchInput:(Ldev/mixer/android/OwnerLifecycleV2$Token;Ldev/mixer/android/OwnerLifecycleV2$Token;)Ljava/util/List;
+       136: aload_1
+       137: invokevirtual #142                // Method process:(Ljava/util/List;[B)V
+       140: aload_0
+       141: invokevirtual #146                // Method settle:()V
+       144: goto          210
+       147: astore_2
+       148: aload_0
+       149: aload_2
+       150: getstatic     #249                // Field dev/mixer/android/NativeOwnerV2$Cause.OPERATION_FAILED:Ldev/mixer/android/NativeOwnerV2$Cause;
+       153: invokevirtual #159                // Method fail:(Ljava/lang/Throwable;Ldev/mixer/android/NativeOwnerV2$Cause;)V
+       156: aload_0
+       157: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       160: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+       163: ifeq          183
+       166: aload_0
+       167: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+       170: ifnull        183
+       173: aload_0
+       174: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+       177: invokevirtual #252                // Method dev/mixer/android/NativeCoordinatorV2.isRetired:()Z
+       180: ifne          185
+       183: aload_2
+       184: athrow
+       185: aload_0
+       186: invokevirtual #146                // Method settle:()V
+       189: goto          210
+       192: astore_2
+       193: aload_0
+       194: aload_2
+       195: getstatic     #249                // Field dev/mixer/android/NativeOwnerV2$Cause.OPERATION_FAILED:Ldev/mixer/android/NativeOwnerV2$Cause;
+       198: invokevirtual #159                // Method fail:(Ljava/lang/Throwable;Ldev/mixer/android/NativeOwnerV2$Cause;)V
+       201: aload_2
+       202: athrow
+       203: astore_3
+       204: aload_0
+       205: invokevirtual #146                // Method settle:()V
+       208: aload_3
+       209: athrow
+       210: aload_0
+       211: invokevirtual #163                // Method throwFatal:()V
+       214: return
+      Exception table:
+         from    to  target type
+            31   140   147   Class java/lang/RuntimeException
+            31   140   192   Class java/lang/Error
+            31   140   203   any
+           147   185   203   any
+           192   204   203   any
+
+  private void seedFocus();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+         4: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+         7: ifeq          11
+        10: return
+        11: aload_0
+        12: getfield      #47                 // Field root:Landroid/widget/FrameLayout;
+        15: invokevirtual #255                // Method android/widget/FrameLayout.hasWindowFocus:()Z
+        18: istore_1
+        19: aload_0
+        20: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        23: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        26: ifeq          30
+        29: return
+        30: aload_0
+        31: getfield      #258                // Field focusKnown:Z
+        34: ifeq          45
+        37: iload_1
+        38: aload_0
+        39: getfield      #261                // Field lastFocus:Z
+        42: if_icmpeq     72
+        45: aload_0
+        46: iconst_1
+        47: putfield      #258                // Field focusKnown:Z
+        50: aload_0
+        51: iload_1
+        52: putfield      #261                // Field lastFocus:Z
+        55: aload_0
+        56: aload_0
+        57: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+        60: aload_0
+        61: getfield      #94                 // Field lifetime:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        64: iload_1
+        65: invokevirtual #264                // Method dev/mixer/android/OwnerLifecycleV2.focusChanged:(Ldev/mixer/android/OwnerLifecycleV2$Token;Z)Ljava/util/List;
+        68: aconst_null
+        69: invokevirtual #142                // Method process:(Ljava/util/List;[B)V
+        72: return
+
+  private dev.mixer.android.OwnerLifecycleV2$WindowFacts probeWindow();
+    descriptor: ()Ldev/mixer/android/OwnerLifecycleV2$WindowFacts;
+    Code:
+         0: aload_0
+         1: getfield      #41                 // Field activity:Landroid/app/Activity;
+         4: invokevirtual #268                // Method android/app/Activity.isDestroyed:()Z
+         7: istore_1
+         8: aload_0
+         9: getfield      #47                 // Field root:Landroid/widget/FrameLayout;
+        12: invokevirtual #271                // Method android/widget/FrameLayout.isAttachedToWindow:()Z
+        15: istore_2
+        16: aload_0
+        17: getfield      #41                 // Field activity:Landroid/app/Activity;
+        20: invokevirtual #274                // Method android/app/Activity.getWindow:()Landroid/view/Window;
+        23: astore_3
+        24: aload_0
+        25: getfield      #47                 // Field root:Landroid/widget/FrameLayout;
+        28: invokevirtual #278                // Method android/widget/FrameLayout.getWindowToken:()Ljava/lang/Object;
+        31: astore        4
+        33: aload_3
+        34: ifnull        42
+        37: aload         4
+        39: ifnonnull     50
+        42: aload_0
+        43: aconst_null
+        44: putfield      #282                // Field window:Ldev/mixer/android/NativeOwnerV2$WindowIdentity;
+        47: goto          94
+        50: aload_0
+        51: getfield      #282                // Field window:Ldev/mixer/android/NativeOwnerV2$WindowIdentity;
+        54: ifnull        80
+        57: aload_0
+        58: getfield      #282                // Field window:Ldev/mixer/android/NativeOwnerV2$WindowIdentity;
+        61: invokevirtual #286                // Method dev/mixer/android/NativeOwnerV2$WindowIdentity.window:()Landroid/view/Window;
+        64: aload_3
+        65: if_acmpne     80
+        68: aload_0
+        69: getfield      #282                // Field window:Ldev/mixer/android/NativeOwnerV2$WindowIdentity;
+        72: invokevirtual #290                // Method dev/mixer/android/NativeOwnerV2$WindowIdentity.token:()Ljava/lang/Object;
+        75: aload         4
+        77: if_acmpeq     94
+        80: aload_0
+        81: new           #287                // class dev/mixer/android/NativeOwnerV2$WindowIdentity
+        84: dup
+        85: aload_3
+        86: aload         4
+        88: invokespecial #293                // Method dev/mixer/android/NativeOwnerV2$WindowIdentity."<init>":(Landroid/view/Window;Ljava/lang/Object;)V
+        91: putfield      #282                // Field window:Ldev/mixer/android/NativeOwnerV2$WindowIdentity;
+        94: new           #296                // class dev/mixer/android/OwnerLifecycleV2$WindowFacts
+        97: dup
+        98: aload_0
+        99: getfield      #41                 // Field activity:Landroid/app/Activity;
+       102: aload_0
+       103: getfield      #47                 // Field root:Landroid/widget/FrameLayout;
+       106: iload_1
+       107: iload_2
+       108: aload_0
+       109: getfield      #114                // Field observer:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+       112: ifnull        132
+       115: aload_0
+       116: getfield      #114                // Field observer:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+       119: invokevirtual #298                // Method dev/mixer/android/NativeEnvironmentV2$Observer.ready:()Z
+       122: ifeq          132
+       125: aload_0
+       126: getfield      #282                // Field window:Ldev/mixer/android/NativeOwnerV2$WindowIdentity;
+       129: goto          133
+       132: aconst_null
+       133: aload_0
+       134: getfield      #47                 // Field root:Landroid/widget/FrameLayout;
+       137: invokevirtual #301                // Method android/widget/FrameLayout.getWidth:()I
+       140: aload_0
+       141: getfield      #47                 // Field root:Landroid/widget/FrameLayout;
+       144: invokevirtual #304                // Method android/widget/FrameLayout.getHeight:()I
+       147: aload_0
+       148: getfield      #47                 // Field root:Landroid/widget/FrameLayout;
+       151: invokevirtual #307                // Method android/widget/FrameLayout.getRootWindowInsets:()Landroid/view/WindowInsets;
+       154: ifnull        161
+       157: iconst_1
+       158: goto          162
+       161: iconst_0
+       162: invokespecial #311                // Method dev/mixer/android/OwnerLifecycleV2$WindowFacts."<init>":(Ljava/lang/Object;Ljava/lang/Object;ZZLjava/lang/Object;IIZ)V
+       165: areturn
+
+  private void seal(boolean);
+    descriptor: (Z)V
+    Code:
+         0: iload_1
+         1: ifeq          12
+         4: aload_0
+         5: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+         8: iconst_1
+         9: putfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        12: aload_0
+        13: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        16: iconst_0
+        17: putfield      #314                // Field dev/mixer/android/NativeOwnerV2$Fence.drawAllowed:Z
+        20: aload_0
+        21: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        24: iconst_0
+        25: putfield      #238                // Field dev/mixer/android/NativeOwnerV2$Fence.inputAllowed:Z
+        28: aload_0
+        29: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+        32: ifnull        42
+        35: aload_0
+        36: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+        39: invokevirtual #320                // Method dev/mixer/android/NativeCoordinatorV2.sealGatesScalar:()V
+        42: aload_0
+        43: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        46: ifnull        67
+        49: aload_0
+        50: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        53: aload_0
+        54: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+        57: if_acmpeq     67
+        60: aload_0
+        61: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        64: invokevirtual #320                // Method dev/mixer/android/NativeCoordinatorV2.sealGatesScalar:()V
+        67: aload_0
+        68: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        71: getfield      #323                // Field dev/mixer/android/NativeOwnerV2$Fence.sealSerial:J
+        74: ldc2_w        #329                // long 9223372036854775807l
+        77: lcmp
+        78: ifne          112
+        81: aload_0
+        82: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        85: iconst_1
+        86: putfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        89: aload_0
+        90: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        93: getfield      #331                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.cause:Ldev/mixer/android/NativeOwnerV2$Cause;
+        96: ifnonnull     125
+        99: aload_0
+       100: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+       103: getstatic     #334                // Field dev/mixer/android/NativeOwnerV2$Cause.SEAL_SERIAL_EXHAUSTED:Ldev/mixer/android/NativeOwnerV2$Cause;
+       106: putfield      #331                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.cause:Ldev/mixer/android/NativeOwnerV2$Cause;
+       109: goto          125
+       112: aload_0
+       113: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       116: dup
+       117: getfield      #323                // Field dev/mixer/android/NativeOwnerV2$Fence.sealSerial:J
+       120: lconst_1
+       121: ladd
+       122: putfield      #323                // Field dev/mixer/android/NativeOwnerV2$Fence.sealSerial:J
+       125: aload_0
+       126: invokevirtual #337                // Method cancelInput:()V
+       129: aload_0
+       130: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       133: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+       136: ifeq          159
+       139: aload_0
+       140: getfield      #179                // Field terminalProcessed:Z
+       143: ifne          159
+       146: aload_0
+       147: getstatic     #334                // Field dev/mixer/android/NativeOwnerV2$Cause.SEAL_SERIAL_EXHAUSTED:Ldev/mixer/android/NativeOwnerV2$Cause;
+       150: aconst_null
+       151: aconst_null
+       152: aconst_null
+       153: getstatic     #185                // Field dev/mixer/android/NativeEnvironmentV2$Change.EPOCH_EXHAUSTED:Ldev/mixer/android/NativeEnvironmentV2$Change;
+       156: invokevirtual #191                // Method terminate:(Ldev/mixer/android/NativeOwnerV2$Cause;Ldev/mixer/android/NativeEnvironmentV2$RendererCause;Ljava/lang/Throwable;Ljava/lang/Error;Ldev/mixer/android/NativeEnvironmentV2$Change;)V
+       159: return
+
+  private void cancelInput();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: dup
+         2: getfield      #340                // Field effectDepth:I
+         5: iconst_1
+         6: iadd
+         7: putfield      #340                // Field effectDepth:I
+        10: aload_0
+        11: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+        14: ifnull        25
+        17: aload_0
+        18: aload_0
+        19: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+        22: invokevirtual #344                // Method cancelInput:(Ldev/mixer/android/NativeCoordinatorV2;)V
+        25: aload_0
+        26: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        29: ifnull        51
+        32: aload_0
+        33: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        36: aload_0
+        37: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+        40: if_acmpeq     51
+        43: aload_0
+        44: aload_0
+        45: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        48: invokevirtual #344                // Method cancelInput:(Ldev/mixer/android/NativeCoordinatorV2;)V
+        51: aload_0
+        52: dup
+        53: getfield      #340                // Field effectDepth:I
+        56: iconst_1
+        57: isub
+        58: putfield      #340                // Field effectDepth:I
+        61: goto          77
+        64: astore_1
+        65: aload_0
+        66: dup
+        67: getfield      #340                // Field effectDepth:I
+        70: iconst_1
+        71: isub
+        72: putfield      #340                // Field effectDepth:I
+        75: aload_1
+        76: athrow
+        77: return
+      Exception table:
+         from    to  target type
+            10    51    64   any
+
+  private void cancelInput(dev.mixer.android.NativeCoordinatorV2);
+    descriptor: (Ldev/mixer/android/NativeCoordinatorV2;)V
+    Code:
+         0: aload_0
+         1: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+         4: getstatic     #347                // Field dev/mixer/android/NativeOwnerV2$Outcome.IN_PROGRESS:Ldev/mixer/android/NativeOwnerV2$Outcome;
+         7: putfield      #353                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.input:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        10: aload_1
+        11: aload_0
+        12: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        15: getfield      #323                // Field dev/mixer/android/NativeOwnerV2$Fence.sealSerial:J
+        18: invokevirtual #356                // Method dev/mixer/android/NativeCoordinatorV2.cancelInputFromOwner:(J)V
+        21: aload_0
+        22: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        25: aload_1
+        26: invokevirtual #360                // Method dev/mixer/android/NativeCoordinatorV2.inputCancellationInProgress:()Z
+        29: ifeq          38
+        32: getstatic     #347                // Field dev/mixer/android/NativeOwnerV2$Outcome.IN_PROGRESS:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        35: goto          41
+        38: getstatic     #363                // Field dev/mixer/android/NativeOwnerV2$Outcome.RETURNED:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        41: putfield      #353                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.input:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        44: goto          71
+        47: astore_2
+        48: aload_0
+        49: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        52: getstatic     #366                // Field dev/mixer/android/NativeOwnerV2$Outcome.FAILED_UNCERTAIN:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        55: putfield      #353                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.input:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        58: aload_0
+        59: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        62: aload_2
+        63: putfield      #369                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.inputFailure:Ljava/lang/Throwable;
+        66: aload_0
+        67: aload_2
+        68: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+        71: return
+      Exception table:
+         from    to  target type
+            10    44    47   Class java/lang/RuntimeException
+            10    44    47   Class java/lang/Error
+
+  private void terminate(dev.mixer.android.NativeOwnerV2$Cause, dev.mixer.android.NativeEnvironmentV2$RendererCause, java.lang.Throwable, java.lang.Error, dev.mixer.android.NativeEnvironmentV2$Change);
+    descriptor: (Ldev/mixer/android/NativeOwnerV2$Cause;Ldev/mixer/android/NativeEnvironmentV2$RendererCause;Ljava/lang/Throwable;Ljava/lang/Error;Ldev/mixer/android/NativeEnvironmentV2$Change;)V
+    Code:
+         0: aload_0
+         1: getfield      #179                // Field terminalProcessed:Z
+         4: ifeq          8
+         7: return
+         8: aload_0
+         9: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        12: iconst_1
+        13: putfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        16: aload_0
+        17: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        20: iconst_0
+        21: putfield      #314                // Field dev/mixer/android/NativeOwnerV2$Fence.drawAllowed:Z
+        24: aload_0
+        25: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        28: iconst_0
+        29: putfield      #238                // Field dev/mixer/android/NativeOwnerV2$Fence.inputAllowed:Z
+        32: aload_0
+        33: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+        36: ifnull        46
+        39: aload_0
+        40: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+        43: invokevirtual #320                // Method dev/mixer/android/NativeCoordinatorV2.sealGatesScalar:()V
+        46: aload_0
+        47: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        50: ifnull        71
+        53: aload_0
+        54: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        57: aload_0
+        58: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+        61: if_acmpeq     71
+        64: aload_0
+        65: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        68: invokevirtual #320                // Method dev/mixer/android/NativeCoordinatorV2.sealGatesScalar:()V
+        71: aload_0
+        72: iconst_1
+        73: putfield      #179                // Field terminalProcessed:Z
+        76: aload_0
+        77: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        80: getfield      #331                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.cause:Ldev/mixer/android/NativeOwnerV2$Cause;
+        83: ifnonnull     94
+        86: aload_0
+        87: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        90: aload_1
+        91: putfield      #331                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.cause:Ldev/mixer/android/NativeOwnerV2$Cause;
+        94: aload_0
+        95: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        98: aload_2
+        99: putfield      #377                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.rendererCause:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+       102: aload_0
+       103: aload_3
+       104: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+       107: aload_0
+       108: aload         4
+       110: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+       113: aload_0
+       114: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       117: getfield      #323                // Field dev/mixer/android/NativeOwnerV2$Fence.sealSerial:J
+       120: ldc2_w        #329                // long 9223372036854775807l
+       123: lcmp
+       124: ifeq          140
+       127: aload_0
+       128: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       131: dup
+       132: getfield      #323                // Field dev/mixer/android/NativeOwnerV2$Fence.sealSerial:J
+       135: lconst_1
+       136: ladd
+       137: putfield      #323                // Field dev/mixer/android/NativeOwnerV2$Fence.sealSerial:J
+       140: aload_0
+       141: invokevirtual #337                // Method cancelInput:()V
+       144: aload_0
+       145: getstatic     #200                // Field dev/mixer/android/NativeOwnerV2$1.$SwitchMap$dev$mixer$android$NativeEnvironmentV2$Change:[I
+       148: aload         5
+       150: invokevirtual #206                // Method dev/mixer/android/NativeEnvironmentV2$Change.ordinal:()I
+       153: iaload
+       154: lookupswitch  { // 2
+                       1: 180
+                       2: 194
+                 default: 209
+            }
+       180: aload_0
+       181: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+       184: aload_0
+       185: getfield      #94                 // Field lifetime:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       188: invokevirtual #381                // Method dev/mixer/android/OwnerLifecycleV2.detached:(Ldev/mixer/android/OwnerLifecycleV2$Token;)Ljava/util/List;
+       191: goto          220
+       194: aload_0
+       195: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+       198: aload_0
+       199: getfield      #94                 // Field lifetime:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       202: aload_3
+       203: invokevirtual #384                // Method dev/mixer/android/OwnerLifecycleV2.registrationFailed:(Ldev/mixer/android/OwnerLifecycleV2$Token;Ljava/lang/Object;)Ljava/util/List;
+       206: goto          220
+       209: aload_0
+       210: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+       213: aload_0
+       214: getfield      #94                 // Field lifetime:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       217: invokevirtual #388                // Method dev/mixer/android/OwnerLifecycleV2.close:(Ldev/mixer/android/OwnerLifecycleV2$Token;)Ljava/util/List;
+       220: aconst_null
+       221: invokevirtual #142                // Method process:(Ljava/util/List;[B)V
+       224: goto          235
+       227: astore        6
+       229: aload_0
+       230: aload         6
+       232: invokevirtual #391                // Method fallback:(Ljava/lang/Throwable;)V
+       235: return
+      Exception table:
+         from    to  target type
+           144   224   227   Class java/lang/RuntimeException
+           144   224   227   Class java/lang/Error
+
+  private void process(java.util.List<dev.mixer.android.OwnerLifecycleV2$Decision>, byte[]);
+    descriptor: (Ljava/util/List;[B)V
+    Code:
+         0: aload_1
+         1: invokeinterface #394,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+         6: astore_3
+         7: aload_3
+         8: invokeinterface #400,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+        13: ifeq          384
+        16: aload_3
+        17: invokeinterface #405,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+        22: checkcast     #408                // class dev/mixer/android/OwnerLifecycleV2$Decision
+        25: astore        4
+        27: getstatic     #410                // Field dev/mixer/android/NativeOwnerV2$1.$SwitchMap$dev$mixer$android$OwnerLifecycleV2$Kind:[I
+        30: aload         4
+        32: invokevirtual #413                // Method dev/mixer/android/OwnerLifecycleV2$Decision.kind:()Ldev/mixer/android/OwnerLifecycleV2$Kind;
+        35: invokevirtual #417                // Method dev/mixer/android/OwnerLifecycleV2$Kind.ordinal:()I
+        38: iaload
+        39: tableswitch   { // 1 to 8
+                       1: 84
+                       2: 191
+                       3: 250
+                       4: 262
+                       5: 292
+                       6: 342
+                       7: 342
+                       8: 342
+                 default: 381
+            }
+        84: aload         4
+        86: invokevirtual #420                // Method dev/mixer/android/OwnerLifecycleV2$Decision.terminal:()Z
+        89: ifeq          100
+        92: aload_0
+        93: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        96: iconst_1
+        97: putfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+       100: aload_0
+       101: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       104: iconst_0
+       105: putfield      #314                // Field dev/mixer/android/NativeOwnerV2$Fence.drawAllowed:Z
+       108: aload_0
+       109: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       112: iconst_0
+       113: putfield      #238                // Field dev/mixer/android/NativeOwnerV2$Fence.inputAllowed:Z
+       116: aload_0
+       117: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       120: ifnull        130
+       123: aload_0
+       124: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       127: invokevirtual #320                // Method dev/mixer/android/NativeCoordinatorV2.sealGatesScalar:()V
+       130: aload_0
+       131: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+       134: ifnull        155
+       137: aload_0
+       138: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+       141: aload_0
+       142: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       145: if_acmpeq     155
+       148: aload_0
+       149: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+       152: invokevirtual #320                // Method dev/mixer/android/NativeCoordinatorV2.sealGatesScalar:()V
+       155: aload         4
+       157: invokevirtual #420                // Method dev/mixer/android/OwnerLifecycleV2$Decision.terminal:()Z
+       160: ifeq          381
+       163: aload_0
+       164: iconst_1
+       165: putfield      #179                // Field terminalProcessed:Z
+       168: aload_0
+       169: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+       172: getfield      #331                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.cause:Ldev/mixer/android/NativeOwnerV2$Cause;
+       175: ifnonnull     381
+       178: aload_0
+       179: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+       182: getstatic     #249                // Field dev/mixer/android/NativeOwnerV2$Cause.OPERATION_FAILED:Ldev/mixer/android/NativeOwnerV2$Cause;
+       185: putfield      #331                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.cause:Ldev/mixer/android/NativeOwnerV2$Cause;
+       188: goto          381
+       191: aload_0
+       192: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       195: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+       198: ifne          381
+       201: aload_0
+       202: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+       205: invokevirtual #422                // Method dev/mixer/android/OwnerLifecycleV2.snapshot:()Ldev/mixer/android/OwnerLifecycleV2$Snapshot;
+       208: invokevirtual #426                // Method dev/mixer/android/OwnerLifecycleV2$Snapshot.pendingDrain:()Ldev/mixer/android/OwnerLifecycleV2$Token;
+       211: aload         4
+       213: invokevirtual #431                // Method dev/mixer/android/OwnerLifecycleV2$Decision.token:()Ldev/mixer/android/OwnerLifecycleV2$Token;
+       216: if_acmpne     381
+       219: aload_0
+       220: getfield      #433                // Field queued:Ldev/mixer/android/NativeOwnerV2$Work;
+       223: ifnonnull     381
+       226: aload_0
+       227: new           #437                // class dev/mixer/android/NativeOwnerV2$Work
+       230: dup
+       231: aload_0
+       232: getstatic     #439                // Field dev/mixer/android/NativeOwnerV2$WorkKind.DRAIN:Ldev/mixer/android/NativeOwnerV2$WorkKind;
+       235: aload         4
+       237: invokevirtual #431                // Method dev/mixer/android/OwnerLifecycleV2$Decision.token:()Ldev/mixer/android/OwnerLifecycleV2$Token;
+       240: aconst_null
+       241: invokespecial #445                // Method dev/mixer/android/NativeOwnerV2$Work."<init>":(Ldev/mixer/android/NativeOwnerV2;Ldev/mixer/android/NativeOwnerV2$WorkKind;Ldev/mixer/android/OwnerLifecycleV2$Token;Ldev/mixer/android/NativeCoordinatorV2;)V
+       244: invokevirtual #448                // Method post:(Ldev/mixer/android/NativeOwnerV2$Work;)V
+       247: goto          381
+       250: aload_0
+       251: aload         4
+       253: invokevirtual #431                // Method dev/mixer/android/OwnerLifecycleV2$Decision.token:()Ldev/mixer/android/OwnerLifecycleV2$Token;
+       256: invokevirtual #452                // Method cancelQueued:(Ldev/mixer/android/OwnerLifecycleV2$Token;)V
+       259: goto          381
+       262: aload_0
+       263: aload         4
+       265: invokevirtual #431                // Method dev/mixer/android/OwnerLifecycleV2$Decision.token:()Ldev/mixer/android/OwnerLifecycleV2$Token;
+       268: putfield      #456                // Field pendingUnregister:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       271: aload_0
+       272: getfield      #114                // Field observer:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+       275: ifnull        285
+       278: aload_0
+       279: getfield      #114                // Field observer:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+       282: invokevirtual #459                // Method dev/mixer/android/NativeEnvironmentV2$Observer.retireScalarFromOwner:()V
+       285: aload_0
+       286: invokevirtual #124                // Method unregisterPending:()V
+       289: goto          381
+       292: aload         4
+       294: invokevirtual #462                // Method dev/mixer/android/OwnerLifecycleV2$Decision.resource:()Ljava/lang/Object;
+       297: astore        6
+       299: aload         6
+       301: instanceof    #230                // class dev/mixer/android/NativeCoordinatorV2
+       304: ifeq          339
+       307: aload         6
+       309: checkcast     #230                // class dev/mixer/android/NativeCoordinatorV2
+       312: astore        5
+       314: aload_0
+       315: aload         4
+       317: invokevirtual #431                // Method dev/mixer/android/OwnerLifecycleV2$Decision.token:()Ldev/mixer/android/OwnerLifecycleV2$Token;
+       320: putfield      #465                // Field pendingCloseToken:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       323: aload_0
+       324: aload         5
+       326: putfield      #468                // Field pendingCloseResource:Ldev/mixer/android/NativeCoordinatorV2;
+       329: aload_0
+       330: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+       333: getstatic     #471                // Field dev/mixer/android/NativeOwnerV2$Outcome.DEFERRED:Ldev/mixer/android/NativeOwnerV2$Outcome;
+       336: putfield      #474                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.coordinator:Ldev/mixer/android/NativeOwnerV2$Outcome;
+       339: goto          381
+       342: aload_0
+       343: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       346: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+       349: ifne          381
+       352: aload_0
+       353: getfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       356: ifnonnull     381
+       359: aload_0
+       360: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+       363: aload         4
+       365: invokevirtual #431                // Method dev/mixer/android/OwnerLifecycleV2$Decision.token:()Ldev/mixer/android/OwnerLifecycleV2$Token;
+       368: invokevirtual #476                // Method dev/mixer/android/OwnerLifecycleV2.permits:(Ldev/mixer/android/OwnerLifecycleV2$Token;)Z
+       371: ifeq          381
+       374: aload_0
+       375: aload         4
+       377: aload_2
+       378: invokevirtual #480                // Method operate:(Ldev/mixer/android/OwnerLifecycleV2$Decision;[B)V
+       381: goto          7
+       384: return
+
+  private void operate(dev.mixer.android.OwnerLifecycleV2$Decision, byte[]);
+    descriptor: (Ldev/mixer/android/OwnerLifecycleV2$Decision;[B)V
+    Code:
+         0: aload_0
+         1: aload_1
+         2: invokevirtual #431                // Method dev/mixer/android/OwnerLifecycleV2$Decision.token:()Ldev/mixer/android/OwnerLifecycleV2$Token;
+         5: putfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+         8: aload_0
+         9: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        12: aload_1
+        13: invokevirtual #431                // Method dev/mixer/android/OwnerLifecycleV2$Decision.token:()Ldev/mixer/android/OwnerLifecycleV2$Token;
+        16: putfield      #484                // Field dev/mixer/android/NativeOwnerV2$Fence.operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        19: aload_0
+        20: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        23: astore_3
+        24: aconst_null
+        25: astore        4
+        27: iconst_0
+        28: istore        5
+        30: aload_0
+        31: dup
+        32: getfield      #340                // Field effectDepth:I
+        35: iconst_1
+        36: iadd
+        37: putfield      #340                // Field effectDepth:I
+        40: aload_1
+        41: invokevirtual #413                // Method dev/mixer/android/OwnerLifecycleV2$Decision.kind:()Ldev/mixer/android/OwnerLifecycleV2$Kind;
+        44: getstatic     #487                // Field dev/mixer/android/OwnerLifecycleV2$Kind.OPEN_INITIAL:Ldev/mixer/android/OwnerLifecycleV2$Kind;
+        47: if_acmpne     106
+        50: new           #230                // class dev/mixer/android/NativeCoordinatorV2
+        53: dup
+        54: aload_0
+        55: getfield      #41                 // Field activity:Landroid/app/Activity;
+        58: aload_0
+        59: getfield      #47                 // Field root:Landroid/widget/FrameLayout;
+        62: aload_0
+        63: getfield      #114                // Field observer:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+        66: aload_0
+        67: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        70: aload_0
+        71: invokedynamic #491,  0            // InvokeDynamic #1:send:(Ldev/mixer/android/NativeOwnerV2;)Ldev/mixer/android/NativeRenderer$Events;
+        76: invokespecial #495                // Method dev/mixer/android/NativeCoordinatorV2."<init>":(Landroid/app/Activity;Landroid/widget/FrameLayout;Ldev/mixer/android/NativeEnvironmentV2$Observer;Ldev/mixer/android/NativeOwnerV2$Fence;Ldev/mixer/android/NativeRenderer$Events;)V
+        79: astore_3
+        80: aload_0
+        81: aload_3
+        82: putfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+        85: aload_3
+        86: invokevirtual #320                // Method dev/mixer/android/NativeCoordinatorV2.sealGatesScalar:()V
+        89: aload_0
+        90: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        93: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        96: ifne          151
+        99: aload_3
+       100: invokevirtual #498                // Method dev/mixer/android/NativeCoordinatorV2.renderInitial:()V
+       103: goto          151
+       106: aload_1
+       107: invokevirtual #462                // Method dev/mixer/android/OwnerLifecycleV2$Decision.resource:()Ljava/lang/Object;
+       110: aload_3
+       111: if_acmpne     118
+       114: aload_3
+       115: ifnonnull     129
+       118: new           #104                // class java/lang/IllegalStateException
+       121: dup
+       122: ldc_w         #501                // String foreign coordinator effect
+       125: invokespecial #108                // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+       128: athrow
+       129: aload_1
+       130: invokevirtual #413                // Method dev/mixer/android/OwnerLifecycleV2$Decision.kind:()Ldev/mixer/android/OwnerLifecycleV2$Kind;
+       133: getstatic     #503                // Field dev/mixer/android/OwnerLifecycleV2$Kind.REFRESH_COMMITTED:Ldev/mixer/android/OwnerLifecycleV2$Kind;
+       136: if_acmpne     146
+       139: aload_3
+       140: invokevirtual #506                // Method dev/mixer/android/NativeCoordinatorV2.refreshEnvironment:()V
+       143: goto          151
+       146: aload_3
+       147: aload_2
+       148: invokevirtual #509                // Method dev/mixer/android/NativeCoordinatorV2.dispatchInput:([B)V
+       151: aload_0
+       152: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       155: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+       158: ifne          176
+       161: aload_3
+       162: ifnull        176
+       165: aload_3
+       166: invokevirtual #229                // Method dev/mixer/android/NativeCoordinatorV2.hasCommittedPresentation:()Z
+       169: ifeq          176
+       172: iconst_1
+       173: goto          177
+       176: iconst_0
+       177: istore        5
+       179: aload_0
+       180: dup
+       181: getfield      #340                // Field effectDepth:I
+       184: iconst_1
+       185: isub
+       186: putfield      #340                // Field effectDepth:I
+       189: aload_0
+       190: getfield      #29                 // Field completionFault:Ljava/lang/Runnable;
+       193: ifnull        205
+       196: aload_0
+       197: getfield      #29                 // Field completionFault:Ljava/lang/Runnable;
+       200: invokeinterface #512,  1          // InterfaceMethod java/lang/Runnable.run:()V
+       205: aload_0
+       206: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+       209: aload_0
+       210: getfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       213: aload_3
+       214: iload         5
+       216: aload         4
+       218: invokevirtual #517                // Method dev/mixer/android/OwnerLifecycleV2.complete:(Ldev/mixer/android/OwnerLifecycleV2$Token;Ljava/lang/Object;ZLjava/lang/Object;)Ljava/util/List;
+       221: astore        6
+       223: aload_3
+       224: ifnull        232
+       227: aload_0
+       228: aload_3
+       229: putfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+       232: aload_0
+       233: aload         6
+       235: aconst_null
+       236: invokevirtual #142                // Method process:(Ljava/util/List;[B)V
+       239: aload_0
+       240: invokevirtual #521                // Method publish:()V
+       243: aload_0
+       244: aconst_null
+       245: putfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       248: aload_0
+       249: aconst_null
+       250: putfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       253: aload_0
+       254: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       257: aconst_null
+       258: putfield      #484                // Field dev/mixer/android/NativeOwnerV2$Fence.operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       261: goto          316
+       264: astore        6
+       266: aload_0
+       267: aload         6
+       269: invokevirtual #391                // Method fallback:(Ljava/lang/Throwable;)V
+       272: aload_0
+       273: aconst_null
+       274: putfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       277: aload_0
+       278: aconst_null
+       279: putfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       282: aload_0
+       283: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       286: aconst_null
+       287: putfield      #484                // Field dev/mixer/android/NativeOwnerV2$Fence.operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       290: goto          316
+       293: astore        7
+       295: aload_0
+       296: aconst_null
+       297: putfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       300: aload_0
+       301: aconst_null
+       302: putfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       305: aload_0
+       306: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       309: aconst_null
+       310: putfield      #484                // Field dev/mixer/android/NativeOwnerV2$Fence.operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       313: aload         7
+       315: athrow
+       316: goto          628
+       319: astore        6
+       321: aload         6
+       323: astore        4
+       325: aload_3
+       326: ifnull        340
+       329: aload_0
+       330: aload_3
+       331: invokevirtual #524                // Method dev/mixer/android/NativeCoordinatorV2.cleanupLedger:()Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       334: invokevirtual #528                // Method dev/mixer/android/NativeCoordinatorV2$CleanupLedger.primary:()Ljava/lang/Throwable;
+       337: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+       340: aload_0
+       341: aload         6
+       343: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+       346: aload_0
+       347: dup
+       348: getfield      #340                // Field effectDepth:I
+       351: iconst_1
+       352: isub
+       353: putfield      #340                // Field effectDepth:I
+       356: aload_0
+       357: getfield      #29                 // Field completionFault:Ljava/lang/Runnable;
+       360: ifnull        372
+       363: aload_0
+       364: getfield      #29                 // Field completionFault:Ljava/lang/Runnable;
+       367: invokeinterface #512,  1          // InterfaceMethod java/lang/Runnable.run:()V
+       372: aload_0
+       373: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+       376: aload_0
+       377: getfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       380: aload_3
+       381: iload         5
+       383: aload         4
+       385: invokevirtual #517                // Method dev/mixer/android/OwnerLifecycleV2.complete:(Ldev/mixer/android/OwnerLifecycleV2$Token;Ljava/lang/Object;ZLjava/lang/Object;)Ljava/util/List;
+       388: astore        6
+       390: aload_3
+       391: ifnull        399
+       394: aload_0
+       395: aload_3
+       396: putfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+       399: aload_0
+       400: aload         6
+       402: aconst_null
+       403: invokevirtual #142                // Method process:(Ljava/util/List;[B)V
+       406: aload_0
+       407: invokevirtual #521                // Method publish:()V
+       410: aload_0
+       411: aconst_null
+       412: putfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       415: aload_0
+       416: aconst_null
+       417: putfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       420: aload_0
+       421: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       424: aconst_null
+       425: putfield      #484                // Field dev/mixer/android/NativeOwnerV2$Fence.operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       428: goto          483
+       431: astore        6
+       433: aload_0
+       434: aload         6
+       436: invokevirtual #391                // Method fallback:(Ljava/lang/Throwable;)V
+       439: aload_0
+       440: aconst_null
+       441: putfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       444: aload_0
+       445: aconst_null
+       446: putfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       449: aload_0
+       450: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       453: aconst_null
+       454: putfield      #484                // Field dev/mixer/android/NativeOwnerV2$Fence.operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       457: goto          483
+       460: astore        8
+       462: aload_0
+       463: aconst_null
+       464: putfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       467: aload_0
+       468: aconst_null
+       469: putfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       472: aload_0
+       473: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       476: aconst_null
+       477: putfield      #484                // Field dev/mixer/android/NativeOwnerV2$Fence.operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       480: aload         8
+       482: athrow
+       483: goto          628
+       486: astore        9
+       488: aload_0
+       489: dup
+       490: getfield      #340                // Field effectDepth:I
+       493: iconst_1
+       494: isub
+       495: putfield      #340                // Field effectDepth:I
+       498: aload_0
+       499: getfield      #29                 // Field completionFault:Ljava/lang/Runnable;
+       502: ifnull        514
+       505: aload_0
+       506: getfield      #29                 // Field completionFault:Ljava/lang/Runnable;
+       509: invokeinterface #512,  1          // InterfaceMethod java/lang/Runnable.run:()V
+       514: aload_0
+       515: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+       518: aload_0
+       519: getfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       522: aload_3
+       523: iload         5
+       525: aload         4
+       527: invokevirtual #517                // Method dev/mixer/android/OwnerLifecycleV2.complete:(Ldev/mixer/android/OwnerLifecycleV2$Token;Ljava/lang/Object;ZLjava/lang/Object;)Ljava/util/List;
+       530: astore        10
+       532: aload_3
+       533: ifnull        541
+       536: aload_0
+       537: aload_3
+       538: putfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+       541: aload_0
+       542: aload         10
+       544: aconst_null
+       545: invokevirtual #142                // Method process:(Ljava/util/List;[B)V
+       548: aload_0
+       549: invokevirtual #521                // Method publish:()V
+       552: aload_0
+       553: aconst_null
+       554: putfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       557: aload_0
+       558: aconst_null
+       559: putfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       562: aload_0
+       563: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       566: aconst_null
+       567: putfield      #484                // Field dev/mixer/android/NativeOwnerV2$Fence.operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       570: goto          625
+       573: astore        10
+       575: aload_0
+       576: aload         10
+       578: invokevirtual #391                // Method fallback:(Ljava/lang/Throwable;)V
+       581: aload_0
+       582: aconst_null
+       583: putfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       586: aload_0
+       587: aconst_null
+       588: putfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       591: aload_0
+       592: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       595: aconst_null
+       596: putfield      #484                // Field dev/mixer/android/NativeOwnerV2$Fence.operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       599: goto          625
+       602: astore        11
+       604: aload_0
+       605: aconst_null
+       606: putfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       609: aload_0
+       610: aconst_null
+       611: putfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       614: aload_0
+       615: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       618: aconst_null
+       619: putfield      #484                // Field dev/mixer/android/NativeOwnerV2$Fence.operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       622: aload         11
+       624: athrow
+       625: aload         9
+       627: athrow
+       628: aload         4
+       630: ifnull        652
+       633: aload_0
+       634: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       637: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+       640: ifne          652
+       643: aload_0
+       644: aload         4
+       646: getstatic     #249                // Field dev/mixer/android/NativeOwnerV2$Cause.OPERATION_FAILED:Ldev/mixer/android/NativeOwnerV2$Cause;
+       649: invokevirtual #159                // Method fail:(Ljava/lang/Throwable;Ldev/mixer/android/NativeOwnerV2$Cause;)V
+       652: return
+      Exception table:
+         from    to  target type
+           189   243   264   Class java/lang/RuntimeException
+           189   243   264   Class java/lang/Error
+           189   243   293   any
+           264   272   293   any
+           293   295   293   any
+            40   179   319   Class java/lang/RuntimeException
+            40   179   319   Class java/lang/Error
+           356   410   431   Class java/lang/RuntimeException
+           356   410   431   Class java/lang/Error
+           356   410   460   any
+           431   439   460   any
+           460   462   460   any
+            40   179   486   any
+           319   346   486   any
+           498   552   573   Class java/lang/RuntimeException
+           498   552   573   Class java/lang/Error
+           498   552   602   any
+           573   581   602   any
+           602   604   602   any
+           486   488   486   any
+
+  private void publish();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+         4: invokevirtual #422                // Method dev/mixer/android/OwnerLifecycleV2.snapshot:()Ldev/mixer/android/OwnerLifecycleV2$Snapshot;
+         7: astore_1
+         8: aload_0
+         9: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        12: getfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        15: ifne          133
+        18: aload_1
+        19: invokevirtual #534                // Method dev/mixer/android/OwnerLifecycleV2$Snapshot.phase:()Ldev/mixer/android/OwnerLifecycleV2$Phase;
+        22: getstatic     #538                // Field dev/mixer/android/OwnerLifecycleV2$Phase.LIVE:Ldev/mixer/android/OwnerLifecycleV2$Phase;
+        25: if_acmpne     133
+        28: aload_1
+        29: invokevirtual #544                // Method dev/mixer/android/OwnerLifecycleV2$Snapshot.dirty:()Z
+        32: ifne          133
+        35: aload_1
+        36: invokevirtual #547                // Method dev/mixer/android/OwnerLifecycleV2$Snapshot.operation:()Ldev/mixer/android/OwnerLifecycleV2$Token;
+        39: ifnonnull     133
+        42: aload_1
+        43: invokevirtual #426                // Method dev/mixer/android/OwnerLifecycleV2$Snapshot.pendingDrain:()Ldev/mixer/android/OwnerLifecycleV2$Token;
+        46: ifnonnull     133
+        49: aload_1
+        50: invokevirtual #549                // Method dev/mixer/android/OwnerLifecycleV2$Snapshot.presentation:()Ldev/mixer/android/OwnerLifecycleV2$Token;
+        53: ifnull        133
+        56: aload_0
+        57: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        60: ifnull        133
+        63: aload_1
+        64: invokevirtual #551                // Method dev/mixer/android/OwnerLifecycleV2$Snapshot.resource:()Ljava/lang/Object;
+        67: aload_0
+        68: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        71: if_acmpne     133
+        74: aload_0
+        75: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        78: aload_1
+        79: invokevirtual #549                // Method dev/mixer/android/OwnerLifecycleV2$Snapshot.presentation:()Ldev/mixer/android/OwnerLifecycleV2$Token;
+        82: putfield      #222                // Field dev/mixer/android/NativeOwnerV2$Fence.presentation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        85: aload_0
+        86: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        89: iconst_1
+        90: putfield      #314                // Field dev/mixer/android/NativeOwnerV2$Fence.drawAllowed:Z
+        93: aload_0
+        94: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        97: aload_1
+        98: invokevirtual #552                // Method dev/mixer/android/OwnerLifecycleV2$Snapshot.foreground:()Z
+       101: ifeq          115
+       104: aload_1
+       105: invokevirtual #555                // Method dev/mixer/android/OwnerLifecycleV2$Snapshot.focused:()Z
+       108: ifeq          115
+       111: iconst_1
+       112: goto          116
+       115: iconst_0
+       116: putfield      #238                // Field dev/mixer/android/NativeOwnerV2$Fence.inputAllowed:Z
+       119: aload_0
+       120: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+       123: aload_1
+       124: invokevirtual #549                // Method dev/mixer/android/OwnerLifecycleV2$Snapshot.presentation:()Ldev/mixer/android/OwnerLifecycleV2$Token;
+       127: invokevirtual #558                // Method dev/mixer/android/NativeCoordinatorV2.publishGatesScalar:(Ldev/mixer/android/OwnerLifecycleV2$Token;)V
+       130: goto          188
+       133: aload_0
+       134: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       137: iconst_0
+       138: putfield      #314                // Field dev/mixer/android/NativeOwnerV2$Fence.drawAllowed:Z
+       141: aload_0
+       142: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       145: iconst_0
+       146: putfield      #238                // Field dev/mixer/android/NativeOwnerV2$Fence.inputAllowed:Z
+       149: aload_0
+       150: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       153: ifnull        163
+       156: aload_0
+       157: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       160: invokevirtual #320                // Method dev/mixer/android/NativeCoordinatorV2.sealGatesScalar:()V
+       163: aload_0
+       164: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+       167: ifnull        188
+       170: aload_0
+       171: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+       174: aload_0
+       175: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       178: if_acmpeq     188
+       181: aload_0
+       182: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+       185: invokevirtual #320                // Method dev/mixer/android/NativeCoordinatorV2.sealGatesScalar:()V
+       188: return
+
+  private void post(dev.mixer.android.NativeOwnerV2$Work);
+    descriptor: (Ldev/mixer/android/NativeOwnerV2$Work;)V
+    Code:
+         0: aload_0
+         1: aload_1
+         2: putfield      #433                // Field queued:Ldev/mixer/android/NativeOwnerV2$Work;
+         5: aload_1
+         6: iconst_1
+         7: putfield      #561                // Field dev/mixer/android/NativeOwnerV2$Work.posting:Z
+        10: aload_0
+        11: getfield      #73                 // Field handler:Landroid/os/Handler;
+        14: aload_1
+        15: invokevirtual #564                // Method android/os/Handler.post:(Ljava/lang/Runnable;)Z
+        18: ifne          32
+        21: new           #104                // class java/lang/IllegalStateException
+        24: dup
+        25: ldc_w         #567                // String main Handler rejected V2 work
+        28: invokespecial #108                // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        31: athrow
+        32: aload_1
+        33: iconst_0
+        34: putfield      #561                // Field dev/mixer/android/NativeOwnerV2$Work.posting:Z
+        37: aload_1
+        38: getfield      #569                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationPending:Z
+        41: ifne          52
+        44: aload_0
+        45: getfield      #433                // Field queued:Ldev/mixer/android/NativeOwnerV2$Work;
+        48: aload_1
+        49: if_acmpeq     293
+        52: aload_1
+        53: getfield      #572                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationToken:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        56: astore_2
+        57: aload_1
+        58: aconst_null
+        59: putfield      #572                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationToken:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        62: aload_1
+        63: iconst_0
+        64: putfield      #569                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationPending:Z
+        67: aload_0
+        68: aload_1
+        69: aload_2
+        70: invokevirtual #575                // Method removeWork:(Ldev/mixer/android/NativeOwnerV2$Work;Ldev/mixer/android/OwnerLifecycleV2$Token;)V
+        73: goto          293
+        76: astore_2
+        77: aload_0
+        78: aload_2
+        79: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+        82: aload_1
+        83: getfield      #579                // Field dev/mixer/android/NativeOwnerV2$Work.kind:Ldev/mixer/android/NativeOwnerV2$WorkKind;
+        86: getstatic     #581                // Field dev/mixer/android/NativeOwnerV2$WorkKind.TERMINAL_CLOSE:Ldev/mixer/android/NativeOwnerV2$WorkKind;
+        89: if_acmpne     172
+        92: aload_0
+        93: getfield      #433                // Field queued:Ldev/mixer/android/NativeOwnerV2$Work;
+        96: aload_1
+        97: if_acmpne     105
+       100: aload_0
+       101: aconst_null
+       102: putfield      #433                // Field queued:Ldev/mixer/android/NativeOwnerV2$Work;
+       105: aload_1
+       106: iconst_1
+       107: putfield      #569                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationPending:Z
+       110: aload_0
+       111: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+       114: getstatic     #471                // Field dev/mixer/android/NativeOwnerV2$Outcome.DEFERRED:Ldev/mixer/android/NativeOwnerV2$Outcome;
+       117: putfield      #584                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.handler:Ldev/mixer/android/NativeOwnerV2$Outcome;
+       120: aload_0
+       121: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+       124: getstatic     #471                // Field dev/mixer/android/NativeOwnerV2$Outcome.DEFERRED:Ldev/mixer/android/NativeOwnerV2$Outcome;
+       127: putfield      #474                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.coordinator:Ldev/mixer/android/NativeOwnerV2$Outcome;
+       130: aload_1
+       131: iconst_0
+       132: putfield      #561                // Field dev/mixer/android/NativeOwnerV2$Work.posting:Z
+       135: aload_1
+       136: getfield      #569                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationPending:Z
+       139: ifne          150
+       142: aload_0
+       143: getfield      #433                // Field queued:Ldev/mixer/android/NativeOwnerV2$Work;
+       146: aload_1
+       147: if_acmpeq     171
+       150: aload_1
+       151: getfield      #572                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationToken:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       154: astore_3
+       155: aload_1
+       156: aconst_null
+       157: putfield      #572                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationToken:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       160: aload_1
+       161: iconst_0
+       162: putfield      #569                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationPending:Z
+       165: aload_0
+       166: aload_1
+       167: aload_3
+       168: invokevirtual #575                // Method removeWork:(Ldev/mixer/android/NativeOwnerV2$Work;Ldev/mixer/android/OwnerLifecycleV2$Token;)V
+       171: return
+       172: aload_0
+       173: getstatic     #586                // Field dev/mixer/android/NativeOwnerV2$Cause.SCHEDULING_FAILED:Ldev/mixer/android/NativeOwnerV2$Cause;
+       176: aconst_null
+       177: aload_2
+       178: aload_2
+       179: instanceof    #151                // class java/lang/Error
+       182: ifeq          194
+       185: aload_2
+       186: checkcast     #151                // class java/lang/Error
+       189: astore_3
+       190: aload_3
+       191: goto          195
+       194: aconst_null
+       195: getstatic     #185                // Field dev/mixer/android/NativeEnvironmentV2$Change.EPOCH_EXHAUSTED:Ldev/mixer/android/NativeEnvironmentV2$Change;
+       198: invokevirtual #191                // Method terminate:(Ldev/mixer/android/NativeOwnerV2$Cause;Ldev/mixer/android/NativeEnvironmentV2$RendererCause;Ljava/lang/Throwable;Ljava/lang/Error;Ldev/mixer/android/NativeEnvironmentV2$Change;)V
+       201: aload_1
+       202: iconst_0
+       203: putfield      #561                // Field dev/mixer/android/NativeOwnerV2$Work.posting:Z
+       206: aload_1
+       207: getfield      #569                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationPending:Z
+       210: ifne          221
+       213: aload_0
+       214: getfield      #433                // Field queued:Ldev/mixer/android/NativeOwnerV2$Work;
+       217: aload_1
+       218: if_acmpeq     293
+       221: aload_1
+       222: getfield      #572                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationToken:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       225: astore_2
+       226: aload_1
+       227: aconst_null
+       228: putfield      #572                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationToken:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       231: aload_1
+       232: iconst_0
+       233: putfield      #569                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationPending:Z
+       236: aload_0
+       237: aload_1
+       238: aload_2
+       239: invokevirtual #575                // Method removeWork:(Ldev/mixer/android/NativeOwnerV2$Work;Ldev/mixer/android/OwnerLifecycleV2$Token;)V
+       242: goto          293
+       245: astore        4
+       247: aload_1
+       248: iconst_0
+       249: putfield      #561                // Field dev/mixer/android/NativeOwnerV2$Work.posting:Z
+       252: aload_1
+       253: getfield      #569                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationPending:Z
+       256: ifne          267
+       259: aload_0
+       260: getfield      #433                // Field queued:Ldev/mixer/android/NativeOwnerV2$Work;
+       263: aload_1
+       264: if_acmpeq     290
+       267: aload_1
+       268: getfield      #572                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationToken:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       271: astore        5
+       273: aload_1
+       274: aconst_null
+       275: putfield      #572                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationToken:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       278: aload_1
+       279: iconst_0
+       280: putfield      #569                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationPending:Z
+       283: aload_0
+       284: aload_1
+       285: aload         5
+       287: invokevirtual #575                // Method removeWork:(Ldev/mixer/android/NativeOwnerV2$Work;Ldev/mixer/android/OwnerLifecycleV2$Token;)V
+       290: aload         4
+       292: athrow
+       293: return
+      Exception table:
+         from    to  target type
+            10    32    76   Class java/lang/RuntimeException
+            10    32    76   Class java/lang/Error
+            10    32   245   any
+            76   130   245   any
+           172   201   245   any
+           245   247   245   any
+
+  private void cancelQueued(dev.mixer.android.OwnerLifecycleV2$Token);
+    descriptor: (Ldev/mixer/android/OwnerLifecycleV2$Token;)V
+    Code:
+         0: aload_0
+         1: getfield      #433                // Field queued:Ldev/mixer/android/NativeOwnerV2$Work;
+         4: astore_2
+         5: aload_0
+         6: aconst_null
+         7: putfield      #433                // Field queued:Ldev/mixer/android/NativeOwnerV2$Work;
+        10: aload_2
+        11: ifnull        42
+        14: aload_2
+        15: getfield      #561                // Field dev/mixer/android/NativeOwnerV2$Work.posting:Z
+        18: ifeq          42
+        21: aload_2
+        22: iconst_1
+        23: putfield      #569                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationPending:Z
+        26: aload_2
+        27: aload_1
+        28: putfield      #572                // Field dev/mixer/android/NativeOwnerV2$Work.cancellationToken:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        31: aload_0
+        32: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        35: getstatic     #471                // Field dev/mixer/android/NativeOwnerV2$Outcome.DEFERRED:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        38: putfield      #584                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.handler:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        41: return
+        42: aload_0
+        43: aload_2
+        44: aload_1
+        45: invokevirtual #575                // Method removeWork:(Ldev/mixer/android/NativeOwnerV2$Work;Ldev/mixer/android/OwnerLifecycleV2$Token;)V
+        48: return
+
+  private void removeWork(dev.mixer.android.NativeOwnerV2$Work, dev.mixer.android.OwnerLifecycleV2$Token);
+    descriptor: (Ldev/mixer/android/NativeOwnerV2$Work;Ldev/mixer/android/OwnerLifecycleV2$Token;)V
+    Code:
+         0: aload_0
+         1: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+         4: getstatic     #589                // Field dev/mixer/android/NativeOwnerV2$Outcome.ATTEMPTED:Ldev/mixer/android/NativeOwnerV2$Outcome;
+         7: putfield      #584                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.handler:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        10: aconst_null
+        11: astore_3
+        12: aload_1
+        13: ifnull        24
+        16: aload_0
+        17: getfield      #73                 // Field handler:Landroid/os/Handler;
+        20: aload_1
+        21: invokevirtual #592                // Method android/os/Handler.removeCallbacks:(Ljava/lang/Runnable;)V
+        24: aload_0
+        25: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        28: getstatic     #363                // Field dev/mixer/android/NativeOwnerV2$Outcome.RETURNED:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        31: putfield      #584                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.handler:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        34: goto          67
+        37: astore        4
+        39: aload         4
+        41: astore_3
+        42: aload_0
+        43: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        46: aload         4
+        48: putfield      #596                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.handlerFailure:Ljava/lang/Throwable;
+        51: aload_0
+        52: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        55: getstatic     #366                // Field dev/mixer/android/NativeOwnerV2$Outcome.FAILED_UNCERTAIN:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        58: putfield      #584                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.handler:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        61: aload_0
+        62: aload         4
+        64: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+        67: aload_0
+        68: aload_2
+        69: aload_3
+        70: invokevirtual #599                // Method completeCleanup:(Ldev/mixer/android/OwnerLifecycleV2$Token;Ljava/lang/Throwable;)V
+        73: return
+      Exception table:
+         from    to  target type
+            12    34    37   Class java/lang/RuntimeException
+            12    34    37   Class java/lang/Error
+
+  private void unregisterPending();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: getfield      #456                // Field pendingUnregister:Ldev/mixer/android/OwnerLifecycleV2$Token;
+         4: ifnonnull     15
+         7: aload_0
+         8: getfield      #603                // Field emergency:Z
+        11: ifne          15
+        14: return
+        15: aload_0
+        16: getfield      #118                // Field registering:Z
+        19: ifeq          33
+        22: aload_0
+        23: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        26: getstatic     #471                // Field dev/mixer/android/NativeOwnerV2$Outcome.DEFERRED:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        29: putfield      #606                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.unregister:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        32: return
+        33: aload_0
+        34: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        37: getfield      #606                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.unregister:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        40: getstatic     #363                // Field dev/mixer/android/NativeOwnerV2$Outcome.RETURNED:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        43: if_acmpeq     59
+        46: aload_0
+        47: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        50: getfield      #606                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.unregister:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        53: getstatic     #366                // Field dev/mixer/android/NativeOwnerV2$Outcome.FAILED_UNCERTAIN:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        56: if_acmpne     60
+        59: return
+        60: aload_0
+        61: getfield      #456                // Field pendingUnregister:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        64: astore_1
+        65: aload_0
+        66: aconst_null
+        67: putfield      #456                // Field pendingUnregister:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        70: aload_0
+        71: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        74: getstatic     #589                // Field dev/mixer/android/NativeOwnerV2$Outcome.ATTEMPTED:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        77: putfield      #606                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.unregister:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        80: aconst_null
+        81: astore_2
+        82: aload_0
+        83: dup
+        84: getfield      #340                // Field effectDepth:I
+        87: iconst_1
+        88: iadd
+        89: putfield      #340                // Field effectDepth:I
+        92: aload_0
+        93: getfield      #114                // Field observer:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+        96: ifnull        106
+        99: aload_0
+       100: getfield      #114                // Field observer:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+       103: invokevirtual #609                // Method dev/mixer/android/NativeEnvironmentV2$Observer.close:()V
+       106: aload_0
+       107: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+       110: getstatic     #363                // Field dev/mixer/android/NativeOwnerV2$Outcome.RETURNED:Ldev/mixer/android/NativeOwnerV2$Outcome;
+       113: putfield      #606                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.unregister:Ldev/mixer/android/NativeOwnerV2$Outcome;
+       116: aload_0
+       117: dup
+       118: getfield      #340                // Field effectDepth:I
+       121: iconst_1
+       122: isub
+       123: putfield      #340                // Field effectDepth:I
+       126: goto          183
+       129: astore_3
+       130: aload_3
+       131: astore_2
+       132: aload_0
+       133: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+       136: aload_3
+       137: putfield      #611                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.unregisterFailure:Ljava/lang/Throwable;
+       140: aload_0
+       141: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+       144: getstatic     #366                // Field dev/mixer/android/NativeOwnerV2$Outcome.FAILED_UNCERTAIN:Ldev/mixer/android/NativeOwnerV2$Outcome;
+       147: putfield      #606                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.unregister:Ldev/mixer/android/NativeOwnerV2$Outcome;
+       150: aload_0
+       151: aload_3
+       152: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+       155: aload_0
+       156: dup
+       157: getfield      #340                // Field effectDepth:I
+       160: iconst_1
+       161: isub
+       162: putfield      #340                // Field effectDepth:I
+       165: goto          183
+       168: astore        4
+       170: aload_0
+       171: dup
+       172: getfield      #340                // Field effectDepth:I
+       175: iconst_1
+       176: isub
+       177: putfield      #340                // Field effectDepth:I
+       180: aload         4
+       182: athrow
+       183: aload_0
+       184: aload_1
+       185: aload_2
+       186: invokevirtual #599                // Method completeCleanup:(Ldev/mixer/android/OwnerLifecycleV2$Token;Ljava/lang/Throwable;)V
+       189: return
+      Exception table:
+         from    to  target type
+            92   116   129   Class java/lang/RuntimeException
+            92   116   129   Class java/lang/Error
+            92   116   168   any
+           129   155   168   any
+           168   170   168   any
+
+  private void closePending();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: getfield      #468                // Field pendingCloseResource:Ldev/mixer/android/NativeCoordinatorV2;
+         4: astore_1
+         5: aload_1
+         6: ifnonnull     10
+         9: return
+        10: aload_0
+        11: getfield      #340                // Field effectDepth:I
+        14: ifne          31
+        17: aload_0
+        18: getfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        21: ifnonnull     31
+        24: aload_1
+        25: invokevirtual #614                // Method dev/mixer/android/NativeCoordinatorV2.busyForOwnerDisposal:()Z
+        28: ifeq          42
+        31: aload_0
+        32: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        35: getstatic     #471                // Field dev/mixer/android/NativeOwnerV2$Outcome.DEFERRED:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        38: putfield      #474                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.coordinator:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        41: return
+        42: aload_0
+        43: getfield      #465                // Field pendingCloseToken:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        46: astore_2
+        47: aload_0
+        48: aconst_null
+        49: putfield      #468                // Field pendingCloseResource:Ldev/mixer/android/NativeCoordinatorV2;
+        52: aload_0
+        53: aconst_null
+        54: putfield      #465                // Field pendingCloseToken:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        57: aload_0
+        58: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        61: getstatic     #589                // Field dev/mixer/android/NativeOwnerV2$Outcome.ATTEMPTED:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        64: putfield      #474                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.coordinator:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        67: aconst_null
+        68: astore_3
+        69: aload_1
+        70: invokevirtual #617                // Method dev/mixer/android/NativeCoordinatorV2.closeFromOwner:()V
+        73: aload_0
+        74: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        77: getstatic     #363                // Field dev/mixer/android/NativeOwnerV2$Outcome.RETURNED:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        80: putfield      #474                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.coordinator:Ldev/mixer/android/NativeOwnerV2$Outcome;
+        83: aload_1
+        84: invokevirtual #524                // Method dev/mixer/android/NativeCoordinatorV2.cleanupLedger:()Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        87: astore        4
+        89: aload_0
+        90: aload         4
+        92: invokevirtual #528                // Method dev/mixer/android/NativeCoordinatorV2$CleanupLedger.primary:()Ljava/lang/Throwable;
+        95: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+        98: aload_0
+        99: aload         4
+       101: invokevirtual #620                // Method dev/mixer/android/NativeCoordinatorV2$CleanupLedger.firstFatal:()Ljava/lang/Error;
+       104: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+       107: goto          190
+       110: astore        4
+       112: aload         4
+       114: astore_3
+       115: aload_0
+       116: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+       119: aload         4
+       121: putfield      #624                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.coordinatorFailure:Ljava/lang/Throwable;
+       124: aload_0
+       125: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+       128: getstatic     #366                // Field dev/mixer/android/NativeOwnerV2$Outcome.FAILED_UNCERTAIN:Ldev/mixer/android/NativeOwnerV2$Outcome;
+       131: putfield      #474                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.coordinator:Ldev/mixer/android/NativeOwnerV2$Outcome;
+       134: aload_1
+       135: invokevirtual #524                // Method dev/mixer/android/NativeCoordinatorV2.cleanupLedger:()Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       138: astore        4
+       140: aload_0
+       141: aload         4
+       143: invokevirtual #528                // Method dev/mixer/android/NativeCoordinatorV2$CleanupLedger.primary:()Ljava/lang/Throwable;
+       146: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+       149: aload_0
+       150: aload         4
+       152: invokevirtual #620                // Method dev/mixer/android/NativeCoordinatorV2$CleanupLedger.firstFatal:()Ljava/lang/Error;
+       155: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+       158: goto          190
+       161: astore        5
+       163: aload_1
+       164: invokevirtual #524                // Method dev/mixer/android/NativeCoordinatorV2.cleanupLedger:()Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       167: astore        6
+       169: aload_0
+       170: aload         6
+       172: invokevirtual #528                // Method dev/mixer/android/NativeCoordinatorV2$CleanupLedger.primary:()Ljava/lang/Throwable;
+       175: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+       178: aload_0
+       179: aload         6
+       181: invokevirtual #620                // Method dev/mixer/android/NativeCoordinatorV2$CleanupLedger.firstFatal:()Ljava/lang/Error;
+       184: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+       187: aload         5
+       189: athrow
+       190: aload_0
+       191: aload_3
+       192: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+       195: aload_0
+       196: aload_2
+       197: aload_3
+       198: invokevirtual #599                // Method completeCleanup:(Ldev/mixer/android/OwnerLifecycleV2$Token;Ljava/lang/Throwable;)V
+       201: return
+      Exception table:
+         from    to  target type
+            69    83   110   Class java/lang/RuntimeException
+            69    83   110   Class java/lang/Error
+            69    83   161   any
+           110   134   161   any
+           161   163   161   any
+
+  private void settle();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: invokevirtual #124                // Method unregisterPending:()V
+         4: aload_0
+         5: getfield      #468                // Field pendingCloseResource:Ldev/mixer/android/NativeCoordinatorV2;
+         8: ifnull        25
+        11: aload_0
+        12: getfield      #340                // Field effectDepth:I
+        15: ifne          25
+        18: aload_0
+        19: getfield      #235                // Field activeOperation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        22: ifnull        26
+        25: return
+        26: aload_0
+        27: getfield      #468                // Field pendingCloseResource:Ldev/mixer/android/NativeCoordinatorV2;
+        30: invokevirtual #614                // Method dev/mixer/android/NativeCoordinatorV2.busyForOwnerDisposal:()Z
+        33: ifeq          69
+        36: aload_0
+        37: getfield      #433                // Field queued:Ldev/mixer/android/NativeOwnerV2$Work;
+        40: ifnonnull     73
+        43: aload_0
+        44: new           #437                // class dev/mixer/android/NativeOwnerV2$Work
+        47: dup
+        48: aload_0
+        49: getstatic     #581                // Field dev/mixer/android/NativeOwnerV2$WorkKind.TERMINAL_CLOSE:Ldev/mixer/android/NativeOwnerV2$WorkKind;
+        52: aload_0
+        53: getfield      #465                // Field pendingCloseToken:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        56: aload_0
+        57: getfield      #468                // Field pendingCloseResource:Ldev/mixer/android/NativeCoordinatorV2;
+        60: invokespecial #445                // Method dev/mixer/android/NativeOwnerV2$Work."<init>":(Ldev/mixer/android/NativeOwnerV2;Ldev/mixer/android/NativeOwnerV2$WorkKind;Ldev/mixer/android/OwnerLifecycleV2$Token;Ldev/mixer/android/NativeCoordinatorV2;)V
+        63: invokevirtual #448                // Method post:(Ldev/mixer/android/NativeOwnerV2$Work;)V
+        66: goto          73
+        69: aload_0
+        70: invokevirtual #627                // Method closePending:()V
+        73: return
+
+  private void completeCleanup(dev.mixer.android.OwnerLifecycleV2$Token, java.lang.Throwable);
+    descriptor: (Ldev/mixer/android/OwnerLifecycleV2$Token;Ljava/lang/Throwable;)V
+    Code:
+         0: aload_1
+         1: ifnull        11
+         4: aload_0
+         5: getfield      #603                // Field emergency:Z
+         8: ifeq          12
+        11: return
+        12: aload_0
+        13: getfield      #86                 // Field core:Ldev/mixer/android/OwnerLifecycleV2;
+        16: aload_1
+        17: aload_2
+        18: invokevirtual #630                // Method dev/mixer/android/OwnerLifecycleV2.cleanupComplete:(Ldev/mixer/android/OwnerLifecycleV2$Token;Ljava/lang/Object;)V
+        21: goto          30
+        24: astore_3
+        25: aload_0
+        26: aload_3
+        27: invokevirtual #391                // Method fallback:(Ljava/lang/Throwable;)V
+        30: return
+      Exception table:
+         from    to  target type
+            12    21    24   Class java/lang/RuntimeException
+            12    21    24   Class java/lang/Error
+
+  private void fail(java.lang.Throwable, dev.mixer.android.NativeOwnerV2$Cause);
+    descriptor: (Ljava/lang/Throwable;Ldev/mixer/android/NativeOwnerV2$Cause;)V
+    Code:
+         0: aload_0
+         1: aload_1
+         2: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+         5: aload_0
+         6: getfield      #179                // Field terminalProcessed:Z
+         9: ifne          39
+        12: aload_0
+        13: aload_2
+        14: aconst_null
+        15: aload_1
+        16: aload_1
+        17: instanceof    #151                // class java/lang/Error
+        20: ifeq          32
+        23: aload_1
+        24: checkcast     #151                // class java/lang/Error
+        27: astore_3
+        28: aload_3
+        29: goto          33
+        32: aconst_null
+        33: getstatic     #185                // Field dev/mixer/android/NativeEnvironmentV2$Change.EPOCH_EXHAUSTED:Ldev/mixer/android/NativeEnvironmentV2$Change;
+        36: invokevirtual #191                // Method terminate:(Ldev/mixer/android/NativeOwnerV2$Cause;Ldev/mixer/android/NativeEnvironmentV2$RendererCause;Ljava/lang/Throwable;Ljava/lang/Error;Ldev/mixer/android/NativeEnvironmentV2$Change;)V
+        39: return
+
+  private void fallback(java.lang.Throwable);
+    descriptor: (Ljava/lang/Throwable;)V
+    Code:
+         0: aload_0
+         1: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+         4: iconst_1
+         5: putfield      #101                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+         8: aload_0
+         9: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        12: iconst_0
+        13: putfield      #314                // Field dev/mixer/android/NativeOwnerV2$Fence.drawAllowed:Z
+        16: aload_0
+        17: getfield      #15                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        20: iconst_0
+        21: putfield      #238                // Field dev/mixer/android/NativeOwnerV2$Fence.inputAllowed:Z
+        24: aload_0
+        25: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+        28: ifnull        38
+        31: aload_0
+        32: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+        35: invokevirtual #320                // Method dev/mixer/android/NativeCoordinatorV2.sealGatesScalar:()V
+        38: aload_0
+        39: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        42: ifnull        63
+        45: aload_0
+        46: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        49: aload_0
+        50: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+        53: if_acmpeq     63
+        56: aload_0
+        57: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+        60: invokevirtual #320                // Method dev/mixer/android/NativeCoordinatorV2.sealGatesScalar:()V
+        63: aload_0
+        64: iconst_1
+        65: putfield      #179                // Field terminalProcessed:Z
+        68: aload_0
+        69: iconst_1
+        70: putfield      #603                // Field emergency:Z
+        73: aload_0
+        74: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        77: iconst_1
+        78: putfield      #634                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.coreCompletionUnreported:Z
+        81: aload_0
+        82: getfield      #114                // Field observer:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+        85: ifnull        95
+        88: aload_0
+        89: getfield      #114                // Field observer:Ldev/mixer/android/NativeEnvironmentV2$Observer;
+        92: invokevirtual #459                // Method dev/mixer/android/NativeEnvironmentV2$Observer.retireScalarFromOwner:()V
+        95: aload_0
+        96: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        99: getfield      #331                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.cause:Ldev/mixer/android/NativeOwnerV2$Cause;
+       102: ifnonnull     115
+       105: aload_0
+       106: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+       109: getstatic     #170                // Field dev/mixer/android/NativeOwnerV2$Cause.CORE_FAILURE:Ldev/mixer/android/NativeOwnerV2$Cause;
+       112: putfield      #331                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.cause:Ldev/mixer/android/NativeOwnerV2$Cause;
+       115: aload_0
+       116: aload_1
+       117: invokevirtual #373                // Method remember:(Ljava/lang/Throwable;)V
+       120: aload_0
+       121: invokevirtual #337                // Method cancelInput:()V
+       124: aload_0
+       125: aconst_null
+       126: invokevirtual #452                // Method cancelQueued:(Ldev/mixer/android/OwnerLifecycleV2$Token;)V
+       129: aload_0
+       130: invokevirtual #124                // Method unregisterPending:()V
+       133: aload_0
+       134: getfield      #468                // Field pendingCloseResource:Ldev/mixer/android/NativeCoordinatorV2;
+       137: ifnonnull     162
+       140: aload_0
+       141: aload_0
+       142: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       145: ifnull        155
+       148: aload_0
+       149: getfield      #317                // Field opening:Ldev/mixer/android/NativeCoordinatorV2;
+       152: goto          159
+       155: aload_0
+       156: getfield      #225                // Field coordinator:Ldev/mixer/android/NativeCoordinatorV2;
+       159: putfield      #468                // Field pendingCloseResource:Ldev/mixer/android/NativeCoordinatorV2;
+       162: return
+
+  private void remember(java.lang.Throwable);
+    descriptor: (Ljava/lang/Throwable;)V
+    Code:
+         0: aload_1
+         1: ifnonnull     5
+         4: return
+         5: aload_0
+         6: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+         9: getfield      #637                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.primary:Ljava/lang/Throwable;
+        12: ifnonnull     23
+        15: aload_0
+        16: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        19: aload_1
+        20: putfield      #637                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.primary:Ljava/lang/Throwable;
+        23: aload_1
+        24: instanceof    #151                // class java/lang/Error
+        27: ifeq          53
+        30: aload_1
+        31: checkcast     #151                // class java/lang/Error
+        34: astore_2
+        35: aload_0
+        36: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        39: getfield      #639                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.firstFatal:Ljava/lang/Error;
+        42: ifnonnull     53
+        45: aload_0
+        46: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        49: aload_2
+        50: putfield      #639                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.firstFatal:Ljava/lang/Error;
+        53: return
+
+  private void throwFatal();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+         4: getfield      #639                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.firstFatal:Ljava/lang/Error;
+         7: ifnull        18
+        10: aload_0
+        11: getfield      #22                 // Field ledger:Ldev/mixer/android/NativeOwnerV2$CleanupLedger;
+        14: getfield      #639                // Field dev/mixer/android/NativeOwnerV2$CleanupLedger.firstFatal:Ljava/lang/Error;
+        17: athrow
+        18: return
+
+  static void requireMain();
+    descriptor: ()V
+    Code:
+         0: invokestatic  #642                // Method android/os/Looper.myLooper:()Landroid/os/Looper;
+         3: invokestatic  #64                 // Method android/os/Looper.getMainLooper:()Landroid/os/Looper;
+         6: if_acmpeq     20
+         9: new           #104                // class java/lang/IllegalStateException
+        12: dup
+        13: ldc_w         #645                // String V2 owner requires main Looper
+        16: invokespecial #108                // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        19: athrow
+        20: return
+}
+Compiled from "NativeCoordinatorV2.java"
+final class dev.mixer.android.NativeCoordinatorV2 {
+  private final android.app.Activity activity;
+    descriptor: Landroid/app/Activity;
+
+  private final android.widget.FrameLayout root;
+    descriptor: Landroid/widget/FrameLayout;
+
+  private final dev.mixer.android.NativeRenderer renderer;
+    descriptor: Ldev/mixer/android/NativeRenderer;
+
+  private final dev.mixer.android.NativeOwnerV2$Fence fence;
+    descriptor: Ldev/mixer/android/NativeOwnerV2$Fence;
+
+  private final dev.mixer.android.NativeCoordinatorV2$CleanupLedger ledger;
+    descriptor: Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+
+  private long session;
+    descriptor: J
+
+  private byte[] committedPacket;
+    descriptor: [B
+
+  private boolean active;
+    descriptor: Z
+
+  private boolean retired;
+    descriptor: Z
+
+  private boolean disposed;
+    descriptor: Z
+
+  private boolean cancellation;
+    descriptor: Z
+
+  private long cancellationSerial;
+    descriptor: J
+
+  private long requestedSerial;
+    descriptor: J
+
+  private dev.mixer.android.OwnerLifecycleV2$Token operation;
+    descriptor: Ldev/mixer/android/OwnerLifecycleV2$Token;
+
+  dev.mixer.android.NativeCoordinatorV2(android.app.Activity, android.widget.FrameLayout, dev.mixer.android.NativeEnvironmentV2$Observer, dev.mixer.android.NativeOwnerV2$Fence, dev.mixer.android.NativeRenderer$Events);
+    descriptor: (Landroid/app/Activity;Landroid/widget/FrameLayout;Ldev/mixer/android/NativeEnvironmentV2$Observer;Ldev/mixer/android/NativeOwnerV2$Fence;Ldev/mixer/android/NativeRenderer$Events;)V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: new           #7                  // class dev/mixer/android/NativeCoordinatorV2$CleanupLedger
+         8: dup
+         9: invokespecial #9                  // Method dev/mixer/android/NativeCoordinatorV2$CleanupLedger."<init>":()V
+        12: putfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        15: invokestatic  #16                 // Method requireMain:()V
+        18: aload_1
+        19: ifnull        56
+        22: aload_2
+        23: ifnull        56
+        26: aload_3
+        27: ifnull        56
+        30: aload         4
+        32: ifnull        56
+        35: aload         5
+        37: ifnull        56
+        40: aload_3
+        41: getfield      #19                 // Field dev/mixer/android/NativeEnvironmentV2$Observer.activity:Landroid/app/Activity;
+        44: aload_1
+        45: if_acmpne     56
+        48: aload_3
+        49: getfield      #25                 // Field dev/mixer/android/NativeEnvironmentV2$Observer.root:Landroid/widget/FrameLayout;
+        52: aload_2
+        53: if_acmpeq     66
+        56: new           #29                 // class java/lang/IllegalArgumentException
+        59: dup
+        60: ldc           #31                 // String V2 bound window required
+        62: invokespecial #33                 // Method java/lang/IllegalArgumentException."<init>":(Ljava/lang/String;)V
+        65: athrow
+        66: aload_0
+        67: aload_1
+        68: putfield      #36                 // Field activity:Landroid/app/Activity;
+        71: aload_0
+        72: aload_2
+        73: putfield      #37                 // Field root:Landroid/widget/FrameLayout;
+        76: aload_0
+        77: aload         4
+        79: putfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        82: aload_0
+        83: new           #42                 // class dev/mixer/android/NativeRenderer
+        86: dup
+        87: aload_1
+        88: aload         5
+        90: aload_3
+        91: aload         4
+        93: invokespecial #44                 // Method dev/mixer/android/NativeRenderer."<init>":(Landroid/content/Context;Ldev/mixer/android/NativeRenderer$Events;Ldev/mixer/android/NativeEnvironmentV2$Observer;Ldev/mixer/android/NativeOwnerV2$Fence;)V
+        96: putfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        99: aload_3
+       100: aload_0
+       101: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       104: invokevirtual #51                 // Method dev/mixer/android/NativeEnvironmentV2$Observer.bindRenderer:(Ldev/mixer/android/NativeRenderer;)V
+       107: return
+
+  void renderInitial();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: invokevirtual #55                 // Method enter:()V
+         4: aload_0
+         5: getfield      #58                 // Field session:J
+         8: lconst_0
+         9: lcmp
+        10: ifne          20
+        13: aload_0
+        14: getfield      #62                 // Field committedPacket:[B
+        17: ifnull        30
+        20: new           #66                 // class java/lang/IllegalStateException
+        23: dup
+        24: ldc           #68                 // String V2 already initialized
+        26: invokespecial #70                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        29: athrow
+        30: aload_0
+        31: invokestatic  #71                 // Method dev/mixer/android/NativeBridge.create:()J
+        34: putfield      #58                 // Field session:J
+        37: aload_0
+        38: invokevirtual #77                 // Method checkOperation:()V
+        41: aload_0
+        42: getfield      #58                 // Field session:J
+        45: lconst_0
+        46: lcmp
+        47: ifne          60
+        50: new           #66                 // class java/lang/IllegalStateException
+        53: dup
+        54: ldc           #80                 // String V2 session creation failed
+        56: invokespecial #70                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        59: athrow
+        60: aload_0
+        61: iconst_0
+        62: aconst_null
+        63: invokevirtual #82                 // Method transact:(I[B)V
+        66: aload_0
+        67: invokevirtual #86                 // Method leave:()V
+        70: goto          92
+        73: astore_1
+        74: aload_0
+        75: aload_1
+        76: invokevirtual #93                 // Method remember:(Ljava/lang/Throwable;)V
+        79: aload_0
+        80: invokevirtual #97                 // Method retireScalar:()V
+        83: aload_1
+        84: athrow
+        85: astore_2
+        86: aload_0
+        87: invokevirtual #86                 // Method leave:()V
+        90: aload_2
+        91: athrow
+        92: return
+      Exception table:
+         from    to  target type
+             4    66    73   Class java/lang/RuntimeException
+             4    66    73   Class java/lang/Error
+             4    66    85   any
+            73    86    85   any
+
+  void dispatchInput(byte[]);
+    descriptor: ([B)V
+    Code:
+         0: aload_0
+         1: invokevirtual #55                 // Method enter:()V
+         4: aload_0
+         5: getfield      #62                 // Field committedPacket:[B
+         8: ifnonnull     21
+        11: new           #66                 // class java/lang/IllegalStateException
+        14: dup
+        15: ldc           #100                // String V2 requires initial render
+        17: invokespecial #70                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        20: athrow
+        21: aload_0
+        22: iconst_1
+        23: aload_1
+        24: invokevirtual #82                 // Method transact:(I[B)V
+        27: aload_0
+        28: invokevirtual #86                 // Method leave:()V
+        31: goto          53
+        34: astore_2
+        35: aload_0
+        36: aload_2
+        37: invokevirtual #93                 // Method remember:(Ljava/lang/Throwable;)V
+        40: aload_0
+        41: invokevirtual #97                 // Method retireScalar:()V
+        44: aload_2
+        45: athrow
+        46: astore_3
+        47: aload_0
+        48: invokevirtual #86                 // Method leave:()V
+        51: aload_3
+        52: athrow
+        53: return
+      Exception table:
+         from    to  target type
+             4    27    34   Class java/lang/RuntimeException
+             4    27    34   Class java/lang/Error
+             4    27    46   any
+            34    47    46   any
+
+  private void transact(int, byte[]);
+    descriptor: (I[B)V
+    Code:
+         0: lconst_0
+         1: lstore_3
+         2: iconst_0
+         3: istore        5
+         5: iconst_0
+         6: istore        6
+         8: iconst_0
+         9: istore        7
+        11: iconst_0
+        12: istore        8
+        14: iconst_0
+        15: istore        9
+        17: iconst_0
+        18: istore        10
+        20: aconst_null
+        21: astore        11
+        23: aconst_null
+        24: astore        12
+        26: aload_0
+        27: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        30: invokevirtual #102                // Method dev/mixer/android/NativeRenderer.captureInstalledV2:()Ldev/mixer/android/InstalledAppearanceV2;
+        33: astore        13
+        35: aload_0
+        36: invokevirtual #77                 // Method checkOperation:()V
+        39: aload_0
+        40: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        43: aload_0
+        44: getfield      #36                 // Field activity:Landroid/app/Activity;
+        47: aload_0
+        48: getfield      #37                 // Field root:Landroid/widget/FrameLayout;
+        51: invokevirtual #106                // Method dev/mixer/android/NativeRenderer.captureEnvironmentV2:(Landroid/app/Activity;Landroid/widget/FrameLayout;)Ldev/mixer/android/NativeEnvironmentV2;
+        54: astore        14
+        56: aload_0
+        57: invokevirtual #77                 // Method checkOperation:()V
+        60: iconst_1
+        61: istore        5
+        63: aload_0
+        64: getfield      #58                 // Field session:J
+        67: iload_1
+        68: aload_2
+        69: invokestatic  #110                // Method dev/mixer/android/NativeBridge.prepareV2:(JI[B)Ldev/mixer/android/NativeBridge$Candidate;
+        72: astore        15
+        74: aload         15
+        76: invokevirtual #114                // Method dev/mixer/android/NativeBridge$Candidate.token:()J
+        79: lstore_3
+        80: iconst_1
+        81: istore        6
+        83: aload_0
+        84: invokevirtual #77                 // Method checkOperation:()V
+        87: lload_3
+        88: lconst_0
+        89: lcmp
+        90: ifne          103
+        93: new           #66                 // class java/lang/IllegalStateException
+        96: dup
+        97: ldc           #119                // String V2 invalid engine token
+        99: invokespecial #70                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+       102: athrow
+       103: aload         15
+       105: invokevirtual #121                // Method dev/mixer/android/NativeBridge$Candidate.packet:()[B
+       108: astore        16
+       110: aload_0
+       111: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       114: aload         16
+       116: aload         13
+       118: aload         14
+       120: invokevirtual #125                // Method dev/mixer/android/NativeRenderer.prepareV2:([BLdev/mixer/android/InstalledAppearanceV2;Ldev/mixer/android/NativeEnvironmentV2;)Ldev/mixer/android/NativeRenderer$Candidate;
+       123: astore        11
+       125: aload_0
+       126: invokevirtual #77                 // Method checkOperation:()V
+       129: aload         14
+       131: aload_0
+       132: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       135: invokevirtual #128                // Method dev/mixer/android/NativeEnvironmentV2.current:(Ljava/lang/Object;)Z
+       138: ifne          151
+       141: new           #66                 // class java/lang/IllegalStateException
+       144: dup
+       145: ldc           #134                // String V2 environment changed during preparation
+       147: invokespecial #70                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+       150: athrow
+       151: aload_0
+       152: invokevirtual #77                 // Method checkOperation:()V
+       155: iconst_1
+       156: istore        10
+       158: aload_0
+       159: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       162: aload         11
+       164: aload_0
+       165: getfield      #37                 // Field root:Landroid/widget/FrameLayout;
+       168: invokevirtual #136                // Method dev/mixer/android/NativeRenderer.attachV2:(Ldev/mixer/android/NativeRenderer$Candidate;Landroid/widget/FrameLayout;)Ldev/mixer/android/NativeRenderer$AttachmentJournal;
+       171: astore        12
+       173: aload_0
+       174: invokevirtual #77                 // Method checkOperation:()V
+       177: aload_0
+       178: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       181: aload         11
+       183: aload         12
+       185: invokevirtual #140                // Method dev/mixer/android/NativeRenderer.validateAttachedV2:(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;)V
+       188: aload_0
+       189: invokevirtual #77                 // Method checkOperation:()V
+       192: iconst_1
+       193: istore        7
+       195: aload_0
+       196: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       199: iconst_1
+       200: putfield      #144                // Field dev/mixer/android/NativeOwnerV2$Fence.commitFinish:Z
+       203: aload_0
+       204: getfield      #58                 // Field session:J
+       207: lload_3
+       208: invokestatic  #150                // Method dev/mixer/android/NativeBridge.commitV2:(JJ)I
+       211: istore        17
+       213: iload         17
+       215: ifne          244
+       218: aload_0
+       219: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       222: aload         11
+       224: aload         12
+       226: invokevirtual #154                // Method dev/mixer/android/NativeRenderer.finishV2:(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;)V
+       229: aload_0
+       230: aload         16
+       232: putfield      #62                 // Field committedPacket:[B
+       235: aload_0
+       236: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       239: iconst_0
+       240: putfield      #144                // Field dev/mixer/android/NativeOwnerV2$Fence.commitFinish:Z
+       243: return
+       244: iload         17
+       246: iconst_1
+       247: if_icmplt     261
+       250: iload         17
+       252: bipush        7
+       254: if_icmpgt     261
+       257: iconst_1
+       258: goto          262
+       261: iconst_0
+       262: istore        8
+       264: iload         17
+       266: iconst_2
+       267: if_icmpne     274
+       270: iconst_1
+       271: goto          275
+       274: iconst_0
+       275: istore        9
+       277: new           #66                 // class java/lang/IllegalStateException
+       280: dup
+       281: iload         17
+       283: invokedynamic #157,  0            // InvokeDynamic #0:makeConcatWithConstants:(I)Ljava/lang/String;
+       288: invokespecial #70                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+       291: athrow
+       292: astore        18
+       294: aload_0
+       295: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       298: iconst_0
+       299: putfield      #144                // Field dev/mixer/android/NativeOwnerV2$Fence.commitFinish:Z
+       302: aload         18
+       304: athrow
+       305: astore        13
+       307: aload_0
+       308: aload         13
+       310: invokevirtual #93                 // Method remember:(Ljava/lang/Throwable;)V
+       313: aload_0
+       314: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       317: invokevirtual #161                // Method dev/mixer/android/NativeRenderer.reportDeferredTerminalV2:()V
+       320: goto          331
+       323: astore        14
+       325: aload_0
+       326: aload         14
+       328: invokevirtual #93                 // Method remember:(Ljava/lang/Throwable;)V
+       331: iload         5
+       333: ifeq          341
+       336: iload         6
+       338: ifeq          351
+       341: iload         7
+       343: ifeq          355
+       346: iload         8
+       348: ifne          355
+       351: iconst_1
+       352: goto          356
+       355: iconst_0
+       356: istore        14
+       358: iload         14
+       360: ifne          451
+       363: lload_3
+       364: lconst_0
+       365: lcmp
+       366: ifeq          451
+       369: aload_0
+       370: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       373: getstatic     #164                // Field dev/mixer/android/NativeCoordinatorV2$Outcome.ATTEMPTED:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+       376: putfield      #170                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.abort:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+       379: aload_0
+       380: getfield      #58                 // Field session:J
+       383: lload_3
+       384: invokestatic  #173                // Method dev/mixer/android/NativeBridge.abortV2:(JJ)I
+       387: ifne          403
+       390: aload_0
+       391: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       394: getstatic     #176                // Field dev/mixer/android/NativeCoordinatorV2$Outcome.RETURNED:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+       397: putfield      #170                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.abort:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+       400: goto          417
+       403: aload_0
+       404: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       407: getstatic     #179                // Field dev/mixer/android/NativeCoordinatorV2$Outcome.FAILED_UNCERTAIN:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+       410: putfield      #170                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.abort:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+       413: aload_0
+       414: invokevirtual #97                 // Method retireScalar:()V
+       417: goto          451
+       420: astore        15
+       422: aload_0
+       423: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       426: getstatic     #179                // Field dev/mixer/android/NativeCoordinatorV2$Outcome.FAILED_UNCERTAIN:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+       429: putfield      #170                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.abort:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+       432: aload_0
+       433: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       436: aload         15
+       438: putfield      #182                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.abortFailure:Ljava/lang/Throwable;
+       441: aload_0
+       442: aload         15
+       444: invokevirtual #93                 // Method remember:(Ljava/lang/Throwable;)V
+       447: aload_0
+       448: invokevirtual #97                 // Method retireScalar:()V
+       451: iload         9
+       453: ifeq          460
+       456: aload_0
+       457: invokevirtual #97                 // Method retireScalar:()V
+       460: aload_0
+       461: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       464: getfield      #186                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+       467: ifne          507
+       470: iload         14
+       472: ifne          507
+       475: aload         11
+       477: ifnull        507
+       480: aload         12
+       482: ifnull        496
+       485: aload_0
+       486: aload         11
+       488: aload         12
+       490: invokevirtual #189                // Method rollback:(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;)V
+       493: goto          507
+       496: iload         10
+       498: ifne          507
+       501: aload_0
+       502: aload         11
+       504: invokevirtual #192                // Method discard:(Ldev/mixer/android/NativeRenderer$Candidate;)V
+       507: aload_0
+       508: invokevirtual #97                 // Method retireScalar:()V
+       511: aload         11
+       513: ifnull        550
+       516: aload_0
+       517: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       520: aload         11
+       522: aload_0
+       523: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       526: getfield      #196                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.primary:Ljava/lang/Throwable;
+       529: aload_0
+       530: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       533: getfield      #199                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.firstFatal:Ljava/lang/Error;
+       536: invokevirtual #203                // Method dev/mixer/android/NativeRenderer.completeFailedV2:(Ldev/mixer/android/NativeRenderer$Candidate;Ljava/lang/Throwable;Ljava/lang/Error;)V
+       539: goto          550
+       542: astore        15
+       544: aload_0
+       545: aload         15
+       547: invokevirtual #93                 // Method remember:(Ljava/lang/Throwable;)V
+       550: aload_0
+       551: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       554: getfield      #199                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.firstFatal:Ljava/lang/Error;
+       557: ifnull        568
+       560: aload_0
+       561: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       564: getfield      #199                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.firstFatal:Ljava/lang/Error;
+       567: athrow
+       568: aload         13
+       570: athrow
+      Exception table:
+         from    to  target type
+           203   235   292   any
+           244   294   292   any
+            26   243   305   Class java/lang/RuntimeException
+            26   243   305   Class java/lang/Error
+           244   305   305   Class java/lang/RuntimeException
+           244   305   305   Class java/lang/Error
+           313   320   323   Class java/lang/RuntimeException
+           313   320   323   Class java/lang/Error
+           379   417   420   Class java/lang/RuntimeException
+           379   417   420   Class java/lang/Error
+           516   539   542   Class java/lang/RuntimeException
+           516   539   542   Class java/lang/Error
+
+  void refreshEnvironment();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: invokevirtual #55                 // Method enter:()V
+         4: aconst_null
+         5: astore_1
+         6: aconst_null
+         7: astore_2
+         8: iconst_0
+         9: istore_3
+        10: aload_0
+        11: getfield      #62                 // Field committedPacket:[B
+        14: ifnonnull     27
+        17: new           #66                 // class java/lang/IllegalStateException
+        20: dup
+        21: ldc           #100                // String V2 requires initial render
+        23: invokespecial #70                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        26: athrow
+        27: aload_0
+        28: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        31: invokevirtual #102                // Method dev/mixer/android/NativeRenderer.captureInstalledV2:()Ldev/mixer/android/InstalledAppearanceV2;
+        34: astore        4
+        36: aload_0
+        37: invokevirtual #77                 // Method checkOperation:()V
+        40: aload_0
+        41: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        44: aload_0
+        45: getfield      #36                 // Field activity:Landroid/app/Activity;
+        48: aload_0
+        49: getfield      #37                 // Field root:Landroid/widget/FrameLayout;
+        52: invokevirtual #106                // Method dev/mixer/android/NativeRenderer.captureEnvironmentV2:(Landroid/app/Activity;Landroid/widget/FrameLayout;)Ldev/mixer/android/NativeEnvironmentV2;
+        55: astore        5
+        57: aload_0
+        58: invokevirtual #77                 // Method checkOperation:()V
+        61: aload_0
+        62: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        65: aload_0
+        66: getfield      #62                 // Field committedPacket:[B
+        69: aload         4
+        71: aload         5
+        73: invokevirtual #125                // Method dev/mixer/android/NativeRenderer.prepareV2:([BLdev/mixer/android/InstalledAppearanceV2;Ldev/mixer/android/NativeEnvironmentV2;)Ldev/mixer/android/NativeRenderer$Candidate;
+        76: astore_1
+        77: aload_0
+        78: invokevirtual #77                 // Method checkOperation:()V
+        81: aload         5
+        83: aload_0
+        84: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        87: invokevirtual #128                // Method dev/mixer/android/NativeEnvironmentV2.current:(Ljava/lang/Object;)Z
+        90: ifne          103
+        93: new           #66                 // class java/lang/IllegalStateException
+        96: dup
+        97: ldc           #207                // String V2 environment changed during refresh
+        99: invokespecial #70                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+       102: athrow
+       103: iconst_1
+       104: istore_3
+       105: aload_0
+       106: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       109: aload_1
+       110: aload_0
+       111: getfield      #37                 // Field root:Landroid/widget/FrameLayout;
+       114: invokevirtual #136                // Method dev/mixer/android/NativeRenderer.attachV2:(Ldev/mixer/android/NativeRenderer$Candidate;Landroid/widget/FrameLayout;)Ldev/mixer/android/NativeRenderer$AttachmentJournal;
+       117: astore_2
+       118: aload_0
+       119: invokevirtual #77                 // Method checkOperation:()V
+       122: aload_0
+       123: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       126: aload_1
+       127: aload_2
+       128: invokevirtual #140                // Method dev/mixer/android/NativeRenderer.validateAttachedV2:(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;)V
+       131: aload_0
+       132: invokevirtual #77                 // Method checkOperation:()V
+       135: aload_0
+       136: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       139: aload_1
+       140: aload_2
+       141: invokevirtual #154                // Method dev/mixer/android/NativeRenderer.finishV2:(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;)V
+       144: aload_0
+       145: invokevirtual #86                 // Method leave:()V
+       148: goto          284
+       151: astore        4
+       153: aload_0
+       154: aload         4
+       156: invokevirtual #93                 // Method remember:(Ljava/lang/Throwable;)V
+       159: aload_0
+       160: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       163: getfield      #186                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+       166: ifne          195
+       169: aload_1
+       170: ifnull        195
+       173: aload_2
+       174: ifnull        186
+       177: aload_0
+       178: aload_1
+       179: aload_2
+       180: invokevirtual #189                // Method rollback:(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;)V
+       183: goto          195
+       186: iload_3
+       187: ifne          195
+       190: aload_0
+       191: aload_1
+       192: invokevirtual #192                // Method discard:(Ldev/mixer/android/NativeRenderer$Candidate;)V
+       195: aload_0
+       196: invokevirtual #97                 // Method retireScalar:()V
+       199: aload_0
+       200: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       203: invokevirtual #161                // Method dev/mixer/android/NativeRenderer.reportDeferredTerminalV2:()V
+       206: goto          217
+       209: astore        5
+       211: aload_0
+       212: aload         5
+       214: invokevirtual #93                 // Method remember:(Ljava/lang/Throwable;)V
+       217: aload_1
+       218: ifnull        254
+       221: aload_0
+       222: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       225: aload_1
+       226: aload_0
+       227: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       230: getfield      #196                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.primary:Ljava/lang/Throwable;
+       233: aload_0
+       234: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       237: getfield      #199                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.firstFatal:Ljava/lang/Error;
+       240: invokevirtual #203                // Method dev/mixer/android/NativeRenderer.completeFailedV2:(Ldev/mixer/android/NativeRenderer$Candidate;Ljava/lang/Throwable;Ljava/lang/Error;)V
+       243: goto          254
+       246: astore        5
+       248: aload_0
+       249: aload         5
+       251: invokevirtual #93                 // Method remember:(Ljava/lang/Throwable;)V
+       254: aload_0
+       255: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       258: getfield      #199                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.firstFatal:Ljava/lang/Error;
+       261: ifnull        272
+       264: aload_0
+       265: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       268: getfield      #199                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.firstFatal:Ljava/lang/Error;
+       271: athrow
+       272: aload         4
+       274: athrow
+       275: astore        6
+       277: aload_0
+       278: invokevirtual #86                 // Method leave:()V
+       281: aload         6
+       283: athrow
+       284: return
+      Exception table:
+         from    to  target type
+            10   144   151   Class java/lang/RuntimeException
+            10   144   151   Class java/lang/Error
+           199   206   209   Class java/lang/RuntimeException
+           199   206   209   Class java/lang/Error
+           221   243   246   Class java/lang/RuntimeException
+           221   243   246   Class java/lang/Error
+            10   144   275   any
+           151   277   275   any
+
+  private void rollback(dev.mixer.android.NativeRenderer$Candidate, dev.mixer.android.NativeRenderer$AttachmentJournal);
+    descriptor: (Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;)V
+    Code:
+         0: aload_0
+         1: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+         4: getstatic     #164                // Field dev/mixer/android/NativeCoordinatorV2$Outcome.ATTEMPTED:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+         7: putfield      #209                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.rollback:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+        10: aload_0
+        11: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        14: aload_1
+        15: aload_2
+        16: invokevirtual #211                // Method dev/mixer/android/NativeRenderer.rollbackV2:(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;)V
+        19: aload_0
+        20: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        23: getstatic     #176                // Field dev/mixer/android/NativeCoordinatorV2$Outcome.RETURNED:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+        26: putfield      #209                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.rollback:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+        29: goto          56
+        32: astore_3
+        33: aload_0
+        34: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        37: getstatic     #179                // Field dev/mixer/android/NativeCoordinatorV2$Outcome.FAILED_UNCERTAIN:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+        40: putfield      #209                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.rollback:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+        43: aload_0
+        44: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        47: aload_3
+        48: putfield      #214                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.rollbackFailure:Ljava/lang/Throwable;
+        51: aload_0
+        52: aload_3
+        53: invokevirtual #93                 // Method remember:(Ljava/lang/Throwable;)V
+        56: return
+      Exception table:
+         from    to  target type
+            10    29    32   Class java/lang/RuntimeException
+            10    29    32   Class java/lang/Error
+
+  private void discard(dev.mixer.android.NativeRenderer$Candidate);
+    descriptor: (Ldev/mixer/android/NativeRenderer$Candidate;)V
+    Code:
+         0: aload_0
+         1: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+         4: getstatic     #164                // Field dev/mixer/android/NativeCoordinatorV2$Outcome.ATTEMPTED:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+         7: putfield      #217                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.discard:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+        10: aload_0
+        11: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        14: aload_1
+        15: invokevirtual #219                // Method dev/mixer/android/NativeRenderer.discardV2:(Ldev/mixer/android/NativeRenderer$Candidate;)V
+        18: aload_0
+        19: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        22: getstatic     #176                // Field dev/mixer/android/NativeCoordinatorV2$Outcome.RETURNED:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+        25: putfield      #217                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.discard:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+        28: goto          55
+        31: astore_2
+        32: aload_0
+        33: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        36: getstatic     #179                // Field dev/mixer/android/NativeCoordinatorV2$Outcome.FAILED_UNCERTAIN:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+        39: putfield      #217                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.discard:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+        42: aload_0
+        43: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        46: aload_2
+        47: putfield      #222                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.discardFailure:Ljava/lang/Throwable;
+        50: aload_0
+        51: aload_2
+        52: invokevirtual #93                 // Method remember:(Ljava/lang/Throwable;)V
+        55: return
+      Exception table:
+         from    to  target type
+            10    28    31   Class java/lang/RuntimeException
+            10    28    31   Class java/lang/Error
+
+  void sealGatesScalar();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+         4: invokevirtual #225                // Method dev/mixer/android/NativeRenderer.sealScalarV2:()V
+         7: return
+
+  void publishGatesScalar(dev.mixer.android.OwnerLifecycleV2$Token);
+    descriptor: (Ldev/mixer/android/OwnerLifecycleV2$Token;)V
+    Code:
+         0: aload_0
+         1: getfield      #228                // Field active:Z
+         4: ifne          31
+         7: aload_0
+         8: getfield      #231                // Field retired:Z
+        11: ifne          31
+        14: aload_0
+        15: getfield      #62                 // Field committedPacket:[B
+        18: ifnull        31
+        21: aload_0
+        22: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        25: getfield      #144                // Field dev/mixer/android/NativeOwnerV2$Fence.commitFinish:Z
+        28: ifeq          41
+        31: new           #66                 // class java/lang/IllegalStateException
+        34: dup
+        35: ldc           #234                // String V2 coordinator cannot publish presentation
+        37: invokespecial #70                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        40: athrow
+        41: aload_0
+        42: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        45: aload_1
+        46: invokevirtual #236                // Method dev/mixer/android/NativeRenderer.publishScalarV2:(Ldev/mixer/android/OwnerLifecycleV2$Token;)V
+        49: return
+
+  void cancelInputFromOwner(long);
+    descriptor: (J)V
+    Code:
+         0: invokestatic  #16                 // Method requireMain:()V
+         3: lload_1
+         4: aload_0
+         5: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+         8: getfield      #240                // Field dev/mixer/android/NativeOwnerV2$Fence.sealSerial:J
+        11: lcmp
+        12: ifne          35
+        15: aload_0
+        16: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        19: getfield      #243                // Field dev/mixer/android/NativeOwnerV2$Fence.drawAllowed:Z
+        22: ifne          35
+        25: aload_0
+        26: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        29: getfield      #246                // Field dev/mixer/android/NativeOwnerV2$Fence.inputAllowed:Z
+        32: ifeq          45
+        35: new           #66                 // class java/lang/IllegalStateException
+        38: dup
+        39: ldc           #249                // String V2 cancellation requires exact sealed serial
+        41: invokespecial #70                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        44: athrow
+        45: lload_1
+        46: aload_0
+        47: getfield      #251                // Field requestedSerial:J
+        50: lcmp
+        51: ifle          59
+        54: aload_0
+        55: lload_1
+        56: putfield      #251                // Field requestedSerial:J
+        59: aload_0
+        60: getfield      #254                // Field cancellation:Z
+        63: ifne          75
+        66: lload_1
+        67: aload_0
+        68: getfield      #257                // Field cancellationSerial:J
+        71: lcmp
+        72: ifgt          76
+        75: return
+        76: aload_0
+        77: iconst_1
+        78: putfield      #254                // Field cancellation:Z
+        81: aload_0
+        82: lload_1
+        83: putfield      #257                // Field cancellationSerial:J
+        86: aload_0
+        87: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        90: lload_1
+        91: invokevirtual #260                // Method dev/mixer/android/NativeRenderer.cancelInputV2:(J)V
+        94: aload_0
+        95: aload_0
+        96: getfield      #251                // Field requestedSerial:J
+        99: putfield      #257                // Field cancellationSerial:J
+       102: aload_0
+       103: iconst_0
+       104: putfield      #254                // Field cancellation:Z
+       107: goto          128
+       110: astore_3
+       111: aload_0
+       112: aload_3
+       113: invokevirtual #93                 // Method remember:(Ljava/lang/Throwable;)V
+       116: aload_3
+       117: athrow
+       118: astore        4
+       120: aload_0
+       121: iconst_0
+       122: putfield      #254                // Field cancellation:Z
+       125: aload         4
+       127: athrow
+       128: return
+      Exception table:
+         from    to  target type
+            81   102   110   Class java/lang/RuntimeException
+            81   102   110   Class java/lang/Error
+            81   102   118   any
+           110   120   118   any
+
+  boolean inputCancellationInProgress();
+    descriptor: ()Z
+    Code:
+         0: invokestatic  #16                 // Method requireMain:()V
+         3: aload_0
+         4: getfield      #254                // Field cancellation:Z
+         7: ifne          20
+        10: aload_0
+        11: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        14: invokevirtual #264                // Method dev/mixer/android/NativeRenderer.cancellationInProgressV2:()Z
+        17: ifeq          24
+        20: iconst_1
+        21: goto          25
+        24: iconst_0
+        25: ireturn
+
+  boolean busyForOwnerDisposal();
+    descriptor: ()Z
+    Code:
+         0: invokestatic  #16                 // Method requireMain:()V
+         3: aload_0
+         4: getfield      #228                // Field active:Z
+         7: ifne          37
+        10: aload_0
+        11: getfield      #254                // Field cancellation:Z
+        14: ifne          37
+        17: aload_0
+        18: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        21: getfield      #268                // Field dev/mixer/android/NativeOwnerV2$Fence.rendererReportActive:Z
+        24: ifne          37
+        27: aload_0
+        28: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        31: invokevirtual #271                // Method dev/mixer/android/NativeRenderer.editorDisposalBusyV2:()Z
+        34: ifeq          41
+        37: iconst_1
+        38: goto          42
+        41: iconst_0
+        42: ireturn
+
+  boolean isRetired();
+    descriptor: ()Z
+    Code:
+         0: invokestatic  #16                 // Method requireMain:()V
+         3: aload_0
+         4: getfield      #231                // Field retired:Z
+         7: ireturn
+
+  boolean hasCommittedPresentation();
+    descriptor: ()Z
+    Code:
+         0: invokestatic  #16                 // Method requireMain:()V
+         3: aload_0
+         4: getfield      #231                // Field retired:Z
+         7: ifne          21
+        10: aload_0
+        11: getfield      #62                 // Field committedPacket:[B
+        14: ifnull        21
+        17: iconst_1
+        18: goto          22
+        21: iconst_0
+        22: ireturn
+
+  dev.mixer.android.NativeCoordinatorV2$CleanupLedger cleanupLedger();
+    descriptor: ()Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+    Code:
+         0: invokestatic  #16                 // Method requireMain:()V
+         3: aload_0
+         4: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+         7: areturn
+
+  void closeFromOwner();
+    descriptor: ()V
+    Code:
+         0: invokestatic  #16                 // Method requireMain:()V
+         3: aload_0
+         4: invokevirtual #274                // Method busyForOwnerDisposal:()Z
+         7: ifeq          21
+        10: new           #66                 // class java/lang/IllegalStateException
+        13: dup
+        14: ldc_w         #277                // String V2 coordinator disposal deferred
+        17: invokespecial #70                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        20: athrow
+        21: aload_0
+        22: invokevirtual #97                 // Method retireScalar:()V
+        25: aload_0
+        26: invokevirtual #279                // Method disposeOnce:()V
+        29: aload_0
+        30: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        33: getfield      #282                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.rendererFailure:Ljava/lang/Throwable;
+        36: instanceof    #91                 // class java/lang/Error
+        39: ifne          55
+        42: aload_0
+        43: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        46: getfield      #285                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.engineFailure:Ljava/lang/Throwable;
+        49: instanceof    #91                 // class java/lang/Error
+        52: ifeq          63
+        55: aload_0
+        56: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        59: getfield      #199                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.firstFatal:Ljava/lang/Error;
+        62: athrow
+        63: aload_0
+        64: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        67: getfield      #282                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.rendererFailure:Ljava/lang/Throwable;
+        70: astore_2
+        71: aload_2
+        72: instanceof    #89                 // class java/lang/RuntimeException
+        75: ifeq          85
+        78: aload_2
+        79: checkcast     #89                 // class java/lang/RuntimeException
+        82: astore_1
+        83: aload_1
+        84: athrow
+        85: aload_0
+        86: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        89: getfield      #285                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.engineFailure:Ljava/lang/Throwable;
+        92: astore_2
+        93: aload_2
+        94: instanceof    #89                 // class java/lang/RuntimeException
+        97: ifeq          107
+       100: aload_2
+       101: checkcast     #89                 // class java/lang/RuntimeException
+       104: astore_1
+       105: aload_1
+       106: athrow
+       107: return
+
+  private void enter();
+    descriptor: ()V
+    Code:
+         0: invokestatic  #16                 // Method requireMain:()V
+         3: aload_0
+         4: getfield      #231                // Field retired:Z
+         7: ifne          20
+        10: aload_0
+        11: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        14: getfield      #186                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        17: ifeq          31
+        20: new           #66                 // class java/lang/IllegalStateException
+        23: dup
+        24: ldc_w         #288                // String V2 coordinator retired
+        27: invokespecial #70                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        30: athrow
+        31: aload_0
+        32: getfield      #228                // Field active:Z
+        35: ifne          55
+        38: aload_0
+        39: getfield      #254                // Field cancellation:Z
+        42: ifne          55
+        45: aload_0
+        46: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        49: getfield      #268                // Field dev/mixer/android/NativeOwnerV2$Fence.rendererReportActive:Z
+        52: ifeq          66
+        55: new           #66                 // class java/lang/IllegalStateException
+        58: dup
+        59: ldc_w         #290                // String V2 coordinator reentrant call
+        62: invokespecial #70                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        65: athrow
+        66: aload_0
+        67: aload_0
+        68: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        71: getfield      #292                // Field dev/mixer/android/NativeOwnerV2$Fence.operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        74: putfield      #296                // Field operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        77: aload_0
+        78: getfield      #296                // Field operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        81: ifnonnull     95
+        84: new           #66                 // class java/lang/IllegalStateException
+        87: dup
+        88: ldc_w         #297                // String V2 owner operation required
+        91: invokespecial #70                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        94: athrow
+        95: aload_0
+        96: iconst_1
+        97: putfield      #228                // Field active:Z
+       100: aload_0
+       101: invokevirtual #299                // Method sealGatesScalar:()V
+       104: return
+
+  private void checkOperation();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+         4: getfield      #186                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+         7: ifne          31
+        10: aload_0
+        11: getfield      #296                // Field operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        14: ifnull        31
+        17: aload_0
+        18: getfield      #296                // Field operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        21: aload_0
+        22: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        25: getfield      #292                // Field dev/mixer/android/NativeOwnerV2$Fence.operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        28: if_acmpeq     42
+        31: new           #66                 // class java/lang/IllegalStateException
+        34: dup
+        35: ldc_w         #302                // String V2 transaction authority lost
+        38: invokespecial #70                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        41: athrow
+        42: return
+
+  private void leave();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: iconst_0
+         2: putfield      #228                // Field active:Z
+         5: aload_0
+         6: aconst_null
+         7: putfield      #296                // Field operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        10: aload_0
+        11: getfield      #231                // Field retired:Z
+        14: ifeq          38
+        17: aload_0
+        18: getfield      #254                // Field cancellation:Z
+        21: ifne          38
+        24: aload_0
+        25: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        28: getfield      #268                // Field dev/mixer/android/NativeOwnerV2$Fence.rendererReportActive:Z
+        31: ifne          38
+        34: aload_0
+        35: invokevirtual #279                // Method disposeOnce:()V
+        38: aload_0
+        39: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        42: getfield      #199                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.firstFatal:Ljava/lang/Error;
+        45: ifnull        56
+        48: aload_0
+        49: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        52: getfield      #199                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.firstFatal:Ljava/lang/Error;
+        55: athrow
+        56: return
+
+  private void retireScalar();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: iconst_1
+         2: putfield      #231                // Field retired:Z
+         5: aload_0
+         6: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+         9: iconst_1
+        10: putfield      #186                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        13: aload_0
+        14: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        17: iconst_0
+        18: putfield      #243                // Field dev/mixer/android/NativeOwnerV2$Fence.drawAllowed:Z
+        21: aload_0
+        22: getfield      #38                 // Field fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        25: iconst_0
+        26: putfield      #246                // Field dev/mixer/android/NativeOwnerV2$Fence.inputAllowed:Z
+        29: aload_0
+        30: invokevirtual #299                // Method sealGatesScalar:()V
+        33: aload_0
+        34: aconst_null
+        35: putfield      #62                 // Field committedPacket:[B
+        38: return
+
+  private void disposeOnce();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: getfield      #304                // Field disposed:Z
+         4: ifne          14
+         7: aload_0
+         8: invokevirtual #274                // Method busyForOwnerDisposal:()Z
+        11: ifeq          15
+        14: return
+        15: aload_0
+        16: iconst_1
+        17: putfield      #304                // Field disposed:Z
+        20: aload_0
+        21: getfield      #58                 // Field session:J
+        24: lstore_1
+        25: aload_0
+        26: lconst_0
+        27: putfield      #58                 // Field session:J
+        30: aload_0
+        31: aconst_null
+        32: putfield      #62                 // Field committedPacket:[B
+        35: aload_0
+        36: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        39: getstatic     #164                // Field dev/mixer/android/NativeCoordinatorV2$Outcome.ATTEMPTED:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+        42: putfield      #307                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.renderer:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+        45: aload_0
+        46: getfield      #47                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        49: invokevirtual #309                // Method dev/mixer/android/NativeRenderer.disposeV2:()V
+        52: aload_0
+        53: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        56: getstatic     #176                // Field dev/mixer/android/NativeCoordinatorV2$Outcome.RETURNED:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+        59: putfield      #307                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.renderer:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+        62: goto          89
+        65: astore_3
+        66: aload_0
+        67: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        70: aload_3
+        71: putfield      #282                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.rendererFailure:Ljava/lang/Throwable;
+        74: aload_0
+        75: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        78: getstatic     #179                // Field dev/mixer/android/NativeCoordinatorV2$Outcome.FAILED_UNCERTAIN:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+        81: putfield      #307                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.renderer:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+        84: aload_0
+        85: aload_3
+        86: invokevirtual #93                 // Method remember:(Ljava/lang/Throwable;)V
+        89: lload_1
+        90: lconst_0
+        91: lcmp
+        92: ifeq          146
+        95: aload_0
+        96: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        99: getstatic     #164                // Field dev/mixer/android/NativeCoordinatorV2$Outcome.ATTEMPTED:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+       102: putfield      #312                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.engine:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+       105: lload_1
+       106: invokestatic  #315                // Method dev/mixer/android/NativeBridge.destroy:(J)V
+       109: aload_0
+       110: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       113: getstatic     #176                // Field dev/mixer/android/NativeCoordinatorV2$Outcome.RETURNED:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+       116: putfield      #312                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.engine:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+       119: goto          146
+       122: astore_3
+       123: aload_0
+       124: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       127: aload_3
+       128: putfield      #285                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.engineFailure:Ljava/lang/Throwable;
+       131: aload_0
+       132: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+       135: getstatic     #179                // Field dev/mixer/android/NativeCoordinatorV2$Outcome.FAILED_UNCERTAIN:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+       138: putfield      #312                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.engine:Ldev/mixer/android/NativeCoordinatorV2$Outcome;
+       141: aload_0
+       142: aload_3
+       143: invokevirtual #93                 // Method remember:(Ljava/lang/Throwable;)V
+       146: return
+      Exception table:
+         from    to  target type
+            45    62    65   Class java/lang/RuntimeException
+            45    62    65   Class java/lang/Error
+           105   119   122   Class java/lang/RuntimeException
+           105   119   122   Class java/lang/Error
+
+  private void remember(java.lang.Throwable);
+    descriptor: (Ljava/lang/Throwable;)V
+    Code:
+         0: aload_1
+         1: ifnonnull     5
+         4: return
+         5: aload_0
+         6: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+         9: getfield      #196                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.primary:Ljava/lang/Throwable;
+        12: ifnonnull     23
+        15: aload_0
+        16: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        19: aload_1
+        20: putfield      #196                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.primary:Ljava/lang/Throwable;
+        23: aload_1
+        24: instanceof    #91                 // class java/lang/Error
+        27: ifeq          53
+        30: aload_1
+        31: checkcast     #91                 // class java/lang/Error
+        34: astore_2
+        35: aload_0
+        36: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        39: getfield      #199                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.firstFatal:Ljava/lang/Error;
+        42: ifnonnull     53
+        45: aload_0
+        46: getfield      #10                 // Field ledger:Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;
+        49: aload_2
+        50: putfield      #199                // Field dev/mixer/android/NativeCoordinatorV2$CleanupLedger.firstFatal:Ljava/lang/Error;
+        53: return
+
+  private static void requireMain();
+    descriptor: ()V
+    Code:
+         0: invokestatic  #318                // Method android/os/Looper.myLooper:()Landroid/os/Looper;
+         3: invokestatic  #324                // Method android/os/Looper.getMainLooper:()Landroid/os/Looper;
+         6: if_acmpeq     20
+         9: new           #66                 // class java/lang/IllegalStateException
+        12: dup
+        13: ldc_w         #327                // String V2 coordinator requires main Looper
+        16: invokespecial #70                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        19: athrow
+        20: return
+}

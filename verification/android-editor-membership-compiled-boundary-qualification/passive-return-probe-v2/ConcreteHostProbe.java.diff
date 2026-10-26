@@ -1,0 +1,34 @@
+--- actual-accepted/dev/mixer/android/ConcreteHostProbe.java
++++ isolated-v2/dev/mixer/android/ConcreteHostProbe.java
+@@ -9,6 +9,11 @@
+ public final class ConcreteHostProbe {
+     private ConcreteHostProbe() {}
+     public static BiConsumer<String,String> hook;
++    private static java.util.function.Consumer<Event> qualificationHook;
++    public static void installQualificationHook(java.util.function.Consumer<Event> value){if(value==null||qualificationHook!=null)throw new IllegalStateException("qualification hook lifetime");qualificationHook=value;}
++    public static void clearQualificationHook(java.util.function.Consumer<Event> value){if(value==null||qualificationHook!=value)throw new IllegalStateException("qualification hook identity");qualificationHook=null;}
++    public static boolean qualificationHookInstalled(){return qualificationHook!=null;}
++    static List<Site> outcomeFrames(){return WALKER.walk(frames->frames.filter(frame->production(frame.getClassName())).limit(24).map(frame->new Site(frame.getClassName(),frame.getMethodName(),frame.getDescriptor(),frame.getByteCodeIndex(),frame.getLineNumber())).toList());}
+     public static final int LIMIT=65536;
+     public record Site(String className,String methodName,String descriptor,int bytecodeIndex,int line) {}
+     public static final class Event {
+@@ -33,15 +38,16 @@
+         if(history.size()>=LIMIT)throw new IllegalStateException("host probe event bound");
+         List<Site> sites=WALKER.walk(frames->frames.filter(frame->production(frame.getClassName())).limit(24)
+             .map(frame->new Site(frame.getClassName(),frame.getMethodName(),frame.getDescriptor(),frame.getByteCodeIndex(),frame.getLineNumber())).toList());
+-        history.add(new Event(method,phase,receiver,sites));String key=method+"/"+phase;
++        Event event=new Event(method,phase,receiver,sites);history.add(event);
++        String key=method+"/"+phase;
+         if(!counts.containsKey(key)&&counts.size()>=4096)throw new IllegalStateException("host probe method bound");
+         counts.put(key,counts.getOrDefault(key,0)+1);
+-        BiConsumer<String,String> callback=hook;if(callback!=null)callback.accept(method,phase);
++        BiConsumer<String,String> callback=hook;try{if(callback!=null)callback.accept(method,phase);java.util.function.Consumer<Event> qualification=qualificationHook;if(qualification!=null)qualification.accept(event);}catch(RuntimeException|Error failure){NativeOutcomeProbe.hookException(event,failure);throw failure;}
+     }
+     private static boolean production(String name){
+         if(!name.startsWith("dev.mixer.android."))return false;
+         String simple=name.substring("dev.mixer.android.".length()).split("\\$",2)[0];
+-        return switch(simple){case "NativeOwnerV2","OwnerLifecycleV2","NativeCoordinatorV2","NativeRenderer","NativeEnvironmentV2","NativeEnvironmentPlatformV2","NativeAppearanceViewsV2","InstalledAppearanceV2","UiPacket","Json","AppearanceDescriptorV2","AppearanceGeometryV2","AppearanceResolverV2","AppearanceNativePathsV2","AuthoredToggleInputV2"->true;default->false;};
++        return switch(simple){case "NativeEditorConnectionV2","NativeOwnerV2","OwnerLifecycleV2","NativeCoordinatorV2","NativeRenderer","NativeEnvironmentV2","NativeEnvironmentPlatformV2","NativeAppearanceViewsV2","InstalledAppearanceV2","UiPacket","Json","AppearanceDescriptorV2","AppearanceGeometryV2","AppearanceResolverV2","AppearanceNativePathsV2","AuthoredToggleInputV2"->true;default->false;};
+     }
+     public static List<Event> events(){return Collections.unmodifiableList(new ArrayList<>(history));}
+     public static Event lastEvent(){return history.isEmpty()?null:history.get(history.size()-1);}

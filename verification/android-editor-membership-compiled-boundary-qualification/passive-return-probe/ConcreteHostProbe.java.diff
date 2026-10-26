@@ -1,0 +1,23 @@
+--- frozen/direct-allowlist-probe.java
++++ derivative/ConcreteHostProbe.java
+@@ -10,6 +10,11 @@
+     private ConcreteHostProbe() {}
+     public static BiConsumer<String,String> hook;
+     public static java.util.function.Consumer<Event> auditSink;
++    private static java.util.function.Consumer<Event> qualificationHook;
++    public static void installQualificationHook(java.util.function.Consumer<Event> value){if(value==null||qualificationHook!=null)throw new IllegalStateException("qualification hook lifetime");qualificationHook=value;}
++    public static void clearQualificationHook(java.util.function.Consumer<Event> value){if(value==null||qualificationHook!=value)throw new IllegalStateException("qualification hook identity");qualificationHook=null;}
++    public static boolean qualificationHookInstalled(){return qualificationHook!=null;}
++    static List<Site> outcomeFrames(){return WALKER.walk(frames->frames.filter(frame->production(frame.getClassName())).limit(24).map(frame->new Site(frame.getClassName(),frame.getMethodName(),frame.getDescriptor(),frame.getByteCodeIndex(),frame.getLineNumber())).toList());}
+     public static final int LIMIT=65536;
+     public record Site(String className,String methodName,String descriptor,int bytecodeIndex,int line) {}
+     public static final class Event {
+@@ -38,7 +43,7 @@
+         if(auditSink!=null)auditSink.accept(event);String key=method+"/"+phase;
+         if(!counts.containsKey(key)&&counts.size()>=4096)throw new IllegalStateException("host probe method bound");
+         counts.put(key,counts.getOrDefault(key,0)+1);
+-        BiConsumer<String,String> callback=hook;if(callback!=null)callback.accept(method,phase);
++        BiConsumer<String,String> callback=hook;try{if(callback!=null)callback.accept(method,phase);java.util.function.Consumer<Event> qualification=qualificationHook;if(qualification!=null)qualification.accept(event);}catch(RuntimeException|Error failure){NativeOutcomeProbe.hookException(event,failure);throw failure;}
+     }
+     private static boolean production(String name){
+         if(!name.startsWith("dev.mixer.android."))return false;

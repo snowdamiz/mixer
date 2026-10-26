@@ -1,0 +1,1 @@
+The reviewer frame audit initially consumed the producer runner bytecode excerpt (Base and Api34), which omits Api33 disassembly while preserving its class and sources. Attributes operations correctly reported real Api33 frames. Added bounded supplementary javap of the same fresh Api33 class; no source or row changed.

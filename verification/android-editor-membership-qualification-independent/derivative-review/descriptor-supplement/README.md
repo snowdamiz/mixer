@@ -1,0 +1,1 @@
+Exact accepted descriptor bytes for independent replay of the separately frozen passive-return-probe packet. No other input or policy selection is added. Native/OTA/GA and full-matrix credit remain pending.

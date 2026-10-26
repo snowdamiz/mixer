@@ -1,0 +1,1 @@
+Api31 setImeConsumesInput frames likewise require supplemental disassembly. Replaced the reviewer partial nested-class selection with the complete source-bound NativeEditorConnectionV2 class family from the verified fresh class map. No candidate or producer disassembly changed.

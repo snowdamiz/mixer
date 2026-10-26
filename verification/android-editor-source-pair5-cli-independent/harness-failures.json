@@ -1,0 +1,26 @@
+{
+  "candidate_defects": [],
+  "reviewer_harness_corrections": [
+    {
+      "retained": "custody-initial-review-harness-failure.json",
+      "cause": "Reviewer source projection included the source/ archive prefix; producer contract projects paths relative to source/. Corrected to sorted relative paths; no candidate change."
+    },
+    {
+      "retained": "attempt1/behavior.json and attempt1/evidence/positive-debug-export.log",
+      "cause": "Positive export intentionally received the negative fake swift sentinel environment. Product correctly refused compiler drift. Positive exports use real host swift version; all hostile controls keep fake tool sentinels."
+    },
+    {
+      "retained": "audit-attempt1/evidence-audit.json and audit-attempt1/evidence/independent-generated-debug-libmixer_android_jni.so-header.log",
+      "cause": "Reviewer looked for generated JNI at artifacts/generated/debug rather than retained artifacts/debug. Corrected using explicit archive mapping; all8 ELF inspections pass. Original compile/classes and failed path command are retained."
+    },
+    {
+      "retained": "elf-dependency-initial-review-harness-failure.json",
+      "cause": "Android-system-contract dependency rows intentionally have only name/kind; reviewer mistakenly assumed every dependency was an installed runtime file. No candidate execution or mutation."
+    },
+    {
+      "retained": "elf-dependency-second-review-harness-failure.json",
+      "cause": "JNI dependency resolution receipts retain the original removed scratch AppAndroid path; reviewer had not applied sealed artifact-remapping.json."
+    }
+  ],
+  "producer_failures": "Candidate harness-failures.json and command-index.json remain immutable and preserved; initial timeouts/non-testable module/configuration failures are not claimed as passes."
+}
