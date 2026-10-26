@@ -1,0 +1,45 @@
+pub struct SwiftRunBudget {
+    pub source_bytes: usize,
+    pub metadata_bytes: usize,
+    pub cache_bytes: usize,
+    pub cache_entry_bytes: usize,
+    pub cache_entries: usize,
+    pub active_pins: usize,
+    pub cache_work: u64,
+    pub frames: usize,
+    pub values: usize,
+    pub controls: usize,
+    pub memory_pages: u32,
+    pub state_bytes: usize,
+    pub combined_bytes: usize,
+    pub instruction_fuel: u64,
+    pub execution_work: u64,
+    pub host_calls: u64,
+    pub deadline_ms: u64,
+}
+impl Default for SwiftRunBudget {
+    fn default() -> Self {
+        Self {
+            source_bytes: 64 * MIB,
+            metadata_bytes: 16 * MIB,
+            cache_bytes: 16 * MIB,
+            cache_entry_bytes: 8 * MIB,
+            cache_entries: 64,
+            active_pins: 64,
+            cache_work: 64_000_000,
+            frames: 64,
+            values: 16_384,
+            controls: 4_096,
+            memory_pages: 768,
+            state_bytes: 128 * MIB,
+            combined_bytes: 256 * MIB,
+            instruction_fuel: 100_000_000,
+            execution_work: 1_000_000_000,
+            host_calls: 32_768,
+            deadline_ms: 30_000,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SwiftReservationCategory {

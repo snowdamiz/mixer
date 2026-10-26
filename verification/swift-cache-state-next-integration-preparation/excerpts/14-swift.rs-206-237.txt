@@ -1,0 +1,32 @@
+// These borrows preserve the sealed owner and its original metadata/source.
+// They are not a second validation or execution authority. Consumers charge
+// their own bounded work before scans; individual descriptor lookups allocate
+// nothing and do not change validation usage.
+#[allow(dead_code)] // Prerequisite for the later private execution/cache stage.
+impl ValidatedSwiftReactor {
+    pub(crate) fn execution_signature(&self, absolute: u32) -> Option<SignatureView<'_>> {
+        let signature = self.metadata.signature(absolute)?;
+        Some(SignatureView {
+            params: self.metadata.params(signature),
+            result: signature.result,
+        })
+    }
+
+    pub(crate) fn execution_type(&self, type_index: u32) -> Option<SignatureView<'_>> {
+        let signature = *self.metadata.signatures.get(type_index as usize)?;
+        Some(SignatureView {
+            params: self.metadata.params(signature),
+            result: signature.result,
+        })
+    }
+
+    pub(crate) fn execution_function(&self, absolute: u32) -> Option<FunctionSpanView<'_>> {
+        let defined = absolute.checked_sub(self.imports.len() as u32)?;
+        let function = self.metadata.functions.get(defined as usize)?;
+        Some(FunctionSpanView {
+            absolute_index: absolute,
+            type_index: function.type_index,
+            body_offset: function.body.offset as usize,
+            body: function.body.slice(&self.source),
+        })
+    }

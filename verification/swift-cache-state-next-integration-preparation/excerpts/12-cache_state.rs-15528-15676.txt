@@ -1,0 +1,149 @@
+fn cache_inputs<S: InputFile, P: InputFile, C: InputFile>(
+    stream: &mut S,
+    profile_file: &mut P,
+    context: &mut C,
+    arena: &mut Arena,
+    budget: &mut Budget,
+    s: &mut Framing,
+    e: &mut FixtureEnvelopeProgressV1,
+    p: &mut Progress,
+    paid: &mut Paid,
+    config: &mut Option<Fixture>,
+) -> Result<bool, AnalyzerError> {
+    let before_s = initial(stream, budget)?;
+    let before_p = initial(profile_file, budget)?;
+    let before_c = initial(context, budget)?;
+    if before_s.len() < 1024
+        || before_s.len() > STREAM_CAP
+        || (before_s.len() - 1024) % 128 != 0
+        || before_p.len() != PROFILE_BYTES
+        || before_c.len() != CONTEXT_BYTES
+    {
+        return Err(error(INPUT, ADMISSION_STAGE, 0, 0));
+    }
+    s.physical = (before_s.len() - 1024) / 128;
+    let f = fixture_context(context, arena, budget)?;
+    profile(profile_file, arena, budget, f)?;
+    *config = Some(f);
+    cache_walk(stream, arena, budget, &f, before_s.len(), s, e, p, paid)?;
+    stable(stream, before_s, budget)?;
+    stable(profile_file, before_p, budget)?;
+    stable(context, before_c, budget)?;
+    Ok(s.complete)
+}
+macro_rules! cache_body {
+    ($input_s:ident,$input_p:ident,$input_c:ident,$output_f:ident,$limit:expr) => {{
+        let stream = $input_s;
+        let profile_file = $input_p;
+        let context = $input_c;
+        let output = $output_f;
+        let limit = $limit;
+        let mut budget = Budget::new(limit)?;
+        budget.setup(SETUP_WRAPPER)?;
+        budget.report(FINAL_WRAPPER)?;
+        // SF then SS must both succeed before *any* new semantic aggregate/progress
+        // owner exists. The only eventual Ok is below these two propagating calls.
+        budget.report(SEMANTIC_FINISH)?;
+        budget.setup(SEMANTIC_SETUP)?;
+        let mut paid = Paid {
+            setup: 1,
+            finish: 1,
+            records: 0,
+        };
+        let output_initial = output_safety(stream, profile_file, context, output, &mut budget)?;
+        let mut arena = Arena::new(&mut budget)?;
+        let mut s = Framing::new(0);
+        let mut e = FixtureEnvelopeProgressV1 {
+            reply_valid: 0,
+            debit: 0,
+            reply: FixtureEnvelopeReplyV1 { words: [0; 16] },
+        };
+        let mut p = Progress {
+            calls: 0,
+            latch: 0,
+            q: [0; 16],
+        };
+        let mut config = None;
+        let result = cache_inputs(
+            stream,
+            profile_file,
+            context,
+            &mut arena,
+            &mut budget,
+            &mut s,
+            &mut e,
+            &mut p,
+            &mut paid,
+            &mut config,
+        );
+        let mut observation = error(BINDING, CONTEXT_STAGE, 0, 0);
+        let mut decision = Decision::Unavailable;
+        let mut framed = false;
+        if let Err(err) = result {
+            observation = err;
+            decision = if err.code == BINDING {
+                Decision::Unavailable
+            } else if err.code == BUDGET {
+                Decision::AnalysisLimited
+            } else {
+                Decision::Invalid
+            };
+        } else if s.limited {
+            observation = error(BUDGET, RECORD_STAGE, 512 + s.framed * 128, s.framed + 1);
+            decision = Decision::AnalysisLimited;
+        } else {
+            framed = result.unwrap_or(false);
+        }
+        let envelope = finalize(&e, &s, &result, &arena);
+        let cache_state = projection(&p, &paid, &s, &result, &envelope, config.as_ref());
+        let mut framing = ReplayOutcome {
+            decision,
+            framed_records: s.framed,
+            physical_records: s.physical,
+            report_bytes: 0,
+            steps_used: 0,
+            input_bytes_read: budget.read_bytes,
+            input_attempts: budget.io_spent,
+            output_attempts: 0,
+            observation,
+            fixture_framing: u64::from(framed),
+        };
+        write_report(
+            output,
+            output_initial,
+            &mut arena,
+            &mut budget,
+            &mut framing,
+            s,
+        )?;
+        if budget.used() > budget.limit {
+            return Err(error(BUDGET, OUTPUT_STAGE, 0, 0));
+        }
+        Ok(FixtureCacheStateOutcomeV1 {
+            framing,
+            envelope,
+            cache_state,
+        })
+    }};
+}
+#[cfg(test)]
+fn cache_core<S: InputFile, P: InputFile, C: InputFile, O: OutputFile>(
+    stream: &mut S,
+    profile_file: &mut P,
+    context: &mut C,
+    output: &mut O,
+    limit: u64,
+) -> Result<FixtureCacheStateOutcomeV1, AnalyzerError> {
+    cache_body!(stream, profile_file, context, output, limit)
+}
+/// Four distinct, quiescent regular Files at offset0; empty exclusive output.
+/// Only parsed synthetic MIXFIX01/MIXPRF01 identity is observed.
+pub fn analyze_fixture_cache_state_v1(
+    stream: &mut File,
+    profile_file: &mut File,
+    context: &mut File,
+    output: &mut File,
+) -> Result<FixtureCacheStateOutcomeV1, AnalyzerError> {
+    cache_body!(stream, profile_file, context, output, STEP_LIMIT)
+}
+#[cfg(test)]

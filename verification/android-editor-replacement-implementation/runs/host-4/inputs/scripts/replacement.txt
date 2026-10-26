@@ -1,0 +1,68 @@
+    /** One field-only accessibility replacement, with no native InputConnection permission. */
+    static final class Replacement {
+        enum Stage { SNAPSHOTTING, CLOSING, NATIVE, DONE }
+        final NativeField field;final Record record;final Mutation original;final Editable oldEditable;
+        final NativeField.Attempt predecessor;
+        Stage stage=Stage.SNAPSHOTTING;
+        Editable nextEditable;
+        CharSequence proposal;String eventValue;
+        boolean registered,nativeExecuting,setterActive,started,setterReturned,watcherSeen;
+        int setterCalls,callbacks;final java.util.ArrayDeque<String> hooks=new java.util.ArrayDeque<>();
+        Replacement(NativeField field,Mutation original,Editable oldEditable){this.field=field;record=field.record;this.original=original;this.oldEditable=oldEditable;predecessor=field.attempt;}
+        boolean tuple(){return registered&&field.replacement==this&&record.view==field&&record.input.editorRetained(record);}
+        boolean permitsPredecessor(Record selected,NativeField.Attempt attempt){
+            return tuple()&&stage==Stage.CLOSING&&selected==record&&predecessor!=null&&attempt==predecessor&&
+                field.attempt==predecessor&&attempt.editable==oldEditable&&attempt.target!=null&&record.editorCallbackLease==null;
+        }
+        void exact(){
+            if(!tuple()||stage!=Stage.NATIVE||!nativeExecuting)throw new IllegalStateException("lost replacement continuation");
+            Editable actual=field.nativeEditable();
+            // Callable getter effects precede the final tuple check.
+            if(!tuple()||stage!=Stage.NATIVE||!nativeExecuting||actual==null)throw new IllegalStateException("lost replacement tuple after getter");
+            if(nextEditable==null){
+                if(actual!=oldEditable){
+                    if(!setterActive||setterCalls!=1)throw new IllegalStateException("replacement identity outside selected setter");
+                    if(actual.getClass()!=android.text.SpannableStringBuilder.class)throw new IllegalStateException("unsupported replacement factory output");
+                    nextEditable=actual;
+                }
+            }else if(actual!=nextEditable)throw new IllegalStateException("second or reverted replacement Editable");
+        }
+        Mutation continuation(){
+            exact();
+            if(original.current())return Mutation.replacement(original,this,false);
+            if(started&&!original.fence.drawAllowed&&!original.fence.inputAllowed)return Mutation.replacement(original,this,true);
+            original.require();throw new IllegalStateException("replacement authority unavailable");
+        }
+        void check(){continuation().require();}
+        void callback(String hook,Runnable nativeCall){
+            if(!nativeExecuting||stage!=Stage.NATIVE)throw new IllegalStateException("replacement callback outside native frame");
+            if(callbacks>=16||hooks.contains(hook))throw new IllegalStateException("replacement callback recursion exhausted");
+            exact();hooks.push(hook);callbacks++;
+            try{nativeCall.run();check();}finally{callbacks--;hooks.pop();}
+        }
+        void watch(Editable value){exact();if(value!=field.nativeEditable())throw new IllegalStateException("foreign replacement watcher");exact();watcherSeen=true;}
+        CharSequence filter(CharSequence src,int start,int end,android.text.Spanned dst,int dstart,int dend){
+            exact();
+            if(!setterActive||setterCalls!=1||src!=proposal||start!=0||end!=proposal.length()||dstart!=0||
+                !((dend==0&&dst.length()==0)||(dend==oldEditable.length()&&dst==oldEditable)))
+                throw new IllegalStateException("foreign replacement filter proposal");
+            // This is the already validated immutable proposal, not permission from a revoked adapter.
+            return null;
+        }
+        void setter(CharSequence value,TextView.BufferType type,Runnable nativeCall){
+            if(stage!=Stage.NATIVE||!nativeExecuting||setterActive||setterCalls!=0||value!=proposal||type!=TextView.BufferType.EDITABLE)
+                throw new IllegalStateException("unexpected replacement setter");
+            check();setterCalls=1;setterActive=true;
+            try{nativeCall.run();exact();setterReturned=true;}
+            finally{setterActive=false;}
+        }
+        void premises(){
+            if(field.getAccessibilityDelegate()!=null||field.getAutoLinkMask()!=0||
+                field.getMovementMethod()!=android.text.method.ArrowKeyMovementMethod.getInstance()||
+                field.getTransformationMethod()!=null&&field.getTransformationMethod()!=android.text.method.SingleLineTransformationMethod.getInstance()||
+                oldEditable.getClass()!=android.text.SpannableStringBuilder.class)
+                throw new IllegalStateException("unsupported native replacement configuration");
+            InputFilter[] filters=field.getFilters();
+            if(filters.length!=1||filters[0]!=record.editorFilter)throw new IllegalStateException("unsupported replacement filter configuration");
+        }
+    }

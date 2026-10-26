@@ -1,0 +1,35 @@
+## 10. Our interpreter and Swift execution profile
+
+### 10.1 Implement a specified execution target
+
+Implement `MixerVM` against a published, versioned WebAssembly feature profile sufficient for the pinned Swift SDK and our guest libraries. The official WebAssembly specification is the normative reference. Do not claim conformance to proposals or the entire latest specification unless qualified. [WebAssembly specification](https://webassembly.github.io/spec/core/)
+
+Work proceeds through a binary decoder, structural/type validator, executable internal representation, interpreter dispatch, linear memory and tables, host imports, limits, traps, debugging, and optimization. The internal representation may predecode instructions and resolve branch targets, but must not generate downloaded native machine code. No JIT or executable-memory entitlement is part of the mobile design.
+
+The compiler and VM teams jointly produce a machine-readable opcode/import inventory from actual FieldLog builds. Start from that inventory and standards requirements; never guess that the minimal integer instruction set will run the Swift runtime. Support compiler-emitted exception, reference, bulk-memory, or other features when required, or explicitly configure the compiler to emit a validated alternative. Unknown features fail validation before publication and on the device.
+
+### 10.2 Swift runtime integration
+
+- Begin with the full supported Swift Wasm SDK. Evaluate Embedded Swift only for isolated modules whose semantics and library dependencies fit; do not assume it supports the entire app language surface.
+- Supply the exact WASI/environment functions required by the selected SDK through bounded, capability-controlled host adapters. Do not expose a general POSIX process, arbitrary filesystem, subprocesses, or unrestricted sockets.
+- Implement allocator and memory-growth limits, clocks, secure randomness through the host, string/Unicode behavior, logging, and error propagation.
+- Route asynchronous effects through request IDs and executor queues. Validate cancellation, actor isolation, task lifetime, reentrancy, main-thread UI dispatch, and app suspension.
+- Keep guest and native heaps separate. Encode values at the boundary; use generation-checked opaque resource handles for native objects. Detect use-after-close and stale callback delivery.
+- Restore state through versioned data, never serialized pointers or an archived Swift object graph.
+
+### 10.3 Security and resource limits
+
+Validate every module before execution, even if the server previously validated it. Bound section sizes, nesting, function count, stack depth, table size, memory, decompression, host-call frequency, and execution time. Use instruction metering and cancellation checks to prevent a loop from monopolizing a device thread. Meter long native imports independently; instruction fuel cannot bound a blocking host call.
+
+Use Rust for the interpreter core, isolate necessary `unsafe` code, and audit every C ABI boundary. No Rust panic or Swift exception may unwind across that boundary. Check arithmetic, alignment, pointer lifetimes, and buffer sizes at each transfer. Host functions return structured failures and cannot bypass capability checks.
+
+The VM is a sandbox boundary, not a proof that a correctly signed app behaves well. A publisher can still write a destructive database operation or misuse an allowed API. Preserve application authorization, release review, and data-recovery controls outside the VM.
+
+### 10.4 Correctness and performance qualification
+
+Run the applicable standards suites, independently authored negative tests, differential execution against development-only reference runtimes, Swift language regression cases, and continuous fuzzing of the decoder, validator, interpreter, UI protocol, and bridge codecs. Record any imported test licenses. Check NaNs, integer overflow, floating-point conversion, traps, malformed modules, out-of-bounds memory, recursion, cancellation, and memory pressure.
+
+Profile real FieldLog tasks before optimizing dispatch. Keep image processing, database execution, native text/layout, cryptography, media codecs, and similar expensive services in precompiled host capabilities. Moving ordinary app logic to native merely to hide poor interpreter performance does not satisfy the OTA coverage gate.
+
+Deliver readable Swift stack traces, original source locations, module IDs, sanitized effect traces, and a debugger transport. A Wasm byte offset alone is insufficient developer tooling.
+

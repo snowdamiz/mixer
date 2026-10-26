@@ -1,0 +1,45 @@
+fn swift_descriptor_signatures_and_functions_use_absolute_indices() {
+    let fixture = Fixture::new();
+    let proof = fixture.proof();
+    assert_eq!(proof.observations().defined_functions, 99);
+    assert_eq!(proof.observations().validated_bodies, 99);
+    for (absolute, import) in WasiFunction::ALL.into_iter().enumerate() {
+        let signature = proof.execution_signature(absolute as u32).unwrap();
+        assert_eq!(signature.params, import.parameters());
+        assert_eq!(signature.result.as_slice(), import.results());
+        assert_eq!(signature, proof.execution_type(absolute as u32).unwrap());
+        assert_eq!(
+            signature.params.as_ptr(),
+            proof
+                .execution_type(absolute as u32)
+                .unwrap()
+                .params
+                .as_ptr()
+        );
+        assert!(proof.execution_function(absolute as u32).is_none());
+        assert_eq!(proof.execution_imports()[absolute], import);
+        assert_eq!(proof.resolved_import(absolute), Some(import));
+    }
+    for (ordinal, expected) in fixture.bodies.iter().enumerate() {
+        let absolute = ordinal as u32 + 34;
+        let function = proof.execution_function(absolute).unwrap();
+        assert_eq!(function.absolute_index, absolute);
+        assert_eq!(function.type_index, fixture.function_types[ordinal]);
+        assert_eq!(function.body_offset, expected.start);
+        retained_slice(proof.source(), expected.clone(), function.body);
+        assert_eq!(
+            function.body.as_ptr(),
+            proof.function_body(ordinal).unwrap().as_ptr()
+        );
+        let signature = proof.execution_signature(absolute).unwrap();
+        assert_eq!(
+            signature,
+            proof.execution_type(function.type_index).unwrap()
+        );
+        assert_eq!(
+            signature.params.as_ptr(),
+            proof
+                .execution_type(function.type_index)
+                .unwrap()
+                .params
+                .as_ptr()

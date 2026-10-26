@@ -1,0 +1,62 @@
+--- original/NativeRenderer.java
++++ correction/NativeRenderer.java
+@@ -89,7 +89,8 @@
+     private int v2RosterCount;
+     private int outstandingEditorNativeCalls;
+     private NativeAppearanceViewsV2.EditorLease editorDrain,editorFinishing;
+-    boolean editorDisposalBusyV2(){NativeEnvironmentV2.requireMain();return outstandingEditorNativeCalls!=0||editorDrain!=null||editorFinishing!=null;}
++    private NativeAppearanceViewsV2.Replacement editorReplacement;
++    boolean editorDisposalBusyV2(){NativeEnvironmentV2.requireMain();return outstandingEditorNativeCalls!=0||editorDrain!=null||editorFinishing!=null||editorReplacement!=null;}
+     private boolean retainedEditorV2(NativeAppearanceViewsV2.Record record) {
+         if(record==null)return false;
+         for(int i=0;i<v2RosterCount;i++)if(v2Roster[i]==record)return true;
+@@ -135,6 +136,7 @@
+     boolean drawAllowedV2(){return v2Fence!=null&&!v2Fence.terminal&&v2Fence.drawAllowed;}
+     private NativeAppearanceViewsV2.Input inputV2(){if(v2Input==null)v2Input=new NativeAppearanceViewsV2.Input(){
+         public NativeAppearanceViewsV2.Mutation mutation(){return mutationV2();}
++        public boolean editorDispatchAvailable(NativeAppearanceViewsV2.Record record){NativeEnvironmentV2.requireMain();return editorReplacement==null&&retainedEditorV2(record);}
+         public boolean editorRetained(NativeAppearanceViewsV2.Record record){NativeEnvironmentV2.requireMain();return retainedEditorV2(record);}
+         public void editorEnter(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.EditorLease lease){
+             NativeEnvironmentV2.requireMain();
+@@ -148,7 +150,22 @@
+                 throw Json.bad("invalid editor native lease exit");
+             outstandingEditorNativeCalls--;
+         }
+-        public boolean editorCloseAllowed(){NativeEnvironmentV2.requireMain();return outstandingEditorNativeCalls==0&&!v2Fence.commitFinish&&v2Fence.operation==null;}
++        public boolean editorCloseAllowed(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.NativeField.Attempt attempt){
++            NativeEnvironmentV2.requireMain();return outstandingEditorNativeCalls==0&&!v2Fence.commitFinish&&v2Fence.operation==null&&
++                (editorReplacement==null||editorReplacement.permitsPredecessor(record,attempt));
++        }
++        public void replacementBegin(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.Replacement replacement){
++            NativeEnvironmentV2.requireMain();
++            if(editorReplacement!=null||outstandingEditorNativeCalls!=0||editorDrain!=null||editorFinishing!=null||v2Fence.commitFinish||v2Fence.operation!=null||
++                replacement==null||replacement.record!=record||record.view!=replacement.field||!retainedEditorV2(record))throw Json.bad("replacement reservation unavailable");
++            editorReplacement=replacement;
++        }
++        public void replacementEnd(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.Replacement replacement){
++            NativeEnvironmentV2.requireMain();
++            if(editorReplacement!=replacement||replacement.record!=record||replacement.nativeExecuting||replacement.setterActive||replacement.callbacks!=0||
++                record.replacementCallback!=null||replacement.stage!=NativeAppearanceViewsV2.Replacement.Stage.DONE||!replacement.endReady()||outstandingEditorNativeCalls!=0||editorDrain!=null||editorFinishing!=null)throw Json.bad("unfinished replacement reservation");
++            editorReplacement=null;
++        }
+         public NativeAppearanceViewsV2.Mutation editorCleanupMutation(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.EditorLease lease){
+             NativeEnvironmentV2.requireMain();
+             if(lease==null||lease.record!=record||record.editorCallbackLease!=lease)throw Json.bad("foreign editor cleanup continuation");
+@@ -168,7 +185,7 @@
+         }
+         public void editorDrainBegin(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.EditorLease lease){
+             NativeEnvironmentV2.requireMain();
+-            if(editorDrain!=null||!editorCloseAllowed()||lease==null||lease.record!=record||record.view!=lease.field||!retainedEditorV2(record))throw Json.bad("editor cleanup unavailable");
++            if(editorDrain!=null||lease==null||!editorCloseAllowed(record,lease.attempt)||lease.record!=record||record.view!=lease.field||!retainedEditorV2(record))throw Json.bad("editor cleanup unavailable");
+             editorDrain=lease;
+         }
+         public void editorDrainEnd(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.EditorLease lease){
+@@ -189,7 +206,7 @@
+             }catch(java.lang.Error fatal){terminalV2(NativeEnvironmentV2.RendererCause.CURRENT_CHECK_FATAL,fatal,fatal);throw fatal;}
+         }
+         public void event(NativeAppearanceViewsV2.Record record,String name,Object value){
+-            if(!open(record))return;interaction();if(open(record))events.send(packet.event(record.id,record.generation,name,value));
++            if(!record.editorEventsAllowed()||!open(record))return;interaction();if(record.editorEventsAllowed()&&open(record))events.send(packet.event(record.id,record.generation,name,value));
+         }
+         public void interaction(){NativeEnvironmentV2.requireMain();if(!v2Fence.inputAllowed||v2Fence.terminal||!v2Open)return;
+             if(v2Interaction==Long.MAX_VALUE){terminalV2(NativeEnvironmentV2.RendererCause.INTERACTION_EXHAUSTED,null,null);return;}v2Interaction++;}

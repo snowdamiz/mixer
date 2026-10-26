@@ -1,0 +1,56 @@
+1005:                         EditorSnapshot outputSnapshot=new EditorSnapshot(this,editable);
+1006:                         info.imeOptions=(info.imeOptions&~(EditorInfo.IME_FLAG_NAVIGATE_NEXT|EditorInfo.IME_FLAG_NAVIGATE_PREVIOUS))|
+1007:                             EditorInfo.IME_FLAG_NO_EXTRACT_UI|EditorInfo.IME_FLAG_NO_FULLSCREEN;
+1008:                         info.setSupportedHandwritingGestures(java.util.Collections.emptyList());lease.check();mutation.require();
+1009:                         if(!outputSnapshot.same(this,editable))revoke(false);
+1010:                         info.setSupportedHandwritingGesturePreviews(java.util.Collections.emptySet());lease.check();mutation.require();
+1011:                         if(fresh.revoked||denied()||!record.input.open(record)||!hasFocus()||!outputSnapshot.same(this,editable)||
+1012:                             info.initialSelStart!=getSelectionStart()||info.initialSelEnd!=getSelectionEnd()||
+1013:                             info.inputType!=(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_CAP_SENTENCES)||
+1014:                             (info.imeOptions&EditorInfo.IME_MASK_ACTION)!=EditorInfo.IME_ACTION_DONE||
+1015:                             (info.imeOptions&(EditorInfo.IME_FLAG_NAVIGATE_NEXT|EditorInfo.IME_FLAG_NAVIGATE_PREVIOUS))!=0)revoke(false);
+1016:                         else {fresh.adapter=NativeEditorConnectionV2.create(this,fresh);result=fresh.adapter;}
+1017:                     }
+1018:                 }
+1019:             } catch(RuntimeException|java.lang.Error failure) {
+1020:                 observe(failure);
+1021:                 if(fresh.target==null)fresh.close=Close.FAILED_UNCERTAIN;
+1022:                 uncertain(failure);
+1023:             } finally {
+1024:                 boolean held=false;
+1025:                 try{record.input.editorFinishBegin(record,lease);held=true;finishing=true;}
+1026:                 catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
+1027:                 if(result==null&&populated) {
+1028:                     fresh.revoked=true;
+1029:                     try{scrub(info);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
+1030:                 }
+1031:                 try{end(lease);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
+1032:                 // Final lease/drain/reporting may revoke an otherwise assigned adapter.
+1033:                 if(populated&&(result==null||fresh.revoked||primary!=null)) {
+1034:                     fresh.revoked=true;
+1035:                     try{scrub(info);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
+1036:                 }
+1037:                 if(result!=null&&!fresh.revoked&&primary==null)phase=Phase.ACTIVE;
+1038:                 else if(phase==Phase.CREATING)phase=denied()?Phase.QUARANTINED:Phase.IDLE;
+1039:                 finishing=false;
+1040:                 if(held)record.input.editorFinishEnd(record,lease);
+1041:                 // No native effect, callback or owner/coordinator resumption after final busy clear.
+1042:             }
+1043:             surface();return fresh.revoked?null:result;
+1044:         }
+1045:         private void scrub(EditorInfo info) {
+1046:             // Keep the attempt/CREATING guard while public setters can synchronously reenter.
+1047:             info.inputType=0;info.imeOptions=0;info.actionId=0;info.actionLabel=null;info.label=null;info.hintText=null;
+1048:             info.privateImeOptions=null;info.extras=null;info.contentMimeTypes=null;info.hintLocales=null;
+1049:             info.initialSelStart=-1;info.initialSelEnd=-1;info.initialCapsMode=0;
+1050:             info.setInitialSurroundingText("");
+1051:             info.setSupportedHandwritingGestures(java.util.Collections.emptyList());
+1052:             info.setSupportedHandwritingGesturePreviews(java.util.Collections.emptySet());
+1053:         }
+1054:         private void callback(String hook,Runnable nativeCall,boolean interaction) {
+1055:             NativeEnvironmentV2.requireMain();
+1056:             if(record==null){nativeCall.run();return;}
+1057:             if(construction()){Mutation mutation=record.scoped;mutation.requireMutation();nativeCall.run();mutation.require();return;}
+1058:             EditorLease parent=record.editorCallbackLease;
+1059:             if(parent==null&&(denied()||attempt!=null&&attempt.revoked||phase==Phase.QUARANTINED||phase==Phase.DRAINING||phase==Phase.CLOSING)) {
+1060:                 uncertain(new IllegalStateException("unknown retired editor callback"));surface();return;

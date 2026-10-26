@@ -1,0 +1,20 @@
+920:             EditorLease lease=new EditorLease(this,old,old.editable,(!record.editorFence.drawAllowed&&!record.editorFence.inputAllowed)?Mutation.cleanup(record.editorFence):entryMutation(),null,"close");
+921:             boolean drain=false,entered=false;
+922:             try {
+923:                 record.input.editorDrainBegin(record,lease);drain=true;
+924:                 // Exact checks are inside executing-drain busy, before consuming the sole close.
+925:                 record.input.editorEnter(record,lease);entered=true;lease.entered=true;depth++;record.editorCallbackLease=lease;
+926:                 if(record.view!=this||!record.input.editorRetained(record)||nativeEditable()!=old.editable||old.editable==null)
+927:                     throw new IllegalStateException("close lost retained exact Editable");
+928:                 phase=Phase.CLOSING;old.close=Close.ATTEMPTED;
+929:                 old.target.closeConnection();lease.check();old.close=Close.RETURNED;
+930:                 phase=permanent?Phase.QUARANTINED:Phase.IDLE;
+931:             } catch(RuntimeException|java.lang.Error failure) {
+932:                 observe(failure);old.close=Close.FAILED_UNCERTAIN;uncertain(failure);
+933:             } finally {
+934:                 if(entered){record.editorCallbackLease=null;depth--;lease.ended=true;
+935:                     try{record.input.editorLeave(record,lease);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);}}
+936:                 // Restore and report before final busy clear. Never synchronously resume after this line.
+937:                 if(primary!=null)uncertain(primary);
+938:                 if(drain)record.input.editorDrainEnd(record,lease);
+939:             }

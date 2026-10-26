@@ -1,0 +1,51 @@
+650:      */
+651:     public void setSupportedHandwritingGesturePreviews(
+652:             @NonNull Set<Class<? extends PreviewableHandwritingGesture>> gestures) {
+653:         Objects.requireNonNull(gestures);
+654:         if (gestures.isEmpty()) {
+655:             mSupportedHandwritingGesturePreviewTypes = 0;
+656:             return;
+657:         }
+658: 
+659:         int supportedTypes = 0;
+660:         for (Class<? extends PreviewableHandwritingGesture> gesture : gestures) {
+661:             Objects.requireNonNull(gesture);
+662:             if (gesture.equals(SelectGesture.class)) {
+663:                 supportedTypes |= HandwritingGesture.GESTURE_TYPE_SELECT;
+664:             } else if (gesture.equals(SelectRangeGesture.class)) {
+665:                 supportedTypes |= HandwritingGesture.GESTURE_TYPE_SELECT_RANGE;
+666:             } else if (gesture.equals(DeleteGesture.class)) {
+667:                 supportedTypes |= HandwritingGesture.GESTURE_TYPE_DELETE;
+668:             } else if (gesture.equals(DeleteRangeGesture.class)) {
+669:                 supportedTypes |= HandwritingGesture.GESTURE_TYPE_DELETE_RANGE;
+670:             } else {
+671:                 throw new IllegalArgumentException(
+672:                         "Unsupported gesture type for preview: " + gesture);
+673:             }
+674:         }
+675: 
+676:         mSupportedHandwritingGesturePreviewTypes = supportedTypes;
+677:     }
+678: 
+679:     /**
+680:      * Returns the combination of Stylus handwriting gesture preview types
+681:      * supported by the current {@code Editor}.
+682:      * For an editor that supports Stylus Handwriting.
+683:      * {@link InputMethodManager#startStylusHandwriting}, it also declares supported gesture
+684:      * previews.
+685:      * <p>Note: A supported gesture {@link EditorInfo#getSupportedHandwritingGestures()} may not
+686:      * have preview supported {@link EditorInfo#getSupportedHandwritingGesturePreviews()}.</p>
+687:      * @return Set of supported gesture preview classes. One of {@link SelectGesture},
+688:      * {@link SelectRangeGesture}, {@link DeleteGesture}, {@link DeleteRangeGesture}.
+689:      * @see #getSupportedHandwritingGestures()
+690:      */
+691:     @NonNull
+692:     public Set<Class<? extends PreviewableHandwritingGesture>>
+693:             getSupportedHandwritingGesturePreviews() {
+694:         Set<Class<? extends PreviewableHandwritingGesture>> set  = new HashSet<>();
+695:         if (mSupportedHandwritingGesturePreviewTypes == 0) {
+696:             return set;
+697:         }
+698:         if ((mSupportedHandwritingGesturePreviewTypes & HandwritingGesture.GESTURE_TYPE_SELECT)
+699:                 == HandwritingGesture.GESTURE_TYPE_SELECT) {
+700:             set.add(SelectGesture.class);

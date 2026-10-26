@@ -1,0 +1,51 @@
+## 22. Dogfood milestones and proof requirements
+
+### 22.1 Continuous adoption milestones
+
+| Gate | FieldLog milestone | Required proof |
+| --- | --- | --- |
+| D0: Baseline | Real iOS Swift app with login, projects, entries, offline draft, photos | Source tag, physical-device recording, baseline timings, saved user records, signed test build. |
+| D1: Engine adoption | Same iOS flows use public MixerCore/UI in native mode | Behavior comparison, migration report, no data loss, no private SDK imports. |
+| D2: Shared Android | Shared Swift flows work on physical Android and iOS | Same scenario results, device versions, source-sharing report, native platform differences documented. |
+| D3: Interpreted parity | Same feature module runs through our VM on both platforms | Native/interpreted differential tests, performance report, original Swift crash/source mapping. |
+| D4: OTA delivery | Existing installed binaries receive a real UI and logic fix | Before/after source and recordings, immutable artifact IDs, runtime fingerprints, no binary reinstall. |
+| D5: Recovery | Interrupted/corrupt/incompatible/failing patches recover correctly | Controlled test-channel fault receipts, offline relaunch, preserved drafts/records, no repeat-crash loop. |
+| D6: Cloud workflow | App builds, signs, distributes, updates, and rolls back through our hosted service | Public CLI/API logs, isolated build provenance, store processing/testing receipts, usage/billing audit. |
+| D7: Production use | Transparently reviewed iOS and Android store apps used for real work | Store links/versions, actual tester/customer activity, real product changes, support history. |
+| D8: Sustained confidence | Repeated real production use, updates, and recovery across the required scenario corpus | Incident history, performance trends, latest 20-change coverage report, practiced recovery, export build. |
+
+D0–D8 are cumulative. D4 does not pass with a label/color-only update: require at least one meaningful validation/logic fix and one supported UI/state/interaction change. D5 failure injection occurs in isolated internal/beta channels with recoverable test data, never as an intentional crash campaign on unsuspecting production users.
+
+### 22.2 Required update scenarios
+
+1. Fix an incorrect task-completion calculation without replacing the native binary.
+2. Correct form validation while preserving an existing saved draft.
+3. Change a list row and associated interaction on both platforms.
+4. Add a compatible optional field, then roll back and read the same record correctly.
+5. Change localization/resources without breaking right-to-left or large-text layout.
+6. Receive a valid update over a flaky connection, resume it, and activate only when complete.
+7. Reject a payload signed for another app/environment or another runtime fingerprint.
+8. Reject malformed, oversized, truncated, replayed, and altered artifacts.
+9. Quarantine a module that fails startup; relaunch offline using healthy code and intact data.
+10. Halt a staged rollout after adverse health signals; inspect devices already activated versus pending.
+11. Rotate a release key and validate devices that were offline during the transition.
+12. Attempt to add a new native capability; require a store build and keep old binaries on their compatible release.
+13. Upgrade the engine/store binary and prove old and new runtime cohorts receive the correct artifacts.
+14. Keep the app useful during control-plane, CDN, telemetry, and billing outages.
+15. Export and build the app through independent CI; publish a subsequent store build using the documented escape path.
+
+### 22.3 Evidence receipt format
+
+Every acceptance run records the requirement/gate ID, app commit and tag, SDK/toolchain versions, source-sharing scope, installed binary version/build, runtime fingerprint, module hash/release ID, device/OS, selected execution mode, dataset identity, exact action, expected/actual result, metric samples, logs/recording locations, reviewer, and status.
+
+Allowed statuses are `planned`, `running`, `passed`, `failed`, and `blocked`. A blocked external store review, missing device, skipped test, or unmeasured performance target is not passed. Store evidence links with immutable build artifacts so a dashboard cannot rewrite historical failures into success.
+
+### 22.4 Independent consumer validation
+
+FieldLog is necessary but insufficient. Before GA, qualify at least two independently authored external applications in different categories, including one existing Swift app migration. Their developers use public documentation and normal support. Record unsupported APIs and time-to-first-build without the engine team quietly editing their projects behind the scenes.
+
+Recruit initial FieldLog users in stages: approximately 10 weekly users during internal development, 30 during external beta, and 100 during sustained production qualification. These are recruitment targets, not fabricated evidence or statistical guarantees. Security correctness and deterministic recovery tests remain mandatory even with low real-world traffic.
+
+## 23. Engineering work packages
+
+Each package has a directly responsible owner, versioned design, implementation backlog, test plan, documentation, operational implications, and an acceptance receipt. Assign an owning agent lane before execution; the roles below identify responsibilities.

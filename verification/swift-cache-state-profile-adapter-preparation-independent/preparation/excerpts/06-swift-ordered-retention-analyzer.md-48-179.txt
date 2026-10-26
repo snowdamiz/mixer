@@ -1,0 +1,132 @@
+There are three separate future results:
+
+1. Rust `ReplayOutcome` validates only the stored semantic prefix and emits a
+   fixed candidate report. It has **no authority to set fullReplayAccepted**.
+2. A separately reviewed Python standard-library custodian verifies actual
+   hashlib digests, exact retained-descriptor custody, selection/source/compiled
+   analyzer identity and the authoritative original-result adapter before and
+   after replay. Rust stdlib has no SHA-256 API; no new crypto implementation or
+   dependency is proposed. Supplied digest bytes alone verify nothing.
+3. A new bounded host acceptance receipt joins both immutable records. Only
+   complete validation of every stored record, frames, context, original result,
+   lifecycle and custody can set `fullReplayAccepted=true`. Flags0 can then yield
+   `complete-records`; CAP1 can yield only `truncated-prefix`. Neither means the
+   guest workload passed or later uncaptured transitions are known.
+
+## Proposed API and trusted input prerequisites
+
+The future standalone first-party Rust executable uses only std. Its narrow
+library entry point is conceptually:
+
+```rust
+fn analyze(stream: &mut File, profile: &mut File, context: &mut File,
+           output: &mut File)
+           -> Result<ReplayOutcome, AnalyzerError>;
+```
+
+The child reads the exact8,192-byte context file into the existing fixed arena
+context region, then constructs `VerifiedBindingView` as a checked borrow there.
+The name describes required host verification, not trust granted by a Rust type.
+It is not transported in argv, environment, an unstated inherited mapping or a
+caller-supplied boolean. Stream/profile/context are exactly three inherited
+input descriptors; output is the child's one exclusive report File.
+`ReplayOutcome` is at most256 bytes: fixed integer enums/counters, accepted record
+coordinate, stop/error coordinate, observed flags/masks, stream/header/context
+digest echoes and the report length. It contains no String, Vec, error text or
+function list. `AnalyzerError` is a fixed `{code:u32, stage:u32, offset:u64,
+record:u64}` with reserved-zero padding to32 bytes. Error coordinates describe
+observations; they never replace an original operation Result.
+
+Context admission is explicit: the host opens a regular no-follow context File,
+requires length exactly8192, records retained descriptor/path identity, hashes
+all8192 bytes and seeks0 before invocation. Rust reads exactly8192 using the
+shared65,536-byte arena I/O buffer, copies checked8-byte words into the context
+region, then requires EOF on a bounded one-byte probe. Each context block has
+at most32 read/Interrupted/short/error attempts and the EOF probe has at most32,
+so64 attempts are pre-reserved and charged inside the unchanged Rust268M cap.
+Every one of1024 context word copies/checks is charged inside the existing
+65,536 setup allowance. Short/long context, read/EOF error, unsupported schema,
+descriptor type/length mismatch or malformed view refuses replay. After the
+child, the host rehashes the same retained context descriptor and checks identical
+bytes/identity/length; Rust cannot declare that cryptographic verification done.
+All four child File owners, three raw FD integers, their complete OwnedFd/File/
+Result/argument/return moves, read/Metadata/error Results and view borrows belong
+to the proposed transient-role inventory; the extra context File is not free.
+
+For a standalone process, the proposed narrowly scoped adoption boundary is
+three private, exactly-once `unsafe { OwnedFd::from_raw_fd(fd) }` operations,
+followed by safe `File::from(OwnedFd)`. The reviewed host launcher passes only
+three distinct valid inherited descriptors, each in3..65535, as fixed bounded
+decimal argv fields, uses a closed pass_fds/close_fds contract, and passes no
+other task descriptor. The child validates argc, numeric ranges and uniqueness
+before adoption; it never reopens `/dev/fd`, clones/dups these descriptors or
+adopts one twice. Parent and child own separate process descriptors sharing an
+open-file description, so the host performs no read/seek while the child runs.
+Private adoption transfers each child FD exactly once to OwnedFd/File; no other
+Rust owner exists for it. Failure drops already adopted owners; any unadopted
+inherited descriptor is closed by process exit, with no continuation into replay.
+This ownership proof requires separate independent source review before CLI
+implementation acceptance. An arbitrary caller's fd integers cannot qualify;
+an unavailable/unproved adoption boundary yields unavailable replay. The library
+entry point itself accepts safe existing File borrows. The prohibition on
+unsafe arena access, casts, pointer arithmetic and uninitialized memory remains
+absolute; this proposal selects no other unsafe operation.
+
+The process entry is an internal worker of that selected trusted wrapper,
+explicitly **unsupported as an arbitrary user-supplied-FD CLI**. Numeric range
+and uniqueness are not proof of validity or ownership. No CLI acceptance is
+possible until independent source review proves valid distinct open inputs,
+exactly-one adoption, no premature parent closure or child-time offset activity,
+and cleanup of every owner. There is no implemented safe-construction claim.
+
+Before implementation acceptance, a reviewed strict host adapter must provide:
+
+* A canonical closed selection record, at most4,096 bytes, bound to all132
+  baseline and candidate file lengths/hashes, exact patch, schema, compiler and
+  analyzer executable hash/version, original harness/parser/argv/environment,
+  target length/hash and unchanged limits. The record contains fixed digest
+  fields and scalar lengths/limits, no event-growing list. Its external full
+  source manifest is immutable and independently verified by the host.
+* A canonical original-result binding at most2,048 bytes and the exact raw
+  original-result bytes (maximum8,192 in a newly selected driver). The adapter
+  must strictly parse its supported original-result schema, reject extra fields,
+  bind its complete raw hash and expose terminal success/failure, kind, static
+  source-code ID, stage, optional cursor, at-failure work/instructions, final
+  work/instructions, all15 final reservation/live/ticket words and cleanup enum.
+  It preserves other original fields and their raw bytes. No regex-only Debug
+  parser or copied observer classification qualifies this dependency. Fields
+  intentionally absent from the stream, such as original failure cursor offset,
+  remain original-result observations, never purported wire comparisons.
+* At most2,048 bytes of closed custody and invocation records. Context storage
+  is exactly selection4096 + original2048 + custody2048; unused bytes are zero.
+  All adapter versions, lengths and digest offsets are frozen with its separate
+  implementation review; an unsupported adapter is `BindingUnavailable`.
+* An immutable fixed profile: 512-byte closed header followed by exactly80,000
+  32-byte rows, `defined:u32,type_index:u32,body_offset:u64,body_len:u64,
+  reserved:u64`, total2,560,512 bytes. Defined is0/1. Undefined rows require
+  type_index=MAX32, offset=MAX64, len=0 and reserved=0; defined rows require
+  type_index<selected type_count<=MAX32, finite offset/len, checked end within
+  selected source extent, reserved0. Imported/out-of-range functions are not
+  invented as defined bodies. The header binds profile version, extent,
+  type_count, baseline/candidate/input/profile-generator digests and zero padding.
+  It contains no final selection digest, avoiding a cycle when the canonical
+  selection binds the complete profile hash. First16 u64 are magic `MIXPRF01`,
+  version1,header512,row32,rows80000,source_extent,type_count,slot_limit,pin_limit,
+  initial_nonce1,cache_base,cache_capacity,entry_limit,reserved0,reserved0,reserved0.
+  Next eight32-byte digests are baseline,candidate,original_input,event_schema,
+  profile_adapter_binary,layout_receipt,original_validated_snapshot and
+  profile-row-body; last128 bytes zero. Host independently hashes both the
+  complete profile and row body through its retained descriptor; embedded hashes
+  alone verify nothing.
+  A separately reviewed adapter must derive these rows from the original
+  validated immutable snapshot, rather than learning authority from events.
+  The profile also binds actual slot/pin limits(1..64), initial nonce1, cache
+  fixed/base bytes, cache capacity and entry limit from the exact selected source
+  construction/layout. Unknown base/layout fails closed; no guessed ABI size or
+  first observed MissReady becomes trusted construction authority.
+
+Those adapters and real selection binding are pending. The finite writer uses
+synthetic digest bytes and fixture phase masks; even all phases63 cannot qualify
+a real target. Missing prerequisites can still support clearly labelled finite
+metrics, with `storedPrefixValidated=false` and no accepted classification.
+

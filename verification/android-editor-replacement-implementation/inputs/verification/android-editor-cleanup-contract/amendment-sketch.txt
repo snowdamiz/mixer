@@ -1,0 +1,49 @@
+REVIEW SKETCH ONLY — not a compilable adapter or selected implementation
+
+NativeCoordinatorV2.java, two changes only:
+  busyForOwnerDisposal(): existing scalar clauses || renderer.editorDisposalBusyV2()
+  disposeOnce(): if (disposed || busyForOwnerDisposal()) return;
+                 // before disposed=true or session consumption
+  leave(), closeFromOwner(), enter(), owner/core: unchanged.
+
+NativeRenderer.java:
+  main-confined outstandingEditorNativeCalls and editorCleanupExecuting scalars
+  editorDisposalBusyV2(): outstandingEditorNativeCalls != 0 || editorCleanupExecuting
+  // Never include merely pending, failed or quarantined target dispositions.
+  // Never use this predicate to reject a healthy compatible feature event.
+
+  begin/end exact Record editor call: validate retained roster/tuple; balance in finally.
+  exact close scope: existing direct fence/Mutation, exact retained tuple, no input mint.
+  editor failure: remember ordinary then first Error; existing CANCELLATION_FAILED sink.
+  terminal cancel: once-only editor sweep before serial early return; temporary seal skips it.
+  dispose: drain retained eligible editor targets before visibility; retain/rethrow uncertainty.
+  early capture/prepare/attach availability checks: no creation/retirement/replacement overlap.
+  finishV2/commit interval: no added hook, native call, getter, allocation, callback or cleanup.
+
+NativeAppearanceViewsV2.java:
+  Record.editorCallbackLease separate from bind scoped Mutation/changing.
+  NativeField local Attempt: immutable target+Editable, retired, disposition, lifecycle reason.
+  phases: IDLE -> CREATING -> ACTIVE -> DRAINING -> CLOSING -> IDLE
+          any unavailable/uncertain safe scope -> QUARANTINED (terminal, no successor).
+  onCreate: serialized; nested CREATING/CLOSING returns null before native super.
+  native delegate: one original Mutation, exact lease, whole native prefix/suffix in scope.
+  retire during delegate: scalar revoke/suppress events/block successor; no recursive close.
+  outer native finally: remember native failure, finish suffix, exact old target close once;
+                        if coordinator/commit active, quarantine and defer to owner disposal.
+  callbacks before/after super: captured exact lease; cleanup-only after revoke;
+                              never reacquire normal Mutation inside cleanup/unwind.
+  lifecycle: focus,window focus,window visibility,aggregated/view visibility,detach revoke
+             before super; matching lifecycle continuation uses exact old tuple.
+  rebind/replacement: close retained target before any Editable replacement or successor.
+  stale returned adapter close: local only, never delegate or clear successor identity.
+  scoped close: block all new work; ATTEMPTED before target.closeConnection;
+                RETURNED only on normal return+exact postconditions; failures quarantine.
+  EditorInfo: exact per-attempt output; success requires exact current tuple/selection;
+              clear gesture advertisements/navigation flags; failed output scrub as proposal.
+  bootstrap: getHandler returns null with no field/target/main access.
+  selected private refusals: key transport; arbitrary action; extraction MONITOR;
+                            cursor enable; explicit spelling; bounds; gestures as proposal.
+
+No inherited forwarding/default route may silently bypass the eventual complete adapter.
+No key algorithm, replacement editor, delayed edit, global readiness token, owner queue,
+observer slot, blanket cleanup authority, API28–35 enablement or GA receipt is introduced.

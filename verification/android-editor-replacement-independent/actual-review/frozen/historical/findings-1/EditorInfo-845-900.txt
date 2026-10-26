@@ -1,0 +1,56 @@
+845:     public void setInitialSurroundingText(@NonNull CharSequence sourceText) {
+846:         setInitialSurroundingSubText(sourceText, /* subTextStart = */ 0);
+847:     }
+848: 
+849:     /**
+850:      * An internal variant of {@link #setInitialSurroundingText(CharSequence)}.
+851:      *
+852:      * @param surroundingText {@link SurroundingText} to be set.
+853:      * @hide
+854:      */
+855:     public final void setInitialSurroundingTextInternal(@NonNull SurroundingText surroundingText) {
+856:         mInitialSurroundingText = surroundingText;
+857:     }
+858: 
+859:     /**
+860:      * Editors may use this method to provide initial input text to IMEs. As the surrounding text
+861:      * could be used to provide various input assistance, we recommend editors to provide the
+862:      * complete initial input text in its {@link View#onCreateInputConnection(EditorInfo)} callback.
+863:      * When trimming the input text is needed, call this method instead of
+864:      * {@code setInitialSurroundingText(CharSequence)} and provide the trimmed position info. Always
+865:      * try to include the selected text within {@code subText} to give the system best flexibility
+866:      * to choose where and how to trim {@code subText} when necessary.
+867:      *
+868:      * Starting from {@link VERSION_CODES#S}, spans that do not implement {@link Parcelable} will
+869:      * be automatically dropped.
+870:      *
+871:      * @param subText The input text. When it was trimmed, {@code subTextStart} must be provided
+872:      *                correctly.
+873:      * @param subTextStart  The position that the input text got trimmed. For example, when the
+874:      *                      editor wants to trim out the first 10 chars, subTextStart should be 10.
+875:      */
+876:     public void setInitialSurroundingSubText(@NonNull CharSequence subText, int subTextStart) {
+877:         Objects.requireNonNull(subText);
+878: 
+879:         // For privacy protection reason, we don't carry password inputs to IMEs.
+880:         if (isPasswordInputType(inputType)) {
+881:             mInitialSurroundingText = null;
+882:             return;
+883:         }
+884: 
+885:         // Swap selection start and end if necessary.
+886:         final int subTextSelStart = initialSelStart > initialSelEnd
+887:                 ? initialSelEnd - subTextStart : initialSelStart - subTextStart;
+888:         final int subTextSelEnd = initialSelStart > initialSelEnd
+889:                 ? initialSelStart - subTextStart : initialSelEnd - subTextStart;
+890: 
+891:         final int subTextLength = subText.length();
+892:         // Unknown or invalid selection.
+893:         if (subTextStart < 0 || subTextSelStart < 0 || subTextSelEnd > subTextLength) {
+894:             mInitialSurroundingText = null;
+895:             return;
+896:         }
+897: 
+898:         if (subTextLength <= MEMORY_EFFICIENT_TEXT_LENGTH) {
+899:             mInitialSurroundingText = new SurroundingText(subText, subTextSelStart,
+900:                     subTextSelEnd, subTextStart);

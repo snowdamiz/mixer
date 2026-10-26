@@ -1,0 +1,22 @@
+impl SnapshotView for crate::experimental_swift_reactor::ValidatedSwiftReactor {
+    type Policy = crate::experimental::policy::Policy<'static>;
+    fn policy(&self) -> &Self::Policy {
+        self.decode_policy()
+    }
+    fn source(&self) -> &[u8] {
+        self.source()
+    }
+    fn defined_function_count(&self) -> usize {
+        self.observations().defined_functions
+    }
+    fn imported_function_count(&self) -> usize {
+        self.observations().imported_functions
+    }
+    fn function(&self, absolute: u32) -> Option<FunctionSpanView<'_>> {
+        self.execution_function(absolute)
+    }
+    fn signature(&self, absolute: u32) -> Option<SignatureView<'_>> {
+        self.execution_signature(absolute)
+    }
+}
+

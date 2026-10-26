@@ -1,0 +1,57 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-profile-adapter/source/vm)
+error[E0599]: no associated function or constant named `new` found for struct `execute::Cancellation` in the current scope
+   --> src/experimental_swift_reactor/diagnostic_profile_tests.rs:51:93
+    |
+ 51 |     validate_swift_reactor(&encoded.bytes, SwiftValidationBudget::default(), &Cancellation::new()).unwrap()
+    |                                                                                             ^^^ associated function or constant not found in `execute::Cancellation`
+    |
+   ::: src/execute.rs:9:1
+    |
+  9 | pub struct Cancellation(Arc<AtomicBool>);
+    | ----------------------- associated function or constant `new` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+note: `experimental::cache::borrowed::PinToken` defines an item `new`, perhaps you need to implement it
+   --> src/experimental/cache/borrowed.rs:401:1
+    |
+401 | pub(crate) trait PinToken {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no associated function or constant named `new` found for struct `execute::Cancellation` in the current scope
+   --> src/experimental_swift_reactor/diagnostic_profile_tests.rs:72:223
+    |
+ 72 | ...t::default(),&Cancellation::new()).is_err());let e=module(29,false);let mut budget=SwiftValidationBudget::default();budget.sourc...
+    |                                ^^^ associated function or constant not found in `execute::Cancellation`
+    |
+   ::: src/execute.rs:9:1
+    |
+  9 | pub struct Cancellation(Arc<AtomicBool>);
+    | ----------------------- associated function or constant `new` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+note: `experimental::cache::borrowed::PinToken` defines an item `new`, perhaps you need to implement it
+   --> src/experimental/cache/borrowed.rs:401:1
+    |
+401 | pub(crate) trait PinToken {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no associated function or constant named `new` found for struct `execute::Cancellation` in the current scope
+   --> src/experimental_swift_reactor/diagnostic_profile_tests.rs:72:396
+    |
+ 72 | ...bytes,budget,&Cancellation::new()).is_err());}
+    |                                ^^^ associated function or constant not found in `execute::Cancellation`
+    |
+   ::: src/execute.rs:9:1
+    |
+  9 | pub struct Cancellation(Arc<AtomicBool>);
+    | ----------------------- associated function or constant `new` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+note: `experimental::cache::borrowed::PinToken` defines an item `new`, perhaps you need to implement it
+   --> src/experimental/cache/borrowed.rs:401:1
+    |
+401 | pub(crate) trait PinToken {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `mixer-vm` (lib test) due to 3 previous errors

@@ -1,0 +1,19 @@
+{
+  "scope": "Stable private source contract for independent audit; no new public product API",
+  "source": {
+    "path": "source/NativeAppearanceViewsV2.java",
+    "bytes": 116883,
+    "sha256": "272c3c7597e302938ebed8adc522a3929c366584f3b89bfaa0b912932eb44b4b"
+  },
+  "renderer": {
+    "path": "source/NativeRenderer.java",
+    "bytes": 57811,
+    "sha256": "349f1afcfb77c6131c6c424ab4c16b8bc61ab06ca0c7c29c04dc92f8e43004cc"
+  },
+  "Input_source": "    interface Input {\n        boolean open(Record record);\n        boolean draw();\n        void event(Record record, String event, Object value);\n        void interaction();\n        Mutation mutation();\n        boolean editorRetained(Record record);\n        boolean editorDispatchAvailable(Record record);\n        void editorEnter(Record record, EditorLease lease);\n        void editorLeave(Record record, EditorLease lease);\n        boolean editorCloseAllowed(Record record,NativeField.Attempt attempt);\n        void replacementBegin(Record record,Replacement replacement);\n        void replacementEnd(Record record,Replacement replacement);\n        Mutation editorCleanupMutation(Record record, EditorLease lease);\n        void editorFinishBegin(Record record, EditorLease lease);\n        void editorFinishEnd(Record record, EditorLease lease);\n        void editorDrainBegin(Record record, EditorLease lease);\n        void editorDrainEnd(Record record, EditorLease lease);\n        void editorFailure(Throwable primary, java.lang.Error firstFatal);\n    }",
+  "Record_binding": "EditorLease editorCallbackLease; Replacement replacementCallback; InputFilter editorFilter; existing mutation/changing scopes retained",
+  "replacement": "Separate field-owned Replacement; ordinary EditorLease equality unchanged; exact own Eold predecessor only during CLOSING",
+  "scalar_new_entry_guard": "editorDispatchAvailable(record) excludes all new renderer-wide editor entries during any replacement reservation before native live getters, without authority or automatic retirement",
+  "continuation_mutation": "Every editor/replacement bound Mutation.current/require/result validates its captured exact scope on every use; replacement cannot authorize bind/layout",
+  "last_clear": "Exact replacementBegin/End; completed suffix only, no synchronous owner/coordinator resumption; failed invariant retains busy guard"
+}

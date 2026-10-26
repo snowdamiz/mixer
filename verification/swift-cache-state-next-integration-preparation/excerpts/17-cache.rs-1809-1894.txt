@@ -1,0 +1,86 @@
+        &mut self,
+        partial: &mut Partial,
+    ) -> Result<(u64, SwiftCacheUsage), SwiftRunFailure> {
+        self.control.check()?;
+        let header = cache_header_bytes().ok_or_else(|| {
+            self.control
+                .error(CacheFailureKind::Capacity, "swift_cache_layout_overflow")
+        })?;
+        partial.header = Some(self.control.admit(header)?);
+        let budget = self.control.control.budget();
+        let entries = budget.cache_entries.min(
+            partial
+                .adopted
+                .as_ref()
+                .expect("proof")
+                .proof()
+                .defined_function_count(),
+        );
+        let buffer_bytes = entries.checked_mul(size_of::<SwiftSlot>()).ok_or_else(|| {
+            self.control
+                .error(CacheFailureKind::Capacity, "swift_cache_layout_overflow")
+        })?;
+        partial.buffers[0] = Some(self.control.admit(buffer_bytes)?);
+        reserve(&mut partial.slots, entries, &mut self.control)?;
+        for _ in 0..entries {
+            self.control.work(1)?;
+            partial.slots.push(SwiftSlot {
+                resident: None,
+                pins: 0,
+                last_used: 0,
+            });
+        }
+        let buffer_bytes = budget
+            .active_pins
+            .checked_mul(size_of::<PinRecord>())
+            .ok_or_else(|| {
+                self.control
+                    .error(CacheFailureKind::Capacity, "swift_cache_layout_overflow")
+            })?;
+        partial.buffers[1] = Some(self.control.admit(buffer_bytes)?);
+        reserve(&mut partial.pins, budget.active_pins, &mut self.control)?;
+        for _ in 0..budget.active_pins {
+            self.control.work(1)?;
+            partial.pins.push(PinRecord::default());
+        }
+        let buffer_bytes = PATCH_CAPACITY
+            .checked_mul(size_of::<decode::Patch>())
+            .ok_or_else(|| {
+                self.control
+                    .error(CacheFailureKind::Capacity, "swift_cache_layout_overflow")
+            })?;
+        partial.buffers[2] = Some(self.control.admit(buffer_bytes)?);
+        reserve(&mut partial.patches, PATCH_CAPACITY, &mut self.control)?;
+        for _ in 0..PATCH_CAPACITY {
+            self.control.work(1)?;
+            partial.patches.push(decode::EMPTY_PATCH);
+        }
+        reserve(&mut partial.index, RESIDENT_INDEX_BYTES, &mut self.control)?;
+        for _ in 0..RESIDENT_INDEX_BYTES {
+            self.control.work(1)?;
+            partial.index.push(0);
+        }
+        // Header includes the complete payload before this allocation begins.
+        reserve(&mut partial.plans, PLAN_CAPACITY, &mut self.control)?;
+        for _ in 0..PLAN_CAPACITY {
+            self.control.work(PLAN_CELL_CREDITS)?;
+            partial.plans.push(None);
+        }
+        self.control.check()?;
+        let owner = next_owner().map_err(|_| {
+            self.control.error(
+                CacheFailureKind::IdentityExhausted,
+                "swift_cache_owner_exhausted",
+            )
+        })?;
+        let fixed_reserved = header
+            + entries * size_of::<SwiftSlot>()
+            + budget.active_pins * size_of::<PinRecord>()
+            + PATCH_CAPACITY * size_of::<decode::Patch>();
+        Ok((
+            owner,
+            SwiftCacheUsage {
+                fixed_reserved,
+                ..SwiftCacheUsage::default()
+            },
+        ))

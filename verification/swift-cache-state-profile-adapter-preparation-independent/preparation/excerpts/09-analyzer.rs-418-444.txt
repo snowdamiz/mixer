@@ -1,0 +1,27 @@
+fn initial<I: InputFile>(input: &mut I, budget: &mut Budget) -> Result<Stamp, AnalyzerError> {
+    budget.setup(2)?;
+    let stamp = input.stamp().map_err(|_| error(IO_ERROR, ADMISSION_STAGE, 0, 0))?;
+    let position = input.position().map_err(|_| error(IO_ERROR, ADMISSION_STAGE, 0, 0))?;
+    if stamp.regular != 1 || position != 0 { return Err(error(INPUT, ADMISSION_STAGE, position, 0)); }
+    Ok(stamp)
+}
+fn stable<I: InputFile>(input: &mut I, before: Stamp, budget: &mut Budget) -> Result<(), AnalyzerError> {
+    budget.setup(1)?;
+    if input.stamp().map_err(|_| error(IO_ERROR, ADMISSION_STAGE, 0, 0))? != before { return Err(error(DRIFT, ADMISSION_STAGE, 0, 0)); }
+    Ok(())
+}
+fn output_safety<S: InputFile, P: InputFile, C: InputFile, O: OutputFile>(stream: &mut S, profile: &mut P, context: &mut C, output: &mut O, budget: &mut Budget) -> Result<Stamp, AnalyzerError> {
+    budget.setup(15)?; // four metadata, position, four outer/six pairwise loops
+    let a = stream.stamp().map_err(|_| error(IO_ERROR, ADMISSION_STAGE, 0, 0))?;
+    let b = profile.stamp().map_err(|_| error(IO_ERROR, ADMISSION_STAGE, 0, 0))?;
+    let c = context.stamp().map_err(|_| error(IO_ERROR, ADMISSION_STAGE, 0, 0))?;
+    let d = output.stamp().map_err(|_| error(IO_ERROR, OUTPUT_STAGE, 0, 0))?;
+    let pos = output.position().map_err(|_| error(IO_ERROR, OUTPUT_STAGE, 0, 0))?;
+    if d.regular != 1 || d.len() != 0 || pos != 0 { return Err(error(OUTPUT, OUTPUT_STAGE, pos, 0)); }
+    let all = [a,b,c,d];
+    for i in 0..4 {
+        if all[i].fields[1] == 0 { return Err(error(BINDING, ADMISSION_STAGE, 0, 0)); }
+        for j in i+1..4 { if all[i].fields[..2] == all[j].fields[..2] { return Err(error(BINDING, ADMISSION_STAGE, 0, 0)); } }
+    }
+    Ok(d)
+}

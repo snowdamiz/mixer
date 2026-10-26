@@ -1,0 +1,36 @@
+pub struct ValidatedSwiftReactor {
+    source: Box<[u8]>,
+    metadata: SwiftMetadata,
+    policy: policy::Policy<'static>,
+    imports: [WasiFunction; 34],
+    usage: SwiftValidationUsage,
+    observations: SwiftReactorObservations,
+}
+impl ValidatedSwiftReactor {
+    pub const VALIDATOR_REVISION: u32 = 1;
+    pub fn source(&self) -> &[u8] {
+        &self.source
+    }
+    pub fn policy_identity(&self) -> &'static str {
+        match self.policy {
+            policy::Policy::SwiftReactorExperimentV1 => "swift-reactor-experiment-v1",
+            policy::Policy::Frozen(_) => unreachable!("sealed Swift policy"),
+        }
+    }
+    pub fn usage(&self) -> SwiftValidationUsage {
+        self.usage
+    }
+    pub fn observations(&self) -> SwiftReactorObservations {
+        self.observations
+    }
+    pub fn resolved_import(&self, index: usize) -> Option<WasiFunction> {
+        self.imports.get(index).copied()
+    }
+    pub fn function_body(&self, defined: usize) -> Option<&[u8]> {
+        Some(
+            self.metadata
+                .functions
+                .get(defined)?
+                .body
+                .slice(&self.source),
+        )

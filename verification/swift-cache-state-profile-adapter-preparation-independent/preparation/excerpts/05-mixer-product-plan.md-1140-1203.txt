@@ -1,0 +1,64 @@
+## 29. General-availability acceptance gates
+
+All unchecked items below are **planned, not passed**. Each item must link to immutable evidence and an accountable reviewer before launch. Product completion requires both technical and operational gates; commercial readiness is reviewed alongside them.
+
+### Ownership and product contract
+
+- [ ] G01: No Patch/Skip code, generated artifacts, tests, or engine dependencies in the product; provenance/dependency review passed.
+- [ ] G02: Owned compiler integration, UI engine, bridges, interpreter, updater, and hosted workflow are implemented and supported.
+- [ ] G03: Public support matrix, limitation list, version policy, licensing/notices, and migration contract match actual behavior.
+- [ ] G04: Product naming/trademarks, customer terms, privacy material, and third-party redistribution obligations are reviewed.
+
+### Application engine and developer experience
+
+- [ ] G05: A new developer can create and locally run a shared Swift app on physical iOS and Android using public documentation.
+- [ ] G06: FieldLog's required native UI, state, navigation, input, and accessibility matrix passes on both platforms. Reference screens must meet shared-theme design parity per section8.3, reviewed side by side on physical iOS/Android devices.
+- [ ] G07: The published language/runtime/capability profile passes in native and guest modes without silent feature omission.
+- [ ] G08: Compiler, guest, bridge, and native failures map to actionable original-source diagnostics.
+- [ ] G09: All first-party capability families in Section 9 pass their platform-specific behavior/permission tests.
+- [ ] G10: Existing-app migration and native-screen embedding work for an independent Swift project.
+- [ ] G11: Local/exported CI can build and maintain FieldLog independently of hosted service availability.
+
+### OTA correctness and safety
+
+- [ ] G12: Meaningful logic and UI updates reach already-installed binaries on both platforms without reinstalling them.
+- [ ] G13: Client and server reject wrong app, environment, runtime, signature, protocol, capability, size, and replayed assignment.
+- [ ] G14: Interruption at every download/activation transition preserves a launchable healthy implementation.
+- [ ] G15: Failed guest startup is quarantined; offline recovery works without an infinite crash loop.
+- [ ] G16: Rollback preserves saved drafts, records, uploads, and compatible schema behavior; external effects are reconciled correctly.
+- [ ] G17: Key rotation/revocation, old offline clients, and root-compromise limitations are exercised and documented.
+- [ ] G18: Staged promotion/halt and dual-platform cohort targeting work across mixed native binary versions.
+- [ ] G19: New native capabilities/permissions/SDKs correctly require a store build.
+
+### Hosted product
+
+- [ ] G20: Elixir/Oban orchestration and isolated macOS/iOS and Android builds produce signed, traceable artifacts with usable logs and debugging symbols; Cloudflare workers or recorded hosting exceptions pass resource/isolation/lifecycle qualification.
+- [ ] G21: Store integrations reach verified ready-for-testing and available states; provider errors are accurately represented.
+- [ ] G22: SolidJS console on Cloudflare and Phoenix API support onboarding, teams, permissions, SSO, audit export, customer keys, and dedicated-runner workflows end to end.
+- [ ] G23: Stripe billing, Neon usage reconciliation, usage caps, credits, cancellation, export/deletion, and support workflows pass realistic account and duplicate/out-of-order webhook cases.
+- [ ] G24: Phoenix API/CLI/SolidJS behavior agrees; domain writes and Oban enqueue are atomic; publishing and chargeable actions remain idempotent under redelivery and worker failures, including migration parity with existing Go contracts.
+
+### Security, reliability, and measured behavior
+
+- [ ] G25: Independent VM/bridge/update/signing/tenant-isolation review has no unresolved launch-blocking findings.
+- [ ] G26: Applicable standards-profile conformance, differential tests, fuzzing, and resource-limit tests pass.
+- [ ] G27: Performance, memory, patch size, sharing, and real-change OTA coverage meet the approved budgets with published methodology.
+- [ ] G28: Device/OS/accessibility/localization matrix passes, with physical evidence for performance and native capabilities.
+- [ ] G29: Service objectives have sufficient operating/load-test evidence, including Cloudflare container stop/wake with no user traffic and Neon/Oban reconnect behavior; low-volume uncertainty is disclosed.
+- [ ] G30: Neon backup restoration/region-loss, R2/CDN isolation/freshness, separate worker/signer loss, Stripe reconciliation, compromised publisher, and bad-release drills are complete.
+- [ ] G31: Alerting, accountable escalation, status page, incident communication, and security response are configured and rehearsed.
+
+### Real usage and launch readiness
+
+- [ ] G32: D0–D8 complete; FieldLog is available through real iOS/Android store distribution with transparent update behavior.
+- [ ] G33: FieldLog has repeated real production use, a reviewed 20-change OTA coverage corpus, and verified recovery across the required scenarios.
+- [ ] G34: Two independently authored external apps qualify, including an existing Swift app migration.
+- [ ] G35: Documentation and onboarding have been tested by developers outside the engine team.
+- [ ] G36: Paid-pilot evidence and contribution-margin model support the commercial offering; weak demand is explicitly reviewed.
+- [ ] G37: SDK upgrade, native release, OTA release, rollback, and customer-exit guides are complete and exercised.
+- [ ] G38: Every failed/blocked mandatory item is resolved; release approval references actual evidence rather than planned work.
+
+## 30. Release trains and post-launch operation
+
+Maintain stable and preview SDK channels. Changes enter preview, FieldLog internal, FieldLog beta, consenting external pilots, and stable according to their risk. Production customer apps never receive a new native runtime merely because the SaaS was deployed.
+

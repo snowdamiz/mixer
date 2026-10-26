@@ -1,0 +1,92 @@
+fn cache_walk<T: InputFile>(
+    input: &mut T,
+    arena: &mut Arena,
+    budget: &mut Budget,
+    f: &Fixture,
+    length: u64,
+    s: &mut Framing,
+    e: &mut FixtureEnvelopeProgressV1,
+    p: &mut Progress,
+    paid: &mut Paid,
+) -> Result<(), AnalyzerError> {
+    let mut reader = Reader::new(length, HEADER_STAGE);
+    let mut h = [0; 64];
+    reader.words(input, arena, budget, &mut h)?;
+    header(arena, &h, *f, budget)?;
+    budget.setup(SETUP_ENVELOPE)?;
+    e.debit += SETUP_ENVELOPE;
+    budget.report(FINISH_ENVELOPE)?;
+    e.debit += FINISH_ENVELOPE;
+    budget.report(UNDERFUNDED_GUARD)?;
+    budget.report(SEMANTIC_GUARD)?;
+    if arena.bytes.len() != ARENA_BYTES {
+        return Err(error(INTERNAL, ARENA_STAGE, 0, 0));
+    }
+    // The sole Candidate is constructed only after all guards are reserved.
+    let mut candidate: Candidate2048 = [0; 2048];
+    for i in 0..12 {
+        let at = SCALAR.base + CELLS[i] * 8;
+        st(
+            &mut arena.bytes,
+            at,
+            if i == 5 {
+                1
+            } else if i == 6 {
+                f.mask
+            } else {
+                0
+            },
+        );
+    }
+    p.q[5] = ABSENT;
+    p.q[9] = 1;
+    p.q[13] = ABSENT;
+    p.q[14] = ABSENT;
+    st(&mut arena.bytes, SCALAR.base + 17 * 8, 1);
+    st(&mut arena.bytes, SCALAR.base + 24 * 8, f.slots);
+    st(&mut arena.bytes, SCALAR.base + 25 * 8, f.pins);
+    st(&mut arena.bytes, SCALAR.base + 26 * 8, f.base);
+    st(&mut arena.bytes, SCALAR.base + 27 * 8, f.capacity);
+    st(&mut arena.bytes, SCALAR.base + 28 * 8, f.entry);
+    reader.stage = RECORD_STAGE;
+    for index in 0..s.physical {
+        if budget.replay_left < RECORD_PREFLIGHT {
+            s.limited = true;
+            break;
+        }
+        budget.replay(CACHE_COMBINED)?;
+        e.debit += RECORD_ENVELOPE;
+        paid.records += 1;
+        let mut w = [0; 16];
+        reader.words(input, arena, budget, &mut w)?;
+        let offset = 512 + index * 128;
+        if !record_fields(arena, &w, *f) {
+            return Err(error(SCHEMA, RECORD_STAGE, offset, index + 1));
+        }
+        if !s.coordinate(&w) {
+            return Err(error(COORDINATE, RECORD_STAGE, offset, index + 1));
+        }
+        if p.terminal() != 16 && leaf_pending(e) {
+            let record = FixtureDecodedRecordV1 { words: &w };
+            let mut steps = StepBudget {
+                remaining: RECORD_ENVELOPE,
+                spent: 0,
+            };
+            #[cfg(test)]
+            ENVELOPE_CALLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            let received =
+                observe_fixture_envelope_v1(&mut arena.bytes, &mut candidate, &record, &mut steps);
+            e.reply = received;
+            e.reply_valid = 1;
+            if !reply_debit_valid(&e.reply, &steps) {
+                e.reply = poisoned(RECORD_ENVELOPE);
+                p.latch_terminal(16);
+            }
+            if e.reply.words[0] == 3 || e.reply.words[1] == 15 {
+                p.latch_terminal(16);
+            }
+            if p.terminal() == 0 && e.reply.words[0] == 1 && e.reply.words[1] == 0 {
+                // Before loan, exact exclusive arena length proves every region
+                // and all12restore ranges. No scratch access precedes this check.
+                if arena.bytes.len() != ARENA_BYTES {
+                    p.latch_terminal(16);

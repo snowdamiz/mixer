@@ -1,0 +1,40 @@
+struct Fixture { cap: u64, mask: u64, extent: u64, types: u64, slots: u64, pins: u64, base: u64, capacity: u64, entry: u64 }
+fn fixture_context<T: InputFile>(input: &mut T, arena: &mut Arena, budget: &mut Budget) -> Result<Fixture, AnalyzerError> {
+    let mut reader = Reader::new(CONTEXT_BYTES, CONTEXT_STAGE);
+    for i in 0..1024 {
+        budget.setup(1)?;
+        let mut word = [0;1]; reader.words(input, arena, budget, &mut word)?;
+        arena.put64(CONTEXT, i, 0, word[0])?;
+    }
+    eof(input, budget, CONTEXT_STAGE, CONTEXT_BYTES)?;
+    let mut words = [0u64; 16];
+    for (i, v) in words.iter_mut().enumerate() { budget.setup(1)?; *v = arena.get64(CONTEXT, i, 0)?; }
+    // This is explicitly a NEW finite-fixture schema, never VerifiedBindingView.
+    if words[0] != FIXTURE_MAGIC { return Err(error(BINDING, CONTEXT_STAGE, 0, 0)); }
+    if words[1..4] != [1, CONTEXT_BYTES, 1] || words[4] == 0 || words[4] > MAX_RECORDS || words[5] >= 64 || words[5] & 33 != 33 || words[6] == ABSENT || words[7] > u32::MAX as u64 || !(1..=64).contains(&words[8]) || !(1..=64).contains(&words[9]) || words[10] != 1 || words[11] == ABSENT || words[12] == ABSENT || words[11] > words[12] || words[13] == ABSENT || words[14..16] != [0, 0] { return Err(error(SCHEMA, CONTEXT_STAGE, 0, 0)); }
+    // Words16..47 are eight opaque fixture digest echoes; remainder is reserved.
+    for i in 48..1024 { budget.setup(1)?; if arena.get64(CONTEXT, i, 0)? != 0 { return Err(error(SCHEMA, CONTEXT_STAGE, i as u64 * 8, 0)); } }
+    Ok(Fixture { cap: words[4], mask: words[5], extent: words[6], types: words[7], slots: words[8], pins: words[9], base: words[11], capacity: words[12], entry: words[13] })
+}
+fn profile<T: InputFile>(input: &mut T, arena: &mut Arena, budget: &mut Budget, f: Fixture) -> Result<(), AnalyzerError> {
+    let mut reader = Reader::new(PROFILE_BYTES, PROFILE_STAGE);
+    let mut header = [0;64]; reader.words(input, arena, budget, &mut header)?;
+    budget.setup(64)?;
+    let expected = [PROFILE_MAGIC, 1, 512, 32, 80_000, f.extent, f.types, f.slots, f.pins, 1, f.base, f.capacity, f.entry, 0, 0, 0];
+    if header[..16] != expected || header[48..64] != [0; 16] { return Err(error(SCHEMA, PROFILE_STAGE, 0, 0)); }
+    // Baseline/candidate/schema must match explicit fixture echoes. Other profile
+    // digest slots are opaque and unverified; this foundation has no hash authority.
+    for (p, c) in [(16usize, 40usize), (20, 44), (28, 20)] {
+        for i in 0..4 { budget.setup(1)?; if header[p + i] != arena.get64(CONTEXT, c + i, 0)? { return Err(error(IDENTITY, PROFILE_STAGE, (p + i) as u64 * 8, 0)); } }
+    }
+    for row in 0..80_000 {
+        budget.replay(8)?;
+        let mut w = [0;4]; reader.words(input, arena, budget, &mut w)?;
+        let defined = w[0] as u32; let ty = w[0] >> 32;
+        if defined > 1 || w[3] != 0 || (defined == 0 && (ty != u32::MAX as u64 || w[1] != ABSENT || w[2] != 0)) || (defined == 1 && (ty >= f.types || w[1] == ABSENT || w[2] == ABSENT || w[1].checked_add(w[2]).is_none_or(|end| end > f.extent))) { return Err(error(SCHEMA, PROFILE_STAGE, 512 + row as u64 * 32, 0)); }
+        arena.put64(FUNCTION, row, 0, w[1])?; arena.put64(FUNCTION, row, 8, w[2])?;
+        arena.put32(FUNCTION, row, 16, ty as u32)?; arena.put32(FUNCTION, row, 20, defined)?;
+        arena.put32(FUNCTION, row, 40, u32::MAX)?;
+    }
+    eof(input, budget, PROFILE_STAGE, PROFILE_BYTES)
+}

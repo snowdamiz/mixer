@@ -1,0 +1,57 @@
+        private boolean replaceAccessibility(android.os.Bundle arguments){
+            NativeEnvironmentV2.requireMain();
+            if(record==null||replacement!=null||depth!=0||finishing||!live())return false;
+            Mutation original=entryMutation();original.require();Editable old=nativeEditable();
+            if(old==null)return false;
+            Replacement operation=new Replacement(this,original,old);replacement=operation;
+            boolean event=false,result=false;String completed=null;
+            try{
+                record.input.replacementBegin(record,operation);operation.registered=true;
+                EditorSnapshot snapshot=new EditorSnapshot(this,old);
+                CharSequence source=arguments==null?null:arguments.getCharSequence(android.view.accessibility.AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE);
+                if(!plainProposal(source,false))return false;
+                operation.proposal=source instanceof android.text.Spanned?new android.text.SpannedString(source):source.toString();
+                if(!plainProposal(operation.proposal,false)||!validBuffer(operation.proposal.toString())||!snapshot.same(this,old)||
+                    nativeEditable()!=old||!operation.tuple()||!original.current()||denied()||!record.input.open(record)||!hasFocus())return false;
+                operation.premises();
+                android.os.Bundle owned=new android.os.Bundle();owned.putCharSequence(android.view.accessibility.AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,operation.proposal);
+                operation.stage=Replacement.Stage.CLOSING;
+                if(operation.predecessor!=null&&operation.predecessor.close!=Close.RETURNED&&operation.predecessor.close!=Close.NO_TARGET){
+                    revoke(false);drain();surface();
+                    if(operation.predecessor.close!=Close.RETURNED)return false;
+                }
+                if(!operation.tuple()||depth!=0||record.editorCallbackLease!=null||nativeEditable()!=old||!operation.tuple()||
+                    !original.current()||denied()||!record.input.open(record)||!hasFocus())return false;
+                // Consumed predecessor is retained by the operation only as history, never dispatch authority.
+                attempt=null;phase=Phase.IDLE;
+                operation.stage=Replacement.Stage.NATIVE;operation.nativeExecuting=true;operation.started=true;record.replacementCallback=operation;
+                try{result=super.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_SET_TEXT,owned);operation.check();}
+                finally{operation.nativeExecuting=false;record.replacementCallback=null;}
+                if(!original.current()||denied()||!record.input.open(record)||!hasFocus())throw new IllegalStateException("replacement final authority lost");
+                Editable actual=nativeEditable();
+                if(!operation.tuple()||actual==null)throw new IllegalStateException("replacement final tuple lost");
+                if(!result&&operation.setterCalls==0&&actual==old&&snapshot.same(this,old))return false;
+                if(!result||operation.setterCalls!=1||!operation.setterReturned||operation.nextEditable==null||actual!=operation.nextEditable||
+                    !validBuffer(actual.toString())||!actual.toString().equals(operation.proposal.toString())||
+                    getSelectionStart()!=actual.length()||getSelectionEnd()!=actual.length())throw new IllegalStateException("incomplete native replacement result");
+                // Empty selection0 is supplied by native default ArrowKeyMovementMethod.initialize;
+                // nonempty end selection is supplied by TextView's accessibility suffix.
+                completed=actual.toString();original.require();
+                if(nativeEditable()!=actual||!operation.tuple())throw new IllegalStateException("replacement changed at final check");
+                event=true;
+            }catch(RuntimeException|java.lang.Error failure){
+                if(operation.started||operation.stage==Replacement.Stage.CLOSING)uncertain(failure);
+                else throw failure;
+            }finally{
+                operation.nativeExecuting=false;record.replacementCallback=null;
+                operation.stage=Replacement.Stage.DONE;
+                boolean held=operation.registered;operation.registered=false;replacement=null;
+                if(held)record.input.replacementEnd(record,operation);
+                // Busy/continuation clear last; never synchronously resume owner disposal.
+            }
+            surface();
+            if(!event)return false;
+            record.input.event(record,"textChange",completed);
+            // The native suffix is finished. This observes scalars only, never successor native authority.
+            return original.result(true);
+        }

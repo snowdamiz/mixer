@@ -1,0 +1,20 @@
+Build a finished commercial platform that lets developers author an application primarily in Swift, maintain one shared application codebase, ship native iOS and Android apps, and deliver compatible logic and UI updates over the air to both platforms. Provide the surrounding build, signing, distribution, debugging, release, monitoring, billing, and support services expected from an Expo-like product.
+
+This is the delivery plan for that complete product. Internal milestones establish working slices of the production architecture; none is a substitute for completing the general-availability requirements.
+
+The user's decisions govern the plan:
+
+1. **Own the engine.** Independently implement the cross-platform application engine, Swift-facing UI layer, Android integration, compiler orchestration, bridge generation, OTA runtime, update protocol, and hosted service.
+2. **No Patch or Skip code.** Do not copy, fork, vendor, translate, link, or depend on their implementations, generated code, test fixtures, or proprietary services. Their public product behavior can inform competitive requirements.
+3. **Dogfood continuously.** Build and operate a real Swift application throughout development. Every major milestone requires evidence from that application on physical devices and, once distribution is ready, through real store builds.
+4. **Deliver both platforms.** iOS-only success does not satisfy a milestone whose scope includes Android, and Android emulator success does not establish physical-device qualification.
+5. **Make limitations explicit.** The service must explain which changes are OTA-compatible, which require a store release, and which APIs are platform-specific.
+6. **Use the specified agent models.** The user selects **Astra Extra High** as the main controlling agent when launching development. Astra directs and integrates the work, using **Sol 6.1 Extra High** subagents in parallel as much as practical. These model choices and reasoning levels are binding for development execution.
+
+### 1.1 Meaning of “our own engine for everything”
+
+The owned product layer includes the application model, UI reconciliation, platform adapters, capability interfaces, compiler pipeline, module format, WebAssembly interpreter, scheduler integration, build orchestration, compatibility analysis, release system, and developer experience.
+
+Use standard foundations: the official Swift compiler/LLVM, Swift standard library, documented Apple SDKs, Android SDK/NDK, AndroidX/Compose as a native UI toolkit, operating-system networking, and vetted cryptographic primitives. Using the system text renderer, TLS implementation, or Swift compiler does not outsource the product engine.
+
+The production runtime will **not** depend on WasmKit or another third-party Wasm engine under this baseline. Implement our interpreter from the WebAssembly specification. Independently maintained reference runtimes and standards conformance suites may be used as development/test oracles under their licenses, never as copied implementation material. Do not invent a cryptographic algorithm or implement crypto primitives merely to claim ownership.

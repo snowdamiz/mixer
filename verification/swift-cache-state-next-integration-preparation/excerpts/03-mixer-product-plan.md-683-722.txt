@@ -1,0 +1,40 @@
+## 20. Verification strategy and performance budgets
+
+### 20.1 Test layers that matter
+
+| Layer | Required evidence |
+| --- | --- |
+| Language/compiler | Supported syntax/type patterns compile; unsupported semantics produce actionable errors; original-source diagnostics preserved. |
+| VM | Standards-profile conformance, malformed-input rejection, fuzzing, differential execution, resource enforcement. |
+| UI | Independently authored behavior tests, native interaction tests, visual comparison with tolerances, accessibility semantics, state identity. |
+| Bridge | Schema round trips, ownership, concurrency, cancellation, thread affinity, permissions, callback-after-destruction. |
+| Updates | Signature/compatibility/replay checks, interruption at each lifecycle transition, offline recovery, state compatibility. |
+| Cloud | Tenant separation, idempotency, worker isolation, signer authorization, usage consistency, backup restore, fault injection. |
+| Store lifecycle | Real processing/testing/availability receipts; no mock status used as acceptance evidence. |
+| Customer adoption | Independently authored apps, imports, unaided onboarding, actual paid usage and support burden. |
+
+The same FieldLog feature tests run against native iOS, native Android, interpreted iOS, and interpreted Android. Compare observable behavior and persisted data, not only snapshots. A skipped environment is recorded as deferred and cannot pass a release gate.
+
+### 20.2 Proposed performance targets
+
+All figures below are initial acceptance budgets to validate, not measured results. Establish a plain-native baseline before engine migration and compare on identical hardware, data, OS, and release optimization settings.
+
+| Metric | Initial target |
+| --- | --- |
+| Native engine startup overhead | p95 ≤100 ms above the equivalent baseline app. |
+| Activated OTA startup overhead | p95 ≤200 ms above the engine-native mode for the representative app. |
+| Added steady-state memory in OTA mode | ≤30 MiB above engine-native mode for the benchmark workload; separately report peak and total app RSS. |
+| Input responsiveness | p95 tap-to-visible-response ≤100 ms for local app actions on the minimum performance device. |
+| Scrolling | ≥99% of frames within the device's selected frame interval during defined 60 Hz workload; report 120 Hz separately. |
+| Representative patch size | p95 ≤3 MiB compressed over the dogfood change corpus, including required guest runtime code; report assets separately and total transfer too. |
+| Device activation success | ≥99.9% among fully downloaded eligible attempts, excluding deliberate fault tests; confidence and sample count disclosed. |
+| Development loop | Warm guest rebuild/reload p95 ≤5 seconds for FieldLog on the published reference Mac. |
+| Sharing | ≥90% of FieldLog app-owned Swift source shared across platforms; UI and logic reported separately. |
+| Practical OTA coverage | ≥80% of the last 20 qualifying FieldLog fixes/enhancements OTA-capable on both platforms. |
+
+Define coverage before measuring. Source sharing excludes generated code, dependencies, tests, and engine code; count platform-specific application adapters in the denominator. Practical OTA coverage includes ordinary user-facing fixes and improvements within existing product purpose, including failures caused by unsupported framework behavior. Exclude only changes inherently requiring a native capability/permission or store-metadata change, and publish all exclusions with reasons. Report coverage across all changes as a second figure to prevent cherry-picking.
+
+Benchmarks include a 1,000-row list with realistic cell content, typing/validation, navigation/state restoration, photo selection and resumable upload, offline database operations, map embedding, background/foreground transitions, and an active downloaded module. Synthetic stress records stay isolated from production user data.
+
+If a budget fails, optimize and remeasure. If a target is objectively incompatible with the chosen product contract, record a reviewed target revision and customer impact; never quietly relabel the failed measurement as a pass.
+

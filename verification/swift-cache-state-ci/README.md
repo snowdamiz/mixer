@@ -38,8 +38,11 @@ performance. The pack manifest fixes all source and expected observation bytes.
 
 The dedicated `swift-cache-state-fixture` Actions job runs focused controls and
 the full fixture after a shallow sparse checkout, then retains the complete
-directory, including hidden inputs and failure evidence. Actual Rust 1.98.1 and
-Actions qualification remain pending at integration. See the root selection in
+directory, including hidden inputs and failure evidence. The dedicated job now passes on actual Rust 1.98.1 macOS arm64: all 103
+commands and 29 focused controls pass within the unchanged deadlines. Source and
+retained output evidence are verified in
+`../swift-cache-state-ci-workflow-root-review/CI-1.98.1-qualification.json`.
+This qualifies only the closed host fixture. See the root selection in
 `../swift-cache-state-ci-workflow-root-review/selection.json` and independent
 decision in `../swift-cache-state-ci-independent/corrected-review/final-decision.json`.
 

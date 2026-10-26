@@ -1,0 +1,16 @@
+767:         EditorLease(NativeField field,NativeField.Attempt attempt,Editable editable,Mutation original,EditorLease parent,String hook) {
+768:             this.field=field;record=field.record;this.attempt=attempt;this.editable=editable;
+769:             this.original=original;this.parent=parent;this.hook=hook;target=attempt==null?null:attempt.target;
+770:         }
+771:         void exact() {
+772:             boolean onStack=false;int bound=0;
+773:             for(EditorLease cursor=record.editorCallbackLease;cursor!=null&&bound++<16;cursor=cursor.parent)if(cursor==this){onStack=true;break;}
+774:             if(!onStack||!entered||ended||record.view!=field||field.attempt!=attempt||!record.input.editorRetained(record)||
+775:                 editable==null||field.nativeEditable()!=editable||attempt!=null&&attempt.target!=target)
+776:                 throw new IllegalStateException("lost exact editor continuation");
+777:         }
+778:         Mutation continuation() {
+779:             exact();
+780:             if(original.current())return Mutation.editorContinuation(original,this);
+781:             // Only this captured exact continuation may request sealed authority.
+782:             return record.input.editorCleanupMutation(record,this);

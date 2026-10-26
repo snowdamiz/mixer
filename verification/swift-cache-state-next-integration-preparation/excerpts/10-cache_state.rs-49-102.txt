@@ -1,0 +1,54 @@
+pub struct FixtureCacheStateObservationV1 {
+    boundary: FixtureCacheStateBoundaryV1,
+    reason: FixtureCacheStateReasonV1,
+    extent: [u64; 30],
+}
+impl FixtureCacheStateObservationV1 {
+    pub fn boundary(&self) -> &FixtureCacheStateBoundaryV1 {
+        &self.boundary
+    }
+    pub fn reason(&self) -> &FixtureCacheStateReasonV1 {
+        &self.reason
+    }
+    pub const fn stored_prefix_validated(&self) -> bool {
+        false
+    }
+    pub const fn full_replay_accepted(&self) -> bool {
+        false
+    }
+    pub const fn semantic_metrics_valid(&self) -> bool {
+        false
+    }
+    pub const fn real_binding_verified(&self) -> bool {
+        false
+    }
+}
+#[derive(Debug)]
+#[repr(C)]
+pub struct FixtureCacheStateOutcomeV1 {
+    framing: ReplayOutcome,
+    envelope: FixtureEnvelopeObservationV1,
+    cache_state: FixtureCacheStateObservationV1,
+}
+impl FixtureCacheStateOutcomeV1 {
+    pub fn framing(&self) -> &ReplayOutcome {
+        &self.framing
+    }
+    pub fn envelope(&self) -> &FixtureEnvelopeObservationV1 {
+        &self.envelope
+    }
+    pub fn cache_state(&self) -> &FixtureCacheStateObservationV1 {
+        &self.cache_state
+    }
+    pub const fn stored_prefix_validated(&self) -> bool {
+        false
+    }
+    pub const fn full_replay_accepted(&self) -> bool {
+        false
+    }
+    pub const fn semantic_metrics_valid(&self) -> bool {
+        false
+    }
+    pub const fn real_binding_verified(&self) -> bool {
+        false
+    }

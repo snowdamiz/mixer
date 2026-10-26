@@ -1,0 +1,16 @@
+Command: python3 verification/android-editor-implementation-independent/finalize_review.py
+Observed exit: 1
+
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-implementation-independent/finalize_review.py", line 111, in <module>
+    if __name__=='__main__':main()
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-implementation-independent/finalize_review.py", line 64, in main
+    assert sha(amendment.read_bytes())=='da69185315f2952248596ddd4566a1041bacff73003feff7d38ba48aa0707f92'
+AssertionError
+
+Cause checked: root appended coordinated replacement reservation/close tuple and
+exact EditorInfo input-class amendments. Latest reviewed root file hash:
+b386f832479884f2487df114fb080f14ebac99c747208bffd0428477c32d844b.
+The original producer packet and all three earlier independent sealed packets
+matched before this failure. The rerun uses a stored immutable amendment snapshot
+so later ongoing root coordination cannot silently change this baseline review.

@@ -1,0 +1,64 @@
+## Host custody and bounded I/O boundary
+
+This is a **new future offline consumer**, not a retry of the existing one-copy
+capture. Keep its boundary separate. The existing writer/evidence streams and
+their sidecars are inputs, never overwritten or reclassified in place. No
+additional whole-stream copy is needed. Output creation uses exclusive no-follow
+new report and host-receipt members, one attempt each; retain partial output on
+failure, with fixed error codes, no retry into a new name.
+
+The reviewed host wrapper must accept bounded raw paths (<=4,096 bytes each),
+reject NUL/excess components and symlinked path components, validate a trusted
+owned parent then open no-follow, compare regular-file descriptor and path
+identity/length before every pass and after. If the available platform cannot
+prove the parent/component contract using the selected stdlib boundary, reject
+that input instead of weakening no-follow. Record dev/ino/raw mode/length and
+mtime/ctime sec+nsec. Include actual metadata errors; never replace unavailable
+values with zero. Passing an already-open FD must bind its original path and
+custody, never accept a digest claim without reading those exact bytes.
+
+Host opens stream/profile/raw-result/context descriptors and the exact selected
+analyzer executable, hashes each through that same descriptor with
+`hashlib.sha256`, seeks input descriptors to0 and invokes the exact compiled Rust
+binary with only the selected inherited stream/profile/context descriptors. The host
+retains its descriptors; it never reads/seeks them while the child runs because
+inherited descriptors share offsets. After synchronous child exit/reap, seek0,
+rehash those same retained descriptors and recheck descriptor/path metadata and
+length. Require identical pre/post raw bytes and exact Rust consumed length/N,
+report bindings and original-result adapter output. Source length drift, short
+EOF, read error, replacement, nonregular file, digest disagreement, unexpected
+child exit/report inconsistency or timeout invalidates the supplement. Observed stability is
+not authentication against coordinated evidence rewriting or hostile races.
+Parent/component races and arbitrary concurrent mutation are not solved by
+timestamps. This boundary needs explicit independent adversity review.
+
+At most nine live data-descriptor owners during the child: five retained host
+Files (stream,profile,raw-result,context,analyzer-binary), three inherited Rust
+inputs and one Rust report output; after the child,
+closed owners are out of lexical scope before host verification output opens.
+The Rust named inventory charges its four live File owners and complete I/O/
+Metadata/OwnedFd/adoption Results; the host inventory charges its own five and complete closed
+owners until their scope ends. Neither descriptor count is a memory byte bound.
+Selection-verification and writer/custody receipt descriptors are read/hashed
+in separate pre/post phases and closed before the child; their complete closed
+File/Result/byte owners end lexical scope before these nine coexist. They are
+not omitted retained locals. Both receipts are mandatory for accepted replay,
+each<=8192 bytes; missing/unreadable/unsupported receipts refuse admission.
+Python hashing uses one65,536-byte buffer, no read-all or unbounded receipt read.
+Each block has<=32 combined short-read/Interrupted attempts. Report writes have
+<=32 attempts per block; zero/overlong/error/exhaustion retain failure and partial
+bytes. Raw original-result/host context reads use cap+1 bounded reads, checked
+before allocation; report/hash parsing is fixed-size.
+
+Host hashing has its **separate** <=131,072 named logical inventory and a
+proposed18,000,000 authored debit limit: debit ceil(bytes/64) per assembled hashlib block,
+one per I/O attempt and explicitly bounded metadata/parse/report operation.
+The closed scope is two passes over stream<=536,871,936, profile=2,560,512,
+raw-result<=8192, context=8192, writer-receipt<=8192,
+accepted-selection-receipt<=8192 and analyzer-binary<=8,388,608, plus two
+profile-row-body hashes. This charges17,200,432 SHA64-byte units,535,808 maximum
+read/EOF attempts,896 report/receipt hash units and65,536 fixed setup/verdict/
+serialization/output attempts = **17,802,672**, leaving197,328. The support
+schema freezes these exact caps and formula. Hash **once after assembling each
+<=65,536-byte block**, not once per short read: up to32 attempts fill that one
+buffer, then each applicable hash owner receives one update. Partial-read

@@ -1,0 +1,9 @@
+pub(crate) trait SnapshotView: sealed::Snapshot {
+    type Policy: ?Sized;
+    fn policy(&self) -> &Self::Policy;
+    fn source(&self) -> &[u8];
+    fn defined_function_count(&self) -> usize;
+    fn imported_function_count(&self) -> usize;
+    fn function(&self, absolute: u32) -> Option<FunctionSpanView<'_>>;
+    fn signature(&self, absolute: u32) -> Option<SignatureView<'_>>;
+}

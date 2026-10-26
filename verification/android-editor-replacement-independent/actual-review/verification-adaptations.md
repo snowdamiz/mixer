@@ -1,0 +1,9 @@
+# Preserved review-infrastructure failures
+
+`independent-controls/` preserves the first compile-success/run failures. Each of six routes stopped in fixture publication with `AssertionError: two-field fixture publication`; the descriptor main was incorrectly qualified as `dev.mixer.android.DescriptorClosure` and failed class lookup.
+
+`independent-controls-2/` adds the owner's actual primary failure to the assertion message and corrects the descriptor main to its actual default package. The descriptor closure passes; each product fixture still stops before editor execution with `IllegalArgumentException: duplicate/zero identity`.
+
+`independent-controls-3/` changes only copied fixture generation values from root/A/B all1 to root1/A2/B3 and retains every assertion. All six prepared groups and the descriptor closure pass. Sealed preaccess source remains byte-identical. Later controls compile a new separately authored reflected test class, with passing invariant groups in attempt4, a single-field focus-history observation in attempt5, and two required failing ordinary two-field compatibility controls in attempt6. The latter are product findings, not adaptations.
+
+The first `verify_review.py` invocation assumed host/cross source snapshots were at runs/<run>/source and raised `AssertionError: host-1`. The actual runner records them under runs/<run>/inputs/source. The second invocation counted literal `<36` guards without whitespace normalization and raised `AssertionError` at the expected count2; the actual two admission guards are `SDK_INT<36` and `SDK_INT < 36`. The final checker compares exact unchanged admission guard lines, normalizing whitespace only to locate them. All16 product source bytes,14 unchanged file identities and both host/cross source snapshots then verify. This checker is custody-only and cannot authorize native or release acceptance.

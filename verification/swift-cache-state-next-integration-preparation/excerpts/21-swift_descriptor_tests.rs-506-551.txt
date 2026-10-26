@@ -1,0 +1,46 @@
+fn swift_descriptor_repeated_immutable_borrows_allocate_nothing_and_preserve_usage() {
+    let fixture = Fixture::new();
+    let proof = fixture.proof();
+    let usage = proof.usage();
+    let observations = proof.observations();
+    let source = proof.source();
+    let (_, stats) = measure(|| {
+        for _ in 0..32 {
+            for function in 0..133 {
+                std::hint::black_box(proof.execution_signature(function));
+                std::hint::black_box(proof.execution_function(function));
+            }
+            for index in 0..38 {
+                std::hint::black_box(proof.execution_type(index));
+            }
+            for index in 0..=4 {
+                std::hint::black_box(proof.execution_global(index));
+                std::hint::black_box(proof.execution_global_initializer_offset(index));
+                std::hint::black_box(proof.execution_data(index));
+                std::hint::black_box(proof.execution_element(index));
+            }
+            std::hint::black_box((
+                proof.execution_global_count(),
+                proof.execution_data_count(),
+                proof.execution_element_count(),
+            ));
+            std::hint::black_box((proof.execution_memory(), proof.execution_table()));
+            std::hint::black_box(proof.execution_imports());
+            std::hint::black_box(proof.decode_policy());
+        }
+    });
+    assert_eq!(
+        (
+            stats.allocations,
+            stats.reallocations,
+            stats.deallocations,
+            stats.attempts
+        ),
+        (0, 0, 0, 0)
+    );
+    assert_eq!(proof.usage(), usage);
+    assert_eq!(proof.observations(), observations);
+    assert_eq!(proof.source().as_ptr(), source.as_ptr());
+    assert_eq!(proof.source(), fixture.bytes);
+    println!("Swift descriptor immutable borrows: 32 complete traversals; allocation/reallocation/deallocation requests=0; validation usage/source unchanged; no target execution");
+}
