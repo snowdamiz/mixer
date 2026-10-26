@@ -1,0 +1,382 @@
+{
+  "all_authority_getters": false,
+  "boundaries": {
+    "AnalysisLimited": 4,
+    "ApplicabilityUnavailable": 6,
+    "CapCutUnknownTail": 2,
+    "ClosedFixtureObserved": 1,
+    "InternalPoisoned": 5,
+    "Refused": 3,
+    "Unavailable": 0
+  },
+  "children": [
+    "InputBinding",
+    "InputBudget",
+    "InputInvalid",
+    "EnvelopePoison",
+    "EnvelopeUnavailable",
+    "EnvelopeRefused",
+    "Limited",
+    "Cap",
+    "Closed",
+    "Unsupported"
+  ],
+  "exact_snapshot_guard_expressions": {
+    "Q0": "required M,seq,work,instructions,stage,residents,bytes,pins,nonce are actual u64;stage<=10",
+    "Q1": "0<=M<=N<=4194304;seq=M;N<=NC;calls<=NC;1<=slots<=64;1<=pin_slots<=64",
+    "Q10_inactive": "outsideplanned do not read masks/feasible;outsideactive do not read op/function;all projected sentinels fixed byV",
+    "Q2": "residents<=slots;pins<=pin_slots;nonce>=1;(residents==0)==(bytes==0);pins>0 implies residents>0",
+    "Q3_none": "L=None implies reason=0,stop=0,M=N,calls=M,M>0;Closed additionallystage0",
+    "Q4_latched": "L!=None implies stop=M+1<=N,calls=M+1;Refusal reason6..13;Failure reason14;Limit reason1",
+    "Q5_initial": "M0 implies work0,instructions0,stage0,residents0,bytes0,pins0,nonce1",
+    "Q6_active": "stage!=0 implies op is u64>0 andfunction is u64<80000;otherwise do not read op/function",
+    "Q7_planned": "stage6..10 implies selected,taken,committed are u64;selected>>slots=0;taken&~selected=0;committed&~taken=0;feasible is bool",
+    "Q8_destination": "ifplanned andfeasible require destination u64<slots;otherwise do not read destination",
+    "Q9_pending": "ifstage7/8 require feasible=true,pending u64<slots,selected&(1<<pending)!=0;otherwise do not read pending"
+  },
+  "incomplete_boundary15": "Non-emitting retained enum ID; child incomplete\u2192EnvelopeRefused4; contradictory closed snapshot\u2192poison",
+  "independent_review_pending": true,
+  "latches": [
+    "None",
+    "Refusal",
+    "Failure",
+    "Limit"
+  ],
+  "native_or_Rust_product_tests": 0,
+  "observation_words": [
+    "boundary",
+    "reason",
+    "observed_records",
+    "cache_state_records",
+    "stop_record",
+    "last_sequence",
+    "last_work",
+    "last_instructions",
+    "active_operation",
+    "requested_function",
+    "resident_count",
+    "resident_bytes",
+    "held_pins",
+    "next_nonce",
+    "active_plan_cell",
+    "selected_mask",
+    "taken_mask",
+    "committed_mask",
+    "pending_victim",
+    "destination",
+    "failure_coordinate",
+    "semantic_debit",
+    "semantic_setup_paid",
+    "semantic_finish_paid",
+    "fixture_state_observed",
+    "tail_unknown",
+    "stored_prefix_validated",
+    "full_replay_accepted",
+    "semantic_metrics_valid",
+    "real_binding_verified",
+    "reserved0",
+    "reserved1"
+  ],
+  "ordered_rows": [
+    [
+      "T00",
+      "outer_error is not None",
+      "Err(exact_error); no words"
+    ],
+    [
+      "T01",
+      "C=InputBinding",
+      "Z(0,2)"
+    ],
+    [
+      "T02",
+      "C=InputBudget",
+      "Z(4,1)"
+    ],
+    [
+      "T03",
+      "C=InputInvalid",
+      "Z(0,3)"
+    ],
+    [
+      "T04",
+      "C=EnvelopePoison orP=Poison",
+      "Z(5,16)"
+    ],
+    [
+      "T05",
+      "P unreadable/stale/malformed orheader/call/latch contradiction",
+      "Z(5,16)"
+    ],
+    [
+      "T06",
+      "C=EnvelopeUnavailable/Unsupported",
+      "Z(0,5)"
+    ],
+    [
+      "T07",
+      "C=EnvelopeRefused",
+      "Z(3,4)"
+    ],
+    [
+      "T08",
+      "P=Absent with0calls/noLatch",
+      "Z(0,5)"
+    ],
+    [
+      "T09",
+      "P=Valid and snapshot/latch guards fail",
+      "Z(5,16)"
+    ],
+    [
+      "T10",
+      "L=Refusal",
+      "V(3,storedreason,M+1,0,1)"
+    ],
+    [
+      "T11",
+      "L=Failure",
+      "V(6,14,M+1,M+1,1)"
+    ],
+    [
+      "T12",
+      "L=Limit",
+      "V(4,1,M+1,0,1)"
+    ],
+    [
+      "T13",
+      "C=Limited andL=None",
+      "V(4,1,N+1,0,1)"
+    ],
+    [
+      "T14",
+      "C=Cap andL=None",
+      "V(2,0,0,0,1)"
+    ],
+    [
+      "T15",
+      "C=Closed andL=None",
+      "V(1,0,0,0,0)"
+    ]
+  ],
+  "outer_err": "Exact propagated fixed AnalyzerError; observation absent/null, never32zero words",
+  "output_unavailable17": "Non-emitting retained enum ID; accepted report failures propagate outerErr",
+  "paid_domain": {
+    "D": "512*SS+256*SF+7680*NC",
+    "NC_range": [
+      0,
+      4194304
+    ],
+    "SS_SF_range": [
+      0,
+      1
+    ],
+    "late_failures_do_not_refund": true,
+    "outerErr": "no returned payment words",
+    "returned_OK": "SS=SF=1; successful reservations private and independent ofP/Q"
+  },
+  "progress_tags": [
+    "Absent",
+    "Valid",
+    "Poison",
+    "Unreadable",
+    "Stale",
+    "Malformed"
+  ],
+  "projection_V": [
+    "boundary",
+    "reason",
+    "N",
+    "M",
+    "stop",
+    "M",
+    "Q.work",
+    "Q.instructions",
+    "Q.op ifstage!=0 else0",
+    "Q.function ifstage!=0 elseMAX",
+    "Q.residents",
+    "Q.bytes",
+    "Q.pins",
+    "Q.nonce",
+    "Q.function&511 if3<=stage<=10 elseMAX",
+    "Q.selected if6<=stage<=10 else0",
+    "Q.taken if6<=stage<=10 else0",
+    "Q.committed if6<=stage<=10 else0",
+    "Q.pending ifstage in{7,8} elseMAX",
+    "Q.destination if6<=stage<=10 andfeasible elseMAX",
+    "failure",
+    "D",
+    "SS",
+    "SF",
+    "1",
+    "tail",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0"
+  ],
+  "projection_Z": {
+    "Q_reads": 0,
+    "all_other_fields": "0includingstop/failure/tail/nonce; noMAXsentinels",
+    "assignments": {
+      "0": "boundary",
+      "1": "reason",
+      "21": "D",
+      "22": "SS",
+      "23": "SF"
+    },
+    "initial": "32zeros"
+  },
+  "reasons": {
+    "Bytes": 10,
+    "EnvelopeRefused": 4,
+    "EnvelopeUnavailable": 5,
+    "FailureApplicability": 14,
+    "FramingInvalid": 3,
+    "FramingUnavailable": 2,
+    "Identity": 6,
+    "IncompleteBoundary": 15,
+    "InternalPoison": 16,
+    "Invariant": 13,
+    "Nonce": 12,
+    "Observed": 0,
+    "OutputUnavailable": 17,
+    "Plan": 8,
+    "Resident": 7,
+    "Steps": 1,
+    "Token": 11,
+    "Victim": 9
+  },
+  "reserved_words": [
+    0,
+    0
+  ],
+  "schema": 1,
+  "snapshot_guards": [
+    "stage0..10;M=N ifnoLatch;otherwise stop=M+1<=N",
+    "seq=M;allnumericpayloadsu64;countswithinalreadycheckedfixturelimits",
+    "M0requireswork0/instructions0/Idleinitialsnapshot",
+    "activeop>0 andfunction<80000 onlywhenstage!=Idle",
+    "plannedcommitted subsettaken subsetselected; maskswithinslots",
+    "pendingvictimwithinslots andselected; pendingrequiresfeasibledestination",
+    "feasibledestinationwithinslots;inactivefieldsnotdereferenced",
+    "latchreason:None0;Refusal6..13;Failure14;Limit1",
+    "nolatchClosedrequiresIdle;privateguard/numericproofdoesnotprove rowsemantics"
+  ],
+  "source_context_revision": "0b8e3fd8bdd86902f7d9d28e0cba01bcdbb5ce1c",
+  "status": "R1terminal-contract-model correction; not selected implementation",
+  "unchanged_global_caps": {
+    "aggregate_report": 65536,
+    "arena": 8388608,
+    "authored_steps": 268435456,
+    "io_steps": 263584,
+    "record_preflight": 8192,
+    "report_steps": 3000000,
+    "reserved_transient": 41984,
+    "rust_report": 49152,
+    "setup": 65536,
+    "transient": 65536
+  },
+  "unchanged_memory": {
+    "baseline_complete_union": 24656,
+    "candidate_bytes": 2048,
+    "complete_new_report_roles": {
+      "aggregate_source_destination": 976,
+      "errors": 128,
+      "observation_source_destination": 512,
+      "projection": 256,
+      "result_source_caller": 1024
+    },
+    "existing_groups": {
+      "control": [
+        6656,
+        8192
+      ],
+      "report": [
+        4296,
+        8192
+      ],
+      "setup": [
+        5168,
+        12288
+      ],
+      "wire": [
+        2616,
+        3072
+      ]
+    },
+    "extra_groups": {
+      "control": 1280,
+      "report": 2896,
+      "setup": 256,
+      "wire": 256
+    },
+    "physical_stack_rss_verified": false,
+    "proposed_union": 29344,
+    "uses_unassigned_global_margin": false
+  },
+  "unchanged_work": {
+    "all_ceilings_unverified_against_missing_implementation": true,
+    "arithmetic_record_upper": 32317,
+    "conservative_fixed_nonrecord_allowance": 5017696,
+    "historical_record_charge": 23553586056,
+    "historical_record_count": 2889656,
+    "inherited_combined_record": 471,
+    "max_sort_comparisons": 321,
+    "max_sort_index_moves": 384,
+    "max_sort_passes": 6,
+    "new_combined_record": 8151,
+    "new_report_work_upper": 6830,
+    "new_semantic_public_debit": "512*SS_paid+256*SF_paid+7680*N_C",
+    "no_refund_after_charge": true,
+    "old_envelope_public_debit": "534*S_paid+47*F_paid+425*N_B",
+    "old_envelope_terminal_guard": 112,
+    "old_report_work_upper": 6446,
+    "preflight_remaining": 41,
+    "proof_status": "proposed per-group implementation ceilings only; exact source ledger and independent accounting required",
+    "reservation_order": [
+      "existingBudget/T42/F42",
+      "newfinish256 before newsemantic owners",
+      "newsetup512",
+      "actualcontext/profile/header admission",
+      "oldsetup534/finish47/G112 and newguard128 before candidate mutation"
+    ],
+    "semantic_finish": 256,
+    "semantic_groups": [
+      [
+        "admission_prior_loan",
+        256
+      ],
+      [
+        "resident_token_probes_seed",
+        2560
+      ],
+      [
+        "stable_merge_comparisons_321x8",
+        2568
+      ],
+      [
+        "index_transfers_384x2",
+        768
+      ],
+      [
+        "prefix_64x10",
+        640
+      ],
+      [
+        "delta_commit_candidate_clear_restore",
+        640
+      ],
+      [
+        "complete_reply_install_audit_terminal",
+        248
+      ]
+    ],
+    "semantic_record": 7680,
+    "semantic_setup": 512,
+    "semantic_terminal_guard": 128,
+    "unfunded_early_return": "No new aggregate; only existing funded fixedAnalyzerError path; actual-source accounting pending"
+  }
+}

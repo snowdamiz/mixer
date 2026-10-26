@@ -1,0 +1,487 @@
+Compiled from "ConcreteHostProbe.java"
+public final class dev.mixer.android.ConcreteHostProbe {
+  public static java.util.function.BiConsumer<java.lang.String, java.lang.String> hook;
+    descriptor: Ljava/util/function/BiConsumer;
+
+  public static final int LIMIT;
+    descriptor: I
+
+  private static final java.util.List<dev.mixer.android.ConcreteHostProbe$Event> history;
+    descriptor: Ljava/util/List;
+
+  private static final java.util.Map<java.lang.String, java.lang.Integer> counts;
+    descriptor: Ljava/util/Map;
+
+  private static final java.lang.StackWalker WALKER;
+    descriptor: Ljava/lang/StackWalker;
+
+  private dev.mixer.android.ConcreteHostProbe();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: return
+      LineNumberTable:
+        line 10: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Ldev/mixer/android/ConcreteHostProbe;
+
+  public static void hit(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+    Code:
+         0: aload_0
+         1: ldc           #7                  // String entry
+         3: aconst_null
+         4: invokestatic  #9                  // Method hit:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)V
+         7: return
+      LineNumberTable:
+        line 30: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       8     0 method   Ljava/lang/String;
+
+  public static void hit(java.lang.String, java.lang.String);
+    descriptor: (Ljava/lang/String;Ljava/lang/String;)V
+    Code:
+         0: aload_0
+         1: aload_1
+         2: aconst_null
+         3: invokestatic  #9                  // Method hit:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)V
+         6: return
+      LineNumberTable:
+        line 31: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       7     0 method   Ljava/lang/String;
+            0       7     1 phase   Ljava/lang/String;
+
+  public static void hit(java.lang.String, java.lang.String, java.lang.Object);
+    descriptor: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)V
+    Code:
+         0: getstatic     #15                 // Field history:Ljava/util/List;
+         3: invokeinterface #19,  1           // InterfaceMethod java/util/List.size:()I
+         8: ldc           #25                 // int 65536
+        10: if_icmplt     23
+        13: new           #26                 // class java/lang/IllegalStateException
+        16: dup
+        17: ldc           #28                 // String host probe event bound
+        19: invokespecial #30                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        22: athrow
+        23: getstatic     #33                 // Field WALKER:Ljava/lang/StackWalker;
+        26: invokedynamic #37,  0             // InvokeDynamic #0:apply:()Ljava/util/function/Function;
+        31: invokevirtual #41                 // Method java/lang/StackWalker.walk:(Ljava/util/function/Function;)Ljava/lang/Object;
+        34: checkcast     #20                 // class java/util/List
+        37: astore_3
+        38: getstatic     #15                 // Field history:Ljava/util/List;
+        41: new           #47                 // class dev/mixer/android/ConcreteHostProbe$Event
+        44: dup
+        45: aload_0
+        46: aload_1
+        47: aload_2
+        48: aload_3
+        49: invokespecial #49                 // Method dev/mixer/android/ConcreteHostProbe$Event."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;Ljava/util/List;)V
+        52: invokeinterface #52,  2           // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+        57: pop
+        58: aload_0
+        59: aload_1
+        60: invokedynamic #56,  0             // InvokeDynamic #1:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+        65: astore        4
+        67: getstatic     #60                 // Field counts:Ljava/util/Map;
+        70: aload         4
+        72: invokeinterface #64,  2           // InterfaceMethod java/util/Map.containsKey:(Ljava/lang/Object;)Z
+        77: ifne          104
+        80: getstatic     #60                 // Field counts:Ljava/util/Map;
+        83: invokeinterface #69,  1           // InterfaceMethod java/util/Map.size:()I
+        88: sipush        4096
+        91: if_icmplt     104
+        94: new           #26                 // class java/lang/IllegalStateException
+        97: dup
+        98: ldc           #70                 // String host probe method bound
+       100: invokespecial #30                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+       103: athrow
+       104: getstatic     #60                 // Field counts:Ljava/util/Map;
+       107: aload         4
+       109: getstatic     #60                 // Field counts:Ljava/util/Map;
+       112: aload         4
+       114: iconst_0
+       115: invokestatic  #72                 // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+       118: invokeinterface #78,  3           // InterfaceMethod java/util/Map.getOrDefault:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       123: checkcast     #73                 // class java/lang/Integer
+       126: invokevirtual #82                 // Method java/lang/Integer.intValue:()I
+       129: iconst_1
+       130: iadd
+       131: invokestatic  #72                 // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+       134: invokeinterface #85,  3           // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       139: pop
+       140: getstatic     #88                 // Field hook:Ljava/util/function/BiConsumer;
+       143: astore        5
+       145: aload         5
+       147: ifnull        159
+       150: aload         5
+       152: aload_0
+       153: aload_1
+       154: invokeinterface #92,  3           // InterfaceMethod java/util/function/BiConsumer.accept:(Ljava/lang/Object;Ljava/lang/Object;)V
+       159: return
+      LineNumberTable:
+        line 33: 0
+        line 34: 23
+        line 36: 38
+        line 37: 67
+        line 38: 104
+        line 39: 140
+        line 40: 159
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0     160     0 method   Ljava/lang/String;
+            0     160     1 phase   Ljava/lang/String;
+            0     160     2 receiver   Ljava/lang/Object;
+           38     122     3 sites   Ljava/util/List;
+           67      93     4   key   Ljava/lang/String;
+          145      15     5 callback   Ljava/util/function/BiConsumer;
+
+  private static boolean production(java.lang.String);
+    descriptor: (Ljava/lang/String;)Z
+    Code:
+         0: aload_0
+         1: ldc           #98                 // String dev.mixer.android.
+         3: invokevirtual #100                // Method java/lang/String.startsWith:(Ljava/lang/String;)Z
+         6: ifne          11
+         9: iconst_0
+        10: ireturn
+        11: aload_0
+        12: ldc           #98                 // String dev.mixer.android.
+        14: invokevirtual #106                // Method java/lang/String.length:()I
+        17: invokevirtual #109                // Method java/lang/String.substring:(I)Ljava/lang/String;
+        20: ldc           #113                // String \\$
+        22: iconst_2
+        23: invokevirtual #115                // Method java/lang/String.split:(Ljava/lang/String;I)[Ljava/lang/String;
+        26: iconst_0
+        27: aaload
+        28: astore_1
+        29: aload_1
+        30: astore_2
+        31: iconst_m1
+        32: istore_3
+        33: aload_2
+        34: invokevirtual #119                // Method java/lang/String.hashCode:()I
+        37: lookupswitch  { // 14
+             -1931955590: 244
+             -1424096017: 289
+             -1285285133: 174
+             -1248016136: 216
+             -1212638120: 160
+             -1103401892: 259
+             -1095058918: 202
+              -974061867: 188
+               -97354554: 319
+                 2318600: 274
+               775128527: 334
+               999439631: 230
+              1646080648: 349
+              1706122802: 304
+                 default: 361
+            }
+       160: aload_2
+       161: ldc           #122                // String NativeOwnerV2
+       163: invokevirtual #124                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       166: ifeq          361
+       169: iconst_0
+       170: istore_3
+       171: goto          361
+       174: aload_2
+       175: ldc           #127                // String OwnerLifecycleV2
+       177: invokevirtual #124                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       180: ifeq          361
+       183: iconst_1
+       184: istore_3
+       185: goto          361
+       188: aload_2
+       189: ldc           #129                // String NativeCoordinatorV2
+       191: invokevirtual #124                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       194: ifeq          361
+       197: iconst_2
+       198: istore_3
+       199: goto          361
+       202: aload_2
+       203: ldc           #131                // String NativeRenderer
+       205: invokevirtual #124                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       208: ifeq          361
+       211: iconst_3
+       212: istore_3
+       213: goto          361
+       216: aload_2
+       217: ldc           #133                // String NativeEnvironmentV2
+       219: invokevirtual #124                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       222: ifeq          361
+       225: iconst_4
+       226: istore_3
+       227: goto          361
+       230: aload_2
+       231: ldc           #135                // String NativeAppearanceViewsV2
+       233: invokevirtual #124                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       236: ifeq          361
+       239: iconst_5
+       240: istore_3
+       241: goto          361
+       244: aload_2
+       245: ldc           #137                // String InstalledAppearanceV2
+       247: invokevirtual #124                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       250: ifeq          361
+       253: bipush        6
+       255: istore_3
+       256: goto          361
+       259: aload_2
+       260: ldc           #139                // String UiPacket
+       262: invokevirtual #124                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       265: ifeq          361
+       268: bipush        7
+       270: istore_3
+       271: goto          361
+       274: aload_2
+       275: ldc           #141                // String Json
+       277: invokevirtual #124                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       280: ifeq          361
+       283: bipush        8
+       285: istore_3
+       286: goto          361
+       289: aload_2
+       290: ldc           #143                // String AppearanceDescriptorV2
+       292: invokevirtual #124                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       295: ifeq          361
+       298: bipush        9
+       300: istore_3
+       301: goto          361
+       304: aload_2
+       305: ldc           #145                // String AppearanceGeometryV2
+       307: invokevirtual #124                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       310: ifeq          361
+       313: bipush        10
+       315: istore_3
+       316: goto          361
+       319: aload_2
+       320: ldc           #147                // String AppearanceResolverV2
+       322: invokevirtual #124                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       325: ifeq          361
+       328: bipush        11
+       330: istore_3
+       331: goto          361
+       334: aload_2
+       335: ldc           #149                // String AppearanceNativePathsV2
+       337: invokevirtual #124                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       340: ifeq          361
+       343: bipush        12
+       345: istore_3
+       346: goto          361
+       349: aload_2
+       350: ldc           #151                // String AuthoredToggleInputV2
+       352: invokevirtual #124                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       355: ifeq          361
+       358: bipush        13
+       360: istore_3
+       361: iload_3
+       362: tableswitch   { // 0 to 13
+                       0: 432
+                       1: 432
+                       2: 432
+                       3: 432
+                       4: 432
+                       5: 432
+                       6: 432
+                       7: 432
+                       8: 432
+                       9: 432
+                      10: 432
+                      11: 432
+                      12: 432
+                      13: 432
+                 default: 436
+            }
+       432: iconst_1
+       433: goto          437
+       436: iconst_0
+       437: ireturn
+      LineNumberTable:
+        line 42: 0
+        line 43: 11
+        line 44: 29
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0     438     0  name   Ljava/lang/String;
+           29     409     1 simple   Ljava/lang/String;
+
+  public static java.util.List<dev.mixer.android.ConcreteHostProbe$Event> events();
+    descriptor: ()Ljava/util/List;
+    Code:
+         0: new           #153                // class java/util/ArrayList
+         3: dup
+         4: getstatic     #15                 // Field history:Ljava/util/List;
+         7: invokespecial #155                // Method java/util/ArrayList."<init>":(Ljava/util/Collection;)V
+        10: invokestatic  #158                // Method java/util/Collections.unmodifiableList:(Ljava/util/List;)Ljava/util/List;
+        13: areturn
+      LineNumberTable:
+        line 46: 0
+
+  public static dev.mixer.android.ConcreteHostProbe$Event lastEvent();
+    descriptor: ()Ldev/mixer/android/ConcreteHostProbe$Event;
+    Code:
+         0: getstatic     #15                 // Field history:Ljava/util/List;
+         3: invokeinterface #164,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+         8: ifeq          15
+        11: aconst_null
+        12: goto          36
+        15: getstatic     #15                 // Field history:Ljava/util/List;
+        18: getstatic     #15                 // Field history:Ljava/util/List;
+        21: invokeinterface #19,  1           // InterfaceMethod java/util/List.size:()I
+        26: iconst_1
+        27: isub
+        28: invokeinterface #168,  2          // InterfaceMethod java/util/List.get:(I)Ljava/lang/Object;
+        33: checkcast     #47                 // class dev/mixer/android/ConcreteHostProbe$Event
+        36: areturn
+      LineNumberTable:
+        line 47: 0
+
+  public static int count(java.lang.String, java.lang.String);
+    descriptor: (Ljava/lang/String;Ljava/lang/String;)I
+    Code:
+         0: getstatic     #60                 // Field counts:Ljava/util/Map;
+         3: aload_0
+         4: aload_1
+         5: invokedynamic #56,  0             // InvokeDynamic #1:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+        10: iconst_0
+        11: invokestatic  #72                 // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+        14: invokeinterface #78,  3           // InterfaceMethod java/util/Map.getOrDefault:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        19: checkcast     #73                 // class java/lang/Integer
+        22: invokevirtual #82                 // Method java/lang/Integer.intValue:()I
+        25: ireturn
+      LineNumberTable:
+        line 48: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      26     0 method   Ljava/lang/String;
+            0      26     1 phase   Ljava/lang/String;
+
+  public static void reset();
+    descriptor: ()V
+    Code:
+         0: aconst_null
+         1: putstatic     #88                 // Field hook:Ljava/util/function/BiConsumer;
+         4: getstatic     #15                 // Field history:Ljava/util/List;
+         7: invokeinterface #172,  1          // InterfaceMethod java/util/List.clear:()V
+        12: getstatic     #60                 // Field counts:Ljava/util/Map;
+        15: invokeinterface #175,  1          // InterfaceMethod java/util/Map.clear:()V
+        20: return
+      LineNumberTable:
+        line 49: 0
+
+  public static void fail(java.lang.Throwable);
+    descriptor: (Ljava/lang/Throwable;)V
+    Code:
+         0: aload_0
+         1: instanceof    #176                // class java/lang/Error
+         4: ifeq          14
+         7: aload_0
+         8: checkcast     #176                // class java/lang/Error
+        11: astore_1
+        12: aload_1
+        13: athrow
+        14: aload_0
+        15: instanceof    #178                // class java/lang/RuntimeException
+        18: ifeq          28
+        21: aload_0
+        22: checkcast     #178                // class java/lang/RuntimeException
+        25: astore_1
+        26: aload_1
+        27: athrow
+        28: aload_0
+        29: ifnull        43
+        32: new           #180                // class java/lang/IllegalArgumentException
+        35: dup
+        36: ldc           #182                // String host failure must be unchecked
+        38: aload_0
+        39: invokespecial #184                // Method java/lang/IllegalArgumentException."<init>":(Ljava/lang/String;Ljava/lang/Throwable;)V
+        42: athrow
+        43: return
+      LineNumberTable:
+        line 50: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+           12       2     1 error   Ljava/lang/Error;
+           26       2     1 runtime   Ljava/lang/RuntimeException;
+            0      44     0 failure   Ljava/lang/Throwable;
+
+  private static java.util.List lambda$hit$0(java.util.stream.Stream);
+    descriptor: (Ljava/util/stream/Stream;)Ljava/util/List;
+    Code:
+         0: aload_0
+         1: invokedynamic #187,  0            // InvokeDynamic #2:test:()Ljava/util/function/Predicate;
+         6: invokeinterface #191,  2          // InterfaceMethod java/util/stream/Stream.filter:(Ljava/util/function/Predicate;)Ljava/util/stream/Stream;
+        11: ldc2_w        #197                // long 24l
+        14: invokeinterface #199,  3          // InterfaceMethod java/util/stream/Stream.limit:(J)Ljava/util/stream/Stream;
+        19: invokedynamic #203,  0            // InvokeDynamic #3:apply:()Ljava/util/function/Function;
+        24: invokeinterface #204,  2          // InterfaceMethod java/util/stream/Stream.map:(Ljava/util/function/Function;)Ljava/util/stream/Stream;
+        29: invokeinterface #208,  1          // InterfaceMethod java/util/stream/Stream.toList:()Ljava/util/List;
+        34: areturn
+      LineNumberTable:
+        line 34: 0
+        line 35: 24
+        line 34: 34
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      35     0 frames   Ljava/util/stream/Stream;
+
+  private static dev.mixer.android.ConcreteHostProbe$Site lambda$hit$2(java.lang.StackWalker$StackFrame);
+    descriptor: (Ljava/lang/StackWalker$StackFrame;)Ldev/mixer/android/ConcreteHostProbe$Site;
+    Code:
+         0: new           #212                // class dev/mixer/android/ConcreteHostProbe$Site
+         3: dup
+         4: aload_0
+         5: invokeinterface #214,  1          // InterfaceMethod java/lang/StackWalker$StackFrame.getClassName:()Ljava/lang/String;
+        10: aload_0
+        11: invokeinterface #220,  1          // InterfaceMethod java/lang/StackWalker$StackFrame.getMethodName:()Ljava/lang/String;
+        16: aload_0
+        17: invokeinterface #223,  1          // InterfaceMethod java/lang/StackWalker$StackFrame.getDescriptor:()Ljava/lang/String;
+        22: aload_0
+        23: invokeinterface #226,  1          // InterfaceMethod java/lang/StackWalker$StackFrame.getByteCodeIndex:()I
+        28: aload_0
+        29: invokeinterface #229,  1          // InterfaceMethod java/lang/StackWalker$StackFrame.getLineNumber:()I
+        34: invokespecial #232                // Method dev/mixer/android/ConcreteHostProbe$Site."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V
+        37: areturn
+      LineNumberTable:
+        line 35: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      38     0 frame   Ljava/lang/StackWalker$StackFrame;
+
+  private static boolean lambda$hit$1(java.lang.StackWalker$StackFrame);
+    descriptor: (Ljava/lang/StackWalker$StackFrame;)Z
+    Code:
+         0: aload_0
+         1: invokeinterface #214,  1          // InterfaceMethod java/lang/StackWalker$StackFrame.getClassName:()Ljava/lang/String;
+         6: invokestatic  #235                // Method production:(Ljava/lang/String;)Z
+         9: ireturn
+      LineNumberTable:
+        line 34: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      10     0 frame   Ljava/lang/StackWalker$StackFrame;
+
+  static {};
+    descriptor: ()V
+    Code:
+         0: new           #153                // class java/util/ArrayList
+         3: dup
+         4: invokespecial #238                // Method java/util/ArrayList."<init>":()V
+         7: putstatic     #15                 // Field history:Ljava/util/List;
+        10: new           #239                // class java/util/LinkedHashMap
+        13: dup
+        14: invokespecial #241                // Method java/util/LinkedHashMap."<init>":()V
+        17: putstatic     #60                 // Field counts:Ljava/util/Map;
+        20: invokestatic  #242                // Method java/lang/StackWalker.getInstance:()Ljava/lang/StackWalker;
+        23: putstatic     #33                 // Field WALKER:Ljava/lang/StackWalker;
+        26: return
+      LineNumberTable:
+        line 27: 0
+        line 28: 10
+        line 29: 20
+}

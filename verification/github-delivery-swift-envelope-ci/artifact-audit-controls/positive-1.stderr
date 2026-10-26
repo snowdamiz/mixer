@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/github-delivery-swift-envelope-ci/audit_envelope_artifact.py", line 150, in <module>
+    print(json.dumps(audit(args.artifact, args.head, args.tree, args.release), indent=2))
+                     ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/github-delivery-swift-envelope-ci/audit_envelope_artifact.py", line 97, in audit
+    read_json(base / "pack/inventories/expected-layouts.json"))
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/github-delivery-swift-envelope-ci/audit_envelope_artifact.py", line 29, in read_json
+    return json.loads(path.read_bytes(), object_pairs_hook=strict_object)
+                      ~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 777, in read_bytes
+    with self.open(mode='rb', buffering=0) as f:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 771, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/andreyyurlov/Documents/dev/mixer/verification/swift-envelope-ci-runner-correction/host-run-1/pack/inventories/expected-layouts.json'

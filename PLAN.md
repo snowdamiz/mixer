@@ -60,7 +60,8 @@ Generated Android source-export repair `99d63843` passes all 40 steps across thr
 Default appearance packaging `55985881` passes all 40 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40256207023).
 Copied SDK/source-pair compatibility `1f114d8f` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40263504027) passed all 3 jobs and 40 steps.
 Android host lifecycle core `4e48ac1a` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40267720327) passed all 3 jobs and 40 steps. The new Java suite has local host evidence and is not wired into this existing workflow.
-Android observer/source-profile repair `b45963c0` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40272428143) is in progress; VM and services passed, Swift remains running.
+Android observer/source-profile repair `b45963c0` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40272428143) passed VM/services, but Swift was cancelled at the 30-minute job limit in the existing capability step. Logs remain unavailable; the runner-capacity notice does not establish the stall cause.
+Standalone Swift fixture-envelope CI `0b8e3fd8` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40273904826) passes all 42 steps across three jobs after one bounded Swift-only rerun. Actual Rust 1.98.1 envelope qualification is verified against all 252 artifact members. The first Swift attempt timed out at checkout and remains preserved separately.
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
 
@@ -149,8 +150,10 @@ The full plan remains incomplete; no GA gate is promoted.
    Both parser corrections pass 32 normal/optimized controls and a fresh complete
    host qualification. Independent review passes 346 parser cases per mode, two
    separate actual blocker refusals and 39 response refusals; root accepts the
-   corrected runner and wires the narrow CI step. Delivery and actual Rust 1.98.1
-   CI qualification remain pending. See the
+   corrected runner and wires the narrow CI step. The pushed change now passes its
+   complete envelope closure on actual Rust 1.98.1: 92 methods, nine API controls,
+   32 layouts and 21,714 comparisons, with all 252 artifact members audited. See
+   [the compiler qualification](verification/github-delivery-swift-envelope-ci/ci-1.98.1-qualification.json), the
    [bounded acceptance](verification/swift-ordered-retention-analyzer-envelope-root-review/absence-implementation-acceptance.json) and
    [selected numeric contract](verification/swift-ordered-retention-analyzer-envelope-root-review/correction-numeric-contract-selection.json).
    Existing framing behavior, ABI and report remain fixed. Semantic replay, real adapters,
@@ -167,6 +170,11 @@ The full plan remains incomplete; no GA gate is promoted.
    [the finite rejection](docs/swift-cost-retention-candidate-review.md),
    [the rejected result](docs/swift-retention-runtime.md) and
    [the integration](docs/swift-decode-plan-integration.md).
+   The fixture cache-state source contract and terminal correction are accepted
+   after independent review; root verified 651 combined members. Independent raw
+   File fixtures and a sorted-victim oracle are being prepared before Rust source
+   implementation. Contract-model checks are not product tests. Source/work,
+   memory, caller and lifetime proofs remain mandatory within unchanged caps.
 2. **iOS shared UI:** the supplemental source and corrected frozen V7 host join
    pass independent review. Fresh generic simulator builds of both app and runner
    are accepted. A sealed host-only V8 runtime packet passes sixteen controls and
@@ -222,6 +230,18 @@ The full plan remains incomplete; no GA gate is promoted.
    [the packaging review](verification/android-default-appearance-packaging-implementation-review/final-review.md).
    Private native input acceptance is not complete public routing, TalkBack,
    compositor/resource coverage or final design parity.
+   The private owner integration contract and roster amendment are accepted after
+   independent review; all 28 source obligations are coherent. Implementation is
+   selected with both host closures required: fourteen actual product subjects,
+   184 V2 callback barriers and five unchanged V1 positive baselines. Root verified
+   303 sealed members. Product tests and independent implementation review remain
+   pending. Profile3 is selected; exact hashes require the final frozen source map.
+   The reviewed clarification distinguishes lifecycle invalidation that can finish
+   and queue a drain from concrete stale-capture validation that fails closed.
+   Completed native input results never grant a stale scope further authority.
+   The exact third mechanical leaf snapshot passes twelve independent controls
+   and 82 assertions; actual product integration qualification remains pending.
+   Public V2 routing remains unselected.
 5. **Hosted product and console:** continue ordinary customer authorization,
    durable domain/job integration, connected console workflows and provider
    qualification through the dependency graph. The new bearer identity Plug

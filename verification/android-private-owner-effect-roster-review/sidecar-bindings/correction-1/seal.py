@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+"""Seal/check only this versioned correction; preserve original sealed members."""
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+BASE = Path(__file__).resolve().parent
+ROOT = BASE.parents[2]
+DOC = ROOT / "docs/android-private-owner-effect-integration-correction.md"
+
+
+def ident(path):
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def main():
+    assert len(sys.argv) == 2 and sys.argv[1] in ("seal", "check")
+    manifest_path = BASE / "manifest.json"
+    handoff = BASE / "handoff.sha256"
+    if sys.argv[1] == "seal":
+        assert not manifest_path.exists() and not handoff.exists(), "do not replace a seal"
+        result = json.loads((BASE / "source-only-result.json").read_text())
+        assert result["failed"] == 0 and result["product_tests_run"] is False
+        assert (BASE / "capture.stderr").read_bytes() == b""
+        assert (BASE / "verify.stderr").read_bytes() == b""
+        paths = [DOC] + [p for p in BASE.rglob("*") if p.is_file()]
+        assert all(not p.is_symlink() for p in paths)
+        manifest = {"schema": 1, "scope": "source-only-contract-correction-1-unselected",
+                    "command": [sys.executable, "-B", str(Path(__file__).resolve()), "seal"],
+                    "python_version": sys.version,
+                    "files": {str(p.relative_to(ROOT)): ident(p) for p in sorted(paths)}}
+        manifest["members"] = len(manifest["files"])
+        manifest["bytes"] = sum(v["bytes"] for v in manifest["files"].values())
+        manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+        handoff.write_text(ident(manifest_path)["sha256"] + "  manifest.json\n")
+    manifest = json.loads(manifest_path.read_text())
+    assert ident(manifest_path)["sha256"] == handoff.read_text().split()[0]
+    observed = {str(p.relative_to(ROOT)) for p in BASE.rglob("*")
+                if p.is_file() and p not in (manifest_path, handoff)} | {str(DOC.relative_to(ROOT))}
+    assert observed == set(manifest["files"]), "correction member closure"
+    for name, expected in manifest["files"].items():
+        path = ROOT / name
+        assert not path.is_symlink() and ident(path) == expected, name
+    print(json.dumps({"scope": manifest["scope"], "members": manifest["members"],
+                      "bytes": manifest["bytes"], "manifest_sha256": ident(manifest_path)["sha256"],
+                      "errors": []}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

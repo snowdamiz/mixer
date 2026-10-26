@@ -1,0 +1,145 @@
+{
+  "candidate_access_authorized": false,
+  "candidate_opened_or_hashed": false,
+  "hosted_harness_or_hosted_code_read_import_execute_allowed": false,
+  "implementation_profile_metadata_CI_commit_changes_allowed": false,
+  "native_runtime_UI_capture_phones_allowed": false,
+  "not_outcomes": [
+    "implementation acceptance",
+    "native acceptance",
+    "OTA authorization",
+    "GA qualification"
+  ],
+  "obligations": [
+    {
+      "id": "C1.1",
+      "obligation": "Name an owner-callable coordinator input-cancellation method that reaches the actual renderer while an operation is active. It must not use the normal operation-entry or idle-disposal path. Ordinary input, engine create/prepare/commit/abort/destroy, renderer disposal and transaction completion are forbidden in this bridge."
+    },
+    {
+      "id": "C1.2",
+      "obligation": "State that shared terminal/draw/input authority and actual current/pending gate flags close before any cancellation callback, native setter, core allocation, queue removal or cleanup. Terminal sealing sets terminal first; dirty sealing must not terminally retire a healthy lifetime. The scalar barrier has no callback, allocation, collection walk or sink dispatch."
+    },
+    {
+      "id": "C1.3",
+      "obligation": "Freeze the bounded record roster being cancelled and when that roster becomes owned. Account for current records, pending targets/detached records, shared identities and a candidate under preparation before publication. A fixed-roster claim cannot mean a mutable live collection that reentry replaces, an unbounded history, or a list constructed after a fatal allocation failure. State which prepublication records can own active input and why excluded records cannot."
+    },
+    {
+      "id": "C1.4",
+      "obligation": "Publish in-progress/claimed/consumed ownership before callbacks. Reentrant dirty or terminal notifications cannot recursively traverse the same roster, restart consumed cancellation or skip independently owned resources. State how an invalidation during cancellation remains dirty and receives at most one later drain. If counters/generations are introduced, exhaustion fails closed before wrap; do not invent accepted core tokens or require a new counter when flags suffice."
+    },
+    {
+      "id": "C1.5",
+      "obligation": "Retain attempted/returned/failed/deferred/uncertain outcomes and first ordinary failure plus first fatal Error in bounded preallocated diagnostics. Attempt remaining owned cancellation positions after a failure. Fatal discovery cannot depend on allocating suppression-graph traversal. Ordinary cancellation failure terminally retires the lifetime; fatal Error escapes after independent cleanup attempts. Keep toggle cancellation distinct from Handler CANCEL_QUEUED."
+    },
+    {
+      "id": "C1.6",
+      "obligation": "No early native disposal: active operations may receive scalar sealing/cancellation, while coordinator renderer/session disposition waits for actual operation return. Late-acquired handles/coordinators are accounted for once; a never-returned operation remains explicitly pending. A shared opening/adopted coordinator identity must not receive duplicate dispositions. Internally retired coordinator outcomes must be borrowed rather than repeated."
+    },
+    {
+      "id": "C1.7",
+      "obligation": "Require future executable actual-subject controls for first/middle/last cancellation positions, ordinary then fatal failure, combined independent cleanup failures, reentry at setter/parent callbacks, exhausted introduced counters, stale callbacks, late acquisition and never-returned pending state. Actual flags are observed before callback bodies; a scripted renderer leaf cannot prove concrete flags."
+    },
+    {
+      "id": "C2.1",
+      "obligation": "Freeze one explicit renderer terminal-report method through the exact bound Observer and its sole owner Sink. State the signature, exact renderer identity check and change/cause representation; ordinary invalidate is insufficient. No second readiness listener owner or production bypass may be added."
+    },
+    {
+      "id": "C2.2",
+      "obligation": "Renderer scalar authority closes before terminal report dispatch. Observer retirement/publication occurs before owner Sink callbacks/removal callbacks. Define first ordinary and first fatal cause retention across renderer, observer, coordinator and outer cleanup diagnostics. Correctly retain the concrete cause even when core.close(lifetime) records only CLOSED."
+    },
+    {
+      "id": "C2.3",
+      "obligation": "Real interaction exhaustion, committed capture failure, failed rollback and fatal concrete current/capture checks all have a route to terminal outer/core state. A draw/input predicate throwing Error must not leave the core LIVE or merely dirty. Preserve exact lifetime/coordinator identity and unchanged accepted core behavior; do not manufacture more specific core terminal reasons."
+    },
+    {
+      "id": "C2.4",
+      "obligation": "Main-thread enforcement occurs before stale/repeated guards. A foreign reporter cannot mutate the bound lifetime. Retired, repeated, delayed and cleanup-reentered terminal reports are inert after the check, while already retained failures remain observable. State any ordinary-vs-fatal return/throw behavior explicitly."
+    },
+    {
+      "id": "C2.5",
+      "obligation": "No report, Sink, core call, cleanup, capture, callback predicate, allocation helper or native mutation is added to successful engine commit -> renderer finish. Direct trusted scalar/reference checks remain permitted. Any failure reporting occurs on the failure path outside that interval."
+    },
+    {
+      "id": "C2.6",
+      "obligation": "Require future executable production renderer + real observer/owner route controls for exact/foreign identity, repeated/stale reports, ordinary then fatal failures, callback reentry and each real retirement family. Assertions observe terminal core state, exact cause/fatal, sealed current/pending gates, inert new input/drains and exactly one eventual/deferred disposition."
+    },
+    {
+      "id": "C3.1",
+      "obligation": "The actual selected NativeRenderer and actual NativeAppearanceViewsV2 methods are mandatory executable host subjects, together with the needed actual observer/owner/core/coordinator route. Only an explicit finite Android/JNI leaf list is substituted for those concrete renderer/native-view controls. Name each real subject and substituted leaf; a renderer-shaped double, translated model, source scan or compile-only closure cannot satisfy this obligation."
+    },
+    {
+      "id": "C3.2",
+      "obligation": "Keep the owner/core/coordinator/observer join's separately scoped renderer/JNI leaves truthful. Assertions about its decision/engine ordering must not be presented as concrete Gate/Input/Record behavior. Full pinned-SDK Java/D8 and ordinary app-owned Swift/JNI cross-compilation remain additional checks, not behavioral proof."
+    },
+    {
+      "id": "C3.3",
+      "obligation": "Freeze all prepublication constructor/default paths, nested hierarchy additions, Record.bind, text/title helpers, installChildren, root/group/title layout, attach, restore/rollback and candidate/precommit checks. Direct nonterminal/exact-operation authority must be rechecked after each callback-capable setter and before the next transaction mutation, including a callback before a native constructor/helper returns."
+    },
+    {
+      "id": "C3.4",
+      "obligation": "Include NativeSwitch setEnabled/setFrame and other overrides where cancellation callbacks precede superclass mutation, plus scroll-driven navigation relayout. Valid ordinary native callbacks outside a transaction use current clean live presentation/lifetime authority; they cannot universally require a non-null operation token or silently disable legitimate scrolling/focus/paint. Callback reentry that seals the lifetime must stop the next forbidden mutation."
+    },
+    {
+      "id": "C3.5",
+      "obligation": "Exercise actual scalar current/pending Gate flags, Gate draw/touch/key checks, Input current-record/enabled/attached/shown/focus/capture/toggle checks, sealed new IME refusal before superclass acquisition, retained IME edit rejection, accessibility and native input routing. Include both corrected cancellation/report seams."
+    },
+    {
+      "id": "C3.6",
+      "obligation": "Require closed leaf hooks to inject terminal/dirty/ordinary/fatal reentry at the named boundaries and observe actual flags before callback work. Preserve existing exact installed/capture/current-record/interaction/journal validation and fail-closed unsupported native operations. Source/bytecode guards only supplement behavior and do not prove platform framework or JNI purity."
+    },
+    {
+      "id": "P1",
+      "obligation": "Actual root window focus must seed/update unchanged core.focusChanged; reading focus into WindowFacts is insufficient because that record has no focus field. Freeze start/registration callback/drain/lifecycle/observer entry mapping. Foreground and focus govern input; positive geometry/insets/attachment govern readiness."
+    },
+    {
+      "id": "P2",
+      "obligation": "Every entry, including stale deliveries, repeated close/report/cancel and foreign identities, checks actual main Looper before state. Scalar trusted internal reads are explicitly separated from callback-capable thread-check abstractions."
+    },
+    {
+      "id": "P3",
+      "obligation": "Observer is allocated/stored before one-shot register, with all callback fields initialized before first add. Preserve accepted eight acquisition/removal slots, exact targets, before-add claims, partial/reentrant acquisition unwind, deferred unregister completion while registering, generation exhaustion and one-shot exact renderer binding."
+    },
+    {
+      "id": "P4",
+      "obligation": "Coordinator construction is inert allocation/binding; the owner holds its identity before renderInitial session acquisition. Same shared fence and exact accepted core operation token reach coordinator and Candidate. Completion uses exact operation/coordinator after finish and active-operation finally; terminal/OOM paths retain independent bookkeeping without fabricated tokens."
+    },
+    {
+      "id": "P5",
+      "obligation": "Move the one accepted unchanged core source into export exactly once; no second canonical core. Preserve exact Window/token identity, fresh readiness probes, no polling, per-token owned Handler runnable and stale slot protection, false/throwing post terminal behavior, effect recheck after reentry and no input buffering/replay."
+    },
+    {
+      "id": "P6",
+      "obligation": "Refresh uses the coordinator's exact retained packet reference/bytes with zero engine create/prepare/commit/abort/dispatch/effects and no Swift revision advance. Synchronous tuple mismatch seals then dirties through the bound observer. Dirty during opening/input/refresh/cancellation stays dirty and yields at most one later owned drain."
+    },
+    {
+      "id": "P7",
+      "obligation": "Public MixerActivity remains V1, with separate padding inset ownership. Private caller/instrumentation migrates coherently to owner readiness/lifecycle/input. Renderer-only fixtures use the real core for tokens and distinct dedicated roots with sole inset setters; replacements/finally retain explicit cleanup."
+    },
+    {
+      "id": "P8",
+      "obligation": "Root alone selects future fixed source-profile literals against frozen candidate bytes; one compiled authority projects into the rendered driver. Preserve 22 SDK/default descriptor/wire identities unless an explicitly reviewed change is selected. Reject old/edited/recomputed locks without silent refresh; adding owner/moved core changes the adapter closure coherently."
+    },
+    {
+      "id": "P9",
+      "obligation": "Newly unrun native checks remain pending under the pause; do not reopen instances or ask for phones. Host/source/compile evidence cannot imply physical Android/iOS, public V2, API28-35 support, OTA authorization, resource reclamation, immutable published separate-repository FieldLog, signing/store or accountable GA qualification."
+    }
+  ],
+  "phases": [
+    "wait for root exact frozen seal and access authorization",
+    "independent finite manifest custody check and input snapshots",
+    "read exact corrected contract and map every obligation to lines",
+    "check preserved contract and scope boundaries",
+    "selection-ready-contract or needs-contract-correction report"
+  ],
+  "possible_outcomes": [
+    "selection-ready-contract",
+    "needs-contract-correction"
+  ],
+  "product_tests_or_candidate_helpers_allowed": false,
+  "review_document_snapshot": {
+    "bytes": 14525,
+    "sha256": "cd92249b7b53a682659f38c6fb0ac13abf79cb3e8816deeffe18bbfaf446b467"
+  },
+  "schema": 1,
+  "status": "preaccess-plan-frozen-awaiting-root-candidate-seal"
+}

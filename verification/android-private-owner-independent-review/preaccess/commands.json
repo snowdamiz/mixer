@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "scope": "preaccess design only",
+  "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+  "now": [
+    {
+      "id": "generate",
+      "argv": [
+        "python3",
+        "-B",
+        "verification/android-private-owner-independent-review/preaccess/generate_design.py"
+      ]
+    },
+    {
+      "id": "check-design",
+      "argv": [
+        "python3",
+        "-B",
+        "verification/android-private-owner-independent-review/preaccess/verify_design.py"
+      ]
+    },
+    {
+      "id": "seal",
+      "argv": [
+        "python3",
+        "-B",
+        "verification/android-private-owner-independent-review/preaccess/seal_preaccess.py",
+        "--seal"
+      ]
+    },
+    {
+      "id": "verify-seal",
+      "argv": [
+        "python3",
+        "-B",
+        "verification/android-private-owner-independent-review/preaccess/seal_preaccess.py",
+        "--check"
+      ]
+    }
+  ],
+  "candidate_gate": "no future command runnable until root admission and literal argv/source-list/tool digest candidate addendum",
+  "future_templates": [
+    {
+      "id": "compile",
+      "argv": [
+        "<admitted-official-javac>",
+        "--release",
+        "17",
+        "-g",
+        "-Xlint:all",
+        "-Werror",
+        "-proc:none",
+        "-classpath",
+        "<owned-empty-directory>",
+        "-sourcepath",
+        "<owned-empty-directory>",
+        "-d",
+        "<owned-classes-directory>",
+        "@<explicit-admitted-source-list>"
+      ]
+    },
+    {
+      "id": "bytecode",
+      "argv": [
+        "<same-official-javap>",
+        "-c",
+        "-p",
+        "-l",
+        "-s",
+        "-classpath",
+        "<owned-classes-directory>",
+        "<explicit-actual-class>"
+      ]
+    },
+    {
+      "id": "host-run",
+      "argv": [
+        "<same-official-java>",
+        "-Xms16m",
+        "-Xmx256m",
+        "-Xss512k",
+        "-XX:ActiveProcessorCount=2",
+        "-cp",
+        "<owned-classes-directory>",
+        "<independent-review-test-main>"
+      ]
+    }
+  ],
+  "env_remove": [
+    "JAVA_TOOL_OPTIONS",
+    "_JAVA_OPTIONS",
+    "JDK_JAVA_OPTIONS",
+    "CLASSPATH"
+  ],
+  "limits": {
+    "concurrent_children": 1,
+    "wall_seconds": 120,
+    "stdout_bytes": 2097152,
+    "stderr_bytes": 2097152,
+    "java_heap_MiB": 256,
+    "cleanup": "terminate and reap owned child group only; remove exclusive transient scratch; retain all source/evidence/failures"
+  }
+}

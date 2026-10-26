@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "scope": "leaf-only mechanical/noauthority audit",
+  "findings": [
+    {
+      "id": "L1",
+      "leaf_version": 1,
+      "finding": "Retained class/method/line tuple cannot distinguish same-line duplicate target calls",
+      "status": "resolved-for-leaf3-metadata-capability; actual product bindings remain pending",
+      "baseline_examples": [
+        "NativeAppearanceViewsV2:L104:C25:1",
+        "NativeAppearanceViewsV2:L104:C109:3"
+      ],
+      "independent_witness": "synthetic same source line 315; descriptor (Landroid/graphics/Paint;)V; BCIs 3 and 9; not an actual product subject",
+      "candidate_formatting_reviewed": false
+    },
+    {
+      "id": "L2",
+      "leaf_version": 2,
+      "finding": "getDescriptor throws UnsupportedOperationException because default StackWalker lacks RETAIN_CLASS_REFERENCE",
+      "status": "leaf2-rejected-executable; exact leaf3 fix independently passes",
+      "failure_evidence": "results/leaf-2/03-run.stderr",
+      "resolution_evidence": "results/leaf-3/03-run.stdout"
+    }
+  ],
+  "remaining_leaf_only_blockers": [],
+  "recommendation": "root-admit-exact-leaf3-for-bounded-mechanical-test-reuse-with-declared-semantic-limits",
+  "product_or_GA_acceptance": false,
+  "controls": [
+    {
+      "version": 1,
+      "trace": {
+        "traceWitness": true,
+        "syntheticOnly": true,
+        "sameLine": 315,
+        "firstBCI": 3,
+        "secondBCI": 9,
+        "descriptor": "(Landroid/graphics/Paint;)V",
+        "probeRetainsStrongSite": false
+      },
+      "summary": {
+        "scope": "leaf-only sanity; zero product classes",
+        "controls": 12,
+        "assertions": 80,
+        "probeRetainsStrongSite": false,
+        "productTests": 0
+      }
+    },
+    {
+      "version": 3,
+      "trace": {
+        "traceWitness": true,
+        "syntheticOnly": true,
+        "sameLine": 315,
+        "firstBCI": 3,
+        "secondBCI": 9,
+        "descriptor": "(Landroid/graphics/Paint;)V",
+        "probeRetainsStrongSite": true
+      },
+      "summary": {
+        "scope": "leaf-only sanity; zero product classes",
+        "controls": 12,
+        "assertions": 82,
+        "probeRetainsStrongSite": true,
+        "productTests": 0
+      }
+    }
+  ]
+}

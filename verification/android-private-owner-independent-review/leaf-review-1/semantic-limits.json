@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "scope": "Mechanical host substitutes, never Android framework/JNI qualification",
+  "limitations": [
+    {
+      "area": "Main Looper",
+      "facts": "The first thread loading the leaf becomes MAIN_THREAD; hostSetMain can explicitly return MAIN on another host thread.",
+      "required_interpretation": "Tests exercise product comparisons to controlled Looper facts. They do not establish the Android main-thread contract or actual Looper dispatch. Initialize deliberately and disclose host overrides."
+    },
+    {
+      "area": "Handler",
+      "facts": "post enqueues without inline delivery; tests drain an ArrayDeque manually. Ineffective/throwing removal and retained stale Runnable delivery are controllable. The queue itself has no production one-slot policy or time/event-loop semantics.",
+      "required_interpretation": "Assert actual owner slot and exact Runnable identities; Handler.latest is merely the most recently constructed Handler and may be an observer's Handler. Keep test queue/work/time bounds explicit."
+    },
+    {
+      "area": "Listener and readiness facts",
+      "facts": "Eight registration shapes retain exact listener identities; host notification helpers dispatch synchronously. Contrast/high-contrast methods ignore their Executor argument; getMainExecutor is Runnable::run. Default Activity Window/decor/root facts are fixture values.",
+      "required_interpretation": "Use independently chosen concrete facts and exact targets. These leaves do not prove binder/executor ordering, real attachment, window recreation, OS removal success, insets lifetime, or API support."
+    },
+    {
+      "area": "Early virtual entry",
+      "facts": "View construction deliberately calls lifecycle/focus/visibility/RTL/state/frame overrides, and TextView construction calls selection before subclass assignment.",
+      "required_interpretation": "This is an adversarial host shape. It tests actual product guards when later admitted; it is not a claim Android invokes exactly these methods in exactly this order."
+    },
+    {
+      "area": "View hierarchy and input dispatch",
+      "facts": "Parent/attachment/window facts and simple coordinates are mutable. Child touch dispatch is reverse-order with no hit testing or native gesture ownership. Focus is a per-view boolean without exclusive tree focus. Layout calls are synchronous.",
+      "required_interpretation": "Assert actual Mixer work at controlled native boundaries; do not infer real touch routing, gesture arbitration, focus navigation, layout scheduling, accessibility service behavior or physical resource release. Already-entered opaque leaf internals may continue after a callback."
+    },
+    {
+      "area": "Text and IME",
+      "facts": "TextView.hostReplace/setText synchronously invoke before/on/after TextWatcher callbacks. Direct mutation of Editable does not notify TextView watchers. BaseInputConnection ignores newCursorPosition, implements only simple composing spans and has no real batch-edit suppression; generic span shifting is incomplete.",
+      "required_interpretation": "The independent leaf control demonstrates watcher completion before delegate return only. Actual product TextWatcher/owner/renderer successor execution remains mandatory after candidate admission. Do not infer full IME cursor/composition, complex spans, dead keys, selection, session or batch semantics."
+    },
+    {
+      "area": "InputConnection surface",
+      "facts": "The declared host interface is a subset of Android's API. Wrapper methods forward directly to a controlled target; several base methods return a closed-state predicate without implementing real command/content/handwriting semantics. closeConnection reaches the target without its own wrapper-level probe hook.",
+      "required_interpretation": "The product must supply its own retained-connection gating, including every selected mutating forward. The 24-forward leaf control is delegation evidence only. Official pinned-SDK compilation and real native IME tests remain separate."
+    },
+    {
+      "area": "Motion and keys",
+      "facts": "MotionEvent stores one pointer ID/coordinate/tool tuple regardless of requested pointer index, with a simple single-coordinate history. Key Unicode and touch slop are fixture values.",
+      "required_interpretation": "Basic action/index/time and selected single-pointer cases are available. Full multitouch/history mappings, system key behavior and device gesture timing are unqualified."
+    },
+    {
+      "area": "Layout and graphics",
+      "facts": "Layout estimates glyph widths and line heights from simple multipliers; Typeface stores fields. Canvas/Path record primitive operations and transforms without rasterization or clipping. Draw history can retain mutable Path references.",
+      "required_interpretation": "Use raw call effects for authority/reentry tests. No typography shaping, native measurement, pixel/design parity, compositor, GPU, image, accessibility or performance claim follows. Inspect mutable history carefully."
+    },
+    {
+      "area": "Assets and resources",
+      "facts": "AssetManager supplies copied raw bytes through ByteArrayInputStream; missing assets throw FileNotFoundException. Resources/configuration/services are mutable host values. There is no actual Android resource catalog or arbitrary read-fault/lying-stream implementation.",
+      "required_interpretation": "Actual InstalledAppearanceV2/descriptor decoding must consume independent bytes after admission. Additional stream behaviors need explicitly admitted test construction; these leaves cannot manufacture trusted captures."
+    },
+    {
+      "area": "JNI boundary",
+      "facts": "NativeBridge has configurable numeric handles/tokens/statuses, raw packet bytes, counters, one latest input/reference and unchecked failure slots. Candidate performs defensive byte copying. No engine, Swift, effects or revision model runs.",
+      "required_interpretation": "Numeric tokens are opaque JNI test data, never OwnerLifecycleV2.Token authority. Count actual leaf attempts and references, distinguish entry-hook throw from native-body execution, and retain independent packet-decoder oracles. No native session reclamation or Swift/JNI correctness is proved."
+    },
+    {
+      "area": "Probe bounds and site mapping",
+      "facts": "The probe retains at most 65536 events, 4096 method/phase keys and 24 filtered product frames per event; exceeding a bound throws. List/event copies allocate. Callbacks are synchronous and externally selected; nested native leaf calls may produce additional hook events inside one opaque product call.",
+      "required_interpretation": "Bind each actual reached site to compiled source/class hash, descriptor, BCI and source anchor after candidate admission. Baseline same-line ambiguity is not a finding about an unseen candidate. Split bounded witnesses or report pending reachability when limits prevent coverage; never silently drop events. Do not insert hooks or event inspection inside the successful product commit/finish interval."
+    }
+  ],
+  "authority_audit": {
+    "owner_fence_core_token_or_trusted_capture_minted": false,
+    "expected_product_outcome_encoded": false,
+    "product_source_or_test_access": false,
+    "leaf_review_is_product_acceptance": false
+  }
+}
