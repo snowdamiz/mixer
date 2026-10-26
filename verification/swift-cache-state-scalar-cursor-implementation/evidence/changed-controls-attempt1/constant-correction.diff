@@ -1,0 +1,11 @@
+--- attempt1
++++ actual-refusal-status
+@@ -94,7 +94,7 @@
+   };
+   let before=arena.clone();let mut candidate=[0;2048];let decoded=FixtureDecodedRecordV1{words:&record};let loan=Loan{record:&decoded,config:&config};let mut budget=StepBudget{remaining:7680,spent:0};
+   let reply=semantic(&mut arena,&mut candidate,&loan,&progress,&mut budget);
+-  assert_eq!((reply.status,reply.reason,reply.debit),(0,reason,7680));assert_eq!(arena,before);checks+=1;
++  assert_eq!((reply.status,reply.reason,reply.debit),(2,reason,7680));assert_eq!(arena,before);checks+=1;
+  }
+  println!("PRIVATE_ACTUAL_PRE_G5_REFUSALS={checks} PUBLIC_REACHABILITY_CREDIT=0");
+ }

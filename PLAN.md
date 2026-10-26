@@ -76,6 +76,7 @@ Review evidence checkpoint `99f8a0a7` is pushed; [Engine CI](https://github.com/
 Host review evidence `d275c072` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40308561680) passes all 42 steps across three jobs. It preserves candidate4/CLI review and 192 semantic cases; canonical implementation edits remain outside this checkpoint.
 Private Android owner/profile3 integration `fb4c8f07` is pushed. [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40330490396) passes all four jobs and 50 steps after one bounded Swift-only retry. The first Swift attempt exceeded its 30-minute job limit during Android host binding and skipped generated-consumer integration; that failure remains retained. Host/source development acceptance is scoped; native runtime and public V2 remain pending.
 Guarded Android environment/profile4 integration `5583fb2c` is pushed. [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40347513075) passes Android JVM, VM and services; Swift exceeds its 30-minute job limit during the TSan binding phase, so generated-consumer integration is skipped. The independently reviewed two-job Swift partition preserves all 37 existing steps and passes 63 local CI regressions. Repair `a2401148` is pushed. Its [Engine run](https://github.com/snowdamiz/mixer/actions/runs/40354171285) passes all five jobs and 56 steps after one targeted capability retry for the initial zero-step runner-capacity cancellation. Root verifies core/JVM artifacts and all 39 binding cases with 51 retained command logs in each Debug/Release/TSan mode. The original capacity failure and an artifact-checker marker correction remain retained. Private host/source acceptance is scoped; native runtime and public V2 remain pending.
+Evidence checkpoint `811a3172` is pushed with the selected scalar-cursor source proof, Android editor source audits and terminal `a2401148` CI artifacts. Its [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40361869680) passes all five jobs and 56 steps without retry. Root verifies retained core/JVM/capability artifacts against the exact commit; active isolated implementation packets were excluded.
 The full plan remains incomplete; no GA gate is promoted.
 
 ## Current execution
@@ -247,13 +248,14 @@ The full plan remains incomplete; no GA gate is promoted.
    cursor source proof is now selected after root verifies 95 producer/review members.
    Independent conservative G3/G4/G5 bounds are 2508/701/561 within unchanged caps;
    complete G1..G7 total 7048 and whole logical union 29,344 remain within reservations.
-   Isolated Rust host qualification is underway; two obsolete private merge-layout
-   assertions are preserved and separately adapted, with independent implementation
-   review still required. Producer exact totals are not selected.
+   Isolated Rust1.99.0 host qualification is now independently/root accepted: root
+   verifies 1,767 members; 122 distinct inherited methods plus producer and independent
+   controls pass in Debug/-O. Original obsolete-layout assertions and the whole-suite
+   Debug timeout remain retained. A closed standalone fixture CI pack is underway. Producer exact totals are not selected.
    The correction 3 lifetime inventory is accepted with independent corrections:
    29,344 logical bytes within the unchanged 41,984-byte reservation. Complete
-   source accounting is selected for isolated compiler qualification; implementation
-   acceptance remains pending. Independently
+   source accounting and the isolated host component are accepted; CI/compiler-target
+   qualification and live integration remain pending. Independently
    corrected old-C3 bounds are accepted for G1 94/256, G7 178/248, setup 188/512,
    finish 227/256 and guard 14/128; changed sources do not inherit them automatically.
    No layout amendment, canonical integration or full-target retry is selected. Guard replies retain their separately
@@ -382,7 +384,7 @@ The full plan remains incomplete; no GA gate is promoted.
    Completed native input results never grant a stale scope further authority.
    The exact third mechanical leaf snapshot passes twelve independent controls
    and 82 assertions; actual product integration qualification remains pending.
-   The exact collection prerequisite now has source/compiler acceptance: root verifies 130 producer/review members, 851 independent checks and 170 emitted Java member references with an API floor no later than 28. No source rewrite is selected. Empty-factory mutation exceptions and Android runtime remain separate limits. Root verifies 203 frozen editor proposal/audit members. Current inherited dispatch and connection retirement need a narrow exact-target cleanup/continuation contract; that design is underway before implementation. Existing SDK36 admission guards remain.
+   The exact collection prerequisite now has source/compiler acceptance: root verifies 130 producer/review members, 851 independent checks and 170 emitted Java member references with an API floor no later than 28. No source rewrite is selected. Empty-factory mutation exceptions and Android runtime remain separate limits. Root verifies 203 frozen editor proposal/audit members. The cleanup contract and mandatory independent lifecycle/failure corrections now have root design acceptance after 91 sealed members are verified. A fresh agent is implementing the isolated complete-source adapter, views/renderer continuation and two coordinator disposal guards. Native behavior and canonical integration remain pending; existing SDK36 admission guards remain.
    Public V2 routing remains unselected.
 5. **Hosted product and console:** continue ordinary customer authorization,
    durable domain/job integration, connected console workflows and provider

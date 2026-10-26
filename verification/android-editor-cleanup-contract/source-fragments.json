@@ -1,0 +1,50 @@
+{
+  "Work": {
+    "source": "    private enum WorkKind { DRAIN, TERMINAL_CLOSE }\n    private final class Work implements Runnable {\n        final WorkKind kind;\n        final OwnerLifecycleV2.Token token;\n        final NativeCoordinatorV2 resource;\n        boolean posting, cancellationPending;\n        OwnerLifecycleV2.Token cancellationToken;\n        Work(WorkKind kind, OwnerLifecycleV2.Token token, NativeCoordinatorV2 resource) {\n            this.kind = kind; this.token = token; this.resource = resource;\n        }\n        @Override public void run() {\n            requireMain();\n            if (queued != this) return;\n            queued = null; // consume before any callback or concrete probe\n            try {\n                if (kind == WorkKind.TERMINAL_CLOSE) {\n                    if (pendingCloseResource != resource || pendingCloseToken != token) return;\n                    closePending();\n                } else {\n                    if (fence.terminal || token == null || core.snapshot().pendingDrain() != token) return;\n                    seal(false);\n                    if (!fence.terminal) seedFocus();\n                    if (!fence.terminal) process(core.drain(lifetime, token, probeWindow()), null);\n                }\n            } catch (RuntimeException | Error failure) { fail(failure, Cause.CORE_FAILURE); }\n            finally { settle(); }\n            throwFatal();\n        }\n    }\n",
+    "sha256": "8bea8a9ebf5f037a8ed7fddf3a0be0b39699462f5489a59ea573721668434be9"
+  },
+  "post": {
+    "source": "    private void post(Work work) {\n        queued = work; work.posting = true;\n        try {\n            if (!handler.post(work)) throw new IllegalStateException(\"main Handler rejected V2 work\");\n        } catch (RuntimeException | Error failure) {\n            remember(failure);\n            if (work.kind == WorkKind.TERMINAL_CLOSE) {\n                if (queued == work) queued = null;\n                work.cancellationPending = true;\n                ledger.handler = Outcome.DEFERRED;\n                ledger.coordinator = Outcome.DEFERRED; return;\n            }\n            terminate(Cause.SCHEDULING_FAILED, null, failure, failure instanceof Error fatal ? fatal : null, NativeEnvironmentV2.Change.EPOCH_EXHAUSTED);\n        } finally {\n            work.posting = false;\n            // A callback may consume/cancel the slot before Handler.post acquires its native queue entry.\n            if (work.cancellationPending || queued != work) {\n                OwnerLifecycleV2.Token token = work.cancellationToken;\n                work.cancellationToken = null; work.cancellationPending = false;\n                removeWork(work, token);\n            }\n        }\n    }\n",
+    "sha256": "4a994e5fd056fb7ce14362dbf5009e9db028c3a7ee670c515f7b9c2cefa6c162"
+  },
+  "removeWork": {
+    "source": "    private void removeWork(Work owned, OwnerLifecycleV2.Token token) {\n        ledger.handler = Outcome.ATTEMPTED;\n        Throwable failure = null;\n        try { if (owned != null) handler.removeCallbacks(owned); ledger.handler = Outcome.RETURNED; }\n        catch (RuntimeException | Error caught) { failure = caught; ledger.handlerFailure = caught; ledger.handler = Outcome.FAILED_UNCERTAIN; remember(caught); }\n        completeCleanup(token, failure);\n    }\n",
+    "sha256": "908fd4fa16fa1a00801a55451102ef8b5903613e0141083750f8e4ace5ab9ae1"
+  },
+  "closePending": {
+    "source": "    private void closePending() {\n        NativeCoordinatorV2 owned = pendingCloseResource;\n        if (owned == null) return;\n        if (effectDepth != 0 || activeOperation != null || owned.busyForOwnerDisposal()) { ledger.coordinator = Outcome.DEFERRED; return; }\n        OwnerLifecycleV2.Token token = pendingCloseToken;\n        pendingCloseResource = null; pendingCloseToken = null;\n        ledger.coordinator = Outcome.ATTEMPTED;\n        Throwable failure = null;\n        try { owned.closeFromOwner(); ledger.coordinator = Outcome.RETURNED; }\n        catch (RuntimeException | Error caught) { failure = caught; ledger.coordinatorFailure = caught; ledger.coordinator = Outcome.FAILED_UNCERTAIN; }\n        finally {\n            NativeCoordinatorV2.CleanupLedger retained = owned.cleanupLedger();\n            remember(retained.primary());\n            remember(retained.firstFatal());\n        }\n        remember(failure);\n        completeCleanup(token, failure);\n    }\n",
+    "sha256": "0450901b757628df193c0185dea572374806e42cdfbe75688aa686b145f38684"
+  },
+  "settle": {
+    "source": "    private void settle() {\n        unregisterPending();\n        if (pendingCloseResource == null || effectDepth != 0 || activeOperation != null) return;\n        if (pendingCloseResource.busyForOwnerDisposal()) {\n            if (queued == null) post(new Work(WorkKind.TERMINAL_CLOSE, pendingCloseToken, pendingCloseResource));\n        } else closePending();\n    }\n",
+    "sha256": "b33da11d2d1b4737d048cb2e4632f54df7ba4b4f1cae2f5c49d68ebb3f7fe74d"
+  },
+  "busy": {
+    "source": "    boolean busyForOwnerDisposal() { requireMain(); return active || cancellation || fence.rendererReportActive; }\n",
+    "sha256": "a592ffa2779fe48b465680eb36f7312be06dafdcb8e526e816c20b1b2eb014c3"
+  },
+  "inputBusy": {
+    "source": "    boolean inputCancellationInProgress() {\n        requireMain(); return cancellation || renderer.cancellationInProgressV2();\n    }\n",
+    "sha256": "0f6355470e565b3e0a2873606e37f0b55e2d1e8e2d55d6150b4b15f3abf47ee4"
+  },
+  "enter": {
+    "source": "    private void enter() {\n        requireMain();\n        if (retired || fence.terminal) throw new IllegalStateException(\"V2 coordinator retired\");\n        if (active || cancellation || fence.rendererReportActive) throw new IllegalStateException(\"V2 coordinator reentrant call\");\n        operation = fence.operation;\n        if (operation == null) throw new IllegalStateException(\"V2 owner operation required\");\n        active = true; sealGatesScalar();\n    }\n",
+    "sha256": "b50f0300ab40eacc9eff690053b47641c790e819cf15d635c35f52cffcde445d"
+  },
+  "closeFromOwner": {
+    "source": "    void closeFromOwner() {\n        requireMain();\n        if (busyForOwnerDisposal()) throw new IllegalStateException(\"V2 coordinator disposal deferred\");\n        retireScalar(); disposeOnce();\n        // Disposition reports its own release slots; an earlier operation primary is retained separately.\n        if (ledger.rendererFailure instanceof Error || ledger.engineFailure instanceof Error) throw ledger.firstFatal;\n        if (ledger.rendererFailure instanceof RuntimeException failure) throw failure;\n        if (ledger.engineFailure instanceof RuntimeException failure) throw failure;\n    }\n",
+    "sha256": "28d7ffb544f16bbabfa0dcf59b7ee5f6b85095aa61d4de6f263289c99e58f2c4"
+  },
+  "leave": {
+    "source": "    private void leave() {\n        active = false; operation = null;\n        if (retired && !cancellation && !fence.rendererReportActive) disposeOnce();\n        if (ledger.firstFatal != null) throw ledger.firstFatal;\n    }\n",
+    "sha256": "fc74fda77bf7704e2a7af746c6cc4224f8e88daed6f4ce9dc07bcc6145c39b61"
+  },
+  "retireScalar": {
+    "source": "    private void retireScalar() {\n        retired = true; fence.terminal = true; fence.drawAllowed = false; fence.inputAllowed = false;\n        sealGatesScalar(); committedPacket = null;\n    }\n",
+    "sha256": "3c2f21aa17c1e335e46a8cf552d49be5eaac7a2587ce9c5b640ea7776864afba"
+  },
+  "disposeOnce": {
+    "source": "    private void disposeOnce() {\n        if (disposed) return;\n        disposed = true;\n        long owned = session; session = 0; committedPacket = null;\n        ledger.renderer = Outcome.ATTEMPTED;\n        try { renderer.disposeV2(); ledger.renderer = Outcome.RETURNED; }\n        catch (RuntimeException | Error failure) { ledger.rendererFailure = failure; ledger.renderer = Outcome.FAILED_UNCERTAIN; remember(failure); }\n        if (owned != 0) {\n            ledger.engine = Outcome.ATTEMPTED;\n            try { NativeBridge.destroy(owned); ledger.engine = Outcome.RETURNED; }\n            catch (RuntimeException | Error failure) { ledger.engineFailure = failure; ledger.engine = Outcome.FAILED_UNCERTAIN; remember(failure); }\n        }\n    }\n",
+    "sha256": "46a7ebcdb0ec6642a118ebfc00f502b485409d5ef444190f11b07a0dfb66667b"
+  }
+}

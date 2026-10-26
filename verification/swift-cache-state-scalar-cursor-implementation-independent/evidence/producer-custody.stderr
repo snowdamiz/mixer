@@ -1,0 +1,28 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-scalar-cursor-implementation-independent/audit_producer.py", line 147, in <module>
+    assert re.search(r'error\[E(?:0277|0308|0422|0425|0599|0616)\]', diagnostic), diagnostic
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: error[E0451]: fields `boundary`, `reason`, `observed_records`, `state`, `phase`, `mask`, `last_operation`, `active_operation`, `requested_function`, `pin_failure`, `terminal_failure`, `last_work`, `last_instructions`, `envelope_debit`, `full_replay_accepted` and `stored_prefix_validated` of struct `cache_fixture::FixtureEnvelopeObservationV1` are private
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-scalar-cursor-implementation/api/inherited/no-observation-constructor.rs:1:67
+  |
+1 | ...V1{boundary:FixtureEnvelopeBoundaryV1::Unavailable,reason:FixtureEnvelopeReasonV1::EnvelopeUnavailable,observed_records:0,state:0,phase:0,mask:0,last_operation:0,active_operation:0,requested_function:0,pin_failure:0,terminal_failure:0,last_work:0,last_instructions:0,envelope_debit:0,full_replay_accepted:0,stored_prefix_validated:0};}
+  |       ^^^^^^^^                                        ^^^^^^                                              ^^^^^^^^^^^^^^^^   ^^^^^   ^^^^^   ^^^^   ^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^   ^^^^^^^^^^^^^^^^   ^^^^^^^^^   ^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^^^ private field
+  |       |                                               |                                                   |                  |       |       |      |                |                  |                    |             |                  |           |                   |                |
+  |       |                                               |                                                   |                  |       |       |      |                |                  |                    |             |                  |           |                   |                private field
+  |       |                                               |                                                   |                  |       |       |      |                |                  |                    |             |                  |           |                   private field
+  |       |                                               |                                                   |                  |       |       |      |                |                  |                    |             |                  |           private field
+  |       |                                               |                                                   |                  |       |       |      |                |                  |                    |             |                  private field
+  |       |                                               |                                                   |                  |       |       |      |                |                  |                    |             private field
+  |       |                                               |                                                   |                  |       |       |      |                |                  |                    private field
+  |       |                                               |                                                   |                  |       |       |      |                |                  private field
+  |       |                                               |                                                   |                  |       |       |      |                private field
+  |       |                                               |                                                   |                  |       |       |      private field
+  |       |                                               |                                                   |                  |       |       private field
+  |       |                                               |                                                   |                  |       private field
+  |       |                                               |                                                   |                  private field
+  |       private field                                   private field                                       private field
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0451`.
+

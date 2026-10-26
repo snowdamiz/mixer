@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T17:00:31.246875+00:00",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "custody": [
+    {
+      "path": "verification/android-editor-cleanup-contract/seal.json",
+      "sha256": "060347101b96ecb7a5ee180828cf3437d47179fbb82e8c8ba8457a96859023b7",
+      "members": 54,
+      "bytes": 3970394
+    },
+    {
+      "path": "verification/android-editor-api-boundary-proposal/manifest.json",
+      "sha256": "4ad1b8edebf913308484c4600282c5d8af0af00efbc67fa4f75962967b4cc08e",
+      "members": 95,
+      "bytes": 13988155
+    },
+    {
+      "path": "verification/android-inputconnection-authority-audit/seal.json",
+      "sha256": "c7fa78e51d301418479c0d2eab214211ac653800a9c747126e89a0b3b7756e82",
+      "members": 108,
+      "bytes": 7955033
+    }
+  ],
+  "producer_source_tree_digest": "f93a01001be4636222d287d299bf2c4eb71d7e09c05959a739587fe80df9ed0c",
+  "canonical_inputs_current": 7,
+  "anchors_verified": 24,
+  "actual_fragments_verified": 12,
+  "producer_schema_negative_controls_rejected": 10,
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-cleanup-contract/scripts/transitions.py"
+      ],
+      "exit": 0,
+      "stdout": "producer-transitions.stdout.txt",
+      "stderr": "producer-transitions.stderr.txt"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-version"
+      ],
+      "exit": 0,
+      "stdout": "independent-java-version.stdout.txt",
+      "stderr": "independent-java-version.stderr.txt"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/javac",
+        "-version"
+      ],
+      "exit": 0,
+      "stdout": "independent-javac-version.stdout.txt",
+      "stderr": "independent-javac-version.stderr.txt"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/javac",
+        "--release",
+        "17",
+        "-Xlint:all",
+        "-Werror",
+        "-d",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-contract-x1a559kd",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-cleanup-contract/probe-source/actual/DisposalProbe.java"
+      ],
+      "exit": 0,
+      "stdout": "producer-actual-compile.stdout.txt",
+      "stderr": "producer-actual-compile.stderr.txt"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-cp",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-contract-x1a559kd",
+        "DisposalProbe"
+      ],
+      "exit": 0,
+      "stdout": "producer-actual-run.stdout.txt",
+      "stderr": "producer-actual-run.stderr.txt"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/javac",
+        "--release",
+        "17",
+        "-Xlint:all",
+        "-Werror",
+        "-d",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-contract-o9ljd1im",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-cleanup-contract/probe-source/candidate/DisposalProbe.java"
+      ],
+      "exit": 0,
+      "stdout": "producer-candidate-compile.stdout.txt",
+      "stderr": "producer-candidate-compile.stderr.txt"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-cp",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-contract-o9ljd1im",
+        "DisposalProbe"
+      ],
+      "exit": 0,
+      "stdout": "producer-candidate-run.stdout.txt",
+      "stderr": "producer-candidate-run.stderr.txt"
+    }
+  ],
+  "scope": "Independent custody, exact-source control replay and finite authored models only",
+  "cleanup": "Every host subprocess reaped; both TemporaryDirectory compiler outputs removed; no native/capture/UI/process inventory"
+}

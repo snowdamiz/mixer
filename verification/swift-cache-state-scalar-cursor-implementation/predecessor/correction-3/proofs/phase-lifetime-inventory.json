@@ -1,0 +1,365 @@
+{
+  "schema": 1,
+  "source_sha256": "0ab577c36f9836539181ba5156bdfbc7764ea065266e68d94b431da5fdb47ea8",
+  "actual_macro_births": {
+    "Paid": 1316,
+    "Progress": 1329,
+    "None": 1334,
+    "Fixture": 1293,
+    "Some": 1295,
+    "projection": 1366,
+    "Ok": 1390
+  },
+  "typed_source_received_phase_rows": [
+    {
+      "id": "Paid",
+      "birth_line": 1316,
+      "source_place": "Paid constructor24",
+      "received_place": "paid local24",
+      "last_use_or_scope_end": 1366,
+      "coexistence_not_elided": "source and local at initialization; local stays live through projection and public exit",
+      "provisional_role_requires_full_reconciliation": "wire256"
+    },
+    {
+      "id": "Progress",
+      "birth_line": 1329,
+      "source_place": "Progress constructor144 containing q128",
+      "received_place": "p local144 containing q128",
+      "last_use_or_scope_end": 1366,
+      "coexistence_not_elided": "q initializer128 moves into constructor field; actual constructor and local remain distinct; q field is not an extra persistent array",
+      "provisional_role_requires_full_reconciliation": "control1280"
+    },
+    {
+      "id": "None-config",
+      "birth_line": 1334,
+      "source_place": "Option<Fixture> None80",
+      "received_place": "config local80",
+      "last_use_or_scope_end": 1295,
+      "coexistence_not_elided": "None constructor/local initialization; local remains through parsing and projection",
+      "provisional_role_requires_full_reconciliation": "setup256"
+    },
+    {
+      "id": "Fixture-return",
+      "birth_line": 1293,
+      "source_place": "fixture_context Result<Fixture,Error>80",
+      "received_place": "received Result80 -> Ok payload/f local72",
+      "last_use_or_scope_end": 1294,
+      "coexistence_not_elided": "caller config None80, existing stamps and parser/caller Result/source places",
+      "provisional_role_requires_full_reconciliation": "setup/inherited roles OPEN"
+    },
+    {
+      "id": "Fixture-profile",
+      "birth_line": 1294,
+      "source_place": "f Copy source72",
+      "received_place": "profile f parameter72",
+      "last_use_or_scope_end": 1295,
+      "coexistence_not_elided": "f72, caller None80, profile Result<(),Error>40/received/error values require reconciliation",
+      "provisional_role_requires_full_reconciliation": "setup/inherited roles OPEN"
+    },
+    {
+      "id": "Some-config",
+      "birth_line": 1295,
+      "source_place": "Some(f) Option80",
+      "received_place": "outer config80 (same named local, overwrite prior None)",
+      "last_use_or_scope_end": 1366,
+      "coexistence_not_elided": "f72 is still in cache_inputs scope; source Some80 and received config80 are distinct; contained Fixture fields do not create another Option",
+      "provisional_role_requires_full_reconciliation": "setup256 OPEN"
+    },
+    {
+      "id": "Candidate",
+      "birth_line": 1115,
+      "source_place": "[0;2048] initializer2048",
+      "received_place": "sole retained Candidate2048",
+      "last_use_or_scope_end": 1265,
+      "coexistence_not_elided": "reader, header512, record128, Progress/Paid/config and inherited caller roles; construction source and received are not erased",
+      "provisional_role_requires_full_reconciliation": "inherited Candidate role plus full union OPEN"
+    },
+    {
+      "id": "Record",
+      "birth_line": 1159,
+      "source_place": "record literal8 referencing w128",
+      "received_place": "record local8",
+      "last_use_or_scope_end": 1227,
+      "coexistence_not_elided": "w128 remains in loop scope; exclusive Candidate borrowed sequentially by envelope then semantic",
+      "provisional_role_requires_full_reconciliation": "inherited/control roles OPEN"
+    },
+    {
+      "id": "Loan",
+      "birth_line": 1183,
+      "source_place": "Loan literal16 (record/config shared refs)",
+      "received_place": "loan local16",
+      "last_use_or_scope_end": 1227,
+      "coexistence_not_elided": "loan semantic borrow ends before cleanup but lexical local/source representation cannot be erased by optimizer assumptions",
+      "provisional_role_requires_full_reconciliation": "control1280"
+    },
+    {
+      "id": "Semantic-steps",
+      "birth_line": 1187,
+      "source_place": "StepBudget literal16",
+      "received_place": "semantic_steps local16",
+      "last_use_or_scope_end": 1227,
+      "coexistence_not_elided": "Loan16, record8/w128, Progress144, Paid24, Candidate2048 and other outer handles",
+      "provisional_role_requires_full_reconciliation": "control1280"
+    },
+    {
+      "id": "Semantic-reply",
+      "birth_line": 1193,
+      "source_place": "one branch SemanticReply constructor24/designated return",
+      "received_place": "received local24",
+      "last_use_or_scope_end": 1227,
+      "coexistence_not_elided": "fresh complete Reply24, leaf/caller argument places and audit work; zero-debit G128 vs paid G7 separated",
+      "provisional_role_requires_full_reconciliation": "control1280 OPEN"
+    },
+    {
+      "id": "Cleanup-call",
+      "birth_line": 1227,
+      "source_place": "shared b slice16 + exclusive c thin reference8 source arguments",
+      "received_place": "cleanup b16+c8 parameters",
+      "last_use_or_scope_end": 1227,
+      "coexistence_not_elided": "source/received24 each, received reply24, loan/steps locals, Paid24; borrow ends on return before latch/next iteration/I/O",
+      "provisional_role_requires_full_reconciliation": "G6/control and wire coexistence OPEN"
+    },
+    {
+      "id": "anonymous-clear-0",
+      "birth_line": 781,
+      "source_place": "one repeat-construction temporary128",
+      "received_place": "shared borrowed source-view16 plus checked destination view16, their received method fields",
+      "last_use_or_scope_end": 781,
+      "coexistence_not_elided": "only this statement temporary128; next statement has no same-array local. Paid24 lives simultaneously. Metadata/reference/source/received places are additional, not included in subtotal152",
+      "provisional_role_requires_full_reconciliation": "wire/control OPEN; 152 is only128+Paid24"
+    },
+    {
+      "id": "anonymous-clear-1",
+      "birth_line": 782,
+      "source_place": "one repeat-construction temporary128",
+      "received_place": "shared borrowed source-view16 plus checked destination view16, their received method fields",
+      "last_use_or_scope_end": 782,
+      "coexistence_not_elided": "only this statement temporary128; next statement has no same-array local. Paid24 lives simultaneously. Metadata/reference/source/received places are additional, not included in subtotal152",
+      "provisional_role_requires_full_reconciliation": "wire/control OPEN; 152 is only128+Paid24"
+    },
+    {
+      "id": "anonymous-clear-2",
+      "birth_line": 783,
+      "source_place": "one repeat-construction temporary128",
+      "received_place": "shared borrowed source-view16 plus checked destination view16, their received method fields",
+      "last_use_or_scope_end": 783,
+      "coexistence_not_elided": "only this statement temporary128; next statement has no same-array local. Paid24 lives simultaneously. Metadata/reference/source/received places are additional, not included in subtotal152",
+      "provisional_role_requires_full_reconciliation": "wire/control OPEN; 152 is only128+Paid24"
+    },
+    {
+      "id": "anonymous-clear-3",
+      "birth_line": 784,
+      "source_place": "one repeat-construction temporary128",
+      "received_place": "shared borrowed source-view16 plus checked destination view16, their received method fields",
+      "last_use_or_scope_end": 784,
+      "coexistence_not_elided": "only this statement temporary128; next statement has no same-array local. Paid24 lives simultaneously. Metadata/reference/source/received places are additional, not included in subtotal152",
+      "provisional_role_requires_full_reconciliation": "wire/control OPEN; 152 is only128+Paid24"
+    },
+    {
+      "id": "anonymous-clear-4",
+      "birth_line": 785,
+      "source_place": "one repeat-construction temporary128",
+      "received_place": "shared borrowed source-view16 plus checked destination view16, their received method fields",
+      "last_use_or_scope_end": 785,
+      "coexistence_not_elided": "only this statement temporary128; next statement has no same-array local. Paid24 lives simultaneously. Metadata/reference/source/received places are additional, not included in subtotal152",
+      "provisional_role_requires_full_reconciliation": "wire/control OPEN; 152 is only128+Paid24"
+    },
+    {
+      "id": "anonymous-clear-5",
+      "birth_line": 786,
+      "source_place": "one repeat-construction temporary128",
+      "received_place": "shared borrowed source-view16 plus checked destination view16, their received method fields",
+      "last_use_or_scope_end": 786,
+      "coexistence_not_elided": "only this statement temporary128; next statement has no same-array local. Paid24 lives simultaneously. Metadata/reference/source/received places are additional, not included in subtotal152",
+      "provisional_role_requires_full_reconciliation": "wire/control OPEN; 152 is only128+Paid24"
+    },
+    {
+      "id": "anonymous-clear-6",
+      "birth_line": 787,
+      "source_place": "one repeat-construction temporary128",
+      "received_place": "shared borrowed source-view16 plus checked destination view16, their received method fields",
+      "last_use_or_scope_end": 787,
+      "coexistence_not_elided": "only this statement temporary128; next statement has no same-array local. Paid24 lives simultaneously. Metadata/reference/source/received places are additional, not included in subtotal152",
+      "provisional_role_requires_full_reconciliation": "wire/control OPEN; 152 is only128+Paid24"
+    },
+    {
+      "id": "anonymous-clear-7",
+      "birth_line": 788,
+      "source_place": "one repeat-construction temporary128",
+      "received_place": "shared borrowed source-view16 plus checked destination view16, their received method fields",
+      "last_use_or_scope_end": 788,
+      "coexistence_not_elided": "only this statement temporary128; next statement has no same-array local. Paid24 lives simultaneously. Metadata/reference/source/received places are additional, not included in subtotal152",
+      "provisional_role_requires_full_reconciliation": "wire/control OPEN; 152 is only128+Paid24"
+    },
+    {
+      "id": "anonymous-clear-8",
+      "birth_line": 789,
+      "source_place": "one repeat-construction temporary128",
+      "received_place": "shared borrowed source-view16 plus checked destination view16, their received method fields",
+      "last_use_or_scope_end": 789,
+      "coexistence_not_elided": "only this statement temporary128; next statement has no same-array local. Paid24 lives simultaneously. Metadata/reference/source/received places are additional, not included in subtotal152",
+      "provisional_role_requires_full_reconciliation": "wire/control OPEN; 152 is only128+Paid24"
+    },
+    {
+      "id": "anonymous-clear-9",
+      "birth_line": 790,
+      "source_place": "one repeat-construction temporary128",
+      "received_place": "shared borrowed source-view16 plus checked destination view16, their received method fields",
+      "last_use_or_scope_end": 790,
+      "coexistence_not_elided": "only this statement temporary128; next statement has no same-array local. Paid24 lives simultaneously. Metadata/reference/source/received places are additional, not included in subtotal152",
+      "provisional_role_requires_full_reconciliation": "wire/control OPEN; 152 is only128+Paid24"
+    },
+    {
+      "id": "anonymous-clear-10",
+      "birth_line": 791,
+      "source_place": "one repeat-construction temporary128",
+      "received_place": "shared borrowed source-view16 plus checked destination view16, their received method fields",
+      "last_use_or_scope_end": 791,
+      "coexistence_not_elided": "only this statement temporary128; next statement has no same-array local. Paid24 lives simultaneously. Metadata/reference/source/received places are additional, not included in subtotal152",
+      "provisional_role_requires_full_reconciliation": "wire/control OPEN; 152 is only128+Paid24"
+    },
+    {
+      "id": "anonymous-clear-11",
+      "birth_line": 792,
+      "source_place": "one repeat-construction temporary128",
+      "received_place": "shared borrowed source-view16 plus checked destination view16, their received method fields",
+      "last_use_or_scope_end": 792,
+      "coexistence_not_elided": "only this statement temporary128; next statement has no same-array local. Paid24 lives simultaneously. Metadata/reference/source/received places are additional, not included in subtotal152",
+      "provisional_role_requires_full_reconciliation": "wire/control OPEN; 152 is only128+Paid24"
+    },
+    {
+      "id": "anonymous-clear-12",
+      "birth_line": 793,
+      "source_place": "one repeat-construction temporary128",
+      "received_place": "shared borrowed source-view16 plus checked destination view16, their received method fields",
+      "last_use_or_scope_end": 793,
+      "coexistence_not_elided": "only this statement temporary128; next statement has no same-array local. Paid24 lives simultaneously. Metadata/reference/source/received places are additional, not included in subtotal152",
+      "provisional_role_requires_full_reconciliation": "wire/control OPEN; 152 is only128+Paid24"
+    },
+    {
+      "id": "anonymous-clear-13",
+      "birth_line": 794,
+      "source_place": "one repeat-construction temporary128",
+      "received_place": "shared borrowed source-view16 plus checked destination view16, their received method fields",
+      "last_use_or_scope_end": 794,
+      "coexistence_not_elided": "only this statement temporary128; next statement has no same-array local. Paid24 lives simultaneously. Metadata/reference/source/received places are additional, not included in subtotal152",
+      "provisional_role_requires_full_reconciliation": "wire/control OPEN; 152 is only128+Paid24"
+    },
+    {
+      "id": "anonymous-clear-14",
+      "birth_line": 795,
+      "source_place": "one repeat-construction temporary128",
+      "received_place": "shared borrowed source-view16 plus checked destination view16, their received method fields",
+      "last_use_or_scope_end": 795,
+      "coexistence_not_elided": "only this statement temporary128; next statement has no same-array local. Paid24 lives simultaneously. Metadata/reference/source/received places are additional, not included in subtotal152",
+      "provisional_role_requires_full_reconciliation": "wire/control OPEN; 152 is only128+Paid24"
+    },
+    {
+      "id": "anonymous-clear-15",
+      "birth_line": 796,
+      "source_place": "one repeat-construction temporary128",
+      "received_place": "shared borrowed source-view16 plus checked destination view16, their received method fields",
+      "last_use_or_scope_end": 796,
+      "coexistence_not_elided": "only this statement temporary128; next statement has no same-array local. Paid24 lives simultaneously. Metadata/reference/source/received places are additional, not included in subtotal152",
+      "provisional_role_requires_full_reconciliation": "wire/control OPEN; 152 is only128+Paid24"
+    },
+    {
+      "id": "Caught-input-result",
+      "birth_line": 1335,
+      "source_place": "cache_inputs Result<bool,Error>40 source",
+      "received_place": "result local40",
+      "last_use_or_scope_end": 1366,
+      "coexistence_not_elided": "outer config80,p144,e144,s80,budget and stamps/Result phases; result persists through finalizers",
+      "provisional_role_requires_full_reconciliation": "inherited/report roles OPEN"
+    },
+    {
+      "id": "Caught-error",
+      "birth_line": 1350,
+      "source_place": "Error32 payload from result",
+      "received_place": "err binding32",
+      "last_use_or_scope_end": 1365,
+      "coexistence_not_elided": "original Result40 remains; observation32, decision/framed and error copy flows are not elided",
+      "provisional_role_requires_full_reconciliation": "report/error OPEN"
+    },
+    {
+      "id": "Projection",
+      "birth_line": 1366,
+      "source_place": "projection observation constructor256/local z256/designated output256",
+      "received_place": "cache_state received256",
+      "last_use_or_scope_end": 1390,
+      "coexistence_not_elided": "Progress/Paid/config/old Result/envelope128 remain; source-local identity and contained fields must be deduplicated by source identity, not size alone",
+      "provisional_role_requires_full_reconciliation": "report2896 OPEN"
+    },
+    {
+      "id": "Aggregate",
+      "birth_line": 1390,
+      "source_place": "framing104 + envelope128 + cache_state256 field sources",
+      "received_place": "aggregate constructor488",
+      "last_use_or_scope_end": 1390,
+      "coexistence_not_elided": "field sources move into contained fields; they are not three new complete aggregates",
+      "provisional_role_requires_full_reconciliation": "report2896 OPEN"
+    },
+    {
+      "id": "Ok-payload",
+      "birth_line": 1390,
+      "source_place": "aggregate constructor488",
+      "received_place": "Ok payload488",
+      "last_use_or_scope_end": 1390,
+      "coexistence_not_elided": "the complete payload is a distinct movement boundary; no NRVO/optimizer credit",
+      "provisional_role_requires_full_reconciliation": "report2896 OPEN"
+    },
+    {
+      "id": "Public-Result",
+      "birth_line": 1390,
+      "source_place": "Ok payload488 or original Error32 propagated on earlier exits",
+      "received_place": "public designated Result488",
+      "last_use_or_scope_end": 1390,
+      "coexistence_not_elided": "full Result source/received must be counted even when Err arm uses fewer live bytes",
+      "provisional_role_requires_full_reconciliation": "report2896 OPEN"
+    },
+    {
+      "id": "Immediate-external-caller",
+      "birth_line": 1409,
+      "source_place": "designated public Result488",
+      "received_place": "immediate external caller complete Result488",
+      "last_use_or_scope_end": 1415,
+      "coexistence_not_elided": "caller match/unwrap/drop and full received object remain explicit; host caller tests are qualification, not a general forwarding-stack bound",
+      "provisional_role_requires_full_reconciliation": "report2896 OPEN"
+    }
+  ],
+  "all_early_errors": "Budget/arena/admission/input/output ? source+received Result<T,Error> and immediate caller Result488 remain separate from successful aggregate; complete branch/coexistence reconciliation OPEN",
+  "helper192_Option112_leaf256_wire174": "Those historical role claims are not inherited as proven maxima. Helper arguments/ranges/view/Option/string/source/returned/received and lexical leaf locals still need full simultaneous/drop reconciliation against fixed roles.",
+  "roles": {
+    "inherited": 24656,
+    "new_control": 1280,
+    "new_wire": 256,
+    "new_setup": 256,
+    "new_report": 2896,
+    "role_union": 29344,
+    "reserved": 41984,
+    "global": 65536
+  },
+  "anonymous_temp_Paid_subtotal": 152,
+  "subtotal_is_not_wire_or_union_acceptance": true,
+  "exact_work_boundaries": {
+    "G1": "initial16 snapshot staging/extra prior controls and admitted identities; not staged prior_pins checked_add in new publish",
+    "G6": "event deltas, prior_pins ld/staged checked_add Option, final six sq, row/scalar commit, actual cleanup arguments/length/clear/restores/bool return and caller !/branch",
+    "G7": "ordinary paid SemanticReply source/return/received/audit plus p.calls/snapshot and actual cleanup-fault terminal installation",
+    "G128": "zero-debit absorbing guard source/reply/received and corresponding caller terminal installation; actual post-loan cleanup stays G6 under prepayment",
+    "cfg_test": "injected damaged Candidate/partial commit work is labeled private fault evidence; it is not production source-cap acceptance"
+  },
+  "three_partial_paid_exclusions": {
+    "finish_reserve_line": 1314,
+    "setup_reserve_line": 1315,
+    "Paid_birth_line": 1316,
+    "sole_aggregate_Ok_line": 1390,
+    "construction_argument": "Both propagating SF/SS reserves precede Paid/Progress/config initialization and the only eventual aggregate Ok. A failed reserve returns original Err before that construction; no public seed or alternate aggregate path is added. See retained original construction proof; runtime-pass credit remains zero.",
+    "runtime_pass_credit": 0
+  },
+  "G6_complete_ledger": "externally owned verification/swift-cache-state-g6-complete; not read while active, not sealed/bound at this candidate freeze",
+  "G3_G4": "unchanged c2 sort/source; proposal3/4 obstacles remain pending; no new sort implementation selected",
+  "whole_union_proved": false,
+  "source_accounting_accepted": false,
+  "lifetime_proof_accepted": false,
+  "optimizer_or_unassigned_margin_credit": false
+}

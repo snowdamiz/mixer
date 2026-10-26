@@ -1,0 +1,98 @@
+--- frozen-C3/cache_state_tests.rs
++++ selected-cursor/cache_state_tests.rs
+@@ -468,28 +468,45 @@
+ }
+ #[test]
+ fn private_merge_maximum_timestamp_and_all64_slots() {
+-    let mut c = [0; 2048];
+-    for i in 0..64 {
+-        st(
+-            &mut c,
+-            i * 8,
+-            if i % 3 == 0 { ABSENT } else { (63 - i) as u64 },
+-        );
+-        st(
+-            &mut c,
+-            512 + i * 8,
+-            if i % 7 == 0 { ABSENT } else { i as u64 },
+-        );
+-    }
+-    let mut independent: Vec<_> = (0..64).filter(|i| i % 7 != 0).collect();
+-    independent.sort_by_key(|i| (ld(&c, i * 8), *i));
+-    merge(&mut c);
+-    for (i, slot) in independent.iter().enumerate() {
+-        assert_eq!(ld(&c, 512 + i * 8), *slot as u64);
+-    }
+-    for i in independent.len()..64 {
+-        assert_eq!(ld(&c, 512 + i * 8), ABSENT);
+-    }
++    // The accepted merge input is timestamp64 plus a physical-slot mask.
++    // This oracle independently sorts eligible physical slots by (time, slot).
++    let mut masks = vec![0u64, u64::MAX, 0xaaaa_aaaa_aaaa_aaaa, 0x5555_5555_5555_5555];
++    for slot in 0..64 { masks.push(1u64 << slot); masks.push(!(1u64 << slot)); }
++    let mut random = 0x1234_5678_9abc_def0u64;
++    for _ in 0..128 {
++        random ^= random << 13; random ^= random >> 7; random ^= random << 17;
++        masks.push(random);
++    }
++    let mut checked = 0;
++    for eligibility in masks {
++        for pattern in 0..5 {
++            let mut c = [0xa7; 2048];
++            for slot in 0..64u64 {
++                let timestamp = match pattern {
++                    0 => u64::MAX,
++                    1 => 63 - slot,
++                    2 => slot.reverse_bits() >> 58,
++                    3 => if slot % 3 == 0 { u64::MAX } else { slot % 5 },
++                    _ => slot.wrapping_mul(0x9e37_79b9_7f4a_7c15),
++                };
++                st(&mut c, slot as usize * 8, timestamp);
++            }
++            st(&mut c, 640, eligibility);
++            let before = c;
++            let mut expected: Vec<_> = (0..64usize).filter(|s| eligibility & (1u64 << s) != 0).collect();
++            expected.sort_by_key(|s| (ld(&c, *s * 8), *s));
++            merge(&mut c);
++            for (position, slot) in expected.iter().enumerate() {
++                assert_eq!(c[512 + position], *slot as u8, "mask={eligibility:x} pattern={pattern} position={position}");
++            }
++            for position in expected.len()..64 { assert_eq!(c[512 + position], 255); }
++            assert_eq!(&c[..512], &before[..512]);
++            assert_eq!(&c[576..1024], &before[576..1024]);
++            assert_eq!(&c[1088..], &before[1088..]);
++            checked += 1;
++        }
++    }
++    println!("SELECTED_MERGE_ORACLE_CASES={checked} REAL_MAX_TIMESTAMP_AND_255_ABSENCE_EXHAUSTED256_PRIVATE_ONLY");
+ }
+ #[test]
+ fn private_semantic_guard_neighbors_and_cleanup() {
+@@ -917,19 +934,19 @@
+                 _ => ABSENT,
+             };
+             st(&mut c, i as usize * 8, key);
+-            st(&mut c, 512 + i as usize * 8, i);
+-        }
++        }
++        st(&mut c, 640, u64::MAX);
+         SORT_COMPARISONS.store(0, Ordering::Relaxed);
+         SORT_MOVES.store(0, Ordering::Relaxed);
+         merge(&mut c);
+         let comparisons = SORT_COMPARISONS.load(Ordering::Relaxed);
+         let moves = SORT_MOVES.load(Ordering::Relaxed);
+-        assert!(comparisons <= 321);
+-        assert_eq!(moves, 384);
+-        if mode == 0 {
+-            assert_eq!(comparisons, 321);
+-        }
+-        println!("actual_merge mode={mode} comparisons={comparisons} moves={moves}");
++        // Counters cover only five later passes. The 32 seed comparisons and
++        // 64 seed outputs are uninstrumented and receive no full-cost claim.
++        assert!(comparisons <= 289);
++        assert_eq!(moves, 320);
++        if mode == 0 { assert_eq!(comparisons, 289); }
++        println!("actual_merge_later_five_passes mode={mode} comparisons={comparisons} moves={moves} SEED_COUNTER_CREDIT=0");
+     }
+ }
+ #[test]

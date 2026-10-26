@@ -1,0 +1,26 @@
+error[E0061]: this function takes 4 arguments but 2 arguments were supplied
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-scalar-cursor-implementation/api/inherited/no-word-or-boolean-entry.rs:1:62
+    |
+  1 | use mixer_absence::*;fn main(){let mut words=[0u64;16];let _=analyze_fixture_envelope_v1(&mut words,true);}
+    |                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^-----------------
+    |                                                                                         ||          |
+    |                                                                                         ||          expected `&mut File`, found `bool`
+    |                                                                                         |expected `&mut File`, found `&mut [u64; 16]`
+    |                                                                                         two arguments of type `&mut File` and `&mut File` are missing
+    |
+    = note: expected mutable reference `&mut File`
+               found mutable reference `&mut [u64; 16]`
+note: function defined here
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-scalar-cursor-implementation/source/library/envelope.rs:386:8
+    |
+386 | pub fn analyze_fixture_envelope_v1(stream: &mut File, profile_file: &mut File, context: &mut File, output: &mut File) -> Result<Fix...
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: provide the arguments
+    |
+  1 - use mixer_absence::*;fn main(){let mut words=[0u64;16];let _=analyze_fixture_envelope_v1(&mut words,true);}
+  1 + use mixer_absence::*;fn main(){let mut words=[0u64;16];let _=analyze_fixture_envelope_v1(/* &mut File */, /* &mut File */, /* &mut File */, /* &mut File */);}
+    |
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0061`.

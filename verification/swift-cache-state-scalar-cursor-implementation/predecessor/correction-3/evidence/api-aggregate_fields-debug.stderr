@@ -1,0 +1,14 @@
+error[E0616]: field `cache_state` of struct `cache_fixture::FixtureCacheStateOutcomeV1` is private
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-implementation/correction-3/api/aggregate_fields.rs:1:65
+  |
+1 | use cache_fixture::*;fn f(x:FixtureCacheStateOutcomeV1){let _=x.cache_state;}fn main(){}
+  |                                                                 ^^^^^^^^^^^ private field
+  |
+help: a method `cache_state` also exists, call it with parentheses
+  |
+1 | use cache_fixture::*;fn f(x:FixtureCacheStateOutcomeV1){let _=x.cache_state();}fn main(){}
+  |                                                                            ++
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0616`.

@@ -1,0 +1,216 @@
+#!/usr/bin/env python3
+"""Independent read-only review of the root-bound producer closure; no runner import."""
+import hashlib, json, pathlib, re
+
+OWN = pathlib.Path(__file__).resolve().parent
+REPO = OWN.parents[1]
+ROOT = REPO / 'verification/swift-cache-state-scalar-cursor-implementation'
+C3 = REPO / 'verification/swift-cache-state-implementation/correction-3'
+EXPECTED = 'efc43d467a112522b40b4113bb21aa13086c0669d9d911707a85a148e3d4037c'
+SELECTED = 'f98f7801925bc280e0e2a9c08ec2b4841b7ffc2942d2fedf6c4d3b4c1796bf1b'
+sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+j = lambda p: json.loads(p.read_text())
+assert sha(ROOT / 'seal.json') == EXPECTED
+seal = j(ROOT / 'seal.json')
+for row in seal['members']:
+    path = ROOT / row['path']
+    assert path.is_relative_to(ROOT) and path.is_file()
+    assert path.stat().st_size == row['bytes'] and sha(path) == row['sha256'], path
+assert len(seal['members']) == 1682 and sum(r['bytes'] for r in seal['members']) == 51805181
+
+fresh = j(ROOT / 'proofs/fresh-qualification.json')
+source_rows = [{'path': str(p.relative_to(ROOT)), 'bytes': p.stat().st_size, 'sha256': sha(p)}
+    for p in sorted((ROOT / 'source').rglob('*')) if p.is_file()]
+assert source_rows == fresh['source_rows']
+digest = hashlib.sha256(json.dumps(source_rows, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+assert digest == fresh['source_tree_digest'] == '860cec7b596e03b1058ecd5ff0a9c843af52e6c021218d1478636c5d9839db4c'
+source = ROOT / 'source/library/cache_state.rs'
+assert sha(source) == SELECTED and source.read_bytes() == (REPO / 'verification/swift-cache-state-scalar-cursor-proposal/source/cache_state.rs.txt').read_bytes()
+amended = ROOT / 'source/tests/cache_state_tests.rs'
+inherited_count = 0
+for old in sorted((C3 / 'source').rglob('*')):
+    if not old.is_file(): continue
+    new = ROOT / 'source' / old.relative_to(C3 / 'source')
+    if new in [source, amended]: continue
+    assert old.read_bytes() == new.read_bytes(), new
+    inherited_count += 1
+for old in (C3 / 'api').rglob('*.rs'):
+    assert old.read_bytes() == (ROOT / 'api' / old.relative_to(C3 / 'api')).read_bytes()
+
+def without_two(text):
+    for name in ['private_merge_maximum_timestamp_and_all64_slots', 'private_actual_merge_exact_worst_case_counts']:
+        start = text.index('fn ' + name + '() {')
+        end = text.index('\n#[test]', start)
+        text = text[:start] + text[end:]
+    return text
+assert without_two(amended.read_text()) == without_two((C3 / 'source/tests/cache_state_tests.rs').read_text())
+amendment = j(ROOT / 'proofs/private-test-amendment.json')
+assert sha(REPO / amendment['root_authorization']['path']) == amendment['root_authorization']['sha256']
+assert sha(amended) == amendment['amended_sha256']
+
+inherit = j(ROOT / 'proofs/source-inheritance.json')
+old_bytes = (C3 / 'source/library/cache_state.rs').read_bytes()
+new_bytes = source.read_bytes()
+def pieces(data, spans):
+    result = []
+    last = 0
+    for row in spans:
+        start, end = row['byte_range']
+        assert hashlib.sha256(data[start:end]).hexdigest() == row['sha256']
+        result.append(data[last:start]); last = end
+    result.append(data[last:])
+    return result
+assert pieces(old_bytes, inherit['old_changed_regions']) == pieces(new_bytes, inherit['new_changed_regions'])
+selected = j(REPO / 'verification/swift-semantic-adapter-root-review/scalar-cursor-selection.json')
+assert inherit['selected_work_groups'] == selected['all_production_groups']
+assert inherit['selected_whole_role_union'] == selected['whole_role_union'] == 29344
+assert inherit['selected_added_role_peaks'] == selected['whole_added_peaks']
+assert inherit['selected_allowances'] == selected['whole_allowances']
+for row in inherit['inherited_decisions']:
+    assert sha(REPO / row['path']) == row['sha256']
+
+audit = j(ROOT / 'proofs/execution-product-audit.json')
+products = audit['owned_products_hashed_before_removal']
+removed = {(row['path'], row['sha256']) for row in products}
+assert len(products) == 26
+for row in products:
+    assert row['owned_product'] and row['absent_after_removal'] and not (ROOT / row['path']).exists()
+failures = []
+wall = 0
+for row in audit['fresh_and_failed_command_receipts']:
+    receipt_path = ROOT / row['path']
+    assert sha(receipt_path) == row['sha256']
+    receipt = j(receipt_path)
+    assert receipt['per_command_deadline_seconds'] == 60 and receipt['parent_exit_observed']
+    assert receipt['pid'] == receipt['pgid'] and receipt['new_session']
+    assert receipt['actual_library_sha256'] == fresh['library_sha256']
+    for stream in ['stdout', 'stderr']:
+        assert sha(receipt_path.with_suffix('.' + stream)) == receipt[stream + '_sha256']
+    wall += receipt['elapsed']
+    if receipt['failure'] or receipt['exit'] != 0:
+        failures.append({'receipt': row['path'], 'exit': receipt['exit'], 'failure': receipt['failure']})
+assert len(audit['fresh_and_failed_command_receipts']) == 137
+timeouts = [r for r in failures if r['failure'] == 'timeout']
+assert timeouts == [{'receipt': 'evidence/frozen-attempt1/regression-producer-debug-tests.json', 'exit': -9, 'failure': 'timeout'}]
+timeout_output = (ROOT / 'evidence/frozen-attempt1/regression-producer-debug-tests.stdout').read_text()
+assert len(re.findall(r'^test .* \.\.\. ok$', timeout_output, re.M)) == 5
+assert timeout_output.rstrip().endswith('test failure_record_closed_payload_and_bounds ...')
+assert j(ROOT / timeouts[0]['receipt'])['group_termination_requested']
+assert not list(ROOT.rglob('__pycache__')) and not list(ROOT.glob('.scratch*'))
+
+reg = j(ROOT / 'evidence/selected-regression-summary.json')
+unions = {'debug': set(), 'optimized': set()}
+for run in reg['runs']:
+    mode, label = run['mode'], run['label']
+    prefix = f'regression-{label}-{mode}'
+    listed = (ROOT / f'evidence/{prefix}-list.stdout').read_text()
+    actual_inventory = re.findall(r'^(\S+): test$', listed, re.M)
+    assert actual_inventory == run['inventory']
+    observed = []
+    for group in run['groups']:
+        stem = ROOT / f"evidence/{prefix}-{group['group']}-tests"
+        output = stem.with_suffix('.stdout').read_text()
+        actual = re.findall(r'^test (\S+) \.\.\.', output, re.M)
+        assert actual == group['actual'] and set(actual) == set(group['expected'])
+        assert f'test result: ok. {len(actual)} passed; 0 failed;' in output
+        assert j(stem.with_suffix('.json'))['exit'] == 0
+        observed.extend(actual)
+    assert len(observed) == len(set(observed)) == len(actual_inventory) == (108 if label == 'producer' else 98)
+    assert set(observed) == set(actual_inventory)
+    unions[mode].update(m.removeprefix('product::') for m in actual_inventory)
+assert unions['debug'] == unions['optimized'] and len(unions['debug']) == 122
+assert reg['prior_full_producer_Debug_timeout_remains_failure'] and reg['no_performance_equivalence_claim']
+
+for mode in ['debug', 'optimized']:
+    output = (ROOT / f'evidence/tests-{mode}.stdout').read_text()
+    assert f'test result: ok. 84 passed; 0 failed;' in output
+    assert len(re.findall(r'^test (\S+) \.\.\.', output, re.M)) == 84
+    assert 'SELECTED_MERGE_ORACLE_CASES=1300' in output
+    assert 'mode=0 comparisons=289 moves=320 SEED_COUNTER_CREDIT=0' in output
+    assert 'test result: ok. 3 passed; 0 failed;' in (ROOT / f'evidence/changed-controls-{mode}-tests.stdout').read_text()
+
+new_api = j(ROOT / 'evidence/api-summary.json')['probes']
+old_api = j(ROOT / 'evidence/old-api-summary.json')['controls']
+for rows, prefix, inherited in [(new_api, 'api-', False), (old_api, 'old-api-', True)]:
+    for row in rows:
+        name = pathlib.Path(row['owned_copy']).stem if inherited else row['name']
+        p = ROOT / (row['owned_copy'] if inherited else f'api/{name}.rs')
+        assert sha(p) == (row['sha256'] if inherited else row['source_sha256'])
+        stem = ROOT / f"evidence/{prefix}{name}-{row['mode']}"
+        receipt = j(stem.with_suffix('.json'))
+        assert (receipt['exit'] == 0) == row['expected_success'] == row['compile_success']
+        assert receipt['failure'] is None
+        if row['expected_success']:
+            assert j(ROOT / f"evidence/{prefix}positive-execute-{row['mode']}.json")['exit'] == 0
+        else:
+            diagnostic = stem.with_suffix('.stderr').read_text()
+            assert re.search(r'error\[E(?:0061|0277|0308|0422|0425|0432|0451|0599|0616)\]', diagnostic), diagnostic
+for mode in ['debug', 'optimized']:
+    assert len([r for r in new_api + old_api if r['mode'] == mode]) == 25
+
+boundary = {name: i for i, name in enumerate(['Unavailable', 'ClosedFixtureObserved', 'CapCutUnknownTail', 'Refused', 'AnalysisLimited', 'InternalPoisoned', 'ApplicabilityUnavailable'])}
+reason = {name: i for i, name in enumerate(['Observed', 'Steps', 'FramingUnavailable', 'FramingInvalid', 'EnvelopeRefused', 'EnvelopeUnavailable', 'Identity', 'Resident', 'Plan', 'Victim', 'Bytes', 'Token', 'Nonce', 'Invariant', 'FailureApplicability', 'IncompleteBoundary', 'InternalPoison', 'OutputUnavailable'])}
+case_counts = {}
+for mode, data in fresh['modes'].items():
+    counts = {'public': 0, 'public_complete32': 0, 'public_outer_error': 0, 'private': 0, 'private_complete32': 0}
+    for case in data['cases']:
+        manifest_path = ROOT / case['manifest']
+        assert sha(manifest_path) == case['manifest_sha256']
+        manifest = j(manifest_path)
+        receipt = j(ROOT / manifest['fresh_test_receipt'])
+        assert sha(ROOT / manifest['fresh_test_receipt']) == manifest['fresh_test_receipt_sha256']
+        assert receipt['exit'] == 0 and receipt['failure'] is None
+        assert manifest['actual_executed_artifacts'] == receipt['owned_input_artifacts']
+        assert all((r['path'], r['sha256']) in removed for r in receipt['owned_input_artifacts'])
+        first = (manifest_path.parent / 'result.txt').read_text().splitlines()[0]
+        old = C3 / case['manifest'].replace('/files.json', '/result.txt')
+        assert first == old.read_text().splitlines()[0]
+        assert sha(manifest_path.parent / 'result.txt') == manifest['result_sha256']
+        baseline_manifest = j(old.parent / 'files.json')
+        baseline_files = {r['original_name']: r for r in baseline_manifest['files']}
+        for row in manifest['files']:
+            content = REPO / row['content_path']
+            assert content.is_relative_to(ROOT / 'evidence/content')
+            assert content.stat().st_size == row['bytes'] and sha(content) == row['sha256']
+            assert manifest['test_command_interval'][0] <= row['captured_mtime'] <= manifest['test_command_interval'][1]
+            baseline_row = baseline_files[row['original_name']]
+            assert baseline_row['bytes'] == row['bytes'] and baseline_row['sha256'] == row['sha256']
+            prior = REPO / baseline_row['content_path']
+            assert prior.is_relative_to(C3 / 'evidence/content')
+            assert prior.stat().st_size == row['bytes'] and sha(prior) == row['sha256']
+        private = case['scope'].startswith('private')
+        counts['private' if private else 'public'] += 1
+        match = re.search(r'cache_state: FixtureCacheStateObservationV1 \{ boundary: (\w+), reason: (\w+), extent: \[([^]]*)\]', first)
+        if match:
+            values = [boundary[match[1]], reason[match[2]]] + [int(v.strip()) for v in match[3].split(',')]
+            assert len(values) == 32 and values == case['actual_complete32']
+            counts['private_complete32' if private else 'public_complete32'] += 1
+        else:
+            assert first.startswith('Err(') and case['actual_complete32'] is None and not private
+            counts['public_outer_error'] += 1
+    assert counts == {'public': 29, 'public_complete32': 27, 'public_outer_error': 2, 'private': 2, 'private_complete32': 2}
+    assert len(fresh['fresh_layouts'][mode]) == 23
+    case_counts[mode] = counts
+assert fresh['fresh_layouts']['debug'] == fresh['fresh_layouts']['optimized']
+
+derivative = j(ROOT / 'proofs/derivative-custody.json')
+assert (ROOT / 'controls/derived-source/library/cache_state.rs').read_bytes() == source.read_bytes() + derivative['appended_suffix'].encode()
+expanded = (ROOT / 'evidence/production-expanded.stdout').read_text()
+for needle in ['static COMMIT_FAULT', 'static CLEANUP_FAULT', 'static SORT_MOVES', 'static SORT_COMPARISONS', 'fn cache_core<', 'mod selected_scalar_controls']:
+    assert needle not in expanded
+third = (REPO / 'THIRD_PARTY.yml').read_text()
+assert re.search(r'name: Rust compiler and standard library\n.*?version: 1\.99\.0-local-candidate', third, re.S)
+print(json.dumps({'producer_seal_sha256': EXPECTED, 'sealed_members_verified': 1682,
+    'sealed_bytes_verified': 51805181, 'source_tree_digest': digest,
+    'unchanged_inherited_source_oracle_members': inherited_count,
+    'only_two_authorized_test_methods_changed': True,
+    'raw_command_receipts_verified': 137, 'sum_child_elapsed_seconds': wall,
+    'owned_products_hashed_then_removed': 26, 'original_timeout_preserved': timeouts,
+    'final_methods_per_mode': [84, 108, 98], 'distinct_methods_per_mode': 122,
+    'additional_private_methods_per_mode': 3, 'API_dispositions_per_mode': 25,
+    'fresh_actual_cases_verified': case_counts, 'complete_layouts_per_mode': 23,
+    'source_work_and_logical_union_only_root_conditional_model': True,
+    'stale_source_comments_are_historical_only': True,
+    'no_new_third_party_crate_or_library': True,
+    'Rust_1_99_toolchain_already_in_THIRD_PARTY_sha256': sha(REPO / 'THIRD_PARTY.yml'),
+    'producer_packet_mutated_or_executed': False}, indent=2))
