@@ -1,0 +1,6440 @@
+//! Private bounded bulk-memory execution through the original phase and owners.
+#![allow(dead_code, clippy::result_large_err)]
+use super::*;
+use crate::experimental::execution::CHUNK;
+
+macro_rules! swift_bulk_memory_leaf {
+    (pop32 $s:ident) => {$s.memory_pop32()};
+    (range $s:ident, $address:expr, $len:expr) => {$s.memory_range($address,$len)};
+    (check $s:ident) => {$s.bulk_memory_check()};
+    (memory $s:ident) => {$s.phase.parts.memory};
+    (charge $s:ident, $credits:expr) => {$s.phase.operation.control.charge_fuel_with_wasi($credits,$s.phase.operation.cursor,Some($s.phase.operation.wasi.usage()))};
+    (push $s:ident, $value:expr) => {$s.memory_push_value($value)};
+    (pages $s:ident) => {$s.phase.operation.control.usage(Some($s.phase.operation.wasi.usage())).live.memory_pages.current};
+}
+impl FrameOperationPhase<'_> {
+    crate::experimental::execution::borrowed::shared_bulk_memory_methods!(self, SwiftRunFailure, swift_bulk_memory_leaf, bulk_memory_bulk, bulk_memory_copy, bulk_memory_fill);
+
+    fn bulk_memory_check(&mut self) -> Result<(), SwiftRunFailure> {
+        #[cfg(test)]
+        tests::check_checkpoint(self.phase.operation.control);
+        self.phase.operation.control.check_with_wasi(self.phase.operation.cursor,Some(self.phase.operation.wasi.usage()))
+    }
+    fn bulk_memory_preflight(&mut self, operands: bool) -> Result<(), SwiftRunFailure> {
+        let pages = self.phase.operation.control.usage(Some(self.phase.operation.wasi.usage())).live.memory_pages.current;
+        if !self.phase.parts.memory.len().is_multiple_of(PAGE) || pages != self.phase.parts.memory.len() / PAGE {
+            return Err(self.invariant("swift_bulk_memory_page_agreement"));
+        }
+        let frame = match self.phase.parts.frames.last() {
+            Some(frame) => frame,
+            None => return Err(self.invariant("swift_bulk_memory_frame_missing")),
+        };
+        let floor = frame.operands;
+        if frame.base > floor || frame.controls > self.phase.parts.controls.len() {
+            return Err(self.invariant("swift_bulk_memory_frame_floor"));
+        }
+        let available = match self.phase.parts.values.len().checked_sub(floor) {
+            Some(available) => available,
+            None => return Err(self.invariant("swift_bulk_memory_operand_floor")),
+        };
+        if operands {
+            if available < 3 { return Err(self.invariant("swift_bulk_memory_operand_count")); }
+            let length = self.phase.parts.values.len();
+            if self.phase.parts.values[length-3..].iter().any(|value| value.ty()!=crate::Type::I32) {
+                return Err(self.invariant("swift_bulk_memory_operand_type"));
+            }
+        }
+        Ok(())
+    }
+    fn bulk_memory_unsupported(&mut self) -> SwiftRunFailure {
+        self.phase.operation.control.fail(self.phase.operation.cursor,Fault::new(SwiftRunFailureKind::UnsupportedEnvironment,"swift_bulk_memory_unsupported_operation"),Some(self.phase.operation.wasi.usage()))
+    }
+    /// Outer Ok records publication only. Inspect the actual fixed entry slot.
+    pub(crate) fn bulk_memory_operation(&mut self, operation: Operation, returned: &mut Option<Result<(),SwiftRunFailure>>) -> Result<(),SwiftRunFailure> {
+        if returned.is_some() {
+            let failure=self.invariant("swift_bulk_memory_result_occupied");
+            self.terminal();
+            return Err(failure);
+        }
+        let result=self.bulk_memory_operation_inner(operation);
+        if result.is_err() {self.terminal();}
+        *returned=Some(result);
+        Ok(())
+    }
+    fn bulk_memory_operation_inner(&mut self, operation: Operation) -> Result<(),SwiftRunFailure> {
+        self.active()?;
+        match operation {
+            Operation::MemoryCopy => {self.bulk_memory_preflight(true)?;self.bulk_memory_copy()},
+            Operation::MemoryFill => {self.bulk_memory_preflight(true)?;self.bulk_memory_fill()},
+            Operation::MemorySize => {self.bulk_memory_preflight(false)?;crate::experimental::execution::borrowed::shared_memory_size!(self,swift_bulk_memory_leaf)},
+            _ => Err(self.bulk_memory_unsupported()),
+        }
+    }
+}
+
+pub(crate) fn bulk_memory_pinned_caller(phase: &mut FrameOperationPhase<'_>, storage: &mut FrameOperationStorage<'_>) -> Result<(),SwiftRunFailure> {
+    if storage.entry.is_some() {
+        let failure=phase.invariant("swift_bulk_memory_result_occupied");phase.terminal();return Err(failure);
+    }
+    let result=bulk_memory_pinned_step(phase);
+    if result.is_err(){phase.terminal();}
+    storage.entry=Some(result);
+    Ok(())
+}
+fn bulk_memory_pinned_step(phase: &mut FrameOperationPhase<'_>) -> Result<(),SwiftRunFailure> {
+    phase.active()?;
+    let selected={
+        let frame=match phase.phase.parts.frames.last(){Some(frame)=>frame,None=>return Err(phase.invariant("swift_bulk_memory_caller_frame"))};
+        let view=phase.phase.parts.cache.view(&frame.pin,phase.phase.operation.control,Some(&*phase.phase.operation.wasi))?;
+        let instruction=match view.instructions.get(frame.pc){Some(instruction)=>*instruction,None=>return Err(phase.invariant("swift_bulk_memory_caller_instruction"))};
+        (frame.function,instruction)
+    };
+    let (function,instruction)=selected;
+    phase.phase.operation.cursor=Cursor{stage:SwiftRunStage::Invocation,function:Some(function),offset:Some(instruction.offset)};
+    match instruction.operation {Operation::MemoryCopy|Operation::MemoryFill|Operation::MemorySize=>{},_=>return Err(phase.bulk_memory_unsupported())}
+    phase.phase.operation.control.instruction_with_wasi(phase.phase.operation.cursor,Some(phase.phase.operation.wasi.usage()))?;
+    phase.work(1)?;
+    #[cfg(test)]
+    if tests::PC_OVERFLOW.with(std::cell::Cell::get){phase.phase.parts.frames.last_mut().expect("actual frame").pc=usize::MAX;}
+    let pc=match phase.phase.parts.frames.last().and_then(|frame|frame.pc.checked_add(1)){Some(pc)=>pc,None=>return Err(phase.invariant("swift_bulk_memory_caller_pc"))};
+    phase.phase.parts.frames.last_mut().expect("active original frame").pc=pc;
+    phase.bulk_memory_operation_inner(instruction.operation)
+}
+#[cfg(test)]
+#[path="bulk_memory_operations_tests.rs"]
+mod tests;
+// ACCOUNTING_START
+struct PermanentPositions {
+    source_fixed_bulk_caller_storage_source: FrameOperationStorage<'static>,
+    source_fixed_bulk_caller_storage_argument: FrameOperationStorage<'static>,
+    source_fixed_bulk_caller_storage_returned: FrameOperationStorage<'static>,
+    source_fixed_bulk_caller_storage_caller: FrameOperationStorage<'static>,
+    source_fixed_bulk_caller_slot_source: Option<Result<(), SwiftRunFailure>>,
+    source_fixed_bulk_caller_slot_argument: Option<Result<(), SwiftRunFailure>>,
+    source_fixed_bulk_caller_slot_returned: Option<Result<(), SwiftRunFailure>>,
+    source_fixed_bulk_caller_slot_caller: Option<Result<(), SwiftRunFailure>>,
+    source_fixed_bulk_caller_result_source: Result<(),SwiftRunFailure>,
+    source_fixed_bulk_caller_result_argument: Result<(),SwiftRunFailure>,
+    source_fixed_bulk_caller_result_returned: Result<(),SwiftRunFailure>,
+    source_fixed_bulk_caller_result_caller: Result<(),SwiftRunFailure>,
+    source_fixed_bulk_caller_admission_source: Result<(),SwiftRunFailure>,
+    source_fixed_bulk_caller_admission_argument: Result<(),SwiftRunFailure>,
+    source_fixed_bulk_caller_admission_returned: Result<(),SwiftRunFailure>,
+    source_fixed_bulk_caller_admission_caller: Result<(),SwiftRunFailure>,
+    source_fixed_bulk_caller_failure_source: SwiftRunFailure,
+    source_fixed_bulk_caller_failure_argument: SwiftRunFailure,
+    source_fixed_bulk_caller_failure_returned: SwiftRunFailure,
+    source_fixed_bulk_caller_failure_caller: SwiftRunFailure,
+    source_fixed_bulk_caller_retained_failure_source: Option<SwiftRunFailure>,
+    source_fixed_bulk_caller_retained_failure_argument: Option<SwiftRunFailure>,
+    source_fixed_bulk_caller_retained_failure_returned: Option<SwiftRunFailure>,
+    source_fixed_bulk_caller_retained_failure_caller: Option<SwiftRunFailure>,
+    source_fixed_bulk_completion_storage_source: FrameOperationStorage<'static>,
+    source_fixed_bulk_completion_storage_argument: FrameOperationStorage<'static>,
+    source_fixed_bulk_completion_storage_returned: FrameOperationStorage<'static>,
+    source_fixed_bulk_completion_storage_caller: FrameOperationStorage<'static>,
+    source_fixed_bulk_completion_drop_tuple_source: (ExecutionParts<'static,SwiftMode>,FrameOperationStorage<'static>),
+    source_fixed_bulk_completion_drop_tuple_argument: (ExecutionParts<'static,SwiftMode>,FrameOperationStorage<'static>),
+    source_fixed_bulk_completion_drop_tuple_returned: (ExecutionParts<'static,SwiftMode>,FrameOperationStorage<'static>),
+    source_fixed_bulk_completion_drop_tuple_caller: (ExecutionParts<'static,SwiftMode>,FrameOperationStorage<'static>),
+    source_fixed_bulk_completion_slot_source: Option<Result<(), SwiftRunFailure>>,
+    source_fixed_bulk_completion_slot_argument: Option<Result<(), SwiftRunFailure>>,
+    source_fixed_bulk_completion_slot_returned: Option<Result<(), SwiftRunFailure>>,
+    source_fixed_bulk_completion_slot_caller: Option<Result<(), SwiftRunFailure>>,
+    source_fixed_bulk_completion_result_source: Result<(),SwiftRunFailure>,
+    source_fixed_bulk_completion_result_argument: Result<(),SwiftRunFailure>,
+    source_fixed_bulk_completion_result_returned: Result<(),SwiftRunFailure>,
+    source_fixed_bulk_completion_result_caller: Result<(),SwiftRunFailure>,
+    source_fixed_bulk_completion_admission_source: Result<(),SwiftRunFailure>,
+    source_fixed_bulk_completion_admission_argument: Result<(),SwiftRunFailure>,
+    source_fixed_bulk_completion_admission_returned: Result<(),SwiftRunFailure>,
+    source_fixed_bulk_completion_admission_caller: Result<(),SwiftRunFailure>,
+    source_fixed_bulk_completion_failure_source: SwiftRunFailure,
+    source_fixed_bulk_completion_failure_argument: SwiftRunFailure,
+    source_fixed_bulk_completion_failure_returned: SwiftRunFailure,
+    source_fixed_bulk_completion_failure_caller: SwiftRunFailure,
+    source_fixed_bulk_completion_report_source: FrameDrainReport,
+    source_fixed_bulk_completion_report_argument: FrameDrainReport,
+    source_fixed_bulk_completion_report_returned: FrameDrainReport,
+    source_fixed_bulk_completion_report_caller: FrameDrainReport,
+}
+struct ActivePositions {
+    mir_production_0_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_0_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_0_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_0_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_0_3_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_0_3_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_0_3_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_0_3_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_0_4_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_0_4_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_0_4_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_0_4_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_0_5_source: u64,
+    mir_production_0_5_argument: u64,
+    mir_production_0_5_returned: u64,
+    mir_production_0_5_caller: u64,
+    mir_production_0_6_source: usize,
+    mir_production_0_6_argument: usize,
+    mir_production_0_6_returned: usize,
+    mir_production_0_6_caller: usize,
+    mir_production_0_7_source: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_0_7_argument: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_0_7_returned: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_0_7_caller: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_0_8_source: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_0_8_argument: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_0_8_returned: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_0_8_caller: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_0_9_source: crate::experimental_wasi::WasiUsage,
+    mir_production_0_9_argument: crate::experimental_wasi::WasiUsage,
+    mir_production_0_9_returned: crate::experimental_wasi::WasiUsage,
+    mir_production_0_9_caller: crate::experimental_wasi::WasiUsage,
+    mir_production_0_10_source: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_0_10_argument: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_0_10_returned: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_0_10_caller: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_0_11_source: isize,
+    mir_production_0_11_argument: isize,
+    mir_production_0_11_returned: isize,
+    mir_production_0_11_caller: isize,
+    mir_production_0_12_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_0_12_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_0_12_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_0_12_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_0_12_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_0_12_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_0_12_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_0_12_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_0_13_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_0_13_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_0_13_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_0_13_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_0_14_source: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_0_14_argument: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_0_14_returned: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_0_14_caller: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_0_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_0_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_0_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_0_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_0_1_0_self_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_0_1_0_self_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_0_1_0_self_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_0_1_0_self_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_0_2_source: usize,
+    mir_production_0_2_argument: usize,
+    mir_production_0_2_returned: usize,
+    mir_production_0_2_caller: usize,
+    alias_production_0_2_0_len_source: usize,
+    alias_production_0_2_0_len_argument: usize,
+    alias_production_0_2_0_len_returned: usize,
+    alias_production_0_2_0_len_caller: usize,
+    literal_production_0_0_source: usize,
+    literal_production_0_0_argument: usize,
+    literal_production_0_0_returned: usize,
+    literal_production_0_0_caller: usize,
+    mir_production_1_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_2_source: usize,
+    mir_production_1_2_argument: usize,
+    mir_production_1_2_returned: usize,
+    mir_production_1_2_caller: usize,
+    alias_production_1_2_0_len_source: usize,
+    alias_production_1_2_0_len_argument: usize,
+    alias_production_1_2_0_len_returned: usize,
+    alias_production_1_2_0_len_caller: usize,
+    mir_production_1_3_source: u32,
+    mir_production_1_3_argument: u32,
+    mir_production_1_3_returned: u32,
+    mir_production_1_3_caller: u32,
+    mir_production_1_4_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_1_4_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_1_4_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_1_4_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_1_5_source: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_5_argument: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_5_returned: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_5_caller: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_6_source: isize,
+    mir_production_1_6_argument: isize,
+    mir_production_1_6_returned: isize,
+    mir_production_1_6_caller: isize,
+    mir_production_1_7_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_7_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_7_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_7_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_7_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_7_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_7_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_7_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_8_source: i32,
+    mir_production_1_8_argument: i32,
+    mir_production_1_8_returned: i32,
+    mir_production_1_8_caller: i32,
+    alias_production_1_8_0_val_source: i32,
+    alias_production_1_8_0_val_argument: i32,
+    alias_production_1_8_0_val_returned: i32,
+    alias_production_1_8_0_val_caller: i32,
+    mir_production_1_10_source: u32,
+    mir_production_1_10_argument: u32,
+    mir_production_1_10_returned: u32,
+    mir_production_1_10_caller: u32,
+    mir_production_1_11_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_1_11_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_1_11_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_1_11_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_1_12_source: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_12_argument: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_12_returned: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_12_caller: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_13_source: isize,
+    mir_production_1_13_argument: isize,
+    mir_production_1_13_returned: isize,
+    mir_production_1_13_caller: isize,
+    mir_production_1_17_source: u32,
+    mir_production_1_17_argument: u32,
+    mir_production_1_17_returned: u32,
+    mir_production_1_17_caller: u32,
+    mir_production_1_18_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_1_18_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_1_18_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_1_18_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_1_19_source: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_19_argument: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_19_returned: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_19_caller: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_20_source: isize,
+    mir_production_1_20_argument: isize,
+    mir_production_1_20_returned: isize,
+    mir_production_1_20_caller: isize,
+    mir_production_1_23_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    mir_production_1_23_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    mir_production_1_23_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    mir_production_1_23_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    mir_production_1_24_source: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_24_argument: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_24_returned: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_24_caller: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_25_source: isize,
+    mir_production_1_25_argument: isize,
+    mir_production_1_25_returned: isize,
+    mir_production_1_25_caller: isize,
+    mir_production_1_28_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    mir_production_1_28_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    mir_production_1_28_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    mir_production_1_28_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    mir_production_1_29_source: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_29_argument: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_29_returned: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_29_caller: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_30_source: isize,
+    mir_production_1_30_argument: isize,
+    mir_production_1_30_returned: isize,
+    mir_production_1_30_caller: isize,
+    mir_production_1_33_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_1_33_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_1_33_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_1_33_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_1_34_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_34_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_34_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_34_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_35_source: isize,
+    mir_production_1_35_argument: isize,
+    mir_production_1_35_returned: isize,
+    mir_production_1_35_caller: isize,
+    mir_production_1_37_source: bool,
+    mir_production_1_37_argument: bool,
+    mir_production_1_37_returned: bool,
+    mir_production_1_37_caller: bool,
+    mir_production_1_39_source: bool,
+    mir_production_1_39_argument: bool,
+    mir_production_1_39_returned: bool,
+    mir_production_1_39_caller: bool,
+    mir_production_1_40_source: usize,
+    mir_production_1_40_argument: usize,
+    mir_production_1_40_returned: usize,
+    mir_production_1_40_caller: usize,
+    mir_production_1_41_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_1_41_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_1_41_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_1_41_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_1_42_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_42_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_42_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_42_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_43_source: isize,
+    mir_production_1_43_argument: isize,
+    mir_production_1_43_returned: isize,
+    mir_production_1_43_caller: isize,
+    mir_production_1_46_source: usize,
+    mir_production_1_46_argument: usize,
+    mir_production_1_46_returned: usize,
+    mir_production_1_46_caller: usize,
+    mir_production_1_47_source: (usize, bool),
+    mir_production_1_47_argument: (usize, bool),
+    mir_production_1_47_returned: (usize, bool),
+    mir_production_1_47_caller: (usize, bool),
+    mir_production_1_48_source: (),
+    mir_production_1_48_argument: (),
+    mir_production_1_48_returned: (),
+    mir_production_1_48_caller: (),
+    mir_production_1_49_source: &'static mut [u8],
+    mir_production_1_49_argument: &'static mut [u8],
+    mir_production_1_49_returned: &'static mut [u8],
+    mir_production_1_49_caller: &'static mut [u8],
+    mir_production_1_50_source: std::ops::Range<usize>,
+    mir_production_1_50_argument: std::ops::Range<usize>,
+    mir_production_1_50_returned: std::ops::Range<usize>,
+    mir_production_1_50_caller: std::ops::Range<usize>,
+    mir_production_1_51_source: usize,
+    mir_production_1_51_argument: usize,
+    mir_production_1_51_returned: usize,
+    mir_production_1_51_caller: usize,
+    mir_production_1_52_source: usize,
+    mir_production_1_52_argument: usize,
+    mir_production_1_52_returned: usize,
+    mir_production_1_52_caller: usize,
+    mir_production_1_53_source: (usize, bool),
+    mir_production_1_53_argument: (usize, bool),
+    mir_production_1_53_returned: (usize, bool),
+    mir_production_1_53_caller: (usize, bool),
+    mir_production_1_54_source: usize,
+    mir_production_1_54_argument: usize,
+    mir_production_1_54_returned: usize,
+    mir_production_1_54_caller: usize,
+    mir_production_1_55_source: usize,
+    mir_production_1_55_argument: usize,
+    mir_production_1_55_returned: usize,
+    mir_production_1_55_caller: usize,
+    mir_production_1_56_source: usize,
+    mir_production_1_56_argument: usize,
+    mir_production_1_56_returned: usize,
+    mir_production_1_56_caller: usize,
+    mir_production_1_57_source: (usize, bool),
+    mir_production_1_57_argument: (usize, bool),
+    mir_production_1_57_returned: (usize, bool),
+    mir_production_1_57_caller: (usize, bool),
+    mir_production_1_58_source: (usize, bool),
+    mir_production_1_58_argument: (usize, bool),
+    mir_production_1_58_returned: (usize, bool),
+    mir_production_1_58_caller: (usize, bool),
+    mir_production_1_59_source: usize,
+    mir_production_1_59_argument: usize,
+    mir_production_1_59_returned: usize,
+    mir_production_1_59_caller: usize,
+    mir_production_1_60_source: usize,
+    mir_production_1_60_argument: usize,
+    mir_production_1_60_returned: usize,
+    mir_production_1_60_caller: usize,
+    mir_production_1_61_source: (usize, bool),
+    mir_production_1_61_argument: (usize, bool),
+    mir_production_1_61_returned: (usize, bool),
+    mir_production_1_61_caller: (usize, bool),
+    mir_production_1_62_source: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_1_62_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_1_62_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_1_62_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_1_63_source: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_1_63_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_1_63_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_1_63_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_1_64_source: std::ops::Range<usize>,
+    mir_production_1_64_argument: std::ops::Range<usize>,
+    mir_production_1_64_returned: std::ops::Range<usize>,
+    mir_production_1_64_caller: std::ops::Range<usize>,
+    mir_production_1_66_source: std::option::Option<usize>,
+    mir_production_1_66_argument: std::option::Option<usize>,
+    mir_production_1_66_returned: std::option::Option<usize>,
+    mir_production_1_66_caller: std::option::Option<usize>,
+    mir_production_1_67_source: &'static mut std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_1_67_argument: &'static mut std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_1_67_returned: &'static mut std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_1_67_caller: &'static mut std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_1_68_source: isize,
+    mir_production_1_68_argument: isize,
+    mir_production_1_68_returned: isize,
+    mir_production_1_68_caller: isize,
+    mir_production_1_70_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_1_70_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_1_70_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_1_70_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_1_71_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_71_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_71_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_71_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_72_source: isize,
+    mir_production_1_72_argument: isize,
+    mir_production_1_72_returned: isize,
+    mir_production_1_72_caller: isize,
+    mir_production_1_75_source: usize,
+    mir_production_1_75_argument: usize,
+    mir_production_1_75_returned: usize,
+    mir_production_1_75_caller: usize,
+    mir_production_1_76_source: (usize, bool),
+    mir_production_1_76_argument: (usize, bool),
+    mir_production_1_76_returned: (usize, bool),
+    mir_production_1_76_caller: (usize, bool),
+    mir_production_1_77_source: (),
+    mir_production_1_77_argument: (),
+    mir_production_1_77_returned: (),
+    mir_production_1_77_caller: (),
+    mir_production_1_78_source: &'static mut [u8],
+    mir_production_1_78_argument: &'static mut [u8],
+    mir_production_1_78_returned: &'static mut [u8],
+    mir_production_1_78_caller: &'static mut [u8],
+    mir_production_1_79_source: std::ops::Range<usize>,
+    mir_production_1_79_argument: std::ops::Range<usize>,
+    mir_production_1_79_returned: std::ops::Range<usize>,
+    mir_production_1_79_caller: std::ops::Range<usize>,
+    mir_production_1_80_source: usize,
+    mir_production_1_80_argument: usize,
+    mir_production_1_80_returned: usize,
+    mir_production_1_80_caller: usize,
+    mir_production_1_81_source: (usize, bool),
+    mir_production_1_81_argument: (usize, bool),
+    mir_production_1_81_returned: (usize, bool),
+    mir_production_1_81_caller: (usize, bool),
+    mir_production_1_82_source: usize,
+    mir_production_1_82_argument: usize,
+    mir_production_1_82_returned: usize,
+    mir_production_1_82_caller: usize,
+    mir_production_1_83_source: usize,
+    mir_production_1_83_argument: usize,
+    mir_production_1_83_returned: usize,
+    mir_production_1_83_caller: usize,
+    mir_production_1_84_source: (usize, bool),
+    mir_production_1_84_argument: (usize, bool),
+    mir_production_1_84_returned: (usize, bool),
+    mir_production_1_84_caller: (usize, bool),
+    mir_production_1_85_source: (usize, bool),
+    mir_production_1_85_argument: (usize, bool),
+    mir_production_1_85_returned: (usize, bool),
+    mir_production_1_85_caller: (usize, bool),
+    mir_production_1_86_source: usize,
+    mir_production_1_86_argument: usize,
+    mir_production_1_86_returned: usize,
+    mir_production_1_86_caller: usize,
+    mir_production_1_87_source: (usize, bool),
+    mir_production_1_87_argument: (usize, bool),
+    mir_production_1_87_returned: (usize, bool),
+    mir_production_1_87_caller: (usize, bool),
+    mir_production_1_88_source: &'static mut std::vec::Vec<u8>,
+    mir_production_1_88_argument: &'static mut std::vec::Vec<u8>,
+    mir_production_1_88_returned: &'static mut std::vec::Vec<u8>,
+    mir_production_1_88_caller: &'static mut std::vec::Vec<u8>,
+    mir_production_1_89_source: &'static mut std::vec::Vec<u8>,
+    mir_production_1_89_argument: &'static mut std::vec::Vec<u8>,
+    mir_production_1_89_returned: &'static mut std::vec::Vec<u8>,
+    mir_production_1_89_caller: &'static mut std::vec::Vec<u8>,
+    mir_production_1_9_source: usize,
+    mir_production_1_9_argument: usize,
+    mir_production_1_9_returned: usize,
+    mir_production_1_9_caller: usize,
+    alias_production_1_9_0_src_source: usize,
+    alias_production_1_9_0_src_argument: usize,
+    alias_production_1_9_0_src_returned: usize,
+    alias_production_1_9_0_src_caller: usize,
+    mir_production_1_14_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_14_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_14_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_14_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_14_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_14_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_14_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_14_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_15_source: i32,
+    mir_production_1_15_argument: i32,
+    mir_production_1_15_returned: i32,
+    mir_production_1_15_caller: i32,
+    alias_production_1_15_0_val_source: i32,
+    alias_production_1_15_0_val_argument: i32,
+    alias_production_1_15_0_val_returned: i32,
+    alias_production_1_15_0_val_caller: i32,
+    mir_production_1_16_source: usize,
+    mir_production_1_16_argument: usize,
+    mir_production_1_16_returned: usize,
+    mir_production_1_16_caller: usize,
+    alias_production_1_16_0_dst_source: usize,
+    alias_production_1_16_0_dst_argument: usize,
+    alias_production_1_16_0_dst_returned: usize,
+    alias_production_1_16_0_dst_caller: usize,
+    mir_production_1_21_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_21_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_21_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_21_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_21_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_21_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_21_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_21_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_22_source: i32,
+    mir_production_1_22_argument: i32,
+    mir_production_1_22_returned: i32,
+    mir_production_1_22_caller: i32,
+    alias_production_1_22_0_val_source: i32,
+    alias_production_1_22_0_val_argument: i32,
+    alias_production_1_22_0_val_returned: i32,
+    alias_production_1_22_0_val_caller: i32,
+    mir_production_1_26_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_26_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_26_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_26_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_26_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_26_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_26_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_26_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_27_source: std::ops::Range<usize>,
+    mir_production_1_27_argument: std::ops::Range<usize>,
+    mir_production_1_27_returned: std::ops::Range<usize>,
+    mir_production_1_27_caller: std::ops::Range<usize>,
+    alias_production_1_27_0_val_source: std::ops::Range<usize>,
+    alias_production_1_27_0_val_argument: std::ops::Range<usize>,
+    alias_production_1_27_0_val_returned: std::ops::Range<usize>,
+    alias_production_1_27_0_val_caller: std::ops::Range<usize>,
+    mir_production_1_31_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_31_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_31_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_31_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_31_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_31_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_31_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_31_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_32_source: std::ops::Range<usize>,
+    mir_production_1_32_argument: std::ops::Range<usize>,
+    mir_production_1_32_returned: std::ops::Range<usize>,
+    mir_production_1_32_caller: std::ops::Range<usize>,
+    alias_production_1_32_0_val_source: std::ops::Range<usize>,
+    alias_production_1_32_0_val_argument: std::ops::Range<usize>,
+    alias_production_1_32_0_val_returned: std::ops::Range<usize>,
+    alias_production_1_32_0_val_caller: std::ops::Range<usize>,
+    mir_production_1_36_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_36_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_36_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_36_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_36_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_36_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_36_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_36_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_38_source: usize,
+    mir_production_1_38_argument: usize,
+    mir_production_1_38_returned: usize,
+    mir_production_1_38_caller: usize,
+    alias_production_1_38_0_left_source: usize,
+    alias_production_1_38_0_left_argument: usize,
+    alias_production_1_38_0_left_returned: usize,
+    alias_production_1_38_0_left_caller: usize,
+    mir_production_1_65_source: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_1_65_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_1_65_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_1_65_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    alias_production_1_65_0_iter_source: std::iter::StepBy<std::ops::Range<usize>>,
+    alias_production_1_65_0_iter_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    alias_production_1_65_0_iter_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    alias_production_1_65_0_iter_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_1_44_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_44_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_44_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_44_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_44_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_44_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_44_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_44_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_45_source: usize,
+    mir_production_1_45_argument: usize,
+    mir_production_1_45_returned: usize,
+    mir_production_1_45_caller: usize,
+    alias_production_1_45_0_n_source: usize,
+    alias_production_1_45_0_n_argument: usize,
+    alias_production_1_45_0_n_returned: usize,
+    alias_production_1_45_0_n_caller: usize,
+    mir_production_1_69_source: usize,
+    mir_production_1_69_argument: usize,
+    mir_production_1_69_returned: usize,
+    mir_production_1_69_caller: usize,
+    alias_production_1_69_0_at_source: usize,
+    alias_production_1_69_0_at_argument: usize,
+    alias_production_1_69_0_at_returned: usize,
+    alias_production_1_69_0_at_caller: usize,
+    mir_production_1_73_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_73_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_73_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_73_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_73_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_73_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_73_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_1_73_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_1_74_source: usize,
+    mir_production_1_74_argument: usize,
+    mir_production_1_74_returned: usize,
+    mir_production_1_74_caller: usize,
+    alias_production_1_74_0_n_source: usize,
+    alias_production_1_74_0_n_argument: usize,
+    alias_production_1_74_0_n_returned: usize,
+    alias_production_1_74_0_n_caller: usize,
+    mir_production_1_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_1_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_1_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_1_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_1_1_0_self_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_1_1_0_self_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_1_1_0_self_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_1_1_0_self_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    literal_production_1_0_source: usize,
+    literal_production_1_0_argument: usize,
+    literal_production_1_0_returned: usize,
+    literal_production_1_0_caller: usize,
+    literal_production_1_1_source: usize,
+    literal_production_1_1_argument: usize,
+    literal_production_1_1_returned: usize,
+    literal_production_1_1_caller: usize,
+    mir_production_2_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_2_source: usize,
+    mir_production_2_2_argument: usize,
+    mir_production_2_2_returned: usize,
+    mir_production_2_2_caller: usize,
+    alias_production_2_2_0_len_source: usize,
+    alias_production_2_2_0_len_argument: usize,
+    alias_production_2_2_0_len_returned: usize,
+    alias_production_2_2_0_len_caller: usize,
+    mir_production_2_3_source: u32,
+    mir_production_2_3_argument: u32,
+    mir_production_2_3_returned: u32,
+    mir_production_2_3_caller: u32,
+    mir_production_2_4_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_2_4_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_2_4_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_2_4_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_2_5_source: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_5_argument: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_5_returned: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_5_caller: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_6_source: isize,
+    mir_production_2_6_argument: isize,
+    mir_production_2_6_returned: isize,
+    mir_production_2_6_caller: isize,
+    mir_production_2_7_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_7_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_7_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_7_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_7_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_7_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_7_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_7_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_8_source: i32,
+    mir_production_2_8_argument: i32,
+    mir_production_2_8_returned: i32,
+    mir_production_2_8_caller: i32,
+    alias_production_2_8_0_val_source: i32,
+    alias_production_2_8_0_val_argument: i32,
+    alias_production_2_8_0_val_returned: i32,
+    alias_production_2_8_0_val_caller: i32,
+    mir_production_2_10_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_2_10_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_2_10_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_2_10_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_2_11_source: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_11_argument: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_11_returned: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_11_caller: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_12_source: isize,
+    mir_production_2_12_argument: isize,
+    mir_production_2_12_returned: isize,
+    mir_production_2_12_caller: isize,
+    mir_production_2_16_source: u32,
+    mir_production_2_16_argument: u32,
+    mir_production_2_16_returned: u32,
+    mir_production_2_16_caller: u32,
+    mir_production_2_17_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_2_17_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_2_17_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_2_17_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    mir_production_2_18_source: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_18_argument: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_18_returned: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_18_caller: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_19_source: isize,
+    mir_production_2_19_argument: isize,
+    mir_production_2_19_returned: isize,
+    mir_production_2_19_caller: isize,
+    mir_production_2_22_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    mir_production_2_22_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    mir_production_2_22_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    mir_production_2_22_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    mir_production_2_23_source: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_23_argument: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_23_returned: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_23_caller: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_24_source: isize,
+    mir_production_2_24_argument: isize,
+    mir_production_2_24_returned: isize,
+    mir_production_2_24_caller: isize,
+    mir_production_2_27_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_2_27_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_2_27_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_2_27_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_2_28_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_28_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_28_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_28_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_29_source: isize,
+    mir_production_2_29_argument: isize,
+    mir_production_2_29_returned: isize,
+    mir_production_2_29_caller: isize,
+    mir_production_2_31_source: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_2_31_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_2_31_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_2_31_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_2_32_source: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_2_32_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_2_32_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_2_32_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_2_33_source: std::ops::Range<usize>,
+    mir_production_2_33_argument: std::ops::Range<usize>,
+    mir_production_2_33_returned: std::ops::Range<usize>,
+    mir_production_2_33_caller: std::ops::Range<usize>,
+    mir_production_2_34_source: usize,
+    mir_production_2_34_argument: usize,
+    mir_production_2_34_returned: usize,
+    mir_production_2_34_caller: usize,
+    mir_production_2_35_source: usize,
+    mir_production_2_35_argument: usize,
+    mir_production_2_35_returned: usize,
+    mir_production_2_35_caller: usize,
+    mir_production_2_37_source: std::option::Option<usize>,
+    mir_production_2_37_argument: std::option::Option<usize>,
+    mir_production_2_37_returned: std::option::Option<usize>,
+    mir_production_2_37_caller: std::option::Option<usize>,
+    mir_production_2_38_source: &'static mut std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_2_38_argument: &'static mut std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_2_38_returned: &'static mut std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_2_38_caller: &'static mut std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_2_39_source: isize,
+    mir_production_2_39_argument: isize,
+    mir_production_2_39_returned: isize,
+    mir_production_2_39_caller: isize,
+    mir_production_2_41_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_2_41_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_2_41_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_2_41_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_2_42_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_42_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_42_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_42_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_43_source: isize,
+    mir_production_2_43_argument: isize,
+    mir_production_2_43_returned: isize,
+    mir_production_2_43_caller: isize,
+    mir_production_2_46_source: usize,
+    mir_production_2_46_argument: usize,
+    mir_production_2_46_returned: usize,
+    mir_production_2_46_caller: usize,
+    mir_production_2_47_source: (usize, bool),
+    mir_production_2_47_argument: (usize, bool),
+    mir_production_2_47_returned: (usize, bool),
+    mir_production_2_47_caller: (usize, bool),
+    mir_production_2_48_source: usize,
+    mir_production_2_48_argument: usize,
+    mir_production_2_48_returned: usize,
+    mir_production_2_48_caller: usize,
+    mir_production_2_49_source: (),
+    mir_production_2_49_argument: (),
+    mir_production_2_49_returned: (),
+    mir_production_2_49_caller: (),
+    mir_production_2_50_source: &'static mut [u8],
+    mir_production_2_50_argument: &'static mut [u8],
+    mir_production_2_50_returned: &'static mut [u8],
+    mir_production_2_50_caller: &'static mut [u8],
+    mir_production_2_51_source: std::ops::Range<usize>,
+    mir_production_2_51_argument: std::ops::Range<usize>,
+    mir_production_2_51_returned: std::ops::Range<usize>,
+    mir_production_2_51_caller: std::ops::Range<usize>,
+    mir_production_2_52_source: &'static mut std::vec::Vec<u8>,
+    mir_production_2_52_argument: &'static mut std::vec::Vec<u8>,
+    mir_production_2_52_returned: &'static mut std::vec::Vec<u8>,
+    mir_production_2_52_caller: &'static mut std::vec::Vec<u8>,
+    mir_production_2_9_source: u8,
+    mir_production_2_9_argument: u8,
+    mir_production_2_9_returned: u8,
+    mir_production_2_9_caller: u8,
+    alias_production_2_9_0_value_source: u8,
+    alias_production_2_9_0_value_argument: u8,
+    alias_production_2_9_0_value_returned: u8,
+    alias_production_2_9_0_value_caller: u8,
+    mir_production_2_13_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_13_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_13_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_13_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_13_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_13_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_13_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_13_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_14_source: i32,
+    mir_production_2_14_argument: i32,
+    mir_production_2_14_returned: i32,
+    mir_production_2_14_caller: i32,
+    alias_production_2_14_0_val_source: i32,
+    alias_production_2_14_0_val_argument: i32,
+    alias_production_2_14_0_val_returned: i32,
+    alias_production_2_14_0_val_caller: i32,
+    mir_production_2_15_source: usize,
+    mir_production_2_15_argument: usize,
+    mir_production_2_15_returned: usize,
+    mir_production_2_15_caller: usize,
+    alias_production_2_15_0_dst_source: usize,
+    alias_production_2_15_0_dst_argument: usize,
+    alias_production_2_15_0_dst_returned: usize,
+    alias_production_2_15_0_dst_caller: usize,
+    mir_production_2_20_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_20_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_20_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_20_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_20_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_20_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_20_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_20_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_21_source: i32,
+    mir_production_2_21_argument: i32,
+    mir_production_2_21_returned: i32,
+    mir_production_2_21_caller: i32,
+    alias_production_2_21_0_val_source: i32,
+    alias_production_2_21_0_val_argument: i32,
+    alias_production_2_21_0_val_returned: i32,
+    alias_production_2_21_0_val_caller: i32,
+    mir_production_2_25_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_25_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_25_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_25_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_25_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_25_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_25_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_25_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_26_source: std::ops::Range<usize>,
+    mir_production_2_26_argument: std::ops::Range<usize>,
+    mir_production_2_26_returned: std::ops::Range<usize>,
+    mir_production_2_26_caller: std::ops::Range<usize>,
+    alias_production_2_26_0_range_source: std::ops::Range<usize>,
+    alias_production_2_26_0_range_argument: std::ops::Range<usize>,
+    alias_production_2_26_0_range_returned: std::ops::Range<usize>,
+    alias_production_2_26_0_range_caller: std::ops::Range<usize>,
+    alias_production_2_26_1_val_source: std::ops::Range<usize>,
+    alias_production_2_26_1_val_argument: std::ops::Range<usize>,
+    alias_production_2_26_1_val_returned: std::ops::Range<usize>,
+    alias_production_2_26_1_val_caller: std::ops::Range<usize>,
+    mir_production_2_30_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_30_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_30_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_30_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_30_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_30_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_30_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_30_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_36_source: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_2_36_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_2_36_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_2_36_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    alias_production_2_36_0_iter_source: std::iter::StepBy<std::ops::Range<usize>>,
+    alias_production_2_36_0_iter_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    alias_production_2_36_0_iter_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    alias_production_2_36_0_iter_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    mir_production_2_40_source: usize,
+    mir_production_2_40_argument: usize,
+    mir_production_2_40_returned: usize,
+    mir_production_2_40_caller: usize,
+    alias_production_2_40_0_start_source: usize,
+    alias_production_2_40_0_start_argument: usize,
+    alias_production_2_40_0_start_returned: usize,
+    alias_production_2_40_0_start_caller: usize,
+    mir_production_2_44_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_44_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_44_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_44_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_44_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_44_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_44_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_2_44_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_2_45_source: usize,
+    mir_production_2_45_argument: usize,
+    mir_production_2_45_returned: usize,
+    mir_production_2_45_caller: usize,
+    alias_production_2_45_0_end_source: usize,
+    alias_production_2_45_0_end_argument: usize,
+    alias_production_2_45_0_end_returned: usize,
+    alias_production_2_45_0_end_caller: usize,
+    mir_production_2_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_2_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_2_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_2_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_2_1_0_self_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_2_1_0_self_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_2_1_0_self_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_2_1_0_self_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_3_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_3_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_3_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_3_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_3_2_source: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_3_2_argument: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_3_2_returned: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_3_2_caller: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_3_3_source: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_3_3_argument: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_3_3_returned: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_3_3_caller: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_3_4_source: crate::experimental_wasi::WasiUsage,
+    mir_production_3_4_argument: crate::experimental_wasi::WasiUsage,
+    mir_production_3_4_returned: crate::experimental_wasi::WasiUsage,
+    mir_production_3_4_caller: crate::experimental_wasi::WasiUsage,
+    mir_production_3_5_source: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_3_5_argument: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_3_5_returned: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_3_5_caller: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_3_6_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_3_6_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_3_6_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_3_6_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_3_7_source: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_3_7_argument: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_3_7_returned: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_3_7_caller: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_3_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_3_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_3_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_3_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_3_1_0_self_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_3_1_0_self_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_3_1_0_self_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_3_1_0_self_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_4_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_4_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_4_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_4_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_4_3_source: usize,
+    mir_production_4_3_argument: usize,
+    mir_production_4_3_returned: usize,
+    mir_production_4_3_caller: usize,
+    alias_production_4_3_0_pages_source: usize,
+    alias_production_4_3_0_pages_argument: usize,
+    alias_production_4_3_0_pages_returned: usize,
+    alias_production_4_3_0_pages_caller: usize,
+    mir_production_4_4_source: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    mir_production_4_4_argument: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    mir_production_4_4_returned: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    mir_production_4_4_caller: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    mir_production_4_5_source: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_4_5_argument: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_4_5_returned: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_4_5_caller: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_4_6_source: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_4_6_argument: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_4_6_returned: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_4_6_caller: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_4_7_source: crate::experimental_wasi::WasiUsage,
+    mir_production_4_7_argument: crate::experimental_wasi::WasiUsage,
+    mir_production_4_7_returned: crate::experimental_wasi::WasiUsage,
+    mir_production_4_7_caller: crate::experimental_wasi::WasiUsage,
+    mir_production_4_8_source: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_4_8_argument: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_4_8_returned: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_4_8_caller: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_4_9_source: bool,
+    mir_production_4_9_argument: bool,
+    mir_production_4_9_returned: bool,
+    mir_production_4_9_caller: bool,
+    mir_production_4_10_source: usize,
+    mir_production_4_10_argument: usize,
+    mir_production_4_10_returned: usize,
+    mir_production_4_10_caller: usize,
+    mir_production_4_11_source: &'static std::vec::Vec<u8>,
+    mir_production_4_11_argument: &'static std::vec::Vec<u8>,
+    mir_production_4_11_returned: &'static std::vec::Vec<u8>,
+    mir_production_4_11_caller: &'static std::vec::Vec<u8>,
+    mir_production_4_12_source: bool,
+    mir_production_4_12_argument: bool,
+    mir_production_4_12_returned: bool,
+    mir_production_4_12_caller: bool,
+    mir_production_4_13_source: usize,
+    mir_production_4_13_argument: usize,
+    mir_production_4_13_returned: usize,
+    mir_production_4_13_caller: usize,
+    mir_production_4_14_source: usize,
+    mir_production_4_14_argument: usize,
+    mir_production_4_14_returned: usize,
+    mir_production_4_14_caller: usize,
+    mir_production_4_15_source: &'static std::vec::Vec<u8>,
+    mir_production_4_15_argument: &'static std::vec::Vec<u8>,
+    mir_production_4_15_returned: &'static std::vec::Vec<u8>,
+    mir_production_4_15_caller: &'static std::vec::Vec<u8>,
+    mir_production_4_16_source: bool,
+    mir_production_4_16_argument: bool,
+    mir_production_4_16_returned: bool,
+    mir_production_4_16_caller: bool,
+    mir_production_4_17_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_17_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_17_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_17_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_18_source: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_4_18_argument: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_4_18_returned: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_4_18_caller: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_4_19_source: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    mir_production_4_19_argument: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    mir_production_4_19_returned: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    mir_production_4_19_caller: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    mir_production_4_20_source: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_4_20_argument: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_4_20_returned: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_4_20_caller: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_4_21_source: isize,
+    mir_production_4_21_argument: isize,
+    mir_production_4_21_returned: isize,
+    mir_production_4_21_caller: isize,
+    mir_production_4_23_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_23_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_23_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_23_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_25_source: bool,
+    mir_production_4_25_argument: bool,
+    mir_production_4_25_returned: bool,
+    mir_production_4_25_caller: bool,
+    mir_production_4_26_source: usize,
+    mir_production_4_26_argument: usize,
+    mir_production_4_26_returned: usize,
+    mir_production_4_26_caller: usize,
+    mir_production_4_27_source: bool,
+    mir_production_4_27_argument: bool,
+    mir_production_4_27_returned: bool,
+    mir_production_4_27_caller: bool,
+    mir_production_4_28_source: usize,
+    mir_production_4_28_argument: usize,
+    mir_production_4_28_returned: usize,
+    mir_production_4_28_caller: usize,
+    mir_production_4_29_source: usize,
+    mir_production_4_29_argument: usize,
+    mir_production_4_29_returned: usize,
+    mir_production_4_29_caller: usize,
+    mir_production_4_30_source: &'static std::vec::Vec<crate::experimental::execution::Control>,
+    mir_production_4_30_argument: &'static std::vec::Vec<crate::experimental::execution::Control>,
+    mir_production_4_30_returned: &'static std::vec::Vec<crate::experimental::execution::Control>,
+    mir_production_4_30_caller: &'static std::vec::Vec<crate::experimental::execution::Control>,
+    mir_production_4_31_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_31_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_31_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_31_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_32_source: std::option::Option<usize>,
+    mir_production_4_32_argument: std::option::Option<usize>,
+    mir_production_4_32_returned: std::option::Option<usize>,
+    mir_production_4_32_caller: std::option::Option<usize>,
+    mir_production_4_33_source: usize,
+    mir_production_4_33_argument: usize,
+    mir_production_4_33_returned: usize,
+    mir_production_4_33_caller: usize,
+    mir_production_4_34_source: &'static std::vec::Vec<Value>,
+    mir_production_4_34_argument: &'static std::vec::Vec<Value>,
+    mir_production_4_34_returned: &'static std::vec::Vec<Value>,
+    mir_production_4_34_caller: &'static std::vec::Vec<Value>,
+    mir_production_4_35_source: isize,
+    mir_production_4_35_argument: isize,
+    mir_production_4_35_returned: isize,
+    mir_production_4_35_caller: isize,
+    mir_production_4_37_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_37_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_37_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_37_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_38_source: bool,
+    mir_production_4_38_argument: bool,
+    mir_production_4_38_returned: bool,
+    mir_production_4_38_caller: bool,
+    mir_production_4_39_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_39_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_39_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_39_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_41_source: &'static std::vec::Vec<Value>,
+    mir_production_4_41_argument: &'static std::vec::Vec<Value>,
+    mir_production_4_41_returned: &'static std::vec::Vec<Value>,
+    mir_production_4_41_caller: &'static std::vec::Vec<Value>,
+    mir_production_4_42_source: bool,
+    mir_production_4_42_argument: bool,
+    mir_production_4_42_returned: bool,
+    mir_production_4_42_caller: bool,
+    mir_production_4_43_source: &'static mut std::slice::Iter<'static, Value>,
+    mir_production_4_43_argument: &'static mut std::slice::Iter<'static, Value>,
+    mir_production_4_43_returned: &'static mut std::slice::Iter<'static, Value>,
+    mir_production_4_43_caller: &'static mut std::slice::Iter<'static, Value>,
+    mir_production_4_44_source: std::slice::Iter<'static, Value>,
+    mir_production_4_44_argument: std::slice::Iter<'static, Value>,
+    mir_production_4_44_returned: std::slice::Iter<'static, Value>,
+    mir_production_4_44_caller: std::slice::Iter<'static, Value>,
+    mir_production_4_45_source: &'static [Value],
+    mir_production_4_45_argument: &'static [Value],
+    mir_production_4_45_returned: &'static [Value],
+    mir_production_4_45_caller: &'static [Value],
+    mir_production_4_46_source: &'static std::vec::Vec<Value>,
+    mir_production_4_46_argument: &'static std::vec::Vec<Value>,
+    mir_production_4_46_returned: &'static std::vec::Vec<Value>,
+    mir_production_4_46_caller: &'static std::vec::Vec<Value>,
+    mir_production_4_47_source: std::ops::RangeFrom<usize>,
+    mir_production_4_47_argument: std::ops::RangeFrom<usize>,
+    mir_production_4_47_returned: std::ops::RangeFrom<usize>,
+    mir_production_4_47_caller: std::ops::RangeFrom<usize>,
+    mir_production_4_48_source: usize,
+    mir_production_4_48_argument: usize,
+    mir_production_4_48_returned: usize,
+    mir_production_4_48_caller: usize,
+    mir_production_4_49_source: (usize, bool),
+    mir_production_4_49_argument: (usize, bool),
+    mir_production_4_49_returned: (usize, bool),
+    mir_production_4_49_caller: (usize, bool),
+    mir_production_4_50_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_50_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_50_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_50_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_4_51_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_4_51_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_4_51_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_4_51_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_4_52_source: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_4_52_argument: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_4_52_returned: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_4_52_caller: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_4_53_source: &'static mut std::vec::Vec<u8>,
+    mir_production_4_53_argument: &'static mut std::vec::Vec<u8>,
+    mir_production_4_53_returned: &'static mut std::vec::Vec<u8>,
+    mir_production_4_53_caller: &'static mut std::vec::Vec<u8>,
+    mir_production_4_54_source: &'static mut std::vec::Vec<u8>,
+    mir_production_4_54_argument: &'static mut std::vec::Vec<u8>,
+    mir_production_4_54_returned: &'static mut std::vec::Vec<u8>,
+    mir_production_4_54_caller: &'static mut std::vec::Vec<u8>,
+    mir_production_4_55_source: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_4_55_argument: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_4_55_returned: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_4_55_caller: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_4_56_source: &'static mut std::vec::Vec<crate::experimental::execution::Control>,
+    mir_production_4_56_argument: &'static mut std::vec::Vec<crate::experimental::execution::Control>,
+    mir_production_4_56_returned: &'static mut std::vec::Vec<crate::experimental::execution::Control>,
+    mir_production_4_56_caller: &'static mut std::vec::Vec<crate::experimental::execution::Control>,
+    mir_production_4_57_source: &'static mut std::vec::Vec<Value>,
+    mir_production_4_57_argument: &'static mut std::vec::Vec<Value>,
+    mir_production_4_57_returned: &'static mut std::vec::Vec<Value>,
+    mir_production_4_57_caller: &'static mut std::vec::Vec<Value>,
+    mir_production_4_58_source: &'static mut std::vec::Vec<Value>,
+    mir_production_4_58_argument: &'static mut std::vec::Vec<Value>,
+    mir_production_4_58_returned: &'static mut std::vec::Vec<Value>,
+    mir_production_4_58_caller: &'static mut std::vec::Vec<Value>,
+    mir_production_4_59_source: &'static mut std::vec::Vec<Value>,
+    mir_production_4_59_argument: &'static mut std::vec::Vec<Value>,
+    mir_production_4_59_returned: &'static mut std::vec::Vec<Value>,
+    mir_production_4_59_caller: &'static mut std::vec::Vec<Value>,
+    mir_production_4_22_source: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    mir_production_4_22_argument: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    mir_production_4_22_returned: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    mir_production_4_22_caller: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_4_22_0_frame_source: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_4_22_0_frame_argument: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_4_22_0_frame_returned: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_4_22_0_frame_caller: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_4_22_1_frame_source: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_4_22_1_frame_argument: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_4_22_1_frame_returned: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_4_22_1_frame_caller: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    mir_production_4_24_source: usize,
+    mir_production_4_24_argument: usize,
+    mir_production_4_24_returned: usize,
+    mir_production_4_24_caller: usize,
+    alias_production_4_24_0_floor_source: usize,
+    alias_production_4_24_0_floor_argument: usize,
+    alias_production_4_24_0_floor_returned: usize,
+    alias_production_4_24_0_floor_caller: usize,
+    mir_production_4_36_source: usize,
+    mir_production_4_36_argument: usize,
+    mir_production_4_36_returned: usize,
+    mir_production_4_36_caller: usize,
+    alias_production_4_36_0_available_source: usize,
+    alias_production_4_36_0_available_argument: usize,
+    alias_production_4_36_0_available_returned: usize,
+    alias_production_4_36_0_available_caller: usize,
+    alias_production_4_36_1_available_source: usize,
+    alias_production_4_36_1_available_argument: usize,
+    alias_production_4_36_1_available_returned: usize,
+    alias_production_4_36_1_available_caller: usize,
+    mir_production_4_40_source: usize,
+    mir_production_4_40_argument: usize,
+    mir_production_4_40_returned: usize,
+    mir_production_4_40_caller: usize,
+    alias_production_4_40_0_length_source: usize,
+    alias_production_4_40_0_length_argument: usize,
+    alias_production_4_40_0_length_returned: usize,
+    alias_production_4_40_0_length_caller: usize,
+    mir_production_4_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_4_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_4_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_4_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_4_1_0_self_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_4_1_0_self_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_4_1_0_self_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_4_1_0_self_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_4_2_source: bool,
+    mir_production_4_2_argument: bool,
+    mir_production_4_2_returned: bool,
+    mir_production_4_2_caller: bool,
+    alias_production_4_2_0_operands_source: bool,
+    alias_production_4_2_0_operands_argument: bool,
+    alias_production_4_2_0_operands_returned: bool,
+    alias_production_4_2_0_operands_caller: bool,
+    literal_production_4_0_source: usize,
+    literal_production_4_0_argument: usize,
+    literal_production_4_0_returned: usize,
+    literal_production_4_0_caller: usize,
+    literal_production_4_1_source: &'static str,
+    literal_production_4_1_argument: &'static str,
+    literal_production_4_1_returned: &'static str,
+    literal_production_4_1_caller: &'static str,
+    literal_production_4_2_source: &'static str,
+    literal_production_4_2_argument: &'static str,
+    literal_production_4_2_returned: &'static str,
+    literal_production_4_2_caller: &'static str,
+    literal_production_4_3_source: &'static str,
+    literal_production_4_3_argument: &'static str,
+    literal_production_4_3_returned: &'static str,
+    literal_production_4_3_caller: &'static str,
+    literal_production_4_4_source: &'static str,
+    literal_production_4_4_argument: &'static str,
+    literal_production_4_4_returned: &'static str,
+    literal_production_4_4_caller: &'static str,
+    literal_production_4_5_source: usize,
+    literal_production_4_5_argument: usize,
+    literal_production_4_5_returned: usize,
+    literal_production_4_5_caller: usize,
+    literal_production_4_6_source: &'static str,
+    literal_production_4_6_argument: &'static str,
+    literal_production_4_6_returned: &'static str,
+    literal_production_4_6_caller: &'static str,
+    literal_production_4_7_source: usize,
+    literal_production_4_7_argument: usize,
+    literal_production_4_7_returned: usize,
+    literal_production_4_7_caller: usize,
+    literal_production_4_8_source: usize,
+    literal_production_4_8_argument: usize,
+    literal_production_4_8_returned: usize,
+    literal_production_4_8_caller: usize,
+    literal_production_4_9_source: &'static str,
+    literal_production_4_9_argument: &'static str,
+    literal_production_4_9_returned: &'static str,
+    literal_production_4_9_caller: &'static str,
+    mir_production_5_0_source: bool,
+    mir_production_5_0_argument: bool,
+    mir_production_5_0_returned: bool,
+    mir_production_5_0_caller: bool,
+    mir_production_5_3_source: &'static Type,
+    mir_production_5_3_argument: &'static Type,
+    mir_production_5_3_returned: &'static Type,
+    mir_production_5_3_caller: &'static Type,
+    mir_production_5_4_source: Type,
+    mir_production_5_4_argument: Type,
+    mir_production_5_4_returned: Type,
+    mir_production_5_4_caller: Type,
+    mir_production_5_5_source: Value,
+    mir_production_5_5_argument: Value,
+    mir_production_5_5_returned: Value,
+    mir_production_5_5_caller: Value,
+    mir_production_5_6_source: &'static Type,
+    mir_production_5_6_argument: &'static Type,
+    mir_production_5_6_returned: &'static Type,
+    mir_production_5_6_caller: &'static Type,
+    mir_production_5_1_source: &'static mut (),
+    mir_production_5_1_argument: &'static mut (),
+    mir_production_5_1_returned: &'static mut (),
+    mir_production_5_1_caller: &'static mut (),
+    mir_production_5_2_source: &'static Value,
+    mir_production_5_2_argument: &'static Value,
+    mir_production_5_2_returned: &'static Value,
+    mir_production_5_2_caller: &'static Value,
+    alias_production_5_2_0_value_source: &'static Value,
+    alias_production_5_2_0_value_argument: &'static Value,
+    alias_production_5_2_0_value_returned: &'static Value,
+    alias_production_5_2_0_value_caller: &'static Value,
+    mir_production_6_0_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_6_0_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_6_0_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_6_0_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_6_2_source: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_6_2_argument: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_6_2_returned: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_6_2_caller: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_6_3_source: crate::experimental_swift_reactor::control::Fault,
+    mir_production_6_3_argument: crate::experimental_swift_reactor::control::Fault,
+    mir_production_6_3_returned: crate::experimental_swift_reactor::control::Fault,
+    mir_production_6_3_caller: crate::experimental_swift_reactor::control::Fault,
+    mir_production_6_4_source: crate::experimental_swift_reactor::control::SwiftRunFailureKind,
+    mir_production_6_4_argument: crate::experimental_swift_reactor::control::SwiftRunFailureKind,
+    mir_production_6_4_returned: crate::experimental_swift_reactor::control::SwiftRunFailureKind,
+    mir_production_6_4_caller: crate::experimental_swift_reactor::control::SwiftRunFailureKind,
+    mir_production_6_5_source: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_6_5_argument: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_6_5_returned: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_6_5_caller: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_6_6_source: crate::experimental_wasi::WasiUsage,
+    mir_production_6_6_argument: crate::experimental_wasi::WasiUsage,
+    mir_production_6_6_returned: crate::experimental_wasi::WasiUsage,
+    mir_production_6_6_caller: crate::experimental_wasi::WasiUsage,
+    mir_production_6_7_source: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_6_7_argument: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_6_7_returned: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_6_7_caller: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_6_8_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_6_8_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_6_8_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_6_8_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_6_9_source: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_6_9_argument: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_6_9_returned: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_6_9_caller: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_6_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_6_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_6_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_6_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_6_1_0_self_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_6_1_0_self_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_6_1_0_self_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_6_1_0_self_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    literal_production_6_0_source: &'static str,
+    literal_production_6_0_argument: &'static str,
+    literal_production_6_0_returned: &'static str,
+    literal_production_6_0_caller: &'static str,
+    mir_production_7_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_7_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_7_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_7_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_7_4_source: bool,
+    mir_production_7_4_argument: bool,
+    mir_production_7_4_returned: bool,
+    mir_production_7_4_caller: bool,
+    mir_production_7_5_source: &'static std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_7_5_argument: &'static std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_7_5_returned: &'static std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_7_5_caller: &'static std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_7_6_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_7_6_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_7_6_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_7_6_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    alias_production_7_6_0_failure_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    alias_production_7_6_0_failure_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    alias_production_7_6_0_failure_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    alias_production_7_6_0_failure_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_7_7_source: (),
+    mir_production_7_7_argument: (),
+    mir_production_7_7_returned: (),
+    mir_production_7_7_caller: (),
+    mir_production_7_8_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_7_8_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_7_8_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_7_8_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_7_8_0_result_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_7_8_0_result_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_7_8_0_result_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_7_8_0_result_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_7_9_source: bool,
+    mir_production_7_9_argument: bool,
+    mir_production_7_9_returned: bool,
+    mir_production_7_9_caller: bool,
+    mir_production_7_10_source: &'static std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_7_10_argument: &'static std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_7_10_returned: &'static std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_7_10_caller: &'static std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_7_11_source: (),
+    mir_production_7_11_argument: (),
+    mir_production_7_11_returned: (),
+    mir_production_7_11_caller: (),
+    mir_production_7_12_source: std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_7_12_argument: std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_7_12_returned: std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_7_12_caller: std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_7_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_7_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_7_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_7_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_7_1_0_self_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_7_1_0_self_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_7_1_0_self_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_7_1_0_self_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_7_2_source: crate::experimental::cache::Operation,
+    mir_production_7_2_argument: crate::experimental::cache::Operation,
+    mir_production_7_2_returned: crate::experimental::cache::Operation,
+    mir_production_7_2_caller: crate::experimental::cache::Operation,
+    alias_production_7_2_0_operation_source: crate::experimental::cache::Operation,
+    alias_production_7_2_0_operation_argument: crate::experimental::cache::Operation,
+    alias_production_7_2_0_operation_returned: crate::experimental::cache::Operation,
+    alias_production_7_2_0_operation_caller: crate::experimental::cache::Operation,
+    mir_production_7_3_source: &'static mut Option<Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_7_3_argument: &'static mut Option<Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_7_3_returned: &'static mut Option<Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_7_3_caller: &'static mut Option<Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    alias_production_7_3_0_returned_source: &'static mut Option<Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    alias_production_7_3_0_returned_argument: &'static mut Option<Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    alias_production_7_3_0_returned_returned: &'static mut Option<Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    alias_production_7_3_0_returned_caller: &'static mut Option<Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    literal_production_7_0_source: &'static str,
+    literal_production_7_0_argument: &'static str,
+    literal_production_7_0_returned: &'static str,
+    literal_production_7_0_caller: &'static str,
+    mir_production_8_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_3_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_8_3_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_8_3_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_8_3_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_8_4_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_4_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_4_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_4_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_5_source: isize,
+    mir_production_8_5_argument: isize,
+    mir_production_8_5_returned: isize,
+    mir_production_8_5_caller: isize,
+    mir_production_8_6_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_6_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_6_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_6_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_8_6_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_8_6_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_8_6_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_8_6_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_7_source: isize,
+    mir_production_8_7_argument: isize,
+    mir_production_8_7_returned: isize,
+    mir_production_8_7_caller: isize,
+    mir_production_8_8_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_8_8_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_8_8_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_8_8_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_8_9_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_9_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_9_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_9_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_10_source: isize,
+    mir_production_8_10_argument: isize,
+    mir_production_8_10_returned: isize,
+    mir_production_8_10_caller: isize,
+    mir_production_8_11_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_11_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_11_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_11_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_8_11_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_8_11_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_8_11_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_8_11_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_12_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_8_12_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_8_12_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_8_12_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_8_13_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_13_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_13_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_13_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_14_source: isize,
+    mir_production_8_14_argument: isize,
+    mir_production_8_14_returned: isize,
+    mir_production_8_14_caller: isize,
+    mir_production_8_15_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_15_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_15_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_15_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_8_15_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_8_15_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_8_15_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_8_15_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_16_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_8_16_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_8_16_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_8_16_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_8_17_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_17_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_17_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_17_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_18_source: isize,
+    mir_production_8_18_argument: isize,
+    mir_production_8_18_returned: isize,
+    mir_production_8_18_caller: isize,
+    mir_production_8_19_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_19_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_19_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_19_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_8_19_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_8_19_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_8_19_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_8_19_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_8_20_source: Value,
+    mir_production_8_20_argument: Value,
+    mir_production_8_20_returned: Value,
+    mir_production_8_20_caller: Value,
+    mir_production_8_21_source: i32,
+    mir_production_8_21_argument: i32,
+    mir_production_8_21_returned: i32,
+    mir_production_8_21_caller: i32,
+    mir_production_8_22_source: usize,
+    mir_production_8_22_argument: usize,
+    mir_production_8_22_returned: usize,
+    mir_production_8_22_caller: usize,
+    mir_production_8_23_source: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    mir_production_8_23_argument: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    mir_production_8_23_returned: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    mir_production_8_23_caller: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    mir_production_8_24_source: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_8_24_argument: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_8_24_returned: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_8_24_caller: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_8_25_source: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_8_25_argument: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_8_25_returned: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_8_25_caller: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_8_26_source: crate::experimental_wasi::WasiUsage,
+    mir_production_8_26_argument: crate::experimental_wasi::WasiUsage,
+    mir_production_8_26_returned: crate::experimental_wasi::WasiUsage,
+    mir_production_8_26_caller: crate::experimental_wasi::WasiUsage,
+    mir_production_8_27_source: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_8_27_argument: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_8_27_returned: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_8_27_caller: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_8_28_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_8_28_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_8_28_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_8_28_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_8_29_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_8_29_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_8_29_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_8_29_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_8_30_source: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_8_30_argument: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_8_30_returned: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_8_30_caller: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_8_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_8_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_8_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_8_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_8_1_0_self_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_8_1_0_self_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_8_1_0_self_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_8_1_0_self_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_8_2_source: crate::experimental::cache::Operation,
+    mir_production_8_2_argument: crate::experimental::cache::Operation,
+    mir_production_8_2_returned: crate::experimental::cache::Operation,
+    mir_production_8_2_caller: crate::experimental::cache::Operation,
+    alias_production_8_2_0_operation_source: crate::experimental::cache::Operation,
+    alias_production_8_2_0_operation_argument: crate::experimental::cache::Operation,
+    alias_production_8_2_0_operation_returned: crate::experimental::cache::Operation,
+    alias_production_8_2_0_operation_caller: crate::experimental::cache::Operation,
+    literal_production_8_0_source: bool,
+    literal_production_8_0_argument: bool,
+    literal_production_8_0_returned: bool,
+    literal_production_8_0_caller: bool,
+    literal_production_8_1_source: bool,
+    literal_production_8_1_argument: bool,
+    literal_production_8_1_returned: bool,
+    literal_production_8_1_caller: bool,
+    literal_production_8_2_source: bool,
+    literal_production_8_2_argument: bool,
+    literal_production_8_2_returned: bool,
+    literal_production_8_2_caller: bool,
+    mir_production_9_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_9_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_9_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_9_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_9_3_source: bool,
+    mir_production_9_3_argument: bool,
+    mir_production_9_3_returned: bool,
+    mir_production_9_3_caller: bool,
+    mir_production_9_4_source: &'static std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_9_4_argument: &'static std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_9_4_returned: &'static std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_9_4_caller: &'static std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_9_5_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_9_5_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_9_5_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_9_5_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    alias_production_9_5_0_failure_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    alias_production_9_5_0_failure_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    alias_production_9_5_0_failure_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    alias_production_9_5_0_failure_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_9_6_source: (),
+    mir_production_9_6_argument: (),
+    mir_production_9_6_returned: (),
+    mir_production_9_6_caller: (),
+    mir_production_9_7_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_9_7_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_9_7_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_9_7_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_9_7_0_result_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_9_7_0_result_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_9_7_0_result_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_9_7_0_result_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_9_8_source: bool,
+    mir_production_9_8_argument: bool,
+    mir_production_9_8_returned: bool,
+    mir_production_9_8_caller: bool,
+    mir_production_9_9_source: &'static std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_9_9_argument: &'static std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_9_9_returned: &'static std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_9_9_caller: &'static std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_9_10_source: (),
+    mir_production_9_10_argument: (),
+    mir_production_9_10_returned: (),
+    mir_production_9_10_caller: (),
+    mir_production_9_11_source: std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_9_11_argument: std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_9_11_returned: std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_9_11_caller: std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_9_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_9_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_9_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_9_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_9_1_0_phase_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_9_1_0_phase_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_9_1_0_phase_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_9_1_0_phase_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_9_2_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'static>,
+    mir_production_9_2_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'static>,
+    mir_production_9_2_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'static>,
+    mir_production_9_2_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'static>,
+    alias_production_9_2_0_storage_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'static>,
+    alias_production_9_2_0_storage_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'static>,
+    alias_production_9_2_0_storage_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'static>,
+    alias_production_9_2_0_storage_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'static>,
+    literal_production_9_0_source: &'static str,
+    literal_production_9_0_argument: &'static str,
+    literal_production_9_0_returned: &'static str,
+    literal_production_9_0_caller: &'static str,
+    mir_production_10_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_2_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_10_2_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_10_2_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_10_2_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_10_3_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_3_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_3_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_3_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_4_source: isize,
+    mir_production_10_4_argument: isize,
+    mir_production_10_4_returned: isize,
+    mir_production_10_4_caller: isize,
+    mir_production_10_5_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_5_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_5_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_5_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_10_5_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_10_5_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_10_5_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_10_5_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_6_source: (u32, crate::experimental::cache::DecodedInstruction),
+    mir_production_10_6_argument: (u32, crate::experimental::cache::DecodedInstruction),
+    mir_production_10_6_returned: (u32, crate::experimental::cache::DecodedInstruction),
+    mir_production_10_6_caller: (u32, crate::experimental::cache::DecodedInstruction),
+    alias_production_10_6_0_selected_source: (u32, crate::experimental::cache::DecodedInstruction),
+    alias_production_10_6_0_selected_argument: (u32, crate::experimental::cache::DecodedInstruction),
+    alias_production_10_6_0_selected_returned: (u32, crate::experimental::cache::DecodedInstruction),
+    alias_production_10_6_0_selected_caller: (u32, crate::experimental::cache::DecodedInstruction),
+    mir_production_10_7_source: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_7_argument: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_7_returned: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_7_caller: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_8_source: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    mir_production_10_8_argument: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    mir_production_10_8_returned: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    mir_production_10_8_caller: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    mir_production_10_9_source: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_9_argument: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_9_returned: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_9_caller: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_10_source: isize,
+    mir_production_10_10_argument: isize,
+    mir_production_10_10_returned: isize,
+    mir_production_10_10_caller: isize,
+    mir_production_10_11_source: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    mir_production_10_11_argument: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    mir_production_10_11_returned: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    mir_production_10_11_caller: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_10_11_0_frame_source: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_10_11_0_frame_argument: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_10_11_0_frame_returned: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_10_11_0_frame_caller: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_10_11_1_frame_source: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_10_11_1_frame_argument: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_10_11_1_frame_returned: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_10_11_1_frame_caller: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    mir_production_10_12_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_10_12_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_10_12_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_10_12_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_10_13_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, crate::experimental::cache::FunctionView<'static>>,
+    mir_production_10_13_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, crate::experimental::cache::FunctionView<'static>>,
+    mir_production_10_13_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, crate::experimental::cache::FunctionView<'static>>,
+    mir_production_10_13_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, crate::experimental::cache::FunctionView<'static>>,
+    mir_production_10_14_source: std::result::Result<crate::experimental::cache::FunctionView<'static>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_14_argument: std::result::Result<crate::experimental::cache::FunctionView<'static>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_14_returned: std::result::Result<crate::experimental::cache::FunctionView<'static>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_14_caller: std::result::Result<crate::experimental::cache::FunctionView<'static>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_15_source: &'static crate::experimental_swift_reactor::cache::SwiftFunctionCache,
+    mir_production_10_15_argument: &'static crate::experimental_swift_reactor::cache::SwiftFunctionCache,
+    mir_production_10_15_returned: &'static crate::experimental_swift_reactor::cache::SwiftFunctionCache,
+    mir_production_10_15_caller: &'static crate::experimental_swift_reactor::cache::SwiftFunctionCache,
+    mir_production_10_16_source: &'static crate::experimental_swift_reactor::cache::SwiftFunctionPin,
+    mir_production_10_16_argument: &'static crate::experimental_swift_reactor::cache::SwiftFunctionPin,
+    mir_production_10_16_returned: &'static crate::experimental_swift_reactor::cache::SwiftFunctionPin,
+    mir_production_10_16_caller: &'static crate::experimental_swift_reactor::cache::SwiftFunctionPin,
+    mir_production_10_17_source: std::option::Option<&'static crate::experimental_wasi::accounted::AccountedWasi>,
+    mir_production_10_17_argument: std::option::Option<&'static crate::experimental_wasi::accounted::AccountedWasi>,
+    mir_production_10_17_returned: std::option::Option<&'static crate::experimental_wasi::accounted::AccountedWasi>,
+    mir_production_10_17_caller: std::option::Option<&'static crate::experimental_wasi::accounted::AccountedWasi>,
+    mir_production_10_18_source: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_10_18_argument: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_10_18_returned: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_10_18_caller: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_10_19_source: isize,
+    mir_production_10_19_argument: isize,
+    mir_production_10_19_returned: isize,
+    mir_production_10_19_caller: isize,
+    mir_production_10_23_source: std::option::Option<&'static crate::experimental::cache::DecodedInstruction>,
+    mir_production_10_23_argument: std::option::Option<&'static crate::experimental::cache::DecodedInstruction>,
+    mir_production_10_23_returned: std::option::Option<&'static crate::experimental::cache::DecodedInstruction>,
+    mir_production_10_23_caller: std::option::Option<&'static crate::experimental::cache::DecodedInstruction>,
+    mir_production_10_24_source: usize,
+    mir_production_10_24_argument: usize,
+    mir_production_10_24_returned: usize,
+    mir_production_10_24_caller: usize,
+    mir_production_10_25_source: isize,
+    mir_production_10_25_argument: isize,
+    mir_production_10_25_returned: isize,
+    mir_production_10_25_caller: isize,
+    mir_production_10_27_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_10_27_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_10_27_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_10_27_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_10_28_source: u32,
+    mir_production_10_28_argument: u32,
+    mir_production_10_28_returned: u32,
+    mir_production_10_28_caller: u32,
+    mir_production_10_31_source: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_10_31_argument: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_10_31_returned: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_10_31_caller: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_10_32_source: crate::experimental_swift_reactor::control::SwiftRunStage,
+    mir_production_10_32_argument: crate::experimental_swift_reactor::control::SwiftRunStage,
+    mir_production_10_32_returned: crate::experimental_swift_reactor::control::SwiftRunStage,
+    mir_production_10_32_caller: crate::experimental_swift_reactor::control::SwiftRunStage,
+    mir_production_10_33_source: std::option::Option<u32>,
+    mir_production_10_33_argument: std::option::Option<u32>,
+    mir_production_10_33_returned: std::option::Option<u32>,
+    mir_production_10_33_caller: std::option::Option<u32>,
+    mir_production_10_34_source: std::option::Option<usize>,
+    mir_production_10_34_argument: std::option::Option<usize>,
+    mir_production_10_34_returned: std::option::Option<usize>,
+    mir_production_10_34_caller: std::option::Option<usize>,
+    mir_production_10_35_source: usize,
+    mir_production_10_35_argument: usize,
+    mir_production_10_35_returned: usize,
+    mir_production_10_35_caller: usize,
+    mir_production_10_36_source: isize,
+    mir_production_10_36_argument: isize,
+    mir_production_10_36_returned: isize,
+    mir_production_10_36_caller: isize,
+    mir_production_10_37_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_10_37_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_10_37_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_10_37_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_10_38_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_10_38_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_10_38_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_10_38_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_10_39_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_39_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_39_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_39_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_40_source: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_10_40_argument: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_10_40_returned: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_10_40_caller: crate::experimental_swift_reactor::control::Cursor,
+    mir_production_10_41_source: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_10_41_argument: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_10_41_returned: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_10_41_caller: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    mir_production_10_42_source: crate::experimental_wasi::WasiUsage,
+    mir_production_10_42_argument: crate::experimental_wasi::WasiUsage,
+    mir_production_10_42_returned: crate::experimental_wasi::WasiUsage,
+    mir_production_10_42_caller: crate::experimental_wasi::WasiUsage,
+    mir_production_10_43_source: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_10_43_argument: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_10_43_returned: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_10_43_caller: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_10_44_source: isize,
+    mir_production_10_44_argument: isize,
+    mir_production_10_44_returned: isize,
+    mir_production_10_44_caller: isize,
+    mir_production_10_46_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_10_46_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_10_46_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_10_46_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    mir_production_10_47_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_47_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_47_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_47_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_48_source: isize,
+    mir_production_10_48_argument: isize,
+    mir_production_10_48_returned: isize,
+    mir_production_10_48_caller: isize,
+    mir_production_10_50_source: std::option::Option<usize>,
+    mir_production_10_50_argument: std::option::Option<usize>,
+    mir_production_10_50_returned: std::option::Option<usize>,
+    mir_production_10_50_caller: std::option::Option<usize>,
+    mir_production_10_51_source: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_51_argument: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_51_returned: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_51_caller: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_52_source: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    mir_production_10_52_argument: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    mir_production_10_52_returned: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    mir_production_10_52_caller: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    mir_production_10_53_source: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_53_argument: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_53_returned: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_53_caller: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_54_source: isize,
+    mir_production_10_54_argument: isize,
+    mir_production_10_54_returned: isize,
+    mir_production_10_54_caller: isize,
+    mir_production_10_56_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_10_56_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_10_56_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_10_56_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    mir_production_10_57_source: &'static mut crate::experimental_swift_reactor::execution::SwiftFrame,
+    mir_production_10_57_argument: &'static mut crate::experimental_swift_reactor::execution::SwiftFrame,
+    mir_production_10_57_returned: &'static mut crate::experimental_swift_reactor::execution::SwiftFrame,
+    mir_production_10_57_caller: &'static mut crate::experimental_swift_reactor::execution::SwiftFrame,
+    mir_production_10_58_source: std::option::Option<&'static mut crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_58_argument: std::option::Option<&'static mut crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_58_returned: std::option::Option<&'static mut crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_58_caller: std::option::Option<&'static mut crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_59_source: &'static mut [crate::experimental_swift_reactor::execution::SwiftFrame],
+    mir_production_10_59_argument: &'static mut [crate::experimental_swift_reactor::execution::SwiftFrame],
+    mir_production_10_59_returned: &'static mut [crate::experimental_swift_reactor::execution::SwiftFrame],
+    mir_production_10_59_caller: &'static mut [crate::experimental_swift_reactor::execution::SwiftFrame],
+    mir_production_10_60_source: &'static str,
+    mir_production_10_60_argument: &'static str,
+    mir_production_10_60_returned: &'static str,
+    mir_production_10_60_caller: &'static str,
+    mir_production_10_61_source: crate::experimental::cache::Operation,
+    mir_production_10_61_argument: crate::experimental::cache::Operation,
+    mir_production_10_61_returned: crate::experimental::cache::Operation,
+    mir_production_10_61_caller: crate::experimental::cache::Operation,
+    mir_production_10_62_source: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_62_argument: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_62_returned: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_62_caller: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_63_source: &'static mut crate::experimental_swift_reactor::cache::SwiftFunctionCache,
+    mir_production_10_63_argument: &'static mut crate::experimental_swift_reactor::cache::SwiftFunctionCache,
+    mir_production_10_63_returned: &'static mut crate::experimental_swift_reactor::cache::SwiftFunctionCache,
+    mir_production_10_63_caller: &'static mut crate::experimental_swift_reactor::cache::SwiftFunctionCache,
+    mir_production_10_64_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_10_64_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_10_64_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_10_64_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_10_65_source: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_10_65_argument: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_10_65_returned: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_10_65_caller: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_10_66_source: &'static [crate::experimental::cache::DecodedInstruction],
+    mir_production_10_66_argument: &'static [crate::experimental::cache::DecodedInstruction],
+    mir_production_10_66_returned: &'static [crate::experimental::cache::DecodedInstruction],
+    mir_production_10_66_caller: &'static [crate::experimental::cache::DecodedInstruction],
+    mir_production_10_67_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_10_67_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_10_67_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_10_67_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    mir_production_10_68_source: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_10_68_argument: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_10_68_returned: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_10_68_caller: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    mir_production_10_69_source: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_69_argument: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_69_returned: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_69_caller: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_70_source: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_70_argument: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_70_returned: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_70_caller: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    mir_production_10_29_source: u32,
+    mir_production_10_29_argument: u32,
+    mir_production_10_29_returned: u32,
+    mir_production_10_29_caller: u32,
+    alias_production_10_29_0_function_source: u32,
+    alias_production_10_29_0_function_argument: u32,
+    alias_production_10_29_0_function_returned: u32,
+    alias_production_10_29_0_function_caller: u32,
+    mir_production_10_30_source: crate::experimental::cache::DecodedInstruction,
+    mir_production_10_30_argument: crate::experimental::cache::DecodedInstruction,
+    mir_production_10_30_returned: crate::experimental::cache::DecodedInstruction,
+    mir_production_10_30_caller: crate::experimental::cache::DecodedInstruction,
+    alias_production_10_30_0_instruction_source: crate::experimental::cache::DecodedInstruction,
+    alias_production_10_30_0_instruction_argument: crate::experimental::cache::DecodedInstruction,
+    alias_production_10_30_0_instruction_returned: crate::experimental::cache::DecodedInstruction,
+    alias_production_10_30_0_instruction_caller: crate::experimental::cache::DecodedInstruction,
+    mir_production_10_45_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_45_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_45_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_45_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_10_45_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_10_45_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_10_45_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_10_45_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_49_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_49_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_49_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_49_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_10_49_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_10_49_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_10_49_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_10_49_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_55_source: usize,
+    mir_production_10_55_argument: usize,
+    mir_production_10_55_returned: usize,
+    mir_production_10_55_caller: usize,
+    alias_production_10_55_0_pc_source: usize,
+    alias_production_10_55_0_pc_argument: usize,
+    alias_production_10_55_0_pc_returned: usize,
+    alias_production_10_55_0_pc_caller: usize,
+    alias_production_10_55_1_pc_source: usize,
+    alias_production_10_55_1_pc_argument: usize,
+    alias_production_10_55_1_pc_returned: usize,
+    alias_production_10_55_1_pc_caller: usize,
+    mir_production_10_20_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_20_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_20_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_20_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_10_20_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_10_20_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_10_20_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    alias_production_10_20_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    mir_production_10_21_source: crate::experimental::cache::FunctionView<'static>,
+    mir_production_10_21_argument: crate::experimental::cache::FunctionView<'static>,
+    mir_production_10_21_returned: crate::experimental::cache::FunctionView<'static>,
+    mir_production_10_21_caller: crate::experimental::cache::FunctionView<'static>,
+    alias_production_10_21_0_view_source: crate::experimental::cache::FunctionView<'static>,
+    alias_production_10_21_0_view_argument: crate::experimental::cache::FunctionView<'static>,
+    alias_production_10_21_0_view_returned: crate::experimental::cache::FunctionView<'static>,
+    alias_production_10_21_0_view_caller: crate::experimental::cache::FunctionView<'static>,
+    alias_production_10_21_1_val_source: crate::experimental::cache::FunctionView<'static>,
+    alias_production_10_21_1_val_argument: crate::experimental::cache::FunctionView<'static>,
+    alias_production_10_21_1_val_returned: crate::experimental::cache::FunctionView<'static>,
+    alias_production_10_21_1_val_caller: crate::experimental::cache::FunctionView<'static>,
+    mir_production_10_22_source: crate::experimental::cache::DecodedInstruction,
+    mir_production_10_22_argument: crate::experimental::cache::DecodedInstruction,
+    mir_production_10_22_returned: crate::experimental::cache::DecodedInstruction,
+    mir_production_10_22_caller: crate::experimental::cache::DecodedInstruction,
+    alias_production_10_22_0_instruction_source: crate::experimental::cache::DecodedInstruction,
+    alias_production_10_22_0_instruction_argument: crate::experimental::cache::DecodedInstruction,
+    alias_production_10_22_0_instruction_returned: crate::experimental::cache::DecodedInstruction,
+    alias_production_10_22_0_instruction_caller: crate::experimental::cache::DecodedInstruction,
+    mir_production_10_26_source: &'static crate::experimental::cache::DecodedInstruction,
+    mir_production_10_26_argument: &'static crate::experimental::cache::DecodedInstruction,
+    mir_production_10_26_returned: &'static crate::experimental::cache::DecodedInstruction,
+    mir_production_10_26_caller: &'static crate::experimental::cache::DecodedInstruction,
+    alias_production_10_26_0_instruction_source: &'static crate::experimental::cache::DecodedInstruction,
+    alias_production_10_26_0_instruction_argument: &'static crate::experimental::cache::DecodedInstruction,
+    alias_production_10_26_0_instruction_returned: &'static crate::experimental::cache::DecodedInstruction,
+    alias_production_10_26_0_instruction_caller: &'static crate::experimental::cache::DecodedInstruction,
+    mir_production_10_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_10_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_10_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    mir_production_10_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_10_1_0_phase_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_10_1_0_phase_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_10_1_0_phase_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    alias_production_10_1_0_phase_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    literal_production_10_0_source: &'static str,
+    literal_production_10_0_argument: &'static str,
+    literal_production_10_0_returned: &'static str,
+    literal_production_10_0_caller: &'static str,
+    literal_production_10_1_source: &'static str,
+    literal_production_10_1_argument: &'static str,
+    literal_production_10_1_returned: &'static str,
+    literal_production_10_1_caller: &'static str,
+    literal_production_10_2_source: usize,
+    literal_production_10_2_argument: usize,
+    literal_production_10_2_returned: usize,
+    literal_production_10_2_caller: usize,
+    literal_production_10_3_source: &'static str,
+    literal_production_10_3_argument: &'static str,
+    literal_production_10_3_returned: &'static str,
+    literal_production_10_3_caller: &'static str,
+    literal_production_10_4_source: &'static str,
+    literal_production_10_4_argument: &'static str,
+    literal_production_10_4_returned: &'static str,
+    literal_production_10_4_caller: &'static str,
+    mir_production_11_0_source: std::option::Option<usize>,
+    mir_production_11_0_argument: std::option::Option<usize>,
+    mir_production_11_0_returned: std::option::Option<usize>,
+    mir_production_11_0_caller: std::option::Option<usize>,
+    mir_production_11_3_source: usize,
+    mir_production_11_3_argument: usize,
+    mir_production_11_3_returned: usize,
+    mir_production_11_3_caller: usize,
+    mir_production_11_1_source: (),
+    mir_production_11_1_argument: (),
+    mir_production_11_1_returned: (),
+    mir_production_11_1_caller: (),
+    mir_production_11_2_source: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    mir_production_11_2_argument: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    mir_production_11_2_returned: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    mir_production_11_2_caller: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_11_2_0_frame_source: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_11_2_0_frame_argument: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_11_2_0_frame_returned: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    alias_production_11_2_0_frame_caller: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    literal_production_11_0_source: usize,
+    literal_production_11_0_argument: usize,
+    literal_production_11_0_returned: usize,
+    literal_production_11_0_caller: usize,
+    mir_production_12_0_source: &'static Type,
+    mir_production_12_0_argument: &'static Type,
+    mir_production_12_0_returned: &'static Type,
+    mir_production_12_0_caller: &'static Type,
+    mir_production_12_1_source: Type,
+    mir_production_12_1_argument: Type,
+    mir_production_12_1_returned: Type,
+    mir_production_12_1_caller: Type,
+    #[cfg(test)]
+    mir_unit_0_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_0_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_0_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_0_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_0_3_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_0_3_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_0_3_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_0_3_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_0_4_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_0_4_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_0_4_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_0_4_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_0_5_source: u64,
+    #[cfg(test)]
+    mir_unit_0_5_argument: u64,
+    #[cfg(test)]
+    mir_unit_0_5_returned: u64,
+    #[cfg(test)]
+    mir_unit_0_5_caller: u64,
+    #[cfg(test)]
+    mir_unit_0_6_source: usize,
+    #[cfg(test)]
+    mir_unit_0_6_argument: usize,
+    #[cfg(test)]
+    mir_unit_0_6_returned: usize,
+    #[cfg(test)]
+    mir_unit_0_6_caller: usize,
+    #[cfg(test)]
+    mir_unit_0_7_source: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_0_7_argument: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_0_7_returned: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_0_7_caller: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_0_8_source: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_0_8_argument: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_0_8_returned: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_0_8_caller: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_0_9_source: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_0_9_argument: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_0_9_returned: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_0_9_caller: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_0_10_source: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_0_10_argument: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_0_10_returned: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_0_10_caller: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_0_11_source: isize,
+    #[cfg(test)]
+    mir_unit_0_11_argument: isize,
+    #[cfg(test)]
+    mir_unit_0_11_returned: isize,
+    #[cfg(test)]
+    mir_unit_0_11_caller: isize,
+    #[cfg(test)]
+    mir_unit_0_12_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_0_12_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_0_12_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_0_12_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_0_12_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_0_12_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_0_12_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_0_12_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_0_13_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_0_13_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_0_13_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_0_13_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_0_14_source: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_0_14_argument: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_0_14_returned: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_0_14_caller: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_0_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_0_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_0_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_0_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_0_1_0_self_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_0_1_0_self_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_0_1_0_self_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_0_1_0_self_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_0_2_source: usize,
+    #[cfg(test)]
+    mir_unit_0_2_argument: usize,
+    #[cfg(test)]
+    mir_unit_0_2_returned: usize,
+    #[cfg(test)]
+    mir_unit_0_2_caller: usize,
+    #[cfg(test)]
+    alias_unit_0_2_0_len_source: usize,
+    #[cfg(test)]
+    alias_unit_0_2_0_len_argument: usize,
+    #[cfg(test)]
+    alias_unit_0_2_0_len_returned: usize,
+    #[cfg(test)]
+    alias_unit_0_2_0_len_caller: usize,
+    #[cfg(test)]
+    literal_unit_0_0_source: usize,
+    #[cfg(test)]
+    literal_unit_0_0_argument: usize,
+    #[cfg(test)]
+    literal_unit_0_0_returned: usize,
+    #[cfg(test)]
+    literal_unit_0_0_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_2_source: usize,
+    #[cfg(test)]
+    mir_unit_1_2_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_2_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_2_caller: usize,
+    #[cfg(test)]
+    alias_unit_1_2_0_len_source: usize,
+    #[cfg(test)]
+    alias_unit_1_2_0_len_argument: usize,
+    #[cfg(test)]
+    alias_unit_1_2_0_len_returned: usize,
+    #[cfg(test)]
+    alias_unit_1_2_0_len_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_3_source: u32,
+    #[cfg(test)]
+    mir_unit_1_3_argument: u32,
+    #[cfg(test)]
+    mir_unit_1_3_returned: u32,
+    #[cfg(test)]
+    mir_unit_1_3_caller: u32,
+    #[cfg(test)]
+    mir_unit_1_4_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_1_4_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_1_4_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_1_4_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_1_5_source: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_5_argument: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_5_returned: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_5_caller: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_6_source: isize,
+    #[cfg(test)]
+    mir_unit_1_6_argument: isize,
+    #[cfg(test)]
+    mir_unit_1_6_returned: isize,
+    #[cfg(test)]
+    mir_unit_1_6_caller: isize,
+    #[cfg(test)]
+    mir_unit_1_7_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_7_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_7_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_7_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_7_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_7_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_7_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_7_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_8_source: i32,
+    #[cfg(test)]
+    mir_unit_1_8_argument: i32,
+    #[cfg(test)]
+    mir_unit_1_8_returned: i32,
+    #[cfg(test)]
+    mir_unit_1_8_caller: i32,
+    #[cfg(test)]
+    alias_unit_1_8_0_val_source: i32,
+    #[cfg(test)]
+    alias_unit_1_8_0_val_argument: i32,
+    #[cfg(test)]
+    alias_unit_1_8_0_val_returned: i32,
+    #[cfg(test)]
+    alias_unit_1_8_0_val_caller: i32,
+    #[cfg(test)]
+    mir_unit_1_10_source: u32,
+    #[cfg(test)]
+    mir_unit_1_10_argument: u32,
+    #[cfg(test)]
+    mir_unit_1_10_returned: u32,
+    #[cfg(test)]
+    mir_unit_1_10_caller: u32,
+    #[cfg(test)]
+    mir_unit_1_11_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_1_11_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_1_11_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_1_11_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_1_12_source: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_12_argument: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_12_returned: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_12_caller: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_13_source: isize,
+    #[cfg(test)]
+    mir_unit_1_13_argument: isize,
+    #[cfg(test)]
+    mir_unit_1_13_returned: isize,
+    #[cfg(test)]
+    mir_unit_1_13_caller: isize,
+    #[cfg(test)]
+    mir_unit_1_17_source: u32,
+    #[cfg(test)]
+    mir_unit_1_17_argument: u32,
+    #[cfg(test)]
+    mir_unit_1_17_returned: u32,
+    #[cfg(test)]
+    mir_unit_1_17_caller: u32,
+    #[cfg(test)]
+    mir_unit_1_18_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_1_18_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_1_18_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_1_18_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_1_19_source: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_19_argument: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_19_returned: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_19_caller: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_20_source: isize,
+    #[cfg(test)]
+    mir_unit_1_20_argument: isize,
+    #[cfg(test)]
+    mir_unit_1_20_returned: isize,
+    #[cfg(test)]
+    mir_unit_1_20_caller: isize,
+    #[cfg(test)]
+    mir_unit_1_23_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_23_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_23_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_23_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_24_source: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_24_argument: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_24_returned: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_24_caller: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_25_source: isize,
+    #[cfg(test)]
+    mir_unit_1_25_argument: isize,
+    #[cfg(test)]
+    mir_unit_1_25_returned: isize,
+    #[cfg(test)]
+    mir_unit_1_25_caller: isize,
+    #[cfg(test)]
+    mir_unit_1_28_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_28_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_28_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_28_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_29_source: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_29_argument: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_29_returned: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_29_caller: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_30_source: isize,
+    #[cfg(test)]
+    mir_unit_1_30_argument: isize,
+    #[cfg(test)]
+    mir_unit_1_30_returned: isize,
+    #[cfg(test)]
+    mir_unit_1_30_caller: isize,
+    #[cfg(test)]
+    mir_unit_1_33_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_1_33_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_1_33_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_1_33_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_1_34_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_34_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_34_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_34_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_35_source: isize,
+    #[cfg(test)]
+    mir_unit_1_35_argument: isize,
+    #[cfg(test)]
+    mir_unit_1_35_returned: isize,
+    #[cfg(test)]
+    mir_unit_1_35_caller: isize,
+    #[cfg(test)]
+    mir_unit_1_37_source: bool,
+    #[cfg(test)]
+    mir_unit_1_37_argument: bool,
+    #[cfg(test)]
+    mir_unit_1_37_returned: bool,
+    #[cfg(test)]
+    mir_unit_1_37_caller: bool,
+    #[cfg(test)]
+    mir_unit_1_39_source: bool,
+    #[cfg(test)]
+    mir_unit_1_39_argument: bool,
+    #[cfg(test)]
+    mir_unit_1_39_returned: bool,
+    #[cfg(test)]
+    mir_unit_1_39_caller: bool,
+    #[cfg(test)]
+    mir_unit_1_40_source: usize,
+    #[cfg(test)]
+    mir_unit_1_40_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_40_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_40_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_41_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_1_41_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_1_41_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_1_41_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_1_42_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_42_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_42_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_42_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_43_source: isize,
+    #[cfg(test)]
+    mir_unit_1_43_argument: isize,
+    #[cfg(test)]
+    mir_unit_1_43_returned: isize,
+    #[cfg(test)]
+    mir_unit_1_43_caller: isize,
+    #[cfg(test)]
+    mir_unit_1_46_source: usize,
+    #[cfg(test)]
+    mir_unit_1_46_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_46_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_46_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_47_source: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_47_argument: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_47_returned: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_47_caller: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_48_source: (),
+    #[cfg(test)]
+    mir_unit_1_48_argument: (),
+    #[cfg(test)]
+    mir_unit_1_48_returned: (),
+    #[cfg(test)]
+    mir_unit_1_48_caller: (),
+    #[cfg(test)]
+    mir_unit_1_49_source: &'static mut [u8],
+    #[cfg(test)]
+    mir_unit_1_49_argument: &'static mut [u8],
+    #[cfg(test)]
+    mir_unit_1_49_returned: &'static mut [u8],
+    #[cfg(test)]
+    mir_unit_1_49_caller: &'static mut [u8],
+    #[cfg(test)]
+    mir_unit_1_50_source: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_50_argument: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_50_returned: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_50_caller: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_51_source: usize,
+    #[cfg(test)]
+    mir_unit_1_51_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_51_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_51_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_52_source: usize,
+    #[cfg(test)]
+    mir_unit_1_52_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_52_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_52_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_53_source: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_53_argument: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_53_returned: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_53_caller: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_54_source: usize,
+    #[cfg(test)]
+    mir_unit_1_54_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_54_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_54_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_55_source: usize,
+    #[cfg(test)]
+    mir_unit_1_55_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_55_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_55_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_56_source: usize,
+    #[cfg(test)]
+    mir_unit_1_56_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_56_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_56_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_57_source: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_57_argument: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_57_returned: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_57_caller: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_58_source: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_58_argument: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_58_returned: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_58_caller: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_59_source: usize,
+    #[cfg(test)]
+    mir_unit_1_59_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_59_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_59_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_60_source: usize,
+    #[cfg(test)]
+    mir_unit_1_60_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_60_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_60_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_61_source: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_61_argument: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_61_returned: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_61_caller: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_62_source: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_62_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_62_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_62_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_63_source: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_63_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_63_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_63_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_64_source: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_64_argument: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_64_returned: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_64_caller: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_66_source: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_1_66_argument: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_1_66_returned: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_1_66_caller: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_1_67_source: &'static mut std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_67_argument: &'static mut std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_67_returned: &'static mut std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_67_caller: &'static mut std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_68_source: isize,
+    #[cfg(test)]
+    mir_unit_1_68_argument: isize,
+    #[cfg(test)]
+    mir_unit_1_68_returned: isize,
+    #[cfg(test)]
+    mir_unit_1_68_caller: isize,
+    #[cfg(test)]
+    mir_unit_1_70_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_1_70_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_1_70_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_1_70_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_1_71_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_71_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_71_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_71_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_72_source: isize,
+    #[cfg(test)]
+    mir_unit_1_72_argument: isize,
+    #[cfg(test)]
+    mir_unit_1_72_returned: isize,
+    #[cfg(test)]
+    mir_unit_1_72_caller: isize,
+    #[cfg(test)]
+    mir_unit_1_75_source: usize,
+    #[cfg(test)]
+    mir_unit_1_75_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_75_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_75_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_76_source: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_76_argument: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_76_returned: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_76_caller: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_77_source: (),
+    #[cfg(test)]
+    mir_unit_1_77_argument: (),
+    #[cfg(test)]
+    mir_unit_1_77_returned: (),
+    #[cfg(test)]
+    mir_unit_1_77_caller: (),
+    #[cfg(test)]
+    mir_unit_1_78_source: &'static mut [u8],
+    #[cfg(test)]
+    mir_unit_1_78_argument: &'static mut [u8],
+    #[cfg(test)]
+    mir_unit_1_78_returned: &'static mut [u8],
+    #[cfg(test)]
+    mir_unit_1_78_caller: &'static mut [u8],
+    #[cfg(test)]
+    mir_unit_1_79_source: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_79_argument: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_79_returned: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_79_caller: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_80_source: usize,
+    #[cfg(test)]
+    mir_unit_1_80_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_80_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_80_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_81_source: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_81_argument: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_81_returned: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_81_caller: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_82_source: usize,
+    #[cfg(test)]
+    mir_unit_1_82_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_82_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_82_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_83_source: usize,
+    #[cfg(test)]
+    mir_unit_1_83_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_83_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_83_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_84_source: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_84_argument: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_84_returned: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_84_caller: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_85_source: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_85_argument: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_85_returned: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_85_caller: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_86_source: usize,
+    #[cfg(test)]
+    mir_unit_1_86_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_86_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_86_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_87_source: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_87_argument: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_87_returned: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_87_caller: (usize, bool),
+    #[cfg(test)]
+    mir_unit_1_88_source: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_1_88_argument: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_1_88_returned: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_1_88_caller: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_1_89_source: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_1_89_argument: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_1_89_returned: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_1_89_caller: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_1_9_source: usize,
+    #[cfg(test)]
+    mir_unit_1_9_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_9_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_9_caller: usize,
+    #[cfg(test)]
+    alias_unit_1_9_0_src_source: usize,
+    #[cfg(test)]
+    alias_unit_1_9_0_src_argument: usize,
+    #[cfg(test)]
+    alias_unit_1_9_0_src_returned: usize,
+    #[cfg(test)]
+    alias_unit_1_9_0_src_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_14_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_14_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_14_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_14_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_14_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_14_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_14_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_14_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_15_source: i32,
+    #[cfg(test)]
+    mir_unit_1_15_argument: i32,
+    #[cfg(test)]
+    mir_unit_1_15_returned: i32,
+    #[cfg(test)]
+    mir_unit_1_15_caller: i32,
+    #[cfg(test)]
+    alias_unit_1_15_0_val_source: i32,
+    #[cfg(test)]
+    alias_unit_1_15_0_val_argument: i32,
+    #[cfg(test)]
+    alias_unit_1_15_0_val_returned: i32,
+    #[cfg(test)]
+    alias_unit_1_15_0_val_caller: i32,
+    #[cfg(test)]
+    mir_unit_1_16_source: usize,
+    #[cfg(test)]
+    mir_unit_1_16_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_16_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_16_caller: usize,
+    #[cfg(test)]
+    alias_unit_1_16_0_dst_source: usize,
+    #[cfg(test)]
+    alias_unit_1_16_0_dst_argument: usize,
+    #[cfg(test)]
+    alias_unit_1_16_0_dst_returned: usize,
+    #[cfg(test)]
+    alias_unit_1_16_0_dst_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_21_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_21_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_21_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_21_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_21_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_21_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_21_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_21_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_22_source: i32,
+    #[cfg(test)]
+    mir_unit_1_22_argument: i32,
+    #[cfg(test)]
+    mir_unit_1_22_returned: i32,
+    #[cfg(test)]
+    mir_unit_1_22_caller: i32,
+    #[cfg(test)]
+    alias_unit_1_22_0_val_source: i32,
+    #[cfg(test)]
+    alias_unit_1_22_0_val_argument: i32,
+    #[cfg(test)]
+    alias_unit_1_22_0_val_returned: i32,
+    #[cfg(test)]
+    alias_unit_1_22_0_val_caller: i32,
+    #[cfg(test)]
+    mir_unit_1_26_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_26_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_26_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_26_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_26_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_26_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_26_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_26_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_27_source: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_27_argument: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_27_returned: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_27_caller: std::ops::Range<usize>,
+    #[cfg(test)]
+    alias_unit_1_27_0_val_source: std::ops::Range<usize>,
+    #[cfg(test)]
+    alias_unit_1_27_0_val_argument: std::ops::Range<usize>,
+    #[cfg(test)]
+    alias_unit_1_27_0_val_returned: std::ops::Range<usize>,
+    #[cfg(test)]
+    alias_unit_1_27_0_val_caller: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_31_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_31_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_31_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_31_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_31_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_31_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_31_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_31_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_32_source: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_32_argument: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_32_returned: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_32_caller: std::ops::Range<usize>,
+    #[cfg(test)]
+    alias_unit_1_32_0_val_source: std::ops::Range<usize>,
+    #[cfg(test)]
+    alias_unit_1_32_0_val_argument: std::ops::Range<usize>,
+    #[cfg(test)]
+    alias_unit_1_32_0_val_returned: std::ops::Range<usize>,
+    #[cfg(test)]
+    alias_unit_1_32_0_val_caller: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_1_36_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_36_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_36_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_36_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_36_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_36_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_36_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_36_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_38_source: usize,
+    #[cfg(test)]
+    mir_unit_1_38_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_38_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_38_caller: usize,
+    #[cfg(test)]
+    alias_unit_1_38_0_left_source: usize,
+    #[cfg(test)]
+    alias_unit_1_38_0_left_argument: usize,
+    #[cfg(test)]
+    alias_unit_1_38_0_left_returned: usize,
+    #[cfg(test)]
+    alias_unit_1_38_0_left_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_65_source: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_65_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_65_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_65_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    alias_unit_1_65_0_iter_source: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    alias_unit_1_65_0_iter_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    alias_unit_1_65_0_iter_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    alias_unit_1_65_0_iter_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_1_44_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_44_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_44_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_44_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_44_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_44_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_44_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_44_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_45_source: usize,
+    #[cfg(test)]
+    mir_unit_1_45_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_45_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_45_caller: usize,
+    #[cfg(test)]
+    alias_unit_1_45_0_n_source: usize,
+    #[cfg(test)]
+    alias_unit_1_45_0_n_argument: usize,
+    #[cfg(test)]
+    alias_unit_1_45_0_n_returned: usize,
+    #[cfg(test)]
+    alias_unit_1_45_0_n_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_69_source: usize,
+    #[cfg(test)]
+    mir_unit_1_69_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_69_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_69_caller: usize,
+    #[cfg(test)]
+    alias_unit_1_69_0_at_source: usize,
+    #[cfg(test)]
+    alias_unit_1_69_0_at_argument: usize,
+    #[cfg(test)]
+    alias_unit_1_69_0_at_returned: usize,
+    #[cfg(test)]
+    alias_unit_1_69_0_at_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_73_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_73_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_73_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_73_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_73_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_73_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_73_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_1_73_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_1_74_source: usize,
+    #[cfg(test)]
+    mir_unit_1_74_argument: usize,
+    #[cfg(test)]
+    mir_unit_1_74_returned: usize,
+    #[cfg(test)]
+    mir_unit_1_74_caller: usize,
+    #[cfg(test)]
+    alias_unit_1_74_0_n_source: usize,
+    #[cfg(test)]
+    alias_unit_1_74_0_n_argument: usize,
+    #[cfg(test)]
+    alias_unit_1_74_0_n_returned: usize,
+    #[cfg(test)]
+    alias_unit_1_74_0_n_caller: usize,
+    #[cfg(test)]
+    mir_unit_1_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_1_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_1_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_1_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_1_1_0_self_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_1_1_0_self_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_1_1_0_self_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_1_1_0_self_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    literal_unit_1_0_source: usize,
+    #[cfg(test)]
+    literal_unit_1_0_argument: usize,
+    #[cfg(test)]
+    literal_unit_1_0_returned: usize,
+    #[cfg(test)]
+    literal_unit_1_0_caller: usize,
+    #[cfg(test)]
+    literal_unit_1_1_source: usize,
+    #[cfg(test)]
+    literal_unit_1_1_argument: usize,
+    #[cfg(test)]
+    literal_unit_1_1_returned: usize,
+    #[cfg(test)]
+    literal_unit_1_1_caller: usize,
+    #[cfg(test)]
+    mir_unit_2_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_2_source: usize,
+    #[cfg(test)]
+    mir_unit_2_2_argument: usize,
+    #[cfg(test)]
+    mir_unit_2_2_returned: usize,
+    #[cfg(test)]
+    mir_unit_2_2_caller: usize,
+    #[cfg(test)]
+    alias_unit_2_2_0_len_source: usize,
+    #[cfg(test)]
+    alias_unit_2_2_0_len_argument: usize,
+    #[cfg(test)]
+    alias_unit_2_2_0_len_returned: usize,
+    #[cfg(test)]
+    alias_unit_2_2_0_len_caller: usize,
+    #[cfg(test)]
+    mir_unit_2_3_source: u32,
+    #[cfg(test)]
+    mir_unit_2_3_argument: u32,
+    #[cfg(test)]
+    mir_unit_2_3_returned: u32,
+    #[cfg(test)]
+    mir_unit_2_3_caller: u32,
+    #[cfg(test)]
+    mir_unit_2_4_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_2_4_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_2_4_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_2_4_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_2_5_source: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_5_argument: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_5_returned: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_5_caller: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_6_source: isize,
+    #[cfg(test)]
+    mir_unit_2_6_argument: isize,
+    #[cfg(test)]
+    mir_unit_2_6_returned: isize,
+    #[cfg(test)]
+    mir_unit_2_6_caller: isize,
+    #[cfg(test)]
+    mir_unit_2_7_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_7_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_7_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_7_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_7_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_7_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_7_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_7_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_8_source: i32,
+    #[cfg(test)]
+    mir_unit_2_8_argument: i32,
+    #[cfg(test)]
+    mir_unit_2_8_returned: i32,
+    #[cfg(test)]
+    mir_unit_2_8_caller: i32,
+    #[cfg(test)]
+    alias_unit_2_8_0_val_source: i32,
+    #[cfg(test)]
+    alias_unit_2_8_0_val_argument: i32,
+    #[cfg(test)]
+    alias_unit_2_8_0_val_returned: i32,
+    #[cfg(test)]
+    alias_unit_2_8_0_val_caller: i32,
+    #[cfg(test)]
+    mir_unit_2_10_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_2_10_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_2_10_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_2_10_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_2_11_source: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_11_argument: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_11_returned: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_11_caller: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_12_source: isize,
+    #[cfg(test)]
+    mir_unit_2_12_argument: isize,
+    #[cfg(test)]
+    mir_unit_2_12_returned: isize,
+    #[cfg(test)]
+    mir_unit_2_12_caller: isize,
+    #[cfg(test)]
+    mir_unit_2_16_source: u32,
+    #[cfg(test)]
+    mir_unit_2_16_argument: u32,
+    #[cfg(test)]
+    mir_unit_2_16_returned: u32,
+    #[cfg(test)]
+    mir_unit_2_16_caller: u32,
+    #[cfg(test)]
+    mir_unit_2_17_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_2_17_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_2_17_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_2_17_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, i32>,
+    #[cfg(test)]
+    mir_unit_2_18_source: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_18_argument: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_18_returned: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_18_caller: std::result::Result<i32, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_19_source: isize,
+    #[cfg(test)]
+    mir_unit_2_19_argument: isize,
+    #[cfg(test)]
+    mir_unit_2_19_returned: isize,
+    #[cfg(test)]
+    mir_unit_2_19_caller: isize,
+    #[cfg(test)]
+    mir_unit_2_22_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_22_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_22_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_22_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_23_source: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_23_argument: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_23_returned: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_23_caller: std::result::Result<std::ops::Range<usize>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_24_source: isize,
+    #[cfg(test)]
+    mir_unit_2_24_argument: isize,
+    #[cfg(test)]
+    mir_unit_2_24_returned: isize,
+    #[cfg(test)]
+    mir_unit_2_24_caller: isize,
+    #[cfg(test)]
+    mir_unit_2_27_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_2_27_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_2_27_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_2_27_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_2_28_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_28_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_28_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_28_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_29_source: isize,
+    #[cfg(test)]
+    mir_unit_2_29_argument: isize,
+    #[cfg(test)]
+    mir_unit_2_29_returned: isize,
+    #[cfg(test)]
+    mir_unit_2_29_caller: isize,
+    #[cfg(test)]
+    mir_unit_2_31_source: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_31_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_31_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_31_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_32_source: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_32_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_32_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_32_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_33_source: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_2_33_argument: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_2_33_returned: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_2_33_caller: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_2_34_source: usize,
+    #[cfg(test)]
+    mir_unit_2_34_argument: usize,
+    #[cfg(test)]
+    mir_unit_2_34_returned: usize,
+    #[cfg(test)]
+    mir_unit_2_34_caller: usize,
+    #[cfg(test)]
+    mir_unit_2_35_source: usize,
+    #[cfg(test)]
+    mir_unit_2_35_argument: usize,
+    #[cfg(test)]
+    mir_unit_2_35_returned: usize,
+    #[cfg(test)]
+    mir_unit_2_35_caller: usize,
+    #[cfg(test)]
+    mir_unit_2_37_source: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_2_37_argument: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_2_37_returned: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_2_37_caller: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_2_38_source: &'static mut std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_38_argument: &'static mut std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_38_returned: &'static mut std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_38_caller: &'static mut std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_39_source: isize,
+    #[cfg(test)]
+    mir_unit_2_39_argument: isize,
+    #[cfg(test)]
+    mir_unit_2_39_returned: isize,
+    #[cfg(test)]
+    mir_unit_2_39_caller: isize,
+    #[cfg(test)]
+    mir_unit_2_41_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_2_41_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_2_41_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_2_41_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_2_42_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_42_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_42_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_42_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_43_source: isize,
+    #[cfg(test)]
+    mir_unit_2_43_argument: isize,
+    #[cfg(test)]
+    mir_unit_2_43_returned: isize,
+    #[cfg(test)]
+    mir_unit_2_43_caller: isize,
+    #[cfg(test)]
+    mir_unit_2_46_source: usize,
+    #[cfg(test)]
+    mir_unit_2_46_argument: usize,
+    #[cfg(test)]
+    mir_unit_2_46_returned: usize,
+    #[cfg(test)]
+    mir_unit_2_46_caller: usize,
+    #[cfg(test)]
+    mir_unit_2_47_source: (usize, bool),
+    #[cfg(test)]
+    mir_unit_2_47_argument: (usize, bool),
+    #[cfg(test)]
+    mir_unit_2_47_returned: (usize, bool),
+    #[cfg(test)]
+    mir_unit_2_47_caller: (usize, bool),
+    #[cfg(test)]
+    mir_unit_2_48_source: usize,
+    #[cfg(test)]
+    mir_unit_2_48_argument: usize,
+    #[cfg(test)]
+    mir_unit_2_48_returned: usize,
+    #[cfg(test)]
+    mir_unit_2_48_caller: usize,
+    #[cfg(test)]
+    mir_unit_2_49_source: (),
+    #[cfg(test)]
+    mir_unit_2_49_argument: (),
+    #[cfg(test)]
+    mir_unit_2_49_returned: (),
+    #[cfg(test)]
+    mir_unit_2_49_caller: (),
+    #[cfg(test)]
+    mir_unit_2_50_source: &'static mut [u8],
+    #[cfg(test)]
+    mir_unit_2_50_argument: &'static mut [u8],
+    #[cfg(test)]
+    mir_unit_2_50_returned: &'static mut [u8],
+    #[cfg(test)]
+    mir_unit_2_50_caller: &'static mut [u8],
+    #[cfg(test)]
+    mir_unit_2_51_source: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_2_51_argument: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_2_51_returned: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_2_51_caller: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_2_52_source: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_2_52_argument: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_2_52_returned: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_2_52_caller: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_2_9_source: u8,
+    #[cfg(test)]
+    mir_unit_2_9_argument: u8,
+    #[cfg(test)]
+    mir_unit_2_9_returned: u8,
+    #[cfg(test)]
+    mir_unit_2_9_caller: u8,
+    #[cfg(test)]
+    alias_unit_2_9_0_value_source: u8,
+    #[cfg(test)]
+    alias_unit_2_9_0_value_argument: u8,
+    #[cfg(test)]
+    alias_unit_2_9_0_value_returned: u8,
+    #[cfg(test)]
+    alias_unit_2_9_0_value_caller: u8,
+    #[cfg(test)]
+    mir_unit_2_13_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_13_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_13_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_13_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_13_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_13_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_13_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_13_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_14_source: i32,
+    #[cfg(test)]
+    mir_unit_2_14_argument: i32,
+    #[cfg(test)]
+    mir_unit_2_14_returned: i32,
+    #[cfg(test)]
+    mir_unit_2_14_caller: i32,
+    #[cfg(test)]
+    alias_unit_2_14_0_val_source: i32,
+    #[cfg(test)]
+    alias_unit_2_14_0_val_argument: i32,
+    #[cfg(test)]
+    alias_unit_2_14_0_val_returned: i32,
+    #[cfg(test)]
+    alias_unit_2_14_0_val_caller: i32,
+    #[cfg(test)]
+    mir_unit_2_15_source: usize,
+    #[cfg(test)]
+    mir_unit_2_15_argument: usize,
+    #[cfg(test)]
+    mir_unit_2_15_returned: usize,
+    #[cfg(test)]
+    mir_unit_2_15_caller: usize,
+    #[cfg(test)]
+    alias_unit_2_15_0_dst_source: usize,
+    #[cfg(test)]
+    alias_unit_2_15_0_dst_argument: usize,
+    #[cfg(test)]
+    alias_unit_2_15_0_dst_returned: usize,
+    #[cfg(test)]
+    alias_unit_2_15_0_dst_caller: usize,
+    #[cfg(test)]
+    mir_unit_2_20_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_20_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_20_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_20_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_20_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_20_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_20_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_20_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_21_source: i32,
+    #[cfg(test)]
+    mir_unit_2_21_argument: i32,
+    #[cfg(test)]
+    mir_unit_2_21_returned: i32,
+    #[cfg(test)]
+    mir_unit_2_21_caller: i32,
+    #[cfg(test)]
+    alias_unit_2_21_0_val_source: i32,
+    #[cfg(test)]
+    alias_unit_2_21_0_val_argument: i32,
+    #[cfg(test)]
+    alias_unit_2_21_0_val_returned: i32,
+    #[cfg(test)]
+    alias_unit_2_21_0_val_caller: i32,
+    #[cfg(test)]
+    mir_unit_2_25_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_25_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_25_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_25_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_25_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_25_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_25_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_25_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_26_source: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_2_26_argument: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_2_26_returned: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_2_26_caller: std::ops::Range<usize>,
+    #[cfg(test)]
+    alias_unit_2_26_0_range_source: std::ops::Range<usize>,
+    #[cfg(test)]
+    alias_unit_2_26_0_range_argument: std::ops::Range<usize>,
+    #[cfg(test)]
+    alias_unit_2_26_0_range_returned: std::ops::Range<usize>,
+    #[cfg(test)]
+    alias_unit_2_26_0_range_caller: std::ops::Range<usize>,
+    #[cfg(test)]
+    alias_unit_2_26_1_val_source: std::ops::Range<usize>,
+    #[cfg(test)]
+    alias_unit_2_26_1_val_argument: std::ops::Range<usize>,
+    #[cfg(test)]
+    alias_unit_2_26_1_val_returned: std::ops::Range<usize>,
+    #[cfg(test)]
+    alias_unit_2_26_1_val_caller: std::ops::Range<usize>,
+    #[cfg(test)]
+    mir_unit_2_30_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_30_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_30_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_30_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_30_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_30_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_30_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_30_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_36_source: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_36_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_36_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_36_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    alias_unit_2_36_0_iter_source: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    alias_unit_2_36_0_iter_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    alias_unit_2_36_0_iter_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    alias_unit_2_36_0_iter_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    #[cfg(test)]
+    mir_unit_2_40_source: usize,
+    #[cfg(test)]
+    mir_unit_2_40_argument: usize,
+    #[cfg(test)]
+    mir_unit_2_40_returned: usize,
+    #[cfg(test)]
+    mir_unit_2_40_caller: usize,
+    #[cfg(test)]
+    alias_unit_2_40_0_start_source: usize,
+    #[cfg(test)]
+    alias_unit_2_40_0_start_argument: usize,
+    #[cfg(test)]
+    alias_unit_2_40_0_start_returned: usize,
+    #[cfg(test)]
+    alias_unit_2_40_0_start_caller: usize,
+    #[cfg(test)]
+    mir_unit_2_44_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_44_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_44_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_44_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_44_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_44_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_44_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_2_44_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_2_45_source: usize,
+    #[cfg(test)]
+    mir_unit_2_45_argument: usize,
+    #[cfg(test)]
+    mir_unit_2_45_returned: usize,
+    #[cfg(test)]
+    mir_unit_2_45_caller: usize,
+    #[cfg(test)]
+    alias_unit_2_45_0_end_source: usize,
+    #[cfg(test)]
+    alias_unit_2_45_0_end_argument: usize,
+    #[cfg(test)]
+    alias_unit_2_45_0_end_returned: usize,
+    #[cfg(test)]
+    alias_unit_2_45_0_end_caller: usize,
+    #[cfg(test)]
+    mir_unit_2_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_2_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_2_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_2_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_2_1_0_self_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_2_1_0_self_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_2_1_0_self_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_2_1_0_self_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_3_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_3_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_3_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_3_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_3_2_source: (),
+    #[cfg(test)]
+    mir_unit_3_2_argument: (),
+    #[cfg(test)]
+    mir_unit_3_2_returned: (),
+    #[cfg(test)]
+    mir_unit_3_2_caller: (),
+    #[cfg(test)]
+    mir_unit_3_3_source: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_3_3_argument: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_3_3_returned: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_3_3_caller: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_3_4_source: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_3_4_argument: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_3_4_returned: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_3_4_caller: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_3_5_source: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_3_5_argument: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_3_5_returned: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_3_5_caller: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_3_6_source: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_3_6_argument: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_3_6_returned: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_3_6_caller: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_3_7_source: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_3_7_argument: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_3_7_returned: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_3_7_caller: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_3_8_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_3_8_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_3_8_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_3_8_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_3_9_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_3_9_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_3_9_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_3_9_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_3_10_source: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_3_10_argument: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_3_10_returned: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_3_10_caller: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_3_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_3_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_3_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_3_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_3_1_0_self_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_3_1_0_self_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_3_1_0_self_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_3_1_0_self_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_4_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_4_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_4_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_4_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_4_3_source: usize,
+    #[cfg(test)]
+    mir_unit_4_3_argument: usize,
+    #[cfg(test)]
+    mir_unit_4_3_returned: usize,
+    #[cfg(test)]
+    mir_unit_4_3_caller: usize,
+    #[cfg(test)]
+    alias_unit_4_3_0_pages_source: usize,
+    #[cfg(test)]
+    alias_unit_4_3_0_pages_argument: usize,
+    #[cfg(test)]
+    alias_unit_4_3_0_pages_returned: usize,
+    #[cfg(test)]
+    alias_unit_4_3_0_pages_caller: usize,
+    #[cfg(test)]
+    mir_unit_4_4_source: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    #[cfg(test)]
+    mir_unit_4_4_argument: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    #[cfg(test)]
+    mir_unit_4_4_returned: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    #[cfg(test)]
+    mir_unit_4_4_caller: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    #[cfg(test)]
+    mir_unit_4_5_source: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_4_5_argument: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_4_5_returned: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_4_5_caller: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_4_6_source: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_4_6_argument: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_4_6_returned: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_4_6_caller: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_4_7_source: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_4_7_argument: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_4_7_returned: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_4_7_caller: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_4_8_source: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_4_8_argument: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_4_8_returned: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_4_8_caller: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_4_9_source: bool,
+    #[cfg(test)]
+    mir_unit_4_9_argument: bool,
+    #[cfg(test)]
+    mir_unit_4_9_returned: bool,
+    #[cfg(test)]
+    mir_unit_4_9_caller: bool,
+    #[cfg(test)]
+    mir_unit_4_10_source: usize,
+    #[cfg(test)]
+    mir_unit_4_10_argument: usize,
+    #[cfg(test)]
+    mir_unit_4_10_returned: usize,
+    #[cfg(test)]
+    mir_unit_4_10_caller: usize,
+    #[cfg(test)]
+    mir_unit_4_11_source: &'static std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_4_11_argument: &'static std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_4_11_returned: &'static std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_4_11_caller: &'static std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_4_12_source: bool,
+    #[cfg(test)]
+    mir_unit_4_12_argument: bool,
+    #[cfg(test)]
+    mir_unit_4_12_returned: bool,
+    #[cfg(test)]
+    mir_unit_4_12_caller: bool,
+    #[cfg(test)]
+    mir_unit_4_13_source: usize,
+    #[cfg(test)]
+    mir_unit_4_13_argument: usize,
+    #[cfg(test)]
+    mir_unit_4_13_returned: usize,
+    #[cfg(test)]
+    mir_unit_4_13_caller: usize,
+    #[cfg(test)]
+    mir_unit_4_14_source: usize,
+    #[cfg(test)]
+    mir_unit_4_14_argument: usize,
+    #[cfg(test)]
+    mir_unit_4_14_returned: usize,
+    #[cfg(test)]
+    mir_unit_4_14_caller: usize,
+    #[cfg(test)]
+    mir_unit_4_15_source: &'static std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_4_15_argument: &'static std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_4_15_returned: &'static std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_4_15_caller: &'static std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_4_16_source: bool,
+    #[cfg(test)]
+    mir_unit_4_16_argument: bool,
+    #[cfg(test)]
+    mir_unit_4_16_returned: bool,
+    #[cfg(test)]
+    mir_unit_4_16_caller: bool,
+    #[cfg(test)]
+    mir_unit_4_17_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_17_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_17_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_17_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_18_source: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_4_18_argument: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_4_18_returned: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_4_18_caller: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_4_19_source: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_4_19_argument: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_4_19_returned: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_4_19_caller: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_4_20_source: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_4_20_argument: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_4_20_returned: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_4_20_caller: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_4_21_source: isize,
+    #[cfg(test)]
+    mir_unit_4_21_argument: isize,
+    #[cfg(test)]
+    mir_unit_4_21_returned: isize,
+    #[cfg(test)]
+    mir_unit_4_21_caller: isize,
+    #[cfg(test)]
+    mir_unit_4_23_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_23_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_23_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_23_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_25_source: bool,
+    #[cfg(test)]
+    mir_unit_4_25_argument: bool,
+    #[cfg(test)]
+    mir_unit_4_25_returned: bool,
+    #[cfg(test)]
+    mir_unit_4_25_caller: bool,
+    #[cfg(test)]
+    mir_unit_4_26_source: usize,
+    #[cfg(test)]
+    mir_unit_4_26_argument: usize,
+    #[cfg(test)]
+    mir_unit_4_26_returned: usize,
+    #[cfg(test)]
+    mir_unit_4_26_caller: usize,
+    #[cfg(test)]
+    mir_unit_4_27_source: bool,
+    #[cfg(test)]
+    mir_unit_4_27_argument: bool,
+    #[cfg(test)]
+    mir_unit_4_27_returned: bool,
+    #[cfg(test)]
+    mir_unit_4_27_caller: bool,
+    #[cfg(test)]
+    mir_unit_4_28_source: usize,
+    #[cfg(test)]
+    mir_unit_4_28_argument: usize,
+    #[cfg(test)]
+    mir_unit_4_28_returned: usize,
+    #[cfg(test)]
+    mir_unit_4_28_caller: usize,
+    #[cfg(test)]
+    mir_unit_4_29_source: usize,
+    #[cfg(test)]
+    mir_unit_4_29_argument: usize,
+    #[cfg(test)]
+    mir_unit_4_29_returned: usize,
+    #[cfg(test)]
+    mir_unit_4_29_caller: usize,
+    #[cfg(test)]
+    mir_unit_4_30_source: &'static std::vec::Vec<crate::experimental::execution::Control>,
+    #[cfg(test)]
+    mir_unit_4_30_argument: &'static std::vec::Vec<crate::experimental::execution::Control>,
+    #[cfg(test)]
+    mir_unit_4_30_returned: &'static std::vec::Vec<crate::experimental::execution::Control>,
+    #[cfg(test)]
+    mir_unit_4_30_caller: &'static std::vec::Vec<crate::experimental::execution::Control>,
+    #[cfg(test)]
+    mir_unit_4_31_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_31_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_31_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_31_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_32_source: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_4_32_argument: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_4_32_returned: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_4_32_caller: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_4_33_source: usize,
+    #[cfg(test)]
+    mir_unit_4_33_argument: usize,
+    #[cfg(test)]
+    mir_unit_4_33_returned: usize,
+    #[cfg(test)]
+    mir_unit_4_33_caller: usize,
+    #[cfg(test)]
+    mir_unit_4_34_source: &'static std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_34_argument: &'static std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_34_returned: &'static std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_34_caller: &'static std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_35_source: isize,
+    #[cfg(test)]
+    mir_unit_4_35_argument: isize,
+    #[cfg(test)]
+    mir_unit_4_35_returned: isize,
+    #[cfg(test)]
+    mir_unit_4_35_caller: isize,
+    #[cfg(test)]
+    mir_unit_4_37_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_37_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_37_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_37_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_38_source: bool,
+    #[cfg(test)]
+    mir_unit_4_38_argument: bool,
+    #[cfg(test)]
+    mir_unit_4_38_returned: bool,
+    #[cfg(test)]
+    mir_unit_4_38_caller: bool,
+    #[cfg(test)]
+    mir_unit_4_39_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_39_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_39_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_39_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_41_source: &'static std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_41_argument: &'static std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_41_returned: &'static std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_41_caller: &'static std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_42_source: bool,
+    #[cfg(test)]
+    mir_unit_4_42_argument: bool,
+    #[cfg(test)]
+    mir_unit_4_42_returned: bool,
+    #[cfg(test)]
+    mir_unit_4_42_caller: bool,
+    #[cfg(test)]
+    mir_unit_4_43_source: &'static mut std::slice::Iter<'static, Value>,
+    #[cfg(test)]
+    mir_unit_4_43_argument: &'static mut std::slice::Iter<'static, Value>,
+    #[cfg(test)]
+    mir_unit_4_43_returned: &'static mut std::slice::Iter<'static, Value>,
+    #[cfg(test)]
+    mir_unit_4_43_caller: &'static mut std::slice::Iter<'static, Value>,
+    #[cfg(test)]
+    mir_unit_4_44_source: std::slice::Iter<'static, Value>,
+    #[cfg(test)]
+    mir_unit_4_44_argument: std::slice::Iter<'static, Value>,
+    #[cfg(test)]
+    mir_unit_4_44_returned: std::slice::Iter<'static, Value>,
+    #[cfg(test)]
+    mir_unit_4_44_caller: std::slice::Iter<'static, Value>,
+    #[cfg(test)]
+    mir_unit_4_45_source: &'static [Value],
+    #[cfg(test)]
+    mir_unit_4_45_argument: &'static [Value],
+    #[cfg(test)]
+    mir_unit_4_45_returned: &'static [Value],
+    #[cfg(test)]
+    mir_unit_4_45_caller: &'static [Value],
+    #[cfg(test)]
+    mir_unit_4_46_source: &'static std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_46_argument: &'static std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_46_returned: &'static std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_46_caller: &'static std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_47_source: std::ops::RangeFrom<usize>,
+    #[cfg(test)]
+    mir_unit_4_47_argument: std::ops::RangeFrom<usize>,
+    #[cfg(test)]
+    mir_unit_4_47_returned: std::ops::RangeFrom<usize>,
+    #[cfg(test)]
+    mir_unit_4_47_caller: std::ops::RangeFrom<usize>,
+    #[cfg(test)]
+    mir_unit_4_48_source: usize,
+    #[cfg(test)]
+    mir_unit_4_48_argument: usize,
+    #[cfg(test)]
+    mir_unit_4_48_returned: usize,
+    #[cfg(test)]
+    mir_unit_4_48_caller: usize,
+    #[cfg(test)]
+    mir_unit_4_49_source: (usize, bool),
+    #[cfg(test)]
+    mir_unit_4_49_argument: (usize, bool),
+    #[cfg(test)]
+    mir_unit_4_49_returned: (usize, bool),
+    #[cfg(test)]
+    mir_unit_4_49_caller: (usize, bool),
+    #[cfg(test)]
+    mir_unit_4_50_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_50_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_50_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_50_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_4_51_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_4_51_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_4_51_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_4_51_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_4_52_source: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_4_52_argument: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_4_52_returned: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_4_52_caller: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_4_53_source: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_4_53_argument: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_4_53_returned: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_4_53_caller: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_4_54_source: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_4_54_argument: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_4_54_returned: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_4_54_caller: &'static mut std::vec::Vec<u8>,
+    #[cfg(test)]
+    mir_unit_4_55_source: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_4_55_argument: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_4_55_returned: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_4_55_caller: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_4_56_source: &'static mut std::vec::Vec<crate::experimental::execution::Control>,
+    #[cfg(test)]
+    mir_unit_4_56_argument: &'static mut std::vec::Vec<crate::experimental::execution::Control>,
+    #[cfg(test)]
+    mir_unit_4_56_returned: &'static mut std::vec::Vec<crate::experimental::execution::Control>,
+    #[cfg(test)]
+    mir_unit_4_56_caller: &'static mut std::vec::Vec<crate::experimental::execution::Control>,
+    #[cfg(test)]
+    mir_unit_4_57_source: &'static mut std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_57_argument: &'static mut std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_57_returned: &'static mut std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_57_caller: &'static mut std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_58_source: &'static mut std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_58_argument: &'static mut std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_58_returned: &'static mut std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_58_caller: &'static mut std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_59_source: &'static mut std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_59_argument: &'static mut std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_59_returned: &'static mut std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_59_caller: &'static mut std::vec::Vec<Value>,
+    #[cfg(test)]
+    mir_unit_4_22_source: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_4_22_argument: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_4_22_returned: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_4_22_caller: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_4_22_0_frame_source: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_4_22_0_frame_argument: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_4_22_0_frame_returned: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_4_22_0_frame_caller: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_4_22_1_frame_source: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_4_22_1_frame_argument: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_4_22_1_frame_returned: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_4_22_1_frame_caller: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_4_24_source: usize,
+    #[cfg(test)]
+    mir_unit_4_24_argument: usize,
+    #[cfg(test)]
+    mir_unit_4_24_returned: usize,
+    #[cfg(test)]
+    mir_unit_4_24_caller: usize,
+    #[cfg(test)]
+    alias_unit_4_24_0_floor_source: usize,
+    #[cfg(test)]
+    alias_unit_4_24_0_floor_argument: usize,
+    #[cfg(test)]
+    alias_unit_4_24_0_floor_returned: usize,
+    #[cfg(test)]
+    alias_unit_4_24_0_floor_caller: usize,
+    #[cfg(test)]
+    mir_unit_4_36_source: usize,
+    #[cfg(test)]
+    mir_unit_4_36_argument: usize,
+    #[cfg(test)]
+    mir_unit_4_36_returned: usize,
+    #[cfg(test)]
+    mir_unit_4_36_caller: usize,
+    #[cfg(test)]
+    alias_unit_4_36_0_available_source: usize,
+    #[cfg(test)]
+    alias_unit_4_36_0_available_argument: usize,
+    #[cfg(test)]
+    alias_unit_4_36_0_available_returned: usize,
+    #[cfg(test)]
+    alias_unit_4_36_0_available_caller: usize,
+    #[cfg(test)]
+    alias_unit_4_36_1_available_source: usize,
+    #[cfg(test)]
+    alias_unit_4_36_1_available_argument: usize,
+    #[cfg(test)]
+    alias_unit_4_36_1_available_returned: usize,
+    #[cfg(test)]
+    alias_unit_4_36_1_available_caller: usize,
+    #[cfg(test)]
+    mir_unit_4_40_source: usize,
+    #[cfg(test)]
+    mir_unit_4_40_argument: usize,
+    #[cfg(test)]
+    mir_unit_4_40_returned: usize,
+    #[cfg(test)]
+    mir_unit_4_40_caller: usize,
+    #[cfg(test)]
+    alias_unit_4_40_0_length_source: usize,
+    #[cfg(test)]
+    alias_unit_4_40_0_length_argument: usize,
+    #[cfg(test)]
+    alias_unit_4_40_0_length_returned: usize,
+    #[cfg(test)]
+    alias_unit_4_40_0_length_caller: usize,
+    #[cfg(test)]
+    mir_unit_4_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_4_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_4_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_4_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_4_1_0_self_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_4_1_0_self_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_4_1_0_self_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_4_1_0_self_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_4_2_source: bool,
+    #[cfg(test)]
+    mir_unit_4_2_argument: bool,
+    #[cfg(test)]
+    mir_unit_4_2_returned: bool,
+    #[cfg(test)]
+    mir_unit_4_2_caller: bool,
+    #[cfg(test)]
+    alias_unit_4_2_0_operands_source: bool,
+    #[cfg(test)]
+    alias_unit_4_2_0_operands_argument: bool,
+    #[cfg(test)]
+    alias_unit_4_2_0_operands_returned: bool,
+    #[cfg(test)]
+    alias_unit_4_2_0_operands_caller: bool,
+    #[cfg(test)]
+    literal_unit_4_0_source: usize,
+    #[cfg(test)]
+    literal_unit_4_0_argument: usize,
+    #[cfg(test)]
+    literal_unit_4_0_returned: usize,
+    #[cfg(test)]
+    literal_unit_4_0_caller: usize,
+    #[cfg(test)]
+    literal_unit_4_1_source: &'static str,
+    #[cfg(test)]
+    literal_unit_4_1_argument: &'static str,
+    #[cfg(test)]
+    literal_unit_4_1_returned: &'static str,
+    #[cfg(test)]
+    literal_unit_4_1_caller: &'static str,
+    #[cfg(test)]
+    literal_unit_4_2_source: &'static str,
+    #[cfg(test)]
+    literal_unit_4_2_argument: &'static str,
+    #[cfg(test)]
+    literal_unit_4_2_returned: &'static str,
+    #[cfg(test)]
+    literal_unit_4_2_caller: &'static str,
+    #[cfg(test)]
+    literal_unit_4_3_source: &'static str,
+    #[cfg(test)]
+    literal_unit_4_3_argument: &'static str,
+    #[cfg(test)]
+    literal_unit_4_3_returned: &'static str,
+    #[cfg(test)]
+    literal_unit_4_3_caller: &'static str,
+    #[cfg(test)]
+    literal_unit_4_4_source: &'static str,
+    #[cfg(test)]
+    literal_unit_4_4_argument: &'static str,
+    #[cfg(test)]
+    literal_unit_4_4_returned: &'static str,
+    #[cfg(test)]
+    literal_unit_4_4_caller: &'static str,
+    #[cfg(test)]
+    literal_unit_4_5_source: usize,
+    #[cfg(test)]
+    literal_unit_4_5_argument: usize,
+    #[cfg(test)]
+    literal_unit_4_5_returned: usize,
+    #[cfg(test)]
+    literal_unit_4_5_caller: usize,
+    #[cfg(test)]
+    literal_unit_4_6_source: &'static str,
+    #[cfg(test)]
+    literal_unit_4_6_argument: &'static str,
+    #[cfg(test)]
+    literal_unit_4_6_returned: &'static str,
+    #[cfg(test)]
+    literal_unit_4_6_caller: &'static str,
+    #[cfg(test)]
+    literal_unit_4_7_source: usize,
+    #[cfg(test)]
+    literal_unit_4_7_argument: usize,
+    #[cfg(test)]
+    literal_unit_4_7_returned: usize,
+    #[cfg(test)]
+    literal_unit_4_7_caller: usize,
+    #[cfg(test)]
+    literal_unit_4_8_source: usize,
+    #[cfg(test)]
+    literal_unit_4_8_argument: usize,
+    #[cfg(test)]
+    literal_unit_4_8_returned: usize,
+    #[cfg(test)]
+    literal_unit_4_8_caller: usize,
+    #[cfg(test)]
+    literal_unit_4_9_source: &'static str,
+    #[cfg(test)]
+    literal_unit_4_9_argument: &'static str,
+    #[cfg(test)]
+    literal_unit_4_9_returned: &'static str,
+    #[cfg(test)]
+    literal_unit_4_9_caller: &'static str,
+    #[cfg(test)]
+    mir_unit_5_0_source: bool,
+    #[cfg(test)]
+    mir_unit_5_0_argument: bool,
+    #[cfg(test)]
+    mir_unit_5_0_returned: bool,
+    #[cfg(test)]
+    mir_unit_5_0_caller: bool,
+    #[cfg(test)]
+    mir_unit_5_3_source: &'static Type,
+    #[cfg(test)]
+    mir_unit_5_3_argument: &'static Type,
+    #[cfg(test)]
+    mir_unit_5_3_returned: &'static Type,
+    #[cfg(test)]
+    mir_unit_5_3_caller: &'static Type,
+    #[cfg(test)]
+    mir_unit_5_4_source: Type,
+    #[cfg(test)]
+    mir_unit_5_4_argument: Type,
+    #[cfg(test)]
+    mir_unit_5_4_returned: Type,
+    #[cfg(test)]
+    mir_unit_5_4_caller: Type,
+    #[cfg(test)]
+    mir_unit_5_5_source: Value,
+    #[cfg(test)]
+    mir_unit_5_5_argument: Value,
+    #[cfg(test)]
+    mir_unit_5_5_returned: Value,
+    #[cfg(test)]
+    mir_unit_5_5_caller: Value,
+    #[cfg(test)]
+    mir_unit_5_6_source: &'static Type,
+    #[cfg(test)]
+    mir_unit_5_6_argument: &'static Type,
+    #[cfg(test)]
+    mir_unit_5_6_returned: &'static Type,
+    #[cfg(test)]
+    mir_unit_5_6_caller: &'static Type,
+    #[cfg(test)]
+    mir_unit_5_1_source: &'static mut (),
+    #[cfg(test)]
+    mir_unit_5_1_argument: &'static mut (),
+    #[cfg(test)]
+    mir_unit_5_1_returned: &'static mut (),
+    #[cfg(test)]
+    mir_unit_5_1_caller: &'static mut (),
+    #[cfg(test)]
+    mir_unit_5_2_source: &'static Value,
+    #[cfg(test)]
+    mir_unit_5_2_argument: &'static Value,
+    #[cfg(test)]
+    mir_unit_5_2_returned: &'static Value,
+    #[cfg(test)]
+    mir_unit_5_2_caller: &'static Value,
+    #[cfg(test)]
+    alias_unit_5_2_0_value_source: &'static Value,
+    #[cfg(test)]
+    alias_unit_5_2_0_value_argument: &'static Value,
+    #[cfg(test)]
+    alias_unit_5_2_0_value_returned: &'static Value,
+    #[cfg(test)]
+    alias_unit_5_2_0_value_caller: &'static Value,
+    #[cfg(test)]
+    mir_unit_6_0_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_6_0_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_6_0_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_6_0_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_6_2_source: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_6_2_argument: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_6_2_returned: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_6_2_caller: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_6_3_source: crate::experimental_swift_reactor::control::Fault,
+    #[cfg(test)]
+    mir_unit_6_3_argument: crate::experimental_swift_reactor::control::Fault,
+    #[cfg(test)]
+    mir_unit_6_3_returned: crate::experimental_swift_reactor::control::Fault,
+    #[cfg(test)]
+    mir_unit_6_3_caller: crate::experimental_swift_reactor::control::Fault,
+    #[cfg(test)]
+    mir_unit_6_4_source: crate::experimental_swift_reactor::control::SwiftRunFailureKind,
+    #[cfg(test)]
+    mir_unit_6_4_argument: crate::experimental_swift_reactor::control::SwiftRunFailureKind,
+    #[cfg(test)]
+    mir_unit_6_4_returned: crate::experimental_swift_reactor::control::SwiftRunFailureKind,
+    #[cfg(test)]
+    mir_unit_6_4_caller: crate::experimental_swift_reactor::control::SwiftRunFailureKind,
+    #[cfg(test)]
+    mir_unit_6_5_source: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_6_5_argument: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_6_5_returned: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_6_5_caller: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_6_6_source: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_6_6_argument: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_6_6_returned: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_6_6_caller: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_6_7_source: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_6_7_argument: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_6_7_returned: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_6_7_caller: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_6_8_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_6_8_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_6_8_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_6_8_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_6_9_source: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_6_9_argument: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_6_9_returned: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_6_9_caller: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_6_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_6_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_6_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_6_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_6_1_0_self_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_6_1_0_self_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_6_1_0_self_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_6_1_0_self_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    literal_unit_6_0_source: &'static str,
+    #[cfg(test)]
+    literal_unit_6_0_argument: &'static str,
+    #[cfg(test)]
+    literal_unit_6_0_returned: &'static str,
+    #[cfg(test)]
+    literal_unit_6_0_caller: &'static str,
+    #[cfg(test)]
+    mir_unit_7_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_7_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_7_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_7_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_7_4_source: bool,
+    #[cfg(test)]
+    mir_unit_7_4_argument: bool,
+    #[cfg(test)]
+    mir_unit_7_4_returned: bool,
+    #[cfg(test)]
+    mir_unit_7_4_caller: bool,
+    #[cfg(test)]
+    mir_unit_7_5_source: &'static std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_7_5_argument: &'static std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_7_5_returned: &'static std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_7_5_caller: &'static std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_7_6_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_7_6_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_7_6_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_7_6_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    alias_unit_7_6_0_failure_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    alias_unit_7_6_0_failure_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    alias_unit_7_6_0_failure_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    alias_unit_7_6_0_failure_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_7_7_source: (),
+    #[cfg(test)]
+    mir_unit_7_7_argument: (),
+    #[cfg(test)]
+    mir_unit_7_7_returned: (),
+    #[cfg(test)]
+    mir_unit_7_7_caller: (),
+    #[cfg(test)]
+    mir_unit_7_8_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_7_8_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_7_8_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_7_8_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_7_8_0_result_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_7_8_0_result_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_7_8_0_result_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_7_8_0_result_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_7_9_source: bool,
+    #[cfg(test)]
+    mir_unit_7_9_argument: bool,
+    #[cfg(test)]
+    mir_unit_7_9_returned: bool,
+    #[cfg(test)]
+    mir_unit_7_9_caller: bool,
+    #[cfg(test)]
+    mir_unit_7_10_source: &'static std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_7_10_argument: &'static std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_7_10_returned: &'static std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_7_10_caller: &'static std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_7_11_source: (),
+    #[cfg(test)]
+    mir_unit_7_11_argument: (),
+    #[cfg(test)]
+    mir_unit_7_11_returned: (),
+    #[cfg(test)]
+    mir_unit_7_11_caller: (),
+    #[cfg(test)]
+    mir_unit_7_12_source: std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_7_12_argument: std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_7_12_returned: std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_7_12_caller: std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_7_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_7_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_7_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_7_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_7_1_0_self_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_7_1_0_self_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_7_1_0_self_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_7_1_0_self_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_7_2_source: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    mir_unit_7_2_argument: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    mir_unit_7_2_returned: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    mir_unit_7_2_caller: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    alias_unit_7_2_0_operation_source: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    alias_unit_7_2_0_operation_argument: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    alias_unit_7_2_0_operation_returned: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    alias_unit_7_2_0_operation_caller: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    mir_unit_7_3_source: &'static mut Option<Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_7_3_argument: &'static mut Option<Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_7_3_returned: &'static mut Option<Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_7_3_caller: &'static mut Option<Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    alias_unit_7_3_0_returned_source: &'static mut Option<Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    alias_unit_7_3_0_returned_argument: &'static mut Option<Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    alias_unit_7_3_0_returned_returned: &'static mut Option<Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    alias_unit_7_3_0_returned_caller: &'static mut Option<Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    literal_unit_7_0_source: &'static str,
+    #[cfg(test)]
+    literal_unit_7_0_argument: &'static str,
+    #[cfg(test)]
+    literal_unit_7_0_returned: &'static str,
+    #[cfg(test)]
+    literal_unit_7_0_caller: &'static str,
+    #[cfg(test)]
+    mir_unit_8_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_3_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_8_3_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_8_3_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_8_3_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_8_4_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_4_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_4_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_4_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_5_source: isize,
+    #[cfg(test)]
+    mir_unit_8_5_argument: isize,
+    #[cfg(test)]
+    mir_unit_8_5_returned: isize,
+    #[cfg(test)]
+    mir_unit_8_5_caller: isize,
+    #[cfg(test)]
+    mir_unit_8_6_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_6_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_6_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_6_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_8_6_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_8_6_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_8_6_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_8_6_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_7_source: isize,
+    #[cfg(test)]
+    mir_unit_8_7_argument: isize,
+    #[cfg(test)]
+    mir_unit_8_7_returned: isize,
+    #[cfg(test)]
+    mir_unit_8_7_caller: isize,
+    #[cfg(test)]
+    mir_unit_8_8_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_8_8_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_8_8_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_8_8_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_8_9_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_9_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_9_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_9_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_10_source: isize,
+    #[cfg(test)]
+    mir_unit_8_10_argument: isize,
+    #[cfg(test)]
+    mir_unit_8_10_returned: isize,
+    #[cfg(test)]
+    mir_unit_8_10_caller: isize,
+    #[cfg(test)]
+    mir_unit_8_11_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_11_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_11_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_11_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_8_11_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_8_11_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_8_11_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_8_11_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_12_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_8_12_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_8_12_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_8_12_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_8_13_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_13_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_13_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_13_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_14_source: isize,
+    #[cfg(test)]
+    mir_unit_8_14_argument: isize,
+    #[cfg(test)]
+    mir_unit_8_14_returned: isize,
+    #[cfg(test)]
+    mir_unit_8_14_caller: isize,
+    #[cfg(test)]
+    mir_unit_8_15_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_15_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_15_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_15_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_8_15_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_8_15_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_8_15_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_8_15_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_16_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_8_16_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_8_16_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_8_16_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_8_17_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_17_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_17_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_17_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_18_source: isize,
+    #[cfg(test)]
+    mir_unit_8_18_argument: isize,
+    #[cfg(test)]
+    mir_unit_8_18_returned: isize,
+    #[cfg(test)]
+    mir_unit_8_18_caller: isize,
+    #[cfg(test)]
+    mir_unit_8_19_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_19_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_19_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_19_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_8_19_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_8_19_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_8_19_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_8_19_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_8_20_source: Value,
+    #[cfg(test)]
+    mir_unit_8_20_argument: Value,
+    #[cfg(test)]
+    mir_unit_8_20_returned: Value,
+    #[cfg(test)]
+    mir_unit_8_20_caller: Value,
+    #[cfg(test)]
+    mir_unit_8_21_source: i32,
+    #[cfg(test)]
+    mir_unit_8_21_argument: i32,
+    #[cfg(test)]
+    mir_unit_8_21_returned: i32,
+    #[cfg(test)]
+    mir_unit_8_21_caller: i32,
+    #[cfg(test)]
+    mir_unit_8_22_source: usize,
+    #[cfg(test)]
+    mir_unit_8_22_argument: usize,
+    #[cfg(test)]
+    mir_unit_8_22_returned: usize,
+    #[cfg(test)]
+    mir_unit_8_22_caller: usize,
+    #[cfg(test)]
+    mir_unit_8_23_source: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    #[cfg(test)]
+    mir_unit_8_23_argument: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    #[cfg(test)]
+    mir_unit_8_23_returned: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    #[cfg(test)]
+    mir_unit_8_23_caller: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    #[cfg(test)]
+    mir_unit_8_24_source: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_8_24_argument: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_8_24_returned: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_8_24_caller: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_8_25_source: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_8_25_argument: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_8_25_returned: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_8_25_caller: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_8_26_source: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_8_26_argument: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_8_26_returned: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_8_26_caller: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_8_27_source: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_8_27_argument: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_8_27_returned: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_8_27_caller: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_8_28_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_8_28_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_8_28_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_8_28_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_8_29_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_8_29_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_8_29_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_8_29_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_8_30_source: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_8_30_argument: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_8_30_returned: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_8_30_caller: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_8_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_8_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_8_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_8_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_8_1_0_self_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_8_1_0_self_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_8_1_0_self_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_8_1_0_self_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_8_2_source: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    mir_unit_8_2_argument: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    mir_unit_8_2_returned: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    mir_unit_8_2_caller: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    alias_unit_8_2_0_operation_source: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    alias_unit_8_2_0_operation_argument: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    alias_unit_8_2_0_operation_returned: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    alias_unit_8_2_0_operation_caller: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    literal_unit_8_0_source: bool,
+    #[cfg(test)]
+    literal_unit_8_0_argument: bool,
+    #[cfg(test)]
+    literal_unit_8_0_returned: bool,
+    #[cfg(test)]
+    literal_unit_8_0_caller: bool,
+    #[cfg(test)]
+    literal_unit_8_1_source: bool,
+    #[cfg(test)]
+    literal_unit_8_1_argument: bool,
+    #[cfg(test)]
+    literal_unit_8_1_returned: bool,
+    #[cfg(test)]
+    literal_unit_8_1_caller: bool,
+    #[cfg(test)]
+    literal_unit_8_2_source: bool,
+    #[cfg(test)]
+    literal_unit_8_2_argument: bool,
+    #[cfg(test)]
+    literal_unit_8_2_returned: bool,
+    #[cfg(test)]
+    literal_unit_8_2_caller: bool,
+    #[cfg(test)]
+    mir_unit_9_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_9_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_9_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_9_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_9_3_source: bool,
+    #[cfg(test)]
+    mir_unit_9_3_argument: bool,
+    #[cfg(test)]
+    mir_unit_9_3_returned: bool,
+    #[cfg(test)]
+    mir_unit_9_3_caller: bool,
+    #[cfg(test)]
+    mir_unit_9_4_source: &'static std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_9_4_argument: &'static std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_9_4_returned: &'static std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_9_4_caller: &'static std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_9_5_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_9_5_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_9_5_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_9_5_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    alias_unit_9_5_0_failure_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    alias_unit_9_5_0_failure_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    alias_unit_9_5_0_failure_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    alias_unit_9_5_0_failure_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_9_6_source: (),
+    #[cfg(test)]
+    mir_unit_9_6_argument: (),
+    #[cfg(test)]
+    mir_unit_9_6_returned: (),
+    #[cfg(test)]
+    mir_unit_9_6_caller: (),
+    #[cfg(test)]
+    mir_unit_9_7_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_9_7_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_9_7_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_9_7_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_9_7_0_result_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_9_7_0_result_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_9_7_0_result_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_9_7_0_result_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_9_8_source: bool,
+    #[cfg(test)]
+    mir_unit_9_8_argument: bool,
+    #[cfg(test)]
+    mir_unit_9_8_returned: bool,
+    #[cfg(test)]
+    mir_unit_9_8_caller: bool,
+    #[cfg(test)]
+    mir_unit_9_9_source: &'static std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_9_9_argument: &'static std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_9_9_returned: &'static std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_9_9_caller: &'static std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_9_10_source: (),
+    #[cfg(test)]
+    mir_unit_9_10_argument: (),
+    #[cfg(test)]
+    mir_unit_9_10_returned: (),
+    #[cfg(test)]
+    mir_unit_9_10_caller: (),
+    #[cfg(test)]
+    mir_unit_9_11_source: std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_9_11_argument: std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_9_11_returned: std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_9_11_caller: std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_9_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_9_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_9_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_9_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_9_1_0_phase_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_9_1_0_phase_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_9_1_0_phase_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_9_1_0_phase_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_9_2_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'static>,
+    #[cfg(test)]
+    mir_unit_9_2_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'static>,
+    #[cfg(test)]
+    mir_unit_9_2_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'static>,
+    #[cfg(test)]
+    mir_unit_9_2_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'static>,
+    #[cfg(test)]
+    alias_unit_9_2_0_storage_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'static>,
+    #[cfg(test)]
+    alias_unit_9_2_0_storage_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'static>,
+    #[cfg(test)]
+    alias_unit_9_2_0_storage_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'static>,
+    #[cfg(test)]
+    alias_unit_9_2_0_storage_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'static>,
+    #[cfg(test)]
+    literal_unit_9_0_source: &'static str,
+    #[cfg(test)]
+    literal_unit_9_0_argument: &'static str,
+    #[cfg(test)]
+    literal_unit_9_0_returned: &'static str,
+    #[cfg(test)]
+    literal_unit_9_0_caller: &'static str,
+    #[cfg(test)]
+    mir_unit_10_0_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_0_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_0_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_0_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_2_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_10_2_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_10_2_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_10_2_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_10_3_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_3_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_3_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_3_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_4_source: isize,
+    #[cfg(test)]
+    mir_unit_10_4_argument: isize,
+    #[cfg(test)]
+    mir_unit_10_4_returned: isize,
+    #[cfg(test)]
+    mir_unit_10_4_caller: isize,
+    #[cfg(test)]
+    mir_unit_10_5_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_5_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_5_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_5_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_10_5_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_10_5_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_10_5_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_10_5_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_6_source: (u32, crate::experimental::cache::DecodedInstruction),
+    #[cfg(test)]
+    mir_unit_10_6_argument: (u32, crate::experimental::cache::DecodedInstruction),
+    #[cfg(test)]
+    mir_unit_10_6_returned: (u32, crate::experimental::cache::DecodedInstruction),
+    #[cfg(test)]
+    mir_unit_10_6_caller: (u32, crate::experimental::cache::DecodedInstruction),
+    #[cfg(test)]
+    alias_unit_10_6_0_selected_source: (u32, crate::experimental::cache::DecodedInstruction),
+    #[cfg(test)]
+    alias_unit_10_6_0_selected_argument: (u32, crate::experimental::cache::DecodedInstruction),
+    #[cfg(test)]
+    alias_unit_10_6_0_selected_returned: (u32, crate::experimental::cache::DecodedInstruction),
+    #[cfg(test)]
+    alias_unit_10_6_0_selected_caller: (u32, crate::experimental::cache::DecodedInstruction),
+    #[cfg(test)]
+    mir_unit_10_7_source: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_7_argument: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_7_returned: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_7_caller: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_8_source: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_10_8_argument: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_10_8_returned: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_10_8_caller: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_10_9_source: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_9_argument: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_9_returned: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_9_caller: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_10_source: isize,
+    #[cfg(test)]
+    mir_unit_10_10_argument: isize,
+    #[cfg(test)]
+    mir_unit_10_10_returned: isize,
+    #[cfg(test)]
+    mir_unit_10_10_caller: isize,
+    #[cfg(test)]
+    mir_unit_10_11_source: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_10_11_argument: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_10_11_returned: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_10_11_caller: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_10_11_0_frame_source: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_10_11_0_frame_argument: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_10_11_0_frame_returned: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_10_11_0_frame_caller: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_10_11_1_frame_source: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_10_11_1_frame_argument: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_10_11_1_frame_returned: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_10_11_1_frame_caller: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_10_12_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_10_12_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_10_12_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_10_12_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_10_13_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, crate::experimental::cache::FunctionView<'static>>,
+    #[cfg(test)]
+    mir_unit_10_13_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, crate::experimental::cache::FunctionView<'static>>,
+    #[cfg(test)]
+    mir_unit_10_13_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, crate::experimental::cache::FunctionView<'static>>,
+    #[cfg(test)]
+    mir_unit_10_13_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>, crate::experimental::cache::FunctionView<'static>>,
+    #[cfg(test)]
+    mir_unit_10_14_source: std::result::Result<crate::experimental::cache::FunctionView<'static>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_14_argument: std::result::Result<crate::experimental::cache::FunctionView<'static>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_14_returned: std::result::Result<crate::experimental::cache::FunctionView<'static>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_14_caller: std::result::Result<crate::experimental::cache::FunctionView<'static>, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_15_source: &'static crate::experimental_swift_reactor::cache::SwiftFunctionCache,
+    #[cfg(test)]
+    mir_unit_10_15_argument: &'static crate::experimental_swift_reactor::cache::SwiftFunctionCache,
+    #[cfg(test)]
+    mir_unit_10_15_returned: &'static crate::experimental_swift_reactor::cache::SwiftFunctionCache,
+    #[cfg(test)]
+    mir_unit_10_15_caller: &'static crate::experimental_swift_reactor::cache::SwiftFunctionCache,
+    #[cfg(test)]
+    mir_unit_10_16_source: &'static crate::experimental_swift_reactor::cache::SwiftFunctionPin,
+    #[cfg(test)]
+    mir_unit_10_16_argument: &'static crate::experimental_swift_reactor::cache::SwiftFunctionPin,
+    #[cfg(test)]
+    mir_unit_10_16_returned: &'static crate::experimental_swift_reactor::cache::SwiftFunctionPin,
+    #[cfg(test)]
+    mir_unit_10_16_caller: &'static crate::experimental_swift_reactor::cache::SwiftFunctionPin,
+    #[cfg(test)]
+    mir_unit_10_17_source: std::option::Option<&'static crate::experimental_wasi::accounted::AccountedWasi>,
+    #[cfg(test)]
+    mir_unit_10_17_argument: std::option::Option<&'static crate::experimental_wasi::accounted::AccountedWasi>,
+    #[cfg(test)]
+    mir_unit_10_17_returned: std::option::Option<&'static crate::experimental_wasi::accounted::AccountedWasi>,
+    #[cfg(test)]
+    mir_unit_10_17_caller: std::option::Option<&'static crate::experimental_wasi::accounted::AccountedWasi>,
+    #[cfg(test)]
+    mir_unit_10_18_source: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_10_18_argument: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_10_18_returned: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_10_18_caller: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_10_19_source: isize,
+    #[cfg(test)]
+    mir_unit_10_19_argument: isize,
+    #[cfg(test)]
+    mir_unit_10_19_returned: isize,
+    #[cfg(test)]
+    mir_unit_10_19_caller: isize,
+    #[cfg(test)]
+    mir_unit_10_23_source: std::option::Option<&'static crate::experimental::cache::DecodedInstruction>,
+    #[cfg(test)]
+    mir_unit_10_23_argument: std::option::Option<&'static crate::experimental::cache::DecodedInstruction>,
+    #[cfg(test)]
+    mir_unit_10_23_returned: std::option::Option<&'static crate::experimental::cache::DecodedInstruction>,
+    #[cfg(test)]
+    mir_unit_10_23_caller: std::option::Option<&'static crate::experimental::cache::DecodedInstruction>,
+    #[cfg(test)]
+    mir_unit_10_24_source: usize,
+    #[cfg(test)]
+    mir_unit_10_24_argument: usize,
+    #[cfg(test)]
+    mir_unit_10_24_returned: usize,
+    #[cfg(test)]
+    mir_unit_10_24_caller: usize,
+    #[cfg(test)]
+    mir_unit_10_25_source: isize,
+    #[cfg(test)]
+    mir_unit_10_25_argument: isize,
+    #[cfg(test)]
+    mir_unit_10_25_returned: isize,
+    #[cfg(test)]
+    mir_unit_10_25_caller: isize,
+    #[cfg(test)]
+    mir_unit_10_27_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_10_27_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_10_27_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_10_27_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_10_28_source: u32,
+    #[cfg(test)]
+    mir_unit_10_28_argument: u32,
+    #[cfg(test)]
+    mir_unit_10_28_returned: u32,
+    #[cfg(test)]
+    mir_unit_10_28_caller: u32,
+    #[cfg(test)]
+    mir_unit_10_31_source: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_10_31_argument: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_10_31_returned: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_10_31_caller: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_10_32_source: crate::experimental_swift_reactor::control::SwiftRunStage,
+    #[cfg(test)]
+    mir_unit_10_32_argument: crate::experimental_swift_reactor::control::SwiftRunStage,
+    #[cfg(test)]
+    mir_unit_10_32_returned: crate::experimental_swift_reactor::control::SwiftRunStage,
+    #[cfg(test)]
+    mir_unit_10_32_caller: crate::experimental_swift_reactor::control::SwiftRunStage,
+    #[cfg(test)]
+    mir_unit_10_33_source: std::option::Option<u32>,
+    #[cfg(test)]
+    mir_unit_10_33_argument: std::option::Option<u32>,
+    #[cfg(test)]
+    mir_unit_10_33_returned: std::option::Option<u32>,
+    #[cfg(test)]
+    mir_unit_10_33_caller: std::option::Option<u32>,
+    #[cfg(test)]
+    mir_unit_10_34_source: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_10_34_argument: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_10_34_returned: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_10_34_caller: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_10_35_source: usize,
+    #[cfg(test)]
+    mir_unit_10_35_argument: usize,
+    #[cfg(test)]
+    mir_unit_10_35_returned: usize,
+    #[cfg(test)]
+    mir_unit_10_35_caller: usize,
+    #[cfg(test)]
+    mir_unit_10_36_source: isize,
+    #[cfg(test)]
+    mir_unit_10_36_argument: isize,
+    #[cfg(test)]
+    mir_unit_10_36_returned: isize,
+    #[cfg(test)]
+    mir_unit_10_36_caller: isize,
+    #[cfg(test)]
+    mir_unit_10_37_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_10_37_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_10_37_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_10_37_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_10_38_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_10_38_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_10_38_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_10_38_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_10_39_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_39_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_39_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_39_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_40_source: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_10_40_argument: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_10_40_returned: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_10_40_caller: crate::experimental_swift_reactor::control::Cursor,
+    #[cfg(test)]
+    mir_unit_10_41_source: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_10_41_argument: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_10_41_returned: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_10_41_caller: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    #[cfg(test)]
+    mir_unit_10_42_source: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_10_42_argument: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_10_42_returned: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_10_42_caller: crate::experimental_wasi::WasiUsage,
+    #[cfg(test)]
+    mir_unit_10_43_source: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_10_43_argument: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_10_43_returned: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_10_43_caller: &'static crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_10_44_source: isize,
+    #[cfg(test)]
+    mir_unit_10_44_argument: isize,
+    #[cfg(test)]
+    mir_unit_10_44_returned: isize,
+    #[cfg(test)]
+    mir_unit_10_44_caller: isize,
+    #[cfg(test)]
+    mir_unit_10_46_source: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_10_46_argument: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_10_46_returned: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_10_46_caller: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>>,
+    #[cfg(test)]
+    mir_unit_10_47_source: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_47_argument: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_47_returned: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_47_caller: std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_48_source: isize,
+    #[cfg(test)]
+    mir_unit_10_48_argument: isize,
+    #[cfg(test)]
+    mir_unit_10_48_returned: isize,
+    #[cfg(test)]
+    mir_unit_10_48_caller: isize,
+    #[cfg(test)]
+    mir_unit_10_50_source: bool,
+    #[cfg(test)]
+    mir_unit_10_50_argument: bool,
+    #[cfg(test)]
+    mir_unit_10_50_returned: bool,
+    #[cfg(test)]
+    mir_unit_10_50_caller: bool,
+    #[cfg(test)]
+    mir_unit_10_51_source: &'static std::thread::LocalKey<std::cell::Cell<bool>>,
+    #[cfg(test)]
+    mir_unit_10_51_argument: &'static std::thread::LocalKey<std::cell::Cell<bool>>,
+    #[cfg(test)]
+    mir_unit_10_51_returned: &'static std::thread::LocalKey<std::cell::Cell<bool>>,
+    #[cfg(test)]
+    mir_unit_10_51_caller: &'static std::thread::LocalKey<std::cell::Cell<bool>>,
+    #[cfg(test)]
+    mir_unit_10_52_source: &'static mut crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_10_52_argument: &'static mut crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_10_52_returned: &'static mut crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_10_52_caller: &'static mut crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_10_53_source: std::option::Option<&'static mut crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_53_argument: std::option::Option<&'static mut crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_53_returned: std::option::Option<&'static mut crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_53_caller: std::option::Option<&'static mut crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_54_source: &'static mut [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_10_54_argument: &'static mut [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_10_54_returned: &'static mut [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_10_54_caller: &'static mut [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_10_55_source: &'static str,
+    #[cfg(test)]
+    mir_unit_10_55_argument: &'static str,
+    #[cfg(test)]
+    mir_unit_10_55_returned: &'static str,
+    #[cfg(test)]
+    mir_unit_10_55_caller: &'static str,
+    #[cfg(test)]
+    mir_unit_10_56_source: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_10_56_argument: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_10_56_returned: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_10_56_caller: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_10_57_source: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_57_argument: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_57_returned: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_57_caller: std::option::Option<&'static crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_58_source: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_10_58_argument: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_10_58_returned: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_10_58_caller: &'static [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_10_59_source: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_59_argument: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_59_returned: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_59_caller: &'static std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_60_source: isize,
+    #[cfg(test)]
+    mir_unit_10_60_argument: isize,
+    #[cfg(test)]
+    mir_unit_10_60_returned: isize,
+    #[cfg(test)]
+    mir_unit_10_60_caller: isize,
+    #[cfg(test)]
+    mir_unit_10_62_source: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_10_62_argument: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_10_62_returned: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_10_62_caller: crate::experimental_swift_reactor::control::SwiftRunFailure,
+    #[cfg(test)]
+    mir_unit_10_63_source: &'static mut crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_10_63_argument: &'static mut crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_10_63_returned: &'static mut crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_10_63_caller: &'static mut crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_10_64_source: std::option::Option<&'static mut crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_64_argument: std::option::Option<&'static mut crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_64_returned: std::option::Option<&'static mut crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_64_caller: std::option::Option<&'static mut crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_65_source: &'static mut [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_10_65_argument: &'static mut [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_10_65_returned: &'static mut [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_10_65_caller: &'static mut [crate::experimental_swift_reactor::execution::SwiftFrame],
+    #[cfg(test)]
+    mir_unit_10_66_source: &'static str,
+    #[cfg(test)]
+    mir_unit_10_66_argument: &'static str,
+    #[cfg(test)]
+    mir_unit_10_66_returned: &'static str,
+    #[cfg(test)]
+    mir_unit_10_66_caller: &'static str,
+    #[cfg(test)]
+    mir_unit_10_67_source: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    mir_unit_10_67_argument: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    mir_unit_10_67_returned: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    mir_unit_10_67_caller: crate::experimental::cache::Operation,
+    #[cfg(test)]
+    mir_unit_10_68_source: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_68_argument: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_68_returned: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_68_caller: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_69_source: &'static mut crate::experimental_swift_reactor::cache::SwiftFunctionCache,
+    #[cfg(test)]
+    mir_unit_10_69_argument: &'static mut crate::experimental_swift_reactor::cache::SwiftFunctionCache,
+    #[cfg(test)]
+    mir_unit_10_69_returned: &'static mut crate::experimental_swift_reactor::cache::SwiftFunctionCache,
+    #[cfg(test)]
+    mir_unit_10_69_caller: &'static mut crate::experimental_swift_reactor::cache::SwiftFunctionCache,
+    #[cfg(test)]
+    mir_unit_10_70_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_10_70_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_10_70_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_10_70_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_10_71_source: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_10_71_argument: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_10_71_returned: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_10_71_caller: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_10_72_source: &'static [crate::experimental::cache::DecodedInstruction],
+    #[cfg(test)]
+    mir_unit_10_72_argument: &'static [crate::experimental::cache::DecodedInstruction],
+    #[cfg(test)]
+    mir_unit_10_72_returned: &'static [crate::experimental::cache::DecodedInstruction],
+    #[cfg(test)]
+    mir_unit_10_72_caller: &'static [crate::experimental::cache::DecodedInstruction],
+    #[cfg(test)]
+    mir_unit_10_73_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_10_73_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_10_73_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_10_73_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    #[cfg(test)]
+    mir_unit_10_74_source: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_10_74_argument: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_10_74_returned: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_10_74_caller: &'static mut crate::experimental_wasi::accounted::AccountedWasi,
+    #[cfg(test)]
+    mir_unit_10_75_source: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_75_argument: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_75_returned: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_75_caller: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_76_source: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_76_argument: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_76_returned: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_76_caller: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_77_source: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_77_argument: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_77_returned: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_77_caller: &'static mut std::vec::Vec<crate::experimental_swift_reactor::execution::SwiftFrame>,
+    #[cfg(test)]
+    mir_unit_10_29_source: u32,
+    #[cfg(test)]
+    mir_unit_10_29_argument: u32,
+    #[cfg(test)]
+    mir_unit_10_29_returned: u32,
+    #[cfg(test)]
+    mir_unit_10_29_caller: u32,
+    #[cfg(test)]
+    alias_unit_10_29_0_function_source: u32,
+    #[cfg(test)]
+    alias_unit_10_29_0_function_argument: u32,
+    #[cfg(test)]
+    alias_unit_10_29_0_function_returned: u32,
+    #[cfg(test)]
+    alias_unit_10_29_0_function_caller: u32,
+    #[cfg(test)]
+    mir_unit_10_30_source: crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    mir_unit_10_30_argument: crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    mir_unit_10_30_returned: crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    mir_unit_10_30_caller: crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    alias_unit_10_30_0_instruction_source: crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    alias_unit_10_30_0_instruction_argument: crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    alias_unit_10_30_0_instruction_returned: crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    alias_unit_10_30_0_instruction_caller: crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    mir_unit_10_45_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_45_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_45_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_45_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_10_45_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_10_45_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_10_45_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_10_45_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_49_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_49_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_49_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_49_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_10_49_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_10_49_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_10_49_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_10_49_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_61_source: usize,
+    #[cfg(test)]
+    mir_unit_10_61_argument: usize,
+    #[cfg(test)]
+    mir_unit_10_61_returned: usize,
+    #[cfg(test)]
+    mir_unit_10_61_caller: usize,
+    #[cfg(test)]
+    alias_unit_10_61_0_pc_source: usize,
+    #[cfg(test)]
+    alias_unit_10_61_0_pc_argument: usize,
+    #[cfg(test)]
+    alias_unit_10_61_0_pc_returned: usize,
+    #[cfg(test)]
+    alias_unit_10_61_0_pc_caller: usize,
+    #[cfg(test)]
+    alias_unit_10_61_1_pc_source: usize,
+    #[cfg(test)]
+    alias_unit_10_61_1_pc_argument: usize,
+    #[cfg(test)]
+    alias_unit_10_61_1_pc_returned: usize,
+    #[cfg(test)]
+    alias_unit_10_61_1_pc_caller: usize,
+    #[cfg(test)]
+    mir_unit_10_20_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_20_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_20_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_20_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_10_20_0_residual_source: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_10_20_0_residual_argument: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_10_20_0_residual_returned: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    alias_unit_10_20_0_residual_caller: std::result::Result<std::convert::Infallible, crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    #[cfg(test)]
+    mir_unit_10_21_source: crate::experimental::cache::FunctionView<'static>,
+    #[cfg(test)]
+    mir_unit_10_21_argument: crate::experimental::cache::FunctionView<'static>,
+    #[cfg(test)]
+    mir_unit_10_21_returned: crate::experimental::cache::FunctionView<'static>,
+    #[cfg(test)]
+    mir_unit_10_21_caller: crate::experimental::cache::FunctionView<'static>,
+    #[cfg(test)]
+    alias_unit_10_21_0_view_source: crate::experimental::cache::FunctionView<'static>,
+    #[cfg(test)]
+    alias_unit_10_21_0_view_argument: crate::experimental::cache::FunctionView<'static>,
+    #[cfg(test)]
+    alias_unit_10_21_0_view_returned: crate::experimental::cache::FunctionView<'static>,
+    #[cfg(test)]
+    alias_unit_10_21_0_view_caller: crate::experimental::cache::FunctionView<'static>,
+    #[cfg(test)]
+    alias_unit_10_21_1_val_source: crate::experimental::cache::FunctionView<'static>,
+    #[cfg(test)]
+    alias_unit_10_21_1_val_argument: crate::experimental::cache::FunctionView<'static>,
+    #[cfg(test)]
+    alias_unit_10_21_1_val_returned: crate::experimental::cache::FunctionView<'static>,
+    #[cfg(test)]
+    alias_unit_10_21_1_val_caller: crate::experimental::cache::FunctionView<'static>,
+    #[cfg(test)]
+    mir_unit_10_22_source: crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    mir_unit_10_22_argument: crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    mir_unit_10_22_returned: crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    mir_unit_10_22_caller: crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    alias_unit_10_22_0_instruction_source: crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    alias_unit_10_22_0_instruction_argument: crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    alias_unit_10_22_0_instruction_returned: crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    alias_unit_10_22_0_instruction_caller: crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    mir_unit_10_26_source: &'static crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    mir_unit_10_26_argument: &'static crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    mir_unit_10_26_returned: &'static crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    mir_unit_10_26_caller: &'static crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    alias_unit_10_26_0_instruction_source: &'static crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    alias_unit_10_26_0_instruction_argument: &'static crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    alias_unit_10_26_0_instruction_returned: &'static crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    alias_unit_10_26_0_instruction_caller: &'static crate::experimental::cache::DecodedInstruction,
+    #[cfg(test)]
+    mir_unit_10_1_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_10_1_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_10_1_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    mir_unit_10_1_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_10_1_0_phase_source: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_10_1_0_phase_argument: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_10_1_0_phase_returned: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    alias_unit_10_1_0_phase_caller: &'static mut crate::experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'static>,
+    #[cfg(test)]
+    literal_unit_10_0_source: &'static str,
+    #[cfg(test)]
+    literal_unit_10_0_argument: &'static str,
+    #[cfg(test)]
+    literal_unit_10_0_returned: &'static str,
+    #[cfg(test)]
+    literal_unit_10_0_caller: &'static str,
+    #[cfg(test)]
+    literal_unit_10_1_source: &'static str,
+    #[cfg(test)]
+    literal_unit_10_1_argument: &'static str,
+    #[cfg(test)]
+    literal_unit_10_1_returned: &'static str,
+    #[cfg(test)]
+    literal_unit_10_1_caller: &'static str,
+    #[cfg(test)]
+    literal_unit_10_2_source: usize,
+    #[cfg(test)]
+    literal_unit_10_2_argument: usize,
+    #[cfg(test)]
+    literal_unit_10_2_returned: usize,
+    #[cfg(test)]
+    literal_unit_10_2_caller: usize,
+    #[cfg(test)]
+    literal_unit_10_3_source: &'static str,
+    #[cfg(test)]
+    literal_unit_10_3_argument: &'static str,
+    #[cfg(test)]
+    literal_unit_10_3_returned: &'static str,
+    #[cfg(test)]
+    literal_unit_10_3_caller: &'static str,
+    #[cfg(test)]
+    literal_unit_10_4_source: &'static str,
+    #[cfg(test)]
+    literal_unit_10_4_argument: &'static str,
+    #[cfg(test)]
+    literal_unit_10_4_returned: &'static str,
+    #[cfg(test)]
+    literal_unit_10_4_caller: &'static str,
+    #[cfg(test)]
+    literal_unit_10_5_source: &'static str,
+    #[cfg(test)]
+    literal_unit_10_5_argument: &'static str,
+    #[cfg(test)]
+    literal_unit_10_5_returned: &'static str,
+    #[cfg(test)]
+    literal_unit_10_5_caller: &'static str,
+    #[cfg(test)]
+    mir_unit_11_0_source: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_11_0_argument: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_11_0_returned: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_11_0_caller: std::option::Option<usize>,
+    #[cfg(test)]
+    mir_unit_11_3_source: usize,
+    #[cfg(test)]
+    mir_unit_11_3_argument: usize,
+    #[cfg(test)]
+    mir_unit_11_3_returned: usize,
+    #[cfg(test)]
+    mir_unit_11_3_caller: usize,
+    #[cfg(test)]
+    mir_unit_11_1_source: (),
+    #[cfg(test)]
+    mir_unit_11_1_argument: (),
+    #[cfg(test)]
+    mir_unit_11_1_returned: (),
+    #[cfg(test)]
+    mir_unit_11_1_caller: (),
+    #[cfg(test)]
+    mir_unit_11_2_source: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_11_2_argument: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_11_2_returned: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    mir_unit_11_2_caller: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_11_2_0_frame_source: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_11_2_0_frame_argument: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_11_2_0_frame_returned: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    alias_unit_11_2_0_frame_caller: &'static crate::experimental_swift_reactor::execution::SwiftFrame,
+    #[cfg(test)]
+    literal_unit_11_0_source: usize,
+    #[cfg(test)]
+    literal_unit_11_0_argument: usize,
+    #[cfg(test)]
+    literal_unit_11_0_returned: usize,
+    #[cfg(test)]
+    literal_unit_11_0_caller: usize,
+    #[cfg(test)]
+    mir_unit_12_0_source: &'static Type,
+    #[cfg(test)]
+    mir_unit_12_0_argument: &'static Type,
+    #[cfg(test)]
+    mir_unit_12_0_returned: &'static Type,
+    #[cfg(test)]
+    mir_unit_12_0_caller: &'static Type,
+    #[cfg(test)]
+    mir_unit_12_1_source: Type,
+    #[cfg(test)]
+    mir_unit_12_1_argument: Type,
+    #[cfg(test)]
+    mir_unit_12_1_returned: Type,
+    #[cfg(test)]
+    mir_unit_12_1_caller: Type,
+    #[cfg(test)]
+    mir_unit_13_0_source: &'static std::thread::LocalKey<std::cell::Cell<bool>>,
+    #[cfg(test)]
+    mir_unit_13_0_argument: &'static std::thread::LocalKey<std::cell::Cell<bool>>,
+    #[cfg(test)]
+    mir_unit_13_0_returned: &'static std::thread::LocalKey<std::cell::Cell<bool>>,
+    #[cfg(test)]
+    mir_unit_13_0_caller: &'static std::thread::LocalKey<std::cell::Cell<bool>>,
+    #[cfg(test)]
+    mir_unit_13_1_source: std::thread::LocalKey<std::cell::Cell<bool>>,
+    #[cfg(test)]
+    mir_unit_13_1_argument: std::thread::LocalKey<std::cell::Cell<bool>>,
+    #[cfg(test)]
+    mir_unit_13_1_returned: std::thread::LocalKey<std::cell::Cell<bool>>,
+    #[cfg(test)]
+    mir_unit_13_1_caller: std::thread::LocalKey<std::cell::Cell<bool>>,
+    source_bulk_memory_bulk_phase_source: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_bulk_phase_argument: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_bulk_phase_returned: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_bulk_phase_caller: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_bulk_length_source: usize,
+    source_bulk_memory_bulk_length_argument: usize,
+    source_bulk_memory_bulk_length_returned: usize,
+    source_bulk_memory_bulk_length_caller: usize,
+    source_bulk_memory_bulk_credits_source: u64,
+    source_bulk_memory_bulk_credits_argument: u64,
+    source_bulk_memory_bulk_credits_returned: u64,
+    source_bulk_memory_bulk_credits_caller: u64,
+    source_bulk_memory_bulk_result_source: Result<(),SwiftRunFailure>,
+    source_bulk_memory_bulk_result_argument: Result<(),SwiftRunFailure>,
+    source_bulk_memory_bulk_result_returned: Result<(),SwiftRunFailure>,
+    source_bulk_memory_bulk_result_caller: Result<(),SwiftRunFailure>,
+    source_bulk_memory_copy_phase_source: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_copy_phase_argument: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_copy_phase_returned: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_copy_phase_caller: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_copy_length_source: usize,
+    source_bulk_memory_copy_length_argument: usize,
+    source_bulk_memory_copy_length_returned: usize,
+    source_bulk_memory_copy_length_caller: usize,
+    source_bulk_memory_copy_source_source: usize,
+    source_bulk_memory_copy_source_argument: usize,
+    source_bulk_memory_copy_source_returned: usize,
+    source_bulk_memory_copy_source_caller: usize,
+    source_bulk_memory_copy_destination_source: usize,
+    source_bulk_memory_copy_destination_argument: usize,
+    source_bulk_memory_copy_destination_returned: usize,
+    source_bulk_memory_copy_destination_caller: usize,
+    source_bulk_memory_copy_range_source: std::ops::Range<usize>,
+    source_bulk_memory_copy_range_argument: std::ops::Range<usize>,
+    source_bulk_memory_copy_range_returned: std::ops::Range<usize>,
+    source_bulk_memory_copy_range_caller: std::ops::Range<usize>,
+    source_bulk_memory_copy_left_source: usize,
+    source_bulk_memory_copy_left_argument: usize,
+    source_bulk_memory_copy_left_returned: usize,
+    source_bulk_memory_copy_left_caller: usize,
+    source_bulk_memory_copy_at_source: usize,
+    source_bulk_memory_copy_at_argument: usize,
+    source_bulk_memory_copy_at_returned: usize,
+    source_bulk_memory_copy_at_caller: usize,
+    source_bulk_memory_copy_chunk_source: usize,
+    source_bulk_memory_copy_chunk_argument: usize,
+    source_bulk_memory_copy_chunk_returned: usize,
+    source_bulk_memory_copy_chunk_caller: usize,
+    source_bulk_memory_copy_memory_source: &'static mut Vec<u8>,
+    source_bulk_memory_copy_memory_argument: &'static mut Vec<u8>,
+    source_bulk_memory_copy_memory_returned: &'static mut Vec<u8>,
+    source_bulk_memory_copy_memory_caller: &'static mut Vec<u8>,
+    source_bulk_memory_copy_iteration_source: std::iter::StepBy<std::ops::Range<usize>>,
+    source_bulk_memory_copy_iteration_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    source_bulk_memory_copy_iteration_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    source_bulk_memory_copy_iteration_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    source_bulk_memory_copy_result_source: Result<(),SwiftRunFailure>,
+    source_bulk_memory_copy_result_argument: Result<(),SwiftRunFailure>,
+    source_bulk_memory_copy_result_returned: Result<(),SwiftRunFailure>,
+    source_bulk_memory_copy_result_caller: Result<(),SwiftRunFailure>,
+    source_bulk_memory_fill_phase_source: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_fill_phase_argument: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_fill_phase_returned: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_fill_phase_caller: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_fill_length_source: usize,
+    source_bulk_memory_fill_length_argument: usize,
+    source_bulk_memory_fill_length_returned: usize,
+    source_bulk_memory_fill_length_caller: usize,
+    source_bulk_memory_fill_value_source: u8,
+    source_bulk_memory_fill_value_argument: u8,
+    source_bulk_memory_fill_value_returned: u8,
+    source_bulk_memory_fill_value_caller: u8,
+    source_bulk_memory_fill_destination_source: usize,
+    source_bulk_memory_fill_destination_argument: usize,
+    source_bulk_memory_fill_destination_returned: usize,
+    source_bulk_memory_fill_destination_caller: usize,
+    source_bulk_memory_fill_range_source: std::ops::Range<usize>,
+    source_bulk_memory_fill_range_argument: std::ops::Range<usize>,
+    source_bulk_memory_fill_range_returned: std::ops::Range<usize>,
+    source_bulk_memory_fill_range_caller: std::ops::Range<usize>,
+    source_bulk_memory_fill_start_source: usize,
+    source_bulk_memory_fill_start_argument: usize,
+    source_bulk_memory_fill_start_returned: usize,
+    source_bulk_memory_fill_start_caller: usize,
+    source_bulk_memory_fill_end_source: usize,
+    source_bulk_memory_fill_end_argument: usize,
+    source_bulk_memory_fill_end_returned: usize,
+    source_bulk_memory_fill_end_caller: usize,
+    source_bulk_memory_fill_slice_source: &'static mut [u8],
+    source_bulk_memory_fill_slice_argument: &'static mut [u8],
+    source_bulk_memory_fill_slice_returned: &'static mut [u8],
+    source_bulk_memory_fill_slice_caller: &'static mut [u8],
+    source_bulk_memory_fill_iteration_source: std::iter::StepBy<std::ops::Range<usize>>,
+    source_bulk_memory_fill_iteration_argument: std::iter::StepBy<std::ops::Range<usize>>,
+    source_bulk_memory_fill_iteration_returned: std::iter::StepBy<std::ops::Range<usize>>,
+    source_bulk_memory_fill_iteration_caller: std::iter::StepBy<std::ops::Range<usize>>,
+    source_bulk_memory_fill_result_source: Result<(),SwiftRunFailure>,
+    source_bulk_memory_fill_result_argument: Result<(),SwiftRunFailure>,
+    source_bulk_memory_fill_result_returned: Result<(),SwiftRunFailure>,
+    source_bulk_memory_fill_result_caller: Result<(),SwiftRunFailure>,
+    source_bulk_memory_check_phase_source: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_check_phase_argument: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_check_phase_returned: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_check_phase_caller: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_check_cursor_source: Cursor,
+    source_bulk_memory_check_cursor_argument: Cursor,
+    source_bulk_memory_check_cursor_returned: Cursor,
+    source_bulk_memory_check_cursor_caller: Cursor,
+    source_bulk_memory_check_wasi_source: Option<WasiUsage>,
+    source_bulk_memory_check_wasi_argument: Option<WasiUsage>,
+    source_bulk_memory_check_wasi_returned: Option<WasiUsage>,
+    source_bulk_memory_check_wasi_caller: Option<WasiUsage>,
+    source_bulk_memory_check_result_source: Result<(),SwiftRunFailure>,
+    source_bulk_memory_check_result_argument: Result<(),SwiftRunFailure>,
+    source_bulk_memory_check_result_returned: Result<(),SwiftRunFailure>,
+    source_bulk_memory_check_result_caller: Result<(),SwiftRunFailure>,
+    source_bulk_memory_preflight_phase_source: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_preflight_phase_argument: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_preflight_phase_returned: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_preflight_phase_caller: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_preflight_operands_source: bool,
+    source_bulk_memory_preflight_operands_argument: bool,
+    source_bulk_memory_preflight_operands_returned: bool,
+    source_bulk_memory_preflight_operands_caller: bool,
+    source_bulk_memory_preflight_pages_source: usize,
+    source_bulk_memory_preflight_pages_argument: usize,
+    source_bulk_memory_preflight_pages_returned: usize,
+    source_bulk_memory_preflight_pages_caller: usize,
+    source_bulk_memory_preflight_memory_source: &'static Vec<u8>,
+    source_bulk_memory_preflight_memory_argument: &'static Vec<u8>,
+    source_bulk_memory_preflight_memory_returned: &'static Vec<u8>,
+    source_bulk_memory_preflight_memory_caller: &'static Vec<u8>,
+    source_bulk_memory_preflight_frame_source: &'static SwiftFrame,
+    source_bulk_memory_preflight_frame_argument: &'static SwiftFrame,
+    source_bulk_memory_preflight_frame_returned: &'static SwiftFrame,
+    source_bulk_memory_preflight_frame_caller: &'static SwiftFrame,
+    source_bulk_memory_preflight_floor_source: usize,
+    source_bulk_memory_preflight_floor_argument: usize,
+    source_bulk_memory_preflight_floor_returned: usize,
+    source_bulk_memory_preflight_floor_caller: usize,
+    source_bulk_memory_preflight_available_source: usize,
+    source_bulk_memory_preflight_available_argument: usize,
+    source_bulk_memory_preflight_available_returned: usize,
+    source_bulk_memory_preflight_available_caller: usize,
+    source_bulk_memory_preflight_length_source: usize,
+    source_bulk_memory_preflight_length_argument: usize,
+    source_bulk_memory_preflight_length_returned: usize,
+    source_bulk_memory_preflight_length_caller: usize,
+    source_bulk_memory_preflight_values_source: &'static [Value],
+    source_bulk_memory_preflight_values_argument: &'static [Value],
+    source_bulk_memory_preflight_values_returned: &'static [Value],
+    source_bulk_memory_preflight_values_caller: &'static [Value],
+    source_bulk_memory_preflight_type_source: Type,
+    source_bulk_memory_preflight_type_argument: Type,
+    source_bulk_memory_preflight_type_returned: Type,
+    source_bulk_memory_preflight_type_caller: Type,
+    source_bulk_memory_preflight_result_source: Result<(),SwiftRunFailure>,
+    source_bulk_memory_preflight_result_argument: Result<(),SwiftRunFailure>,
+    source_bulk_memory_preflight_result_returned: Result<(),SwiftRunFailure>,
+    source_bulk_memory_preflight_result_caller: Result<(),SwiftRunFailure>,
+    source_bulk_memory_unsupported_phase_source: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_unsupported_phase_argument: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_unsupported_phase_returned: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_unsupported_phase_caller: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_unsupported_cursor_source: Cursor,
+    source_bulk_memory_unsupported_cursor_argument: Cursor,
+    source_bulk_memory_unsupported_cursor_returned: Cursor,
+    source_bulk_memory_unsupported_cursor_caller: Cursor,
+    source_bulk_memory_unsupported_fault_source: Fault,
+    source_bulk_memory_unsupported_fault_argument: Fault,
+    source_bulk_memory_unsupported_fault_returned: Fault,
+    source_bulk_memory_unsupported_fault_caller: Fault,
+    source_bulk_memory_unsupported_wasi_source: Option<WasiUsage>,
+    source_bulk_memory_unsupported_wasi_argument: Option<WasiUsage>,
+    source_bulk_memory_unsupported_wasi_returned: Option<WasiUsage>,
+    source_bulk_memory_unsupported_wasi_caller: Option<WasiUsage>,
+    source_bulk_memory_unsupported_failure_source: SwiftRunFailure,
+    source_bulk_memory_unsupported_failure_argument: SwiftRunFailure,
+    source_bulk_memory_unsupported_failure_returned: SwiftRunFailure,
+    source_bulk_memory_unsupported_failure_caller: SwiftRunFailure,
+    source_bulk_memory_operation_phase_source: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_operation_phase_argument: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_operation_phase_returned: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_operation_phase_caller: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_operation_operation_source: Operation,
+    source_bulk_memory_operation_operation_argument: Operation,
+    source_bulk_memory_operation_operation_returned: Operation,
+    source_bulk_memory_operation_operation_caller: Operation,
+    source_bulk_memory_operation_slot_source: &'static mut Option<Result<(), SwiftRunFailure>>,
+    source_bulk_memory_operation_slot_argument: &'static mut Option<Result<(), SwiftRunFailure>>,
+    source_bulk_memory_operation_slot_returned: &'static mut Option<Result<(), SwiftRunFailure>>,
+    source_bulk_memory_operation_slot_caller: &'static mut Option<Result<(), SwiftRunFailure>>,
+    source_bulk_memory_operation_vacant_source: bool,
+    source_bulk_memory_operation_vacant_argument: bool,
+    source_bulk_memory_operation_vacant_returned: bool,
+    source_bulk_memory_operation_vacant_caller: bool,
+    source_bulk_memory_operation_failure_source: SwiftRunFailure,
+    source_bulk_memory_operation_failure_argument: SwiftRunFailure,
+    source_bulk_memory_operation_failure_returned: SwiftRunFailure,
+    source_bulk_memory_operation_failure_caller: SwiftRunFailure,
+    source_bulk_memory_operation_result_source: Result<(),SwiftRunFailure>,
+    source_bulk_memory_operation_result_argument: Result<(),SwiftRunFailure>,
+    source_bulk_memory_operation_result_returned: Result<(),SwiftRunFailure>,
+    source_bulk_memory_operation_result_caller: Result<(),SwiftRunFailure>,
+    source_bulk_memory_operation_publication_source: Option<Result<(), SwiftRunFailure>>,
+    source_bulk_memory_operation_publication_argument: Option<Result<(), SwiftRunFailure>>,
+    source_bulk_memory_operation_publication_returned: Option<Result<(), SwiftRunFailure>>,
+    source_bulk_memory_operation_publication_caller: Option<Result<(), SwiftRunFailure>>,
+    source_bulk_memory_operation_admission_source: Result<(),SwiftRunFailure>,
+    source_bulk_memory_operation_admission_argument: Result<(),SwiftRunFailure>,
+    source_bulk_memory_operation_admission_returned: Result<(),SwiftRunFailure>,
+    source_bulk_memory_operation_admission_caller: Result<(),SwiftRunFailure>,
+    source_bulk_memory_operation_inner_phase_source: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_operation_inner_phase_argument: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_operation_inner_phase_returned: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_operation_inner_phase_caller: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_operation_inner_operation_source: Operation,
+    source_bulk_memory_operation_inner_operation_argument: Operation,
+    source_bulk_memory_operation_inner_operation_returned: Operation,
+    source_bulk_memory_operation_inner_operation_caller: Operation,
+    source_bulk_memory_operation_inner_pages_source: usize,
+    source_bulk_memory_operation_inner_pages_argument: usize,
+    source_bulk_memory_operation_inner_pages_returned: usize,
+    source_bulk_memory_operation_inner_pages_caller: usize,
+    source_bulk_memory_operation_inner_size_source: Value,
+    source_bulk_memory_operation_inner_size_argument: Value,
+    source_bulk_memory_operation_inner_size_returned: Value,
+    source_bulk_memory_operation_inner_size_caller: Value,
+    source_bulk_memory_operation_inner_result_source: Result<(),SwiftRunFailure>,
+    source_bulk_memory_operation_inner_result_argument: Result<(),SwiftRunFailure>,
+    source_bulk_memory_operation_inner_result_returned: Result<(),SwiftRunFailure>,
+    source_bulk_memory_operation_inner_result_caller: Result<(),SwiftRunFailure>,
+    source_bulk_memory_pinned_caller_phase_source: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_pinned_caller_phase_argument: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_pinned_caller_phase_returned: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_pinned_caller_phase_caller: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_pinned_caller_storage_source: &'static mut FrameOperationStorage<'static>,
+    source_bulk_memory_pinned_caller_storage_argument: &'static mut FrameOperationStorage<'static>,
+    source_bulk_memory_pinned_caller_storage_returned: &'static mut FrameOperationStorage<'static>,
+    source_bulk_memory_pinned_caller_storage_caller: &'static mut FrameOperationStorage<'static>,
+    source_bulk_memory_pinned_caller_slot_source: &'static mut Option<Result<(), SwiftRunFailure>>,
+    source_bulk_memory_pinned_caller_slot_argument: &'static mut Option<Result<(), SwiftRunFailure>>,
+    source_bulk_memory_pinned_caller_slot_returned: &'static mut Option<Result<(), SwiftRunFailure>>,
+    source_bulk_memory_pinned_caller_slot_caller: &'static mut Option<Result<(), SwiftRunFailure>>,
+    source_bulk_memory_pinned_caller_failure_source: SwiftRunFailure,
+    source_bulk_memory_pinned_caller_failure_argument: SwiftRunFailure,
+    source_bulk_memory_pinned_caller_failure_returned: SwiftRunFailure,
+    source_bulk_memory_pinned_caller_failure_caller: SwiftRunFailure,
+    source_bulk_memory_pinned_caller_result_source: Result<(),SwiftRunFailure>,
+    source_bulk_memory_pinned_caller_result_argument: Result<(),SwiftRunFailure>,
+    source_bulk_memory_pinned_caller_result_returned: Result<(),SwiftRunFailure>,
+    source_bulk_memory_pinned_caller_result_caller: Result<(),SwiftRunFailure>,
+    source_bulk_memory_pinned_caller_publication_source: Option<Result<(), SwiftRunFailure>>,
+    source_bulk_memory_pinned_caller_publication_argument: Option<Result<(), SwiftRunFailure>>,
+    source_bulk_memory_pinned_caller_publication_returned: Option<Result<(), SwiftRunFailure>>,
+    source_bulk_memory_pinned_caller_publication_caller: Option<Result<(), SwiftRunFailure>>,
+    source_bulk_memory_pinned_caller_admission_source: Result<(),SwiftRunFailure>,
+    source_bulk_memory_pinned_caller_admission_argument: Result<(),SwiftRunFailure>,
+    source_bulk_memory_pinned_caller_admission_returned: Result<(),SwiftRunFailure>,
+    source_bulk_memory_pinned_caller_admission_caller: Result<(),SwiftRunFailure>,
+    source_bulk_memory_pinned_step_phase_source: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_pinned_step_phase_argument: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_pinned_step_phase_returned: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_pinned_step_phase_caller: &'static mut FrameOperationPhase<'static>,
+    source_bulk_memory_pinned_step_frame_source: &'static SwiftFrame,
+    source_bulk_memory_pinned_step_frame_argument: &'static SwiftFrame,
+    source_bulk_memory_pinned_step_frame_returned: &'static SwiftFrame,
+    source_bulk_memory_pinned_step_frame_caller: &'static SwiftFrame,
+    source_bulk_memory_pinned_step_pin_source: &'static SwiftFunctionPin,
+    source_bulk_memory_pinned_step_pin_argument: &'static SwiftFunctionPin,
+    source_bulk_memory_pinned_step_pin_returned: &'static SwiftFunctionPin,
+    source_bulk_memory_pinned_step_pin_caller: &'static SwiftFunctionPin,
+    source_bulk_memory_pinned_step_view_source: FunctionView<'static>,
+    source_bulk_memory_pinned_step_view_argument: FunctionView<'static>,
+    source_bulk_memory_pinned_step_view_returned: FunctionView<'static>,
+    source_bulk_memory_pinned_step_view_caller: FunctionView<'static>,
+    source_bulk_memory_pinned_step_instruction_source: DecodedInstruction,
+    source_bulk_memory_pinned_step_instruction_argument: DecodedInstruction,
+    source_bulk_memory_pinned_step_instruction_returned: DecodedInstruction,
+    source_bulk_memory_pinned_step_instruction_caller: DecodedInstruction,
+    source_bulk_memory_pinned_step_instruction_borrow_source: &'static DecodedInstruction,
+    source_bulk_memory_pinned_step_instruction_borrow_argument: &'static DecodedInstruction,
+    source_bulk_memory_pinned_step_instruction_borrow_returned: &'static DecodedInstruction,
+    source_bulk_memory_pinned_step_instruction_borrow_caller: &'static DecodedInstruction,
+    source_bulk_memory_pinned_step_selection_source: (u32,DecodedInstruction),
+    source_bulk_memory_pinned_step_selection_argument: (u32,DecodedInstruction),
+    source_bulk_memory_pinned_step_selection_returned: (u32,DecodedInstruction),
+    source_bulk_memory_pinned_step_selection_caller: (u32,DecodedInstruction),
+    source_bulk_memory_pinned_step_function_source: u32,
+    source_bulk_memory_pinned_step_function_argument: u32,
+    source_bulk_memory_pinned_step_function_returned: u32,
+    source_bulk_memory_pinned_step_function_caller: u32,
+    source_bulk_memory_pinned_step_cursor_source: Cursor,
+    source_bulk_memory_pinned_step_cursor_argument: Cursor,
+    source_bulk_memory_pinned_step_cursor_returned: Cursor,
+    source_bulk_memory_pinned_step_cursor_caller: Cursor,
+    source_bulk_memory_pinned_step_charged_source: Result<(),SwiftRunFailure>,
+    source_bulk_memory_pinned_step_charged_argument: Result<(),SwiftRunFailure>,
+    source_bulk_memory_pinned_step_charged_returned: Result<(),SwiftRunFailure>,
+    source_bulk_memory_pinned_step_charged_caller: Result<(),SwiftRunFailure>,
+    source_bulk_memory_pinned_step_pc_source: usize,
+    source_bulk_memory_pinned_step_pc_argument: usize,
+    source_bulk_memory_pinned_step_pc_returned: usize,
+    source_bulk_memory_pinned_step_pc_caller: usize,
+    source_bulk_memory_pinned_step_checked_pc_source: Option<usize>,
+    source_bulk_memory_pinned_step_checked_pc_argument: Option<usize>,
+    source_bulk_memory_pinned_step_checked_pc_returned: Option<usize>,
+    source_bulk_memory_pinned_step_checked_pc_caller: Option<usize>,
+    source_bulk_memory_pinned_step_frame_mut_source: &'static mut SwiftFrame,
+    source_bulk_memory_pinned_step_frame_mut_argument: &'static mut SwiftFrame,
+    source_bulk_memory_pinned_step_frame_mut_returned: &'static mut SwiftFrame,
+    source_bulk_memory_pinned_step_frame_mut_caller: &'static mut SwiftFrame,
+    source_bulk_memory_pinned_step_result_source: Result<(),SwiftRunFailure>,
+    source_bulk_memory_pinned_step_result_argument: Result<(),SwiftRunFailure>,
+    source_bulk_memory_pinned_step_result_returned: Result<(),SwiftRunFailure>,
+    source_bulk_memory_pinned_step_result_caller: Result<(),SwiftRunFailure>,
+}
+pub(in crate::experimental_swift_reactor::execution) const PERMANENT_BYTES: usize = size_of::<PermanentPositions>();
+pub(super) const ACTIVE_BYTES: usize = size_of::<ActivePositions>();

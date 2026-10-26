@@ -1,0 +1,73 @@
+CASE	full-625-blocks	0	2560000	625	0
+DEFAULT	R
+CASE	all-blocks-call31-completes	0	2560000	19375	0
+DEFAULT	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,R
+CASE	all-blocks-call32-completes	0	2560000	20000	0
+DEFAULT	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,R
+CASE	all-blocks-32-valid128	0	2560000	20000	0
+DEFAULT	B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128,B:128
+CASE	first-call32-completes	0	2560000	656	0
+DEFAULT	R
+OVERRIDE	0	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,R
+CASE	first-call32-completes-after31-short	0	2560000	656	0
+DEFAULT	R
+OVERRIDE	0	B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,R
+CASE	first-call31-completes	0	2560000	655	0
+DEFAULT	R
+OVERRIDE	0	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,R
+CASE	first-call32-interrupted-no33	12	0	32	0
+DEFAULT	R
+OVERRIDE	0	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,F
+CASE	first-call32-short1-no33	12	1	32	0
+DEFAULT	R
+OVERRIDE	0	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,B:1,F
+CASE	first-32-short1-no33	12	32	32	0
+DEFAULT	R
+OVERRIDE	0	B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,B:1,F
+CASE	first-call32-error-specific	9	0	32	0
+DEFAULT	R
+OVERRIDE	0	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,E
+CASE	first-call32-zero-specific	10	0	32	0
+DEFAULT	R
+OVERRIDE	0	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,Z
+CASE	first-call32-overreport-specific	11	0	32	0
+DEFAULT	R
+OVERRIDE	0	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,O
+CASE	first-error	9	0	1	0
+DEFAULT	E
+CASE	first-zero	10	0	1	0
+DEFAULT	Z
+CASE	first-overreport	11	0	1	0
+DEFAULT	O
+CASE	first-usize64-max-overreport	11	0	1	0
+DEFAULT	B:18446744073709551615
+CASE	partial17-error	9	17	2	0
+DEFAULT	B:17,E
+CASE	partial17-zero	10	17	2	0
+DEFAULT	B:17,Z
+CASE	partial17-overreport	11	17	2	0
+DEFAULT	B:17,O
+CASE	partial17-call32-interrupted	12	17	32	0
+DEFAULT	B:17,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,F
+CASE	later-block-partial17-error	9	4113	3	0
+DEFAULT	R
+OVERRIDE	1	B:17,E
+CASE	last-block-call32-zero	10	2555904	656	0
+DEFAULT	R
+OVERRIDE	624	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,Z
+CASE	max-global-call20000-zero	10	2555904	20000	0
+DEFAULT	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,R
+OVERRIDE	624	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,Z
+CASE	max-global-call20000-short1	12	2555905	20000	0
+DEFAULT	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,R
+OVERRIDE	624	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,B:1,F
+CASE	max-global-call20000-overreport	11	2555904	20000	0
+DEFAULT	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,R
+OVERRIDE	624	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,O
+CASE	max-global-call20000-error	9	2555904	20000	0
+DEFAULT	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,R
+OVERRIDE	624	I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,I,E
+CASE	error-side-effect-not-acknowledged	9	0	1	3
+DEFAULT	E
+CASE	overreport-side-effect-not-acknowledged	11	0	1	7
+DEFAULT	O

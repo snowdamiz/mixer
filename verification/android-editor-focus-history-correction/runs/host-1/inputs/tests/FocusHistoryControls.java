@@ -1,0 +1,96 @@
+package dev.mixer.android;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.os.Handler;
+import android.text.Annotation;
+import android.text.Editable;
+import android.view.View;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.inputmethod.BaseInputConnection;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputConnection;
+import android.widget.FrameLayout;
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+
+/** Authored exact-source controls. Reflection only inspects custody or injects exhaustion. */
+public final class FocusHistoryControls {
+    private FocusHistoryControls() {}
+    private static byte[] descriptor;
+    private static int assertions;
+    private static void check(boolean yes,String message){assertions++;if(!yes)throw new AssertionError(message);}
+    private static Object get(Object object,String name){try{Field f=object.getClass().getDeclaredField(name);f.setAccessible(true);return f.get(object);}catch(ReflectiveOperationException bad){throw new AssertionError(bad);}}
+    private static void put(Object object,String name,Object value){try{Field f=object.getClass().getDeclaredField(name);f.setAccessible(true);f.set(object,value);}catch(ReflectiveOperationException bad){throw new AssertionError(bad);}}
+    private static void write(StringBuilder out,Object value){if(value instanceof List<?> values){out.append('[');for(int i=0;i<values.size();i++){if(i>0)out.append(',');write(out,values.get(i));}out.append(']');}else if(value instanceof Map<?,?> values){out.append('{');boolean comma=false;for(var e:values.entrySet()){if(comma)out.append(',');comma=true;Json.write(out,e.getKey());out.append(':');write(out,e.getValue());}out.append('}');}else Json.write(out,value);}
+    private static Object node(String id,String value){return Json.map("id",id,"kind","textField","properties",Json.map("label",id,"value",value),"children",List.of(),"actions",List.of(Json.map("id",id+"Changed","event","textChange")));}
+    private static byte[] packet(long revision,String a,String b){Object root=Json.map("id","root","kind","vStack","properties",Json.map(),"children",List.of(node("a",a),node("b",b)),"actions",List.of());StringBuilder out=new StringBuilder();write(out,Json.map("schemaVersion",new Json.Num("1"),"document",Json.map("schemaVersion",new Json.Num("1"),"revision",new Json.Num(Long.toString(revision)),"root",root),"identities",List.of(Json.map("id","root","generation",new Json.Num("1")),Json.map("id","a","generation",new Json.Num("2")),Json.map("id","b","generation",new Json.Num("3")))));return out.toString().getBytes(StandardCharsets.UTF_8);}
+    private static final class Fixture implements AutoCloseable {
+        final NativeOwnerV2 owner;final Handler queue;final NativeRenderer renderer;final NativeAppearanceViewsV2.NativeField a,b;
+        InputConnection oldA,liveB;BaseInputConnection targetA,targetB;
+        Fixture(){ConcreteHostProbe.reset();Activity activity=new Activity();FrameLayout root=new FrameLayout(activity);activity.assets.put(InstalledAppearanceV2.DESCRIPTOR,descriptor);root.layout(0,0,1000,1500);activity.window.getDecorView().layout(0,0,1000,1500);root.hostAttach(new Object());NativeBridge.reset();NativeBridge.preparedPacket=packet(1,"hello","other");owner=new NativeOwnerV2(activity,root);queue=(Handler)get(owner,"handler");owner.onResume();owner.start();queue.drainAll(6);check(owner.hasCommittedPresentation(),"fixture publication: "+owner.cleanupLedger().primary());renderer=(NativeRenderer)get(get(owner,"coordinator"),"renderer");a=(NativeAppearanceViewsV2.NativeField)renderer.view("a");b=(NativeAppearanceViewsV2.NativeField)renderer.view("b");ConcreteHostProbe.reset();}
+        InputConnection connect(NativeAppearanceViewsV2.NativeField field){field.requestFocus();InputConnection c=field.onCreateInputConnection(new EditorInfo());check(c!=null,"ordinary focused creator");return c;}
+        void history(){oldA=connect(a);targetA=(BaseInputConnection)a.lastConnection;a.clearFocus();check(targetA.closeCalls==1&&!oldA.beginBatchEdit()&&!fence().terminal,"actual A blur closes once");liveB=connect(b);targetB=(BaseInputConnection)b.lastConnection;check(!a.hasFocus()&&b.hasFocus()&&a.hasWindowFocus(),"real two-field focus history");}
+        NativeOwnerV2.Fence fence(){return (NativeOwnerV2.Fence)get(owner,"fence");}
+        boolean replace(CharSequence value){NativeBridge.preparedPacket=packet(2,value.toString(),"other");return action(a,args(value));}
+        @Override public void close(){ConcreteHostProbe.hook=null;try{owner.close();queue.drainAll(8);}catch(RuntimeException|Error expected){/* each failure disposition asserted before cleanup */}ConcreteHostProbe.reset();}
+    }
+    private static Bundle args(CharSequence value){Bundle args=new Bundle();args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,value);return args;}
+    private static boolean action(NativeAppearanceViewsV2.NativeField field,Bundle arguments){return field.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SET_TEXT,arguments);}
+    private static void loss(NativeAppearanceViewsV2.NativeField field,boolean gain){field.onFocusChanged(false,0,null);if(gain)field.onFocusChanged(true,0,null);}
+    private static void positiveHistory(){
+        for(String value:new String[]{"updated","hello","","annotated"})try(Fixture f=new Fixture()){
+            f.history();Object eold=f.a.getText();int events=NativeBridge.prepareCalls;CharSequence proposal=value;
+            if(value.equals("annotated")){Editable annotated=new Editable(value);annotated.setSpan(new Annotation("history","retained"),1,5,18);proposal=annotated;}
+            boolean[] nativeSetter={false},postEvent={false};int[] forbidden={0};
+            ConcreteHostProbe.hook=(method,phase)->{var hit=ConcreteHostProbe.lastEvent();
+                if(method.equals("NativeBridge.prepareV2")&&phase.equals("entry")){postEvent[0]=true;check(!f.renderer.editorDisposalBusyV2(),"native replacement custody released before event");}
+                if(postEvent[0]&&hit.receiver==f.a&&!hit.productionFrames.stream().anyMatch(frame->frame.className().equals("dev.mixer.android.NativeOwnerV2")&&frame.methodName().equals("nativeInput")))forbidden[0]++;
+                if(!nativeSetter[0]&&hit.receiver==f.a&&method.equals("TextView.setText")&&phase.equals("entry")){nativeSetter[0]=true;int before=ConcreteHostProbe.events().size();check(!f.oldA.beginBatchEdit()&&!f.liveB.beginBatchEdit(),"old A and foreign B adapter refusal inside reservation");check(f.a.onCreateInputConnection(new EditorInfo())==null,"unfocused A creator inside reservation");check(ConcreteHostProbe.events().size()==before,"blocked entries performed native observations");}
+            };
+            check(f.replace(proposal),"previously blurred A changed/same/empty/Annotation success");ConcreteHostProbe.hook=null;
+            check(nativeSetter[0]&&postEvent[0]&&forbidden[0]==0,"setter/event/scalar-only return");check(f.a.getText()!=eold&&f.a.getText().toString().equals(value),"fresh native buffer");check(f.a.getSelectionStart()==value.length()&&f.a.getSelectionEnd()==value.length(),"native movement/selection suffix");
+            if(value.equals("annotated")){Annotation[] spans=f.a.getText().getSpans(0,value.length(),Annotation.class);check(spans.length==1&&spans[0].getKey().equals("history")&&spans[0].getValue().equals("retained")&&f.a.getText().getSpanStart(spans[0])==1&&f.a.getText().getSpanEnd(spans[0])==5&&f.a.getText().getSpanFlags(spans[0])==18,"Annotation snapshot retained");}
+            check(NativeBridge.prepareCalls==events+1&&!f.fence().terminal,"one ordinary completed event");check((Boolean)get(f.a,"focusLost")&&!f.a.hasFocus(),"historical focus latch not cleared");int before=ConcreteHostProbe.events().size();check(!f.oldA.setSelection(0,0)&&f.a.onCreateInputConnection(new EditorInfo())==null,"old adapter revoked and new unfocused IME refused");check(ConcreteHostProbe.events().size()==before&&f.targetA.closeCalls==1&&f.targetB.closeCalls==0,"no revival/no second close");check(f.liveB.setSelection(5,5),"B remains healthy");NativeBridge.preparedPacket=packet(3,value,"otherz");check(f.liveB.commitText("z",1)&&f.b.getText().toString().equals("otherz"),"ordinary B commit after replacement");
+        }
+        try(Fixture f=new Fixture()){f.history();Editable eold=f.a.getText();Object composing=new Object();eold.setSpan(composing,0,2,android.text.Spanned.SPAN_COMPOSING);int start=f.a.getSelectionStart(),end=f.a.getSelectionEnd();Object oldAttempt=get(f.a,"attempt");int events=NativeBridge.prepareCalls;check(f.liveB.setSelection(5,5),"B explicit append cursor");NativeBridge.preparedPacket=packet(2,"hello","otherz");check(f.liveB.commitText("z",1),"B compatibility after settled A blur");check(f.a.getText()==eold&&f.a.getSelectionStart()==start&&f.a.getSelectionEnd()==end&&eold.getSpanStart(composing)==0&&eold.getSpanEnd(composing)==2,"A exact buffer/selection/composition preserved");check(get(f.a,"attempt")==oldAttempt&&(Boolean)get(f.a,"focusLost")&&f.targetA.closeCalls==1&&f.targetB.closeCalls==0&&!f.fence().terminal&&NativeBridge.prepareCalls==events+1,"A old disposition unchanged/B event healthy");}
+    }
+    private static void entryLoss(){for(boolean foreign:new boolean[]{false,true})for(boolean gain:new boolean[]{false,true})for(String method:new String[]{"View.hasWindowFocus","TextView.getEditableText"})try(Fixture f=new Fixture()){
+        f.history();if(foreign)f.b.clearFocus();int events=NativeBridge.prepareCalls;boolean[] hit={false};ConcreteHostProbe.hook=(name,phase)->{var event=ConcreteHostProbe.lastEvent();if(!hit[0]&&event.receiver==f.a&&name.equals(method)&&phase.equals("beforeReturn")&&get(f.a,"replacement")==null){hit[0]=true;loss(foreign?f.b:f.a,gain);}};
+        boolean returned=false;Throwable failed=null;try{returned=action(f.a,args("entry"));}catch(RuntimeException|Error failure){failed=failure;}ConcreteHostProbe.hook=null;
+        check(hit[0]&&!returned&&NativeBridge.prepareCalls==events,"entry getter new loss cannot become success");check(f.a.getText().toString().equals("hello")&&f.targetA.closeCalls==1,"entry refusal has no replacement or duplicate close");check(failed==null&&!f.fence().terminal,"settled no-native entry loss clean refusal");
+    }}
+    private static void stageLoss(){for(String stage:new String[]{"SNAPSHOTTING","CLOSING","NATIVE","FINAL"})for(boolean foreign:new boolean[]{false,true})for(boolean gain:new boolean[]{false,true})for(boolean prior:new boolean[]{false,true})try(Fixture f=new Fixture()){
+        if(prior)f.history();else{f.oldA=f.connect(f.a);f.targetA=(BaseInputConnection)f.a.lastConnection;f.liveB=f.connect(f.b);f.targetB=(BaseInputConnection)f.b.lastConnection;}
+        if(foreign&&prior)f.b.clearFocus();int events=NativeBridge.prepareCalls;boolean[] hit={false};
+        ConcreteHostProbe.hook=(name,phase)->{if(hit[0])return;Object operation=get(f.a,"replacement");if(operation==null)return;String actual=get(operation,"stage").toString();boolean executing=(Boolean)get(operation,"nativeExecuting");boolean selected=switch(stage){case "SNAPSHOTTING"->actual.equals(stage)&&name.equals("TextView.getText")&&phase.equals("beforeReturn");case "CLOSING"->actual.equals(stage)&&((name.equals("BaseInputConnection.closeConnection")&&phase.equals("entry"))||(name.equals("TextView.getEditableText")&&phase.equals("beforeReturn")));case "NATIVE"->executing&&name.equals("TextView.setText")&&phase.equals("beforeReturn");default->actual.equals("NATIVE")&&!executing&&name.equals("TextView.getEditableText")&&phase.equals("beforeReturn");};
+            if(selected){hit[0]=true;loss(foreign?f.b:f.a,gain);}
+        };
+        CharSequence value=stage.equals("SNAPSHOTTING")?new CharSequence(){public int length(){return 7;}public char charAt(int i){return "updated".charAt(i);}public CharSequence subSequence(int s,int e){return "updated".subSequence(s,e);}@Override public String toString(){if(!hit[0]){hit[0]=true;loss(foreign?f.b:f.a,gain);}return "updated";}}:"updated";
+        boolean returned=false;Throwable failed=null;try{NativeBridge.preparedPacket=packet(2,"updated","other");returned=action(f.a,args(value));}catch(RuntimeException|Error failure){failed=failure;}ConcreteHostProbe.hook=null;
+        check(hit[0]&&!returned&&NativeBridge.prepareCalls==events,"new "+(foreign?"foreign":"own")+" loss "+stage+" prior="+prior+" gain="+gain+" must invalidate success");check(!f.oldA.beginBatchEdit(),"no loss/gain revives A adapter");
+        if(!stage.equals("SNAPSHOTTING")||!prior){check(failed!=null||f.fence().terminal||stage.equals("CLOSING"),"uncertain native/foreign unfinished loss is surfaced");}
+        check(!f.renderer.editorDisposalBusyV2(),"finite lifecycle suffix released custody");
+        if(foreign)check(f.targetB.closeCalls==(prior?1:0),"reservation grants no new foreign close");
+        System.out.println("OBSERVED stage="+stage+" foreign="+foreign+" prior="+prior+" gain="+gain+" terminal="+f.fence().terminal+" escaped="+(failed==null?"none":failed.getClass().getName()));
+    }}
+    private static void otherDenials(){for(String denial:new String[]{"windowFocus","windowVisibility","aggregate","visibility","detach","permanent"})try(Fixture f=new Fixture()){
+        f.history();switch(denial){case "windowFocus"->f.a.onWindowFocusChanged(false);case "windowVisibility"->f.a.onWindowVisibilityChanged(View.INVISIBLE);case "aggregate"->f.a.onVisibilityAggregated(false);case "visibility"->f.a.onVisibilityChanged(f.a,View.INVISIBLE);case "detach"->f.a.onDetachedFromWindow();default->f.a.retirePermanent();}int effects=ConcreteHostProbe.events().size(),events=NativeBridge.prepareCalls;check(!action(f.a,args("denied")),"persistent other denial "+denial);check(ConcreteHostProbe.events().size()==effects&&NativeBridge.prepareCalls==events,"other denial performed native replacement/getters");check(f.a.onCreateInputConnection(new EditorInfo())==null&&!f.oldA.beginBatchEdit(),"other denial/no old adapter revival");
+    }}
+    private static void markerExhaustion(){try(Fixture f=new Fixture()){f.history();put(f.renderer,"editorLossSerial",Long.MAX_VALUE);int events=NativeBridge.prepareCalls;boolean result=false;try{result=action(f.a,args("overflow"));}catch(RuntimeException expected){check(true,"overflow surfaced");}check(!result&&f.fence().terminal&&NativeBridge.prepareCalls==events,"loss marker exhaustion fails closed without event");check(!f.renderer.editorDisposalBusyV2(),"exhaustion before reservation has no busy leak");}}
+    private static void preservationCallback(){for(boolean fail:new boolean[]{false,true})try(Fixture f=new Fixture()){
+        f.history();Object old=f.a.getText(),attempt=get(f.a,"attempt");check(f.liveB.setSelection(5,5),"explicit B append cursor");boolean[] hit={false};ConcreteHostProbe.hook=(method,phase)->{var event=ConcreteHostProbe.lastEvent();if(!hit[0]&&event.receiver==f.a&&method.equals("View.invalidate")&&phase.equals("entry")&&f.a.record.changing){hit[0]=true;check(f.a.record.editorCallbackLease==null,"fresh field callback never uses returned old EditorLease");if(fail)loss(f.a,true);else{f.a.drawableStateChanged();f.a.onSelectionChanged(f.a.getSelectionStart(),f.a.getSelectionEnd());}}};
+        NativeBridge.preparedPacket=packet(2,"hello","otherz");boolean returned=false;Throwable failed=null;try{returned=f.liveB.commitText("z",1);}catch(RuntimeException|Error failure){failed=failure;}ConcreteHostProbe.hook=null;
+        check(hit[0],"compatible A preserved bind callback reached");check(f.a.getText()==old&&get(f.a,"attempt")==attempt&&f.targetA.closeCalls==1,"fresh preserve scope retains exact revoked history");check(!f.renderer.editorDisposalBusyV2(),"preservation end releases finite custody");if(fail)check(!returned&&f.fence().terminal,"new preservation loss invalidates transaction");else check(returned&&failed==null&&!f.fence().terminal,"fresh field-only callback supports B event");
+    }}
+    private static final class Fatal extends Error {private static final long serialVersionUID=1L;Fatal(String text){super(text);}}
+    private static void firstFatalBusy(){try(Fixture f=new Fixture()){
+        f.history();Fatal first=new Fatal("first native fatal"),later=new Fatal("later reporting fatal");boolean[] setter={false},busy={false};ConcreteHostProbe.hook=(method,phase)->{var event=ConcreteHostProbe.lastEvent();if(!setter[0]&&event.receiver==f.a&&method.equals("TextView.setText")&&phase.equals("entry")){setter[0]=true;check(f.renderer.editorDisposalBusyV2(),"native fatal has reservation busy");throw first;}if(setter[0]&&method.equals("Handler.post")&&phase.equals("entry")){busy[0]|=f.renderer.editorDisposalBusyV2();throw later;}};
+        Throwable escaped=null;try{action(f.a,args("fatal"));}catch(RuntimeException|Error failure){escaped=failure;}ConcreteHostProbe.hook=null;check(setter[0]&&busy[0]&&escaped==first,"earlier native fatal escapes/report still busy");check(f.fence().terminal&&!f.renderer.editorDisposalBusyV2()&&NativeBridge.destroyCalls==0,"failed post remains pending/no synchronous owner resumption");
+    }}
+    public static void main(String[] args)throws Exception{descriptor=Files.readAllBytes(Path.of(args[1]));switch(args[0]){case "positive-history"->positiveHistory();case "entry-loss"->entryLoss();case "stage-loss"->stageLoss();case "other-denials"->otherDenials();case "marker-exhaustion"->markerExhaustion();case "preservation-callback"->preservationCallback();case "first-fatal-busy"->firstFatalBusy();default->throw new IllegalArgumentException(args[0]);}System.out.println("PASS focus-history "+args[0]+" / "+assertions+" assertions; controlled JVM leaves only");}
+}

@@ -1,0 +1,301 @@
+--- frozen-base/NativeAppearanceViewsV2.java
++++ focus-history/NativeAppearanceViewsV2.java
+@@ -54,6 +54,11 @@
+         boolean editorCloseAllowed(Record record,NativeField.Attempt attempt);
+         void replacementBegin(Record record,Replacement replacement);
+         void replacementEnd(Record record,Replacement replacement);
++        long editorLossObservation();
++        void editorLossObserved(Record record);
++        void fieldPreservationBegin(Record record,FieldPreservation preservation);
++        void fieldPreservationEnd(Record record,FieldPreservation preservation);
++        void replacementEvent(Record record,Replacement replacement);
+         Mutation editorCleanupMutation(Record record, EditorLease lease);
+         void editorFinishBegin(Record record, EditorLease lease);
+         void editorFinishEnd(Record record, EditorLease lease);
+@@ -69,6 +74,7 @@
+         final OwnerLifecycleV2.Token token;
+         final EditorLease editorLease;
+         final Replacement replacementLease;
++        final FieldPreservation fieldLease;
+         private Mutation(Mode mode, NativeOwnerV2.Fence fence, OwnerLifecycleV2.Token token) {
+             this(mode,fence,token,null);
+         }
+@@ -76,8 +82,12 @@
+             this(mode,fence,token,editorLease,null);
+         }
+         private Mutation(Mode mode,NativeOwnerV2.Fence fence,OwnerLifecycleV2.Token token,EditorLease editorLease,Replacement replacementLease){
+-            this.mode=mode;this.fence=fence;this.token=token;this.editorLease=editorLease;this.replacementLease=replacementLease;
+-        }
++            this(mode,fence,token,editorLease,replacementLease,null);
++        }
++        private Mutation(Mode mode,NativeOwnerV2.Fence fence,OwnerLifecycleV2.Token token,EditorLease editorLease,Replacement replacementLease,FieldPreservation fieldLease){
++            this.mode=mode;this.fence=fence;this.token=token;this.editorLease=editorLease;this.replacementLease=replacementLease;this.fieldLease=fieldLease;
++        }
++        static Mutation fieldContinuation(Mutation original,FieldPreservation lease){return new Mutation(original.mode,original.fence,original.token,null,null,lease);}
+         static Mutation replacement(Mutation original,Replacement lease,boolean cleanup){return new Mutation(cleanup?Mode.CLEANUP:original.mode,original.fence,cleanup?null:original.token,null,lease);}
+         static Mutation editorContinuation(Mutation original,EditorLease lease){return new Mutation(original.mode,original.fence,original.token,lease);}
+         static Mutation editorCleanup(NativeOwnerV2.Fence fence,EditorLease lease){return new Mutation(Mode.CLEANUP,fence,null,lease);}
+@@ -91,18 +101,21 @@
+         boolean current() {
+             if(editorLease!=null)editorLease.exact();
+             if(replacementLease!=null)replacementLease.exact();
++            if(fieldLease!=null)fieldLease.exact();
+             return mode==Mode.CLEANUP ? !fence.drawAllowed&&!fence.inputAllowed :
+                 !fence.terminal&&token!=null&&(mode==Mode.TRANSACTION ? token==fence.operation : token==fence.presentation&&fence.drawAllowed);
+         }
+         void require() {
+             if(editorLease!=null)editorLease.exact();
+             if(replacementLease!=null)replacementLease.exact();
++            if(fieldLease!=null)fieldLease.exact();
+             if(mode==Mode.CLEANUP) {
+                 if(fence.drawAllowed||fence.inputAllowed)throw new IllegalStateException("cleanup requires sealed authority");
+             } else if(fence.terminal||token==null||(mode==Mode.TRANSACTION ? token!=fence.operation :
+                 token!=fence.presentation||!fence.drawAllowed))throw new IllegalStateException("V2 mutation authority lost");
+         }
+         void requireMutation() {
++            if(fieldLease!=null)throw new IllegalStateException("field callback cannot authorize bind/layout");
+             if(replacementLease!=null)throw new IllegalStateException("replacement cannot authorize bind/layout");
+             if(mode==Mode.CLEANUP)throw new IllegalStateException("cleanup cannot authorize V2 bind/layout");
+             require();
+@@ -110,6 +123,7 @@
+         boolean result(boolean result) {
+             if(editorLease!=null)editorLease.exact();
+             if(replacementLease!=null)replacementLease.exact();
++            if(fieldLease!=null)fieldLease.exact();
+             // Observe the original captured scope after the delegate. A completed result is not a new mutation.
+             if(mode!=Mode.LIVE_PRESENTATION){require();return result;}
+             boolean same=!fence.terminal&&token!=null&&token==fence.presentation&&fence.drawAllowed;
+@@ -174,6 +188,7 @@
+         private boolean constructed;
+         EditorLease editorCallbackLease;
+         Replacement replacementCallback;
++        FieldPreservation fieldPreservation;
+         InputFilter editorFilter;
+         boolean editorEventsAllowed() {
+             NativeEnvironmentV2.requireMain();
+@@ -183,6 +198,7 @@
+         Mutation mutation() {
+             NativeEnvironmentV2.requireMain();
+             if(replacementCallback!=null)return replacementCallback.continuation();
++            if(fieldPreservation!=null)return fieldPreservation.continuation();
+             if(editorCallbackLease!=null)return editorCallbackLease.continuation();
+             return scoped!=null?scoped:input.mutation();
+         }
+@@ -824,17 +840,58 @@
+             return text.equals(next.text)&&start==next.start&&end==next.end&&sameSpans(next.spans)&&java.util.Arrays.equals(bounds,next.bounds);
+         }
+     }
++    /** Exact compatible transaction callbacks for a settled field; never an old target lease. */
++    static final class FieldPreservation {
++        final NativeField field;final Record record;final Mutation original;final Editable editable;
++        final Binding before,selected;final NativeField.Attempt predecessor;final NativeField.Close disposition;
++        final long lossObservation;
++        final NativeRenderer renderer;final NativeRenderer.Candidate candidate;
++        EditorSnapshot snapshot;
++        boolean entered,ended,checking,counted;int callbacks;
++        final java.util.ArrayDeque<String> hooks=new java.util.ArrayDeque<>();
++        FieldPreservation(NativeField field,Mutation original,Binding selected,Editable editable,NativeRenderer renderer,NativeRenderer.Candidate candidate){
++            this.field=field;record=field.record;this.original=original;this.selected=selected;this.editable=editable;
++            this.renderer=renderer;this.candidate=candidate;
++            before=record.binding;predecessor=field.attempt;disposition=predecessor==null?null:predecessor.close;
++            lossObservation=record.input.editorLossObservation();
++        }
++        boolean tuple(){return entered&&counted&&!ended&&record.fieldPreservation==this&&record.view==field&&renderer.fieldPreservationCurrent(candidate,record,this)&&
++            original.mode==Mutation.Mode.TRANSACTION&&original.editorLease==null&&original.replacementLease==null&&original.fieldLease==null&&
++            original.current()&&record.input.editorRetained(record)&&field.settledField()&&field.depth==0&&record.editorCallbackLease==null&&
++            field.attempt==predecessor&&(predecessor==null||predecessor.close==disposition)&&
++            (record.binding==before||record.binding==selected)&&record.input.editorLossObservation()==lossObservation;}
++        void capture(){if(!tuple())throw new IllegalStateException("invalid preserved field entry");snapshot=new EditorSnapshot(field,editable);exact();}
++        void exact(){
++            if(checking||snapshot==null||!tuple())throw new IllegalStateException("lost exact field preservation");
++            checking=true;
++            try{Editable actual=field.nativeEditable();boolean same=actual==editable&&snapshot.same(field,editable);
++                if(!same||!tuple())throw new IllegalStateException("preserved field changed after getter");}
++            finally{checking=false;}
++        }
++        Mutation continuation(){exact();return Mutation.fieldContinuation(original,this);}
++        private void enter(String hook){exact();if(callbacks>=16||hooks.contains(hook))throw new IllegalStateException("field callback recursion exhausted");hooks.push(hook);callbacks++;}
++        private void leave(){callbacks--;hooks.pop();}
++        void callback(String hook,Runnable nativeCall){enter(hook);try{nativeCall.run();exact();}finally{leave();}}
++        void lifecycle(String hook,boolean loss,Runnable denial,Runnable gain,Runnable nativeCall){
++            enter(hook);
++            try{if(loss)field.actualLoss(denial);else gain.run();nativeCall.run();exact();}finally{leave();}
++        }
++        boolean endReady(){return entered&&ended&&record.fieldPreservation==null&&callbacks==0&&hooks.isEmpty()&&!checking;}
++    }
+     /** One field-only accessibility replacement, with no native InputConnection permission. */
+     static final class Replacement {
+         enum Stage { SNAPSHOTTING, CLOSING, NATIVE, DONE }
+         final NativeField field;final Record record;final Mutation original;final Editable oldEditable;
+         final NativeField.Attempt predecessor;
++        final long lossObservation;
+         Stage stage=Stage.SNAPSHOTTING;
+         Editable nextEditable;
+         CharSequence proposal;String eventValue;
+-        boolean registered,nativeExecuting,setterActive,started,setterReturned,watcherSeen,lost;
++        boolean registered,nativeExecuting,setterActive,started,setterReturned,watcherSeen,lost,completed,eventClaimed,eventEvaluating;
+         int setterCalls,callbacks;final java.util.ArrayDeque<String> hooks=new java.util.ArrayDeque<>();
+-        Replacement(NativeField field,Mutation original,Editable oldEditable){this.field=field;record=field.record;this.original=original;this.oldEditable=oldEditable;predecessor=field.attempt;}
++        Replacement(NativeField field,Mutation original,Editable oldEditable,long lossObservation){this.field=field;record=field.record;this.original=original;this.oldEditable=oldEditable;predecessor=field.attempt;this.lossObservation=lossObservation;}
++        boolean unchangedLoss(){return !lost&&record.input.editorLossObservation()==lossObservation;}
++        void successAuthority(){if(!unchangedLoss()||!original.current()||field.fieldDenied())throw new IllegalStateException("replacement loss or original authority changed");}
+         boolean tuple(){return registered&&field.replacement==this&&record.view==field&&record.input.editorRetained(record);}
+         boolean endReady(){return stage==Stage.DONE&&!registered&&!nativeExecuting&&!setterActive&&callbacks==0&&hooks.isEmpty()&&field.replacement==null&&record.replacementCallback==null&&record.editorCallbackLease==null&&field.depth==0;}
+         boolean permitsPredecessor(Record selected,NativeField.Attempt attempt){
+@@ -943,7 +1000,18 @@
+             if(firstFatal!=null)throw firstFatal;
+             if(primary instanceof RuntimeException ordinary)throw ordinary;
+         }
++        void preservationFailure(Throwable failure){uncertain(failure);}
++        void preservationSurface(){surface();}
+         private boolean denied(){return permanent||focusLost||windowFocusLost||windowHidden||aggregateHidden||viewHidden||detached;}
++        private boolean fieldDenied(){return permanent||windowFocusLost||windowHidden||aggregateHidden||viewHidden||detached;}
++        private boolean consumedPredecessor(){return attempt==null||attempt.revoked&&(attempt.close==Close.RETURNED||attempt.close==Close.NO_TARGET);}
++        private boolean settledField(){return record!=null&&record.view==this&&record.constructed&&record.binding!=null&&!finishing&&!fieldDenied()&&
++            replacement==null&&phase==Phase.IDLE&&consumedPredecessor();}
++        boolean needsFieldPreservation(){return focusLost&&settledField();}
++        boolean completedReplacementEligible(Replacement operation){return operation!=null&&operation.field==this&&operation.record==record&&
++            operation.completed&&operation.stage==Replacement.Stage.DONE&&operation.endReady()&&operation.eventValue!=null&&!operation.eventClaimed&&
++            replacement==null&&record.fieldPreservation==null&&depth==0&&settledField()&&!record.changing&&
++            record.input.editorRetained(record)&&operation.unchangedLoss()&&operation.original.current();}
+         boolean eventsAllowed() {
+             NativeEnvironmentV2.requireMain();
+             return record!=null&&replacement==null&&!finishing&&!denied()&&phase!=Phase.CREATING&&phase!=Phase.DRAINING&&phase!=Phase.CLOSING&&phase!=Phase.QUARANTINED&&
+@@ -955,16 +1023,18 @@
+                 record.input.editorDispatchAvailable(record)&&record.input.editorRetained(record)&&record.input.open(record)&&hasFocus();
+         }
+         private boolean replacementLive(){
+-            return record!=null&&record.view==this&&record.constructed&&record.binding!=null&&!record.changing&&replacement==null&&!finishing&&!denied()&&
++            return record!=null&&record.view==this&&record.constructed&&record.binding!=null&&!record.changing&&replacement==null&&!finishing&&!fieldDenied()&&
+                 phase!=Phase.CREATING&&phase!=Phase.DRAINING&&phase!=Phase.CLOSING&&phase!=Phase.QUARANTINED&&
++                (!focusLost||consumedPredecessor())&&record.fieldPreservation==null&&
+                 record.input.editorDispatchAvailable(record)&&record.input.editorRetained(record)&&record.input.open(record);
+         }
+         boolean hasLiveTarget(){return attempt!=null&&attempt.target!=null&&!attempt.revoked&&attempt.close==Close.NOT_REQUESTED;}
+         void available(boolean preserve) {
+             NativeEnvironmentV2.requireMain();
+             if(construction())return;
+-            if(replacement!=null||finishing||denied()||phase==Phase.CREATING||phase==Phase.DRAINING||phase==Phase.CLOSING||phase==Phase.QUARANTINED)
++            if(replacement!=null||finishing||(preserve?fieldDenied()||focusLost&&!settledField():denied())||phase==Phase.CREATING||phase==Phase.DRAINING||phase==Phase.CLOSING||phase==Phase.QUARANTINED)
+                 throw new IllegalStateException("editor replacement unavailable");
++            if(preserve&&focusLost&&!record.input.editorRetained(record))throw new IllegalStateException("foreign preserved field");
+             if(depth!=0&&!preserve)throw new IllegalStateException("editor native frame active");
+             if(!preserve&&attempt!=null&&attempt.close!=Close.RETURNED&&attempt.close!=Close.NO_TARGET) {
+                 revoke(false);drain();
+@@ -1159,6 +1229,7 @@
+             NativeEnvironmentV2.requireMain();
+             if(record==null){nativeCall.run();return;}
+             if(replacement!=null&&replacement.nativeExecuting){try{replacement.callback(hook,nativeCall);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);surface();}return;}
++            if(record.fieldPreservation!=null){try{record.fieldPreservation.callback(hook,nativeCall);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);surface();}return;}
+             if(construction()){Mutation mutation=record.scoped;mutation.requireMutation();nativeCall.run();mutation.require();return;}
+             if(replacement!=null&&!replacement.nativeExecuting&&record.editorCallbackLease==null){uncertain(new IllegalStateException("unknown replacement pre-native callback"));surface();return;}
+             EditorLease parent=record.editorCallbackLease;
+@@ -1173,22 +1244,28 @@
+             surface();
+         }
+         void refreshPaint(){if(record!=null&&record.binding!=null){Mutation mutation=record.mutation();mutation.require();setHighlightColor(color(fieldPaint(record).selection()));mutation.require();}}
+-        @Override protected void drawableStateChanged(){callback("drawable",()->{super.drawableStateChanged();if(record!=null&&eventsAllowed()&&(record.editorCallbackLease==null||record.editorCallbackLease.original.current()))refreshPaint();},false);}
++        @Override protected void drawableStateChanged(){callback("drawable",()->{super.drawableStateChanged();if(record!=null&&(record.fieldPreservation!=null||eventsAllowed())&&(record.editorCallbackLease==null||record.editorCallbackLease.original.current()))refreshPaint();},false);}
+         @Override protected void onSelectionChanged(int start,int end){callback("selection",()->super.onSelectionChanged(start,end),true);}
++        private void actualLoss(Runnable denial){
++            try{record.input.editorLossObserved(record);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
++            // Observation exhaustion cannot discard the exact already-entered native suffix.
++            denial.run();revoke(false);
++        }
+         private void lifecycle(String hook,boolean loss,Runnable denial,Runnable gain,Runnable nativeCall) {
+             NativeEnvironmentV2.requireMain();
+             if(record==null){nativeCall.run();return;}
+             if(replacement!=null&&replacement.nativeExecuting){
+-                try{if(loss){replacement.lost=true;denial.run();revoke(false);}else gain.run();replacement.callback(hook,nativeCall);}
++                try{if(loss){replacement.lost=true;actualLoss(denial);}else gain.run();replacement.callback(hook,nativeCall);}
+                 catch(RuntimeException|java.lang.Error failure){uncertain(failure);surface();}return;
+             }
+-            if(construction()){Mutation mutation=record.scoped;mutation.requireMutation();nativeCall.run();mutation.require();return;}
++            if(record.fieldPreservation!=null){try{record.fieldPreservation.lifecycle(hook,loss,denial,gain,nativeCall);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);surface();}return;}
++            if(!record.constructed&&construction()){Mutation mutation=record.scoped;mutation.requireMutation();if(loss)try{record.input.editorLossObserved(record);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);}nativeCall.run();mutation.require();surface();return;}
+             EditorLease parent=record.editorCallbackLease;
+             // A public lifecycle entry owns its native super, even with no admitted target.
+             Mutation mutation=parent==null?((!record.editorFence.drawAllowed&&!record.editorFence.inputAllowed)?Mutation.cleanup(record.editorFence):entryMutation()):parent.original;
+             EditorLease lease=begin(attempt,mutation,hook,true);if(lease==null){surface();return;}
+             try {
+-                if(loss){denial.run();revoke(false);}else gain.run();
++                if(loss)actualLoss(denial);else gain.run();
+                 nativeCall.run();lease.check();
+             }catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
+             finally{end(lease);}
+@@ -1248,10 +1325,14 @@
+         }
+         private boolean replaceAccessibility(android.os.Bundle arguments){
+             NativeEnvironmentV2.requireMain();
+-            if(record==null||replacement!=null||depth!=0||finishing||!replacementLive())return false;
+-            Mutation original=entryMutation();original.require();Editable old=nativeEditable();
+-            if(old==null)return false;
+-            Replacement operation=new Replacement(this,original,old);replacement=operation;
++            if(record==null||replacement!=null||record.fieldPreservation!=null||depth!=0||finishing)return false;
++            long observation=record.input.editorLossObservation();
++            Mutation original=entryMutation();original.require();
++            if(!replacementLive()||record.input.editorLossObservation()!=observation||!original.current())return false;
++            Editable old=nativeEditable();
++            if(old==null||record.input.editorLossObservation()!=observation||!original.current()||!replacementLive()||
++                record.input.editorLossObservation()!=observation||!original.current())return false;
++            Replacement operation=new Replacement(this,original,old,observation);replacement=operation;
+             boolean event=false,result=false;String completed=null;
+             try{
+                 try{record.input.replacementBegin(record,operation);}catch(IllegalArgumentException|IllegalStateException refused){return false;}
+@@ -1261,8 +1342,11 @@
+                 if(!plainProposal(source,false))return false;
+                 operation.proposal=source instanceof android.text.Spanned?new android.text.SpannedString(source):source.toString();
+                 if(!plainProposal(operation.proposal,false)||!validBuffer(operation.proposal.toString())||!snapshot.same(this,old)||
+-                    nativeEditable()!=old||!operation.tuple()||!original.current()||denied()||!record.input.open(record))return false;
++                    nativeEditable()!=old||!operation.tuple()||!operation.unchangedLoss()||!original.current()||fieldDenied()||!record.input.open(record)||
++                    !operation.tuple()||!operation.unchangedLoss()||!original.current()||fieldDenied())return false;
+                 operation.premises();
++                if(!operation.tuple()||!operation.unchangedLoss()||!original.current()||fieldDenied()||nativeEditable()!=old||
++                    !operation.tuple()||!operation.unchangedLoss()||!original.current())return false;
+                 android.os.Bundle owned=new android.os.Bundle();owned.putCharSequence(android.view.accessibility.AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,operation.proposal);
+                 operation.stage=Replacement.Stage.CLOSING;
+                 if(operation.predecessor!=null&&operation.predecessor.close!=Close.RETURNED&&operation.predecessor.close!=Close.NO_TARGET){
+@@ -1270,16 +1354,21 @@
+                     if(operation.predecessor.close!=Close.RETURNED)return false;
+                 }
+                 if(!operation.tuple()||depth!=0||record.editorCallbackLease!=null||nativeEditable()!=old||!operation.tuple()||
+-                    !original.current()||denied()||!record.input.open(record))return false;
++                    !original.current()||fieldDenied()||!operation.unchangedLoss()||!record.input.open(record)||
++                    !operation.tuple()||!operation.unchangedLoss()||!original.current()||fieldDenied())throw new IllegalStateException("replacement close authority lost");
+                 // Consumed predecessor is retained by the operation only as history, never dispatch authority.
+                 attempt=null;phase=Phase.IDLE;
+                 EditorSnapshot postClose=new EditorSnapshot(this,old);
++                operation.successAuthority();
+                 operation.stage=Replacement.Stage.NATIVE;operation.nativeExecuting=true;operation.started=true;record.replacementCallback=operation;
+                 try{result=super.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_SET_TEXT,owned);operation.check();}
+                 finally{operation.nativeExecuting=false;record.replacementCallback=null;}
+-                if(!original.current()||denied()||operation.lost||!record.input.open(record))throw new IllegalStateException("replacement final authority lost");
++                operation.successAuthority();
++                if(!record.input.open(record))throw new IllegalStateException("replacement final field unavailable");
++                operation.successAuthority();
+                 Editable actual=nativeEditable();
+-                if(!operation.tuple()||actual==null||!original.current()||denied()||operation.lost)throw new IllegalStateException("replacement final tuple or authority lost");
++                operation.successAuthority();
++                if(!operation.tuple()||actual==null)throw new IllegalStateException("replacement final tuple or authority lost");
+                 if(!result&&operation.setterCalls==0&&actual==old&&postClose.same(this,old))return false;
+                 if(!result||operation.setterCalls!=1||!operation.setterReturned||!operation.watcherSeen||operation.nextEditable==null||actual!=operation.nextEditable||
+                     !validBuffer(actual.toString())||!actual.toString().equals(operation.proposal.toString())||
+@@ -1288,7 +1377,8 @@
+                 // nonempty end selection is supplied by TextView's accessibility suffix.
+                 completed=actual.toString();original.require();
+                 if(nativeEditable()!=actual||!operation.tuple())throw new IllegalStateException("replacement changed at final check");
+-                event=true;
++                operation.successAuthority();
++                operation.eventValue=completed;operation.completed=true;event=true;
+             }catch(RuntimeException|java.lang.Error failure){
+                 if(operation.started||operation.stage==Replacement.Stage.CLOSING)uncertain(failure);
+                 else throw failure;
+@@ -1302,7 +1392,7 @@
+             }
+             surface();
+             if(!event)return false;
+-            record.input.event(record,"textChange",completed);
++            try{record.input.replacementEvent(record,operation);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);surface();return false;}
+             // The native suffix is finished. This observes scalars only, never successor native authority.
+             return original.result(true);
+         }
