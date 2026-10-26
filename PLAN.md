@@ -57,6 +57,7 @@ retained artifact is complete; the repaired checkpoint is recorded below.
 VM and services pass; subsequent Swift checks were skipped.
 Rustup dispatch repair `05c1ebf0` passes all three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40247799000).
 Generated Android source-export repair `99d63843` passes all 40 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40252047362).
+Default appearance packaging `55985881` passes all 40 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40256207023).
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
 
@@ -157,8 +158,19 @@ The full plan remains incomplete; no GA gate is promoted.
    appearance packaging now has scoped independent acceptance: 50 independent
    vectors and two complete unsigned generated-app cross-builds pass, with exact
    canonical descriptor bytes and unchanged Java classes. Root verifies 617 sealed
-   members. Copied-SDK compatibility, Swift entrypoint preaccess hardening and public
-   V2 routing remain pending. See
+   members. The corrected copied-SDK contract and explicit ASCII-only SDK-root
+   naming amendment are selected for implementation after independent review.
+   One compiled source-pair profile will enforce the common Swift preaccess gate,
+   including Android-configured projects with a missing Android lock, and render
+   the direct driver's build-only policy. Root verifies 544 contract/review members
+   and all 42 source-profile files against the accepted commit. The implementation
+   now has scoped independent acceptance: 31 CLI methods per Debug/Release and
+   28 Python methods pass. Independent checks cover common/driver entrypoints,
+   copied Swift/Java consumers and all 75 unchanged native build inputs. Root
+   verifies 2,623 producer/review/preaccess members, 105 current source inputs and
+   235 independent command results. The profile governs common Swift preaccess
+   and the rendered driver's build policy. Public V2 remains unchanged. See
+   [the selected contract](verification/android-copied-sdk-appearance-contract-root-review/implementation-selection.json),
    [the export review](docs/android-authored-toggle-generated-export-review.md) and
    [the packaging review](verification/android-default-appearance-packaging-implementation-review/final-review.md).
    Private native input acceptance is not complete public routing, TalkBack,

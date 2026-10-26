@@ -1,0 +1,37 @@
+cli/Sources/MixerCLI/main.swift:15:                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--platform", "--output", "--device"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
+cli/Sources/MixerCLI/main.swift:34:  mixer create NAME [--directory PATH] [--application ID] [--sdk-path PATH]
+cli/Sources/MixerCLI/main.swift:67:        "create": ["--directory", "--application", "--sdk-path", "--platform", "--android-adapter-path"], "config": ["--directory"],
+cli/Sources/MixerCLI/main.swift:78:        guard words.count == 2 else { throw MixerFailure("arguments.create", "Usage: mixer create NAME [--directory PATH] [--application ID] [--sdk-path PATH]") }
+cli/Sources/MixerCLI/main.swift:81:        let sdk = path(arguments.options["--sdk-path"] ?? ProcessInfo.processInfo.environment["MIXER_SDK_PATH"] ?? repository.appendingPathComponent("sdk").path)
+native/android/bridge/mixer_android_v2.h:11: * stable public ABI. Uses the same sessions as mixer_android_create/destroy.
+cli/Sources/MixerBuild/Resources/android-build.py:66:def source_tree(path):
+cli/Sources/MixerBuild/Resources/android-build.py:125:    """Admit the complete closed asset layout before source_tree opens any asset.
+cli/Sources/MixerBuild/Resources/android-build.py:260:    if source_tree(adapter) != android['adapterDigest'] or source_tree(root / 'Generated/MixerSDK') != lock['sdkDigest']:
+cli/Sources/MixerBuild/Resources/android-build.py:270:    source_before = source_tree(root)
+cli/Sources/MixerBuild/Resources/android-build.py:271:    build_input = {'run_id': uuid.uuid4().hex, 'source_tree_sha256': source_before,
+cli/Sources/MixerBuild/Resources/android-build.py:330:    if appearance_input(adapter) != appearance or source_tree(adapter) != android['adapterDigest']:
+cli/Sources/MixerBuild/Resources/android-build.py:363:    source_after = source_tree(root)
+cli/Sources/MixerBuild/Resources/android-build.py:364:    if source_before != source_after or source_tree(adapter) != android['adapterDigest'] or source_tree(root / 'Generated/MixerSDK') != lock['sdkDigest']:
+cli/Sources/MixerBuild/Resources/android-build.py:371:        'source_tree_sha256': source_before, 'source_tree_after_sha256': source_after,
+cli/Sources/MixerBuild/Resources/android-build.py:373:        'sdk_digest': lock['sdkDigest'], 'adapter_digest': android['adapterDigest'],
+cli/Sources/MixerBuild/Configuration.swift:70:    public var sdkDigest: String
+cli/Sources/MixerBuild/Configuration.swift:71:    public var sdkDistribution: String
+cli/Sources/MixerBuild/Configuration.swift:76:    public init(sdkDigest: String, swiftVersion: String) {
+cli/Sources/MixerBuild/Configuration.swift:77:        self.sdkDigest = sdkDigest; self.swiftVersion = swiftVersion; sdkDistribution = "bundled-source-snapshot"
+native/android/app/src/dev/mixer/android/UiPacket.java:17:        Map<String,Object>packet=Json.object(Json.parse(bytes));Json.keys(packet,"schemaVersion","document","identities");schema(packet.get("schemaVersion"));
+native/android/app/src/dev/mixer/android/UiPacket.java:18:        Map<String,Object>doc=Json.object(packet.get("document"));Json.keys(doc,"schemaVersion","revision","root");schema(doc.get("schemaVersion"));String revision=Json.uint(doc.get("revision"));
+cli/Sources/MixerBuild/ProjectGenerator.swift:6:    public var sdkDigest: String
+cli/Sources/MixerBuild/ProjectGenerator.swift:22:        guard fm.fileExists(atPath: sdk.appendingPathComponent("Package.swift").path) else { throw MixerFailure("create.sdk", "SDK package not found at \(sdk.path). Supply --sdk-path to an installed Mixer SDK source distribution.") }
+cli/Sources/MixerBuild/ProjectGenerator.swift:43:        var lock = ToolchainLock(sdkDigest: digest, swiftVersion: version.output.trimmingCharacters(in: .whitespacesAndNewlines))
+cli/Sources/MixerBuild/ProjectGenerator.swift:66:        return GeneratedProject(path: destination.path, application: application, sdkDigest: digest, nextSteps: ["cd \(destination.path)", "mixer test", "mixer doctor"])
+cli/Sources/MixerBuild/ProjectGenerator.swift:118:            UIDocument(schemaVersion: 1, revision: revision, root: UINode(
+cli/Sources/MixerBuild/ProjectGenerator.swift:240:    public static func verifyLock(root: URL) throws -> ToolchainLock {
+cli/Sources/MixerBuild/ProjectGenerator.swift:245:        guard actual == lock.sdkDigest else { throw MixerFailure("lock.sdk-drift", "Bundled SDK source differs from mixer.lock. Restore the original SDK snapshot or explicitly install a new qualified SDK.") }
+cli/Sources/MixerBuild/ProjectGenerator.swift:254:        _ = try verifyLock(root: root)
+cli/Sources/MixerBuild/ProjectGenerator.swift:261:        _ = try verifyLock(root: root)
+cli/Sources/MixerBuild/AndroidProject.swift:73:        let appearance = try defaultAppearanceData()
+cli/Sources/MixerBuild/AndroidProject.swift:82:    static func defaultAppearanceData() throws -> Data {
+cli/Sources/MixerBuild/AndroidProject.swift:84:        let bytes = try UIAppearanceDescriptorCodecV2.canonicalData(value)
+cli/Sources/MixerBuild/AndroidProject.swift:119:        let lock = try ProjectBuild.verifyLock(root: root)
+native/android/app/src/dev/mixer/android/AppearanceDescriptorV2.java:16:    static final String FORMAT = "mixer.native-appearance.2";
+native/android/app/src/dev/mixer/android/AppearanceDescriptorV2.java:124:        constant(root.get("format"), FORMAT);

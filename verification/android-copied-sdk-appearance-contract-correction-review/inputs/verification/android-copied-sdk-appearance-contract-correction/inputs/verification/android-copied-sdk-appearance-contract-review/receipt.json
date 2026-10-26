@@ -1,0 +1,120 @@
+{
+  "schema": "mixer.independent-contract-review.receipt.v1",
+  "recorded_utc": "2026-10-26T01:51:26.548461+00:00",
+  "status": "contract-revisions-required-awaiting-root-selection",
+  "source_revision": "99d6384306ea17643b70c472f93b57418c674f86",
+  "proposal_sha256": "340bbf77a48b086f143746ca7f46eef2786a1064d5777f2d4b5b7adb3859de2e",
+  "producer_seal_sha256": "e08abcacc8421eb2415daa259cf0f9d67a9e2fafa7a879f0b95f574866f62ffb",
+  "producer_members_verified": 87,
+  "producer_bytes_verified": 971695,
+  "all_producer_members_still_equal": true,
+  "review_doc": {
+    "bytes": 15253,
+    "sha256": "d3ebd65420ede46dec4212389d8077a8aeba13d381bf18701994e56f0349088a"
+  },
+  "findings": [
+    {
+      "id": "R1",
+      "priority": "P1",
+      "status": "required-before-root-selection",
+      "summary": "Version-specific SDK manifests can redirect the Core/UI graph while the proposed exact map remains equal.",
+      "evidence": "host-probe/*-dump-package.stdout and probe-result.json",
+      "probe_executed": true
+    },
+    {
+      "id": "R2",
+      "priority": "P2",
+      "status": "required-before-root-selection",
+      "summary": "Swift CLI build entrypoints must admit before generic SDK/adapter hashing and tools, as the direct driver will.",
+      "evidence": "Frozen ProjectGenerator.swift:239-258 and AndroidProject.swift:118-124",
+      "probe_executed": false
+    },
+    {
+      "id": "R3",
+      "priority": "P2",
+      "status": "required-before-root-selection",
+      "summary": "Specify and test rendered staged driver inspection versus lazy profile decoding for the raw template.",
+      "evidence": "Frozen AndroidProject.swift:70-102 and ProjectGenerator.swift:44-47",
+      "probe_executed": false
+    }
+  ],
+  "executed": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "verification/android-copied-sdk-appearance-contract-review/review_probe.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": {
+        "bytes": 840,
+        "sha256": "b7f736372f2dfd3be0b1391518917e069d84d33dbe020ccccad3d8cccb2014e5"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "scope": "Own independent frozen-data and host-only manifest-selection probe; internal commands in commands.json."
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "verification/android-copied-sdk-appearance-contract-review/finalize_review.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "scope": "Own frozen member validation, source-reference index, scoped diff check and review seal."
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "docs/android-copied-sdk-appearance-contract-review.md",
+        "verification/android-copied-sdk-appearance-contract-review"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "tool_versions": {
+    "python": "3.14.8",
+    "git": "git version 2.56.0",
+    "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0"
+  },
+  "source_review_index": "source-review-index.json",
+  "command_details": "commands.json",
+  "owned_source_checks": "Markdown/Python final newline and trailing whitespace checked directly, including untracked files; both reviewer scripts parsed with Python ast.parse.",
+  "additional_context": "supplemental-manifest.json; contracts/ui-v1.json is separately pinned, outside the producer seal.",
+  "host_compiler_execution": "Two host SwiftPM manifest evaluations; no product module compilation or execution.",
+  "whole_build_or_APK_created": false,
+  "native_runtime_or_capture_started": false,
+  "process_discovery": false,
+  "producer_harness_imported_or_executed": false,
+  "product_files_changed": false,
+  "implementation_selected": false,
+  "implementation_accepted": false,
+  "public_V2_accepted": false,
+  "GA_qualified": false,
+  "committed_or_pushed": false,
+  "cleanup": "Owned host probe cache/config/security/scratch/module-cache directories absent; exact fixtures retained. No owned background process or native instance remains.",
+  "pending": [
+    "Root selection of corrected contract after separate packaging implementation review",
+    "Bounded implementation and copied-consumer Swift/Java API/wire tests",
+    "Target ABI/runtime/lifecycle and OS/resource/font/accessibility/design/input qualification",
+    "Public V2 routing and installed capture/environment integration",
+    "Immutable signed CLI/SDK distribution, provenance and separate-repository FieldLog consumption",
+    "Physical matrix and release/store/operational/GA gates"
+  ],
+  "scope": "Independent frozen-source contract review and bounded host manifest-selection evidence only. No implementation or release acceptance."
+}

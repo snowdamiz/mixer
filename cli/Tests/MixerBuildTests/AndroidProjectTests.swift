@@ -46,7 +46,7 @@ func androidDefaultAppearanceSnapshotChangesInvalidateAdapterLock(_ change: Stri
     defer { try? FileManager.default.removeItem(at: root) }
     let sdk = root.appendingPathComponent("Generated/MixerSDK")
     let adapter = root.appendingPathComponent("Generated/MixerAndroid")
-    try FileManager.default.createDirectory(at: sdk, withIntermediateDirectories: true)
+    try copyCompatibilitySDK(to: sdk)
     let digest = try AndroidProject.snapshot(adapter: repository.appendingPathComponent("native/android"), destination: adapter)
     try JSONFile.write(ApplicationConfiguration(name: "App", application: "dev.example.app"), to: root.appendingPathComponent("mixer.yml"))
     let version = try ProcessRunner.run(["swift", "--version"])
@@ -55,7 +55,7 @@ func androidDefaultAppearanceSnapshotChangesInvalidateAdapterLock(_ change: Stri
     lock.android = AndroidToolchainLock(adapterDigest: digest, toolchain: AndroidToolchainIdentity(
         schema: 1, sdk_id: "host-test-only", abi: "arm64-v8a", min_api: 28, target_api: 37,
         swift_version: "host-test-only", javac_version: "host-test-only", java_version: "host-test-only",
-        python_version: "host-test-only", tools: [:], metadata: [:], distributions: [:], sdk_search_path: "host-test-only"))
+        python_version: "host-test-only", tools: [:], metadata: [:], distributions: [:], sdk_search_path: "host-test-only"), profile: AndroidSDKCompatibility.profile.lock)
     try JSONFile.write(lock, to: root.appendingPathComponent("mixer.lock"))
     #expect(try ProjectBuild.verifyLock(root: root).android?.adapterDigest == digest)
     let descriptor = adapter.appendingPathComponent("app/assets/MixerAppearanceV2/descriptor.json")
@@ -72,7 +72,7 @@ func androidDefaultAppearanceSnapshotChangesInvalidateAdapterLock(_ change: Stri
     #expect(throws: (any Error).self) { _ = try ProjectBuild.verifyLock(root: root) }
     let direct = try ProcessRunner.run(["python3", adapter.appendingPathComponent("android-build.py").path, "build", root.path])
     #expect(!direct.succeeded)
-    #expect(direct.output.contains(change == "edit" ? "differs from mixer.lock" : "Android appearance"))
+    #expect(direct.output.contains(change == "edit" ? "source compatibility rejected" : "Android appearance"))
     #expect(!direct.output.contains("Traceback"))
     #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent(".mixer").path))
 }
@@ -83,7 +83,7 @@ func androidCoordinatorAndAuthoredToggleSnapshotChangesInvalidateAdapterLock(_ f
     defer { try? FileManager.default.removeItem(at: root) }
     let sdk = root.appendingPathComponent("Generated/MixerSDK")
     let adapter = root.appendingPathComponent("Generated/MixerAndroid")
-    try FileManager.default.createDirectory(at: sdk, withIntermediateDirectories: true)
+    try copyCompatibilitySDK(to: sdk)
     let digest = try AndroidProject.snapshot(adapter: repository.appendingPathComponent("native/android"), destination: adapter)
     try JSONFile.write(ApplicationConfiguration(name: "App", application: "dev.example.app"), to: root.appendingPathComponent("mixer.yml"))
     let version = try ProcessRunner.run(["swift", "--version"])
@@ -94,7 +94,7 @@ func androidCoordinatorAndAuthoredToggleSnapshotChangesInvalidateAdapterLock(_ f
     lock.android = AndroidToolchainLock(adapterDigest: digest, toolchain: AndroidToolchainIdentity(
         schema: 1, sdk_id: "host-test-only", abi: "arm64-v8a", min_api: 28, target_api: 37,
         swift_version: "host-test-only", javac_version: "host-test-only", java_version: "host-test-only",
-        python_version: "host-test-only", tools: [:], metadata: [:], distributions: [:], sdk_search_path: "host-test-only"))
+        python_version: "host-test-only", tools: [:], metadata: [:], distributions: [:], sdk_search_path: "host-test-only"), profile: AndroidSDKCompatibility.profile.lock)
     try JSONFile.write(lock, to: root.appendingPathComponent("mixer.lock"))
     #expect(try ProjectBuild.verifyLock(root: root).android?.adapterDigest == digest)
     let source = adapter.appendingPathComponent("app/src/dev/mixer/android/\(filename)")
@@ -105,11 +105,11 @@ func androidCoordinatorAndAuthoredToggleSnapshotChangesInvalidateAdapterLock(_ f
     }
     #expect(throws: MixerFailure.self) {
         do { _ = try ProjectBuild.verifyLock(root: root) }
-        catch let failure as MixerFailure { #expect(failure.code == "lock.android-drift"); throw failure }
+        catch let failure as MixerFailure { #expect(failure.code == "android.sdk-compatibility"); throw failure }
     }
     let direct = try ProcessRunner.run(["python3", adapter.appendingPathComponent("android-build.py").path, "build", root.path])
     #expect(!direct.succeeded)
-    #expect(direct.output.contains("Bundled SDK or Android adapter source differs from mixer.lock."))
+    #expect(direct.output.contains("Android SDK source compatibility rejected"))
     #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent(".mixer").path))
 }
 
@@ -149,7 +149,7 @@ func androidCoordinatorAndAuthoredToggleSnapshotChangesInvalidateAdapterLock(_ f
     #expect(rejected.output.contains("symlink escapes hashed root"))
 }
 
-@Test func directAndroidDriverRejectsPathNamesBeforeTouchingOutputFiles() throws {
+@Test func rawAndroidDriverRefusesUnrenderedProfileBeforeTouchingOutputFiles() throws {
     let parent = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-driver-path-\(UUID().uuidString)")
     let root = parent.appendingPathComponent("App")
     defer { try? FileManager.default.removeItem(at: parent) }
@@ -171,7 +171,7 @@ func androidCoordinatorAndAuthoredToggleSnapshotChangesInvalidateAdapterLock(_ f
         config.name = unsafe
         try JSONFile.write(config, to: root.appendingPathComponent("mixer.yml"))
         let result = try ProcessRunner.run(["python3", try AndroidProject.buildDriver().path, "build", root.path])
-        #expect(!result.succeeded); #expect(result.output.contains("Invalid Android application name"))
+        #expect(!result.succeeded); #expect(result.output.contains("Android SDK source profile is not rendered or supported"))
         #expect(try String(contentsOf: sentinel, encoding: .utf8) == "sentinel")
         #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent(".mixer").path))
     }

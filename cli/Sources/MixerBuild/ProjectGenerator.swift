@@ -19,7 +19,13 @@ public enum ProjectGenerator {
         try config.validate()
         let fm = FileManager.default
         guard !fm.fileExists(atPath: destination.path) else { throw MixerFailure("create.exists", "Refusing to overwrite \(destination.path). Choose a new directory.") }
-        guard fm.fileExists(atPath: sdk.appendingPathComponent("Package.swift").path) else { throw MixerFailure("create.sdk", "SDK package not found at \(sdk.path). Supply --sdk-path to an installed Mixer SDK source distribution.") }
+        guard platform == "android" || fm.fileExists(atPath: sdk.appendingPathComponent("Package.swift").path) else { throw MixerFailure("create.sdk", "SDK package not found at \(sdk.path). Supply --sdk-path to an installed Mixer SDK source distribution.") }
+        let sdk = sdk.resolvingSymlinksInPath().standardizedFileURL
+        if platform == "android" {
+            guard let androidAdapter else { throw MixerFailure("create.android-adapter", "Supply the owned Mixer Android adapter source distribution.") }
+            do { try AndroidSDKCompatibility.admitInput(sdk: sdk, adapter: androidAdapter.resolvingSymlinksInPath().standardizedFileURL) }
+            catch { throw MixerFailure("create.android-sdk-compatibility", String(describing: error)) }
+        }
         let parent = destination.deletingLastPathComponent()
         try fm.createDirectory(at: parent, withIntermediateDirectories: true)
         let staging = parent.appendingPathComponent(".mixer-create-\(UUID().uuidString)")
@@ -28,7 +34,6 @@ public enum ProjectGenerator {
         for path in ["Sources/AppModels", "Sources/AppFeatures", "Sources/NativeServices", "Tests/AppModelsTests", "Platforms/iOS", "Platforms/Android", "Resources", "Generated/MixerSDK"] {
             try fm.createDirectory(at: staging.appendingPathComponent(path), withIntermediateDirectories: true)
         }
-        let sdk = sdk.resolvingSymlinksInPath().standardizedFileURL
         let sdkTarget = staging.appendingPathComponent("Generated/MixerSDK")
         for file in try SourceDigest.files(in: sdk) {
             let relative = String(file.path.dropFirst(sdk.path.count + 1))
@@ -36,15 +41,19 @@ public enum ProjectGenerator {
             try fm.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
             try fm.copyItem(at: file, to: target)
         }
+        if platform == "android" { try AndroidSDKCompatibility.admitSDK(sdkTarget) }
         let digest = try SourceDigest.tree(sdkTarget)
+        var adapterDigest: String?
+        if platform == "android", let androidAdapter {
+            adapterDigest = try AndroidProject.snapshot(adapter: androidAdapter, destination: staging.appendingPathComponent("Generated/MixerAndroid"))
+            try AndroidSDKCompatibility.admitProject(staging)
+        }
         let version = try ProcessRunner.run(["swift", "--version"])
         guard version.succeeded else { throw MixerFailure("create.swift", version.output) }
         try JSONFile.write(config, to: staging.appendingPathComponent("mixer.yml"))
         var lock = ToolchainLock(sdkDigest: digest, swiftVersion: version.output.trimmingCharacters(in: .whitespacesAndNewlines))
-        if platform == "android" {
-            guard let androidAdapter else { throw MixerFailure("create.android-adapter", "Supply the owned Mixer Android adapter source distribution.") }
-            let adapterDigest = try AndroidProject.snapshot(adapter: androidAdapter, destination: staging.appendingPathComponent("Generated/MixerAndroid"))
-            lock.android = AndroidToolchainLock(adapterDigest: adapterDigest, toolchain: try AndroidProject.inspectToolchain())
+        if let adapterDigest {
+            lock.android = AndroidToolchainLock(adapterDigest: adapterDigest, toolchain: try AndroidProject.inspectToolchain(), profile: AndroidSDKCompatibility.profile.lock)
         }
         try JSONFile.write(lock, to: staging.appendingPathComponent("mixer.lock"))
         let files = [
@@ -237,10 +246,18 @@ public enum ProjectGenerator {
 }
 
 public enum ProjectBuild {
-    public static func verifyLock(root: URL) throws -> ToolchainLock {
-        _ = try ApplicationConfiguration.load(root)
-        let lock = try JSONDecoder().decode(ToolchainLock.self, from: Data(contentsOf: root.appendingPathComponent("mixer.lock")))
+    public static func verifyLock(root: URL, androidRequired: Bool = false) throws -> ToolchainLock {
+        let config = try ApplicationConfiguration.load(root)
+        let lockURL = root.appendingPathComponent("mixer.lock")
+        if (androidRequired || config.targets.contains("android")), !FileManager.default.fileExists(atPath: lockURL.path) {
+            try AndroidSDKCompatibility.require(nil)
+        }
+        let lock = try JSONDecoder().decode(ToolchainLock.self, from: Data(contentsOf: lockURL))
         guard lock.schema == 1 else { throw MixerFailure("lock.schema", "Unsupported lock schema") }
+        if androidRequired || config.targets.contains("android") || lock.android != nil {
+            try AndroidSDKCompatibility.require(lock.android?.profile)
+            try AndroidSDKCompatibility.admitProject(root)
+        }
         let actual = try SourceDigest.tree(root.appendingPathComponent("Generated/MixerSDK"))
         guard actual == lock.sdkDigest else { throw MixerFailure("lock.sdk-drift", "Bundled SDK source differs from mixer.lock. Restore the original SDK snapshot or explicitly install a new qualified SDK.") }
         if let android = lock.android {
@@ -251,14 +268,14 @@ public enum ProjectBuild {
         return lock
     }
     public static func run(root: URL, test: Bool, platform: String) throws -> CommandResult {
-        _ = try verifyLock(root: root)
+        _ = try verifyLock(root: root, androidRequired: platform == "android")
         if platform == "ios", !test { return try AppleProject.build(root: root) }
         if platform == "android", !test { return try AndroidProject.build(root: root) }
         guard platform == "host" else { throw MixerFailure("build.unqualified-target", "\(platform) \(test ? "tests" : "build") requires pending native integration; no platform result is reported as passed. Available: host package build/test, unsigned iOS Simulator build.") }
         return try ProcessRunner.run(["swift", test ? "test" : "build", "--package-path", root.path], at: root)
     }
     public static func export(root: URL, destination: URL) throws -> String {
-        _ = try verifyLock(root: root)
+        let lock = try verifyLock(root: root)
         let root = root.resolvingSymlinksInPath().standardizedFileURL; let destination = destination.resolvingSymlinksInPath().standardizedFileURL
         guard !destination.path.hasPrefix(root.path + "/"), destination != root else { throw MixerFailure("export.destination", "Export must be outside the source project.") }
         guard !FileManager.default.fileExists(atPath: destination.path) else { throw MixerFailure("export.exists", "Refusing to overwrite export destination.") }
@@ -271,6 +288,7 @@ public enum ProjectBuild {
                 try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
                 try FileManager.default.copyItem(at: source, to: target)
             }
+            if lock.android != nil { try AndroidSDKCompatibility.admitProject(destination) }
             return try SourceDigest.tree(destination)
         } catch { try? FileManager.default.removeItem(at: destination); throw error }
     }

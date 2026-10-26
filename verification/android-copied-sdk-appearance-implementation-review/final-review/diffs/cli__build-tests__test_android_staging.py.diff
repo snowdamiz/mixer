@@ -1,0 +1,54 @@
+--- 559858810e133640d52730972a6610e98442be6d:cli/build-tests/test_android_staging.py
++++ candidate:cli/build-tests/test_android_staging.py
+@@ -8,6 +8,7 @@
+ import sys
+ import tempfile
+ import unittest
++from test_android_sdk_compatibility import CompatibilityFixture
+ 
+ DRIVER = pathlib.Path(__file__).resolve().parents[1] / 'Sources/MixerBuild/Resources/android-build.py'
+ SPEC = importlib.util.spec_from_file_location('android_build', DRIVER)
+@@ -15,7 +16,7 @@
+ SPEC.loader.exec_module(DRIVER_MODULE)
+ 
+ 
+-class AndroidStagingTests(unittest.TestCase):
++class AndroidStagingTests(CompatibilityFixture, unittest.TestCase):
+     def setUp(self):
+         self.temporary = tempfile.TemporaryDirectory(prefix='mixer-staging-test-')
+         self.addCleanup(self.temporary.cleanup)
+@@ -24,24 +25,7 @@
+         self.outside = self.base / 'outside'
+         self.root.mkdir()
+         self.outside.mkdir()
+-        for name in ['Generated/MixerSDK', 'Generated/MixerAndroid', 'Resources']:
+-            (self.root / name).mkdir(parents=True)
+-        empty_hash = hashlib.sha256(b'').hexdigest()
+-        descriptor = self.root / 'Generated/MixerAndroid/app/assets/MixerAppearanceV2/descriptor.json'
+-        descriptor.parent.mkdir(parents=True)
+-        # Layout-only fixture. These staging tests make no codec/default claim.
+-        descriptor.write_bytes(b'{}')
+-        (self.root / 'mixer.lock').write_text(json.dumps({
+-            'schema': 1, 'sdkDigest': empty_hash,
+-            'android': {'adapterDigest': DRIVER_MODULE.source_tree(self.root / 'Generated/MixerAndroid'), 'toolchain': {}}
+-        }))
+-        (self.root / 'mixer.yml').write_text(json.dumps({
+-            'schema': 1, 'name': 'SafeApp', 'application': 'dev.mixer.safe',
+-            'language': 'swift', 'targets': ['android'], 'toolchainLock': 'mixer.lock',
+-            'capabilities': [], 'updates': {'activation': 'cold-start',
+-                'compatibility': 'exact-runtime-fingerprint',
+-                'requireArtifactSignature': True, 'requireAssignmentSignature': True}
+-        }))
++        self.initialize_compatibility(self.root)
+ 
+     def output(self):
+         path = self.root / '.mixer/android-build'
+@@ -51,7 +35,7 @@
+     def reject(self, message):
+         before = {str(p.relative_to(self.outside)): p.read_bytes()
+                   for p in self.outside.rglob('*') if p.is_file()}
+-        result = subprocess.run([sys.executable, '-B', str(DRIVER), 'build', str(self.root)],
++        result = subprocess.run([sys.executable, '-B', str(self.rendered), 'build', str(self.root)],
+                                 capture_output=True, text=True, timeout=15)
+         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+         self.assertIn(message, result.stderr)

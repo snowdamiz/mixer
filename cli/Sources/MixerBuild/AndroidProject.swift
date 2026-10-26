@@ -23,6 +23,7 @@ public struct AndroidToolchainIdentity: Codable, Equatable, Sendable {
 public struct AndroidToolchainLock: Codable, Sendable {
     public var adapterDigest: String
     public var toolchain: AndroidToolchainIdentity
+    public var profile: AndroidSDKProfileLock? = nil
 }
 
 public enum AndroidProject {
@@ -30,34 +31,9 @@ public enum AndroidProject {
     /// instrumentation never enter a created application's dependency graph.
     static func snapshot(adapter: URL, destination: URL) throws -> String {
         let adapter = adapter.resolvingSymlinksInPath().standardizedFileURL
-        let expected = [
-            "bridge/jni.c", "bridge/mixer_android.h", "bridge/mixer_android_v2.h", "contracts/android-profile-v1.json",
-            "app/src/dev/mixer/android/Json.java", "app/src/dev/mixer/android/UiPacket.java",
-            "app/src/dev/mixer/android/NativeRenderer.java", "app/src/dev/mixer/android/NativeBridge.java",
-            "app/src/dev/mixer/android/MixerActivity.java",
-            // Private coordinator source is available for compilation; the
-            // public Activity continues to use the V1 exchange/bootstrap.
-            "app/src/dev/mixer/android/NativeCoordinatorV2.java",
-            // Compile dependencies of the internal renderer. Including them does
-            // not opt generated applications into V2.
-            "app/src/dev/mixer/android/AppearanceDescriptorV2.java",
-            "app/src/dev/mixer/android/AppearanceGeometryV2.java",
-            "app/src/dev/mixer/android/AppearanceResolverV2.java",
-            "app/src/dev/mixer/android/AppearanceNativePathsV2.java",
-            "app/src/dev/mixer/android/InstalledAppearanceV2.java",
-            "app/src/dev/mixer/android/NativeEnvironmentV2.java",
-            "app/src/dev/mixer/android/AuthoredToggleInputV2.java",
-            "app/src/dev/mixer/android/NativeAppearanceViewsV2.java"
-        ]
-        let runtime = adapter.appendingPathComponent("engine/Sources/MixerAndroidRuntime")
-        let runtimeFiles = try SourceDigest.files(in: runtime)
-        guard !runtimeFiles.isEmpty, runtimeFiles.allSatisfy({ $0.pathExtension == "swift" }) else {
-            throw MixerFailure("create.android-adapter", "Owned reusable Android runtime sources are missing or unsupported.")
-        }
-        var mapping = expected.map { ($0, $0) }
-        mapping += runtimeFiles.map {
-            let relative = String($0.path.dropFirst(runtime.path.count + 1))
-            return ("engine/Sources/MixerAndroidRuntime/" + relative, "Sources/MixerAndroidRuntime/" + relative)
+        try AndroidSDKCompatibility.admitAdapterInput(adapter)
+        let mapping = AndroidSDKCompatibility.profile.adapter_files.keys.sorted().map {
+            ($0.hasPrefix("Sources/") ? "engine/" + $0 : $0, $0)
         }
         for (sourcePath, targetPath) in mapping {
             let source = adapter.appendingPathComponent(sourcePath)
@@ -65,20 +41,20 @@ public enum AndroidProject {
             guard info.isRegularFile == true, info.isSymbolicLink != true else { throw MixerFailure("create.android-adapter", "Android adapter inputs must be regular source files: \(sourcePath)") }
             let target = destination.appendingPathComponent(targetPath)
             try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try Data(contentsOf: source).write(to: target)
+            try AndroidSDKCompatibility.bounded(source, AndroidSDKCompatibility.profile.adapter_files[targetPath]!).write(to: target)
         }
         try runtimePackage.write(to: destination.appendingPathComponent("Package.swift"), atomically: true, encoding: .utf8)
         let driver = try buildDriver()
-        try Data(contentsOf: driver).write(to: destination.appendingPathComponent("android-build.py"))
+        try AndroidSDKCompatibility.renderDriver(String(contentsOf: driver, encoding: .utf8)).write(to: destination.appendingPathComponent("android-build.py"), atomically: true, encoding: .utf8)
         let appearance = try defaultAppearanceData()
         let descriptor = destination.appendingPathComponent("app/assets/MixerAppearanceV2/descriptor.json")
         try FileManager.default.createDirectory(at: descriptor.deletingLastPathComponent(), withIntermediateDirectories: true)
         try appearance.write(to: descriptor)
+        try AndroidSDKCompatibility.admitAdapter(destination)
         return try SourceDigest.tree(destination)
     }
 
-    /// CLI-linked default data only. The separately selected SDK's default/API/ABI
-    /// compatibility is pending; this does not enable the public V2 Activity.
+    /// CLI-linked typed producer; exact source-pair admission does not enable V2.
     static func defaultAppearanceData() throws -> Data {
         let value = try UIAppearanceDescriptorCodecV2.mixerDefaultV2()
         let bytes = try UIAppearanceDescriptorCodecV2.canonicalData(value)
@@ -88,6 +64,7 @@ public enum AndroidProject {
               theme.typography.font == .systemSans else {
             throw MixerFailure("create.android-appearance", "The CLI default must be a canonical shared appearance with no resources and system sans typography.")
         }
+        try AndroidSDKCompatibility.admitDefault(bytes)
         return bytes
     }
 
@@ -116,7 +93,7 @@ public enum AndroidProject {
         }
     }
     public static func build(root: URL) throws -> CommandResult {
-        let lock = try ProjectBuild.verifyLock(root: root)
+        let lock = try ProjectBuild.verifyLock(root: root, androidRequired: true)
         guard lock.android != nil else { throw MixerFailure("android.not-generated", "This project has no locked Android host. Create a new project with --platform android; existing sources are never overwritten.") }
         let config = try ApplicationConfiguration.load(root)
         guard config.targets.contains("android"), config.capabilities.isEmpty else { throw MixerFailure("android.unsupported-capability", "Android local consumer requires an android target and no declared native capabilities; capability hosts are not integrated in this slice.") }

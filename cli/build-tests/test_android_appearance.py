@@ -12,6 +12,7 @@ import tempfile
 import unittest
 import warnings
 import zipfile
+from test_android_sdk_compatibility import CompatibilityFixture
 from unittest import mock
 
 DRIVER = pathlib.Path(__file__).resolve().parents[1] / 'Sources/MixerBuild/Resources/android-build.py'
@@ -20,43 +21,28 @@ BUILD = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(BUILD)
 
 
-class AppearanceInputTests(unittest.TestCase):
+class AppearanceInputTests(CompatibilityFixture, unittest.TestCase):
     def setUp(self):
         # Short host scratch also permits a real AF_UNIX special-file fixture.
         self.temporary = tempfile.TemporaryDirectory(prefix='ma-', dir='/tmp')
         self.addCleanup(self.temporary.cleanup)
         self.root = pathlib.Path(self.temporary.name).resolve()
-        self.adapter = self.root / 'Generated/MixerAndroid'
-        self.descriptor = self.adapter / 'app' / BUILD.APPEARANCE_ASSET
-        self.descriptor.parent.mkdir(parents=True)
-        (self.root / 'Generated/MixerSDK').mkdir()
-        (self.root / 'Resources').mkdir()
-        # Intentionally not semantic data: direct admission is layout/size only.
-        self.descriptor.write_bytes(b'not a canonical default')
-        self.lock()
-        (self.root / 'mixer.yml').write_text(json.dumps({
-            'schema': 1, 'name': 'AssetApp', 'application': 'dev.mixer.asset',
-            'language': 'swift', 'targets': ['android'], 'toolchainLock': 'mixer.lock',
-            'capabilities': [], 'updates': {'activation': 'cold-start',
-                'compatibility': 'exact-runtime-fingerprint',
-                'requireArtifactSignature': True, 'requireAssignmentSignature': True}}))
+        self.initialize_compatibility(self.root)
 
     def lock(self):
-        (self.root / 'mixer.lock').write_text(json.dumps({
-            'schema': 1, 'sdkDigest': BUILD.source_tree(self.root / 'Generated/MixerSDK'),
-            'android': {'adapterDigest': BUILD.source_tree(self.adapter), 'toolchain': {}}}))
+        self.refresh_lock()
 
     def rejects_before_hash_or_output(self, message):
-        with mock.patch.object(BUILD, 'source_tree', side_effect=AssertionError('source hashed before admission')), \
-             mock.patch.object(BUILD, 'inspect', side_effect=AssertionError('tools before admission')):
+        with mock.patch.object(self.module, 'source_tree', side_effect=AssertionError('source hashed before admission')), \
+             mock.patch.object(self.module, 'inspect', side_effect=AssertionError('tools before admission')):
             with self.assertRaisesRegex(RuntimeError, message):
-                BUILD.build(self.root)
+                self.module.build(self.root)
         self.assertFalse((self.root / '.mixer').exists())
 
     def test_layout_only_accepts_bounded_regular_bytes(self):
-        self.assertEqual(BUILD.appearance_input(self.adapter), self.descriptor.read_bytes())
+        self.assertEqual(self.module.appearance_input(self.adapter), self.descriptor.read_bytes())
         self.descriptor.write_bytes(b'x' * 65_536)
-        self.assertEqual(len(BUILD.appearance_input(self.adapter)), 65_536)
+        self.assertEqual(len(self.module.appearance_input(self.adapter)), 65_536)
 
     def test_missing_empty_oversized_renamed_and_directory_reject_before_hash(self):
         for case in ['missing', 'empty', 'oversized', 'renamed', 'directory']:
@@ -66,7 +52,7 @@ class AppearanceInputTests(unittest.TestCase):
                 elif case == 'oversized': self.descriptor.write_bytes(b'x' * 65_537)
                 elif case == 'renamed': self.descriptor.with_suffix('.renamed').write_bytes(b'x')
                 elif case == 'directory': self.descriptor.mkdir()
-                self.rejects_before_hash_or_output('Android appearance')
+                self.rejects_before_hash_or_output('Android (appearance|SDK source compatibility)')
                 if case == 'directory': self.descriptor.rmdir()
                 self.descriptor.with_suffix('.renamed').unlink(missing_ok=True)
                 self.descriptor.write_bytes(b'x')
@@ -94,7 +80,7 @@ class AppearanceInputTests(unittest.TestCase):
         os.mkfifo(self.descriptor)
         self.rejects_before_hash_or_output('regular file')
         # Also exercise the direct executable with a timeout: a FIFO must not hang.
-        result = subprocess.run([sys.executable, '-B', str(DRIVER), 'build', str(self.root)], capture_output=True, text=True, timeout=5)
+        result = subprocess.run([sys.executable, '-B', str(self.rendered), 'build', str(self.root)], capture_output=True, text=True, timeout=5)
         self.assertEqual(result.returncode, 1)
         self.assertIn('regular file', result.stderr)
         self.descriptor.unlink()
@@ -114,25 +100,25 @@ class AppearanceInputTests(unittest.TestCase):
                 relocated = path.with_name(path.name + '-moved')
                 path.rename(relocated)
                 path.symlink_to(relocated, target_is_directory=True)
-                self.rejects_before_hash_or_output('ordinary directories')
+                self.rejects_before_hash_or_output('source compatibility rejected')
                 path.unlink()
                 relocated.rename(path)
 
     def test_original_lock_byte_drift_and_java_drift_reject_before_output(self):
-        for source in [self.descriptor, self.adapter / 'app/AuthoredToggleInputV2.java']:
+        for source in [self.descriptor, self.adapter / 'app/src/dev/mixer/android/AuthoredToggleInputV2.java']:
             with self.subTest(source=source.name):
                 self.lock()
                 source.write_bytes(b'changed')
-                with mock.patch.object(BUILD, 'inspect', side_effect=AssertionError('tools before lock rejection')):
-                    with self.assertRaisesRegex(RuntimeError, 'differs from mixer.lock'):
-                        BUILD.build(self.root)
+                with mock.patch.object(self.module, 'inspect', side_effect=AssertionError('tools before lock rejection')):
+                    with self.assertRaisesRegex(RuntimeError, 'source compatibility rejected'):
+                        self.module.build(self.root)
                 self.assertFalse((self.root / '.mixer').exists())
 
     def test_app_resources_still_reject_before_output(self):
         (self.root / 'Resources/image.png').write_bytes(b'unsupported')
-        with mock.patch.object(BUILD, 'inspect', side_effect=AssertionError('tools before resource rejection')):
+        with mock.patch.object(self.module, 'inspect', side_effect=AssertionError('tools before resource rejection')):
             with self.assertRaisesRegex(RuntimeError, 'resources cannot be omitted'):
-                BUILD.build(self.root)
+                self.module.build(self.root)
         self.assertFalse((self.root / '.mixer').exists())
 
 
