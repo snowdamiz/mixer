@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T08:24:58.260753+00:00",
+  "status": "host-controls-passed-CI-delivery-pending",
+  "context_revision": "5c1cf075be26b7a71297552723861ef893e69e7d",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "source": "scripts/ci/tests/test_analyzer_envelope_runner.py",
+  "source_identity": {
+    "bytes": 74044,
+    "sha256": "da9e5cb3c1361c60638d08dcdca91a69f6a95952a25408a5455dbdc1268d96d6"
+  },
+  "previous_source_identity": {
+    "bytes": 72400,
+    "sha256": "95adb99fd9f4dff39cf732414e8a287a5f301fe5860aa504e2ba394ccf33a8f1"
+  },
+  "production_runner_identity": {
+    "bytes": 39991,
+    "sha256": "4c56beec330b8118f01be3a6e7460f9857e4b1e8b61f29b4a9bce16fb6c1130c"
+  },
+  "failure_run": 40290654299,
+  "failure_job": 121464662476,
+  "failure": "One of 63 CI selection tests assumed two Python startups and a flushed marker finished before a 200ms timeout; observed retained stdout was empty.",
+  "change": "Test-only process wait wrapper requires readiness under a separate ten-second bound before exercising the real 200ms wait. The partial-log control deliberately delays startup 300ms; descendant control now also requires its startup marker. The real Commands.run finally and owned-group SIGKILL/wait remain in use.",
+  "production_deadlines_changed": false,
+  "immutable_pack_changed": false,
+  "focused_timeout_methods": 2,
+  "complete_CI_selection_methods": 63,
+  "failures": 0,
+  "skips": 0,
+  "scope": "Runner orchestration controls only; no new cache-state product test or native execution.",
+  "cleanup": "Each unittest TemporaryDirectory is removed by tearDown; real timeout controls assert child_returned and owned_group_gone. No global process discovery.",
+  "native_runtime_or_capture_started": false,
+  "GA_qualified": false
+}

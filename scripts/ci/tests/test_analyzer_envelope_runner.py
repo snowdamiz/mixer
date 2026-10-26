@@ -58,6 +58,38 @@ class RunnerControls(unittest.TestCase):
         receipt = {'commands': []}
         return r.Commands(out, receipt, time.monotonic() + deadline)
 
+    def ready_timeout(self, commands, name, code):
+        # Readiness belongs to this control, not the production timeout policy.
+        # Wait for the real child to establish the condition being tested before
+        # starting its short timed wait. A startup failure still fails the test,
+        # and Commands.run's finally block reaps its exact owned process group.
+        ready = self.base / (name + '.ready')
+        popen = subprocess.Popen
+
+        def spawn(*args, **kwargs):
+            process = popen(*args, **kwargs)
+            wait = process.wait
+            first_wait = True
+
+            def wait_ready(timeout=None):
+                nonlocal first_wait
+                if first_wait:
+                    first_wait = False
+                    until = time.monotonic() + 10
+                    while not ready.is_file():
+                        if process.poll() is not None or time.monotonic() >= until:
+                            self.fail('Owned timeout-control child did not become ready')
+                        time.sleep(.01)
+                return wait(timeout=timeout)
+
+            process.wait = wait_ready
+            return process
+
+        with mock.patch.object(r.subprocess, 'Popen', spawn):
+            self.raises(commands.run, name, [sys.executable, '-c', code, str(ready)],
+                        cwd=self.base, timeout=.2)
+        self.assertEqual(ready.read_text(), 'ready')
+
     def pack(self):
         p = self.base / 'pack'
         shutil.copytree(ROOT / r.PACK, p)
@@ -214,10 +246,11 @@ class RunnerControls(unittest.TestCase):
 
     def test_timeout_reaps_owned_group_retains_partial_logs(self):
         c = self.commands()
-        # The direct parent reaps its descendant when SIGTERM is delivered by
-        # the descendant itself; runner times out while the parent still waits.
-        code = 'import subprocess,sys,time; p=subprocess.Popen([sys.executable,"-c","import time;time.sleep(.05)"]);p.wait();print("partial-before-timeout",flush=True);time.sleep(10)'
-        self.raises(c.run, 'timeout', [sys.executable,'-c',code], cwd=self.base, timeout=.2)
+        # Deliberately exceed the short timed wait during startup. The parent
+        # reaps its first child, flushes output and signals readiness before the
+        # runner's real timed wait and process-group termination are exercised.
+        code = 'import subprocess,sys,time;from pathlib import Path;time.sleep(.3);p=subprocess.Popen([sys.executable,"-c","import time;time.sleep(.05)"]);p.wait();print("partial-before-timeout",flush=True);Path(sys.argv[1]).write_text("ready");time.sleep(20)'
+        self.ready_timeout(c, 'timeout', code)
         row = c.receipt['commands'][-1]
         self.assertTrue(row['timed_out']); self.assertTrue(row['child_returned']); self.assertTrue(row['owned_group_gone'])
         self.assertIn('partial-before-timeout', (c.out/'commands/timeout.stdout').read_text())
@@ -226,11 +259,12 @@ class RunnerControls(unittest.TestCase):
         c = self.commands()
         # A real concurrent descendant inherits the owned process group. On
         # macOS init reaps it after group termination; no global discovery.
-        code = 'import subprocess,sys,time;subprocess.Popen([sys.executable,"-c","import time;time.sleep(20)"]);print("descendant-started",flush=True);time.sleep(20)'
-        self.raises(c.run, 'descendant', [sys.executable,'-c',code], cwd=self.base, timeout=.2)
+        code = 'import subprocess,sys,time;from pathlib import Path;subprocess.Popen([sys.executable,"-c","import time;time.sleep(20)"]);print("descendant-started",flush=True);Path(sys.argv[1]).write_text("ready");time.sleep(20)'
+        self.ready_timeout(c, 'descendant', code)
         row = c.receipt['commands'][-1]
         self.assertTrue(row['timed_out']); self.assertTrue(row['child_returned']); self.assertTrue(row['owned_group_gone'])
         self.assertEqual(row['pid'], row['owned_pgid'])
+        self.assertIn('descendant-started', (c.out/'commands/descendant.stdout').read_text())
 
     def test_overall_deadline_refuses_spawn(self):
         c = self.commands(deadline=-1)

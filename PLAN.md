@@ -63,6 +63,7 @@ Android host lifecycle core `4e48ac1a` is pushed; [Engine CI](https://github.com
 Android observer/source-profile repair `b45963c0` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40272428143) passed VM/services, but Swift was cancelled at the 30-minute job limit in the existing capability step. Logs remain unavailable; the runner-capacity notice does not establish the stall cause.
 Standalone Swift fixture-envelope CI `0b8e3fd8` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40273904826) passes all 42 steps across three jobs after one bounded Swift-only rerun. Actual Rust 1.98.1 envelope qualification is verified against all 252 artifact members. The first Swift attempt timed out at checkout and remains preserved separately.
 Reviewed owner/cache-state contracts `69b0c522` pass all 42 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40284896791). This checkpoint contains contracts and retained evidence; active product implementation remains outside it.
+Independent cache-state review preparation `5c1cf075` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40290654299) passes services, but Swift fails one runner-timeout control before analyzer execution. VM remains running. A bounded test-readiness repair passes all 63 CI selection controls locally; its CI delivery is pending.
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
 
