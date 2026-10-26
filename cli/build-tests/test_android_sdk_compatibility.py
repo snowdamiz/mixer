@@ -149,7 +149,7 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
             renamed.rename(path)
 
     def test_profile_missing_unknown_mismatched_and_configuration_missing_android_lock(self):
-        for change in ['missing-android', 'legacy', 'profile-1', 'profile-2', 'unknown', 'digest', 'default']:
+        for change in ['missing-android', 'legacy', 'profile-1', 'profile-2', 'profile-3', 'unknown', 'digest', 'default']:
             with self.subTest(change=change):
                 self.refresh_lock()
                 value = self.lock_value
@@ -157,6 +157,7 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
                 elif change == 'legacy': value['android'].pop('profile')
                 elif change == 'profile-1': value['android']['profile']['id'] = 'mixer.android-source-pair.1'
                 elif change == 'profile-2': value['android']['profile']['id'] = 'mixer.android-source-pair.2'
+                elif change == 'profile-3': value['android']['profile']['id'] = 'mixer.android-source-pair.3'
                 elif change == 'unknown': value['android']['profile']['id'] = 'unknown'
                 elif change == 'digest': value['android']['profile']['sdk_compatibility_sha256'] = '0' * 64
                 else: value['android']['profile']['default_descriptor'] = {'bytes': 1, 'sha256': '0' * 64}
@@ -173,8 +174,8 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
                 self.reject()
         observer.write_bytes(original)
 
-    def test_owner_and_core_edits_removals_and_renames_refuse_recomputed_locks(self):
-        for filename in ['NativeOwnerV2.java', 'OwnerLifecycleV2.java']:
+    def test_owner_core_and_environment_edits_removals_and_renames_refuse_recomputed_locks(self):
+        for filename in ['NativeOwnerV2.java', 'OwnerLifecycleV2.java', 'NativeEnvironmentV2.java', 'NativeEnvironmentPlatformV2.java']:
             source = self.adapter / 'app/src/dev/mixer/android' / filename
             original = source.read_bytes()
             renamed = source.with_suffix('.renamed')

@@ -24,13 +24,13 @@ jobs:
           python3 -B native/android/tests/run-private-owner-host.py \
             --jdk "$JAVA_HOME_17_X64" --closure B \
             --evidence "$RUNNER_TEMP/android-owner-renderer"
-      - name: Android environment observer host regressions
+      - name: Android platform observations and observer host regressions
         timeout-minutes: 2
         run: |
           : "${JAVA_HOME_17_X64:?Official JDK 17 is required}"
-          python3 -B native/android/tests/run-environment-observer-host.py \
+          python3 -B native/android/tests/run-environment-platform-host.py \
             --jdk "$JAVA_HOME_17_X64" \
-            --evidence "$RUNNER_TEMP/android-owner-observer"
+            --evidence "$RUNNER_TEMP/android-owner-environment"
       # Controlled Android/JNI leaves on the JVM, with no native runtime launch.
       - name: Preserve private Android owner host evidence
         if: always()

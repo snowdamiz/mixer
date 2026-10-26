@@ -1,0 +1,126 @@
+--- unselected-seeded/source/cache_state.rs.txt
++++ unselected-row-probe/source/cache_state.rs.txt
+@@ -14593,31 +14593,41 @@
+     let mut resident_pins = 0u64;
+     let mut live_tokens = 0u64;
+     let mut release_nonce_matches = 0u64;
+-    // G2. This lexical shared arena view ends before later mutable arena work.
++    // G2. Unselected typed-row proposal; every arena loan ends at this block.
+     {
+         let (arena_words, _) = b.as_chunks::<8>();
++        let (resident_chunks, _) = arena_words[RESIDENT.base / 8..RESIDENT.base / 8 + 512].as_chunks::<8>();
++        let resident_rows: &[[[u8; 8]; 8]; 64] = resident_chunks.first_chunk::<64>().expect("resident64");
++        let (pin_chunks, _) = arena_words[PIN.base / 8..PIN.base / 8 + 384].as_chunks::<6>();
++        let pin_rows: &[[[u8; 8]; 6]; 64] = pin_chunks.first_chunk::<64>().expect("pin64");
+         let (time_bytes, index_bytes) = c.split_at_mut(512);
+-        let (timestamp_words, _) = time_bytes.as_chunks_mut::<8>();
+-        let resident_word_base = RESIDENT.base / 8;
+-        let pin_word_base = PIN.base / 8;
+-        let resident_limit = f.slots as usize;
+-        let pin_limit = f.pins as usize;
++        let (timestamp_chunks, _) = time_bytes.as_chunks_mut::<8>();
++        let timestamp_words: &mut [[u8; 8]; 64] = timestamp_chunks.first_chunk_mut::<64>().expect("timestamp64");
++        let [_, record_kind, _, _, _, _, requested_function, _, _, _, _, _, release_nonce, _, _, _] = w;
++        let [_, _, _, _, _, _, prior_count, prior_total, prior_pins, next_nonce, _, _, _, _, _, _] = &p.q;
++        let configured_slots = f.slots;
++        let configured_pins = f.pins;
++        let configured_entry = f.entry;
++        let resident_limit = configured_slots as usize;
++        let pin_limit = configured_pins as usize;
+         let mut eligibility = 0u64;
+         let mut slot = 0;
+         while slot < resident_limit {
+-            let occupied = u64::from_le_bytes(arena_words[resident_word_base + slot * 8]);
+-            let function = u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 1]);
+-            let bytes = u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 2]);
+-            let pins = u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 3]);
+-            if occupied > 1 || pins > f.pins
+-                || u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 6]) != 0
+-                || u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 7]) != 0
++            let row = &resident_rows[slot];
++            let [occupied_le, function_le, bytes_le, pins_le, last_used_le, _, reserved6_le, reserved7_le] = row;
++            let occupied = u64::from_le_bytes(*occupied_le);
++            let function = u64::from_le_bytes(*function_le);
++            let bytes = u64::from_le_bytes(*bytes_le);
++            let pins = u64::from_le_bytes(*pins_le);
++            if occupied > 1 || pins > configured_pins
++                || u64::from_le_bytes(*reserved6_le) != 0
++                || u64::from_le_bytes(*reserved7_le) != 0
+             {
+                 return reject(13);
+             }
+             if occupied == 1 {
+                 resident_pins += pins;
+-                if function >= 80000 || bytes == 0 || bytes > f.entry {
++                if function >= 80000 || bytes == 0 || bytes > configured_entry {
+                     return reject(13);
+                 }
+                 let Some(sum) = total.checked_add(bytes) else {
+@@ -14625,7 +14635,7 @@
+                 };
+                 total = sum;
+                 count += 1;
+-                if function == w[6] {
++                if function == *requested_function {
+                     if found != ABSENT {
+                         return reject(7);
+                     }
+@@ -14636,8 +14646,9 @@
+             } else if first_empty == ABSENT {
+                 first_empty = slot as u64;
+             }
+-            let last_used = u64::from_le_bytes(arena_words[resident_word_base + slot * 8 + 4]);
+-            timestamp_words[slot] = last_used.to_le_bytes();
++            // Decode/encode is the identity on all eight-byte LE words.
++            // Preserve the required timestamp read as one complete byte copy.
++            timestamp_words[slot] = *last_used_le;
+             if occupied == 1 && pins == 0 { eligibility |= 1u64 << slot; }
+             slot += 1;
+         }
+@@ -14647,28 +14658,34 @@
+         }
+         let mut pin = 0;
+         while pin < pin_limit {
+-            let entry = u64::from_le_bytes(arena_words[pin_word_base + pin * 6]);
+-            let nonce = u64::from_le_bytes(arena_words[pin_word_base + pin * 6 + 1]);
++            let row = &pin_rows[pin];
++            let [entry_le, nonce_le, _, _, _, _] = row;
++            let entry = u64::from_le_bytes(*entry_le);
++            let nonce = u64::from_le_bytes(*nonce_le);
+             if entry == ABSENT {
+                 if nonce != 0 { return reject(13); }
+                 if first_pin == ABSENT { first_pin = pin as u64; }
+             } else {
+-                if entry >= f.slots || nonce == 0 || nonce >= p.q[9]
+-                    || u64::from_le_bytes(arena_words[resident_word_base + entry as usize * 8]) != 1
+-                    || u64::from_le_bytes(arena_words[resident_word_base + entry as usize * 8 + 3]) == 0
++                if entry >= configured_slots || nonce == 0 || nonce >= *next_nonce {
++                    return reject(13);
++                }
++                let back_row = &resident_rows[entry as usize];
++                let [back_occupied_le, _, _, back_pins_le, _, _, _, _] = back_row;
++                if u64::from_le_bytes(*back_occupied_le) != 1
++                    || u64::from_le_bytes(*back_pins_le) == 0
+                 { return reject(13); }
+                 live_tokens += 1;
+-                if w[1] == 12 && nonce == w[12] { release_nonce_matches += 1; }
++                if *record_kind == 12 && nonce == *release_nonce { release_nonce_matches += 1; }
+             }
+             pin += 1;
+         }
+-        // Unselected scratch amendment: original bytes640..648, outside A/B64.
++        // Retains the unselected seeded proposal's bytes640..648 amendment.
+         index_bytes[128..136].copy_from_slice(&eligibility.to_le_bytes());
+-    }
+-    if release_nonce_matches > 1 { return reject(11); }
+-    if resident_pins != p.q[8] || live_tokens != p.q[8] { return reject(13); }
+-    if count != p.q[6] || total != p.q[7] || p.q[8] > f.pins || p.q[9] == 0 {
+-        return reject(13);
++        if release_nonce_matches > 1 { return reject(11); }
++        if resident_pins != *prior_pins || live_tokens != *prior_pins { return reject(13); }
++        if count != *prior_count || total != *prior_total || *prior_pins > configured_pins || *next_nonce == 0 {
++            return reject(13);
++        }
+     }
+     let body = w[6] as usize;
+     if !matches!(w[1], 1 | 13)

@@ -9,7 +9,7 @@ def main():
  parser=argparse.ArgumentParser();parser.add_argument('--evidence',required=True,type=Path);parser.add_argument('--engine',action='store_true');args=parser.parse_args()
  evidence=args.evidence.resolve();evidence.mkdir(parents=True,exist_ok=False)
  roster=json.loads((ROOT/'verification/android-private-owner-effect-roster-amendment/required-host-roster.json').read_text())
- java=roster['closures']['B-concrete-renderer-views']['actual_production_sources']+['native/android/app/src/dev/mixer/android/'+name+'.java' for name in ('NativeBridge','MixerActivity','AdapterInstrumentation')]+['native/android/tests/'+name+'.java' for name in ('NativeAppearanceV2Activity','NativeAppearanceV2Instrumentation','AppearanceNativePathsV2Instrumentation','NativeCoordinatorV2IntegrationActivity','NativeCoordinatorV2IntegrationInstrumentation')]
+ java=roster['closures']['B-concrete-renderer-views']['actual_production_sources']+['native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java']+['native/android/app/src/dev/mixer/android/'+name+'.java' for name in ('NativeBridge','MixerActivity','AdapterInstrumentation')]+['native/android/tests/'+name+'.java' for name in ('NativeAppearanceV2Activity','NativeAppearanceV2Instrumentation','AppearanceNativePathsV2Instrumentation','NativeCoordinatorV2IntegrationActivity','NativeCoordinatorV2IntegrationInstrumentation')]
  tracked=subprocess.check_output(['git','ls-files','-z','--','native/android/engine','sdk','native/android/bridge'],cwd=ROOT).decode().split('\0')
  swift=[s for s in tracked if s and Path(s).suffix in ('.swift','.c','.h')]
  sources=java+swift+[str(Path(__file__).relative_to(ROOT))];frozen={s:(ROOT/s).read_bytes() for s in sources}

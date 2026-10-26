@@ -1,0 +1,63 @@
+{
+  "all_first_chunk_and_expect_success_proved": true,
+  "arena_word_count": 1048576,
+  "as_chunks_nonzero_widths": [
+    8,
+    6
+  ],
+  "backlink_index_precondition": "entry>=configured_slots rejects before resident_rows[entry as usize]; configured_slots<=64 proves fixed row index",
+  "branch_coverage": "6 resident continuation patterns +12 resident terminal patterns;5 pin continuation patterns +6 pin terminal patterns;7 common terminal checks +success; all0..63 early prefixes and all1..64 configurations",
+  "candidate_split_right_range": [
+    512,
+    2048
+  ],
+  "cleanup": "shared arena and exclusive Candidate subviews all end at actualG2 block exit, including return. They cannot coexist with later mutable arena commit or merge borrow.",
+  "fixed_regions": {
+    "arena": 8388608,
+    "pin_base": 7684096,
+    "pin_rows": 64,
+    "pin_stride": 48,
+    "resident_base": 7680000,
+    "resident_rows": 64,
+    "resident_stride": 64
+  },
+  "groups_and_calls_beyond_G2": "G1/G7/setup/finish/guard not accepted here; full reject reply counted only as G2 bounding slack, leaves actual G7 ownership unchanged; G3-G5 and remaining changed sort lifetimes pending",
+  "mask_actual_candidate_range": [
+    640,
+    648
+  ],
+  "mask_right_view_range": [
+    128,
+    136
+  ],
+  "panic_or_bounds_failure_paths": "unreachable for source-admitted arena/Candidate/config; checks are still charged, never optimizer-elided",
+  "pin_first_chunk_width": 64,
+  "pin_nested_chunk_count": 64,
+  "pin_word_range": [
+    960512,
+    960896
+  ],
+  "preserved_reasons": {
+    "aggregate_invariant": 13,
+    "byte_total_overflow": 10,
+    "duplicate_release_nonce": 11,
+    "duplicate_requested_resident": 7,
+    "pin_shape_or_backlink": 13,
+    "resident_header_or_shape": 13
+  },
+  "required_decodes_in_source_order": "resident0,1,2,3 always; resident6/7 lazily after prior header predicates; timestamp4 only after full row validation; generation5 unexamined; pin0,1 always; backlink0 then3 lazy only after entry and nonce guards",
+  "resident_first_chunk_width": 64,
+  "resident_nested_chunk_count": 64,
+  "resident_word_range": [
+    960000,
+    960512
+  ],
+  "schema": 1,
+  "selected_preconditions": "semantic G128 rejects arena.len !=8388608 beforeG2; G1 rejects fixture slots/pins outside1..64; fixed constants and Candidate2048 unchanged",
+  "success_dominators_are_relaxations": "64 occupied requested/eligible rows and64matching release tokens cannot all be a valid accepted state; their branch union is used solely as a conservative upper and never as a reachable witness",
+  "timestamp_candidate_range": [
+    0,
+    512
+  ],
+  "timestamp_word_count": 64
+}

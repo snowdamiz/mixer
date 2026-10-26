@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "review_outcome": "bounded-source-mapping-corrections-supplied-root-selection-required",
+  "original_exact_phase_completeness_accepted": false,
+  "source_sha256": "0ab577c36f9836539181ba5156bdfbc7764ea065266e68d94b431da5fdb47ea8",
+  "producer_seal_sha256": "703bf7ca338dac74574c60a7ac42addcd4d1bc44645d559dd05ca0c4dad56c22",
+  "findings": [
+    {
+      "id": "L1",
+      "severity": "bounded-phase-mapping-omission",
+      "source_lines": [710, 773],
+      "phase": "semantic.reply.source-return-received",
+      "missing_named_owner": "semantic.stage@710",
+      "bytes": 8,
+      "producer_Control": 576,
+      "corrected_final_reply_Control": 584,
+      "explanation": "The named stage local survives to the semantic block end. It is absent from the reply row at source768..773; last use does not retire its storage. Include stage8. Early replies inside event arms also require their actual branch owners; the independent833-byte early-reply superphase supplies that mapping.",
+      "changes_role_peak_or_contract": false
+    },
+    {
+      "id": "L2",
+      "severity": "bounded-phase-mapping-omission",
+      "source_lines": [967, 1088],
+      "phase": "projection.return",
+      "missing_named_owners": {"child": 8, "f": 8, "q": 8, "stage": 8, "active": 1, "planned": 1, "pending": 1},
+      "bytes": 35,
+      "producer_Control": 240,
+      "corrected_final_return_Control": 275,
+      "Report_unchanged": 768,
+      "explanation": "All seven locals exist at the final z return and remain in the projection lexical block through1089. The row accounts p/arguments but omits these locals. Earlier returns have subsets, so the35-byte union bounds them too.",
+      "changes_role_peak_or_contract": false
+    },
+    {
+      "id": "L3",
+      "severity": "finite-coverage-mapping-gap",
+      "source_spans": [[343, 349], [403, 431], [477, 513], [569, 613], [673, 701], [710, 773], [1203, 1229]],
+      "explanation": "The191 named-place inventory and source-sites navigation enumerate these regions, but the39 producer phase rows provide no explicit owner substitutions for several of them. A source-sites pointer to a helper/Option template alone is not a composed lifetime map. The independent addendum provides complete conservative endpoint/lexical-owner schedules for these finite regions, including final None, reject branches and post-reply snapshot/caller effects.",
+      "correction": "Select coverage-addendum.json with the frozen proposal; do not treat the original39 rows as exactly exhaustive.",
+      "changes_role_peak_or_contract": false
+    }
+  ],
+  "accepted_facts_in_scope": [
+    "Frozen proposal/member and23 referenced input identities match",
+    "Inherited selected24656-byte closure and library source prefixes are exact",
+    "Full Option16 and slice/Range16 component sizes are retained",
+    "Outer arena8 is distinct from inherited Vec24",
+    "Anonymous clear payload128 plus Paid24 yields Wire152; arrays are statement-scoped",
+    "Complete Result488 and five inherited232-to488 capacities are accounted; fields are not double counted",
+    "Bounded corrections and coverage schedules fit unchanged allowances without margin credit"
+  ],
+  "root_selection_required": true,
+  "whole_lifetime_acceptance_granted": false,
+  "implementation_accepted": false,
+  "numeric_caps_changed": false,
+  "product_or_old_packets_mutated": false,
+  "native_tests": "pending-current-user-pause",
+  "GA_qualified": false
+}

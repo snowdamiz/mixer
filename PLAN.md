@@ -74,6 +74,7 @@ Independent cache-state review preparation `5c1cf075` is pushed; [Engine CI](htt
 Computer use, capture and native runtime tests remain paused.
 Review evidence checkpoint `99f8a0a7` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40303522601) passes all 42 steps across three jobs. It contains immutable candidates, independent reviews and root metadata; canonical product and CLI changes remain outside it.
 Host review evidence `d275c072` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40308561680) passes all 42 steps across three jobs. It preserves candidate4/CLI review and 192 semantic cases; canonical implementation edits remain outside this checkpoint.
+Private Android owner/profile3 integration `fb4c8f07` is pushed. [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40330490396) passes all four jobs and 50 steps after one bounded Swift-only retry. The first Swift attempt exceeded its 30-minute job limit during Android host binding and skipped generated-consumer integration; that failure remains retained. Host/source development acceptance is scoped; native runtime and public V2 remain pending.
 The full plan remains incomplete; no GA gate is promoted.
 
 ## Current execution
@@ -229,12 +230,24 @@ The full plan remains incomplete; no GA gate is promoted.
    layouts per mode, including 29 public and two private four-File cases. All
    fourteen owned products were hashed and removed. The complete G6 component-source
    ledger is accepted after an independent slice-receiver correction: 512 production
-   groups and 514 with private faults, within 640. Combined work/lifetime proofs
+   groups and 514 with private faults, within 640. Complete work accounting
    and independent implementation acceptance remain open. Independent review rejects
    the byte-index sorting proposal: its assignments alone require at least 1,080
    G4 groups against the 768 cap. The cached-head alternative also fails its
-   finite G3/G4 bounds; a distinct fixed-array source proposal is active. The
-   complete correction3 lifetime proposal is frozen for independent review.
+   finite G3/G4 bounds. Fixed-array expansion still needs at least 2,605 G3 groups
+   against 2,568 and is rejected. The first-pass specialization also fails its G2
+   necessary bound: 2,660 groups against 2,560. The distinct row-view probe now
+   has a selected independently corrected G2 upper of 2,494 against 2,560, with
+   scoped Control 1,220 against 1,280. Original lower totals remain unaccepted.
+   The same full proposal fails its source-admitted G5 necessary bound: 642
+   against 640; public-File reachability is not proved by that witness. An isolated
+   subtraction proposal now requires a universal distinct-prefix/unchanged-arena
+   proof and complete G3/G4/G5 and changed-source lifetime accounting.
+   The correction 3 lifetime inventory is accepted with independent corrections:
+   29,344 logical bytes within the unchanged 41,984-byte reservation. Complete
+   work accounting and implementation acceptance remain pending. Independently
+   corrected old-C3 bounds are accepted for G1 94/256, G7 178/248, setup 188/512,
+   finish 227/256 and guard 14/128; changed sources do not inherit them automatically.
    No layout amendment or
    sorting implementation is selected. Guard replies retain their separately
    reserved terminal-guard ownership.
@@ -340,10 +353,22 @@ The full plan remains incomplete; no GA gate is promoted.
    review is now accepted for bounded private development: 8,550 members are
    verified, all 1,323 direct matrix rows and 514 continuation cases pass.
    Two observer-target replacement vectors remain source-only/native-pending.
-   Canonical delivery is selected; public V2 remains unselected.
-   A new JVM CI job is prepared; its local recipe passes 216 orchestration cases,
-   14,477 renderer checks and 162 observer cases. A shell-precondition quoting
-   defect is corrected. Remote Linux/JDK17 execution remains pending.
+   Canonical integration is pushed as `fb4c8f07`; public V2 remains unselected.
+   The new JVM CI job passes on Linux/JDK17.0.20.1: 222 owner cases,
+   14,477 renderer checks and 162 observer cases. Root verifies all 817 retained
+   artifact members against the pushed source. Services and VM also pass. Swift
+   attempt1 exceeded its 30-minute job limit during Android host binding; the final
+   consumer step was skipped. One bounded Swift-only retry passes, completing all
+   four jobs and 50 steps. Native runtime qualification remains pending.
+   The API28 prerequisite contract passes independent review. Bounded environment
+   observation/API-class isolation is selected for implementation with source
+   profile4, preserving both API36 guards and adding no rendering contexts.
+   The exact native implementation has private host/source acceptance after
+   76 independent JVM cases and 661 assertions, official Java/D8 compilation and
+   verification of 1,455 producer/review members. Profile4 also has independent
+   host/source acceptance: 118 fresh commands, including 107 refusal commands,
+   with actual creation/export and exact copied descriptor checks. Canonical
+   delivery is prepared. Native runtime stays pending.
    The reviewed clarification distinguishes lifecycle invalidation that can finish
    and queue a drain from concrete stale-capture validation that fails closed.
    Completed native input results never grant a stale scope further authority.

@@ -1,0 +1,5 @@
+Observed command: python3 verification/android-environment-platform-independent/audit_source.py
+Observed result: exit 1. Exact anchor check incorrectly compared one source line with a stored multiline anchor.
+The observed AssertionError named NativeAppearanceViewsV2:L120:C17:1, candidate line 198 column 17, whose text spans edit.setFilters and its lambda body.
+Correction: compare the complete source suffix at the exact line/column offset, preserving all multiline anchor bytes.
+This was an independent audit implementation defect. No product bytes changed. This read-only audit spawned no children, native instances, capture, UI or process inventory; no owned cleanup remained.

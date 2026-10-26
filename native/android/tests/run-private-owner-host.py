@@ -11,7 +11,7 @@ def main():
  p=argparse.ArgumentParser();p.add_argument('--evidence',type=Path,required=True);p.add_argument('--closure',choices=('A','B'),default='B');p.add_argument('--skip-matrix',action='store_true');p.add_argument('--jdk',type=Path,default=Path('/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home'));a=p.parse_args()
  evidence=a.evidence.resolve();evidence.mkdir(parents=True,exist_ok=False)
  roster=json.loads(ROSTER.read_text());closure=roster['closures']['A-orchestration' if a.closure=='A' else 'B-concrete-renderer-views']
- sources=closure['actual_production_sources']+[s['source'] for s in closure['substitutes']]+closure['test_support_sources']+[closure['test_source']]
+ sources=closure['actual_production_sources']+['native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java']+[s['source'] for s in closure['substitutes']]+closure['test_support_sources']+[closure['test_source']]
  if len(set(sources))!=len(sources):raise RuntimeError('duplicate explicit source')
  frozen={s:(ROOT/s).read_bytes() for s in sources};frozen['native/android/tests/run-private-owner-host.py']=Path(__file__).read_bytes()
  mapping='verification/android-private-owner-integration-implementation/barrier-map.json';frozen[mapping]=(ROOT/mapping).read_bytes()

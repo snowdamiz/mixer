@@ -99,7 +99,7 @@ def source_profile():
         value = json.loads(bytes.fromhex(SOURCE_PROFILE_HEX), object_pairs_hook=unique)
         keys = {'schema', 'id', 'sdk_compatibility_sha256', 'adapter_compatibility_sha256',
                 'default_descriptor', 'sdk_files', 'adapter_files', 'wire'}
-        if not isinstance(value, dict) or set(value) != keys or type(value['schema']) is not int or value['schema'] != 1 or value['id'] != 'mixer.android-source-pair.3':
+        if not isinstance(value, dict) or set(value) != keys or type(value['schema']) is not int or value['schema'] != 1 or value['id'] != 'mixer.android-source-pair.4':
             raise ValueError('unsupported profile shape/id')
         def identity(item):
             return (isinstance(item, dict) and set(item) == {'bytes', 'sha256'} and
@@ -107,7 +107,7 @@ def source_profile():
                     isinstance(item['sha256'], str) and re.fullmatch('[0-9a-f]{64}', item['sha256']) is not None)
         if not identity(value['default_descriptor']) or value['default_descriptor']['bytes'] > 65_536:
             raise ValueError('unsupported descriptor identity')
-        for kind, count in (('sdk', 22), ('adapter', 22)):
+        for kind, count in (('sdk', 22), ('adapter', 23)):
             files = value[kind + '_files']
             if not isinstance(files, dict) or len(files) != count:
                 raise ValueError('unsupported source map')

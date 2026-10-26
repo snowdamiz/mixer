@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "source_sha256": "a43397ec7cbbec398502acae5911394fced7ed8d220fee096589940eafb49fb1",
+  "G5_source_lines": [14789, 14815],
+  "proof_kind": "concrete source-admitted necessary subtrace obstruction, not a complete upper",
+  "external_precondition": "Actual public caller has admitted the loan. Public File/envelope reachability is not executed or proved by this packet.",
+  "per_iteration_components": [
+    {"source": "while i < 64", "scalars": 6, "copies": [], "edges": "both source operands, primitive comparison, result source, predicate, branch"},
+    {"source": "remaining <= headroom && destination != ABSENT", "scalars": 7, "copies": [], "edges": "left comparison's complete4edges, actual short-circuit branch, final if predicate/branch; destination RHS absent"},
+    {"source": "let slot_byte = c[512 + i]", "scalars": 24, "copies": [], "edges": "actual addition4 plus complete fixed Index20 including receiver/source/received/bounds/width1/address/reference/dereference/target"},
+    {"source": "if slot_byte == u8::MAX", "scalars": 6, "copies": [], "edges": "complete comparison and false conditional decision"},
+    {"source": "let slot = slot_byte as u64", "scalars": 3, "copies": [], "edges": "source-to-received operand, zero-extension primitive, result-to-target"},
+    {"source": "u64::from_le_bytes(arena_words[resident_word_base + slot as usize * 8 + 2])", "scalars": 38, "copies": [8], "edges": "actual cast/multiply/two-add index expression12; fat Index21 with actual length; LE call/conversion/designated/result/control5; complete array8 argument"},
+    {"source": "let Some(next) = remaining.checked_sub(bytes) else ...", "scalars": 13, "copies": [16, 16], "edges": "receiver/argument, call, arithmetic, underflow predicate/branch, Some tag/payload, complete constructor-to-designated Option16, complete designated-to-caller Option16, return, tag/pattern/branch, full payload-to-next"},
+    {"source": "remaining = next", "scalars": 1, "copies": [], "edges": "next source to remaining assignment target"},
+    {"source": "mask |= 1 << slot", "scalars": 7, "copies": [], "edges": "shift operands/result and OR source/result/assignment target"},
+    {"source": "destination = slot", "scalars": 1, "copies": [], "edges": "slot source to destination assignment target"},
+    {"source": "i += 1", "scalars": 4, "copies": [], "edges": "i and literal1 operands, primitive addition, result assignment"},
+    {"source": "end of successful while body", "scalars": 2, "copies": [], "edges": "actual body unit construction and back control"}
+  ],
+  "prelude_counted": {"source": "let headroom = f.capacity - f.base - w[13]", "scalars": 31, "copies": [], "edges": "two field projections6; actual w index21; two primitive-subtraction result edges4"},
+  "positive_omissions": [
+    "remaining/mask/destination and i initializers",
+    "b.as_chunks full receiver/tuple/return/pattern, width guard, quotient/remainder and address formation",
+    "complete Region24 materialization and resident_word_base division",
+    "all named scopes and conditional unit/continuation joins, successful let-else continuation",
+    "final false while test and final loop unit/continuation",
+    "complete final feasible predicate and designated binding"
+  ],
+  "ownership": {
+    "G2": "none counted or credited; accepted corrected G2 only constructs timestamps/mask before merge",
+    "G3_G4": "not counted or credited; mathematical merge model only establishes this witness's index ordering",
+    "G5": "headroom through feasible, with only the named necessary subtrace counted",
+    "G6": "six final sq calls and merge caller boundaries remain G6; actual six-call bytes checked equal old C3, no full upper/lifetime inheritance",
+    "G7": "no reject/reply operation counted; witness has no subtraction failure"
+  },
+  "all_counted_event_ids_unique": true,
+  "complete_copy_rule": "each distinct source-to-designated and designated-to-caller Option16 transfer is separately copied; indexed array8 input copied completely",
+  "scalar_group_limit": 16,
+  "copy_group_limit_bytes": 128,
+  "optimizer_last_use_byte_capacity_or_G2_slack_credit": false,
+  "changed_whole_lifetime_union_accepted": false,
+  "Rust_or_native_execution": false,
+  "implementation_accepted": false
+}

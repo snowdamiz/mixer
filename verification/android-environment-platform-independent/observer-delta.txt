@@ -1,0 +1,152 @@
+--- accepted-C5-Observer
++++ bounded-A-Observer
+@@ -1,22 +1,16 @@
+ package dev.mixer.android;
+ 
+ import android.app.Activity;
+-import android.app.UiModeManager;
+ import android.content.ComponentCallbacks;
+ import android.content.ContentResolver;
+ import android.content.res.Configuration;
+ import android.database.ContentObserver;
+-import android.graphics.Insets;
+ import android.os.Build;
+ import android.os.Handler;
+ import android.os.Looper;
+ import android.provider.Settings;
+-import android.util.DisplayMetrics;
+-import android.util.TypedValue;
+ import android.view.View;
+-import android.view.WindowInsets;
+ import android.view.ViewTreeObserver;
+-import android.view.accessibility.AccessibilityManager;
+ import android.widget.FrameLayout;
+ import java.util.Objects;
+ 
+@@ -66,8 +60,6 @@
+         final FrameLayout root;
+         private long generation = 1;
+         private boolean retired, initialized;
+-        private final UiModeManager modes;
+-        private final AccessibilityManager accessibility;
+         private final ContentResolver resolver;
+         private final ViewTreeObserver focusTarget;
+         private int pending, acquiring = -1;
+@@ -79,8 +71,8 @@
+         private Throwable primaryFailure;
+         private Error fatalFailure;
+         private boolean diagnosticsAttached;
+-        private final UiModeManager.ContrastChangeListener contrast = ignored -> invalidate();
+-        private final AccessibilityManager.HighContrastTextStateChangeListener highContrast = ignored -> invalidate();
++        private final NativeEnvironmentPlatformV2.Listener contrast;
++        private final NativeEnvironmentPlatformV2.Listener highContrast;
+         private final View.OnLayoutChangeListener layout = (v,l,t,r,b,ol,ot,or,ob) -> {
+             requireMain();
+             if (retired) return;
+@@ -102,8 +94,8 @@
+             // Public high-contrast read/listener first exists on API36. Never invent false on earlier OSes.
+             if (Build.VERSION.SDK_INT < 36 || root.getContext() != activity) unsupported();
+             this.sink = Objects.requireNonNull(sink); this.activity = activity; this.root = root;
+-            modes = Objects.requireNonNull(activity.getSystemService(UiModeManager.class));
+-            accessibility = Objects.requireNonNull(activity.getSystemService(AccessibilityManager.class));
++            contrast = NativeEnvironmentPlatformV2.contrastListener(activity, this::invalidate);
++            highContrast = NativeEnvironmentPlatformV2.highContrastListener(activity, this::invalidate);
+             resolver = Objects.requireNonNull(activity.getContentResolver());
+             focusTarget = Objects.requireNonNull(root.getViewTreeObserver());
+         }
+@@ -117,8 +109,8 @@
+                 begin(2); root.addOnAttachStateChangeListener(attachment); completed();
+                 begin(3); focusTarget.addOnWindowFocusChangeListener(windowFocus); completed();
+                 begin(4); root.setOnApplyWindowInsetsListener(insets); completed();
+-                begin(5); modes.addContrastChangeListener(activity.getMainExecutor(), contrast); completed();
+-                begin(6); accessibility.addHighContrastTextStateChangeListener(activity.getMainExecutor(), highContrast); completed();
++                begin(5); contrast.add(); completed();
++                begin(6); highContrast.add(); completed();
+                 begin(7); resolver.registerContentObserver(
+                     Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE), false, motion); completed();
+                 initialized = true;
+@@ -223,8 +215,8 @@
+                         if (!focusTarget.isAlive()) { cleanup[slot] = DEAD_TARGET_UNCERTAIN; continue; }
+                         focusTarget.removeOnWindowFocusChangeListener(windowFocus); break;
+                     case 4: root.setOnApplyWindowInsetsListener(null); break;
+-                    case 5: modes.removeContrastChangeListener(contrast); break;
+-                    case 6: accessibility.removeHighContrastTextStateChangeListener(highContrast); break;
++                    case 5: contrast.remove(); break;
++                    case 6: highContrast.remove(); break;
+                     case 7: resolver.unregisterContentObserver(motion); break;
+                     default: throw new AssertionError("Unknown observer slot");
+                     }
+@@ -241,48 +233,37 @@
+         }
+         AppearanceResolverV2.Environment read() {
+             requireMain();
+-            if (retired || !initialized || activity.isDestroyed() || !root.isAttachedToWindow() || root.getWindowToken() == null ||
+-                root.getWidth() <= 0 || root.getHeight() <= 0) unsupported();
+-            Configuration config = activity.getResources().getConfiguration();
+-            DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
+-            int density = AppearanceGeometryV2.normalizeDensity(metrics.density);
+-            double dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, metrics);
+-            double sp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 17, metrics);
+-            double body = sp / dp;
+-            if (!Double.isFinite(dp) || dp <= 0 || !Double.isFinite(sp) || sp <= 0 ||
+-                !Double.isFinite(body) || body < 14 || body > 53) unsupported();
+-            int body64 = (int)Math.floor(body * 64 + .5);
+-            int[] anchors = {896,960,1024,1088,1216,1344,1472,1792,2112,2560,3008,3392};
+-            int selected = 0;
+-            for (int i=1;i<anchors.length;i++)
+-                if (Math.abs(anchors[i]-body64) <= Math.abs(anchors[selected]-body64)) selected=i;
+-            WindowInsets captured = root.getRootWindowInsets();
+-            if (captured == null) unsupported();
+-            Insets insets = captured.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
+-            int[] location = new int[2]; root.getLocationInWindow(location);
+-            View decor = activity.getWindow().getDecorView();
+-            // Intersect actual window safe boundaries with this root. Already-inset roots do not pay twice.
+-            int top = Math.max(0,insets.top-location[1]);
+-            int left = Math.max(0,insets.left-location[0]);
+-            int right = Math.max(0,location[0]+root.getWidth()-(decor.getWidth()-insets.right));
+-            int bottom = Math.max(0,location[1]+root.getHeight()-(decor.getHeight()-insets.bottom));
+-            boolean rtl = root.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
+-            int adjustment = config.fontWeightAdjustment;
+-            if (adjustment != Configuration.FONT_WEIGHT_ADJUSTMENT_UNDEFINED && adjustment != 0 ||
+-                accessibility.isHighContrastTextEnabled() || modes.getContrast() > 0) unsupported();
+-            float animator = Settings.Global.getFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1);
+-            if (!Float.isFinite(animator) || animator < 0) unsupported();
++            if (retired || !initialized) unsupported();
++            NativeEnvironmentPlatformV2.Snapshot observed = NativeEnvironmentPlatformV2.snapshot(activity, root);
++            NativeEnvironmentPlatformV2.Frame frame = requireKnown(observed.frame);
++            int density = requireKnown(observed.density1024);
++            int selected = requireKnown(observed.bodyProfile);
++            boolean dark = requireKnown(observed.dark), rtl = requireKnown(observed.rtl);
++            String locale = requireKnown(observed.locale);
++            NativeEnvironmentPlatformV2.Insets4 insets = requireKnown(observed.insets);
++            if (requireKnown(observed.fontAdjustment) != 0 || requireKnown(observed.highContrast) ||
++                requireKnown(observed.contrast) != 0) unsupported();
++            float animator = requireKnown(observed.animator);
++            // Intersect exact window safe boundaries with this root once.
++            int top = Math.max(0,insets.top-frame.y);
++            int left = Math.max(0,insets.left-frame.x);
++            int right = Math.max(0,frame.x+frame.width-(frame.windowWidth-insets.right));
++            int bottom = Math.max(0,frame.y+frame.height-(frame.windowHeight-insets.bottom));
+             return new AppearanceResolverV2.Environment(
+-                (config.uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES ?
+-                    AppearanceResolverV2.Scheme.dark : AppearanceResolverV2.Scheme.light,
++                dark ? AppearanceResolverV2.Scheme.dark : AppearanceResolverV2.Scheme.light,
+                 rtl ? AppearanceResolverV2.Direction.rightToLeft : AppearanceResolverV2.Direction.leftToRight,
+                 AppearanceDescriptorV2.Profile.values()[selected], density,
+-                new AppearanceResolverV2.Viewport(logical(root.getWidth(),density),logical(root.getHeight(),density)),
++                new AppearanceResolverV2.Viewport(logical(frame.width,density),logical(frame.height,density)),
+                 new AppearanceResolverV2.SafeArea(logical(top,density),logical(rtl?right:left,density),
+-                    logical(bottom,density),logical(rtl?left:right,density)),
+-                config.getLocales().get(0).toLanguageTag(),
++                    logical(bottom,density),logical(rtl?left:right,density)), locale,
+                 new AppearanceResolverV2.Accessibility(false,false,animator == 0), Long.toString(generation));
+         }
++        private static <T> T requireKnown(NativeEnvironmentPlatformV2.Observed<T> observed) {
++            if (observed.status == NativeEnvironmentPlatformV2.Status.READ_FAILED) throw observed.failure;
++            if (observed.status != NativeEnvironmentPlatformV2.Status.KNOWN) unsupported();
++            return observed.value;
++        }
++
+         @Override public void onConfigurationChanged(Configuration configuration) { invalidate(); }
+         @Override public void onLowMemory() { requireMain(); /* no capture fields change */ }
+         @Override public void close() {

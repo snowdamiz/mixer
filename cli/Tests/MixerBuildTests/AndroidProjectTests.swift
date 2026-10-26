@@ -23,7 +23,7 @@ private let repository = URL(fileURLWithPath: #filePath).deletingLastPathCompone
     #expect(try SourceDigest.files(in: root.appendingPathComponent("app/assets")).map { String($0.path.dropFirst(root.path.count + 1)) } == ["app/assets/MixerAppearanceV2/descriptor.json"])
     let java = ["Json.java", "UiPacket.java", "NativeRenderer.java", "NativeBridge.java", "MixerActivity.java", "NativeCoordinatorV2.java",
                  "AppearanceDescriptorV2.java", "AppearanceGeometryV2.java", "AppearanceResolverV2.java",
-                 "AppearanceNativePathsV2.java", "InstalledAppearanceV2.java", "NativeEnvironmentV2.java",
+                 "AppearanceNativePathsV2.java", "InstalledAppearanceV2.java", "NativeEnvironmentV2.java", "NativeEnvironmentPlatformV2.java",
                  "AuthoredToggleInputV2.java", "NativeAppearanceViewsV2.java", "NativeOwnerV2.java", "OwnerLifecycleV2.java"]
     #expect(Set(try SourceDigest.files(in: root.appendingPathComponent("app/src")).map(\.lastPathComponent)) == Set(java))
     for name in java {
@@ -77,7 +77,7 @@ func androidDefaultAppearanceSnapshotChangesInvalidateAdapterLock(_ change: Stri
     #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent(".mixer").path))
 }
 
-@Test(arguments: ["NativeCoordinatorV2.java", "AuthoredToggleInputV2.java", "NativeOwnerV2.java", "OwnerLifecycleV2.java"], ["edit", "remove", "rename"])
+@Test(arguments: ["NativeCoordinatorV2.java", "AuthoredToggleInputV2.java", "NativeOwnerV2.java", "OwnerLifecycleV2.java", "NativeEnvironmentV2.java", "NativeEnvironmentPlatformV2.java"], ["edit", "remove", "rename"])
 func androidCoordinatorAndAuthoredToggleSnapshotChangesInvalidateAdapterLock(_ filename: String, _ change: String) throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-android-coordinator-lock-\(UUID().uuidString)")
     defer { try? FileManager.default.removeItem(at: root) }

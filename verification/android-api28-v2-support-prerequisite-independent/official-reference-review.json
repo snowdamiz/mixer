@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "checked_date": "2026-10-26",
+  "retrieval_tool": "web.run open and find; direct official Android references",
+  "scope": "Selected independently retrieved public reference facts, not archived full pages or runtime evidence. All named API floors also independently checked against installed official SDK metadata in command-1.stdout.txt.",
+  "findings": [
+    {
+      "id": "high-contrast",
+      "url": "https://developer.android.com/reference/android/view/accessibility/AccessibilityManager#isHighContrastTextEnabled()",
+      "reference_sections": ["isHighContrastTextEnabled", "addHighContrastTextStateChangeListener"],
+      "finding": "The public high-contrast read and listener registration are API36. The reference notes that custom rendering needs this query; use of native TextViews alone does not establish the authored V2 appearance satisfies the shared contract."
+    },
+    {
+      "id": "system-contrast",
+      "url": "https://developer.android.com/reference/android/app/UiModeManager#getContrast()",
+      "reference_sections": ["getContrast"],
+      "finding": "The public query is API34. Documented values lie between -1 and 1 inclusive, with default contrast at zero. This supports a finite exact-neutral admission policy instead of rejecting positive values only."
+    },
+    {
+      "id": "font-weight",
+      "url": "https://developer.android.com/reference/android/content/res/Configuration#fontWeightAdjustment",
+      "reference_sections": ["fontWeightAdjustment", "FONT_WEIGHT_ADJUSTMENT_UNDEFINED"],
+      "finding": "The adjustment and undefined sentinel are API31. Undefined data is distinct from a known zero; rejecting it is a selected strict policy, not evidence of unchanged prior admission."
+    },
+    {
+      "id": "legacy-insets",
+      "url": "https://developer.android.com/reference/android/view/WindowInsets#getSystemWindowInsetBottom()",
+      "reference_sections": ["getInsets", "getSystemWindowInsetBottom"],
+      "finding": "The typed query is API30. Legacy system-window insets describe obscuration by system windows including IME; exact equivalence to the typed V2 mask is not established."
+    },
+    {
+      "id": "system-bars",
+      "url": "https://developer.android.com/reference/android/view/WindowInsets.Type#systemBars()",
+      "reference_sections": ["systemBars"],
+      "finding": "The API30 aggregate excludes IME and displayCutout. V2 adds displayCutout explicitly. Combining legacy readings is not demonstrated equivalent to that current-window typed query."
+    },
+    {
+      "id": "font-conversion",
+      "url": "https://developer.android.com/reference/android/content/res/Configuration#fontScale",
+      "reference_sections": ["fontScale"],
+      "finding": "The reference cautions that fontScale is informational under nonlinear scaling and directs conversion through TypedValue. Preserve actual platform conversion rather than a uniform coefficient."
+    },
+    {
+      "id": "nondefaulting-motion-read",
+      "url": "https://developer.android.com/reference/android/provider/Settings.Global#getFloat(android.content.ContentResolver,%20java.lang.String)",
+      "reference_sections": ["getFloat(ContentResolver,String)", "getFloat(ContentResolver,String,float)"],
+      "finding": "The no-default overload is API17 and throws SettingNotFoundException for an absent or nonnumeric value. The defaulting overload returns its supplied default in those cases. A public nondefaulting observation is available at the proposed baseline."
+    }
+  ]
+}

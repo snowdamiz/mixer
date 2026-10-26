@@ -68,12 +68,12 @@ struct AndroidSDKProfile: Codable, Sendable {
 }
 
 enum AndroidSDKCompatibility {
-    // Selected frozen 22 + 22 map. Never infer or refresh from a selected SDK,
+    // Selected frozen 22 + 23 map. Never infer or refresh from a selected SDK,
     // mutable lock, resource, environment, or successful local build.
     static let profile: AndroidSDKProfile = {
         try! JSONDecoder().decode(AndroidSDKProfile.self, from: Data(#"""
         {
-          "adapter_compatibility_sha256": "c5df444d5be8f7d422dedde7786b0232f24db1b295288da3cc3fce31a27f5b59",
+          "adapter_compatibility_sha256": "2b001980e07e0d1c8a5139e79de6ad6ca83d8db66d386bd4f77689ab32a6325a",
           "adapter_files": {
             "Sources/MixerAndroidRuntime/DocumentSession.swift": {
               "bytes": 4128,
@@ -127,9 +127,13 @@ enum AndroidSDKCompatibility {
               "bytes": 13468,
               "sha256": "16597f90e5f9989404d88a94d35c531a06c964cd9a40dde94cc54c0aaaec5587"
             },
+            "app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java": {
+              "bytes": 14154,
+              "sha256": "2f871e9813380b2d645b3ee636f67a7b3eae072f140163e14c7ec7ed60c562b2"
+            },
             "app/src/dev/mixer/android/NativeEnvironmentV2.java": {
-              "bytes": 17379,
-              "sha256": "b852f3d31dd5dfb9526fe04ca049d314cfe868d004f4510fa2c7b10e3dfc14e1"
+              "bytes": 15696,
+              "sha256": "2cff6cc20d1c3c9ae751e217bba3192e315125f438312f29e933d0c79d339eb1"
             },
             "app/src/dev/mixer/android/NativeOwnerV2.java": {
               "bytes": 23743,
@@ -168,7 +172,7 @@ enum AndroidSDKCompatibility {
             "bytes": 9587,
             "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
           },
-          "id": "mixer.android-source-pair.3",
+          "id": "mixer.android-source-pair.4",
           "schema": 1,
           "sdk_compatibility_sha256": "4c2e74bbdb1c060ffa2219ed378d11ed390e7a4454b95df4a2ee72074bb9b5a7",
           "sdk_files": {

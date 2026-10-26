@@ -64,8 +64,8 @@ public final class NativeEnvironmentV2ObserverHostTests {
         View.OnAttachStateChangeListener attach = (View.OnAttachStateChangeListener)field(observer,"attachment");
         ViewTreeObserver.OnWindowFocusChangeListener focus = (ViewTreeObserver.OnWindowFocusChangeListener)field(observer,"windowFocus");
         View.OnApplyWindowInsetsListener insets = (View.OnApplyWindowInsetsListener)field(observer,"insets");
-        android.app.UiModeManager.ContrastChangeListener contrast = (android.app.UiModeManager.ContrastChangeListener)field(observer,"contrast");
-        android.view.accessibility.AccessibilityManager.HighContrastTextStateChangeListener high = (android.view.accessibility.AccessibilityManager.HighContrastTextStateChangeListener)field(observer,"highContrast");
+        android.app.UiModeManager.ContrastChangeListener contrast = (android.app.UiModeManager.ContrastChangeListener)field(field(observer,"contrast"),"listener");
+        android.view.accessibility.AccessibilityManager.HighContrastTextStateChangeListener high = (android.view.accessibility.AccessibilityManager.HighContrastTextStateChangeListener)field(field(observer,"highContrast"),"listener");
         ContentObserver motion = (ContentObserver)field(observer,"motion");
         return List.of(() -> observer.onConfigurationChanged(new Configuration()), observer::onLowMemory,
             () -> layout.onLayoutChange(observer.root,1,0,0,0,0,0,0,0),

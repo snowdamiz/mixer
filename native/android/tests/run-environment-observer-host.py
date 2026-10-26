@@ -31,6 +31,7 @@ LEAVES = (
     'dev/mixer/android/ObserverHostProbe.java',
 )
 SOURCES = ('native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java',
+           'native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java',
            'native/android/tests/NativeEnvironmentV2ObserverHostTests.java') + tuple(BASE + p for p in LEAVES)
 SELF = 'native/android/tests/run-environment-observer-host.py'
 MANIFEST = REPOSITORY / 'verification/android-environment-observer-lifecycle/host-source-freeze.json'

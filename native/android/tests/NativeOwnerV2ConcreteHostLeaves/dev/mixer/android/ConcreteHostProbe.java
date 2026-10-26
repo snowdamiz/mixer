@@ -41,7 +41,7 @@ public final class ConcreteHostProbe {
     private static boolean production(String name){
         if(!name.startsWith("dev.mixer.android."))return false;
         String simple=name.substring("dev.mixer.android.".length()).split("\\$",2)[0];
-        return switch(simple){case "NativeOwnerV2","OwnerLifecycleV2","NativeCoordinatorV2","NativeRenderer","NativeEnvironmentV2","NativeAppearanceViewsV2","InstalledAppearanceV2","UiPacket","Json","AppearanceDescriptorV2","AppearanceGeometryV2","AppearanceResolverV2","AppearanceNativePathsV2","AuthoredToggleInputV2"->true;default->false;};
+        return switch(simple){case "NativeOwnerV2","OwnerLifecycleV2","NativeCoordinatorV2","NativeRenderer","NativeEnvironmentV2","NativeEnvironmentPlatformV2","NativeAppearanceViewsV2","InstalledAppearanceV2","UiPacket","Json","AppearanceDescriptorV2","AppearanceGeometryV2","AppearanceResolverV2","AppearanceNativePathsV2","AuthoredToggleInputV2"->true;default->false;};
     }
     public static List<Event> events(){return Collections.unmodifiableList(new ArrayList<>(history));}
     public static Event lastEvent(){return history.isEmpty()?null:history.get(history.size()-1);}
