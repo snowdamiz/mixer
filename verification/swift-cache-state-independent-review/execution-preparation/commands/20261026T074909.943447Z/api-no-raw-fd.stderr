@@ -1,0 +1,19 @@
+error[E0308]: arguments to this function are incorrect
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-independent-review/execution-preparation/api-probes/no-raw-fd.rs:3:41
+   |
+ 3 | fn probe(a:i32,b:i32,c:i32,d:i32){let _=api::analyze_fixture_cache_state_v1(a,b,c,d);} fn main(){}
+   |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ - - - - expected `&mut File`, found `i32`
+   |                                                                             | | |
+   |                                                                             | | expected `&mut File`, found `i32`
+   |                                                                             | expected `&mut File`, found `i32`
+   |                                                                             expected `&mut File`, found `i32`
+   |
+note: function defined here
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-independent-review/execution-preparation/protocol_stub.rs:71:8
+   |
+71 | pub fn analyze_fixture_cache_state_v1(_s:&mut File,_p:&mut File,c:&mut File,o:&mut File)->Result<FixtureCacheStateOutcomeV1,Analyzer...
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.

@@ -1,0 +1,241 @@
+{
+  "controls": [
+    {
+      "case": "missing source member",
+      "result": "block candidate/source admission; no fixture digest or syntactic success supplies source authority"
+    },
+    {
+      "case": "wrong exact hash",
+      "result": "block candidate/source admission; no fixture digest or syntactic success supplies source authority"
+    },
+    {
+      "case": "altered excerpt",
+      "result": "block candidate/source admission; no fixture digest or syntactic success supplies source authority"
+    },
+    {
+      "case": "wrong line span",
+      "result": "block candidate/source admission; no fixture digest or syntactic success supplies source authority"
+    },
+    {
+      "case": "stale source identity",
+      "result": "block candidate/source admission; no fixture digest or syntactic success supplies source authority"
+    },
+    {
+      "case": "unproved relation to live VM",
+      "result": "block candidate/source admission; no fixture digest or syntactic success supplies source authority"
+    }
+  ],
+  "copied_seam_inventory": {
+    "candidate_member_authority_is_hash_not_context_revision": true,
+    "schema": 1,
+    "seams": [
+      {
+        "authority": "copied instrumented completion source; no claim about current live VM",
+        "excerpt_sha256": "b393b9df37aa52f838725d9fcda6cc8187d57de3ea3b4ae8bb84d71bd70b39e8",
+        "excerpt_utf8": "    let mut meter = M::meter(usage, operation, function);\n    meter.step(CacheStep::Lookup);\n    meter.work(1)?;\n    let defined = parts\n        .snapshot\n        .function(function)\n        .ok_or_else(|| meter.error(CacheFailureKind::InvalidFunction, \"not_defined_function\"))?;\n    meter.set_offset(defined.body_offset);\n    let nonce = parts\n        .next_nonce\n        .checked_add(1)\n        .ok_or_else(|| meter.error(CacheFailureKind::NonceExhausted, \"pin_nonce_exhausted\"))?;\n    let mut pin_slot = None;\n    for (index, record) in parts.pins.iter().enumerate() {\n        meter.work(1)?;\n        if record.nonce == 0 {\n            pin_slot = Some(index);\n            break;\n        }\n    }\n    let pin_slot = pin_slot\n        .ok_or_else(|| meter.error(CacheFailureKind::PinExhausted, \"pin_slots_exhausted\"))?;\n    meter.acquire_pin()?;\n    let result = pin_acquired::<M>(&mut parts, &mut meter, defined, pin_slot, nonce);\n    if result.is_err() {\n        meter.abandon_pin();\n    }\n",
+        "first_line": 736,
+        "last_line": 762,
+        "name": "pre_lookup_admission",
+        "path": "verification/swift-ordered-retention-analyzer-design/inputs/candidate__src__experimental__cache__borrowed.rs",
+        "snapshot": "inputs/23-candidate__src__experimental__cache__borrowed.rs",
+        "source_sha256": "3f3d989216b3e9208e1ff875ec07d6f0940f9f890c3d0035c1544d871e3022a8"
+      },
+      {
+        "authority": "copied instrumented completion source; no claim about current live VM",
+        "excerpt_sha256": "0e701cd3bc061f569e790aace9890fb22b12324536092c3af99862d3c3bc4549",
+        "excerpt_utf8": "    parts: &mut CacheFields<'_, M>,\n    meter: &mut M::Meter<'_, '_>,\n    defined: FunctionSpanView<'_>,\n    pin_slot: usize,\n    nonce: u64,\n) -> Result<M::Pin, M::Failure> {\n    let function = defined.absolute_index;\n    let hit = M::resident_lookup(parts.slots, &mut parts.scratch, function, meter)?;\n    #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(2,defined,hit.map_or(u64::MAX,|n|n as u64),u64::MAX,0,u64::from(hit.is_some()),0,0));\n    let index = if let Some(index) = hit {\n        meter.check()?;\n        let hits = meter\n            .usage()\n            .hits()\n            .checked_add(1)\n            .ok_or_else(|| meter.error(CacheFailureKind::WorkExhausted, \"hits_overflow\"))?;\n        meter.usage_mut().hit(hits);\n        index\n",
+        "first_line": 774,
+        "last_line": 791,
+        "name": "lookup",
+        "path": "verification/swift-ordered-retention-analyzer-design/inputs/candidate__src__experimental__cache__borrowed.rs",
+        "snapshot": "inputs/23-candidate__src__experimental__cache__borrowed.rs",
+        "source_sha256": "3f3d989216b3e9208e1ff875ec07d6f0940f9f890c3d0035c1544d871e3022a8"
+      },
+      {
+        "authority": "copied instrumented completion source; no claim about current live VM",
+        "excerpt_sha256": "284eea57325c3c4da4739072ae6ac043ad43847a6bf3dc3a509892f997869f41",
+        "excerpt_utf8": "    }\n    fn scan(\n        snapshot: &ValidatedSwiftReactor,\n        body: FunctionSpanView<'_>,\n        scratch: &mut SwiftScratch<'_>,\n        meter: &mut SwiftMeter<'_, '_>,\n    ) -> Result<decode::Counts, SwiftRunFailure> {\n        #[cfg(test)] Self::ordered_diagnostic(meter,ordered_event(3,body,u64::MAX,u64::MAX,0,0,0,(body.absolute_index&511) as u64));\n        let policy = policy(snapshot, body, meter)?;\n        if scratch.plans.len() != PLAN_CAPACITY {\n            return Err(meter.error(CacheFailureKind::DecoderMismatch, \"swift_plan_layout\"));\n        }\n        meter.work(1)?; // requested identity hash, collision alone never authorizes\n        let index = body.absolute_index as usize & (PLAN_CAPACITY - 1);\n        meter.work(1)?; // actual Option tag probe\n        #[cfg(test)] let mut ordered_prior=u64::MAX;\n        if let Some(plan) = &scratch.plans[index] {\n            meter.work(1)?; // actual function identity probe\n            #[cfg(test)] {ordered_prior=plan.function as u64;}\n            if plan.function == body.absolute_index {\n                // Probe all three remaining immutable-identity cells, including\n                // malformed metadata. Do not short-circuit their accounting.\n                meter.work(3)?;\n                if plan.body_offset != body.body_offset\n                    || plan.body_len != body.body.len()\n                    || plan.type_index != body.type_index\n                {\n                    return Err(\n                        meter.error(CacheFailureKind::DecoderMismatch, \"swift_plan_identity\")\n                    );\n                }\n                meter.work(3)?; // actual three-field Counts copy; also checks stop\n                #[cfg(test)] Self::ordered_diagnostic(meter,ordered_event(4,body,u64::MAX,u64::MAX,0,2,u64::MAX,index as u64));\n                return Ok(plan.counts);\n            }\n        }\n        meter.step(CacheStep::ScanReset);\n        reset(scratch.patches, meter)?;\n        meter.step(CacheStep::Scan);\n        let mut depth = 0;\n        let mut counts = decode::Counts::default();\n        let counts = decode::scan_borrowed(\n            body.body,\n            body.body_offset,\n            &policy,\n            meter,\n            decode::PassParts {\n                controls: scratch.patches,\n                depth: &mut depth,\n                counts: &mut counts,\n            },\n            None,\n        )?;\n        // Successful complete scan is the only publishing source. All checks\n        // and charges precede the single infallible full-cell replacement.\n        meter.work(PLAN_CELL_CREDITS + 3)?;\n        scratch.plans[index] = Some(ScanPlan {\n            function: body.absolute_index,\n            body_offset: body.body_offset,\n            body_len: body.body.len(),\n            type_index: body.type_index,\n            counts,\n        });\n        #[cfg(test)] Self::ordered_diagnostic(meter,ordered_event(4,body,u64::MAX,u64::MAX,0,u64::from(ordered_prior!=u64::MAX),ordered_prior,index as u64));\n        Ok(counts)\n    }\n",
+        "first_line": 2203,
+        "last_line": 2268,
+        "name": "plan",
+        "path": "verification/swift-ordered-retention-analyzer-design/inputs/candidate__src__experimental_swift_reactor__cache.rs",
+        "snapshot": "inputs/24-candidate__src__experimental_swift_reactor__cache.rs",
+        "source_sha256": "90d540a121c0f1c2d941fb74ed652a492f555203bb8543a7aa1d440ccbba7cfd"
+      },
+      {
+        "authority": "copied instrumented completion source; no claim about current live VM",
+        "excerpt_sha256": "b140fd4d46bb394e1c738a826d7388347216d74d42f35595ffa5b67af745bece",
+        "excerpt_utf8": "            .usage()\n            .decodes()\n            .checked_add(1)\n            .ok_or_else(|| meter.error(CacheFailureKind::WorkExhausted, \"decodes_overflow\"))?;\n        let counts = M::scan(parts.snapshot, defined, &mut parts.scratch, meter)?;\n        let bytes = counts.bytes(meter)?;\n        if bytes > meter.entry_capacity() {\n            return Err(meter.detailed(\n                CacheFailureKind::EntryOversize,\n                \"entry_bytes\",\n                bytes as u64,\n                meter.entry_capacity() as u64,\n            ));\n        }\n        let base = meter.base();\n        let capacity = meter.capacity();\n        if base.checked_add(bytes).is_none_or(|n| n > capacity) {\n            return Err(meter.error(CacheFailureKind::Capacity, \"entry_cannot_fit\"));\n        }\n        #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(5,defined,u64::MAX,u64::MAX,0,bytes as u64,base as u64,capacity as u64));\n        meter.step(CacheStep::Planning);\n        let mut plan = [false; MAX_ENTRIES];\n        let mut remaining = meter.usage().resident();\n        meter.work(parts.slots.len() as u64)?;\n        let mut empty = parts.slots.iter().position(|slot| slot.entry().is_none());\n",
+        "first_line": 800,
+        "last_line": 824,
+        "name": "readiness",
+        "path": "verification/swift-ordered-retention-analyzer-design/inputs/candidate__src__experimental__cache__borrowed.rs",
+        "snapshot": "inputs/23-candidate__src__experimental__cache__borrowed.rs",
+        "source_sha256": "3f3d989216b3e9208e1ff875ec07d6f0940f9f890c3d0035c1544d871e3022a8"
+      },
+      {
+        "authority": "copied instrumented completion source; no claim about current live VM",
+        "excerpt_sha256": "0a7996930099bcdc263745c878607d3d8d46b5211ff32834dc65ff49ff3b0682",
+        "excerpt_utf8": "        meter.work(parts.slots.len() as u64)?;\n        let mut empty = parts.slots.iter().position(|slot| slot.entry().is_none());\n        while empty.is_none() || base + remaining + bytes > capacity {\n            let mut oldest: Option<usize> = None;\n            for (index, slot) in parts.slots.iter().enumerate() {\n                meter.work(1)?;\n                if !plan[index]\n                    && slot.pins() == 0\n                    && slot.entry().is_some()\n                    && oldest.is_none_or(|p| slot.last_used() < parts.slots[p].last_used())\n                {\n                    oldest = Some(index);\n                }\n            }\n            let victim = oldest\n                .ok_or_else(|| meter.error(CacheFailureKind::AllPinned, \"all_entries_pinned\"))?;\n            plan[victim] = true;\n            remaining -= parts.slots[victim].entry().expect(\"selected entry\").bytes;\n            empty = Some(victim);\n        }\n",
+        "first_line": 823,
+        "last_line": 842,
+        "name": "victim_selection",
+        "path": "verification/swift-ordered-retention-analyzer-design/inputs/candidate__src__experimental__cache__borrowed.rs",
+        "snapshot": "inputs/23-candidate__src__experimental__cache__borrowed.rs",
+        "source_sha256": "3f3d989216b3e9208e1ff875ec07d6f0940f9f890c3d0035c1544d871e3022a8"
+      },
+      {
+        "authority": "copied instrumented completion source; no claim about current live VM",
+        "excerpt_sha256": "483b59421e348a39a700206fd31252c9da67e4785a9c4acf90823b3185aeec59",
+        "excerpt_utf8": "        meter.check()?;\n        for (index, selected) in plan.iter().enumerate().take(parts.slots.len()) {\n            if *selected {\n                let bytes = parts.slots[index].entry().expect(\"planned entry\").bytes;\n                #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(6,defined,index as u64,u64::MAX,0,bytes as u64,0,0));\n                M::resident_remove(parts.slots, &mut parts.scratch, index, meter)?;\n                let old = parts.slots[index].take().expect(\"planned entry\");\n                #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(7,defined,index as u64,u64::MAX,0,bytes as u64,0,0));\n                M::drop_entry(old, meter)?;\n                meter.usage_mut().evicted(bytes);\n                #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(8,defined,index as u64,u64::MAX,0,bytes as u64,0,0));\n            }\n        }\n        let index =\n            empty.ok_or_else(|| meter.error(CacheFailureKind::Capacity, \"no_entry_slot\"))?;\n        meter.construction(bytes)?;\n",
+        "first_line": 853,
+        "last_line": 868,
+        "name": "eviction",
+        "path": "verification/swift-ordered-retention-analyzer-design/inputs/candidate__src__experimental__cache__borrowed.rs",
+        "snapshot": "inputs/23-candidate__src__experimental__cache__borrowed.rs",
+        "source_sha256": "3f3d989216b3e9208e1ff875ec07d6f0940f9f890c3d0035c1544d871e3022a8"
+      },
+      {
+        "authority": "copied instrumented completion source; no claim about current live VM",
+        "excerpt_sha256": "e9e7594d4d1dba2e936c0b8934f0564d77d5e0567dea7383429e8733bba60709",
+        "excerpt_utf8": "        let entry = match decoded {\n            Ok(entry) => entry,\n            Err(error) => {\n                let _ = meter.construction(0);\n                return Err(error);\n            }\n        };\n        #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(10,defined,u64::MAX,u64::MAX,0,bytes as u64,0,0));\n        meter.step(CacheStep::Publication);\n        if let Err(error) = meter.check() {\n            let _ = M::drop_entry(entry, meter);\n            let _ = meter.construction(0);\n            return Err(error);\n        }\n        if let Err(error) =\n            M::resident_insert(parts.slots, &mut parts.scratch, function, index, meter)\n        {\n            let _ = M::drop_entry(entry, meter);\n            let _ = meter.construction(0);\n            return Err(error);\n        }\n        // Both hooks precharge their complete mutation; no fallible operation\n        // separates the index update from the infallible slot publication.\n        meter.usage_mut().decoded(next_decodes, bytes);\n        parts.slots[index].set(entry);\n        index\n    };\n",
+        "first_line": 871,
+        "last_line": 897,
+        "name": "construction",
+        "path": "verification/swift-ordered-retention-analyzer-design/inputs/candidate__src__experimental__cache__borrowed.rs",
+        "snapshot": "inputs/23-candidate__src__experimental__cache__borrowed.rs",
+        "source_sha256": "3f3d989216b3e9208e1ff875ec07d6f0940f9f890c3d0035c1544d871e3022a8"
+      },
+      {
+        "authority": "copied instrumented completion source; no claim about current live VM",
+        "excerpt_sha256": "15907af7f0cf94a4125cafefd28fe6cd309eeb72c2cc2cd2f00f8bcae9eae1ef",
+        "excerpt_utf8": "    let slot = &mut parts.slots[index];\n    meter.usage_mut().pin(\n        slot.entry().expect(\"resident entry\").bytes,\n        slot.pins() == 0,\n    );\n    slot.set_pins(slot.pins() + 1);\n    slot.set_last_used(meter.work_used());\n    parts.pins[pin_slot] = PinRecord {\n        nonce: *parts.next_nonce,\n        entry: index,\n    };\n    let pin = M::Pin::new(parts.owner, pin_slot, *parts.next_nonce);\n    *parts.next_nonce = nonce;\n    #[cfg(test)] M::ordered_diagnostic(meter,ordered_event(11,defined,index as u64,pin_slot as u64,pin.nonce(),u64::from(hit.is_none()),slot.entry().expect(\"resident entry\").bytes as u64,slot.pins() as u64));\n    Ok(pin)\n",
+        "first_line": 898,
+        "last_line": 912,
+        "name": "publication",
+        "path": "verification/swift-ordered-retention-analyzer-design/inputs/candidate__src__experimental__cache__borrowed.rs",
+        "snapshot": "inputs/23-candidate__src__experimental__cache__borrowed.rs",
+        "source_sha256": "3f3d989216b3e9208e1ff875ec07d6f0940f9f890c3d0035c1544d871e3022a8"
+      },
+      {
+        "authority": "copied instrumented completion source; no claim about current live VM",
+        "excerpt_sha256": "43062f554fd608041fc21eb021fe14dd5cc9829b7e0d1337a2d30a43c4f77149",
+        "excerpt_utf8": "pub(crate) fn checked_record<M: CacheMode>(\n    parts: CacheViewParts<'_, M>,\n    pin: &M::Pin,\n    meter: &mut impl PinDiagnostic<M::Failure>,\n) -> Result<PinRecord, M::Failure> {\n    if pin.owner() != parts.owner {\n        return Err(meter.invalid(\"wrong_cache_owner\"));\n    }\n    let record = parts\n        .pins\n        .get(pin.slot())\n        .copied()\n        .filter(|r| r.nonce != 0 && r.nonce == pin.nonce())\n        .ok_or_else(|| meter.invalid(\"stale_pin\"))?;\n    if parts\n        .slots\n        .get(record.entry)\n        .is_none_or(|s| s.pins() == 0 || s.entry().is_none())\n    {\n        return Err(meter.invalid(\"stale_entry\"));\n    }\n    Ok(record)\n}\npub(crate) fn view<'a, M: CacheMode>(\n    parts: CacheViewParts<'a, M>,\n    pin: &M::Pin,\n    meter: &mut impl PinDiagnostic<M::Failure>,\n) -> Result<FunctionView<'a>, M::Failure> {\n    let record = checked_record::<M>(\n        CacheViewParts {\n            slots: parts.slots,\n            pins: parts.pins,\n            owner: parts.owner,\n        },\n        pin,\n        meter,\n    )?;\n    let e = parts.slots[record.entry]\n        .entry()\n        .ok_or_else(|| meter.invalid(\"stale_entry\"))?;\n    Ok(FunctionView {\n        function: e.function,\n        type_index: e.type_index,\n        body_offset: e.body_offset,\n        locals: &e.locals,\n        instructions: &e.instructions,\n        branch_targets: &e.branch_targets,\n    })\n}\npub(crate) fn release<M: CacheMode>(\n    parts: CacheParts<'_, M>,\n    pin: M::Pin,\n    operation: &mut impl ReleaseControl<M::Failure>,\n) -> Result<(), (M::Failure, M::Pin)> {\n    let record = match checked_record::<M>(\n        CacheViewParts {\n            slots: parts.slots,\n            pins: parts.pins,\n            owner: parts.owner,\n        },\n        &pin,\n        operation,\n    ) {\n        Ok(r) => r,\n        Err(e) => return Err((e, pin)),\n    };\n    if let Err(e) = operation.release_pin() {\n        return Err((e, pin));\n    }\n    let slot = &mut parts.slots[record.entry];\n    parts\n        .usage\n        .release(slot.entry().expect(\"checked entry\").bytes, slot.pins() == 1);\n    slot.set_pins(slot.pins() - 1);\n    parts.pins[pin.slot()] = PinRecord::default();\n    #[cfg(test)] {\n        let entry=slot.entry().expect(\"checked entry\");\n        operation.ordered_release([12,entry.function as u64,entry.body_offset as u64,u64::MAX,entry.type_index as u64,record.entry as u64,pin.slot() as u64,pin.nonce(),entry.bytes as u64,0,slot.pins() as u64]);\n",
+        "first_line": 633,
+        "last_line": 710,
+        "name": "release",
+        "path": "verification/swift-ordered-retention-analyzer-design/inputs/candidate__src__experimental__cache__borrowed.rs",
+        "snapshot": "inputs/23-candidate__src__experimental__cache__borrowed.rs",
+        "source_sha256": "3f3d989216b3e9208e1ff875ec07d6f0940f9f890c3d0035c1544d871e3022a8"
+      },
+      {
+        "authority": "copied instrumented completion source; no claim about current live VM",
+        "excerpt_sha256": "269d15adba6429cbb72c33a33a72be09ff2c3562d2c3eb8588103f2020c21ea1",
+        "excerpt_utf8": "    fn invalid(&mut self, code: &'static str) -> SwiftRunFailure {\n        self.error(CacheFailureKind::InvalidPin, code)\n    }\n}\nimpl ReleaseControl<SwiftRunFailure> for CacheControl<'_> {\n    #[cfg(test)]\n    fn ordered_release(&mut self,event:[u64;11]){super::cache_tests::ordered_observer::observe(event,self.control.ordered_coordinates());}\n    fn release_pin(&mut self) -> Result<(), SwiftRunFailure> {\n        self.remove_live(Live::ActivePins)\n    }\n",
+        "first_line": 1427,
+        "last_line": 1436,
+        "name": "release_control",
+        "path": "verification/swift-ordered-retention-analyzer-design/inputs/candidate__src__experimental_swift_reactor__cache.rs",
+        "snapshot": "inputs/24-candidate__src__experimental_swift_reactor__cache.rs",
+        "source_sha256": "90d540a121c0f1c2d941fb74ed652a492f555203bb8543a7aa1d440ccbba7cfd"
+      },
+      {
+        "authority": "exact accepted diagnostic wire source",
+        "excerpt_sha256": "0b4d1c27fef5e2acdcea9b2c862563f666e1f41564f79320a55c46393097fbe8",
+        "excerpt_utf8": "pub struct Record(pub [u64;16]);\nimpl Record {\n    pub fn new(kind:u64,phase:u64,operation:u64,function:u64)->Self {\n        Self([0,kind,phase,operation,0,0,function,ABSENT,ABSENT,ABSENT,ABSENT,ABSENT,0,0,0,0])\n    }\n    pub fn encode(&self,out:&mut [u8;128]) {\n        for (i,n) in self.0.iter().enumerate(){out[8*i..8*i+8].copy_from_slice(&n.to_le_bytes());}\n    }\n    pub fn decode(raw:&[u8;128])->Self {\n        let mut words=[0;16];for (i,n) in words.iter_mut().enumerate(){*n=u64::from_le_bytes(raw[8*i..8*i+8].try_into().unwrap());}Self(words)\n    }\n    pub fn valid(&self,code_count:u64)->bool {\n        let w=&self.0;\n        if !(1..=14).contains(&w[1])||w[2]>5||w[0]==0{return false;}\n        let full=w[6]<80000&&w[7]!=ABSENT&&w[8]!=ABSENT&&w[9]!=ABSENT&&w[7].checked_add(w[8]).is_some();\n        let absent_body=w[7..10]==[ABSENT;3];\n        let no_slots=w[10]==ABSENT&&w[11]==ABSENT&&w[12]==0;\n        match w[1] {\n            1=>w[3]>0&&w[6]<80000&&absent_body&&no_slots&&w[13..16]==[0;3],\n            2=>w[3]>0&&full&&w[11]==ABSENT&&w[12]==0&&w[13]<=1&&w[14]==0&&w[15]==0&&if w[13]==0{w[10]==ABSENT}else{w[10]<64},\n            3=>w[3]>0&&full&&no_slots&&w[13]==0&&w[14]==0&&w[15]==w[6]&511,\n            4=>w[3]>0&&full&&no_slots&&w[13]<=2&&(if w[13]==1{w[14]<80000&&w[14]!=w[6]}else{w[14]==ABSENT})&&w[15]==w[6]&511,\n            5=>w[3]>0&&full&&no_slots&&w[13]>0&&w[14].checked_add(w[13]).is_some_and(|n|n<=w[15]),\n            6..=8=>w[3]>0&&full&&w[10]<64&&w[11]==ABSENT&&w[12]==0&&w[13]>0&&w[14..16]==[0;2],\n            9|10=>w[3]>0&&full&&no_slots&&w[13]>0&&w[14..16]==[0;2],\n            11=>w[3]>0&&full&&w[10]<64&&w[11]<64&&w[12]>0&&w[13]<=1&&w[14]>0&&(1..=64).contains(&w[15]),\n            12=>w[3]==0&&w[6]<80000&&w[7]!=ABSENT&&w[8]==ABSENT&&w[9]!=ABSENT&&w[10]<64&&w[11]<64&&w[12]>0&&w[13]>0&&w[14]==0&&w[15]<64,\n            13=>w[3]==0&&w[6]==ABSENT&&absent_body&&no_slots&&w[13]==w[2]&&w[14..16]==[0;2],\n            14=>absent_body&&(w[6]==ABSENT||w[6]<80000)&&no_slots&&(1..=21).contains(&w[13])&&(1..=code_count).contains(&w[14])&&(1..=6).contains(&w[15]),\n            _=>false,\n        }\n    }\n}\npub fn encode_frame(words:&[u64;64])->[u8;512] {\n    let mut bytes=[0;512];for (i,n) in words.iter().enumerate(){bytes[i*8..i*8+8].copy_from_slice(&n.to_le_bytes());}bytes\n}\npub fn header(cap:u64,mask:u64,digests:[[u8;32];4])->Option<[u8;512]> {\n    if cap==0||cap>MAX_RECORDS||mask==0||mask>=64||mask&33!=33{return None;}\n    let mut w=[0;64]; w[..10].copy_from_slice(&[HEADER_MAGIC,1,512,128,512,cap,80000,64,512,mask]);\n    let mut out=encode_frame(&w);for(i,d)in digests.iter().enumerate(){out[128+32*i..160+32*i].copy_from_slice(d);}Some(out)\n}\npub fn valid_header(raw:&[u8;512])->bool {\n    let word=|i:usize|u64::from_le_bytes(raw[i*8..i*8+8].try_into().unwrap());\n    word(0)==HEADER_MAGIC&&word(1)==1&&word(2)==512&&word(3)==128&&word(4)==512&&\n    (1..=MAX_RECORDS).contains(&word(5))&&word(6)==80000&&word(7)==64&&word(8)==512&&\n    word(9)<64&&word(9)&33==33&&raw[80..128].iter().all(|b|*b==0)&&raw[256..].iter().all(|b|*b==0)\n",
+        "first_line": 11,
+        "last_line": 56,
+        "name": "wire",
+        "path": "verification/swift-ordered-retention-analyzer-design/inputs/verification__swift-ordered-retention-diagnostic-rust__writer.rs",
+        "snapshot": "inputs/25-verification__swift-ordered-retention-diagnostic-rust__writer.rs",
+        "source_sha256": "25e95e2d79068f41b77ba9d23a391797a966b96057686cad2de48b2733193757"
+      },
+      {
+        "authority": "exact accepted diagnostic wire source",
+        "excerpt_sha256": "add00be8d56856b1cad23ae738be126cdf720acf32e8537214cce8c36651d197",
+        "excerpt_utf8": "    pub fn observe(payload:[u64;11],coordinates:(u64,u64))->bool {\n        if !enter(){return false;}\n        if !owner(){invalidate(CONTEXT);leave();return false;}\n        let accepted=WRITER.with(|cell|{\n            let Ok(mut state)=cell.try_borrow_mut()else{invalidate(BORROW);return false;};\n            let Some(writer)=state.as_mut()else{invalidate(LIFECYCLE);return false;};\n            writer.freeze(FLAGS.load(Ordering::Acquire));\n            let operation=match payload[0]{1=>match writer.operation.checked_add(1){Some(n)=>n,None=>{writer.freeze(OVERFLOW);return false;}},12|13=>0,14=>if payload[5]==ABSENT{writer.operation}else{0},_=>writer.operation};\n            let mut event=Record([0,payload[0],writer.phase,operation,coordinates.0,coordinates.1,payload[1],payload[2],payload[3],payload[4],payload[5],payload[6],payload[7],payload[8],payload[9],payload[10]]);\n            if payload[0]==13{event.0[2]=payload[8];}\n            if payload[0]==14{event.0[10]=ABSENT;}\n            writer.push(event);true\n        });leave();accepted\n    }\n    pub fn acquire(function:u32,coordinates:(u64,u64)){observe([1,function as u64,ABSENT,ABSENT,ABSENT,ABSENT,ABSENT,0,0,0,0],coordinates);}\n    pub fn phase(phase:u64,coordinates:(u64,u64)){observe([13,ABSENT,ABSENT,ABSENT,ABSENT,ABSENT,ABSENT,0,phase,0,0],coordinates);}\n    pub fn failure(f:&SwiftRunFailure,terminal:bool){\n        let code=source_code(f.code);\n        if code==0 {if enter(){invalidate(CODE);leave();}return;}\n        let operation=if terminal{0}else{ABSENT};\n        observe([14,f.function.map_or(ABSENT,|n|n as u64),ABSENT,ABSENT,ABSENT,operation,ABSENT,0,kind(f.kind),code,stage(f.stage)],(f.at_failure.cache_work,f.at_failure.instructions));\n    }\n    pub fn stage(s:SwiftRunStage)->u64{match s{SwiftRunStage::Adoption=>1,SwiftRunStage::Cache=>2,SwiftRunStage::Initialization=>3,SwiftRunStage::Invocation=>4,SwiftRunStage::Wasi=>5,SwiftRunStage::Cleanup=>6}}\n    pub fn kind(k:SwiftRunFailureKind)->u64{match k{SwiftRunFailureKind::InvalidBudget=>1,SwiftRunFailureKind::Cancelled=>2,SwiftRunFailureKind::Deadline=>3,SwiftRunFailureKind::Allocation=>4,SwiftRunFailureKind::Adoption=>5,SwiftRunFailureKind::CategoryExhausted=>6,SwiftRunFailureKind::CombinedExhausted=>7,SwiftRunFailureKind::ResourceExhausted=>8,SwiftRunFailureKind::FuelExhausted=>9,SwiftRunFailureKind::WorkExhausted=>10,SwiftRunFailureKind::HostCallLimit=>11,SwiftRunFailureKind::PinLimit=>12,SwiftRunFailureKind::FrameLimit=>13,SwiftRunFailureKind::ValueLimit=>14,SwiftRunFailureKind::ControlLimit=>15,SwiftRunFailureKind::DecoderMismatch=>16,SwiftRunFailureKind::UnsupportedEnvironment=>17,SwiftRunFailureKind::GuestTrap=>18,SwiftRunFailureKind::GuestExit=>19,SwiftRunFailureKind::Wasi=>20,SwiftRunFailureKind::Invariant=>21}}\n    pub fn cleanup(k:Option<SwiftCleanupInvariant>)->u64{match k{None=>0,Some(SwiftCleanupInvariant::ReservationOwner)=>1,Some(SwiftCleanupInvariant::ReservationUnderflow)=>2,Some(SwiftCleanupInvariant::MissingConstruction)=>3,Some(SwiftCleanupInvariant::ConstructionBound)=>4,Some(SwiftCleanupInvariant::LiveUnderflow)=>5}}\n    pub fn source_code(code:&str)->u64{match code{\n",
+        "first_line": 84,
+        "last_line": 109,
+        "name": "observer_coordinate",
+        "path": "verification/swift-ordered-retention-analyzer-design/inputs/verification__swift-ordered-retention-diagnostic-rust__observer.rs",
+        "snapshot": "inputs/26-verification__swift-ordered-retention-diagnostic-rust__observer.rs",
+        "source_sha256": "9c3c31d6406da4a86abcb4893b0813048f07455340f0976d68adc48dc7805aee"
+      },
+      {
+        "authority": "copied instrumented completion source; no claim about current live VM",
+        "excerpt_sha256": "1b93fc3f2e2124cf83e92d816c3b35827b3b65ba13e949e9c3f0b1caa7850b08",
+        "excerpt_utf8": "impl CacheOperationPhase<'_> {\n    pub(crate) fn pin(\n        &mut self,\n        cache: &mut SwiftFunctionCache,\n        function: u32,\n    ) -> Result<SwiftFunctionPin, SwiftRunFailure> {\n        #[cfg(test)] super::cache_tests::ordered_observer::acquire(function,self.control.control.ordered_coordinates());\n        let result=(|| {\n        self.control.check_header(cache)?;\n        pin::<SwiftMode>(\n            CacheParts {\n                snapshot: cache.adopted.proof(),\n                slots: &mut cache.slots,\n                pins: &mut cache.pins,\n                owner: cache.owner,\n                next_nonce: &mut cache.next_nonce,\n                usage: &mut cache.usage,\n                scratch: SwiftScratch {\n                    patches: &mut cache.patches,\n                    index: &mut cache.index,\n                    plans: &mut cache.plans,\n                },\n            },\n            function,\n            &mut self.control,\n        )})();\n        #[cfg(test)] if let Err(ref failure)=result {super::cache_tests::ordered_observer::failure(failure,false);}\n        result\n    }\n",
+        "first_line": 1926,
+        "last_line": 1954,
+        "name": "failure_pre_meter",
+        "path": "verification/swift-ordered-retention-analyzer-design/inputs/candidate__src__experimental_swift_reactor__cache.rs",
+        "snapshot": "inputs/24-candidate__src__experimental_swift_reactor__cache.rs",
+        "source_sha256": "90d540a121c0f1c2d941fb74ed652a492f555203bb8543a7aa1d440ccbba7cfd"
+      },
+      {
+        "authority": "copied instrumented completion source; no claim about current live VM",
+        "excerpt_sha256": "0f1cf9deee89060be31616a7d0901442889505f6bba2c7abd42a4240d75400d3",
+        "excerpt_utf8": "    fn meter<'a, 'op>(\n        usage: &'a mut SwiftCacheUsage,\n        operation: &'a mut CacheControl<'op>,\n        function: u32,\n    ) -> SwiftMeter<'a, 'op>\n    where\n        'op: 'a,\n    {\n        operation.cursor = Cursor {\n            stage: SwiftRunStage::Cache,\n            function: Some(function),\n            offset: Some(0),\n        };\n        SwiftMeter { operation, usage }\n    }\n    fn resident_lookup(\n",
+        "first_line": 2118,
+        "last_line": 2133,
+        "name": "meter_cursor",
+        "path": "verification/swift-ordered-retention-analyzer-design/inputs/candidate__src__experimental_swift_reactor__cache.rs",
+        "snapshot": "inputs/24-candidate__src__experimental_swift_reactor__cache.rs",
+        "source_sha256": "90d540a121c0f1c2d941fb74ed652a492f555203bb8543a7aa1d440ccbba7cfd"
+      }
+    ],
+    "source_context_revision": "68468f8fb73f21d2e4b388c41ad15fd01bfd0d93"
+  },
+  "fixture_authority_always": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "new_producer_source_read": false,
+  "source_context_revision": "0b8e3fd8bdd86902f7d9d28e0cba01bcdbb5ce1c",
+  "sources": [
+    {
+      "authority": "accepted exact copied source; current live relation unavailable",
+      "bytes": 33759,
+      "execution": "not imported/compiled/executed",
+      "sha256": "1ef11e06678642231f783fea0e5fe376e8b1912730a6fb696a653ab04cb2043b",
+      "snapshot": "inputs/verification/swift-semantic-adapter-prerequisite/inputs/13-analyzer.rs"
+    },
+    {
+      "authority": "accepted exact copied source; current live relation unavailable",
+      "bytes": 24805,
+      "execution": "not imported/compiled/executed",
+      "sha256": "2cd286a387ce336a18ea2872974e371ca4e772e2fd801f2186a3f62ce639bfef",
+      "snapshot": "inputs/verification/swift-semantic-adapter-prerequisite/inputs/14-envelope.rs"
+    },
+    {
+      "authority": "accepted exact copied source; current live relation unavailable",
+      "bytes": 29178,
+      "execution": "not imported/compiled/executed",
+      "sha256": "3f3d989216b3e9208e1ff875ec07d6f0940f9f890c3d0035c1544d871e3022a8",
+      "snapshot": "inputs/verification/swift-semantic-adapter-prerequisite/inputs/23-candidate__src__experimental__cache__borrowed.rs"
+    },
+    {
+      "authority": "accepted exact copied source; current live relation unavailable",
+      "bytes": 176663,
+      "execution": "not imported/compiled/executed",
+      "sha256": "90d540a121c0f1c2d941fb74ed652a492f555203bb8543a7aa1d440ccbba7cfd",
+      "snapshot": "inputs/verification/swift-semantic-adapter-prerequisite/inputs/24-candidate__src__experimental_swift_reactor__cache.rs"
+    },
+    {
+      "authority": "accepted exact copied source; current live relation unavailable",
+      "bytes": 13600,
+      "execution": "not imported/compiled/executed",
+      "sha256": "25e95e2d79068f41b77ba9d23a391797a966b96057686cad2de48b2733193757",
+      "snapshot": "inputs/verification/swift-semantic-adapter-prerequisite/inputs/25-verification__swift-ordered-retention-diagnostic-rust__writer.rs"
+    },
+    {
+      "authority": "accepted exact copied source; current live relation unavailable",
+      "bytes": 29535,
+      "execution": "not imported/compiled/executed",
+      "sha256": "9c3c31d6406da4a86abcb4893b0813048f07455340f0976d68adc48dc7805aee",
+      "snapshot": "inputs/verification/swift-semantic-adapter-prerequisite/inputs/26-verification__swift-ordered-retention-diagnostic-rust__observer.rs"
+    }
+  ]
+}

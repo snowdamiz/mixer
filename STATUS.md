@@ -32,6 +32,7 @@ Copied SDK/source-pair compatibility `1f114d8f` is pushed; [Engine CI](https://g
 Android host lifecycle core `4e48ac1a` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40267720327) passed all 3 jobs and 40 steps. The new Java suite has local host evidence and is not wired into this existing workflow.
 Android observer/source-profile repair `b45963c0` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40272428143) passed VM/services, but Swift was cancelled at the 30-minute job limit in the existing capability step. Logs remain unavailable; the runner-capacity notice does not establish the stall cause.
 Standalone Swift fixture-envelope CI `0b8e3fd8` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40273904826) passes all 42 steps across three jobs after one bounded Swift-only rerun. Actual Rust 1.98.1 envelope qualification is verified against all 252 artifact members. The first Swift attempt timed out at checkout and remains preserved separately.
+Reviewed owner/cache-state contracts `69b0c522` pass all 42 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40284896791). This checkpoint contains contracts and retained evidence; active product implementation remains outside it.
 Native runtime and capture remain paused.
 All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
@@ -212,8 +213,13 @@ The fixture cache-state source contract and terminal correction are accepted
 after independent review; root verified 651 combined members. Eight finite review
 methods pass per mode; three private paid-domain exclusions still require actual
 receipt-construction proof. These are not Rust product tests. Independent raw
-File fixtures and a sorted-victim oracle are being prepared before implementation.
-Source/work, memory, caller and lifetime bounds remain unproved. See
+File fixtures, the sorted-victim oracle and 35 proof obligations are now sealed
+in 173 members. Root selected the bounded Rust implementation in a separate
+source closure. The independent execution driver is sealed in 1,479 members;
+nine tooling methods and 372 checks pass per mode, with zero candidate accesses
+or executions. Exact frozen candidate admission and private review seams remain
+pending. Active producer host tests do not yet constitute accepted actual File
+or source/work, memory, caller and lifetime qualification. See
 [the independent review](docs/swift-semantic-adapter-terminal-review.md) and
 [root contract acceptance](verification/swift-semantic-adapter-root-review/combined-contract-acceptance.json).
 

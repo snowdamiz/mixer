@@ -1,0 +1,1992 @@
+ PLAN.md                                            |   26 +-
+ STATUS.md                                          |   28 +-
+ ...-private-owner-dirty-transaction-disposition.md |   88 +
+ ...vate-owner-effect-contract-correction-review.md |  112 +
+ ...android-private-owner-effect-contract-review.md |  198 +
+ ...-private-owner-effect-integration-correction.md |  439 +
+ ...id-private-owner-effect-integration-proposal.md |  390 +
+ ...ndroid-private-owner-effect-roster-amendment.md |   66 +
+ docs/android-private-owner-effect-roster-review.md |   83 +
+ ...oid-private-owner-implementation-review-plan.md |  223 +
+ docs/android-private-owner-leaf-review.md          |  120 +
+ docs/swift-semantic-adapter-contract-review.md     |  159 +
+ docs/swift-semantic-adapter-prerequisite.md        |  383 +
+ docs/swift-semantic-adapter-terminal-correction.md |  238 +
+ docs/swift-semantic-adapter-terminal-review.md     |  132 +
+ gates/ga.json                                      |  135 +-
+ .../README.md                                      |   25 +
+ .../capture.stderr                                 |    0
+ .../capture.stdout                                 |    1 +
+ .../check.stderr                                   |    0
+ .../check.stdout                                   |    1 +
+ .../correction-1/preaccess/README.md               |   18 +
+ .../correction-1/preaccess/manifest.json           |   27 +
+ .../correction-1/preaccess/plan.json               |  145 +
+ .../correction-1/preaccess/receipt.json            |  384 +
+ .../correction-1/preaccess/review-plan.md          |  102 +
+ .../correction-1/preaccess/seal.py                 |  117 +
+ .../correction-1/review/README.md                  |   39 +
+ .../review/attempts/custody-1/capture.py           |  125 +
+ .../review/attempts/custody-1/capture.stderr       |    8 +
+ .../review/attempts/custody-1/capture.stdout       |    0
+ .../review/attempts/custody-1/disposition.json     |    6 +
+ .../review/attempts/custody-2/capture.py           |  125 +
+ .../review/attempts/custody-2/capture.stderr       |    8 +
+ .../review/attempts/custody-2/capture.stdout       |    0
+ .../review/attempts/custody-2/disposition.json     |    6 +
+ ...-private-owner-effect-integration-correction.md |  439 +
+ .../correction-1/review/candidate/manifest.json    |  207 +
+ .../correction-1/README.md                         |   33 +
+ .../attempts/coverage-1/obligation-map.json        |  662 ++
+ .../attempts/coverage-1/source-only-result.json    | 2682 ++++++
+ .../correction-1/attempts/coverage-1/verify.py     |  130 +
+ .../correction-1/attempts/coverage-1/verify.stderr |    0
+ .../correction-1/attempts/coverage-1/verify.stdout |    1 +
+ .../correction-1/capture.py                        |  239 +
+ .../correction-1/capture.stderr                    |    0
+ .../correction-1/capture.stdout                    |    1 +
+ .../correction-1/inputs/AGENTS.md                  |   55 +
+ .../correction-1/inputs/PLAN.md                    |  480 +
+ .../cli/Sources/MixerBuild/AndroidProject.swift    |  291 +
+ .../MixerBuild/AndroidSDKCompatibility.swift       |  404 +
+ ...android-private-owner-effect-contract-review.md |  198 +
+ .../correction-1/inputs/mixer-product-plan.md      | 1366 +++
+ .../dev/mixer/android/AppearanceDescriptorV2.java  |  448 +
+ .../dev/mixer/android/AppearanceGeometryV2.java    |  106 +
+ .../dev/mixer/android/AppearanceNativePathsV2.java |   51 +
+ .../dev/mixer/android/AppearanceResolverV2.java    |  373 +
+ .../dev/mixer/android/AuthoredToggleInputV2.java   |   99 +
+ .../dev/mixer/android/InstalledAppearanceV2.java   |   64 +
+ .../android/app/src/dev/mixer/android/Json.java    |   49 +
+ .../app/src/dev/mixer/android/MixerActivity.java   |   16 +
+ .../dev/mixer/android/NativeAppearanceViewsV2.java |  769 ++
+ .../app/src/dev/mixer/android/NativeBridge.java    |   24 +
+ .../src/dev/mixer/android/NativeCoordinatorV2.java |  264 +
+ .../src/dev/mixer/android/NativeEnvironmentV2.java |  249 +
+ .../app/src/dev/mixer/android/NativeRenderer.java  |  373 +
+ .../app/src/dev/mixer/android/UiPacket.java        |   52 +
+ .../src/dev/mixer/android/OwnerLifecycleV2.java    |  269 +
+ .../implementation-acceptance.json                 |  115 +
+ .../implementation-acceptance.json                 |  121 +
+ .../correction-1/obligation-map.json               |  666 ++
+ .../correction-1/original-manifest.json            |  157 +
+ .../correction-1/preaccess-admission.json          |   15 +
+ .../correction-1/preaccess-manifest.json           |   27 +
+ .../correction-1/preaccess-plan.json               |  145 +
+ .../correction-1/receipt.json                      |  212 +
+ .../correction-1/required-host-roster.json         | 3917 ++++++++
+ .../correction-1/review-manifest.json              |  316 +
+ .../correction-1/review-result.json                |  104 +
+ .../correction-1/seal.py                           |   52 +
+ .../correction-1/source-only-attempts.json         |   39 +
+ .../correction-1/source-only-result.json           | 2682 ++++++
+ .../correction-1/verify.py                         |  130 +
+ .../correction-1/verify.stderr                     |    0
+ .../correction-1/verify.stdout                     |    1 +
+ .../correction-1/review/capture.py                 |  125 +
+ .../correction-1/review/capture.stderr             |    0
+ .../correction-1/review/capture.stdout             |    1 +
+ .../correction-1/review/custody.json               |  272 +
+ .../correction-1/review/independent-inventory.json | 2349 +++++
+ .../correction-1/review/manifest.json              |  276 +
+ .../correction-1/review/obligation-review.json     |  570 ++
+ .../correction-1/review/root-admission.json        |   15 +
+ .../correction-1/review/seal.py                    |  120 +
+ .../current-inputs/AGENTS.md                       |   55 +
+ .../current-inputs/PLAN.md                         |  477 +
+ .../cli/Sources/MixerBuild/AndroidProject.swift    |  291 +
+ .../MixerBuild/AndroidSDKCompatibility.swift       |  404 +
+ .../docs/android-owner-effect-contract.md          |  286 +
+ .../docs/android-public-owner-core.md              |  112 +
+ .../current-inputs/mixer-product-plan.md           | 1366 +++
+ .../app/src/dev/mixer/android/MixerActivity.java   |   16 +
+ .../dev/mixer/android/NativeAppearanceViewsV2.java |  769 ++
+ .../src/dev/mixer/android/NativeCoordinatorV2.java |  264 +
+ .../src/dev/mixer/android/NativeEnvironmentV2.java |  249 +
+ .../app/src/dev/mixer/android/NativeRenderer.java  |  373 +
+ .../src/dev/mixer/android/OwnerLifecycleV2.java    |  269 +
+ .../android/tests/NativeAppearanceV2Activity.java  |   17 +
+ .../tests/NativeAppearanceV2Instrumentation.java   |  501 +
+ .../dev/mixer/android/NativeRenderer.java          |  100 +
+ .../tests/NativeCoordinatorV2HostTests.java        |  485 +
+ .../NativeCoordinatorV2IntegrationActivity.java    |   27 +
+ ...iveCoordinatorV2IntegrationInstrumentation.java |  119 +
+ .../dev/mixer/android/NativeRenderer.java          |    6 +
+ .../NativeEnvironmentV2ObserverHostTests.java      |  170 +
+ .../native/android/tests/run-owner-core-host.py    |  143 +
+ .../candidate-proposal.json                        |  223 +
+ .../implementation-acceptance.json                 |  115 +
+ .../implementation-selection.json                  |   76 +
+ .../implementation-acceptance.json                 |  121 +
+ .../custody.json                                   |  382 +
+ .../custody.py                                     |  107 +
+ ...id-private-owner-effect-integration-proposal.md |  390 +
+ .../frozen-proposal/manifest.json                  |  157 +
+ .../README.md                                      |   29 +
+ .../check.py                                       |   71 +
+ .../check.stderr                                   |    0
+ .../check.stdout                                   |    1 +
+ .../freeze.py                                      |  119 +
+ .../freeze.stderr                                  |    0
+ .../freeze.stdout                                  |    1 +
+ .../inputs/AGENTS.md                               |   55 +
+ .../inputs/PLAN.md                                 |  474 +
+ .../cli/Sources/MixerBuild/AndroidProject.swift    |  291 +
+ .../MixerBuild/AndroidSDKCompatibility.swift       |  404 +
+ .../inputs/docs/android-owner-effect-contract.md   |  286 +
+ .../inputs/docs/android-public-owner-core.md       |  112 +
+ .../inputs/mixer-product-plan.md                   | 1366 +++
+ .../app/src/dev/mixer/android/MixerActivity.java   |   16 +
+ .../dev/mixer/android/NativeAppearanceViewsV2.java |  769 ++
+ .../src/dev/mixer/android/NativeCoordinatorV2.java |  264 +
+ .../src/dev/mixer/android/NativeEnvironmentV2.java |  249 +
+ .../app/src/dev/mixer/android/NativeRenderer.java  |  373 +
+ .../src/dev/mixer/android/OwnerLifecycleV2.java    |  269 +
+ .../android/tests/NativeAppearanceV2Activity.java  |   17 +
+ .../tests/NativeAppearanceV2Instrumentation.java   |  501 +
+ .../dev/mixer/android/NativeRenderer.java          |  100 +
+ .../tests/NativeCoordinatorV2HostTests.java        |  485 +
+ .../NativeCoordinatorV2IntegrationActivity.java    |   27 +
+ ...iveCoordinatorV2IntegrationInstrumentation.java |  119 +
+ .../dev/mixer/android/NativeRenderer.java          |    6 +
+ .../NativeEnvironmentV2ObserverHostTests.java      |  170 +
+ .../native/android/tests/run-owner-core-host.py    |  143 +
+ .../candidate-proposal.json                        |  223 +
+ .../implementation-selection.json                  |   76 +
+ .../implementation-acceptance.json                 |  121 +
+ .../receipt.json                                   |  189 +
+ .../seal.py                                        |   56 +
+ .../source-only-result.json                        |  248 +
+ .../inspect.stderr                                 |    0
+ .../inspect.stdout                                 |    1 +
+ .../inspect_sources.py                             |   59 +
+ .../manifest.json                                  |  316 +
+ .../review-result.json                             |  104 +
+ .../seal.py                                        |   91 +
+ .../source-inventory.json                          | 5708 +++++++++++
+ .../README.md                                      |   29 +
+ .../check.py                                       |   71 +
+ .../check.stderr                                   |    0
+ .../check.stdout                                   |    1 +
+ .../correction-1/README.md                         |   33 +
+ .../attempts/coverage-1/obligation-map.json        |  662 ++
+ .../attempts/coverage-1/source-only-result.json    | 2682 ++++++
+ .../correction-1/attempts/coverage-1/verify.py     |  130 +
+ .../correction-1/attempts/coverage-1/verify.stderr |    0
+ .../correction-1/attempts/coverage-1/verify.stdout |    1 +
+ .../correction-1/capture.py                        |  239 +
+ .../correction-1/capture.stderr                    |    0
+ .../correction-1/capture.stdout                    |    1 +
+ .../correction-1/handoff.sha256                    |    1 +
+ .../correction-1/inputs/AGENTS.md                  |   55 +
+ .../correction-1/inputs/PLAN.md                    |  480 +
+ .../cli/Sources/MixerBuild/AndroidProject.swift    |  291 +
+ .../MixerBuild/AndroidSDKCompatibility.swift       |  404 +
+ ...android-private-owner-effect-contract-review.md |  198 +
+ .../correction-1/inputs/mixer-product-plan.md      | 1366 +++
+ .../dev/mixer/android/AppearanceDescriptorV2.java  |  448 +
+ .../dev/mixer/android/AppearanceGeometryV2.java    |  106 +
+ .../dev/mixer/android/AppearanceNativePathsV2.java |   51 +
+ .../dev/mixer/android/AppearanceResolverV2.java    |  373 +
+ .../dev/mixer/android/AuthoredToggleInputV2.java   |   99 +
+ .../dev/mixer/android/InstalledAppearanceV2.java   |   64 +
+ .../android/app/src/dev/mixer/android/Json.java    |   49 +
+ .../app/src/dev/mixer/android/MixerActivity.java   |   16 +
+ .../dev/mixer/android/NativeAppearanceViewsV2.java |  769 ++
+ .../app/src/dev/mixer/android/NativeBridge.java    |   24 +
+ .../src/dev/mixer/android/NativeCoordinatorV2.java |  264 +
+ .../src/dev/mixer/android/NativeEnvironmentV2.java |  249 +
+ .../app/src/dev/mixer/android/NativeRenderer.java  |  373 +
+ .../app/src/dev/mixer/android/UiPacket.java        |   52 +
+ .../src/dev/mixer/android/OwnerLifecycleV2.java    |  269 +
+ .../implementation-acceptance.json                 |  115 +
+ .../implementation-acceptance.json                 |  121 +
+ .../correction-1/manifest.json                     |  207 +
+ .../correction-1/obligation-map.json               |  666 ++
+ .../correction-1/original-manifest.json            |  157 +
+ .../correction-1/preaccess-admission.json          |   15 +
+ .../correction-1/preaccess-manifest.json           |   27 +
+ .../correction-1/preaccess-plan.json               |  145 +
+ .../correction-1/receipt.json                      |  212 +
+ .../correction-1/required-host-roster.json         | 3917 ++++++++
+ .../correction-1/review-manifest.json              |  316 +
+ .../correction-1/review-result.json                |  104 +
+ .../correction-1/seal.py                           |   52 +
+ .../correction-1/source-only-attempts.json         |   39 +
+ .../correction-1/source-only-result.json           | 2682 ++++++
+ .../correction-1/verify.py                         |  130 +
+ .../correction-1/verify.stderr                     |    0
+ .../correction-1/verify.stdout                     |    1 +
+ .../freeze.py                                      |  119 +
+ .../freeze.stderr                                  |    0
+ .../freeze.stdout                                  |    1 +
+ .../handoff.sha256                                 |    1 +
+ .../inputs/AGENTS.md                               |   55 +
+ .../inputs/PLAN.md                                 |  474 +
+ .../cli/Sources/MixerBuild/AndroidProject.swift    |  291 +
+ .../MixerBuild/AndroidSDKCompatibility.swift       |  404 +
+ .../inputs/docs/android-owner-effect-contract.md   |  286 +
+ .../inputs/docs/android-public-owner-core.md       |  112 +
+ .../inputs/mixer-product-plan.md                   | 1366 +++
+ .../app/src/dev/mixer/android/MixerActivity.java   |   16 +
+ .../dev/mixer/android/NativeAppearanceViewsV2.java |  769 ++
+ .../src/dev/mixer/android/NativeCoordinatorV2.java |  264 +
+ .../src/dev/mixer/android/NativeEnvironmentV2.java |  249 +
+ .../app/src/dev/mixer/android/NativeRenderer.java  |  373 +
+ .../src/dev/mixer/android/OwnerLifecycleV2.java    |  269 +
+ .../android/tests/NativeAppearanceV2Activity.java  |   17 +
+ .../tests/NativeAppearanceV2Instrumentation.java   |  501 +
+ .../dev/mixer/android/NativeRenderer.java          |  100 +
+ .../tests/NativeCoordinatorV2HostTests.java        |  485 +
+ .../NativeCoordinatorV2IntegrationActivity.java    |   27 +
+ ...iveCoordinatorV2IntegrationInstrumentation.java |  119 +
+ .../dev/mixer/android/NativeRenderer.java          |    6 +
+ .../NativeEnvironmentV2ObserverHostTests.java      |  170 +
+ .../native/android/tests/run-owner-core-host.py    |  143 +
+ .../candidate-proposal.json                        |  223 +
+ .../implementation-selection.json                  |   76 +
+ .../implementation-acceptance.json                 |  121 +
+ .../manifest.json                                  |  157 +
+ .../receipt.json                                   |  189 +
+ .../seal.py                                        |   56 +
+ .../source-only-result.json                        |  248 +
+ .../accept_leaf3.py                                |   70 +
+ .../checksum-sidecar-bindings.json                 |   29 +
+ .../correction-candidate-admission.json            |   15 +
+ .../correction-preaccess-admission.json            |   15 +
+ .../correction-review-admission.json               |   16 +
+ .../src/dev/mixer/android/NativeCoordinatorV2.java |  264 +
+ .../src/dev/mixer/android/NativeEnvironmentV2.java |  249 +
+ .../src/dev/mixer/android/OwnerLifecycleV2.java    |  269 +
+ .../dirty-result-clarification/document-draft-1.md |   85 +
+ .../dirty-result-clarification/proposal-2.json     |   12 +
+ .../dirty-result-clarification/proposal.json       |   51 +
+ .../dirty-result-clarification/selection.json      |   28 +
+ .../implementation-selection.json                  |  185 +
+ .../leaf-candidate-1-admission.json                |   16 +
+ .../leaf-candidate-2-admission.json                |   17 +
+ .../leaf-candidate-3-admission.json                |   19 +
+ .../leaf3-reuse-selection.json                     |   45 +
+ .../roster-amendment-admission.json                |   11 +
+ .../selection-metadata-update.json                 |   27 +
+ .../README.md                                      |   25 +
+ .../capture.py                                     |  150 +
+ .../capture.stderr                                 |    0
+ .../capture.stdout                                 |    1 +
+ .../classification-proof.json                      | 1147 +++
+ .../handoff.sha256                                 |    1 +
+ ...vate-owner-effect-contract-correction-review.md |  112 +
+ ...-private-owner-effect-integration-correction.md |  439 +
+ .../app/src/dev/mixer/android/NativeRenderer.java  |  373 +
+ .../inputs/seals/correction-1.json                 |  207 +
+ .../inputs/seals/final-correction-review.json      |  276 +
+ .../inputs/seals/original-proposal.json            |  157 +
+ .../inputs/seals/original-review.json              |  316 +
+ .../inputs/seals/preaccess-plan.json               |   27 +
+ .../correction-1/required-host-roster.json         | 3917 ++++++++
+ .../manifest.json                                  |  107 +
+ .../receipt.json                                   |  151 +
+ .../required-host-roster.json                      | 3930 ++++++++
+ .../seal.py                                        |   48 +
+ .../source-only-result.json                        | 2641 ++++++
+ .../v2-semantic-barrier-ids.txt                    |  184 +
+ .../verify.py                                      |  100 +
+ .../verify.stderr                                  |    0
+ .../verify.stdout                                  |    1 +
+ .../README.md                                      |   34 +
+ .../attempts/closure-1/capture.stderr              |   10 +
+ .../attempts/closure-1/capture.stdout              |    0
+ .../attempts/closure-1/disposition.json            |    7 +
+ .../closure-1/predecessor-closure-observation.json |   39 +
+ .../attempts/closure-1/verify.py                   |  166 +
+ ...ndroid-private-owner-effect-roster-amendment.md |   66 +
+ .../candidate/manifest.json                        |  107 +
+ .../README.md                                      |   25 +
+ .../capture.py                                     |  150 +
+ .../capture.stderr                                 |    0
+ .../capture.stdout                                 |    1 +
+ .../classification-proof.json                      | 1147 +++
+ ...vate-owner-effect-contract-correction-review.md |  112 +
+ ...-private-owner-effect-integration-correction.md |  439 +
+ .../app/src/dev/mixer/android/NativeRenderer.java  |  373 +
+ .../inputs/seals/correction-1.json                 |  207 +
+ .../inputs/seals/final-correction-review.json      |  276 +
+ .../inputs/seals/original-proposal.json            |  157 +
+ .../inputs/seals/original-review.json              |  316 +
+ .../inputs/seals/preaccess-plan.json               |   27 +
+ .../correction-1/required-host-roster.json         | 3917 ++++++++
+ .../receipt.json                                   |  151 +
+ .../required-host-roster.json                      | 3930 ++++++++
+ .../seal.py                                        |   48 +
+ .../source-only-result.json                        | 2641 ++++++
+ .../v2-semantic-barrier-ids.txt                    |  184 +
+ .../verify.py                                      |  100 +
+ .../verify.stderr                                  |    0
+ .../verify.stdout                                  |    1 +
+ .../capture.stderr                                 |    0
+ .../capture.stdout                                 |    1 +
+ .../check.stderr                                   |    0
+ .../check.stdout                                   |    1 +
+ .../custody.json                                   |  258 +
+ .../independent-classification.json                |  993 ++
+ .../manifest.json                                  |  196 +
+ .../predecessor-closure-observation.json           |   39 +
+ .../review-result.json                             |   76 +
+ .../root-admission.json                            |   11 +
+ .../root-sidecar-bindings.json                     |   29 +
+ .../seal.py                                        |   91 +
+ .../sidecar-bindings/correction-1/handoff.sha256   |    1 +
+ .../sidecar-bindings/correction-1/seal.py          |   52 +
+ .../original-proposal/handoff.sha256               |    1 +
+ .../sidecar-bindings/original-proposal/seal.py     |   56 +
+ .../verify.py                                      |  185 +
+ .../leaf-review-1/IndependentLeafSanity.java       |  316 +
+ .../leaf-review-1/README.md                        |   45 +
+ .../admission/leaf-candidate-1-admission.json      |   16 +
+ .../admission/leaf-candidate-2-admission.json      |   17 +
+ .../admission/leaf-candidate-3-admission.json      |   19 +
+ .../leaf-review-1/admission/leaf-manifest-2.json   |  602 ++
+ .../leaf-review-1/admission/leaf-manifest-3.json   |  604 ++
+ .../leaf-review-1/admission/leaf-manifest.json     |  603 ++
+ .../leaf-review-1/admission/selection.json         |   28 +
+ .../leaf-review-1/custody.json                     |  396 +
+ .../NativeOwnerV2ConcreteHostLeaves/android/R.java |    1 +
+ .../android/app/Activity.java                      |    1 +
+ .../android/app/UiModeManager.java                 |    1 +
+ .../android/content/ClipData.java                  |    1 +
+ .../android/content/ClipboardManager.java          |    1 +
+ .../android/content/ComponentCallbacks.java        |    1 +
+ .../android/content/ContentResolver.java           |    2 +
+ .../android/content/Context.java                   |    2 +
+ .../android/content/res/AssetManager.java          |    3 +
+ .../android/content/res/ColorStateList.java        |    1 +
+ .../android/content/res/Configuration.java         |    1 +
+ .../android/content/res/Resources.java             |    1 +
+ .../android/database/ContentObserver.java          |    1 +
+ .../android/graphics/Canvas.java                   |    1 +
+ .../android/graphics/Color.java                    |    1 +
+ .../android/graphics/ColorFilter.java              |    1 +
+ .../android/graphics/Insets.java                   |    1 +
+ .../android/graphics/Paint.java                    |    6 +
+ .../android/graphics/Path.java                     |    1 +
+ .../android/graphics/PixelFormat.java              |    1 +
+ .../android/graphics/Rect.java                     |    1 +
+ .../android/graphics/RectF.java                    |    1 +
+ .../android/graphics/Typeface.java                 |    1 +
+ .../android/graphics/drawable/Drawable.java        |    1 +
+ .../android/net/Uri.java                           |    1 +
+ .../android/os/Build.java                          |    1 +
+ .../android/os/Bundle.java                         |    1 +
+ .../android/os/CancellationSignal.java             |    1 +
+ .../android/os/Handler.java                        |   16 +
+ .../android/os/LocaleList.java                     |    1 +
+ .../android/os/Looper.java                         |    1 +
+ .../android/provider/Settings.java                 |    1 +
+ .../android/text/Annotation.java                   |    1 +
+ .../android/text/Editable.java                     |    1 +
+ .../android/text/InputFilter.java                  |    1 +
+ .../android/text/InputType.java                    |    1 +
+ .../android/text/Layout.java                       |    1 +
+ .../android/text/Spanned.java                      |    1 +
+ .../android/text/TextUtils.java                    |    1 +
+ .../android/text/TextWatcher.java                  |    1 +
+ .../android/text/style/UnderlineSpan.java          |    1 +
+ .../android/util/DisplayMetrics.java               |    1 +
+ .../android/util/TypedValue.java                   |    1 +
+ .../android/view/Gravity.java                      |    1 +
+ .../android/view/KeyEvent.java                     |    1 +
+ .../android/view/MotionEvent.java                  |    1 +
+ .../android/view/View.java                         |   80 +
+ .../android/view/ViewConfiguration.java            |    1 +
+ .../android/view/ViewGroup.java                    |    2 +
+ .../android/view/ViewParent.java                   |    1 +
+ .../android/view/ViewTreeObserver.java             |    1 +
+ .../android/view/Window.java                       |    1 +
+ .../android/view/WindowInsets.java                 |    1 +
+ .../view/accessibility/AccessibilityManager.java   |    1 +
+ .../view/accessibility/AccessibilityNodeInfo.java  |    1 +
+ .../view/inputmethod/BaseInputConnection.java      |   31 +
+ .../android/view/inputmethod/CompletionInfo.java   |    1 +
+ .../android/view/inputmethod/CorrectionInfo.java   |    1 +
+ .../android/view/inputmethod/EditorInfo.java       |    1 +
+ .../view/inputmethod/HandwritingGesture.java       |    1 +
+ .../android/view/inputmethod/InputConnection.java  |   24 +
+ .../view/inputmethod/InputConnectionWrapper.java   |   24 +
+ .../android/view/inputmethod/InputContentInfo.java |    1 +
+ .../inputmethod/PreviewableHandwritingGesture.java |    1 +
+ .../android/view/inputmethod/TextAttribute.java    |    1 +
+ .../android/widget/Button.java                     |    1 +
+ .../android/widget/EditText.java                   |    1 +
+ .../android/widget/FrameLayout.java                |    1 +
+ .../android/widget/LinearLayout.java               |    1 +
+ .../android/widget/ScrollView.java                 |    1 +
+ .../android/widget/Switch.java                     |    1 +
+ .../android/widget/TextView.java                   |   57 +
+ .../dev/mixer/android/ConcreteHostProbe.java       |   51 +
+ .../dev/mixer/android/NativeBridge.java            |   16 +
+ .../NativeOwnerV2ConcreteHostLeaves/android/R.java |    1 +
+ .../android/app/Activity.java                      |    1 +
+ .../android/app/UiModeManager.java                 |    1 +
+ .../android/content/ClipData.java                  |    1 +
+ .../android/content/ClipboardManager.java          |    1 +
+ .../android/content/ComponentCallbacks.java        |    1 +
+ .../android/content/ContentResolver.java           |    2 +
+ .../android/content/Context.java                   |    2 +
+ .../android/content/res/AssetManager.java          |    3 +
+ .../android/content/res/ColorStateList.java        |    1 +
+ .../android/content/res/Configuration.java         |    1 +
+ .../android/content/res/Resources.java             |    1 +
+ .../android/database/ContentObserver.java          |    1 +
+ .../android/graphics/Canvas.java                   |    1 +
+ .../android/graphics/Color.java                    |    1 +
+ .../android/graphics/ColorFilter.java              |    1 +
+ .../android/graphics/Insets.java                   |    1 +
+ .../android/graphics/Paint.java                    |    6 +
+ .../android/graphics/Path.java                     |    1 +
+ .../android/graphics/PixelFormat.java              |    1 +
+ .../android/graphics/Rect.java                     |    1 +
+ .../android/graphics/RectF.java                    |    1 +
+ .../android/graphics/Typeface.java                 |    1 +
+ .../android/graphics/drawable/Drawable.java        |    1 +
+ .../android/net/Uri.java                           |    1 +
+ .../android/os/Build.java                          |    1 +
+ .../android/os/Bundle.java                         |    1 +
+ .../android/os/CancellationSignal.java             |    1 +
+ .../android/os/Handler.java                        |   16 +
+ .../android/os/LocaleList.java                     |    1 +
+ .../android/os/Looper.java                         |    1 +
+ .../android/provider/Settings.java                 |    1 +
+ .../android/text/Annotation.java                   |    1 +
+ .../android/text/Editable.java                     |    1 +
+ .../android/text/InputFilter.java                  |    1 +
+ .../android/text/InputType.java                    |    1 +
+ .../android/text/Layout.java                       |    1 +
+ .../android/text/Spanned.java                      |    1 +
+ .../android/text/TextUtils.java                    |    1 +
+ .../android/text/TextWatcher.java                  |    1 +
+ .../android/text/style/UnderlineSpan.java          |    1 +
+ .../android/util/DisplayMetrics.java               |    1 +
+ .../android/util/TypedValue.java                   |    1 +
+ .../android/view/Gravity.java                      |    1 +
+ .../android/view/KeyEvent.java                     |    1 +
+ .../android/view/MotionEvent.java                  |    1 +
+ .../android/view/View.java                         |   80 +
+ .../android/view/ViewConfiguration.java            |    1 +
+ .../android/view/ViewGroup.java                    |    2 +
+ .../android/view/ViewParent.java                   |    1 +
+ .../android/view/ViewTreeObserver.java             |    1 +
+ .../android/view/Window.java                       |    1 +
+ .../android/view/WindowInsets.java                 |    1 +
+ .../view/accessibility/AccessibilityManager.java   |    1 +
+ .../view/accessibility/AccessibilityNodeInfo.java  |    1 +
+ .../view/inputmethod/BaseInputConnection.java      |   31 +
+ .../android/view/inputmethod/CompletionInfo.java   |    1 +
+ .../android/view/inputmethod/CorrectionInfo.java   |    1 +
+ .../android/view/inputmethod/EditorInfo.java       |    1 +
+ .../view/inputmethod/HandwritingGesture.java       |    1 +
+ .../android/view/inputmethod/InputConnection.java  |   24 +
+ .../view/inputmethod/InputConnectionWrapper.java   |   24 +
+ .../android/view/inputmethod/InputContentInfo.java |    1 +
+ .../inputmethod/PreviewableHandwritingGesture.java |    1 +
+ .../android/view/inputmethod/TextAttribute.java    |    1 +
+ .../android/widget/Button.java                     |    1 +
+ .../android/widget/EditText.java                   |    1 +
+ .../android/widget/FrameLayout.java                |    1 +
+ .../android/widget/LinearLayout.java               |    1 +
+ .../android/widget/ScrollView.java                 |    1 +
+ .../android/widget/Switch.java                     |    1 +
+ .../android/widget/TextView.java                   |   57 +
+ .../dev/mixer/android/ConcreteHostProbe.java       |   51 +
+ .../dev/mixer/android/NativeBridge.java            |   16 +
+ .../leaf-review-1/delta-custody-comparison.json    |   17 +
+ .../leaf-review-1/findings.json                    |   69 +
+ .../NativeOwnerV2ConcreteHostLeaves/android/R.java |    1 +
+ .../android/app/Activity.java                      |    1 +
+ .../android/app/UiModeManager.java                 |    1 +
+ .../android/content/ClipData.java                  |    1 +
+ .../android/content/ClipboardManager.java          |    1 +
+ .../android/content/ComponentCallbacks.java        |    1 +
+ .../android/content/ContentResolver.java           |    2 +
+ .../android/content/Context.java                   |    2 +
+ .../android/content/res/AssetManager.java          |    3 +
+ .../android/content/res/ColorStateList.java        |    1 +
+ .../android/content/res/Configuration.java         |    1 +
+ .../android/content/res/Resources.java             |    1 +
+ .../android/database/ContentObserver.java          |    1 +
+ .../android/graphics/Canvas.java                   |    1 +
+ .../android/graphics/Color.java                    |    1 +
+ .../android/graphics/ColorFilter.java              |    1 +
+ .../android/graphics/Insets.java                   |    1 +
+ .../android/graphics/Paint.java                    |    6 +
+ .../android/graphics/Path.java                     |    1 +
+ .../android/graphics/PixelFormat.java              |    1 +
+ .../android/graphics/Rect.java                     |    1 +
+ .../android/graphics/RectF.java                    |    1 +
+ .../android/graphics/Typeface.java                 |    1 +
+ .../android/graphics/drawable/Drawable.java        |    1 +
+ .../android/net/Uri.java                           |    1 +
+ .../android/os/Build.java                          |    1 +
+ .../android/os/Bundle.java                         |    1 +
+ .../android/os/CancellationSignal.java             |    1 +
+ .../android/os/Handler.java                        |   16 +
+ .../android/os/LocaleList.java                     |    1 +
+ .../android/os/Looper.java                         |    1 +
+ .../android/provider/Settings.java                 |    1 +
+ .../android/text/Annotation.java                   |    1 +
+ .../android/text/Editable.java                     |    1 +
+ .../android/text/InputFilter.java                  |    1 +
+ .../android/text/InputType.java                    |    1 +
+ .../android/text/Layout.java                       |    1 +
+ .../android/text/Spanned.java                      |    1 +
+ .../android/text/TextUtils.java                    |    1 +
+ .../android/text/TextWatcher.java                  |    1 +
+ .../android/text/style/UnderlineSpan.java          |    1 +
+ .../android/util/DisplayMetrics.java               |    1 +
+ .../android/util/TypedValue.java                   |    1 +
+ .../android/view/Gravity.java                      |    1 +
+ .../android/view/KeyEvent.java                     |    1 +
+ .../android/view/MotionEvent.java                  |    1 +
+ .../android/view/View.java                         |   80 +
+ .../android/view/ViewConfiguration.java            |    1 +
+ .../android/view/ViewGroup.java                    |    2 +
+ .../android/view/ViewParent.java                   |    1 +
+ .../android/view/ViewTreeObserver.java             |    1 +
+ .../android/view/Window.java                       |    1 +
+ .../android/view/WindowInsets.java                 |    1 +
+ .../view/accessibility/AccessibilityManager.java   |    1 +
+ .../view/accessibility/AccessibilityNodeInfo.java  |    1 +
+ .../view/inputmethod/BaseInputConnection.java      |   31 +
+ .../android/view/inputmethod/CompletionInfo.java   |    1 +
+ .../android/view/inputmethod/CorrectionInfo.java   |    1 +
+ .../android/view/inputmethod/EditorInfo.java       |    1 +
+ .../view/inputmethod/HandwritingGesture.java       |    1 +
+ .../android/view/inputmethod/InputConnection.java  |   24 +
+ .../view/inputmethod/InputConnectionWrapper.java   |   24 +
+ .../android/view/inputmethod/InputContentInfo.java |    1 +
+ .../inputmethod/PreviewableHandwritingGesture.java |    1 +
+ .../android/view/inputmethod/TextAttribute.java    |    1 +
+ .../android/widget/Button.java                     |    1 +
+ .../android/widget/EditText.java                   |    1 +
+ .../android/widget/FrameLayout.java                |    1 +
+ .../android/widget/LinearLayout.java               |    1 +
+ .../android/widget/ScrollView.java                 |    1 +
+ .../android/widget/Switch.java                     |    1 +
+ .../android/widget/TextView.java                   |   57 +
+ .../dev/mixer/android/ConcreteHostProbe.java       |   51 +
+ .../dev/mixer/android/NativeBridge.java            |   16 +
+ .../leaf-review-1/manifest.json                    | 1213 +++
+ .../leaf-review-1/manifest.sha256                  |    1 +
+ .../leaf-review-1/per-file-audit.json              | 1496 +++
+ .../leaf-review-1/probe-delta-audit.json           |   14 +
+ .../leaf-review-1/receipt.json                     |  304 +
+ .../results/content-check-receipt.json             |   14 +
+ .../leaf-review-1/results/content-check.stderr     |    0
+ .../leaf-review-1/results/content-check.stdout     |    1 +
+ .../results/leaf-1/01-compile.command.json         |  340 +
+ .../leaf-review-1/results/leaf-1/01-compile.stderr |    0
+ .../leaf-review-1/results/leaf-1/01-compile.stdout |    0
+ .../results/leaf-1/02-bytecode-0.command.json      |  334 +
+ .../results/leaf-1/02-bytecode-0.stderr            |    0
+ .../results/leaf-1/02-bytecode-0.stdout            |   30 +
+ .../results/leaf-1/02-bytecode-1.command.json      |  334 +
+ .../results/leaf-1/02-bytecode-1.stderr            |    0
+ .../results/leaf-1/02-bytecode-1.stdout            |  483 +
+ .../results/leaf-1/03-run.command.json             |  334 +
+ .../leaf-review-1/results/leaf-1/03-run.stderr     |    0
+ .../leaf-review-1/results/leaf-1/03-run.stdout     |    2 +
+ .../results/leaf-1/compiled-class-hashes.json      |  454 +
+ .../results/leaf-1/explicit-sources.list           |   75 +
+ .../leaf-review-1/results/leaf-1/result.json       |    9 +
+ .../results/leaf-2/01-compile.command.json         |  340 +
+ .../leaf-review-1/results/leaf-2/01-compile.stderr |    0
+ .../leaf-review-1/results/leaf-2/01-compile.stdout |    0
+ .../results/leaf-2/02-bytecode-0.command.json      |  334 +
+ .../results/leaf-2/02-bytecode-0.stderr            |    0
+ .../results/leaf-2/02-bytecode-0.stdout            |   30 +
+ .../results/leaf-2/02-bytecode-1.command.json      |  334 +
+ .../results/leaf-2/02-bytecode-1.stderr            |    0
+ .../results/leaf-2/02-bytecode-1.stdout            |  487 +
+ .../results/leaf-2/03-run.command.json             |  334 +
+ .../leaf-review-1/results/leaf-2/03-run.stderr     |   31 +
+ .../leaf-review-1/results/leaf-2/03-run.stdout     |    0
+ .../results/leaf-2/compiled-class-hashes.json      |  454 +
+ .../results/leaf-2/explicit-sources.list           |   75 +
+ .../leaf-review-1/results/leaf-2/result.json       |    9 +
+ .../results/leaf-3/01-compile.command.json         |  340 +
+ .../leaf-review-1/results/leaf-3/01-compile.stderr |    0
+ .../leaf-review-1/results/leaf-3/01-compile.stdout |    0
+ .../results/leaf-3/02-bytecode-0.command.json      |  334 +
+ .../results/leaf-3/02-bytecode-0.stderr            |    0
+ .../results/leaf-3/02-bytecode-0.stdout            |   30 +
+ .../results/leaf-3/02-bytecode-1.command.json      |  334 +
+ .../results/leaf-3/02-bytecode-1.stderr            |    0
+ .../results/leaf-3/02-bytecode-1.stdout            |  488 +
+ .../results/leaf-3/03-run.command.json             |  334 +
+ .../leaf-review-1/results/leaf-3/03-run.stderr     |    0
+ .../leaf-review-1/results/leaf-3/03-run.stdout     |    2 +
+ .../results/leaf-3/compiled-class-hashes.json      |  454 +
+ .../results/leaf-3/explicit-sources.list           |   75 +
+ .../leaf-review-1/results/leaf-3/result.json       |    9 +
+ .../results/tool-0-javac.command.json              |   27 +
+ .../leaf-review-1/results/tool-0-javac.stderr      |    0
+ .../leaf-review-1/results/tool-0-javac.stdout      |    1 +
+ .../leaf-review-1/results/tool-1-java.command.json |   27 +
+ .../leaf-review-1/results/tool-1-java.stderr       |    3 +
+ .../leaf-review-1/results/tool-1-java.stdout       |    0
+ .../results/tool-2-javap.command.json              |   27 +
+ .../leaf-review-1/results/tool-2-javap.stderr      |    0
+ .../leaf-review-1/results/tool-2-javap.stdout      |    1 +
+ .../leaf-review-1/run_leaf_sanity.py               |  129 +
+ .../leaf-review-1/seal-result.json                 |    9 +
+ .../leaf-review-1/semantic-limits.json             |   72 +
+ .../leaf-review-1/verify_and_seal.py               |  131 +
+ .../preaccess/README.md                            |   36 +
+ .../preaccess/acquisition-record.json              |  388 +
+ .../preaccess/attempts/001-roster-display.json     |    7 +
+ .../preaccess/attempts/001-roster-display.py       |   12 +
+ .../preaccess/attempts/001-roster-display.stderr   |    4 +
+ .../preaccess/attempts/001-roster-display.stdout   |   41 +
+ .../cli/Sources/MixerBuild/AndroidProject.swift    |  291 +
+ .../MixerBuild/AndroidSDKCompatibility.swift       |  404 +
+ .../dev/mixer/android/AppearanceDescriptorV2.java  |  448 +
+ .../dev/mixer/android/AppearanceGeometryV2.java    |  106 +
+ .../dev/mixer/android/AppearanceNativePathsV2.java |   51 +
+ .../dev/mixer/android/AppearanceResolverV2.java    |  373 +
+ .../dev/mixer/android/AuthoredToggleInputV2.java   |   99 +
+ .../dev/mixer/android/InstalledAppearanceV2.java   |   64 +
+ .../android/app/src/dev/mixer/android/Json.java    |   49 +
+ .../app/src/dev/mixer/android/MixerActivity.java   |   16 +
+ .../dev/mixer/android/NativeAppearanceViewsV2.java |  769 ++
+ .../app/src/dev/mixer/android/NativeBridge.java    |   24 +
+ .../src/dev/mixer/android/NativeCoordinatorV2.java |  264 +
+ .../src/dev/mixer/android/NativeEnvironmentV2.java |  249 +
+ .../app/src/dev/mixer/android/NativeRenderer.java  |  373 +
+ .../app/src/dev/mixer/android/UiPacket.java        |   52 +
+ .../src/dev/mixer/android/OwnerLifecycleV2.java    |  269 +
+ .../preaccess/cases.json                           | 9925 ++++++++++++++++++++
+ .../preaccess/clarification-opinion-draft-1.json   |   58 +
+ .../preaccess/clarification-opinion.json           |   59 +
+ .../preaccess/clarification-review-history.json    |   18 +
+ .../preaccess/commands.json                        |  103 +
+ .../preaccess/generate_design.py                   |  269 +
+ .../preaccess/input-custody.json                   |  253 +
+ .../preaccess/inputs/AGENTS.md                     |   55 +
+ .../preaccess/inputs/PLAN.md                       |  492 +
+ ...-private-owner-dirty-transaction-disposition.md |   85 +
+ ...-private-owner-effect-integration-correction.md |  439 +
+ ...id-private-owner-effect-integration-proposal.md |  390 +
+ ...ndroid-private-owner-effect-roster-amendment.md |   66 +
+ .../android-private-owner-effect-roster-review.md  |   83 +
+ .../preaccess/inputs/mixer-product-plan.md         | 1366 +++
+ .../inputs/revisions/dirty-result-disposition-2.md |   88 +
+ .../implementation-selection.json                  |  185 +
+ .../manifest.json                                  |  107 +
+ .../required-host-roster.json                      | 3930 ++++++++
+ .../preaccess/manifest.json                        |  260 +
+ .../preaccess/manifest.sha256                      |    1 +
+ .../preaccess/packet-witness.json                  |  123 +
+ .../preaccess/receipt.json                         |  115 +
+ .../preaccess/results/001-generate.command.json    |   12 +
+ .../preaccess/results/001-generate.stderr          |    0
+ .../preaccess/results/001-generate.stdout          |    1 +
+ .../results/002-design-check.command.json          |   12 +
+ .../preaccess/results/002-design-check.stderr      |    0
+ .../preaccess/results/002-design-check.stdout      |   18 +
+ .../results/003-generate_design.command.json       |   14 +
+ .../preaccess/results/003-generate_design.stderr   |    0
+ .../preaccess/results/003-generate_design.stdout   |    1 +
+ .../results/004-verify_design.command.json         |   14 +
+ .../preaccess/results/004-verify_design.stderr     |    0
+ .../preaccess/results/004-verify_design.stdout     |   18 +
+ .../preaccess/seal_preaccess.py                    |   52 +
+ .../preaccess/site-input-map.json                  | 6840 ++++++++++++++
+ .../preaccess/verify_design.py                     |  131 +
+ .../NativeOwnerV2ConcreteHostLeaves/android/R.java |    1 +
+ .../android/app/Activity.java                      |    1 +
+ .../android/app/UiModeManager.java                 |    1 +
+ .../android/content/ClipData.java                  |    1 +
+ .../android/content/ClipboardManager.java          |    1 +
+ .../android/content/ComponentCallbacks.java        |    1 +
+ .../android/content/ContentResolver.java           |    2 +
+ .../android/content/Context.java                   |    2 +
+ .../android/content/res/AssetManager.java          |    3 +
+ .../android/content/res/ColorStateList.java        |    1 +
+ .../android/content/res/Configuration.java         |    1 +
+ .../android/content/res/Resources.java             |    1 +
+ .../android/database/ContentObserver.java          |    1 +
+ .../android/graphics/Canvas.java                   |    1 +
+ .../android/graphics/Color.java                    |    1 +
+ .../android/graphics/ColorFilter.java              |    1 +
+ .../android/graphics/Insets.java                   |    1 +
+ .../android/graphics/Paint.java                    |    6 +
+ .../android/graphics/Path.java                     |    1 +
+ .../android/graphics/PixelFormat.java              |    1 +
+ .../android/graphics/Rect.java                     |    1 +
+ .../android/graphics/RectF.java                    |    1 +
+ .../android/graphics/Typeface.java                 |    1 +
+ .../android/graphics/drawable/Drawable.java        |    1 +
+ .../android/net/Uri.java                           |    1 +
+ .../android/os/Build.java                          |    1 +
+ .../android/os/Bundle.java                         |    1 +
+ .../android/os/CancellationSignal.java             |    1 +
+ .../android/os/Handler.java                        |   16 +
+ .../android/os/LocaleList.java                     |    1 +
+ .../android/os/Looper.java                         |    1 +
+ .../android/provider/Settings.java                 |    1 +
+ .../android/text/Annotation.java                   |    1 +
+ .../android/text/Editable.java                     |    1 +
+ .../android/text/InputFilter.java                  |    1 +
+ .../android/text/InputType.java                    |    1 +
+ .../android/text/Layout.java                       |    1 +
+ .../android/text/Spanned.java                      |    1 +
+ .../android/text/TextUtils.java                    |    1 +
+ .../android/text/TextWatcher.java                  |    1 +
+ .../android/text/style/UnderlineSpan.java          |    1 +
+ .../android/util/DisplayMetrics.java               |    1 +
+ .../android/util/TypedValue.java                   |    1 +
+ .../android/view/Gravity.java                      |    1 +
+ .../android/view/KeyEvent.java                     |    1 +
+ .../android/view/MotionEvent.java                  |    1 +
+ .../android/view/View.java                         |   80 +
+ .../android/view/ViewConfiguration.java            |    1 +
+ .../android/view/ViewGroup.java                    |    2 +
+ .../android/view/ViewParent.java                   |    1 +
+ .../android/view/ViewTreeObserver.java             |    1 +
+ .../android/view/Window.java                       |    1 +
+ .../android/view/WindowInsets.java                 |    1 +
+ .../view/accessibility/AccessibilityManager.java   |    1 +
+ .../view/accessibility/AccessibilityNodeInfo.java  |    1 +
+ .../view/inputmethod/BaseInputConnection.java      |   31 +
+ .../android/view/inputmethod/CompletionInfo.java   |    1 +
+ .../android/view/inputmethod/CorrectionInfo.java   |    1 +
+ .../android/view/inputmethod/EditorInfo.java       |    1 +
+ .../view/inputmethod/HandwritingGesture.java       |    1 +
+ .../android/view/inputmethod/InputConnection.java  |   24 +
+ .../view/inputmethod/InputConnectionWrapper.java   |   24 +
+ .../android/view/inputmethod/InputContentInfo.java |    1 +
+ .../inputmethod/PreviewableHandwritingGesture.java |    1 +
+ .../android/view/inputmethod/TextAttribute.java    |    1 +
+ .../android/widget/Button.java                     |    1 +
+ .../android/widget/EditText.java                   |    1 +
+ .../android/widget/FrameLayout.java                |    1 +
+ .../android/widget/LinearLayout.java               |    1 +
+ .../android/widget/ScrollView.java                 |    1 +
+ .../android/widget/Switch.java                     |    1 +
+ .../android/widget/TextView.java                   |   57 +
+ .../dev/mixer/android/ConcreteHostProbe.java       |   51 +
+ .../dev/mixer/android/NativeBridge.java            |   16 +
+ .../leaf-candidate-1/manifest.json                 |  603 ++
+ .../NativeOwnerV2ConcreteHostLeaves/android/R.java |    1 +
+ .../android/app/Activity.java                      |    1 +
+ .../android/app/UiModeManager.java                 |    1 +
+ .../android/content/ClipData.java                  |    1 +
+ .../android/content/ClipboardManager.java          |    1 +
+ .../android/content/ComponentCallbacks.java        |    1 +
+ .../android/content/ContentResolver.java           |    2 +
+ .../android/content/Context.java                   |    2 +
+ .../android/content/res/AssetManager.java          |    3 +
+ .../android/content/res/ColorStateList.java        |    1 +
+ .../android/content/res/Configuration.java         |    1 +
+ .../android/content/res/Resources.java             |    1 +
+ .../android/database/ContentObserver.java          |    1 +
+ .../android/graphics/Canvas.java                   |    1 +
+ .../android/graphics/Color.java                    |    1 +
+ .../android/graphics/ColorFilter.java              |    1 +
+ .../android/graphics/Insets.java                   |    1 +
+ .../android/graphics/Paint.java                    |    6 +
+ .../android/graphics/Path.java                     |    1 +
+ .../android/graphics/PixelFormat.java              |    1 +
+ .../android/graphics/Rect.java                     |    1 +
+ .../android/graphics/RectF.java                    |    1 +
+ .../android/graphics/Typeface.java                 |    1 +
+ .../android/graphics/drawable/Drawable.java        |    1 +
+ .../android/net/Uri.java                           |    1 +
+ .../android/os/Build.java                          |    1 +
+ .../android/os/Bundle.java                         |    1 +
+ .../android/os/CancellationSignal.java             |    1 +
+ .../android/os/Handler.java                        |   16 +
+ .../android/os/LocaleList.java                     |    1 +
+ .../android/os/Looper.java                         |    1 +
+ .../android/provider/Settings.java                 |    1 +
+ .../android/text/Annotation.java                   |    1 +
+ .../android/text/Editable.java                     |    1 +
+ .../android/text/InputFilter.java                  |    1 +
+ .../android/text/InputType.java                    |    1 +
+ .../android/text/Layout.java                       |    1 +
+ .../android/text/Spanned.java                      |    1 +
+ .../android/text/TextUtils.java                    |    1 +
+ .../android/text/TextWatcher.java                  |    1 +
+ .../android/text/style/UnderlineSpan.java          |    1 +
+ .../android/util/DisplayMetrics.java               |    1 +
+ .../android/util/TypedValue.java                   |    1 +
+ .../android/view/Gravity.java                      |    1 +
+ .../android/view/KeyEvent.java                     |    1 +
+ .../android/view/MotionEvent.java                  |    1 +
+ .../android/view/View.java                         |   80 +
+ .../android/view/ViewConfiguration.java            |    1 +
+ .../android/view/ViewGroup.java                    |    2 +
+ .../android/view/ViewParent.java                   |    1 +
+ .../android/view/ViewTreeObserver.java             |    1 +
+ .../android/view/Window.java                       |    1 +
+ .../android/view/WindowInsets.java                 |    1 +
+ .../view/accessibility/AccessibilityManager.java   |    1 +
+ .../view/accessibility/AccessibilityNodeInfo.java  |    1 +
+ .../view/inputmethod/BaseInputConnection.java      |   31 +
+ .../android/view/inputmethod/CompletionInfo.java   |    1 +
+ .../android/view/inputmethod/CorrectionInfo.java   |    1 +
+ .../android/view/inputmethod/EditorInfo.java       |    1 +
+ .../view/inputmethod/HandwritingGesture.java       |    1 +
+ .../android/view/inputmethod/InputConnection.java  |   24 +
+ .../view/inputmethod/InputConnectionWrapper.java   |   24 +
+ .../android/view/inputmethod/InputContentInfo.java |    1 +
+ .../inputmethod/PreviewableHandwritingGesture.java |    1 +
+ .../android/view/inputmethod/TextAttribute.java    |    1 +
+ .../android/widget/Button.java                     |    1 +
+ .../android/widget/EditText.java                   |    1 +
+ .../android/widget/FrameLayout.java                |    1 +
+ .../android/widget/LinearLayout.java               |    1 +
+ .../android/widget/ScrollView.java                 |    1 +
+ .../android/widget/Switch.java                     |    1 +
+ .../android/widget/TextView.java                   |   57 +
+ .../dev/mixer/android/ConcreteHostProbe.java       |   51 +
+ .../dev/mixer/android/NativeBridge.java            |   16 +
+ .../leaf-candidate-2/manifest.json                 |  602 ++
+ .../NativeOwnerV2ConcreteHostLeaves/android/R.java |    1 +
+ .../android/app/Activity.java                      |    1 +
+ .../android/app/UiModeManager.java                 |    1 +
+ .../android/content/ClipData.java                  |    1 +
+ .../android/content/ClipboardManager.java          |    1 +
+ .../android/content/ComponentCallbacks.java        |    1 +
+ .../android/content/ContentResolver.java           |    2 +
+ .../android/content/Context.java                   |    2 +
+ .../android/content/res/AssetManager.java          |    3 +
+ .../android/content/res/ColorStateList.java        |    1 +
+ .../android/content/res/Configuration.java         |    1 +
+ .../android/content/res/Resources.java             |    1 +
+ .../android/database/ContentObserver.java          |    1 +
+ .../android/graphics/Canvas.java                   |    1 +
+ .../android/graphics/Color.java                    |    1 +
+ .../android/graphics/ColorFilter.java              |    1 +
+ .../android/graphics/Insets.java                   |    1 +
+ .../android/graphics/Paint.java                    |    6 +
+ .../android/graphics/Path.java                     |    1 +
+ .../android/graphics/PixelFormat.java              |    1 +
+ .../android/graphics/Rect.java                     |    1 +
+ .../android/graphics/RectF.java                    |    1 +
+ .../android/graphics/Typeface.java                 |    1 +
+ .../android/graphics/drawable/Drawable.java        |    1 +
+ .../android/net/Uri.java                           |    1 +
+ .../android/os/Build.java                          |    1 +
+ .../android/os/Bundle.java                         |    1 +
+ .../android/os/CancellationSignal.java             |    1 +
+ .../android/os/Handler.java                        |   16 +
+ .../android/os/LocaleList.java                     |    1 +
+ .../android/os/Looper.java                         |    1 +
+ .../android/provider/Settings.java                 |    1 +
+ .../android/text/Annotation.java                   |    1 +
+ .../android/text/Editable.java                     |    1 +
+ .../android/text/InputFilter.java                  |    1 +
+ .../android/text/InputType.java                    |    1 +
+ .../android/text/Layout.java                       |    1 +
+ .../android/text/Spanned.java                      |    1 +
+ .../android/text/TextUtils.java                    |    1 +
+ .../android/text/TextWatcher.java                  |    1 +
+ .../android/text/style/UnderlineSpan.java          |    1 +
+ .../android/util/DisplayMetrics.java               |    1 +
+ .../android/util/TypedValue.java                   |    1 +
+ .../android/view/Gravity.java                      |    1 +
+ .../android/view/KeyEvent.java                     |    1 +
+ .../android/view/MotionEvent.java                  |    1 +
+ .../android/view/View.java                         |   80 +
+ .../android/view/ViewConfiguration.java            |    1 +
+ .../android/view/ViewGroup.java                    |    2 +
+ .../android/view/ViewParent.java                   |    1 +
+ .../android/view/ViewTreeObserver.java             |    1 +
+ .../android/view/Window.java                       |    1 +
+ .../android/view/WindowInsets.java                 |    1 +
+ .../view/accessibility/AccessibilityManager.java   |    1 +
+ .../view/accessibility/AccessibilityNodeInfo.java  |    1 +
+ .../view/inputmethod/BaseInputConnection.java      |   31 +
+ .../android/view/inputmethod/CompletionInfo.java   |    1 +
+ .../android/view/inputmethod/CorrectionInfo.java   |    1 +
+ .../android/view/inputmethod/EditorInfo.java       |    1 +
+ .../view/inputmethod/HandwritingGesture.java       |    1 +
+ .../android/view/inputmethod/InputConnection.java  |   24 +
+ .../view/inputmethod/InputConnectionWrapper.java   |   24 +
+ .../android/view/inputmethod/InputContentInfo.java |    1 +
+ .../inputmethod/PreviewableHandwritingGesture.java |    1 +
+ .../android/view/inputmethod/TextAttribute.java    |    1 +
+ .../android/widget/Button.java                     |    1 +
+ .../android/widget/EditText.java                   |    1 +
+ .../android/widget/FrameLayout.java                |    1 +
+ .../android/widget/LinearLayout.java               |    1 +
+ .../android/widget/ScrollView.java                 |    1 +
+ .../android/widget/Switch.java                     |    1 +
+ .../android/widget/TextView.java                   |   57 +
+ .../dev/mixer/android/ConcreteHostProbe.java       |   51 +
+ .../dev/mixer/android/NativeBridge.java            |   16 +
+ .../leaf-candidate-3/manifest.json                 |  604 ++
+ .../ci-observation-10/command.json                 |   16 +
+ .../ci-observation-10/stderr                       |    0
+ .../ci-observation-10/stdout.json                  |    1 +
+ .../ci-observation-4/command.json                  |   15 +
+ .../ci-observation-4/stderr                        |    0
+ .../ci-observation-4/stdout.json                   |    1 +
+ .../ci-observation-5/command.json                  |   16 +
+ .../ci-observation-5/stderr                        |    0
+ .../ci-observation-5/stdout.json                   |    1 +
+ .../ci-observation-6/command.json                  |   16 +
+ .../ci-observation-6/stderr                        |    0
+ .../ci-observation-6/stdout.json                   |    1 +
+ .../ci-observation-7/command.json                  |   16 +
+ .../ci-observation-7/stderr                        |    0
+ .../ci-observation-7/stdout.json                   |    1 +
+ .../ci-observation-8/command.json                  |   16 +
+ .../ci-observation-8/stderr                        |    0
+ .../ci-observation-8/stdout.json                   |    1 +
+ .../ci-observation-9/command.json                  |   16 +
+ .../ci-observation-9/stderr                        |    0
+ .../ci-observation-9/stdout.json                   |    1 +
+ .../log-attempt-1/command.json                     |   12 +
+ .../log-attempt-1/stderr                           |    1 +
+ .../log-attempt-1/stdout                           |    3 +
+ .../receipt.json                                   |   16 +-
+ .../terminal-inspection/annotations-command.json   |   10 +
+ .../terminal-inspection/annotations.stderr         |    0
+ .../terminal-inspection/annotations.stdout.json    |    1 +
+ .../terminal-inspection/job-command.json           |   12 +
+ .../terminal-inspection/job.stderr                 |    0
+ .../terminal-inspection/job.stdout                 |    1 +
+ .../terminal-inspection/log-command.json           |   12 +
+ .../terminal-inspection/log.stderr                 |    1 +
+ .../terminal-inspection/log.stdout                 |    3 +
+ .../artifact-attempt-2/ARCHIVE.md                  |   29 +
+ .../artifact-attempt-2/artifacts.command.json      |   11 +
+ .../artifact-attempt-2/artifacts.stderr            |    0
+ .../artifact-attempt-2/artifacts.stdout.json       |    1 +
+ .../artifact-attempt-2/audit.command.json          |   20 +
+ .../artifact-attempt-2/audit.stderr                |    0
+ .../artifact-attempt-2/audit.stdout.json           |   30 +
+ .../artifact-attempt-2/download.command.json       |   12 +
+ .../artifact-attempt-2/download.stderr             |    0
+ .../artifact-attempt-2/envelope.zip                |  Bin 0 -> 566414 bytes
+ .../artifact-attempt-2/extraction-manifest.json    | 1268 +++
+ .../artifact-attempt-2/root-audit-environment.json |   12 +
+ .../initial-path-error.json                        |    6 +
+ .../positive-1.command.json                        |   18 +
+ .../artifact-audit-controls/positive-1.stderr      |   17 +
+ .../artifact-audit-controls/positive-1.stdout      |    0
+ .../positive-2.command.json                        |   21 +
+ .../artifact-audit-controls/positive-2.stderr      |   13 +
+ .../artifact-audit-controls/positive-2.stdout      |    0
+ .../positive-3.command.json                        |   21 +
+ .../artifact-audit-controls/positive-3.stderr      |   10 +
+ .../artifact-audit-controls/positive-3.stdout      |    0
+ .../positive-4.command.json                        |   21 +
+ .../artifact-audit-controls/positive-4.stderr      |    0
+ .../artifact-audit-controls/positive-4.stdout      |   30 +
+ .../artifact-audit-controls/receipt.json           |   18 +
+ .../wrong-compiler.command.json                    |   21 +
+ .../artifact-audit-controls/wrong-compiler.stderr  |   10 +
+ .../artifact-audit-controls/wrong-compiler.stdout  |    0
+ .../audit_envelope_artifact.py                     |  152 +
+ .../authored-diff-check.stderr                     |    0
+ .../authored-diff-check.stdout                     |    0
+ .../base-PLAN.md.stderr                            |    0
+ .../base-PLAN.md.stdout                            |  432 +
+ .../base-STATUS.md.stderr                          |    0
+ .../base-STATUS.md.stdout                          |  629 ++
+ .../base-gates-ga.json.stderr                      |    0
+ .../base-gates-ga.json.stdout                      | 4304 +++++++++
+ .../base-work-graph.json.stderr                    |    0
+ .../base-work-graph.json.stdout                    | 4964 ++++++++++
+ .../branch.stderr                                  |    0
+ .../branch.stdout                                  |    1 +
+ .../ci-1.98.1-qualification.json                   |   69 +
+ .../ci-discovery-command.json                      |   18 +
+ .../ci-discovery.stderr                            |    0
+ .../ci-discovery.stdout.json                       |    1 +
+ .../ci-observation-1/command.json                  |   15 +
+ .../ci-observation-1/stderr                        |    0
+ .../ci-observation-1/stdout.json                   |    1 +
+ .../ci-observation-10/command.json                 |   16 +
+ .../ci-observation-10/stderr                       |    0
+ .../ci-observation-10/stdout.json                  |    1 +
+ .../ci-observation-11/command.json                 |   16 +
+ .../ci-observation-11/stderr                       |    0
+ .../ci-observation-11/stdout.json                  |    1 +
+ .../ci-observation-12/command.json                 |   16 +
+ .../ci-observation-12/stderr                       |    0
+ .../ci-observation-12/stdout.json                  |    1 +
+ .../ci-observation-13/command.json                 |   16 +
+ .../ci-observation-13/stderr                       |    0
+ .../ci-observation-13/stdout.json                  |    1 +
+ .../ci-observation-14/command.json                 |   16 +
+ .../ci-observation-14/stderr                       |    0
+ .../ci-observation-14/stdout.json                  |    1 +
+ .../ci-observation-15/command.json                 |   16 +
+ .../ci-observation-15/stderr                       |    0
+ .../ci-observation-15/stdout.json                  |    1 +
+ .../ci-observation-16/command.json                 |   16 +
+ .../ci-observation-16/stderr                       |    0
+ .../ci-observation-16/stdout.json                  |    1 +
+ .../ci-observation-2/command.json                  |   16 +
+ .../ci-observation-2/stderr                        |    0
+ .../ci-observation-2/stdout.json                   |    1 +
+ .../ci-observation-3/command.json                  |   16 +
+ .../ci-observation-3/stderr                        |    0
+ .../ci-observation-3/stdout.json                   |    1 +
+ .../ci-observation-4/command.json                  |   16 +
+ .../ci-observation-4/stderr                        |    0
+ .../ci-observation-4/stdout.json                   |    1 +
+ .../ci-observation-5/command.json                  |   16 +
+ .../ci-observation-5/stderr                        |    0
+ .../ci-observation-5/stdout.json                   |    1 +
+ .../ci-observation-6/command.json                  |   16 +
+ .../ci-observation-6/stderr                        |    0
+ .../ci-observation-6/stdout.json                   |    1 +
+ .../ci-observation-7/command.json                  |   16 +
+ .../ci-observation-7/stderr                        |    0
+ .../ci-observation-7/stdout.json                   |    1 +
+ .../ci-observation-8/command.json                  |   16 +
+ .../ci-observation-8/stderr                        |    0
+ .../ci-observation-8/stdout.json                   |    1 +
+ .../ci-observation-9/command.json                  |   16 +
+ .../ci-observation-9/stderr                        |    0
+ .../ci-observation-9/stdout.json                   |    1 +
+ .../ci-terminal.json                               |   50 +
+ .../commands.json                                  |  440 +
+ .../commit.stderr                                  |    0
+ .../commit.stdout                                  |  964 ++
+ .../committed-head.stderr                          |    0
+ .../committed-head.stdout                          |    1 +
+ .../committed-parent.stderr                        |    0
+ .../committed-parent.stdout                        |    1 +
+ .../committed-tree.stderr                          |    0
+ .../committed-tree.stdout                          |    1 +
+ .../github-delivery-swift-envelope-ci/deliver.py   |   62 +
+ .../delivery-commands.json                         |  128 +
+ .../diff-check.stderr                              |    0
+ .../diff-check.stdout                              | 1024 ++
+ .../gh-version.stderr                              |    0
+ .../gh-version.stdout                              |    2 +
+ .../git-version.stderr                             |    0
+ .../git-version.stdout                             |    1 +
+ .../head-before-commit.stderr                      |    0
+ .../head-before-commit.stdout                      |    1 +
+ .../github-delivery-swift-envelope-ci/head.stderr  |    0
+ .../github-delivery-swift-envelope-ci/head.stdout  |    1 +
+ .../index-after-commit.stderr                      |    0
+ .../index-after-commit.stdout                      |    0
+ .../index-before.stderr                            |    0
+ .../index-before.stdout                            |    0
+ .../inspect_terminal_attempt.py                    |   52 +
+ .../manifest.json                                  | 3870 ++++++++
+ .../metadata-blob-PLAN.md.stderr                   |    0
+ .../metadata-blob-PLAN.md.stdout                   |    1 +
+ .../metadata-blob-STATUS.md.stderr                 |    0
+ .../metadata-blob-STATUS.md.stdout                 |    1 +
+ .../metadata-blob-gates-ga.json.stderr             |    0
+ .../metadata-blob-gates-ga.json.stdout             |    1 +
+ .../metadata-blob-work-graph.json.stderr           |    0
+ .../metadata-blob-work-graph.json.stdout           |    1 +
+ .../metadata-snapshots/PLAN.md                     |  464 +
+ .../metadata-snapshots/STATUS.md                   |  660 ++
+ .../metadata-snapshots/gates/ga.json               | 4746 ++++++++++
+ .../metadata-snapshots/work-graph.json             | 5406 +++++++++++
+ .../metadata-stage-PLAN.md.stderr                  |    0
+ .../metadata-stage-PLAN.md.stdout                  |    0
+ .../metadata-stage-STATUS.md.stderr                |    0
+ .../metadata-stage-STATUS.md.stdout                |    0
+ .../metadata-stage-gates-ga.json.stderr            |    0
+ .../metadata-stage-gates-ga.json.stdout            |    0
+ .../metadata-stage-work-graph.json.stderr          |    0
+ .../metadata-stage-work-graph.json.stdout          |    0
+ .../non-metadata-paths.nul                         |  Bin 0 -> 93511 bytes
+ .../github-delivery-swift-envelope-ci/numstat.txt  |  967 ++
+ .../observe_ci.py                                  |   47 +
+ .../paths-before-commit.stderr                     |    0
+ .../paths-before-commit.stdout                     |  Bin 0 -> 93559 bytes
+ .../github-delivery-swift-envelope-ci/paths.nul    |  Bin 0 -> 93559 bytes
+ .../github-delivery-swift-envelope-ci/prepare.py   |  159 +
+ .../github-delivery-swift-envelope-ci/push.stderr  |    2 +
+ .../github-delivery-swift-envelope-ci/push.stdout  |    0
+ .../qualification-metadata.json                    |   24 +
+ .../github-delivery-swift-envelope-ci/receipt.json |   90 +
+ .../remote-before.stderr                           |    0
+ .../remote-before.stdout                           |    1 +
+ .../remote-head.stderr                             |    0
+ .../remote-head.stdout                             |    1 +
+ .../rerun-swift-attempt-2/command.json             |   21 +
+ .../first-state/artifacts.command.json             |   11 +
+ .../first-state/artifacts.stderr                   |    0
+ .../first-state/artifacts.stdout.json              |    1 +
+ .../first-state/run.command.json                   |   11 +
+ .../rerun-swift-attempt-2/first-state/run.stderr   |    0
+ .../first-state/run.stdout.json                    |    1 +
+ .../rerun-swift-attempt-2/stderr                   |    0
+ .../rerun-swift-attempt-2/stdout                   |    0
+ .../selected-tree.stderr                           |    0
+ .../selected-tree.stdout                           |    1 +
+ .../selection-draft.json                           |  747 ++
+ .../selection.json                                 |  999 ++
+ .../github-delivery-swift-envelope-ci/stage.stderr |    0
+ .../github-delivery-swift-envelope-ci/stage.stdout |    0
+ .../staged-paths.stderr                            |    0
+ .../staged-paths.stdout                            |  Bin 0 -> 93559 bytes
+ .../terminal-attempt-1/annotations.command.json    |   11 +
+ .../terminal-attempt-1/annotations.stderr          |    0
+ .../terminal-attempt-1/annotations.stdout          |    1 +
+ .../terminal-attempt-1/gh-version.command.json     |   10 +
+ .../terminal-attempt-1/gh-version.stderr           |    0
+ .../terminal-attempt-1/gh-version.stdout           |    2 +
+ .../terminal-attempt-1/job.command.json            |   11 +
+ .../terminal-attempt-1/job.stderr                  |    0
+ .../terminal-attempt-1/job.stdout                  |    1 +
+ .../terminal-attempt-1/log.command.json            |   19 +
+ .../terminal-attempt-1/log.stderr                  |    1 +
+ .../terminal-attempt-1/log.stdout                  |    0
+ .../terminal-attempt-1/run.command.json            |   11 +
+ .../terminal-attempt-1/run.stderr                  |    0
+ .../terminal-attempt-1/run.stdout                  |    1 +
+ .../terminal-attempt-2/run.command.json            |   11 +
+ .../terminal-attempt-2/run.stderr                  |    0
+ .../terminal-attempt-2/run.stdout.json             |    1 +
+ .../terminal-metadata.json                         |   24 +
+ .../audit_source_contract.py                       |  168 +
+ .../docs/swift-semantic-adapter-prerequisite.md    |  383 +
+ .../swift-semantic-adapter-prerequisite/README.md  |   27 +
+ .../authoring-failure-1.json                       |    8 +
+ .../authoring-failure-2.json                       |    8 +
+ .../commands/run-1/checks-normal.json              |   18 +
+ .../commands/run-1/checks-normal.stderr            |   17 +
+ .../commands/run-1/checks-normal.stdout            |    0
+ .../commands/run-1/checks-optimized.json           |   19 +
+ .../commands/run-1/checks-optimized.stderr         |   17 +
+ .../commands/run-1/checks-optimized.stdout         |    0
+ .../commands/run-1/git-version.json                |   17 +
+ .../commands/run-1/git-version.stderr              |    0
+ .../commands/run-1/git-version.stdout              |    1 +
+ .../commands/run-1/python-version.json             |   17 +
+ .../commands/run-1/python-version.stderr           |    0
+ .../commands/run-1/python-version.stdout           |    1 +
+ .../commands/run-1/receipt.json                    |  367 +
+ .../commands/run-1/revision.json                   |   18 +
+ .../commands/run-1/revision.stderr                 |    0
+ .../commands/run-1/revision.stdout                 |    1 +
+ .../commands/run-1/source-after.json               |   57 +
+ .../commands/run-1/source-before.json              |   57 +
+ .../commands/run-1/whitespace-00.json              |   21 +
+ .../commands/run-1/whitespace-00.stderr            |    0
+ .../commands/run-1/whitespace-00.stdout            |    0
+ .../commands/run-1/whitespace-01.json              |   21 +
+ .../commands/run-1/whitespace-01.stderr            |    0
+ .../commands/run-1/whitespace-01.stdout            |    0
+ .../commands/run-1/whitespace-02.json              |   21 +
+ .../commands/run-1/whitespace-02.stderr            |    0
+ .../commands/run-1/whitespace-02.stdout            |    0
+ .../commands/run-1/whitespace-03.json              |   21 +
+ .../commands/run-1/whitespace-03.stderr            |    0
+ .../commands/run-1/whitespace-03.stdout            |    0
+ .../commands/run-1/whitespace-04.json              |   21 +
+ .../commands/run-1/whitespace-04.stderr            |    0
+ .../commands/run-1/whitespace-04.stdout            |    0
+ .../commands/run-1/whitespace-05.json              |   21 +
+ .../commands/run-1/whitespace-05.stderr            |    0
+ .../commands/run-1/whitespace-05.stdout            |    0
+ .../commands/run-1/whitespace-06.json              |   21 +
+ .../commands/run-1/whitespace-06.stderr            |    0
+ .../commands/run-1/whitespace-06.stdout            |    0
+ .../commands/run-1/whitespace-07.json              |   21 +
+ .../commands/run-1/whitespace-07.stderr            |    0
+ .../commands/run-1/whitespace-07.stdout            |    0
+ .../commands/run-1/whitespace-08.json              |   21 +
+ .../commands/run-1/whitespace-08.stderr            |    0
+ .../commands/run-1/whitespace-08.stdout            |    0
+ .../commands/run-1/whitespace-09.json              |   21 +
+ .../commands/run-1/whitespace-09.stderr            |    0
+ .../commands/run-1/whitespace-09.stdout            |    0
+ .../commands/run-1/whitespace-10.json              |   21 +
+ .../commands/run-1/whitespace-10.stderr            |    0
+ .../commands/run-1/whitespace-10.stdout            |    0
+ .../commands/run-2/checks-normal.json              |   18 +
+ .../commands/run-2/checks-normal.stderr            |   17 +
+ .../commands/run-2/checks-normal.stdout            |    0
+ .../commands/run-2/checks-optimized.json           |   19 +
+ .../commands/run-2/checks-optimized.stderr         |   17 +
+ .../commands/run-2/checks-optimized.stdout         |    0
+ .../commands/run-2/git-version.json                |   17 +
+ .../commands/run-2/git-version.stderr              |    0
+ .../commands/run-2/git-version.stdout              |    1 +
+ .../commands/run-2/python-version.json             |   17 +
+ .../commands/run-2/python-version.stderr           |    0
+ .../commands/run-2/python-version.stdout           |    1 +
+ .../commands/run-2/receipt.json                    |  409 +
+ .../commands/run-2/revision.json                   |   18 +
+ .../commands/run-2/revision.stderr                 |    0
+ .../commands/run-2/revision.stdout                 |    1 +
+ .../commands/run-2/source-after.json               |   67 +
+ .../commands/run-2/source-before.json              |   67 +
+ .../commands/run-2/whitespace-00.json              |   21 +
+ .../commands/run-2/whitespace-00.stderr            |    0
+ .../commands/run-2/whitespace-00.stdout            |    0
+ .../commands/run-2/whitespace-01.json              |   21 +
+ .../commands/run-2/whitespace-01.stderr            |    0
+ .../commands/run-2/whitespace-01.stdout            |    0
+ .../commands/run-2/whitespace-02.json              |   21 +
+ .../commands/run-2/whitespace-02.stderr            |    0
+ .../commands/run-2/whitespace-02.stdout            |    0
+ .../commands/run-2/whitespace-03.json              |   21 +
+ .../commands/run-2/whitespace-03.stderr            |    0
+ .../commands/run-2/whitespace-03.stdout            |    0
+ .../commands/run-2/whitespace-04.json              |   21 +
+ .../commands/run-2/whitespace-04.stderr            |    0
+ .../commands/run-2/whitespace-04.stdout            |    0
+ .../commands/run-2/whitespace-05.json              |   21 +
+ .../commands/run-2/whitespace-05.stderr            |    0
+ .../commands/run-2/whitespace-05.stdout            |    0
+ .../commands/run-2/whitespace-06.json              |   21 +
+ .../commands/run-2/whitespace-06.stderr            |    0
+ .../commands/run-2/whitespace-06.stdout            |    0
+ .../commands/run-2/whitespace-07.json              |   21 +
+ .../commands/run-2/whitespace-07.stderr            |    0
+ .../commands/run-2/whitespace-07.stdout            |    0
+ .../commands/run-2/whitespace-08.json              |   21 +
+ .../commands/run-2/whitespace-08.stderr            |    0
+ .../commands/run-2/whitespace-08.stdout            |    0
+ .../commands/run-2/whitespace-09.json              |   21 +
+ .../commands/run-2/whitespace-09.stderr            |    0
+ .../commands/run-2/whitespace-09.stdout            |    0
+ .../commands/run-2/whitespace-10.json              |   21 +
+ .../commands/run-2/whitespace-10.stderr            |    0
+ .../commands/run-2/whitespace-10.stdout            |    0
+ .../commands/run-2/whitespace-11.json              |   21 +
+ .../commands/run-2/whitespace-11.stderr            |    0
+ .../commands/run-2/whitespace-11.stdout            |    0
+ .../commands/run-2/whitespace-12.json              |   21 +
+ .../commands/run-2/whitespace-12.stderr            |    0
+ .../commands/run-2/whitespace-12.stdout            |    0
+ .../contract.json                                  |  362 +
+ .../final-receipt.json                             |   50 +
+ .../input-manifest.json                            |  214 +
+ .../inputs/00-AGENTS.md                            |   55 +
+ .../inputs/01-mixer-product-plan.md                | 1366 +++
+ .../inputs/02-PLAN.md                              |  480 +
+ .../inputs/03-work-graph.json                      | 5684 +++++++++++
+ .../inputs/04-swift-envelope-ci-acceptance.md      |   56 +
+ .../inputs/05-swift-ordered-retention-analyzer.md  |  800 ++
+ .../06-swift-ordered-retention-analyzer-review.md  |  165 +
+ ...wift-ordered-retention-analyzer-fsm-contract.md |  564 ++
+ ...dered-retention-analyzer-fsm-contract-review.md |  185 +
+ .../09-swift-envelope-absent-state-correction.md   |   73 +
+ ...wift-envelope-absent-state-accounting-review.md |   86 +
+ ...dered-retention-analyzer-envelope-correction.md |   43 +
+ .../inputs/12-manifest.json                        |  449 +
+ .../inputs/13-analyzer.rs                          |  536 ++
+ .../inputs/14-envelope.rs                          |  395 +
+ .../inputs/15-expected-api.json                    |   98 +
+ .../inputs/16-expected-host-layouts.json           |  140 +
+ .../inputs/17-proposed-layout.json                 |  231 +
+ .../inputs/18-implementation-selection.json        |   74 +
+ .../inputs/19-seal.json                            |  345 +
+ .../inputs/20-interface_schema.py                  |  102 +
+ .../inputs/21-result.json                          |   10 +
+ .../inputs/22-result.json                          |  279 +
+ ...andidate__src__experimental__cache__borrowed.rs |  918 ++
+ ...date__src__experimental_swift_reactor__cache.rs | 4862 ++++++++++
+ ...ft-ordered-retention-diagnostic-rust__writer.rs |  167 +
+ ...-ordered-retention-diagnostic-rust__observer.rs |  329 +
+ ...tention-diagnostic-rust__source-code-table.json |   26 +
+ .../inputs/supplement-0-model.py                   |  211 +
+ .../inputs/supplement-1-layout.rs                  |   42 +
+ .../prepare_inputs.py                              |   78 +
+ .../run_checks.py                                  |  106 +
+ .../swift-semantic-adapter-prerequisite/seal.py    |   86 +
+ .../source-seams.json                              |  161 +
+ .../supplemental-inputs.json                       |   20 +
+ .../test-design.json                               | 1170 +++
+ .../verify_proposal.py                             |  178 +
+ .../candidate-1/root-preaccess-admission.json      |   16 +
+ .../candidate-1/seal.json                          |  772 ++
+ .../candidate-1/seal.sha256                        |    1 +
+ .../candidate-snapshot-receipt.json                |   14 +
+ .../finalize_review.py                             |  121 +
+ .../preaccess-verification.json                    |   53 +
+ .../preaccess/accepted-input-manifest.json         |   62 +
+ .../preaccess/accepted-inputs/AGENTS.md            |   55 +
+ .../docs/swift-envelope-ci-acceptance.md           |   56 +
+ ...dered-retention-analyzer-fsm-contract-review.md |  185 +
+ .../swift-ordered-retention-analyzer-review.md     |  165 +
+ .../accepted-inputs/mixer-product-plan.md          | 1366 +++
+ .../swift-envelope-ci-pack/api/positive.rs         |    7 +
+ .../inventories/proposed-layout.json               |  231 +
+ .../provenance/contract-seal.json                  |   81 +
+ .../source/library/analyzer.rs                     |  536 ++
+ .../source/library/envelope.rs                     |  395 +
+ .../preaccess/commands.json                        |   33 +
+ .../preaccess/git-version.stderr                   |    0
+ .../preaccess/git-version.stdout                   |    1 +
+ .../preaccess/plan.md                              |   52 +
+ .../preaccess/prepare_preaccess.py.txt             |  114 +
+ .../preaccess/python-version.stderr                |    0
+ .../preaccess/python-version.stdout                |    1 +
+ .../preaccess/receipt.json                         |   33 +
+ .../preaccess/revision.stderr                      |    0
+ .../preaccess/revision.stdout                      |    1 +
+ .../preaccess/seal.json                            |  117 +
+ .../preaccess/seal.sha256                          |    1 +
+ .../prepare_preaccess.py                           |  114 +
+ .../review-1/audit.json                            |  266 +
+ .../review-1/candidate-seal.json                   |  772 ++
+ .../review-1/final-receipt.json                    |  139 +
+ .../review-1/findings.json                         |   65 +
+ .../review-1/git-version.stderr                    |    0
+ .../review-1/git-version.stdout                    |    1 +
+ .../review-1/preaccess-seal.json                   |  117 +
+ .../review-1/python-version.stderr                 |    0
+ .../review-1/python-version.stdout                 |    1 +
+ .../review-1/review.md                             |   38 +
+ .../review-1/reviewed-document.md                  |  159 +
+ .../reviewer-source/audit_source_contract.py.txt   |  168 +
+ .../reviewer-source/finalize_review.py.txt         |  121 +
+ .../reviewer-source/prepare_preaccess.py.txt       |  114 +
+ .../reviewer-source/snapshot_candidate.py.txt      |   69 +
+ .../reviewer-source/verify_preaccess.py.txt        |   45 +
+ .../review-1/revision.stderr                       |    0
+ .../review-1/revision.stdout                       |    1 +
+ .../review-1/seal.json                             |  189 +
+ .../review-1/seal.sha256                           |    1 +
+ .../review-1/source-inputs.json                    |   14 +
+ .../review-1/whitespace-00.stderr                  |    0
+ .../review-1/whitespace-00.stdout                  |    0
+ .../review-1/whitespace-01.stderr                  |    0
+ .../review-1/whitespace-01.stdout                  |    0
+ .../review-1/whitespace-02.stderr                  |    0
+ .../review-1/whitespace-02.stdout                  |    0
+ .../review-1/whitespace-03.stderr                  |    0
+ .../review-1/whitespace-03.stdout                  |    0
+ .../review-1/whitespace-04.stderr                  |    0
+ .../review-1/whitespace-04.stdout                  |    0
+ .../review-1/whitespace-05.stderr                  |    0
+ .../review-1/whitespace-05.stdout                  |    0
+ .../review-1/whitespace-06.stderr                  |    0
+ .../review-1/whitespace-06.stdout                  |    0
+ .../review-1/whitespace-07.stderr                  |    0
+ .../review-1/whitespace-07.stdout                  |    0
+ .../snapshot_candidate.py                          |   69 +
+ .../verify_preaccess.py                            |   45 +
+ .../swift-semantic-adapter-prerequisite/README.md  |   27 +
+ .../authoring-failure-1.json                       |    8 +
+ .../authoring-failure-2.json                       |    8 +
+ .../commands/run-1/checks-normal.json              |   18 +
+ .../commands/run-1/checks-normal.stderr            |   17 +
+ .../commands/run-1/checks-normal.stdout            |    0
+ .../commands/run-1/checks-optimized.json           |   19 +
+ .../commands/run-1/checks-optimized.stderr         |   17 +
+ .../commands/run-1/checks-optimized.stdout         |    0
+ .../commands/run-1/git-version.json                |   17 +
+ .../commands/run-1/git-version.stderr              |    0
+ .../commands/run-1/git-version.stdout              |    1 +
+ .../commands/run-1/python-version.json             |   17 +
+ .../commands/run-1/python-version.stderr           |    0
+ .../commands/run-1/python-version.stdout           |    1 +
+ .../commands/run-1/receipt.json                    |  367 +
+ .../commands/run-1/revision.json                   |   18 +
+ .../commands/run-1/revision.stderr                 |    0
+ .../commands/run-1/revision.stdout                 |    1 +
+ .../commands/run-1/source-after.json               |   57 +
+ .../commands/run-1/source-before.json              |   57 +
+ .../commands/run-1/whitespace-00.json              |   21 +
+ .../commands/run-1/whitespace-00.stderr            |    0
+ .../commands/run-1/whitespace-00.stdout            |    0
+ .../commands/run-1/whitespace-01.json              |   21 +
+ .../commands/run-1/whitespace-01.stderr            |    0
+ .../commands/run-1/whitespace-01.stdout            |    0
+ .../commands/run-1/whitespace-02.json              |   21 +
+ .../commands/run-1/whitespace-02.stderr            |    0
+ .../commands/run-1/whitespace-02.stdout            |    0
+ .../commands/run-1/whitespace-03.json              |   21 +
+ .../commands/run-1/whitespace-03.stderr            |    0
+ .../commands/run-1/whitespace-03.stdout            |    0
+ .../commands/run-1/whitespace-04.json              |   21 +
+ .../commands/run-1/whitespace-04.stderr            |    0
+ .../commands/run-1/whitespace-04.stdout            |    0
+ .../commands/run-1/whitespace-05.json              |   21 +
+ .../commands/run-1/whitespace-05.stderr            |    0
+ .../commands/run-1/whitespace-05.stdout            |    0
+ .../commands/run-1/whitespace-06.json              |   21 +
+ .../commands/run-1/whitespace-06.stderr            |    0
+ .../commands/run-1/whitespace-06.stdout            |    0
+ .../commands/run-1/whitespace-07.json              |   21 +
+ .../commands/run-1/whitespace-07.stderr            |    0
+ .../commands/run-1/whitespace-07.stdout            |    0
+ .../commands/run-1/whitespace-08.json              |   21 +
+ .../commands/run-1/whitespace-08.stderr            |    0
+ .../commands/run-1/whitespace-08.stdout            |    0
+ .../commands/run-1/whitespace-09.json              |   21 +
+ .../commands/run-1/whitespace-09.stderr            |    0
+ .../commands/run-1/whitespace-09.stdout            |    0
+ .../commands/run-1/whitespace-10.json              |   21 +
+ .../commands/run-1/whitespace-10.stderr            |    0
+ .../commands/run-1/whitespace-10.stdout            |    0
+ .../commands/run-2/checks-normal.json              |   18 +
+ .../commands/run-2/checks-normal.stderr            |   17 +
+ .../commands/run-2/checks-normal.stdout            |    0
+ .../commands/run-2/checks-optimized.json           |   19 +
+ .../commands/run-2/checks-optimized.stderr         |   17 +
+ .../commands/run-2/checks-optimized.stdout         |    0
+ .../commands/run-2/git-version.json                |   17 +
+ .../commands/run-2/git-version.stderr              |    0
+ .../commands/run-2/git-version.stdout              |    1 +
+ .../commands/run-2/python-version.json             |   17 +
+ .../commands/run-2/python-version.stderr           |    0
+ .../commands/run-2/python-version.stdout           |    1 +
+ .../commands/run-2/receipt.json                    |  409 +
+ .../commands/run-2/revision.json                   |   18 +
+ .../commands/run-2/revision.stderr                 |    0
+ .../commands/run-2/revision.stdout                 |    1 +
+ .../commands/run-2/source-after.json               |   67 +
+ .../commands/run-2/source-before.json              |   67 +
+ .../commands/run-2/whitespace-00.json              |   21 +
+ .../commands/run-2/whitespace-00.stderr            |    0
+ .../commands/run-2/whitespace-00.stdout            |    0
+ .../commands/run-2/whitespace-01.json              |   21 +
+ .../commands/run-2/whitespace-01.stderr            |    0
+ .../commands/run-2/whitespace-01.stdout            |    0
+ .../commands/run-2/whitespace-02.json              |   21 +
+ .../commands/run-2/whitespace-02.stderr            |    0
+ .../commands/run-2/whitespace-02.stdout            |    0
+ .../commands/run-2/whitespace-03.json              |   21 +
+ .../commands/run-2/whitespace-03.stderr            |    0
+ .../commands/run-2/whitespace-03.stdout            |    0
+ .../commands/run-2/whitespace-04.json              |   21 +
+ .../commands/run-2/whitespace-04.stderr            |    0
+ .../commands/run-2/whitespace-04.stdout            |    0
+ .../commands/run-2/whitespace-05.json              |   21 +
+ .../commands/run-2/whitespace-05.stderr            |    0
+ .../commands/run-2/whitespace-05.stdout            |    0
+ .../commands/run-2/whitespace-06.json              |   21 +
+ .../commands/run-2/whitespace-06.stderr            |    0
+ .../commands/run-2/whitespace-06.stdout            |    0
+ .../commands/run-2/whitespace-07.json              |   21 +
+ .../commands/run-2/whitespace-07.stderr            |    0
+ .../commands/run-2/whitespace-07.stdout            |    0
+ .../commands/run-2/whitespace-08.json              |   21 +
+ .../commands/run-2/whitespace-08.stderr            |    0
+ .../commands/run-2/whitespace-08.stdout            |    0
+ .../commands/run-2/whitespace-09.json              |   21 +
+ .../commands/run-2/whitespace-09.stderr            |    0
+ .../commands/run-2/whitespace-09.stdout            |    0
+ .../commands/run-2/whitespace-10.json              |   21 +
+ .../commands/run-2/whitespace-10.stderr            |    0
+ .../commands/run-2/whitespace-10.stdout            |    0
+ .../commands/run-2/whitespace-11.json              |   21 +
+ .../commands/run-2/whitespace-11.stderr            |    0
+ .../commands/run-2/whitespace-11.stdout            |    0
+ .../commands/run-2/whitespace-12.json              |   21 +
+ .../commands/run-2/whitespace-12.stderr            |    0
+ .../commands/run-2/whitespace-12.stdout            |    0
+ .../contract.json                                  |  362 +
+ .../final-receipt.json                             |   50 +
+ .../input-manifest.json                            |  214 +
+ .../inputs/00-AGENTS.md                            |   55 +
+ .../inputs/01-mixer-product-plan.md                | 1366 +++
+ .../inputs/02-PLAN.md                              |  480 +
+ .../inputs/03-work-graph.json                      | 5684 +++++++++++
+ .../inputs/04-swift-envelope-ci-acceptance.md      |   56 +
+ .../inputs/05-swift-ordered-retention-analyzer.md  |  800 ++
+ .../06-swift-ordered-retention-analyzer-review.md  |  165 +
+ ...wift-ordered-retention-analyzer-fsm-contract.md |  564 ++
+ ...dered-retention-analyzer-fsm-contract-review.md |  185 +
+ .../09-swift-envelope-absent-state-correction.md   |   73 +
+ ...wift-envelope-absent-state-accounting-review.md |   86 +
+ ...dered-retention-analyzer-envelope-correction.md |   43 +
+ .../inputs/12-manifest.json                        |  449 +
+ .../inputs/13-analyzer.rs                          |  536 ++
+ .../inputs/14-envelope.rs                          |  395 +
+ .../inputs/15-expected-api.json                    |   98 +
+ .../inputs/16-expected-host-layouts.json           |  140 +
+ .../inputs/17-proposed-layout.json                 |  231 +
+ .../inputs/18-implementation-selection.json        |   74 +
+ .../inputs/19-seal.json                            |  345 +
+ .../inputs/20-interface_schema.py                  |  102 +
+ .../inputs/21-result.json                          |   10 +
+ .../inputs/22-result.json                          |  279 +
+ ...andidate__src__experimental__cache__borrowed.rs |  918 ++
+ ...date__src__experimental_swift_reactor__cache.rs | 4862 ++++++++++
+ ...ft-ordered-retention-diagnostic-rust__writer.rs |  167 +
+ ...-ordered-retention-diagnostic-rust__observer.rs |  329 +
+ ...tention-diagnostic-rust__source-code-table.json |   26 +
+ .../inputs/supplement-0-model.py                   |  211 +
+ .../inputs/supplement-1-layout.rs                  |   42 +
+ .../prepare_inputs.py                              |   78 +
+ .../run_checks.py                                  |  106 +
+ .../swift-semantic-adapter-prerequisite/seal.json  |  772 ++
+ .../swift-semantic-adapter-prerequisite/seal.py    |   86 +
+ .../seal.sha256                                    |    1 +
+ .../source-seams.json                              |  161 +
+ .../supplemental-inputs.json                       |   20 +
+ .../test-design.json                               | 1170 +++
+ .../verify_proposal.py                             |  178 +
+ .../accept_combined_contract.py                    |   80 +
+ .../combined-contract-acceptance.json              |   92 +
+ .../combined-contract-metadata.json                |   24 +
+ .../preaccess-admission.json                       |   16 +
+ .../proposal-custody.json                          |   18 +
+ .../review-1-admission-attempt-1.json              |    6 +
+ .../review-1-admission.json                        |   14 +
+ .../terminal-correction-custody.json               |   14 +
+ .../terminal-correction-metadata.json              |   22 +
+ .../terminal-review-preaccess-admission.json       |   14 +
+ .../README.md                                      |   30 +
+ .../attempts/run-1/git-version.json                |   17 +
+ .../attempts/run-1/git-version.stderr              |    0
+ .../attempts/run-1/git-version.stdout              |    1 +
+ .../attempts/run-1/normal.json                     |   18 +
+ .../attempts/run-1/normal.stderr                   |   17 +
+ .../attempts/run-1/normal.stdout                   |    0
+ .../attempts/run-1/optimized.json                  |   19 +
+ .../attempts/run-1/optimized.stderr                |   17 +
+ .../attempts/run-1/optimized.stdout                |    0
+ .../attempts/run-1/python-version.json             |   17 +
+ .../attempts/run-1/python-version.stderr           |    0
+ .../attempts/run-1/python-version.stdout           |    1 +
+ .../attempts/run-1/receipt.json                    |  363 +
+ .../attempts/run-1/revision.json                   |   18 +
+ .../attempts/run-1/revision.stderr                 |    0
+ .../attempts/run-1/revision.stdout                 |    1 +
+ .../attempts/run-1/source-after.json               |   57 +
+ .../attempts/run-1/source-before.json              |   57 +
+ .../attempts/run-1/whitespace-00.json              |   21 +
+ .../attempts/run-1/whitespace-00.stderr            |    0
+ .../attempts/run-1/whitespace-00.stdout            |    0
+ .../attempts/run-1/whitespace-01.json              |   21 +
+ .../attempts/run-1/whitespace-01.stderr            |    0
+ .../attempts/run-1/whitespace-01.stdout            |    0
+ .../attempts/run-1/whitespace-02.json              |   21 +
+ .../attempts/run-1/whitespace-02.stderr            |    0
+ .../attempts/run-1/whitespace-02.stdout            |    0
+ .../attempts/run-1/whitespace-03.json              |   21 +
+ .../attempts/run-1/whitespace-03.stderr            |    0
+ .../attempts/run-1/whitespace-03.stdout            |    0
+ .../attempts/run-1/whitespace-04.json              |   21 +
+ .../attempts/run-1/whitespace-04.stderr            |    0
+ .../attempts/run-1/whitespace-04.stdout            |    0
+ .../attempts/run-1/whitespace-05.json              |   21 +
+ .../attempts/run-1/whitespace-05.stderr            |    0
+ .../attempts/run-1/whitespace-05.stdout            |    0
+ .../attempts/run-1/whitespace-06.json              |   21 +
+ .../attempts/run-1/whitespace-06.stderr            |    0
+ .../attempts/run-1/whitespace-06.stdout            |    0
+ .../attempts/run-1/whitespace-07.json              |   21 +
+ .../attempts/run-1/whitespace-07.stderr            |    0
+ .../attempts/run-1/whitespace-07.stdout            |    0
+ .../attempts/run-1/whitespace-08.json              |   21 +
+ .../attempts/run-1/whitespace-08.stderr            |    0
+ .../attempts/run-1/whitespace-08.stdout            |    0
+ .../attempts/run-1/whitespace-09.json              |   21 +
+ .../attempts/run-1/whitespace-09.stderr            |    0
+ .../attempts/run-1/whitespace-09.stdout            |    0
+ .../attempts/run-1/whitespace-10.json              |   21 +
+ .../attempts/run-1/whitespace-10.stderr            |    0
+ .../attempts/run-1/whitespace-10.stdout            |    0
+ .../attempts/run-2/git-version.json                |   17 +
+ .../attempts/run-2/git-version.stderr              |    0
+ .../attempts/run-2/git-version.stdout              |    1 +
+ .../attempts/run-2/normal.json                     |   18 +
+ .../attempts/run-2/normal.stderr                   |   17 +
+ .../attempts/run-2/normal.stdout                   |    0
+ .../attempts/run-2/optimized.json                  |   19 +
+ .../attempts/run-2/optimized.stderr                |   17 +
+ .../attempts/run-2/optimized.stdout                |    0
+ .../attempts/run-2/python-version.json             |   17 +
+ .../attempts/run-2/python-version.stderr           |    0
+ .../attempts/run-2/python-version.stdout           |    1 +
+ .../attempts/run-2/receipt.json                    |  405 +
+ .../attempts/run-2/revision.json                   |   18 +
+ .../attempts/run-2/revision.stderr                 |    0
+ .../attempts/run-2/revision.stdout                 |    1 +
+ .../attempts/run-2/source-after.json               |   67 +
+ .../attempts/run-2/source-before.json              |   67 +
+ .../attempts/run-2/whitespace-00.json              |   21 +
+ .../attempts/run-2/whitespace-00.stderr            |    0
+ .../attempts/run-2/whitespace-00.stdout            |    0
+ .../attempts/run-2/whitespace-01.json              |   21 +
+ .../attempts/run-2/whitespace-01.stderr            |    0
+ .../attempts/run-2/whitespace-01.stdout            |    0
+ .../attempts/run-2/whitespace-02.json              |   21 +
+ .../attempts/run-2/whitespace-02.stderr            |    0
+ .../attempts/run-2/whitespace-02.stdout            |    0
+ .../attempts/run-2/whitespace-03.json              |   21 +
+ .../attempts/run-2/whitespace-03.stderr            |    0
+ .../attempts/run-2/whitespace-03.stdout            |    0
+ .../attempts/run-2/whitespace-04.json              |   21 +
+ .../attempts/run-2/whitespace-04.stderr            |    0
+ .../attempts/run-2/whitespace-04.stdout            |    0
+ .../attempts/run-2/whitespace-05.json              |   21 +
+ .../attempts/run-2/whitespace-05.stderr            |    0
+ .../attempts/run-2/whitespace-05.stdout            |    0
+ .../attempts/run-2/whitespace-06.json              |   21 +
+ .../attempts/run-2/whitespace-06.stderr            |    0
+ .../attempts/run-2/whitespace-06.stdout            |    0
+ .../attempts/run-2/whitespace-07.json              |   21 +
+ .../attempts/run-2/whitespace-07.stderr            |    0
+ .../attempts/run-2/whitespace-07.stdout            |    0
+ .../attempts/run-2/whitespace-08.json              |   21 +
+ .../attempts/run-2/whitespace-08.stderr            |    0
+ .../attempts/run-2/whitespace-08.stdout            |    0
+ .../attempts/run-2/whitespace-09.json              |   21 +
+ .../attempts/run-2/whitespace-09.stderr            |    0
+ .../attempts/run-2/whitespace-09.stdout            |    0
+ .../attempts/run-2/whitespace-10.json              |   21 +
+ .../attempts/run-2/whitespace-10.stderr            |    0
+ .../attempts/run-2/whitespace-10.stdout            |    0
+ .../attempts/run-2/whitespace-11.json              |   21 +
+ .../attempts/run-2/whitespace-11.stderr            |    0
+ .../attempts/run-2/whitespace-11.stdout            |    0
+ .../attempts/run-2/whitespace-12.json              |   21 +
+ .../attempts/run-2/whitespace-12.stderr            |    0
+ .../attempts/run-2/whitespace-12.stdout            |    0
+ .../classifier.py                                  |  124 +
+ .../expected-cases.json                            | 4069 ++++++++
+ .../final-receipt.json                             |   74 +
+ .../input-manifest.json                            |  117 +
+ .../inputs/00-AGENTS.md                            |   55 +
+ .../inputs/01-mixer-product-plan.md                | 1366 +++
+ .../02-swift-semantic-adapter-prerequisite.md      |  383 +
+ .../inputs/03-contract.json                        |  362 +
+ .../04-swift-semantic-adapter-contract-review.md   |  159 +
+ .../inputs/05-findings.json                        |   65 +
+ .../inputs/06-analyzer.rs                          |  536 ++
+ .../inputs/07-envelope.rs                          |  395 +
+ .../inputs/08-manifest.json                        |  449 +
+ .../inputs/09-swift-envelope-ci-acceptance.md      |   56 +
+ .../inputs/10-seal.json                            |  772 ++
+ .../inputs/11-seal.json                            |  189 +
+ .../inputs/12-seal.json                            |  117 +
+ .../preparation-failure-1.json                     |   10 +
+ .../prepare.py                                     |   84 +
+ .../run_checks.py                                  |   72 +
+ .../seal.json                                      |  687 ++
+ .../seal.py                                        |   73 +
+ .../seal.sha256                                    |    1 +
+ .../source-bindings.json                           |   76 +
+ .../source-normalization-cases.json                |  540 ++
+ .../terminal-contract.json                         |  382 +
+ .../test_contract.py                               |  164 +
+ .../preaccess-admission-ready.json                 |   20 +
+ .../preaccess/accepted-child-error-partition.json  |  393 +
+ .../preaccess/bootstrap/git-version.json           |   11 +
+ .../preaccess/bootstrap/git-version.stderr         |    0
+ .../preaccess/bootstrap/git-version.stdout         |    1 +
+ .../preaccess/bootstrap/instructions.json          |   11 +
+ .../preaccess/bootstrap/instructions.stderr        |    0
+ .../preaccess/bootstrap/instructions.stdout        |   55 +
+ .../preaccess/bootstrap/original-review-doc.json   |   11 +
+ .../preaccess/bootstrap/original-review-doc.stderr |    0
+ .../preaccess/bootstrap/original-review-doc.stdout |  159 +
+ .../preaccess/bootstrap/permitted-inventory.json   |   14 +
+ .../preaccess/bootstrap/permitted-inventory.stderr |    0
+ .../preaccess/bootstrap/permitted-inventory.stdout |   90 +
+ .../preaccess/bootstrap/plan.json                  |   11 +
+ .../preaccess/bootstrap/plan.stderr                |    0
+ .../preaccess/bootstrap/plan.stdout                |  491 +
+ .../preaccess/bootstrap/platform.json              |   11 +
+ .../preaccess/bootstrap/platform.stderr            |    0
+ .../preaccess/bootstrap/platform.stdout            |    1 +
+ .../preaccess/bootstrap/prerequisite-doc.json      |   11 +
+ .../preaccess/bootstrap/prerequisite-doc.stderr    |    0
+ .../preaccess/bootstrap/prerequisite-doc.stdout    |  383 +
+ .../preaccess/bootstrap/product-scope.json         |   11 +
+ .../preaccess/bootstrap/product-scope.stderr       |    0
+ .../preaccess/bootstrap/product-scope.stdout       | 1366 +++
+ .../preaccess/bootstrap/python-version.json        |   11 +
+ .../preaccess/bootstrap/python-version.stderr      |    0
+ .../preaccess/bootstrap/python-version.stdout      |    1 +
+ .../preaccess/bootstrap/revision.json              |   12 +
+ .../preaccess/bootstrap/revision.stderr            |    0
+ .../preaccess/bootstrap/revision.stdout            |    1 +
+ .../preaccess/cases.json                           | 7153 ++++++++++++++
+ .../preaccess/commands/accepted-analyzer.json      |   10 +
+ .../preaccess/commands/accepted-analyzer.stderr    |    0
+ .../preaccess/commands/accepted-analyzer.stdout    |  536 ++
+ .../preaccess/commands/accepted-envelope.json      |   10 +
+ .../preaccess/commands/accepted-envelope.stderr    |    0
+ .../preaccess/commands/accepted-envelope.stdout    |  395 +
+ .../preaccess/commands/git-version.json            |   10 +
+ .../preaccess/commands/git-version.stderr          |    0
+ .../preaccess/commands/git-version.stdout          |    1 +
+ .../preaccess/commands/original-contract.json      |   10 +
+ .../preaccess/commands/original-contract.stderr    |    0
+ .../preaccess/commands/original-contract.stdout    |  362 +
+ .../preaccess/commands/platform.json               |   10 +
+ .../preaccess/commands/platform.stderr             |    0
+ .../preaccess/commands/platform.stdout             |    1 +
+ .../preaccess/commands/python-version.json         |   10 +
+ .../preaccess/commands/python-version.stderr       |    0
+ .../preaccess/commands/python-version.stdout       |    1 +
+ .../preaccess/commands/revision.json               |   11 +
+ .../preaccess/commands/revision.stderr             |    0
+ .../preaccess/commands/revision.stdout             |    1 +
+ .../preaccess/commands/run-1/finite-controls.json  |   10 +
+ .../commands/run-1/finite-controls.stderr          |    0
+ .../commands/run-1/finite-controls.stdout          |    8 +
+ .../preaccess/commands/run-1/prepare.json          |   10 +
+ .../preaccess/commands/run-1/prepare.stderr        |    0
+ .../preaccess/commands/run-1/prepare.stdout        |   10 +
+ .../preaccess/commands/run-2/finite-controls.json  |   10 +
+ .../commands/run-2/finite-controls.stderr          |    0
+ .../commands/run-2/finite-controls.stdout          |    8 +
+ .../preaccess/commands/run-2/prepare.json          |   10 +
+ .../preaccess/commands/run-2/prepare.stderr        |    0
+ .../preaccess/commands/run-2/prepare.stdout        |   10 +
+ .../preaccess/finite-control-result.json           |  226 +
+ .../preaccess/input-manifest.json                  |  128 +
+ .../preaccess/original-input-custody-audit.json    |   23 +
+ .../preaccess/original-inputs/AGENTS.md            |   55 +
+ .../preaccess/original-inputs/PLAN.md              |  494 +
+ .../docs/swift-semantic-adapter-contract-review.md |  159 +
+ .../docs/swift-semantic-adapter-prerequisite.md    |  383 +
+ .../original-inputs/mixer-product-plan.md          | 1366 +++
+ .../preaccess/plan.md                              |   52 +
+ .../preaccess/seal.json                            |  117 +
+ .../review-1/audit.json                            |  266 +
+ .../review-1/findings.json                         |   65 +
+ .../review-1/seal.json                             |  189 +
+ .../contract.json                                  |  362 +
+ .../input-manifest.json                            |  214 +
+ .../inputs/13-analyzer.rs.txt                      |  536 ++
+ .../inputs/14-envelope.rs.txt                      |  395 +
+ ...date__src__experimental__cache__borrowed.rs.txt |  918 ++
+ ...__src__experimental_swift_reactor__cache.rs.txt | 4862 ++++++++++
+ ...rdered-retention-diagnostic-rust__writer.rs.txt |  167 +
+ ...ered-retention-diagnostic-rust__observer.rs.txt |  329 +
+ ...tention-diagnostic-rust__source-code-table.json |   26 +
+ .../swift-semantic-adapter-prerequisite/seal.json  |  772 ++
+ .../source-seams.json                              |  161 +
+ .../preaccess/plan.md                              |  149 +
+ .../preaccess/prepared-review-document.md          |   53 +
+ .../preaccess/receipt.json                         |   53 +
+ .../preaccess/seal-command.json                    |   10 +
+ .../preaccess/seal.json                            |  502 +
+ .../preaccess/seal.sha256                          |    1 +
+ .../preaccess/source-obligations.json              |  218 +
+ .../preaccess/source/finite_preaccess_controls.py  |   74 +
+ .../preaccess/source/prepare.py                    |  391 +
+ .../preaccess/source/seal_preaccess.py.txt         |   64 +
+ .../preaccess/whitespace-check.json                |   19 +
+ .../review-1/access-order.json                     |    8 +
+ .../review-1/candidate-seal.json                   |  687 ++
+ .../review-1/candidate-snapshot-manifest.json      |  812 ++
+ .../swift-semantic-adapter-terminal-correction.md  |  238 +
+ .../README.md                                      |   30 +
+ .../attempts/run-1/git-version.json                |   17 +
+ .../attempts/run-1/git-version.stderr              |    0
+ .../attempts/run-1/git-version.stdout              |    1 +
+ .../attempts/run-1/normal.json                     |   18 +
+ .../attempts/run-1/normal.stderr                   |   17 +
+ .../attempts/run-1/normal.stdout                   |    0
+ .../attempts/run-1/optimized.json                  |   19 +
+ .../attempts/run-1/optimized.stderr                |   17 +
+ .../attempts/run-1/optimized.stdout                |    0
+ .../attempts/run-1/python-version.json             |   17 +
+ .../attempts/run-1/python-version.stderr           |    0
+ .../attempts/run-1/python-version.stdout           |    1 +
+ .../attempts/run-1/receipt.json                    |  363 +
+ .../attempts/run-1/revision.json                   |   18 +
+ .../attempts/run-1/revision.stderr                 |    0
+ .../attempts/run-1/revision.stdout                 |    1 +
+ .../attempts/run-1/source-after.json               |   57 +
+ .../attempts/run-1/source-before.json              |   57 +
+ .../attempts/run-1/whitespace-00.json              |   21 +
+ .../attempts/run-1/whitespace-00.stderr            |    0
+ .../attempts/run-1/whitespace-00.stdout            |    0
+ .../attempts/run-1/whitespace-01.json              |   21 +
+ .../attempts/run-1/whitespace-01.stderr            |    0
+ .../attempts/run-1/whitespace-01.stdout            |    0
+ .../attempts/run-1/whitespace-02.json              |   21 +
+ .../attempts/run-1/whitespace-02.stderr            |    0
+ .../attempts/run-1/whitespace-02.stdout            |    0
+ .../attempts/run-1/whitespace-03.json              |   21 +
+ .../attempts/run-1/whitespace-03.stderr            |    0
+ .../attempts/run-1/whitespace-03.stdout            |    0
+ .../attempts/run-1/whitespace-04.json              |   21 +
+ .../attempts/run-1/whitespace-04.stderr            |    0
+ .../attempts/run-1/whitespace-04.stdout            |    0
+ .../attempts/run-1/whitespace-05.json              |   21 +
+ .../attempts/run-1/whitespace-05.stderr            |    0
+ .../attempts/run-1/whitespace-05.stdout            |    0
+ .../attempts/run-1/whitespace-06.json              |   21 +
+ .../attempts/run-1/whitespace-06.stderr            |    0
+ .../attempts/run-1/whitespace-06.stdout            |    0
+ .../attempts/run-1/whitespace-07.json              |   21 +
+ .../attempts/run-1/whitespace-07.stderr            |    0
+ .../attempts/run-1/whitespace-07.stdout            |    0
+ .../attempts/run-1/whitespace-08.json              |   21 +
+ .../attempts/run-1/whitespace-08.stderr            |    0
+ .../attempts/run-1/whitespace-08.stdout            |    0
+ .../attempts/run-1/whitespace-09.json              |   21 +
+ .../attempts/run-1/whitespace-09.stderr            |    0
+ .../attempts/run-1/whitespace-09.stdout            |    0
+ .../attempts/run-1/whitespace-10.json              |   21 +
+ .../attempts/run-1/whitespace-10.stderr            |    0
+ .../attempts/run-1/whitespace-10.stdout            |    0
+ .../attempts/run-2/git-version.json                |   17 +
+ .../attempts/run-2/git-version.stderr              |    0
+ .../attempts/run-2/git-version.stdout              |    1 +
+ .../attempts/run-2/normal.json                     |   18 +
+ .../attempts/run-2/normal.stderr                   |   17 +
+ .../attempts/run-2/normal.stdout                   |    0
+ .../attempts/run-2/optimized.json                  |   19 +
+ .../attempts/run-2/optimized.stderr                |   17 +
+ .../attempts/run-2/optimized.stdout                |    0
+ .../attempts/run-2/python-version.json             |   17 +
+ .../attempts/run-2/python-version.stderr           |    0
+ .../attempts/run-2/python-version.stdout           |    1 +
+ .../attempts/run-2/receipt.json                    |  405 +
+ .../attempts/run-2/revision.json                   |   18 +
+ .../attempts/run-2/revision.stderr                 |    0
+ .../attempts/run-2/revision.stdout                 |    1 +
+ .../attempts/run-2/source-after.json               |   67 +
+ .../attempts/run-2/source-before.json              |   67 +
+ .../attempts/run-2/whitespace-00.json              |   21 +
+ .../attempts/run-2/whitespace-00.stderr            |    0
+ .../attempts/run-2/whitespace-00.stdout            |    0
+ .../attempts/run-2/whitespace-01.json              |   21 +
+ .../attempts/run-2/whitespace-01.stderr            |    0
+ .../attempts/run-2/whitespace-01.stdout            |    0
+ .../attempts/run-2/whitespace-02.json              |   21 +
+ .../attempts/run-2/whitespace-02.stderr            |    0
+ .../attempts/run-2/whitespace-02.stdout            |    0
+ .../attempts/run-2/whitespace-03.json              |   21 +
+ .../attempts/run-2/whitespace-03.stderr            |    0
+ .../attempts/run-2/whitespace-03.stdout            |    0
+ .../attempts/run-2/whitespace-04.json              |   21 +
+ .../attempts/run-2/whitespace-04.stderr            |    0
+ .../attempts/run-2/whitespace-04.stdout            |    0
+ .../attempts/run-2/whitespace-05.json              |   21 +
+ .../attempts/run-2/whitespace-05.stderr            |    0
+ .../attempts/run-2/whitespace-05.stdout            |    0
+ .../attempts/run-2/whitespace-06.json              |   21 +
+ .../attempts/run-2/whitespace-06.stderr            |    0
+ .../attempts/run-2/whitespace-06.stdout            |    0
+ .../attempts/run-2/whitespace-07.json              |   21 +
+ .../attempts/run-2/whitespace-07.stderr            |    0
+ .../attempts/run-2/whitespace-07.stdout            |    0
+ .../attempts/run-2/whitespace-08.json              |   21 +
+ .../attempts/run-2/whitespace-08.stderr            |    0
+ .../attempts/run-2/whitespace-08.stdout            |    0
+ .../attempts/run-2/whitespace-09.json              |   21 +
+ .../attempts/run-2/whitespace-09.stderr            |    0
+ .../attempts/run-2/whitespace-09.stdout            |    0
+ .../attempts/run-2/whitespace-10.json              |   21 +
+ .../attempts/run-2/whitespace-10.stderr            |    0
+ .../attempts/run-2/whitespace-10.stdout            |    0
+ .../attempts/run-2/whitespace-11.json              |   21 +
+ .../attempts/run-2/whitespace-11.stderr            |    0
+ .../attempts/run-2/whitespace-11.stdout            |    0
+ .../attempts/run-2/whitespace-12.json              |   21 +
+ .../attempts/run-2/whitespace-12.stderr            |    0
+ .../attempts/run-2/whitespace-12.stdout            |    0
+ .../classifier.py.txt                              |  124 +
+ .../expected-cases.json                            | 4069 ++++++++
+ .../final-receipt.json                             |   74 +
+ .../input-manifest.json                            |  117 +
+ .../inputs/00-AGENTS.md                            |   55 +
+ .../inputs/01-mixer-product-plan.md                | 1366 +++
+ .../02-swift-semantic-adapter-prerequisite.md      |  383 +
+ .../inputs/03-contract.json                        |  362 +
+ .../04-swift-semantic-adapter-contract-review.md   |  159 +
+ .../inputs/05-findings.json                        |   65 +
+ .../inputs/06-analyzer.rs.txt                      |  536 ++
+ .../inputs/07-envelope.rs.txt                      |  395 +
+ .../inputs/08-manifest.json                        |  449 +
+ .../inputs/09-swift-envelope-ci-acceptance.md      |   56 +
+ .../inputs/10-seal.json                            |  772 ++
+ .../inputs/11-seal.json                            |  189 +
+ .../inputs/12-seal.json                            |  117 +
+ .../preparation-failure-1.json                     |   10 +
+ .../prepare.py.txt                                 |   84 +
+ .../run_checks.py.txt                              |   72 +
+ .../seal.py.txt                                    |   73 +
+ .../source-bindings.json                           |   76 +
+ .../source-normalization-cases.json                |  540 ++
+ .../terminal-contract.json                         |  382 +
+ .../test_contract.py.txt                           |  164 +
+ .../review-1/cleanup.json                          |   12 +
+ .../review-1/commands/authoring-failure-1.json     |    7 +
+ .../commands/finalization/git-version.json         |   10 +
+ .../commands/finalization/git-version.stderr       |    0
+ .../commands/finalization/git-version.stdout       |    1 +
+ .../producer-classifier-text-read.json             |   10 +
+ .../producer-classifier-text-read.stderr           |    0
+ .../producer-classifier-text-read.stdout           |  124 +
+ .../commands/finalization/python-version.json      |   10 +
+ .../commands/finalization/python-version.stderr    |    0
+ .../commands/finalization/python-version.stdout    |    1 +
+ .../review-1/commands/finalization/revision.json   |   11 +
+ .../review-1/commands/finalization/revision.stderr |    0
+ .../review-1/commands/finalization/revision.stdout |    1 +
+ .../review-1/commands/run-1/normal.json            |   10 +
+ .../review-1/commands/run-1/normal.stderr          |    0
+ .../review-1/commands/run-1/normal.stdout          |   22 +
+ .../review-1/commands/run-2/normal.json            |   11 +
+ .../review-1/commands/run-2/normal.stderr          |    0
+ .../review-1/commands/run-2/normal.stdout          |   23 +
+ .../review-1/commands/run-2/optimized.json         |   12 +
+ .../review-1/commands/run-2/optimized.stderr       |    0
+ .../review-1/commands/run-2/optimized.stdout       |   23 +
+ .../review-1/commands/start/document.json          |   10 +
+ .../review-1/commands/start/document.stderr        |    0
+ .../review-1/commands/start/document.stdout        |  238 +
+ .../review-1/commands/start/git-version.json       |   10 +
+ .../review-1/commands/start/git-version.stderr     |    0
+ .../review-1/commands/start/git-version.stdout     |    1 +
+ .../review-1/commands/start/python-version.json    |   10 +
+ .../review-1/commands/start/python-version.stderr  |    0
+ .../review-1/commands/start/python-version.stdout  |    1 +
+ .../review-1/commands/start/revision.json          |   11 +
+ .../review-1/commands/start/revision.stderr        |    0
+ .../review-1/commands/start/revision.stdout        |    1 +
+ .../review-1/commands/start/source-bindings.json   |   10 +
+ .../review-1/commands/start/source-bindings.stderr |    0
+ .../review-1/commands/start/source-bindings.stdout |   76 +
+ .../review-1/commands/start/terminal-contract.json |   10 +
+ .../commands/start/terminal-contract.stderr        |    0
+ .../commands/start/terminal-contract.stdout        |  382 +
+ .../review-1/coverage-map.json                     |  655 ++
+ .../review-1/final-receipt.json                    |   51 +
+ .../review-1/findings.json                         |   37 +
+ .../review-1/input-custody-before.json             |   14 +
+ .../review-1/results/normal/custody.json           |   37 +
+ .../results/normal/exact-error-partition.json      |  567 ++
+ .../review-1/results/normal/field-coverage.json    | 1097 +++
+ .../results/normal/funding-latch-controls.json     |  231 +
+ .../results/normal/malformed-controls.json         | 2298 +++++
+ .../results/normal/preaccess-disposition.json      | 4223 +++++++++
+ .../results/normal/producer-data-comparison.json   |    6 +
+ .../review-1/results/normal/result.json            |   23 +
+ .../results/normal/source-normalization.json       |  397 +
+ .../review-1/results/normal/terminal-coverage.json | 2327 +++++
+ .../review-1/results/optimized/custody.json        |   37 +
+ .../results/optimized/exact-error-partition.json   |  567 ++
+ .../review-1/results/optimized/field-coverage.json | 1097 +++
+ .../results/optimized/funding-latch-controls.json  |  231 +
+ .../results/optimized/malformed-controls.json      | 2298 +++++
+ .../results/optimized/preaccess-disposition.json   | 4223 +++++++++
+ .../optimized/producer-data-comparison.json        |    6 +
+ .../review-1/results/optimized/result.json         |   23 +
+ .../results/optimized/source-normalization.json    |  397 +
+ .../results/optimized/terminal-coverage.json       | 2327 +++++
+ .../review-1/review.md                             |  132 +
+ .../review-1/reviewer-source/finalize.py           |  152 +
+ .../review-1/reviewer-source/oracle.py             |  228 +
+ .../review-1/reviewer-source/run_review.py         |  433 +
+ .../review-1/root-admission.json                   |   14 +
+ .../review-1/seal.json                             | 1064 +++
+ .../review-1/seal.sha256                           |    1 +
+ .../review-1/source-manifest.json                  |   21 +
+ .../review-1/whitespace.json                       |   39 +
+ .../seal_preaccess.py                              |   64 +
+ work-graph.json                                    |  139 +-
+ 1991 files changed, 322692 insertions(+), 32 deletions(-)
