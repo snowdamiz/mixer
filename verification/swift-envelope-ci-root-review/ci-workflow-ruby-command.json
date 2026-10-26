@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-26T05:12:34.441904+00:00",
+  "argv": [
+    "/usr/bin/ruby",
+    "-e",
+    "require \"yaml\"; require \"json\"; a=YAML.safe_load(File.read(ARGV[0])); b=YAML.safe_load(File.read(ARGV[1])); steps=b.fetch(\"jobs\").fetch(\"swift\").fetch(\"steps\"); prior=a.fetch(\"jobs\").fetch(\"swift\").fetch(\"steps\"); names=[\"Accepted standalone analyzer fixture envelope\", \"Preserve standalone analyzer envelope receipts\"]; filtered=steps.reject { |s| names.include?(s[\"name\"]) }; raise \"steps differ\" unless filtered==prior && steps.length-prior.length==2; b[\"jobs\"][\"swift\"][\"steps\"]=filtered; raise \"other structure differs\" unless a==b; puts JSON.generate({status:\"passed\",ruby:RUBY_VERSION,psych:Psych::VERSION,new_steps:2,all_other_parsed_content_unchanged:true})",
+    "verification/swift-envelope-ci-root-review/workflow-before.yml",
+    ".github/workflows/verify.yml"
+  ],
+  "exit": 0,
+  "stdout_sha256": "a1da1b5ea1d9c1763bf9191ed8937c4ff544389c09ef2a7c49bf968933c3384e",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

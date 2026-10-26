@@ -1,0 +1,115 @@
+{
+  "amount_proposed_unchanged": 112,
+  "caller_work_owner_independent_of_private_debit": {
+    "W01": "Main B471 prepays24 wrapper groups and425 public debit before decode/framing/leaf decisions.",
+    "W02": "leaf_pending call and next-record latch dispatch; every later successful B pays its own W even when leaf is skipped.",
+    "W03_W04_W05": "record/StepBudget construction and native arguments",
+    "W06": "complete received Reply128 -> progress installation then reply_valid1",
+    "W07_W08": "validator arguments/control and bounded body max5",
+    "W09": "invalid-reply paid poison construction/install via RH02; always prepaid by this record W",
+    "not_G_work": "These W rows remain owned by per-record W24, not by G or private reply debit; L14 leaf-return -> received is owned once by selected leaf or G path."
+  },
+  "candidate_source_sha256": "2cd286a387ce336a18ea2872974e371ca4e772e2fd801f2186a3f62ce639bfef",
+  "existing_scope": "selected underfunded prior-state/Steps guard only",
+  "no_inactive_credit_or_margin_reassignment": true,
+  "paths": [
+    {
+      "G_groups": 7,
+      "G_owned": [
+        {
+          "groups": 1,
+          "projection": "four receiving operations plus5 readability operations; no StepBudget access",
+          "scalar_operations": 9,
+          "source_row": "L01"
+        },
+        {
+          "groups": 6,
+          "projection": "conservative existing call operands/control10 ->1, complete leaf return copy128 ->1, actual RH02 helper4",
+          "source_row": "L14/RH02"
+        }
+      ],
+      "arena_candidate_mutation": false,
+      "id": "absent",
+      "predicate": "arena.len()<7731056, regardless of remaining or spent",
+      "private_budget_mutation": false,
+      "private_debit": 0
+    },
+    {
+      "G_groups": 7,
+      "G_owned": [
+        {
+          "groups": 1,
+          "projection": "receiving4+readability5+spent check4",
+          "scalar_operations": 13,
+          "source_row": "L01"
+        },
+        {
+          "groups": 6,
+          "projection": "same complete poison call/helper/leaf return edges as absent",
+          "source_row": "L14/RH02"
+        }
+      ],
+      "arena_candidate_mutation": false,
+      "id": "invalid-entry-spent",
+      "predicate": "readable arena and steps.spent!=0",
+      "private_budget_mutation": false,
+      "private_debit": 0
+    },
+    {
+      "G_groups": 112,
+      "G_owned": [
+        {
+          "groups": 2,
+          "source_row": "L01"
+        },
+        {
+          "groups": 3,
+          "source_row": "L02"
+        },
+        {
+          "groups": 96,
+          "source_row": "L03"
+        },
+        {
+          "groups": 1,
+          "source_row": "L04"
+        },
+        {
+          "groups": 10,
+          "source_row": "L14"
+        }
+      ],
+      "arena_candidate_mutation": false,
+      "id": "present-underfunded",
+      "predicate": "readable arena, entry spent0, remaining<425",
+      "private_budget_mutation": false,
+      "private_debit": 0,
+      "reply": "actual reply(2,1,&prior,0); G retains full conservative L01 and L14 maxima, no subtraction/refund of unexecuted atoms"
+    },
+    {
+      "G_groups": 0,
+      "id": "present-funded",
+      "owner": "prepaid leaf425 owns full L01..L14 including precharge checks; main B prepaid before entry",
+      "predicate": "readable arena, entry spent0, remaining>=425",
+      "private_debit": 425,
+      "remaining_effect": "entry remaining minus425",
+      "spent_effect": 425
+    }
+  ],
+  "public_debit": "534*S_paid+47*F_paid+425*N_B; successful main B471 always increases N_B and keeps425 even for private0, decode/framing failure or skipped later leaf. No refund.",
+  "requested_scope": "One terminal unpaid leaf among absent backing at any remaining, nonzero entry spent, or readable prior-state underfunding. Existing G reservation remains a single112, not one per call.",
+  "reservation": {
+    "failure": "returns input Err before candidate/prior initialization; public setup534/finish47 stay paid if their reservations succeeded; outer F05 owns error finalization",
+    "source": "unchanged walk budget.report(UNDERFUNDED_GUARD)? before candidate initialization and every record"
+  },
+  "root_selection": false,
+  "schema": 1,
+  "single_use_proof": [
+    "Progress.reply_valid begins0 and is installed1 only after a complete actual return.",
+    "Each unpaid terminal result is status3/reason15 or status2/reason1; coherent new zero forms pass validator; inconsistent forms are replaced by status3/reason15 paid poison under W09.",
+    "leaf_pending returnsfalse for any status3 or reason15, and for status2; therefore any terminal guard latches before every later record.",
+    "Earlier successful status1/reason0 calls consume their own paid leaf425; a later guard is still at most one and ends all later leaf calls.",
+    "This proof is only for unchanged orchestration. Arbitrarily repeated direct private invocations are test controls, not funded by one G."
+  ],
+  "status": "root-selection-required-before-runtime"
+}

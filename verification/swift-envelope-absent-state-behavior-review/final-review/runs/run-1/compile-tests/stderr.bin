@@ -1,0 +1,31 @@
+error[E0308]: mismatched types
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-envelope-absent-state-behavior-review/final-review/source/../tests/caller_cases.rs:19:25
+   |
+19 |  ("bad-debit-maximum",0,u64::max,u64::max,1,0,false),
+   |                         ^^^^^^^^ expected `u64`, found fn item
+   |
+   = note: expected type `u64`
+           found fn item `fn(u64, u64) -> u64 {<u64 as Ord>::max}`
+help: try referring to the associated const `MAX` instead
+   |
+19 -  ("bad-debit-maximum",0,u64::max,u64::max,1,0,false),
+19 +  ("bad-debit-maximum",0,u64::MAX,u64::max,1,0,false),
+   |
+
+error[E0308]: mismatched types
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-envelope-absent-state-behavior-review/final-review/source/../tests/caller_cases.rs:19:34
+   |
+19 |  ("bad-debit-maximum",0,u64::max,u64::max,1,0,false),
+   |                                  ^^^^^^^^ expected `u64`, found fn item
+   |
+   = note: expected type `u64`
+           found fn item `fn(u64, u64) -> u64 {<u64 as Ord>::max}`
+help: try referring to the associated const `MAX` instead
+   |
+19 -  ("bad-debit-maximum",0,u64::max,u64::max,1,0,false),
+19 +  ("bad-debit-maximum",0,u64::max,u64::MAX,1,0,false),
+   |
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0308`.

@@ -1,0 +1,330 @@
+{
+  "active_run_deadline_seconds": 480,
+  "caller_environment_removed": [
+    "RUSTFLAGS",
+    "CARGO_ENCODED_RUSTFLAGS",
+    "RUSTC_WRAPPER",
+    "RUSTC_WORKSPACE_WRAPPER",
+    "RUST_TEST_THREADS",
+    "RUST_TEST_NOCAPTURE",
+    "RUST_TEST_TIME_UNIT",
+    "RUST_TEST_TIME_INTEGRATION",
+    "RUST_TEST_TIME_DOCTEST"
+  ],
+  "cleanup": "retention first; exact owned device/inode/marker; children returned; links or changed ownership fail and preserve scratch",
+  "commands": [
+    {
+      "argv": [
+        "RUSTC_LAUNCHER",
+        "--print",
+        "sysroot"
+      ],
+      "cwd": "REPOSITORY",
+      "environment": {
+        "RUSTUP_AUTO_INSTALL": "0"
+      },
+      "name": "compiler-sysroot-selection",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "SELECTED_RUSTC",
+        "--version",
+        "--verbose"
+      ],
+      "name": "rustc-verbose",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "PYTHON",
+        "--version"
+      ],
+      "name": "python-version",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "REPOSITORY",
+      "name": "revision-before",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "SELECTED_RUSTC",
+        "--edition=2024",
+        "--crate-name",
+        "mixer_absence",
+        "--crate-type=rlib",
+        "-Dwarnings",
+        "source/library/analyzer.rs",
+        "-o",
+        "scratch/libmixer_absence.rlib"
+      ],
+      "name": "library-compile",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "SELECTED_RUSTC",
+        "--edition=2024",
+        "--test",
+        "-Dwarnings",
+        "source/producer/independent_tests.rs",
+        "-o",
+        "scratch/producer-tests"
+      ],
+      "name": "producer-compile",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "SELECTED_RUSTC",
+        "--edition=2024",
+        "--test",
+        "-Dwarnings",
+        "source/independent/source/analyzer.rs",
+        "-o",
+        "scratch/independent-tests"
+      ],
+      "name": "independent-compile",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "scratch/producer-tests",
+        "--list"
+      ],
+      "expected_count": 78,
+      "expected_exact_inventory": "producer",
+      "name": "producer-list",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "scratch/producer-tests",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "environment": {
+        "MIXER_ANALYZER_LIBRARY_HISTORICAL": "OUTPUT/inputs/historical",
+        "MIXER_ANALYZER_LIBRARY_TEST_SCRATCH": "OUTPUT/scratch/producer-framing",
+        "MIXER_ENVELOPE_SCRATCH": "OUTPUT/scratch/producer-envelope",
+        "MIXER_REVIEW_SCRATCH": "OUTPUT/scratch/producer-review"
+      },
+      "expected_count": 78,
+      "expected_failed_ignored_measured_filtered": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "name": "producer-execute",
+      "timeout_seconds": 120
+    },
+    {
+      "argv": [
+        "scratch/independent-tests",
+        "--list"
+      ],
+      "expected_count": 14,
+      "expected_exact_inventory": "independent",
+      "name": "independent-list",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "scratch/independent-tests",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "environment": {
+        "REVIEW_SCRATCH": "OUTPUT/scratch/independent-files"
+      },
+      "expected_count": 14,
+      "expected_failed_ignored_measured_filtered": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "name": "independent-execute",
+      "timeout_seconds": 120
+    },
+    {
+      "argv": [
+        "SELECTED_RUSTC",
+        "--edition=2024",
+        "-Dwarnings",
+        "api/positive.rs",
+        "--extern",
+        "mixer_absence=scratch/libmixer_absence.rlib",
+        "-o",
+        "scratch/api-positive"
+      ],
+      "expected_exit": 0,
+      "name": "api-positive",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "SELECTED_RUSTC",
+        "--edition=2024",
+        "--error-format=json",
+        "api/private-field.rs",
+        "--extern",
+        "mixer_absence=scratch/libmixer_absence.rlib",
+        "-o",
+        "scratch/api-negative-private-field"
+      ],
+      "expected_normal_nonzero_compile_refusal": true,
+      "name": "api-negative-private-field",
+      "no_executable_and_intended_probe_span_required": true,
+      "required_primary_code": "E0616",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "SELECTED_RUSTC",
+        "--edition=2024",
+        "--error-format=json",
+        "api/no-clone.rs",
+        "--extern",
+        "mixer_absence=scratch/libmixer_absence.rlib",
+        "-o",
+        "scratch/api-negative-no-clone"
+      ],
+      "expected_normal_nonzero_compile_refusal": true,
+      "name": "api-negative-no-clone",
+      "no_executable_and_intended_probe_span_required": true,
+      "required_primary_code": "E0277",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "SELECTED_RUSTC",
+        "--edition=2024",
+        "--error-format=json",
+        "api/no-copy.rs",
+        "--extern",
+        "mixer_absence=scratch/libmixer_absence.rlib",
+        "-o",
+        "scratch/api-negative-no-copy"
+      ],
+      "expected_normal_nonzero_compile_refusal": true,
+      "name": "api-negative-no-copy",
+      "no_executable_and_intended_probe_span_required": true,
+      "required_primary_code": "E0277",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "SELECTED_RUSTC",
+        "--edition=2024",
+        "--error-format=json",
+        "api/no-record-constructor.rs",
+        "--extern",
+        "mixer_absence=scratch/libmixer_absence.rlib",
+        "-o",
+        "scratch/api-negative-no-record-constructor"
+      ],
+      "expected_normal_nonzero_compile_refusal": true,
+      "name": "api-negative-no-record-constructor",
+      "no_executable_and_intended_probe_span_required": true,
+      "required_primary_code": "E0432",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "SELECTED_RUSTC",
+        "--edition=2024",
+        "--error-format=json",
+        "api/no-word-or-boolean-entry.rs",
+        "--extern",
+        "mixer_absence=scratch/libmixer_absence.rlib",
+        "-o",
+        "scratch/api-negative-no-word-or-boolean-entry"
+      ],
+      "expected_normal_nonzero_compile_refusal": true,
+      "name": "api-negative-no-word-or-boolean-entry",
+      "no_executable_and_intended_probe_span_required": true,
+      "required_primary_code": "E0061",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "SELECTED_RUSTC",
+        "--edition=2024",
+        "--error-format=json",
+        "api/no-private-reply.rs",
+        "--extern",
+        "mixer_absence=scratch/libmixer_absence.rlib",
+        "-o",
+        "scratch/api-negative-no-private-reply"
+      ],
+      "expected_normal_nonzero_compile_refusal": true,
+      "name": "api-negative-no-private-reply",
+      "no_executable_and_intended_probe_span_required": true,
+      "required_primary_code": "E0432",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "SELECTED_RUSTC",
+        "--edition=2024",
+        "--error-format=json",
+        "api/no-observation-constructor.rs",
+        "--extern",
+        "mixer_absence=scratch/libmixer_absence.rlib",
+        "-o",
+        "scratch/api-negative-no-observation-constructor"
+      ],
+      "expected_normal_nonzero_compile_refusal": true,
+      "name": "api-negative-no-observation-constructor",
+      "no_executable_and_intended_probe_span_required": true,
+      "required_primary_code": "E0451",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "SELECTED_RUSTC",
+        "--edition=2024",
+        "--error-format=json",
+        "api/no-raw-serializer.rs",
+        "--extern",
+        "mixer_absence=scratch/libmixer_absence.rlib",
+        "-o",
+        "scratch/api-negative-no-raw-serializer"
+      ],
+      "expected_normal_nonzero_compile_refusal": true,
+      "name": "api-negative-no-raw-serializer",
+      "no_executable_and_intended_probe_span_required": true,
+      "required_primary_code": "E0599",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "REPOSITORY",
+      "name": "revision-after",
+      "timeout_seconds": 15
+    }
+  ],
+  "compiler_invocations": 12,
+  "default_cwd": "OUTPUT",
+  "one_synchronous_owned_child_group": true,
+  "placeholder_policy": "OUTPUT/REPOSITORY/PYTHON and selected compiler identities are fixed, verified runner paths; no arbitrary source/test/argument substitutions",
+  "preflight_and_postflight": "all selected pack originals, both derived augmentations, runner, compiler, source snapshots and recorded closure hashes",
+  "proposed_CI_step_timeout_minutes": 10,
+  "retention_cleanup_allowance_seconds": 60,
+  "schema": 1,
+  "status": "proposal only; none of these future compiler/test commands executed",
+  "test_binary_executions": 2
+}

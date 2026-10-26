@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "status": "corrected-preaccess-model-new-candidate-unread",
+  "original_seal_sha256": "e24d3bd09fd5bf07e5df86a03df2ca285eaea5837245666b3718c33b15fc56a4",
+  "old_source_sha256": "7b8237abbaec492e595508eb7456dab38fbb0d92d8d3cd5a88184f7c1082b9d1",
+  "source_observations_are_runtime_results": false,
+  "review_model_errors": [
+    {"original_id": "normal-one-above", "original_expected_predicate": true, "source_derived_old_predicate": false, "effective_expected_predicate": false, "cause": "paid post remaining must be0; direct leaf426 boundary is a different obligation"},
+    {"original_id": "zero-budget-moved", "original_expected_predicate": false, "effective_predicate_obligation": "accept canonical zero-poison remaining0; cannot infer inaccessible before425", "moved_to": "direct-leaf-entry-exit-preservation"},
+    {"original_id": "paid-impossible-subtraction", "original_expected_predicate": false, "source_derived_old_predicate": true, "effective_expected_predicate": true, "cause": "poststate identical to canonical entry425; enforce entry424 Steps on direct leaf trace instead"},
+    {"original_id": "normal-paid-malformed-shape", "original_expected_predicate": true, "effective_expected_predicate": true, "overbroad_interpretation_rejected": "arbitrary malformed shape cannot schedule another leaf", "cause": "leaf_pending(status1,reason1) is true; direct finalizer closes enumerated malformed shapes only if still installed"}
+  ],
+  "effective_predicate_inputs": ["steps.remaining", "steps.spent", "reply.words"],
+  "predicate_has_entry_budget": false,
+  "poststate_vectors": [
+    {"id": "canonical-zero-poison-remaining0", "remaining": 0, "spent": 0, "debit": 0, "shape": "canonical-status3-reason15-zero-extent-reserved", "old_source_expected": false, "correction_expected": true},
+    {"id": "canonical-zero-poison-remaining1", "remaining": 1, "spent": 0, "debit": 0, "shape": "canonical-status3-reason15-zero-extent-reserved", "old_source_expected": false, "correction_expected": true},
+    {"id": "canonical-zero-poison-remaining424", "remaining": 424, "spent": 0, "debit": 0, "shape": "canonical-status3-reason15-zero-extent-reserved", "old_source_expected": false, "correction_expected": true},
+    {"id": "canonical-zero-poison-remaining425", "remaining": 425, "spent": 0, "debit": 0, "shape": "canonical-status3-reason15-zero-extent-reserved", "old_source_expected": false, "correction_expected": true},
+    {"id": "canonical-zero-poison-remaining426", "remaining": 426, "spent": 0, "debit": 0, "shape": "canonical-status3-reason15-zero-extent-reserved", "old_source_expected": false, "correction_expected": true},
+    {"id": "zero-Steps-remaining0", "remaining": 0, "spent": 0, "debit": 0, "shape": "canonical-status2-reason1-prior", "old_source_expected": true, "correction_expected": true},
+    {"id": "zero-Steps-remaining1", "remaining": 1, "spent": 0, "debit": 0, "shape": "canonical-status2-reason1-prior", "old_source_expected": true, "correction_expected": true},
+    {"id": "zero-Steps-remaining424", "remaining": 424, "spent": 0, "debit": 0, "shape": "canonical-status2-reason1-prior", "old_source_expected": true, "correction_expected": true},
+    {"id": "zero-Steps-remaining425", "remaining": 425, "spent": 0, "debit": 0, "shape": "canonical-status2-reason1-prior", "old_source_expected": false, "correction_expected": false},
+    {"id": "normal-paid-post0", "remaining": 0, "spent": 425, "debit": 425, "shape": "canonical-status1-reason0", "old_source_expected": true, "correction_expected": true},
+    {"id": "paid-positive-remaining", "remaining": 1, "spent": 425, "debit": 425, "shape": "canonical-status1-reason0", "old_source_expected": false, "correction_expected": false},
+    {"id": "paid-unconsumed-remaining", "remaining": 425, "spent": 425, "debit": 425, "shape": "canonical-status1-reason0", "old_source_expected": false, "correction_expected": false},
+    {"id": "paid-malformed-status1-reason1", "remaining": 0, "spent": 425, "debit": 425, "shape": "fabricated-status1-reason1", "old_source_expected": true, "correction_expected": true, "does_not_certify_shape_or_terminal_latch": true},
+    {"id": "bad-debit1", "remaining": 424, "spent": 1, "debit": 1, "old_source_expected": false, "correction_expected": false},
+    {"id": "bad-debit424", "remaining": 1, "spent": 424, "debit": 424, "old_source_expected": false, "correction_expected": false},
+    {"id": "bad-debit426", "remaining": 0, "spent": 426, "debit": 426, "old_source_expected": false, "correction_expected": false},
+    {"id": "bad-debit-maximum", "remaining": 0, "spent": "u64::MAX", "debit": "u64::MAX", "old_source_expected": false, "correction_expected": false},
+    {"id": "zero-poison-spent-disagrees", "remaining": 425, "spent": 425, "debit": 0, "shape": "canonical-status3-reason15-zero-extent-reserved", "old_source_expected": false, "correction_expected": false},
+    {"id": "paid-spent-disagrees", "remaining": 0, "spent": 0, "debit": 425, "old_source_expected": false, "correction_expected": false}
+  ],
+  "leaf_trace_obligations": [
+    {"id": "absent-entry425-preserved", "entry_remaining": 425, "exit_remaining": 425, "entry_spent": 0, "exit_spent": 0, "debit": 0, "status": 3, "reason": 15},
+    {"id": "readable-entry424-preserved", "entry_remaining": 424, "exit_remaining": 424, "entry_spent": 0, "exit_spent": 0, "debit": 0, "status": 2, "reason": 1},
+    {"id": "readable-entry426-normal", "entry_remaining": 426, "exit_remaining": 1, "entry_spent": 0, "exit_spent": 425, "debit": 425, "caller_predicate_not_production_provenance": true}
+  ],
+  "helper_provenance": {
+    "reply": {"old_lines": [99, 100], "reserved14_15": [0, 0], "actual_old_status_reason_pairs": [[1, 0], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8], [2, 9], [2, 10], [2, 11], [2, 12], [2, 13]]},
+    "poisoned": {"old_lines": [102, 103], "status": 3, "reason": 15, "extent_words2_12": 0, "reserved14_15": [0, 0]},
+    "production_entry": {"old_lines": [320, 323], "remaining": 425, "spent": 0, "complete_reply_before_valid": true}
+  },
+  "scheduling_finalizer_controls": [
+    {"shape": "status1-reason15-stale-state999", "leaf_pending": false, "valid_framing_finalizer": "poison-zero-extent", "binding": "R1"},
+    {"shape": "status3-any-reason", "leaf_pending": false, "valid_framing_finalizer": "poison-zero-extent", "binding": "existing-poison-status"},
+    {"shape": "canonical-status2-refused", "leaf_pending": false, "valid_framing_finalizer": "named-refusal-or-limited-prior-state", "binding": "single-terminal-guard"},
+    {"shape": "fabricated-status1-reason1", "leaf_pending": true, "direct_finalizer_if_still_installed": "Unavailable-UnavailableState-zero-extent", "no_claim_of_terminal_latch": true},
+    {"shape": "unsupported-status-reason-or-checked-state-fields", "direct_finalizer_if_still_installed": "Unavailable-UnavailableState-zero-extent", "scope": "only explicit old finalizer checks; not arbitrary private corruption"}
+  ],
+  "preserved_original_controls": ["R2-absence-priority-and-no-mutation", "full-readability-boundary", "all-readable-underfunding", "directleaf425-426", "G-accounting-and-root-selection", "single-terminal-canonical-guard", "public-paid-formula", "R1", "input-error-paid-debit-and-state-suppression", "outer-error-no-aggregate", "report-prefix", "actual-safe-File", "API-privacy", "Candidate2048-single-owner"],
+  "not_claimed": ["entry-history-validation-by-poststate-only-helper", "general-arbitrary-malformed-reply-no-schedule", "arbitrary-private-corruption-qualification", "candidate-compile-runtime-results"],
+  "unresolved_extension": "Broader arbitrary-private-reply guarantees require explicit root selection/accounting; no such acceptance requirement is inferred here.",
+  "new_candidate_accessed": false,
+  "old_source_executed": false,
+  "new_source_executed": false,
+  "candidate_runtime_methods_executed": 0
+}

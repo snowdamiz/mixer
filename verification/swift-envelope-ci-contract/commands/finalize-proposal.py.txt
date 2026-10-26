@@ -1,0 +1,157 @@
+"""Finalize and seal this source/contract document only. Executes no child,
+compiler, historical/proposed CI collector, selected model, or candidate.
+"""
+from datetime import datetime, timezone
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+ROOT = Path.cwd()
+OUT = ROOT / 'verification/swift-envelope-ci-contract'
+DOC = ROOT / 'docs/swift-envelope-ci-contract.md'
+
+def require(value, message):
+    if not value:
+        raise RuntimeError(message)
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+def write(name, value):
+    target = OUT / name
+    require(not target.exists(), 'Refuse overwrite: ' + name)
+    target.write_text(json.dumps(value, sort_keys=True, indent=2) + '\n')
+
+manifest = json.loads((OUT / 'selected-input-manifest.json').read_bytes())
+layout = json.loads((OUT / 'proposed-layout.json').read_bytes())
+api = json.loads((OUT / 'expected-api.json').read_bytes())
+methods = json.loads((OUT / 'expected-methods.json').read_bytes())
+require(manifest['original_count'] == 60 and manifest['original_bytes'] == 7957311,
+        'Original closure differs')
+require(methods['producer']['count'] == 78 and methods['independent_exact_source']['count'] == 14,
+        'Methods differ')
+require(len(api['negative']) == 8 and len(layout['derived_test_only_files']) == 2,
+        'Probe/augmentation inventory differs')
+
+commands = [
+    {'name': 'compiler-sysroot-selection', 'argv': ['RUSTC_LAUNCHER', '--print', 'sysroot'],
+     'cwd': 'REPOSITORY', 'environment': {'RUSTUP_AUTO_INSTALL': '0'}, 'timeout_seconds': 15},
+    {'name': 'rustc-verbose', 'argv': ['SELECTED_RUSTC', '--version', '--verbose'], 'timeout_seconds': 15},
+    {'name': 'python-version', 'argv': ['PYTHON', '--version'], 'timeout_seconds': 15},
+    {'name': 'revision-before', 'argv': ['git', 'rev-parse', 'HEAD'], 'cwd': 'REPOSITORY', 'timeout_seconds': 15},
+    {'name': 'library-compile', 'argv': ['SELECTED_RUSTC', '--edition=2024', '--crate-name', 'mixer_absence',
+      '--crate-type=rlib', '-Dwarnings', 'source/library/analyzer.rs', '-o', 'scratch/libmixer_absence.rlib'],
+     'timeout_seconds': 60},
+    {'name': 'producer-compile', 'argv': ['SELECTED_RUSTC', '--edition=2024', '--test', '-Dwarnings',
+      'source/producer/independent_tests.rs', '-o', 'scratch/producer-tests'], 'timeout_seconds': 60},
+    {'name': 'independent-compile', 'argv': ['SELECTED_RUSTC', '--edition=2024', '--test', '-Dwarnings',
+      'source/independent/source/analyzer.rs', '-o', 'scratch/independent-tests'], 'timeout_seconds': 60},
+]
+for lane, count, environment in [
+    ('producer', 78, {'MIXER_REVIEW_SCRATCH': 'OUTPUT/scratch/producer-review',
+      'MIXER_ANALYZER_LIBRARY_TEST_SCRATCH': 'OUTPUT/scratch/producer-framing',
+      'MIXER_ANALYZER_LIBRARY_HISTORICAL': 'OUTPUT/inputs/historical',
+      'MIXER_ENVELOPE_SCRATCH': 'OUTPUT/scratch/producer-envelope'}),
+    ('independent', 14, {'REVIEW_SCRATCH': 'OUTPUT/scratch/independent-files'}),
+]:
+    commands.extend([
+      {'name': lane + '-list', 'argv': ['scratch/' + lane + '-tests', '--list'],
+       'timeout_seconds': 15, 'expected_exact_inventory': lane, 'expected_count': count},
+      {'name': lane + '-execute', 'argv': ['scratch/' + lane + '-tests', '--test-threads=1', '--nocapture'],
+       'timeout_seconds': 120, 'environment': environment, 'expected_count': count,
+       'expected_failed_ignored_measured_filtered': [0, 0, 0, 0]},
+    ])
+commands.append({'name': 'api-positive', 'argv': ['SELECTED_RUSTC', '--edition=2024', '-Dwarnings',
+    'api/positive.rs', '--extern', 'mixer_absence=scratch/libmixer_absence.rlib', '-o', 'scratch/api-positive'],
+    'timeout_seconds': 60, 'expected_exit': 0})
+for probe in api['negative']:
+    name = Path(probe['path']).stem
+    commands.append({'name': 'api-negative-' + name, 'argv': ['SELECTED_RUSTC', '--edition=2024',
+      '--error-format=json', probe['path'], '--extern', 'mixer_absence=scratch/libmixer_absence.rlib',
+      '-o', 'scratch/api-negative-' + name], 'timeout_seconds': 60,
+      'expected_normal_nonzero_compile_refusal': True, 'required_primary_code': probe['required_code'],
+      'no_executable_and_intended_probe_span_required': True})
+commands.append({'name': 'revision-after', 'argv': ['git', 'rev-parse', 'HEAD'],
+                 'cwd': 'REPOSITORY', 'timeout_seconds': 15})
+write('proposed-commands.json', {
+    'schema': 1, 'status': 'proposal only; none of these future compiler/test commands executed',
+    'default_cwd': 'OUTPUT', 'placeholder_policy': 'OUTPUT/REPOSITORY/PYTHON and selected compiler identities are fixed, verified runner paths; no arbitrary source/test/argument substitutions',
+    'commands': commands, 'one_synchronous_owned_child_group': True,
+    'active_run_deadline_seconds': 480, 'retention_cleanup_allowance_seconds': 60,
+    'proposed_CI_step_timeout_minutes': 10,
+    'compiler_invocations': 12, 'test_binary_executions': 2,
+    'caller_environment_removed': ['RUSTFLAGS', 'CARGO_ENCODED_RUSTFLAGS', 'RUSTC_WRAPPER',
+      'RUSTC_WORKSPACE_WRAPPER', 'RUST_TEST_THREADS', 'RUST_TEST_NOCAPTURE', 'RUST_TEST_TIME_UNIT',
+      'RUST_TEST_TIME_INTEGRATION', 'RUST_TEST_TIME_DOCTEST'],
+    'preflight_and_postflight': 'all selected pack originals, both derived augmentations, runner, compiler, source snapshots and recorded closure hashes',
+    'cleanup': 'retention first; exact owned device/inode/marker; children returned; links or changed ownership fail and preserve scratch',
+})
+
+checks = []
+for row in manifest['inputs'] + manifest['provenance_references']:
+    path = ROOT / row['path']
+    require(path.is_file() and not path.is_symlink(), 'Input unavailable or linked: ' + row['path'])
+    data = path.read_bytes()
+    require(len(data) == row['bytes'] and sha(data) == row['sha256'], 'Input changed: ' + row['path'])
+checks.append({'name': 'all-60-selected-and-20-named-provenance-files-still-exact', 'passed': True})
+destinations = {name for row in manifest['inputs'] for name in row['packed_destinations']}
+for row in layout['derived_test_only_files']:
+    data = (ROOT / row['original']['path']).read_bytes() + row['appendix_utf8'].encode()
+    require(len(data) == row['bytes'] and sha(data) == row['sha256'], 'Derived hash differs')
+    require(row['packed_path'] not in destinations, 'Packed destination collision')
+    destinations.add(row['packed_path'])
+checks.append({'name': 'two-derived-augmentation-digests-and-closed-destinations', 'passed': True,
+               'compiler_qualification': False})
+require(all(row[k] is False for row in [manifest] for k in
+            ['storedPrefixValidated', 'fullReplayAccepted', 'semanticMetricsValid', 'GA_qualified']),
+        'Authority flags changed')
+checks.append({'name': 'authority-flags-all-false-and-execution-claims-separated', 'passed': True})
+
+members = [DOC] + sorted(p for p in OUT.rglob('*') if p.is_file())
+for path in members:
+    data = path.read_bytes()
+    if path.suffix in ['.json', '.md', '.txt']:
+        require(data.endswith(b'\n'), 'Missing terminal LF: ' + str(path))
+        require(all(line.rstrip(b' \t') == line for line in data.splitlines()),
+                'Trailing whitespace: ' + str(path))
+    if path.suffix == '.json':
+        json.loads(data)
+checks.append({'name': 'all-owned-proposal-text-json-and-whitespace-integrity', 'passed': True})
+write('proposal-validation.json', {
+    'schema': 1, 'at': datetime.now(timezone.utc).isoformat(),
+    'command': ['python3', '-B', '-'], 'stdin': 'verification/swift-envelope-ci-contract/commands/finalize-proposal.py.txt',
+    'shell_command': 'python3 -B - < verification/swift-envelope-ci-contract/commands/finalize-proposal.py.txt',
+    'python': sys.version, 'git_version_separately_observed': 'git version 2.56.0',
+    'checks': checks, 'result': 'passed-source-contract-only',
+    'scope': 'documentation/JSON/hash/arithmetic/ownership only; no executable pack or runner validation',
+    'candidate_compiler_collector_model_or_runtime_execution': False,
+    'native_UI_capture_device_or_process_discovery': False,
+    'prior_preparation_read_error': {'path': 'verification/swift-envelope-absent-state-behavior-review/final-review/final-review.md',
+      'error': 'FileNotFoundError during optional prose lookup',
+      'resolution': 'used the explicitly permitted frozen final-receipt.json, coverage.json and root acceptance instead'},
+})
+members = [DOC] + sorted(p for p in OUT.rglob('*') if p.is_file())
+rows = [{'path': str(p.relative_to(ROOT)), 'bytes': p.stat().st_size, 'sha256': sha(p.read_bytes())}
+        for p in members]
+seal = {'schema': 1, 'scope': 'new source-contract proposal only',
+    'status': 'frozen-proposal-awaiting-root-selection-of-narrow-pack-and-runner-implementation',
+    'member_count': len(rows), 'total_bytes': sum(row['bytes'] for row in rows), 'members': rows,
+    'excluded': ['verification/swift-envelope-ci-contract/seal.json', 'verification/swift-envelope-ci-contract/seal.sha256'],
+    'candidate_source_sha256': manifest['selected_pair']['envelope.rs'],
+    'parent_source_sha256': manifest['selected_pair']['analyzer.rs'],
+    'selected_originals': 60, 'selected_original_bytes': 7957311,
+    'selected_original_tree_sha256': manifest['original_tree_sha256'],
+    'accepted_implementation_scope': 'root-accepted isolated fixture host implementation only',
+    'CI_runner_implemented_or_selected': False, 'portable_test_layout_compiled': False,
+    'remote_CI_or_publication_verified': False,
+    'storedPrefixValidated': False, 'fullReplayAccepted': False, 'semanticMetricsValid': False,
+    'GA_qualified': False,
+}
+write('seal.json', seal)
+seal_sha = sha((OUT / 'seal.json').read_bytes())
+(OUT / 'seal.sha256').write_text(seal_sha + '  seal.json\n')
+print(json.dumps({'result': 'frozen-source-contract-proposal', 'members': len(rows),
+                  'bytes': seal['total_bytes'], 'seal_sha256': seal_sha,
+                  'selected_originals': 60, 'selected_original_bytes': 7957311,
+                  'candidate_or_compiler_execution': False}))

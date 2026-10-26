@@ -1,0 +1,46 @@
+{
+  "baseline": {
+    "bytes": 24811,
+    "path": "verification/swift-ordered-retention-analyzer-envelope-correction/src/envelope.rs",
+    "sha256": "7b8237abbaec492e595508eb7456dab38fbb0d92d8d3cd5a88184f7c1082b9d1"
+  },
+  "candidate": {
+    "bytes": 24805,
+    "path": "verification/swift-envelope-absent-state-correction/proposal-1/src/envelope.rs",
+    "sha256": "2cd286a387ce336a18ea2872974e371ca4e772e2fd801f2186a3f62ce639bfef"
+  },
+  "changed_function_spans": {
+    "entry": [
+      128,
+      137
+    ],
+    "validator": [
+      289,
+      297
+    ]
+  },
+  "compiled": false,
+  "diff": {
+    "bytes": 2712,
+    "path": "verification/swift-envelope-absent-state-correction/proposal-1/envelope.diff",
+    "sha256": "b0e352a693141b2135e3376c16f36c34402b50d1c2831d9a8e419f981c761b07"
+  },
+  "exact_replacements": [
+    {
+      "after": "    // The separately prepaid112 guard owns terminal absent-state/invalid-budget\n    // poison0 and present-state Steps0. Main B471/public425 remains paid.\n    // Its complete terminal reply latches before any later orchestrated leaf.\n    // Check readability before any private budget access, prior read or mutation.\n    // This same exclusive slice and length survive through every commit write.\n    if arena.len() < 7_731_056 { return poisoned(0); }\n    if steps.spent != 0 { return poisoned(0); }\n    let underfunded = steps.remaining < RECORD_ENVELOPE;\n    if !underfunded { steps.remaining -= RECORD_ENVELOPE; steps.spent = RECORD_ENVELOPE; }\n",
+      "before": "    // Selected orchestration prepays425. Its separate fixed112-credit guard,\n    // reserved before candidate mutation, pays these reads and the complete\n    // Steps reply if a private caller supplies fewer credits. It can run only\n    // once through the orchestrator: its Refused reply latches.\n    let underfunded = steps.remaining < RECORD_ENVELOPE;\n    if steps.spent != 0 { return poisoned(0); }\n    if !underfunded { steps.remaining -= RECORD_ENVELOPE; steps.spent = RECORD_ENVELOPE; }\n    // One length preflight proves all twelve fixed8-byte source/destination ranges.\n    // The same exclusive slice and its length survive through commit.\n    if arena.len() < 7_731_056 { return poisoned(if underfunded { 0 } else { RECORD_ENVELOPE }); }\n"
+    },
+    {
+      "after": "fn reply_debit_valid(reply: &FixtureEnvelopeReplyV1, steps: &StepBudget) -> bool {\n    if steps.spent == RECORD_ENVELOPE {\n        return steps.remaining == 0 && reply.words[13] == RECORD_ENVELOPE;\n    }\n    if steps.spent != 0 || reply.words[13] != 0 { return false; }\n    if reply.words[1] == 15 { return reply.words[0] == 3; }\n    reply.words[1] == 1 && reply.words[0] == 2 && steps.remaining < RECORD_ENVELOPE\n}\n",
+      "before": "fn reply_debit_valid(reply: &FixtureEnvelopeReplyV1, steps: &StepBudget) -> bool {\n    (steps.remaining == 0 && steps.spent == RECORD_ENVELOPE && reply.words[13] == RECORD_ENVELOPE)\n        || (steps.remaining < RECORD_ENVELOPE && steps.spent == 0 && reply.words[0] == 2 && reply.words[1] == 1 && reply.words[13] == 0)\n}\n"
+    }
+  ],
+  "executed": false,
+  "otherwise_byte_identical": true,
+  "parent": {
+    "bytes": 33759,
+    "path": "verification/swift-envelope-absent-state-correction/proposal-1/src/analyzer.rs",
+    "sha256": "1ef11e06678642231f783fea0e5fe376e8b1912730a6fb696a653ab04cb2043b"
+  },
+  "schema": 1
+}

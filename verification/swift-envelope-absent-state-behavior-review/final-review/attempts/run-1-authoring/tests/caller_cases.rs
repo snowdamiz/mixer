@@ -1,0 +1,22 @@
+// Generated only from the independently frozen corrected preaccess table.
+const CALLER_CASES: &[(&str,u64,u64,u64,u64,u64,bool)] = &[
+ ("canonical-zero-poison-remaining0",0,0,0,3,15,true),
+ ("canonical-zero-poison-remaining1",1,0,0,3,15,true),
+ ("canonical-zero-poison-remaining424",424,0,0,3,15,true),
+ ("canonical-zero-poison-remaining425",425,0,0,3,15,true),
+ ("canonical-zero-poison-remaining426",426,0,0,3,15,true),
+ ("zero-Steps-remaining0",0,0,0,2,1,true),
+ ("zero-Steps-remaining1",1,0,0,2,1,true),
+ ("zero-Steps-remaining424",424,0,0,2,1,true),
+ ("zero-Steps-remaining425",425,0,0,2,1,false),
+ ("normal-paid-post0",0,425,425,1,0,true),
+ ("paid-positive-remaining",1,425,425,1,0,false),
+ ("paid-unconsumed-remaining",425,425,425,1,0,false),
+ ("paid-malformed-status1-reason1",0,425,425,1,1,true),
+ ("bad-debit1",424,1,1,1,0,false),
+ ("bad-debit424",1,424,424,1,0,false),
+ ("bad-debit426",0,426,426,1,0,false),
+ ("bad-debit-maximum",0,u64::max,u64::max,1,0,false),
+ ("zero-poison-spent-disagrees",425,425,0,3,15,false),
+ ("paid-spent-disagrees",0,0,425,1,0,false),
+];

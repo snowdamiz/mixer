@@ -1,0 +1,865 @@
+{
+  "added_rows": [
+    {
+      "copies": [],
+      "copy_groups": 0,
+      "groups": 1,
+      "id": "DV00",
+      "note": "",
+      "phase": "debit-audit",
+      "repeat": 1,
+      "scalar_atoms": [
+        {
+          "count": 2,
+          "operation": "two native reference parameter receiving/binding operations"
+        },
+        {
+          "count": 2,
+          "operation": "steps.spent member/address selection and scalar load"
+        },
+        {
+          "count": 3,
+          "operation": "RECORD_ENVELOPE source, equality and if branch"
+        }
+      ],
+      "scalar_groups": 1,
+      "scalar_operations": 7,
+      "source": "reply_debit_valid entry and spent==425 dispatch"
+    },
+    {
+      "copies": [],
+      "copy_groups": 0,
+      "groups": 1,
+      "id": "DV01",
+      "note": "",
+      "phase": "debit-audit",
+      "repeat": 1,
+      "scalar_atoms": [
+        {
+          "count": 2,
+          "operation": "steps.remaining member/address selection and scalar load"
+        },
+        {
+          "count": 3,
+          "operation": "zero source, equality and short-circuit conjunction"
+        },
+        {
+          "count": 7,
+          "operation": "reply.words[13] indexed read primitive6 plus member selection1"
+        },
+        {
+          "count": 3,
+          "operation": "RECORD_ENVELOPE source, equality and boolean return"
+        }
+      ],
+      "scalar_groups": 1,
+      "scalar_operations": 15,
+      "source": "reply_debit_valid paid return"
+    },
+    {
+      "copies": [],
+      "copy_groups": 0,
+      "groups": 1,
+      "id": "DV02",
+      "note": "Upper15 includes both operands even if the first rejects early. Return false is separately DV02R only on that terminal branch.",
+      "phase": "debit-audit",
+      "repeat": 1,
+      "scalar_atoms": [
+        {
+          "count": 2,
+          "operation": "steps.spent member/address selection and scalar load"
+        },
+        {
+          "count": 3,
+          "operation": "zero source, inequality and short-circuit disjunction"
+        },
+        {
+          "count": 7,
+          "operation": "reply.words[13] indexed read primitive6 plus member selection1"
+        },
+        {
+          "count": 3,
+          "operation": "zero source, inequality and if branch"
+        }
+      ],
+      "scalar_groups": 1,
+      "scalar_operations": 15,
+      "source": "reply_debit_valid unpaid consistency predicate"
+    },
+    {
+      "copies": [],
+      "copy_groups": 0,
+      "groups": 1,
+      "id": "DV02R",
+      "note": "",
+      "phase": "debit-audit",
+      "repeat": 1,
+      "scalar_atoms": [
+        {
+          "count": 2,
+          "operation": "false materialization and boolean return"
+        }
+      ],
+      "scalar_groups": 1,
+      "scalar_operations": 2,
+      "source": "reply_debit_valid consistency rejection"
+    },
+    {
+      "copies": [],
+      "copy_groups": 0,
+      "groups": 1,
+      "id": "DV03",
+      "note": "",
+      "phase": "debit-audit",
+      "repeat": 1,
+      "scalar_atoms": [
+        {
+          "count": 7,
+          "operation": "reply.words[1] indexed read primitive6 plus member selection1"
+        },
+        {
+          "count": 3,
+          "operation": "fifteen source, equality and if branch"
+        }
+      ],
+      "scalar_groups": 1,
+      "scalar_operations": 10,
+      "source": "reply_debit_valid poison reason dispatch"
+    },
+    {
+      "copies": [],
+      "copy_groups": 0,
+      "groups": 1,
+      "id": "DV04",
+      "note": "",
+      "phase": "debit-audit",
+      "repeat": 1,
+      "scalar_atoms": [
+        {
+          "count": 7,
+          "operation": "reply.words[0] indexed read primitive6 plus member selection1"
+        },
+        {
+          "count": 3,
+          "operation": "three source, equality and boolean return"
+        }
+      ],
+      "scalar_groups": 1,
+      "scalar_operations": 10,
+      "source": "reply_debit_valid poison status return"
+    },
+    {
+      "copies": [],
+      "copy_groups": 0,
+      "groups": 2,
+      "id": "DV05",
+      "note": "Two scalar groups: first reason predicate10; remaining status/remaining predicates15. Every short-circuit execution is a prefix of this25-operation sequence.",
+      "phase": "debit-audit",
+      "repeat": 1,
+      "scalar_atoms": [
+        {
+          "count": 7,
+          "operation": "reply.words[1] indexed read primitive6 plus member selection1"
+        },
+        {
+          "count": 3,
+          "operation": "one source, equality and short-circuit conjunction"
+        },
+        {
+          "count": 7,
+          "operation": "reply.words[0] indexed read primitive6 plus member selection1"
+        },
+        {
+          "count": 3,
+          "operation": "two source, equality and short-circuit conjunction"
+        },
+        {
+          "count": 2,
+          "operation": "steps.remaining member/address selection and scalar load"
+        },
+        {
+          "count": 3,
+          "operation": "RECORD_ENVELOPE source, less-than and boolean return"
+        }
+      ],
+      "scalar_groups": 2,
+      "scalar_operations": 25,
+      "source": "reply_debit_valid Steps return"
+    }
+  ],
+  "baseline": {
+    "bytes": 174731,
+    "path": "verification/swift-ordered-retention-analyzer-envelope-correction/step-inventory.json",
+    "sha256": "6b7206d61440775f568d983b0aa2473d96eed1d0838c91a4035cc59fb9a9845a"
+  },
+  "baseline_rows": 116,
+  "candidate_source_sha256": "2cd286a387ce336a18ea2872974e371ca4e772e2fd801f2186a3f62ce639bfef",
+  "composition": {
+    "budget_helper_replay_total": 10,
+    "budget_helper_report_total": 8,
+    "budget_helper_setup_total": 19,
+    "early_input_error_rows": [
+      "E01",
+      "E09",
+      "E10"
+    ],
+    "early_input_error_total": 13,
+    "finish_rows": [
+      "E01",
+      "E02",
+      "E03",
+      "E04",
+      "E05",
+      "E06",
+      "E07",
+      "E08",
+      "E09",
+      "E10"
+    ],
+    "finish_total": 47,
+    "guard_shared_rows": [
+      "L01",
+      "L02",
+      "L03",
+      "L04",
+      "L14"
+    ],
+    "guard_total": 112,
+    "leaf_rows": [
+      "L01",
+      "L02",
+      "L03",
+      "L04",
+      "L05",
+      "L06",
+      "L07",
+      "L08",
+      "L09",
+      "L10",
+      "L11",
+      "L12",
+      "L13",
+      "L14"
+    ],
+    "leaf_total": 425,
+    "setup_actual_bound": 329,
+    "setup_rows": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06"
+    ],
+    "wrapper_final_rows": [
+      "F01",
+      "F02",
+      "F03",
+      "F04",
+      "F05"
+    ],
+    "wrapper_final_total": 42,
+    "wrapper_record_rows": [
+      "W01",
+      "W02",
+      "W03",
+      "W04",
+      "W05",
+      "W06",
+      "W07",
+      "W08",
+      "W09"
+    ],
+    "wrapper_record_total": 24,
+    "wrapper_setup_rows": [
+      "T01",
+      "T02",
+      "T03"
+    ],
+    "wrapper_setup_total": 42
+  },
+  "composition_rule": "L/W/S/T/E/F totals sum their named top-level rows once. W08 is the explicit terminal-path maximum above; linked child DV rows are explanatory, never charged a second time.",
+  "independent_source_accounting_still_required": true,
+  "removed_rows": [
+    {
+      "canonical_sha256": "2ee054bf2a9ee2a214907cd03a60037ba25c0a4f47ce31a1b04cae1da1b9502f",
+      "id": "DV01"
+    },
+    {
+      "canonical_sha256": "269b8819b10f9b24d5762e9cf4150d866378211de1a1512f61dd2a1693da4601",
+      "id": "DV02"
+    }
+  ],
+  "replaced_rows": [
+    {
+      "id": "L01",
+      "new": {
+        "copies": [],
+        "copy_groups": 0,
+        "groups": 2,
+        "id": "L01",
+        "note": "Same25 scalar operations/two groups in new order; absence projects first9 only, invalid spent first13 only. Both return via exact RH02 and L14 subset.",
+        "phase": "leaf",
+        "repeat": 1,
+        "scalar_atoms": [
+          {
+            "count": 4,
+            "operation": "four native parameter receiving/binding operations"
+          },
+          {
+            "count": 5,
+            "operation": "arena native receiver/length return, bound materialize, comparison, branch"
+          },
+          {
+            "count": 4,
+            "operation": "steps.spent load, zero materialize, compare, branch"
+          },
+          {
+            "count": 4,
+            "operation": "steps.remaining load, threshold load, comparison, underfunded binding"
+          },
+          {
+            "count": 2,
+            "operation": "!underfunded and branch"
+          },
+          {
+            "count": 4,
+            "operation": "remaining load, threshold load, subtraction, remaining store"
+          },
+          {
+            "count": 2,
+            "operation": "threshold load and spent store"
+          }
+        ],
+        "scalar_groups": 2,
+        "scalar_operations": 25,
+        "source": "candidate envelope entry: length preflight -> spent check -> threshold/debit; no prior/candidate access"
+      },
+      "old_canonical_sha256": "653f3cc25dc9749a3931a7183ffde7bf99617209281613bfc2cdd04ae9f9ae73"
+    },
+    {
+      "id": "W08",
+      "new": {
+        "copies": [],
+        "copy_groups": 0,
+        "groups": 5,
+        "id": "W08",
+        "linked_groups": 5,
+        "note": "One function call has one of four terminal paths. Reserve max(2,3,4,5)=5; no sum over incompatible returns, no credit reused.",
+        "phase": "wrapper-record",
+        "repeat": 1,
+        "scalar_atoms": [],
+        "scalar_groups": 0,
+        "scalar_operations": 0,
+        "source": "reply_debit_valid DV00..DV05 path maximum"
+      },
+      "old_canonical_sha256": "3602bb9d2a5abd6519eb55c67098bed88ebd7b5b49f4108d0472c1fd86f4189f"
+    }
+  ],
+  "result_row_count": 121,
+  "same_selected_totals_proposed": {
+    "B": 471,
+    "F": 42,
+    "G": 112,
+    "T": 42,
+    "W": 24,
+    "finish": 47,
+    "framing": 22,
+    "leaf": 425,
+    "setup_actual": 329,
+    "setup_selected": 534
+  },
+  "schema": 1,
+  "status": "unselected-precise-delta",
+  "unchanged_row_source_line_numbers": "Historical line annotations are baseline coordinates. Only two exact replacements occur; entry reads/stages/commits retain byte identity with a one-line offset and later unchanged bodies with a three-line offset. Source-binding exact diff resolves coordinates.",
+  "unchanged_rows": [
+    {
+      "canonical_sha256": "9f6288554e84f8a075a985c3232261cc5b37c7c737f52a42240be70ef8513303",
+      "id": "L02"
+    },
+    {
+      "canonical_sha256": "9f28eb0b1891acea11f7a0541a191a34ecfe0dde58a1f04ee3365e93ea024a2b",
+      "id": "L03"
+    },
+    {
+      "canonical_sha256": "7abe24e84d2e102f2520aa1fc977f130708803fbf94509552bf666ab12c04983",
+      "id": "L04"
+    },
+    {
+      "canonical_sha256": "7a04d6979997a5ee7dd5d178ae509b885d58a0cf257ae73c21cdd44f47bac44b",
+      "id": "L05"
+    },
+    {
+      "canonical_sha256": "b8fb238cc29cec5b6a3b13de8d5d561d88e8412c8299a785f0546453f2c6ceac",
+      "id": "L06"
+    },
+    {
+      "canonical_sha256": "c28476a6ce8bb5db75160ceb92541008e1e9a7c06459202f119c54a9f8de748b",
+      "id": "H01"
+    },
+    {
+      "canonical_sha256": "8aa874a248538e8b0fad1054db6495db1632d33f472f9e460d63d330404f7ee5",
+      "id": "H02"
+    },
+    {
+      "canonical_sha256": "88d104b314a923f4c3ba37ccfb1f8570044a3d7c3a7c709adbe8979bc49b3eed",
+      "id": "H03"
+    },
+    {
+      "canonical_sha256": "7b014beb61c857dbe0ef33913225b84022d501438b2374dc7b78d933764784f2",
+      "id": "H04"
+    },
+    {
+      "canonical_sha256": "1772c3490845c04bac7b691fa18e6d8482d895244f80be52a364cf1348e9a6cc",
+      "id": "H05"
+    },
+    {
+      "canonical_sha256": "3d6eea4d31c8083f1d5db79b76366808c3f8a47c216b7a4a120db5ea913d2e98",
+      "id": "H06"
+    },
+    {
+      "canonical_sha256": "4890aafd111dedc143e8f7417e3da40761f9cba7c07092c8c0f16b065f6ecbe6",
+      "id": "H07"
+    },
+    {
+      "canonical_sha256": "dacbc71476a4ec5f2d4e217b297e9562817dff9f3ae7848b14186b07a6ee0872",
+      "id": "HA01"
+    },
+    {
+      "canonical_sha256": "9e46ecaf23ed7b465c5e201cdcbbd451edf10197692329fba5fa947927be54f3",
+      "id": "HA02"
+    },
+    {
+      "canonical_sha256": "e7b435ca9af4cc5dc4a4609f85ebfb7f83501aae5e616fefc3c3ab24323fada6",
+      "id": "HA03"
+    },
+    {
+      "canonical_sha256": "bdb4c37bc08b9c61993c59f86a87a04794c2dcd520f3fe766c5499bdb2b2d8d9",
+      "id": "HA04"
+    },
+    {
+      "canonical_sha256": "e81495d9b235da24ad7dc82682735db34ab64dfd639eef3f21fe94e957a282fe",
+      "id": "HA05"
+    },
+    {
+      "canonical_sha256": "a8f21c7222be8d6c079a251d0b5f96629ca976a5385d0d2952d157a3e20a0dd2",
+      "id": "HA06"
+    },
+    {
+      "canonical_sha256": "ce43f38af9d6e64afe07239c64f2a606d369688e425f44e4cd6f315670a4558b",
+      "id": "HA07"
+    },
+    {
+      "canonical_sha256": "507f6e33386c03fdf1254939bb8a2a9584cde6ed3bcea2d9c1cd272bfdc6b9f3",
+      "id": "HA08"
+    },
+    {
+      "canonical_sha256": "596077263ce54367375ce551815728cc5366804fbe01764b16da512fce558905",
+      "id": "HA09"
+    },
+    {
+      "canonical_sha256": "2e3faf97d622eac4ae050339c1344c63dad553b792aac34f7015e10d39843967",
+      "id": "HA10"
+    },
+    {
+      "canonical_sha256": "a12923d5b701a046ba151ca70b88c6db81bf165c1055f027b378dfec6f7cb6f6",
+      "id": "HA11"
+    },
+    {
+      "canonical_sha256": "0d7e30ddce535bb02b17d0d544db14b170298f2852f23f69a9220aefee0bf647",
+      "id": "HA12"
+    },
+    {
+      "canonical_sha256": "ecc7f93bb75b242cfba057fa00244afc46bdaf3a576751139b26c3a3df2de8c5",
+      "id": "HA13"
+    },
+    {
+      "canonical_sha256": "78498299a4bee086dece9c671c0dee3aca5dea3f266a974ac93a557813dcab4b",
+      "id": "HA14"
+    },
+    {
+      "canonical_sha256": "a21d9dc9f193f06384dcd4fa721bb4bdeb8174265ce742defbf90652b1995bac",
+      "id": "L07"
+    },
+    {
+      "canonical_sha256": "32b844ef84ff9c9c67d4c37ee9b897560b57ef676e1d8c371a97a3b8cba4eeb3",
+      "id": "L08"
+    },
+    {
+      "canonical_sha256": "bad4ab1b578f9ea340ee1c52ea6f28a36b8d911ead995c2769bc6070b8a67af6",
+      "id": "L09"
+    },
+    {
+      "canonical_sha256": "37a2d1140b89b364d8b32dc97344b138fbd354fe07aed76b1abec83efce155ac",
+      "id": "L10"
+    },
+    {
+      "canonical_sha256": "7194b8aea8583d0b1e4aa26f824a453d9cff6f0192f0b0b00f2188381bbe74f2",
+      "id": "TP01"
+    },
+    {
+      "canonical_sha256": "0464819cff569b370bf53190e3ded1b29ebd2f51f5d7b7bdc1a2772d4332d3ef",
+      "id": "TP02"
+    },
+    {
+      "canonical_sha256": "95b425a63fec7153d4147e2a9ef35c0e02339cf7bb10c18d7bc0a91de40ef224",
+      "id": "TP03"
+    },
+    {
+      "canonical_sha256": "51f270d799fab4c7c20a450c010fd876e129d322d5025e0c85b2ec893361e7b3",
+      "id": "TP04"
+    },
+    {
+      "canonical_sha256": "bb7d5742919110766df9efa3b825031fd3cc648926375777c960b27a9f992030",
+      "id": "TP05"
+    },
+    {
+      "canonical_sha256": "f4a7a5c7b3a6c0f570abb40828d11fb19cb8e182f2018ec6c1b1ed7ab479069a",
+      "id": "TP06"
+    },
+    {
+      "canonical_sha256": "28de89ba975c6124b24091de9a7d8f8f287e25e2b25fcbc9f89d7b290c4607e3",
+      "id": "TP07"
+    },
+    {
+      "canonical_sha256": "f4b35364bd0a184c34777a28d199b229eef6076b0fd8a8389e7ebbcd61ca72b4",
+      "id": "TP08"
+    },
+    {
+      "canonical_sha256": "1e7595d9108890638588d1109ccd13fe4f9b616d919ab56de4fb14fb5fa8a0c5",
+      "id": "TP09"
+    },
+    {
+      "canonical_sha256": "c6a28082264e0c1345c35edddca5e42d1cc2371384fc7bfa8a3f3d324af7ed08",
+      "id": "TP10"
+    },
+    {
+      "canonical_sha256": "5dc852c234da5d752e645c9bf419ac24d43f244a5e5b9a64b832eec4ef6dd67a",
+      "id": "TP11"
+    },
+    {
+      "canonical_sha256": "290f44a3f836ad3c9e0dce9ab38959b223cb0f3034e93ca9ae073a4179af1d68",
+      "id": "TP12"
+    },
+    {
+      "canonical_sha256": "6a513b9adf560ab2cff86b0c19eaba625b59290aec01897e3c84d5503c39938b",
+      "id": "TP13"
+    },
+    {
+      "canonical_sha256": "485a35cbbb2a0468a5f2ccf5e4d0e42ae70fdccb0b3014d059a5c2e8cc93cd00",
+      "id": "TP14"
+    },
+    {
+      "canonical_sha256": "36822bc38d5c5830924c7b1594ef9e2c315b8130e980309c9f680f1dcb77c003",
+      "id": "TP15"
+    },
+    {
+      "canonical_sha256": "6683fbef936dc110c1f0d3ac6eb9319dc93949fd609aa630f6b9ee10d8dbd11c",
+      "id": "TP16"
+    },
+    {
+      "canonical_sha256": "35820f8244a331428c0bb5059833da78413ab9a0f2c8bf2dc7e07df636594244",
+      "id": "TP17"
+    },
+    {
+      "canonical_sha256": "b503f7dd8abe83a0b27975d7857ad8b66baa26b60a95922316419b65e3b8e0a2",
+      "id": "TP18"
+    },
+    {
+      "canonical_sha256": "8773bb8d5f0c2407d199764be852ee0f7a31f700cf0a69026bda9eac0585bc3c",
+      "id": "TP19"
+    },
+    {
+      "canonical_sha256": "5532e58af6581c0a61083d079acf1859df42057a0cc5beb7db75a6cb4170b9e8",
+      "id": "TS01"
+    },
+    {
+      "canonical_sha256": "2fc908c86a454d0aa1186558d6bbbc7d780b6c5b5773157d567a7629e7dae628",
+      "id": "TS02"
+    },
+    {
+      "canonical_sha256": "f2632df7a290852d27fc42aa583a7fc07fbccc11bcac005b448e64eeced34840",
+      "id": "TS03"
+    },
+    {
+      "canonical_sha256": "2948c654c24fff6444fccb0776fb62a94b4fdefde335761bf77d48490185fab9",
+      "id": "TS04"
+    },
+    {
+      "canonical_sha256": "a8fb10908cf04fb140e4e077d78530c6ee11fa00e69ea3bdd84543caf3f60a72",
+      "id": "TS05"
+    },
+    {
+      "canonical_sha256": "90a836ae069f78425b179480761abf6ed701ef407aeb70ed5b99d8f60944f1a9",
+      "id": "TS06"
+    },
+    {
+      "canonical_sha256": "8ec7accbb265bbdecf813597a97a736c6669842714266d556476ca59c666854a",
+      "id": "TS07"
+    },
+    {
+      "canonical_sha256": "be780ba5041862e00acf3fa4fa06899ef703c4628df166ed37b47f7633bd2d5e",
+      "id": "TS08"
+    },
+    {
+      "canonical_sha256": "b0b94b98a8e492e26b96a08aeca946f3e48a2a4974889701581428b05c957432",
+      "id": "TS09"
+    },
+    {
+      "canonical_sha256": "215db72ceeb1e6521841040bc0ff4cc0ef72b442ca8cb59148eb9744fecc7f23",
+      "id": "TS10"
+    },
+    {
+      "canonical_sha256": "d458a4bc283addc56f339425cd1206523f2977841c7e6e3e3d612f3d5bfa9d9e",
+      "id": "TS11"
+    },
+    {
+      "canonical_sha256": "491f30f840323f353d2e0c90d27cf6912ecf3d86d9e4882b5f387166cf8ffbd0",
+      "id": "TS12"
+    },
+    {
+      "canonical_sha256": "c4dacaae4e9c9ffb1106cf75cc282474ad1c5dda1458aacf63252d6c6675ecfa",
+      "id": "TS13"
+    },
+    {
+      "canonical_sha256": "762d017fe3d1916991b68996b561a863dce6c2fab6c5d12854128f13a333d12d",
+      "id": "TS14"
+    },
+    {
+      "canonical_sha256": "7ba964ff1cc9d772ef3cb5e93c4fc28533b222e3db3d6129320bc67ac512404a",
+      "id": "TS15"
+    },
+    {
+      "canonical_sha256": "4d658f526a5679f4cb9ee07ba4fe6c7f7dd60e0c93005f20479b268bee4fecb5",
+      "id": "TC01"
+    },
+    {
+      "canonical_sha256": "15850b7c3e7e248230cb03f3335b809ecc773c821d270f2db414030fc3d61de0",
+      "id": "TC02"
+    },
+    {
+      "canonical_sha256": "f5ecef87fe53e670fba46e7ece16c076ec2ef275bfa21ea778ab31d4e5c06a61",
+      "id": "L11"
+    },
+    {
+      "canonical_sha256": "74aee921af0959997e55bbbdd182f68eb67cb97eb07213ab45c15304bce91c6a",
+      "id": "L12"
+    },
+    {
+      "canonical_sha256": "4a9a83ba1dd4b35f5232f794564327a590ec3d976b33861d2aa36cd5e7839ba3",
+      "id": "L13"
+    },
+    {
+      "canonical_sha256": "61b920c83124786856ac95ab27d625c871ae190a9c0974b1f7eb2d9bceeca137",
+      "id": "RH01"
+    },
+    {
+      "canonical_sha256": "94f7dc568dffc0a3945c39e1990a68df7a4bf906c4c59bfcd12c67202f8ce55f",
+      "id": "RH02"
+    },
+    {
+      "canonical_sha256": "624a27efffec516b8c197334c6ca24745c798b4ca9612121b6badd439a98d0e4",
+      "id": "L14"
+    },
+    {
+      "canonical_sha256": "cb3e7f3b8cd63d7b80a5725c0352cefce6489c98a39b24c095d2f3e20cf23e08",
+      "id": "W01"
+    },
+    {
+      "canonical_sha256": "412bf0bef7fc2ece196c8e997d69e5a4d5686a6a4a93d0c0d16d94c57c1923c9",
+      "id": "W02"
+    },
+    {
+      "canonical_sha256": "ebf0c3288c46f65832281d54d0d6a4104e7012dde7975b3a1ab0ce04d089dd16",
+      "id": "W03"
+    },
+    {
+      "canonical_sha256": "d2c1e6c5c37f77339b7b244abd6303b6a8bbcf5cb486262d97683925864c4936",
+      "id": "W04"
+    },
+    {
+      "canonical_sha256": "c3ff9f1769843ecaf86fb260d85e0752e09706a48c026c563ba1de0fa8e3bdfe",
+      "id": "W05"
+    },
+    {
+      "canonical_sha256": "f308b9f4b89ff25d02d2a53aa5e8fb4c3f01ec761165836a92f199779718d9ee",
+      "id": "W06"
+    },
+    {
+      "canonical_sha256": "2e076df8f83d42381e1a3c73314208d27ab3fcf5f1de5546fd908dcfe595a9d5",
+      "id": "W07"
+    },
+    {
+      "canonical_sha256": "98c1fe5f0420a09361b037129084fb116c12892c7a4d9700edb40d402a333a77",
+      "id": "W09"
+    },
+    {
+      "canonical_sha256": "50d53b6b9bc737d336dbade86d10a7776e72692ffad6b013885ddbd0263a1930",
+      "id": "BR01"
+    },
+    {
+      "canonical_sha256": "49b655791ca6aae03a524b2f7e4bbbd992cd2da353ba07c2997729689b203a97",
+      "id": "BS01"
+    },
+    {
+      "canonical_sha256": "66bddbc2bbf3553159bcabb62b2f8a043e34fbdf3eda35c154a8f4fb6f40bb75",
+      "id": "BP01"
+    },
+    {
+      "canonical_sha256": "dab4f8ed43db007f391df6c8188c543c328eec670a778e887d263817e174afbb",
+      "id": "S01"
+    },
+    {
+      "canonical_sha256": "bd99d4f2b0bae38e21b236ead6c44bc3c6f5d2e20ee48278aca08eca7534d49d",
+      "id": "S02"
+    },
+    {
+      "canonical_sha256": "6b6df7bbe21b51928cd78bcb36734a0eb370e76d67c3f1804130894c9091d096",
+      "id": "S03"
+    },
+    {
+      "canonical_sha256": "9aae986242fb7d7a7c7ec9eebf09830d9a5a896d55b246f565a0ff70e41f5784",
+      "id": "S04"
+    },
+    {
+      "canonical_sha256": "185c455c5ac8302e9cbb42d7a0f7e74fbc062e860d29f342c99f83ac8ffbd89b",
+      "id": "S05"
+    },
+    {
+      "canonical_sha256": "67ac90b22759d1fbabfb30094f22f833344874d750b08cde4808a367444181bb",
+      "id": "S06"
+    },
+    {
+      "canonical_sha256": "bacb1b9555346a51ca64007366a9266ac79eeba0c94d8d84046a9884ee2452b3",
+      "id": "T01"
+    },
+    {
+      "canonical_sha256": "eea13aef4ea5db739cd982a4f98c3a528cb3ecebbda3c2f50bb8cac0b228880f",
+      "id": "T02"
+    },
+    {
+      "canonical_sha256": "bf49a4eaa0df4a681393ac9bb92d837d5614348c2e31e21b9e61ed88f88ecd4e",
+      "id": "T03"
+    },
+    {
+      "canonical_sha256": "ef61bb3dddc1bb975c0ded1d6b24a06ebc156187effd41ab07301b471cb9f63e",
+      "id": "E01"
+    },
+    {
+      "canonical_sha256": "b06c0bff071379ad10c4d365ada921ec59ec0c5b0f4467c119c9ef0fc21ec422",
+      "id": "EF02"
+    },
+    {
+      "canonical_sha256": "02b1e3987cba5289d7b4430ae041354bdfb78542479e682e74f5e3d53388de45",
+      "id": "E02"
+    },
+    {
+      "canonical_sha256": "febfdfbf03c8817d7ee3198fc7af5b2f044cb4454b15c8c7d4769c4b7efdeb43",
+      "id": "E03"
+    },
+    {
+      "canonical_sha256": "42f04556046ffada5ddb37cf50f747bc4ca1609168d42a40dd5e86889dc1ba20",
+      "id": "EF04"
+    },
+    {
+      "canonical_sha256": "5685e99588271d1ae4576e5d2f5d7d21b5c0b8165e38e715183be1aca8e69e72",
+      "id": "E04"
+    },
+    {
+      "canonical_sha256": "7acb459dcc948408ee66f7a7c3ac50b7a8f604a85638039415724094f835f73e",
+      "id": "E05"
+    },
+    {
+      "canonical_sha256": "5f38c436d81f6598af870e9961e8d6d1b2faf0e524134da9d536e70463da6d5b",
+      "id": "EH01"
+    },
+    {
+      "canonical_sha256": "f841445f44582df271c00a112aa9d4f5a82cf793d6b319c5376b93679d3367fd",
+      "id": "E06"
+    },
+    {
+      "canonical_sha256": "29234fffa5cd5f803624e6fed92b23c0205039fe617977a2a98e62a9dec1bb39",
+      "id": "EH02"
+    },
+    {
+      "canonical_sha256": "ff24b75ba05d94aa5aaab671a47884dd52002c8ae3526f255232dbc25e615f73",
+      "id": "E07"
+    },
+    {
+      "canonical_sha256": "9e25b23c13ae3f29082df482821173082cbe5a7f1825aa90ae700852e678b949",
+      "id": "E08"
+    },
+    {
+      "canonical_sha256": "3ebe4461dd0becd840f129ae11abc696d5b6829da70d195dc7d8949dad184073",
+      "id": "EH03"
+    },
+    {
+      "canonical_sha256": "4c20ea499f3893d009532f2c08c6f3105d3e51aa0674c163e815230006f0ac50",
+      "id": "E09"
+    },
+    {
+      "canonical_sha256": "b824168ed85d832d068f7e3513cd6c1d5b8b06e00a495715acb90725fd879972",
+      "id": "E10"
+    },
+    {
+      "canonical_sha256": "b3a810c7295665bbf2f9579e7f7d7284d2f3f3904718b1e46517f10c1765f2ba",
+      "id": "F01"
+    },
+    {
+      "canonical_sha256": "c1c8ca76b1979685c66e8856c1a76cda010eabbfad91d32e903a394ca0bdfcae",
+      "id": "F02"
+    },
+    {
+      "canonical_sha256": "5431b9cf4e9d9542e03d43134c493033983f4e727016e9aefd5847dd6b7ee91e",
+      "id": "F03"
+    },
+    {
+      "canonical_sha256": "88f3cba89889f2a87e157b640e94d93a6cbe95f87b3b883a6459baec970a5c82",
+      "id": "F04"
+    },
+    {
+      "canonical_sha256": "1b5e6cfdf91a4bb169b18204d4ed3b79deaea0334c92cb9b0e736246ed7253bf",
+      "id": "F05"
+    }
+  ],
+  "validator_max_groups": 5,
+  "validator_path_composition": [
+    {
+      "groups": 2,
+      "id": "paid",
+      "rows": [
+        "DV00",
+        "DV01"
+      ]
+    },
+    {
+      "groups": 3,
+      "id": "unpaid-inconsistent",
+      "rows": [
+        "DV00",
+        "DV02",
+        "DV02R"
+      ]
+    },
+    {
+      "groups": 4,
+      "id": "unpaid-poison-reason",
+      "rows": [
+        "DV00",
+        "DV02",
+        "DV03",
+        "DV04"
+      ]
+    },
+    {
+      "groups": 5,
+      "id": "unpaid-Steps-or-reject",
+      "rows": [
+        "DV00",
+        "DV02",
+        "DV03",
+        "DV05"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+error[E0616]: field `state` of struct `independent_selected::FixtureEnvelopeObservationV1` is private
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-envelope-absent-state-behavior-review/final-review/api/private-field.rs:1:78
+  |
+1 | use independent_selected::*;fn probe(x:FixtureEnvelopeObservationV1){let _=x.state;}fn main(){}
+  |                                                                              ^^^^^ private field
+  |
+help: a method `state` also exists, call it with parentheses
+  |
+1 | use independent_selected::*;fn probe(x:FixtureEnvelopeObservationV1){let _=x.state();}fn main(){}
+  |                                                                                   ++
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0616`.

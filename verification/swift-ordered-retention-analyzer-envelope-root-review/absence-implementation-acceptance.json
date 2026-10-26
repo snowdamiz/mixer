@@ -1,0 +1,156 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T03:56:40.528519+00:00",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-envelope-root-review/accept_absence_implementation.py"
+  ],
+  "python_version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "checker": {
+    "bytes": 9308,
+    "sha256": "2be8f027b6283907f344130bf7552f8940bf309d5dd1133dce0dfb62be8c6bda"
+  },
+  "context_revision": "1f114d8f235e8042c275a2549fef7d4994272360",
+  "status": "accepted-isolated-fixture-envelope-host-implementation",
+  "packets": [
+    {
+      "seal": "verification/swift-envelope-absent-state-correction/proposal-1/seal.json",
+      "sha256": "3da07ea9c308c9bee798cf7c891a8f9dfd2a170e85b43341c30caa38cdb9b04c",
+      "members": 35,
+      "bytes": 205372
+    },
+    {
+      "seal": "verification/swift-envelope-absent-state-accounting-review/seal.json",
+      "sha256": "c9191a26ed0c5081e9c2ad97082fc61cee3f6eeb94ea49c4be5028b0f54536e4",
+      "members": 22,
+      "bytes": 119706
+    },
+    {
+      "seal": "verification/swift-envelope-absent-state-correction/implementation/seal.json",
+      "sha256": "1e45ae55b5a159fd2c384bfdbbc520467e467b391af9f6a1d655e8ab67f0012a",
+      "members": 120,
+      "bytes": 8532453
+    },
+    {
+      "seal": "verification/swift-envelope-absent-state-behavior-review/preaccess-seal.json",
+      "sha256": "e24d3bd09fd5bf07e5df86a03df2ca285eaea5837245666b3718c33b15fc56a4",
+      "members": 5,
+      "bytes": 21178
+    },
+    {
+      "seal": "verification/swift-envelope-absent-state-behavior-review/preaccess-correction/seal.json",
+      "sha256": "485346537ab2c34bfeb14ff630c07bb9be7cd7fe3a9a7bceae59dcb1679debfd",
+      "members": 5,
+      "bytes": 22215
+    },
+    {
+      "seal": "verification/swift-envelope-absent-state-behavior-review/final-review/seal.json",
+      "sha256": "84f93960a58b6f5fe04a3e1a95211e6c1e5b2bc38c58752e6703f83b3184d2f8",
+      "members": 220,
+      "bytes": 1331015
+    }
+  ],
+  "root_verified_members": 407,
+  "root_verified_bytes": 10231939,
+  "root_verified_commands": {
+    "producer": 27,
+    "independent": 41
+  },
+  "root_verified_raw_streams": 136,
+  "candidate_source_sha256": "2cd286a387ce336a18ea2872974e371ca4e772e2fd801f2186a3f62ce639bfef",
+  "parent_source_sha256": "1ef11e06678642231f783fea0e5fe376e8b1912730a6fb696a653ab04cb2043b",
+  "source_pair": "verification/swift-envelope-absent-state-correction/proposal-1/src/",
+  "root_selection": {
+    "bytes": 4171,
+    "sha256": "ae90b289519d0588a27cae4db0a7ce4a74ce3016c9c2f790fd962775ec4fd2e0"
+  },
+  "accepted_scope": "Exact fixture-only safe-File framing/envelope API, independently authored canonical private leaf and corrected absence-before-funding/caller debit behavior, under the selected bounded accounting contract. No engine integration or real source authority adapter.",
+  "producer": {
+    "unchanged_methods": 70,
+    "focused_methods": 8,
+    "fresh_candidate_comparisons_against_reused_oracle": 21714,
+    "fresh_model_execution": false,
+    "actual_host_layouts": 32,
+    "API_positive": 1,
+    "API_expected_negative": 8
+  },
+  "independent": {
+    "exact_source_methods": 14,
+    "separate_test_overlay_methods": 2,
+    "actual_host_layouts": 32,
+    "API_positive": 1,
+    "API_expected_negative": 8,
+    "R2_original10_debits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "absent_boundary_cases": 15,
+    "readable_underfunding_cases": 1700,
+    "caller_poststate_cases": 19,
+    "candidate_mismatches_in_scope": 0
+  },
+  "selected_amounts": {
+    "leaf": 425,
+    "W": 24,
+    "B": 471,
+    "G": 112,
+    "T": 42,
+    "finish": 47,
+    "F": 42,
+    "setup": 534
+  },
+  "selected_guard_scope": {
+    "reservation": "The existing single112 prepaid reservation before candidate initialization",
+    "scope": "At most one terminal unpaid leaf among absent prior-state backing at any remaining, invalid nonzero entry spent, or readable prior-state underfunding",
+    "source_path_upper_groups": {
+      "absent": 7,
+      "invalid_entry_spent": 7,
+      "present_underfunded": 112
+    },
+    "single_use": "Complete terminal reply installs validity and status2/3 or reason15 prevents any later orchestrated leaf; rejected debit forms become terminal poison under main-paid W09",
+    "caller_owner": "Main-paid W24 owns reply installation, validator, fallback and later latch handling independently of private debit. Leaf or G owns the complete leaf return exactly once.",
+    "not_selected": "No repeated arbitrary private invocation entitlement, additional reservation, credit transfer, public refund or use of unassigned margin"
+  },
+  "accounting": {
+    "independent_offline_checks": 352,
+    "rows": 121,
+    "transfer_edges": 108,
+    "logical_bytes": 24656,
+    "reserved_bytes": 41984,
+    "ceiling_bytes": 65536
+  },
+  "public_debit": "534*S_paid + 47*F_paid + 425*N_B; zero-call581; no main-paid425 refund",
+  "historical_failures_preserved": "Old undercount/latch and funded-absence failures remain rejected historical packets. New producer test-expectation failure, four preaccess reviewer model errors, three reviewer execution errors and one repaired cleanup-retention gap remain retained. No single all-green attempt is claimed.",
+  "receipt_precedence": "Independent final-receipt.json and coverage.json are terminal; execution-receipt.json remains a preserved intermediate not-complete placeholder.",
+  "limitations": [
+    "Poststate debit coherence is not a historical-budget, arbitrary reply-shape or authority validator. Fabricated paid status1/reason1 may schedule; canonical helper provenance excludes that form.",
+    "Direct private short-arena absence and composed test-only counter overlays are not natural end-to-end public safe-File absence faults. Actual File construction uses full Arena.",
+    "Overlay two-method evidence is separate from the fourteen byte-identical-source methods; compared matrices overlap and are not additive product features.",
+    "Observed Rust1.99 aarch64-apple-darwin layout/evidence only. No Linux/compiler-target/native/device qualification.",
+    "Runtime tests validate behavior; step/memory bounds derive from the separately selected operation/transfer/lifetime ledger, not timings.",
+    "Historical full packets remain local unless separately delivered; this receipt does not claim their remote publication."
+  ],
+  "implementation_accepted": true,
+  "fullReplayAccepted": false,
+  "storedPrefixValidated": false,
+  "semanticMetricsValid": false,
+  "native_runtime_or_capture_started": false,
+  "GA_qualified": false,
+  "pending": [
+    "Narrow selected-source CI and delivery closure",
+    "Semantic replay/real source adapters/custody",
+    "Live VM/CLI/target integration",
+    "Native/device/compiler/signing/store/customer/operational and immutable published FieldLog gates",
+    "Accountable GA review"
+  ],
+  "errors": []
+}

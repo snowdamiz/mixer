@@ -30,6 +30,7 @@ Generated Android source-export repair `99d63843` passes all 40 steps across thr
 Default appearance packaging `55985881` passes all 40 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40256207023).
 Copied SDK/source-pair compatibility `1f114d8f` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40263504027) passed all 3 jobs and 40 steps.
 Android host lifecycle core `4e48ac1a` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40267720327) passed all 3 jobs and 40 steps. The new Java suite has local host evidence and is not wired into this existing workflow.
+Android observer/source-profile repair `b45963c0` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40272428143) is in progress; VM and services passed, Swift remains running.
 Native runtime and capture remain paused.
 All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
@@ -159,10 +160,40 @@ source bindings. All three Engine CI jobs now pass.
 The corrected acquisition/lifecycle contract now passes 24 producer
 and 38 independent methods, including 5,390 oracle comparisons. Root verifies
 773 sealed members and both preserved archives, accepting this contract only.
-A separate fixture-envelope interface proposal is selected before Rust
-implementation; existing framing behavior, ABI and report remain fixed.
-The proposed 534-step setup and 128-step record debit still need a combined
-implementation budget and lifetime proof. Semantic replay, real adapters,
+The separate fixture-envelope candidate is frozen after 64 host methods
+and 16,170 finite-model comparisons pass. Root verifies 796 sealed members.
+Independent review finds an undercounted prior-read loop and inconsistent
+private poison-latch gating; the candidate needs revision. Seven accounting
+probes and 33 corrected public fixtures pass; one of ten private fault controls
+fails. The 64-method independent replay times out and is not a pass. Combined
+steps, layouts, lifetimes and implementation acceptance remain pending.
+The second correction proposal passes independent accounting review: all 116
+operation rows, 108 transfer entries and error-finalization funding reconcile.
+Root selects leaf425/W24/B471/G112/T42/finish47/F42 under unchanged global caps.
+The public debit becomes 534*S_paid + 47*F_paid + 425*N_B; zero-call framing
+retains debit581 with no invented observation. The corrected-source producer now passes
+70 host methods, 21,714 fresh model/threshold comparisons and 32 layouts. Root
+verifies 306 sealed members and the 86-member source archive. Independent
+review passes 18 methods but fails the absent-state debit control; eight API
+rejection probes pass. The final 116-row accounting bounds remain supported,
+but combined acceptance is withheld. A separate source, guard-funding and
+caller-validation proposal passes 352 independent offline checks. Root selects
+the exact correction and explicit guard ownership under unchanged amounts;
+the host producer now passes 70 unchanged plus 8 focused methods, 21,714
+comparisons and 32 layouts. Root verifies 177 proposal/accounting/implementation
+members and 27 qualification command results. Independent review passes 14
+exact-source methods, two separate counter-overlay methods and API controls;
+the original ten absence debits are all zero. Root verifies 407 combined members
+and accepts this corrected fixture-only host implementation and its selected
+step/memory bounds. The first portable CI runner is rejected for ambiguous
+compiler identity and unrelated API diagnostic spans. The corrected runner passes
+32 normal/optimized controls and a fresh full Rust 1.99 host closure. Independent
+review passes 346 parser cases per mode, separate blocker refusals and 39 response
+refusals; root accepts the corrected runner and wires the narrow CI step. Delivery
+and actual Rust 1.98.1 CI qualification remain pending. See the
+[bounded acceptance](verification/swift-ordered-retention-analyzer-envelope-root-review/absence-implementation-acceptance.json) and
+[selected numeric contract](verification/swift-ordered-retention-analyzer-envelope-root-review/correction-numeric-contract-selection.json).
+Existing framing behavior, ABI and report remain fixed. Semantic replay, real adapters,
 CLI/custody and target execution remain pending. See
 [the contract review](docs/swift-ordered-retention-analyzer-fsm-contract-review.md),
 [the CI wiring](docs/swift-ordered-retention-analyzer-framing-ci.md) and

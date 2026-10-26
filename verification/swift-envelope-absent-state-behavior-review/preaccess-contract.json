@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "status": "preaccess-frozen-candidate-unread-unselected",
+  "entry_spent": 0,
+  "readability": {
+    "historical_required_extent": 7731056,
+    "absent_lengths": [0, 32, 7731055],
+    "readable_lengths": [7731056],
+    "requires_selected_source_complete_read_check": true
+  },
+  "absent": {
+    "credits": [0, 1, 424, 425, 426],
+    "expected_status": 3,
+    "expected_reason": 15,
+    "expected_debit": 0,
+    "expected_spent": 0,
+    "expected_remaining_delta": 0,
+    "whole_supplied_arena_unchanged": true,
+    "whole_candidate_unchanged": true,
+    "original_lengths": [0, 32],
+    "original_expected_debits": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "original_observed_debits": [0, 0, 0, 425, 425, 0, 0, 0, 425, 425]
+  },
+  "readable_underfunding": {
+    "credits_inclusive": [0, 424],
+    "prior_states": ["initialized-valid-first", "initialized-valid-later"],
+    "record_shapes": ["valid-next", "malformed-next"],
+    "expected": "Refused/Steps with actual prior state, debit0, spent0; budget, complete arena and candidate unchanged"
+  },
+  "normal_funding": {
+    "credits": [425, 426],
+    "paths": ["ordinary-observed", "ordinary-refused"],
+    "expected_debit": 425,
+    "ordinary_refusal_atomic": true
+  },
+  "caller_debit_truth_table": [
+    {"id": "zero-poison-underfunded", "before": 424, "after": 424, "debit": 0, "spent": 0, "shape": "coherent-status3-reason15", "expected_debit_valid": true},
+    {"id": "zero-poison-exact-funded", "before": 425, "after": 425, "debit": 0, "spent": 0, "shape": "coherent-status3-reason15", "expected_debit_valid": true},
+    {"id": "zero-poison-above-funded", "before": 426, "after": 426, "debit": 0, "spent": 0, "shape": "coherent-status3-reason15", "expected_debit_valid": true},
+    {"id": "zero-steps-underfunded", "before": 424, "after": 424, "debit": 0, "spent": 0, "shape": "coherent-Refused-Steps-prior", "expected_debit_valid": true},
+    {"id": "normal-exact", "before": 425, "after": 0, "debit": 425, "spent": 425, "shape": "coherent-ordinary", "expected_debit_valid": true},
+    {"id": "normal-one-above", "before": 426, "after": 1, "debit": 425, "spent": 425, "shape": "coherent-ordinary", "expected_debit_valid": true},
+    {"id": "normal-paid-malformed-shape", "before": 425, "after": 0, "debit": 425, "spent": 425, "shape": "unsupported-status-reason-state-phase-or-mask", "expected_debit_valid": true, "requires_separate_latch_finalizer_assertion": true},
+    {"id": "bad-debit-one", "before": 425, "after": 424, "debit": 1, "spent": 1, "expected_debit_valid": false},
+    {"id": "bad-debit-below", "before": 425, "after": 1, "debit": 424, "spent": 424, "expected_debit_valid": false},
+    {"id": "bad-debit-above", "before": 426, "after": 0, "debit": 426, "spent": 426, "expected_debit_valid": false},
+    {"id": "bad-debit-maximum", "before": 426, "after": 426, "debit": "u64::MAX", "spent": "u64::MAX", "expected_debit_valid": false},
+    {"id": "zero-spent-disagrees", "before": 425, "after": 425, "debit": 0, "spent": 425, "shape": "status3-reason15", "expected_debit_valid": false},
+    {"id": "paid-spent-disagrees", "before": 425, "after": 0, "debit": 425, "spent": 0, "expected_debit_valid": false},
+    {"id": "zero-budget-moved", "before": 425, "after": 0, "debit": 0, "spent": 0, "shape": "status3-reason15", "expected_debit_valid": false},
+    {"id": "paid-budget-unmoved", "before": 425, "after": 425, "debit": 425, "spent": 425, "expected_debit_valid": false},
+    {"id": "paid-impossible-subtraction", "before": 424, "after": 0, "debit": 425, "spent": 425, "expected_debit_valid": false}
+  ],
+  "guard": {
+    "G": 112,
+    "boundary_credits": [111, 112, 113],
+    "requires_independent_accounting_then_root_selection": true,
+    "prepaid_before_candidate_mutation": true,
+    "maximum_terminal_guard_uses": 1,
+    "terminal_latch_prevents_later_actual_dispatch": true,
+    "no_fabricated_fault_hook": true
+  },
+  "selected_constants": {"leaf": 425, "W": 24, "B": 471, "G": 112, "T": 42, "finish": 47, "F": 42, "setup": 534},
+  "public": {
+    "formula": "534*S_paid + 47*F_paid + 425*N_B",
+    "paid_counter_vectors": [
+      {"S": 0, "F": 0, "N": 0, "debit": 0},
+      {"S": 1, "F": 0, "N": 0, "debit": 534},
+      {"S": 1, "F": 1, "N": 0, "debit": 581},
+      {"S": 1, "F": 1, "N": 1, "debit": 1006},
+      {"S": 1, "F": 1, "N": 2, "debit": 1431}
+    ],
+    "paid_B_retains_leaf_debit_for": ["private-zero", "latched-skip-no-invocation", "decode-failure", "framing-failure"],
+    "zero_actual_calls": "Unavailable/EnvelopeUnavailable, all extent fields0",
+    "R1": "status1/reason15/stale-state999 -> no later leaf dispatch; poison zero extent",
+    "input_Err": "state suppression with paid debit preserved",
+    "outer_output_allocation_report_Err": "no aggregate",
+    "report_bytes": 49152,
+    "paired_report_excluded_word": 9,
+    "report_version": 1,
+    "flags_false": ["fullReplayAccepted", "storedPrefixValidated", "semanticMetricsValid"]
+  },
+  "actual_safe_File_paths": ["completion", "CAP", "zero-actual-leaf-call", "late-footer-error", "framing-rejection"],
+  "API": {
+    "positive": 1,
+    "expected_negative": ["private-record", "private-leaf", "private-field", "no-Copy", "no-Clone", "no-word-trust-constructor", "no-serializer", "no-descriptor-authority-entry"],
+    "require_intended_compiler_reason": true
+  },
+  "ownership": {
+    "candidate_bytes": 2048,
+    "single_owner_no_embed_move_per_record_rezero": true,
+    "setup_refusal_assertion": "selected cells and reply absence; not full arena because Reader buffer may change"
+  },
+  "execution_state": {
+    "candidate_source_accessed": false,
+    "candidate_tests_models_proposals_accessed": false,
+    "candidate_compiled": false,
+    "candidate_runtime_methods_executed": 0,
+    "API_controls_executed": 0,
+    "actual_File_controls_executed": 0,
+    "native_or_capture_started": false,
+    "process_discovery_run": false,
+    "product_accepted": false,
+    "GA_gates_promoted": 0
+  },
+  "requires_fresh_selected_source_execution": ["absence", "readability", "underfunding", "funding", "caller-truth-table", "paid-malformed-shape", "G-boundary", "single-terminal-latch", "public-counter", "R1", "error-report-suppression", "actual-safe-File", "API", "no-mutation"],
+  "reused_as_contract_only": ["selected-constants-and-global-caps", "public-formula", "prior-R1-R2-history", "prior-packet-identities"],
+  "not_qualified": ["full-finite-model", "old44", "producer70", "old-unqualified64", "arbitrary-partial-memory-failure", "compiler-target", "native", "physical-device", "CLI-engine", "full-target", "OTA", "signing-store", "customer", "published-FieldLog", "operations", "GA"]
+}

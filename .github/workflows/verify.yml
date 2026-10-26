@@ -47,6 +47,20 @@ jobs:
             ${{ runner.temp }}/analyzer-framing/source/collector.py
             ${{ runner.temp }}/analyzer-framing/inputs/historical/*
             ${{ runner.temp }}/analyzer-framing/retained/**/*
+      - name: Accepted standalone analyzer fixture envelope
+        timeout-minutes: 10
+        run: |
+          python3 -B scripts/ci/check-analyzer-envelope.py \
+            --out "$RUNNER_TEMP/analyzer-envelope"
+      - name: Preserve standalone analyzer envelope receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: analyzer-envelope-host-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: ignore
+          include-hidden-files: true
+          path: ${{ runner.temp }}/analyzer-envelope/
       - name: Generated capability schema and host lifecycle
         run: |
           python3 capabilities/tools/generate.py --check

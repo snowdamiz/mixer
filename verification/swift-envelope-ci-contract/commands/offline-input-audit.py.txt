@@ -1,0 +1,278 @@
+"""Prepare documentation manifests only. No subprocess, imports of selected code,
+compiler, collector, model evaluation, runtime test, or process discovery.
+This text is not the proposed CI runner or source-pack implementation.
+"""
+from datetime import datetime, timezone
+import hashlib
+import json
+from pathlib import Path, PurePosixPath
+import platform
+import stat
+import sys
+
+ROOT = Path.cwd()
+OUT = ROOT / 'verification/swift-envelope-ci-contract'
+IMPL = 'verification/swift-envelope-absent-state-correction/implementation'
+PROPOSAL = 'verification/swift-envelope-absent-state-correction/proposal-1'
+CORRECTION = 'verification/swift-ordered-retention-analyzer-envelope-correction'
+INDEPENDENT = 'verification/swift-envelope-absent-state-behavior-review/final-review'
+ROOT_REVIEW = 'verification/swift-ordered-retention-analyzer-envelope-root-review'
+
+def require(value, message):
+    if not value:
+        raise RuntimeError(message)
+
+def canonical(value):
+    p = PurePosixPath(value)
+    require(str(p) == value and not p.is_absolute() and '..' not in p.parts
+            and '.git' not in p.parts, 'Unsafe path: ' + value)
+    return p
+
+def read(value):
+    canonical(value)
+    p = ROOT / value
+    for ancestor in [*reversed(p.parents), p]:
+        require(not ancestor.is_symlink(), 'Symlink: ' + str(ancestor))
+    require(stat.S_ISREG(p.stat().st_mode), 'Nonregular input: ' + value)
+    return p.read_bytes()
+
+def digest(data):
+    return hashlib.sha256(data).hexdigest()
+
+def info(value, expected=None):
+    data = read(value)
+    row = {'path': value, 'bytes': len(data), 'sha256': digest(data)}
+    if expected is not None:
+        require(row['sha256'] == expected['sha256'], 'SHA differs: ' + value)
+        require('bytes' not in expected or row['bytes'] == expected['bytes'],
+                'Length differs: ' + value)
+    return row
+
+def load(value):
+    return json.loads(read(value))
+
+def write(name, value):
+    p = OUT / name
+    require(not p.exists(), 'Refuse overwriting proposal artifact: ' + name)
+    p.write_text(json.dumps(value, sort_keys=True, indent=2) + '\n')
+
+def tree(rows):
+    return digest(json.dumps(rows, sort_keys=True, separators=(',', ':')).encode())
+
+selection_path = ROOT_REVIEW + '/absence-correction-selection.json'
+acceptance_path = ROOT_REVIEW + '/absence-implementation-acceptance.json'
+pinned = {
+    selection_path: 'ae90b289519d0588a27cae4db0a7ce4a74ce3016c9c2f790fd962775ec4fd2e0',
+    acceptance_path: '38918f5916cd976965cd93c233606687bc78918c105aa9bcc91c02c2acda4ebf',
+    IMPL + '/seal.json': '1e45ae55b5a159fd2c384bfdbbc520467e467b391af9f6a1d655e8ab67f0012a',
+    IMPL + '/final-receipt.json': '6f6b1c607237aaaf5a0df3ed880165752af7f221180de6ef176e8608833f7f79',
+    IMPL + '/source-test-model-binding.json': 'f9c14bd9a218ad85f2b5be850d8a306872938038b9162f354d6ffb941d7dc362',
+    INDEPENDENT + '/seal.json': '84f93960a58b6f5fe04a3e1a95211e6c1e5b2bc38c58752e6703f83b3184d2f8',
+    INDEPENDENT + '/final-receipt.json': 'bfb4c74f32aa846925d317175a11992716b16743ec02e54c1b63f05c55ac4d59',
+    INDEPENDENT + '/coverage.json': 'dafb967ebf14d55c3ace1f5d7fe9a2ab68967bac016d8557248ec5ec7f3fcf5e',
+}
+references = [info(path, {'sha256': expected}) for path, expected in sorted(pinned.items())]
+binding = load(IMPL + '/source-test-model-binding.json')
+producer_receipt = load(IMPL + '/final-receipt.json')
+acceptance = load(acceptance_path)
+review_seal = load(INDEPENDENT + '/seal.json')
+producer_seal = load(IMPL + '/seal.json')
+coverage = load(INDEPENDENT + '/coverage.json')
+compiled = load(IMPL + '/run-2/compiled-input-manifest.json')
+producer_members = {row['path']: row for row in producer_seal['members']}
+review_members = {row['path']: row for row in review_seal['members']}
+require(acceptance['implementation_accepted'] is True, 'Root host acceptance absent')
+require(producer_seal['member_count'] == 120 and producer_seal['total_bytes'] == 8532453,
+        'Producer seal metadata differs')
+require(review_seal['member_count'] == 220 and review_seal['total_bytes'] == 1331015,
+        'Independent seal metadata differs')
+require(all(acceptance[k] is False for k in
+            ['fullReplayAccepted', 'storedPrefixValidated', 'semanticMetricsValid', 'GA_qualified']),
+        'Acceptance authority changed')
+
+inputs = []
+def add(path, expected, role, destinations, executed):
+    row = info(path, expected)
+    for name in destinations:
+        canonical(name)
+    row.update(role=role, packed_destinations=destinations, execution=executed)
+    inputs.append(row)
+
+parent_sha = '1ef11e06678642231f783fea0e5fe376e8b1912730a6fb696a653ab04cb2043b'
+envelope_sha = '2cd286a387ce336a18ea2872974e371ca4e772e2fd801f2186a3f62ce639bfef'
+add(PROPOSAL + '/src/analyzer.rs', {'sha256': parent_sha, 'bytes': 33759},
+    'selected-product-source', ['source/library/analyzer.rs',
+    'source/independent/source/analyzer.rs'], 'compile unchanged library and independent tests')
+add(PROPOSAL + '/src/envelope.rs', {'sha256': envelope_sha, 'bytes': 24805},
+    'selected-product-source', ['source/library/envelope.rs',
+    'source/producer/inputs/envelope.rs', 'source/independent/source/envelope.rs'],
+    'compile unchanged in every selected source pair')
+test_destinations = {
+    'fixture_tests.rs': 'source/producer/tests/fixture_tests.rs',
+    'independent_tests.rs': 'source/producer/independent_tests.rs',
+    'private_io_tests.rs': 'source/producer/private_io_tests.rs',
+    'envelope_tests.rs': 'source/original/envelope_tests.rs',
+    'correction_tests.rs': 'source/producer/tests/correction_tests.rs',
+    'selected_tests.rs': 'source/producer/tests/selected_tests.rs',
+}
+for row in binding['original_test_sources_directly_referenced']:
+    add(row['path'], row, 'unchanged-producer-review-test',
+        [test_destinations[Path(row['path']).name]], 'compile selected test body; envelope body copied as exact derived prefix')
+focused = binding['new_test_after']
+add(focused['path'], focused, 'corrected-focused-eight-test',
+    ['source/producer/focused_controls.rs'], 'compile eight focused methods')
+for row in binding['unchanged_model_oracle_inputs_directly_referenced']:
+    name = Path(row['path']).name
+    if name.endswith('.py'):
+        destination, role, execution = 'provenance/' + name, 'model-provenance', 'hash only; never import or evaluate'
+    elif name.endswith('.json'):
+        destination, role, execution = 'inputs/' + name, 'oracle-provenance', 'hash and validate metadata; no model evaluation'
+    else:
+        destination, role, execution = 'source/producer/inputs/' + name, 'immutable-oracle-bytes', 'compile include_bytes; fresh candidate comparisons to reused expected bytes'
+    add(row['path'], row, role, [destination], execution)
+historical = [row for row in compiled['members'] if row['path'].startswith(CORRECTION + '/inputs/historical/')]
+require(len(historical) == 34, 'Historical pair inventory differs')
+for row in historical:
+    add(row['path'], row, 'captured-historical-fixture',
+        ['inputs/historical/' + Path(row['path']).name], 'read fixed fixture/sidecar; never historical collector execution')
+api = producer_receipt['API']['controls']
+for row in api:
+    source = row['source']
+    add(source['path'], source, 'external-negative-api-probe',
+        ['api/' + Path(source['path']).name], 'expected compile refusal ' + row['expected_error'])
+positive_path = IMPL + '/run-2/api/positive.rs'
+add(positive_path, producer_members[positive_path], 'external-positive-api-probe',
+    ['api/positive.rs'], 'compile against freshly compiled unchanged library')
+for name in ['envelope_tests.rs', 'caller_cases.rs', 'fixture_tests.rs', 'correction_tests.rs']:
+    path = INDEPENDENT + '/tests/' + name
+    add(path, review_members[path], 'independent-exact-source-test',
+        ['source/independent/tests/' + name], 'compile independent 14; deliberate empty modules contain no producer controls')
+inputs.sort(key=lambda row: row['path'])
+require(len(inputs) == 60 and len({row['path'] for row in inputs}) == 60,
+        'Selected original inventory differs')
+destinations = [name for row in inputs for name in row['packed_destinations']]
+require(len(destinations) == len(set(destinations)), 'Duplicate packed destination')
+
+layout = []
+for target, original, appendix in [
+    ('source/producer/inputs/framing.rs', PROPOSAL + '/src/analyzer.rs',
+     '\ninclude!("../private_io_tests.rs");\n'),
+    ('source/producer/tests/envelope_tests.rs', CORRECTION + '/tests/envelope_tests.rs',
+     '\n#[path = "../focused_controls.rs"]\nmod absence_controls;\n'),
+]:
+    original_row = next(row for row in inputs if row['path'] == original)
+    derived = read(original) + appendix.encode()
+    layout.append({'packed_path': target, 'construction': 'exact original bytes followed by exact UTF-8 appendix',
+                   'original': {k:original_row[k] for k in ['path', 'bytes', 'sha256']},
+                   'appendix_utf8': appendix, 'bytes': len(derived), 'sha256': digest(derived),
+                   'scope': 'new proposed test-only augmentation, not yet compiled or qualified'})
+require(not set(destinations).intersection(row['packed_path'] for row in layout),
+        'Derived path collides with original')
+
+listing_path = IMPL + '/run-1/commands/list-tests.stdout'
+references.append(info(listing_path, producer_members[listing_path]))
+producer_methods = [line[:-6] for line in read(listing_path).decode().splitlines() if line.endswith(': test')]
+require(len(producer_methods) == len(set(producer_methods)) == 78, 'Producer methods differ')
+independent_methods = ['fixture_envelope::tests::' + row['method'] for row in coverage['exact_source_methods']]
+require(len(independent_methods) == len(set(independent_methods)) == 14,
+        'Independent exact-source method inventory differs')
+layout_path = IMPL + '/run-1/actual-complete-layouts.json'
+references.append(info(layout_path, producer_members[layout_path]))
+host_layouts = load(layout_path)['layouts']
+require(len(host_layouts) == len({row['type'] for row in host_layouts}) == 32,
+        'Host layout inventory differs')
+for path in [IMPL + '/failure-analysis-run-1.json', IMPL + '/run-2/compiled-input-manifest.json']:
+    references.append(info(path, producer_members[path]))
+for path in [INDEPENDENT + '/instrumentation-binding.json', INDEPENDENT + '/api-results.json']:
+    references.append(info(path, review_members[path]))
+for path in ['AGENTS.md', 'mixer-product-plan.md', 'PLAN.md',
+             'scripts/ci/check-analyzer-framing.py', '.github/workflows/verify.yml',
+             'docs/swift-ordered-retention-analyzer-framing-ci.md']:
+    references.append(info(path))
+
+manifest = {
+    'schema': 1, 'status': 'source-contract-only; executable pack and CI runner not implemented or qualified',
+    'original_count': len(inputs), 'original_bytes': sum(row['bytes'] for row in inputs),
+    'original_tree_sha256': tree(inputs), 'tree_hash_encoding': 'SHA256 of UTF-8 JSON inputs list, sort_keys=true, separators=comma/colon',
+    'inputs': inputs, 'selected_pair': {'analyzer.rs': parent_sha, 'envelope.rs': envelope_sha},
+    'provenance_references': sorted(references, key=lambda row: row['path']),
+    'historical_member_verification_this_audit': 'selected original inputs and named small provenance records only; no whole historical packet verification',
+    'historical_remote_availability': 'not asserted; references to local seals do not deliver their members',
+    'root_acceptance': 'isolated fixture host implementation accepted; portable pack/runner/CI selection pending',
+    'model_imported_or_evaluated': False, 'fresh_candidate_execution': False,
+    'storedPrefixValidated': False, 'fullReplayAccepted': False, 'semanticMetricsValid': False,
+    'GA_qualified': False,
+}
+write('selected-input-manifest.json', manifest)
+write('proposed-layout.json', {
+    'schema': 1, 'status': 'proposed only; no files materialized or compiler executed',
+    'original_destinations': {row['path']: row['packed_destinations'] for row in inputs},
+    'derived_test_only_files': layout,
+    'future_pack_requirements': ['include every selected original byte and derived file',
+      'pin a complete packed file manifest and tree hash in the future runner',
+      'keep exact library and independent source pair distinct from test-only augmentation',
+      'qualify relative module/include layout and exact inventories before CI selection'],
+    'excluded': ['historical absolute-path wrappers', 'all historical collectors/runners',
+      'independent instrumented envelope and counter methods', 'unrelated historical archives',
+      'compiler products', 'Cargo or engine/CLI/target integration'],
+})
+write('expected-methods.json', {
+    'schema': 1, 'scope': 'future exact listing/execution inventories, not a new execution result',
+    'producer': {'count': 78, 'names': sorted(producer_methods), 'provenance': listing_path},
+    'independent_exact_source': {'count': 14, 'names': sorted(independent_methods),
+      'provenance': INDEPENDENT + '/coverage.json', 'future_binary': 'unchanged analyzer.rs --test with all final independent test bodies'},
+    'independent_interposition_overlay': {'count': 2, 'selected_for_initial_ci': False,
+      'provenance': INDEPENDENT + '/instrumentation-binding.json'},
+    'fresh_execution_in_this_proposal': False,
+})
+write('expected-host-layouts.json', {
+    'schema': 1, 'scope': 'historical accepted host expectations, require fresh observations in future CI',
+    'rust': '1.99.0', 'host': 'aarch64-apple-darwin', 'count': 32, 'layouts': host_layouts,
+    'provenance': layout_path, 'other_hosts_or_compilers_qualified': False,
+    'physical_stack_RSS_CPU_or_platform_qualification': False,
+})
+write('expected-api.json', {
+    'schema': 1, 'positive': {'path': 'api/positive.rs', 'expect_exit': 0, 'warnings_denied': True},
+    'negative': [{'path': 'api/' + Path(row['source']['path']).name,
+      'required_code': row['expected_error'], 'expect_normal_compile_refusal': True,
+      'source': row['source']} for row in api],
+    'required': ['positive probe and exact unchanged library artifact first',
+      'primary JSON diagnostic code and intended target at selected probe span',
+      'no executable produced for negative probe',
+      'missing source/dependency, incompatible library, crash, signal or timeout never counts as expected rejection'],
+    'other_independent_api_set': 'different probes/diagnostics retained as provenance; not selected in this first CI contract',
+    'execution_in_this_proposal': False,
+})
+
+require(all(info(row['path']) == {k:row[k] for k in ['path', 'bytes', 'sha256']}
+            for row in inputs), 'Selected original changed during audit')
+require(all(info(row['path']) == row for row in references), 'Named reference changed during audit')
+tool_path = Path(sys.executable).resolve()
+command = ['python3', '-B', '-']
+audit_text = OUT / 'commands/offline-input-audit.py.txt'
+write('offline-audit-receipt.json', {
+    'schema': 1, 'at': datetime.now(timezone.utc).isoformat(),
+    'command': command, 'stdin': str(audit_text.relative_to(ROOT)),
+    'shell_command': 'python3 -B - < verification/swift-envelope-ci-contract/commands/offline-input-audit.py.txt',
+    'audit_text_sha256': digest(audit_text.read_bytes()),
+    'python': sys.version, 'python_executable': str(tool_path),
+    'python_executable_sha256': digest(tool_path.read_bytes()),
+    'platform': platform.platform(), 'machine': platform.machine(),
+    'context_revision': '1f114d8f235e8042c275a2549fef7d4994272360',
+    'context_revision_scope': 'separately observed git rev-parse HEAD; selected file hashes bind this proposal',
+    'selected_originals_verified_before_and_after': 60,
+    'selected_original_bytes': manifest['original_bytes'],
+    'selected_original_tree_sha256': manifest['original_tree_sha256'],
+    'named_provenance_records_verified_before_and_after': len(references),
+    'derived_test_only_hashes_computed_without_materialization': len(layout),
+    'collector_or_compiler_or_model_or_candidate_executed': False,
+    'process_discovery_native_UI_capture_or_device_tools_used': False,
+    'result': 'passed-offline-source-contract-audit',
+    'limitations': ['no executable pack materialized', 'no compilation or runtime tests',
+      'no whole historical seal member audit', 'no remote publication/CI verification',
+      'CI runner and relative test augmentation qualification pending root selection'],
+})
+print(json.dumps({'result': 'passed-offline-source-contract-audit',
+                  'originals': len(inputs), 'bytes': manifest['original_bytes'],
+                  'original_tree_sha256': manifest['original_tree_sha256'],
+                  'derived_test_only_files': len(layout), 'named_provenance_records': len(references)}))

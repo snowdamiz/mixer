@@ -1,0 +1,1 @@
+use independent_selected::*;use std::fs::File; fn main(){let _:fn(&mut File,&mut File,&mut File,&mut File)->Result<FixtureEnvelopeOutcomeV1,AnalyzerError>=analyze_fixture_envelope_v1;let _=FixtureEnvelopeObservationV1::envelope_debit;let _=FixtureEnvelopeObservationV1::full_replay_accepted;let _=FixtureEnvelopeOutcomeV1::framing;}

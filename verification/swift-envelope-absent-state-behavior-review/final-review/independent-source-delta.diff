@@ -1,0 +1,41 @@
+--- old-7b8237
++++ selected-2cd286
+@@ -125,16 +125,15 @@
+ }
+ 
+ fn observe_fixture_envelope_v1(arena: &mut [u8], candidate: &mut Candidate2048, record: &FixtureDecodedRecordV1<'_>, steps: &mut StepBudget) -> FixtureEnvelopeReplyV1 {
+-    // Selected orchestration prepays425. Its separate fixed112-credit guard,
+-    // reserved before candidate mutation, pays these reads and the complete
+-    // Steps reply if a private caller supplies fewer credits. It can run only
+-    // once through the orchestrator: its Refused reply latches.
++    // The separately prepaid112 guard owns terminal absent-state/invalid-budget
++    // poison0 and present-state Steps0. Main B471/public425 remains paid.
++    // Its complete terminal reply latches before any later orchestrated leaf.
++    // Check readability before any private budget access, prior read or mutation.
++    // This same exclusive slice and length survive through every commit write.
++    if arena.len() < 7_731_056 { return poisoned(0); }
++    if steps.spent != 0 { return poisoned(0); }
+     let underfunded = steps.remaining < RECORD_ENVELOPE;
+-    if steps.spent != 0 { return poisoned(0); }
+     if !underfunded { steps.remaining -= RECORD_ENVELOPE; steps.spent = RECORD_ENVELOPE; }
+-    // One length preflight proves all twelve fixed8-byte source/destination ranges.
+-    // The same exclusive slice and its length survive through commit.
+-    if arena.len() < 7_731_056 { return poisoned(if underfunded { 0 } else { RECORD_ENVELOPE }); }
+     let mut prior = [0u64; 12];
+     let mut word = [0u8; 8];
+     word.copy_from_slice(&arena[7_729_816..7_729_824]); prior[0] = u64::from_le_bytes(word);
+@@ -288,8 +287,12 @@
+     p.reply.words[0] == 1
+ }
+ fn reply_debit_valid(reply: &FixtureEnvelopeReplyV1, steps: &StepBudget) -> bool {
+-    (steps.remaining == 0 && steps.spent == RECORD_ENVELOPE && reply.words[13] == RECORD_ENVELOPE)
+-        || (steps.remaining < RECORD_ENVELOPE && steps.spent == 0 && reply.words[0] == 2 && reply.words[1] == 1 && reply.words[13] == 0)
++    if steps.spent == RECORD_ENVELOPE {
++        return steps.remaining == 0 && reply.words[13] == RECORD_ENVELOPE;
++    }
++    if steps.spent != 0 || reply.words[13] != 0 { return false; }
++    if reply.words[1] == 15 { return reply.words[0] == 3; }
++    reply.words[1] == 1 && reply.words[0] == 2 && steps.remaining < RECORD_ENVELOPE
+ }
+ 
+ fn walk_fixture_envelope_v1<T: InputFile>(input: &mut T, arena: &mut Arena, budget: &mut Budget, f: Fixture, length: u64, s: &mut Framing, p: &mut FixtureEnvelopeProgressV1) -> Result<(), AnalyzerError> {
