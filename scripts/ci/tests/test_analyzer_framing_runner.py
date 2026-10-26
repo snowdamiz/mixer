@@ -24,9 +24,27 @@ class FramingRunnerTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
 
-    def cli(self, *args, optimized=False):
+    def cli(self, *args, optimized=False, env=None):
         return subprocess.run([sys.executable, *(['-O'] if optimized else []), '-B', str(RUNNER),
-                               *map(str, args)], capture_output=True, text=True, timeout=30)
+                               *map(str, args)], capture_output=True, text=True, timeout=30, env=env)
+
+    def compiler(self, name, exit_code, version=None):
+        toolchain = self.root / name
+        (toolchain / 'bin').mkdir(parents=True)
+        compiler = toolchain / 'bin/rustc'
+        version = version or 'rustc 1.99.0 (synthetic test fixture)\nbinary: rustc\nhost: synthetic-test-host\nrelease: 1.99.0'
+        compiler.write_text('#!' + sys.executable + '\n'
+                            'import sys\n'
+                            'if sys.argv[1:] == ["--print", "sysroot"]:\n'
+                            ' print(' + repr(str(toolchain)) + ')\n'
+                            ' sys.exit(0)\n'
+                            'if "--version" in sys.argv:\n'
+                            ' print(' + repr(version) + ')\n'
+                            ' sys.exit(0)\n'
+                            'print("deliberate compiler failure", file=sys.stderr)\n'
+                            'sys.exit(' + repr(exit_code) + ')\n')
+        compiler.chmod(0o755)
+        return compiler
 
     def test_existing_output_is_not_overwritten(self):
         output = self.root / 'already-owned'
@@ -88,15 +106,7 @@ class FramingRunnerTests(unittest.TestCase):
                     MODULE.verify_methods('\n'.join(name + ': test' for name in names))
 
     def test_compiler_failure_retains_exact_selected_closure_and_receipt_then_cleans(self):
-        compiler = self.root / 'failing-rustc'
-        compiler.write_text('#!' + sys.executable + '\n'
-                            'import sys\n'
-                            'if "--version" in sys.argv:\n'
-                            ' print("test compiler identity; no Rust compilation")\n'
-                            ' sys.exit(0)\n'
-                            'print("deliberate compiler failure", file=sys.stderr)\n'
-                            'sys.exit(23)\n')
-        compiler.chmod(0o755)
+        compiler = self.compiler('failing-toolchain', 23)
         sentinel = self.root / 'unrelated-owned-file'
         sentinel.write_text('preserve')
         output = self.root / 'failed-run'
@@ -149,17 +159,14 @@ class FramingRunnerTests(unittest.TestCase):
         self.assertFalse(marker.exists())
 
     def test_rustup_shim_resolves_actual_compiler_and_records_both_identities(self):
-        compiler = self.root / 'actual-rustc'
-        compiler.write_text('#!' + sys.executable + '\n'
-                            'import sys\n'
-                            'print("selected compiler")\n'
-                            'sys.exit(0 if "--version" in sys.argv else 29)\n')
-        compiler.chmod(0o755)
+        compiler = self.compiler('selected-toolchain', 29)
         rustup = self.root / 'rustup'
         rustup.write_text('#!' + sys.executable + '\n'
-                          'import sys\n'
-                          'if sys.argv[1:] != ["which", "rustc"]: sys.exit(31)\n'
-                          'print(' + repr(str(compiler)) + ')\n')
+                          'import os,sys\n'
+                          'if os.path.basename(sys.argv[0]) != "rustc": sys.exit(31)\n'
+                          'if sys.argv[1:] != ["--print", "sysroot"]: sys.exit(32)\n'
+                          'if os.environ.get("RUSTUP_AUTO_INSTALL") != "0": sys.exit(33)\n'
+                          'print(' + repr(str(compiler.parent.parent)) + ')\n')
         rustup.chmod(0o755)
         shim = self.root / 'rustc'
         shim.symlink_to(rustup)
@@ -174,6 +181,67 @@ class FramingRunnerTests(unittest.TestCase):
         self.assertEqual(next(row['exit'] for row in receipt['commands']
                               if row['name'] == 'library-compile'), 29)
         self.assertTrue(receipt['cleanup']['removed'])
+
+    def test_homebrew_rustup_init_chain_preserves_default_path_dispatch(self):
+        compiler = self.compiler('homebrew-selected-toolchain', 37)
+        cellar = self.root / 'opt/homebrew/Cellar/rustup/1.29.0/bin'
+        cellar.mkdir(parents=True)
+        installer = cellar / 'rustup-init'
+        installer.write_text('#!' + sys.executable + '\n'
+                             'import os,sys\n'
+                             'if os.path.basename(sys.argv[0]) == "rustup-init":\n'
+                             ' print("rustup-init 1.29.0 (synthetic test fixture)")\n'
+                             ' sys.exit(0)\n'
+                             'if os.path.basename(sys.argv[0]) != "rustc": sys.exit(41)\n'
+                             'if sys.argv[1:] != ["--print", "sysroot"]: sys.exit(42)\n'
+                             'if os.environ.get("RUSTUP_AUTO_INSTALL") != "0": sys.exit(43)\n'
+                             'print(' + repr(str(compiler.parent.parent)) + ')\n')
+        installer.chmod(0o755)
+        brew_bin = self.root / 'opt/homebrew/bin'
+        brew_bin.mkdir()
+        (brew_bin / 'rustc').symlink_to(installer)
+        cargo_bin = self.root / 'cargo/bin'
+        cargo_bin.mkdir(parents=True)
+        shim = cargo_bin / 'rustc'
+        shim.symlink_to(brew_bin / 'rustc')
+        output = self.root / 'homebrew-default-run'
+        result = self.cli('--output', output, optimized=True,
+                          env=dict(os.environ, PATH=str(cargo_bin) + os.pathsep + os.environ.get('PATH', '')))
+        self.assertEqual(result.returncode, 1, result.stderr)
+        receipt = json.loads((output / 'receipt.json').read_text())
+        self.assertEqual(receipt['rustc_launcher']['path'], str(shim))
+        self.assertEqual(receipt['rustc_launcher']['resolved_path'], str(installer))
+        query = next(row for row in receipt['commands'] if row['name'] == 'rustc-sysroot')
+        self.assertEqual(query['argv'], [str(shim), '--print', 'sysroot'])
+        self.assertEqual(query['environment_overrides']['RUSTUP_AUTO_INSTALL'], '0')
+        self.assertEqual(receipt['rustc']['path'], str(compiler))
+        self.assertEqual(receipt['rustc']['identity']['host'], 'synthetic-test-host')
+        compile_row = next(row for row in receipt['commands'] if row['name'] == 'library-compile')
+        self.assertEqual(compile_row['argv'][0], str(compiler))
+        self.assertEqual(compile_row['exit'], 37)
+        self.assertTrue(receipt['cleanup']['removed'])
+
+    def test_successful_non_rustc_version_cannot_reach_compilation(self):
+        compiler = self.compiler('installer-impostor', 0, 'rustup-init 1.29.0 (synthetic fixture)')
+        output = self.root / 'not-rustc'
+        result = self.cli('--rustc', compiler, '--output', output, optimized=True)
+        self.assertEqual(result.returncode, 1, result.stderr)
+        receipt = json.loads((output / 'receipt.json').read_text())
+        self.assertIn('Compiler version is not a rustc identity', receipt['errors'])
+        self.assertNotIn('library-compile', [row['name'] for row in receipt['commands']])
+        self.assertFalse(receipt['cleanup']['created'])
+        self.assertFalse(receipt['storedPrefixValidated'])
+        self.assertFalse(receipt['fullReplayAccepted'])
+
+    def test_verbose_identity_requires_matching_release_binary_and_host(self):
+        valid = 'rustc 1.99.0 (fixture)\nbinary: rustc\nhost: synthetic-test-host\nrelease: 1.99.0'
+        for invalid in [valid.replace('binary: rustc', 'binary: rustup'),
+                        valid.replace('release: 1.99.0', 'release: 1.98.0'),
+                        valid.replace('host: synthetic-test-host', 'host: '),
+                        valid.replace('1.99.0', '1.future.0')]:
+            with self.subTest(invalid=invalid):
+                with self.assertRaisesRegex(RuntimeError, 'identity is incomplete or inconsistent'):
+                    MODULE.rustc_identity(invalid)
 
     def test_cleanup_preserves_failure_inputs_and_removes_only_owned_scratch(self):
         output = self.root / 'retention'

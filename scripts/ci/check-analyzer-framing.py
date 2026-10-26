@@ -277,6 +277,20 @@ def verify_methods(output):
     return sorted(names)
 
 
+def rustc_identity(output):
+    """Reject a successful installer/manager version query before compilation."""
+    lines = output.splitlines()
+    header = lines[0].split() if lines else []
+    require(len(header) >= 2 and header[0] == 'rustc', 'Compiler version is not a rustc identity')
+    fields = dict(line.split(': ', 1) for line in lines[1:] if ': ' in line)
+    release = fields.get('release', '')
+    numbers = release.split('-', 1)[0].split('.')
+    require(len(numbers) == 3 and all(number.isdigit() for number in numbers)
+            and header[1] == release and fields.get('binary') == 'rustc'
+            and bool(fields.get('host')), 'Compiler verbose rustc identity is incomplete or inconsistent')
+    return {'release': release, 'host': fields['host'], 'commit_hash': fields.get('commit-hash')}
+
+
 def preserve_and_cleanup(out, scratch, identity, marker):
     """Retain test-created files, then remove only this exact owned scratch inode."""
     no_symlinks(scratch)
@@ -347,16 +361,23 @@ def execute(out, rustc, root=ROOT):
         resolved = shutil.which(str(rustc))
         require(resolved is not None, 'rustc executable was not found: ' + str(rustc))
         launcher = Path(resolved).absolute()
-        compiler = launcher.resolve(strict=True)
-        receipt['rustc_launcher'] = {'path': str(launcher), 'resolved_path': str(compiler),
-                                     'sha256': sha(compiler)}
-        if compiler.name == 'rustup':
-            selected = commands.run('rustc-resolve', [compiler, 'which', 'rustc'], cwd=root).strip()
-            require('\n' not in selected and Path(selected).is_absolute(), 'Invalid rustup compiler selection')
-            compiler = Path(selected).resolve(strict=True)
+        resolved_launcher = launcher.resolve(strict=True)
+        receipt['rustc_launcher'] = {'path': str(launcher), 'resolved_path': str(resolved_launcher),
+                                     'sha256': sha(resolved_launcher),
+                                     'original_invocation_path_preserved': True}
+        # rustup dispatches by argv[0]. Homebrew's rustc symlink can ultimately
+        # resolve to rustup-init; invoking that canonical path changes semantics.
+        # Query through the original rustc launcher, then bypass all shims for
+        # compilation. Missing toolchains must fail without automatic install.
+        sysroot = commands.run('rustc-sysroot', [launcher, '--print', 'sysroot'], cwd=root,
+                               env={'RUSTUP_AUTO_INSTALL': '0'}).strip()
+        require('\n' not in sysroot and Path(sysroot).is_absolute(), 'Invalid rustc sysroot selection')
+        compiler = (Path(sysroot) / 'bin/rustc').resolve(strict=True)
         require(compiler.is_file(), 'rustc is not a file')
-        receipt['rustc'] = {'requested': str(rustc), 'path': str(compiler), 'sha256': sha(compiler)}
+        receipt['rustc'] = {'requested': str(rustc), 'path': str(compiler), 'sha256': sha(compiler),
+                            'sysroot': sysroot}
         receipt['rustc']['version_verbose'] = commands.run('rust-version', [compiler, '--version', '--verbose'], cwd=out)
+        receipt['rustc']['identity'] = rustc_identity(receipt['rustc']['version_verbose'])
         receipt['python_version_output'] = commands.run('python-version', [sys.executable, '--version'], cwd=out)
         scratch = out / 'scratch'
         scratch.mkdir()

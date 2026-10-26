@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "-c",
+    "from pathlib import Path\nimport ast,hashlib,json,subprocess\nold=Path(\"verification/swift-ordered-retention-analyzer-framing-ci\")\nsha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()\nexpected=\"2175ba4d989c42261ae18352305e267c7dd3d7538fb5c8fdb844ea5a6f484ed6\"\nif sha(old/\"seal.json\")!=expected: raise RuntimeError(\"Old seal changed\")\nrows=json.loads((old/\"seal.json\").read_text())[\"members\"]\nfor row in rows:\n if row[\"path\"].startswith(str(old)+\"/\"):\n  p=Path(row[\"path\"])\n  if p.stat().st_size!=row[\"bytes\"] or sha(p)!=row[\"sha256\"]: raise RuntimeError(\"Old packet changed: \"+str(p))\n else:\n  data=subprocess.check_output([\"git\",\"show\",\"2e4ca9a347f9fe3ff8684b96672723886a7b9fad:\"+row[\"path\"]])\n  if len(data)!=row[\"bytes\"] or hashlib.sha256(data).hexdigest()!=row[\"sha256\"]: raise RuntimeError(\"Old Git source differs\")\ncount=0\nfor name,expected in [(\"swift-ordered-retention-analyzer-library\",\"777e0a1b7a10d483bacb81475ad6c7af9a4d40fff64dd5ff2f3d893e1cd0fe63\"),(\"swift-ordered-retention-analyzer-library-review\",\"a5e21463c820277e1857a7eebcecdc7e45f40857b9c1dd39e8741f9b06a1bd4e\")]:\n seal=Path(\"verification\")/name/\"seal.json\"\n if sha(seal)!=expected: raise RuntimeError(\"Framing seal changed\")\n members=json.loads(seal.read_text())[\"members\"]\n for row in members:\n  p=Path(row[\"path\"])\n  if p.stat().st_size!=row[\"bytes\"] or sha(p)!=row[\"sha256\"]: raise RuntimeError(\"Framing member changed: \"+str(p))\n count+=len(members)\nfor path in [Path(\"scripts/ci/check-analyzer-framing.py\"),Path(\"scripts/ci/tests/test_analyzer_framing_runner.py\"),*Path(\"verification/swift-ordered-retention-analyzer-framing-ci-rustup\").glob(\"*.py\")]:\n ast.parse(path.read_text(),filename=str(path))\nprint(json.dumps({\"original_108_packet_unchanged\":True,\"original_root_rows_bound_to_git\":\"2e4ca9a347f9fe3ff8684b96672723886a7b9fad\",\"original_framing_members_unchanged\":count,\"python_syntax\":\"passed\"}))\n"
+  ],
+  "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+  "started_utc": "2026-10-26T00:02:01.968886+00:00",
+  "timeout_seconds": 45,
+  "environment_overrides": {}
+}

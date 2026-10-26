@@ -51,6 +51,10 @@ now passes all three Engine CI jobs.
 Selected finite Swift completion checkpoint `68468f8f` now passes all three Engine jobs.
 Corrected analyzer design checkpoint `13ce0c2e` passes all three Engine CI jobs.
 Accepted fixture framing checkpoint `4af8b7e1` passes all three Engine CI jobs.
+Fixture contract and framing CI checkpoint `2e4ca9a3` fails its new framing CI step
+before Rust compilation: Homebrew shim resolution selected rustup-init. The
+retained artifact is complete; a narrow dispatch repair is in progress.
+VM and services pass; subsequent Swift checks were skipped.
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
 
@@ -101,8 +105,9 @@ The full plan remains incomplete; no GA gate is promoted.
    and 845 unchanged upstream members, accepting this standalone fixture scope.
    Its reviewed logical inventory is 14,248 bytes within 41,984 reserved bytes;
    all limits remain unchanged. Framing observation grants no semantic prefix
-   validity. A narrow macOS CI runner passes the unchanged 44-method closure
-   and 13 focused runner controls locally; remote CI remains pending delivery.
+   validity. The first macOS CI attempt stops before Rust compilation at
+   rustup shim dispatch. Its narrow repair passes the unchanged 44-method closure
+   and 16 focused controls locally; remote qualification remains pending.
    The corrected acquisition/lifecycle contract now passes 24 producer
    and 38 independent methods, including 5,390 oracle comparisons. Root verifies
    773 sealed members and both preserved archives, accepting this contract only.
