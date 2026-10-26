@@ -1,0 +1,1 @@
+package android; public final class R { private R(){} public static final class attr {private attr(){} public static final int state_enabled=1,state_focused=2,state_pressed=3;} public static final class id {private id(){} public static final int paste=16908322,pasteAsPlainText=16908337;} }

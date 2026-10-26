@@ -1,0 +1,13 @@
+{
+  "closure": "|n| n.checked_add(1)",
+  "end_line": 182,
+  "excerpt": "static NEXT_OWNER: AtomicU64 = AtomicU64::new(1);\n// The same checked increment and orderings are used by the production owner\n// allocator and the isolated test counter. The global counter is never seeded.\nfn allocate_owner(counter: &AtomicU64) -> Result<u64, u64> {\n    counter.try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))\n}\n#[cfg(not(test))]\nfn next_owner() -> Result<u64, u64> {\n    allocate_owner(&NEXT_OWNER)\n}\n#[cfg(test)]\nthread_local! {\n    static TEST_OWNER_ENABLED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };\n    static TEST_OWNER_COUNTER: AtomicU64 = const { AtomicU64::new(1) };\n}\n#[cfg(test)]\nfn next_owner() -> Result<u64, u64> {\n    TEST_OWNER_ENABLED.with(|enabled| {\n        if enabled.get() {\n            TEST_OWNER_COUNTER.with(allocate_owner)\n        } else {\n            allocate_owner(&NEXT_OWNER)\n        }\n    })\n}\n",
+  "excerpt_sha256": "a9996295e13b24e4468e4090ff615714a8db02b901d841f6f1b0654d7f14eb64",
+  "new_arbitrary_callback_seam": false,
+  "original_source_unchanged_except_private_module_append": true,
+  "path": "src/experimental_swift_reactor/cache.rs",
+  "schema": 1,
+  "source_sha256": "ec1ac98ce42db937ead6d658a0486ee89bace11eddd714327a6ecd98764dc0ec",
+  "standard_call": "AtomicU64::try_update",
+  "start_line": 158
+}

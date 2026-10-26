@@ -1,0 +1,101 @@
+{
+  "at": "2026-10-26T19:28:49.954975+00:00",
+  "commands": [
+    {
+      "name": "compile",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/javac",
+        "--release",
+        "17",
+        "-Xlint:all",
+        "-Werror",
+        "-proc:none",
+        "-sourcepath",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-focus-history-independent/actual-review/controls-2/empty-source",
+        "-classpath",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-focus-history-independent/actual-review/frozen/runs/host-1/classes",
+        "-d",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-focus-history-independent/actual-review/controls-2/classes",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-focus-history-independent/actual-review/controls-2/source/AdditionalReplacementControls.java",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-focus-history-independent/actual-review/controls-2/source/DescriptorClosure.java",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-focus-history-independent/actual-review/controls-2/source/FocusHistoryControls.java",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-focus-history-independent/actual-review/controls-2/source/ReplacementReviewControls.java"
+      ],
+      "timeout_seconds": 60,
+      "reaped": true,
+      "exit_code": 0
+    },
+    {
+      "name": "exhaustion",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-ea",
+        "-Xmx256m",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-focus-history-independent/actual-review/controls-2/classes:/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-focus-history-independent/actual-review/frozen/runs/host-1/classes",
+        "dev.mixer.android.FocusHistoryControls",
+        "exhaustion",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-focus-history-independent/actual-review/frozen/descriptor.json"
+      ],
+      "timeout_seconds": 60,
+      "reaped": true,
+      "exit_code": 0
+    },
+    {
+      "name": "post-attach-rollback",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-ea",
+        "-Xmx256m",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-focus-history-independent/actual-review/controls-2/classes:/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-focus-history-independent/actual-review/frozen/runs/host-1/classes",
+        "dev.mixer.android.FocusHistoryControls",
+        "post-attach-rollback",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-focus-history-independent/actual-review/frozen/descriptor.json"
+      ],
+      "timeout_seconds": 60,
+      "reaped": true,
+      "exit_code": 1
+    },
+    {
+      "name": "cross-renderer-end",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-ea",
+        "-Xmx256m",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-focus-history-independent/actual-review/controls-2/classes:/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-focus-history-independent/actual-review/frozen/runs/host-1/classes",
+        "dev.mixer.android.FocusHistoryControls",
+        "cross-renderer-end",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-focus-history-independent/actual-review/frozen/descriptor.json"
+      ],
+      "timeout_seconds": 60,
+      "reaped": true,
+      "exit_code": 1
+    }
+  ],
+  "source": {
+    "ReplacementReviewControls.java": {
+      "bytes": 16571,
+      "sha256": "7955c1607d7ff65e61acf1c4c94cdfa9b21fcdcbe24365e739af6a65b6551d5d"
+    },
+    "DescriptorClosure.java": {
+      "bytes": 6024,
+      "sha256": "091fea19220afcc1d1bdc7a78eb3db7f1b64093e6eaf804709d8e77f2a75179a"
+    },
+    "AdditionalReplacementControls.java": {
+      "bytes": 13170,
+      "sha256": "ecd45812708ee5cf9641c514f89a2eb49a0c52c83effc3ee2cf2e1a1cf191e29"
+    },
+    "FocusHistoryControls.java": {
+      "bytes": 30129,
+      "sha256": "5f120d62cc8559c40e92fb609c368caf88870712b7e70567f306f419ce57caae"
+    }
+  },
+  "scope": "Independent controls against exact admitted full source classes and unchanged authored host leaves; no native runtime",
+  "cleanup": {
+    "children_reaped": true,
+    "empty_source_removed": true,
+    "native_UI_capture_or_process_inventory": false
+  }
+}

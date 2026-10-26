@@ -1,0 +1,14 @@
+error[E0502]: cannot borrow `*cache` as mutable because it is also borrowed as immutable
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-initial-profile-construction-independent/predeclared-compile-cases/cache_move.rs:6:12
+  |
+3 |  cache: cache.as_ref().unwrap(), control: &*control, wasi: None,
+  |         ----- immutable borrow occurs here
+...
+6 | let _taken=cache.take(); std::hint::black_box(&initial);
+  |            ^^^^^^^^^^^^                       -------- immutable borrow later used here
+  |            |
+  |            mutable borrow occurs here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0502`.

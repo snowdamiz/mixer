@@ -1,0 +1,2277 @@
+Compiled from "AppearanceDescriptorTests.java"
+public final class dev.mixer.android.AppearanceDescriptorTests {
+  private static int checks;
+    descriptor: I
+
+  public dev.mixer.android.AppearanceDescriptorTests();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: return
+
+  private static void require(boolean, java.lang.String);
+    descriptor: (ZLjava/lang/String;)V
+    Code:
+         0: getstatic     #7                  // Field checks:I
+         3: iconst_1
+         4: iadd
+         5: putstatic     #7                  // Field checks:I
+         8: iload_0
+         9: ifne          21
+        12: new           #13                 // class java/lang/AssertionError
+        15: dup
+        16: aload_1
+        17: invokespecial #15                 // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+        20: athrow
+        21: return
+
+  private static void immutable(java.lang.Object);
+    descriptor: (Ljava/lang/Object;)V
+    Code:
+         0: aload_0
+         1: instanceof    #18                 // class java/util/Map
+         4: ifeq          75
+         7: aload_0
+         8: checkcast     #18                 // class java/util/Map
+        11: astore_1
+        12: aload_1
+        13: invokeinterface #20,  1           // InterfaceMethod java/util/Map.clear:()V
+        18: new           #13                 // class java/lang/AssertionError
+        21: dup
+        22: ldc           #23                 // String mutable map
+        24: invokespecial #15                 // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+        27: athrow
+        28: astore_2
+        29: getstatic     #7                  // Field checks:I
+        32: iconst_1
+        33: iadd
+        34: putstatic     #7                  // Field checks:I
+        37: aload_1
+        38: invokeinterface #27,  1           // InterfaceMethod java/util/Map.values:()Ljava/util/Collection;
+        43: invokeinterface #31,  1           // InterfaceMethod java/util/Collection.iterator:()Ljava/util/Iterator;
+        48: astore_2
+        49: aload_2
+        50: invokeinterface #37,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+        55: ifeq          72
+        58: aload_2
+        59: invokeinterface #43,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+        64: astore_3
+        65: aload_3
+        66: invokestatic  #47                 // Method immutable:(Ljava/lang/Object;)V
+        69: goto          49
+        72: goto          142
+        75: aload_0
+        76: instanceof    #50                 // class java/util/List
+        79: ifeq          142
+        82: aload_0
+        83: checkcast     #50                 // class java/util/List
+        86: astore_1
+        87: aload_1
+        88: invokeinterface #52,  1           // InterfaceMethod java/util/List.clear:()V
+        93: new           #13                 // class java/lang/AssertionError
+        96: dup
+        97: ldc           #53                 // String mutable list
+        99: invokespecial #15                 // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+       102: athrow
+       103: astore_2
+       104: getstatic     #7                  // Field checks:I
+       107: iconst_1
+       108: iadd
+       109: putstatic     #7                  // Field checks:I
+       112: aload_1
+       113: invokeinterface #55,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+       118: astore_2
+       119: aload_2
+       120: invokeinterface #37,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+       125: ifeq          142
+       128: aload_2
+       129: invokeinterface #43,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+       134: astore_3
+       135: aload_3
+       136: invokestatic  #47                 // Method immutable:(Ljava/lang/Object;)V
+       139: goto          119
+       142: return
+      Exception table:
+         from    to  target type
+            12    28    28   Class java/lang/UnsupportedOperationException
+            87   103   103   Class java/lang/UnsupportedOperationException
+
+  public static void main(java.lang.String[]) throws java.lang.Exception;
+    descriptor: ([Ljava/lang/String;)V
+    Code:
+         0: iconst_0
+         1: istore_1
+         2: iconst_0
+         3: istore_2
+         4: aload_0
+         5: iconst_0
+         6: aaload
+         7: iconst_0
+         8: anewarray     #56                 // class java/lang/String
+        11: invokestatic  #58                 // InterfaceMethod java/nio/file/Path.of:(Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;
+        14: getstatic     #64                 // Field java/nio/charset/StandardCharsets.US_ASCII:Ljava/nio/charset/Charset;
+        17: invokestatic  #70                 // Method java/nio/file/Files.readAllLines:(Ljava/nio/file/Path;Ljava/nio/charset/Charset;)Ljava/util/List;
+        20: invokeinterface #55,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+        25: astore_3
+        26: aload_3
+        27: invokeinterface #37,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+        32: ifeq          216
+        35: aload_3
+        36: invokeinterface #43,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+        41: checkcast     #56                 // class java/lang/String
+        44: astore        4
+        46: aload         4
+        48: ldc           #76                 // String \t
+        50: iconst_m1
+        51: invokevirtual #78                 // Method java/lang/String.split:(Ljava/lang/String;I)[Ljava/lang/String;
+        54: astore        5
+        56: invokestatic  #82                 // Method java/util/Base64.getDecoder:()Ljava/util/Base64$Decoder;
+        59: aload         5
+        61: iconst_2
+        62: aaload
+        63: invokevirtual #88                 // Method java/util/Base64$Decoder.decode:(Ljava/lang/String;)[B
+        66: astore        6
+        68: iconst_0
+        69: istore        7
+        71: aconst_null
+        72: astore        8
+        74: aload         6
+        76: invokestatic  #94                 // Method dev/mixer/android/AppearanceDescriptorV1.decode:([B)Ldev/mixer/android/AppearanceDescriptorV1;
+        79: astore        8
+        81: iconst_1
+        82: istore        7
+        84: goto          89
+        87: astore        9
+        89: iload         7
+        91: aload         5
+        93: iconst_1
+        94: aaload
+        95: ldc           #101                // String 1
+        97: invokevirtual #103                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       100: if_icmpne     107
+       103: iconst_1
+       104: goto          108
+       107: iconst_0
+       108: aload         5
+       110: iconst_0
+       111: aaload
+       112: invokestatic  #107                // Method require:(ZLjava/lang/String;)V
+       115: iload         7
+       117: ifeq          210
+       120: iinc          1, 1
+       123: aload         8
+       125: getfield      #111                // Field dev/mixer/android/AppearanceDescriptorV1.iOS:Ljava/util/Map;
+       128: invokestatic  #47                 // Method immutable:(Ljava/lang/Object;)V
+       131: aload         8
+       133: getfield      #115                // Field dev/mixer/android/AppearanceDescriptorV1.android:Ljava/util/Map;
+       136: invokestatic  #47                 // Method immutable:(Ljava/lang/Object;)V
+       139: aload         8
+       141: getfield      #118                // Field dev/mixer/android/AppearanceDescriptorV1.resources:Ljava/util/List;
+       144: invokestatic  #47                 // Method immutable:(Ljava/lang/Object;)V
+       147: aload         8
+       149: getfield      #122                // Field dev/mixer/android/AppearanceDescriptorV1.id:Ljava/lang/String;
+       152: astore        9
+       154: aload         6
+       156: bipush        88
+       158: invokestatic  #126                // Method java/util/Arrays.fill:([BB)V
+       161: aload         8
+       163: getfield      #122                // Field dev/mixer/android/AppearanceDescriptorV1.id:Ljava/lang/String;
+       166: aload         9
+       168: invokevirtual #103                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       171: ldc           #132                // String source array retained
+       173: invokestatic  #107                // Method require:(ZLjava/lang/String;)V
+       176: aload         8
+       178: getfield      #134                // Field dev/mixer/android/AppearanceDescriptorV1.platformSpecificReason:Ljava/lang/String;
+       181: ifnonnull     197
+       184: aload         8
+       186: getfield      #111                // Field dev/mixer/android/AppearanceDescriptorV1.iOS:Ljava/util/Map;
+       189: aload         8
+       191: getfield      #115                // Field dev/mixer/android/AppearanceDescriptorV1.android:Ljava/util/Map;
+       194: if_acmpne     201
+       197: iconst_1
+       198: goto          202
+       201: iconst_0
+       202: ldc           #137                // String shared single theme
+       204: invokestatic  #107                // Method require:(ZLjava/lang/String;)V
+       207: goto          213
+       210: iinc          2, 1
+       213: goto          26
+       216: aconst_null
+       217: invokestatic  #94                 // Method dev/mixer/android/AppearanceDescriptorV1.decode:([B)Ldev/mixer/android/AppearanceDescriptorV1;
+       220: pop
+       221: new           #13                 // class java/lang/AssertionError
+       224: dup
+       225: ldc           #139                // String null accepted
+       227: invokespecial #15                 // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+       230: athrow
+       231: astore_3
+       232: getstatic     #7                  // Field checks:I
+       235: iconst_1
+       236: iadd
+       237: putstatic     #7                  // Field checks:I
+       240: getstatic     #141                // Field java/lang/System.out:Ljava/io/PrintStream;
+       243: iload_1
+       244: iload_2
+       245: iadd
+       246: iload_1
+       247: iload_2
+       248: getstatic     #7                  // Field checks:I
+       251: invokedynamic #147,  0            // InvokeDynamic #0:makeConcatWithConstants:(IIII)Ljava/lang/String;
+       256: invokevirtual #151                // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+       259: return
+      Exception table:
+         from    to  target type
+            74    84    87   Class java/lang/IllegalArgumentException
+           216   231   231   Class java/lang/IllegalArgumentException
+}
+Compiled from "AppearanceResolutionTests.java"
+public final class dev.mixer.android.AppearanceResolutionTests {
+  private static java.nio.file.Path failureDirectory;
+    descriptor: Ljava/nio/file/Path;
+
+  private static int cases;
+    descriptor: I
+
+  private static int accepted;
+    descriptor: I
+
+  private static int rejected;
+    descriptor: I
+
+  private static int packetBoundary;
+    descriptor: I
+
+  private static int nodes;
+    descriptor: I
+
+  private static int styles;
+    descriptor: I
+
+  private static int assertions;
+    descriptor: I
+
+  private dev.mixer.android.AppearanceResolutionTests();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: return
+
+  public static void main(java.lang.String[]) throws java.lang.Exception;
+    descriptor: ([Ljava/lang/String;)V
+    Code:
+         0: aload_0
+         1: arraylength
+         2: iconst_1
+         3: if_icmpeq     16
+         6: new           #7                  // class java/lang/IllegalArgumentException
+         9: dup
+        10: ldc           #9                  // String oracle TSV path
+        12: invokespecial #11                 // Method java/lang/IllegalArgumentException."<init>":(Ljava/lang/String;)V
+        15: athrow
+        16: aload_0
+        17: iconst_0
+        18: aaload
+        19: iconst_0
+        20: anewarray     #14                 // class java/lang/String
+        23: invokestatic  #16                 // InterfaceMethod java/nio/file/Path.of:(Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;
+        26: invokeinterface #22,  1           // InterfaceMethod java/nio/file/Path.toAbsolutePath:()Ljava/nio/file/Path;
+        31: invokeinterface #26,  1           // InterfaceMethod java/nio/file/Path.getParent:()Ljava/nio/file/Path;
+        36: putstatic     #29                 // Field failureDirectory:Ljava/nio/file/Path;
+        39: aload_0
+        40: iconst_0
+        41: aaload
+        42: iconst_0
+        43: anewarray     #14                 // class java/lang/String
+        46: invokestatic  #16                 // InterfaceMethod java/nio/file/Path.of:(Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;
+        49: getstatic     #35                 // Field java/nio/charset/StandardCharsets.UTF_8:Ljava/nio/charset/Charset;
+        52: invokestatic  #41                 // Method java/nio/file/Files.newBufferedReader:(Ljava/nio/file/Path;Ljava/nio/charset/Charset;)Ljava/io/BufferedReader;
+        55: astore_1
+        56: aload_1
+        57: invokevirtual #47                 // Method java/io/BufferedReader.readLine:()Ljava/lang/String;
+        60: dup
+        61: astore_2
+        62: ifnull        78
+        65: aload_2
+        66: ldc           #53                 // String \t
+        68: iconst_m1
+        69: invokevirtual #55                 // Method java/lang/String.split:(Ljava/lang/String;I)[Ljava/lang/String;
+        72: invokestatic  #59                 // Method checkCase:([Ljava/lang/String;)V
+        75: goto          56
+        78: aload_1
+        79: ifnull        109
+        82: aload_1
+        83: invokevirtual #63                 // Method java/io/BufferedReader.close:()V
+        86: goto          109
+        89: astore_2
+        90: aload_1
+        91: ifnull        107
+        94: aload_1
+        95: invokevirtual #63                 // Method java/io/BufferedReader.close:()V
+        98: goto          107
+       101: astore_3
+       102: aload_2
+       103: aload_3
+       104: invokevirtual #68                 // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+       107: aload_2
+       108: athrow
+       109: invokestatic  #72                 // Method negativeInputs:()V
+       112: getstatic     #75                 // Field java/lang/System.out:Ljava/io/PrintStream;
+       115: getstatic     #81                 // Field cases:I
+       118: getstatic     #85                 // Field accepted:I
+       121: getstatic     #88                 // Field rejected:I
+       124: getstatic     #91                 // Field packetBoundary:I
+       127: getstatic     #94                 // Field nodes:I
+       130: getstatic     #97                 // Field styles:I
+       133: getstatic     #100                // Field assertions:I
+       136: invokedynamic #103,  0            // InvokeDynamic #0:makeConcatWithConstants:(IIIIIII)Ljava/lang/String;
+       141: invokevirtual #107                // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+       144: return
+      Exception table:
+         from    to  target type
+            56    78    89   Class java/lang/Throwable
+            94    98   101   Class java/lang/Throwable
+
+  private static void checkCase(java.lang.String[]) throws java.lang.Exception;
+    descriptor: ([Ljava/lang/String;)V
+    Code:
+         0: aload_0
+         1: arraylength
+         2: bipush        8
+         4: if_icmpeq     17
+         7: new           #112                // class java/lang/AssertionError
+        10: dup
+        11: ldc           #114                // String TSV shape
+        13: invokespecial #116                // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+        16: athrow
+        17: aload_0
+        18: iconst_0
+        19: aaload
+        20: astore_1
+        21: getstatic     #81                 // Field cases:I
+        24: iconst_1
+        25: iadd
+        26: putstatic     #81                 // Field cases:I
+        29: aload_0
+        30: iconst_1
+        31: aaload
+        32: ldc           #119                // String accepted
+        34: invokevirtual #120                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+        37: istore_2
+        38: aload_0
+        39: bipush        7
+        41: aaload
+        42: ldc           #124                // String packet-baseline-rejected
+        44: invokevirtual #120                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+        47: istore_3
+        48: aload_0
+        49: iconst_2
+        50: aaload
+        51: invokestatic  #126                // Method decode:(Ljava/lang/String;)[B
+        54: invokestatic  #130                // Method dev/mixer/android/AppearanceDescriptorV1.decode:([B)Ldev/mixer/android/AppearanceDescriptorV1;
+        57: astore        6
+        59: aload_0
+        60: iconst_3
+        61: aaload
+        62: invokestatic  #126                // Method decode:(Ljava/lang/String;)[B
+        65: invokestatic  #135                // Method dev/mixer/android/Json.parse:([B)Ljava/lang/Object;
+        68: invokestatic  #141                // Method dev/mixer/android/Json.object:(Ljava/lang/Object;)Ljava/util/Map;
+        71: astore        7
+        73: new           #145                // class dev/mixer/android/AppearanceResolutionV1$Environment
+        76: dup
+        77: aload         7
+        79: ldc           #147                // String scheme
+        81: invokeinterface #149,  2          // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+        86: invokestatic  #155                // Method dev/mixer/android/Json.string:(Ljava/lang/Object;)Ljava/lang/String;
+        89: invokestatic  #159                // Method dev/mixer/android/AppearanceResolutionV1$Scheme.valueOf:(Ljava/lang/String;)Ldev/mixer/android/AppearanceResolutionV1$Scheme;
+        92: aload         7
+        94: ldc           #165                // String direction
+        96: invokeinterface #149,  2          // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+       101: invokestatic  #155                // Method dev/mixer/android/Json.string:(Ljava/lang/Object;)Ljava/lang/String;
+       104: invokestatic  #167                // Method dev/mixer/android/AppearanceResolutionV1$Direction.valueOf:(Ljava/lang/String;)Ldev/mixer/android/AppearanceResolutionV1$Direction;
+       107: aload         7
+       109: ldc           #172                // String textScale1024
+       111: invokeinterface #149,  2          // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+       116: invokestatic  #174                // Method dev/mixer/android/Json.uint:(Ljava/lang/Object;)Ljava/lang/String;
+       119: invokestatic  #177                // Method java/lang/Integer.parseInt:(Ljava/lang/String;)I
+       122: aload         7
+       124: ldc           #183                // String density1024
+       126: invokeinterface #149,  2          // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+       131: invokestatic  #174                // Method dev/mixer/android/Json.uint:(Ljava/lang/Object;)Ljava/lang/String;
+       134: invokestatic  #177                // Method java/lang/Integer.parseInt:(Ljava/lang/String;)I
+       137: invokespecial #185                // Method dev/mixer/android/AppearanceResolutionV1$Environment."<init>":(Ldev/mixer/android/AppearanceResolutionV1$Scheme;Ldev/mixer/android/AppearanceResolutionV1$Direction;II)V
+       140: astore        8
+       142: aload_0
+       143: iconst_5
+       144: aaload
+       145: invokestatic  #126                // Method decode:(Ljava/lang/String;)[B
+       148: invokestatic  #188                // Method dev/mixer/android/UiPacket.decode:([B)Ldev/mixer/android/UiPacket;
+       151: astore        5
+       153: aload         5
+       155: aload         6
+       157: aload         8
+       159: aload_0
+       160: iconst_4
+       161: aaload
+       162: invokestatic  #193                // Method dev/mixer/android/AppearanceResolutionV1$Platform.valueOf:(Ljava/lang/String;)Ldev/mixer/android/AppearanceResolutionV1$Platform;
+       165: invokestatic  #198                // Method dev/mixer/android/AppearanceResolutionV1.prepare:(Ldev/mixer/android/UiPacket;Ldev/mixer/android/AppearanceDescriptorV1;Ldev/mixer/android/AppearanceResolutionV1$Environment;Ldev/mixer/android/AppearanceResolutionV1$Platform;)Ldev/mixer/android/AppearanceResolutionV1$Plan;
+       168: astore        4
+       170: goto          236
+       173: astore        6
+       175: iload_2
+       176: ifeq          204
+       179: iload_3
+       180: ifne          204
+       183: new           #112                // class java/lang/AssertionError
+       186: dup
+       187: aload_1
+       188: aload         6
+       190: invokestatic  #204                // Method java/lang/String.valueOf:(Ljava/lang/Object;)Ljava/lang/String;
+       193: invokedynamic #206,  0            // InvokeDynamic #1:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+       198: aload         6
+       200: invokespecial #209                // Method java/lang/AssertionError."<init>":(Ljava/lang/String;Ljava/lang/Throwable;)V
+       203: athrow
+       204: iload_3
+       205: ifeq          219
+       208: getstatic     #91                 // Field packetBoundary:I
+       211: iconst_1
+       212: iadd
+       213: putstatic     #91                 // Field packetBoundary:I
+       216: goto          227
+       219: getstatic     #88                 // Field rejected:I
+       222: iconst_1
+       223: iadd
+       224: putstatic     #88                 // Field rejected:I
+       227: getstatic     #100                // Field assertions:I
+       230: iconst_1
+       231: iadd
+       232: putstatic     #100                // Field assertions:I
+       235: return
+       236: iload_2
+       237: ifeq          244
+       240: iload_3
+       241: ifeq          258
+       244: new           #112                // class java/lang/AssertionError
+       247: dup
+       248: aload_1
+       249: invokedynamic #212,  0            // InvokeDynamic #2:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       254: invokespecial #116                // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+       257: athrow
+       258: getstatic     #85                 // Field accepted:I
+       261: iconst_1
+       262: iadd
+       263: putstatic     #85                 // Field accepted:I
+       266: aload         4
+       268: invokestatic  #215                // Method planOutput:(Ldev/mixer/android/AppearanceResolutionV1$Plan;)Ljava/lang/Object;
+       271: astore        6
+       273: aload         6
+       275: invokestatic  #219                // Method canonical:(Ljava/lang/Object;)Ljava/lang/String;
+       278: getstatic     #35                 // Field java/nio/charset/StandardCharsets.UTF_8:Ljava/nio/charset/Charset;
+       281: invokevirtual #222                // Method java/lang/String.getBytes:(Ljava/nio/charset/Charset;)[B
+       284: invokestatic  #226                // Method sha:([B)Ljava/lang/String;
+       287: astore        7
+       289: aload_0
+       290: bipush        6
+       292: aaload
+       293: aload         7
+       295: invokevirtual #120                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       298: ifne          358
+       301: getstatic     #29                 // Field failureDirectory:Ljava/nio/file/Path;
+       304: ldc           #230                // String resolution-actual.json
+       306: invokeinterface #232,  2          // InterfaceMethod java/nio/file/Path.resolve:(Ljava/lang/String;)Ljava/nio/file/Path;
+       311: astore        8
+       313: aload         8
+       315: aload         6
+       317: invokestatic  #219                // Method canonical:(Ljava/lang/Object;)Ljava/lang/String;
+       320: iconst_0
+       321: anewarray     #236                // class java/nio/file/OpenOption
+       324: invokestatic  #238                // Method java/nio/file/Files.writeString:(Ljava/nio/file/Path;Ljava/lang/CharSequence;[Ljava/nio/file/OpenOption;)Ljava/nio/file/Path;
+       327: pop
+       328: new           #112                // class java/lang/AssertionError
+       331: dup
+       332: aload_1
+       333: aload_0
+       334: bipush        6
+       336: aaload
+       337: aload         7
+       339: aload         8
+       341: invokeinterface #22,  1           // InterfaceMethod java/nio/file/Path.toAbsolutePath:()Ljava/nio/file/Path;
+       346: invokestatic  #204                // Method java/lang/String.valueOf:(Ljava/lang/Object;)Ljava/lang/String;
+       349: invokedynamic #242,  0            // InvokeDynamic #3:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+       354: invokespecial #116                // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+       357: athrow
+       358: getstatic     #100                // Field assertions:I
+       361: iconst_1
+       362: iadd
+       363: putstatic     #100                // Field assertions:I
+       366: aload         5
+       368: getfield      #245                // Field dev/mixer/android/UiPacket.revision:Ljava/lang/String;
+       371: aload         4
+       373: getfield      #249                // Field dev/mixer/android/AppearanceResolutionV1$Plan.revision:Ljava/lang/String;
+       376: aload_1
+       377: invokedynamic #252,  0            // InvokeDynamic #4:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       382: invokestatic  #253                // Method equal:(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V
+       385: aconst_null
+       386: aload         4
+       388: ldc_w         #257                // String missing-node
+       391: invokevirtual #259                // Method dev/mixer/android/AppearanceResolutionV1$Plan.node:(Ljava/lang/String;)Ldev/mixer/android/AppearanceResolutionV1$Node;
+       394: aload_1
+       395: invokedynamic #263,  0            // InvokeDynamic #5:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       400: invokestatic  #253                // Method equal:(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V
+       403: aconst_null
+       404: aload         4
+       406: ldc_w         #257                // String missing-node
+       409: iconst_1
+       410: iconst_1
+       411: invokevirtual #264                // Method dev/mixer/android/AppearanceResolutionV1$Plan.style:(Ljava/lang/String;ZZ)Ldev/mixer/android/AppearanceResolutionV1$Style;
+       414: aload_1
+       415: invokedynamic #268,  0            // InvokeDynamic #6:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       420: invokestatic  #253                // Method equal:(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V
+       423: aload         4
+       425: invokedynamic #269,  0            // InvokeDynamic #7:run:(Ldev/mixer/android/AppearanceResolutionV1$Plan;)Ljava/lang/Runnable;
+       430: invokestatic  #273                // Method expectImmutable:(Ljava/lang/Runnable;)V
+       433: aload         4
+       435: invokedynamic #277,  0            // InvokeDynamic #8:run:(Ldev/mixer/android/AppearanceResolutionV1$Plan;)Ljava/lang/Runnable;
+       440: invokestatic  #273                // Method expectImmutable:(Ljava/lang/Runnable;)V
+       443: aload         4
+       445: invokedynamic #278,  0            // InvokeDynamic #9:run:(Ldev/mixer/android/AppearanceResolutionV1$Plan;)Ljava/lang/Runnable;
+       450: invokestatic  #273                // Method expectImmutable:(Ljava/lang/Runnable;)V
+       453: aload_1
+       454: ldc_w         #279                // String font-resource-reference-retention
+       457: invokevirtual #120                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       460: ifeq          551
+       463: aload         4
+       465: getfield      #281                // Field dev/mixer/android/AppearanceResolutionV1$Plan.font:Ljava/util/Map;
+       468: invokestatic  #285                // Method recursivelyImmutable:(Ljava/lang/Object;)V
+       471: aload         4
+       473: getfield      #288                // Field dev/mixer/android/AppearanceResolutionV1$Plan.resources:Ljava/util/List;
+       476: invokestatic  #285                // Method recursivelyImmutable:(Ljava/lang/Object;)V
+       479: aload         5
+       481: getfield      #292                // Field dev/mixer/android/UiPacket.nodes:Ljava/util/Map;
+       484: invokeinterface #294,  1          // InterfaceMethod java/util/Map.values:()Ljava/util/Collection;
+       489: invokeinterface #298,  1          // InterfaceMethod java/util/Collection.iterator:()Ljava/util/Iterator;
+       494: astore        8
+       496: aload         8
+       498: invokeinterface #304,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+       503: ifeq          551
+       506: aload         8
+       508: invokeinterface #310,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+       513: checkcast     #314                // class dev/mixer/android/UiPacket$Node
+       516: astore        9
+       518: aload         9
+       520: invokedynamic #316,  0            // InvokeDynamic #10:run:(Ldev/mixer/android/UiPacket$Node;)Ljava/lang/Runnable;
+       525: invokestatic  #273                // Method expectImmutable:(Ljava/lang/Runnable;)V
+       528: aload         9
+       530: invokedynamic #319,  0            // InvokeDynamic #11:run:(Ldev/mixer/android/UiPacket$Node;)Ljava/lang/Runnable;
+       535: invokestatic  #273                // Method expectImmutable:(Ljava/lang/Runnable;)V
+       538: aload         9
+       540: invokedynamic #320,  0            // InvokeDynamic #12:run:(Ldev/mixer/android/UiPacket$Node;)Ljava/lang/Runnable;
+       545: invokestatic  #273                // Method expectImmutable:(Ljava/lang/Runnable;)V
+       548: goto          496
+       551: aload         4
+       553: getfield      #321                // Field dev/mixer/android/AppearanceResolutionV1$Plan.nodes:Ljava/util/List;
+       556: invokeinterface #323,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+       561: astore        8
+       563: aload         8
+       565: invokeinterface #304,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+       570: ifeq          877
+       573: aload         8
+       575: invokeinterface #310,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+       580: checkcast     #326                // class dev/mixer/android/AppearanceResolutionV1$Node
+       583: astore        9
+       585: aload         5
+       587: getfield      #292                // Field dev/mixer/android/UiPacket.nodes:Ljava/util/Map;
+       590: aload         9
+       592: invokevirtual #328                // Method dev/mixer/android/AppearanceResolutionV1$Node.identity:()Ldev/mixer/android/AppearanceResolutionV1$Identity;
+       595: invokevirtual #332                // Method dev/mixer/android/AppearanceResolutionV1$Identity.id:()Ljava/lang/String;
+       598: invokeinterface #149,  2          // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+       603: checkcast     #314                // class dev/mixer/android/UiPacket$Node
+       606: astore        10
+       608: aload         10
+       610: getfield      #337                // Field dev/mixer/android/UiPacket$Node.generation:Ljava/lang/String;
+       613: aload         9
+       615: invokevirtual #328                // Method dev/mixer/android/AppearanceResolutionV1$Node.identity:()Ldev/mixer/android/AppearanceResolutionV1$Identity;
+       618: invokevirtual #340                // Method dev/mixer/android/AppearanceResolutionV1$Identity.generation:()Ljava/lang/String;
+       621: aload_1
+       622: invokedynamic #342,  0            // InvokeDynamic #13:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       627: invokestatic  #253                // Method equal:(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V
+       630: aload         10
+       632: getfield      #343                // Field dev/mixer/android/UiPacket$Node.kind:Ljava/lang/String;
+       635: aload         9
+       637: invokevirtual #346                // Method dev/mixer/android/AppearanceResolutionV1$Node.kind:()Ljava/lang/String;
+       640: aload_1
+       641: invokedynamic #348,  0            // InvokeDynamic #14:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       646: invokestatic  #253                // Method equal:(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V
+       649: aload         10
+       651: getfield      #349                // Field dev/mixer/android/UiPacket$Node.disabled:Z
+       654: invokestatic  #353                // Method java/lang/Boolean.valueOf:(Z)Ljava/lang/Boolean;
+       657: aload         9
+       659: invokevirtual #358                // Method dev/mixer/android/AppearanceResolutionV1$Node.disabled:()Z
+       662: invokestatic  #353                // Method java/lang/Boolean.valueOf:(Z)Ljava/lang/Boolean;
+       665: aload_1
+       666: invokedynamic #360,  0            // InvokeDynamic #15:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       671: invokestatic  #253                // Method equal:(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V
+       674: aload         9
+       676: invokedynamic #361,  0            // InvokeDynamic #16:run:(Ldev/mixer/android/AppearanceResolutionV1$Node;)Ljava/lang/Runnable;
+       681: invokestatic  #273                // Method expectImmutable:(Ljava/lang/Runnable;)V
+       684: aload         10
+       686: getfield      #364                // Field dev/mixer/android/UiPacket$Node.actions:Ljava/util/Map;
+       689: invokeinterface #367,  1          // InterfaceMethod java/util/Map.keySet:()Ljava/util/Set;
+       694: invokeinterface #371,  1          // InterfaceMethod java/util/Set.iterator:()Ljava/util/Iterator;
+       699: astore        11
+       701: aload         11
+       703: invokeinterface #304,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+       708: ifeq          874
+       711: aload         11
+       713: invokeinterface #310,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+       718: checkcast     #14                 // class java/lang/String
+       721: astore        12
+       723: aload         12
+       725: ldc_w         #374                // String textChange
+       728: invokevirtual #120                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       731: ifeq          740
+       734: ldc_w         #376                // String Edited العربية 🧪
+       737: goto          758
+       740: aload         12
+       742: ldc_w         #378                // String valueChange
+       745: invokevirtual #120                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       748: ifeq          757
+       751: getstatic     #380                // Field java/lang/Boolean.TRUE:Ljava/lang/Boolean;
+       754: goto          758
+       757: aconst_null
+       758: astore        13
+       760: aload         10
+       762: getfield      #349                // Field dev/mixer/android/UiPacket$Node.disabled:Z
+       765: ifeq          787
+       768: aload         5
+       770: aload         10
+       772: aload         12
+       774: aload         13
+       776: invokedynamic #384,  0            // InvokeDynamic #17:run:(Ldev/mixer/android/UiPacket;Ldev/mixer/android/UiPacket$Node;Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Runnable;
+       781: invokestatic  #387                // Method expectRejected:(Ljava/lang/Runnable;)V
+       784: goto          871
+       787: aload         5
+       789: aload         10
+       791: getfield      #390                // Field dev/mixer/android/UiPacket$Node.id:Ljava/lang/String;
+       794: aload         10
+       796: getfield      #337                // Field dev/mixer/android/UiPacket$Node.generation:Ljava/lang/String;
+       799: aload         12
+       801: aload         13
+       803: invokevirtual #392                // Method dev/mixer/android/UiPacket.event:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)[B
+       806: astore        14
+       808: aload         4
+       810: aload         10
+       812: getfield      #390                // Field dev/mixer/android/UiPacket$Node.id:Ljava/lang/String;
+       815: iconst_1
+       816: iconst_1
+       817: invokevirtual #264                // Method dev/mixer/android/AppearanceResolutionV1$Plan.style:(Ljava/lang/String;ZZ)Ldev/mixer/android/AppearanceResolutionV1$Style;
+       820: pop
+       821: new           #14                 // class java/lang/String
+       824: dup
+       825: aload         14
+       827: getstatic     #35                 // Field java/nio/charset/StandardCharsets.UTF_8:Ljava/nio/charset/Charset;
+       830: invokespecial #396                // Method java/lang/String."<init>":([BLjava/nio/charset/Charset;)V
+       833: new           #14                 // class java/lang/String
+       836: dup
+       837: aload         5
+       839: aload         10
+       841: getfield      #390                // Field dev/mixer/android/UiPacket$Node.id:Ljava/lang/String;
+       844: aload         10
+       846: getfield      #337                // Field dev/mixer/android/UiPacket$Node.generation:Ljava/lang/String;
+       849: aload         12
+       851: aload         13
+       853: invokevirtual #392                // Method dev/mixer/android/UiPacket.event:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)[B
+       856: getstatic     #35                 // Field java/nio/charset/StandardCharsets.UTF_8:Ljava/nio/charset/Charset;
+       859: invokespecial #396                // Method java/lang/String."<init>":([BLjava/nio/charset/Charset;)V
+       862: aload_1
+       863: invokedynamic #399,  0            // InvokeDynamic #18:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       868: invokestatic  #253                // Method equal:(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V
+       871: goto          701
+       874: goto          563
+       877: return
+      Exception table:
+         from    to  target type
+            48   170   173   Class java/lang/IllegalArgumentException
+
+  private static java.lang.Object planOutput(dev.mixer.android.AppearanceResolutionV1$Plan) throws java.lang.Exception;
+    descriptor: (Ldev/mixer/android/AppearanceResolutionV1$Plan;)Ljava/lang/Object;
+    Code:
+         0: new           #400                // class java/util/LinkedHashMap
+         3: dup
+         4: invokespecial #402                // Method java/util/LinkedHashMap."<init>":()V
+         7: astore_1
+         8: aload_1
+         9: ldc_w         #403                // String revision
+        12: aload_0
+        13: getfield      #249                // Field dev/mixer/android/AppearanceResolutionV1$Plan.revision:Ljava/lang/String;
+        16: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        21: pop
+        22: aload_1
+        23: ldc_w         #408                // String configurationID
+        26: aload_0
+        27: getfield      #410                // Field dev/mixer/android/AppearanceResolutionV1$Plan.configurationID:Ljava/lang/String;
+        30: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        35: pop
+        36: aload_1
+        37: ldc_w         #412                // String recipe
+        40: aload_0
+        41: getfield      #414                // Field dev/mixer/android/AppearanceResolutionV1$Plan.recipe:Ljava/lang/String;
+        44: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        49: pop
+        50: aload_1
+        51: ldc_w         #416                // String canvas
+        54: aload_0
+        55: getfield      #418                // Field dev/mixer/android/AppearanceResolutionV1$Plan.canvas:Ldev/mixer/android/AppearanceResolutionV1$Paint;
+        58: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        63: pop
+        64: aload_1
+        65: ldc_w         #421                // String environment
+        68: aload_0
+        69: getfield      #423                // Field dev/mixer/android/AppearanceResolutionV1$Plan.environment:Ldev/mixer/android/AppearanceResolutionV1$Environment;
+        72: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        77: pop
+        78: aload_1
+        79: ldc_w         #426                // String platform
+        82: aload_0
+        83: getfield      #428                // Field dev/mixer/android/AppearanceResolutionV1$Plan.platform:Ldev/mixer/android/AppearanceResolutionV1$Platform;
+        86: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        91: pop
+        92: aload_1
+        93: ldc_w         #431                // String platformSpecificReason
+        96: aload_0
+        97: getfield      #433                // Field dev/mixer/android/AppearanceResolutionV1$Plan.platformSpecificReason:Ljava/lang/String;
+       100: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       105: pop
+       106: aload_1
+       107: ldc_w         #435                // String font
+       110: aload_0
+       111: getfield      #281                // Field dev/mixer/android/AppearanceResolutionV1$Plan.font:Ljava/util/Map;
+       114: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       119: pop
+       120: aload_1
+       121: ldc_w         #436                // String resources
+       124: aload_0
+       125: getfield      #288                // Field dev/mixer/android/AppearanceResolutionV1$Plan.resources:Ljava/util/List;
+       128: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       133: pop
+       134: new           #437                // class java/util/ArrayList
+       137: dup
+       138: invokespecial #439                // Method java/util/ArrayList."<init>":()V
+       141: astore_2
+       142: aload_0
+       143: getfield      #321                // Field dev/mixer/android/AppearanceResolutionV1$Plan.nodes:Ljava/util/List;
+       146: invokeinterface #323,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+       151: astore_3
+       152: aload_3
+       153: invokeinterface #304,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+       158: ifeq          307
+       161: aload_3
+       162: invokeinterface #310,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+       167: checkcast     #326                // class dev/mixer/android/AppearanceResolutionV1$Node
+       170: astore        4
+       172: aload         4
+       174: invokestatic  #440                // Method record:(Ljava/lang/Object;)Ljava/util/Map;
+       177: astore        5
+       179: aload         5
+       181: ldc_w         #412                // String recipe
+       184: aload         4
+       186: invokevirtual #443                // Method dev/mixer/android/AppearanceResolutionV1$Node.recipe:()Ldev/mixer/android/AppearanceResolutionV1$Recipe;
+       189: invokestatic  #446                // Method recipe:(Ldev/mixer/android/AppearanceResolutionV1$Recipe;)Ljava/lang/Object;
+       192: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       197: pop
+       198: new           #437                // class java/util/ArrayList
+       201: dup
+       202: invokespecial #439                // Method java/util/ArrayList."<init>":()V
+       205: astore        6
+       207: iconst_0
+       208: istore        7
+       210: iload         7
+       212: iconst_4
+       213: if_icmpge     266
+       216: aload         6
+       218: aload_0
+       219: aload         4
+       221: invokevirtual #328                // Method dev/mixer/android/AppearanceResolutionV1$Node.identity:()Ldev/mixer/android/AppearanceResolutionV1$Identity;
+       224: invokevirtual #332                // Method dev/mixer/android/AppearanceResolutionV1$Identity.id:()Ljava/lang/String;
+       227: iload         7
+       229: iconst_1
+       230: iand
+       231: ifeq          238
+       234: iconst_1
+       235: goto          239
+       238: iconst_0
+       239: iload         7
+       241: iconst_2
+       242: iand
+       243: ifeq          250
+       246: iconst_1
+       247: goto          251
+       250: iconst_0
+       251: invokevirtual #264                // Method dev/mixer/android/AppearanceResolutionV1$Plan.style:(Ljava/lang/String;ZZ)Ldev/mixer/android/AppearanceResolutionV1$Style;
+       254: invokeinterface #449,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       259: pop
+       260: iinc          7, 1
+       263: goto          210
+       266: aload         5
+       268: ldc_w         #452                // String styles
+       271: aload         6
+       273: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       278: pop
+       279: aload_2
+       280: aload         5
+       282: invokeinterface #449,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       287: pop
+       288: getstatic     #94                 // Field nodes:I
+       291: iconst_1
+       292: iadd
+       293: putstatic     #94                 // Field nodes:I
+       296: getstatic     #97                 // Field styles:I
+       299: iconst_4
+       300: iadd
+       301: putstatic     #97                 // Field styles:I
+       304: goto          152
+       307: aload_1
+       308: ldc_w         #453                // String nodes
+       311: aload_2
+       312: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       317: pop
+       318: aload_1
+       319: areturn
+
+  private static java.lang.Object recipe(dev.mixer.android.AppearanceResolutionV1$Recipe) throws java.lang.Exception;
+    descriptor: (Ldev/mixer/android/AppearanceResolutionV1$Recipe;)Ljava/lang/Object;
+    Code:
+         0: aload_0
+         1: invokestatic  #440                // Method record:(Ljava/lang/Object;)Ljava/util/Map;
+         4: astore_1
+         5: aload_1
+         6: ldc_w         #454                // String case
+         9: aload_0
+        10: invokeinterface #456,  1          // InterfaceMethod dev/mixer/android/AppearanceResolutionV1$Recipe.getClass:()Ljava/lang/Class;
+        15: invokevirtual #462                // Method java/lang/Class.getSimpleName:()Ljava/lang/String;
+        18: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        23: pop
+        24: aload_1
+        25: areturn
+
+  private static java.util.Map<java.lang.String, java.lang.Object> record(java.lang.Object) throws java.lang.Exception;
+    descriptor: (Ljava/lang/Object;)Ljava/util/Map;
+    Code:
+         0: new           #400                // class java/util/LinkedHashMap
+         3: dup
+         4: invokespecial #402                // Method java/util/LinkedHashMap."<init>":()V
+         7: astore_1
+         8: aload_0
+         9: invokevirtual #467                // Method java/lang/Object.getClass:()Ljava/lang/Class;
+        12: invokevirtual #468                // Method java/lang/Class.getRecordComponents:()[Ljava/lang/reflect/RecordComponent;
+        15: astore_2
+        16: aload_2
+        17: arraylength
+        18: istore_3
+        19: iconst_0
+        20: istore        4
+        22: iload         4
+        24: iload_3
+        25: if_icmpge     65
+        28: aload_2
+        29: iload         4
+        31: aaload
+        32: astore        5
+        34: aload_1
+        35: aload         5
+        37: invokevirtual #472                // Method java/lang/reflect/RecordComponent.getName:()Ljava/lang/String;
+        40: aload         5
+        42: invokevirtual #477                // Method java/lang/reflect/RecordComponent.getAccessor:()Ljava/lang/reflect/Method;
+        45: aload_0
+        46: iconst_0
+        47: anewarray     #2                  // class java/lang/Object
+        50: invokevirtual #481                // Method java/lang/reflect/Method.invoke:(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;
+        53: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        58: pop
+        59: iinc          4, 1
+        62: goto          22
+        65: aload_1
+        66: areturn
+
+  private static java.lang.String canonical(java.lang.Object) throws java.lang.Exception;
+    descriptor: (Ljava/lang/Object;)Ljava/lang/String;
+    Code:
+         0: aload_0
+         1: ifnull        22
+         4: aload_0
+         5: invokevirtual #467                // Method java/lang/Object.getClass:()Ljava/lang/Class;
+         8: invokevirtual #487                // Method java/lang/Class.isRecord:()Z
+        11: ifeq          22
+        14: aload_0
+        15: invokestatic  #440                // Method record:(Ljava/lang/Object;)Ljava/util/Map;
+        18: invokestatic  #219                // Method canonical:(Ljava/lang/Object;)Ljava/lang/String;
+        21: areturn
+        22: aload_0
+        23: instanceof    #490                // class java/lang/Enum
+        26: ifeq          40
+        29: aload_0
+        30: checkcast     #490                // class java/lang/Enum
+        33: invokevirtual #492                // Method java/lang/Enum.name:()Ljava/lang/String;
+        36: invokestatic  #219                // Method canonical:(Ljava/lang/Object;)Ljava/lang/String;
+        39: areturn
+        40: aload_0
+        41: instanceof    #495                // class java/lang/Number
+        44: ifeq          55
+        47: aload_0
+        48: invokevirtual #497                // Method java/lang/Object.toString:()Ljava/lang/String;
+        51: invokestatic  #219                // Method canonical:(Ljava/lang/Object;)Ljava/lang/String;
+        54: areturn
+        55: aload_0
+        56: instanceof    #150                // class java/util/Map
+        59: ifeq          236
+        62: new           #500                // class java/util/TreeMap
+        65: dup
+        66: invokespecial #502                // Method java/util/TreeMap."<init>":()V
+        69: astore_1
+        70: aload_0
+        71: checkcast     #150                // class java/util/Map
+        74: invokeinterface #503,  1          // InterfaceMethod java/util/Map.entrySet:()Ljava/util/Set;
+        79: invokeinterface #371,  1          // InterfaceMethod java/util/Set.iterator:()Ljava/util/Iterator;
+        84: astore_2
+        85: aload_2
+        86: invokeinterface #304,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+        91: ifeq          129
+        94: aload_2
+        95: invokeinterface #310,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+       100: checkcast     #506                // class java/util/Map$Entry
+       103: astore_3
+       104: aload_1
+       105: aload_3
+       106: invokeinterface #508,  1          // InterfaceMethod java/util/Map$Entry.getKey:()Ljava/lang/Object;
+       111: checkcast     #14                 // class java/lang/String
+       114: aload_3
+       115: invokeinterface #511,  1          // InterfaceMethod java/util/Map$Entry.getValue:()Ljava/lang/Object;
+       120: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       125: pop
+       126: goto          85
+       129: new           #514                // class java/lang/StringBuilder
+       132: dup
+       133: ldc_w         #516                // String {
+       136: invokespecial #518                // Method java/lang/StringBuilder."<init>":(Ljava/lang/String;)V
+       139: astore_2
+       140: iconst_0
+       141: istore_3
+       142: aload_1
+       143: invokeinterface #503,  1          // InterfaceMethod java/util/Map.entrySet:()Ljava/util/Set;
+       148: invokeinterface #371,  1          // InterfaceMethod java/util/Set.iterator:()Ljava/util/Iterator;
+       153: astore        4
+       155: aload         4
+       157: invokeinterface #304,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+       162: ifeq          226
+       165: aload         4
+       167: invokeinterface #310,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+       172: checkcast     #506                // class java/util/Map$Entry
+       175: astore        5
+       177: iload_3
+       178: ifeq          188
+       181: aload_2
+       182: bipush        44
+       184: invokevirtual #519                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+       187: pop
+       188: iconst_1
+       189: istore_3
+       190: aload_2
+       191: aload         5
+       193: invokeinterface #508,  1          // InterfaceMethod java/util/Map$Entry.getKey:()Ljava/lang/Object;
+       198: invokestatic  #219                // Method canonical:(Ljava/lang/Object;)Ljava/lang/String;
+       201: invokevirtual #523                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       204: bipush        58
+       206: invokevirtual #519                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+       209: aload         5
+       211: invokeinterface #511,  1          // InterfaceMethod java/util/Map$Entry.getValue:()Ljava/lang/Object;
+       216: invokestatic  #219                // Method canonical:(Ljava/lang/Object;)Ljava/lang/String;
+       219: invokevirtual #523                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       222: pop
+       223: goto          155
+       226: aload_2
+       227: bipush        125
+       229: invokevirtual #519                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+       232: invokevirtual #526                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+       235: areturn
+       236: aload_0
+       237: instanceof    #324                // class java/util/List
+       240: ifeq          319
+       243: new           #514                // class java/lang/StringBuilder
+       246: dup
+       247: ldc_w         #527                // String [
+       250: invokespecial #518                // Method java/lang/StringBuilder."<init>":(Ljava/lang/String;)V
+       253: astore_1
+       254: iconst_0
+       255: istore_2
+       256: aload_0
+       257: checkcast     #324                // class java/util/List
+       260: invokeinterface #323,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+       265: astore_3
+       266: aload_3
+       267: invokeinterface #304,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+       272: ifeq          309
+       275: aload_3
+       276: invokeinterface #310,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+       281: astore        4
+       283: iload_2
+       284: ifeq          294
+       287: aload_1
+       288: bipush        44
+       290: invokevirtual #519                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+       293: pop
+       294: iconst_1
+       295: istore_2
+       296: aload_1
+       297: aload         4
+       299: invokestatic  #219                // Method canonical:(Ljava/lang/Object;)Ljava/lang/String;
+       302: invokevirtual #523                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+       305: pop
+       306: goto          266
+       309: aload_1
+       310: bipush        93
+       312: invokevirtual #519                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+       315: invokevirtual #526                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+       318: areturn
+       319: new           #514                // class java/lang/StringBuilder
+       322: dup
+       323: invokespecial #529                // Method java/lang/StringBuilder."<init>":()V
+       326: astore_1
+       327: aload_1
+       328: aload_0
+       329: invokestatic  #530                // Method dev/mixer/android/Json.write:(Ljava/lang/StringBuilder;Ljava/lang/Object;)V
+       332: aload_1
+       333: invokevirtual #526                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+       336: areturn
+
+  private static void recursivelyImmutable(java.lang.Object);
+    descriptor: (Ljava/lang/Object;)V
+    Code:
+         0: aload_0
+         1: instanceof    #150                // class java/util/Map
+         4: ifeq          66
+         7: aload_0
+         8: checkcast     #150                // class java/util/Map
+        11: astore_1
+        12: aload_1
+        13: dup
+        14: invokestatic  #534                // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+        17: pop
+        18: invokedynamic #539,  0            // InvokeDynamic #19:run:(Ljava/util/Map;)Ljava/lang/Runnable;
+        23: invokestatic  #273                // Method expectImmutable:(Ljava/lang/Runnable;)V
+        26: aload_1
+        27: invokeinterface #294,  1          // InterfaceMethod java/util/Map.values:()Ljava/util/Collection;
+        32: invokeinterface #298,  1          // InterfaceMethod java/util/Collection.iterator:()Ljava/util/Iterator;
+        37: astore_3
+        38: aload_3
+        39: invokeinterface #304,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+        44: ifeq          63
+        47: aload_3
+        48: invokeinterface #310,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+        53: astore        4
+        55: aload         4
+        57: invokestatic  #285                // Method recursivelyImmutable:(Ljava/lang/Object;)V
+        60: goto          38
+        63: goto          124
+        66: aload_0
+        67: instanceof    #324                // class java/util/List
+        70: ifeq          124
+        73: aload_0
+        74: checkcast     #324                // class java/util/List
+        77: astore_2
+        78: aload_2
+        79: dup
+        80: invokestatic  #534                // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+        83: pop
+        84: invokedynamic #542,  0            // InvokeDynamic #20:run:(Ljava/util/List;)Ljava/lang/Runnable;
+        89: invokestatic  #273                // Method expectImmutable:(Ljava/lang/Runnable;)V
+        92: aload_2
+        93: invokeinterface #323,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+        98: astore_3
+        99: aload_3
+       100: invokeinterface #304,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+       105: ifeq          124
+       108: aload_3
+       109: invokeinterface #310,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+       114: astore        4
+       116: aload         4
+       118: invokestatic  #285                // Method recursivelyImmutable:(Ljava/lang/Object;)V
+       121: goto          99
+       124: return
+
+  private static void negativeInputs();
+    descriptor: ()V
+    Code:
+         0: bipush        7
+         2: newarray       int
+         4: dup
+         5: iconst_0
+         6: ldc_w         #545                // int -2147483648
+         9: iastore
+        10: dup
+        11: iconst_1
+        12: iconst_m1
+        13: iastore
+        14: dup
+        15: iconst_2
+        16: iconst_0
+        17: iastore
+        18: dup
+        19: iconst_3
+        20: sipush        511
+        23: iastore
+        24: dup
+        25: iconst_4
+        26: sipush        4097
+        29: iastore
+        30: dup
+        31: iconst_5
+        32: ldc_w         #546                // int 65535
+        35: iastore
+        36: dup
+        37: bipush        6
+        39: ldc_w         #547                // int 2147483647
+        42: iastore
+        43: astore_0
+        44: aload_0
+        45: arraylength
+        46: istore_1
+        47: iconst_0
+        48: istore_2
+        49: iload_2
+        50: iload_1
+        51: if_icmpge     73
+        54: aload_0
+        55: iload_2
+        56: iaload
+        57: istore_3
+        58: iload_3
+        59: invokedynamic #548,  0            // InvokeDynamic #21:run:(I)Ljava/lang/Runnable;
+        64: invokestatic  #387                // Method expectRejected:(Ljava/lang/Runnable;)V
+        67: iinc          2, 1
+        70: goto          49
+        73: bipush        7
+        75: newarray       int
+        77: dup
+        78: iconst_0
+        79: ldc_w         #545                // int -2147483648
+        82: iastore
+        83: dup
+        84: iconst_1
+        85: iconst_m1
+        86: iastore
+        87: dup
+        88: iconst_2
+        89: iconst_0
+        90: iastore
+        91: dup
+        92: iconst_3
+        93: bipush        127
+        95: iastore
+        96: dup
+        97: iconst_4
+        98: sipush        16385
+       101: iastore
+       102: dup
+       103: iconst_5
+       104: ldc_w         #546                // int 65535
+       107: iastore
+       108: dup
+       109: bipush        6
+       111: ldc_w         #547                // int 2147483647
+       114: iastore
+       115: astore_0
+       116: aload_0
+       117: arraylength
+       118: istore_1
+       119: iconst_0
+       120: istore_2
+       121: iload_2
+       122: iload_1
+       123: if_icmpge     145
+       126: aload_0
+       127: iload_2
+       128: iaload
+       129: istore_3
+       130: iload_3
+       131: invokedynamic #551,  0            // InvokeDynamic #22:run:(I)Ljava/lang/Runnable;
+       136: invokestatic  #387                // Method expectRejected:(Ljava/lang/Runnable;)V
+       139: iinc          2, 1
+       142: goto          121
+       145: invokedynamic #552,  0            // InvokeDynamic #23:run:()Ljava/lang/Runnable;
+       150: invokestatic  #387                // Method expectRejected:(Ljava/lang/Runnable;)V
+       153: invokedynamic #555,  0            // InvokeDynamic #24:run:()Ljava/lang/Runnable;
+       158: invokestatic  #387                // Method expectRejected:(Ljava/lang/Runnable;)V
+       161: invokedynamic #556,  0            // InvokeDynamic #25:run:()Ljava/lang/Runnable;
+       166: invokestatic  #387                // Method expectRejected:(Ljava/lang/Runnable;)V
+       169: return
+
+  private static byte[] decode(java.lang.String);
+    descriptor: (Ljava/lang/String;)[B
+    Code:
+         0: invokestatic  #557                // Method java/util/Base64.getDecoder:()Ljava/util/Base64$Decoder;
+         3: aload_0
+         4: invokevirtual #563                // Method java/util/Base64$Decoder.decode:(Ljava/lang/String;)[B
+         7: areturn
+
+  private static java.lang.String sha(byte[]) throws java.lang.Exception;
+    descriptor: ([B)Ljava/lang/String;
+    Code:
+         0: invokestatic  #566                // Method java/util/HexFormat.of:()Ljava/util/HexFormat;
+         3: ldc_w         #571                // String SHA-256
+         6: invokestatic  #573                // Method java/security/MessageDigest.getInstance:(Ljava/lang/String;)Ljava/security/MessageDigest;
+         9: aload_0
+        10: invokevirtual #579                // Method java/security/MessageDigest.digest:([B)[B
+        13: invokevirtual #583                // Method java/util/HexFormat.formatHex:([B)Ljava/lang/String;
+        16: areturn
+
+  private static void equal(java.lang.Object, java.lang.Object, java.lang.String);
+    descriptor: (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V
+    Code:
+         0: getstatic     #100                // Field assertions:I
+         3: iconst_1
+         4: iadd
+         5: putstatic     #100                // Field assertions:I
+         8: aload_0
+         9: aload_1
+        10: invokestatic  #586                // Method java/util/Objects.equals:(Ljava/lang/Object;Ljava/lang/Object;)Z
+        13: ifne          38
+        16: new           #112                // class java/lang/AssertionError
+        19: dup
+        20: aload_2
+        21: aload_0
+        22: invokestatic  #204                // Method java/lang/String.valueOf:(Ljava/lang/Object;)Ljava/lang/String;
+        25: aload_1
+        26: invokestatic  #204                // Method java/lang/String.valueOf:(Ljava/lang/Object;)Ljava/lang/String;
+        29: invokedynamic #589,  0            // InvokeDynamic #26:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+        34: invokespecial #116                // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+        37: athrow
+        38: return
+
+  private static void expectImmutable(java.lang.Runnable);
+    descriptor: (Ljava/lang/Runnable;)V
+    Code:
+         0: getstatic     #100                // Field assertions:I
+         3: iconst_1
+         4: iadd
+         5: putstatic     #100                // Field assertions:I
+         8: aload_0
+         9: invokeinterface #592,  1          // InterfaceMethod java/lang/Runnable.run:()V
+        14: goto          19
+        17: astore_1
+        18: return
+        19: new           #112                // class java/lang/AssertionError
+        22: dup
+        23: ldc_w         #598                // String mutable output
+        26: invokespecial #116                // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+        29: athrow
+      Exception table:
+         from    to  target type
+             8    14    17   Class java/lang/UnsupportedOperationException
+
+  private static void expectRejected(java.lang.Runnable);
+    descriptor: (Ljava/lang/Runnable;)V
+    Code:
+         0: getstatic     #100                // Field assertions:I
+         3: iconst_1
+         4: iadd
+         5: putstatic     #100                // Field assertions:I
+         8: aload_0
+         9: invokeinterface #592,  1          // InterfaceMethod java/lang/Runnable.run:()V
+        14: goto          19
+        17: astore_1
+        18: return
+        19: new           #112                // class java/lang/AssertionError
+        22: dup
+        23: ldc_w         #600                // String invalid input accepted
+        26: invokespecial #116                // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+        29: athrow
+      Exception table:
+         from    to  target type
+             8    14    17   Class java/lang/IllegalArgumentException
+
+  private static void lambda$negativeInputs$4();
+    descriptor: ()V
+    Code:
+         0: aconst_null
+         1: aconst_null
+         2: aconst_null
+         3: aconst_null
+         4: invokestatic  #198                // Method dev/mixer/android/AppearanceResolutionV1.prepare:(Ldev/mixer/android/UiPacket;Ldev/mixer/android/AppearanceDescriptorV1;Ldev/mixer/android/AppearanceResolutionV1$Environment;Ldev/mixer/android/AppearanceResolutionV1$Platform;)Ldev/mixer/android/AppearanceResolutionV1$Plan;
+         7: pop
+         8: return
+
+  private static void lambda$negativeInputs$3();
+    descriptor: ()V
+    Code:
+         0: new           #145                // class dev/mixer/android/AppearanceResolutionV1$Environment
+         3: dup
+         4: getstatic     #602                // Field dev/mixer/android/AppearanceResolutionV1$Scheme.light:Ldev/mixer/android/AppearanceResolutionV1$Scheme;
+         7: aconst_null
+         8: sipush        1024
+        11: sipush        1024
+        14: invokespecial #185                // Method dev/mixer/android/AppearanceResolutionV1$Environment."<init>":(Ldev/mixer/android/AppearanceResolutionV1$Scheme;Ldev/mixer/android/AppearanceResolutionV1$Direction;II)V
+        17: pop
+        18: return
+
+  private static void lambda$negativeInputs$2();
+    descriptor: ()V
+    Code:
+         0: new           #145                // class dev/mixer/android/AppearanceResolutionV1$Environment
+         3: dup
+         4: aconst_null
+         5: getstatic     #606                // Field dev/mixer/android/AppearanceResolutionV1$Direction.leftToRight:Ldev/mixer/android/AppearanceResolutionV1$Direction;
+         8: sipush        1024
+        11: sipush        1024
+        14: invokespecial #185                // Method dev/mixer/android/AppearanceResolutionV1$Environment."<init>":(Ldev/mixer/android/AppearanceResolutionV1$Scheme;Ldev/mixer/android/AppearanceResolutionV1$Direction;II)V
+        17: pop
+        18: return
+
+  private static void lambda$negativeInputs$1(int);
+    descriptor: (I)V
+    Code:
+         0: new           #145                // class dev/mixer/android/AppearanceResolutionV1$Environment
+         3: dup
+         4: getstatic     #602                // Field dev/mixer/android/AppearanceResolutionV1$Scheme.light:Ldev/mixer/android/AppearanceResolutionV1$Scheme;
+         7: getstatic     #606                // Field dev/mixer/android/AppearanceResolutionV1$Direction.leftToRight:Ldev/mixer/android/AppearanceResolutionV1$Direction;
+        10: sipush        1024
+        13: iload_0
+        14: invokespecial #185                // Method dev/mixer/android/AppearanceResolutionV1$Environment."<init>":(Ldev/mixer/android/AppearanceResolutionV1$Scheme;Ldev/mixer/android/AppearanceResolutionV1$Direction;II)V
+        17: pop
+        18: return
+
+  private static void lambda$negativeInputs$0(int);
+    descriptor: (I)V
+    Code:
+         0: new           #145                // class dev/mixer/android/AppearanceResolutionV1$Environment
+         3: dup
+         4: getstatic     #602                // Field dev/mixer/android/AppearanceResolutionV1$Scheme.light:Ldev/mixer/android/AppearanceResolutionV1$Scheme;
+         7: getstatic     #606                // Field dev/mixer/android/AppearanceResolutionV1$Direction.leftToRight:Ldev/mixer/android/AppearanceResolutionV1$Direction;
+        10: iload_0
+        11: sipush        1024
+        14: invokespecial #185                // Method dev/mixer/android/AppearanceResolutionV1$Environment."<init>":(Ldev/mixer/android/AppearanceResolutionV1$Scheme;Ldev/mixer/android/AppearanceResolutionV1$Direction;II)V
+        17: pop
+        18: return
+
+  private static void lambda$checkCase$7(dev.mixer.android.UiPacket, dev.mixer.android.UiPacket$Node, java.lang.String, java.lang.Object);
+    descriptor: (Ldev/mixer/android/UiPacket;Ldev/mixer/android/UiPacket$Node;Ljava/lang/String;Ljava/lang/Object;)V
+    Code:
+         0: aload_0
+         1: aload_1
+         2: getfield      #390                // Field dev/mixer/android/UiPacket$Node.id:Ljava/lang/String;
+         5: aload_1
+         6: getfield      #337                // Field dev/mixer/android/UiPacket$Node.generation:Ljava/lang/String;
+         9: aload_2
+        10: aload_3
+        11: invokevirtual #392                // Method dev/mixer/android/UiPacket.event:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)[B
+        14: pop
+        15: return
+
+  private static void lambda$checkCase$6(dev.mixer.android.AppearanceResolutionV1$Node);
+    descriptor: (Ldev/mixer/android/AppearanceResolutionV1$Node;)V
+    Code:
+         0: aload_0
+         1: invokevirtual #610                // Method dev/mixer/android/AppearanceResolutionV1$Node.childIDs:()Ljava/util/List;
+         4: ldc_w         #614                // String forbidden
+         7: invokeinterface #449,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+        12: pop
+        13: return
+
+  private static void lambda$checkCase$5(dev.mixer.android.UiPacket$Node);
+    descriptor: (Ldev/mixer/android/UiPacket$Node;)V
+    Code:
+         0: aload_0
+         1: getfield      #616                // Field dev/mixer/android/UiPacket$Node.children:Ljava/util/List;
+         4: aload_0
+         5: invokeinterface #449,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+        10: pop
+        11: return
+
+  private static void lambda$checkCase$4(dev.mixer.android.UiPacket$Node);
+    descriptor: (Ldev/mixer/android/UiPacket$Node;)V
+    Code:
+         0: aload_0
+         1: getfield      #364                // Field dev/mixer/android/UiPacket$Node.actions:Ljava/util/Map;
+         4: ldc_w         #619                // String activate
+         7: ldc_w         #614                // String forbidden
+        10: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        15: pop
+        16: return
+
+  private static void lambda$checkCase$3(dev.mixer.android.UiPacket$Node);
+    descriptor: (Ldev/mixer/android/UiPacket$Node;)V
+    Code:
+         0: aload_0
+         1: getfield      #621                // Field dev/mixer/android/UiPacket$Node.properties:Ljava/util/Map;
+         4: ldc_w         #624                // String disabled
+         7: iconst_1
+         8: invokestatic  #353                // Method java/lang/Boolean.valueOf:(Z)Ljava/lang/Boolean;
+        11: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        16: pop
+        17: return
+
+  private static void lambda$checkCase$2(dev.mixer.android.AppearanceResolutionV1$Plan);
+    descriptor: (Ldev/mixer/android/AppearanceResolutionV1$Plan;)V
+    Code:
+         0: aload_0
+         1: getfield      #281                // Field dev/mixer/android/AppearanceResolutionV1$Plan.font:Ljava/util/Map;
+         4: ldc_w         #614                // String forbidden
+         7: ldc_w         #614                // String forbidden
+        10: invokeinterface #404,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        15: pop
+        16: return
+
+  private static void lambda$checkCase$1(dev.mixer.android.AppearanceResolutionV1$Plan);
+    descriptor: (Ldev/mixer/android/AppearanceResolutionV1$Plan;)V
+    Code:
+         0: aload_0
+         1: getfield      #288                // Field dev/mixer/android/AppearanceResolutionV1$Plan.resources:Ljava/util/List;
+         4: ldc_w         #614                // String forbidden
+         7: invokeinterface #449,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+        12: pop
+        13: return
+
+  private static void lambda$checkCase$0(dev.mixer.android.AppearanceResolutionV1$Plan);
+    descriptor: (Ldev/mixer/android/AppearanceResolutionV1$Plan;)V
+    Code:
+         0: aload_0
+         1: getfield      #321                // Field dev/mixer/android/AppearanceResolutionV1$Plan.nodes:Ljava/util/List;
+         4: invokeinterface #625,  1          // InterfaceMethod java/util/List.clear:()V
+         9: return
+}
+Compiled from "AppearanceDescriptorV2Tests.java"
+public final class dev.mixer.android.AppearanceDescriptorV2Tests {
+  private static int checks;
+    descriptor: I
+
+  public dev.mixer.android.AppearanceDescriptorV2Tests();
+    descriptor: ()V
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: return
+
+  private static void require(boolean, java.lang.String);
+    descriptor: (ZLjava/lang/String;)V
+    Code:
+         0: getstatic     #7                  // Field checks:I
+         3: iconst_1
+         4: iadd
+         5: putstatic     #7                  // Field checks:I
+         8: iload_0
+         9: ifne          21
+        12: new           #13                 // class java/lang/AssertionError
+        15: dup
+        16: aload_1
+        17: invokespecial #15                 // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+        20: athrow
+        21: return
+
+  private static void immutable(java.lang.Object) throws java.lang.Exception;
+    descriptor: (Ljava/lang/Object;)V
+    Code:
+         0: aload_0
+         1: ifnull        8
+         4: iconst_1
+         5: goto          9
+         8: iconst_0
+         9: ldc           #18                 // String null typed value
+        11: invokestatic  #20                 // Method require:(ZLjava/lang/String;)V
+        14: aload_0
+        15: instanceof    #24                 // class java/util/List
+        18: ifeq          84
+        21: aload_0
+        22: checkcast     #24                 // class java/util/List
+        25: astore_1
+        26: aload_1
+        27: invokeinterface #26,  1           // InterfaceMethod java/util/List.clear:()V
+        32: new           #13                 // class java/lang/AssertionError
+        35: dup
+        36: ldc           #29                 // String mutable typed list
+        38: invokespecial #15                 // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+        41: athrow
+        42: astore_2
+        43: getstatic     #7                  // Field checks:I
+        46: iconst_1
+        47: iadd
+        48: putstatic     #7                  // Field checks:I
+        51: aload_1
+        52: invokeinterface #33,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+        57: astore_2
+        58: aload_2
+        59: invokeinterface #37,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+        64: ifeq          81
+        67: aload_2
+        68: invokeinterface #43,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+        73: astore_3
+        74: aload_3
+        75: invokestatic  #47                 // Method immutable:(Ljava/lang/Object;)V
+        78: goto          58
+        81: goto          191
+        84: aload_0
+        85: invokevirtual #50                 // Method java/lang/Object.getClass:()Ljava/lang/Class;
+        88: invokevirtual #54                 // Method java/lang/Class.isRecord:()Z
+        91: ifeq          160
+        94: aload_0
+        95: invokevirtual #50                 // Method java/lang/Object.getClass:()Ljava/lang/Class;
+        98: invokevirtual #59                 // Method java/lang/Class.getModifiers:()I
+       101: invokestatic  #63                 // Method java/lang/reflect/Modifier.isFinal:(I)Z
+       104: ldc           #69                 // String nonfinal record
+       106: invokestatic  #20                 // Method require:(ZLjava/lang/String;)V
+       109: aload_0
+       110: invokevirtual #50                 // Method java/lang/Object.getClass:()Ljava/lang/Class;
+       113: invokevirtual #71                 // Method java/lang/Class.getRecordComponents:()[Ljava/lang/reflect/RecordComponent;
+       116: astore_2
+       117: aload_2
+       118: arraylength
+       119: istore_3
+       120: iconst_0
+       121: istore        4
+       123: iload         4
+       125: iload_3
+       126: if_icmpge     157
+       129: aload_2
+       130: iload         4
+       132: aaload
+       133: astore        5
+       135: aload         5
+       137: invokevirtual #75                 // Method java/lang/reflect/RecordComponent.getAccessor:()Ljava/lang/reflect/Method;
+       140: aload_0
+       141: iconst_0
+       142: anewarray     #2                  // class java/lang/Object
+       145: invokevirtual #81                 // Method java/lang/reflect/Method.invoke:(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;
+       148: invokestatic  #47                 // Method immutable:(Ljava/lang/Object;)V
+       151: iinc          4, 1
+       154: goto          123
+       157: goto          191
+       160: aload_0
+       161: instanceof    #87                 // class java/lang/String
+       164: ifne          181
+       167: aload_0
+       168: instanceof    #89                 // class java/lang/Integer
+       171: ifne          181
+       174: aload_0
+       175: instanceof    #91                 // class java/lang/Enum
+       178: ifeq          185
+       181: iconst_1
+       182: goto          186
+       185: iconst_0
+       186: ldc           #93                 // String untyped retained object
+       188: invokestatic  #20                 // Method require:(ZLjava/lang/String;)V
+       191: return
+      Exception table:
+         from    to  target type
+            26    42    42   Class java/lang/UnsupportedOperationException
+
+  private static java.lang.Object tree(java.lang.Object) throws java.lang.Exception;
+    descriptor: (Ljava/lang/Object;)Ljava/lang/Object;
+    Code:
+         0: aload_0
+         1: instanceof    #95                 // class dev/mixer/android/AppearanceDescriptorV2$Color
+         4: ifeq          65
+         7: aload_0
+         8: checkcast     #95                 // class dev/mixer/android/AppearanceDescriptorV2$Color
+        11: astore_1
+        12: getstatic     #97                 // Field java/util/Locale.ROOT:Ljava/util/Locale;
+        15: ldc           #103                // String #%02X%02X%02X%02X
+        17: iconst_4
+        18: anewarray     #2                  // class java/lang/Object
+        21: dup
+        22: iconst_0
+        23: aload_1
+        24: invokevirtual #105                // Method dev/mixer/android/AppearanceDescriptorV2$Color.red:()I
+        27: invokestatic  #108                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+        30: aastore
+        31: dup
+        32: iconst_1
+        33: aload_1
+        34: invokevirtual #112                // Method dev/mixer/android/AppearanceDescriptorV2$Color.green:()I
+        37: invokestatic  #108                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+        40: aastore
+        41: dup
+        42: iconst_2
+        43: aload_1
+        44: invokevirtual #115                // Method dev/mixer/android/AppearanceDescriptorV2$Color.blue:()I
+        47: invokestatic  #108                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+        50: aastore
+        51: dup
+        52: iconst_3
+        53: aload_1
+        54: invokevirtual #118                // Method dev/mixer/android/AppearanceDescriptorV2$Color.alpha:()I
+        57: invokestatic  #108                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+        60: aastore
+        61: invokestatic  #121                // Method java/lang/String.format:(Ljava/util/Locale;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+        64: areturn
+        65: aload_0
+        66: instanceof    #125                // class dev/mixer/android/AppearanceDescriptorV2$Weight
+        69: ifeq          85
+        72: aload_0
+        73: checkcast     #125                // class dev/mixer/android/AppearanceDescriptorV2$Weight
+        76: astore_1
+        77: aload_1
+        78: getfield      #127                // Field dev/mixer/android/AppearanceDescriptorV2$Weight.value:I
+        81: invokestatic  #108                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+        84: areturn
+        85: aload_0
+        86: instanceof    #130                // class dev/mixer/android/AppearanceDescriptorV2$SystemSans
+        89: ifeq          100
+        92: ldc           #132                // String kind
+        94: ldc           #134                // String systemSans
+        96: invokestatic  #136                // InterfaceMethod java/util/Map.of:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/Map;
+        99: areturn
+       100: aload_0
+       101: instanceof    #142                // class dev/mixer/android/AppearanceDescriptorV2$Bundled
+       104: ifeq          138
+       107: aload_0
+       108: checkcast     #142                // class dev/mixer/android/AppearanceDescriptorV2$Bundled
+       111: astore_1
+       112: ldc           #132                // String kind
+       114: ldc           #144                // String bundled
+       116: ldc           #146                // String faces
+       118: aload_1
+       119: invokevirtual #148                // Method dev/mixer/android/AppearanceDescriptorV2$Bundled.faces:()Ljava/util/List;
+       122: invokestatic  #151                // Method tree:(Ljava/lang/Object;)Ljava/lang/Object;
+       125: ldc           #155                // String fallback
+       127: aload_1
+       128: invokevirtual #157                // Method dev/mixer/android/AppearanceDescriptorV2$Bundled.fallback:()Ldev/mixer/android/AppearanceDescriptorV2$FontFallback;
+       131: invokestatic  #151                // Method tree:(Ljava/lang/Object;)Ljava/lang/Object;
+       134: invokestatic  #160                // InterfaceMethod java/util/Map.of:(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/Map;
+       137: areturn
+       138: aload_0
+       139: instanceof    #91                 // class java/lang/Enum
+       142: ifeq          155
+       145: aload_0
+       146: checkcast     #91                 // class java/lang/Enum
+       149: astore_1
+       150: aload_1
+       151: invokevirtual #163                // Method java/lang/Enum.name:()Ljava/lang/String;
+       154: areturn
+       155: aload_0
+       156: instanceof    #24                 // class java/util/List
+       159: ifeq          216
+       162: aload_0
+       163: checkcast     #24                 // class java/util/List
+       166: astore_1
+       167: new           #167                // class java/util/ArrayList
+       170: dup
+       171: invokespecial #169                // Method java/util/ArrayList."<init>":()V
+       174: astore_2
+       175: aload_1
+       176: invokeinterface #33,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+       181: astore_3
+       182: aload_3
+       183: invokeinterface #37,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+       188: ifeq          214
+       191: aload_3
+       192: invokeinterface #43,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+       197: astore        4
+       199: aload_2
+       200: aload         4
+       202: invokestatic  #151                // Method tree:(Ljava/lang/Object;)Ljava/lang/Object;
+       205: invokeinterface #170,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       210: pop
+       211: goto          182
+       214: aload_2
+       215: areturn
+       216: aload_0
+       217: invokevirtual #50                 // Method java/lang/Object.getClass:()Ljava/lang/Class;
+       220: invokevirtual #54                 // Method java/lang/Class.isRecord:()Z
+       223: ifeq          296
+       226: new           #174                // class java/util/TreeMap
+       229: dup
+       230: invokespecial #176                // Method java/util/TreeMap."<init>":()V
+       233: astore_1
+       234: aload_0
+       235: invokevirtual #50                 // Method java/lang/Object.getClass:()Ljava/lang/Class;
+       238: invokevirtual #71                 // Method java/lang/Class.getRecordComponents:()[Ljava/lang/reflect/RecordComponent;
+       241: astore_2
+       242: aload_2
+       243: arraylength
+       244: istore_3
+       245: iconst_0
+       246: istore        4
+       248: iload         4
+       250: iload_3
+       251: if_icmpge     294
+       254: aload_2
+       255: iload         4
+       257: aaload
+       258: astore        5
+       260: aload_1
+       261: aload         5
+       263: invokevirtual #177                // Method java/lang/reflect/RecordComponent.getName:()Ljava/lang/String;
+       266: aload         5
+       268: invokevirtual #75                 // Method java/lang/reflect/RecordComponent.getAccessor:()Ljava/lang/reflect/Method;
+       271: aload_0
+       272: iconst_0
+       273: anewarray     #2                  // class java/lang/Object
+       276: invokevirtual #81                 // Method java/lang/reflect/Method.invoke:(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;
+       279: invokestatic  #151                // Method tree:(Ljava/lang/Object;)Ljava/lang/Object;
+       282: invokeinterface #180,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       287: pop
+       288: iinc          4, 1
+       291: goto          248
+       294: aload_1
+       295: areturn
+       296: aload_0
+       297: instanceof    #87                 // class java/lang/String
+       300: ifne          310
+       303: aload_0
+       304: instanceof    #89                 // class java/lang/Integer
+       307: ifeq          314
+       310: iconst_1
+       311: goto          315
+       314: iconst_0
+       315: ldc           #184                // String unexpected leaf
+       317: invokestatic  #20                 // Method require:(ZLjava/lang/String;)V
+       320: aload_0
+       321: areturn
+
+  private static java.lang.String json(java.lang.Object);
+    descriptor: (Ljava/lang/Object;)Ljava/lang/String;
+    Code:
+         0: aload_0
+         1: instanceof    #87                 // class java/lang/String
+         4: ifeq          33
+         7: aload_0
+         8: checkcast     #87                 // class java/lang/String
+        11: astore_1
+        12: aload_1
+        13: ldc           #186                // String \\
+        15: ldc           #188                // String \\\\
+        17: invokevirtual #190                // Method java/lang/String.replace:(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Ljava/lang/String;
+        20: ldc           #194                // String \"
+        22: ldc           #196                // String \\\"
+        24: invokevirtual #190                // Method java/lang/String.replace:(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Ljava/lang/String;
+        27: invokedynamic #198,  0            // InvokeDynamic #0:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+        32: areturn
+        33: aload_0
+        34: instanceof    #89                 // class java/lang/Integer
+        37: ifeq          45
+        40: aload_0
+        41: invokevirtual #202                // Method java/lang/Object.toString:()Ljava/lang/String;
+        44: areturn
+        45: aload_0
+        46: instanceof    #24                 // class java/util/List
+        49: ifeq          116
+        52: aload_0
+        53: checkcast     #24                 // class java/util/List
+        56: astore_1
+        57: new           #167                // class java/util/ArrayList
+        60: dup
+        61: invokespecial #169                // Method java/util/ArrayList."<init>":()V
+        64: astore_2
+        65: aload_1
+        66: invokeinterface #33,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+        71: astore_3
+        72: aload_3
+        73: invokeinterface #37,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+        78: ifeq          104
+        81: aload_3
+        82: invokeinterface #43,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+        87: astore        4
+        89: aload_2
+        90: aload         4
+        92: invokestatic  #205                // Method json:(Ljava/lang/Object;)Ljava/lang/String;
+        95: invokeinterface #170,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       100: pop
+       101: goto          72
+       104: ldc           #209                // String ,
+       106: aload_2
+       107: invokestatic  #211                // Method java/lang/String.join:(Ljava/lang/CharSequence;Ljava/lang/Iterable;)Ljava/lang/String;
+       110: invokedynamic #215,  0            // InvokeDynamic #1:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       115: areturn
+       116: aload_0
+       117: instanceof    #137                // class java/util/Map
+       120: ifeq          285
+       123: aload_0
+       124: checkcast     #137                // class java/util/Map
+       127: astore_1
+       128: new           #174                // class java/util/TreeMap
+       131: dup
+       132: invokespecial #176                // Method java/util/TreeMap."<init>":()V
+       135: astore_2
+       136: aload_1
+       137: invokeinterface #216,  1          // InterfaceMethod java/util/Map.entrySet:()Ljava/util/Set;
+       142: invokeinterface #220,  1          // InterfaceMethod java/util/Set.iterator:()Ljava/util/Iterator;
+       147: astore_3
+       148: aload_3
+       149: invokeinterface #37,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+       154: ifeq          195
+       157: aload_3
+       158: invokeinterface #43,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+       163: checkcast     #223                // class java/util/Map$Entry
+       166: astore        4
+       168: aload_2
+       169: aload         4
+       171: invokeinterface #225,  1          // InterfaceMethod java/util/Map$Entry.getKey:()Ljava/lang/Object;
+       176: checkcast     #87                 // class java/lang/String
+       179: aload         4
+       181: invokeinterface #228,  1          // InterfaceMethod java/util/Map$Entry.getValue:()Ljava/lang/Object;
+       186: invokeinterface #180,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       191: pop
+       192: goto          148
+       195: new           #167                // class java/util/ArrayList
+       198: dup
+       199: invokespecial #169                // Method java/util/ArrayList."<init>":()V
+       202: astore_3
+       203: aload_2
+       204: invokeinterface #216,  1          // InterfaceMethod java/util/Map.entrySet:()Ljava/util/Set;
+       209: invokeinterface #220,  1          // InterfaceMethod java/util/Set.iterator:()Ljava/util/Iterator;
+       214: astore        4
+       216: aload         4
+       218: invokeinterface #37,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+       223: ifeq          273
+       226: aload         4
+       228: invokeinterface #43,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+       233: checkcast     #223                // class java/util/Map$Entry
+       236: astore        5
+       238: aload_3
+       239: aload         5
+       241: invokeinterface #225,  1          // InterfaceMethod java/util/Map$Entry.getKey:()Ljava/lang/Object;
+       246: invokestatic  #205                // Method json:(Ljava/lang/Object;)Ljava/lang/String;
+       249: aload         5
+       251: invokeinterface #228,  1          // InterfaceMethod java/util/Map$Entry.getValue:()Ljava/lang/Object;
+       256: invokestatic  #205                // Method json:(Ljava/lang/Object;)Ljava/lang/String;
+       259: invokedynamic #231,  0            // InvokeDynamic #2:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+       264: invokeinterface #170,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       269: pop
+       270: goto          216
+       273: ldc           #209                // String ,
+       275: aload_3
+       276: invokestatic  #211                // Method java/lang/String.join:(Ljava/lang/CharSequence;Ljava/lang/Iterable;)Ljava/lang/String;
+       279: invokedynamic #234,  0            // InvokeDynamic #3:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       284: areturn
+       285: new           #13                 // class java/lang/AssertionError
+       288: dup
+       289: ldc           #235                // String not JSON
+       291: invokespecial #15                 // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+       294: athrow
+
+  private static byte[] encoded(dev.mixer.android.AppearanceDescriptorV2) throws java.lang.Exception;
+    descriptor: (Ldev/mixer/android/AppearanceDescriptorV2;)[B
+    Code:
+         0: new           #174                // class java/util/TreeMap
+         3: dup
+         4: invokespecial #176                // Method java/util/TreeMap."<init>":()V
+         7: astore_1
+         8: aload_1
+         9: ldc           #237                // String format
+        11: ldc           #240                // String mixer.native-appearance.2
+        13: invokeinterface #180,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        18: pop
+        19: aload_1
+        20: ldc           #242                // String id
+        22: aload_0
+        23: getfield      #244                // Field dev/mixer/android/AppearanceDescriptorV2.id:Ljava/lang/String;
+        26: invokeinterface #180,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        31: pop
+        32: aload_1
+        33: ldc           #247                // String mode
+        35: aload_0
+        36: getfield      #249                // Field dev/mixer/android/AppearanceDescriptorV2.mode:Ldev/mixer/android/AppearanceDescriptorV2$Mode;
+        39: invokevirtual #252                // Method dev/mixer/android/AppearanceDescriptorV2$Mode.name:()Ljava/lang/String;
+        42: invokeinterface #180,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        47: pop
+        48: aload_1
+        49: ldc           #255                // String resources
+        51: aload_0
+        52: getfield      #257                // Field dev/mixer/android/AppearanceDescriptorV2.resources:Ljava/util/List;
+        55: invokestatic  #151                // Method tree:(Ljava/lang/Object;)Ljava/lang/Object;
+        58: invokeinterface #180,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        63: pop
+        64: aload_0
+        65: getfield      #249                // Field dev/mixer/android/AppearanceDescriptorV2.mode:Ldev/mixer/android/AppearanceDescriptorV2$Mode;
+        68: getstatic     #260                // Field dev/mixer/android/AppearanceDescriptorV2$Mode.shared:Ldev/mixer/android/AppearanceDescriptorV2$Mode;
+        71: if_acmpne     94
+        74: aload_1
+        75: ldc_w         #263                // String theme
+        78: aload_0
+        79: getfield      #265                // Field dev/mixer/android/AppearanceDescriptorV2.iOS:Ldev/mixer/android/AppearanceDescriptorV2$Theme;
+        82: invokestatic  #151                // Method tree:(Ljava/lang/Object;)Ljava/lang/Object;
+        85: invokeinterface #180,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        90: pop
+        91: goto          142
+        94: aload_1
+        95: ldc_w         #269                // String iOS
+        98: aload_0
+        99: getfield      #265                // Field dev/mixer/android/AppearanceDescriptorV2.iOS:Ldev/mixer/android/AppearanceDescriptorV2$Theme;
+       102: invokestatic  #151                // Method tree:(Ljava/lang/Object;)Ljava/lang/Object;
+       105: invokeinterface #180,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       110: pop
+       111: aload_1
+       112: ldc_w         #270                // String android
+       115: aload_0
+       116: getfield      #272                // Field dev/mixer/android/AppearanceDescriptorV2.android:Ldev/mixer/android/AppearanceDescriptorV2$Theme;
+       119: invokestatic  #151                // Method tree:(Ljava/lang/Object;)Ljava/lang/Object;
+       122: invokeinterface #180,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       127: pop
+       128: aload_1
+       129: ldc_w         #274                // String reason
+       132: aload_0
+       133: getfield      #276                // Field dev/mixer/android/AppearanceDescriptorV2.platformSpecificReason:Ljava/lang/String;
+       136: invokeinterface #180,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+       141: pop
+       142: aload_1
+       143: invokestatic  #205                // Method json:(Ljava/lang/Object;)Ljava/lang/String;
+       146: invokedynamic #279,  0            // InvokeDynamic #4:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       151: getstatic     #280                // Field java/nio/charset/StandardCharsets.US_ASCII:Ljava/nio/charset/Charset;
+       154: invokevirtual #286                // Method java/lang/String.getBytes:(Ljava/nio/charset/Charset;)[B
+       157: areturn
+
+  public static void main(java.lang.String[]) throws java.lang.Exception;
+    descriptor: ([Ljava/lang/String;)V
+    Code:
+         0: iconst_0
+         1: istore_1
+         2: iconst_0
+         3: istore_2
+         4: aload_0
+         5: iconst_0
+         6: aaload
+         7: iconst_0
+         8: anewarray     #87                 // class java/lang/String
+        11: invokestatic  #290                // InterfaceMethod java/nio/file/Path.of:(Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;
+        14: getstatic     #280                // Field java/nio/charset/StandardCharsets.US_ASCII:Ljava/nio/charset/Charset;
+        17: invokestatic  #295                // Method java/nio/file/Files.readAllLines:(Ljava/nio/file/Path;Ljava/nio/charset/Charset;)Ljava/util/List;
+        20: invokeinterface #33,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+        25: astore_3
+        26: aload_3
+        27: invokeinterface #37,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+        32: ifeq          765
+        35: aload_3
+        36: invokeinterface #43,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+        41: checkcast     #87                 // class java/lang/String
+        44: astore        4
+        46: aload         4
+        48: ldc_w         #301                // String \t
+        51: iconst_m1
+        52: invokevirtual #303                // Method java/lang/String.split:(Ljava/lang/String;I)[Ljava/lang/String;
+        55: astore        5
+        57: invokestatic  #307                // Method java/util/Base64.getDecoder:()Ljava/util/Base64$Decoder;
+        60: aload         5
+        62: iconst_2
+        63: aaload
+        64: invokevirtual #313                // Method java/util/Base64$Decoder.decode:(Ljava/lang/String;)[B
+        67: astore        6
+        69: aconst_null
+        70: astore        7
+        72: aload         6
+        74: invokestatic  #319                // Method dev/mixer/android/AppearanceDescriptorV2.decode:([B)Ldev/mixer/android/AppearanceDescriptorV2;
+        77: astore        7
+        79: goto          521
+        82: astore        8
+        84: aload         5
+        86: iconst_0
+        87: aaload
+        88: astore        10
+        90: iconst_m1
+        91: istore        11
+        93: aload         10
+        95: invokevirtual #324                // Method java/lang/String.hashCode:()I
+        98: lookupswitch  { // 11
+             -1251810659: 334
+              -832605454: 281
+              -734443816: 213
+              -574118241: 264
+                   97728: 370
+                96634189: 316
+               415491174: 247
+               530027221: 298
+              1308806929: 230
+              1406581924: 352
+              1554590786: 196
+                 default: 385
+            }
+       196: aload         10
+       198: ldc_w         #327                // String depth21
+       201: invokevirtual #329                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       204: ifeq          385
+       207: iconst_0
+       208: istore        11
+       210: goto          385
+       213: aload         10
+       215: ldc_w         #332                // String array65
+       218: invokevirtual #329                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       221: ifeq          385
+       224: iconst_1
+       225: istore        11
+       227: goto          385
+       230: aload         10
+       232: ldc_w         #334                // String icon-count-65
+       235: invokevirtual #329                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       238: ifeq          385
+       241: iconst_2
+       242: istore        11
+       244: goto          385
+       247: aload         10
+       249: ldc_w         #336                // String values-exact8192
+       252: invokevirtual #329                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       255: ifeq          385
+       258: iconst_3
+       259: istore        11
+       261: goto          385
+       264: aload         10
+       266: ldc_w         #338                // String values-over
+       269: invokevirtual #329                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       272: ifeq          385
+       275: iconst_4
+       276: istore        11
+       278: goto          385
+       281: aload         10
+       283: ldc_w         #340                // String values-over8193
+       286: invokevirtual #329                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       289: ifeq          385
+       292: iconst_5
+       293: istore        11
+       295: goto          385
+       298: aload         10
+       300: ldc_w         #342                // String oversize
+       303: invokevirtual #329                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       306: ifeq          385
+       309: bipush        6
+       311: istore        11
+       313: goto          385
+       316: aload         10
+       318: ldc_w         #344                // String empty
+       321: invokevirtual #329                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       324: ifeq          385
+       327: bipush        7
+       329: istore        11
+       331: goto          385
+       334: aload         10
+       336: ldc_w         #346                // String duplicate-key
+       339: invokevirtual #329                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       342: ifeq          385
+       345: bipush        8
+       347: istore        11
+       349: goto          385
+       352: aload         10
+       354: ldc_w         #348                // String nonascii
+       357: invokevirtual #329                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       360: ifeq          385
+       363: bipush        9
+       365: istore        11
+       367: goto          385
+       370: aload         10
+       372: ldc_w         #350                // String bom
+       375: invokevirtual #329                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       378: ifeq          385
+       381: bipush        10
+       383: istore        11
+       385: iload         11
+       387: tableswitch   { // 0 to 10
+                       0: 444
+                       1: 450
+                       2: 450
+                       3: 456
+                       4: 462
+                       5: 462
+                       6: 468
+                       7: 468
+                       8: 474
+                       9: 480
+                      10: 480
+                 default: 486
+            }
+       444: getstatic     #352                // Field dev/mixer/android/AppearanceDescriptorV2$Error.depthLimit:Ldev/mixer/android/AppearanceDescriptorV2$Error;
+       447: goto          487
+       450: getstatic     #358                // Field dev/mixer/android/AppearanceDescriptorV2$Error.arrayLimit:Ldev/mixer/android/AppearanceDescriptorV2$Error;
+       453: goto          487
+       456: getstatic     #361                // Field dev/mixer/android/AppearanceDescriptorV2$Error.shape:Ldev/mixer/android/AppearanceDescriptorV2$Error;
+       459: goto          487
+       462: getstatic     #364                // Field dev/mixer/android/AppearanceDescriptorV2$Error.valueLimit:Ldev/mixer/android/AppearanceDescriptorV2$Error;
+       465: goto          487
+       468: getstatic     #367                // Field dev/mixer/android/AppearanceDescriptorV2$Error.byteLimit:Ldev/mixer/android/AppearanceDescriptorV2$Error;
+       471: goto          487
+       474: getstatic     #370                // Field dev/mixer/android/AppearanceDescriptorV2$Error.duplicateKey:Ldev/mixer/android/AppearanceDescriptorV2$Error;
+       477: goto          487
+       480: getstatic     #373                // Field dev/mixer/android/AppearanceDescriptorV2$Error.invalidEncoding:Ldev/mixer/android/AppearanceDescriptorV2$Error;
+       483: goto          487
+       486: aconst_null
+       487: astore        9
+       489: aload         9
+       491: ifnull        504
+       494: aload         8
+       496: getfield      #376                // Field dev/mixer/android/AppearanceDescriptorV2$Failure.code:Ldev/mixer/android/AppearanceDescriptorV2$Error;
+       499: aload         9
+       501: if_acmpne     508
+       504: iconst_1
+       505: goto          509
+       508: iconst_0
+       509: aload         5
+       511: iconst_0
+       512: aaload
+       513: invokedynamic #379,  0            // InvokeDynamic #5:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       518: invokestatic  #20                 // Method require:(ZLjava/lang/String;)V
+       521: aload         7
+       523: ifnull        530
+       526: iconst_1
+       527: goto          531
+       530: iconst_0
+       531: istore        8
+       533: iload         8
+       535: aload         5
+       537: iconst_1
+       538: aaload
+       539: ldc_w         #380                // String 1
+       542: invokevirtual #329                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       545: if_icmpne     552
+       548: iconst_1
+       549: goto          553
+       552: iconst_0
+       553: aload         5
+       555: iconst_0
+       556: aaload
+       557: invokestatic  #20                 // Method require:(ZLjava/lang/String;)V
+       560: ldc_w         #382                // String -
+       563: astore        9
+       565: iload         8
+       567: ifeq          728
+       570: iinc          1, 1
+       573: aload         7
+       575: getfield      #265                // Field dev/mixer/android/AppearanceDescriptorV2.iOS:Ldev/mixer/android/AppearanceDescriptorV2$Theme;
+       578: invokestatic  #47                 // Method immutable:(Ljava/lang/Object;)V
+       581: aload         7
+       583: getfield      #272                // Field dev/mixer/android/AppearanceDescriptorV2.android:Ldev/mixer/android/AppearanceDescriptorV2$Theme;
+       586: invokestatic  #47                 // Method immutable:(Ljava/lang/Object;)V
+       589: aload         7
+       591: getfield      #257                // Field dev/mixer/android/AppearanceDescriptorV2.resources:Ljava/util/List;
+       594: invokestatic  #47                 // Method immutable:(Ljava/lang/Object;)V
+       597: aload         7
+       599: getfield      #249                // Field dev/mixer/android/AppearanceDescriptorV2.mode:Ldev/mixer/android/AppearanceDescriptorV2$Mode;
+       602: getstatic     #260                // Field dev/mixer/android/AppearanceDescriptorV2$Mode.shared:Ldev/mixer/android/AppearanceDescriptorV2$Mode;
+       605: if_acmpne     621
+       608: aload         7
+       610: getfield      #265                // Field dev/mixer/android/AppearanceDescriptorV2.iOS:Ldev/mixer/android/AppearanceDescriptorV2$Theme;
+       613: aload         7
+       615: getfield      #272                // Field dev/mixer/android/AppearanceDescriptorV2.android:Ldev/mixer/android/AppearanceDescriptorV2$Theme;
+       618: if_acmpne     625
+       621: iconst_1
+       622: goto          626
+       625: iconst_0
+       626: ldc_w         #384                // String shared identity
+       629: invokestatic  #20                 // Method require:(ZLjava/lang/String;)V
+       632: aload         7
+       634: invokestatic  #386                // Method encoded:(Ldev/mixer/android/AppearanceDescriptorV2;)[B
+       637: astore        10
+       639: aload         10
+       641: aload         6
+       643: invokestatic  #390                // Method java/util/Arrays.equals:([B[B)Z
+       646: aload         5
+       648: iconst_0
+       649: aaload
+       650: invokedynamic #395,  0            // InvokeDynamic #6:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       655: invokestatic  #20                 // Method require:(ZLjava/lang/String;)V
+       658: invokestatic  #396                // Method java/util/Base64.getEncoder:()Ljava/util/Base64$Encoder;
+       661: aload         10
+       663: invokevirtual #400                // Method java/util/Base64$Encoder.encodeToString:([B)Ljava/lang/String;
+       666: astore        9
+       668: aload         7
+       670: getfield      #244                // Field dev/mixer/android/AppearanceDescriptorV2.id:Ljava/lang/String;
+       673: astore        11
+       675: aload         6
+       677: bipush        88
+       679: invokestatic  #406                // Method java/util/Arrays.fill:([BB)V
+       682: aload         7
+       684: getfield      #244                // Field dev/mixer/android/AppearanceDescriptorV2.id:Ljava/lang/String;
+       687: aload         11
+       689: invokevirtual #329                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+       692: ldc_w         #410                // String source array retained
+       695: invokestatic  #20                 // Method require:(ZLjava/lang/String;)V
+       698: aload         10
+       700: invokestatic  #412                // Method dev/mixer/android/AppearanceDescriptorV1.decode:([B)Ldev/mixer/android/AppearanceDescriptorV1;
+       703: pop
+       704: new           #13                 // class java/lang/AssertionError
+       707: dup
+       708: ldc_w         #417                // String V1 accepts V2
+       711: invokespecial #15                 // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+       714: athrow
+       715: astore        12
+       717: getstatic     #7                  // Field checks:I
+       720: iconst_1
+       721: iadd
+       722: putstatic     #7                  // Field checks:I
+       725: goto          731
+       728: iinc          2, 1
+       731: getstatic     #421                // Field java/lang/System.out:Ljava/io/PrintStream;
+       734: aload         5
+       736: iconst_0
+       737: aaload
+       738: iload         8
+       740: ifeq          749
+       743: ldc_w         #380                // String 1
+       746: goto          752
+       749: ldc_w         #427                // String 0
+       752: aload         9
+       754: invokedynamic #429,  0            // InvokeDynamic #7:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+       759: invokevirtual #432                // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+       762: goto          26
+       765: aload_0
+       766: iconst_1
+       767: aaload
+       768: iconst_0
+       769: anewarray     #87                 // class java/lang/String
+       772: invokestatic  #290                // InterfaceMethod java/nio/file/Path.of:(Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;
+       775: invokestatic  #438                // Method java/nio/file/Files.readAllBytes:(Ljava/nio/file/Path;)[B
+       778: astore_3
+       779: aload_3
+       780: arraylength
+       781: sipush        1906
+       784: if_icmpne     791
+       787: iconst_1
+       788: goto          792
+       791: iconst_0
+       792: ldc_w         #442                // String V1 golden byte count
+       795: invokestatic  #20                 // Method require:(ZLjava/lang/String;)V
+       798: aload_3
+       799: invokestatic  #412                // Method dev/mixer/android/AppearanceDescriptorV1.decode:([B)Ldev/mixer/android/AppearanceDescriptorV1;
+       802: pop
+       803: aload_3
+       804: invokestatic  #319                // Method dev/mixer/android/AppearanceDescriptorV2.decode:([B)Ldev/mixer/android/AppearanceDescriptorV2;
+       807: pop
+       808: new           #13                 // class java/lang/AssertionError
+       811: dup
+       812: ldc_w         #444                // String V2 accepts V1
+       815: invokespecial #15                 // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+       818: athrow
+       819: astore        4
+       821: getstatic     #7                  // Field checks:I
+       824: iconst_1
+       825: iadd
+       826: putstatic     #7                  // Field checks:I
+       829: aconst_null
+       830: invokestatic  #319                // Method dev/mixer/android/AppearanceDescriptorV2.decode:([B)Ldev/mixer/android/AppearanceDescriptorV2;
+       833: pop
+       834: new           #13                 // class java/lang/AssertionError
+       837: dup
+       838: ldc_w         #446                // String null accepted
+       841: invokespecial #15                 // Method java/lang/AssertionError."<init>":(Ljava/lang/Object;)V
+       844: athrow
+       845: astore        4
+       847: aload         4
+       849: getfield      #376                // Field dev/mixer/android/AppearanceDescriptorV2$Failure.code:Ldev/mixer/android/AppearanceDescriptorV2$Error;
+       852: getstatic     #367                // Field dev/mixer/android/AppearanceDescriptorV2$Error.byteLimit:Ldev/mixer/android/AppearanceDescriptorV2$Error;
+       855: if_acmpne     862
+       858: iconst_1
+       859: goto          863
+       862: iconst_0
+       863: ldc_w         #448                // String null classification
+       866: invokestatic  #20                 // Method require:(ZLjava/lang/String;)V
+       869: getstatic     #450                // Field java/lang/System.err:Ljava/io/PrintStream;
+       872: iload_1
+       873: iload_2
+       874: iadd
+       875: iload_1
+       876: iload_2
+       877: getstatic     #7                  // Field checks:I
+       880: invokedynamic #453,  0            // InvokeDynamic #8:makeConcatWithConstants:(IIII)Ljava/lang/String;
+       885: invokevirtual #432                // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+       888: return
+      Exception table:
+         from    to  target type
+            72    79    82   Class dev/mixer/android/AppearanceDescriptorV2$Failure
+           698   715   715   Class java/lang/IllegalArgumentException
+           803   819   819   Class dev/mixer/android/AppearanceDescriptorV2$Failure
+           829   845   845   Class dev/mixer/android/AppearanceDescriptorV2$Failure
+}

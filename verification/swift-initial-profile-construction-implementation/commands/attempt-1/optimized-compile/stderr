@@ -1,0 +1,45 @@
+warning: unused imports: `WasiBudget` and `WasiGrants`
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-initial-profile-construction-implementation/source/vm/src/experimental_swift_reactor/cache/initial_profile_v1/tests.rs:4:45
+  |
+4 | use crate::experimental_wasi::{WasiFunction,WasiBudget,WasiGrants};
+  |                                             ^^^^^^^^^^ ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `SeekFrom`
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-initial-profile-construction-implementation/source/vm/src/experimental_swift_reactor/cache/initial_profile_v1/tests.rs:7:25
+  |
+7 | use std::io::{Read,Seek,SeekFrom,Write};
+  |                         ^^^^^^^^
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-initial-profile-construction-implementation/source/vm/src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-initial-profile-construction-implementation/source/vm/src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: 4 warnings emitted
+

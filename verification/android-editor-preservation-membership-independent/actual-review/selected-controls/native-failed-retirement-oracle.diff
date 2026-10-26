@@ -1,0 +1,29 @@
+--- initial-own-forward-fixture
++++ selected-source-bound-native-failure-retirement
+@@ -40,7 +40,7 @@
+             check(first.counted&&second.counted&&!first.released&&!second.released,"both genuine original preservation claims retained");
+             check(a.record.fieldPreservation==first&&c.record.fieldPreservation==second,"original callback registrations retained");
+             check(number(candidate,"heldPreservations")==2&&number(renderer,"outstandingFieldPreservations")==2&&number(renderer,"outstandingEditorNativeCalls")==shared,"exact preservation/candidate/shared tally custody");
+-            check(!flag(candidate,"used")&&!flag(journal,"complete")&&get(renderer,"packet")==packet&&get(renderer,"v2Records")==records,"no success publication or candidate consumption");
++            check(!flag(journal,"complete")&&get(renderer,"packet")==packet&&get(renderer,"v2Records")==records,"no success completion or presentation publication");
+             check(get(state,"membership")==member&&get(member,"scope")==first&&get(member,"state")==state,"captured original member never replaced");
+         }
+         void mutate(){
+@@ -54,7 +54,7 @@
+         Field descriptor=IndependentPreservationCompletionControls.class.getDeclaredField("descriptor");descriptor.setAccessible(true);descriptor.set(null,Files.readAllBytes(Path.of(args[1])));
+         boolean nativeBoundary=args[0].equals("native");check(nativeBoundary||args[0].equals("commit"),"explicit selected native/commit boundary");
+         Object f=fixture();State s=new State(f);Object observer=get(s.renderer,"v2Environment");var original=(NativeEnvironmentV2.Sink)get(observer,"sink");
+-        NativeEnvironmentV2.Sink reporter=(source,change,cause,primary,fatal)->{if(s.injected&&!s.reported){s.reported=true;s.held(3);if(nativeBoundary)check(flag(s.journal,"failedInvoked")&&number(s.journal,"completion")==3,"native direct own failure claimed before reporting");}original.changed(source,change,cause,primary,fatal);};
++        NativeEnvironmentV2.Sink reporter=(source,change,cause,primary,fatal)->{if(s.injected&&!s.reported){s.reported=true;s.held(3);check(!flag(s.candidate,"used"),"actual reporter precedes original outer attach failure retirement");if(nativeBoundary)check(flag(s.journal,"failedInvoked")&&number(s.journal,"completion")==3,"native direct own failure claimed before reporting");}original.changed(source,change,cause,primary,fatal);};
+         put(observer,"sink",reporter);
+         try{
+             ConcreteHostProbe.hook=(m,p)->{
+@@ -69,6 +69,8 @@
+             if(escaped instanceof AssertionError failure)throw failure;
+             check(s.injected&&s.reported&&!returned&&s.fence.terminal,"selected own-forward cannot authorize success at either boundary");
+             check(flag(s.journal,"failedInvoked")&&number(s.journal,"completion")==4,"known-own malformed failed endpoint consumed exactly once");s.held(2);
++            if(nativeBoundary)check(flag(s.candidate,"used")&&get(s.renderer,"v2Pending")==null,"unchanged outer attach catch retires failed candidate without success publication");
++            else check(!flag(s.candidate,"used"),"commit-side membership refusal has no candidate success consumption");
+             check(s.renderer.editorDisposalBusyV2()&&NativeBridge.destroyCalls==0,"actual unproven native custody remains busy");
+             if(!nativeBoundary)check(invoke(invoke(get(f,"coordinator"),"cleanupLedger"),"rollback").toString().equals("NOT_REQUESTED"),"engine success followed by malformed membership fabricates no rollback");
+             refused(()->invoke(s.renderer,"completeFailedV2",s.candidate,null,null),s.watched());

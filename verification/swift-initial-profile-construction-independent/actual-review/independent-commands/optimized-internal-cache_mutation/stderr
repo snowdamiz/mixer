@@ -1,0 +1,23 @@
+error[E0502]: cannot borrow `*cache` as mutable because it is also borrowed as immutable
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-initial-profile-construction-independent/predeclared-compile-cases/cache_mutation.rs:6:7
+  |
+3 |  cache: cache.as_ref().unwrap(), control: &*control, wasi: None,
+  |         ----- immutable borrow occurs here
+...
+6 | let _=cache.as_mut().unwrap().prepare_operation(control,None,crate::experimental_swift_reactor::control::Cursor {stage:crate::experimental_swift_reactor::control::SwiftRunStage::Initialization,function:None,offset:None}); std::hint::black_box(&initial);
+  |       ^^^^^^^^^^^^^^ mutable borrow occurs here                                                                                                                                                                                                    -------- immutable borrow later used here
+
+error[E0502]: cannot borrow `*control` as mutable because it is also borrowed as immutable
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-initial-profile-construction-independent/predeclared-compile-cases/cache_mutation.rs:6:7
+  |
+3 |  cache: cache.as_ref().unwrap(), control: &*control, wasi: None,
+  |                                           --------- immutable borrow occurs here
+...
+6 | let _=cache.as_mut().unwrap().prepare_operation(control,None,crate::experimental_swift_reactor::control::Cursor {stage:crate::experimental_swift_reactor::control::SwiftRunStage::Initialization,function:None,offset:None}); std::hint::black_box(&initial);
+  |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                       -------- immutable borrow later used here
+  |       |
+  |       mutable borrow occurs here
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0502`.

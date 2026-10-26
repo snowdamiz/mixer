@@ -1,0 +1,50 @@
+--- producer-retained-host1
++++ final-released-source
+@@ -635,11 +635,28 @@
+         }
+         return true;
+     }
+-    boolean fieldPreservationIdentityV2(Candidate c,AttachmentJournal journal,NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.FieldPreservation scope){
+-        if(c==null||c.owner!=this||journal==null||journal!=c.journal||journal.candidate!=c||scope==null||scope.renderer!=this||scope.candidate!=c||scope.journal!=journal||
++    private boolean fieldPreservationCapturedV2(Candidate c,AttachmentJournal journal,NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.FieldPreservation scope){
++        return !(c==null||c.owner!=this||journal==null||journal!=c.journal||journal.candidate!=c||scope==null||scope.renderer!=this||scope.candidate!=c||scope.journal!=journal||
+             record==null||scope.record!=record||record.view!=scope.field||scope.field.record!=record||record.input!=v2Input||record.editorFence!=v2Fence||
+             c.originalMutation==null||scope.original!=c.originalMutation||scope.original.fence!=v2Fence||scope.original.mode!=NativeAppearanceViewsV2.Mutation.Mode.TRANSACTION||
+-            scope.original.token!=c.operation||scope.original.editorLease!=null||scope.original.replacementLease!=null||scope.original.fieldLease!=null||!preservationMembershipV2(journal))return false;
++            scope.original.token!=c.operation||scope.original.editorLease!=null||scope.original.replacementLease!=null||scope.original.fieldLease!=null);
++    }
++    /** Foreign captured authority refuses without claiming an own malformed completion. */
++    private boolean preservationProvenanceV2(Candidate c,AttachmentJournal journal){
++        if(journal.states==null)return true; // Malformed own roster, never release authority.
++        for(int i=0;i<journal.states.length;i++){
++            NativeState state=journal.states[i];if(state==null||state.journal!=journal)continue;
++            PreservationMembership membership=state.membership;
++            if(membership!=null&&!fieldPreservationCapturedV2(c,journal,state.record,membership.scope))return false;
++            var scope=state.preservation;
++            if(scope!=null&&(!fieldPreservationCapturedV2(c,journal,state.record,scope)||
++                state.record.fieldPreservation!=null&&state.record.fieldPreservation!=scope&&
++                (membership==null||state.record.fieldPreservation!=membership.scope)))return false;
++        }
++        return true;
++    }
++    boolean fieldPreservationIdentityV2(Candidate c,AttachmentJournal journal,NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.FieldPreservation scope){
++        if(!fieldPreservationCapturedV2(c,journal,record,scope)||!preservationMembershipV2(journal))return false;
+         for(int i=0;i<journal.stateCount;i++){NativeState state=journal.states[i];if(state.record==record)return state.forwardPreserved&&state.preservation==scope;}
+         return false;
+     }
+@@ -679,6 +696,7 @@
+         if(v2Fence.commitFinish||c==null||c.owner!=this||c.journal.candidate!=c||c.journal.failedInvoked||c.journal.completion==AttachmentJournal.SUCCESS_DONE)
+             throw Json.bad("invalid V2 failed completion");
+         AttachmentJournal journal=c.journal;
++        if(!preservationProvenanceV2(c,journal))throw Json.bad("foreign V2 failed preservation provenance");
+         if(!preservationMembershipV2(journal)){
+             // The candidate is our own, but its roster cannot authorize any scope effect or retry.
+             journal.failedInvoked=true;journal.completion=AttachmentJournal.FAILED_IN_PROGRESS;
+@@ -745,6 +763,7 @@
+     void finishV2(Candidate c,AttachmentJournal journal){
+         if(c==null||c.owner!=this||v2Pending!=c||c.used||!c.attached||journal!=c.journal||journal.complete||journal.failedInvoked||journal.completion!=AttachmentJournal.OPEN)
+             throw Json.bad("invalid V2 finish");
++        if(!preservationProvenanceV2(c,journal))throw Json.bad("foreign V2 finish preservation");
+         boolean members=preservationMembershipV2(journal);
+         boolean valid=members&&!v2Retired&&!v2Fence.terminal&&c.operation!=null&&c.operation==v2Fence.operation&&preservationCohortV2(c);
+         if(members)for(int i=0;i<journal.stateCount;i++){NativeState state=journal.states[i];var scope=state.preservation;if(scope==null)continue;

@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "source_scope": "Original formula and phase/type sources remain unchanged from frozen baseline; aggregate536 delta is observed, not attributed solely to one named original subinventory",
+  "witnesses": [
+    {
+      "end_line": 553,
+      "excerpt": "}\n\npub(super) const FOUNDATION_FINAL_BOUNDARY_BYTES: usize = {\n    let refund = size_of::<FinalRefundInventory>();\n    let record = size_of::<FinalRecordInventory>();\n    let finish = size_of::<FinalFinishInventory>();\n    let first = if refund > record { refund } else { record };\n    if first > finish {\n        first\n    } else {\n        finish\n    }\n};\n\n// All array/loop/closure metadata computation occurs in this const initializer.\n// The public spelling remains a function that copies the precomputed Option.\n// No runtime temporary array, IntoIter or try_fold is created by this formula.\nconst FOUNDATION_CONSTRUCTION_BYTES: Option<usize> = {\n    let terms: [(usize, usize); 9] = [\n        (3, size_of::<ValidatedSwiftReactor>()),\n        (3, size_of::<RuntimeControl>()),\n        (3, size_of::<AdoptedProof>()),\n        (4, size_of::<SwiftRunFailure>()),\n        (4, size_of::<SwiftRunUsage>()),\n        (6, size_of::<ReservationTicket>()),\n        (6, size_of::<Option<WasiUsage>>()),\n        (1, FOUNDATION_FINAL_BOUNDARY_BYTES),\n        // Composed constructor inputs and provenance/admission borrows exist\n        // before its outer enlargement, so they belong in the initial floor.\n        (1, super::execution::CONSTRUCTION_BOOTSTRAP_BYTES),\n    ];\n    let mut sum = Some(0usize);\n    let mut index = 0usize;\n    while index < terms.len() {\n        sum = match (sum, terms[index].0.checked_mul(terms[index].1)) {\n            (Some(accumulated), Some(term)) => accumulated.checked_add(term),\n            _ => None,\n        };\n        index += 1;\n    }\n    sum\n};\n\n/// Conservative named-object foundation envelope. Composition enlarges this\n/// same ticket before creating additional wrappers. This is not physical stack/RSS.\npub(crate) fn foundation_construction_bytes() -> Option<usize> {\n    FOUNDATION_CONSTRUCTION_BYTES\n}\n\n",
+      "excerpt_sha256": "68eea01855c3b71c16eb7f9b5960bb1e44bc4868e9a3e1181dac932f63a6adf6",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "source_sha256": "d31fc8429ce3f72e689c3e40581dbd319aa6d36f456263da141ad905ed108aad",
+      "start_line": 505
+    },
+    {
+      "end_line": 1455,
+      "excerpt": "        self.control\n            .check_reservation_owner(header, self.cursor, self.observation())\n    }\n}\nimpl PinDiagnostic<SwiftRunFailure> for CacheControl<'_> {\n    fn invalid(&mut self, code: &'static str) -> SwiftRunFailure {\n        self.error(CacheFailureKind::InvalidPin, code)\n    }\n}\nimpl ReleaseControl<SwiftRunFailure> for CacheControl<'_> {\n    fn release_pin(&mut self) -> Result<(), SwiftRunFailure> {\n        self.remove_live(Live::ActivePins)\n    }\n}\nfn construction_preflight(\n    control: &mut RuntimeControl,\n    wasi: Option<&AccountedWasi>,\n    adopted: &AdoptedProof,\n    cursor: Cursor,\n) -> Result<PreparedBounds, SwiftRunFailure> {\n    let observation = pairing(control, wasi, cursor)?;\n    control.check_adopted_owner(adopted, cursor, observation)?;\n    let previous_bound = control.usage(observation).reservations.construction.current;\n    let enlarged = cache_construction_bytes()\n        .and_then(|n| previous_bound.checked_add(n))\n        .ok_or_else(|| layout_failure(control, observation, cursor))?;\n    Ok(PreparedBounds {\n        previous: previous_bound,\n        enlarged,\n    })\n}\nfn operation_preflight(\n    cache: &SwiftFunctionCache,\n    control: &mut RuntimeControl,\n",
+      "excerpt_sha256": "03e0b76038343b3cfbd38473b527926c4678fb29fc51767e3ccad010d8df3e10",
+      "path": "src/experimental_swift_reactor/cache.rs",
+      "source_sha256": "ec1ac98ce42db937ead6d658a0486ee89bace11eddd714327a6ecd98764dc0ec",
+      "start_line": 1422
+    },
+    {
+      "end_line": 1908,
+      "excerpt": "    pub(crate) fn complete<T>(self, returned_phase_storage: T) -> Result<(), SwiftRunFailure> {\n        let Self {\n            control: CacheControl { control, wasi, .. },\n            previous_bound,\n            ..\n        } = self;\n        control.end_construction_phase_with_wasi(\n            returned_phase_storage,\n            previous_bound,\n            wasi.map(AccountedWasi::usage),\n        )\n    }\n}\n",
+      "excerpt_sha256": "ddbea3d4abb19b9e3aed1334a01e5b96a2ea341960620b195ec48095721edc3d",
+      "path": "src/experimental_swift_reactor/cache.rs",
+      "source_sha256": "ec1ac98ce42db937ead6d658a0486ee89bace11eddd714327a6ecd98764dc0ec",
+      "start_line": 1896
+    },
+    {
+      "end_line": 896,
+      "excerpt": "/// constructor/preparation. The later enlarged phase cannot retroactively cover\n/// its own inputs and provenance/admission call chain. Whole groups are a\n/// conservative maximum; diagnostic/fault transfers already named by foundation\n/// retain those classes and are not reused as smaller borrow slots here.\npub(super) struct ConstructionBootstrapInventory {\n    pair_slot: [&'static mut Option<(RuntimeControl, AdoptedProof)>; 2],\n    control: [&'static mut RuntimeControl; 8],\n    adopted: [&'static AdoptedProof; 3],\n    cache: [&'static SwiftFunctionCache; 4],\n    wasi: [&'static AccountedWasi; 4],\n    cursor: [Cursor; 5],\n    grants: [WasiGrants; 3],\n    budget: [WasiBudget; 3],\n    started: [Instant; 3],\n    cache_control: CacheControl<'static>,\n    header_option: [Option<&'static ReservationTicket>; 3],\n    header: [&'static ReservationTicket; 5],\n    observation: [Option<WasiUsage>; 3],\n    snapshot_return: [SwiftRunUsage; 2],\n    previous_bound: [usize; 4],\n    checked_bound: [Option<usize>; 2],\n    owner_verdict: [Option<(SwiftCleanupInvariant, &'static str)>; 2],\n    ticket_option: Option<&'static ReservationTicket>,\n    current: usize,\n    requested: usize,\n    difference: usize,\n    category_next: usize,\n    combined_next: usize,\n    checked_category: Option<usize>,\n    checked_combined: Option<usize>,\n    category: SwiftReservationCategory,\n    category_usage: &'static SwiftReservationUsage,\n    category_mut: &'static mut SwiftReservationUsage,\n    reservations: &'static mut SwiftReservations,\n    construction_ticket: Option<&'static mut ReservationTicket>,\n}\npub(super) const CONSTRUCTION_BOOTSTRAP_BYTES: usize = {\n    let base = size_of::<ConstructionBootstrapInventory>();\n    match base.checked_add(CONSTRUCTION_POSITIVE_PREFLIGHT_BYTES) {\n        Some(value) => match value.checked_add(CONSTRUCTION_POSITIVE_FINAL_BYTES) {\n            Some(value) => match value.checked_add(CONSTRUCTION_POSITIVE_TEST_HOOK_BYTES) {\n                Some(value) => value,\n                None => usize::MAX,\n            },\n            None => usize::MAX,\n        },\n        None => usize::MAX,\n    }\n};\n#[cfg(test)]\n",
+      "excerpt_sha256": "0ff8be34e97af3e5dbf50f9f4ea774b753763178832a207b4b6223fd11ca3b97",
+      "path": "src/experimental_swift_reactor/execution.rs",
+      "source_sha256": "340c849407298c1a2b07999d38020b8b00282f860b73a9524d9e7b295395c339",
+      "start_line": 847
+    },
+    {
+      "end_line": 2995,
+      "excerpt": "pub(crate) const CONSTRUCTION_POSITIVE_FINAL_BYTES: usize =\n    std::mem::size_of::<ConstructionPositiveFinal>();\n// Unit-only engine-side hook call boundaries. Callback storage/Cell bodies are\n// test harness instrumentation and are excluded, not production authority.\n#[cfg(test)]\n#[allow(dead_code)]\nstruct ConstructionPositiveTestHookArguments {\n    checkpoint_reborrow: &'static RuntimeControl,\n    checkpoint_argument: &'static RuntimeControl,\n    checkpoint_callback_parameter: &'static RuntimeControl,\n    checkpoint_cursor_argument: Cursor,\n    checkpoint_cursor_callback_parameter: Cursor,\n    checkpoint_call_return: (),\n    checkpoint_callback_return: (),\n    capacity_new_source: usize,\n    capacity_argument: usize,\n    capacity_callback_parameter: usize,\n    capacity_callback_return: usize,\n    restore_new_source: usize,\n    restore_argument: usize,\n    restore_callback_parameter: usize,\n    restore_callback_return: usize,\n}\n#[cfg(test)]\npub(super) const CONSTRUCTION_POSITIVE_TEST_HOOK_BYTES: usize =\n    std::mem::size_of::<ConstructionPositiveTestHookArguments>();\n#[cfg(not(test))]\npub(super) const CONSTRUCTION_POSITIVE_TEST_HOOK_BYTES: usize = 0;\n",
+      "excerpt_sha256": "80006d52403c0c2fa31e54279f0cfd4a9a976939ce9b3eb9ae1f1e5aa5e2ea4c",
+      "path": "src/experimental_swift_reactor/execution.rs",
+      "source_sha256": "340c849407298c1a2b07999d38020b8b00282f860b73a9524d9e7b295395c339",
+      "start_line": 2968
+    }
+  ]
+}

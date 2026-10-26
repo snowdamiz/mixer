@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T21:07:03.299947+00:00",
+  "command": "python3 -B inline ast.parse and data-only auditor review record",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "reviewed_scripts": [
+    {
+      "path": "audit.py",
+      "bytes": 10781,
+      "sha256": "f62256a4415396b39177cf2791c395e3adb83a0ae9556c5725225b0b103a9b3a",
+      "parses": true
+    },
+    {
+      "path": "capability_review.py",
+      "bytes": 16321,
+      "sha256": "a5ba16aa91b9b60ea77747b56dcb9f08be89f04fc39f102b2717127e0389932d",
+      "parses": true
+    },
+    {
+      "path": "collect-and-review.py",
+      "bytes": 7611,
+      "sha256": "91a9189deeb106374b12771a8f056f4cd3a7f9970661db445b9373f50228ce67",
+      "parses": true
+    },
+    {
+      "path": "freeze.py",
+      "bytes": 2305,
+      "sha256": "c8bdee79819f4cc123e3e5682d1d14b5f18c6df96f55d9707930aebf49c14534",
+      "parses": true
+    },
+    {
+      "path": "prepare.py",
+      "bytes": 4044,
+      "sha256": "403806068468b8f8fe431dfed134aef0aa715cf135b175eb41e612c0583f2e76",
+      "parses": true
+    },
+    {
+      "path": "poll.py",
+      "bytes": 1896,
+      "sha256": "ddcfb949f795adc5a3ffe898d2c3781a5aad4b7fe9b79542e0463b754acc13d4",
+      "parses": true
+    },
+    {
+      "path": "run-reviewed.py",
+      "bytes": 1982,
+      "sha256": "471240158b27e281c445a8a8652162f49d276ac449998f513519cd615af0afce",
+      "parses": true
+    }
+  ],
+  "review": [
+    "All four copied auditor sources were read before preparation. Copied capability_review.py is unchanged; only SHA/tree/run and current fixture path/hash literals adapted in the other three.",
+    "Archive members are read with zipfile as bytes only, with duplicate, path traversal, symlink, encryption and size checks. No archive extraction, artifact import, or artifact execution.",
+    "Core/JVM artifact source bytes bind through git show and rev-parse to the exact committed SHA. Capability source arrays/package/scenarios are read with ast.literal_eval; source archive reconstructed in memory for a digest comparison.",
+    "gh children use read-only run view and API GET commands for metadata, logs and ZIP download. git children use show, rev-parse, ls-tree and archive. All subprocess.run calls have a 60 second timeout.",
+    "Core library/build-log, native library/tool and nine native-command hashes remain receipt-only; environment JVM class hashes remain hash-only. TSAN covers only the Swift host harness, not the Rust static archive.",
+    "No prior one-shot auditor script is executed. No native/UI/capture/process inventory, active product-lane inspection, metadata edit, workflow retry, network/Git mutation or GA acceptance is authorized."
+  ],
+  "scope": "Auditor review and parse validation only; no independent CI/artifact success claim",
+  "updated_utc": "2026-10-26T21:10:07.760767+00:00",
+  "collection_retention": "Collection wrapper retains command/output records before sealing; freeze runs directly and no new owned files are written after seal creation."
+}

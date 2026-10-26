@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+"""Owned bounded runner; freezes the exact explicit closure before compiling it."""
+from pathlib import Path
+import os,sys,subprocess,hashlib,json,shutil,tempfile,datetime,time,signal
+D=Path(__file__).resolve().parent;R=D.parents[2]
+if (D/'seal.json').exists():raise SystemExit('Frozen packet; use a new explicitly owned derivative')
+def ident(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def save(p,v):p.write_text(json.dumps(v,indent=2)+'\n')
+mode=sys.argv[1];assert mode in ('host','cross')
+runs=D/'runs';runs.mkdir(exist_ok=True);idx=1
+while (runs/f'{mode}-{idx}').exists():idx+=1
+E=runs/f'{mode}-{idx}';E.mkdir();commands=[];status='failed'
+env=dict(os.environ)
+for k in ('_JAVA_OPTIONS','JAVA_TOOL_OPTIONS','JDK_JAVA_OPTIONS','CLASSPATH','JAVA_OPTS','JAVA_OPTIONS','JDK_JAVAC_OPTIONS'):env.pop(k,None)
+jdk=Path('/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home');sdk=Path('/opt/homebrew/share/android-commandlinetools');jar=sdk/'platforms/android-37.0/android.jar';d8=sdk/'build-tools/37.0.0/d8'
+env['JAVA_HOME']=str(jdk);env['PATH']=str(jdk/'bin')+os.pathsep+env.get('PATH','')
+scratch=Path(tempfile.mkdtemp(prefix='owned-preservation-membership-',dir=E));temp=scratch/'tmp';temp.mkdir();env['TMPDIR']=str(temp);env['TMP']=str(temp);env['TEMP']=str(temp);classes=scratch/'classes';classes.mkdir();empty=scratch/'empty';empty.mkdir()
+def run(name,argv):
+ start=time.monotonic()
+ with (E/(name+'.stdout')).open('wb') as out,(E/(name+'.stderr')).open('wb') as err:
+  p=subprocess.Popen([str(a) for a in argv],cwd=R,env=env,stdout=out,stderr=err,start_new_session=True)
+  timed=False
+  try:p.wait(timeout=60)
+  except BaseException:
+   timed=True;os.killpg(p.pid,signal.SIGKILL);p.wait(timeout=5);raise
+ commands.append({'name':name,'argv':[str(a) for a in argv],'exit':p.returncode,'timeout_seconds':60,'timed_out':timed,'elapsed_seconds':time.monotonic()-start,'stdout':ident(E/(name+'.stdout')),'stderr':ident(E/(name+'.stderr')),'reaped':True});save(E/'commands.json',commands)
+ if p.returncode:raise RuntimeError(name+' failed: '+str(E/(name+'.stderr')))
+ print(name+': exit0; stdout='+str((E/(name+'.stdout')).stat().st_size)+'B stderr='+str((E/(name+'.stderr')).stat().st_size)+'B',flush=True)
+try:
+ for folder in ('source','host-leaves','tests','cross-source'):shutil.copytree(D/'frozen'/folder,E/'inputs'/folder)
+ shutil.copy2(D/'frozen/descriptor.json',E/'inputs/descriptor.json');shutil.copy2(D/'run.py',E/'runner.py')
+ source_map={str(p.relative_to(E/'inputs')):ident(p) for p in sorted((E/'inputs').rglob('*')) if p.is_file()};save(E/'source-map.json',source_map)
+ save(E/'source-freeze.json',{'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'complete_source_map':ident(E/'source-map.json'),'runner':ident(E/'runner.py'),'frozen_before_compiler':True})
+ files=sorted((E/'inputs/source').glob('*.java'))
+ if mode!='cross':files+=sorted((E/'inputs/host-leaves').rglob('*.java'))+sorted((E/'inputs/tests').glob('*.java'))
+ else:files=[p for p in files if p.name!='NativeBridge.java'];files.append(E/'inputs/cross-source/NativeBridge.java')
+ run('javac-version',[jdk/'bin/javac','-version']);run('java-version',[jdk/'bin/java','-version'])
+ run('compile',[jdk/'bin/javac','-J-Djava.io.tmpdir='+str(temp),'--release','17','-Xlint:all','-Werror','-proc:none','-classpath',empty if mode!='cross' else jar,'-sourcepath',empty,'-d',classes,*files])
+ shutil.copytree(classes,E/'classes');save(E/'class-map.json',{str(p.relative_to(classes)):ident(p) for p in sorted(classes.rglob('*.class'))})
+ if mode!='cross':
+  desc=E/'inputs/descriptor.json'
+  if mode=='host':
+   run('producer-52',[jdk/'bin/java','-Djava.io.tmpdir='+str(temp),'-ea','-Xmx256m','-cp',classes,'dev.mixer.android.EditorImplementationTests',desc])
+   for case in ('admission-order','positive-values','foreign-dispatch','selection-postevent','annotation-mutable-bundle','snapshot-reservation'):
+    run('prepared-'+case,[jdk/'bin/java','-Djava.io.tmpdir='+str(temp),'-ea','-Xmx256m','-cp',classes,'dev.mixer.android.ReplacementReviewControls',case,desc])
+   for case in ('final-balance','tuple-after-getter','captured-target','blurred-A-replacement','focused-B-echo-after-A-blur'):
+    run('independent-'+case,[jdk/'bin/java','-Djava.io.tmpdir='+str(temp),'-ea','-Xmx256m','-cp',classes,'dev.mixer.android.AdditionalReplacementControls',case,desc])
+   run('descriptors-38',[jdk/'bin/java','-Djava.io.tmpdir='+str(temp),'-ea','-cp',classes,'DescriptorClosure','dev.mixer.android.NativeEditorConnectionV2$Api34'])
+   for case in ('positive-history','entry-loss','stage-loss','other-denials','marker-exhaustion','preservation-callback','first-fatal-busy','restoration','live-exhaustion','event-reentry','multiple-preservations','preservation-balance-fatal','scope-custody'):
+    run('focus-'+case,[jdk/'bin/java','-Djava.io.tmpdir='+str(temp),'-ea','-Xmx256m','-cp',classes,'dev.mixer.android.FocusHistoryControls',case,desc])
+   for case in ('prior-focus-values','coexistence','eligible-restore','lost-original-restore','foreign-token-restore','loss-phases','settled-loss-phases','observed-hooks','event-reentry','event-postgetter','scope-imbalance','exhaustion','post-attach-rollback','cross-renderer-end'):
+    run('actual-'+case,[jdk/'bin/java','-Djava.io.tmpdir='+str(temp),'-ea','-Xmx256m','-cp',classes,'dev.mixer.android.IndependentFocusHistoryControls',case,desc])
+   for case in ('multiple-with-active-B','event-provenance'):
+    run('audit-'+case,[jdk/'bin/java','-Djava.io.tmpdir='+str(temp),'-ea','-Xmx256m','-cp',classes,'dev.mixer.android.IndependentAdditionalFocusAuditControls',case,desc])
+  for case in (() if mode=='baseline' else (sys.argv[2:] or ('outcomes','refresh','no-scopes','partial-entry','partial-release','chronology','foreign-endpoints','terminal-end','imbalances','getter-loss','begin-accounting','precommit-refusals'))):
+   run('completion-'+case,[jdk/'bin/java','-Djava.io.tmpdir='+str(temp),'-ea','-Xmx256m','-cp',classes,'dev.mixer.android.PreservationCompletionControls',case,desc])
+  run('independent-journal-membership',[jdk/'bin/java','-Djava.io.tmpdir='+str(temp),'-ea','-Xmx256m','-cp',classes,'dev.mixer.android.IndependentPreservationCompletionControls','journal-membership',desc])
+  if mode!='baseline':
+   for case in ('finish-membership','failed-membership','precommit-membership','endpoint-membership','report-reentry-membership','healthy'):
+    run('membership-'+case,[jdk/'bin/java','-Djava.io.tmpdir='+str(temp),'-ea','-Xmx256m','-cp',classes,'dev.mixer.android.PreservationMembershipControls',case,desc])
+  # Independently compiled exact frozen controls take classpath precedence.
+  independent=scratch/'independent-classes';independent.mkdir()
+  shutil.copytree(D/'independent-controls',E/'independent-controls')
+  run('independent-compile',[jdk/'bin/javac','-J-Djava.io.tmpdir='+str(temp),'--release','17','-Xlint:all','-Werror','-proc:none','-classpath',classes,'-sourcepath',empty,'-d',independent,*sorted((E/'independent-controls').glob('*.java'))])
+  shutil.copytree(independent,E/'independent-classes')
+  cp=str(independent)+os.pathsep+str(classes)
+  for case in ('post-attach-rollback','cross-renderer-end'):
+   run('unchanged-FH-'+case,[jdk/'bin/java','-Djava.io.tmpdir='+str(temp),'-ea','-Xmx256m','-cp',cp,'dev.mixer.android.FocusHistoryControls',case,desc])
+  for case in ('fixture-smoke','three-success','three-known-rejections','outcome-failures','refresh-zero-count','no-scope','pre-attach-no-original','captured-A-refusal','partial-A-entered-C-refusal','constructor-before-registration','malformed-custody','fatal-chronology','foreign-replay','progress-states','cohort-preflight','identity-matrix','getter-suffix-matrix','journal-membership'):
+   run('frozen-independent-'+case,[jdk/'bin/java','-Djava.io.tmpdir='+str(temp),'-ea','-Xmx256m','-cp',cp,'dev.mixer.android.IndependentPreservationCompletionControls',case,desc])
+  for case in ('healthy','captured-substitution','duplicate','swap','null','foreign','size-short','size-long','size-negative','scope-null','scope-clone','forward-clear','no-scope-duplicate','no-scope-swap','no-scope-size-short','reporter-reentry'):
+   run('prepared-independent-'+case,[jdk/'bin/java','-Djava.io.tmpdir='+str(temp),'-ea','-Xmx256m','-cp',cp,'dev.mixer.android.IndependentMembershipControls',case,desc])
+ else:
+  run('d8-version',[d8,'--version']);run('sdk-descriptors',[jdk/'bin/javap','-p','-s','-classpath',jar,'android.view.inputmethod.InputConnection'])
+  dex=scratch/'dex';dex.mkdir();run('dex',[d8,'--min-api','28','--lib',jar,'--output',dex,*sorted(classes.rglob('*.class'))]);shutil.copytree(dex,E/'dex');save(E/'dex-map.json',{str(p.relative_to(dex)):ident(p) for p in sorted(dex.rglob('*')) if p.is_file()})
+ run('completion-bytecode',[jdk/'bin/javap','-p','-c','-classpath',classes,'dev.mixer.android.NativeRenderer','dev.mixer.android.NativeRenderer$2','dev.mixer.android.NativeAppearanceViewsV2$FieldPreservation','dev.mixer.android.NativeRenderer$AttachmentJournal','dev.mixer.android.NativeRenderer$NativeState','dev.mixer.android.NativeRenderer$PreservationMembership'])
+ run('adapter-bytecode',[jdk/'bin/javap','-p','-s','-c','-classpath',classes,*[f'dev.mixer.android.NativeEditorConnectionV2${name}' for name in ('Base','Api31','Api33','Api34')]])
+ assert source_map=={str(p.relative_to(E/'inputs')):ident(p) for p in sorted((E/'inputs').rglob('*')) if p.is_file()},'frozen source changed'
+ status='passed-'+mode+'-only'
+finally:
+ shutil.rmtree(scratch)
+ save(E/'receipt.json',{'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'status':status,'scope':'Complete source JVM with controlled authored Android/JNI leaves' if mode!='cross' else 'Unsigned SDK37 Java/D8 min-api28 compilation only','commands':len(commands),'source_freeze':ident(E/'source-freeze.json') if (E/'source-freeze.json').exists() else None,'tools':{str(p):ident(p.resolve()) for p in (jdk/'bin/javac',jdk/'bin/java',jdk/'bin/javap',jdk/'lib/modules',jdk/'lib/server/libjvm.dylib',jar,d8,d8.parent/'lib/d8.jar')},'cleanup':{'scratch_removed':not scratch.exists(),'children_reaped':all(c['reaped'] for c in commands),'native_or_capture_processes_started_or_queried':False}})
+ print(status,str(E.relative_to(R)),flush=True)

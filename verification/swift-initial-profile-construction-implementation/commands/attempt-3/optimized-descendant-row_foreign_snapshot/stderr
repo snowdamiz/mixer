@@ -1,0 +1,34 @@
+warning: unused imports: `WasiBudget` and `WasiGrants`
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-initial-profile-construction-implementation/initial-profile-component-u6tgkysg/variant/src/experimental_swift_reactor/cache/initial_profile_v1/tests.rs:4:45
+  |
+4 | use crate::experimental_wasi::{WasiFunction,WasiBudget,WasiGrants};
+  |                                             ^^^^^^^^^^ ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `SeekFrom`
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-initial-profile-construction-implementation/initial-profile-component-u6tgkysg/variant/src/experimental_swift_reactor/cache/initial_profile_v1/tests.rs:7:25
+  |
+7 | use std::io::{Read,Seek,SeekFrom,Write};
+  |                         ^^^^^^^^
+
+error[E0061]: this function takes 2 arguments but 3 arguments were supplied
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-initial-profile-construction-implementation/host/compile_cases/row_foreign_snapshot.rs:2:8
+    |
+  2 |  let _=super::write_initial_profile_rows_v1(initial,proof,file);
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^         ----- unexpected argument #2 of type `&swift::ValidatedSwiftReactor`
+    |
+note: function defined here
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-initial-profile-construction-implementation/initial-profile-component-u6tgkysg/variant/src/experimental_swift_reactor/cache/initial_profile_v1.rs:161:4
+    |
+161 | fn write_initial_profile_rows_v1(initial:&InitialProfileBorrowV1<'_>,output:&mut File)
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: remove the extra argument
+    |
+  2 -  let _=super::write_initial_profile_rows_v1(initial,proof,file);
+  2 +  let _=super::write_initial_profile_rows_v1(initial,file);
+    |
+
+error: aborting due to 1 previous error; 2 warnings emitted
+
+For more information about this error, try `rustc --explain E0061`.

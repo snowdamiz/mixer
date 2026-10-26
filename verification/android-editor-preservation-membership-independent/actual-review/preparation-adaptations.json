@@ -1,0 +1,12 @@
+[
+  {
+    "attempt": "runs/selected-1",
+    "source": "runs/selected-1/inputs/IndependentOwnForwardControls.java",
+    "raw_failure": "runs/selected-1/selected-own-forward-native.stderr",
+    "reason": "New isolated native-forward post-outer-failure helper incorrectly required candidate.used=false. Unchanged attachV2 catch deliberately sets c.used=true/v2Pending=null on any attach failure while retained custody survives.",
+    "correction": "Require exact original native failure retirement (used=true/pending=null) after unwind, journal.complete=false and no packet/record publication. Reporter/mutation boundaries still require used=false; commit refusal still requires used=false. All original/selected-derivative and preaccess assertions remain unchanged.",
+    "product_change": false,
+    "unchanged_actual_source_callsite": "frozen/source/NativeRenderer.java:601",
+    "exact_diff": "selected-controls/native-failed-retirement-oracle.diff"
+  }
+]
