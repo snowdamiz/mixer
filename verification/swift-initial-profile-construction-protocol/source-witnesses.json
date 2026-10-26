@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "scope": "Exact original source review witnesses, not semantic execution or release authority",
+  "witnesses": [
+    {
+      "end_line": 315,
+      "excerpt": "    wasi: Option<&'a AccountedWasi>,\n    cursor: Cursor,\n}\npub(crate) struct CacheConstructionPhase<'a> {\n    control: CacheControl<'a>,\n    previous_bound: usize,\n    constructed: bool,\n}\npub(crate) struct CacheOperationPhase<'a> {\n    control: CacheControl<'a>,\n    previous_bound: usize,\n}\n// Caller-owned return slots are explicitly consumed by phase completion. Their\n// concrete Option/Result shapes are reserved before either phase exists.\ntype ConstructionReturnSlot = Option<Result<SwiftFunctionCache, CacheConstructionFailure>>;\ntype OperationReturnSlot = Option<Result<SwiftFunctionPin, SwiftRunFailure>>;\npub(crate) struct CacheConstructionFailure {\n    pub failure: SwiftRunFailure,\n    pub rejected_adopted: Option<AdoptedProof>,\n}\n#[must_use = \"The cache header remains charged until the caller drops its return/owner storage through complete\"]\npub(crate) struct CacheCleanupTail<'a> {\n    control: &'a mut RuntimeControl,\n    wasi: Option<&'a AccountedWasi>,\n    header: Option<ReservationTicket>,\n    failure: Option<SwiftRunFailure>,\n}\nstruct Partial {\n    adopted: Option<AdoptedProof>,\n    slots: Vec<SwiftSlot>,\n    pins: Vec<PinRecord>,\n    patches: Vec<decode::Patch>,\n",
+      "excerpt_sha256": "2d807821f1142ccccaf19e37b3ff5f5067c4020df850843f895584b34d6e4464",
+      "path": "source/vm/src/experimental_swift_reactor/cache.rs",
+      "scope": "Original construction phase, exact return slot, CacheConstructionFailure, CacheCleanupTail ownership",
+      "source_sha256": "047b6440e28096bb8bcc1167b35c3569c17191aaf41714504a24d29de2e11757",
+      "start_line": 284
+    },
+    {
+      "end_line": 1454,
+      "excerpt": "fn construction_preflight(\n    control: &mut RuntimeControl,\n    wasi: Option<&AccountedWasi>,\n    adopted: &AdoptedProof,\n    cursor: Cursor,\n) -> Result<PreparedBounds, SwiftRunFailure> {\n    let observation = pairing(control, wasi, cursor)?;\n    control.check_adopted_owner(adopted, cursor, observation)?;\n    let previous_bound = control.usage(observation).reservations.construction.current;\n    let enlarged = cache_construction_bytes()\n        .and_then(|n| previous_bound.checked_add(n))\n        .ok_or_else(|| layout_failure(control, observation, cursor))?;\n    Ok(PreparedBounds {\n        previous: previous_bound,\n        enlarged,\n    })\n}\nfn operation_preflight(\n    cache: &SwiftFunctionCache,\n",
+      "excerpt_sha256": "62dd3e0278ac6e2015a4750d72b7a0dd2907d402aed7bb22e1ba11cf064abcc6",
+      "path": "source/vm/src/experimental_swift_reactor/cache.rs",
+      "scope": "Existing adopted/control safe construction preflight",
+      "source_sha256": "047b6440e28096bb8bcc1167b35c3569c17191aaf41714504a24d29de2e11757",
+      "start_line": 1436
+    },
+    {
+      "end_line": 1496,
+      "excerpt": "    pub(crate) fn prepare<'a>(\n        control: &'a mut RuntimeControl,\n        wasi: Option<&'a AccountedWasi>,\n        adopted: &AdoptedProof,\n        cursor: Cursor,\n    ) -> Result<CacheConstructionPhase<'a>, SwiftRunFailure> {\n        test_step(CacheStep::Constructor);\n        let PreparedBounds {\n            previous: previous_bound,\n            enlarged: bound,\n        } = construction_preflight(control, wasi, adopted, cursor)?;\n        let observation = wasi.map(AccountedWasi::usage);\n        checkpoint(control, cursor);\n        control.enlarge_construction_with_wasi(bound, cursor, observation)?;\n        Ok(CacheConstructionPhase {\n            control: CacheControl {\n                control,\n                wasi,\n                cursor,\n            },\n            previous_bound,\n            constructed: false,\n        })\n    }\n",
+      "excerpt_sha256": "c4874d05b1f11ec4664fa2758555045328e531849e06508752d399a95b75aa0e",
+      "path": "source/vm/src/experimental_swift_reactor/cache.rs",
+      "scope": "Original safe prepare signature and phase ownership",
+      "source_sha256": "047b6440e28096bb8bcc1167b35c3569c17191aaf41714504a24d29de2e11757",
+      "start_line": 1473
+    },
+    {
+      "end_line": 1626,
+      "excerpt": "    pub(crate) fn cleanup<'a>(\n        owned: &mut Option<Self>,\n        control: &'a mut RuntimeControl,\n        wasi: Option<&'a AccountedWasi>,\n    ) -> Result<CacheCleanupTail<'a>, SwiftRunFailure> {\n        let cursor = Cursor {\n            stage: SwiftRunStage::Cleanup,\n            function: None,\n            offset: None,\n        };\n        let observation = pairing(control, wasi, cursor)?;\n        let cache = owned\n            .as_ref()\n            .ok_or_else(|| layout_failure(control, observation, cursor))?;\n        let header = cache\n            .header\n            .as_ref()\n            .ok_or_else(|| layout_failure(control, observation, cursor))?;\n        control.check_reservation_owner(header, cursor, observation)?;\n        // No owner has moved until every provenance check above succeeded.\n        let mut cache = owned.take().expect(\"preflight retained owner\");\n",
+      "excerpt_sha256": "1d0822badf39388e04c4df4a416580c25bd59867bf916e2aafccad780c5108f5",
+      "path": "source/vm/src/experimental_swift_reactor/cache.rs",
+      "scope": "Original cache cleanup signature and no-owner-move preflight",
+      "source_sha256": "047b6440e28096bb8bcc1167b35c3569c17191aaf41714504a24d29de2e11757",
+      "start_line": 1606
+    },
+    {
+      "end_line": 1754,
+      "excerpt": "    }\n}\ntype CleanupCompletionParts<'a> = (\n    &'a mut RuntimeControl,\n    Option<&'a AccountedWasi>,\n    Option<ReservationTicket>,\n);\n/// This helper frame (including the original tail and its failure) has ended\n/// before complete begins the observed refund. It returns only small borrows\n/// and the same ticket; no possible-cache owner or failure wrapper survives.\nfn drop_cleanup_return_storage<'a, T>(\n    tail: CacheCleanupTail<'a>,\n    storage: T,\n) -> CleanupCompletionParts<'a> {\n    let CacheCleanupTail {\n        control,\n        wasi,\n        header,\n        failure,\n    } = tail;\n    drop((storage, failure));\n    (control, wasi, header)\n}\nimpl CacheCleanupTail<'_> {\n    pub(crate) fn complete<T>(\n        self,\n        returned_phase_storage: T,\n        outcome: &mut Option<SwiftRunFailure>,\n    ) {\n        let (control, wasi, header) = drop_cleanup_return_storage(self, returned_phase_storage);\n        if let Some(ticket) = header {\n            let _ = control.drop_reserved_with_wasi((), ticket, wasi.map(AccountedWasi::usage));\n        }\n        *outcome = control.record_cleanup(wasi.map(AccountedWasi::usage));\n    }\n}\nimpl CacheConstructionPhase<'_> {\n",
+      "excerpt_sha256": "1712ddce27b3c1772795fc729bc3d379ce7d011b3dbd61440264fc2821936e5c",
+      "path": "source/vm/src/experimental_swift_reactor/cache.rs",
+      "scope": "Original cleanup tail storage consumption and completion signature",
+      "source_sha256": "047b6440e28096bb8bcc1167b35c3569c17191aaf41714504a24d29de2e11757",
+      "start_line": 1718
+    },
+    {
+      "end_line": 1807,
+      "excerpt": "    pub(crate) fn construct(\n        &mut self,\n        adopted: AdoptedProof,\n    ) -> Result<SwiftFunctionCache, CacheConstructionFailure> {\n        let check = pairing(self.control.control, self.control.wasi, self.control.cursor).and_then(\n            |observation| {\n                self.control\n                    .control\n                    .check_adopted_owner(&adopted, self.control.cursor, observation)\n            },\n        );\n        if let Err(failure) = check {\n            self.constructed = true;\n            return Err(CacheConstructionFailure {\n                failure,\n                rejected_adopted: Some(adopted),\n            });\n        }\n        let repeated = std::mem::replace(&mut self.constructed, true);\n        if repeated {\n            let failure = self\n                .control\n                .error(CacheFailureKind::InvalidPin, \"swift_cache_construct_once\");\n            return Err(CacheConstructionFailure {\n                failure,\n                rejected_adopted: Some(adopted),\n            });\n        }\n        let mut partial = Partial::new(adopted);\n        let result = self.construct_partial(&mut partial);\n        match result {\n            Ok((owner, usage)) => Ok(SwiftFunctionCache {\n                adopted: partial.adopted.take().expect(\"whole adopted owner\"),\n                usage,\n                owner,\n                next_nonce: 1,\n                slots: take(&mut partial.slots),\n                pins: take(&mut partial.pins),\n                patches: take(&mut partial.patches),\n                index: take(&mut partial.index),\n                plans: take(&mut partial.plans),\n                buffers: std::mem::replace(&mut partial.buffers, std::array::from_fn(|_| None)),\n                header: partial.header.take(),\n            }),\n            Err(failure) => {\n                partial.cleanup(&mut self.control);\n                Err(CacheConstructionFailure {\n                    failure,\n                    rejected_adopted: None,\n                })\n            }\n        }\n    }\n",
+      "excerpt_sha256": "5704cc9fead126b4f2383d6870400255e45d95f8d2813296ee26f81ee226d76e",
+      "path": "source/vm/src/experimental_swift_reactor/cache.rs",
+      "scope": "Original construct signature and returned rejected adopted vs partial cleanup",
+      "source_sha256": "047b6440e28096bb8bcc1167b35c3569c17191aaf41714504a24d29de2e11757",
+      "start_line": 1755
+    },
+    {
+      "end_line": 1908,
+      "excerpt": "    pub(crate) fn complete<T>(self, returned_phase_storage: T) -> Result<(), SwiftRunFailure> {\n        let Self {\n            control: CacheControl { control, wasi, .. },\n            previous_bound,\n            ..\n        } = self;\n        control.end_construction_phase_with_wasi(\n            returned_phase_storage,\n            previous_bound,\n            wasi.map(AccountedWasi::usage),\n        )\n    }\n}\n",
+      "excerpt_sha256": "ddbea3d4abb19b9e3aed1334a01e5b96a2ea341960620b195ec48095721edc3d",
+      "path": "source/vm/src/experimental_swift_reactor/cache.rs",
+      "scope": "Original phase completion signature and storage transfer",
+      "source_sha256": "047b6440e28096bb8bcc1167b35c3569c17191aaf41714504a24d29de2e11757",
+      "start_line": 1896
+    },
+    {
+      "end_line": 353,
+      "excerpt": "pub(crate) struct AdoptedProof {\n    proof: ValidatedSwiftReactor,\n    source: ReservationTicket,\n    metadata: ReservationTicket,\n}\nimpl AdoptedProof {\n    pub(crate) fn proof(&self) -> &ValidatedSwiftReactor {\n        &self.proof\n    }\n}\n",
+      "excerpt_sha256": "98036ab9f6d8e4e0a45a55e6948bcbaf4a81de1d6bf343fbbf7e2468b7a2fb8c",
+      "path": "source/vm/src/experimental_swift_reactor/control.rs",
+      "scope": "Actual non-Clone AdoptedProof owned sealed proof and source/metadata tickets",
+      "source_sha256": "d31fc8429ce3f72e689c3e40581dbd319aa6d36f456263da141ad905ed108aad",
+      "start_line": 344
+    },
+    {
+      "end_line": 1159,
+      "excerpt": "    pub(crate) fn end_construction_phase_with_wasi<T>(\n        &mut self,\n        storage: T,\n        bytes: usize,\n        wasi: Option<WasiUsage>,\n    ) -> Result<(), SwiftRunFailure> {\n        drop(storage);\n        let Some(ticket) = self.construction.as_ref() else {\n            return Err(self.cleanup_fault_with_wasi(\n                SwiftCleanupInvariant::MissingConstruction,\n                \"swift_run_missing_construction\",\n                wasi,\n            ));\n        };\n        if ticket.owner != self.owner || ticket.category != SwiftReservationCategory::Construction {\n            return Err(self.cleanup_fault_with_wasi(\n                SwiftCleanupInvariant::ReservationOwner,\n                \"swift_run_construction_owner\",\n                wasi,\n            ));\n        }\n        let floor = foundation_construction_bytes().unwrap_or(usize::MAX);\n        if bytes < floor || bytes > ticket.bytes {\n            return Err(self.cleanup_fault_with_wasi(\n                SwiftCleanupInvariant::ConstructionBound,\n                \"swift_run_construction_phase_bound\",\n                wasi,\n            ));\n        }\n        let difference = ticket.bytes - bytes;\n        let category = self\n            .reservations\n            .construction\n            .current\n",
+      "excerpt_sha256": "a98155e59be72b3a04f9693291569a31e4f2a3c396588daf96d4116814f907e3",
+      "path": "source/vm/src/experimental_swift_reactor/control.rs",
+      "scope": "Original construction phase completion destroys return storage before bound checks",
+      "source_sha256": "d31fc8429ce3f72e689c3e40581dbd319aa6d36f456263da141ad905ed108aad",
+      "start_line": 1126
+    },
+    {
+      "end_line": 132,
+      "excerpt": "pub enum SwiftRunStage {\n    Adoption,\n    Cache,\n    Initialization,\n    Invocation,\n    Wasi,\n    Cleanup,\n}\n#[derive(Clone, Copy, Debug, PartialEq, Eq)]\n",
+      "excerpt_sha256": "630d08587b339a4ec9c3b177ff26c0bf1f86b8535a981c1d8844e39267d51972",
+      "path": "source/vm/src/experimental_swift_reactor/control.rs",
+      "scope": "Actual SwiftRunStage discriminants; Construction is not a stage",
+      "source_sha256": "d31fc8429ce3f72e689c3e40581dbd319aa6d36f456263da141ad905ed108aad",
+      "start_line": 124
+    },
+    {
+      "end_line": 207,
+      "excerpt": "pub(crate) fn write_profile_row_body_v1(\n    snapshot: &ValidatedSwiftReactor,\n    output: &mut File,\n) -> Result<ProfileRowsObservationV1, ProfileAdapterErrorV1> {\n    admit(snapshot)?;\n    admit_output(output)?;\n    write_body(snapshot, |bytes| output.write(bytes))\n}\n",
+      "excerpt_sha256": "c8b0f272389d6adfa75053cb1e8a7ccbed1370baf74db6b1a1b29e7bfae7ddff",
+      "path": "source/vm/src/experimental_swift_reactor/diagnostic_profile.rs",
+      "scope": "Accepted row writer signature and empty offset-zero File admission",
+      "source_sha256": "7f4458ddadb0480fe48a5ec57cbc1a11bfa074037eb41eeeb5edd8465fff87d8",
+      "start_line": 200
+    }
+  ]
+}

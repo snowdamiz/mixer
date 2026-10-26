@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "verdict": "callback-migration-design-supported-with-recorded-input-inventory-clarification; implementation-selection-pending-accepted-corrected-source-and-fresh-qualification",
+  "new_callback_migration_safety_defects_found": 0,
+  "protocol_clarifications": [
+    {
+      "id": "IC-01",
+      "priority": 2,
+      "title": "Distinguish canonical Java exclusions from exact closed exported product inventory",
+      "evidence": [
+        {"path": "integration-contract.md", "lines": [65, 70]},
+        {"path": "integration-contract.md", "lines": [123, 128]},
+        {"path": "inputs/repo/cli/Sources/MixerBuild/AndroidSDKCompatibility.swift", "lines": [348, 356]},
+        {"path": "inputs/repo/cli/Tests/MixerBuildTests/AndroidProjectTests.swift", "lines": [24, 36]}
+      ],
+      "issue": "Canonical input currently checks required Java paths without closing app/src, and includes an intentionally unexported AdapterInstrumentation.java probe. Reusing exact exported eighteen-name closure blindly would reject legitimate canonical input; retaining open Java input does not fulfill the promised unknown-sibling refusal.",
+      "options": [
+        "Narrow contract to required-source projection at input and closed inventory only after export; explicitly allow excluded siblings at input",
+        "Require explicit canonical eighteen-product set plus named excluded probe, refuse unknown Java siblings, and keep exported eighteen-product set exact"
+      ],
+      "root_selected_option": 2,
+      "required_followup": "Carry root-direction.json into selected contract; implement/test pre-staging canonical unknown-Java rejection without adding the known probe to product policy/export/consumer compilation",
+      "implementation_already_changed": false
+    }
+  ],
+  "inherited_source_prerequisite": {
+    "candidate_seal_sha256": "2ebf7634886be778b06ecdfa0ab2a9ac69d14a473b88a7f6ea623ccddfcd5af8",
+    "candidate_source_tree_sha256": "2d0a89dac0c629b7257a75dfa42dee3794f021c558300f968fc4d8baaaecba01",
+    "focus_review_seal_sha256": "69e1f6a02702e5a4181cbb6ff76263301d499e8853115c7059bb39e0c393dcb8",
+    "known_findings": ["FH-C01 rollback preservation lifetime", "FH-C02 foreign renderer count release"],
+    "disposition": "Unaccepted candidate; new completion-corrected source must first receive independent acceptance, then profile binding/projections and source/class qualification must be regenerated",
+    "source_defect_rediscovered_or_executed_by_this_lane": false
+  },
+  "implementation_accepted": false,
+  "canonical_native_public_OTA_or_GA_accepted": false
+}

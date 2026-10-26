@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T20:13:39.491045+00:00",
+  "scope": "Root data-audit corrections; not product failures",
+  "attempts": [
+    {
+      "command": "python3 inline closed-member custody",
+      "exit_code": 1,
+      "observation": "AssertionError: unexpected sidecar {'seal.sha256'} after all19 Swift members rehashed; Android504 custody completed before assertion",
+      "correction": "Allow exact seal.sha256 sidecar only after checking its full literal bytes against seal digest"
+    },
+    {
+      "command": "python3 read proposed producer future-closure.json",
+      "exit_code": 1,
+      "observation": "FileNotFoundError: producer has protocol.json; fully enumerated future-closure.json belongs to frozen independent packet",
+      "correction": "Bind exact independent future-closure.json in selection"
+    }
+  ]
+}
