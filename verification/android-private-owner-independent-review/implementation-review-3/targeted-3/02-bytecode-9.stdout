@@ -1,0 +1,199 @@
+Compiled from "NativeAppearanceViewsV2.java"
+final class dev.mixer.android.NativeAppearanceViewsV2$Gate extends android.widget.FrameLayout {
+  boolean open;
+    descriptor: Z
+
+  int canvasColor;
+    descriptor: I
+
+  final dev.mixer.android.NativeRenderer owner;
+    descriptor: Ldev/mixer/android/NativeRenderer;
+
+  dev.mixer.android.NativeAppearanceViewsV2$Gate(android.content.Context, dev.mixer.android.NativeRenderer);
+    descriptor: (Landroid/content/Context;Ldev/mixer/android/NativeRenderer;)V
+    Code:
+         0: aload_0
+         1: aload_1
+         2: invokespecial #1                  // Method android/widget/FrameLayout."<init>":(Landroid/content/Context;)V
+         5: aload_0
+         6: aload_2
+         7: putfield      #7                  // Field owner:Ldev/mixer/android/NativeRenderer;
+        10: aload_2
+        11: invokevirtual #13                 // Method dev/mixer/android/NativeRenderer.mutationV2:()Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;
+        14: astore_3
+        15: aload_3
+        16: invokevirtual #19                 // Method dev/mixer/android/NativeAppearanceViewsV2$Mutation.require:()V
+        19: aload_0
+        20: iconst_0
+        21: invokevirtual #25                 // Method setClipChildren:(Z)V
+        24: aload_3
+        25: invokevirtual #19                 // Method dev/mixer/android/NativeAppearanceViewsV2$Mutation.require:()V
+        28: aload_0
+        29: iconst_0
+        30: invokevirtual #29                 // Method setClipToPadding:(Z)V
+        33: aload_3
+        34: invokevirtual #19                 // Method dev/mixer/android/NativeAppearanceViewsV2$Mutation.require:()V
+        37: aload_0
+        38: iconst_0
+        39: invokevirtual #32                 // Method setWillNotDraw:(Z)V
+        42: aload_3
+        43: invokevirtual #19                 // Method dev/mixer/android/NativeAppearanceViewsV2$Mutation.require:()V
+        46: return
+      LineNumberTable:
+        line 704: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      47     0  this   Ldev/mixer/android/NativeAppearanceViewsV2$Gate;
+            0      47     1 context   Landroid/content/Context;
+            0      47     2 owner   Ldev/mixer/android/NativeRenderer;
+           15      32     3 mutation   Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;
+
+  private boolean current();
+    descriptor: ()Z
+    Code:
+         0: invokestatic  #35                 // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: getfield      #7                  // Field owner:Ldev/mixer/android/NativeRenderer;
+         7: ifnull        41
+        10: aload_0
+        11: getfield      #7                  // Field owner:Ldev/mixer/android/NativeRenderer;
+        14: invokevirtual #40                 // Method dev/mixer/android/NativeRenderer.drawAllowedV2:()Z
+        17: ifeq          41
+        20: aload_0
+        21: getfield      #44                 // Field open:Z
+        24: ifeq          41
+        27: aload_0
+        28: getfield      #7                  // Field owner:Ldev/mixer/android/NativeRenderer;
+        31: invokevirtual #48                 // Method dev/mixer/android/NativeRenderer.presentationCurrentV2:()Z
+        34: ifeq          41
+        37: iconst_1
+        38: goto          42
+        41: iconst_0
+        42: ireturn
+      LineNumberTable:
+        line 705: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      43     0  this   Ldev/mixer/android/NativeAppearanceViewsV2$Gate;
+
+  protected void onDraw(android.graphics.Canvas);
+    descriptor: (Landroid/graphics/Canvas;)V
+    Code:
+         0: invokestatic  #35                 // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: invokevirtual #51                 // Method current:()Z
+         7: ifeq          18
+        10: aload_1
+        11: aload_0
+        12: getfield      #54                 // Field canvasColor:I
+        15: invokevirtual #58                 // Method android/graphics/Canvas.drawColor:(I)V
+        18: return
+      LineNumberTable:
+        line 706: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      19     0  this   Ldev/mixer/android/NativeAppearanceViewsV2$Gate;
+            0      19     1 canvas   Landroid/graphics/Canvas;
+
+  protected void dispatchDraw(android.graphics.Canvas);
+    descriptor: (Landroid/graphics/Canvas;)V
+    Code:
+         0: invokestatic  #35                 // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: invokevirtual #51                 // Method current:()Z
+         7: ifne          11
+        10: return
+        11: aload_0
+        12: getfield      #7                  // Field owner:Ldev/mixer/android/NativeRenderer;
+        15: invokevirtual #13                 // Method dev/mixer/android/NativeRenderer.mutationV2:()Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;
+        18: astore_2
+        19: aload_2
+        20: invokevirtual #19                 // Method dev/mixer/android/NativeAppearanceViewsV2$Mutation.require:()V
+        23: aload_0
+        24: aload_1
+        25: invokespecial #64                 // Method android/widget/FrameLayout.dispatchDraw:(Landroid/graphics/Canvas;)V
+        28: aload_2
+        29: invokevirtual #19                 // Method dev/mixer/android/NativeAppearanceViewsV2$Mutation.require:()V
+        32: return
+      LineNumberTable:
+        line 707: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      33     0  this   Ldev/mixer/android/NativeAppearanceViewsV2$Gate;
+            0      33     1 canvas   Landroid/graphics/Canvas;
+           19      14     2 mutation   Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;
+
+  public boolean dispatchTouchEvent(android.view.MotionEvent);
+    descriptor: (Landroid/view/MotionEvent;)Z
+    Code:
+         0: invokestatic  #35                 // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: invokevirtual #51                 // Method current:()Z
+         7: ifne          12
+        10: iconst_1
+        11: ireturn
+        12: aload_0
+        13: getfield      #7                  // Field owner:Ldev/mixer/android/NativeRenderer;
+        16: invokevirtual #13                 // Method dev/mixer/android/NativeRenderer.mutationV2:()Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;
+        19: astore_2
+        20: aload_2
+        21: invokevirtual #19                 // Method dev/mixer/android/NativeAppearanceViewsV2$Mutation.require:()V
+        24: aload_2
+        25: aload_0
+        26: aload_1
+        27: invokespecial #68                 // Method android/widget/FrameLayout.dispatchTouchEvent:(Landroid/view/MotionEvent;)Z
+        30: invokevirtual #72                 // Method dev/mixer/android/NativeAppearanceViewsV2$Mutation.result:(Z)Z
+        33: ireturn
+      LineNumberTable:
+        line 708: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      34     0  this   Ldev/mixer/android/NativeAppearanceViewsV2$Gate;
+            0      34     1 event   Landroid/view/MotionEvent;
+           20      14     2 mutation   Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;
+
+  public boolean dispatchKeyEvent(android.view.KeyEvent);
+    descriptor: (Landroid/view/KeyEvent;)Z
+    Code:
+         0: invokestatic  #35                 // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_0
+         4: invokevirtual #51                 // Method current:()Z
+         7: ifne          12
+        10: iconst_1
+        11: ireturn
+        12: aload_0
+        13: getfield      #7                  // Field owner:Ldev/mixer/android/NativeRenderer;
+        16: invokevirtual #13                 // Method dev/mixer/android/NativeRenderer.mutationV2:()Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;
+        19: astore_2
+        20: aload_2
+        21: invokevirtual #19                 // Method dev/mixer/android/NativeAppearanceViewsV2$Mutation.require:()V
+        24: aload_2
+        25: aload_0
+        26: aload_1
+        27: invokespecial #76                 // Method android/widget/FrameLayout.dispatchKeyEvent:(Landroid/view/KeyEvent;)Z
+        30: invokevirtual #72                 // Method dev/mixer/android/NativeAppearanceViewsV2$Mutation.result:(Z)Z
+        33: ireturn
+      LineNumberTable:
+        line 709: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      34     0  this   Ldev/mixer/android/NativeAppearanceViewsV2$Gate;
+            0      34     1 event   Landroid/view/KeyEvent;
+           20      14     2 mutation   Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;
+
+  protected void onLayout(boolean, int, int, int, int);
+    descriptor: (ZIIII)V
+    Code:
+         0: invokestatic  #35                 // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: return
+      LineNumberTable:
+        line 710: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       4     0  this   Ldev/mixer/android/NativeAppearanceViewsV2$Gate;
+            0       4     1 changed   Z
+            0       4     2     l   I
+            0       4     3     t   I
+            0       4     4     r   I
+            0       4     5     b   I
+}

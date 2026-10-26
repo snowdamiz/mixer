@@ -72,6 +72,7 @@ Standalone Swift fixture-envelope CI `0b8e3fd8` is pushed; [Engine CI](https://g
 Reviewed owner/cache-state contracts `69b0c522` pass all 42 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40284896791). This checkpoint contains contracts and retained evidence; active product implementation remains outside it.
 Independent cache-state review preparation `5c1cf075` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40290654299) passes services and VM, but Swift fails one runner-timeout control before analyzer execution. A bounded test-readiness repair passes all 63 CI selection controls locally; corrected `137d3e1d` passes all 42 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40292240567).
 Computer use, capture and native runtime tests remain paused.
+Review evidence checkpoint `99f8a0a7` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40303522601) passes all 42 steps across three jobs. It contains immutable candidates, independent reviews and root metadata; canonical product and CLI changes remain outside it.
 The full plan remains incomplete; no GA gate is promoted.
 
 ## Current execution
@@ -201,6 +202,15 @@ The full plan remains incomplete; no GA gate is promoted.
    both compiler modes; root verifies 1,241 sealed result members. Detailed scalar-work and
    lifetime accounting remain open; original source and failures stay immutable.
    Public reachability of deliberately seeded private states is not established.
+   Three admitted public batches add 192 passing cases: 64 words, 64 transitions
+   and 64 sequences. Root verifies all 1,416 result members and six removed hashed
+   products. This evidence does not close source-work or lifetime proofs.
+   Independent source review refutes the old iteration ledger under its selected
+   per-site scalar-block model: subtotal657 before administration; restoring
+   through literals alone would leave645. Those bounds are conditional on the
+   model, not measured runtime overruns. Root selects fixed-endpoint copies for
+   both scalar-commit and restore loops under unchanged caps. Complete work and
+   lifetime proofs remain required for the corrected source.
 2. **iOS shared UI:** the supplemental source and corrected frozen V7 host join
    pass independent review. Fresh generic simulator builds of both app and runner
    are accepted. A sealed host-only V8 runtime packet passes sixteen controls and
@@ -272,9 +282,18 @@ The full plan remains incomplete; no GA gate is promoted.
    orchestration cases and 1,323 callback rows. Independent review reproduces a
    concrete gate reopening during lifecycle-dirty successful completion; shared
    draw/input permissions remain closed. A fourth candidate repair is active.
-   Root verifies the 128-member failure witness and holds CLI validation and
-   delivery; its partial profile3 edits still reference candidate3 bytes.
+   Root verified the 128-member failure witness and held CLI validation while
+   the partial profile3 edits still referenced candidate3 bytes.
    The earlier terminal witness keeps the real core retired and both gates closed.
+   Candidate4 is now frozen in 1,246 members with 309 current inputs verified.
+   Its producer passes 216 orchestration cases, 1,323 callback rows and unsigned
+   Java/SDK/D8 compilation. Ten independent repair controls pass with55 assertions;
+   Exact profile3 CLI qualification is sealed in 1,011 members: Debug/Release
+   builds, 13 Swift methods and 30 Python methods per mode, copied consumers and
+   72 preaccess refusals pass. Independent review adds 63 host commands, three
+   copied-consumer methods and 48 refusals across eight fixtures. Root verifies
+   658 review members and accepts the bounded CLI scope. Complete owner
+   source/callback/legacy qualification and canonical delivery remain open.
    The reviewed clarification distinguishes lifecycle invalidation that can finish
    and queue a drain from concrete stale-capture validation that fails closed.
    Completed native input results never grant a stale scope further authority.

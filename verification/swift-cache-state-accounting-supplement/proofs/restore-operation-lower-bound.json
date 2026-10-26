@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "source_sha256": "1ffc4ee5bb37c4ca2794c456f66bfcd9f1916090a0de3a548c19b6c82a3767b9",
+  "source_lines": [
+    784,
+    790
+  ],
+  "unit_model": "proofs/cost-model.md",
+  "scalar_operations": [
+    {
+      "id": "R01",
+      "line": 785,
+      "name": "CELLS[i] index bound check",
+      "units": 1
+    },
+    {
+      "id": "R02",
+      "line": 785,
+      "name": "CELLS[i] indexed element address",
+      "units": 1
+    },
+    {
+      "id": "R03",
+      "line": 785,
+      "name": "CELLS[i] element read into value expression",
+      "units": 1
+    },
+    {
+      "id": "R04",
+      "line": 785,
+      "name": "multiply selected cell value by8",
+      "units": 1
+    },
+    {
+      "id": "R05",
+      "line": 785,
+      "name": "add SCALAR.base to source offset",
+      "units": 1
+    },
+    {
+      "id": "R06",
+      "line": 786,
+      "name": "multiply i by8 for destination",
+      "units": 1
+    },
+    {
+      "id": "R07",
+      "line": 786,
+      "name": "add888 to destination offset",
+      "units": 1
+    },
+    {
+      "id": "R08",
+      "line": 789,
+      "name": "compute destination+8",
+      "units": 1
+    },
+    {
+      "id": "R09",
+      "line": 789,
+      "name": "construct destination Range<usize> (one favorable scalar unit for both endpoints)",
+      "units": 1
+    },
+    {
+      "id": "R10",
+      "line": 789,
+      "name": "check destination range start<=end",
+      "units": 1
+    },
+    {
+      "id": "R11",
+      "line": 789,
+      "name": "check destination range end<=Candidate length",
+      "units": 1
+    },
+    {
+      "id": "R12",
+      "line": 789,
+      "name": "create exclusive destination view/borrow (one favorable scalar unit for full view)",
+      "units": 1
+    },
+    {
+      "id": "R13",
+      "line": 789,
+      "name": "compute source+8",
+      "units": 1
+    },
+    {
+      "id": "R14",
+      "line": 789,
+      "name": "construct source Range<usize> (one favorable scalar unit for both endpoints)",
+      "units": 1
+    },
+    {
+      "id": "R15",
+      "line": 789,
+      "name": "check source range start<=end",
+      "units": 1
+    },
+    {
+      "id": "R16",
+      "line": 789,
+      "name": "check source range end<=arena slice length",
+      "units": 1
+    },
+    {
+      "id": "R17",
+      "line": 789,
+      "name": "create shared source view/borrow (one favorable scalar unit for full view)",
+      "units": 1
+    },
+    {
+      "id": "R18",
+      "line": 789,
+      "name": "copy_from_slice source/destination length equality guard",
+      "units": 1
+    }
+  ],
+  "irreducible_scalar_operations_per_iteration_under_explicit_model": 18,
+  "maximum_named_operations_per_scalar_group": 16,
+  "minimum_scalar_groups_per_iteration": 2,
+  "copy_groups_per_iteration": 1,
+  "complete_copy_bytes": 8,
+  "minimum_groups_per_iteration": 3,
+  "iterations": 12,
+  "minimum_total_restore_groups": 36,
+  "claimed_total_restore_groups": 24,
+  "delta_to_old_restore_claim_at_least": 12,
+  "excluded_additional_work": [
+    "source/destination let binding transfers",
+    "loop iterator creation, next call, received Option/index, advancement and per-iteration guard",
+    "final loop test",
+    "method receiver and source argument transfers",
+    "complete Range source/received movement beyond one favorable unit per Range",
+    "fat-view scalar fields beyond one favorable unit per borrow",
+    "returned/received unit and cleanup returned/received bool",
+    "constant-region field reads",
+    "any check/dataflow removed only by optimizer"
+  ],
+  "lower_bound_only": true,
+  "measured_runtime_overrun": false,
+  "cost_model_independently_accepted": false
+}

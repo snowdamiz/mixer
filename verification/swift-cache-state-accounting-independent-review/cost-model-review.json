@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "binding_source": {
+    "path": "docs/swift-semantic-adapter-prerequisite.md",
+    "sha256": "c818e47d15d541731df98cdf79032846cb4e4aa28aad2eee7e25ac36cb1c7f41",
+    "lines": [
+      244,
+      266
+    ]
+  },
+  "accepted_requirements": [
+    "Each actual micro-operation, loop guard, fixed copy, LE conversion, complete Result and caller move maps exactly once.",
+    "At most16 named scalar operations per scalar group; at most128 bytes per distinct fixed-copy group.",
+    "Selected seven group maxima are not interchangeable; no optimizer elision; missing mapping blocks acceptance."
+  ],
+  "not_explicitly_defined_by_binding_passage": [
+    "A formal primitive-operation grammar, including whether every index address/read/check is individually named and how complete reference/Range moves are atomized.",
+    "Mandatory ceil(scalars/16) independently at every helper/copy/iteration site, prohibiting transport of partially filled scalar capacity between sites within G6."
+  ],
+  "selected_producer_site_partition": "Inherited source-accounting.md explicitly assigns each st/sq3, direct copy2, scalar commit2, clear2 and restore2, and says only adjacent scalar operations fuse. Those local proof claims can be assessed under a consistent local model.",
+  "independent_atomization_for_conditional_tests": {
+    "index": "bound predicate, indexed address, element read:3",
+    "arithmetic": "one per written arithmetic operation; literals cost0",
+    "range": "one complete Range constructor plus start<=end and end<=len predicates:3",
+    "view": "one favorable complete borrow/view creation",
+    "copy": "one separate payload-copy group plus one length-equality scalar predicate",
+    "omissions": "loops, local binding and argument/scalar/unit movement are excluded from lower cores, never declared free in a complete proof"
+  },
+  "conclusion": "Supplement18-operation restore core is reproducible and refutes its inherited one-scalar-block iteration claim under the stated site/atomization model.645 is a conditional model result, not a numeric bound compelled solely by accepted definitions. A different grouping convention needs explicit source-bound complete proof and root acceptance; it cannot silently repair the selected ledger.",
+  "measured_runtime_overrun": false,
+  "new_cost_model_silently_accepted": false
+}

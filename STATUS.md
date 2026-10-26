@@ -42,6 +42,7 @@ Standalone Swift fixture-envelope CI `0b8e3fd8` is pushed; [Engine CI](https://g
 Reviewed owner/cache-state contracts `69b0c522` pass all 42 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40284896791). This checkpoint contains contracts and retained evidence; active product implementation remains outside it.
 Independent cache-state review preparation `5c1cf075` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40290654299) passes services and VM, but Swift fails one runner-timeout control before analyzer execution. A bounded test-readiness repair passes all 63 CI selection controls locally; corrected `137d3e1d` passes all 42 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40292240567).
 Native runtime and capture remain paused.
+Review evidence checkpoint `99f8a0a7` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40303522601) passes all 42 steps across three jobs. This checkpoint preserves immutable candidates/reviews and root metadata, with no canonical product or CLI changes.
 All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
 [gates/ga.json](gates/ga.json) records eight running and thirty planned gates.
@@ -244,6 +245,16 @@ have no established public from-empty reachability. See
 [the independent review](docs/swift-semantic-adapter-terminal-review.md) and
 [root contract acceptance](verification/swift-semantic-adapter-root-review/combined-contract-acceptance.json).
 
+Independent source review refutes the existing G6 iteration ledger under its
+selected per-site block model: subtotal657 before administration; restore-only
+literals would leave645. The bounds are conditional, not measured runtime
+overruns. Root selects fixed-endpoint scalar-commit and restore copies under
+unchanged caps, with complete corrected work/lifetime proofs still required.
+The selected correction is now in progress. Three admitted public batches on the
+guard correction add 192 passing cases: 64 words, 64 transitions and 64 sequences.
+Root verifies 1,416 result members and removal of all six hashed products. No new
+private execution or work/lifetime acceptance follows from these semantic passes.
+
 Independent iOS source review found two host-diagnostic completeness defects:
 substituted original AX/app data and reordered callback references could be
 labelled complete. The native verdict stays failed. A host-only correction now
@@ -390,8 +401,17 @@ inputs; producer checks pass 214 orchestration cases, 1,323 callback rows and
 Java/SDK/D8 cross-compilation. Independent review reproduces an open concrete
 renderer gate during lifecycle-dirty successful completion, with shared draw/input
 permissions still closed. Root verifies the 128-member witness and selects a
-fourth candidate repair. CLI validation and delivery are held; partial profile3
-edits still reference candidate3. Public V2 routing remains unselected.
+fourth candidate repair. CLI validation was held while partial profile3 edits
+referenced candidate3. Public V2 routing remains unselected.
+Candidate4 is frozen in 1,246 members and 309 current inputs; producer checks pass
+216 orchestration cases, 1,323 callback rows and unsigned Java/SDK/D8 compilation.
+Ten independent repair controls pass55 assertions. Exact profile3 CLI host
+qualification is sealed in 1,011 members: Debug/Release builds, 13 Swift methods
+and 30 Python methods per mode, copied consumers and 72 preaccess refusals pass.
+Independent review adds 63 host commands, three copied-consumer methods and
+48 refusals across eight fixtures. Root verifies 658 review members and accepts
+the bounded CLI scope. Complete owner source/callback/legacy qualification and
+canonical delivery remain open.
 See [the roster review](docs/android-private-owner-effect-roster-review.md) and
 [root selection](verification/android-private-owner-effect-integration-root-review/implementation-selection.json).
 The [selected clarification](verification/android-private-owner-effect-integration-root-review/dirty-result-clarification/selection.json) distinguishes recoverable lifecycle invalidation from stale concrete validation and permits only immediate scalar return of a completed input result after a live successor. The exact third mechanical leaf snapshot is accepted for bounded reuse after twelve independent controls and 82 assertions; it provides no product-test or Android-runtime acceptance.

@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "source_sha256": "1ffc4ee5bb37c4ca2794c456f66bfcd9f1916090a0de3a548c19b6c82a3767b9",
+  "STORE": {
+    "source_lines": [
+      156,
+      164
+    ],
+    "st_value_flow": [
+      "u64 n caller source -> received parameter (scalar transfer)",
+      "n.to_le_bytes LE conversion",
+      "complete8-byte returned LE-array source -> received temporary (copy1)",
+      "shared borrow of received LE array (scalar view)",
+      "at..at+8 checked mutable destination range and view (scalar work)",
+      "copy_from_slice length guard (scalar)",
+      "LE-array temporary -> destination8 payload (copy2)",
+      "returned/received unit, argument/receiver transfers (scalar)"
+    ],
+    "sq_additional_flow": [
+      "c/i/n received wrapper arguments",
+      "8*i and SC+offset",
+      "Candidate-to-slice borrow/coercion and st argument transfers",
+      "st unit received and sq returned/received unit"
+    ],
+    "copy_lower_bound_st_or_sq": 2,
+    "scalar_block_bound_closed": false,
+    "why": "Two distinct array movements are justified by the source and no optimizer elision. Exact<=16 scalar block for wrapper+helper is not supplied by merely counting these arrays; each caller indexed value/arithmetic must also have exactly one owner."
+  },
+  "G3LD": {
+    "source_lines": [
+      149,
+      155,
+      265,
+      267
+    ],
+    "worst_path": "both runs nonempty, b!=ABSENT and a!=ABSENT -> four actual ld calls",
+    "load_sites": [
+      {
+        "id": "L1",
+        "line": 265,
+        "address": "src+left*8",
+        "payload": "index a"
+      },
+      {
+        "id": "L2",
+        "line": 266,
+        "address": "src+right*8",
+        "payload": "index b"
+      },
+      {
+        "id": "L3",
+        "line": 267,
+        "address": "a as usize*8",
+        "payload": "timestamp[a]"
+      },
+      {
+        "id": "L4",
+        "line": 267,
+        "address": "b as usize*8",
+        "payload": "timestamp[b]"
+      }
+    ],
+    "ld_value_flow": [
+      "b/at scalar argument transfers",
+      "at+8, Range source/receive, two range predicates and shared slice view",
+      "first_chunk length predicate and complete Option<&[u8;8]> source/received",
+      "expect tag test/unwrapping and borrowed array view",
+      "dereferenced8-byte array -> from_le_bytes by-value argument: one payload copy",
+      "LE decode -> u64 scalar return/received and caller binding"
+    ],
+    "minimum_distinct_payload_copies_on_worst_path": 4,
+    "difference_from_st": "ld has no returned LE-array. Its from_le_bytes returns u64, so inheriting st two-array-copy count as exact would be wrong; conversely merely claiming ld one-copy+one-scalar is unproved.",
+    "eight_group_obligation": "Four payload copies leave four scalar groups (<=64 named operations if appropriately partitioned) for all four ld flows, caller offset/cast/argument/binding, a/b ABSENT tests, short-circuit path, timestamp<= and returned take_left. Map G3 versus G4 tail/loop work disjointly.",
+    "numeric_overrun_asserted": false,
+    "bound_closed": false,
+    "sort_structural_observation": "32+48+56+60+62+63=321 comparisons and6*64=384 transfers are structurally plausible from six passes; this is not executable or per-comparison source-cost qualification."
+  },
+  "ADMIN4": {
+    "source_lines": [
+      710,
+      730,
+      734,
+      765,
+      775,
+      797,
+      1209,
+      1211
+    ],
+    "required_named_rows": [
+      {
+        "id": "A1",
+        "owner": "G6 stage",
+        "operations": "w[1] actual checked read; match dispatch; applicable w[13] branch; stage source/received; two stage==0 predicates/branches and conditional field reads into sq arguments. sq internals must not be counted twice."
+      },
+      {
+        "id": "A2",
+        "owner": "G6 row controls",
+        "operations": "resident_delta, pin_delta, plan_delta ABSENT tests/branches; row offset/binding work not already in row-copy site; commit_succeeded production true return/receive and !/branch; poison-return branch owns complete reply under G7."
+      },
+      {
+        "id": "A3",
+        "owner": "G6 scalar-loop controls",
+        "operations": "both loop Range/iterator/Option source/received and entry/final tests; interior index/body/next/control must be in the exact iteration table or here once."
+      },
+      {
+        "id": "A4",
+        "owner": "G6 pending scalar control",
+        "operations": "w[1] checked read, kind6 equality/branch; optional pending st argument offset/value receives only on EvictBegin, disjoint from built branch."
+      },
+      {
+        "id": "A5",
+        "owner": "G6 cleanup",
+        "operations": "cleanup argument/receiver borrow transfer; b.len read; exact-length equality/branch; clear-loop and restore-loop creation/final tests; final bool return/receive, caller ! and conditional latch branch. Original restore controls disappear only after actual selected literal repair."
+      }
+    ],
+    "selected_allowance_groups": 4,
+    "selected_allowance_named_scalar_ops_at_most": 64,
+    "numeric_overrun_asserted": false,
+    "closed_four_blocks": false,
+    "reason": "The source-bound producer ledger assigns4 without an exact list/partition. It has not established<=64 distinct scalar operations or each<=16 block and has not reconciled all caller-owned paths. We do not invent a stage-match linear comparison count or assign guard/reply work to two groups."
+  },
+  "administration_not_zero_in_complete_proof": true
+}
