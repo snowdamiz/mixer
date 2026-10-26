@@ -58,6 +58,7 @@ VM and services pass; subsequent Swift checks were skipped.
 Rustup dispatch repair `05c1ebf0` passes all three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40247799000).
 Generated Android source-export repair `99d63843` passes all 40 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40252047362).
 Default appearance packaging `55985881` passes all 40 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40256207023).
+Copied SDK/source-pair compatibility `1f114d8f` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40263504027) passed all 3 jobs and 40 steps.
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
 
@@ -169,7 +170,12 @@ The full plan remains incomplete; no GA gate is promoted.
    copied Swift/Java consumers and all 75 unchanged native build inputs. Root
    verifies 2,623 producer/review/preaccess members, 105 current source inputs and
    235 independent command results. The profile governs common Swift preaccess
-   and the rendered driver's build policy. Public V2 remains unchanged. See
+   and the rendered driver's build policy. Public V2 remains unchanged. A pure
+   Java lifecycle decision core outside the exported adapter map now passes
+   22 producer host methods and 45,841 assertions, plus 33 independent methods,
+   71 scenarios and 264,289 assertions. Root verifies 119 sealed members and
+   46 current inputs and accepts this host decision scope. Android effect-runner
+   wiring and API28 environment support remain separate prerequisites. See
    [the selected contract](verification/android-copied-sdk-appearance-contract-root-review/implementation-selection.json),
    [the export review](docs/android-authored-toggle-generated-export-review.md) and
    [the packaging review](verification/android-default-appearance-packaging-implementation-review/final-review.md).

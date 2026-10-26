@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T03:38:22.945869+00:00",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/android-public-owner-root-review/select_owner_core.py"
+  ],
+  "python_version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "checker_sha256": "f5760557b59660c7ec55f75ac1eccde01db1a0e6c0e5166511fc59350aaf2e84",
+  "context_revision": "1f114d8f235e8042c275a2549fef7d4994272360",
+  "status": "pure-host-owner-core-selected-for-implementation",
+  "contract_manifest_sha256": "4ecf1287a35219c11992769f95dfc7d699031001bf7d73306caaa4817f78c747",
+  "contract_members_verified": 8,
+  "contract_bytes_verified": 53755,
+  "bound_inputs": 55,
+  "current_inputs_equal_frozen": 54,
+  "context_changes": [
+    {
+      "path": "PLAN.md",
+      "frozen": {
+        "binding": "context-git",
+        "bytes": 29976,
+        "sha256": "d5455980e5236e5aa79208c162869551bb4e0e2ccdfafbe15d59525e86dcd7c7"
+      },
+      "current": {
+        "bytes": 32899,
+        "sha256": "386d5fac1c0b840ec1121f0ba990277f9f70baa06f54ca08bd2e17a94f1561bd"
+      }
+    }
+  ],
+  "context_interpretation": "Only PLAN context may have changed during independent Swift/CI progress; its Android execution section still equals accepted1f114d8f. No bound implementation input changed.",
+  "owned_files": [
+    "native/android/owner-core/src/dev/mixer/android/OwnerLifecycleV2.java",
+    "native/android/tests/OwnerLifecycleV2HostTests.java",
+    "native/android/tests/run-owner-core-host.py",
+    "docs/android-public-owner-core.md",
+    "verification/android-public-owner-core/**"
+  ],
+  "selected_scope": "Package-private independently authored Java decision core outside exported adapter maps, with deterministic actual host tests. No Android effect runner or public Activity integration.",
+  "root_contract_clarifications": [
+    "Use bounded retained state and bounded per-call decision batches. An ever-growing action history belongs only to the test recorder, never the production core.",
+    "Injected owner-thread assertion is trusted to check or throw without reentry/effects. Every entry, including stale deliveries, validates thread ownership before observing/mutating core state.",
+    "Only the matching initial-open operation may first bind an acquired coordinator identity, including after retirement for one terminal close. Foreign/duplicate completions cannot adopt or close a foreign resource; refresh/input completions cannot replace ownership.",
+    "Opening failure with an acquired resource must still request its one close. In-flight operation that never returns leaves actual cleanup pending; no guaranteed reclamation is inferred.",
+    "The later effect runner owns actual registration/cleanup attempts and fatal error propagation. Core action emission alone does not establish listener, native gate, JNI or setter revocation safety.",
+    "Keep pause/resume/configuration, focus invalidation and dirty epoch semantics explicit. Epoch exhaustion is terminal; no token reuse, wrap, event queue or replay.",
+    "No public V2, API28 support, saved-state continuity, resource/font/accessibility or native environment claim. Existing unsupported errors and current source-pair1 remain unchanged."
+  ],
+  "verification": "Compile exact two Java sources using official javac --release17 -Xlint:all -Werror and empty accidental class/source paths; execute deterministic controls with fake queue/facts and actual core. Bind versions/source/outputs/classes; preserve failures and owned cleanup. Independent review follows.",
+  "platform_source_precision": "Proposal supplement records access date only; exact per-request fetch timestamps were not retained. This does not qualify platform runtime behavior.",
+  "implementation_accepted": false,
+  "profile_update_or_public_routing_selected": false,
+  "native_UI_capture_or_device_execution_authorized": false,
+  "GA_qualified": false,
+  "errors": []
+}

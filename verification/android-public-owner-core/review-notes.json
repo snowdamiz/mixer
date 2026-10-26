@@ -1,0 +1,21 @@
+{
+  "scope": "Actual pure Java ownership decisions; no Android integration",
+  "attempts": [
+    {"attempt": "Default PATH JDK lookup", "result": "/usr/bin/javac existed but reported no configured Java Runtime; no compile occurred. Follow-up used the existing pinned OpenJDK25 path from native build metadata, without installation."},
+    {"attempt": "First bounded tool-path lookup", "result": "zsh rejected unmatched run-coordinator glob; no source or process changed. A later exact-directory rg query located the existing tool path."},
+    {"attempt": "Optional test Python inventory", "result": "No existing .py files were found under native/android/tests before the new owned runner; no conclusion relies on that absence."},
+    {"attempt": "attempts/first", "result": "Strict exact-two-source compile and 21 methods / 45803 assertions passed; owned scratch removed. Retained as the preceding source version, not combined with final counts."},
+    {"attempt": "attempts/final", "result": "Strict exact-two-source compile and 22 methods / 45841 assertions passed after adding fail-closed null readiness facts and explicit unknown-outcome/foreign-cleanup controls. Owned scratch removed."}
+  ],
+  "limitations": [
+    "The trusted thread-check seam is tested before state effects; actual Android main Looper enforcement is unrun.",
+    "Reentrant terminal ordering is modeled by interleaving events before operation completion; no native setter or listener was executed.",
+    "Decision emission does not perform listener removal, native gate sealing, JNI/Swift transaction cleanup, or fatal-error propagation.",
+    "A never-returning operation leaves actual resource cleanup pending.",
+    "The core retains no packet or event payload and cannot itself prove refresh byte identity or native stale-record admission.",
+    "No public V2, API28 runtime support, saved-state continuity, resource/font/accessibility/design parity, physical/published FieldLog/signing/store/operations/GA qualification."
+  ],
+  "native_capture_runtime_device_or_process_discovery": false,
+  "product_or_root_metadata_files_outside_ownership_changed": false,
+  "independent_review": "pending"
+}

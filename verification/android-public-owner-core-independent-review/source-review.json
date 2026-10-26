@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "scope": "Focused manual source review supplementing actual independent host behavior tests; no native or release authorization.",
+  "source": {
+    "path": "native/android/owner-core/src/dev/mixer/android/OwnerLifecycleV2.java",
+    "bytes": 12473,
+    "sha256": "4282e8284212fb042a139f597d9f34f061f6f27673e918a52f1f784e6fe9ebb6"
+  },
+  "retained_state": {
+    "lines": [28, 55],
+    "instance_fields": 28,
+    "fixed_reference_slots": 20,
+    "boolean_slots": 6,
+    "long_slots": 2,
+    "retained_collections_or_history": 0,
+    "token_slots": ["lifetime", "drain", "operation", "presentation", "cancel", "unregister", "close"],
+    "diagnostic_slots": ["primaryFailure", "cancelFailure", "unregisterFailure", "closeFailure"],
+    "interpretation": "One latest WindowFacts replaces its predecessor. One resource, pending drain, operation and presentation use fixed slots. Consumed operation/drain/presentation references are cleared or replaced. No production history is retained. Caller-owned object graphs are not a whole-heap bound."
+  },
+  "decision_batches": {
+    "lines": [200, 267],
+    "declared_maximum": 5,
+    "focused_source_maximum": 4,
+    "observed_final_maximum": 4,
+    "construction_paths": [
+      "Retirement emits terminal SEAL, CANCEL_QUEUED, UNREGISTER, then optionally one CLOSE: maximum four.",
+      "Ordinary invalidation/observation emits SEAL and optionally QUEUE_DRAIN or a drain-started operation: maximum two.",
+      "Epoch exhaustion immediately retires; phase checks prevent subsequent scheduling/begin.",
+      "Completion emits one pending refresh drain, one deferred close, no decisions, or the terminal batch.",
+      "Each method allocates a local list only when needed; batch returns List.copyOf and enforces the declared bound."
+    ]
+  },
+  "thread_checks": {
+    "lines": [57, 197],
+    "owner_entry_count_including_constructors": 20,
+    "owner_methods": ["lifetime", "snapshot", "permits", "admitsInput", "windowChanged", "drain", "invalidate", "configurationChanged", "focusChanged", "pause", "stop", "resume", "dispatchInput", "complete", "detached", "close", "registrationFailed", "cleanupComplete"],
+    "result": "All 18 methods invoke thread.requireOwner before state checks/observations/mutations. Both constructor entries reach the seeded constructor's trusted assertion before argument validation or externally observable ownership. Immutable record accessors are value reads, not live-owner entries.",
+    "assumption": "Injected checker is trusted, nonreentrant and either checks or throws; this does not prove Android main Looper identity."
+  },
+  "resource_and_terminal_review": {
+    "lines": [153, 196, 243, 263],
+    "result": "Matching operation identity is required before any resource processing. Only OPEN_INITIAL may first adopt an acquired nonnull identity, including after retirement. Refresh/input require the existing identity and cannot replace it. Retirement precedes cleanup decisions and revokes input/presentation/drain. Deferred close waits for matching operation completion and close-token allocation prevents duplicates. Cleanup report is first-result-per-token and does not establish actual successful reclamation.",
+    "never_returning_operation": "Remains recorded and terminally fenced; no deferred CLOSE is emitted until its matching completion. Actual reclamation stays pending."
+  },
+  "identity_and_epoch_review": {
+    "lines": [77, 84, 98, 156, 199, 215, 225],
+    "result": "Identity comparisons use reference equality, not value equality. Epoch maximum retires without increment/wrap; operationEpoch comparisons preserve later dirtiness. Token instances are private-constructor identities and no production token history is retained."
+  },
+  "findings": [],
+  "substantive_candidate_defects_found": 0,
+  "root_acceptance_claimed": false
+}

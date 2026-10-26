@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "scope": "Independent host behavior review of the package-private Android owner decision core; no native/runtime, effect-runner or public-routing qualification.",
+  "candidate_source_read_before_freeze": false,
+  "basis": [
+    "docs/android-public-owner-contract.md",
+    "verification/android-public-owner-root-review/implementation-selection.json",
+    "Producer API-only message received before source access: OwnerLifecycleV2, opaque Token, WindowFacts, Decision, Snapshot, ThreadCheck and entry method signatures."
+  ],
+  "method": "Compile the exact candidate Java source with an independently authored package-peer harness using official javac --release 17 -Xlint:all -Werror -proc:none and empty class/source paths. Exercise actual decisions, tokens and state with manual event delivery. Do not execute or import producer tests or collectors. Use bounded children and retain failure/cleanup receipts.",
+  "controls": [
+    {"id":"R01","case":"Each readiness prerequisite missing in isolation; repeated ready notifications and a stale queued drain.","expect":"No operation while unready or automatic polling; only matching ready drain opens exactly once."},
+    {"id":"R02","case":"Invalidations during initial open, then during refresh, plus a burst before a drain.","expect":"At most one queued drain, no concurrent operations, later dirty epoch survives earlier completion and yields one follow-up refresh."},
+    {"id":"R03","case":"Destroy/detach/window replacement/window loss while open is executing; matching completion returns an acquired resource.","expect":"Terminal fence closes before completion; matching resource is closed once, no presentation is published, duplicate completion cannot close another resource."},
+    {"id":"R04","case":"Deliver completion from another owner, stale operation, or duplicate completion with a foreign resource before/after retirement.","expect":"No ownership adoption/replacement, foreign close, publication, dirty clearing or reopening."},
+    {"id":"R05","case":"Matching open failure supplies a resource; registration failure and cleanup failures use distinct identities.","expect":"Terminal first; ordered seal/cancel/unregister and one owned close; primary and bounded secondary diagnostics preserve identity; no retry."},
+    {"id":"R06","case":"Close during refresh or input, deliver a queued callback whose cancellation was ineffective, then complete the operation.","expect":"No post-retirement work/publication; close is deferred until matching operation returns and occurs once."},
+    {"id":"R07","case":"Use obsolete presentation after invalidation and after successful refresh, stale lifetime from another owner, and reentrant input during an operation.","expect":"All are denied; current clean foreground/focused owner admits at most one immediate dispatch, with no replay or event queue."},
+    {"id":"R08","case":"Pause/stop/resume/focus/configuration transitions with retained resource.","expect":"No new owner/session decision; resume/configuration require fresh environment work before admission; focus is not a prerequisite for initial open."},
+    {"id":"R09","case":"Live owner becomes temporarily zero-sized or lacks insets and then becomes ready.","expect":"Remains dirty with input closed, no polling/refresh while unready, one refresh after a real readiness notification."},
+    {"id":"R10","case":"Seed epoch at the maximum; invalidate then deliver any stale callbacks.","expect":"Terminal exhaustion, no wrap or reused token identity, no further work."},
+    {"id":"R11","case":"Invoke every entry, including getters, predicates, stale completions and cleanup, with an injected wrong-thread check.","expect":"Reject before any observable state or decision change; injected checker is trusted nonreentrant."},
+    {"id":"R12","case":"Keep an operation indefinitely outstanding after retirement.","expect":"No false cleanup completion or close while operation remains outstanding; receipt labels actual reclamation pending."},
+    {"id":"R13","case":"Exercise long bounded repeated invalidation/refresh cycles and terminal cleanup reporting.","expect":"No production history collection, bounded per-call decisions and retained token/failure slots; test recorder may retain history independently."},
+    {"id":"R14","case":"Construct a fresh owner after retiring an old one; cross-deliver lifetimes/drains/completions.","expect":"Independent token identity and state; old work cannot affect new owner; no state-restoration claim."},
+    {"id":"R15","case":"Matching completion claims committed success without an owned resource, refresh/input tries to replace owned resource, or unknown failure occurs.","expect":"Fail closed or reject without foreign-resource ownership; never enter live with unowned coordinator or publish an unknown outcome."}
+  ],
+  "limits": [
+    "Black-box host decisions cannot prove Android listener cleanup, native gate sealing, JNI behavior, actual main-Looper identity or commit/finish safety.",
+    "Every retained-state bound claim additionally requires focused source review; it is not inferred solely from long-run functional tests.",
+    "Source-pair profile 1 and public V1 remain unchanged; API 28-35 and unsupported environment behavior remain pending."
+  ]
+}

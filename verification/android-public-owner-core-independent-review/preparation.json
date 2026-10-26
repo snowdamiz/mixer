@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T03:51:22.107259+00:00",
+  "candidate_source_accessed": false,
+  "root_preaccess_seal": {
+    "path": "verification/android-public-owner-core-root-review/preaccess-seal.json",
+    "sha256": "afc099d49f365c143b3db12d880693d528ea48db67baa3b07f61913354515a09"
+  },
+  "interpretation": "Apply all R01-R15 as behavioral obligations of only the package-private pure Java decision core. A returned decision is an instruction, not proof that Android, JNI, main-Looper or cleanup effects executed. Ignore stale/foreign capabilities without adopting, replacing or closing their resources. Trusted thread checking precedes any state observation or mutation, even for stale and terminal calls.",
+  "independent_additions": [
+    "Use two simultaneously live owners with distinct resources to expose identity-versus-value token errors and verify their states remain independent.",
+    "Probe exact readiness fact combinations, duplicate queued drains, retirement with matching open success and failure, completion ordering, and unavailable environment recovery.",
+    "Test every callable entry and value accessor exposed by the core with an armed trusted wrong-thread checker where applicable; snapshot unchanged state after disarming.",
+    "Distinguish candidate defects from independent harness/oracle defects; retain the first failed run artifacts and explain any harness correction before rerunning.",
+    "Inspect retained fields and all decision construction sites directly for bounded production state and per-call output, supplementing a long deterministic stress sequence.",
+    "Treat operations that never return, native effect execution, device gates and exported adapter integration as explicit pending limits."
+  ],
+  "execution_plan": {
+    "independent_harness": "Author a new package-peer Java main using deterministic manual callbacks and assertions; do not import or execute producer tests/runner/verifier.",
+    "compile": "Official existing JDK; javac --release 17 -Xlint:all -Werror -proc:none; exactly candidate core source plus independent harness; empty classpath and sourcepath.",
+    "children": "Owned compile/run subprocesses only, individually bounded to at most 180 seconds; no sleeps, Android stubs, native runtime, process inventory or UI tools.",
+    "evidence": "Capture exact argv, tool versions, source revision and digests, input snapshots, stdout/stderr, exit statuses, coverage counts, output class digests and owned scratch cleanup."
+  },
+  "not_authorized": [
+    "producer source edits",
+    "root metadata edits",
+    "producer tests or collectors",
+    "native runtime or capture",
+    "hosted catalog-inspector, authority-driver, rejected WorkerV2 or broad hosted harness",
+    "Patch/Skip implementation or dependencies",
+    "root acceptance, commit or push"
+  ]
+}
