@@ -3,6 +3,7 @@ package dev.mixer.android;
 import android.app.Activity;
 import android.app.UiModeManager;
 import android.content.ComponentCallbacks;
+import android.content.ContentResolver;
 import android.content.res.Configuration;
 import android.database.ContentObserver;
 import android.graphics.Insets;
@@ -14,6 +15,7 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.WindowInsets;
+import android.view.ViewTreeObserver;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.FrameLayout;
 import java.util.Objects;
@@ -38,7 +40,7 @@ final class NativeEnvironmentV2 {
         try { return value.equals(source.read()); }
         catch (RuntimeException unavailable) { return false; }
     }
-    FrameLayout root() { return source.root; }
+    FrameLayout root() { requireMain(); return source.root; }
     static void requireMain() {
         if (Looper.myLooper() != Looper.getMainLooper()) throw new IllegalStateException("V2 requires UI owner thread");
     }
@@ -50,53 +52,147 @@ final class NativeEnvironmentV2 {
         final Activity activity;
         final FrameLayout root;
         private long generation = 1;
-        private boolean retired;
+        private boolean retired, initialized;
         private final UiModeManager modes;
         private final AccessibilityManager accessibility;
+        private final ContentResolver resolver;
+        private final ViewTreeObserver focusTarget;
+        private int pending, acquiring = -1;
+        // Fixed, bounded diagnostics: a returned removal does not establish reclamation.
+        static final int UNATTEMPTED = 0, POSSIBLY_OWNED = 1, REMOVING = 2,
+            RETURNED = 3, FAILED_UNCERTAIN = 4, DEAD_TARGET_UNCERTAIN = 5;
+        private final int[] cleanup = new int[8];
+        private final Throwable[] cleanupFailures = new Throwable[8];
+        private Throwable primaryFailure;
+        private Error fatalFailure;
+        private boolean diagnosticsAttached;
         private final UiModeManager.ContrastChangeListener contrast = ignored -> invalidate();
         private final AccessibilityManager.HighContrastTextStateChangeListener highContrast = ignored -> invalidate();
         private final View.OnLayoutChangeListener layout = (v,l,t,r,b,ol,ot,or,ob) -> {
+            requireMain();
+            if (retired) return;
             if (l != ol || t != ot || r != or || b != ob) invalidate();
         };
-        private final View.OnAttachStateChangeListener attachment=new View.OnAttachStateChangeListener(){
-            public void onViewAttachedToWindow(View view){invalidate();}
-            public void onViewDetachedFromWindow(View view){invalidate();retired=true;}
+        private final View.OnAttachStateChangeListener attachment = new View.OnAttachStateChangeListener() {
+            public void onViewAttachedToWindow(View view) { invalidate(); }
+            public void onViewDetachedFromWindow(View view) { terminalNotification(); }
         };
-        private final android.view.ViewTreeObserver.OnWindowFocusChangeListener windowFocus=focused->invalidate();
+        private final ViewTreeObserver.OnWindowFocusChangeListener windowFocus = focused -> invalidate();
+        private final View.OnApplyWindowInsetsListener insets = (view, value) -> { invalidate(); return value; };
         private final ContentObserver motion = new ContentObserver(new Handler(Looper.getMainLooper())) {
             @Override public void onChange(boolean selfChange) { invalidate(); }
         };
 
+        /** The private V2 root has one inset setter owner; no competing setter is permitted. */
         Observer(NativeRenderer owner, Activity activity, FrameLayout root) {
             requireMain();
             // Public high-contrast read/listener first exists on API36. Never invent false on earlier OSes.
             if (Build.VERSION.SDK_INT < 36 || root.getContext() != activity) unsupported();
-            this.owner = owner; this.activity = activity; this.root = root;
+            this.owner = Objects.requireNonNull(owner); this.activity = activity; this.root = root;
             modes = Objects.requireNonNull(activity.getSystemService(UiModeManager.class));
             accessibility = Objects.requireNonNull(activity.getSystemService(AccessibilityManager.class));
-            activity.registerComponentCallbacks(this);
-            root.addOnLayoutChangeListener(layout);root.addOnAttachStateChangeListener(attachment);
-            root.getViewTreeObserver().addOnWindowFocusChangeListener(windowFocus);
-            root.setOnApplyWindowInsetsListener((view, insets) -> { invalidate(); return insets; });
-            modes.addContrastChangeListener(activity.getMainExecutor(), contrast);
-            accessibility.addHighContrastTextStateChangeListener(activity.getMainExecutor(), highContrast);
-            activity.getContentResolver().registerContentObserver(
-                Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE), false, motion);
+            resolver = Objects.requireNonNull(activity.getContentResolver());
+            focusTarget = Objects.requireNonNull(root.getViewTreeObserver());
+            try {
+                begin(0); activity.registerComponentCallbacks(this); completed();
+                begin(1); root.addOnLayoutChangeListener(layout); completed();
+                begin(2); root.addOnAttachStateChangeListener(attachment); completed();
+                begin(3); focusTarget.addOnWindowFocusChangeListener(windowFocus); completed();
+                begin(4); root.setOnApplyWindowInsetsListener(insets); completed();
+                begin(5); modes.addContrastChangeListener(activity.getMainExecutor(), contrast); completed();
+                begin(6); accessibility.addHighContrastTextStateChangeListener(activity.getMainExecutor(), highContrast); completed();
+                begin(7); resolver.registerContentObserver(
+                    Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE), false, motion); completed();
+                initialized = true;
+            } catch (RuntimeException | Error failure) {
+                retired = true; acquiring = -1;
+                remember(failure); cleanupAll(); throwFailure();
+            }
+        }
+        private void begin(int slot) {
+            if (retired) throw new IllegalStateException("V2 observer retired during registration");
+            acquiring = slot; pending |= 1 << slot; cleanup[slot] = POSSIBLY_OWNED;
+        }
+        private void completed() {
+            acquiring = -1;
+            if (retired) throw new IllegalStateException("V2 observer retired during registration");
+        }
+        private void remember(Throwable failure) {
+            diagnosticsAttached = false;
+            if (primaryFailure == null) primaryFailure = failure;
+            if (failure instanceof Error && fatalFailure == null) fatalFailure = (Error)failure;
+        }
+        private static void suppress(Throwable target, Throwable detail) {
+            if (detail == null || detail == target) return;
+            try { target.addSuppressed(detail); }
+            catch (Throwable unavailable) { /* Best effort only, after every cleanup was attempted. */ }
+        }
+        private void throwFailure() {
+            Throwable failure = fatalFailure == null ? primaryFailure : fatalFailure;
+            if (failure == null) return;
+            if (!diagnosticsAttached) {
+                diagnosticsAttached = true;
+                suppress(failure, primaryFailure);
+                for (Throwable detail : cleanupFailures) suppress(failure, detail);
+            }
+            if (failure instanceof Error) throw (Error)failure;
+            throw (RuntimeException)failure;
         }
         void invalidate() {
             requireMain();
-            if (generation == Long.MAX_VALUE) retired = true;
-            else generation++;
-            owner.environmentInvalidatedV2();
+            if (retired) return;
+            if (generation == Long.MAX_VALUE) { terminalNotification(); return; }
+            generation++;
+            notifyOwner();
+        }
+        private void terminalNotification() {
+            requireMain();
+            if (retired) return;
+            retired = true;
+            notifyOwner();
+            cleanupAll(); throwFailure();
+        }
+        private void notifyOwner() {
+            try { owner.environmentInvalidatedV2(); }
+            catch (RuntimeException | Error failure) {
+                retired = true; remember(failure); cleanupAll(); throwFailure();
+            }
+        }
+        private void cleanupAll() {
+            retired = true;
+            for (int slot = 0; slot < 8; slot++) {
+                int bit = 1 << slot;
+                // An add may reenter before acquiring. Its final outcome is cleaned by constructor unwind.
+                if ((pending & bit) == 0 || acquiring == slot) continue;
+                pending &= ~bit; cleanup[slot] = REMOVING;
+                try {
+                    switch (slot) {
+                    case 0: activity.unregisterComponentCallbacks(this); break;
+                    case 1: root.removeOnLayoutChangeListener(layout); break;
+                    case 2: root.removeOnAttachStateChangeListener(attachment); break;
+                    case 3:
+                        if (!focusTarget.isAlive()) { cleanup[slot] = DEAD_TARGET_UNCERTAIN; continue; }
+                        focusTarget.removeOnWindowFocusChangeListener(windowFocus); break;
+                    case 4: root.setOnApplyWindowInsetsListener(null); break;
+                    case 5: modes.removeContrastChangeListener(contrast); break;
+                    case 6: accessibility.removeHighContrastTextStateChangeListener(highContrast); break;
+                    case 7: resolver.unregisterContentObserver(motion); break;
+                    default: throw new AssertionError("Unknown observer slot");
+                    }
+                    cleanup[slot] = RETURNED;
+                } catch (RuntimeException | Error failure) {
+                    cleanup[slot] = FAILED_UNCERTAIN; cleanupFailures[slot] = failure; remember(failure);
+                }
+            }
         }
         NativeEnvironmentV2 capture() {
             requireMain();
-            if (retired) unsupported();
+            if (retired || !initialized) unsupported();
             return new NativeEnvironmentV2(this, read(), root.getWidth(), root.getHeight(), root.getWindowToken());
         }
         AppearanceResolverV2.Environment read() {
             requireMain();
-            if (retired || activity.isDestroyed() || !root.isAttachedToWindow() || root.getWindowToken() == null ||
+            if (retired || !initialized || activity.isDestroyed() || !root.isAttachedToWindow() || root.getWindowToken() == null ||
                 root.getWidth() <= 0 || root.getHeight() <= 0) unsupported();
             Configuration config = activity.getResources().getConfiguration();
             DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
@@ -125,7 +221,7 @@ final class NativeEnvironmentV2 {
             int adjustment = config.fontWeightAdjustment;
             if (adjustment != Configuration.FONT_WEIGHT_ADJUSTMENT_UNDEFINED && adjustment != 0 ||
                 accessibility.isHighContrastTextEnabled() || modes.getContrast() > 0) unsupported();
-            float animator = Settings.Global.getFloat(activity.getContentResolver(), Settings.Global.ANIMATOR_DURATION_SCALE, 1);
+            float animator = Settings.Global.getFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1);
             if (!Float.isFinite(animator) || animator < 0) unsupported();
             return new AppearanceResolverV2.Environment(
                 (config.uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES ?
@@ -139,15 +235,10 @@ final class NativeEnvironmentV2 {
                 new AppearanceResolverV2.Accessibility(false,false,animator == 0), Long.toString(generation));
         }
         @Override public void onConfigurationChanged(Configuration configuration) { invalidate(); }
-        @Override public void onLowMemory() { /* no capture fields change */ }
+        @Override public void onLowMemory() { requireMain(); /* no capture fields change */ }
         @Override public void close() {
             requireMain(); retired = true;
-            activity.unregisterComponentCallbacks(this); root.removeOnLayoutChangeListener(layout);root.removeOnAttachStateChangeListener(attachment);
-            if(root.getViewTreeObserver().isAlive())root.getViewTreeObserver().removeOnWindowFocusChangeListener(windowFocus);
-            root.setOnApplyWindowInsetsListener(null);
-            modes.removeContrastChangeListener(contrast);
-            accessibility.removeHighContrastTextStateChangeListener(highContrast);
-            activity.getContentResolver().unregisterContentObserver(motion);
+            cleanupAll(); throwFailure();
         }
     }
     private static int logical(int pixel, int density) {

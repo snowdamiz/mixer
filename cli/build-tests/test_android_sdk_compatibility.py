@@ -149,17 +149,28 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
             renamed.rename(path)
 
     def test_profile_missing_unknown_mismatched_and_configuration_missing_android_lock(self):
-        for change in ['missing-android', 'legacy', 'unknown', 'digest', 'default']:
+        for change in ['missing-android', 'legacy', 'profile-1', 'unknown', 'digest', 'default']:
             with self.subTest(change=change):
                 self.refresh_lock()
                 value = self.lock_value
                 if change == 'missing-android': value.pop('android')
                 elif change == 'legacy': value['android'].pop('profile')
+                elif change == 'profile-1': value['android']['profile']['id'] = 'mixer.android-source-pair.1'
                 elif change == 'unknown': value['android']['profile']['id'] = 'unknown'
                 elif change == 'digest': value['android']['profile']['sdk_compatibility_sha256'] = '0' * 64
                 else: value['android']['profile']['default_descriptor'] = {'bytes': 1, 'sha256': '0' * 64}
                 (self.root / 'mixer.lock').write_text(json.dumps(value))
                 self.reject('android.sdk-profile-required' if change in ['missing-android', 'legacy'] else 'android.sdk-profile-mismatch')
+
+    def test_observer_edits_reject_even_when_generic_locks_are_recomputed(self):
+        observer = self.adapter / 'app/src/dev/mixer/android/NativeEnvironmentV2.java'
+        original = observer.read_bytes()
+        for edited in [b'x' * len(original), original + b'\n// edited']:
+            with self.subTest(length=len(edited)):
+                observer.write_bytes(edited)
+                self.refresh_lock()
+                self.reject()
+        observer.write_bytes(original)
 
     def test_topology_rejection_precedes_all_required_source_reads(self):
         item = self.sdk / 'unrelated-東京'

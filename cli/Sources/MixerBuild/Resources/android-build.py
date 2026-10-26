@@ -99,7 +99,7 @@ def source_profile():
         value = json.loads(bytes.fromhex(SOURCE_PROFILE_HEX), object_pairs_hook=unique)
         keys = {'schema', 'id', 'sdk_compatibility_sha256', 'adapter_compatibility_sha256',
                 'default_descriptor', 'sdk_files', 'adapter_files', 'wire'}
-        if not isinstance(value, dict) or set(value) != keys or type(value['schema']) is not int or value['schema'] != 1 or value['id'] != 'mixer.android-source-pair.1':
+        if not isinstance(value, dict) or set(value) != keys or type(value['schema']) is not int or value['schema'] != 1 or value['id'] != 'mixer.android-source-pair.2':
             raise ValueError('unsupported profile shape/id')
         def identity(item):
             return (isinstance(item, dict) and set(item) == {'bytes', 'sha256'} and
