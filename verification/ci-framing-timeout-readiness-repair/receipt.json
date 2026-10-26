@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T22:07:51.978585+00:00",
+  "status": "local-repair-and-independent-timeout-review-passed",
+  "python": "3.14.8",
+  "gh_version": "gh version 2.102.0 (2026-09-30)",
+  "head_context_only": "c4c6f3d8ba143effd9a1541ffe6f1692a79de6b9",
+  "production_runner_unchanged": {
+    "bytes": 25861,
+    "sha256": "8e51065e0666c71260d947ad1168c87f036de0e392191555b3faba8f1d6cb837"
+  },
+  "changed_test": {
+    "bytes": 19194,
+    "sha256": "02f82bbe93dcc59bbce59a733238c44bb8ec6f77cb61cffa7767fa8c9b395955"
+  },
+  "original_CI": {
+    "run": 40406899898,
+    "job": 121866880975,
+    "failure": "timeout control expected started but retained stdout was empty before analyzer execution",
+    "raw_job_log": {
+      "bytes": 48083,
+      "sha256": "0c1e6ea8bccd3d7933405f479bb210a3fbc2167c4092704c5f1f24a5dcc8ddcd"
+    },
+    "retrieval": [
+      "gh",
+      "api",
+      "--allow-escape-sequences",
+      "repos/snowdamiz/mixer/actions/jobs/121866880975/logs"
+    ],
+    "initial_retrieval_failure": "gh rejected terminal escape sequences; explicit raw-output flag retrieved log; no CI rerun"
+  },
+  "validation": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "verification/ci-framing-timeout-readiness-repair/reproduce_startup_race.py"
+      ],
+      "exit": 1,
+      "expected_original_failure": true,
+      "output": {
+        "bytes": 1013,
+        "sha256": "34ed04404a03cd851cfc288345b5ee13d025387b9d8332a802b11b62b6bf63e2"
+      }
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts/ci/tests",
+        "-v"
+      ],
+      "exit": 0,
+      "tests": 63,
+      "elapsed_seconds_reported_by_unittest": 9.147,
+      "output": {
+        "bytes": 10737,
+        "sha256": "65d6d2a9164c19c01bb227e4071132f33ab216849db58f5f3ec37286a59195b4"
+      }
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "verification/ci-framing-timeout-readiness-repair/check_negative_controls.py"
+      ],
+      "exit": 0,
+      "expected_negative_controls": 2,
+      "output": {
+        "bytes": 3219,
+        "sha256": "bd61cdbfc24534543dee5ef65dca31a4ff6c662a4352df0703f936096909a99d"
+      }
+    }
+  ],
+  "scope": "Test-only readiness synchronization; real150ms timedwait/process-group kill/reaping retained; no product deadlines or workflow changed",
+  "native_UI_capture_or_process_inventory_started": false,
+  "independent_review": {
+    "receipt": "independent-timeout-control/receipt.json",
+    "bytes": 1232,
+    "sha256": "fd462985a4226a1f2b97678b54b5ada4ccafd614acd756597315634ad99902c3",
+    "result": "No concrete source-review finding; single actual delayed-startup timeout test passed; owned children and temporary directory cleaned"
+  }
+}

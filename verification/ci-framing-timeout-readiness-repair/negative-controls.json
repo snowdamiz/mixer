@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "controls": [
+    {
+      "name": "parent-only-kill-is-detected",
+      "expected_failure_detected": true,
+      "owned_parent_reaped": true,
+      "output": "test_timeout_returns_owned_child_and_preserves_partial_logs (framing_readiness_negative.FramingRunnerTests.test_timeout_returns_owned_child_and_preserves_partial_logs) ... FAIL\n\n======================================================================\nFAIL: test_timeout_returns_owned_child_and_preserves_partial_logs (framing_readiness_negative.FramingRunnerTests.test_timeout_returns_owned_child_and_preserves_partial_logs)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/tests/test_analyzer_framing_runner.py\", line 221, in test_timeout_returns_owned_child_and_preserves_partial_logs\n    self.assertFalse(marker.exists())\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nAssertionError: True is not false\n\n----------------------------------------------------------------------\nRan 1 test in 1.263s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "name": "startup-failure-is-detected-and-reaped",
+      "expected_failure_detected": true,
+      "owned_parent_reaped": true,
+      "output": "test_timeout_returns_owned_child_and_preserves_partial_logs (framing_readiness_negative.FramingRunnerTests.test_timeout_returns_owned_child_and_preserves_partial_logs) ... FAIL\n\n======================================================================\nFAIL: test_timeout_returns_owned_child_and_preserves_partial_logs (framing_readiness_negative.FramingRunnerTests.test_timeout_returns_owned_child_and_preserves_partial_logs)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/tests/test_analyzer_framing_runner.py\", line 205, in test_timeout_returns_owned_child_and_preserves_partial_logs\n    commands.run('timeout', [sys.executable, '-c', parent, str(ready),\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                 str(descendant_ready), str(release), str(marker)],\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                 cwd=output, timeout=0.15)\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/ci-framing-timeout-readiness-repair/check_negative_controls.py\", line 22, in record_run\n    return run(commands, *args, **kwargs)\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/check-analyzer-framing.py\", line 237, in run\n    self.active.wait(timeout=timeout)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/tests/test_analyzer_framing_runner.py\", line 191, in wait_ready\n    self.fail('Owned timeout-control children did not become ready')\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Owned timeout-control children did not become ready\n\n----------------------------------------------------------------------\nRan 1 test in 0.041s\n\nFAILED (failures=1)\n"
+    }
+  ]
+}

@@ -10,6 +10,7 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest import mock
 
 RUNNER = Path(__file__).resolve().parents[1] / 'check-analyzer-framing.py'
 SPEC = importlib.util.spec_from_file_location('analyzer_framing_runner', RUNNER)
@@ -144,17 +145,78 @@ class FramingRunnerTests(unittest.TestCase):
         receipt = {'commands': []}
         commands = MODULE.Commands(output, receipt)
         marker = self.root / 'descendant-was-not-killed'
-        descendant = 'import pathlib,time;time.sleep(0.6);pathlib.Path(' + repr(str(marker)) + ').touch()'
-        parent = ('import subprocess,sys,time;print("started",flush=True);'
-                  'subprocess.Popen([sys.executable,"-c",' + repr(descendant) + ']);time.sleep(10)')
-        with self.assertRaisesRegex(RuntimeError, 'Command failed: timeout'):
-            commands.run('timeout', [sys.executable, '-c', parent], cwd=output, timeout=0.15)
+        ready = self.root / 'parent-ready'
+        descendant_ready = self.root / 'descendant-ready'
+        release = self.root / 'release-descendant'
+        descendant = '''import sys,time
+from pathlib import Path
+Path(sys.argv[1]).touch()
+until = time.monotonic() + 5
+while not Path(sys.argv[2]).exists() and time.monotonic() < until:
+    time.sleep(.01)
+if Path(sys.argv[2]).exists():
+    Path(sys.argv[3]).touch()
+'''
+        # Deliberately exceed the short command timeout during startup. The test
+        # starts that timed wait only after both real children and partial output
+        # exist; the production timeout and process-group cleanup stay unchanged.
+        parent = '''import subprocess,sys,time
+from pathlib import Path
+time.sleep(.3)
+subprocess.Popen([sys.executable, "-c", %r, *sys.argv[2:]])
+until = time.monotonic() + 5
+while not Path(sys.argv[2]).exists():
+    if time.monotonic() >= until:
+        raise RuntimeError("descendant did not become ready")
+    time.sleep(.01)
+print("started", flush=True)
+Path(sys.argv[1]).touch()
+time.sleep(10)
+''' % descendant
+        popen = subprocess.Popen
+        timed_waits = []
+
+        def spawn(*args, **kwargs):
+            process = popen(*args, **kwargs)
+            wait = process.wait
+            first_wait = True
+
+            def wait_ready(timeout=None):
+                nonlocal first_wait
+                if first_wait:
+                    first_wait = False
+                    until = time.monotonic() + 10
+                    while not ready.is_file():
+                        if process.poll() is not None or time.monotonic() >= until:
+                            self.fail('Owned timeout-control children did not become ready')
+                        time.sleep(.01)
+                start = time.monotonic()
+                try:
+                    return wait(timeout=timeout)
+                finally:
+                    if timeout is not None:
+                        timed_waits.append((timeout, time.monotonic() - start))
+
+            process.wait = wait_ready
+            return process
+
+        with mock.patch.object(MODULE.subprocess, 'Popen', spawn):
+            with self.assertRaisesRegex(RuntimeError, 'Command failed: timeout'):
+                commands.run('timeout', [sys.executable, '-c', parent, str(ready),
+                             str(descendant_ready), str(release), str(marker)],
+                             cwd=output, timeout=0.15)
         row = receipt['commands'][0]
         self.assertTrue(row['timed_out'])
         self.assertTrue(row['child_returned'])
         self.assertIsNone(commands.active)
-        self.assertLess(row['elapsed_seconds'], 3)
+        self.assertTrue(ready.is_file())
+        self.assertTrue(descendant_ready.is_file())
+        self.assertEqual(len(timed_waits), 1)
+        self.assertEqual(timed_waits[0][0], .15)
+        self.assertLess(timed_waits[0][1], 3)
+        self.assertLess(row['elapsed_seconds'], 13)
         self.assertIn('started', (output / row['stdout']['path']).read_text())
+        release.touch()
         time.sleep(0.7)
         self.assertFalse(marker.exists())
 
