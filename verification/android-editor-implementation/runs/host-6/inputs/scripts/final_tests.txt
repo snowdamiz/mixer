@@ -1,0 +1,53 @@
+    private static void lifecycleReturnAndGain(){for(String nativePhase:new String[]{"entry","beforeReturn"})try(Fixture f=new Fixture()){
+        InputConnection c=f.connection();BaseInputConnection old=f.target();boolean[] fired={false};ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&method.equals("View.onWindowFocusChanged")&&phase.equals(nativePhase)){fired[0]=true;check(f.renderer.editorDisposalBusyV2(),"lifecycle busy at "+nativePhase);check(f.edit.onCreateInputConnection(new EditorInfo())==null,"lifecycle gain cannot create inside native frame");check(old.closeCalls==0,"lifecycle close follows suffix");}};
+        f.edit.onWindowFocusChanged(false);ConcreteHostProbe.hook=null;check(old.closeCalls==1,"lifecycle closed once");f.edit.onWindowFocusChanged(true);check(!c.setSelection(0,0),"gain never revives old adapter");check(f.edit.onCreateInputConnection(new EditorInfo())!=null,"actual gain plus current facts admits fresh attempt");
+    }}
+    private static void lifecycleAndWidgetThrow(){for(String route:new String[]{"lifecycle","key","menu","accessibility"})try(Fixture f=new Fixture()){
+        f.connection();RuntimeException original=new IllegalStateException("plain native "+route);String wanted=switch(route){case "lifecycle"->"View.onWindowFocusChanged";case "key"->"TextView.onKeyDown";case "menu"->"TextView.onTextContextMenuItem";default->"TextView.performAccessibilityAction";};boolean[] fired={false};
+        ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&method.equals(wanted)&&phase.equals("entry")){fired[0]=true;throw original;}};
+        try{switch(route){case "lifecycle"->f.edit.onWindowFocusChanged(true);case "key"->f.edit.onKeyDown(0,new android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN,0));case "menu"->f.edit.onTextContextMenuItem(0);default->f.edit.performAccessibilityAction(0,null);}throw new AssertionError("native failure hidden "+route);}catch(RuntimeException actual){check(actual==original,"native "+route+" original observed first");}
+        ConcreteHostProbe.hook=null;check(f.target().closeCalls==1&&f.fence().terminal&&!f.renderer.editorDisposalBusyV2(),"plain "+route+" failure retires and finite drain");
+    }}
+    private static void constructorAndAbsentTarget(){try(Fixture f=new Fixture()){
+        check(f.edit.connectionAcquisitions==0,"superclass constructor virtual callbacks cannot create target");check(field(f.edit,"attempt")==null,"bootstrap cannot fabricate attempt");
+        boolean[] busy={false};ConcreteHostProbe.hook=(method,phase)->{if(method.equals("View.onWindowFocusChanged")&&phase.equals("entry"))busy[0]=f.renderer.editorDisposalBusyV2();};
+        f.edit.onWindowFocusChanged(false);ConcreteHostProbe.hook=null;check(busy[0]&&!f.renderer.editorDisposalBusyV2(),"no-target lifecycle still owns counted platform suffix");check(f.edit.lastConnection==null,"absent target has no fabricated close");
+        f.edit.onWindowFocusChanged(true);f.connection();
+    }}
+    private static void offmainFieldEntries(){try(Fixture f=new Fixture()){
+        f.connection();Runnable[] routes={()->f.edit.onCreateInputConnection(new EditorInfo()),()->f.edit.onWindowFocusChanged(false),()->f.edit.onVisibilityAggregated(false),()->call(f.edit,"onDetachedFromWindow",new Class<?>[]{}),()->call(f.edit,"onAttachedToWindow",new Class<?>[]{}),()->call(f.edit,"onFocusChanged",new Class<?>[]{boolean.class,int.class,android.graphics.Rect.class},false,0,null),()->call(f.edit,"onWindowVisibilityChanged",new Class<?>[]{int.class},View.INVISIBLE),()->call(f.edit,"onVisibilityChanged",new Class<?>[]{View.class,int.class},f.edit,View.INVISIBLE),()->call(f.edit,"onSelectionChanged",new Class<?>[]{int.class,int.class},0,0),()->call(f.edit,"drawableStateChanged",new Class<?>[]{}),()->f.edit.setText("x"),()->f.edit.onKeyDown(0,null),()->f.edit.performAccessibilityAction(0,null),()->f.edit.onTextContextMenuItem(0)};
+        for(Runnable route:routes){int before=ConcreteHostProbe.events().size();Looper.hostSetMain(false);try{route.run();throw new AssertionError("offmain field route accepted");}catch(IllegalStateException expected){check(true,"offmain refusal");}finally{Looper.hostReset();}check(ConcreteHostProbe.events().size()==before,"offmain field zero native effect");}
+        check(!f.fence().terminal&&f.target().closeCalls==0,"offmain refusal cannot mutate retirement");
+    }}
+    private static void fullscreenAndReadRoutes(){try(Fixture f=new Fixture()){
+        InputConnection c=f.connection();int before=f.target().mutations;check(c.reportFullscreenMode(true)&&c.reportFullscreenMode(false),"both fullscreen booleans delegated");check(f.target().mutations==before+2,"two exact native fullscreen calls");
+        check(c.getSelectedText(1)!=null&&c.getTextBeforeCursor(20000,1)!=null&&c.getTextAfterCursor(20000,1)!=null&&c.getSurroundingText(20000,20000,1)!=null,"native read flags and large nonnegative requests retained");
+        c.closeConnection();before=f.target().mutations;check(!c.reportFullscreenMode(true)&&!c.reportFullscreenMode(false),"closed fullscreen refuses both");check(f.target().mutations==before,"closed fullscreen no target call");
+    }}
+    private static void perUseEditableBinding(){try(Fixture f=new Fixture()){
+        InputConnection c=f.connection();boolean[] fired={false};ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&method.equals("BaseInputConnection.beginBatchEdit")&&phase.equals("entry")){
+            fired[0]=true;NativeAppearanceViewsV2.Mutation captured=f.edit.record.mutation();check(captured.editorLease!=null,"live callback Mutation is tuple-bound");captured.require();
+            try{Field text=android.widget.TextView.class.getDeclaredField("text");text.setAccessible(true);Object old=text.get(f.edit);text.set(f.edit,new android.text.Editable("replacement"));try{captured.require();throw new AssertionError("reused Mutation ignored Editable replacement");}catch(IllegalStateException expected){check(expected.getMessage().contains("exact editor"),"each Mutation use verifies Editable");}text.set(f.edit,old);}catch(ReflectiveOperationException e){throw new AssertionError(e);}
+            captured.require();
+        }};check(c.beginBatchEdit(),"captured lease can continue exact restored tuple in authored control");ConcreteHostProbe.hook=null;
+    }}
+    private static void centralDisposalGuard(){try(Fixture f=new Fixture()){
+        InputConnection c=f.connection();Object coordinator=field(f.owner,"coordinator");boolean[] fired={false};
+        ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&method.equals("BaseInputConnection.beginBatchEdit")&&phase.equals("entry")){fired[0]=true;call(coordinator,"disposeOnce",new Class<?>[]{});check(!(Boolean)field(coordinator,"disposed")&&NativeBridge.destroyCalls==0,"central direct disposal refuses before disposition/session consumption");}};
+        check(c.beginBatchEdit(),"ordinary feature/native entry remains healthy while editor busy");ConcreteHostProbe.hook=null;check(!f.fence().terminal,"busy disposal no-op not false success");
+    }}
+    private static void creatorSetterFatalAndCloseReentry(){try(Fixture f=new Fixture()){
+        EditorInfo info=output();Fatal first=new Fatal("metadata first fatal"),later=new Fatal("close later fatal");boolean[] fired={false};
+        ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&method.equals("EditorInfo.setSupportedHandwritingGestures")&&phase.equals("entry")){fired[0]=true;throw first;}if(method.equals("BaseInputConnection.closeConnection")&&phase.equals("entry"))throw later;};
+        try{f.edit.onCreateInputConnection(info);throw new AssertionError("metadata fatal hidden");}catch(Fatal actual){check(actual==first,"first metadata fatal retained over cleanup");}ConcreteHostProbe.hook=null;scrubbed(info);check(!f.renderer.editorDisposalBusyV2(),"metadata fatal cleanup clears busy");
+    }}
+    private static void closeReentryAndNoRetry(){try(Fixture f=new Fixture()){
+        InputConnection c=f.connection();BaseInputConnection old=f.target();boolean[] fired={false};
+        ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&method.equals("BaseInputConnection.closeConnection")&&phase.equals("entry")){fired[0]=true;check(f.renderer.editorDisposalBusyV2(),"cleanup busy before native close");c.closeConnection();check(f.edit.onCreateInputConnection(new EditorInfo())==null,"close reentry no successor");check(!c.setSelection(0,0),"closing dispatch denied");f.owner.close();check(NativeBridge.destroyCalls==0,"cleanup reentry central disposal deferred");}};
+        c.closeConnection();ConcreteHostProbe.hook=null;check(old.closeCalls==1,"recursive close consumed exactly once");check(NativeBridge.destroyCalls==0,"no sync disposal after cleanup final clear");f.queue.drainAll(8);check(NativeBridge.destroyCalls==1,"async closes owner after cleanup");
+    }}
+    private static void successfulCommitInterval(){try(Fixture f=new Fixture()){
+        InputConnection c=f.connection();NativeBridge.preparedPacket=packet(2,"hello");boolean[] commit={false};int[] illegal={0};
+        ConcreteHostProbe.hook=(method,phase)->{if(method.equals("NativeBridge.commitV2")&&phase.equals("beforeReturn")){commit[0]=true;return;}if(commit[0]&&f.fence().commitFinish)illegal[0]++;};
+        check(c.performEditorAction(EditorInfo.IME_ACTION_DONE),"Done successful feature commit");ConcreteHostProbe.hook=null;check(commit[0]&&illegal[0]==0,"no controlled native/getter/callback work after successful commit before finish");
+    }}

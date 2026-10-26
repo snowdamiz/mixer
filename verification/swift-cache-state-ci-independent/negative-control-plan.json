@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "basis": "Independent requirements before candidate access",
+  "execution": "Only after root supplies frozen candidate; own copy only",
+  "controls": [
+    {"name": "missing-member", "mutate": "Remove one selected source", "must": "Fail closed before compilation"},
+    {"name": "extra-member", "mutate": "Add unlisted regular file", "must": "Fail closed before compilation"},
+    {"name": "source-byte", "mutate": "Alter exact cache-state source", "must": "Fail closed before compilation"},
+    {"name": "api-target-byte", "mutate": "Change an API identifier without updating pins", "must": "Fail closed before compilation"},
+    {"name": "manifest-byte", "mutate": "Alter manifest member digest", "must": "Reject pinned manifest"},
+    {"name": "member-symlink", "mutate": "Replace source with symlink", "must": "Reject before following or compiling"},
+    {"name": "output-existing", "mutate": "Use existing output containing sentinel", "must": "Refuse without modifying sentinel"},
+    {"name": "output-symlink", "mutate": "Use symlink output ancestor", "must": "Refuse without writes through link"},
+    {"name": "output-pack-overlap", "mutate": "Put output at or under immutable pack", "must": "Refuse immutable evidence mutation"},
+    {"name": "test-env-injection", "mutate": "Supply Rust test filters, shuffle and ignored flags plus external TMP paths", "must": "Scrub variables and execute exact expected inventory with owned temporary paths"},
+    {"name": "compiler-identity", "mutate": "Supply a fake unsupported compiler identity using an owned launcher", "must": "Reject before source compilation with captured selection receipt"},
+    {"name": "diagnostic-unrelated", "mutate": "Synthetic wrong compiler error, nested unrelated error, duplicate JSON key, wrong primary span or omitted private field", "must": "Diagnostic validator refuses all unrelated or incomplete failures"},
+    {"name": "method-inventory", "mutate": "Synthetic missing, duplicate, ignored, failed, wrong filtered count or extra method output", "must": "Inventory validator refuses partial or unrelated execution"},
+    {"name": "case-layout-inventory", "mutate": "Synthetic missing, duplicate, changed case or layout line", "must": "Case and layout validator refuses incomplete observations"},
+    {"name": "timeout-owned-group", "mutate": "Owned launcher/child fixture sleeps beyond a shortened test-only bound", "must": "Kill and reap owned group, preserve timed_out failure and cleanup"}
+  ],
+  "limitations": ["Some controls may be exercised directly against pure validators when runtime would repeat expensive full runs.", "No authority from syntax inspection alone; normal actual Rust host checks remain required.", "No adversarial filesystem or arbitrary public File qualification claim."]
+}

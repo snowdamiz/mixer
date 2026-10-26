@@ -1,0 +1,162 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T17:24:36.874193+00:00",
+  "argv": [
+    "verification/android-editor-implementation-independent/run_shape_controls.py"
+  ],
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "scope": "Independent compiled shape-validator controls only; no editor implementation or Android runtime test",
+  "preaccess_receipt_sha256": "d5f96db677ae75ad66eda1d8ec26c4e9f342c1bde3c81c037c26cf9b58df4319",
+  "script_sha256": "790bad02c8ce4bcba0c4766ecd5418dc60b7c5c9f7bf210bbdd75924c198ec9f",
+  "validator_source_sha256": "091fea19220afcc1d1bdc7a78eb3db7f1b64093e6eaf804709d8e77f2a75179a",
+  "current_incomplete_host_interface_sha256": "0396bb718fb98be764a830e47d371f6f0e6d22326081db7cdc04622e2621178c",
+  "pinned_jars_verified": [
+    {
+      "path": "/opt/homebrew/share/android-commandlinetools/platforms/android-37.0/android.jar",
+      "bytes": 43044472,
+      "sha256": "bf1b4387cc7ca94fc6ef684f040d9d16fbf16248e181819f020736ea2053f177"
+    },
+    {
+      "path": "/opt/homebrew/share/android-commandlinetools/platforms/android-36/android.jar",
+      "bytes": 27768026,
+      "sha256": "d9eb9da824d9e247a352f570f01e1169e725b2954bca9e283a71786c59b59f9a"
+    }
+  ],
+  "commands": [
+    {
+      "label": "javac-version",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/javac",
+        "-version"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "preaccess-shape/javac-version.stdout.txt",
+      "stderr": "preaccess-shape/javac-version.stderr.txt"
+    },
+    {
+      "label": "java-version",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-version"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "preaccess-shape/java-version.stdout.txt",
+      "stderr": "preaccess-shape/java-version.stderr.txt"
+    },
+    {
+      "label": "compile-validator",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/javac",
+        "--release",
+        "17",
+        "-Xlint:all",
+        "-Werror",
+        "-sourcepath",
+        "",
+        "-d",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-implementation-independent/preaccess-shape/classes",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-implementation-independent/DescriptorClosure.java"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "preaccess-shape/compile-validator.stdout.txt",
+      "stderr": "preaccess-shape/compile-validator.stderr.txt"
+    },
+    {
+      "label": "official-android-37.0",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-ea",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-implementation-independent/preaccess-shape/classes:/opt/homebrew/share/android-commandlinetools/platforms/android-37.0/android.jar",
+        "DescriptorClosure"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "preaccess-shape/official-android-37.0.stdout.txt",
+      "stderr": "preaccess-shape/official-android-37.0.stderr.txt"
+    },
+    {
+      "label": "official-android-36",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-ea",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-implementation-independent/preaccess-shape/classes:/opt/homebrew/share/android-commandlinetools/platforms/android-36/android.jar",
+        "DescriptorClosure"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "preaccess-shape/official-android-36.stdout.txt",
+      "stderr": "preaccess-shape/official-android-36.stderr.txt"
+    },
+    {
+      "label": "compile-incomplete-control",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/javac",
+        "--release",
+        "17",
+        "-Xlint:all",
+        "-Werror",
+        "-sourcepath",
+        "",
+        "-cp",
+        "/opt/homebrew/share/android-commandlinetools/platforms/android-36/android.jar",
+        "-d",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-implementation-independent/preaccess-shape/incomplete-classes",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-implementation-independent/inputs/native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/InputConnection.java"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "preaccess-shape/compile-incomplete-control.stdout.txt",
+      "stderr": "preaccess-shape/compile-incomplete-control.stderr.txt"
+    },
+    {
+      "label": "reject-incomplete-interface",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-ea",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-implementation-independent/preaccess-shape/classes:/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-implementation-independent/preaccess-shape/incomplete-classes:/opt/homebrew/share/android-commandlinetools/platforms/android-36/android.jar",
+        "DescriptorClosure"
+      ],
+      "exit": 1,
+      "expected_exit": 1,
+      "stdout": "preaccess-shape/reject-incomplete-interface.stdout.txt",
+      "stderr": "preaccess-shape/reject-incomplete-interface.stderr.txt"
+    },
+    {
+      "label": "reject-platform-wrapper",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-ea",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-implementation-independent/preaccess-shape/classes:/opt/homebrew/share/android-commandlinetools/platforms/android-36/android.jar",
+        "DescriptorClosure",
+        "android.view.inputmethod.InputConnectionWrapper"
+      ],
+      "exit": 1,
+      "expected_exit": 1,
+      "stdout": "preaccess-shape/reject-platform-wrapper.stdout.txt",
+      "stderr": "preaccess-shape/reject-platform-wrapper.stderr.txt"
+    }
+  ],
+  "passed": [
+    "SDK36 official 38-descriptor baseline",
+    "SDK37 official 38-descriptor baseline",
+    "incomplete canonical host interface rejected",
+    "platform wrapper chain rejected"
+  ],
+  "candidate_reads": 0,
+  "candidate_executions": 0,
+  "native_runtime_capture_ui_or_process_inventory": false,
+  "cleanup": "All exact owned JVM/javac children exited within 35-second bounds; class files retained as host evidence; no native/capture instance started",
+  "limitations": [
+    "No actual adapter inspected",
+    "No method permission behavior executed",
+    "No Android/ART/runtime/native batch/service evidence"
+  ]
+}

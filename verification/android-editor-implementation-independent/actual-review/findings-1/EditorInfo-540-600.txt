@@ -1,0 +1,61 @@
+540: 
+541:     /**
+542:      * Set the Handwriting gestures supported by the current {@code Editor}.
+543:      * For an editor that supports Stylus Handwriting
+544:      * {@link InputMethodManager#startStylusHandwriting}, it is also recommended that it declares
+545:      * supported gestures.
+546:      * <p> If editor doesn't support one of the declared types, IME will not send those Gestures
+547:      *  to the editor. Instead they will fallback to using normal text input. </p>
+548:      * <p>Note: A supported gesture may not have preview supported
+549:      * {@link #getSupportedHandwritingGesturePreviews()}.</p>
+550:      * @param gestures List of supported gesture classes including any of {@link SelectGesture},
+551:      * {@link InsertGesture}, {@link DeleteGesture}.
+552:      * @see #setSupportedHandwritingGesturePreviews(Set)
+553:      */
+554:     public void setSupportedHandwritingGestures(
+555:             @NonNull List<Class<? extends HandwritingGesture>> gestures) {
+556:         Objects.requireNonNull(gestures);
+557:         if (gestures.isEmpty()) {
+558:             mSupportedHandwritingGestureTypes = 0;
+559:             return;
+560:         }
+561: 
+562:         int supportedTypes = 0;
+563:         for (Class<? extends HandwritingGesture> gesture : gestures) {
+564:             Objects.requireNonNull(gesture);
+565:             if (gesture.equals(SelectGesture.class)) {
+566:                 supportedTypes |= HandwritingGesture.GESTURE_TYPE_SELECT;
+567:             } else if (gesture.equals(SelectRangeGesture.class)) {
+568:                 supportedTypes |= HandwritingGesture.GESTURE_TYPE_SELECT_RANGE;
+569:             } else if (gesture.equals(InsertGesture.class)) {
+570:                 supportedTypes |= HandwritingGesture.GESTURE_TYPE_INSERT;
+571:             } else if (gesture.equals(InsertModeGesture.class)) {
+572:                 supportedTypes |= HandwritingGesture.GESTURE_TYPE_INSERT_MODE;
+573:             } else if (gesture.equals(DeleteGesture.class)) {
+574:                 supportedTypes |= HandwritingGesture.GESTURE_TYPE_DELETE;
+575:             } else if (gesture.equals(DeleteRangeGesture.class)) {
+576:                 supportedTypes |= HandwritingGesture.GESTURE_TYPE_DELETE_RANGE;
+577:             } else if (gesture.equals(RemoveSpaceGesture.class)) {
+578:                 supportedTypes |= HandwritingGesture.GESTURE_TYPE_REMOVE_SPACE;
+579:             } else if (gesture.equals(JoinOrSplitGesture.class)) {
+580:                 supportedTypes |= HandwritingGesture.GESTURE_TYPE_JOIN_OR_SPLIT;
+581:             } else {
+582:                 throw new IllegalArgumentException("Unknown gesture type: " + gesture);
+583:             }
+584:         }
+585: 
+586:         mSupportedHandwritingGestureTypes = supportedTypes;
+587:     }
+588: 
+589:     /**
+590:      * Returns the combination of Stylus handwriting gesture types
+591:      * supported by the current {@code Editor}.
+592:      * For an editor that supports Stylus Handwriting.
+593:      * {@link InputMethodManager#startStylusHandwriting}, it also declares supported gestures.
+594:      * @return List of supported gesture classes including any of {@link SelectGesture},
+595:      * {@link InsertGesture}, {@link DeleteGesture}.
+596:      * @see #getSupportedHandwritingGesturePreviews()
+597:      */
+598:     @NonNull
+599:     public List<Class<? extends HandwritingGesture>> getSupportedHandwritingGestures() {
+600:         List<Class<? extends HandwritingGesture>> list  = new ArrayList<>();

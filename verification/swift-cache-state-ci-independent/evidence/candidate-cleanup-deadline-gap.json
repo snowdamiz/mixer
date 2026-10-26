@@ -1,0 +1,29 @@
+{
+  "argv": [
+    "verification/swift-cache-state-ci-independent/confirm_cleanup_deadline_gap.py"
+  ],
+  "at": "2026-10-26T17:21:12.390936+00:00",
+  "candidate_modified": false,
+  "commands_started": 0,
+  "deadline_enforcement_contract_passed": false,
+  "finding": "A one-shot cleanup TimeoutError raised inside a postflight check is swallowed by check(BaseException); cleanup proceeds beyond the expired allowance",
+  "frozen_packet_unchanged": true,
+  "normal_run_started": false,
+  "observed_cleanup_stage_seconds": 0.320148,
+  "observed_invocation_receipt": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-independent/candidate-copy/runs/cleanup-deadline-control/receipt.json",
+  "observed_invocation_receipt_sha256": "eef8bcb37adf9f048311ecb20bc64cfc2e8b7aac43cc3e394c2e19044b643642",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "repair": "Treat deadline expiration as terminal for postflight/retention, preserve recoverable scratch and stop remaining work; maintain an absolute cleanup deadline or re-arm only with its remaining time; add focused expiry-during-postflight control",
+  "runner_sha256": "92bf2c0ca453ad9cae8ad6274d2248870af1cad4f4044039afde28f806d4392d",
+  "schema": 1,
+  "scope": "Actual Python deadline control with lowered test-only allowance and deliberate slow wrappers; no Rust/Git/native child",
+  "scratch_removed": true,
+  "script_sha256": "97aabe8e3479a8c1642f5e873c232e10a8a068de863b920f006056c0063be107",
+  "state": {
+    "cleanup_after_expired_postflight_entered": true,
+    "post_expiry_cleanup_delay_observed_seconds": 0.2540343750733882,
+    "verify_calls": 4
+  },
+  "test_only_cleanup_allowance_seconds": 0.05,
+  "test_only_delay_seconds": 0.25
+}

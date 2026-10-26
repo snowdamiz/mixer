@@ -1,0 +1,1 @@
+package android.database;import android.os.Handler;public abstract class ContentObserver {public final Handler handler;public ContentObserver(Handler handler){this.handler=handler;}public void onChange(boolean selfChange){}public void dispatchChange(boolean selfChange){onChange(selfChange);}}

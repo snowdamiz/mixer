@@ -1,0 +1,96 @@
+    private static void compatibleEcho(){try(Fixture f=new Fixture()){
+        InputConnection c=f.connection();Object editable=f.edit.getText();check(c.setSelection(1,1),"echo initial selection");
+        NativeBridge.preparedPacket=packet(2,"hXello");check(c.commitText("X",1),"synchronous compatible Binding echo acknowledged");
+        check(f.edit.getText()==editable&&f.edit.getText().toString().equals("hXello"),"echo preserves same Editable/value");
+        check(f.edit.getSelectionStart()==2&&f.target().closeCalls==0,"echo preserves native selection and target");
+        check(c.setComposingRegion(0,1),"preseal composition");int cs=BaseInputConnection.getComposingSpanStart(f.edit.getText());
+        f.owner.onPause();check(f.target().closeCalls==0,"temporary seal does not close");check(!c.setSelection(0,0),"temporary sealed input refuses");
+        f.owner.onResume();f.queue.drainAll(8);check(f.edit.getText()==editable&&BaseInputConnection.getComposingSpanStart(f.edit.getText())==cs,"temporary seal preserves Editable/composition");
+        check(c.setSelection(1,1),"same adapter usable after actual owner resumption");
+    }}
+    private static void allMutatingDescriptors(){try(Fixture f=new Fixture()){
+        InputConnection c=f.connection();check(c.setSelection(0,0),"mutator selection");
+        NativeBridge.preparedPacket=packet(2,"hello");check(c.commitText("",1),"commit descriptor");
+        NativeBridge.preparedPacket=packet(3,"hello");check(c.setComposingText("",1),"compose descriptor");
+        NativeBridge.preparedPacket=packet(4,"hello");check(c.commitText("",1,new TextAttribute()),"commit attributes descriptor");
+        NativeBridge.preparedPacket=packet(5,"hello");check(c.setComposingText("",1,new TextAttribute()),"compose attributes descriptor");
+        check(c.setComposingRegion(0,1,new TextAttribute()),"region attributes descriptor");check(c.finishComposingText(),"finish descriptor");
+        NativeBridge.preparedPacket=packet(6,"hello");check(c.deleteSurroundingText(0,0),"delete descriptor");
+        NativeBridge.preparedPacket=packet(7,"hello");check(c.deleteSurroundingTextInCodePoints(0,0),"codepoint delete descriptor");
+        NativeBridge.preparedPacket=packet(8,"hello");check(c.commitCompletion(new CompletionInfo(1,0,"")),"completion descriptor");
+        check(!c.performContextMenuAction(0),"context direct descriptor");
+        NativeBridge.preparedPacket=packet(9,"hello");check(c.performEditorAction(EditorInfo.IME_ACTION_DONE),"configured Done descriptor");
+    }}
+    private static void staleDescriptors(){try(Fixture f=new Fixture()){
+        InputConnection c=f.connection();c.closeConnection();int before=f.target().mutations;
+        for(Method m:InputConnection.class.getMethods()){
+            if(m.getDeclaringClass()!=InputConnection.class||Modifier.isStatic(m.getModifiers()))continue;
+            Object[] args=new Object[m.getParameterCount()];Class<?>[] types=m.getParameterTypes();
+            for(int i=0;i<types.length;i++)args[i]=types[i]==int.class?0:types[i]==boolean.class?false:null;
+            try{m.invoke(c,args);}catch(ReflectiveOperationException e){throw new AssertionError("stale descriptor "+m,e);}
+        }
+        check(f.target().mutations==before,"all stale descriptors have zero native target dispatch");
+    }}
+    private static void noCallAndQuerySnapshots(){try(Fixture f=new Fixture()){
+        InputConnection c=f.connection();BaseInputConnection target=f.target();int before=target.mutations;
+        check(!c.commitText("\ud800",1)&&!c.setSelection(-1,0)&&!c.deleteSurroundingText(-1,0),"invalid arguments refused");
+        check(target.mutations==before&&target.closeCalls==0&&!f.fence().terminal,"no-call refusal does not fabricate cleanup uncertainty");
+        boolean[] fired={false};ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&method.equals("BaseInputConnection.getTextBeforeCursor")&&phase.equals("beforeReturn")){fired[0]=true;f.edit.setSelection(1,1);}};
+        check(c.getTextBeforeCursor(1,0)==null,"query changed snapshot discarded");ConcreteHostProbe.hook=null;check(target.closeCalls==0,"changed query snapshot alone is not fabricated close");
+        CharSequence hostile=new CharSequence(){public int length(){return 1;}public char charAt(int i){return 'X';}public CharSequence subSequence(int a,int b){return "X";}@Override public String toString(){f.edit.setSelection(2,2);return "X";}};
+        before=target.mutations;check(!c.commitText(hostile,1),"reentrant argument changes snapshot");check(target.mutations==before,"snapshot rechecked immediately before delegate");
+    }}
+    private static void scrubbed(EditorInfo info){
+        check(info.inputType==0&&info.imeOptions==0&&info.actionId==0&&info.initialSelStart==-1&&info.initialSelEnd==-1&&info.initialCapsMode==0,"failed public scalar scrub");
+        check(info.actionLabel==null&&info.label==null&&info.hintText==null&&info.extras==null&&info.contentMimeTypes==null&&info.hintLocales==null&&info.privateImeOptions==null,"failed public payload scrub");
+        check(info.hostSurrounding()==null&&info.gestures.isEmpty()&&info.previews.isEmpty(),"private surrounding and gesture scrub");check("kept.package".equals(info.packageName)&&info.fieldId==42,"framework identities preserved");
+    }
+    private static EditorInfo output(){EditorInfo info=new EditorInfo();info.packageName="kept.package";info.fieldId=42;info.actionId=123;info.label="label";info.actionLabel="action";info.hintText="hint";info.privateImeOptions="private";info.extras=new android.os.Bundle();info.contentMimeTypes=new String[]{"text/plain"};return info;}
+    private static void editorInfoNullAndThrow(){
+        try(Fixture f=new Fixture()){EditorInfo info=output();android.widget.EditText.creatorNull=true;try{check(f.edit.onCreateInputConnection(info)==null,"native null result");}finally{android.widget.EditText.creatorNull=false;}scrubbed(info);check(f.target().closeCalls==0,"null return never fabricates a returned target");}
+        try(Fixture f=new Fixture()){EditorInfo info=output();RuntimeException original=new IllegalStateException("creator hides allocated target");boolean[] fired={false};ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&method.equals("EditText.onCreateInputConnection")&&phase.equals("beforeReturn")){fired[0]=true;throw original;}};
+            try{f.edit.onCreateInputConnection(info);throw new AssertionError("creator throw hidden");}catch(RuntimeException actual){check(actual==original,"creator failure identity");}ConcreteHostProbe.hook=null;scrubbed(info);check(f.target().closeCalls==0,"inaccessible creator target never fabricated close");check(field(field(f.edit,"attempt"),"close").toString().equals("FAILED_UNCERTAIN"),"creator uncertain disposition");}
+    }
+    private static void editorInfoLateInvalidation(){try(Fixture f=new Fixture()){
+        EditorInfo info=output();boolean[] fired={false};ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&method.equals("EditText.onCreateInputConnection")&&phase.equals("beforeReturn")){fired[0]=true;f.edit.clearFocus();}};
+        check(f.edit.onCreateInputConnection(info)==null,"late creator revoked");ConcreteHostProbe.hook=null;scrubbed(info);check(f.target().closeCalls==1,"known late target exact closed");
+    }}
+    private static void editorInfoSetterReentry(){try(Fixture f=new Fixture()){
+        EditorInfo info=output();boolean[] fired={false};ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&method.equals("EditorInfo.setSupportedHandwritingGestures")&&phase.equals("beforeReturn")){fired[0]=true;check(f.edit.onCreateInputConnection(new EditorInfo())==null,"setter nested creator serialized");f.edit.setSelection(1,1);}};
+        check(f.edit.onCreateInputConnection(info)==null,"setter changing snapshot cannot return adapter");ConcreteHostProbe.hook=null;scrubbed(info);check(f.target().closeCalls==1,"setter invalidation closes exact target");
+    }}
+    private static void finalizationOutputScrub(){try(Fixture f=new Fixture()){
+        EditorInfo info=output();boolean[] fired={false};ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&method.equals("EditorInfo.setSupportedHandwritingGesturePreviews")&&phase.equals("beforeReturn")){fired[0]=true;set(f.renderer,"outstandingEditorNativeCalls",0);}};
+        try{f.edit.onCreateInputConnection(info);throw new AssertionError("corrupt final exit returned adapter");}catch(RuntimeException expected){check(expected.getMessage().contains("lease exit"),"final exit surfaced");}ConcreteHostProbe.hook=null;scrubbed(info);check(f.fence().terminal,"postassignment final failure terminal");
+    }}
+    private static void leaseBoundEveryUse(){try(Fixture f=new Fixture()){
+        InputConnection c=f.connection();boolean[] fired={false};ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&method.equals("BaseInputConnection.beginBatchEdit")&&phase.equals("entry")){fired[0]=true;f.owner.close();NativeAppearanceViewsV2.Mutation captured=f.edit.record.mutation();check(captured.editorLease!=null,"cleanup Mutation carries exact captured lease");int count=(Integer)field(f.renderer,"v2RosterCount");set(f.renderer,"v2RosterCount",0);try{captured.require();throw new AssertionError("fence-wide cleanup authorized missing roster");}catch(IllegalStateException expected){check(expected.getMessage().contains("exact editor"),"per-use roster binding");}set(f.renderer,"v2RosterCount",count);captured.require();}};
+        check(!c.beginBatchEdit(),"retired result");ConcreteHostProbe.hook=null;check(f.target().closeCalls==1,"valid retained exact cleanup still closes");
+    }}
+    private static void callbackPostcheck(){try(Fixture f=new Fixture()){
+        InputConnection c=f.connection();boolean[] fired={false};ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&method.equals("TextView.onSelectionChanged")&&phase.equals("entry")){fired[0]=true;c.closeConnection();check(f.target().closeCalls==0,"live callback keeps original exact lease through native super");}};
+        check(!c.setSelection(1,1),"callback retirement refuses result");ConcreteHostProbe.hook=null;check(f.target().closeCalls==1&&!f.fence().terminal,"exact callback postcheck accepts authorized old suffix");
+    }}
+    private static void hiddenDetachSuffix(){try(Fixture f=new Fixture()){
+        InputConnection c=f.connection();boolean[] hidden={false};f.edit.hostPlatformDetach(()->{hidden[0]=true;check(f.edit.isAttachedToWindow(),"host intentionally retains stale attach getter through hidden suffix");check(f.edit.onCreateInputConnection(new EditorInfo())==null,"loss latches deny successor before hidden suffix");try{call(f.edit,"onSelectionChanged",new Class<?>[]{int.class,int.class},0,0);throw new AssertionError("unknown hidden callback accepted");}catch(RuntimeException expected){check(expected.getMessage().contains("unknown retired"),"hidden unknown callback records uncertainty");}});
+        check(hidden[0]&&!c.setSelection(0,0)&&f.fence().terminal,"hidden suffix cannot get blanket cleanup authority");check(f.target().closeCalls==1,"hidden suffix did not retry target close");
+    }}
+    private static void fatalOrdering(){for(boolean primaryFatal:new boolean[]{false,true})try(Fixture f=new Fixture()){
+        InputConnection c=f.connection();RuntimeException ordinary=new IllegalStateException("primary ordinary");Fatal first=new Fatal("primary fatal"),later=new Fatal("cleanup fatal");boolean[] fired={false};
+        ConcreteHostProbe.hook=(method,phase)->{if(method.equals("BaseInputConnection.beginBatchEdit")&&phase.equals("entry")&&!fired[0]){fired[0]=true;if(primaryFatal)throw first;throw ordinary;}if(method.equals("BaseInputConnection.closeConnection")&&phase.equals("entry"))throw later;};
+        try{c.beginBatchEdit();throw new AssertionError("fatal hidden");}catch(Fatal actual){check(actual==(primaryFatal?first:later),"first observed fatal wins over ordinary and later fatal");}
+        ConcreteHostProbe.hook=null;check(f.renderer.cleanupLedger().primary()==(primaryFatal?first:ordinary),"original primary retained before cleanup");check(f.renderer.cleanupLedger().firstFatal()==(primaryFatal?first:later),"renderer first fatal matches");check(!f.renderer.editorDisposalBusyV2(),"fatal finite path clears busy");
+    }}
+    private static void handlerRejection(){for(boolean throwing:new boolean[]{false,true})try(Fixture f=new Fixture()){
+        InputConnection c=f.connection();boolean[] fired={false};ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&method.equals("BaseInputConnection.beginBatchEdit")&&phase.equals("entry")){fired[0]=true;if(throwing)f.queue.postFailure=new IllegalStateException("post rejected by throw");else f.queue.postResult=false;f.owner.close();}};
+        try{c.beginBatchEdit();}catch(RuntimeException expected){check(f.fence().terminal,"post throw terminal retained");}ConcreteHostProbe.hook=null;
+        check(f.target().closeCalls==1,"exact target finite drain despite rejected scheduling");check(NativeBridge.destroyCalls==0&&f.queue.queued()==0,"no autonomous owner retry fabricated");check(field(f.owner,"pendingCloseResource")!=null,"pending exact disposal resource retained");
+    }}
+    private static void serialAndDepthExhaustion(){
+        try(Fixture f=new Fixture()){f.connection();f.fence().sealSerial=Long.MAX_VALUE;set(f.renderer.cleanupLedger(),"consumedSerial",Long.MAX_VALUE);f.owner.onPause();check(f.target().closeCalls==1,"terminal editor sweep precedes serial early return");}
+        try(Fixture f=new Fixture()){f.connection();set(f.edit,"depth",16);int nativeBefore=ConcreteHostProbe.count("View.onWindowFocusChanged","entry");try{f.edit.onWindowFocusChanged(false);throw new AssertionError("exhausted lifecycle depth accepted");}catch(RuntimeException expected){check(expected.getMessage().contains("depth exhausted"),"depth overflow terminal");}check(ConcreteHostProbe.count("View.onWindowFocusChanged","entry")==nativeBefore,"overflow no native super");check(f.fence().terminal,"depth terminal");set(f.edit,"depth",0);}
+    }
+    private static void retainedRosterDisappearance(){try(Fixture f=new Fixture()){
+        InputConnection c=f.connection();boolean[] fired={false};ConcreteHostProbe.hook=(method,phase)->{if(!fired[0]&&method.equals("BaseInputConnection.beginBatchEdit")&&phase.equals("beforeReturn")){fired[0]=true;set(f.renderer,"v2RosterCount",0);}};
+        try{c.beginBatchEdit();throw new AssertionError("roster disappeared without failure");}catch(RuntimeException expected){check(expected.getMessage().contains("exact editor"),"retained-roster disappearance fails closed");}ConcreteHostProbe.hook=null;check(f.target().closeCalls==0,"foreign roster does not gain target close authority");check(field(field(f.edit,"attempt"),"close").toString().equals("FAILED_UNCERTAIN"),"roster loss uncertain close");
+    }}

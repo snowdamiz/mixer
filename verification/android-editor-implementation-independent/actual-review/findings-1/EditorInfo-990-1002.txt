@@ -1,0 +1,13 @@
+990:      * @return the text before the cursor position; the length of the returned text might be less
+991:      * than <var>length</var>. When there is no text before the cursor, an empty string will be
+992:      * returned. It could also be {@code null} when the editor or system could not support this
+993:      * protocol.
+994:      */
+995:     @Nullable
+996:     public CharSequence getInitialTextBeforeCursor(
+997:             @IntRange(from = 0) int length, @InputConnection.GetTextType int flags) {
+998:         if (mInitialSurroundingText == null) {
+999:             return null;
+1000:         }
+1001: 
+1002:         int selStart = Math.min(mInitialSurroundingText.getSelectionStart(),

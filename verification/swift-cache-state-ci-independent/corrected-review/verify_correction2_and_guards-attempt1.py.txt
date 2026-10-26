@@ -1,0 +1,144 @@
+#!/usr/bin/env python3
+"""Custody and independent real-child/terminal-expiry controls, correction 2."""
+from datetime import datetime, timezone
+import hashlib
+import importlib.util
+import json
+import os
+from pathlib import Path
+import shutil
+import stat
+import sys
+import time
+from unittest import mock
+
+HERE = Path(__file__).absolute().parent
+ROOT = HERE.parents[2]
+SOURCE = ROOT / 'verification/swift-cache-state-ci-root-correction-2'
+SEAL = 'bccbdaefca93a190fc74faa7340a3e32848d3d3a35fc05f078a2e3825543600e'
+RUNNER = 'e531311facb7b38967d3b904b26e92ff3f6c4dc7444c856cd799b70a1d91373b'
+MANIFEST = '6c52eb0ed737530d92011ce63e1eda593159c670b262a5f7bcf8b54b5338d857'
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+def main():
+    assert sha(SOURCE / 'source-seal.json') == SEAL
+    seal = json.loads((SOURCE / 'source-seal.json').read_bytes())
+    assert len(seal['members']) == 96
+    for row in seal['members']:
+        source = SOURCE / row['path']
+        assert stat.S_ISREG(source.lstat().st_mode) and source.stat().st_size == row['bytes'] and sha(source) == row['sha256']
+    assert sha(SOURCE / 'check_cache_state.py') == RUNNER
+    assert sha(SOURCE / 'pack/manifest.json') == MANIFEST
+    old_pack = ROOT / 'verification/swift-cache-state-ci-preparation/pack'
+    manifest = json.loads((old_pack / 'manifest.json').read_bytes())
+    for row in manifest['members']:
+        assert (SOURCE / 'pack' / row['path']).read_bytes() == (old_pack / row['path']).read_bytes()
+    copy = HERE / 'correction-2-copy'
+    copy.mkdir(exist_ok=False)
+    shutil.copy2(SOURCE / 'check_cache_state.py', copy / 'check_cache_state.py')
+    shutil.copytree(SOURCE / 'pack', copy / 'pack')
+    (copy / 'runs').mkdir()
+    spec = importlib.util.spec_from_file_location('independent_corrected2', copy / 'check_cache_state.py')
+    candidate = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(candidate)
+    assert candidate.verify_pack(candidate.PACK)['member_count'] == 86
+    base = HERE / 'evidence/correction-2-guards'
+    base.mkdir(exist_ok=False)
+    out = base / 'child-control'; out.mkdir()
+    scratch = out / 'scratch'; scratch.mkdir()
+    receipt = {'schema': 1, 'at': datetime.now(timezone.utc).isoformat(), 'argv': sys.argv,
+        'python': sys.version, 'script_sha256': sha(Path(__file__)), 'source_seal_sha256': SEAL,
+        'source_members_verified': 96, 'source_bytes_verified': sum(r['bytes'] for r in seal['members']),
+        'runner_sha256': RUNNER, 'pack_manifest_sha256': MANIFEST, 'commands': [], 'refusals': [],
+        'unchanged_pack_source_and_expected_inventory': True}
+    commands = candidate.Commands(out, receipt, time.monotonic() + 30)
+    commands.bind_scratch(scratch)
+    observed_keys = ['TMPDIR', 'TMP', 'TEMP', 'RUSTUP_AUTO_INSTALL', 'RUSTFLAGS', 'RUST_TEST_THREADS',
+        'RUST_TEST_SHUFFLE', 'RUST_TEST_RUN_IGNORED', 'RUSTC_WRAPPER', 'MIXER_CACHE_FIXTURE_EVIDENCE']
+    code = 'import json,os,tempfile;f=tempfile.NamedTemporaryFile(delete=False);f.write(b"owned-temp");f.close();print(json.dumps({"file":f.name,"environment":{k:os.environ.get(k)for k in '+repr(observed_keys)+'}}))'
+    hostile = {'TMPDIR': '/unused-hostile-inherited-temp', 'TMP': '/unused-hostile-inherited-temp',
+        'TEMP': '/unused-hostile-inherited-temp', 'RUSTUP_AUTO_INSTALL': '1', 'RUSTFLAGS': 'invalid-flag',
+        'RUST_TEST_THREADS': '999', 'RUST_TEST_SHUFFLE': '1', 'RUST_TEST_RUN_IGNORED': '1',
+        'RUSTC_WRAPPER': '/unused-hostile-wrapper', 'MIXER_CACHE_FIXTURE_EVIDENCE': '/unused-hostile-capture'}
+    with mock.patch.dict(os.environ, hostile):
+        text, _, row = commands.run('actual-owned-default-temp', [sys.executable, '-B', '-c', code], out)
+    default = json.loads(text)
+    assert set(default['environment'][k] for k in ['TMPDIR', 'TMP', 'TEMP']) == {str(commands.child_tmp)}
+    assert default['environment']['RUSTUP_AUTO_INSTALL'] == '0'
+    assert all(default['environment'][k] is None for k in observed_keys[4:])
+    assert Path(default['file']).is_relative_to(scratch) and Path(default['file']).read_bytes() == b'owned-temp'
+    fixture = scratch / 'fixture-temp'; fixture.mkdir()
+    env = dict.fromkeys(['TMPDIR', 'TMP', 'TEMP'], str(fixture))
+    text, _, row = commands.run('actual-owned-fixture-temp', [sys.executable, '-B', '-c', code], out, env)
+    overridden = json.loads(text)
+    assert set(overridden['environment'][k] for k in ['TMPDIR', 'TMP', 'TEMP']) == {str(fixture)}
+    assert Path(overridden['file']).is_relative_to(fixture)
+    foreign = out / 'foreign'; foreign.mkdir()
+    link = scratch / 'symlink'; link.symlink_to(foreign, target_is_directory=True)
+    def refused(name, fn, *args):
+        try:
+            fn(*args)
+        except (RuntimeError, OSError, ValueError) as error:
+            receipt['refusals'].append({'name': name, 'reason': str(error)})
+        else:
+            raise AssertionError('Expected refusal: ' + name)
+    for name, value in [('foreign', foreign), ('symlink', link), ('parent-traversal', scratch / '..' / 'foreign'),
+                        ('relative', Path('relative-temp')), ('internal-parent-component', fixture / '..')]:
+        refused(name, commands.run, 'must-not-spawn', [sys.executable, '-c', 'raise SystemExit(99)'], out,
+                dict.fromkeys(['TMPDIR', 'TMP', 'TEMP'], str(value)))
+    refused('mismatched-TMP', commands.run, 'must-not-spawn', [sys.executable, '-c', 'raise SystemExit(99)'], out,
+        {'TMPDIR': str(fixture), 'TMP': str(foreign), 'TEMP': str(fixture)})
+    assert len(receipt['commands']) == 2
+    unbound_out = base / 'unbound'; unbound_out.mkdir()
+    unbound = candidate.Commands(unbound_out, {'commands': []}, time.monotonic() + 30)
+    refused('unbound-command', unbound.run, 'must-not-spawn', [sys.executable, '-c', 'raise SystemExit(99)'], out)
+    refused('parent-scratch-binding', unbound.bind_scratch, unbound_out / '..')
+    assert unbound.scratch is None and unbound.receipt['commands'] == [] and not (base / 'command-tmp').exists()
+    refused('relative-scratch-binding', unbound.bind_scratch, Path('relative-scratch'))
+    receipt['actual_default_observation'] = default
+    receipt['actual_fixture_observation'] = overridden
+    receipt['command_scratch_inventory_before_cleanup'] = candidate.inventory(scratch)
+    shutil.rmtree(scratch); shutil.rmtree(foreign); shutil.rmtree(unbound_out)
+    receipt['command_scratch_removed'] = True
+    receipt['deadline_controls'] = []
+    for stage in ['postflight', 'retention']:
+        state = {'pack_calls': 0, 'cleanup_entered': False, 'work_after_sleep': False}
+        original_verify, original_cleanup = candidate.verify_pack, candidate.cleanup
+        def verify(path):
+            state['pack_calls'] += 1
+            if stage == 'postflight' and state['pack_calls'] == 3:
+                time.sleep(1); state['work_after_sleep'] = True
+            return original_verify(path)
+        def cleanup(*args):
+            state['cleanup_entered'] = True
+            if stage == 'retention':
+                time.sleep(1); state['work_after_sleep'] = True
+            return original_cleanup(*args)
+        target = candidate.fresh_output(candidate.RUNS / ('independent-terminal-' + stage))
+        with mock.patch.object(candidate, 'CLEANUP_SECONDS', .05), mock.patch.object(candidate, 'verify_pack', verify), mock.patch.object(candidate, 'cleanup', cleanup):
+            status = candidate.execute(target, str(base / 'intentionally-missing-compiler'))
+        actual = json.loads((target / 'receipt.json').read_bytes())
+        assert status == 1 and actual['commands'] == []
+        assert actual['cleanup']['deadline_expired'] and not actual['cleanup']['removed']
+        assert (target / 'scratch/ownership.json').is_file()
+        assert not state['work_after_sleep'] and state['cleanup_entered'] == (stage == 'retention')
+        assert .04 <= actual['cleanup_elapsed_seconds'] < .2
+        if stage == 'postflight':
+            assert state['pack_calls'] == 3 and actual['postflight'] == {}
+        preserved = candidate.inventory(target / 'scratch')
+        shutil.rmtree(target / 'scratch')
+        receipt['deadline_controls'].append({'stage': stage, 'state': state, 'elapsed_seconds': actual['cleanup_elapsed_seconds'],
+            'receipt': str(target / 'receipt.json'), 'receipt_sha256': sha(target / 'receipt.json'),
+            'recoverable_scratch_preserved_at_expiry': True, 'preserved_inventory': preserved,
+            'synthetic_control_scratch_removed_after_observation': True, 'passed': True})
+    assert all(r['child_returned'] and r['owned_group_gone'] for r in receipt['commands'])
+    receipt.update(passed=True, default_and_fixture_actual_children=2, refusal_controls=9,
+        terminal_expiry_controls=2, normal_qualification_started=False, no_native_or_process_inventory=True)
+    commands.save()
+    (base / 'receipt.json').write_text(json.dumps(receipt, sort_keys=True, indent=2) + '\n')
+    print('PASS correction2 independent guards:2actual children,9no-child refusals,2terminal expiry controls; exact pack unchanged')
+
+if __name__ == '__main__':
+    main()

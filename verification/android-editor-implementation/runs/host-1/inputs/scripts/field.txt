@@ -1,0 +1,338 @@
+    /** One captured native continuation. It cannot authorize another record or a new input call. */
+    static final class EditorLease {
+        final NativeField field;
+        final Record record;
+        final NativeField.Attempt attempt;
+        final Editable editable;
+        final Mutation original;
+        final EditorLease parent;
+        final String hook;
+        android.view.inputmethod.InputConnection target;
+        boolean entered,ended;
+        EditorLease(NativeField field,NativeField.Attempt attempt,Editable editable,Mutation original,EditorLease parent,String hook) {
+            this.field=field;record=field.record;this.attempt=attempt;this.editable=editable;
+            this.original=original;this.parent=parent;this.hook=hook;target=attempt==null?null:attempt.target;
+        }
+        void exact() {
+            if(!entered||ended||record.view!=field||field.attempt!=attempt||!record.input.editorRetained(record)||
+                editable==null||field.nativeEditable()!=editable||attempt!=null&&attempt.target!=target)
+                throw new IllegalStateException("lost exact editor continuation");
+        }
+        Mutation continuation() {
+            exact();
+            if(original.current())return original;
+            // Only this captured exact continuation may request sealed authority.
+            return record.input.editorCleanupMutation(record,this);
+        }
+        void check() { continuation().require(); }
+    }
+    static final class NativeField extends EditText {
+        enum Phase { IDLE, CREATING, ACTIVE, DRAINING, CLOSING, QUARANTINED }
+        enum Close { NOT_REQUESTED, DEFERRED, ATTEMPTED, RETURNED, FAILED_UNCERTAIN, NO_TARGET }
+        static final class Attempt {
+            final Editable editable;
+            final EditorInfo output;
+            android.view.inputmethod.InputConnection target;
+            NativeEditorConnectionV2.Base adapter;
+            boolean revoked;
+            Close close=Close.NOT_REQUESTED;
+            Attempt(Editable editable,EditorInfo output){this.editable=editable;this.output=output;}
+        }
+        final Record record;
+        private Phase phase=Phase.IDLE;
+        private Attempt attempt;
+        private int depth;
+        private boolean permanent,focusLost,windowFocusLost,windowHidden,aggregateHidden,viewHidden,detached;
+        private Throwable primary;
+        private java.lang.Error firstFatal;
+        private boolean reporting;
+        private static final int MAX_DEPTH=16;
+        NativeField(Context context,Record record){super(context);this.record=record;}
+        Editable nativeEditable(){return super.getText();}
+        private boolean construction(){return record!=null&&(!record.constructed||record.binding==null)&&record.scoped!=null;}
+        private void observe(Throwable failure) {
+            if(failure==null)return;
+            if(primary==null)primary=failure;
+            if(failure instanceof java.lang.Error fatal&&firstFatal==null)firstFatal=fatal;
+        }
+        private void revoke(boolean terminal) {
+            if(terminal)permanent=true;
+            if(attempt!=null) {
+                attempt.revoked=true;
+                if(attempt.close==Close.NOT_REQUESTED)attempt.close=Close.DEFERRED;
+            }
+            if(phase!=Phase.CLOSING&&phase!=Phase.QUARANTINED)phase=Phase.DRAINING;
+        }
+        private void uncertain(Throwable failure) {
+            observe(failure);revoke(true);phase=Phase.QUARANTINED;
+            if(record==null||reporting)return;
+            reporting=true;
+            try{record.input.editorFailure(primary,firstFatal);}
+            catch(RuntimeException|java.lang.Error report){observe(report);}
+            finally{reporting=false;}
+        }
+        private void surface() {
+            if(firstFatal!=null)throw firstFatal;
+            if(primary instanceof RuntimeException ordinary)throw ordinary;
+        }
+        private boolean denied(){return permanent||focusLost||windowFocusLost||windowHidden||aggregateHidden||viewHidden||detached;}
+        boolean eventsAllowed() {
+            NativeEnvironmentV2.requireMain();
+            return record!=null&&!denied()&&phase!=Phase.CREATING&&phase!=Phase.DRAINING&&phase!=Phase.CLOSING&&phase!=Phase.QUARANTINED&&
+                (attempt==null||!attempt.revoked);
+        }
+        private boolean live() {
+            return record!=null&&record.view==this&&record.constructed&&record.binding!=null&&!record.changing&&!denied()&&
+                phase!=Phase.CREATING&&phase!=Phase.DRAINING&&phase!=Phase.CLOSING&&phase!=Phase.QUARANTINED&&
+                record.input.editorRetained(record)&&record.input.open(record)&&hasFocus();
+        }
+        void available(boolean preserve) {
+            NativeEnvironmentV2.requireMain();
+            if(construction())return;
+            if(phase==Phase.CREATING||phase==Phase.DRAINING||phase==Phase.CLOSING||phase==Phase.QUARANTINED)
+                throw new IllegalStateException("editor replacement unavailable");
+            if(depth!=0&&!preserve)throw new IllegalStateException("editor native frame active");
+            if(!preserve&&attempt!=null&&attempt.close!=Close.RETURNED&&attempt.close!=Close.NO_TARGET) {
+                revoke(false);drain();
+                if(phase!=Phase.IDLE)throw new IllegalStateException("editor predecessor not closed");
+            }
+        }
+        void retirePermanent() {NativeEnvironmentV2.requireMain();revoke(true);if(depth==0)drain();surface();}
+        private EditorLease begin(Attempt expected,Mutation mutation,String hook,boolean nested) {
+            if(depth>=MAX_DEPTH) {uncertain(new IllegalStateException("editor continuation depth exhausted"));return null;}
+            EditorLease parent=record.editorCallbackLease;
+            if(depth!=0&&!nested)return null;
+            if(parent!=null) {
+                if(parent.attempt!=expected||parent.field!=this)return null;
+                for(EditorLease cursor=parent;cursor!=null;cursor=cursor.parent)if(cursor.hook.equals(hook)) {
+                    uncertain(new IllegalStateException("recursive editor hook"));return null;
+                }
+                parent.check();mutation=parent.original;
+            }
+            Editable editable=expected==null?nativeEditable():expected.editable;
+            if(editable==null){uncertain(new IllegalStateException("editor Editable unavailable"));return null;}
+            EditorLease lease=new EditorLease(this,expected,editable,mutation,parent,hook);
+            record.input.editorEnter(record,lease);lease.entered=true;depth++;record.editorCallbackLease=lease;
+            try{lease.check();return lease;}catch(RuntimeException|java.lang.Error failure){uncertain(failure);end(lease);return null;}
+        }
+        private void end(EditorLease lease) {
+            if(lease==null)return;
+            if(lease.ended||record.editorCallbackLease!=lease||depth<=0) {
+                uncertain(new IllegalStateException("unbalanced editor continuation"));return;
+            }
+            record.editorCallbackLease=lease.parent;lease.ended=true;depth--;
+            // Balance once. This scalar exit never resumes the owner or coordinator.
+            try{record.input.editorLeave(record,lease);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
+            if(depth==0)drain();
+        }
+        private void drain() {
+            Attempt old=attempt;
+            if(old==null){if(phase==Phase.DRAINING)phase=permanent?Phase.QUARANTINED:Phase.IDLE;return;}
+            if(!old.revoked||depth!=0||phase==Phase.CLOSING||old.close==Close.ATTEMPTED||old.close==Close.RETURNED||old.close==Close.FAILED_UNCERTAIN||old.close==Close.NO_TARGET)return;
+            if(old.target==null) {
+                // A still-running creator owns the unknown target. A thrown creator marks uncertainty itself.
+                return;
+            }
+            if(!record.input.editorCloseAllowed()) {
+                old.close=Close.DEFERRED;uncertain(new IllegalStateException("editor close deferred by transaction"));return;
+            }
+            EditorLease lease=new EditorLease(this,old,old.editable,Mutation.cleanup(record.input.mutation().fence),null,"close");
+            boolean drain=false,entered=false;
+            try {
+                record.input.editorDrainBegin(record,lease);drain=true;
+                // Exact checks are inside executing-drain busy, before consuming the sole close.
+                record.input.editorEnter(record,lease);entered=true;lease.entered=true;depth++;record.editorCallbackLease=lease;
+                if(record.view!=this||!record.input.editorRetained(record)||nativeEditable()!=old.editable||old.editable==null)
+                    throw new IllegalStateException("close lost retained exact Editable");
+                phase=Phase.CLOSING;old.close=Close.ATTEMPTED;
+                old.target.closeConnection();lease.check();old.close=Close.RETURNED;
+                phase=permanent?Phase.QUARANTINED:Phase.IDLE;
+            } catch(RuntimeException|java.lang.Error failure) {
+                observe(failure);old.close=Close.FAILED_UNCERTAIN;uncertain(failure);
+            } finally {
+                if(entered){record.editorCallbackLease=null;depth--;lease.ended=true;
+                    try{record.input.editorLeave(record,lease);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);}}
+                // Restore and report before final busy clear. Never synchronously resume after this line.
+                if(primary!=null)uncertain(primary);
+                if(drain)record.input.editorDrainEnd(record,lease);
+            }
+        }
+        private Mutation entryMutation(){return record.scoped!=null?record.scoped:record.input.mutation();}
+        <T> T dispatch(Attempt expected,String hook,T refused,java.util.function.Supplier<T> action) {
+            NativeEnvironmentV2.requireMain();
+            if(expected==null||attempt!=expected||expected.revoked||phase!=Phase.ACTIVE||depth!=0||!live())return refused;
+            Mutation mutation=entryMutation();mutation.require();EditorLease lease=begin(expected,mutation,hook,false);if(lease==null)return refused;
+            T result=refused;
+            try{result=action.get();lease.check();}
+            catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
+            finally{end(lease);}
+            surface();return expected.revoked?refused:result;
+        }
+        void close(Attempt expected) {
+            NativeEnvironmentV2.requireMain();
+            if(expected!=attempt||expected==null||expected.close==Close.RETURNED||expected.close==Close.NO_TARGET)return;
+            revoke(false);if(depth==0)drain();surface();
+        }
+        boolean proposal(CharSequence value,boolean composing) {
+            if(!eventsAllowed()||!plainProposal(value,composing))return false;
+            Editable buffer=nativeEditable();int start=getSelectionStart(),end=getSelectionEnd();
+            int cs=android.view.inputmethod.BaseInputConnection.getComposingSpanStart(buffer),ce=android.view.inputmethod.BaseInputConnection.getComposingSpanEnd(buffer);
+            if(cs>=0&&ce>=0){start=cs;end=ce;}if(start<0||end<0||start>buffer.length()||end>buffer.length())return false;
+            int left=Math.min(start,end),right=Math.max(start,end);
+            return validBuffer(buffer.subSequence(0,left).toString()+value+buffer.subSequence(right,buffer.length()));
+        }
+        @Override public android.view.inputmethod.InputConnection onCreateInputConnection(EditorInfo info) {
+            NativeEnvironmentV2.requireMain();
+            if(info==null||depth!=0||phase==Phase.CREATING||phase==Phase.CLOSING||phase==Phase.DRAINING||phase==Phase.QUARANTINED||!live())return null;
+            if(attempt!=null&&attempt.close!=Close.RETURNED&&attempt.close!=Close.NO_TARGET){revoke(false);drain();surface();if(phase!=Phase.IDLE)return null;}
+            Mutation mutation=entryMutation();mutation.require();Editable editable=nativeEditable();
+            if(editable==null)return null;
+            Attempt fresh=new Attempt(editable,info);attempt=fresh;phase=Phase.CREATING;
+            EditorLease lease=begin(fresh,mutation,"create",false);if(lease==null)return null;
+            android.view.inputmethod.InputConnection result=null;boolean populated=false;
+            try {
+                populated=true;fresh.target=super.onCreateInputConnection(info);lease.target=fresh.target;
+                if(fresh.target==null){fresh.close=Close.NO_TARGET;fresh.revoked=true;phase=denied()?Phase.QUARANTINED:Phase.IDLE;}
+                else {
+                    lease.check();mutation.require();
+                    if(fresh.revoked||denied()||!record.input.open(record)||!hasFocus()||!validBuffer(editable.toString())||
+                        info.initialSelStart!=getSelectionStart()||info.initialSelEnd!=getSelectionEnd()||
+                        info.initialSelStart<0||info.initialSelEnd<0||info.initialSelStart>editable.length()||info.initialSelEnd>editable.length()||
+                        info.inputType!=(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_CAP_SENTENCES)||
+                        (info.imeOptions&EditorInfo.IME_MASK_ACTION)!=EditorInfo.IME_ACTION_DONE)
+                        revoke(false);
+                    else {
+                        info.imeOptions=(info.imeOptions&~(EditorInfo.IME_FLAG_NAVIGATE_NEXT|EditorInfo.IME_FLAG_NAVIGATE_PREVIOUS))|
+                            EditorInfo.IME_FLAG_NO_EXTRACT_UI|EditorInfo.IME_FLAG_NO_FULLSCREEN;
+                        info.setSupportedHandwritingGestures(java.util.Collections.emptyList());lease.check();mutation.require();
+                        info.setSupportedHandwritingGesturePreviews(java.util.Collections.emptySet());lease.check();mutation.require();
+                        if(fresh.revoked||denied()||!record.input.open(record)||!hasFocus())revoke(false);
+                        else {fresh.adapter=NativeEditorConnectionV2.create(this,fresh);result=fresh.adapter;phase=Phase.ACTIVE;}
+                    }
+                }
+            } catch(RuntimeException|java.lang.Error failure) {
+                observe(failure);
+                if(fresh.target==null)fresh.close=Close.FAILED_UNCERTAIN;
+                uncertain(failure);
+            } finally {
+                if(result==null&&populated) {
+                    fresh.revoked=true;
+                    try{scrub(info);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
+                }
+                end(lease);
+            }
+            surface();return fresh.revoked?null:result;
+        }
+        private void scrub(EditorInfo info) {
+            // Keep the attempt/CREATING guard while public setters can synchronously reenter.
+            info.inputType=0;info.imeOptions=0;info.actionId=0;info.actionLabel=null;info.label=null;info.hintText=null;
+            info.privateImeOptions=null;info.extras=null;info.contentMimeTypes=null;info.hintLocales=null;
+            info.initialSelStart=-1;info.initialSelEnd=-1;info.initialCapsMode=0;
+            info.setInitialSurroundingText("");
+            info.setSupportedHandwritingGestures(java.util.Collections.emptyList());
+            info.setSupportedHandwritingGesturePreviews(java.util.Collections.emptySet());
+        }
+        private void callback(String hook,Runnable nativeCall,boolean interaction) {
+            NativeEnvironmentV2.requireMain();
+            if(record==null){nativeCall.run();return;}
+            if(construction()){Mutation mutation=record.scoped;mutation.requireMutation();nativeCall.run();mutation.require();return;}
+            EditorLease parent=record.editorCallbackLease;
+            if(parent==null&&(permanent||phase==Phase.QUARANTINED||phase==Phase.DRAINING||phase==Phase.CLOSING)) {
+                uncertain(new IllegalStateException("unknown retired editor callback"));surface();return;
+            }
+            if(parent==null&&!live())return;
+            EditorLease lease=begin(attempt,parent==null?entryMutation():parent.original,hook,true);if(lease==null){surface();return;}
+            try{nativeCall.run();lease.check();if(interaction&&eventsAllowed()&&!record.changing&&record.input.open(record))record.input.interaction();}
+            catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
+            finally{end(lease);}
+            surface();
+        }
+        void refreshPaint(){if(record!=null&&record.binding!=null){Mutation mutation=record.mutation();mutation.require();setHighlightColor(color(fieldPaint(record).selection()));mutation.require();}}
+        @Override protected void drawableStateChanged(){callback("drawable",()->{super.drawableStateChanged();if(record!=null&&eventsAllowed())refreshPaint();},false);}
+        @Override protected void onSelectionChanged(int start,int end){callback("selection",()->super.onSelectionChanged(start,end),true);}
+        private void lifecycle(String hook,boolean loss,Runnable denial,Runnable gain,Runnable nativeCall) {
+            NativeEnvironmentV2.requireMain();
+            if(record==null){nativeCall.run();return;}
+            if(construction()){Mutation mutation=record.scoped;mutation.requireMutation();nativeCall.run();mutation.require();return;}
+            EditorLease parent=record.editorCallbackLease;
+            // A public lifecycle entry owns its native super, even with no admitted target.
+            Mutation mutation=parent==null?entryMutation():parent.original;
+            EditorLease lease=begin(attempt,mutation,hook,true);if(lease==null){surface();return;}
+            try {
+                if(loss){denial.run();revoke(false);}else gain.run();
+                nativeCall.run();lease.check();
+            }catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
+            finally{end(lease);}
+            surface();
+        }
+        @Override protected void onFocusChanged(boolean focused,int direction,android.graphics.Rect old) {
+            lifecycle("focus",!focused,()->focusLost=true,()->focusLost=false,()->super.onFocusChanged(focused,direction,old));
+        }
+        @Override public void onWindowFocusChanged(boolean focused) {
+            lifecycle("windowFocus",!focused,()->windowFocusLost=true,()->windowFocusLost=false,()->super.onWindowFocusChanged(focused));
+        }
+        @Override protected void onWindowVisibilityChanged(int visibility) {
+            lifecycle("windowVisibility",visibility!=View.VISIBLE,()->windowHidden=true,()->windowHidden=false,()->super.onWindowVisibilityChanged(visibility));
+        }
+        @Override public void onVisibilityAggregated(boolean visible) {
+            lifecycle("aggregate",!visible,()->aggregateHidden=true,()->aggregateHidden=false,()->super.onVisibilityAggregated(visible));
+        }
+        @Override protected void onVisibilityChanged(View changed,int visibility) {
+            lifecycle("visibility",visibility!=View.VISIBLE,()->viewHidden=true,()->viewHidden=false,()->super.onVisibilityChanged(changed,visibility));
+        }
+        @Override protected void onDetachedFromWindow() {
+            lifecycle("detach",true,()->detached=true,()->{},()->super.onDetachedFromWindow());
+        }
+        @Override protected void onAttachedToWindow() {
+            lifecycle("attach",false,()->{},()->detached=false,()->super.onAttachedToWindow());
+        }
+        @Override public void setText(CharSequence value,TextView.BufferType type) {
+            NativeEnvironmentV2.requireMain();
+            if(record==null){super.setText(value,type);return;}
+            if(construction()){Mutation mutation=record.scoped;mutation.requireMutation();super.setText(value,type);mutation.require();return;}
+            if(attempt!=null&&attempt.close!=Close.RETURNED&&attempt.close!=Close.NO_TARGET) {
+                revoke(false);
+                if(depth!=0)throw new IllegalStateException("Editable replacement inside native editor call refused");
+                drain();surface();if(phase!=Phase.IDLE)throw new IllegalStateException("Editable predecessor unresolved");
+            }
+            available(false);Mutation mutation=entryMutation();mutation.requireMutation();
+            super.setText(value,type);mutation.require();
+        }
+        private boolean widget(String hook,java.util.function.Supplier<Boolean> nativeCall) {
+            NativeEnvironmentV2.requireMain();
+            if(record==null||!live())return false;
+            EditorLease parent=record.editorCallbackLease;
+            if(parent!=null&&!parent.hook.equals("context"))return false;
+            EditorLease lease=begin(attempt,parent==null?entryMutation():parent.original,hook,parent!=null);if(lease==null)return false;
+            boolean result=false;
+            try{result=nativeCall.get();lease.check();}
+            catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
+            finally{end(lease);}
+            surface();return eventsAllowed()&&result;
+        }
+        @Override public boolean performAccessibilityAction(int action,android.os.Bundle arguments) {
+            NativeEnvironmentV2.requireMain();
+            if(action==android.view.accessibility.AccessibilityNodeInfo.ACTION_SET_TEXT) {
+                CharSequence text=arguments==null?null:arguments.getCharSequence(android.view.accessibility.AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE);
+                if(!plainProposal(text,false)||!validBuffer(text.toString()))return false;
+            }
+            return widget("accessibility",()->super.performAccessibilityAction(action,arguments));
+        }
+        @Override public boolean onKeyDown(int code,android.view.KeyEvent event) {
+            NativeEnvironmentV2.requireMain();if(event==null)return true;int value=event.getUnicodeChar();
+            if(value!=0&&(!Character.isValidCodePoint(value)||!proposal(new String(Character.toChars(value)),false)))return true;
+            return widget("key",()->super.onKeyDown(code,event));
+        }
+        @Override public boolean onTextContextMenuItem(int id) {
+            NativeEnvironmentV2.requireMain();
+            return widget("menu",()->{
+                if(id==android.R.id.paste||id==android.R.id.pasteAsPlainText) {
+                    android.content.ClipboardManager clipboard=getContext().getSystemService(android.content.ClipboardManager.class);
+                    android.content.ClipData clip=clipboard==null?null:clipboard.getPrimaryClip();if(clip==null)return false;
+                    StringBuilder proposed=new StringBuilder();for(int i=0;i<clip.getItemCount();i++){if(i>0)proposed.append('\n');CharSequence item=clip.getItemAt(i).coerceToText(getContext());if(!plainProposal(item,false))return false;proposed.append(item);}
+                    if(!proposal(proposed,false))return false;
+                }
+                return super.onTextContextMenuItem(id);
+            });
+        }
+    }

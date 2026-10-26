@@ -1,0 +1,228 @@
+#!/usr/bin/env python3
+"""Fresh independent compiler validation of predeclared frozen API obligations."""
+from datetime import datetime, timezone
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import signal
+import subprocess
+import sys
+import time
+
+HERE = Path(__file__).absolute().parent
+ROOT = HERE.parent.parent
+FROZEN = ROOT / 'verification/swift-cache-state-scalar-cursor-implementation'
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+def require(condition, message):
+    if not condition:
+        raise RuntimeError(message)
+
+def now():
+    return datetime.now(timezone.utc).isoformat()
+
+def strict_json(value):
+    def object_pairs(pairs):
+        result = {}
+        for key, val in pairs:
+            require(key not in result, 'duplicate diagnostic key')
+            result[key] = val
+        return result
+    def constant(value):
+        raise RuntimeError('nonfinite diagnostic constant ' + value)
+    return json.loads(value, object_pairs_hook=object_pairs, parse_constant=constant)
+
+def validate_negative(probe, stderr, executable, row):
+    require(row['exit'] == 1 and not row['timed_out'] and row['child_returned']
+            and row['owned_group_gone'] and not executable.exists(), 'abnormal negative disposition')
+    wanted = {(s['byte_start'], s['byte_end']) for s in probe['primary_spans']}
+    seen = set()
+    records = [strict_json(line) for line in stderr.splitlines() if line.strip()]
+    pending = list(reversed(records))
+    observations = []
+    while pending:
+        item = pending.pop()
+        require(isinstance(item, dict), 'diagnostic is not object')
+        require(isinstance(item.get('children', []), list), 'diagnostic children malformed')
+        pending.extend(reversed(item.get('children', [])))
+        require(isinstance(item.get('level'), str) and isinstance(item.get('message'), str), 'diagnostic malformed')
+        if item['level'] != 'error':
+            continue
+        code = item.get('code')
+        if code is None:
+            require(item['message'].startswith('aborting due to '), 'unclassified error')
+            continue
+        require(isinstance(code, dict) and code.get('code') == probe['code'], 'wrong diagnostic code')
+        require(all(text in item['message'] for text in probe['message_contains']), 'wrong diagnostic message')
+        primary = []
+        require(isinstance(item.get('spans'), list), 'spans malformed')
+        for span in item['spans']:
+            require(isinstance(span, dict) and type(span.get('is_primary')) is bool
+                    and isinstance(span.get('file_name'), str)
+                    and type(span.get('byte_start')) is int and type(span.get('byte_end')) is int,
+                    'span malformed')
+            start, end = span['byte_start'], span['byte_end']
+            require(0 <= start <= end, 'negative span bounds')
+            if span['file_name'] == probe['source']:
+                require(end <= probe['bytes'], 'span exceeds source')
+            if span['is_primary']:
+                pair = (start, end)
+                require(span['file_name'] == probe['source'] and pair in wanted and pair not in seen,
+                        'wrong or duplicate primary span')
+                seen.add(pair)
+                primary.append({'byte_start': start, 'byte_end': end, 'file_name': span['file_name']})
+        require(primary, 'error has no intended primary span')
+        observations.append({'code': probe['code'], 'message': item['message'], 'primary_spans': primary})
+    require(observations and seen == wanted, 'incomplete primary source target set')
+    return observations
+
+class Commands:
+    def __init__(self, output, receipt, scratch):
+        self.output, self.receipt, self.scratch = output, receipt, scratch
+        self.deadline = time.monotonic() + 600
+        self.environment = {k: os.environ[k] for k in ('PATH', 'HOME', 'SYSTEMROOT') if k in os.environ}
+        self.environment.update({k: str(scratch) for k in ('TMPDIR', 'TMP', 'TEMP')})
+        receipt['environment'] = self.environment
+        receipt['removed_RUST_environment_names'] = sorted(k for k in os.environ if k.startswith(('RUST', 'CARGO')))
+        receipt['inherited_TMP_removed'] = [k for k in ('TMPDIR', 'TMP', 'TEMP') if k in os.environ]
+        (output / 'commands').mkdir()
+
+    def save(self):
+        (self.output / 'receipt.json').write_text(json.dumps(self.receipt, indent=2, sort_keys=True) + '\n')
+
+    def run(self, name, argv, cwd):
+        budget = min(60, self.deadline - time.monotonic())
+        require(budget > 0, 'global active deadline exhausted')
+        row = {'name': name, 'argv': list(map(str, argv)), 'cwd': str(cwd), 'at': now(),
+               'timeout_seconds': budget, 'timed_out': False, 'child_returned': False,
+               'owned_group_gone': False, 'exit': None}
+        self.receipt['commands'].append(row)
+        self.save()
+        stdout = self.output / 'commands' / (name + '.stdout')
+        stderr = self.output / 'commands' / (name + '.stderr')
+        started = time.monotonic()
+        process = None
+        try:
+            with stdout.open('xb') as sink, stderr.open('xb') as errors:
+                process = subprocess.Popen(row['argv'], cwd=cwd, env=self.environment,
+                                           stdout=sink, stderr=errors, start_new_session=True)
+                row.update(pid=process.pid, pgid=process.pid)
+                try:
+                    process.wait(timeout=budget)
+                except subprocess.TimeoutExpired:
+                    row['timed_out'] = True
+                    os.killpg(process.pid, signal.SIGKILL)
+                    process.wait(timeout=5)
+        finally:
+            if process is not None:
+                if process.poll() is None:
+                    os.killpg(process.pid, signal.SIGKILL)
+                    process.wait(timeout=5)
+                row.update(exit=process.returncode, child_returned=True)
+                try:
+                    os.killpg(process.pid, 0)
+                except ProcessLookupError:
+                    row['owned_group_gone'] = True
+                if not row['owned_group_gone']:
+                    os.killpg(process.pid, signal.SIGKILL)
+                    row['descendants_outlived_direct_child'] = True
+            row.update(elapsed_seconds=time.monotonic()-started, finished=now())
+            row.update(stdout_sha256=sha(stdout), stderr_sha256=sha(stderr))
+            self.save()
+        require(row['child_returned'] and row['owned_group_gone'] and not row['timed_out'], 'child failed custody')
+        return stdout.read_text(), stderr.read_text(), row
+
+def main():
+    out = HERE / 'evidence/preaccess-api-final'
+    out.parent.mkdir(exist_ok=True)
+    out.mkdir(exist_ok=False)
+    scratch = out / 'scratch'
+    scratch.mkdir()
+    inputs = out / 'inputs'
+    inputs.mkdir()
+    contract_path = HERE / 'independent-api-contract.json'
+    contract = json.loads(contract_path.read_bytes())
+    receipt = {'schema': 1, 'at': now(), 'argv': sys.argv, 'python': sys.version,
+               'script_sha256': sha(Path(__file__)), 'contract_sha256': sha(contract_path),
+               'scope': 'Independent exact frozen API compiles on actual macOS arm64 Rust1.99.0 host',
+               'candidate_files_read': False, 'commands': [], 'probes': [], 'products': [],
+               'per_child_seconds': 60, 'global_active_seconds': 600,
+               'full_target_native_general_public_GA_qualification': False}
+    commands = Commands(out, receipt, scratch)
+    selected = [*contract['selected_library'], *({'path': p['source'], 'bytes': p['bytes'], 'sha256': p['sha256']} for p in contract['probes'])]
+    try:
+        for row in selected:
+            src, dst = FROZEN / row['path'], inputs / row['path']
+            require(src.is_file() and not src.is_symlink() and src.stat().st_size == row['bytes'] and sha(src) == row['sha256'], 'frozen selected input differs')
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            with dst.open('xb') as f:
+                f.write(src.read_bytes())
+            dst.chmod(0o444)
+        launcher = Path('/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc')
+        require(launcher.is_file(), 'selected existing Rust1.99.0 compiler launcher missing')
+        launcher_target = launcher.resolve(strict=True)
+        sysroot, _, row = commands.run('compiler-sysroot', [launcher, '--print', 'sysroot'], ROOT)
+        require(row['exit'] == 0 and sysroot.strip() and '\n' not in sysroot.strip(), 'sysroot failed')
+        compiler = (Path(sysroot.strip()) / 'bin/rustc').resolve(strict=True)
+        require(compiler.is_file(), 'actual compiler missing')
+        verbose, _, row = commands.run('compiler-identity', [compiler, '--version', '--verbose'], inputs)
+        require(row['exit'] == 0, 'compiler identity failed')
+        fields = dict(line.split(': ', 1) for line in verbose.splitlines()[1:])
+        require(fields.get('host') == 'aarch64-apple-darwin' and fields.get('release') == '1.99.0'
+                and fields.get('binary') == 'rustc' and re.fullmatch(r'[0-9a-f]{40}', fields.get('commit-hash', '')), 'unselected compiler identity')
+        receipt['rustc'] = {'launcher': str(launcher), 'launcher_target': str(launcher_target),
+                            'launcher_sha256': sha(launcher_target), 'actual': str(compiler),
+                            'actual_sha256': sha(compiler), 'verbose': verbose, 'fields': fields}
+        for mode, flags in [('debug', []), ('optimized', ['-O'])]:
+            library = scratch / ('libcache_fixture-' + mode + '.rlib')
+            _, _, row = commands.run('library-' + mode, [compiler, '--edition=2021', *flags,
+                '--crate-type=lib', '--crate-name', 'cache_fixture', 'source/library/analyzer.rs', '-o', library], inputs)
+            require(row['exit'] == 0 and library.is_file(), 'library compile failed')
+            for probe in contract['probes']:
+                name = probe['name'].replace('/', '-')
+                executable = scratch / (mode + '-' + name)
+                _, stderr, row = commands.run(mode + '-' + name, [compiler, '--edition=2021', *flags,
+                    '--error-format=json', '--extern', probe['crate_alias'] + '=' + str(library),
+                    probe['source'], '-o', executable], inputs)
+                result = {'mode': mode, 'probe': probe['name'], 'expected_success': probe['expected_success']}
+                if probe['expected_success']:
+                    require(row['exit'] == 0 and executable.is_file(), 'positive compile failed')
+                    _, _, executed = commands.run(mode + '-' + name + '-execute', [executable], inputs)
+                    require(executed['exit'] == 0, 'positive execution failed')
+                    receipt['products'].append({'path': str(executable.relative_to(out)), 'bytes': executable.stat().st_size, 'sha256': sha(executable)})
+                    executable.unlink()
+                    result['executed'] = True
+                else:
+                    result['diagnostics'] = validate_negative(probe, stderr, executable, row)
+                result['passed'] = True
+                receipt['probes'].append(result)
+                commands.save()
+            receipt['products'].append({'path': str(library.relative_to(out)), 'bytes': library.stat().st_size, 'sha256': sha(library)})
+            library.unlink()
+        for row in selected:
+            require(sha(inputs / row['path']) == row['sha256'] and sha(FROZEN / row['path']) == row['sha256'], 'source changed after execution')
+        require(sha(compiler) == receipt['rustc']['actual_sha256'] and sha(launcher_target) == receipt['rustc']['launcher_sha256'], 'compiler changed')
+        receipt['passed'] = len(receipt['probes']) == 50
+    except Exception as error:
+        receipt['passed'] = False
+        receipt['failure'] = str(error)
+        raise
+    finally:
+        remaining = []
+        for product in scratch.rglob('*'):
+            if product.is_file():
+                remaining.append({'path': str(product.relative_to(out)), 'bytes': product.stat().st_size, 'sha256': sha(product)})
+        receipt['cleanup_remaining_products_hashed'] = remaining
+        shutil.rmtree(scratch)
+        receipt['scratch_removed'] = not scratch.exists()
+        receipt['ended'] = now()
+        commands.save()
+    print('PASS: 50 API dispositions; 4 positive executions; 76 intended primary spans')
+
+if __name__ == '__main__':
+    main()

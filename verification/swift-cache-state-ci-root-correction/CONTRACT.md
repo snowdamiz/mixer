@@ -1,0 +1,9 @@
+# Closed fixture runner correction
+
+Root owns this separate correction of frozen producer seal b22b11db7ce9dda9910117d730eed385793426fb220981fa15de71b9253b39f8. The original packet remains immutable. Only child temporary-directory custody and terminal cleanup deadline handling are selected changes. Exact closed pack, source, API/File/layout/method expectations, compiler admission and fixed 600-second active / 60-second cleanup / 60-second child limits remain unchanged. No compiler installation, native runtime, capture, UI, Git mutation, canonical integration or GA acceptance.
+
+Every Commands child, including compiler launcher/identity, Git context, listings, API compilation and positive API execution, requires an owned scratch binding. TMPDIR, TMP and TEMP point to the same verified directory inside that scratch. Fixture overrides remain inside that same scratch. Missing binding or foreign/symlink directory refuses before process creation.
+
+Cleanup has an absolute monotonic deadline and a distinct terminal expiry. Postflight collectors cannot absorb that expiry and continue. Expiry preserves recoverable scratch and reports failed qualification; it does not start further postflight/retention/deletion work. Final bounded receipt writing and signal restoration are error reporting, not successful cleanup. No finite guarantee for uninterruptible OS operations is inferred.
+
+First run focused retained controls plus actual child TMP and cleanup-expiry controls. After they pass, the independent reviewer runs the complete corrected closed fixture once on existing official Rust1.99.0 under quiescent HEAD8ac624160a2cfff10d201d8063f69cf05f005edb. This supplies the fresh full closure result without duplicating an identical full run in the producer lane. Independently review frozen correction before any CI integration. Rust1.98.1 actual qualification remains pending.

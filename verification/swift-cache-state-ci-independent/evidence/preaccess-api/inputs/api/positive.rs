@@ -1,0 +1,1 @@
+use cache_fixture::*; fn main(){ fn accepts(_:fn(&mut std::fs::File,&mut std::fs::File,&mut std::fs::File,&mut std::fs::File)->Result<FixtureCacheStateOutcomeV1,AnalyzerError>){} accepts(analyze_fixture_cache_state_v1); assert_eq!(std::mem::size_of::<FixtureCacheStateOutcomeV1>(),488);}

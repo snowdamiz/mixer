@@ -1,0 +1,83 @@
+{
+  "additional_actionable_findings_in_reviewed_closed_scope": [],
+  "all_review_children_reaped": true,
+  "argv": [
+    "verification/swift-cache-state-ci-independent/finalize_original_review.py"
+  ],
+  "at": "2026-10-26T17:26:25.891115+00:00",
+  "baseline_scope": {
+    "API_actual_errors": 46,
+    "layouts": 1,
+    "method_executions": 25,
+    "method_lists": 8,
+    "synthetic_case_inventory": 1
+  },
+  "builder_sha256": "23025874a0c61867d3cef754c6d889532d6d73b732dc8f4888b0e284ed35a42d",
+  "candidate_negative_controls_rejected": 919,
+  "canonical_runtime_native_or_GA_accepted": false,
+  "control_scratch_removed": true,
+  "decision": "Revision required before independent full closed-host qualification",
+  "findings": [
+    {
+      "actual_child_TMPDIR_TMP_TEMP": [
+        null,
+        null,
+        null
+      ],
+      "file": "check_cache_state.py",
+      "id": "all-child-owned-temporary-directory",
+      "lines": [
+        72,
+        77,
+        101
+      ],
+      "receipt": "evidence/candidate-temporary-environment-gap/receipt.json",
+      "required_repair": "Bind every Commands child to owned scratch TMPDIR/TMP/TEMP; reject escape overrides and preserve valid per-fixture owned overrides"
+    },
+    {
+      "file": "check_cache_state.py",
+      "id": "terminal-cleanup-deadline",
+      "lines": [
+        285,
+        288,
+        306
+      ],
+      "post_expiry_observed_work_seconds": 0.2540343750733882,
+      "receipt": "evidence/candidate-cleanup-deadline-gap.json",
+      "required_repair": "Propagate a terminal cleanup-deadline exception, enforce absolute remaining allowance and preserve recoverable scratch on expiry",
+      "test_allowance_seconds": 0.05
+    }
+  ],
+  "independent_preaccess_actual_API": {
+    "dispositions": 50,
+    "modes": [
+      "debug",
+      "optimized"
+    ],
+    "positive_executions": 4,
+    "primary_spans": 76
+  },
+  "native_UI_capture_process_inventory_started": false,
+  "no_fresh_normal_suite_credit_from_historical_parser_baselines": true,
+  "normal_independent_runner_invocation_started": false,
+  "original_candidate_accepted": false,
+  "original_full_producer_Debug60s_timeout_remains_failed": true,
+  "pack_manifest_sha256": "6c52eb0ed737530d92011ce63e1eda593159c670b262a5f7bcf8b54b5338d857",
+  "pending": [
+    "Corrected frozen runner review and full fresh host invocation",
+    "Rust1.98.1 actual qualification",
+    "Canonical CI/workflow selection",
+    "General public File/runtime/target/native/FieldLog/signing/store/operations/GA"
+  ],
+  "producer_bytes_verified": 156179074,
+  "producer_frozen_unchanged": true,
+  "producer_members_verified": 2434,
+  "producer_seal_sha256": "b22b11db7ce9dda9910117d730eed385793426fb220981fa15de71b9253b39f8",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "read_only_Git_commands_executed_by_this_review": 0,
+  "root_authorized_skipping_known_failing_full_invocation": true,
+  "runner_sha256": "92bf2c0ca453ad9cae8ad6274d2248870af1cad4f4044039afde28f806d4392d",
+  "schema": 1,
+  "source_API_methods_cases_layouts_independently_match": true,
+  "source_sha256": "f98f7801925bc280e0e2a9c08ec2b4841b7ffc2942d2fedf6c4d3b4c1796bf1b"
+}
