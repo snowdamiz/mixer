@@ -75,7 +75,7 @@ Computer use, capture and native runtime tests remain paused.
 Review evidence checkpoint `99f8a0a7` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40303522601) passes all 42 steps across three jobs. It contains immutable candidates, independent reviews and root metadata; canonical product and CLI changes remain outside it.
 Host review evidence `d275c072` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40308561680) passes all 42 steps across three jobs. It preserves candidate4/CLI review and 192 semantic cases; canonical implementation edits remain outside this checkpoint.
 Private Android owner/profile3 integration `fb4c8f07` is pushed. [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40330490396) passes all four jobs and 50 steps after one bounded Swift-only retry. The first Swift attempt exceeded its 30-minute job limit during Android host binding and skipped generated-consumer integration; that failure remains retained. Host/source development acceptance is scoped; native runtime and public V2 remain pending.
-Guarded Android environment/profile4 integration `5583fb2c` is pushed. [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40347513075) passes Android JVM, VM and services; Swift exceeds its 30-minute job limit during the TSan binding phase, so generated-consumer integration is skipped. The independently reviewed two-job Swift partition preserves all 37 existing steps and passes 63 local CI regressions; its delivery is next. Private host/source acceptance is scoped; native runtime and public V2 remain pending.
+Guarded Android environment/profile4 integration `5583fb2c` is pushed. [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40347513075) passes Android JVM, VM and services; Swift exceeds its 30-minute job limit during the TSan binding phase, so generated-consumer integration is skipped. The independently reviewed two-job Swift partition preserves all 37 existing steps and passes 63 local CI regressions. Repair `a2401148` is pushed. Its [Engine run](https://github.com/snowdamiz/mixer/actions/runs/40354171285) passes all five jobs and 56 steps after one targeted capability retry for the initial zero-step runner-capacity cancellation. Root verifies core/JVM artifacts and all 39 binding cases with 51 retained command logs in each Debug/Release/TSan mode. The original capacity failure and an artifact-checker marker correction remain retained. Private host/source acceptance is scoped; native runtime and public V2 remain pending.
 The full plan remains incomplete; no GA gate is promoted.
 
 ## Current execution
@@ -243,15 +243,20 @@ The full plan remains incomplete; no GA gate is promoted.
    The same full proposal fails its source-admitted G5 necessary bound: 642
    against 640; public-File reachability is not proved by that witness. An isolated
    subtraction proposal supplies a conditional invariant proof, but its unchanged
-   merge independently needs at least 2,569 G3 groups against 2,568. A scalar-local
-   cursor proposal is active with complete work and whole lexical lifetimes required.
+   merge independently needs at least 2,569 G3 groups against 2,568. The scalar-local
+   cursor source proof is now selected after root verifies 95 producer/review members.
+   Independent conservative G3/G4/G5 bounds are 2508/701/561 within unchanged caps;
+   complete G1..G7 total 7048 and whole logical union 29,344 remain within reservations.
+   Isolated Rust host qualification is underway; two obsolete private merge-layout
+   assertions are preserved and separately adapted, with independent implementation
+   review still required. Producer exact totals are not selected.
    The correction 3 lifetime inventory is accepted with independent corrections:
    29,344 logical bytes within the unchanged 41,984-byte reservation. Complete
-   work accounting and implementation acceptance remain pending. Independently
+   source accounting is selected for isolated compiler qualification; implementation
+   acceptance remains pending. Independently
    corrected old-C3 bounds are accepted for G1 94/256, G7 178/248, setup 188/512,
    finish 227/256 and guard 14/128; changed sources do not inherit them automatically.
-   No layout amendment or
-   sorting implementation is selected. Guard replies retain their separately
+   No layout amendment, canonical integration or full-target retry is selected. Guard replies retain their separately
    reserved terminal-guard ownership.
 2. **iOS shared UI:** the supplemental source and corrected frozen V7 host join
    pass independent review. Fresh generic simulator builds of both app and runner
@@ -377,7 +382,7 @@ The full plan remains incomplete; no GA gate is promoted.
    Completed native input results never grant a stale scope further authority.
    The exact third mechanical leaf snapshot passes twelve independent controls
    and 82 assertions; actual product integration qualification remains pending.
-   The exact collection prerequisite now has source/compiler acceptance: root verifies 130 producer/review members, 851 independent checks and 170 emitted Java member references with an API floor no later than 28. No source rewrite is selected. Empty-factory mutation exceptions and Android runtime remain separate limits. The editor API boundary is the next source proposal.
+   The exact collection prerequisite now has source/compiler acceptance: root verifies 130 producer/review members, 851 independent checks and 170 emitted Java member references with an API floor no later than 28. No source rewrite is selected. Empty-factory mutation exceptions and Android runtime remain separate limits. Root verifies 203 frozen editor proposal/audit members. Current inherited dispatch and connection retirement need a narrow exact-target cleanup/continuation contract; that design is underway before implementation. Existing SDK36 admission guards remain.
    Public V2 routing remains unselected.
 5. **Hosted product and console:** continue ordinary customer authorization,
    durable domain/job integration, connected console workflows and provider

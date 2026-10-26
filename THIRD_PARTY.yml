@@ -1,6 +1,17 @@
 schema: 1
 policy: independently-owned-product-engine
 dependencies:
+  - name: Android AOSP framework source reference oracle
+    origin: https://android.googlesource.com/platform/frameworks/base/
+    version: exact-Android-9-through-16-tags-recorded-in-reference-inventories
+    license: Apache-2.0
+    purpose: official-interface-source-review-and-extracted-InputConnection-dispatch-verification
+    distribution: verification-only-platform-reference-source-not-linked-into-product
+    owner: android-verification
+    inventory_receipts:
+      - verification/android-editor-api-boundary-proposal/official-inputs.json
+      - verification/android-inputconnection-authority-audit/collection.json
+    qualification: original-platform-notices-retained-API36-wrapper-compiled-only-as-reference-oracle-no-product-runtime-or-release-qualification
   - name: OpenJDK compiler and Java standard library
     origin: https://openjdk.org/
     version: Java-17-host-contract-local-and-CI-version-recorded-per-receipt

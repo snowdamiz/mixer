@@ -1,0 +1,270 @@
+Compiled from "InputConnection.java"
+public interface android.view.inputmethod.InputConnection {
+  public static final int CURSOR_UPDATE_FILTER_CHARACTER_BOUNDS;
+    descriptor: I
+  public static final int CURSOR_UPDATE_FILTER_EDITOR_BOUNDS;
+    descriptor: I
+  public static final int CURSOR_UPDATE_FILTER_INSERTION_MARKER;
+    descriptor: I
+  public static final int CURSOR_UPDATE_FILTER_TEXT_APPEARANCE;
+    descriptor: I
+  public static final int CURSOR_UPDATE_FILTER_VISIBLE_LINE_BOUNDS;
+    descriptor: I
+  public static final int CURSOR_UPDATE_IMMEDIATE;
+    descriptor: I
+  public static final int CURSOR_UPDATE_MONITOR;
+    descriptor: I
+  public static final int GET_EXTRACTED_TEXT_MONITOR;
+    descriptor: I
+  public static final int GET_TEXT_WITH_STYLES;
+    descriptor: I
+  public static final int HANDWRITING_GESTURE_RESULT_CANCELLED;
+    descriptor: I
+  public static final int HANDWRITING_GESTURE_RESULT_FAILED;
+    descriptor: I
+  public static final int HANDWRITING_GESTURE_RESULT_FALLBACK;
+    descriptor: I
+  public static final int HANDWRITING_GESTURE_RESULT_SUCCESS;
+    descriptor: I
+  public static final int HANDWRITING_GESTURE_RESULT_UNKNOWN;
+    descriptor: I
+  public static final int HANDWRITING_GESTURE_RESULT_UNSUPPORTED;
+    descriptor: I
+  public static final int INPUT_CONTENT_GRANT_READ_URI_PERMISSION;
+    descriptor: I
+  public abstract boolean beginBatchEdit();
+    descriptor: ()Z
+
+  public abstract boolean clearMetaKeyStates(int);
+    descriptor: (I)Z
+
+  public abstract void closeConnection();
+    descriptor: ()V
+
+  public abstract boolean commitCompletion(android.view.inputmethod.CompletionInfo);
+    descriptor: (Landroid/view/inputmethod/CompletionInfo;)Z
+
+  public abstract boolean commitContent(android.view.inputmethod.InputContentInfo, int, android.os.Bundle);
+    descriptor: (Landroid/view/inputmethod/InputContentInfo;ILandroid/os/Bundle;)Z
+
+  public abstract boolean commitCorrection(android.view.inputmethod.CorrectionInfo);
+    descriptor: (Landroid/view/inputmethod/CorrectionInfo;)Z
+
+  public abstract boolean commitText(java.lang.CharSequence, int);
+    descriptor: (Ljava/lang/CharSequence;I)Z
+
+  public default boolean commitText(java.lang.CharSequence, int, android.view.inputmethod.TextAttribute);
+    descriptor: (Ljava/lang/CharSequence;ILandroid/view/inputmethod/TextAttribute;)Z
+
+  public abstract boolean deleteSurroundingText(int, int);
+    descriptor: (II)Z
+
+  public abstract boolean deleteSurroundingTextInCodePoints(int, int);
+    descriptor: (II)Z
+
+  public abstract boolean endBatchEdit();
+    descriptor: ()Z
+
+  public abstract boolean finishComposingText();
+    descriptor: ()Z
+
+  public abstract int getCursorCapsMode(int);
+    descriptor: (I)I
+
+  public abstract android.view.inputmethod.ExtractedText getExtractedText(android.view.inputmethod.ExtractedTextRequest, int);
+    descriptor: (Landroid/view/inputmethod/ExtractedTextRequest;I)Landroid/view/inputmethod/ExtractedText;
+
+  public abstract android.os.Handler getHandler();
+    descriptor: ()Landroid/os/Handler;
+
+  public abstract java.lang.CharSequence getSelectedText(int);
+    descriptor: (I)Ljava/lang/CharSequence;
+
+  public default android.view.inputmethod.SurroundingText getSurroundingText(int, int, int);
+    descriptor: (III)Landroid/view/inputmethod/SurroundingText;
+
+  public abstract java.lang.CharSequence getTextAfterCursor(int, int);
+    descriptor: (II)Ljava/lang/CharSequence;
+
+  public abstract java.lang.CharSequence getTextBeforeCursor(int, int);
+    descriptor: (II)Ljava/lang/CharSequence;
+
+  public abstract boolean performContextMenuAction(int);
+    descriptor: (I)Z
+
+  public abstract boolean performEditorAction(int);
+    descriptor: (I)Z
+
+  public default void performHandwritingGesture(android.view.inputmethod.HandwritingGesture, java.util.concurrent.Executor, java.util.function.IntConsumer);
+    descriptor: (Landroid/view/inputmethod/HandwritingGesture;Ljava/util/concurrent/Executor;Ljava/util/function/IntConsumer;)V
+
+  public abstract boolean performPrivateCommand(java.lang.String, android.os.Bundle);
+    descriptor: (Ljava/lang/String;Landroid/os/Bundle;)Z
+
+  public default boolean performSpellCheck();
+    descriptor: ()Z
+
+  public default boolean previewHandwritingGesture(android.view.inputmethod.PreviewableHandwritingGesture, android.os.CancellationSignal);
+    descriptor: (Landroid/view/inputmethod/PreviewableHandwritingGesture;Landroid/os/CancellationSignal;)Z
+
+  public default boolean replaceText(int, int, java.lang.CharSequence, int, android.view.inputmethod.TextAttribute);
+    descriptor: (IILjava/lang/CharSequence;ILandroid/view/inputmethod/TextAttribute;)Z
+
+  public abstract boolean reportFullscreenMode(boolean);
+    descriptor: (Z)Z
+
+  public abstract boolean requestCursorUpdates(int);
+    descriptor: (I)Z
+
+  public default boolean requestCursorUpdates(int, int);
+    descriptor: (II)Z
+
+  public default void requestTextBoundsInfo(android.graphics.RectF, java.util.concurrent.Executor, java.util.function.Consumer<android.view.inputmethod.TextBoundsInfoResult>);
+    descriptor: (Landroid/graphics/RectF;Ljava/util/concurrent/Executor;Ljava/util/function/Consumer;)V
+
+  public abstract boolean sendKeyEvent(android.view.KeyEvent);
+    descriptor: (Landroid/view/KeyEvent;)Z
+
+  public abstract boolean setComposingRegion(int, int);
+    descriptor: (II)Z
+
+  public default boolean setComposingRegion(int, int, android.view.inputmethod.TextAttribute);
+    descriptor: (IILandroid/view/inputmethod/TextAttribute;)Z
+
+  public abstract boolean setComposingText(java.lang.CharSequence, int);
+    descriptor: (Ljava/lang/CharSequence;I)Z
+
+  public default boolean setComposingText(java.lang.CharSequence, int, android.view.inputmethod.TextAttribute);
+    descriptor: (Ljava/lang/CharSequence;ILandroid/view/inputmethod/TextAttribute;)Z
+
+  public default boolean setImeConsumesInput(boolean);
+    descriptor: (Z)Z
+
+  public abstract boolean setSelection(int, int);
+    descriptor: (II)Z
+
+  public default android.view.inputmethod.TextSnapshot takeSnapshot();
+    descriptor: ()Landroid/view/inputmethod/TextSnapshot;
+}
+Compiled from "InputConnectionWrapper.java"
+public class android.view.inputmethod.InputConnectionWrapper implements android.view.inputmethod.InputConnection {
+  public android.view.inputmethod.InputConnectionWrapper(android.view.inputmethod.InputConnection, boolean);
+    descriptor: (Landroid/view/inputmethod/InputConnection;Z)V
+
+  public boolean beginBatchEdit();
+    descriptor: ()Z
+
+  public boolean clearMetaKeyStates(int);
+    descriptor: (I)Z
+
+  public void closeConnection();
+    descriptor: ()V
+
+  public boolean commitCompletion(android.view.inputmethod.CompletionInfo);
+    descriptor: (Landroid/view/inputmethod/CompletionInfo;)Z
+
+  public boolean commitContent(android.view.inputmethod.InputContentInfo, int, android.os.Bundle);
+    descriptor: (Landroid/view/inputmethod/InputContentInfo;ILandroid/os/Bundle;)Z
+
+  public boolean commitCorrection(android.view.inputmethod.CorrectionInfo);
+    descriptor: (Landroid/view/inputmethod/CorrectionInfo;)Z
+
+  public boolean commitText(java.lang.CharSequence, int);
+    descriptor: (Ljava/lang/CharSequence;I)Z
+
+  public boolean commitText(java.lang.CharSequence, int, android.view.inputmethod.TextAttribute);
+    descriptor: (Ljava/lang/CharSequence;ILandroid/view/inputmethod/TextAttribute;)Z
+
+  public boolean deleteSurroundingText(int, int);
+    descriptor: (II)Z
+
+  public boolean deleteSurroundingTextInCodePoints(int, int);
+    descriptor: (II)Z
+
+  public boolean endBatchEdit();
+    descriptor: ()Z
+
+  public boolean finishComposingText();
+    descriptor: ()Z
+
+  public int getCursorCapsMode(int);
+    descriptor: (I)I
+
+  public android.view.inputmethod.ExtractedText getExtractedText(android.view.inputmethod.ExtractedTextRequest, int);
+    descriptor: (Landroid/view/inputmethod/ExtractedTextRequest;I)Landroid/view/inputmethod/ExtractedText;
+
+  public android.os.Handler getHandler();
+    descriptor: ()Landroid/os/Handler;
+
+  public java.lang.CharSequence getSelectedText(int);
+    descriptor: (I)Ljava/lang/CharSequence;
+
+  public android.view.inputmethod.SurroundingText getSurroundingText(int, int, int);
+    descriptor: (III)Landroid/view/inputmethod/SurroundingText;
+
+  public java.lang.CharSequence getTextAfterCursor(int, int);
+    descriptor: (II)Ljava/lang/CharSequence;
+
+  public java.lang.CharSequence getTextBeforeCursor(int, int);
+    descriptor: (II)Ljava/lang/CharSequence;
+
+  public boolean performContextMenuAction(int);
+    descriptor: (I)Z
+
+  public boolean performEditorAction(int);
+    descriptor: (I)Z
+
+  public void performHandwritingGesture(android.view.inputmethod.HandwritingGesture, java.util.concurrent.Executor, java.util.function.IntConsumer);
+    descriptor: (Landroid/view/inputmethod/HandwritingGesture;Ljava/util/concurrent/Executor;Ljava/util/function/IntConsumer;)V
+
+  public boolean performPrivateCommand(java.lang.String, android.os.Bundle);
+    descriptor: (Ljava/lang/String;Landroid/os/Bundle;)Z
+
+  public boolean performSpellCheck();
+    descriptor: ()Z
+
+  public boolean previewHandwritingGesture(android.view.inputmethod.PreviewableHandwritingGesture, android.os.CancellationSignal);
+    descriptor: (Landroid/view/inputmethod/PreviewableHandwritingGesture;Landroid/os/CancellationSignal;)Z
+
+  public boolean replaceText(int, int, java.lang.CharSequence, int, android.view.inputmethod.TextAttribute);
+    descriptor: (IILjava/lang/CharSequence;ILandroid/view/inputmethod/TextAttribute;)Z
+
+  public boolean reportFullscreenMode(boolean);
+    descriptor: (Z)Z
+
+  public boolean requestCursorUpdates(int);
+    descriptor: (I)Z
+
+  public boolean requestCursorUpdates(int, int);
+    descriptor: (II)Z
+
+  public void requestTextBoundsInfo(android.graphics.RectF, java.util.concurrent.Executor, java.util.function.Consumer<android.view.inputmethod.TextBoundsInfoResult>);
+    descriptor: (Landroid/graphics/RectF;Ljava/util/concurrent/Executor;Ljava/util/function/Consumer;)V
+
+  public boolean sendKeyEvent(android.view.KeyEvent);
+    descriptor: (Landroid/view/KeyEvent;)Z
+
+  public boolean setComposingRegion(int, int);
+    descriptor: (II)Z
+
+  public boolean setComposingRegion(int, int, android.view.inputmethod.TextAttribute);
+    descriptor: (IILandroid/view/inputmethod/TextAttribute;)Z
+
+  public boolean setComposingText(java.lang.CharSequence, int);
+    descriptor: (Ljava/lang/CharSequence;I)Z
+
+  public boolean setComposingText(java.lang.CharSequence, int, android.view.inputmethod.TextAttribute);
+    descriptor: (Ljava/lang/CharSequence;ILandroid/view/inputmethod/TextAttribute;)Z
+
+  public boolean setImeConsumesInput(boolean);
+    descriptor: (Z)Z
+
+  public boolean setSelection(int, int);
+    descriptor: (II)Z
+
+  public void setTarget(android.view.inputmethod.InputConnection);
+    descriptor: (Landroid/view/inputmethod/InputConnection;)V
+
+  public android.view.inputmethod.TextSnapshot takeSnapshot();
+    descriptor: ()Landroid/view/inputmethod/TextSnapshot;
+}

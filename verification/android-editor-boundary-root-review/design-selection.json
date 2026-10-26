@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T16:29:21.431202+00:00",
+  "argv": [
+    "verification/android-editor-boundary-root-review/collect-and-select-design.py"
+  ],
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "selector_sha256": "fe7ce43c46ffda6fe9b6f745ba37169ddfd1aea92aaf97907d1d4b34a692801d",
+  "context_revision": "a24011487bfc368512fa52125241d9c46e7cdd3f",
+  "packets": [
+    {
+      "path": "verification/android-editor-api-boundary-proposal/manifest.json",
+      "sha256": "4ad1b8edebf913308484c4600282c5d8af0af00efbc67fa4f75962967b4cc08e",
+      "members_verified": 95,
+      "bytes": 13988155,
+      "current_inputs_verified": 21
+    },
+    {
+      "path": "verification/android-inputconnection-authority-audit/seal.json",
+      "sha256": "c7fa78e51d301418479c0d2eab214211ac653800a9c747126e89a0b3b7756e82",
+      "members_verified": 108,
+      "bytes": 7955033,
+      "current_inputs_verified": 22
+    }
+  ],
+  "third_party_registry_sha256": "bedf42cf23af295eacefa6ff6ce9ebd97c7c34358df196529c313f6fd57ff1f5",
+  "decision": "Accept source findings and select bounded cleanup/creation/continuation contract design; no adapter implementation selected",
+  "findings": [
+    "38 interface descriptors; current 24 explicit and 14 inherited routes",
+    "Inherited reads/platform subscriptions lack current Mixer entry/return fences",
+    "Widget fences menu action but native batch prefix/suffix remain outside",
+    "No field-local connection incarnation; native close is not universal revocation",
+    "Current immutable setTarget is protected; getHandler target is constant null",
+    "Close old target before successor or quarantine; skipping close does not prove batch cleanup",
+    "Current EditorInfo advertises some refused operations"
+  ],
+  "design_scope": [
+    "Exact target and Editable, CLOSING guard, no successor during close",
+    "Serialized CREATING: nested creator refuses before platform super; replaces proposal newest-nested-native-wins rule",
+    "Immediate scalar retirement during native edit; exact captured suffix only and synchronous outermost unwind cleanup",
+    "Narrow Record/renderer continuation and no-event cleanup contract; owner/core/coordinator bytes unchanged",
+    "Preserve ordinary accepted keystrokes, compatible Binding echoes, Editable/selection/composition and healthy connection through temporary seals",
+    "Quarantine plus existing owner retirement/first-fatal precedence on uncertain close",
+    "Resolve getHandler bootstrap calling-thread contract using official caller source"
+  ],
+  "ancillary_policy_candidate": "Private extraction nonmonitor only, cursor disable-only, explicit spellcheck false, immutable textbounds unsupported; new restrictions need explicit implementation selection and native qualification",
+  "metadata_policy_candidate": "Clear advertisements for already-refused handwriting gestures/previews; generic stylus input and writing-tools policy require specific review",
+  "native_or_product_implementation_or_GA_accepted": false,
+  "API28_to_35_admission_selected": false,
+  "both_SDK36_guards_preserved": true,
+  "next": "Complete and independently review exact cleanup/creation/continuation contract before isolated actual-source implementation"
+}

@@ -1,0 +1,403 @@
+#!/usr/bin/env python3
+"""Finite, source-only scalar-cursor proof checks. Standard library only.
+No product, previous producer, broad fixture harness or compiler imports.
+"""
+import collections,copy,difflib,gzip,hashlib,itertools,json,pathlib,random,re,sys
+HERE=pathlib.Path(__file__).resolve().parent
+ROOT=HERE.parents[1]
+MAX=(1<<64)-1
+CAP={'G3':2568,'G4':768,'G5':640}
+def need(x,m):
+ if not x:raise ValueError(m)
+def sha(x):return hashlib.sha256(x).hexdigest()
+def read(n):return json.loads((HERE/n).read_text())
+def write(n,x):(HERE/n).write_text(json.dumps(x,indent=2,sort_keys=True)+'\n')
+def source_check(b):
+ a=read('source-assembly.json');base=(ROOT/a['predecessor_path']).read_bytes()
+ need(sha(base)==a['predecessor_sha256']=='6ae313ca80cc32e73a081c3925a6c99862c6628dd8e9f1042ecdeedd7d703708','base identity')
+ text=b.decode();old=base.decode()
+ lo=old.index('#[repr(C)]\nstruct FixedArrayMergeCursor');hi=old.index('#[cfg(test)]\nstatic COMMIT_FAULT',lo)
+ newlo=text.index('fn merge(');newhi=text.index('#[cfg(test)]\nstatic COMMIT_FAULT',newlo)
+ need(text[:newlo]==old[:lo] and text[newhi:]==old[hi:],'unchanged exact prefix/suffix')
+ need(sha(text[:newlo].encode())==a['unchanged_prefix_sha256'] and sha(text[newhi:].encode())==a['unchanged_suffix_sha256'],'prefix/suffix bindings')
+ # Reverse the permitted local substitution and bind every remaining byte.
+ fragment=text[newlo:newhi]
+ need('FixedArrayMergeCursor' not in text and not re.search(r'\bs\.',fragment),'no cursor aggregate/projections')
+ starts=list(re.finditer(r'            let mut lp: usize = 0;\n            let mut le: usize = (\d+);\n            let mut rp: usize = (\d+);\n            let mut re: usize = (\d+);\n            let mut li: u16 = 256;\n            let mut ri: u16 = 256;\n            let mut lt: u64 = 0;\n            let mut rt: u64 = 0;',fragment))
+ need(len(starts)==5,'exact five scalar scopes')
+ need([tuple(map(int,m.groups())) for m in starts]==[(w,w,2*w) for w in [2,4,8,16,32]],'cursor bounds')
+ need(len(re.findall(r'// p[1-5]\.out[0-9]+:',fragment))==320,'all320 output sites')
+ # Do not tokenize timestamps/source declarations: replace only references in
+ # indexed expressions and scalar identifiers after each declaration sequence.
+ pieces=[];at=0
+ for m in starts:
+  pieces.append(fragment[at:m.start()]);pieces.append('            let mut s = FixedArrayMergeCursor {\n                indices: source, timestamps,\n                lp: 0, le: '+m[1]+', rp: '+m[2]+', re: '+m[3]+',\n                li: 256, ri: 256, lt: 0, rt: 0,\n            };')
+  at=m.end()
+ pieces.append(fragment[at:]);reconstructed=''.join(pieces)
+ # All scalar occurrences in later pass bodies were field accesses. Protect
+ # declarations by splitting around each restored constructor.
+ oldmerge=old[old.index('fn merge('):hi]
+ oldtokens=re.findall(r's\.(?:indices|timestamps|lp|le|rp|re|li|ri|lt|rt)',oldmerge)
+ expected=oldmerge
+ for name in ['indices','timestamps','lp','le','rp','re','li','ri','lt','rt']:
+  expected=re.sub(r'\bs\.'+name+r'\b',{'indices':'source','timestamps':'timestamps'}.get(name,name),expected)
+ # Restore only constructors in expected, then compare to independently parsed
+ # local declaration replacement. Every source literal, branch and body is bound.
+ pat=r'            let mut s = FixedArrayMergeCursor \{\n                indices: source, timestamps,\n                lp: 0, le: (\d+), rp: (\d+), re: (\d+),\n                li: 256, ri: 256, lt: 0, rt: 0,\n            \};'
+ def replacement(m):return '            let mut lp: usize = 0;\n            let mut le: usize = '+m[1]+';\n            let mut rp: usize = '+m[2]+';\n            let mut re: usize = '+m[3]+';\n            let mut li: u16 = 256;\n            let mut ri: u16 = 256;\n            let mut lt: u64 = 0;\n            let mut rt: u64 = 0;'
+ expected,count=re.subn(pat,replacement,expected)
+ need(count==5 and fragment==expected,'exact permitted complete source geometry')
+ need(sha(b)==a['proposed_sha256'],'proposed digest')
+ need(text.count('remaining -= bytes;')==1,'preserved proven G5 subtraction')
+ for item in read('input-bindings.json')['files']:
+  p=HERE/item['snapshot'] if 'snapshot'in item else ROOT/item['path'];data=p.read_bytes()
+  need(len(data)==item['bytes'] and sha(data)==item['sha256'],'input binding '+item['path'])
+ return text,fragment
+
+class Trace:
+ def __init__(self):self.events=[];self.templates={}
+ def s(self,*labels):
+  for label in labels:self.events.append(dict(kind='scalar',bytes=0,operation=label))
+ def c(self,n,label):self.events.append(dict(kind='copy',bytes=n,operation=label))
+ def v(self,n,d):self.s(n+' source -> '+d)
+ def binary(self,op,l,r,d):l(op+'.left');r(op+'.right');self.s('primitive '+op,op+' result -> '+d)
+ def cmp(self,op,l,r):self.binary(op,l,r,'condition');self.s('condition -> predicate','conditional branch')
+ def unit(self,n):self.s(n+'.unit',n+'.statement-continuation')
+ def idx(self,base,index,d,width=1,fat=False,mutable=False):
+  index('Index.received.index');self.s(base+'.receiver-reborrow',base+'.pointer -> Index.received.receiver')
+  if fat:self.s(base+'.len -> Index.received.len')
+  if mutable:
+   # IndexMut17 ends with exclusive reference. Assignment is a distinct use.
+   self.s('IndexMut.entry','index -> bound.left','length -> bound.right','index<length','bounds.branch','pointer -> address.left','index -> scale.left','width'+str(width)+' -> scale.right','index*width','offset -> add.left','pointer -> add.right','element.address','exclusive.loan','reference -> designated.return','reference -> caller.received','IndexMut.return','received.reference -> assignment.address')
+  else:
+   self.s('Index.entry','index -> bound.left','length -> bound.right','index<length','bounds.branch','pointer -> address.left','index -> scale.left','width'+str(width)+' -> scale.right','index*width','offset -> add.left','pointer -> add.right','element.address','address -> designated.reference','shared.reference.loan','reference -> caller.received','Index.return','received.reference -> dereference.address','dereference.source -> '+d)
+ def le(self,d):
+  self.c(8,'complete array8 source -> from_le_bytes received array8');self.s('from_le_bytes.entry','LE.conversion','scalar -> designated.return','from_le_bytes.return','returned.scalar -> '+d)
+ def range(self,base,start,end):
+  self.s(start+' -> Range.start',end+' -> Range.end','Range.start -> Index.received.start','Range.end -> Index.received.end',base+'.receiver-reborrow',base+'.data -> Index.received.data',base+'.len -> Index.received.len','Range.Index.entry','start -> ordered.left','end -> ordered.right','start<=end','ordered.branch','end -> upper.left','len -> upper.right','end<=len','upper.branch','data -> address.left','start -> address.right','view.address','end -> length.left','start -> length.right','view.length','address -> designated.data','length -> designated.len','view.loan','designated.data -> received.data','designated.len -> received.len','Range.Index.return')
+ def chunks(self,base,width):
+  self.s(base+'.receiver-reborrow',base+'.data -> received.data',base+'.len -> received.len','as_chunks.entry','literal'+str(width)+' -> width','width -> nonzero.left','literal0 -> nonzero.right','width!=0','nonzero.branch','len -> quotient.left','width -> quotient.right','chunk.quotient','quotient -> chunk_count','len -> remainder.left','width -> remainder.right','tail.remainder','remainder -> tail_count','chunk_count -> multiply.left','width -> multiply.right','tail.offset','offset -> address.left','data -> address.right','tail.address','data -> tuple.head.data','chunk_count -> tuple.head.len','address -> tuple.tail.data','tail_count -> tuple.tail.len')
+  self.c(32,'complete tuple32 constructor -> designated return');self.c(32,'complete tuple32 designated return -> caller received')
+  self.s('as_chunks.return','received.head.data -> named slice.data','received.head.len -> named slice.len','discarded tail.complete-value-drop','tuple.destructure.statement-continuation')
+ def fixed(self,n):
+  self.s('slice.receiver-reborrow','slice.data -> first_chunk.received.data','slice.len -> first_chunk.received.len','first_chunk.entry','received.len -> minimum.left','literal'+str(n)+' -> minimum.right','len>=minimum','minimum.branch','data -> fixed.reference.source','fixed.reference.loan','Some.reference -> Option8.constructor')
+  self.c(8,'complete niche Option8 source -> designated return');self.c(8,'complete niche Option8 designated return -> caller received')
+  self.s('first_chunk.return','Option8 -> expect.received.self','message.data -> expect.received.message.data','message.len -> expect.received.message.len','expect.entry','Option.discriminant','Some.predicate','expect.branch','Some.pointer -> designated.fixed.reference','expect.return','returned.fixed.reference -> named binding','let.statement-continuation')
+ def template(self,name,fn):
+  first=len(self.events);fn(self);self.templates[name]=self.events[first:];del self.events[first:]
+
+def components():
+ t=Trace()
+ def later_head(q):
+  q.idx('source',lambda d:q.v('cursor',d),'index',1);q.s('let.index.statement-continuation')
+  q.s('index -> cast.u16','cast.u16','cast.result -> head');q.unit('head.assignment')
+  q.cmp('!=',lambda d:q.v('index',d),lambda d:q.v('MAX255',d));q.s('timestamp.if.scope-entry')
+  q.idx('timestamps',lambda d:q.s('index -> cast.usize','cast.usize','cast.result -> '+d),'array8',8);q.le('timestamp');q.unit('timestamp.assignment');q.unit('timestamp.if')
+ t.template('later.head.eligible-upper',later_head)
+ def choice(q):
+  q.cmp('>=',lambda d:q.v('ri',d),lambda d:q.v('255',d))
+  q.binary('<',lambda d:q.v('li',d),lambda d:q.v('255',d),'and.left');q.s('and.short-circuit')
+  q.binary('<=',lambda d:q.v('lt',d),lambda d:q.v('rt',d),'take_left')
+  q.s('choice.branch-scope-entry','choice.if-value-join','let.take_left.statement-continuation','take_left -> condition','condition -> predicate','emit.if.branch')
+ t.template('later.choice.pair-upper',choice)
+ def seed(q):
+  q.binary('&',lambda d:q.v('eligibility',d),lambda d:q.v('literal.mask',d),'comparison.left')
+  q.s('literal0 -> comparison.right','primitive !=','comparison -> condition','condition -> predicate','eligibility.if.branch','eligibility.branch.scope-entry','literal.slot-or255 -> index.binding','eligibility.if-value-join','let.index.statement-continuation')
+  q.idx('timestamps',lambda d:q.v('literal.slot',d),'array8',8);q.le('timestamp.binding');q.s('let.timestamp.statement-continuation')
+ t.template('seed.head',seed)
+ def seedchoice(q):
+  q.cmp('==',lambda d:q.v('right',d),lambda d:q.v('255',d))
+  q.binary('!=',lambda d:q.v('left',d),lambda d:q.v('255',d),'and.left');q.s('and.short-circuit')
+  q.binary('<=',lambda d:q.v('lt',d),lambda d:q.v('rt',d),'take_left')
+  q.s('seed.choice.branch-scope-entry','seed.choice.if-value-join','let.take_left.statement-continuation','take_left -> condition','condition -> predicate','emit.if.branch')
+ t.template('seed.choice.upper',seedchoice)
+ def emit(q):
+  q.s('array.element.scope-entry','selected.emit.arm.scope-entry','head -> cast.u8','cast.u8','cast.result -> out','let.out.statement-continuation')
+  q.binary('+',lambda d:q.v('cursor',d),lambda d:q.v('literal1',d),'cursor.assignment');q.unit('cursor.advance')
+  q.cmp('<',lambda d:q.v('cursor',d),lambda d:q.v('end',d));q.s('advance.if.selected-arm.scope-entry');q.unit('advance.if')
+  q.s('out -> selected.arm.value','selected.arm.scope-exit','selected.arm.value -> emit.if.value','emit.if-value-join','array.element.scope-exit','emit.value -> array.element.destination')
+ t.template('later.emit',emit)
+ def seedemit(q):
+  q.s('seed.element.scope-entry','seed.emit.arm.scope-entry','opposite.index -> second.assignment');q.unit('second.assignment')
+  q.s('chosen.index -> selected.arm.value','seed.arm.scope-exit','selected.arm.value -> emit.if.value','seed.if-value-join','seed.element.scope-exit','emit.value -> array.element.destination','second.element.scope-entry','second -> array.element.destination','second.element.scope-exit')
+ t.template('seed.emit-pair',seedemit)
+ def output(q):
+  q.c(64,'array64 constructor -> block designated value');q.c(64,'block designated array64 -> output binding')
+  q.s('let.output.statement-continuation');q.range('indices','literal.destination.start','literal.destination.end')
+  q.s('copy.receiver-reborrow','destination.data -> copy.received.data','destination.len -> copy.received.len','output.array.address','output.array.reborrow','output.address -> coerced.slice.data','literal64 -> coerced.slice.len','coerced.data -> copy.source.received.data','coerced.len -> copy.source.received.len','copy.entry','dest.len -> equality.left','source.len -> equality.right','length.equality','length.branch')
+  q.c(64,'complete output64 source -> actual Candidate destination64');q.s('copy.implicit-unit-return','copy.return-control');q.unit('copy.statement');q.unit('outer.output.block')
+ t.template('output.array-and-copy',output)
+ def view(q):q.range('indices','literal.source.start','literal.source.end');q.fixed(64)
+ t.template('later.source-view',view)
+ def setup(q):
+  # ld(c,640): actual array-to-slice, range, fixed borrow/expect, LE and scalar return.
+  q.s('Candidate.array.address','Candidate.reborrow','Candidate.address -> slice.source.data','literal2048 -> slice.source.len','slice.data -> ld.received.data','slice.len -> ld.received.len','literal640 -> ld.received.at','ld.entry','at -> plus.left','literal8 -> plus.right','primitive+','plus.result -> Range.end')
+  q.range('ld.b','ld.at','computed.end');q.fixed(8);q.s('returned.fixed.reference -> dereference.address','array8.dereference.projection');q.le('ld.designated.return');q.s('ld.return','ld.result -> eligibility.binding','let.eligibility.statement-continuation')
+  # Actual split_at_mut boundary: two complete slice fields, full tuple32 transfers.
+  q.s('Candidate.array.address','Candidate.reborrow','Candidate.address -> slice.source.data','literal2048 -> slice.source.len','slice.data -> split.received.data','slice.len -> split.received.len','literal512 -> split.received.mid','split.entry','mid -> bound.left','len -> bound.right','mid<=len','bound.branch','data -> left.data','mid -> left.len','data -> address.left','mid -> address.right','right.address','len -> subtract.left','mid -> subtract.right','right.len','left.exclusive.loan','right.exclusive.loan','left.data -> tuple.field','left.len -> tuple.field','right.data -> tuple.field','right.len -> tuple.field')
+  q.c(32,'split tuple32 constructor -> designated return');q.c(32,'split tuple32 designated return -> caller received')
+  q.s('split.return','tuple.left.data -> time_bytes.data','tuple.left.len -> time_bytes.len','tuple.right.data -> indices.data','tuple.right.len -> indices.len','split.destructure.statement-continuation')
+  q.chunks('time_bytes',8);q.fixed(64)
+ t.template('merge.setup',setup)
+ def prefixbody(q):
+  q.cmp('<',lambda d:q.v('i',d),lambda d:q.v('64',d));q.s('while.body.scope-entry')
+  q.binary('<=',lambda d:q.v('remaining',d),lambda d:q.v('headroom',d),'and.left');q.s('and.short-circuit')
+  q.binary('!=',lambda d:q.v('destination',d),lambda d:q.v('ABSENT',d),'if.condition');q.s('condition -> predicate','headroom.if.branch');q.unit('headroom.if')
+  q.idx('c',lambda d:q.binary('+',lambda z:q.v('512',z),lambda z:q.v('i',z),d),'slot_byte',1);q.s('let.slot_byte.statement-continuation')
+  q.cmp('==',lambda d:q.v('slot_byte',d),lambda d:q.v('255',d));q.unit('sentinel.if')
+  q.s('slot_byte -> cast.u64','cast.u64','cast.result -> slot','let.slot.statement-continuation')
+  def index(d):
+   q.binary('+',lambda z:q.binary('+',lambda w:q.v('resident_word_base',w),lambda w:q.binary('*',lambda v:q.s('slot -> cast.usize','cast.usize','cast.result -> '+v),lambda v:q.v('8',v),w),z),lambda z:q.v('2',z),d)
+  q.idx('arena_words',index,'array8',8,True);q.le('bytes');q.s('let.bytes.statement-continuation')
+  q.binary('-',lambda d:q.v('remaining',d),lambda d:q.v('bytes',d),'remaining.assignment');q.unit('remaining.assignment')
+  q.binary('|',lambda d:q.v('mask',d),lambda d:q.binary('<<',lambda z:q.v('1',z),lambda z:q.v('slot',z),d),'mask.assignment');q.unit('mask.assignment')
+  q.v('slot','destination.assignment');q.unit('destination.assignment')
+  q.binary('+',lambda d:q.v('i',d),lambda d:q.v('1',d),'i.assignment');q.unit('i.assignment')
+  q.s('while.body.implicit-unit','while.back-control')
+ t.template('prefix.full-iteration-upper',prefixbody)
+ def prelude(q):
+  q.s('f -> capacity.address-operand','f.capacity.address','f.capacity -> subtract.left','f -> base.address-operand','f.base.address','f.base -> subtract.right','primitive-','partial -> subtract.left')
+  q.idx('w',lambda d:q.v('13',d),'subtract.right',8);q.s('primitive-','headroom.result -> headroom.binding','let.headroom.statement-continuation','total -> remaining','let.remaining.statement-continuation','literal0 -> mask','let.mask.statement-continuation','first_empty -> destination','let.destination.statement-continuation','prefix.block.scope-entry')
+  q.chunks('b',8);q.binary('/',lambda d:q.s('RESIDENT.owner -> base.address','RESIDENT.base.address','RESIDENT.base -> '+d),lambda d:q.v('8',d),'resident_word_base');q.s('let.resident_word_base.statement-continuation','literal0 -> i','let.i.statement-continuation')
+ t.template('prefix.prelude',prelude)
+ def finale(q):
+  q.cmp('<',lambda d:q.v('i',d),lambda d:q.v('64',d));q.s('final.false-while.branch','while.unit','while.statement-continuation','prefix.block.unit','prefix.block.exit-continuation')
+  # Explicit same-owner terminal union bounds either break before a64th/earlier
+  # body or the normal false test, without using work from another owner.
+  q.s('headroom.break.arm.scope-entry','headroom.break.control','headroom.break.inner-scope-exit','sentinel.break.arm.scope-entry','sentinel.break.control','sentinel.break.inner-scope-exit')
+  q.binary('!=',lambda d:q.v('destination',d),lambda d:q.v('ABSENT',d),'and.left');q.s('and.short-circuit')
+  q.binary('<=',lambda d:q.v('remaining',d),lambda d:q.v('headroom',d),'feasible');q.s('let.feasible.statement-continuation')
+ t.template('prefix.final-and-break-union',finale)
+ return t.templates
+
+def cost(es):
+ s=sum(e['kind']=='scalar' for e in es);c=sum(e['kind']=='copy' for e in es);return dict(scalars=s,copies=c,groups=(s+15)//16+c)
+def work(templates):
+ recipes={
+ 'G3':[('merge.setup',1),('seed.head',64),('seed.choice.upper',32),('later.head.eligible-upper',320),('later.choice.pair-upper',320)],
+ 'G4':[('seed.emit-pair',32),('later.source-view',5),('later.emit',320),('output.array-and-copy',6)],
+ 'G5':[('prefix.prelude',1),('prefix.full-iteration-upper',64),('prefix.final-and-break-union',1)]}
+ # Non-API exact lexical sites, explicit actual scalar assignments/control.
+ exact={
+ 'G3': [(f'pass{p}.head-initializers',[f'literal -> {n}' for n in ['li','ri','lt','rt']]+[f'let.{n}.statement-continuation' for n in ['li','ri','lt','rt']])for p in range(1,6)]+[(f'head-block{n}', ['two-head.scope-entry','two-head.implicit-unit','two-head.statement-continuation'])for n in range(31)]+[(f'exhaustion{n}',['literal256 -> head.assignment','head.assignment.unit','head.assignment.statement-continuation'])for n in range(62)],
+ 'G4': [('second.initialization', ['MAX255 -> second','let.second.statement-continuation'])]+[(f'output-block{p}',['outer.output.scope-entry','array.constructor.scope-entry','array.constructor.expression-control','inner.output.block-exit'])for p in range(6)]+[(f'pass{p}.cursor-initializers',[f'literal -> {n}' for n in ['lp','le','rp','re']]+[f'let.{n}.statement-continuation' for n in ['lp','le','rp','re']])for p in range(1,6)]+[(f'runreset{n}',[f'{z}.{v}' for z in ['lp','le','rp','re']for v in ['literal -> assignment','assignment.unit','statement-continuation']])for n in range(26)]+[('merge-return',['merge.implicit-unit','merge.callee-return-control'])],
+ 'G5':[]}
+ result={};all_events=[]
+ for owner in ['G3','G4','G5']:
+  events=[]
+  def add(site,es):
+   for e in es:events.append(dict(e,owner=owner,site=site,id=f'{owner}/{site}/{len(events):06}'))
+  for name,n in recipes[owner]:
+   for i in range(n):add(name+'/'+str(i),templates[name])
+  for site,names in exact[owner]:add(site,[dict(kind='scalar',bytes=0,operation=z)for z in names])
+  counts=cost(events);need(counts['groups']<=CAP[owner],owner+' exceeds cap')
+  result[owner]=dict(counts,cap=CAP[owner],type='conservative source-covering component upper; not a path equality',recipes=recipes[owner],exact_scalar_site_count=len(exact[owner]))
+  all_events+=events
+ groups=[]
+ for owner in ['G3','G4','G5']:
+  es=[e for e in all_events if e['owner']==owner];ss=[e['id']for e in es if e['kind']=='scalar']
+  groups.extend(dict(owner=owner,kind='scalar',events=ss[i:i+16])for i in range(0,len(ss),16))
+  groups.extend(dict(owner=owner,kind='copy',bytes=e['bytes'],events=[e['id']])for e in es if e['kind']=='copy')
+ validate(all_events,groups)
+ return result,all_events,groups
+
+def validate(events,groups):
+ ids=[e['id']for e in events];need(len(ids)==len(set(ids)),'unique event IDs');byid={e['id']:e for e in events};got=[]
+ for g in groups:
+  need(g['owner']in CAP and g['events'],'owner/nonempty group')
+  es=[byid[i]for i in g['events']];need(all(e['owner']==g['owner']for e in es),'no owner transfer')
+  if g['kind']=='scalar':need(len(es)<=16 and all(e['kind']=='scalar' and e['bytes']==0 for e in es),'at most16 scalars')
+  else:need(len(es)==1 and es[0]['kind']=='copy' and 0<es[0]['bytes']<=128 and g['bytes']==es[0]['bytes'],'separate complete bounded copy')
+  got+=g['events']
+ need(collections.Counter(got)==collections.Counter(ids),'exact once partition')
+
+def merge(times,mask):
+ order=[];loads=[64];comparisons=[32]
+ for p in range(0,64,2):
+  l=p if mask>>p&1 else 255;r=p+1 if mask>>(p+1)&1 else 255
+  order+=([l,r]if r==255 or l!=255 and times[p]<=times[p+1]else[r,l])
+ for width in [2,4,8,16,32]:
+  output=[];count=cmp=0
+  for base in range(0,64,2*width):
+   lp=base;le=base+width;rp=le;re_=base+2*width
+   li=order[lp];ri=order[rp];lt=times[li]if li!=255 else 0;rt=times[ri]if ri!=255 else 0
+   count+=(li!=255)+(ri!=255)
+   for out in range(base,re_):
+    cmp+=li!=256 and ri!=256
+    take=li!=256 if ri>=255 else li<255 and lt<=rt
+    if take:
+     need(li!=256,'never emit256');output.append(li);lp+=1
+     if lp<le:
+      li=order[lp]
+      if li!=255:lt=times[li];count+=1
+     else:li=256
+    else:
+     need(ri!=256,'never emit256');output.append(ri);rp+=1
+     if rp<re_:
+      ri=order[rp]
+      if ri!=255:rt=times[ri];count+=1
+     else:ri=256
+   need(lp==le and rp==re_,'exact run permutation')
+  order=output;loads.append(count);comparisons.append(cmp)
+ return order,loads,comparisons
+
+def prefix(order,sizes,occupied,headroom,empty,checked):
+ remaining=sum(sizes[i]for i in occupied);mask=0;destination=empty;reads=[]
+ need(remaining<=MAX and all(0<sizes[i]<=MAX for i in occupied) and 0<=headroom<=MAX,'G2 checked sum and headroom domain')
+ for i in range(64):
+  if remaining<=headroom and destination!=MAX:break
+  reads.append(('Candidate',512+i));slot=order[i]
+  if slot==255:break
+  reads.append(('resident',slot,2));size=sizes[slot]
+  if checked and remaining<size:return dict(reason=13,reads=reads)
+  need(remaining>=size,'prefix subtraction invariant')
+  remaining-=size;mask|=1<<slot;destination=slot
+ return dict(reason=0,remaining=remaining,mask=mask,destination=destination,feasible=destination!=MAX and remaining<=headroom,reads=reads)
+
+def finite():
+ cases=prefixes=0
+ for n in range(6):
+  for ranks in itertools.product([0,1,MAX],repeat=n):
+   times=list(ranks)+[0]*(64-n)
+   for mask in range(1<<n):
+    order,loads,cmps=merge(times,mask);expected=sorted([i for i in range(64)if mask>>i&1],key=lambda i:(times[i],i))+[255]*(64-mask.bit_count())
+    need(order==expected,'stable mask/rank oracle');need(all(x<=64 for x in loads),'load domain');cases+=1
+ rng=random.Random(0x7363616c6172)
+ masks=[0,MAX,0xaaaaaaaaaaaaaaaa,0x5555555555555555]+[(1<<i)-1 for i in range(65)]+[rng.getrandbits(64)for _ in range(96)]
+ families=[[0]*64,[MAX]*64,list(range(64)),list(reversed(range(64))),[int(f'{i:06b}'[::-1],2)for i in range(64)],[MAX if i%2 else 0 for i in range(64)],[rng.getrandbits(64)for i in range(64)]]
+ for times in families:
+  for mask in masks:
+   order,loads,cmps=merge(times,mask);expected=sorted([i for i in range(64)if mask>>i&1],key=lambda i:(times[i],i))+[255]*(64-mask.bit_count())
+   need(order==expected and max(loads)<=64,'64-slot oracle');cases+=1
+   # All chosen rows occupied, with extra pinned occupied rows allowed.
+   occupied={i for i in range(64)if mask>>i&1 or i%3==0};sizes=[1+rng.randrange(128)if i in occupied else 0 for i in range(64)]
+   for h in [0,sum(sizes)//2,sum(sizes),MAX]:
+    for empty in [MAX,0]:
+     need(prefix(order,sizes,occupied,h,empty,False)==prefix(order,sizes,occupied,h,empty,True),'checked/ordinary values/read order');prefixes+=1
+ bitreverse=merge(families[4],MAX);need(bitreverse[1]==[64]*6 and bitreverse[2]==[32,48,56,60,62,63],'maximal admitted witness')
+ # Admitted full-u64 totals: one MAX row and a64-way MAX partition.
+ for sizes,occupied in [([MAX]+[0]*63,{0}),([MAX//64]*63+[MAX-63*(MAX//64)],set(range(64)))]:
+  mask=sum(1<<i for i in occupied);order,_,_=merge([MAX]*64,mask)
+  for h in [0,1,MAX//2,MAX]:
+   for empty in [MAX,63]:
+    need(prefix(order,sizes,occupied,h,empty,False)==prefix(order,sizes,occupied,h,empty,True),'u64 boundary subtraction/read equivalence');prefixes+=1
+ return dict(merge_cases=cases,prefix_read_value_comparisons=prefixes,witness=dict(times=families[4],mask=MAX,loads=bitreverse[1],comparisons=bitreverse[2]))
+
+def inherited_spans(text):
+ old=(ROOT/'verification/swift-cache-state-implementation/correction-3/source/library/cache_state.rs').read_text()
+ need(sha(old.encode())=='0ab577c36f9836539181ba5156bdfbc7764ea065266e68d94b431da5fdb47ea8','selected C3 source')
+ def sections(s,isnew):
+  starts=[s.index('// UNSELECTED SOURCE-ONLY SEEDED WIDTH1 PROPOSAL.')if isnew else s.index('fn merge('),s.index('// G2. Unselected typed-row proposal;')if isnew else s.index('// Shared one-pass bounded probes;'),s.index('// G5. Exact prior successful base+request guard proves subtraction.')if isnew else s.index('// The preceding checked base+request guard proves both subtractions.')]
+  ends=[s.index('#[cfg(test)]\nstatic COMMIT_FAULT',starts[0]),s.index('    let body = w[6] as usize;',starts[1]),s.index('            sq(c, 10, mask);',starts[2])]
+  at=0;kept=[];changed=[]
+  for n,(a,b)in enumerate(zip(starts,ends)):
+   kept.append(s[at:a]);changed.append(dict(kind=['merge','G2','G5'][n],start_byte=a,end_byte=b,start_line=s[:a].count('\n')+1,end_line=s[:b].count('\n')+1,sha256=sha(s[a:b].encode())));at=b
+  kept.append(s[at:]);return kept,changed
+ a,oldspans=sections(old,False);b,newspans=sections(text,True)
+ need(a==b,'exact unchanged C3 caller/helper/whole-closure spans')
+ return dict(old_source_sha256=sha(old.encode()),new_source_sha256=sha(text.encode()),old_changed_spans=oldspans,new_changed_spans=newspans,unchanged_spans=[dict(bytes=len(z.encode()),sha256=sha(z.encode()))for z in a],all_other_bytes_identical=True,outer_merge_call_and_parameters_identical=True,six_final_sq_calls_identical=True,G6_production_groups=512,G6_private_fault_groups=514,G6_cap=640,G6_new_body_claim=False)
+
+
+def lexical_names(text,lo,hi,sizes):
+ # Syntax is used solely to locate lexical owners in the frozen source proposal,
+ # alongside the explicit source and API argument. It grants no release authority.
+ part=text[lo:hi]
+ clean=re.sub(r'//[^\n]*|"(?:\\.|[^"\\])*"',lambda m:' '*len(m[0]) if not m[0].startswith('//')else ' '*len(m[0]),part)
+ stack=[];pairs={};scopes={}
+ for i,ch in enumerate(clean):
+  if ch=='{':stack.append(i)
+  if ch=='}':
+   need(stack,'balanced lexical braces');a=stack.pop();pairs[a]=i
+ need(not stack,'closed lexical braces')
+ declarations=list(re.finditer(r'\blet\s+(?:mut\s+)?([A-Za-z_]\w*|\([^\n]*?\))\s*(?::[^=\n]+)?=',clean))
+ need(len(declarations)==len(re.findall(r'\blet\b',clean)),'all actual declarations mapped, including semicolons in array types')
+ rows=[]
+ for m in declarations:
+  names=[m[1]]if not m[1].startswith('(')else re.findall(r'[A-Za-z_]\w*',m[1])
+  opens=[a for a,b in pairs.items()if a<m.start()<b];scope=max(opens)
+  for name in names:
+   if name=='_':continue
+   need(name in sizes,'unmapped local '+name)
+   rows.append(dict(id=f'{name}@{lo+m.start()}',rust_name=name,bytes=sizes[name],role='Control',birth_byte=lo+m.start(),birth_line=text[:lo+m.start()].count('\n')+1,lexical_end_byte=lo+pairs[scope],lexical_end_line=text[:lo+pairs[scope]].count('\n')+1,initialization_rule='named destination reserved from declaration through actual lexical end; conservative through its initializer',last_use_retirement=False))
+ points=[r['birth_byte']for r in rows]+[r['lexical_end_byte']for r in rows]
+ maximum=max((sum(r['bytes']for r in rows if r['birth_byte']<=p<r['lexical_end_byte']),p)for p in points)
+ return rows,dict(bytes=maximum[0],at_byte=maximum[1],at_line=text[:maximum[1]].count('\n')+1,places=[r['id']for r in rows if r['birth_byte']<=maximum[1]<r['lexical_end_byte']])
+
+def lifetimes(text,inherit):
+ sizes={'eligibility':8,'time_bytes':16,'indices':16,'timestamp_chunks':16,'timestamps':8,'output':64,'second':1,'left':1,'right':1,'lt':8,'rt':8,'take_left':1,'source':8,'lp':8,'le':8,'rp':8,'re':8,'li':2,'ri':2,'index':1,'out':1}
+ lo=text.index('fn merge(');hi=text.index('#[cfg(test)]\nstatic COMMIT_FAULT',lo)
+ names,peak=lexical_names(text,lo,hi,sizes)
+ # Exact active caller objects; current body and miss cell persist, then the
+ # G6-owned argument source and merge parameter remain separate eight-byte places.
+ caller={'cache_body.Progress144':144,'cache_inputs.argument_sources':24,'cache_inputs.received':24,'cache_walk.argument_sources':16,'cache_walk.received':16,'cache_walk.fixture_source':8,'cache_walk.fixture_received':8,'cache_walk.outer_arena_reference':8,'cache_walk.Loan16':16,'cache_walk.StepBudget16':16,'semantic.argument_sources':48,'semantic.received':48,'semantic.w_f':16,'semantic.eleven_outer_scalars':88,'semantic.body':8,'miss.cell':8,'merge.argument_source':8,'merge.received_c':8}
+ need(sum(caller.values())==512,'complete merge caller base')
+ # Full actual API endpoint superphases. Sequential subexpressions are kept
+ # simultaneously here to overbound. Named Rust locals are NOT retired by these.
+ api={
+ 'split_at_mut':{'receiver.source16':16,'receiver.received16':16,'mid.source':8,'mid.received':8,'bound.operands_bool':17,'left.slice_source16':16,'right.slice_source16':16,'address.operands_result':24,'length.operands_result':24,'tuple.constructor32':32,'tuple.designated32':32,'tuple.received32':32,'left_and_right_loan_sources':16},
+ 'as_chunks':{'receiver.source16':16,'receiver.received16':16,'width':8,'nonzero.operands_and_bool':17,'quotient.operands_and_result':24,'remainder.operands_and_result':24,'chunk_count':8,'tail_count':8,'offset.operands_and_result':24,'address.operands_and_result':24,'tuple.constructor32':32,'tuple.designated32':32,'tuple.received32':32},
+ 'range-fixed-expect':{'Range.source16':16,'Range.received16':16,'slice.receiver_source16':16,'slice.receiver_received16':16,'bound.operands_bool':17,'address.operands_result':24,'length.operands_result':24,'view.designated16':16,'view.received16':16,'fixed.receiver_source16':16,'fixed.receiver_received16':16,'fixed.length_predicate':17,'Option8.constructor':8,'Option8.designated':8,'Option8.received':8,'expect.self_received8':8,'expect.message_source16':16,'expect.message_received16':16,'expect.discriminant_and_bool':9,'fixed.return_reference':8,'fixed.received_reference':8},
+ 'Index-and-LE':{'index_expression.operand_sources':24,'index_expression.received_operands':24,'index_expression.results':24,'receiver.source16':16,'receiver.received16':16,'index.source':8,'index.received':8,'bound.operands_bool':17,'address.operands_result':24,'scale.operands_result':24,'reference.designated':8,'reference.received':8,'LE.array8.source':8,'LE.array8.received':8,'LE.scalar.designated':8,'LE.scalar.received':8,'assignment.source':8,'assignment.destination_address':8},
+ 'copy_from_slice':{'Range.source16':16,'Range.received16':16,'receiver.source16':16,'receiver.received16':16,'bound.operands_bool':17,'address.operands_result':24,'length.operands_result':24,'view.designated16':16,'view.received16':16,'copy.destination_source16':16,'copy.destination_received16':16,'copy.source_source16':16,'copy.source_received16':16,'copy.length_predicate':17},
+ 'primitive':{'source.left':8,'source.right':8,'received.left':8,'received.right':8,'primitive.result':8,'condition.source':1,'condition.received':1,'retained_shortcircuit_operand':8}}
+ api_totals={n:sum(d.values())for n,d in api.items()}
+ # Range/fixed endpoints and array construction do not occur simultaneously;
+ # these schedules deliberately retain them together as a stronger bound.
+ phases=[]
+ def phase(n,places):
+  total=sum(places.values());need(total<=1280,'Control role overflow '+n);phases.append(dict(id=n,Control=total,Wire=24,Setup=80,Report=0,places=places))
+ for n,size in api_totals.items():
+  phase('merge.'+n,dict(complete_caller=512,all_merge_named_lexical_upper=peak['bytes'],array64_constructor_and_designated=128,**{n+'.complete_endpoint_union':size}))
+ # G5 locals are all retained in their actual blocks. The future feasible bool
+ # is reserved early as a harmless overbound. Both old and new prefix scopes
+ # have ended before the six G6 writes; no borrowed arena/index owner escapes.
+ prefix_named={'headroom':8,'remaining':8,'mask':8,'destination':8,'feasible':1,'arena_words':16,'resident_word_base':8,'i':8,'slot_byte':1,'slot':8,'bytes':8}
+ for n in ['as_chunks','Index-and-LE','primitive']:
+  phase('prefix.'+n,dict(semantic_base_after_body=488,miss_cell=8,all_prefix_named_lexical_union=sum(prefix_named.values()),complete_API_endpoint_union=api_totals[n]))
+ phase('G6.six_final_stores',dict(semantic_base_after_body=488,miss_cell=8,headroom_remaining_mask_destination_feasible=33,selected_complete_sq_st_endpoint_union=424))
+ # The exact C3 root selection is retained only for unchanged source spans.
+ # Old G2/merge/prefix rows are replaced, and even retaining1201 as a full
+ # unchanged overbound cannot weaken the new union.
+ g2=json.loads((ROOT/'verification/swift-cache-state-row-probe-independent/G2-lifetimes.json').read_text())
+ need(g2['Control_peak']==1220 and g2['Wire_peak']==24 and g2['Setup_peak']==80,'selected typed-row phase maxima')
+ old=json.loads((ROOT/'verification/swift-semantic-adapter-root-review/C3-lifetime-selection.json').read_text())
+ need(old['added_peaks']=={'Control':1201,'Wire':152,'Setup':160,'Report':2688},'selected old phase peaks')
+ whole=dict(Control=max([1201,1220]+[p['Control']for p in phases]),Wire=152,Setup=160,Report=2688)
+ need(all(whole[k]<=v for k,v in {'Control':1280,'Wire':256,'Setup':256,'Report':2896}.items()),'unchanged role caps')
+ return dict(schema=1,scope='complete authored-source logical role union proposed; independent review/root selection pending',old_source_inheritance=inherit,whole_role_union_bytes=29344,inherited_bytes=24656,reserved_bytes=41984,global_bytes=65536,unassigned_margin_used=0,new_Candidate_payload=0,merge_caller_places=caller,merge_named_peak=peak,merge_named_places=names,API_endpoint_superphases=api,API_endpoint_superphase_bytes=api_totals,prefix_named_union=prefix_named,phases=phases,selected_G2_phases_replaced_old=True,selected_G2_peak=1220,unchanged_C3_added_peaks=old['added_peaks'],proposed_added_peaks=whole,role_caps={'Control':1280,'Wire':256,'Setup':256,'Report':2896},named_locals_kept_until_lexical_end=True,compiler_stack_or_libstd_internal_claim=False,implementation_or_GA_accepted=False)
+
+
+def main():
+ text,fragment=source_check((HERE/'source/cache_state.rs.txt').read_bytes())
+ templates=components();bounds,events,groups=work(templates)
+ inherit=inherited_spans(text);life=lifetimes(text,inherit);finite_result=finite()
+ controls=[]
+ def rejects(name,fn):
+  try:fn()
+  except (ValueError,KeyError)as exc:controls.append(dict(name=name,rejected=True,reason=str(exc)))
+  else:raise ValueError('negative control did not reject: '+name)
+ rejects('timestamp MAX changed to sentinel semantics',lambda:need(merge([MAX]*64,MAX)[0]==[255]*64,'MAX data must remain eligible'))
+ rejects('right-on-tie unstable mutant',lambda:need(list(reversed(range(64)))==merge([0]*64,MAX)[0],'stable slot tie order'))
+ rejects('duplicate-prefix permutation',lambda:need(len(set([0,0]+list(range(2,64))))==64,'distinct eligible slots required'))
+ rejects('unsafe subtraction with stale row size',lambda:prefix([0]+[255]*63,[2]+[0]*63,set(),0,MAX,False))
+ rejects('source changed head cast',lambda:source_check(text.replace('li = index as u16;','li = 0;',1).encode()))
+ rejects('source changed local endpoint',lambda:source_check(text.replace('let mut le: usize = 2;','let mut le: usize = 3;',1).encode()))
+ rejects('source cursor aggregate restored',lambda:source_check(text.replace('let mut lp: usize = 0;','let mut s = FixedArrayMergeCursor {};',1).encode()))
+ rejects('source checked subtraction restored',lambda:source_check(text.replace('remaining -= bytes;','remaining = remaining.checked_sub(bytes).unwrap();',1).encode()))
+ rejects('dropped lexical local',lambda:need(all(r['last_use_retirement']is False for r in [dict(life['merge_named_places'][0],last_use_retirement=True)]),'last use cannot retire lexical owner'))
+ bad=copy.deepcopy(groups);g=next(x for x in bad if x['kind']=='scalar' and len(x['events'])==16);g['events'].append(g['events'][0]);rejects('17 scalar group',lambda:validate(events,bad))
+ bad=copy.deepcopy(events);next(x for x in bad if x['kind']=='copy')['bytes']=129;rejects('129-byte copy',lambda:validate(bad,groups))
+ bad=copy.deepcopy(events);bad[0]['owner']='G4';rejects('cross-owner relabel',lambda:validate(bad,groups))
+ rejects('missing event',lambda:validate(events[1:],groups))
+ bad=copy.deepcopy(groups);bad[-1]['events']+=bad[-2]['events'];rejects('pooled independent copies',lambda:validate(events,bad))
+ # Complete scalar primitive templates and conservative recipes are written as
+ # separate replayable data, alongside every expanded source/owner event.
+ write('components.json',dict(schema=1,templates=templates,costs={n:cost(es)for n,es in templates.items()},only_standard_library_Python=True))
+ write('upper-bounds.json',dict(schema=1,bounds=bounds,source_sha256=sha(text.encode()),no_cross_owner_or_cap_change=True,production_source_model=True,cfg_test_instrumentation='source preserved; extra atomic instrumentation is not production model work',independent_review_pending=True))
+ write('source-inheritance.json',inherit);write('whole-lifetimes.json',life)
+ with gzip.GzipFile(filename=str(HERE/'complete-upper-ledger.json.gz'),mode='wb',mtime=0)as f:f.write(json.dumps(dict(events=events,groups=groups),separators=(',',':')).encode())
+ write('finite-checks.json',finite_result);write('negative-controls.json',controls)
+ result=dict(schema=1,source_sha256=sha(text.encode()),bounds=bounds,proposed_added_peaks=life['proposed_added_peaks'],whole_role_union=29344,finite_checks={k:v for k,v in finite_result.items()if k!='witness'},negative_controls=len(controls),logical_source_model_only=True,independent_review_and_root_selection_pending=True,implementation_selected=False,native_UI_capture_process_inventory_Git_or_hosted_actions=False)
+ write('check-result-optimized.json'if sys.flags.optimize else'check-result.json',result)
+ print(json.dumps(result,sort_keys=True))
+if __name__=='__main__':main()

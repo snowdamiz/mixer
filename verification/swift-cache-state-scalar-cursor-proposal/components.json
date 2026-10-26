@@ -1,0 +1,3577 @@
+{
+  "costs": {
+    "later.choice.pair-upper": {
+      "copies": 0,
+      "groups": 2,
+      "scalars": 21
+    },
+    "later.emit": {
+      "copies": 0,
+      "groups": 2,
+      "scalars": 27
+    },
+    "later.head.eligible-upper": {
+      "copies": 1,
+      "groups": 6,
+      "scalars": 66
+    },
+    "later.source-view": {
+      "copies": 2,
+      "groups": 6,
+      "scalars": 51
+    },
+    "merge.setup": {
+      "copies": 9,
+      "groups": 19,
+      "scalars": 160
+    },
+    "output.array-and-copy": {
+      "copies": 3,
+      "groups": 7,
+      "scalars": 49
+    },
+    "prefix.final-and-break-union": {
+      "copies": 0,
+      "groups": 2,
+      "scalars": 27
+    },
+    "prefix.full-iteration-upper": {
+      "copies": 1,
+      "groups": 9,
+      "scalars": 122
+    },
+    "prefix.prelude": {
+      "copies": 2,
+      "groups": 7,
+      "scalars": 80
+    },
+    "seed.choice.upper": {
+      "copies": 0,
+      "groups": 2,
+      "scalars": 21
+    },
+    "seed.emit-pair": {
+      "copies": 0,
+      "groups": 1,
+      "scalars": 14
+    },
+    "seed.head": {
+      "copies": 1,
+      "groups": 4,
+      "scalars": 40
+    }
+  },
+  "only_standard_library_Python": true,
+  "schema": 1,
+  "templates": {
+    "later.choice.pair-upper": [
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "ri source -> >=.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "255 source -> >=.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive >="
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": ">= result -> condition"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "condition -> predicate"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "conditional branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "li source -> <.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "255 source -> <.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive <"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "< result -> and.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "and.short-circuit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "lt source -> <=.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "rt source -> <=.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive <="
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "<= result -> take_left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "choice.branch-scope-entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "choice.if-value-join"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.take_left.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "take_left -> condition"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "condition -> predicate"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "emit.if.branch"
+      }
+    ],
+    "later.emit": [
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "array.element.scope-entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "selected.emit.arm.scope-entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "head -> cast.u8"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "cast.u8"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "cast.result -> out"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.out.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "cursor source -> +.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal1 source -> +.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive +"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "+ result -> cursor.assignment"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "cursor.advance.unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "cursor.advance.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "cursor source -> <.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "end source -> <.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive <"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "< result -> condition"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "condition -> predicate"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "conditional branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "advance.if.selected-arm.scope-entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "advance.if.unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "advance.if.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "out -> selected.arm.value"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "selected.arm.scope-exit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "selected.arm.value -> emit.if.value"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "emit.if-value-join"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "array.element.scope-exit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "emit.value -> array.element.destination"
+      }
+    ],
+    "later.head.eligible-upper": [
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "cursor source -> Index.received.index"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "source.receiver-reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "source.pointer -> Index.received.receiver"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Index.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index -> bound.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "length -> bound.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index<length"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "bounds.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "pointer -> address.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index -> scale.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "width1 -> scale.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index*width"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "offset -> add.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "pointer -> add.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "element.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "address -> designated.reference"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "shared.reference.loan"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "reference -> caller.received"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Index.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "received.reference -> dereference.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "dereference.source -> index"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.index.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index -> cast.u16"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "cast.u16"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "cast.result -> head"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "head.assignment.unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "head.assignment.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index source -> !=.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "MAX255 source -> !=.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive !="
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "!= result -> condition"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "condition -> predicate"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "conditional branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "timestamp.if.scope-entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index -> cast.usize"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "cast.usize"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "cast.result -> Index.received.index"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "timestamps.receiver-reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "timestamps.pointer -> Index.received.receiver"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Index.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index -> bound.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "length -> bound.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index<length"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "bounds.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "pointer -> address.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index -> scale.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "width8 -> scale.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index*width"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "offset -> add.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "pointer -> add.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "element.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "address -> designated.reference"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "shared.reference.loan"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "reference -> caller.received"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Index.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "received.reference -> dereference.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "dereference.source -> array8"
+      },
+      {
+        "bytes": 8,
+        "kind": "copy",
+        "operation": "complete array8 source -> from_le_bytes received array8"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "from_le_bytes.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "LE.conversion"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "scalar -> designated.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "from_le_bytes.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "returned.scalar -> timestamp"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "timestamp.assignment.unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "timestamp.assignment.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "timestamp.if.unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "timestamp.if.statement-continuation"
+      }
+    ],
+    "later.source-view": [
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal.source.start -> Range.start"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal.source.end -> Range.end"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Range.start -> Index.received.start"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Range.end -> Index.received.end"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "indices.receiver-reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "indices.data -> Index.received.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "indices.len -> Index.received.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Range.Index.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "start -> ordered.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "end -> ordered.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "start<=end"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "ordered.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "end -> upper.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "len -> upper.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "end<=len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "upper.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "data -> address.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "start -> address.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "view.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "end -> length.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "start -> length.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "view.length"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "address -> designated.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "length -> designated.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "view.loan"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "designated.data -> received.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "designated.len -> received.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Range.Index.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slice.receiver-reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slice.data -> first_chunk.received.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slice.len -> first_chunk.received.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "first_chunk.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "received.len -> minimum.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal64 -> minimum.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "len>=minimum"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "minimum.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "data -> fixed.reference.source"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "fixed.reference.loan"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Some.reference -> Option8.constructor"
+      },
+      {
+        "bytes": 8,
+        "kind": "copy",
+        "operation": "complete niche Option8 source -> designated return"
+      },
+      {
+        "bytes": 8,
+        "kind": "copy",
+        "operation": "complete niche Option8 designated return -> caller received"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "first_chunk.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Option8 -> expect.received.self"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "message.data -> expect.received.message.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "message.len -> expect.received.message.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "expect.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Option.discriminant"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Some.predicate"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "expect.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Some.pointer -> designated.fixed.reference"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "expect.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "returned.fixed.reference -> named binding"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.statement-continuation"
+      }
+    ],
+    "merge.setup": [
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Candidate.array.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Candidate.reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Candidate.address -> slice.source.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal2048 -> slice.source.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slice.data -> ld.received.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slice.len -> ld.received.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal640 -> ld.received.at"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "ld.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "at -> plus.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal8 -> plus.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive+"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "plus.result -> Range.end"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "ld.at -> Range.start"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "computed.end -> Range.end"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Range.start -> Index.received.start"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Range.end -> Index.received.end"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "ld.b.receiver-reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "ld.b.data -> Index.received.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "ld.b.len -> Index.received.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Range.Index.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "start -> ordered.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "end -> ordered.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "start<=end"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "ordered.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "end -> upper.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "len -> upper.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "end<=len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "upper.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "data -> address.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "start -> address.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "view.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "end -> length.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "start -> length.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "view.length"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "address -> designated.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "length -> designated.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "view.loan"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "designated.data -> received.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "designated.len -> received.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Range.Index.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slice.receiver-reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slice.data -> first_chunk.received.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slice.len -> first_chunk.received.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "first_chunk.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "received.len -> minimum.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal8 -> minimum.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "len>=minimum"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "minimum.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "data -> fixed.reference.source"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "fixed.reference.loan"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Some.reference -> Option8.constructor"
+      },
+      {
+        "bytes": 8,
+        "kind": "copy",
+        "operation": "complete niche Option8 source -> designated return"
+      },
+      {
+        "bytes": 8,
+        "kind": "copy",
+        "operation": "complete niche Option8 designated return -> caller received"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "first_chunk.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Option8 -> expect.received.self"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "message.data -> expect.received.message.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "message.len -> expect.received.message.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "expect.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Option.discriminant"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Some.predicate"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "expect.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Some.pointer -> designated.fixed.reference"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "expect.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "returned.fixed.reference -> named binding"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "returned.fixed.reference -> dereference.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "array8.dereference.projection"
+      },
+      {
+        "bytes": 8,
+        "kind": "copy",
+        "operation": "complete array8 source -> from_le_bytes received array8"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "from_le_bytes.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "LE.conversion"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "scalar -> designated.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "from_le_bytes.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "returned.scalar -> ld.designated.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "ld.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "ld.result -> eligibility.binding"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.eligibility.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Candidate.array.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Candidate.reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Candidate.address -> slice.source.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal2048 -> slice.source.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slice.data -> split.received.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slice.len -> split.received.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal512 -> split.received.mid"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "split.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "mid -> bound.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "len -> bound.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "mid<=len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "bound.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "data -> left.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "mid -> left.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "data -> address.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "mid -> address.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "right.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "len -> subtract.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "mid -> subtract.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "right.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "left.exclusive.loan"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "right.exclusive.loan"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "left.data -> tuple.field"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "left.len -> tuple.field"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "right.data -> tuple.field"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "right.len -> tuple.field"
+      },
+      {
+        "bytes": 32,
+        "kind": "copy",
+        "operation": "split tuple32 constructor -> designated return"
+      },
+      {
+        "bytes": 32,
+        "kind": "copy",
+        "operation": "split tuple32 designated return -> caller received"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "split.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "tuple.left.data -> time_bytes.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "tuple.left.len -> time_bytes.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "tuple.right.data -> indices.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "tuple.right.len -> indices.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "split.destructure.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "time_bytes.receiver-reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "time_bytes.data -> received.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "time_bytes.len -> received.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "as_chunks.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal8 -> width"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "width -> nonzero.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal0 -> nonzero.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "width!=0"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "nonzero.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "len -> quotient.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "width -> quotient.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "chunk.quotient"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "quotient -> chunk_count"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "len -> remainder.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "width -> remainder.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "tail.remainder"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "remainder -> tail_count"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "chunk_count -> multiply.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "width -> multiply.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "tail.offset"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "offset -> address.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "data -> address.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "tail.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "data -> tuple.head.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "chunk_count -> tuple.head.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "address -> tuple.tail.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "tail_count -> tuple.tail.len"
+      },
+      {
+        "bytes": 32,
+        "kind": "copy",
+        "operation": "complete tuple32 constructor -> designated return"
+      },
+      {
+        "bytes": 32,
+        "kind": "copy",
+        "operation": "complete tuple32 designated return -> caller received"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "as_chunks.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "received.head.data -> named slice.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "received.head.len -> named slice.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "discarded tail.complete-value-drop"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "tuple.destructure.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slice.receiver-reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slice.data -> first_chunk.received.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slice.len -> first_chunk.received.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "first_chunk.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "received.len -> minimum.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal64 -> minimum.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "len>=minimum"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "minimum.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "data -> fixed.reference.source"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "fixed.reference.loan"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Some.reference -> Option8.constructor"
+      },
+      {
+        "bytes": 8,
+        "kind": "copy",
+        "operation": "complete niche Option8 source -> designated return"
+      },
+      {
+        "bytes": 8,
+        "kind": "copy",
+        "operation": "complete niche Option8 designated return -> caller received"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "first_chunk.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Option8 -> expect.received.self"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "message.data -> expect.received.message.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "message.len -> expect.received.message.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "expect.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Option.discriminant"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Some.predicate"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "expect.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Some.pointer -> designated.fixed.reference"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "expect.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "returned.fixed.reference -> named binding"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.statement-continuation"
+      }
+    ],
+    "output.array-and-copy": [
+      {
+        "bytes": 64,
+        "kind": "copy",
+        "operation": "array64 constructor -> block designated value"
+      },
+      {
+        "bytes": 64,
+        "kind": "copy",
+        "operation": "block designated array64 -> output binding"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.output.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal.destination.start -> Range.start"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal.destination.end -> Range.end"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Range.start -> Index.received.start"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Range.end -> Index.received.end"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "indices.receiver-reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "indices.data -> Index.received.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "indices.len -> Index.received.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Range.Index.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "start -> ordered.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "end -> ordered.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "start<=end"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "ordered.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "end -> upper.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "len -> upper.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "end<=len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "upper.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "data -> address.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "start -> address.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "view.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "end -> length.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "start -> length.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "view.length"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "address -> designated.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "length -> designated.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "view.loan"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "designated.data -> received.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "designated.len -> received.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Range.Index.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "copy.receiver-reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "destination.data -> copy.received.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "destination.len -> copy.received.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "output.array.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "output.array.reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "output.address -> coerced.slice.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal64 -> coerced.slice.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "coerced.data -> copy.source.received.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "coerced.len -> copy.source.received.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "copy.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "dest.len -> equality.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "source.len -> equality.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "length.equality"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "length.branch"
+      },
+      {
+        "bytes": 64,
+        "kind": "copy",
+        "operation": "complete output64 source -> actual Candidate destination64"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "copy.implicit-unit-return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "copy.return-control"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "copy.statement.unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "copy.statement.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "outer.output.block.unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "outer.output.block.statement-continuation"
+      }
+    ],
+    "prefix.final-and-break-union": [
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "i source -> <.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "64 source -> <.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive <"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "< result -> condition"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "condition -> predicate"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "conditional branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "final.false-while.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "while.unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "while.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "prefix.block.unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "prefix.block.exit-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "headroom.break.arm.scope-entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "headroom.break.control"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "headroom.break.inner-scope-exit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "sentinel.break.arm.scope-entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "sentinel.break.control"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "sentinel.break.inner-scope-exit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "destination source -> !=.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "ABSENT source -> !=.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive !="
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "!= result -> and.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "and.short-circuit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "remaining source -> <=.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "headroom source -> <=.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive <="
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "<= result -> feasible"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.feasible.statement-continuation"
+      }
+    ],
+    "prefix.full-iteration-upper": [
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "i source -> <.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "64 source -> <.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive <"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "< result -> condition"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "condition -> predicate"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "conditional branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "while.body.scope-entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "remaining source -> <=.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "headroom source -> <=.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive <="
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "<= result -> and.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "and.short-circuit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "destination source -> !=.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "ABSENT source -> !=.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive !="
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "!= result -> if.condition"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "condition -> predicate"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "headroom.if.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "headroom.if.unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "headroom.if.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "512 source -> +.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "i source -> +.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive +"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "+ result -> Index.received.index"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "c.receiver-reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "c.pointer -> Index.received.receiver"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Index.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index -> bound.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "length -> bound.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index<length"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "bounds.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "pointer -> address.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index -> scale.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "width1 -> scale.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index*width"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "offset -> add.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "pointer -> add.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "element.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "address -> designated.reference"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "shared.reference.loan"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "reference -> caller.received"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Index.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "received.reference -> dereference.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "dereference.source -> slot_byte"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.slot_byte.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slot_byte source -> ==.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "255 source -> ==.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive =="
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "== result -> condition"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "condition -> predicate"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "conditional branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "sentinel.if.unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "sentinel.if.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slot_byte -> cast.u64"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "cast.u64"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "cast.result -> slot"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.slot.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "resident_word_base source -> +.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slot -> cast.usize"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "cast.usize"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "cast.result -> *.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "8 source -> *.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive *"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "* result -> +.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive +"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "+ result -> +.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "2 source -> +.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive +"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "+ result -> Index.received.index"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "arena_words.receiver-reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "arena_words.pointer -> Index.received.receiver"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "arena_words.len -> Index.received.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Index.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index -> bound.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "length -> bound.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index<length"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "bounds.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "pointer -> address.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index -> scale.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "width8 -> scale.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index*width"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "offset -> add.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "pointer -> add.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "element.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "address -> designated.reference"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "shared.reference.loan"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "reference -> caller.received"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Index.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "received.reference -> dereference.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "dereference.source -> array8"
+      },
+      {
+        "bytes": 8,
+        "kind": "copy",
+        "operation": "complete array8 source -> from_le_bytes received array8"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "from_le_bytes.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "LE.conversion"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "scalar -> designated.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "from_le_bytes.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "returned.scalar -> bytes"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.bytes.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "remaining source -> -.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "bytes source -> -.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive -"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "- result -> remaining.assignment"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "remaining.assignment.unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "remaining.assignment.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "mask source -> |.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "1 source -> <<.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slot source -> <<.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive <<"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "<< result -> |.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive |"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "| result -> mask.assignment"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "mask.assignment.unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "mask.assignment.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "slot source -> destination.assignment"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "destination.assignment.unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "destination.assignment.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "i source -> +.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "1 source -> +.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive +"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "+ result -> i.assignment"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "i.assignment.unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "i.assignment.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "while.body.implicit-unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "while.back-control"
+      }
+    ],
+    "prefix.prelude": [
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "f -> capacity.address-operand"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "f.capacity.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "f.capacity -> subtract.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "f -> base.address-operand"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "f.base.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "f.base -> subtract.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive-"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "partial -> subtract.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "13 source -> Index.received.index"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "w.receiver-reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "w.pointer -> Index.received.receiver"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Index.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index -> bound.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "length -> bound.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index<length"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "bounds.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "pointer -> address.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index -> scale.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "width8 -> scale.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index*width"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "offset -> add.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "pointer -> add.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "element.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "address -> designated.reference"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "shared.reference.loan"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "reference -> caller.received"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Index.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "received.reference -> dereference.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "dereference.source -> subtract.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive-"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "headroom.result -> headroom.binding"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.headroom.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "total -> remaining"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.remaining.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal0 -> mask"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.mask.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "first_empty -> destination"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.destination.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "prefix.block.scope-entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "b.receiver-reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "b.data -> received.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "b.len -> received.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "as_chunks.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal8 -> width"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "width -> nonzero.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal0 -> nonzero.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "width!=0"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "nonzero.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "len -> quotient.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "width -> quotient.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "chunk.quotient"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "quotient -> chunk_count"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "len -> remainder.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "width -> remainder.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "tail.remainder"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "remainder -> tail_count"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "chunk_count -> multiply.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "width -> multiply.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "tail.offset"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "offset -> address.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "data -> address.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "tail.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "data -> tuple.head.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "chunk_count -> tuple.head.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "address -> tuple.tail.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "tail_count -> tuple.tail.len"
+      },
+      {
+        "bytes": 32,
+        "kind": "copy",
+        "operation": "complete tuple32 constructor -> designated return"
+      },
+      {
+        "bytes": 32,
+        "kind": "copy",
+        "operation": "complete tuple32 designated return -> caller received"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "as_chunks.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "received.head.data -> named slice.data"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "received.head.len -> named slice.len"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "discarded tail.complete-value-drop"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "tuple.destructure.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "RESIDENT.owner -> base.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "RESIDENT.base.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "RESIDENT.base -> /.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "8 source -> /.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive /"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "/ result -> resident_word_base"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.resident_word_base.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal0 -> i"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.i.statement-continuation"
+      }
+    ],
+    "seed.choice.upper": [
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "right source -> ==.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "255 source -> ==.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive =="
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "== result -> condition"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "condition -> predicate"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "conditional branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "left source -> !=.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "255 source -> !=.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive !="
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "!= result -> and.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "and.short-circuit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "lt source -> <=.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "rt source -> <=.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive <="
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "<= result -> take_left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "seed.choice.branch-scope-entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "seed.choice.if-value-join"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.take_left.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "take_left -> condition"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "condition -> predicate"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "emit.if.branch"
+      }
+    ],
+    "seed.emit-pair": [
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "seed.element.scope-entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "seed.emit.arm.scope-entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "opposite.index -> second.assignment"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "second.assignment.unit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "second.assignment.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "chosen.index -> selected.arm.value"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "seed.arm.scope-exit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "selected.arm.value -> emit.if.value"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "seed.if-value-join"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "seed.element.scope-exit"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "emit.value -> array.element.destination"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "second.element.scope-entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "second -> array.element.destination"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "second.element.scope-exit"
+      }
+    ],
+    "seed.head": [
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "eligibility source -> &.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal.mask source -> &.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive &"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "& result -> comparison.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal0 -> comparison.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "primitive !="
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "comparison -> condition"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "condition -> predicate"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "eligibility.if.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "eligibility.branch.scope-entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal.slot-or255 -> index.binding"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "eligibility.if-value-join"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.index.statement-continuation"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "literal.slot source -> Index.received.index"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "timestamps.receiver-reborrow"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "timestamps.pointer -> Index.received.receiver"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Index.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index -> bound.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "length -> bound.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index<length"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "bounds.branch"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "pointer -> address.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index -> scale.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "width8 -> scale.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "index*width"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "offset -> add.left"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "pointer -> add.right"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "element.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "address -> designated.reference"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "shared.reference.loan"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "reference -> caller.received"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "Index.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "received.reference -> dereference.address"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "dereference.source -> array8"
+      },
+      {
+        "bytes": 8,
+        "kind": "copy",
+        "operation": "complete array8 source -> from_le_bytes received array8"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "from_le_bytes.entry"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "LE.conversion"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "scalar -> designated.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "from_le_bytes.return"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "returned.scalar -> timestamp.binding"
+      },
+      {
+        "bytes": 0,
+        "kind": "scalar",
+        "operation": "let.timestamp.statement-continuation"
+      }
+    ]
+  }
+}
