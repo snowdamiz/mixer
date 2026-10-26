@@ -1,0 +1,61 @@
+       701: iconst_0
+       702: istore        7
+       704: iload         7
+       706: aload         4
+       708: getfield      #1626               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.stateCount:I
+       711: if_icmpge     801
+       714: aload         4
+       716: getfield      #1629               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.states:[Ldev/mixer/android/NativeRenderer$NativeState;
+       719: iload         7
+       721: aaload
+       722: getfield      #1633               // Field dev/mixer/android/NativeRenderer$NativeState.preservation:Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;
+       725: astore        8
+       727: aload         8
+       729: ifnull        795
+       732: aload         8
+       734: getfield      #1748               // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.releaseReady:Z
+       737: ifeq          795
+       740: aload         8
+       742: iconst_0
+       743: putfield      #1748               // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.releaseReady:Z
+       746: aload         8
+       748: iconst_0
+       749: putfield      #805                // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.counted:Z
+       752: aload         8
+       754: iconst_1
+       755: putfield      #1721               // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.released:Z
+       758: aload         8
+       760: bipush        8
+       762: putfield      #1636               // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.phase:I
+       765: aload_1
+       766: dup
+       767: getfield      #1718               // Field dev/mixer/android/NativeRenderer$Candidate.heldPreservations:I
+       770: iconst_1
+       771: isub
+       772: putfield      #1718               // Field dev/mixer/android/NativeRenderer$Candidate.heldPreservations:I
+       775: aload_0
+       776: dup
+       777: getfield      #670                // Field outstandingFieldPreservations:I
+       780: iconst_1
+       781: isub
+       782: putfield      #670                // Field outstandingFieldPreservations:I
+       785: aload_0
+       786: dup
+       787: getfield      #667                // Field outstandingEditorNativeCalls:I
+       790: iconst_1
+       791: isub
+       792: putfield      #667                // Field outstandingEditorNativeCalls:I
+       795: iinc          7, 1
+       798: goto          704
+       801: aload         4
+       803: iconst_4
+       804: putfield      #1727               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.completion:I
+       807: aload_0
+       808: getfield      #38                 // Field v2Cleanup:Ldev/mixer/android/NativeRenderer$CleanupLedger;
+       811: getfield      #1649               // Field dev/mixer/android/NativeRenderer$CleanupLedger.firstFatal:Ljava/lang/Error;
+       814: ifnull        825
+       817: aload_0
+       818: getfield      #38                 // Field v2Cleanup:Ldev/mixer/android/NativeRenderer$CleanupLedger;
+       821: getfield      #1649               // Field dev/mixer/android/NativeRenderer$CleanupLedger.firstFatal:Ljava/lang/Error;
+       824: athrow
+       825: return

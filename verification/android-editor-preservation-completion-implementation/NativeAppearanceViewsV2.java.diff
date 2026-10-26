@@ -1,0 +1,40 @@
+--- sealed-base/NativeAppearanceViewsV2.java
++++ preservation-completion/NativeAppearanceViewsV2.java
+@@ -845,17 +845,18 @@
+         final NativeField field;final Record record;final Mutation original;final Editable editable;
+         final Binding before,selected;final NativeField.Attempt predecessor;final NativeField.Close disposition;
+         final long lossObservation;
+-        final NativeRenderer renderer;final NativeRenderer.Candidate candidate;
++        final NativeRenderer renderer;final NativeRenderer.Candidate candidate;final NativeRenderer.AttachmentJournal journal;
+         EditorSnapshot snapshot;
+-        boolean entered,ended,checking,counted;int callbacks;
++        static final int CAPTURED=0,ATTACHING=1,ATTACHED=2,PRECOMMIT_READY=3,RESTORING=4,RESTORED_HELD=5,FAILED_HELD=6,COMMITTED=7,RELEASED=8;
++        boolean entered,ended,checking,counted,released,releaseReady;int callbacks,phase=CAPTURED;
+         final java.util.ArrayDeque<String> hooks=new java.util.ArrayDeque<>();
+-        FieldPreservation(NativeField field,Mutation original,Binding selected,Editable editable,NativeRenderer renderer,NativeRenderer.Candidate candidate){
++        FieldPreservation(NativeField field,Mutation original,Binding selected,Editable editable,NativeRenderer renderer,NativeRenderer.Candidate candidate,NativeRenderer.AttachmentJournal journal){
+             this.field=field;record=field.record;this.original=original;this.selected=selected;this.editable=editable;
+-            this.renderer=renderer;this.candidate=candidate;
++            this.renderer=renderer;this.candidate=candidate;this.journal=journal;
+             before=record.binding;predecessor=field.attempt;disposition=predecessor==null?null:predecessor.close;
+             lossObservation=record.input.editorLossObservation();
+         }
+-        boolean tuple(){return entered&&counted&&!ended&&record.fieldPreservation==this&&record.view==field&&renderer.fieldPreservationCurrent(candidate,record,this)&&
++        boolean tuple(){return entered&&counted&&!ended&&record.fieldPreservation==this&&record.view==field&&renderer.fieldPreservationCurrent(candidate,journal,record,this)&&
+             original.mode==Mutation.Mode.TRANSACTION&&original.editorLease==null&&original.replacementLease==null&&original.fieldLease==null&&
+             original.current()&&record.input.editorRetained(record)&&field.settledField()&&field.depth==0&&record.editorCallbackLease==null&&
+             field.attempt==predecessor&&(predecessor==null||predecessor.close==disposition)&&
+@@ -873,7 +874,12 @@
+         private void leave(){callbacks--;hooks.pop();}
+         void callback(String hook,Runnable nativeCall){enter(hook);try{nativeCall.run();exact();}finally{leave();}}
+         void lifecycle(String hook,boolean loss,Runnable denial,Runnable gain,Runnable nativeCall){
+-            enter(hook);
++            // A captured public lifecycle entry owns its exact native superclass suffix,
++            // including reentry while a snapshot getter is checking or current authority is lost.
++            if(!entered||!counted||ended||released||record.fieldPreservation!=this||
++                !renderer.fieldPreservationIdentityV2(candidate,journal,record,this)||callbacks>=16||hooks.contains(hook))
++                throw new IllegalStateException("lost captured field lifecycle suffix");
++            hooks.push(hook);callbacks++;
+             try{if(loss)field.actualLoss(denial);else gain.run();nativeCall.run();exact();}finally{leave();}
+         }
+         boolean endReady(){return entered&&ended&&record.fieldPreservation==null&&callbacks==0&&hooks.isEmpty()&&!checking;}

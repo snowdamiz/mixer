@@ -1,0 +1,282 @@
+  void finishV2(dev.mixer.android.NativeRenderer$Candidate, dev.mixer.android.NativeRenderer$AttachmentJournal);
+    Code:
+         0: aload_1
+         1: ifnull        63
+         4: aload_1
+         5: getfield      #1515               // Field dev/mixer/android/NativeRenderer$Candidate.owner:Ldev/mixer/android/NativeRenderer;
+         8: aload_0
+         9: if_acmpne     63
+        12: aload_0
+        13: getfield      #147                // Field v2Pending:Ldev/mixer/android/NativeRenderer$Candidate;
+        16: aload_1
+        17: if_acmpne     63
+        20: aload_1
+        21: getfield      #1519               // Field dev/mixer/android/NativeRenderer$Candidate.used:Z
+        24: ifne          63
+        27: aload_1
+        28: getfield      #1522               // Field dev/mixer/android/NativeRenderer$Candidate.attached:Z
+        31: ifeq          63
+        34: aload_2
+        35: aload_1
+        36: getfield      #1546               // Field dev/mixer/android/NativeRenderer$Candidate.journal:Ldev/mixer/android/NativeRenderer$AttachmentJournal;
+        39: if_acmpne     63
+        42: aload_2
+        43: getfield      #1767               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.complete:Z
+        46: ifne          63
+        49: aload_2
+        50: getfield      #1730               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.failedInvoked:Z
+        53: ifne          63
+        56: aload_2
+        57: getfield      #1727               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.completion:I
+        60: ifeq          70
+        63: ldc_w         #1770               // String invalid V2 finish
+        66: invokestatic  #83                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        69: athrow
+        70: aload_0
+        71: getfield      #889                // Field v2Retired:Z
+        74: ifne          120
+        77: aload_0
+        78: getfield      #50                 // Field v2Fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+        81: getfield      #729                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+        84: ifne          120
+        87: aload_1
+        88: getfield      #1533               // Field dev/mixer/android/NativeRenderer$Candidate.operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        91: ifnull        120
+        94: aload_1
+        95: getfield      #1533               // Field dev/mixer/android/NativeRenderer$Candidate.operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+        98: aload_0
+        99: getfield      #50                 // Field v2Fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       102: getfield      #839                // Field dev/mixer/android/NativeOwnerV2$Fence.operation:Ldev/mixer/android/OwnerLifecycleV2$Token;
+       105: if_acmpne     120
+       108: aload_0
+       109: aload_1
+       110: invokevirtual #1772               // Method preservationCohortV2:(Ldev/mixer/android/NativeRenderer$Candidate;)Z
+       113: ifeq          120
+       116: iconst_1
+       117: goto          121
+       120: iconst_0
+       121: istore_3
+       122: iconst_0
+       123: istore        4
+       125: iload         4
+       127: aload_2
+       128: getfield      #1626               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.stateCount:I
+       131: if_icmpge     299
+       134: aload_2
+       135: getfield      #1629               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.states:[Ldev/mixer/android/NativeRenderer$NativeState;
+       138: iload         4
+       140: aaload
+       141: astore        5
+       143: aload         5
+       145: getfield      #1633               // Field dev/mixer/android/NativeRenderer$NativeState.preservation:Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;
+       148: astore        6
+       150: aload         6
+       152: ifnonnull     158
+       155: goto          293
+       158: aload_0
+       159: aload_1
+       160: aload_2
+       161: aload         5
+       163: getfield      #947                // Field dev/mixer/android/NativeRenderer$NativeState.record:Ldev/mixer/android/NativeAppearanceViewsV2$Record;
+       166: aload         6
+       168: invokevirtual #829                // Method fieldPreservationIdentityV2:(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;Ldev/mixer/android/NativeAppearanceViewsV2$Record;Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;)Z
+       171: ifne          181
+       174: ldc_w         #1775               // String foreign V2 finish preservation
+       177: invokestatic  #83                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       180: athrow
+       181: aload         6
+       183: getfield      #804                // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.entered:Z
+       186: ifeq          291
+       189: aload         6
+       191: getfield      #805                // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.counted:Z
+       194: ifeq          291
+       197: aload         6
+       199: getfield      #1721               // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.released:Z
+       202: ifne          291
+       205: aload         6
+       207: getfield      #808                // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.ended:Z
+       210: ifne          291
+       213: aload         6
+       215: getfield      #1636               // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.phase:I
+       218: iconst_3
+       219: if_icmpne     291
+       222: aload         5
+       224: getfield      #947                // Field dev/mixer/android/NativeRenderer$NativeState.record:Ldev/mixer/android/NativeAppearanceViewsV2$Record;
+       227: getfield      #797                // Field dev/mixer/android/NativeAppearanceViewsV2$Record.fieldPreservation:Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;
+       230: aload         6
+       232: if_acmpne     291
+       235: aload         5
+       237: getfield      #947                // Field dev/mixer/android/NativeRenderer$NativeState.record:Ldev/mixer/android/NativeAppearanceViewsV2$Record;
+       240: getfield      #954                // Field dev/mixer/android/NativeAppearanceViewsV2$Record.binding:Ldev/mixer/android/NativeAppearanceViewsV2$Binding;
+       243: aload         6
+       245: getfield      #1777               // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.selected:Ldev/mixer/android/NativeAppearanceViewsV2$Binding;
+       248: if_acmpne     291
+       251: aload         6
+       253: getfield      #809                // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.callbacks:I
+       256: ifne          291
+       259: aload         6
+       261: getfield      #812                // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.hooks:Ljava/util/ArrayDeque;
+       264: invokevirtual #816                // Method java/util/ArrayDeque.isEmpty:()Z
+       267: ifeq          291
+       270: aload         6
+       272: getfield      #1745               // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.checking:Z
+       275: ifne          291
+       278: aload_0
+       279: getfield      #1780               // Field editorLossSerial:J
+       282: aload         6
+       284: getfield      #1783               // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.lossObservation:J
+       287: lcmp
+       288: ifeq          293
+       291: iconst_0
+       292: istore_3
+       293: iinc          4, 1
+       296: goto          125
+       299: iload_3
+       300: ifne          358
+       303: aload_0
+       304: getfield      #50                 // Field v2Fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       307: iconst_1
+       308: putfield      #729                // Field dev/mixer/android/NativeOwnerV2$Fence.terminal:Z
+       311: aload_0
+       312: getfield      #50                 // Field v2Fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       315: iconst_0
+       316: putfield      #732                // Field dev/mixer/android/NativeOwnerV2$Fence.drawAllowed:Z
+       319: aload_0
+       320: getfield      #50                 // Field v2Fence:Ldev/mixer/android/NativeOwnerV2$Fence;
+       323: iconst_0
+       324: putfield      #913                // Field dev/mixer/android/NativeOwnerV2$Fence.inputAllowed:Z
+       327: aload_0
+       328: invokevirtual #904                // Method sealScalarV2:()V
+       331: aload_0
+       332: getfield      #38                 // Field v2Cleanup:Ldev/mixer/android/NativeRenderer$CleanupLedger;
+       335: getfield      #1786               // Field dev/mixer/android/NativeRenderer$CleanupLedger.deferredCause:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+       338: ifnonnull     351
+       341: aload_0
+       342: getfield      #38                 // Field v2Cleanup:Ldev/mixer/android/NativeRenderer$CleanupLedger;
+       345: getstatic     #1789               // Field dev/mixer/android/NativeEnvironmentV2$RendererCause.TERMINAL_VALIDATION_FAILED:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+       348: putfield      #1786               // Field dev/mixer/android/NativeRenderer$CleanupLedger.deferredCause:Ldev/mixer/android/NativeEnvironmentV2$RendererCause;
+       351: ldc_w         #1792               // String invalid V2 terminal finish
+       354: invokestatic  #83                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+       357: athrow
+       358: aload_2
+       359: iconst_1
+       360: putfield      #1727               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.completion:I
+       363: iconst_0
+       364: istore        4
+       366: iload         4
+       368: aload_2
+       369: getfield      #1626               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.stateCount:I
+       372: if_icmpge     420
+       375: aload_2
+       376: getfield      #1629               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.states:[Ldev/mixer/android/NativeRenderer$NativeState;
+       379: iload         4
+       381: aaload
+       382: getfield      #1633               // Field dev/mixer/android/NativeRenderer$NativeState.preservation:Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;
+       385: astore        5
+       387: aload         5
+       389: ifnull        414
+       392: aload         5
+       394: getfield      #801                // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.record:Ldev/mixer/android/NativeAppearanceViewsV2$Record;
+       397: aconst_null
+       398: putfield      #797                // Field dev/mixer/android/NativeAppearanceViewsV2$Record.fieldPreservation:Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;
+       401: aload         5
+       403: iconst_1
+       404: putfield      #808                // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.ended:Z
+       407: aload         5
+       409: bipush        7
+       411: putfield      #1636               // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.phase:I
+       414: iinc          4, 1
+       417: goto          366
+       420: aload_0
+       421: aload_1
+       422: getfield      #1513               // Field dev/mixer/android/NativeRenderer$Candidate.next:Ldev/mixer/android/UiPacket;
+       425: putfield      #161                // Field packet:Ldev/mixer/android/UiPacket;
+       428: aload_0
+       429: aload_1
+       430: getfield      #1794               // Field dev/mixer/android/NativeRenderer$Candidate.bytes:[B
+       433: putfield      #1175               // Field v2PacketBytes:[B
+       436: aload_0
+       437: aload_1
+       438: getfield      #1479               // Field dev/mixer/android/NativeRenderer$Candidate.targets:Ljava/util/Map;
+       441: putfield      #22                 // Field v2Records:Ljava/util/Map;
+       444: aload_0
+       445: aload_1
+       446: getfield      #1563               // Field dev/mixer/android/NativeRenderer$Candidate.plan:Ldev/mixer/android/AppearanceResolverV2$Plan;
+       449: putfield      #151                // Field v2Plan:Ldev/mixer/android/AppearanceResolverV2$Plan;
+       452: aload_0
+       453: aload_1
+       454: getfield      #883                // Field dev/mixer/android/NativeRenderer$Candidate.gate:Ldev/mixer/android/NativeAppearanceViewsV2$Gate;
+       457: putfield      #874                // Field v2Gate:Ldev/mixer/android/NativeAppearanceViewsV2$Gate;
+       460: aload_0
+       461: aload_1
+       462: getfield      #1092               // Field dev/mixer/android/NativeRenderer$Candidate.environment:Ldev/mixer/android/NativeEnvironmentV2;
+       465: putfield      #898                // Field v2CommittedEnvironment:Ldev/mixer/android/NativeEnvironmentV2;
+       468: aload_1
+       469: iconst_1
+       470: putfield      #1519               // Field dev/mixer/android/NativeRenderer$Candidate.used:Z
+       473: aload_2
+       474: iconst_1
+       475: putfield      #1767               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.complete:Z
+       478: aload_0
+       479: aconst_null
+       480: putfield      #147                // Field v2Pending:Ldev/mixer/android/NativeRenderer$Candidate;
+       483: aload_0
+       484: iconst_0
+       485: putfield      #871                // Field v2Open:Z
+       488: aload_1
+       489: getfield      #883                // Field dev/mixer/android/NativeRenderer$Candidate.gate:Ldev/mixer/android/NativeAppearanceViewsV2$Gate;
+       492: iconst_0
+       493: putfield      #878                // Field dev/mixer/android/NativeAppearanceViewsV2$Gate.open:Z
+       496: aload_0
+       497: aload_1
+       498: getfield      #692                // Field dev/mixer/android/NativeRenderer$Candidate.targetRoster:[Ldev/mixer/android/NativeAppearanceViewsV2$Record;
+       501: putfield      #31                 // Field v2Roster:[Ldev/mixer/android/NativeAppearanceViewsV2$Record;
+       504: aload_0
+       505: aload_1
+       506: getfield      #687                // Field dev/mixer/android/NativeRenderer$Candidate.targetCount:I
+       509: putfield      #684                // Field v2RosterCount:I
+       512: iconst_0
+       513: istore        4
+       515: iload         4
+       517: aload_2
+       518: getfield      #1626               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.stateCount:I
+       521: if_icmpge     589
+       524: aload_2
+       525: getfield      #1629               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.states:[Ldev/mixer/android/NativeRenderer$NativeState;
+       528: iload         4
+       530: aaload
+       531: getfield      #1633               // Field dev/mixer/android/NativeRenderer$NativeState.preservation:Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;
+       534: astore        5
+       536: aload         5
+       538: ifnull        583
+       541: aload         5
+       543: iconst_0
+       544: putfield      #805                // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.counted:Z
+       547: aload         5
+       549: iconst_1
+       550: putfield      #1721               // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.released:Z
+       553: aload_1
+       554: dup
+       555: getfield      #1718               // Field dev/mixer/android/NativeRenderer$Candidate.heldPreservations:I
+       558: iconst_1
+       559: isub
+       560: putfield      #1718               // Field dev/mixer/android/NativeRenderer$Candidate.heldPreservations:I
+       563: aload_0
+       564: dup
+       565: getfield      #670                // Field outstandingFieldPreservations:I
+       568: iconst_1
+       569: isub
+       570: putfield      #670                // Field outstandingFieldPreservations:I
+       573: aload_0
+       574: dup
+       575: getfield      #667                // Field outstandingEditorNativeCalls:I
+       578: iconst_1
+       579: isub
+       580: putfield      #667                // Field outstandingEditorNativeCalls:I
+       583: iinc          4, 1
+       586: goto          515
+       589: aload_2
+       590: iconst_2
+       591: putfield      #1727               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.completion:I
+       594: return
+

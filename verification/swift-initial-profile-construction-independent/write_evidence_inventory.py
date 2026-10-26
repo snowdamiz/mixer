@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+from pathlib import Path
+import hashlib,json
+OUT=Path(__file__).resolve().parent
+ROOT=OUT.parents[1]
+def sha(b):return hashlib.sha256(b).hexdigest()
+def emit(n,d):(OUT/n).write_text(json.dumps(d,indent=2,sort_keys=True)+'\n')
+def main():
+ copied=[]
+ for n,h in [('initial-profile-build-configuration-amendment.md','bb4ad7cf13df0bd20f4304ceeac377cc5da6e2e2093e86beaebf2a9d9386a700'),('initial-profile-unit-test-local-structure.json','d23f63093d7f3e0ec61499200a17ee73f8160fb90306ad89eb413abab002488a')]:
+  b=(ROOT/'verification/swift-semantic-adapter-root-review'/n).read_bytes();assert sha(b)==h
+  (OUT/'inputs'/n).write_bytes(b);copied.append({'path':'inputs/'+n,'bytes':len(b),'sha256':h})
+ unit=json.loads((OUT/'inputs/initial-profile-unit-test-local-structure.json').read_text());production=json.loads((OUT/'inputs/local-structure-proposal.json').read_text())
+ deltas=[{'production':p,'unit_test':u} for p,u in zip(production['type_layout'],unit['type_layout']) if p!=u]
+ assert [d['production']['id'] for d in deltas]==[122,146,160]
+ for d in deltas:
+  assert d['production']['alignment']==d['unit_test']['alignment']==8
+  assert d['unit_test']['bytes']-d['production']['bytes']==48
+ assert unit['complete_host_budget']==json.loads((OUT/'inputs/inputs/root/selected-host-budget.json').read_text())
+ assert unit['fixed_fields']==production['fixed_fields'] and unit['derived_fields']==production['derived_fields']
+ emit('configuration-selection-custody.json',{'schema':1,'copied_inputs':copied,'literal_table_deltas':deltas,'observed_scope':'Exact selected fixed data only; actual measurements and candidate source pending','new_distribution_or_support_paths':False})
+ emit('configuration-review-matrix.json',{'schema':1,'status':'PREACCESS, all candidate checks pending','root_amendment_sha256':copied[0]['sha256'],'unit_literal_sha256':copied[1]['sha256'],'conditions':['all165 actual complete size+align in debug/optimized both configurations before test-table use','only122/146/160 size+48; all remaining values/formulas/alignments exact; any further delta stops selection','sole production producer remains exact selected literal; cfg(test) productiontable code6 refusal asserted','separate explicit cfg(test) complete table selected by root and used only in tests; no fresh expected values','custom cfg mixer_initial_profile_component_host only selected new files; exact dispatch signature uint32->uint32','custom symbol absent from ordinary artifact without either test configuration, with source+artifact proof','children exact fixed runner --invoke-host-method artifact_hash methodID, exact symbol and uint32 arg/result declarations; no arbitrary symbol/callback','unknown method64, known success0; assertions/abnormal exit fail, raw outputs retained','each host child<=30seconds; all compiler/test children<=60seconds; bounded output; children reaped/scratch removed','independent source/place/lifetime/heap/work/I/O/cleanup join per configuration under unchanged bounds','no native/mobile runtime or expanded acceptance inference'],'dispatcher_roster':dict(enumerate(['selected_layout_and_places','fresh_header_rows_and_cleanup','same_control_wasi_and_unrelated_owners','complete17_drift_precedes_prepare','explicit_narrowed_budgets','header_retained_when_actual_row_file_refuses','all64_slot_pin_pairs_checked','local_structure_refusals'],1))})
+ witnesses=[]
+ regions=[('src/experimental_swift_reactor/cache.rs',184,315,'Complete usage/actual cache/phase/inline failure/tail owner'),('src/experimental_swift_reactor/cache.rs',1410,1518,'Original owner preflight/prepare/proof/check_owner'),('src/experimental_swift_reactor/cache.rs',1606,1753,'Original cleanup preflight and tail consume-before-refund'),('src/experimental_swift_reactor/cache.rs',1755,1908,'Original construct Some/None rejected adopted, partial cleanup and completion'),('src/experimental_swift_reactor/control.rs',21,61,'Original complete17 budget and canonical defaults'),('src/experimental_swift_reactor/control.rs',670,778,'Original canonical ceiling checks'),('src/experimental_swift_reactor/control.rs',1126,1182,'Original phase storage drop before bound restoration'),('src/experimental_swift_reactor/control.rs',1196,1320,'Original adopted/ticket/construction authentic-owner checks'),('src/experimental_swift_reactor/control.rs',1685,1745,'Actual first failure cleanup observation and owning control teardown'),('src/experimental_swift_reactor/diagnostic_profile.rs',1,207,'Exact accepted actual proof writer/File admission/bounded I/O source')]
+ baseline={m['path']:m for m in json.loads((OUT/'old-base-source-manifest.json').read_text())['members']}
+ for rel,start,end,scope in regions:
+  b=(OUT/'old-source/vm'/rel).read_bytes()[:baseline[rel]['bytes']];assert sha(b)==baseline[rel]['sha256']
+  excerpt=''.join(b.decode().splitlines(keepends=True)[start-1:end])
+  witnesses.append({'path':rel,'original_source_sha256':sha(b),'start_line':start,'end_line':end,'scope':scope,'excerpt':excerpt,'excerpt_sha256':sha(excerpt.encode())})
+ emit('original-source-witnesses.json',{'schema':1,'scope':'Actual unchanged original source witnesses; semantic candidate review remains pending','witnesses':witnesses})
+ failures=[
+  ('nonempty_or_nonzero_offset',8,3,0,0,0),('nonregular',6,3,0,0,0),('metadata_fault_source_bound',5,3,0,0,0),('position_fault_source_bound',7,3,0,0,0),
+  ('readonly_empty_real_File',9,4,0,0,1),('short7_then_error',9,4,7,7,2),('short7_then_zero',10,4,7,7,2),('first_full_block_then_error',9,4,4096,4096,2),('interrupted31_then_zero',10,4,0,0,32),('interrupted32_then_exhaust',12,4,0,0,32),('onebyte31_then_overreport',11,4,31,31,32),('onebyte32_then_exhaust',12,4,32,32,32),('full624blocks_then_error',9,4,2555904,2555904,625)]
+ emit('predeclared-row-errors.json',{'schema':1,'scope':'Predeclared exact accepted row semantics; not candidate runs; syscall faults source-only if not safely obtainable','errors':[dict(zip(['case','code','stage','offset','output_bytes','output_attempts'],f)) for f in failures],'success_128byte_writes':{'output_bytes':2560000,'output_attempts':20000},'success_full_blocks':{'output_bytes':2560000,'output_attempts':625},'header_on_row_failure':'same exact512 header retained','acknowledged_progress_is_not_rollback_fsync_durability_or_custody':True})
+ emit('preparation-command-history.json',{'schema':1,'scope':'Preparation tool transcript notes, not invented subprocess stdout receipts','commands':[{'argv':['python3','verification/swift-initial-profile-construction-independent/prepare_preaccess.py'],'exit_code':0,'tool_observed_stdout':'PREACCESS verified 210+19+481 sealed members; copied exact baseline134; authored finite 29/67-definition fixtures and exact 512/2560000-byte expectations. No candidate was read.\n','stdout_origin':'exec_command returned output; no separate raw file was created at this step'},{'argv':['python3','verification/swift-initial-profile-construction-independent/write_predeclared_controls.py'],'exit_code':0,'tool_observed_stdout':'PREACCESS authored 29 concrete review rows, 10 independent compiler sources, 2 exact placement controls.\n','stdout_origin':'exec_command returned output; command run twice while authoring before seal'}]})
+ print('PASS selected configuration literals differ only IDs122/146/160 size+48; no actual cfg(test) measurement claimed; original source witnesses and exact row error controls retained.')
+if __name__=='__main__':main()

@@ -1,0 +1,24 @@
+--- sealed-base/NativeCoordinatorV2.java
++++ preservation-completion/NativeCoordinatorV2.java
+@@ -116,6 +116,10 @@
+                 else if (!attachAttempted) discard(candidate);
+             }
+             retireScalar();
++            if (candidate != null) {
++                try { renderer.completeFailedV2(candidate, ledger.primary, ledger.firstFatal); }
++                catch (RuntimeException | Error cleanup) { remember(cleanup); }
++            }
+             if (ledger.firstFatal != null) throw ledger.firstFatal;
+             throw failure;
+         }
+@@ -144,6 +148,10 @@
+             }
+             retireScalar();
+             try { renderer.reportDeferredTerminalV2(); } catch (RuntimeException | Error cleanup) { remember(cleanup); }
++            if (candidate != null) {
++                try { renderer.completeFailedV2(candidate, ledger.primary, ledger.firstFatal); }
++                catch (RuntimeException | Error cleanup) { remember(cleanup); }
++            }
+             if (ledger.firstFatal != null) throw ledger.firstFatal;
+             throw failure;
+         } finally { leave(); }

@@ -1,0 +1,1 @@
+package android.text.method;public final class SingleLineTransformationMethod implements TransformationMethod {private static final SingleLineTransformationMethod INSTANCE=new SingleLineTransformationMethod();private SingleLineTransformationMethod(){}public static SingleLineTransformationMethod getInstance(){return INSTANCE;}}

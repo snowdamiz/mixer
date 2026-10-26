@@ -1,0 +1,111 @@
+{
+  "independent_predeclared_sources": [
+    {
+      "executed": false,
+      "expected": "success at BOTH placement sites",
+      "name": "positive_contract.rs",
+      "path": "predeclared-compile-cases/positive_contract.rs",
+      "placement": "internal",
+      "sha256": "13b3e494a8994a993176938f63a69ecca2a3ecd4d21df782c6fca4379cf163f4"
+    },
+    {
+      "executed": false,
+      "expected": "intended private-type E0603",
+      "name": "guard_literal_from_sibling.rs",
+      "path": "predeclared-compile-cases/guard_literal_from_sibling.rs",
+      "placement": "external",
+      "sha256": "737c8e36998efffac07b4efe562333dcf7de12ea3a63483f71b5a0e272f81738"
+    },
+    {
+      "executed": false,
+      "expected": "intended private-type E0603",
+      "name": "external_selection_literal.rs",
+      "path": "predeclared-compile-cases/external_selection_literal.rs",
+      "placement": "external",
+      "sha256": "72ef15f0c60fe85000a55fbbc8c0ca3b9166501e75b92999bdf02b73dff59177"
+    },
+    {
+      "executed": false,
+      "expected": "intended borrow/lifetime/type/arity diagnostic",
+      "name": "guard_escape.rs",
+      "path": "predeclared-compile-cases/guard_escape.rs",
+      "placement": "internal",
+      "sha256": "61ddbb46ad86b1a547468dbfe9c98ddac08a1aa04dc644e32cce83d75868676e"
+    },
+    {
+      "executed": false,
+      "expected": "intended borrow/lifetime/type/arity diagnostic",
+      "name": "proof_escape.rs",
+      "path": "predeclared-compile-cases/proof_escape.rs",
+      "placement": "internal",
+      "sha256": "c7e4412eda3bc113e8bf86840eeb7bb1ab04beecd39bfe9ddd7dc1359c337a35"
+    },
+    {
+      "executed": false,
+      "expected": "intended borrow/lifetime/type/arity diagnostic",
+      "name": "cache_move.rs",
+      "path": "predeclared-compile-cases/cache_move.rs",
+      "placement": "internal",
+      "sha256": "0001434da051a0b5435bb1654072978952f05e7e2e3ae4991dbf75ad6e55974b"
+    },
+    {
+      "executed": false,
+      "expected": "intended borrow/lifetime/type/arity diagnostic",
+      "name": "cache_mutation.rs",
+      "path": "predeclared-compile-cases/cache_mutation.rs",
+      "placement": "internal",
+      "sha256": "07ccef2e2613fe2ca78cdece10b55cbbdeba25b6e2bde37f005861aa21a3a3e4"
+    },
+    {
+      "executed": false,
+      "expected": "intended borrow/lifetime/type/arity diagnostic",
+      "name": "control_mutation.rs",
+      "path": "predeclared-compile-cases/control_mutation.rs",
+      "placement": "internal",
+      "sha256": "6021ecc6cffcc2d78fc0cdf075d2368b7efc08195ad0d76f883d1859a8ad4664"
+    },
+    {
+      "executed": false,
+      "expected": "intended borrow/lifetime/type/arity diagnostic",
+      "name": "row_foreign_snapshot.rs",
+      "path": "predeclared-compile-cases/row_foreign_snapshot.rs",
+      "placement": "internal",
+      "sha256": "19cd97eb78167d733a3d217c203aae25c91bfc63b1b3e6d158652b177e2382d7"
+    },
+    {
+      "executed": false,
+      "expected": "intended borrow/lifetime/type/arity diagnostic",
+      "name": "callback_reentry.rs",
+      "path": "predeclared-compile-cases/callback_reentry.rs",
+      "placement": "internal",
+      "sha256": "85491aa4fdb2f826ef7322c24b27c875f77ee13f5c4cb4010c95e425d21fd91e"
+    }
+  ],
+  "internal_positive_extra_cfg": "--cfg mixer_initial_profile_contract_internal --check-cfg cfg(mixer_initial_profile_contract_internal)",
+  "producer_roster_count": 10,
+  "required_positive_placements": [
+    "external",
+    "internal"
+  ],
+  "requirements": [
+    "Verify exact 140 distribution members and 11 host-support sources before injection",
+    "Keep untouched frozen candidate and every compiler variant manifest separate",
+    "MIXER_INITIAL_PROFILE_COMPILE_CASE points only to one of ten exact hashed sources",
+    "Record every argv, env, feature, source manifest, delta, compiler identity, diagnostics and cleanup",
+    "Valid positive at BOTH sites with corresponding fixed argv",
+    "Reject missing-file, unresolved-import, malformed-syntax and unrelated-error pseudo failures",
+    "Negative proves only named privacy/borrow behavior; source/owner/order/accounting review remains required"
+  ],
+  "schema": 1,
+  "scratch_placements": {
+    "external": {
+      "append": "\n#[cfg(test)] mod initial_profile_external_contract { include!(env!(\"MIXER_INITIAL_PROFILE_COMPILE_CASE\")); }\n",
+      "path": "src/experimental_swift_reactor/cache.rs"
+    },
+    "internal": {
+      "append": "\ninclude!(env!(\"MIXER_INITIAL_PROFILE_COMPILE_CASE\"));\n",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1/compile_contracts.rs"
+    }
+  },
+  "status": "PREACCESS authored independent controls; unexecuted; not candidate distribution/support inputs"
+}

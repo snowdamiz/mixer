@@ -1,0 +1,231 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T20:38:37.408989+00:00",
+  "status": "passed-controls-only",
+  "scope": "Independently copied complete source + controlled host Android/JNI leaves",
+  "input_map": {
+    "bytes": 20097,
+    "sha256": "1638782ec5d08fa5899a2bff2f2593e90a065c980367207dacb59df07cbacd04"
+  },
+  "commands": [
+    {
+      "name": "javac-version",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/javac",
+        "-version"
+      ],
+      "timeout_seconds": 60,
+      "expected_exit": 0,
+      "exit": 0,
+      "elapsed_seconds": 0.07750366604886949,
+      "reaped": true,
+      "stdout": {
+        "bytes": 15,
+        "sha256": "e363f8e03b49957921f029b1c2561410f555887c871907e627980343b70e1e28"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "java-version",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-version"
+      ],
+      "timeout_seconds": 60,
+      "expected_exit": 0,
+      "exit": 0,
+      "elapsed_seconds": 0.03626266703940928,
+      "reaped": true,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "bytes": 164,
+        "sha256": "d41a01cb7c63cedd122f365a9431b058d35344e07c1fb9e5747b69889faad3d6"
+      }
+    },
+    {
+      "name": "compile",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/javac",
+        "-J-Djava.io.tmpdir=/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/controls-4/owned-scratch/tmp",
+        "--release",
+        "17",
+        "-Xlint:all",
+        "-Werror",
+        "-proc:none",
+        "-sourcepath",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/controls-4/owned-scratch/empty-source",
+        "-classpath",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/host-1/classes",
+        "-d",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/controls-4/classes",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/controls-4/control-source/IndependentPreservationCompletionControls.java"
+      ],
+      "timeout_seconds": 60,
+      "expected_exit": 0,
+      "exit": 0,
+      "elapsed_seconds": 1.1237522079609334,
+      "reaped": true,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "independent-progress-states",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-Djava.io.tmpdir=/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/controls-4/owned-scratch/tmp",
+        "-ea",
+        "-Xmx256m",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/controls-4/classes:/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/host-1/classes",
+        "dev.mixer.android.IndependentPreservationCompletionControls",
+        "progress-states",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/frozen/descriptor.json"
+      ],
+      "timeout_seconds": 60,
+      "expected_exit": 0,
+      "exit": 0,
+      "elapsed_seconds": 0.4486785000190139,
+      "reaped": true,
+      "stdout": {
+        "bytes": 249,
+        "sha256": "dee7554cb99adb4c4ce1ee7ba62098aee3cca67db9dab96dc8cb2884ef7ffd16"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "independent-cohort-preflight",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-Djava.io.tmpdir=/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/controls-4/owned-scratch/tmp",
+        "-ea",
+        "-Xmx256m",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/controls-4/classes:/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/host-1/classes",
+        "dev.mixer.android.IndependentPreservationCompletionControls",
+        "cohort-preflight",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/frozen/descriptor.json"
+      ],
+      "timeout_seconds": 60,
+      "expected_exit": 0,
+      "exit": 0,
+      "elapsed_seconds": 0.39130737516097724,
+      "reaped": true,
+      "stdout": {
+        "bytes": 321,
+        "sha256": "ba4297ee5091fbb93f39e628bced031def29968e7a3ec59b3405f55e599db7d9"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "independent-identity-matrix",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-Djava.io.tmpdir=/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/controls-4/owned-scratch/tmp",
+        "-ea",
+        "-Xmx256m",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/controls-4/classes:/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/host-1/classes",
+        "dev.mixer.android.IndependentPreservationCompletionControls",
+        "identity-matrix",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/frozen/descriptor.json"
+      ],
+      "timeout_seconds": 60,
+      "expected_exit": 0,
+      "exit": 0,
+      "elapsed_seconds": 0.44790920801460743,
+      "reaped": true,
+      "stdout": {
+        "bytes": 617,
+        "sha256": "3575e1fcf98f17775e278acb8f2932a10e4d02b312b7c0346ea5dacbe4dd7e2a"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "independent-getter-suffix-matrix",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-Djava.io.tmpdir=/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/controls-4/owned-scratch/tmp",
+        "-ea",
+        "-Xmx256m",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/controls-4/classes:/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/host-1/classes",
+        "dev.mixer.android.IndependentPreservationCompletionControls",
+        "getter-suffix-matrix",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-preservation-completion-independent/actual-review/frozen/descriptor.json"
+      ],
+      "timeout_seconds": 60,
+      "expected_exit": 0,
+      "exit": 0,
+      "elapsed_seconds": 2.4727362911216915,
+      "reaped": true,
+      "stdout": {
+        "bytes": 1423,
+        "sha256": "8577e27bc27a8eedf23170560d7d0fdf8f561a57e82212f71f9eebb6a56a711e"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "tools": {
+    "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/javac": {
+      "bytes": 51792,
+      "sha256": "e9fb09ca9cb259a164a32c9055931a865943d25c66800996183c86e527ca0688"
+    },
+    "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java": {
+      "bytes": 51856,
+      "sha256": "9ef6c1a939343ac850811551a8b88d4b877630ab2c94ac38c541e25ccc8cf0a5"
+    },
+    "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/javap": {
+      "bytes": 51792,
+      "sha256": "e5d0a1711cea0d52e1e430a66822548c169f482344cdc7f6c017e9140a652347"
+    },
+    "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/lib/modules": {
+      "bytes": 144436344,
+      "sha256": "f7a0085919d69f3e14f687c9d4e8f6588d52a312f92356b00940f188fede4a12"
+    },
+    "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/lib/server/libjvm.dylib": {
+      "bytes": 16852896,
+      "sha256": "4c3d3b63e04c5fd2b56c46dc8dae61cabb4e600d061c7645fe1c205d025c09c5"
+    },
+    "/opt/homebrew/share/android-commandlinetools/platforms/android-37.0/android.jar": {
+      "bytes": 43044472,
+      "sha256": "bf1b4387cc7ca94fc6ef684f040d9d16fbf16248e181819f020736ea2053f177"
+    },
+    "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/d8": {
+      "bytes": 2678,
+      "sha256": "b773a721be3d4988dea9660815a9e441b76100e5b0f5c72b5893cfadadc76c6f"
+    },
+    "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/lib/d8.jar": {
+      "bytes": 20528803,
+      "sha256": "a26ee56252adcff6752c379ae255a0ad538ebec60189e078ec6855487107637d"
+    }
+  },
+  "cleanup": {
+    "children_reaped": true,
+    "scratch_tmp_removed": true,
+    "native_UI_capture_process_inventory": false
+  }
+}

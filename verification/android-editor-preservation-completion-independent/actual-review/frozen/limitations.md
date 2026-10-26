@@ -1,0 +1,11 @@
+# Qualification boundary
+
+Final host-6 is a complete-source JVM run against controlled authored Android/JNI leaves. cross-2 is unsigned SDK37 javac/D8 min-api28 compilation of the same product bytes, using the existing JNI signature leaf. Neither proves Android/ART, native IME or EditorInfo behavior, real batch/selection/composition or focus semantics, hidden detach, accessibility/TalkBack, OEM behavior, signing/store or admission of additional API levels. The SDK36 admission guards remain unchanged.
+
+All simulator, emulator, physical-phone, UI automation/capture and native/process inventory work remains paused. This lane started or queried none of those processes. Every compiler/JVM/D8 child retains the existing60-second bound, was reaped, and removed owned scratch/TMP data, including failed runs. Other projects' processes and data were not accessed. Compiled classes, dex, source/command maps and raw outputs are intentionally retained as evidence.
+
+The unchanged host leaves do not instrument getSelectionStart/getSelectionEnd, so callbacks injected at those exact getter entries are unmodeled. Source/bytecode review establishes their placement before final scalar validation, while executable reentry covers getEditableText and adversarial Editable.toString/getSpans/span-start/span-end/span-flags. The adversarial Editable subclass is a labelled host model, not actual Android framework qualification. Source/bytecode review supplements host execution; neither authorizes OTA.
+
+A partial-release fixture proves accounting invariants only. The direct healthy scalar tail does not claim recovery from arbitrary asynchronous VM interruption between scalar writes. Imbalanced or underfunded custody is retained rather than repaired. The separate tally prevents shared-count corruption from making the owner disposal-ready; a synthetic host repair or JVM exit is not product retry/recovery.
+
+Independent frozen actual-source acceptance is still required. Canonical integration, public V2, source-pair/CLI integration, separate-repository immutable published FieldLog packages, release/signing/store/customer/operational gates, OTA and GA remain pending. No publication, credentials, migration or customer messages were performed.

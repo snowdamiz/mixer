@@ -1,0 +1,74 @@
+  public void fieldPreservationEnd(dev.mixer.android.NativeAppearanceViewsV2$Record, dev.mixer.android.NativeAppearanceViewsV2$FieldPreservation);
+    Code:
+         0: invokestatic  #19                 // Method dev/mixer/android/NativeEnvironmentV2.requireMain:()V
+         3: aload_2
+         4: ifnull        81
+         7: aload_1
+         8: ifnull        81
+        11: aload_1
+        12: getfield      #93                 // Field dev/mixer/android/NativeAppearanceViewsV2$Record.input:Ldev/mixer/android/NativeAppearanceViewsV2$Input;
+        15: aload_0
+        16: if_acmpne     81
+        19: aload_0
+        20: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+        23: aload_2
+        24: getfield      #97                 // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.candidate:Ldev/mixer/android/NativeRenderer$Candidate;
+        27: aload_2
+        28: getfield      #103                // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.journal:Ldev/mixer/android/NativeRenderer$AttachmentJournal;
+        31: aload_1
+        32: aload_2
+        33: invokevirtual #107                // Method dev/mixer/android/NativeRenderer.fieldPreservationIdentityV2:(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;Ldev/mixer/android/NativeAppearanceViewsV2$Record;Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;)Z
+        36: ifeq          81
+        39: aload_0
+        40: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+        43: aload_2
+        44: invokevirtual #205                // Method dev/mixer/android/NativeRenderer.preservationEndReadyV2:(Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;)Z
+        47: ifeq          81
+        50: aload_0
+        51: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+        54: aload_2
+        55: getfield      #97                 // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.candidate:Ldev/mixer/android/NativeRenderer$Candidate;
+        58: invokevirtual #186                // Method dev/mixer/android/NativeRenderer.preservationCohortV2:(Ldev/mixer/android/NativeRenderer$Candidate;)Z
+        61: ifeq          81
+        64: aload_0
+        65: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+        68: getfield      #180                // Field dev/mixer/android/NativeRenderer.outstandingEditorNativeCalls:I
+        71: aload_2
+        72: getfield      #97                 // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.candidate:Ldev/mixer/android/NativeRenderer$Candidate;
+        75: getfield      #190                // Field dev/mixer/android/NativeRenderer$Candidate.heldPreservations:I
+        78: if_icmpge     87
+        81: ldc           #209                // String unfinished field preservation
+        83: invokestatic  #81                 // Method dev/mixer/android/Json.bad:(Ljava/lang/String;)Ljava/lang/IllegalArgumentException;
+        86: athrow
+        87: aload_2
+        88: iconst_0
+        89: putfield      #121                // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.counted:Z
+        92: aload_2
+        93: iconst_1
+        94: putfield      #124                // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.released:Z
+        97: aload_2
+        98: bipush        8
+       100: putfield      #127                // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.phase:I
+       103: aload_2
+       104: getfield      #97                 // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.candidate:Ldev/mixer/android/NativeRenderer$Candidate;
+       107: dup
+       108: getfield      #190                // Field dev/mixer/android/NativeRenderer$Candidate.heldPreservations:I
+       111: iconst_1
+       112: isub
+       113: putfield      #190                // Field dev/mixer/android/NativeRenderer$Candidate.heldPreservations:I
+       116: aload_0
+       117: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+       120: dup
+       121: getfield      #202                // Field dev/mixer/android/NativeRenderer.outstandingFieldPreservations:I
+       124: iconst_1
+       125: isub
+       126: putfield      #202                // Field dev/mixer/android/NativeRenderer.outstandingFieldPreservations:I
+       129: aload_0
+       130: getfield      #1                  // Field this$0:Ldev/mixer/android/NativeRenderer;
+       133: dup
+       134: getfield      #180                // Field dev/mixer/android/NativeRenderer.outstandingEditorNativeCalls:I
+       137: iconst_1
+       138: isub
+       139: putfield      #180                // Field dev/mixer/android/NativeRenderer.outstandingEditorNativeCalls:I
+       142: return
+

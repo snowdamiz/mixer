@@ -1,0 +1,50 @@
+  private boolean preservationCohortV2(dev.mixer.android.NativeRenderer$Candidate);
+    Code:
+         0: iconst_0
+         1: istore_2
+         2: iconst_0
+         3: istore_3
+         4: iload_3
+         5: aload_1
+         6: getfield      #1546               // Field dev/mixer/android/NativeRenderer$Candidate.journal:Ldev/mixer/android/NativeRenderer$AttachmentJournal;
+         9: getfield      #1626               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.stateCount:I
+        12: if_icmpge     51
+        15: aload_1
+        16: getfield      #1546               // Field dev/mixer/android/NativeRenderer$Candidate.journal:Ldev/mixer/android/NativeRenderer$AttachmentJournal;
+        19: getfield      #1629               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.states:[Ldev/mixer/android/NativeRenderer$NativeState;
+        22: iload_3
+        23: aaload
+        24: getfield      #1633               // Field dev/mixer/android/NativeRenderer$NativeState.preservation:Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;
+        27: astore        4
+        29: aload         4
+        31: ifnull        45
+        34: aload         4
+        36: getfield      #805                // Field dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation.counted:Z
+        39: ifeq          45
+        42: iinc          2, 1
+        45: iinc          3, 1
+        48: goto          4
+        51: aload_1
+        52: getfield      #1718               // Field dev/mixer/android/NativeRenderer$Candidate.heldPreservations:I
+        55: iload_2
+        56: if_icmpne     94
+        59: aload_0
+        60: getfield      #670                // Field outstandingFieldPreservations:I
+        63: iload_2
+        64: if_icmpne     94
+        67: iload_2
+        68: iflt          94
+        71: iload_2
+        72: aload_1
+        73: getfield      #1546               // Field dev/mixer/android/NativeRenderer$Candidate.journal:Ldev/mixer/android/NativeRenderer$AttachmentJournal;
+        76: getfield      #1626               // Field dev/mixer/android/NativeRenderer$AttachmentJournal.stateCount:I
+        79: if_icmpgt     94
+        82: aload_0
+        83: getfield      #667                // Field outstandingEditorNativeCalls:I
+        86: iload_2
+        87: if_icmplt     94
+        90: iconst_1
+        91: goto          95
+        94: iconst_0
+        95: ireturn
+
