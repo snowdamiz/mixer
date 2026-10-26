@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "status": "passed-static-partition-review",
+  "checks": [
+    {
+      "check": "top-level workflow scope unchanged",
+      "passed": true
+    },
+    {
+      "check": "exactly one new job",
+      "passed": true
+    },
+    {
+      "check": "android-owner-host complete job object unchanged",
+      "passed": true
+    },
+    {
+      "check": "vm complete job object unchanged",
+      "passed": true
+    },
+    {
+      "check": "services complete job object unchanged",
+      "passed": true
+    },
+    {
+      "check": "both macOS runs-on values unchanged",
+      "passed": true
+    },
+    {
+      "check": "both macOS timeout-minutes values unchanged",
+      "passed": true
+    },
+    {
+      "check": "both macOS env values unchanged",
+      "passed": true
+    },
+    {
+      "check": "core original job metadata unchanged",
+      "passed": true
+    },
+    {
+      "check": "new capability job original metadata duplicated",
+      "passed": true
+    },
+    {
+      "check": "core retains ordered first 13 plus consumer step",
+      "passed": true
+    },
+    {
+      "check": "capability retains ordered five-step chain",
+      "passed": true
+    },
+    {
+      "check": "duplicated checkout and Apple verification are exact original objects",
+      "passed": true
+    },
+    {
+      "check": "all Swift step objects conserved exactly once excluding duplicated two prerequisites and one new receipt upload",
+      "passed": true
+    },
+    {
+      "check": "all original 37 source-defined steps conserved",
+      "passed": true
+    },
+    {
+      "check": "one new artifact upload is always and 14-day retained",
+      "passed": true
+    },
+    {
+      "check": "original Android binding upload retains artifact paths and action configuration",
+      "passed": true
+    },
+    {
+      "check": "no inter-job needs or shared-runner assumptions introduced",
+      "passed": true
+    },
+    {
+      "check": "no download/cache action introduced",
+      "passed": true
+    },
+    {
+      "check": "reviewed source evidence bytes unchanged",
+      "passed": true
+    },
+    {
+      "check": "HEAD unchanged from reviewed base",
+      "passed": true
+    }
+  ],
+  "original_steps": 37,
+  "original_swift_steps": 19,
+  "proposed_swift_core_steps": 15,
+  "proposed_capability_steps": 7,
+  "product_tests_or_builds_executed": false,
+  "original_workflow_sha256": "b730e7ef87de9baf7dfb8229dbb02218d80718a37728715a48edf906a38c4923",
+  "proposed_workflow_sha256": "0afea45a4545c40d11096db2cb6030674f9eb8631ec4b90cbeb030271382512b",
+  "source_revision": "5583fb2c61e2c12acb5f0120a9a072e05cdb5ac1",
+  "source_git_tree": "c966773098fa979379f8407bc6661240058517a0",
+  "validation_command": [
+    "python3",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ci-partition-review/finalize-validation.py"
+  ],
+  "commands": [
+    {
+      "name": "final-yaml-parse",
+      "argv": [
+        "ruby",
+        "-rpsych",
+        "-e",
+        "require 'yaml'; require 'json'; ARGV.each { |p| puts JSON.generate(YAML.safe_load_file(p, permitted_classes: [], permitted_symbols: [], aliases:false)) }",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ci-partition-review/original-verify.yml",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ci-partition-review/proposed-verify.yml"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "stdout_sha256": "797ee9b73d6c8a42f445964d9fe3484079d374559bf83a689002c0dfc3e42cd7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "final-source-revision",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "stdout_sha256": "22151857811107d13bc4f7c9b2531ec9249ae3317780828fc3d7bee7280200ac",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+--- FROZEN_ROW_PROBE/cache_state.rs
++++ UNSELECTED_PREFIX_SUBTRACTION/cache_state.rs
+@@ -14803,10 +14803,7 @@
+                     let bytes = u64::from_le_bytes(
+                         arena_words[resident_word_base + slot as usize * 8 + 2]
+                     );
+-                    let Some(next) = remaining.checked_sub(bytes) else {
+-                        return reject(13);
+-                    };
+-                    remaining = next;
++                    remaining -= bytes;
+                     mask |= 1 << slot;
+                     destination = slot;
+                     i += 1;

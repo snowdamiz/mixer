@@ -129,6 +129,40 @@ jobs:
           swift test --package-path runtime -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
           swift test --package-path activation -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
           swift test --package-path verification/runtime-review -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
+      - name: Generated consumer integration
+        run: |
+          swift run --package-path cli mixer create VerificationApp --directory "$RUNNER_TEMP/VerificationApp"
+          swift run --package-path cli mixer test --directory "$RUNNER_TEMP/VerificationApp"
+          swift run --package-path cli mixer build --platform ios --directory "$RUNNER_TEMP/VerificationApp"
+      - name: Preserve core Apple toolchain and owned VM receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-core-toolchain-host-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/apple-toolchain.json
+            ${{ runner.temp }}/native-vm/receipt.json
+  swift-capability-native:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      # runner-images macos-15-arm64/20260907.0337 includes this installation;
+      # its default Xcode 16.4 supplies Swift 6.1 and cannot build the CLI.
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Builder boundary fixtures read the independently reviewed native pin.
+          fetch-depth: 0
+      - name: Verify and record pinned Apple toolchain
+        run: |
+          python3 scripts/ci/verify-apple-toolchain.py \
+            --developer-dir "$DEVELOPER_DIR" \
+            --xcode-version 26.3 --xcode-build 17C529 \
+            --output "$RUNNER_TEMP/apple-toolchain.json"
       - name: Isolated experimental capability archive and shared registry
         run: |
           rustup component add llvm-tools
@@ -202,11 +236,6 @@ jobs:
             ${{ runner.temp }}/android-binding-*/logs/*.log
             ${{ runner.temp }}/capability-vm/receipt.json
             ${{ runner.temp }}/apple-toolchain.json
-      - name: Generated consumer integration
-        run: |
-          swift run --package-path cli mixer create VerificationApp --directory "$RUNNER_TEMP/VerificationApp"
-          swift run --package-path cli mixer test --directory "$RUNNER_TEMP/VerificationApp"
-          swift run --package-path cli mixer build --platform ios --directory "$RUNNER_TEMP/VerificationApp"
   vm:
     runs-on: ubuntu-24.04
     timeout-minutes: 20

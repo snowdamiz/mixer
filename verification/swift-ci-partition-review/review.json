@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "recommendation": "Split the existing Swift job into two independent macOS jobs at the capability archive boundary. Keep the entire capability archive and dependent bridge/activation/Android binding chain in one new job, with a fresh exact-source archive built on that job's runner. Retain generated consumer integration in the original Swift job with CLI tests.",
+  "decision": "recommended for implementation by root after source review; static proposal only",
+  "source_revision": "5583fb2c61e2c12acb5f0120a9a072e05cdb5ac1",
+  "source_git_tree": "c966773098fa979379f8407bc6661240058517a0",
+  "proposed_diff": "proposed-verify.diff",
+  "proposed_yaml": "proposed-verify.yml",
+  "coverage": "coverage.json",
+  "scope": "Read-only CI dependency and historical timing review; proposal files exist only inside verification/swift-ci-partition-review. The active workflow was not edited, and no product tests/builds, CI dispatch/rerun/cancel, runtime/device/capture/UI action, process inventory, publication or credentials operation occurred.",
+  "job_partition": {
+    "swift": {
+      "runner": "macos-15",
+      "timeout_minutes": 30,
+      "retains": ["full-history checkout", "exact Apple toolchain verification", "CI selection regressions", "policy/acceptance integrity", "standalone analyzer fixture framing and artifact upload", "standalone analyzer fixture envelope and artifact upload", "generated capability schema check and host lifecycle tests", "debug and release guest transport raw-byte corpus", "native HTTP/deadline/exit TSan tests", "public/development SDK graph, SDK, updates, CLI, CLI build tests, Android engine host tests, runtime identity vectors/tests/build tests", "owned VM builder tests, exact committed host VM archive, runtime/activation/independent runtime review signed-startup tests", "CLI create, generated host test, unsigned generic iOS Simulator cross-build"],
+      "adds": ["always upload this job's Apple toolchain receipt and native-vm receipt as swift-core-toolchain-host-${github.sha}; 14 day retention; missing files ignored"],
+      "reason": "CLI generation uses sdk plus updates and a bundled SDK source snapshot. It does not consume either native-vm or capability-vm; retaining it here keeps the existing CLI build reuse. Core signed-startup tests consume only this job's native-vm/lib and stay together."
+    },
+    "swift-capability-native": {
+      "runner": "macos-15",
+      "timeout_minutes": 30,
+      "prerequisites": ["independent actions/checkout@v4 with fetch-depth:0", "independent exact Apple toolchain probe before any Swift build; probe also appends selected Swift compiler directory to the job-local GITHUB_PATH"],
+      "retains": ["rustup component add llvm-tools", "capability builder tests in normal and Python optimized modes", "frozen GITHUB_SHA capability archive export/build with exact feature/header/C-symbol checks", "C public capability smoke, mixed registry and guest UI clients", "debug/release/TSan bridge tests with per-mode scratch and untrusted loopback TLS rejection fixture", "independent public bridge consumer", "exact native preimage helper tests", "capability activation tests with exact archive include/library", "fresh private Android host binding in debug/release/TSan with expected-native-revision GITHUB_SHA", "always Android binding receipts/logs/capability-vm receipt/Apple receipt upload, unchanged artifact name and paths"],
+      "reason": "Every moved check uses an explicitly fresh scratch path or builder output already. Keeping this chain local avoids undefined cross-runner RUNNER_TEMP reuse and removes archive-transfer custody work.",
+      "no_job_dependency": true
+    },
+    "unchanged_jobs": ["android-owner-host: ubuntu-24.04, job timeout 15, step timeouts 5/7/2 minutes; JVM host leaves only", "vm: ubuntu-24.04, job timeout 20; all existing debug/release/experimental/ignored/clippy/noise/C-client/NDK transport commands retained", "services: ubuntu-24.04, job timeout 15, Go 1.26.4; verify/vet/race commands retained"]
+  },
+  "dependency_graph": [
+    {"producer": "Apple toolchain probe in each macOS job", "consumers": ["all Swift/xcrun/xcodebuild commands in that same job"], "boundary": "job-local DEVELOPER_DIR, TOOLCHAINS and GITHUB_PATH; cannot inherit probe side effects across runners"},
+    {"producer": "runtime/build-vm.py --revision GITHUB_SHA --target host -> native-vm/lib/libmixer_vm.a", "consumers": ["runtime swift test", "activation swift test", "verification/runtime-review swift test"], "boundary": "core job only; no dynamic Cargo library search directory passed"},
+    {"producer": "experimental-capability-runtime/build-vm.py --revision GITHUB_SHA --target host -> capability-vm", "consumers": ["C smoke/mixed-registry/guest-ui", "experimental bridge debug/release/TSan and independent public consumer", "capability-activation swift tests", "check-android-binding.py debug/release/TSan"], "boundary": "new job local; -I include, -L lib; no download/cache handoff"},
+    {"producer": "capabilities schema and checked-in source", "consumers": ["core generate --check", "new job native preimage tests -> export-native-preimage.py --check -> generate.py --check"], "boundary": "both read/validate committed bytes; no generated-file handoff required"},
+    {"producer": "CLI package -> sdk and updates -> exact swift-crypto 5.0.3", "consumers": ["CLI tests", "mixer create -> Generated/MixerSDK and mixer.lock", "mixer test host -> swift test on generated package", "mixer build ios -> xcodebuild generic/platform=iOS Simulator CODE_SIGNING_ALLOWED=NO build"], "boundary": "core job retains generated project/compiler lock and SDK digest; no simctl boot/install/launch path is called"},
+    {"producer": "fixed native pin 1adb25c48a8723f56ed2649712fe5e357920c53e", "consumers": ["experimental-capability-runtime/build-tests/test_builder.py git show"], "boundary": "full Git history must be present in the new job; shallow checkout is insufficient"},
+    {"producer": "check-android-binding.py copied actual production Swift/C + fixed Stage4 host fixture + Package.resolved", "consumers": ["fresh Stage4HostTests executable, all 39 scenarios for each debug/release/TSan mode"], "boundary": "tracked package source/resources copied; fresh scratch; native target/feature/revision/archive/header hashes verified; exact pinned dependency origins/revisions and clean checkout status checked before and after; source/native/receipt/runner hashes checked afterward"}
+  ],
+  "toolchain_and_environment": {
+    "apple": {"DEVELOPER_DIR": "/Applications/Xcode_26.3.app/Contents/Developer", "TOOLCHAINS": "com.apple.dt.toolchain.XcodeDefault", "xcode_version": "26.3", "xcode_build": "17C529", "minimum_swift": "6.2.0", "observed_prior_failed_run_swift": "Apple Swift 6.2.4 (swiftlang-6.2.4.1.4 clang-1700.6.4.2), arm64-apple-macosx15.0", "recorded": ["runner ImageOS/ImageVersion", "compiler and frontend SHA256", "selected compiler path", "macOS/Simulator SDK versions", "source revision", "host OS", "probe SHA256"]},
+    "rust": {"existing_exact_repository_or_workflow_version_pin": false, "preserved_analyzer_envelope_host_release_allowlist": ["aarch64-apple-darwin Rust 1.98.1", "aarch64-apple-darwin Rust 1.99.0"], "observed_prior_capability_builder_rustc": "rustc 1.98.1 (48a229cea 2026-09-01); commit 48a229ceaefd4985c50990b14116b6d856af0985; aarch64-apple-darwin; LLVM 22.1.8", "observed_prior_cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)", "preservation": "Do not invent an existing Rust pin. The proposal retains the original selected-toolchain behavior, llvm-tools provisioning and all tool identity/version/hash receipts. The experimental builder resolves an original rustc selector to its actual sysroot and uses the matching cargo/rustc/llvm-nm. Exact pinning would be a separate toolchain-policy change.", "experimental_builder_command": "cargo build --locked --offline --release --lib --no-default-features --features experimental-capability-native --manifest-path <fresh exported source>/vm/Cargo.toml", "experimental_builder_env": ["HOME inherited without mutation", "PATH restricted to selected Rust sysroot/bin plus system paths", "fresh CARGO_HOME", "fresh CARGO_TARGET_DIR", "fresh TMPDIR", "LANG=C", "LC_ALL=C", "RUSTUP_HOME inherited only if present", "DEVELOPER_DIR inherited", "RUSTC exact sysroot compiler", "MACOSX_DEPLOYMENT_TARGET=14.0 and xcrun-selected macosx SDKROOT on host Apple target"]},
+    "other": ["Python >=3.11 required by experimental builder tomllib; existing command selection preserved", "xcrun-selected macOS clang and SDK; C clients preserve -std=c11 -Wall -Wextra -Werror -mmacosx-version-min=14.0", "openssl generates only a temporary self-signed untrusted loopback fixture; no trust store/keychain changes", "all package dependency declarations and Package.resolved files unchanged; fresh Android binding force-resolved-versions remains", "all GitHub action versions, permissions contents:read, and push/pull_request triggers unchanged"]
+  },
+  "historical_timing_assessment": {
+    "retained_terminal_run": 40330490396,
+    "source_revision": "fb4c8f074f1a3e5eb2b1b1a45b44f0fa61a7cc62",
+    "attempt_1": "Swift exceeded 30m and was cancelled inside private Android binding. Generated consumer integration was skipped. This proves consumer-only extraction cannot remove the already observed failure path.",
+    "attempt_2": "One Swift-only rerun succeeded in 1764 seconds (29m24s); the other three successful jobs were carried from attempt 1. 50 successful recorded Actions steps include setup/post steps and are not 50 source-defined check steps.",
+    "attempt_2_key_step_seconds": {"checkout": 220, "apple_probe": 14, "sdk_update_cli": 313, "owned_vm_signed_startup": 112, "capability_archive_C_clients": 68, "bridge_modes_public_consumer": 247, "native_preimage_activation": 110, "private_android_binding_modes": 227, "binding_artifact_upload": 2, "generated_consumer": 150},
+    "observed_moved_chain_step_sum_seconds": 654,
+    "observed_retained_core_step_sum_seconds": 1104,
+    "arithmetic_only": "Removing the 654s moved chain from the prior 1764s job leaves 1110s (18m30s) including its observed non-step gaps. The new chain plus that run's checkout/probe/setup/post steps sums about 893s (14m53s), before any changed network, fresh-global-SwiftPM-cache or scheduling overhead. These are historical arithmetic, not new-job timings or an ETA.",
+    "checkout_variance_seconds": [220, 377, 435],
+    "current_snapshot_limit": "Only retained ci-snapshot-5.json was inspected: run 40347513075 was in_progress at 2026-10-26T15:36:34Z, through archive completion with bridge active. This packet does not claim its final result or poll it.",
+    "verification_required": "Run the actual changed workflow once after root integration and inspect all five terminal job conclusions plus retained artifacts. Any fresh failure must be classified from its own output; no automatic semantic pass or repeated retry is proposed."
+  },
+  "alternatives": [
+    {"option": "Extract generated consumer only", "decision": "insufficient", "reason": "Demonstrated cancellation occurred in the earlier binding step; prior successful consumer was only 150s. The core chain can hit the existing timeout before it reaches consumer."},
+    {"option": "Extract only Android binding and rebuild its VM independently", "decision": "not preferred", "reason": "Possible with fresh archive and exact source identity, but duplicates the archive build and leaves more accumulated work in the original job. The entire experimental chain is a cleaner single cut with existing fresh scratch paths."},
+    {"option": "Capability archive upload/download across independent runners", "decision": "not preferred", "reason": "Adds producer dependency, transport and a new custody validation surface. RUNNER_TEMP paths are runner-local; an exported receipt's absolute paths would be stale after download. A transport design must freeze source revision, target/architecture, tool identities, archive/header/source-manifest digests, regular-file/link/mode constraints, trusted artifact run/attempt identity and post-extraction custody, and validate all before bridge/activation consumers, which currently accept -I/-L without archive receipt admission. The binding runner's own digest checks are retained but cannot alone qualify all consumers. No handoff is needed for the proposed whole-chain cut."},
+    {"option": "Move bridge modes to independent jobs", "decision": "unnecessary for smallest coherent change", "reason": "Each would need its own exact archive or a fully validated artifact transfer. Two macOS jobs already remove the measured accumulated path without dropping mode coverage."}
+  ],
+  "limits_and_cleanup": [
+    "Every existing source-defined workflow step and run payload is retained. New YAML validation is structural/data equivalence, not executed test coverage or GitHub schema/runner qualification.",
+    "Both macOS jobs retain timeout-minutes:30; existing step limits and production/runtime budgets are unchanged. A second runner increases possible aggregate CI job minutes and checkout/network work; no claim of reduced total compute is made.",
+    "No cache action, cross-runner path reuse, needs dependency, artifact download, continue-on-error, test filter change, retry, signing change or production budget increase is introduced.",
+    "Existing analyzer child-return/owned-scratch cleanup, capability builder process-group/cache-quarantine behavior and loopback listener/thread/temporary-key cleanup are unchanged. No new persistent local process or temporary native runtime is created by this review.",
+    "The binding runner still uses subprocess timeout semantics and reports ordinary host scenarios only; its Rust archive is not TSan-instrumented. Splitting jobs does not strengthen these existing limits or justify claiming device/JNI/Looper/signed UI/release/GA evidence.",
+    "All simulator/emulator runtime, physical phones, native UI, signing/store, separately published FieldLog, operational and GA gates remain pending according to AGENTS. Existing xcodebuild generic simulator compile is cross-compilation, not simulator runtime evidence.",
+    "Branch-protection/required-check policy was not read or changed. If external policy expects only swift, root must ensure the new swift-capability-native terminal result remains required for acceptance; workflow-level success naturally includes all five jobs.",
+    "Parent owns polling the active run and any actual workflow/source changes, root metadata, commits/pushes and CI delivery. This packet is a frozen finite recommendation only."
+  ],
+  "reviewer_acceptance": [
+    "Use proposed-verify.diff only after checking the workflow SHA256 and source revision in source-evidence.json still match the intended base.",
+    "Keep all 37 original source-defined steps mapped by coverage.json; checkout/Apple probe duplication and one core receipt upload are the only added work.",
+    "Verify both macOS jobs use the original exact Xcode env and installed-version/build probe before any Swift command, with fetch-depth:0.",
+    "Keep capability build, its three C clients, every bridge mode/public consumer, preimage/activation checks, every binding mode and artifact upload together.",
+    "Collect terminal CI and per-job toolchain/native/binding receipts before accepting actual timing and complete coverage."
+  ]
+}

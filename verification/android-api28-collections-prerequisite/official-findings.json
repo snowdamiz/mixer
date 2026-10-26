@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "checked_on": "2026-10-26",
+  "source": "Official Android reference and locally installed official SDK37 api-versions.xml; exact metadata identity in tool-provenance.json",
+  "findings": [
+    {"urls": ["https://developer.android.com/reference/java/util/List", "https://developer.android.com/reference/java/util/Map", "https://developer.android.com/reference/java/util/Set"], "facts": ["of factories API30", "copyOf factories API31", "List order and duplicates retained", "List/Map copies isolate later source changes and reject null elements or keys/values", "Set.of rejects duplicates; Set.copyOf may retain one arbitrary equal element", "Set/Map factory iteration order unspecified"]},
+    {"urls": ["https://developer.android.com/reference/java/util/Collections", "https://developer.android.com/reference/java/util/Collection"], "facts": ["Basic collection/wrapper operations and empty constants are public before API28", "Collection.stream/parallelStream/removeIf API24", "Collection.toArray(T[]) API1", "Collection.toArray(IntFunction) API33"]},
+    {"urls": ["https://developer.android.com/reference/java/util/stream/Stream", "https://developer.android.com/reference/java/util/Map.Entry"], "facts": ["Stream baseline API24 does not cover every newer method", "Stream.toList/takeWhile/dropWhile/ofNullable API34", "Map.Entry.copyOf API35"]},
+    {"urls": ["https://developer.android.com/tools/d8", "https://developer.android.com/studio/write/java8-support", "https://developer.android.com/build/jdks"], "facts": ["Java language level differs from available Android library APIs", "D8 takes --min-api and --lib but emitted library availability still needs evidence", "Language lowering and separately configured core-library desugaring are distinct", "This packet observed generated helper bodies without adding any library dependency"]}
+  ],
+  "inference": "The exact emitted DEX library reference closure, rather than source API spelling alone, supports scoped compiler/library prerequisite acceptance. Android runtime and future input/toolchain compatibility are not established."
+}

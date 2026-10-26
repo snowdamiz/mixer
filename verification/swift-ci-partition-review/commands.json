@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "created_utc": "2026-10-26T15:42:39.562056+00:00",
+  "review_entry_point": [
+    "python3",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ci-partition-review/prepare-proposal.py"
+  ],
+  "commands": [
+    {
+      "label": "source-revision",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "stdout_sha256": "22151857811107d13bc4f7c9b2531ec9249ae3317780828fc3d7bee7280200ac",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "source-git-tree",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "stdout_sha256": "5eec29e2a51587a29e5c93782095e9ea7ab9380888ac58cd00a5427e5d562eb8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "python-version",
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "stdout_sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "ruby-version",
+      "argv": [
+        "ruby",
+        "-v"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "stdout_sha256": "e206508cdef0a6c6b14b656b71ad9366db219b3e83e5efcf0839a50c87fd8dba",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "git-version",
+      "argv": [
+        "git",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "stdout_sha256": "c9e40977101870d17ec3a0ac1e444ceb5e268d1c0a37d6edd8a5ed477734a53c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "psych-version",
+      "argv": [
+        "ruby",
+        "-rpsych",
+        "-e",
+        "puts Psych::VERSION"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "stdout_sha256": "ee059d0775289e876f5e34efd57679411860c0164ae0dc69dcf7877dce4e66fb",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "yaml-parse",
+      "argv": [
+        "ruby",
+        "-rpsych",
+        "-e",
+        "require 'yaml'; require 'json'; ARGV.each { |p| puts JSON.generate({path:p,data:YAML.safe_load_file(p, permitted_classes: [], permitted_symbols: [], aliases:false)}) }",
+        "/Users/andreyyurlov/Documents/dev/mixer/.github/workflows/verify.yml",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ci-partition-review/proposed-verify.yml"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "stdout_sha256": "9bc33e2b7ad20e569ca0526363ab6a5637a01dc6f327f03665bbad0d19e5c07d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "earlier_interactive_read_commands": "Targeted cat/sed/rg/wc and Python standard-library JSON duration extraction; all read-only. No tests, product builds, CI network requests, reruns, cancellations or dispatches. Exact substantive parser/version/source commands are preserved above.",
+  "preparation_notes": [
+    {
+      "command": [
+        "python3",
+        "verification/swift-ci-partition-review/prepare-proposal.py"
+      ],
+      "initial_exit": 1,
+      "failure": "Review-only expected step-index assertion used an off-by-one offset; proposal generation itself preserved text. Corrected assertion indices from 12:17 to 13:18, reran parser/equivalence validation, exit 0. Active workflow was never edited."
+    }
+  ]
+}

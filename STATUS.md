@@ -45,6 +45,7 @@ Native runtime and capture remain paused.
 Review evidence checkpoint `99f8a0a7` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40303522601) passes all 42 steps across three jobs. This checkpoint preserves immutable candidates/reviews and root metadata, with no canonical product or CLI changes.
 Host review evidence `d275c072` is pushed; [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40308561680) passes all 42 steps across three jobs. It preserves candidate4/CLI review and 192 semantic cases; canonical implementation edits remain outside this checkpoint.
 Private Android owner/profile3 integration `fb4c8f07` is pushed. [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40330490396) passes all four jobs and 50 steps after one bounded Swift-only retry. The first Swift attempt exceeded its 30-minute job limit during Android host binding and skipped generated-consumer integration; that failure remains retained. Host/source development acceptance is scoped; native runtime and public V2 remain pending.
+Guarded Android environment/profile4 integration `5583fb2c` is pushed. [Engine CI](https://github.com/snowdamiz/mixer/actions/runs/40347513075) passes Android JVM, VM and services; Swift exceeds its 30-minute job limit during the TSan binding phase, so generated-consumer integration is skipped. The independently reviewed two-job Swift partition preserves all 37 existing steps and passes 63 local CI regressions; its delivery is next. Private host/source acceptance is scoped; native runtime and public V2 remain pending.
 All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
 [gates/ga.json](gates/ga.json) records eight running and thirty planned gates.
@@ -284,8 +285,10 @@ groups against 2,560. The distinct row-view probe now has a selected independent
 corrected G2 upper of 2,494 against 2,560, with scoped Control 1,220 against 1,280.
 Original lower totals remain unaccepted. The same full proposal fails its
 source-admitted G5 necessary bound: 642 against 640; public-File reachability is
-not proved by that witness. An isolated subtraction proposal requires a universal
-distinct-prefix/unchanged-arena proof and complete remaining work/lifetime accounting. The correction 3
+not proved by that witness. An isolated subtraction proposal supplies a conditional
+invariant proof, but its unchanged merge independently needs at least 2,569 G3
+groups against 2,568. A scalar-local cursor proposal is active with complete work
+and whole lexical lifetimes required. The correction 3
 lifetime inventory is accepted with independent corrections: 29,344 logical bytes within the unchanged
 41,984-byte reservation. Independently corrected old-C3 bounds are accepted for
 G1 94/256, G7 178/248, setup 188/512, finish 227/256 and guard 14/128. Changed
@@ -485,8 +488,10 @@ implementation has private host/source acceptance after 76 independent JVM cases
 and 661 assertions, official Java/D8 compilation and verification of 1,455
 producer/review members. Profile4 also has independent host/source acceptance:
 118 fresh commands, including 107 refusal commands, with actual creation/export
-and exact copied descriptor checks. Canonical delivery is prepared. Native
-runtime stays pending.
+and exact copied descriptor checks. Canonical delivery is pushed as `5583fb2c`; three CI jobs pass and Swift times out.
+Native runtime stays pending.
+The profile4 JVM CI job passes on Linux/JDK17.0.20.1. Root verifies all 898 retained artifact members against `5583fb2c`, including 131 platform cases/671 assertions and the existing observer, owner and renderer regressions. Swift times out during binding; generated-consumer integration is skipped. A reviewed two-job partition retains every check and passes 63 local CI regressions.
+The exact collection prerequisite now has source/compiler acceptance: root verifies 130 producer/review members, 851 independent checks and 170 emitted Java member references with an API floor no later than 28. No source rewrite is selected. Empty-factory mutation exceptions and Android runtime remain separate limits. The editor API boundary is the next source proposal.
 See [the roster review](docs/android-private-owner-effect-roster-review.md) and
 [root selection](verification/android-private-owner-effect-integration-root-review/implementation-selection.json).
 The [selected clarification](verification/android-private-owner-effect-integration-root-review/dirty-result-clarification/selection.json) distinguishes recoverable lifecycle invalidation from stale concrete validation and permits only immediate scalar return of a completed input result after a live successor. The exact third mechanical leaf snapshot is accepted for bounded reuse after twelve independent controls and 82 assertions; it provides no product-test or Android-runtime acceptance.
