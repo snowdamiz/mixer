@@ -1,0 +1,80 @@
+{
+  "schema": 1,
+  "observedAt": "2026-10-22T22:22:25.722453+00:00",
+  "reviewer": "root integration agent; separate from Android author",
+  "status": "scoped-review-and-physical-rerun-passed",
+  "reviewedBaselineCommit": "3c75650",
+  "sourceTreeDigest": "037bb587218eb8665e5efa5444e14060ce4052ff3d07628d14a211e9c973a997",
+  "scope": [
+    "JNI C buffer ownership and allocation/error paths",
+    "Swift transactional state and session bounds",
+    "Java wire decoder and renderer validation",
+    "receipt provenance and device classification"
+  ],
+  "findings": [
+    {
+      "id": "A01",
+      "severity": "P2",
+      "problem": "Character.digit accepted non-ASCII digits in JSON Unicode escape sequences, diverging from the strict Swift JSON contract.",
+      "reproduction": "Old decoder failed new rejection assertion (check10); malformed fullwidth and Arabic-digit escapes were accepted.",
+      "fix": "ASCII-only hexadecimal decoding; three rejection cases and a valid mixed-case regression.",
+      "status": "fixed"
+    },
+    {
+      "id": "A02",
+      "severity": "P2",
+      "problem": "Verification script hardcoded pass counts, author model and Pixel physical designation instead of observing rerun identity.",
+      "fix": "Parse explicit test pass counts, record supplied reviewer and current SDK revision/dirty flag, classify device using serial/qemu properties and observed model/API.",
+      "status": "fixed"
+    }
+  ],
+  "validation": {
+    "swift_tests_passed": 5,
+    "java_contract_checks_passed": 34,
+    "jni_c_compile": "NDK -Wall -Wextra -Werror passed",
+    "java_compile": "-Xlint:all -Werror passed"
+  },
+  "physicalDevice": {
+    "serial": "38031FDJG00JEF",
+    "target_kind": "physical-device",
+    "installed_apk_sha256": "e22f75107ad558d10dd302493aad790c5c5163d60640d4de352e4e283d308b08",
+    "properties": {
+      "ro.product.model": "Pixel 8 Pro",
+      "ro.build.version.release": "17",
+      "ro.build.version.sdk": "37",
+      "ro.build.fingerprint": "google/husky/husky:17/CP3A.261005.005/16271449:user/release-keys",
+      "ro.kernel.qemu": "",
+      "ro.boot.qemu": "",
+      "page_size": "4096"
+    },
+    "instrumentation": "passed; native views with actual Android Swift shared library",
+    "touch_keyboard": "EditText keyboard input added Keyboard task; touch toggle changed Swift-owned summary to1of3 complete",
+    "evidence": [
+      "device-ui-initial.xml",
+      "device-ui-added.xml",
+      "device-ui-toggled.xml",
+      "device-initial.png",
+      "device-added.png",
+      "device-toggled.png"
+    ],
+    "qualifier": "physical-device Pixel 8 Pro API37 only; no other device coverage implied"
+  },
+  "apk": {
+    "apk": "native/android/build/mixer-android-debug.apk",
+    "apk_bytes": 27252558,
+    "apk_sha256": "e22f75107ad558d10dd302493aad790c5c5163d60640d4de352e4e283d308b08"
+  },
+  "remaining": [
+    "independent review",
+    "published immutable SDK consumption from separate FieldLog repository",
+    "FieldLog D2",
+    "TalkBack/accessibility qualification",
+    "IME composition/keyboard locale matrix",
+    "retained focus/scroll and cross-parent movement",
+    "process recreation/state persistence",
+    "async/lifecycle effects",
+    "large-list virtualization/performance/frame/memory budgets",
+    "all Android API/ABI/device configurations",
+    "release signing/store acceptance"
+  ]
+}

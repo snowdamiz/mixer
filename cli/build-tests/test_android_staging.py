@@ -27,9 +27,13 @@ class AndroidStagingTests(unittest.TestCase):
         for name in ['Generated/MixerSDK', 'Generated/MixerAndroid', 'Resources']:
             (self.root / name).mkdir(parents=True)
         empty_hash = hashlib.sha256(b'').hexdigest()
+        descriptor = self.root / 'Generated/MixerAndroid/app/assets/MixerAppearanceV2/descriptor.json'
+        descriptor.parent.mkdir(parents=True)
+        # Layout-only fixture. These staging tests make no codec/default claim.
+        descriptor.write_bytes(b'{}')
         (self.root / 'mixer.lock').write_text(json.dumps({
             'schema': 1, 'sdkDigest': empty_hash,
-            'android': {'adapterDigest': empty_hash, 'toolchain': {}}
+            'android': {'adapterDigest': DRIVER_MODULE.source_tree(self.root / 'Generated/MixerAndroid'), 'toolchain': {}}
         }))
         (self.root / 'mixer.yml').write_text(json.dumps({
             'schema': 1, 'name': 'SafeApp', 'application': 'dev.mixer.safe',

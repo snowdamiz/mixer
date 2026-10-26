@@ -1,0 +1,923 @@
+
+FILE AGENTS.md
+RANGE 1-55
+1: # mixer implementation rules
+2: 
+3: The binding product scope is `mixer-product-plan.md`. `PLAN.md` indexes execution;
+4: it does not replace or narrow that scope. Keep `STATUS.md`, `work-graph.json`,
+5: `gates/`, and `verification/` current with observed evidence.
+6: 
+7: ## Ownership and execution
+8: 
+9: - Independently implement all product engine code. No Patch/Skip implementation,
+10:   generated source, tests, fixtures, or dependencies. Official specifications and
+11:   platform tools are permitted. Record general-purpose dependencies in THIRD_PARTY.yml.
+12: - The plan explicitly requests parallel agents: use `gpt-6.1-sol`, `xhigh`, fresh
+13:   context with bounded ownership. The main controlling model is selected by the user;
+14:   do not claim to change it via a child agent.
+15: - Coordinate public contracts before dependent changes. Never edit another active
+16:   lane's files without coordination. Do not undo user work.
+17: - Each meaningful slice needs executable tests and accurate limitations. A skipped
+18:   device, compiler, signing, store, customer, or operational gate is not a pass.
+19: - Never use regex/syntax analysis alone to authorize an OTA release. Unsupported
+20:   instructions, capabilities, UI operations, or security contracts fail closed.
+21: - Use standard cryptography. Keep signing keys out of source and build workers.
+22: - No production publication, messages to customers, destructive migrations, or
+23:   credential changes are implied by implementation work.
+24: 
+25: ## Verification
+26: 
+27: The user authorized periodic commits and pushes to `snowdamiz/mixer`; see PLAN.md.
+28: Root coordinates pushes of coherent validated slices to `origin/main`, without
+29: force-pushing or sweeping other agents' unfinished files into commits. Inspect CI
+30: after pushes. Phones are disconnected until further notice: do not attempt new
+31: physical-device runs or ask to reconnect; keep those checks explicitly pending.
+32: The user's October 23 instruction accepts simulator/emulator tests as sufficient
+33: to accept development slices and continue dependent implementation. Do not block
+34: that progress on phones. Run the physical-phone matrix at final acceptance and
+35: correct any differences then; preserve the actual environment in every receipt.
+36: Keep simulator/emulator use bounded: normally one active test instance per native
+37: lane. Reuse it, retire an obsolete owned instance before booting its replacement,
+38: and shut down disposable test instances after evidence collection, including
+39: failed runs. Record cleanup; preserve other projects' active instances and their
+40: data. The user explicitly requested cleanup of unused simulators.
+41: 
+42: Latest user-supplied AGENTS override: computer use, screen capture and native
+43: simulator/emulator runtime tests are paused until further notice. Do not restart
+44: owned instances or use UI automation. Continue source work, host tests,
+45: cross-compilation, offline evidence review and authorized delivery; record newly
+46: unrun native checks as pending. Preserve other projects' processes. The previous
+47: resumption receipt is historical. The prior shutdown is recorded in
+48: verification/computer-use-pause-2026-10-24/receipt.json; this HTTP slice started no
+49: native or capture processes.
+50: 
+51: Record command, tool version, source revision/tree digest, output, and scope.
+52: Mac unit tests are not physical iOS/Android receipts. FieldLog must eventually
+53: consume immutable published packages from a separate repository. Local checkout
+54: debugging is not dogfood release qualification. Never mark a GA gate verified
+55: without its specified evidence and accountable reviewer.
+
+FILE mixer-product-plan.md
+RANGE 332-342
+332: ### 8.3 UI instruction contract
+333: 
+334: Use versioned, bounded messages describing node type, stable identity, properties, child references, actions, and state bindings. Separate structural updates from frequently changing properties. Batch changes so JNI and interpreter transitions do not occur for every scalar property or every frame.
+335: 
+336: The host validates node counts, nesting, lengths, resource references, and supported operations before reconciliation. Unsupported required nodes reject the candidate update; no blank placeholders in production. Optional decorative behavior can degrade only when the manifest explicitly permits it and the preview shows the degradation.
+337: 
+338: One codebase produces the same app design on both platforms. A MixerUI screen renders with the same layout, hierarchy, content, colors, typography scale, iconography, spacing, and component appearance on iOS and Android. Adapters still render through native toolkits (SwiftUI/UIKit and Compose/native views), but they style controls from the app's shared theme rather than each platform's default look. An app that wants a platform-specific appearance must declare it explicitly; it is never the default.
+339: 
+340: Accessibility and navigation behavior stay native. That covers VoiceOver and TalkBack roles, labels, values, actions, and focus order; the iOS back gesture; Android system and predictive back; and native text input and keyboard handling. System-owned surfaces outside the app's screens keep their platform appearance, including status bars, permission prompts, share sheets, and the keyboard.
+341: 
+342: The correctness criterion is design parity on reference screens, reviewed side by side on physical iOS and Android devices. Pixel-identical output is not required where native text shaping, font rasterization, display density, or safe-area geometry legitimately differ.
+RANGE 661-675
+661: ### 19.1 Launch platform baseline
+662: 
+663: The iOS minimum is **iOS 26.0**, fixed by the user. Support iOS 26, iOS 27, and subsequent iOS releases; do not impose an upper major-version cutoff in the public SDK or generated applications. Generated projects, Swift packages and native build defaults must target iOS 26.0 or later. iOS 17–25 compatibility is outside the supported product baseline. Android API 28+ remains the proposed baseline, subject to qualification against the selected Swift/NDK/Compose versions and market demand.
+664: 
+665: Qualify the oldest supported iOS 26 release, representative iOS 26 updates, iOS 27, and each subsequent stable major release. Monitor beta releases and repair compatibility before declaring that version verified. Forward support is a product commitment, not a claim that future or untested operating systems already passed. A temporary private prototype allowlist, such as the current iOS 26.5 appearance experiment, does not satisfy this product matrix or authorize public integration. Keep those gaps explicit until qualified. Any proposal to raise the iOS minimum beyond 26 requires an explicit product decision with evidence and user approval.
+666: 
+667: Support physical arm64 iOS and Android devices, Apple-silicon iOS simulators, and the Android emulator architectures supported by the selected toolchain. Qualify current Android native page-size requirements, JNI packaging, native library alignment, lifecycle, and background restrictions. An emulator build alone does not qualify a physical architecture.
+668: 
+669: Pin the Swift host compiler, Swift Android/Wasm SDKs, Xcode, NDK, JDK, Gradle, Android Gradle Plugin, Kotlin, Compose, Rust, and engine versions in a signed toolchain manifest. Changes undergo native and OTA regression testing before becoming the default.
+670: 
+671: ### 19.2 Device coverage
+672: 
+673: Maintain an oldest-supported iPhone class, a current mainstream iPhone, a high-refresh iPhone, a low/midrange Android device, a current Pixel-class device, a Samsung-class device, and iPad/Android tablet coverage. Include minimum OS, representative intermediate OS, current stable OS, and beta OS monitoring. Freeze exact devices and versions for each benchmark report.
+674: 
+675: Test large text, VoiceOver/TalkBack, right-to-left layout, multiple locales, dark mode, reduced motion, keyboard input, rotation, process death, denied permissions, constrained network, low disk, and low-memory behavior. Physical device tests are required for latency, memory, energy, camera, push, purchases, and lifecycle claims.
+
+FILE cli/Package.swift
+RANGE 1-14
+1: // swift-tools-version: 6.2
+2: import PackageDescription
+3: 
+4: let package = Package(
+5:     name: "MixerCLI",
+6:     platforms: [.macOS(.v14)],
+7:     products: [.executable(name: "mixer", targets: ["MixerCLI"]), .library(name: "MixerBuild", targets: ["MixerBuild"])],
+8:     dependencies: [.package(path: "../sdk"), .package(path: "../updates")],
+9:     targets: [
+10:         .target(name: "MixerBuild", dependencies: [.product(name: "MixerCore", package: "sdk"), .product(name: "MixerUpdates", package: "updates")], resources: [.copy("Resources")]),
+11:         .executableTarget(name: "MixerCLI", dependencies: ["MixerBuild"]),
+12:         .testTarget(name: "MixerBuildTests", dependencies: ["MixerBuild"], resources: [.copy("Fixtures")])
+13:     ]
+14: )
+
+FILE cli/Sources/MixerCLI/main.swift
+RANGE 78-85
+78:         guard words.count == 2 else { throw MixerFailure("arguments.create", "Usage: mixer create NAME [--directory PATH] [--application ID] [--sdk-path PATH]") }
+79:         let name = words[1]
+80:         let target = path(arguments.options["--directory"] ?? name)
+81:         let sdk = path(arguments.options["--sdk-path"] ?? ProcessInfo.processInfo.environment["MIXER_SDK_PATH"] ?? repository.appendingPathComponent("sdk").path)
+82:         let platform = arguments.options["--platform"] ?? "ios"
+83:         guard platform == "android" || arguments.options["--android-adapter-path"] == nil else { throw MixerFailure("arguments.unused-option", "--android-adapter-path requires --platform android.") }
+84:         let adapter = path(arguments.options["--android-adapter-path"] ?? ProcessInfo.processInfo.environment["MIXER_ANDROID_ADAPTER_PATH"] ?? repository.appendingPathComponent("native/android").path)
+85:         try output(ProjectGenerator.create(name: name, application: arguments.options["--application"] ?? "com.example.\(name.lowercased())", destination: target, sdk: sdk, platform: platform, androidAdapter: platform == "android" ? adapter : nil))
+
+FILE cli/Sources/MixerBuild/ProjectGenerator.swift
+RANGE 11-66
+11: public enum ProjectGenerator {
+12:     public static func create(name: String, application: String, destination: URL, sdk: URL, platform: String = "ios", androidAdapter: URL? = nil) throws -> GeneratedProject {
+13:         guard ["ios", "android"].contains(platform) else { throw MixerFailure("create.platform", "Create supports ios (default) or android (both native hosts).") }
+14:         var config = ApplicationConfiguration(name: name, application: application)
+15:         config.targets = platform == "android" ? ["ios", "android"] : ["ios"]
+16:         // The starter requests no native capabilities. Adding one requires an
+17:         // implemented native host and a new binary, never a successful stub.
+18:         config.capabilities = []
+19:         try config.validate()
+20:         let fm = FileManager.default
+21:         guard !fm.fileExists(atPath: destination.path) else { throw MixerFailure("create.exists", "Refusing to overwrite \(destination.path). Choose a new directory.") }
+22:         guard fm.fileExists(atPath: sdk.appendingPathComponent("Package.swift").path) else { throw MixerFailure("create.sdk", "SDK package not found at \(sdk.path). Supply --sdk-path to an installed Mixer SDK source distribution.") }
+23:         let parent = destination.deletingLastPathComponent()
+24:         try fm.createDirectory(at: parent, withIntermediateDirectories: true)
+25:         let staging = parent.appendingPathComponent(".mixer-create-\(UUID().uuidString)")
+26:         try fm.createDirectory(at: staging, withIntermediateDirectories: true)
+27:         defer { try? fm.removeItem(at: staging) }
+28:         for path in ["Sources/AppModels", "Sources/AppFeatures", "Sources/NativeServices", "Tests/AppModelsTests", "Platforms/iOS", "Platforms/Android", "Resources", "Generated/MixerSDK"] {
+29:             try fm.createDirectory(at: staging.appendingPathComponent(path), withIntermediateDirectories: true)
+30:         }
+31:         let sdk = sdk.resolvingSymlinksInPath().standardizedFileURL
+32:         let sdkTarget = staging.appendingPathComponent("Generated/MixerSDK")
+33:         for file in try SourceDigest.files(in: sdk) {
+34:             let relative = String(file.path.dropFirst(sdk.path.count + 1))
+35:             let target = sdkTarget.appendingPathComponent(relative)
+36:             try fm.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+37:             try fm.copyItem(at: file, to: target)
+38:         }
+39:         let digest = try SourceDigest.tree(sdkTarget)
+40:         let version = try ProcessRunner.run(["swift", "--version"])
+41:         guard version.succeeded else { throw MixerFailure("create.swift", version.output) }
+42:         try JSONFile.write(config, to: staging.appendingPathComponent("mixer.yml"))
+43:         var lock = ToolchainLock(sdkDigest: digest, swiftVersion: version.output.trimmingCharacters(in: .whitespacesAndNewlines))
+44:         if platform == "android" {
+45:             guard let androidAdapter else { throw MixerFailure("create.android-adapter", "Supply the owned Mixer Android adapter source distribution.") }
+46:             let adapterDigest = try AndroidProject.snapshot(adapter: androidAdapter, destination: staging.appendingPathComponent("Generated/MixerAndroid"))
+47:             lock.android = AndroidToolchainLock(adapterDigest: adapterDigest, toolchain: try AndroidProject.inspectToolchain())
+48:         }
+49:         try JSONFile.write(lock, to: staging.appendingPathComponent("mixer.lock"))
+50:         let files = [
+51:             "Package.swift": package(name),
+52:             "Sources/AppModels/Entry.swift": models,
+53:             "Sources/AppFeatures/ProjectFeature.swift": features,
+54:             "Sources/NativeServices/README.md": "Native integrations live here. A new native capability requires a new store binary.\n",
+55:             "Tests/AppModelsTests/EntryTests.swift": modelTests,
+56:             "Platforms/iOS/\(name)App.swift": appleApp(name),
+57:             "README.md": readme(name),
+58:             ".gitignore": ".build/\n.swiftpm/\n.mixer/\n.DS_Store\n"
+59:         ]
+60:         for (path, contents) in files { try contents.write(to: staging.appendingPathComponent(path), atomically: true, encoding: .utf8) }
+61:         _ = try AppleProject.generate(root: staging)
+62:         if platform == "android" { try AndroidProject.generate(root: staging) }
+63:         else { try "No Android host was requested. Create a new project with --platform android for the unsigned local development host.\n".write(to: staging.appendingPathComponent("Platforms/Android/README.md"), atomically: true, encoding: .utf8) }
+64:         // An entire project becomes visible only when construction succeeds.
+65:         try fm.moveItem(at: staging, to: destination)
+66:         return GeneratedProject(path: destination.path, application: application, sdkDigest: digest, nextSteps: ["cd \(destination.path)", "mixer test", "mixer doctor"])
+RANGE 240-253
+240:     public static func verifyLock(root: URL) throws -> ToolchainLock {
+241:         _ = try ApplicationConfiguration.load(root)
+242:         let lock = try JSONDecoder().decode(ToolchainLock.self, from: Data(contentsOf: root.appendingPathComponent("mixer.lock")))
+243:         guard lock.schema == 1 else { throw MixerFailure("lock.schema", "Unsupported lock schema") }
+244:         let actual = try SourceDigest.tree(root.appendingPathComponent("Generated/MixerSDK"))
+245:         guard actual == lock.sdkDigest else { throw MixerFailure("lock.sdk-drift", "Bundled SDK source differs from mixer.lock. Restore the original SDK snapshot or explicitly install a new qualified SDK.") }
+246:         if let android = lock.android {
+247:             guard try SourceDigest.tree(root.appendingPathComponent("Generated/MixerAndroid")) == android.adapterDigest else { throw MixerFailure("lock.android-drift", "Bundled Android adapter source differs from mixer.lock. Restore the original locked adapter snapshot.") }
+248:         }
+249:         let version = try ProcessRunner.run(["swift", "--version"])
+250:         guard version.succeeded, version.output.trimmingCharacters(in: .whitespacesAndNewlines) == lock.swiftVersion else { throw MixerFailure("lock.toolchain-drift", "Swift host compiler differs from mixer.lock. Select the pinned toolchain.") }
+251:         return lock
+252:     }
+253:     public static func run(root: URL, test: Bool, platform: String) throws -> CommandResult {
+
+FILE cli/Sources/MixerBuild/AndroidProject.swift
+RANGE 27-105
+27: public enum AndroidProject {
+28:     /// Export an explicit owned source closure. The checklist engine and its
+29:     /// instrumentation never enter a created application's dependency graph.
+30:     static func snapshot(adapter: URL, destination: URL) throws -> String {
+31:         let adapter = adapter.resolvingSymlinksInPath().standardizedFileURL
+32:         let expected = [
+33:             "bridge/jni.c", "bridge/mixer_android.h", "bridge/mixer_android_v2.h", "contracts/android-profile-v1.json",
+34:             "app/src/dev/mixer/android/Json.java", "app/src/dev/mixer/android/UiPacket.java",
+35:             "app/src/dev/mixer/android/NativeRenderer.java", "app/src/dev/mixer/android/NativeBridge.java",
+36:             "app/src/dev/mixer/android/MixerActivity.java",
+37:             // Private coordinator source is available for compilation; the
+38:             // public Activity continues to use the V1 exchange/bootstrap.
+39:             "app/src/dev/mixer/android/NativeCoordinatorV2.java",
+40:             // Compile dependencies of the internal renderer. Including them does
+41:             // not opt generated applications into V2 or package appearance data.
+42:             "app/src/dev/mixer/android/AppearanceDescriptorV2.java",
+43:             "app/src/dev/mixer/android/AppearanceGeometryV2.java",
+44:             "app/src/dev/mixer/android/AppearanceResolverV2.java",
+45:             "app/src/dev/mixer/android/AppearanceNativePathsV2.java",
+46:             "app/src/dev/mixer/android/InstalledAppearanceV2.java",
+47:             "app/src/dev/mixer/android/NativeEnvironmentV2.java",
+48:             "app/src/dev/mixer/android/AuthoredToggleInputV2.java",
+49:             "app/src/dev/mixer/android/NativeAppearanceViewsV2.java"
+50:         ]
+51:         let runtime = adapter.appendingPathComponent("engine/Sources/MixerAndroidRuntime")
+52:         let runtimeFiles = try SourceDigest.files(in: runtime)
+53:         guard !runtimeFiles.isEmpty, runtimeFiles.allSatisfy({ $0.pathExtension == "swift" }) else {
+54:             throw MixerFailure("create.android-adapter", "Owned reusable Android runtime sources are missing or unsupported.")
+55:         }
+56:         var mapping = expected.map { ($0, $0) }
+57:         mapping += runtimeFiles.map {
+58:             let relative = String($0.path.dropFirst(runtime.path.count + 1))
+59:             return ("engine/Sources/MixerAndroidRuntime/" + relative, "Sources/MixerAndroidRuntime/" + relative)
+60:         }
+61:         for (sourcePath, targetPath) in mapping {
+62:             let source = adapter.appendingPathComponent(sourcePath)
+63:             let info = try source.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
+64:             guard info.isRegularFile == true, info.isSymbolicLink != true else { throw MixerFailure("create.android-adapter", "Android adapter inputs must be regular source files: \(sourcePath)") }
+65:             let target = destination.appendingPathComponent(targetPath)
+66:             try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+67:             try Data(contentsOf: source).write(to: target)
+68:         }
+69:         try runtimePackage.write(to: destination.appendingPathComponent("Package.swift"), atomically: true, encoding: .utf8)
+70:         let driver = try buildDriver()
+71:         try Data(contentsOf: driver).write(to: destination.appendingPathComponent("android-build.py"))
+72:         return try SourceDigest.tree(destination)
+73:     }
+74: 
+75:     static func buildDriver() throws -> URL {
+76:         guard let resource = Bundle.module.url(forResource: "android-build", withExtension: "py", subdirectory: "Resources") else { throw MixerFailure("android.driver", "Installed CLI is missing its owned Android build driver.") }
+77:         return resource
+78:     }
+79:     static func inspectToolchain() throws -> AndroidToolchainIdentity {
+80:         let result = try ProcessRunner.run(["python3", try buildDriver().path, "inspect"])
+81:         guard result.succeeded, !result.outputTruncated else { throw MixerFailure("android.toolchain", result.output) }
+82:         do { return try JSONDecoder().decode(AndroidToolchainIdentity.self, from: Data(result.output.utf8)) }
+83:         catch { throw MixerFailure("android.toolchain", "Android tool inventory was not a complete structured identity: \(error)") }
+84:     }
+85:     static func generate(root: URL) throws {
+86:         let config = try ApplicationConfiguration.load(root)
+87:         let directory = root.appendingPathComponent("Platforms/Android")
+88:         let files = ["Package.swift": package(config.name), "AndroidManifest.xml": manifest(config),
+89:                      "Sources/AppAndroid/NativeEntry.swift": entry,
+90:                      "Tests/AppAndroidTests/SessionTests.swift": sessionTests,
+91:                      "README.md": readme]
+92:         for (path, source) in files {
+93:             let target = directory.appendingPathComponent(path)
+94:             guard !FileManager.default.fileExists(atPath: target.path) else { throw MixerFailure("generate.modified", "Refusing to overwrite Android app-owned file: \(target.path)") }
+95:             try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+96:             try source.write(to: target, atomically: true, encoding: .utf8)
+97:         }
+98:     }
+99:     public static func build(root: URL) throws -> CommandResult {
+100:         let lock = try ProjectBuild.verifyLock(root: root)
+101:         guard lock.android != nil else { throw MixerFailure("android.not-generated", "This project has no locked Android host. Create a new project with --platform android; existing sources are never overwritten.") }
+102:         let config = try ApplicationConfiguration.load(root)
+103:         guard config.targets.contains("android"), config.capabilities.isEmpty else { throw MixerFailure("android.unsupported-capability", "Android local consumer requires an android target and no declared native capabilities; capability hosts are not integrated in this slice.") }
+104:         guard try SourceDigest.files(in: root.appendingPathComponent("Resources")).isEmpty else { throw MixerFailure("android.unsupported-resources", "Android resource packaging is not integrated. App resources cannot be silently omitted.") }
+105:         return try ProcessRunner.run(["python3", root.appendingPathComponent("Generated/MixerAndroid/android-build.py").path, "build", root.path], at: root)
+RANGE 131-144
+131:     }
+132:     private static func manifest(_ config: ApplicationConfiguration) -> String {
+133:         """
+134:         <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="\(config.application)" android:versionCode="1" android:versionName="0.1.0">
+135:           <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="37" />
+136:           <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="\(config.name)" android:debuggable="true" android:allowBackup="false" android:extractNativeLibs="true" android:supportsRtl="true">
+137:             <activity android:name="dev.mixer.android.MixerActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
+138:               <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+139:             </activity>
+140:           </application>
+141:         </manifest>
+142:         """ + "\n"
+143:     }
+144:     private static let entry = """
+RANGE 179-208
+179:     private static let readme = """
+180:     # Android local development host
+181: 
+182:     `mixer build --platform android` compiles the original shared AppModels/AppFeatures
+183:     package, app-owned Sources/AppAndroid entry, and locked owned runtime/Java/JNI.
+184:     Output is `.mixer/android-build/*-unsigned.apk`, with a complete build receipt.
+185:     The APK is unsigned and has not been installed or qualified on a device.
+186:     `swift test --package-path Platforms/Android` exercises this exact app's exported
+187:     session ABI on the host. Mac tests do not establish Android UI behavior.
+188: 
+189:     This host uses Android native widgets with the unchanged android-profile-v1
+190:     subset. Shared ProjectFeatureState owns draft/add/toggle; the iOS starter uses
+191:     the compatible read-only document(entries:) surface. State is process-local.
+192:     There is no persistence, process restoration, navigation/back/sheets, native
+193:     capabilities, lifecycle/effects, resource copying, production signing, store,
+194:     accessibility or performance qualification. Unsupported UI/events fail closed.
+195:     The generated JNI closure includes private staged prepare/commit/abort exports;
+196:     the Activity still uses legacy exchange and does not opt into V2 rendering.
+197:     Runtime state must preserve value semantics without shared mutable references.
+198:     Callbacks run synchronously under a non-reentrant lock; they must not perform
+199:     I/O, asynchronous work or external side effects. Sendable alone cannot ensure
+200:     rollback for arbitrary reference state or effects.
+201:     App-owned manifest/package/entry/Java files are compiled as edited; builds never
+202:     regenerate them. Put optional Android Java extensions under Java/. Bundled
+203:     Generated/MixerAndroid and Generated/MixerSDK inputs are immutable source locks.
+204: 
+205:     Supported installed tools: official Swift6.3.3 Android SDK arm64/API28, NDKr27d,
+206:     Android platform37.0/build-tools37.0.0, JDK25 (Java bytecode17), Python3. Tool
+207:     paths and complete distribution hashes are locked during creation. Configure
+208:     MIXER_SWIFT, MIXER_SWIFT_SDKS_PATH, MIXER_ANDROID_ARTIFACT_PATH, MIXER_JDK and
+
+FILE cli/Sources/MixerBuild/ProcessRunner.swift
+RANGE 1-37
+1: import Foundation
+2: 
+3: public struct CommandResult: Codable, Sendable {
+4:     public var command: [String]
+5:     public var exitCode: Int32
+6:     public var output: String
+7:     public var outputTruncated = false
+8:     public var succeeded: Bool { exitCode == 0 }
+9: }
+10: 
+11: public enum ProcessRunner {
+12:     // Output is spooled to a private temporary file so compiler diagnostics cannot
+13:     // deadlock a full pipe while the parent waits for termination.
+14:     public static func run(_ command: [String], at directory: URL? = nil, environment: [String: String]? = nil) throws -> CommandResult {
+15:         guard !command.isEmpty else { throw MixerFailure("command.empty", "Empty command") }
+16:         let folder = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-process-\(UUID().uuidString)")
+17:         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+18:         defer { try? FileManager.default.removeItem(at: folder) }
+19:         let log = folder.appendingPathComponent("output")
+20:         FileManager.default.createFile(atPath: log.path, contents: nil, attributes: [.posixPermissions: 0o600])
+21:         let handle = try FileHandle(forWritingTo: log)
+22:         defer { try? handle.close() }
+23:         let process = Process()
+24:         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+25:         process.arguments = command; process.currentDirectoryURL = directory
+26:         process.environment = environment ?? ProcessInfo.processInfo.environment
+27:         process.standardOutput = handle; process.standardError = handle
+28:         try process.run(); process.waitUntilExit()
+29:         try handle.synchronize()
+30:         let reader = try FileHandle(forReadingFrom: log)
+31:         defer { try? reader.close() }
+32:         let length = try reader.seekToEnd(), maximum: UInt64 = 8 * 1_048_576
+33:         try reader.seek(toOffset: length > maximum ? length - maximum : 0)
+34:         let bytes = try reader.read(upToCount: Int(maximum)) ?? Data()
+35:         return CommandResult(command: command, exitCode: process.terminationStatus, output: String(decoding: bytes, as: UTF8.self), outputTruncated: length > maximum)
+36:     }
+37: }
+
+FILE cli/Sources/MixerBuild/Configuration.swift
+RANGE 76-117
+76:     public init(sdkDigest: String, swiftVersion: String) {
+77:         self.sdkDigest = sdkDigest; self.swiftVersion = swiftVersion; sdkDistribution = "bundled-source-snapshot"
+78:     }
+79: }
+80: 
+81: public enum JSONFile {
+82:     public static func data<T: Encodable>(_ value: T) throws -> Data {
+83:         let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+84:         return try encoder.encode(value) + Data([10])
+85:     }
+86:     public static func write<T: Encodable>(_ value: T, to url: URL) throws { try data(value).write(to: url, options: .atomic) }
+87: }
+88: 
+89: public enum SourceDigest {
+90:     public static func files(in root: URL) throws -> [URL] {
+91:         let root = root.resolvingSymlinksInPath().standardizedFileURL
+92:         let skipped: Set<String> = [".build", ".git", ".swiftpm", "node_modules", ".gradle", ".mixer", "target", ".DS_Store"]
+93:         guard let enumerator = FileManager.default.enumerator(atPath: root.path) else { throw MixerFailure("files.read", "Cannot enumerate \(root.path)") }
+94:         var result: [URL] = []
+95:         for case let relative as String in enumerator {
+96:             let url = root.appendingPathComponent(relative)
+97:             if skipped.contains(url.lastPathComponent) { enumerator.skipDescendants(); continue }
+98:             let name = url.lastPathComponent.lowercased()
+99:             if (name == ".env" || (name.hasPrefix(".env.") && name != ".env.example")) || ["pem", "key", "p12", "pfx", "mobileprovision", "keystore", "jks"].contains(url.pathExtension.lowercased()) { continue }
+100:             let info = try url.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
+101:             if info.isSymbolicLink == true { throw MixerFailure("files.symlink", "Source snapshots reject symlinks: \(url.path)") }
+102:             if info.isRegularFile == true { result.append(url) }
+103:         }
+104:         return result.sorted { $0.path < $1.path }
+105:     }
+106:     public static func sha256(_ data: Data) -> String { SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined() }
+107:     public static func tree(_ root: URL) throws -> String {
+108:         let root = root.resolvingSymlinksInPath().standardizedFileURL
+109:         var hash = SHA256()
+110:         for file in try files(in: root) {
+111:             let relative = String(file.path.dropFirst(root.path.count + 1))
+112:             hash.update(data: Data(relative.utf8)); hash.update(data: Data([0]))
+113:             hash.update(data: Data(sha256(try Data(contentsOf: file)).utf8)); hash.update(data: Data([10]))
+114:         }
+115:         return hash.finalize().map { String(format: "%02x", $0) }.joined()
+116:     }
+117: }
+
+FILE cli/Sources/MixerBuild/Resources/android-build.py
+RANGE 207-245
+207: def build(root):
+208:     lock = read_json(root / 'mixer.lock')
+209:     if not isinstance(lock, dict) or type(lock.get('schema')) is not int or lock['schema'] != 1:
+210:         raise RuntimeError('Unsupported local toolchain lock schema.')
+211:     android = lock.get('android')
+212:     if not android:
+213:         raise RuntimeError('Android host is not generated. Create a new project with --platform android.')
+214:     adapter = root / 'Generated/MixerAndroid'
+215:     if source_tree(adapter) != android['adapterDigest'] or source_tree(root / 'Generated/MixerSDK') != lock['sdkDigest']:
+216:         raise RuntimeError('Bundled SDK or Android adapter source differs from mixer.lock.')
+217:     config = configuration(read_json(root / 'mixer.yml'))
+218:     if any(p.is_file() for p in (root / 'Resources').rglob('*')):
+219:         raise RuntimeError('Android resource packaging is not integrated; resources cannot be omitted.')
+220:     output = checked_output(root, create=True)
+221:     receipt_path = output / 'build-receipt.json'
+222:     receipt_path.unlink(missing_ok=True)
+223:     apk_path = output / (config['name'] + '-unsigned.apk')
+224:     apk_path.unlink(missing_ok=True)
+225:     source_before = source_tree(root)
+226:     build_input = {'run_id': uuid.uuid4().hex, 'source_tree_sha256': source_before,
+227:                    'scope': 'Local observed mutation detection; not an immutable build sandbox or attestation.'}
+228:     temporary_input = output / 'build-input.json.tmp'
+229:     temporary_input.write_text(json.dumps(build_input, indent=2) + '\n')
+230:     temporary_input.replace(output / 'build-input.json')
+231:     identity = inspect()
+232:     if identity != android['toolchain']:
+233:         raise RuntimeError('Android toolchain differs from mixer.lock. Restore the exact installed tool distributions.')
+234:     commands = []
+235:     def run(args):
+236:         checked_output(root)
+237:         args = list(map(str, args))
+238:         p = subprocess.run(args, cwd=root, env=ENV, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+239:         commands.append({'command': args, 'exit_code': p.returncode, 'output': p.stdout})
+240:         print(p.stdout, end='', flush=True)
+241:         if p.returncode:
+242:             raise RuntimeError('Android build failed: ' + repr(args))
+243:         return p.stdout
+244:     package = root / 'Platforms/Android'
+245:     swift_args = [SWIFT, 'build', '--package-path', package, '--scratch-path', output / 'swift', '--swift-sdks-path', SWIFT_SDKS, '--swift-sdk', SDK_ID, '-c', 'release', '--product', 'AppAndroid', '-Xlinker', '-z', '-Xlinker', 'max-page-size=16384']
+RANGE 280-330
+280:     classes, dex = output / 'classes', output / 'dex'
+281:     sources = sorted((adapter / 'app/src').rglob('*.java')) + sorted((package / 'Java').rglob('*.java'))
+282:     run([JDK / 'bin/javac', '--release', '17', '-Xlint:all', '-Werror', '-classpath', JAR, '-d', classes, *sources])
+283:     run([BT / 'd8', '--min-api', '28', '--lib', JAR, '--output', dex, *sorted(classes.rglob('*.class'))])
+284:     unsigned = output / 'unaligned.apk'
+285:     run([BT / 'aapt2', 'link', '-I', JAR, '--manifest', package / 'AndroidManifest.xml', '--min-sdk-version', '28', '--target-sdk-version', '37', '-o', unsigned])
+286:     checked_output(root)
+287:     with zipfile.ZipFile(unsigned, 'a', compression=zipfile.ZIP_DEFLATED) as archive:
+288:         for item in sorted((output / 'apk').rglob('*')):
+289:             if item.is_file():
+290:                 archive.write(item, item.relative_to(output / 'apk'))
+291:         for item in dex.glob('*.dex'):
+292:             archive.write(item, item.name)
+293:     run([BT / 'zipalign', '-f', '-P', '16', '4', unsigned, apk_path])
+294:     run([BT / 'zipalign', '-c', '-P', '16', '4', apk_path])
+295:     badging = run([BT / 'aapt2', 'dump', 'badging', apk_path])
+296:     if "package: name='" + config['application'] + "'" not in badging or 'dev.mixer.android.MixerActivity' not in badging or "native-code: 'arm64-v8a'" not in badging:
+297:         raise RuntimeError('APK identity, native activity or ABI does not match generated app.')
+298:     dex_dump = run([BT / 'dexdump', '-f', dex / 'classes.dex'])
+299:     for descriptor in ['Ldev/mixer/android/MixerActivity;', 'Ldev/mixer/android/NativeBridge;', 'Ldev/mixer/android/NativeRenderer;']:
+300:         if descriptor not in dex_dump:
+301:             raise RuntimeError('Required owned Android class absent from dex: ' + descriptor)
+302:     symbols = run([NDK / 'bin/llvm-nm', '-D', '--defined-only', engine])
+303:     for symbol in ['mixer_android_create', 'mixer_android_exchange', 'mixer_android_destroy', 'mixer_android_prepare_v2', 'mixer_android_commit_v2', 'mixer_android_abort_v2', 'AppFeatures', 'AppModels']:
+304:         if symbol not in symbols:
+305:             raise RuntimeError('App shared feature/model or ABI symbol missing: ' + symbol)
+306:     with zipfile.ZipFile(apk_path) as archive:
+307:         names = archive.namelist()
+308:         if any(n.startswith('META-INF/') for n in names) or any('ChecklistEngine' in n for n in names):
+309:             raise RuntimeError('Unexpected signing/example content in unsigned consumer.')
+310:         content = {n: hashlib.sha256(archive.read(n)).hexdigest() for n in sorted(names)}
+311:     normalized = hashlib.sha256(json.dumps(content, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+312:     source_after = source_tree(root)
+313:     if source_before != source_after or source_tree(adapter) != android['adapterDigest'] or source_tree(root / 'Generated/MixerSDK') != lock['sdkDigest']:
+314:         apk_path.unlink(missing_ok=True)
+315:         raise RuntimeError('Application/SDK/adapter source changed during the Android build; result rejected. Restore stable inputs and rebuild.')
+316:     receipt = {
+317:         'schema_version': 1, 'qualification': 'local-unsigned-cross-build-only',
+318:         'application': config['application'], 'apk': str(apk_path), 'apk_sha256': digest(apk_path), 'apk_bytes': apk_path.stat().st_size,
+319:         'apk_content_sha256': normalized, 'apk_entries': content,
+320:         'source_tree_sha256': source_before, 'source_tree_after_sha256': source_after,
+321:         'source_observation_scope': 'Before/after local mutation detection only; inputs are not isolated or immutably captured.',
+322:         'sdk_digest': lock['sdkDigest'], 'adapter_digest': android['adapterDigest'],
+323:         'toolchain': identity, 'native_dependencies': dependencies,
+324:         'native_libraries': {p.name: digest(p) for p in sorted(libdir.glob('*.so'))}, 'commands': commands,
+325:         'scope': 'Actual generated AppModels/AppFeatures Swift, owned JNI/native widgets, arm64 Android APK inspected. Unsigned; no install, device interaction, lifecycle, accessibility, performance, published SDK, store or FieldLog qualification.',
+326:     }
+327:     checked_output(root)
+328:     receipt_path.write_text(json.dumps(receipt, indent=2) + '\n')
+329:     print('UNSIGNED APK:', apk_path, 'SHA256:', receipt['apk_sha256'], flush=True)
+330:     print('RECEIPT:', receipt_path, flush=True)
+
+FILE cli/Tests/MixerBuildTests/AndroidProjectTests.swift
+RANGE 1-77
+1: import Foundation
+2: import Testing
+3: @testable import MixerBuild
+4: 
+5: private let repository = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+6: 
+7: @Test func androidSnapshotOwnsOnlyRuntimeRendererCoordinatorAndBridgeAndLocksExactBytes() throws {
+8:     let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-android-snapshot-\(UUID().uuidString)")
+9:     defer { try? FileManager.default.removeItem(at: root) }
+10:     let adapter = repository.appendingPathComponent("native/android")
+11:     let digest = try AndroidProject.snapshot(adapter: adapter, destination: root)
+12:     #expect(try SourceDigest.tree(root) == digest)
+13:     let java = ["Json.java", "UiPacket.java", "NativeRenderer.java", "NativeBridge.java", "MixerActivity.java", "NativeCoordinatorV2.java",
+14:                  "AppearanceDescriptorV2.java", "AppearanceGeometryV2.java", "AppearanceResolverV2.java",
+15:                  "AppearanceNativePathsV2.java", "InstalledAppearanceV2.java", "NativeEnvironmentV2.java",
+16:                  "AuthoredToggleInputV2.java", "NativeAppearanceViewsV2.java"]
+17:     #expect(Set(try SourceDigest.files(in: root.appendingPathComponent("app/src")).map(\.lastPathComponent)) == Set(java))
+18:     for name in java {
+19:         let relative = "app/src/dev/mixer/android/\(name)"
+20:         #expect(try Data(contentsOf: root.appendingPathComponent(relative)) == Data(contentsOf: adapter.appendingPathComponent(relative)))
+21:     }
+22:     for relative in ["bridge/jni.c", "bridge/mixer_android.h", "bridge/mixer_android_v2.h"] {
+23:         #expect(try Data(contentsOf: root.appendingPathComponent(relative)) == Data(contentsOf: adapter.appendingPathComponent(relative)))
+24:     }
+25:     #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("app/src/dev/mixer/android/AdapterInstrumentation.java").path))
+26:     #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("Sources/MixerAndroidEngine").path))
+27:     #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("engine/Sources/MixerAndroidEngine").path))
+28:     try "changed".write(to: root.appendingPathComponent("bridge/jni.c"), atomically: true, encoding: .utf8)
+29:     #expect(try SourceDigest.tree(root) != digest)
+30: }
+31: 
+32: @Test(arguments: ["NativeCoordinatorV2.java", "AuthoredToggleInputV2.java"], ["edit", "remove", "rename"])
+33: func androidCoordinatorAndAuthoredToggleSnapshotChangesInvalidateAdapterLock(_ filename: String, _ change: String) throws {
+34:     let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-android-coordinator-lock-\(UUID().uuidString)")
+35:     defer { try? FileManager.default.removeItem(at: root) }
+36:     let sdk = root.appendingPathComponent("Generated/MixerSDK")
+37:     let adapter = root.appendingPathComponent("Generated/MixerAndroid")
+38:     try FileManager.default.createDirectory(at: sdk, withIntermediateDirectories: true)
+39:     let digest = try AndroidProject.snapshot(adapter: repository.appendingPathComponent("native/android"), destination: adapter)
+40:     try JSONFile.write(ApplicationConfiguration(name: "App", application: "dev.example.app"), to: root.appendingPathComponent("mixer.yml"))
+41:     let version = try ProcessRunner.run(["swift", "--version"])
+42:     #expect(version.succeeded)
+43:     var lock = ToolchainLock(sdkDigest: try SourceDigest.tree(sdk), swiftVersion: version.output.trimmingCharacters(in: .whitespacesAndNewlines))
+44:     // verifyLock validates source and host compiler identity without invoking
+45:     // Android tools. This synthetic identity does not qualify a toolchain.
+46:     lock.android = AndroidToolchainLock(adapterDigest: digest, toolchain: AndroidToolchainIdentity(
+47:         schema: 1, sdk_id: "host-test-only", abi: "arm64-v8a", min_api: 28, target_api: 37,
+48:         swift_version: "host-test-only", javac_version: "host-test-only", java_version: "host-test-only",
+49:         python_version: "host-test-only", tools: [:], metadata: [:], distributions: [:], sdk_search_path: "host-test-only"))
+50:     try JSONFile.write(lock, to: root.appendingPathComponent("mixer.lock"))
+51:     #expect(try ProjectBuild.verifyLock(root: root).android?.adapterDigest == digest)
+52:     let source = adapter.appendingPathComponent("app/src/dev/mixer/android/\(filename)")
+53:     switch change {
+54:     case "edit": try Data("changed source".utf8).write(to: source)
+55:     case "remove": try FileManager.default.removeItem(at: source)
+56:     default: try FileManager.default.moveItem(at: source, to: source.appendingPathExtension("renamed"))
+57:     }
+58:     #expect(throws: MixerFailure.self) {
+59:         do { _ = try ProjectBuild.verifyLock(root: root) }
+60:         catch let failure as MixerFailure { #expect(failure.code == "lock.android-drift"); throw failure }
+61:     }
+62:     let direct = try ProcessRunner.run(["python3", adapter.appendingPathComponent("android-build.py").path, "build", root.path])
+63:     #expect(!direct.succeeded)
+64:     #expect(direct.output.contains("Bundled SDK or Android adapter source differs from mixer.lock."))
+65:     #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent(".mixer").path))
+66: }
+67: 
+68: @Test func unsupportedAndroidRequestDoesNotCreateOrOverwriteProject() throws {
+69:     let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-android-create-\(UUID().uuidString)")
+70:     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+71:     defer { try? FileManager.default.removeItem(at: root) }
+72:     let sdk = root.appendingPathComponent("SDK")
+73:     try FileManager.default.createDirectory(at: sdk, withIntermediateDirectories: true)
+74:     try "// fixture".write(to: sdk.appendingPathComponent("Package.swift"), atomically: true, encoding: .utf8)
+75:     let target = root.appendingPathComponent("App")
+76:     #expect(throws: MixerFailure.self) { try ProjectGenerator.create(name: "App", application: "com.example.app", destination: target, sdk: sdk, platform: "unknown") }
+77:     #expect(!FileManager.default.fileExists(atPath: target.path))
+
+FILE sdk/Package.swift
+RANGE 1-26
+1: // swift-tools-version: 6.0
+2: import PackageDescription
+3: 
+4: let package = Package(
+5:     name: "Mixer",
+6:     platforms: [.iOS("26.0"), .macOS(.v14)],
+7:     products: [
+8:         .library(name: "MixerCore", targets: ["MixerCore"]),
+9:         .library(name: "MixerUI", targets: ["MixerUI"]),
+10:         .library(name: "MixerApple", targets: ["MixerApple"]),
+11:         .library(name: "MixerGuest", targets: ["MixerGuest"]),
+12:         .library(name: "MixerCapabilities", targets: ["MixerCapabilities"]),
+13:     ],
+14:     targets: [
+15:         .target(name: "MixerCore"),
+16:         .target(name: "MixerCapabilityIO", path: "Sources/MixerCapabilities/NativeIO"),
+17:         .target(name: "MixerCapabilities", dependencies: ["MixerCore", .target(name: "MixerCapabilityIO", condition: .when(platforms: [.iOS, .macOS, .linux, .android]))], exclude: ["NativeIO"]),
+18:         .target(name: "MixerUI", dependencies: ["MixerCore"]),
+19:         .target(name: "MixerApple", dependencies: ["MixerCore", "MixerUI"]),
+20:         .target(name: "MixerGuest", dependencies: ["MixerCore", "MixerUI"]),
+21:         .testTarget(name: "MixerCoreTests", dependencies: ["MixerCore"]),
+22:         .testTarget(name: "MixerUITests", dependencies: ["MixerCore", "MixerUI", "MixerGuest"]),
+23:         .testTarget(name: "MixerAppleTests", dependencies: ["MixerApple", "MixerUI"]),
+24:     ],
+25:     swiftLanguageModes: [.v6]
+26: )
+
+FILE sdk/Sources/MixerUI/AppearanceDefaultV2.swift
+RANGE 1-4
+1: import Foundation
+2: 
+3: // One canonical default table. This explicit opt-in does not replace V1 or install
+4: // fonts/resources; the authored recipe still needs native consumer qualification.
+RANGE 7-11
+7: public extension UIAppearanceDescriptorCodecV2 {
+8:     static func mixerDefaultV2() throws -> UIAppearanceConfigurationV2 {
+9:         try decode(mixerMeasuredDefaultBytesV2)
+10:     }
+11: }
+
+FILE sdk/Sources/MixerUI/AppearanceDescriptorV2.swift
+RANGE 1-38
+1: import Foundation
+2: 
+3: /// A closed data codec only. Success establishes no native support, resource validity,
+4: /// installed provenance, presentation, health, or release authority.
+5: public enum UIAppearanceDescriptorCodecV2 {
+6:     public static func decode(_ bytes: Data) throws -> UIAppearanceConfigurationV2 {
+7:         guard !bytes.isEmpty, bytes.count <= 65_536 else { throw UIAppearanceErrorV2.byteLimit }
+8:         var reader = AppearanceReaderV2(bytes)
+9:         let tree = try reader.read()
+10:         let value = try UIAppearanceConfigurationV2.appearanceReadV2(tree)
+11:         try appearanceSemanticsV2(value)
+12:         let canonical = try appearanceCanonicalV2(tree)
+13:         guard canonical == bytes else { throw UIAppearanceErrorV2.noncanonical }
+14:         return value
+15:     }
+16: 
+17:     public static func validate(_ value: UIAppearanceConfigurationV2) throws {
+18:         _ = try checkedTree(value)
+19:     }
+20: 
+21:     public static func canonicalData(_ value: UIAppearanceConfigurationV2) throws -> Data {
+22:         try appearanceCanonicalV2(checkedTree(value))
+23:     }
+24: 
+25:     private static func checkedTree(_ value: UIAppearanceConfigurationV2) throws -> AppearanceJSONV2 {
+26:         // This fixed graph has no recursive raw values. Counts are checked before map;
+27:         // strings are checked without copying before retention. The two themes plus
+28:         // 64 resources and two 16-face catalogs fit the global 8192-value bound.
+29:         let tree = try value.appearanceWriteV2()
+30:         let checked = try UIAppearanceConfigurationV2.appearanceReadV2(tree)
+31:         try appearanceSemanticsV2(checked)
+32:         var measurement = AppearanceWriterV2()
+33:         try measurement.write(tree)
+34:         try measurement.byte(10)
+35:         return tree
+36:     }
+37: }
+38: 
+RANGE 821-861
+821:         } else { first = false }
+822:     }
+823:     guard !first else { throw UIAppearanceErrorV2.shape }
+824:     return locale
+825: }
+826: private func appearanceSha256V2(_ value: AppearanceJSONV2) throws -> String {
+827:     try appearanceTextV2(value, 64, 64) { (48...57).contains($0) || (97...102).contains($0) }
+828: }
+829: private func appearanceWeightV2(_ value: AppearanceJSONV2) throws -> UIFontWeightV1 {
+830:     guard let weight = UIFontWeightV1(rawValue: UInt16(try value.number(400, 700))) else {
+831:         throw UIAppearanceErrorV2.number
+832:     }
+833:     return weight
+834: }
+835: private extension UIRGBA8V1 {
+836:     static func appearanceReadV2(_ value: AppearanceJSONV2) throws -> Self {
+837:         let text = try appearanceTextV2(value, 9, 9) { $0 == 35 || (48...57).contains($0) || (65...70).contains($0) }
+838:         let bytes = Array(text.utf8)
+839:         guard bytes[0] == 35, !bytes.dropFirst().contains(35) else { throw UIAppearanceErrorV2.shape }
+840:         func channel(_ offset: Int) -> UInt8 {
+841:             func hex(_ byte: UInt8) -> UInt8 { byte <= 57 ? byte - 48 : byte - 55 }
+842:             return hex(bytes[offset]) * 16 + hex(bytes[offset + 1])
+843:         }
+844:         return Self(red: channel(1), green: channel(3), blue: channel(5), alpha: channel(7))
+845:     }
+846:     func appearanceWriteV2() throws -> AppearanceJSONV2 {
+847:         let hex = Array("0123456789ABCDEF".utf8)
+848:         var bytes: [UInt8] = [35]
+849:         for byte in [red, green, blue, alpha] { bytes.append(hex[Int(byte >> 4)]); bytes.append(hex[Int(byte & 15)]) }
+850:         return .string(String(decoding: bytes, as: UTF8.self))
+851:     }
+852: }
+853: private extension UIFontSourceV1 {
+854:     static func appearanceReadV2(_ value: AppearanceJSONV2) throws -> Self {
+855:         guard case let .object(f) = value, let kind = f["kind"] else { throw UIAppearanceErrorV2.shape }
+856:         switch try kind.text() {
+857:         case "systemSans":
+858:             _ = try value.fields(["kind"])
+859:             return .systemSans
+860:         case "bundled":
+861:             _ = try value.fields(["kind", "faces", "fallback"])
+
+FILE native/android/app/src/dev/mixer/android/InstalledAppearanceV2.java
+RANGE 11-63
+11: /** Private installed capture for the repository native prototype, not a support proof. */
+12: final class InstalledAppearanceV2 {
+13:     static final String DESCRIPTOR = "MixerAppearanceV2/descriptor.json";
+14:     private final Object owner;
+15:     private final byte[] canonical;
+16:     final AppearanceDescriptorV2 configuration;
+17:     final String sha256;
+18: 
+19:     private InstalledAppearanceV2(Object owner, byte[] bytes, AppearanceDescriptorV2 descriptor) {
+20:         this.owner = owner;
+21:         canonical = bytes;
+22:         configuration = descriptor;
+23:         try {
+24:             byte[] digest = MessageDigest.getInstance("SHA-256").digest(bytes);
+25:             StringBuilder hex = new StringBuilder(64);
+26:             for (byte value : digest) hex.append(String.format(java.util.Locale.ROOT, "%02x", value & 255));
+27:             sha256 = hex.toString();
+28:         } catch (NoSuchAlgorithmException impossible) { throw new AssertionError(impossible); }
+29:     }
+30: 
+31:     static InstalledAppearanceV2 capture(Context context, Object owner) {
+32:         NativeEnvironmentV2.requireMain();
+33:         byte[] bytes;
+34:         try (InputStream stream = context.getAssets().open(DESCRIPTOR, AssetManager.ACCESS_STREAMING)) {
+35:             // The limit is enforced while reading, including streams whose available() lies.
+36:             ByteArrayOutputStream output = new ByteArrayOutputStream(4096);
+37:             byte[] chunk = new byte[4096];
+38:             int count, total = 0;
+39:             while ((count = stream.read(chunk, 0, Math.min(chunk.length, 65537 - total))) != -1) {
+40:                 total += count;
+41:                 if (total > 65536) throw reject(AppearanceDescriptorV2.Error.byteLimit);
+42:                 output.write(chunk, 0, count);
+43:             }
+44:             bytes = output.toByteArray();
+45:         } catch (IOException failure) {
+46:             AppearanceDescriptorV2.Failure rejected = reject(AppearanceDescriptorV2.Error.resourceCatalog);
+47:             rejected.initCause(failure); throw rejected;
+48:         }
+49:         AppearanceDescriptorV2 descriptor = AppearanceDescriptorV2.decode(bytes);
+50:         // Decode validates both complete platform themes and every catalog entry first.
+51:         // This executable slice supports no resource kind, even an unused declaration.
+52:         if (!descriptor.resources.isEmpty() ||
+53:             !(descriptor.iOS.typography().font() instanceof AppearanceDescriptorV2.SystemSans) ||
+54:             !(descriptor.android.typography().font() instanceof AppearanceDescriptorV2.SystemSans))
+55:             throw reject(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
+56:         return new InstalledAppearanceV2(owner, bytes, descriptor);
+57:     }
+58: 
+59:     boolean belongsTo(Object value) { return owner == value; }
+60:     byte[] descriptorCopy() { return canonical.clone(); }
+61:     private static AppearanceDescriptorV2.Failure reject(AppearanceDescriptorV2.Error error) {
+62:         return new AppearanceDescriptorV2.Failure(error);
+63:     }
+
+FILE native/android/app/src/dev/mixer/android/MixerActivity.java
+RANGE 1-16
+1: package dev.mixer.android;
+2: import android.app.Activity;
+3: import android.os.Bundle;
+4: import android.util.Log;
+5: import android.view.View;
+6: import android.widget.FrameLayout;
+7: import android.widget.Toast;
+8: /** Activity owns native lifecycle only. Swift owns the example model and UI tree. */
+9: public final class MixerActivity extends Activity {
+10:     long session;NativeRenderer renderer;private FrameLayout root;
+11:     @SuppressWarnings("deprecation")
+12:     @Override public void onCreate(Bundle saved){super.onCreate(saved);if(android.os.Build.VERSION.SDK_INT>=30){getWindow().getInsetsController().setSystemBarsAppearance(android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);}else{getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);}root=new FrameLayout(this);root.setBackgroundColor(0xfffafafa);root.setOnApplyWindowInsetsListener((view,insets)->{view.setPadding(insets.getSystemWindowInsetLeft(),insets.getSystemWindowInsetTop(),insets.getSystemWindowInsetRight(),insets.getSystemWindowInsetBottom());return insets;});setContentView(root);session=NativeBridge.create();renderer=new NativeRenderer(this,this::event);render(NativeBridge.exchange(session,0,null));}
+13:     private void render(byte[] bytes){UiPacket next=UiPacket.decode(bytes);View content=renderer.apply(next);if(content.getParent()!=root){root.removeAllViews();root.addView(content,new FrameLayout.LayoutParams(-1,-1));}}
+14:     private void event(byte[] envelope){try{render(NativeBridge.exchange(session,1,envelope));}catch(RuntimeException error){Log.e("MixerAndroid","Input rejected",error);Toast.makeText(this,"Couldn't apply that edit",Toast.LENGTH_SHORT).show();}}
+15:     @Override public void onDestroy(){if(session!=0){NativeBridge.destroy(session);session=0;}super.onDestroy();}
+16: }
+
+FILE native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java
+RANGE 69-75
+69: 
+70:         Observer(NativeRenderer owner, Activity activity, FrameLayout root) {
+71:             requireMain();
+72:             // Public high-contrast read/listener first exists on API36. Never invent false on earlier OSes.
+73:             if (Build.VERSION.SDK_INT < 36 || root.getContext() != activity) unsupported();
+74:             this.owner = owner; this.activity = activity; this.root = root;
+75:             modes = Objects.requireNonNull(activity.getSystemService(UiModeManager.class));
+RANGE 125-130
+125:             int adjustment = config.fontWeightAdjustment;
+126:             if (adjustment != Configuration.FONT_WEIGHT_ADJUSTMENT_UNDEFINED && adjustment != 0 ||
+127:                 accessibility.isHighContrastTextEnabled() || modes.getContrast() > 0) unsupported();
+128:             float animator = Settings.Global.getFloat(activity.getContentResolver(), Settings.Global.ANIMATOR_DURATION_SCALE, 1);
+129:             if (!Float.isFinite(animator) || animator < 0) unsupported();
+130:             return new AppearanceResolverV2.Environment(
+
+FILE docs/android-public-appearance-routing-proposal.md
+RANGE 1-126
+1: # Android public appearance routing prerequisite
+2: 
+3: Proposed next slice: export and lock the already accepted
+4: `AuthoredToggleInputV2.java` in newly generated Android applications, and compile
+5: the actual exported Java closure as a regression. This closes a concrete source
+6: distribution gap before public V2 routing. This proposal performs source and
+7: retained-evidence review only; no product code, compiler, native runtime, device,
+8: capture or UI automation was executed.
+9: 
+10: The source inventory, exact hashes, excerpts, commands and review scope are in
+11: [the review receipt](../verification/android-public-appearance-routing-proposal/receipt.json).
+12: The selected input digest is defined in its source manifest. These are proposal
+13: observations, not implementation acceptance or a release decision.
+14: 
+15: ## Observed boundary
+16: 
+17: The [accepted authored integration](../verification/android-authored-toggle-integration/acceptance.json)
+18: integrated exactly three Java sources and binds 89 product inputs to the private
+19: API37 arm64 native candidate. Its 20-action coordinator matrix and 45-component
+20: matrix are bounded private evidence. The integration receipt explicitly leaves
+21: public routing, renderer lifecycle beyond fixtures, parity and TalkBack pending.
+22: 
+23: `NativeAppearanceViewsV2.java:602–614` now implements
+24: `AuthoredToggleInputV2.CheckedBinding`, constructs the class and calls its geometry
+25: routine. However, `AndroidProject.swift:32–49` explicitly exports thirteen Java
+26: files without `AuthoredToggleInputV2.java`; `AndroidProjectTests.swift:13–16`
+27: asserts that same incomplete set. The generated driver compiles only exported
+28: adapter Java and app-owned Java (`android-build.py:280–283`). Thus the required
+29: source is missing from a fresh generated adapter. This is a source-observed
+30: closure defect; this proposal did not reproduce a compiler failure.
+31: 
+32: The exact accepted source SHA-256 is
+33: `4b5f890ee7d3d7f4f4b17ba79bc8a44a8f26fa916e5ecd3c04a3c21fa98978fd`.
+34: Its current bytes agree with the accepted integration binding. Copy these bytes;
+35: no authored-input algorithm or native control change is needed for this slice.
+36: The retained accepted compositional build binds its 5,119-byte top-level class
+37: to `f71c191f2727295065092c9e072598a79647bdd8e9b85616bfea60468bed50df`;
+38: all four authored class hashes are copied from the acceptance-bound
+39: `host-1/fresh-artifacts.json` into this proposal's observations. That is retained
+40: class evidence, not a fresh class compilation in this proposal.
+41: 
+42: ## One bounded implementation assignment
+43: 
+44: | Owned file or directory | Concrete change |
+45: | --- | --- |
+46: | `cli/Sources/MixerBuild/AndroidProject.swift` | Add the exact accepted `app/src/dev/mixer/android/AuthoredToggleInputV2.java` to the explicit snapshot. It participates in the existing adapter digest and `mixer.lock`. |
+47: | `cli/Tests/MixerBuildTests/AndroidProjectTests.swift` | Require the fourteen-file Java set and byte identity; add edit/remove/rename lock rejection for this newly required source. |
+48: | `verification/android-authored-toggle-generated-export/**` | Fresh bounded collector, generated consumer and command/artifact receipts for the actual exported Java/D8 closure; retain failures and scratch cleanup. |
+49: 
+50: No new public configuration, UI wire field, JNI/C/Swift ABI, resource capability
+51: or dependency is required. Keep the explicit export boundary: checklist engines,
+52: instrumentation, host leaves and unrelated source remain outside generated apps.
+53: The existing JNI exports, opaque token semantics and value-owned reducer contract
+54: remain the prerequisites for a later join. Root owns coherent commits, pushes,
+55: CI inspection and metadata updates after independent review.
+56: 
+57: ## Executable verification available during the pause
+58: 
+59: Use a fresh isolated source snapshot with command argv, tool identities, source
+60: hashes, complete outputs, class/DEX hashes and cleanup receipts. Do not replay an
+61: old collector whose historical acceptance pins predate the authored integration.
+62: 
+63: 1. Run the focused Swift snapshot/lock tests in Debug and Release. Require all
+64:    fourteen exported Java files to match production bytes and the accepted input
+65:    binding. Edit, remove and rename the new source independently; both CLI lock
+66:    verification and the direct build-driver admission must reject drift before
+67:    build output is created.
+68: 2. Build the CLI and use its actual `create --platform android` command to create
+69:    a fresh application. Compile **only its exported Java closure** against the
+70:    official SDK37 `android.jar`, using Java 17 bytecode, `-Xlint:all -Werror`, an
+71:    empty source path and no repository/precompiled adapter classes on the class
+72:    path. Require the authored class and its nested classes in output. A negative
+73:    control that omits this one exported source must fail compilation for the
+74:    missing authored type, without relying on string checks alone.
+75: 3. Convert that complete class output with official D8 `--min-api 28`; inspect
+76:    the resulting DEX for the authored class and preserve exact source/class/DEX
+77:    bindings. This establishes compilation and packaging only. The private V2
+78:    runtime floor remains a separate API36 limitation.
+79: 
+80: The existing ordinary Swift registry/transaction tests and a full unsigned
+81: generated Swift/JNI/APK cross-build are also permitted host/cross-build checks
+82: if the implementation changes their inputs. They are not substitutes for the
+83: exported-closure regression above. No such checks ran for this proposal.
+84: 
+85: ## Public join contracts and explicit dependency gaps
+86: 
+87: Today `MixerActivity.java:12–15` creates the ordinary session and calls legacy
+88: `exchange` → `UiPacket.decode` → `NativeRenderer.apply`, with event callbacks
+89: returning through `exchange`. `AndroidProject.swift:133–139` emits that Activity
+90: with minimum API28. Merely exporting the accepted source cannot change routing.
+91: 
+92: A later public join can reuse `NativeCoordinatorV2`: main-Looper ownership;
+93: installed/environment capture; ordinary `prepareV2`; gated native attachment and
+94: final validation; scalar commit immediately followed by native finish; publication
+95: of the committed packet only afterward (`NativeCoordinatorV2.java:18–40,84–105`).
+96: Known rejection requires confirmed abort and permitted cleanup; ambiguous
+97: delivery/commit, failed cleanup and rejected native edits retire both owners
+98: (`:110–142`). Environment refresh reuses the exact committed packet without a
+99: new engine transaction (`:146–182`). Retirement closes forwarding, clears local
+100: authority, then attempts renderer disposal and session destruction independently
+101: (`:213–243`). The accepted authored source preserves these event/gate rules.
+102: An Activity join must wait for a real attached, nonzero window and coordinate
+103: refresh/retirement with its lifecycle; the private fixture is not a public owner.
+104: 
+105: | Missing dependency before a public switch | Required contract |
+106: | --- | --- |
+107: | Descriptor/theme packaging | `InstalledAppearanceV2.java:13,31–55` requires an installed `MixerAppearanceV2/descriptor.json`, bounded to 64KiB. The generator packages none and rejects all app resources (`AndroidProject.swift:103`). Define and lock ordinary generated appearance data using the shared theme by default; platform-specific appearance must be explicitly declared. |
+108: | Resource/font support | The current capture rejects every nonempty resource catalog, even unused entries, and bundled fonts. Implement/qualify promised resource behavior or retain explicit unsupported errors; never silently substitute platform defaults. |
+109: | Platform/environment coverage | `NativeEnvironmentV2.java:69–74,125–128` rejects API<36 and nondefault weight/high contrast. Preserve the product's proposed API28+ baseline subject to qualification, physical arm64 and supported emulator-architecture matrix (product plan §19.1). No baseline increase is selected, and D8 min28 is not runtime support. |
+110: | Shared app document and lifecycle | V2 resolves the existing schema-1 packet plus a separate descriptor; it needs no invented packet appearance field. The Android starter uses stateful `document(state:revision:)`; generated iOS uses read-only `document(entries:)` and `MixerNativeView` (`ProjectGenerator.swift:117–141,209–213`). Coordinate shared content, interaction, native owner refresh, teardown and supported operations before claiming the same app design. |
+111: | Public renderer qualification | Retain unsupported-operation rejection, revision/generation routing, disabled/gated event checks, authored input cancellation, retained editor rules and transaction ordering. No alternate renderer may reopen a retired presentation or treat source inclusion as installation authority. |
+112: 
+113: Product plan §8.3 remains binding: shared layout, hierarchy, content, colors,
+114: typography scale, icons, spacing and component appearance by default; explicit
+115: platform styling opt-in; native accessibility, navigation, text input and
+116: system-owned surfaces. Legitimate shaping, rasterization, density and safe-area
+117: differences remain allowed. Website Flick branding is not a replacement app
+118: theme, and this prerequisite changes no brand or theme decision.
+119: 
+120: Public Activity execution, fresh actual JNI/native lifecycle and environment
+121: refresh, pointer/keyboard/IME/scroll, TalkBack/focus/actions, compositor/resource
+122: coverage and other OS profiles remain **pending** during the runtime pause.
+123: Final physical iOS/Android side-by-side design review, the physical-phone matrix,
+124: immutable external FieldLog consumption, signed presentation/health authority,
+125: release and GA acceptance remain pending. A narrowly configured development
+126: consumer cannot complete those product requirements.

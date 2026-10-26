@@ -1,4 +1,5 @@
 import Foundation
+import MixerUI
 import Testing
 @testable import MixerBuild
 
@@ -10,6 +11,16 @@ private let repository = URL(fileURLWithPath: #filePath).deletingLastPathCompone
     let adapter = repository.appendingPathComponent("native/android")
     let digest = try AndroidProject.snapshot(adapter: adapter, destination: root)
     #expect(try SourceDigest.tree(root) == digest)
+    let descriptor = try Data(contentsOf: root.appendingPathComponent("app/assets/MixerAppearanceV2/descriptor.json"))
+    let expectedAppearance = try UIAppearanceDescriptorCodecV2.mixerDefaultV2()
+    let expectedBytes = try UIAppearanceDescriptorCodecV2.canonicalData(expectedAppearance)
+    #expect(descriptor == expectedBytes)
+    let appearance = try UIAppearanceDescriptorCodecV2.decode(descriptor)
+    #expect(appearance == expectedAppearance)
+    #expect(appearance.resources.isEmpty)
+    guard case let .shared(theme) = appearance.mode else { Issue.record("Default must be shared"); return }
+    #expect(theme.typography.font == .systemSans)
+    #expect(try SourceDigest.files(in: root.appendingPathComponent("app/assets")).map { String($0.path.dropFirst(root.path.count + 1)) } == ["app/assets/MixerAppearanceV2/descriptor.json"])
     let java = ["Json.java", "UiPacket.java", "NativeRenderer.java", "NativeBridge.java", "MixerActivity.java", "NativeCoordinatorV2.java",
                  "AppearanceDescriptorV2.java", "AppearanceGeometryV2.java", "AppearanceResolverV2.java",
                  "AppearanceNativePathsV2.java", "InstalledAppearanceV2.java", "NativeEnvironmentV2.java",
@@ -27,6 +38,43 @@ private let repository = URL(fileURLWithPath: #filePath).deletingLastPathCompone
     #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("engine/Sources/MixerAndroidEngine").path))
     try "changed".write(to: root.appendingPathComponent("bridge/jni.c"), atomically: true, encoding: .utf8)
     #expect(try SourceDigest.tree(root) != digest)
+}
+
+@Test(arguments: ["edit", "remove", "rename", "symlink"])
+func androidDefaultAppearanceSnapshotChangesInvalidateAdapterLock(_ change: String) throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-android-appearance-lock-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: root) }
+    let sdk = root.appendingPathComponent("Generated/MixerSDK")
+    let adapter = root.appendingPathComponent("Generated/MixerAndroid")
+    try FileManager.default.createDirectory(at: sdk, withIntermediateDirectories: true)
+    let digest = try AndroidProject.snapshot(adapter: repository.appendingPathComponent("native/android"), destination: adapter)
+    try JSONFile.write(ApplicationConfiguration(name: "App", application: "dev.example.app"), to: root.appendingPathComponent("mixer.yml"))
+    let version = try ProcessRunner.run(["swift", "--version"])
+    #expect(version.succeeded)
+    var lock = ToolchainLock(sdkDigest: try SourceDigest.tree(sdk), swiftVersion: version.output.trimmingCharacters(in: .whitespacesAndNewlines))
+    lock.android = AndroidToolchainLock(adapterDigest: digest, toolchain: AndroidToolchainIdentity(
+        schema: 1, sdk_id: "host-test-only", abi: "arm64-v8a", min_api: 28, target_api: 37,
+        swift_version: "host-test-only", javac_version: "host-test-only", java_version: "host-test-only",
+        python_version: "host-test-only", tools: [:], metadata: [:], distributions: [:], sdk_search_path: "host-test-only"))
+    try JSONFile.write(lock, to: root.appendingPathComponent("mixer.lock"))
+    #expect(try ProjectBuild.verifyLock(root: root).android?.adapterDigest == digest)
+    let descriptor = adapter.appendingPathComponent("app/assets/MixerAppearanceV2/descriptor.json")
+    switch change {
+    case "edit": try Data("changed".utf8).write(to: descriptor)
+    case "remove": try FileManager.default.removeItem(at: descriptor)
+    case "rename": try FileManager.default.moveItem(at: descriptor, to: descriptor.appendingPathExtension("renamed"))
+    default:
+        let copy = root.appendingPathComponent("descriptor-copy.json")
+        try FileManager.default.copyItem(at: descriptor, to: copy)
+        try FileManager.default.removeItem(at: descriptor)
+        try FileManager.default.createSymbolicLink(at: descriptor, withDestinationURL: copy)
+    }
+    #expect(throws: (any Error).self) { _ = try ProjectBuild.verifyLock(root: root) }
+    let direct = try ProcessRunner.run(["python3", adapter.appendingPathComponent("android-build.py").path, "build", root.path])
+    #expect(!direct.succeeded)
+    #expect(direct.output.contains(change == "edit" ? "differs from mixer.lock" : "Android appearance"))
+    #expect(!direct.output.contains("Traceback"))
+    #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent(".mixer").path))
 }
 
 @Test(arguments: ["NativeCoordinatorV2.java", "AuthoredToggleInputV2.java"], ["edit", "remove", "rename"])
@@ -109,7 +157,11 @@ func androidCoordinatorAndAuthoredToggleSnapshotChangesInvalidateAdapterLock(_ f
         try FileManager.default.createDirectory(at: root.appendingPathComponent(relative), withIntermediateDirectories: true)
     }
     let empty = try SourceDigest.tree(root.appendingPathComponent("Generated/MixerSDK"))
-    let lock: [String: Any] = ["schema": 1, "sdkDigest": empty, "android": ["adapterDigest": empty, "toolchain": [:]]]
+    let descriptor = root.appendingPathComponent("Generated/MixerAndroid/app/assets/MixerAppearanceV2/descriptor.json")
+    try FileManager.default.createDirectory(at: descriptor.deletingLastPathComponent(), withIntermediateDirectories: true)
+    try Data("layout-only fixture".utf8).write(to: descriptor)
+    let adapterDigest = try SourceDigest.tree(root.appendingPathComponent("Generated/MixerAndroid"))
+    let lock: [String: Any] = ["schema": 1, "sdkDigest": empty, "android": ["adapterDigest": adapterDigest, "toolchain": [:]]]
     try JSONSerialization.data(withJSONObject: lock).write(to: root.appendingPathComponent("mixer.lock"))
     var config = ApplicationConfiguration(name: "App", application: "dev.example.app")
     config.capabilities = []

@@ -1,0 +1,923 @@
+{
+  "cleanup": {
+    "all_collector_owned_command_groups_absent": true,
+    "native_capture_or_other_project_processes_started_or_stopped": false,
+    "owned_scratch_removed": true
+  },
+  "collector_failure_classification": "Review-only version-probe invocation resolved swift symlink to swift-driver; no product compiler/build failed.",
+  "collector_sha256": "b9d673b0e85bddcd31b1668bc3b13dec504281b626a6a46cb655c5c1347378fa",
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "/private/tmp/mixer-review-m06rw7q3/source/cli/build-tests",
+        "-p",
+        "test_android*.py",
+        "-v"
+      ],
+      "cwd": "/private/tmp/mixer-review-m06rw7q3/source",
+      "deadline_seconds": 90,
+      "elapsed_seconds": 0.841,
+      "exit_code": 0,
+      "failure_reason": null,
+      "label": "python-selected-suites",
+      "owned_group_absent_on_completion": true,
+      "owned_process_group": 75343,
+      "stderr": "python-selected-suites.stderr",
+      "stderr_bytes": 3377,
+      "stderr_sha256": "bb8f9ea4ca9b899e714c09c53a679f984cd1434aa4965a627165b497d3c8e5cb",
+      "stdout": "python-selected-suites.stdout",
+      "stdout_bytes": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/independent_vectors.py",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/adversarial-2"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "deadline_seconds": 90,
+      "elapsed_seconds": 1.587,
+      "exit_code": 0,
+      "failure_reason": null,
+      "label": "independent-host-vectors",
+      "owned_group_absent_on_completion": true,
+      "owned_process_group": 75367,
+      "stderr": "independent-host-vectors.stderr",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "independent-host-vectors.stdout",
+      "stdout_bytes": 50,
+      "stdout_sha256": "6b5c3a6a8b1a363e895753a2d4ddd3c70c67587727c076cdc32afc78f88ba3ac"
+    },
+    {
+      "argv": [
+        "/usr/bin/swift",
+        "--version"
+      ],
+      "cwd": "/private/tmp/mixer-review-m06rw7q3/source",
+      "deadline_seconds": 15,
+      "elapsed_seconds": 0.464,
+      "exit_code": 0,
+      "failure_reason": null,
+      "label": "tool-host_swift",
+      "owned_group_absent_on_completion": true,
+      "owned_process_group": 75414,
+      "stderr": "tool-host_swift.stderr",
+      "stderr_bytes": 30,
+      "stderr_sha256": "bbc8b176d3c74d4c5a7fd00b40280f98168e116d5272273bfe8e71407625540e",
+      "stdout": "tool-host_swift.stdout",
+      "stdout_bytes": 98,
+      "stdout_sha256": "04630ab8fa201f57c63c59730e638135e32584a97e16e004a417eb8ed283dc83"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift-driver",
+        "--version"
+      ],
+      "cwd": "/private/tmp/mixer-review-m06rw7q3/source",
+      "deadline_seconds": 15,
+      "elapsed_seconds": 0.065,
+      "exit_code": 1,
+      "failure_reason": null,
+      "label": "tool-android_swift",
+      "owned_group_absent_on_completion": true,
+      "owned_process_group": 75417,
+      "stderr": "tool-android_swift.stderr",
+      "stderr_bytes": 41,
+      "stderr_sha256": "afc0026eb189fa15bda57e5d3a59dd8baabeeb7d2f3565c5878dec4399b8c86d",
+      "stdout": "tool-android_swift.stdout",
+      "stdout_bytes": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "failure": "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/run_independent.py\", line 81, in main\n    stdout, stderr, _ = runner.run('tool-' + name, [tools[name], *args], work, timeout=15)\n                        ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/review_runtime.py\", line 71, in run\n    assert exit_code == expected, result\n           ^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'label': 'tool-android_swift', 'argv': ['/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift-driver', '--version'], 'cwd': '/private/tmp/mixer-review-m06rw7q3/source', 'exit_code': 1, 'deadline_seconds': 15, 'elapsed_seconds': 0.065, 'stdout': 'tool-android_swift.stdout', 'stderr': 'tool-android_swift.stderr', 'stdout_sha256': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'stderr_sha256': 'afc0026eb189fa15bda57e5d3a59dd8baabeeb7d2f3565c5878dec4399b8c86d', 'stdout_bytes': 0, 'stderr_bytes': 41, 'owned_process_group': 75417, 'owned_group_absent_on_completion': True, 'failure_reason': None}\n",
+  "native_runtime_or_capture_started": false,
+  "schema_version": 1,
+  "scope": "Independent host vectors, actual fresh CLI and complete unsigned cross-build; no native runtime/signing/release authority",
+  "scratch": "/private/tmp/mixer-review-m06rw7q3",
+  "source_archive_sha256": "2f6268251008747bcb60dbacba44d8d8a7dfb30f7b3b55d8c1caa4e16d9e70c5",
+  "source_files": 241,
+  "source_sha256": "2d3058772475493328a86abd8f4417aae87cf517337184e615da8344b5ca5aed",
+  "status": "failed-independent-review-execution",
+  "tool_identities": {
+    "aapt2": {
+      "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/aapt2",
+      "sha256": "13a206c0b022ba3b92f21b6f142f3a4b2d0f3bb1ac0bddfa820ee2c6b00c4c99"
+    },
+    "android_jar": {
+      "path": "/opt/homebrew/share/android-commandlinetools/platforms/android-37.0/android.jar",
+      "sha256": "bf1b4387cc7ca94fc6ef684f040d9d16fbf16248e181819f020736ea2053f177"
+    },
+    "android_swift": {
+      "path": "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift-driver",
+      "sha256": "3d13e20b1504d7d30038fcd2201b9d0a8ead5c09eea752a5da223453b3ae0c6f"
+    },
+    "d8": {
+      "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/d8",
+      "sha256": "b773a721be3d4988dea9660815a9e441b76100e5b0f5c72b5893cfadadc76c6f"
+    },
+    "host_swift": {
+      "path": "/usr/bin/swift",
+      "sha256": "34129c71a01a74f7f3b2443521519b2e5447553fa187f5fcafaaf8c42cc192e2",
+      "version_stderr": "swift-driver version: 1.168.6 ",
+      "version_stdout": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0\n"
+    },
+    "java": {
+      "path": "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home/bin/java",
+      "sha256": "9ef6c1a939343ac850811551a8b88d4b877630ab2c94ac38c541e25ccc8cf0a5"
+    },
+    "javac": {
+      "path": "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home/bin/javac",
+      "sha256": "e9fb09ca9cb259a164a32c9055931a865943d25c66800996183c86e527ca0688"
+    },
+    "python": {
+      "path": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+    },
+    "zipalign": {
+      "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/zipalign",
+      "sha256": "6d99a9d16c7116850414910b04cffd5ba3aaff86db7a6346179d678abe6d25d1"
+    }
+  },
+  "vectors": {
+    "A01": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-41v__jv2"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A01.stderr",
+        "stdout": "adversarial-2/logs/A01.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A02": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-b12lv_ph"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A02.stderr",
+        "stdout": "adversarial-2/logs/A02.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A03": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-h3jjcl77"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A03.stderr",
+        "stdout": "adversarial-2/logs/A03.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A04": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-4ku4c9nr"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A04.stderr",
+        "stdout": "adversarial-2/logs/A04.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A05": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-n7u6awgk"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A05.stderr",
+        "stdout": "adversarial-2/logs/A05.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A06": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-wdk69d9l"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A06.stderr",
+        "stdout": "adversarial-2/logs/A06.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A07": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-352ljzao"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A07.stderr",
+        "stdout": "adversarial-2/logs/A07.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A08": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-gi_8t0gc"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A08.stderr",
+        "stdout": "adversarial-2/logs/A08.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A09": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-c0y8qkqb"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A09.stderr",
+        "stdout": "adversarial-2/logs/A09.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A10": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-brcr0yo_"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A10.stderr",
+        "stdout": "adversarial-2/logs/A10.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A11": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-hr7irtnt"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A11.stderr",
+        "stdout": "adversarial-2/logs/A11.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A12": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-wfb7tjln"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A12.stderr",
+        "stdout": "adversarial-2/logs/A12.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A13": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-2us7umuc"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A13.stderr",
+        "stdout": "adversarial-2/logs/A13.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A14": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-uen9w1q9"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A14.stderr",
+        "stdout": "adversarial-2/logs/A14.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A15": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-3zmd_std"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A15.stderr",
+        "stdout": "adversarial-2/logs/A15.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A16": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-ubadqa6n"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A16.stderr",
+        "stdout": "adversarial-2/logs/A16.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A17": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-iq77ix4d"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A17.stderr",
+        "stdout": "adversarial-2/logs/A17.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A18": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-hosuhqzx"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A18.stderr",
+        "stdout": "adversarial-2/logs/A18.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A19": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-r52nel5w"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A19.stderr",
+        "stdout": "adversarial-2/logs/A19.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A20": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-zvxwepuj"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A20.stderr",
+        "stdout": "adversarial-2/logs/A20.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A21": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-9v5w_31t"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A21.stderr",
+        "stdout": "adversarial-2/logs/A21.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A22": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-urp61z91"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A22.stderr",
+        "stdout": "adversarial-2/logs/A22.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A23": {
+      "detail": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+          "build",
+          "/private/tmp/mr-z7ney_3b"
+        ],
+        "before_source_hash_and_tools": true,
+        "deadline_seconds": 5,
+        "exit_code": 1,
+        "output_sentinels_unchanged": true,
+        "private_owned_group_absent_on_completion": true,
+        "stderr": "adversarial-2/logs/A23.stderr",
+        "stdout": "adversarial-2/logs/A23.stdout",
+        "tool_attempt_sentinel_absent": true
+      },
+      "status": "passed"
+    },
+    "A24": {
+      "detail": {
+        "bytes": 1,
+        "layout_admitted": true,
+        "recomputed_unauthenticated_lock": true,
+        "semantic_claim": false
+      },
+      "status": "passed"
+    },
+    "A25": {
+      "detail": {
+        "bytes": 65536,
+        "layout_admitted": true,
+        "recomputed_unauthenticated_lock": true,
+        "semantic_claim": false
+      },
+      "status": "passed"
+    },
+    "A26": {
+      "detail": {
+        "bytes": 2,
+        "layout_admitted": true,
+        "recomputed_unauthenticated_lock": true,
+        "semantic_claim": false
+      },
+      "status": "passed"
+    },
+    "L01": {
+      "detail": {
+        "cli_lock_layer": "pending actual fresh CLI consumer",
+        "direct_driver": [
+          {
+            "argv": [
+              "/opt/homebrew/opt/python@3.14/bin/python3.14",
+              "-B",
+              "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+              "build",
+              "/private/tmp/mr-vqmq7_lx"
+            ],
+            "deadline_seconds": 5,
+            "exit_code": 1,
+            "output_sentinels_unchanged": true,
+            "private_owned_group_absent_on_completion": true,
+            "stderr": "adversarial-2/logs/L01-edit.stderr",
+            "stdout": "adversarial-2/logs/L01-edit.stdout",
+            "tool_attempt_sentinel_absent": true
+          }
+        ]
+      },
+      "status": "passed"
+    },
+    "L02": {
+      "detail": {
+        "cli_lock_layer": "pending actual fresh CLI consumer",
+        "direct_driver": [
+          {
+            "argv": [
+              "/opt/homebrew/opt/python@3.14/bin/python3.14",
+              "-B",
+              "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+              "build",
+              "/private/tmp/mr-4_b3h8jz"
+            ],
+            "deadline_seconds": 5,
+            "exit_code": 1,
+            "output_sentinels_unchanged": true,
+            "private_owned_group_absent_on_completion": true,
+            "stderr": "adversarial-2/logs/L02-edit.stderr",
+            "stdout": "adversarial-2/logs/L02-edit.stdout",
+            "tool_attempt_sentinel_absent": true
+          }
+        ]
+      },
+      "status": "passed"
+    },
+    "L03": {
+      "detail": {
+        "cli_lock_layer": "pending actual fresh CLI consumer",
+        "direct_driver": [
+          {
+            "argv": [
+              "/opt/homebrew/opt/python@3.14/bin/python3.14",
+              "-B",
+              "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+              "build",
+              "/private/tmp/mr-wtw0x95g"
+            ],
+            "deadline_seconds": 5,
+            "exit_code": 1,
+            "output_sentinels_unchanged": true,
+            "private_owned_group_absent_on_completion": true,
+            "stderr": "adversarial-2/logs/L03-remove.stderr",
+            "stdout": "adversarial-2/logs/L03-remove.stdout",
+            "tool_attempt_sentinel_absent": true
+          },
+          {
+            "argv": [
+              "/opt/homebrew/opt/python@3.14/bin/python3.14",
+              "-B",
+              "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+              "build",
+              "/private/tmp/mr-vme0zyt9"
+            ],
+            "deadline_seconds": 5,
+            "exit_code": 1,
+            "output_sentinels_unchanged": true,
+            "private_owned_group_absent_on_completion": true,
+            "stderr": "adversarial-2/logs/L03-rename.stderr",
+            "stdout": "adversarial-2/logs/L03-rename.stdout",
+            "tool_attempt_sentinel_absent": true
+          }
+        ]
+      },
+      "status": "passed"
+    },
+    "L04": {
+      "detail": {
+        "cli_lock_layer": "pending actual fresh CLI consumer",
+        "direct_driver": [
+          {
+            "argv": [
+              "/opt/homebrew/opt/python@3.14/bin/python3.14",
+              "-B",
+              "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+              "build",
+              "/private/tmp/mr-j8e1jvr_"
+            ],
+            "deadline_seconds": 5,
+            "exit_code": 1,
+            "output_sentinels_unchanged": true,
+            "private_owned_group_absent_on_completion": true,
+            "stderr": "adversarial-2/logs/L04-edit.stderr",
+            "stdout": "adversarial-2/logs/L04-edit.stdout",
+            "tool_attempt_sentinel_absent": true
+          }
+        ]
+      },
+      "status": "passed"
+    },
+    "R01": {
+      "detail": {
+        "cli_layer": "pending actual fresh CLI consumer",
+        "direct_driver": [
+          {
+            "argv": [
+              "/opt/homebrew/opt/python@3.14/bin/python3.14",
+              "-B",
+              "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+              "build",
+              "/private/tmp/mr-p6hvctkh"
+            ],
+            "deadline_seconds": 5,
+            "exit_code": 1,
+            "output_sentinels_unchanged": true,
+            "private_owned_group_absent_on_completion": true,
+            "stderr": "adversarial-2/logs/R01-0.stderr",
+            "stdout": "adversarial-2/logs/R01-0.stdout",
+            "tool_attempt_sentinel_absent": true
+          }
+        ]
+      },
+      "status": "passed"
+    },
+    "R02": {
+      "detail": {
+        "cli_layer": "pending actual fresh CLI consumer",
+        "direct_driver": [
+          {
+            "argv": [
+              "/opt/homebrew/opt/python@3.14/bin/python3.14",
+              "-B",
+              "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+              "build",
+              "/private/tmp/mr-9ydsp0gb"
+            ],
+            "deadline_seconds": 5,
+            "exit_code": 1,
+            "output_sentinels_unchanged": true,
+            "private_owned_group_absent_on_completion": true,
+            "stderr": "adversarial-2/logs/R02-0.stderr",
+            "stdout": "adversarial-2/logs/R02-0.stdout",
+            "tool_attempt_sentinel_absent": true
+          },
+          {
+            "argv": [
+              "/opt/homebrew/opt/python@3.14/bin/python3.14",
+              "-B",
+              "/Users/andreyyurlov/Documents/dev/mixer/verification/android-default-appearance-packaging-implementation-review/frozen-source/cli/Sources/MixerBuild/Resources/android-build.py",
+              "build",
+              "/private/tmp/mr-ueqtf5zi"
+            ],
+            "deadline_seconds": 5,
+            "exit_code": 1,
+            "output_sentinels_unchanged": true,
+            "private_owned_group_absent_on_completion": true,
+            "stderr": "adversarial-2/logs/R02-1.stderr",
+            "stdout": "adversarial-2/logs/R02-1.stdout",
+            "tool_attempt_sentinel_absent": true
+          }
+        ]
+      },
+      "status": "passed"
+    },
+    "S01": {
+      "detail": "Exact frozen 20-test Python suite passed; staging changed only minimum valid-asset fixture and matching digest.",
+      "status": "passed"
+    },
+    "Z01": {
+      "detail": {
+        "identity": {
+          "asset": "assets/MixerAppearanceV2/descriptor.json",
+          "bytes": 19,
+          "scope": "Exact local locked-input packaging only; direct-driver layout/size admission does not establish codec semantics, copied-SDK compatibility, installed use or signed authority.",
+          "sha256": "8963180e9615b64e7cd45693f3034b9972353b9fe8c43defa129f376b346c2cd"
+        },
+        "rejected": false
+      },
+      "status": "passed"
+    },
+    "Z02": {
+      "detail": {
+        "members": [
+          "classes.dex"
+        ],
+        "rejected": true
+      },
+      "status": "passed"
+    },
+    "Z03": {
+      "detail": {
+        "members": [
+          "assets/renamed.json"
+        ],
+        "rejected": true
+      },
+      "status": "passed"
+    },
+    "Z04": {
+      "detail": {
+        "members": [
+          "assets/MixerAppearanceV2/descriptor.json",
+          "classes.dex",
+          "assets/MixerAppearanceV2/descriptor.json"
+        ],
+        "rejected": true
+      },
+      "status": "passed"
+    },
+    "Z05": {
+      "detail": {
+        "members": [
+          "assets/MixerAppearanceV2/descriptor.json",
+          "classes.dex",
+          "assets/MixerAppearanceV2/descriptor.json"
+        ],
+        "rejected": true
+      },
+      "status": "passed"
+    },
+    "Z06": {
+      "detail": {
+        "members": [
+          "assets/MixerAppearanceV2/descriptor.json",
+          "classes.dex",
+          "assets/extra.bin"
+        ],
+        "rejected": true
+      },
+      "status": "passed"
+    },
+    "Z07": {
+      "detail": {
+        "members": [
+          "assets/MixerAppearanceV2/descriptor.json",
+          "classes.dex",
+          "assets/extra/"
+        ],
+        "rejected": true
+      },
+      "status": "passed"
+    },
+    "Z08": {
+      "detail": {
+        "members": [
+          "assets/MixerAppearanceV2/descriptor.json"
+        ],
+        "rejected": true
+      },
+      "status": "passed"
+    },
+    "Z09": {
+      "detail": {
+        "members": [
+          "assets/MixerAppearanceV2/descriptor.json"
+        ],
+        "rejected": true
+      },
+      "status": "passed"
+    },
+    "Z10": {
+      "detail": {
+        "members": [
+          "assets/MixerAppearanceV2/descriptor.json",
+          "classes.dex",
+          "classes.dex"
+        ],
+        "rejected": true
+      },
+      "status": "passed"
+    }
+  }
+}

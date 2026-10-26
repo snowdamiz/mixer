@@ -1,4 +1,5 @@
 import Foundation
+import MixerUI
 
 public struct AndroidFileIdentity: Codable, Equatable, Sendable {
     public var path: String
@@ -38,7 +39,7 @@ public enum AndroidProject {
             // public Activity continues to use the V1 exchange/bootstrap.
             "app/src/dev/mixer/android/NativeCoordinatorV2.java",
             // Compile dependencies of the internal renderer. Including them does
-            // not opt generated applications into V2 or package appearance data.
+            // not opt generated applications into V2.
             "app/src/dev/mixer/android/AppearanceDescriptorV2.java",
             "app/src/dev/mixer/android/AppearanceGeometryV2.java",
             "app/src/dev/mixer/android/AppearanceResolverV2.java",
@@ -69,7 +70,25 @@ public enum AndroidProject {
         try runtimePackage.write(to: destination.appendingPathComponent("Package.swift"), atomically: true, encoding: .utf8)
         let driver = try buildDriver()
         try Data(contentsOf: driver).write(to: destination.appendingPathComponent("android-build.py"))
+        let appearance = try defaultAppearanceData()
+        let descriptor = destination.appendingPathComponent("app/assets/MixerAppearanceV2/descriptor.json")
+        try FileManager.default.createDirectory(at: descriptor.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try appearance.write(to: descriptor)
         return try SourceDigest.tree(destination)
+    }
+
+    /// CLI-linked default data only. The separately selected SDK's default/API/ABI
+    /// compatibility is pending; this does not enable the public V2 Activity.
+    static func defaultAppearanceData() throws -> Data {
+        let value = try UIAppearanceDescriptorCodecV2.mixerDefaultV2()
+        let bytes = try UIAppearanceDescriptorCodecV2.canonicalData(value)
+        let checked = try UIAppearanceDescriptorCodecV2.decode(bytes)
+        guard checked == value, checked.resources.isEmpty,
+              case let .shared(theme) = checked.mode,
+              theme.typography.font == .systemSans else {
+            throw MixerFailure("create.android-appearance", "The CLI default must be a canonical shared appearance with no resources and system sans typography.")
+        }
+        return bytes
     }
 
     static func buildDriver() throws -> URL {

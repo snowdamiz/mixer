@@ -855,7 +855,13 @@
         "docs/android-authored-toggle-generated-export-review.md",
         "verification/android-authored-toggle-generated-export/seal.json",
         "verification/android-authored-toggle-generated-export-review/seal.json",
-        "verification/android-authored-toggle-generated-export-root-review/acceptance.json"
+        "verification/android-authored-toggle-generated-export-root-review/acceptance.json",
+        "docs/android-default-appearance-packaging-proposal.md",
+        "docs/android-default-appearance-packaging-review.md",
+        "docs/android-default-appearance-packaging.md",
+        "docs/android-default-appearance-packaging-implementation-review.md",
+        "verification/android-default-appearance-packaging-implementation-review/final-review.md",
+        "verification/android-default-appearance-packaging-root-review/acceptance.json"
       ],
       "reviewer": null,
       "authoredToggleGeneratedExportCandidate": {
@@ -902,7 +908,90 @@
           "Release and GA qualification"
         ],
         "root_acceptance": "verification/android-authored-toggle-generated-export-root-review/acceptance.json",
-        "delivery": "pending root commit and CI"
+        "delivery": {
+          "commit": "99d6384306ea17643b70c472f93b57418c674f86",
+          "status": "pushed-ci-passed",
+          "ci": [
+            {
+              "conclusion": "success",
+              "databaseId": 40252047362,
+              "headSha": "99d6384306ea17643b70c472f93b57418c674f86",
+              "status": "completed",
+              "url": "https://github.com/snowdamiz/mixer/actions/runs/40252047362",
+              "workflowName": "Owned engine checks"
+            }
+          ],
+          "receipt": "verification/github-delivery-android-source-export/receipt.json",
+          "all_jobs_and_steps_passed": true,
+          "ci_jobs": 3,
+          "ci_steps": 40,
+          "terminal_evidence": "verification/github-delivery-android-source-export/ci-observation-6/stdout.json"
+        }
+      },
+      "defaultAppearancePackagingProposal": {
+        "status": "accepted-scoped-default-appearance-packaging",
+        "doc": "docs/android-default-appearance-packaging-proposal.md",
+        "receipt": "verification/android-default-appearance-packaging-proposal/receipt.json",
+        "seal_sha256": "9170c192d00ebd1e30d2bdd8135c6f6d548990901cefd5960e0ffdc87646ef7f",
+        "root_preflight": "verification/android-default-appearance-packaging-root-review/proposal-preflight.json",
+        "verified_members": 77,
+        "verified_bytes": 797899,
+        "default_descriptor_bytes": 9587,
+        "default_descriptor_sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3",
+        "observed_scope": "Actual SDK canonical API, pure Java decoder and synthetic AAPT2 asset only; no generated app implementation",
+        "independent_review": {
+          "receipt": "verification/android-default-appearance-packaging-review/receipt.json",
+          "seal_sha256": "ed37dd21de797fa520a7bd2a8db369768c329551ab5a9e0d35552e3334370dee",
+          "members": 15,
+          "bytes": 127654,
+          "status": "scoped-contract-reviewed"
+        },
+        "implementation_selected": true,
+        "public_routing_changed": false,
+        "native_runtime_or_capture_started": false,
+        "GA_qualified": false,
+        "root_selection": "verification/android-default-appearance-packaging-root-review/implementation-selection.json",
+        "root_selection_sha256": "30171f00f98ed7e27c8f9654f0c997a7c9672e282697a7a4c8fa7bfca1d98582",
+        "implementation_packet": "verification/android-default-appearance-packaging/",
+        "implementation_accepted": true,
+        "excluded": "No copied-SDK emitter, supervisor, watchdog, publicV2 or native change; copiedSDK/default/ABI compatibility remains pending beforeV2.",
+        "implementation_evidence": {
+          "handoff": "verification/android-default-appearance-packaging/handoff.json",
+          "seal_sha256": "e7b005b12e6534db0c32ce213e52b2a20c5313ef744bae0411b6344b6a80941f",
+          "sealed_members": 102,
+          "sealed_bytes": 63408854,
+          "source_files": 241,
+          "source_tree_sha256": "8e2ef7970c645e19e11f17aa180f63ea9a222f98ffc45ec88f769e838eae6680",
+          "focused_swift_functions_per_configuration": 6,
+          "python_test_methods": 20,
+          "fresh_generated_unsigned_cross_build": true,
+          "final_descriptor_bytes": 9587,
+          "final_descriptor_sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3",
+          "java_sources_unchanged": 14,
+          "classes_unchanged": 160,
+          "root_preflight": "verification/android-default-appearance-packaging-root-review/implementation-preflight.json",
+          "independent_review_pending": false
+        },
+        "implementation_review": {
+          "receipt": "verification/android-default-appearance-packaging-implementation-review/acceptance.json",
+          "seal_sha256": "2f8f7f128c8d4b0b0db53233b68c46bfc015a37bb0f3018eb865f7e978ad7b50",
+          "members": 515,
+          "bytes": 35641817,
+          "vectors": 50,
+          "python_methods": 20,
+          "fresh_unsigned_cross_build": true,
+          "findings": []
+        },
+        "root_acceptance": "verification/android-default-appearance-packaging-root-review/acceptance.json",
+        "root_audit_members": 617,
+        "delivery": {
+          "status": "not-yet-committed"
+        },
+        "scope_limits": [
+          "Bounded pre-hash layout/type/size admission applies to the generated Python driver. Existing Swift ProjectBuild.verifyLock hashes regular inputs before driver admission; equivalent Swift-entrypoint preaccess hardening is pending in the next compatibility contract.",
+          "Local locks and embedded source remain mutable and unauthenticated; recomputed locks do not establish descriptor semantic validity or signed authority.",
+          "Source observations are not a race-free immutable sandbox; two distinct APKs do not establish whole-APK reproducibility."
+        ]
       }
     },
     {

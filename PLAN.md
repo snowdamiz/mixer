@@ -56,6 +56,7 @@ before Rust compilation: Homebrew shim resolution selected rustup-init. The
 retained artifact is complete; the repaired checkpoint is recorded below.
 VM and services pass; subsequent Swift checks were skipped.
 Rustup dispatch repair `05c1ebf0` passes all three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40247799000).
+Generated Android source-export repair `99d63843` passes all 40 steps across three [Engine CI jobs](https://github.com/snowdamiz/mixer/actions/runs/40252047362).
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
 
@@ -153,8 +154,13 @@ The full plan remains incomplete; no GA gate is promoted.
    The generated-source repair now passes independent fresh CLI export of fourteen
    Java files, strict Java/D8 compilation and Debug/Release source-lock checks.
    Root verifies 303 sealed members and accepts this source-export scope. Default
-   appearance packaging and public V2 routing remain pending. See
-   [the export review](docs/android-authored-toggle-generated-export-review.md).
+   appearance packaging now has scoped independent acceptance: 50 independent
+   vectors and two complete unsigned generated-app cross-builds pass, with exact
+   canonical descriptor bytes and unchanged Java classes. Root verifies 617 sealed
+   members. Copied-SDK compatibility, Swift entrypoint preaccess hardening and public
+   V2 routing remain pending. See
+   [the export review](docs/android-authored-toggle-generated-export-review.md) and
+   [the packaging review](verification/android-default-appearance-packaging-implementation-review/final-review.md).
    Private native input acceptance is not complete public routing, TalkBack,
    compositor/resource coverage or final design parity.
 5. **Hosted product and console:** continue ordinary customer authorization,

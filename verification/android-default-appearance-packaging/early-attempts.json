@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "scope": "Early bounded host checks before dedicated final collector; all completed, no native/capture process started. Outputs retained.",
+  "attempts": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "cli/build-tests",
+        "-v"
+      ],
+      "exit": 1,
+      "output": "python-tests-attempt-1.log",
+      "failure": "AF_UNIX test socket path exceeded macOS bound; corrected fixture to short owned /tmp path."
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "cli/build-tests",
+        "-v"
+      ],
+      "exit": 0,
+      "output": "python-tests.log",
+      "scope": "20 tests; superseded by dedicated collector"
+    },
+    {
+      "command": [
+        "swift",
+        "test",
+        "--package-path",
+        "cli",
+        "--filter",
+        "androidSnapshotOwns|androidCoordinatorAndAuthored|androidDefaultAppearance|directAndroidDriver|unsupportedAndroidRequest|installedDistribution"
+      ],
+      "exit": 1,
+      "output": "swift-debug-tests-attempt-1.log",
+      "failure": "New throwing canonicalData assertion missing try; fixed by computing explicit expected bytes."
+    }
+  ]
+}

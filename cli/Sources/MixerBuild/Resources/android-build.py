@@ -24,6 +24,7 @@ NDK = ART / 'android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64'
 RUNTIME = ART / 'swift-resources/usr/lib/swift-aarch64/android'
 BT = SDK / 'build-tools/37.0.0'
 JAR = SDK / 'platforms/android-37.0/android.jar'
+APPEARANCE_ASSET = 'assets/MixerAppearanceV2/descriptor.json'
 ENV['JAVA_HOME'] = str(JDK)
 ENV['PATH'] = str(JDK / 'bin') + os.pathsep + ENV.get('PATH', '')
 
@@ -120,6 +121,49 @@ def configuration(value):
     return value
 
 
+def appearance_input(adapter):
+    """Admit the complete closed asset layout before source_tree opens any asset.
+
+    This checks local layout/type/size and bytes, not Swift/Java codec semantics.
+    A recomputed unauthenticated lock is not default provenance or authority.
+    """
+    assets = adapter / 'app/assets'
+    descriptor = adapter / 'app' / APPEARANCE_ASSET
+    for path in (adapter.parent, adapter, adapter / 'app', assets, descriptor.parent):
+        try:
+            info = path.lstat()
+        except FileNotFoundError as error:
+            raise RuntimeError('Missing Android appearance asset directory: ' + str(path)) from error
+        if not stat.S_ISDIR(info.st_mode):
+            raise RuntimeError('Android appearance asset directories must be ordinary directories: ' + str(path))
+    # Inspect every name, including hidden, excluded-extension and skipped names.
+    if sorted(p.name for p in assets.iterdir()) != ['MixerAppearanceV2'] or sorted(p.name for p in descriptor.parent.iterdir()) != ['descriptor.json']:
+        raise RuntimeError('Android appearance assets must contain only MixerAppearanceV2/descriptor.json.')
+    info = descriptor.lstat()
+    if not stat.S_ISREG(info.st_mode):
+        raise RuntimeError('Android appearance descriptor must be a regular file without symlinks.')
+    if not 1 <= info.st_size <= 65_536:
+        raise RuntimeError('Android appearance descriptor must contain 1..65536 bytes.')
+    with descriptor.open('rb') as stream:
+        data = stream.read(65_537)
+    if len(data) != info.st_size:
+        raise RuntimeError('Android appearance descriptor changed during admission.')
+    return data
+
+
+def appearance_archive(archive, expected):
+    """Require one exact final asset and reject all duplicate ZIP names."""
+    names = archive.namelist()
+    if len(names) != len(set(names)):
+        raise RuntimeError('Duplicate ZIP entries in unsigned Android APK.')
+    if sorted(n for n in names if n == 'assets' or n.startswith('assets/')) != [APPEARANCE_ASSET]:
+        raise RuntimeError('APK must contain exactly the admitted Android appearance asset.')
+    if archive.getinfo(APPEARANCE_ASSET).file_size != len(expected) or archive.read(APPEARANCE_ASSET) != expected:
+        raise RuntimeError('APK Android appearance bytes differ from admitted locked input.')
+    return {'asset': APPEARANCE_ASSET, 'bytes': len(expected), 'sha256': hashlib.sha256(expected).hexdigest(),
+            'scope': 'Exact local locked-input packaging only; direct-driver layout/size admission does not establish codec semantics, copied-SDK compatibility, installed use or signed authority.'}
+
+
 def checked_output(root, create=False):
     """Reject redirected local staging before cleanup or writes.
 
@@ -212,6 +256,7 @@ def build(root):
     if not android:
         raise RuntimeError('Android host is not generated. Create a new project with --platform android.')
     adapter = root / 'Generated/MixerAndroid'
+    appearance = appearance_input(adapter)
     if source_tree(adapter) != android['adapterDigest'] or source_tree(root / 'Generated/MixerSDK') != lock['sdkDigest']:
         raise RuntimeError('Bundled SDK or Android adapter source differs from mixer.lock.')
     config = configuration(read_json(root / 'mixer.yml'))
@@ -282,7 +327,9 @@ def build(root):
     run([JDK / 'bin/javac', '--release', '17', '-Xlint:all', '-Werror', '-classpath', JAR, '-d', classes, *sources])
     run([BT / 'd8', '--min-api', '28', '--lib', JAR, '--output', dex, *sorted(classes.rglob('*.class'))])
     unsigned = output / 'unaligned.apk'
-    run([BT / 'aapt2', 'link', '-I', JAR, '--manifest', package / 'AndroidManifest.xml', '--min-sdk-version', '28', '--target-sdk-version', '37', '-o', unsigned])
+    if appearance_input(adapter) != appearance or source_tree(adapter) != android['adapterDigest']:
+        raise RuntimeError('Android appearance/adapter input changed before packaging.')
+    run([BT / 'aapt2', 'link', '-I', JAR, '--manifest', package / 'AndroidManifest.xml', '-A', adapter / 'app/assets', '--min-sdk-version', '28', '--target-sdk-version', '37', '-o', unsigned])
     checked_output(root)
     with zipfile.ZipFile(unsigned, 'a', compression=zipfile.ZIP_DEFLATED) as archive:
         for item in sorted((output / 'apk').rglob('*')):
@@ -305,10 +352,14 @@ def build(root):
             raise RuntimeError('App shared feature/model or ABI symbol missing: ' + symbol)
     with zipfile.ZipFile(apk_path) as archive:
         names = archive.namelist()
+        appearance_identity = appearance_archive(archive, appearance)
         if any(n.startswith('META-INF/') for n in names) or any('ChecklistEngine' in n for n in names):
             raise RuntimeError('Unexpected signing/example content in unsigned consumer.')
         content = {n: hashlib.sha256(archive.read(n)).hexdigest() for n in sorted(names)}
     normalized = hashlib.sha256(json.dumps(content, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+    if appearance_input(adapter) != appearance:
+        apk_path.unlink(missing_ok=True)
+        raise RuntimeError('Android appearance input changed during the build.')
     source_after = source_tree(root)
     if source_before != source_after or source_tree(adapter) != android['adapterDigest'] or source_tree(root / 'Generated/MixerSDK') != lock['sdkDigest']:
         apk_path.unlink(missing_ok=True)
@@ -320,6 +371,7 @@ def build(root):
         'source_tree_sha256': source_before, 'source_tree_after_sha256': source_after,
         'source_observation_scope': 'Before/after local mutation detection only; inputs are not isolated or immutably captured.',
         'sdk_digest': lock['sdkDigest'], 'adapter_digest': android['adapterDigest'],
+        'appearance_descriptor': appearance_identity,
         'toolchain': identity, 'native_dependencies': dependencies,
         'native_libraries': {p.name: digest(p) for p in sorted(libdir.glob('*.so'))}, 'commands': commands,
         'scope': 'Actual generated AppModels/AppFeatures Swift, owned JNI/native widgets, arm64 Android APK inspected. Unsigned; no install, device interaction, lifecycle, accessibility, performance, published SDK, store or FieldLog qualification.',
