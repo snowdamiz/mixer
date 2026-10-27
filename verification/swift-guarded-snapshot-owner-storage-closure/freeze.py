@@ -1,0 +1,10 @@
+"""Seal this finite producer packet; refuses to overwrite a frozen result."""
+import json
+from probe import ROOT,save,sha,canonical,members,verify
+assert not (ROOT/'seal.json').exists()
+binding=verify();checks=json.loads((ROOT/'checks.json').read_text());formula=json.loads((ROOT/'formula.json').read_text());cleanup=json.loads((ROOT/'cleanup.json').read_text())
+assert checks['all_pass'] and checks['count']==17 and cleanup['compiler_scratch_removed']
+save(ROOT/'result.json',{'schema':1,'status':'complete-bounded-owner-caller-source-recipe-producer-awaiting-independent-review','source_binding':binding,'formula':formula,'owner_roles':3115,'source_templates':81,'one_to_one_inherited_aliases':357,'inherited_legacy_roles_retained':64,'legacy_callee_identities':35,'call_sites_resolved':627,'unresolved_product_callees':0,'encoder_roles_joined_once':2658,'encoder_bytes':40531,'new_completion_helper_roles':110,'new_completion_helper_bytes':34257,'concrete_host_product_roles':53,'concrete_host_external_harness_roles':163,'external_unit_core_instrumentation_roles':19,'checks':17,'compiler_commands':12,'runtime_invocations':0,'selected_storage_floor':False,'WorkAuditPending_unchanged':True,'production_caller_exists':False,'healthy_cleanup_or_narrowing_claim':False,'budget_literals_unchanged':True,'next_integration':'Replace placeholder assignments by exact checked C/S/A and common Original const basis; fund the exact H caller at ingress; compile/review any resulting finite source delta. Current225 unchanged. Separate emission helper delta excluded.'})
+rows=[r for r in members(ROOT) if r['path']!='seal.json' and '__pycache__/' not in r['path']]
+save(ROOT/'seal.json',{'schema':1,'scope':'bounded owner/caller source storage recipe, no operational selection','members':rows,'member_count':len(rows),'total_bytes':sum(r['bytes'] for r in rows),'members_tree_sha256':sha(canonical(rows)),'source_tree_sha256':binding['source_tree_sha256']})
+print(json.dumps({'members':len(rows),'bytes':sum(r['bytes'] for r in rows),'seal_sha256':sha((ROOT/'seal.json').read_bytes())}))

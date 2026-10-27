@@ -1,0 +1,17 @@
+--- accepted-unused-helper/src/experimental_swift_reactor/cache/initial_profile_v1.rs
++++ proposed-only/src/experimental_swift_reactor/cache/initial_profile_v1.rs
+@@ -378,12 +378,8 @@
+ // Additive unused candidate; WorkAuditPending below is unchanged.
+ mod emission_bound_v1;
+ 
+-fn proposed_emission_work_v1(_shape:&SnapshotShapeV1)->Result<u64,AError>{
+-    // Deliberate compile-time preparation stop. The old P/R record rationale
+-    // does not cover repeated record_word validation/directory search. Root is
+-    // obtaining a separate source action audit. No rounded placeholder debits
+-    // can accidentally admit this source if called before that review.
+-    Err(AError::WorkAuditPending)
++fn proposed_emission_work_v1(shape:&SnapshotShapeV1)->Result<u64,AError>{
++    emission_bound_v1::checked_snapshot_emission_bound_v1(shape)
+ }
+ fn begin_snapshot_access_v1<'c>(cache:&SwiftFunctionCache,control:&'c mut RuntimeControl,wasi:Option<&AccountedWasi>)
+     ->(SnapshotAccessV1<'c>,SnapshotPhaseStorageV1){

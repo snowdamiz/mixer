@@ -1,0 +1,24 @@
+Independent analysis failures, not compiler/product failures:
+
+1. Initial receiver-context scan included an owned RuntimeControl move temporary
+   (_57), which has no receiver call. Restricting the review to actual &mut
+   RuntimeControl receiver temporaries yields the 13-role permutation, with full
+   source and call evidence retained in alias-repair-suggestions.json.
+
+2. Initial fresh unit reconciliation looked up production textual function
+   headers. Unit compilation adds the initial_profile_v1 namespace qualifier to
+   an otherwise identical function because more test functions share names.
+   Reconciliation now joins the exact compiler product source return origin;
+   this is an identity repair, not an ignored declaration or failed compiler.
+
+3. Exact call-target comparison found 107 malformed producer target displays.
+   Complete fresh call statements match; backward parsing retains all targets
+   and identifies two missing owned callback edges. This remains a reported
+   producer evidence finding, not an ignored assertion.
+
+4. The first independent base-array layout resolver omitted raw compiler
+   Option<usize> metadata from its lookup. Adding that already measured raw
+   compiler layout allows the actual array-inner layout to resolve. The first
+   capture check also assumed a direct _1.0 projection; FnMut receivers use
+   (*_1).0. Both actual forms contain reference captures. Neither analysis
+   failure was a product compiler or runtime failure.
