@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T23:23:48.983668+00:00",
+  "status": "accepted-two-additive-host-leaf-return-probes-only",
+  "prior_acceptance": "verification/android-editor-boundary-root-review/passive-return-probe-v2-acceptance.json",
+  "prior_acceptance_sha256": "36667a3e22e74141e1f384eca28ab44ce7dabdd311581eb908516350c13897d0",
+  "candidate_seal_sha256": "04b282dbe16898d0a417286303c87a587b97da1153a3efaf3b564a895a16d8b7",
+  "candidate_members_verified": 672,
+  "independent_seal_sha256": "af7f2152fe4833617787832f936ef09145848221086211ed485d9d0ccc4773ab",
+  "independent_members_verified": 1024,
+  "root_reviewed": [
+    "exact source diff against accepted v2",
+    "independent ASSESSMENT.md and actual AdditionalReturnControls.java",
+    "emitted getHandler and requestCursorUpdates(II) instructions",
+    "complete packet byte custody"
+  ],
+  "source_delta": {
+    "only_changed_Java_input": "host-leaves/android/view/inputmethod/BaseInputConnection.java",
+    "additive_methods": 2,
+    "additive_return_expressions": 2,
+    "total_methods": 60,
+    "total_return_expressions": 66,
+    "getHandler": "Wrap actual single new Handler() result after original entry with descriptor ()Landroid/os/Handler; no fabricated beforeReturn",
+    "requestCursorUpdates_II": "Wrap actual single done(requestCursorUpdatesFiltered,true) result after original counts/hooks with descriptor (II)Z"
+  },
+  "independent_commands": 4,
+  "independent_assertions": 74,
+  "producer_full_replay_audited_not_reexecuted": {
+    "original_commands": 61,
+    "total_commands": 68
+  },
+  "unchanged_product_sources": 16,
+  "unchanged_product_classes": 209,
+  "product_context": "1b71af17048675296435ca74af284d54f93f2506b9c406517a452a3ce816dbdd",
+  "distinct_product_getHandler": "Any-thread pure null return; does not call this host BaseInputConnection leaf and gains no qualification from it",
+  "all_v2_required_remaining_matrix_conditions_preserved": true,
+  "full_matrix_execution_closure_canonical_native_OTA_GA_accepted": false,
+  "cleanup": {
+    "independent_children_reaped": true,
+    "independent_scratch_removed": true,
+    "JDK_remains_producer_owned_and_leased": true,
+    "native_capture_or_process_inventory": false
+  }
+}

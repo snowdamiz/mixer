@@ -1,0 +1,41 @@
+}
+/// A wrapper exists only after the existing construction ticket is enlarged.
+pub(crate) struct CacheControl<'a> {
+    control: &'a mut RuntimeControl,
+    wasi: Option<&'a AccountedWasi>,
+    cursor: Cursor,
+}
+pub(crate) struct CacheConstructionPhase<'a> {
+    control: CacheControl<'a>,
+    previous_bound: usize,
+    constructed: bool,
+}
+pub(crate) struct CacheOperationPhase<'a> {
+    control: CacheControl<'a>,
+    previous_bound: usize,
+}
+// Caller-owned return slots are explicitly consumed by phase completion. Their
+// concrete Option/Result shapes are reserved before either phase exists.
+type ConstructionReturnSlot = Option<Result<SwiftFunctionCache, CacheConstructionFailure>>;
+type OperationReturnSlot = Option<Result<SwiftFunctionPin, SwiftRunFailure>>;
+pub(crate) struct CacheConstructionFailure {
+    pub failure: SwiftRunFailure,
+    pub rejected_adopted: Option<AdoptedProof>,
+}
+#[must_use = "The cache header remains charged until the caller drops its return/owner storage through complete"]
+pub(crate) struct CacheCleanupTail<'a> {
+    control: &'a mut RuntimeControl,
+    wasi: Option<&'a AccountedWasi>,
+    header: Option<ReservationTicket>,
+    failure: Option<SwiftRunFailure>,
+}
+struct Partial {
+    adopted: Option<AdoptedProof>,
+    slots: Vec<SwiftSlot>,
+    pins: Vec<PinRecord>,
+    patches: Vec<decode::Patch>,
+    index: Vec<u8>,
+    plans: Vec<Option<ScanPlan>>,
+    buffers: [Option<ReservationTicket>; 3],
+    header: Option<ReservationTicket>,
+}

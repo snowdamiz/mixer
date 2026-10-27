@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T23:46:17.522284+00:00",
+  "status": "required-C01-isolated-stdio-ownership-correction-selected",
+  "input_correction_seal_sha256": "57591c504fadfb0c22e44e37d6333cab53b8d62e39da14e97f0cdfd2fed455f1",
+  "independent_review": "verification/swift-retained-profile-composition-correction-independent",
+  "independent_seal_sha256": "108faabdd9e9fdb0037f0fd59863a9782073effaea956753d0c76fed7698b6d3",
+  "review_members_verified": 66,
+  "review_bytes_verified": 312131,
+  "scoped_positive": "R01 descriptor generations and retained-wrapper R02 once-only independent cleanup/accounting pass; raw R02 protocol/finalizer conflicts remain explicitly failed and are not relabeled",
+  "required_finding": "Injected terminal-stream close failure leaves an actual known-owned stream open while all ownership counters report healthy_zero; injected cleanup error replaces structured original primary",
+  "requirements": [
+    "Own each acquired stream explicitly from successful acquisition through terminal cleanup; partial second acquisition must preserve first-stream ownership",
+    "Consume each independent close capability at most once and attempt every other owned stream after any error",
+    "Keep known/uncertain stream ownership accounted; healthy_zero remains false while any obligation is unresolved; new admission must respect quarantine",
+    "Preserve exact original primary or completed result plus every stream and retained-owner cleanup error",
+    "Saved numeric descriptors grant no close authority; account for real stream object automatic close/destructor behavior so quarantine cannot later close a reused number",
+    "Bound stream/token/uncertainty records and retain no growing successful history",
+    "Preserve unchanged source snapshots, old/raw C01 failure and all existing independent behavioral requirements; do not label fixture teardown incompatibility a behavior pass",
+    "Test first/second stream acquisition and both stream positions with deterministic pre/post close faults, combined primary/cleanup errors, completed result retention, reuse, repeated close and actual fixed-child terminal cleanup"
+  ],
+  "ownership": "verification/swift-retained-profile-composition-stdio-correction",
+  "complete_composition_Rust_binding_canonical_native_OTA_GA_accepted": false,
+  "limitations": [
+    "Synthetic faults do not resolve real OS close ambiguity",
+    "No native/UI/capture/process inventory",
+    "Existing source limits and real Rust binding requirements unchanged"
+  ]
+}

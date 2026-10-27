@@ -1,0 +1,108 @@
+{
+  "authority": {
+    "ga": false,
+    "ota": false,
+    "real_binding": false,
+    "runtime": false
+  },
+  "case": "composition-failure",
+  "cleanup_failures": [
+    {
+      "exception_text": "synthetic cleanup fault 0",
+      "exception_type": "OSError",
+      "owner_generation": 97,
+      "raw_exception_traceback": [
+        "Traceback (most recent call last):\n",
+        "  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/corrected/replay/prototype.py\", line 165, in _close\n    os.close(token.number)\n    ~~~~~~~~^^^^^^^^^^^^^^\n",
+        "  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/fault_case.py\", line 220, in fault_close\n    raise error\n",
+        "OSError: synthetic cleanup fault 0\n"
+      ],
+      "saved_number_observation": 101,
+      "token_generation": 108
+    },
+    {
+      "exception_text": "synthetic cleanup fault 2",
+      "exception_type": "OSError",
+      "owner_generation": 97,
+      "raw_exception_traceback": [
+        "Traceback (most recent call last):\n",
+        "  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/corrected/replay/prototype.py\", line 165, in _close\n    os.close(token.number)\n    ~~~~~~~~^^^^^^^^^^^^^^\n",
+        "  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/fault_case.py\", line 220, in fault_close\n    raise error\n",
+        "OSError: synthetic cleanup fault 2\n"
+      ],
+      "saved_number_observation": 99,
+      "token_generation": 106
+    },
+    {
+      "exception_text": "synthetic cleanup fault 70",
+      "exception_type": "OSError",
+      "owner_generation": 25,
+      "raw_exception_traceback": [
+        "Traceback (most recent call last):\n",
+        "  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/corrected/replay/prototype.py\", line 165, in _close\n    os.close(token.number)\n    ~~~~~~~~^^^^^^^^^^^^^^\n",
+        "  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/fault_case.py\", line 220, in fault_close\n    raise error\n",
+        "OSError: synthetic cleanup fault 70\n"
+      ],
+      "saved_number_observation": 31,
+      "token_generation": 32
+    }
+  ],
+  "cleanup_kind": "synthetic-known-fault; terminal uncertainty retained",
+  "close_calls": 99,
+  "original_failure_primary_identity_preserved": true,
+  "original_primary": {
+    "code": "io-error",
+    "progress": {
+      "read_acknowledged": 2569234,
+      "read_calls": 642,
+      "read_requested": 2569242,
+      "write_acknowledged": 525,
+      "write_calls": 3,
+      "write_requested": 8691
+    },
+    "raw_exception_traceback": [
+      "Traceback (most recent call last):\n",
+      "  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/corrected/replay/prototype.py\", line 355, in transfer\n    n = (io.write if writing else io.read)(fd, view[position:])\n",
+      "  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/fault_case.py\", line 240, in write\n    if self.n==3:raise OSError(\"original actual partial-write boundary\")\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+      "OSError: original actual partial-write boundary\n",
+      "\nThe above exception was the direct cause of the following exception:\n\n",
+      "Traceback (most recent call last):\n",
+      "  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/corrected/replay/prototype.py\", line 577, in compose_from_retained_fixture\n    transfer(io, result.fd, v, counts, True)\n    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+      "  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/fault_case.py\", line 244, in observe_transfer\n    try:return original_transfer(*args,**kwargs)\n               ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n",
+      "  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/corrected/replay/prototype.py\", line 359, in transfer\n    raise Refusal(\"io-error\", \"write\" if writing else \"read\", counts) from e\n",
+      "prototype.Refusal: io-error:write\n"
+    ],
+    "stage": "write",
+    "text": "io-error:write",
+    "type": "Refusal"
+  },
+  "ownership_at_child_terminal_exit": {
+    "healthy_zero": false,
+    "leased_child_quarantines": 0,
+    "owners": 2,
+    "stdio_contexts": 0,
+    "token_states": {
+      "closing": 0,
+      "owned": 0,
+      "uncertain": 3
+    },
+    "uncertain_close_records": 3
+  },
+  "ownership_before_test_directory_cleanup": {
+    "healthy_zero": false,
+    "leased_child_quarantines": 0,
+    "owners": 2,
+    "stdio_contexts": 0,
+    "token_states": {
+      "closing": 0,
+      "owned": 0,
+      "uncertain": 3
+    },
+    "uncertain_close_records": 3
+  },
+  "process_exit_not_a_refund_or_healthy_cleanup_receipt": true,
+  "retained_success_observation": null,
+  "successful_composition_result_retained": false,
+  "uncertain_os_close_resolution_qualified": false,
+  "uncertain_saved_numbers_retried": false
+}

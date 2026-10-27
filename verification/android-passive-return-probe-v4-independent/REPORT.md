@@ -1,0 +1,24 @@
+# Independent v4 passive-return review
+
+Result: pass for the selected ordinary-Java instrumentation delta. No material defect found. This review grants no canonical matrix, execution closure, helper-semantic, default integration, native, CI, OTA, dogfood, or GA qualification.
+
+The selected v4 seal is `8501bfa60dbae4c3d90be181e8d4fe1e858d1f59908328c4c9855fe7bc99eff8`, schema 4, with 1,186 verified members totaling 6,109,817 bytes and no extra files. Preparation selection is `7c65a9f92bafbd9a81b61ab692d76046a693bbd5286cc6048e623c28a7668433`. Accepted v3 seal `04b282dbe16898d0a417286303c87a587b97da1153a3efaf3b564a895a16d8b7` remains the baseline. Its eight selected source identities agree with v4's baseline copies; seven remain byte-identical in v4.
+
+The only changed selected leaf is `android/view/inputmethod/BaseInputConnection.java`. Exact string substitution against the complete v3 source proves that the entire delta is the two requested wrappers around the original `done(...,insert(...))` expressions in `commitText(CharSequence,int,TextAttribute)` and `setComposingText(CharSequence,int,TextAttribute)`. No entry, ordinary hook, qualification hook, product source, or assertion is changed by that delta.
+
+Fresh bytecode for each added overload contains exactly one `insert` at BCI 17, one `done` at BCI 20, one boolean `NativeOutcomeProbe.returned` at BCI 23, then `ireturn` at BCI 26. There is no added exception handler. The original expression executes once. Its boolean is computed before `done` invokes the existing `beforeReturn` callbacks, then observed after `done` returns. Changing `closed` during those callbacks does not recompute the boolean. Throwing during an original ordinary or qualification callback produces a hook-exception observation with the same original throwable and no invented native return.
+
+The source review confirms existing event/count recording precedes the ordinary hook, which precedes the qualification hook. The passive observer catches unchecked observation failures, preserves the first capture failure, marks the attempt failed, and returns the original boolean. The caller must retain a failed attempt's refusal before a later `begin` resets observer state. Arbitrary body/helper exceptions are outside this hook-exception capture contract: the independent input-filter control confirms that they escape unchanged with no fabricated return or hook-exception record. An observer's `clean()` alone is therefore not proof of complete body-exception coverage. Concurrent observer use is not qualified.
+
+Fresh verification used copied frozen sources only, the leased official Temurin 17.0.21+9 tools, `--release 17 -proc:none -Xlint:all -Werror`, default debug information, and empty class/source paths. Both the 117-source v4 packet plus the new independent control and the selected v3 eight-leaf overlay compiled successfully. All 209 product class hashes match exactly in each build and agree with selected context `1b71af17048675296435ca74af284d54f93f2506b9c406517a452a3ce816dbdd`; all 16 product source hashes also match. Product source tree is `a5e4888b96995bf768062bd9c2f1573dc440a4fe22270a205ab5550e79f625e4`.
+
+Targeted executable evidence:
+
+- Frozen `AttributeOutcomeControls`: 98 assertions passed.
+- Independent control: 30 targeted scenarios passed, comprising 160 semantic/boundary assertions plus 131,072 successful bound-fill iterations. Coverage includes true/false returns under observer RuntimeException/Error, exact count/order and single insertion, original ordinary/qualification exceptions combined with observer failure, unobserved filter-body exceptions, and the exact 65,536 capture limit for both overload families.
+- Frozen `AttributeBranchWitness`: complete v3/v4 stdout is byte-identical.
+- Fresh `javap`: both added boolean wrappers verified against v3, including call order and absence of new exception handlers.
+
+There were ten successful bounded Java/JDK children, at most one active child at a time; all were reaped. Owned source/class compile scratch was removed, and the leased JDK was preserved. No native runtime, device, emulator, simulator, UI, capture, or process inventory was used. No producer runner, broad matrix, catalog inspector, authority driver, rejected worker, or unrelated startup/security experiment was executed. No canonical/index/commit/push changes were made. A first independent custody-script assumption about v3's list-shaped seal was corrected before any Java child; see `authoring-corrections.json`.
+
+`receipt.json` records exact commands, exits, timeout bounds, output hashes, tool identities, source copies, and cleanup. `source-context.json`, `copied-source-map.json`, both product class maps, and `bytecode-review.json` provide source/class custody. Raw stdout/stderr are retained. The packet seal freezes these independent findings for root review.

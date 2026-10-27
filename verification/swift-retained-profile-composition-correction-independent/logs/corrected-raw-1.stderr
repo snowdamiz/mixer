@@ -1,0 +1,36 @@
+test_close_failure_still_accounts_for_and_closes_remaining_owned_descriptors (unchanged_witness.Independent.test_close_failure_still_accounts_for_and_closes_remaining_owned_descriptors) ... ERROR
+test_close_failure_still_accounts_for_and_closes_remaining_owned_descriptors (unchanged_witness.Independent.test_close_failure_still_accounts_for_and_closes_remaining_owned_descriptors) ... FAIL
+
+======================================================================
+ERROR: test_close_failure_still_accounts_for_and_closes_remaining_owned_descriptors (unchanged_witness.Independent.test_close_failure_still_accounts_for_and_closes_remaining_owned_descriptors)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction-independent/replay/corrected/test_independent.py", line 84, in test_close_failure_still_accounts_for_and_closes_remaining_owned_descriptors
+    original(fd)
+    ~~~~~~~~^^^^
+OSError: [Errno 9] Bad file descriptor
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction-independent/replay/corrected/test_independent.py", line 86, in test_close_failure_still_accounts_for_and_closes_remaining_owned_descriptors
+    p.OPEN_FDS.remove(fd)
+    ~~~~~~~~~~~~~~~~~^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction-independent/replay/corrected/replay/prototype.py", line 117, in remove
+    def remove(self, _): raise Refusal("accounting-view-read-only", "ownership")
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+prototype.Refusal: accounting-view-read-only:ownership
+
+======================================================================
+FAIL: test_close_failure_still_accounts_for_and_closes_remaining_owned_descriptors (unchanged_witness.Independent.test_close_failure_still_accounts_for_and_closes_remaining_owned_descriptors)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction-independent/replay/corrected/test_independent.py", line 30, in tearDown
+    self.assertFalse(p.OPEN_FDS)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: {16} is not false
+
+----------------------------------------------------------------------
+Ran 1 test in 0.005s
+
+FAILED (failures=1, errors=1)

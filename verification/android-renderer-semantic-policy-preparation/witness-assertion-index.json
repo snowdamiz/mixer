@@ -1,0 +1,437 @@
+{
+  "test_source": {
+    "bytes": 56594,
+    "sha256": "3752075126e21678880e431a833ade2511c1a5c8c1110c3f5f7a39fe194d1c2b"
+  },
+  "assertions": [
+    {
+      "line": 37,
+      "text": "    private static void check(boolean value, String message) {"
+    },
+    {
+      "line": 108,
+      "text": "            check(field.getText() == editable && nativeSnapshot.same(field, editable), \"exact post-close Editable/value/selection/composition snapshot\");"
+    },
+    {
+      "line": 109,
+      "text": "            check(get(field, \"attempt\") == predecessor && (predecessor == null || get(predecessor, \"close\") == disposition), \"settled predecessor disposition unchanged\");"
+    },
+    {
+      "line": 110,
+      "text": "            if (oldPresentation) check(field.record.binding == binding && field.record.geometry == geometry, \"old Binding and geometry restored by reference\");"
+    },
+    {
+      "line": 130,
+      "text": "            check(owner.hasCommittedPresentation(), \"real owner/coordinator initial publication\"); coordinator = (NativeCoordinatorV2) get(owner, \"coordinator\");"
+    },
+    {
+      "line": 134,
+      "text": "                a.requestFocus(); oldA = a.onCreateInputConnection(new EditorInfo()); check(oldA != null && oldA.setSelection(1, 3) && oldA.setComposingRegion(0, 2), \"A native selection and composition before legitimate blur\");"
+    },
+    {
+      "line": 136,
+      "text": "                c.requestFocus(); oldC = c.onCreateInputConnection(new EditorInfo()); check(oldC != null && oldC.setSelection(2, 4) && oldC.setComposingRegion(1, 3), \"C distinct native selection and composition before legitimate blur\");"
+    },
+    {
+      "line": 138,
+      "text": "                check(targetA.closeCalls == 1 && targetC.closeCalls == 1, \"each original target settled once\");"
+    },
+    {
+      "line": 143,
+      "text": "            if (connectB) { liveB = b.onCreateInputConnection(new EditorInfo()); check(liveB != null, \"B original focused adapter\"); targetB = (BaseInputConnection) b.lastConnection; check(liveB.setSelection(5, 5), \"B explicit end cursor\"); }"
+    },
+    {
+      "line": 144,
+      "text": "            check(count(renderer) == 0, \"fixture has no entered native custody outside calls\"); ConcreteHostProbe.reset();"
+    },
+    {
+      "line": 175,
+      "text": "                check(value.getKey().getType().isPrimitive() ? value.getValue().equals(actual) : value.getValue() == actual,"
+    },
+    {
+      "line": 178,
+      "text": "            for (var item : hooks.entrySet()) check(Arrays.equals(((NativeAppearanceViewsV2.FieldPreservation) item.getKey()).hooks.toArray(), item.getValue()), \"refusal preserves exact hook stack\");"
+    },
+    {
+      "line": 181,
+      "text": "    private static void refusedWithoutEffects(Runnable action, Object... objects) {"
+    },
+    {
+      "line": 184,
+      "text": "        check(refused, \"foreign or consumed endpoint refuses\"); state.unchanged();"
+    },
+    {
+      "line": 185,
+      "text": "        check(ConcreteHostProbe.events().size() == effects, \"refusal precedes native/platform effects\");"
+    },
+    {
+      "line": 198,
+      "text": "                check(scopes[1] != null && scopes[0] != scopes[1], \"two distinct exact inactive preservation scopes\");"
+    },
+    {
+      "line": 200,
+      "text": "                check(scopes[1].candidate == candidate && scopes[0].original == scopes[1].original && get(candidate, \"originalMutation\") == scopes[0].original,"
+    },
+    {
+      "line": 202,
+      "text": "                check(scopes[0].original.token == fixture.fence.operation && scopes[0].original.fence == fixture.fence, \"captured original token/fence\");"
+    },
+    {
+      "line": 203,
+      "text": "                int expected = lease == null ? 2 : 3; check(count(fixture.renderer) == expected, \"actual two holds plus distinct existing B lease\");"
+    },
+    {
+      "line": 204,
+      "text": "                check(scopes[0].entered && scopes[0].counted && !scopes[0].ended && scopes[1].entered && scopes[1].counted && !scopes[1].ended, \"both scopes entered atomically before forward work\");"
+    },
+    {
+      "line": 205,
+      "text": "                refusedWithoutEffects(() -> fixture.a.record.input.fieldPreservationBegin(fixture.a.record, scopes[0]), fixture.renderer, candidate, journal, scopes[0], scopes[1], fixture.a.record, fixture.c.record);"
+    },
+    {
+      "line": 206,
+      "text": "                refusedWithoutEffects(() -> fixture.a.record.input.fieldPreservationEnd(fixture.c.record, scopes[0]), fixture.renderer, candidate, journal, scopes[0], scopes[1], fixture.a.record, fixture.c.record);"
+    },
+    {
+      "line": 210,
+      "text": "                restores++; check(fixture.a.record.fieldPreservation == scopes[0] && fixture.c.record.fieldPreservation == scopes[1], \"restoration uses original two unended scope registrations\");"
+    },
+    {
+      "line": 211,
+      "text": "                check(scopes[0].original == get(candidate, \"originalMutation\") && count(fixture.renderer) >= 2, \"restoration uses identical original while holds retained\");"
+    },
+    {
+      "line": 214,
+      "text": "                commit = true; check(forward && count(fixture.renderer) == 3 && fixture.b.record.editorCallbackLease == lease, \"count3 through real engine commit\");"
+    },
+    {
+      "line": 215,
+      "text": "                check(!scopes[0].ended && !scopes[1].ended && scopes[0].counted && scopes[1].counted, \"attach return does not consume restoration authority\");"
+    },
+    {
+      "line": 223,
+      "text": "                check(count(fixture.renderer) == expected && (lease == null || fixture.b.record.editorCallbackLease == lease), \"scalar finish leaves only exact existing B lease\");"
+    },
+    {
+      "line": 224,
+      "text": "                check(scopes[0].ended && scopes[1].ended && !scopes[0].counted && !scopes[1].counted && fixture.a.record.fieldPreservation == null && fixture.c.record.fieldPreservation == null,"
+    },
+    {
+      "line": 230,
+      "text": "            check(forward && count(fixture.renderer) == 0, \"existing B unwind reaches count0\");"
+    },
+    {
+      "line": 231,
+      "text": "            check(scopes[0].ended && scopes[1].ended && !scopes[0].counted && !scopes[1].counted, \"both exact held claims released once\");"
+    },
+    {
+      "line": 232,
+      "text": "            check(fixture.a.record.fieldPreservation == null && fixture.c.record.fieldPreservation == null, \"no surviving callback authority\");"
+    },
+    {
+      "line": 233,
+      "text": "            check(intervalPlatformCalls == 0, \"no host platform/native probe between commit return and scalar finish\");"
+    },
+    {
+      "line": 235,
+      "text": "            check(fixture.targetA.closeCalls == 1 && fixture.targetC.closeCalls == 1, \"no repeated predecessor close\");"
+    },
+    {
+      "line": 237,
+      "text": "            check(!fixture.oldA.beginBatchEdit() && !fixture.oldC.beginBatchEdit() && fixture.a.onCreateInputConnection(new EditorInfo()) == null && fixture.c.onCreateInputConnection(new EditorInfo()) == null,"
+    },
+    {
+      "line": 239,
+      "text": "            check(ConcreteHostProbe.events().size() == effects, \"old adapters refuse before native calls\");"
+    },
+    {
+      "line": 246,
+      "text": "            check(fixture.edit(), \"B ordinary compatible edit succeeds\"); ConcreteHostProbe.hook = null;"
+    },
+    {
+      "line": 247,
+      "text": "            check(cohort.commit && cohort.afterFinish && !fixture.fence.terminal, \"real healthy commit/finish observed\"); cohort.balanced(false);"
+    },
+    {
+      "line": 248,
+      "text": "            refusedWithoutEffects(() -> call(fixture.renderer, \"finishV2\", cohort.candidate, cohort.journal), fixture.renderer, cohort.candidate, cohort.journal, cohort.scopes[0], cohort.scopes[1], fixture.a.record, fixture.c.record);"
+    },
+    {
+      "line": 249,
+      "text": "            refusedWithoutEffects(() -> call(fixture.renderer, \"completeFailedV2\", cohort.candidate, null, null), fixture.renderer, cohort.candidate, cohort.journal, cohort.scopes[0], cohort.scopes[1], fixture.a.record, fixture.c.record);"
+    },
+    {
+      "line": 257,
+      "text": "            check(!result && cohort.commit && fixture.coordinator.cleanupLedger().abort() == NativeCoordinatorV2.Outcome.RETURNED && fixture.coordinator.cleanupLedger().rollback() == NativeCoordinatorV2.Outcome.RETURNED,"
+    },
+    {
+      "line": 259,
+      "text": "            check(cohort.restores > 0, \"real native restoration path visited under original scopes\"); cohort.balanced(true);"
+    },
+    {
+      "line": 260,
+      "text": "            refusedWithoutEffects(() -> call(fixture.renderer, \"completeFailedV2\", cohort.candidate, null, null), fixture.renderer, cohort.candidate, cohort.journal, cohort.scopes[0], cohort.scopes[1], fixture.a.record, fixture.c.record);"
+    },
+    {
+      "line": 277,
+      "text": "            check(!result && cohort.commit && fixture.fence.terminal && cohort.restores == 0, \"terminal/unknown/abort uncertainty never obtains restoration: \" + mode);"
+    },
+    {
+      "line": 278,
+      "text": "            if (mode.endsWith(\"fatal\")) check(escaped == fatal, \"actual original fatal is surfaced by identity\");"
+    },
+    {
+      "line": 290,
+      "text": "                check(count(fixture.renderer) == 0 && cohort.scopes[0].ended && cohort.scopes[1].ended &&"
+    },
+    {
+      "line": 296,
+      "text": "            check(cohort.forward && !cohort.commit && cohort.afterFinish && NativeBridge.commitCalls == commits && !fixture.fence.terminal, \"real owner refresh uses zero-count Begin and count2 scalar completion without engine commit\");"
+    },
+    {
+      "line": 305,
+      "text": "            ConcreteHostProbe.hook = null; check(candidate[0] != null && count(fixture.renderer) == 0, \"actual candidate with native states and no preservation holds: \" + mode);"
+    },
+    {
+      "line": 306,
+      "text": "            for (Object state : (List<?>) get(journal(candidate[0]), \"previous\")) check(get(state, \"preservation\") == null, \"no field scope is fabricated\");"
+    },
+    {
+      "line": 307,
+      "text": "            check(fixture.a.record.fieldPreservation == null && fixture.c.record.fieldPreservation == null && get(fixture.a, \"primary\") == null && get(fixture.c, \"primary\") == null, \"no invented inactive native-prefix failure\");"
+    },
+    {
+      "line": 308,
+      "text": "            refusedWithoutEffects(() -> call(fixture.renderer, \"completeFailedV2\", candidate[0], null, null), fixture.renderer, candidate[0], journal(candidate[0]), fixture.a.record, fixture.c.record);"
+    },
+    {
+      "line": 317,
+      "text": "                    injected[0] = true; candidate[0] = current; check(count(fixture.renderer) == 1, \"pre-attach only existing B count\"); throw original;"
+    },
+    {
+      "line": 321,
+      "text": "            check(injected[0] && escaped == original && count(fixture.renderer) == 0, \"pre-attach failure preserves actual fatal and fabricates no held count\");"
+    },
+    {
+      "line": 322,
+      "text": "            check(get(candidate[0], \"originalMutation\") == null && get(fixture.a, \"primary\") == null && get(fixture.c, \"primary\") == null, \"no original Mutation/scope/native error fabricated\");"
+    },
+    {
+      "line": 323,
+      "text": "            for (Object state : (List<?>) get(journal(candidate[0]), \"previous\")) check(get(state, \"preservation\") == null, \"pre-attach journal has no preservation\");"
+    },
+    {
+      "line": 324,
+      "text": "            refusedWithoutEffects(() -> call(fixture.renderer, \"completeFailedV2\", candidate[0], original, original), fixture.renderer, candidate[0], journal(candidate[0]), fixture.a.record, fixture.c.record);"
+    },
+    {
+      "line": 347,
+      "text": "                        catch (IllegalArgumentException | IllegalStateException expected) { refused[0] = true; check(!scope[0].entered && !scope[0].counted, \"refused Begin acquired no scope count\"); }"
+    },
+    {
+      "line": 358,
+      "text": "            check(installed[0] && refused[0] && candidate[0] != null && count(fixture.renderer) == 0, \"actual partial attach uses candidate journal despite no returned journal\");"
+    },
+    {
+      "line": 359,
+      "text": "            if (constructorFailure) check(scope[0] == null && selectedField.record.fieldPreservation == null, \"failed constructor published no field registration\");"
+    },
+    {
+      "line": 360,
+      "text": "            else check(scope[0] != null && scope[0].ended && !scope[0].entered && !scope[0].counted && selectedField.record.fieldPreservation == null, \"CAPTURED registration cleanup ends unentered scope without decrement\");"
+    },
+    {
+      "line": 361,
+      "text": "            check(get(selectedField, \"primary\") == null && get(selectedField, \"firstFatal\") == null, \"unentered field has no invented native-prefix failure\");"
+    },
+    {
+      "line": 365,
+      "text": "                check(entered != null && entered.entered && entered.ended && !entered.counted, \"earlier exact A count releases when later C Begin refuses\");"
+    },
+    {
+      "line": 388,
+      "text": "            check(changed[0] && !result && fixture.fence.terminal && fixture.renderer.editorDisposalBusyV2() && NativeBridge.destroyCalls == 0, \"malformed exact custody remains terminally busy: \" + mode);"
+    },
+    {
+      "line": 389,
+      "text": "            check(fixture.a.record.fieldPreservation == null && fixture.c.record.fieldPreservation == null, \"failed completion removes exact callback registrations\");"
+    },
+    {
+      "line": 390,
+      "text": "            if (!mode.equals(\"underfunded\")) check(!cohort.scopes[1].counted, \"other exact balanced C scope releases despite A imbalance\");"
+    },
+    {
+      "line": 391,
+      "text": "            else check(cohort.scopes[0].counted && cohort.scopes[1].counted, \"underfunded aggregate cannot fund either represented preservation hold\");"
+    },
+    {
+      "line": 392,
+      "text": "            refusedWithoutEffects(() -> call(fixture.renderer, \"completeFailedV2\", cohort.candidate, null, null), fixture.renderer, cohort.candidate, cohort.journal, cohort.scopes[0], cohort.scopes[1], fixture.a.record, fixture.c.record);"
+    },
+    {
+      "line": 403,
+      "text": "                    f[0] = true; check(count(fixture.renderer) == 3, \"F observed with all real custody held\"); note(\"F\"); throw first;"
+    },
+    {
+      "line": 405,
+      "text": "                if (f[0] && !g[0] && event.receiver == fixture.c && frame(\"restoreV2\")) { g[0] = true; check(count(fixture.renderer) == 3, \"G restoration/reporting still holds all custody\"); note(\"G\"); throw laterRestore; }"
+    },
+    {
+      "line": 406,
+      "text": "                if (method.equals(\"NativeBridge.abortV2\") && phase.equals(\"entry\")) { h[0] = true; check(f[0] && g[0] && count(fixture.renderer) == 3, \"H occurs after F then G while held\"); note(\"H\"); }"
+    },
+    {
+      "line": 409,
+      "text": "            check(f[0] && g[0] && h[0] && escaped == first, \"actual chronological F survives G then H by identity\");"
+    },
+    {
+      "line": 410,
+      "text": "            check(!cohort.scopes[0].counted && !cohort.scopes[1].counted && count(fixture.renderer) == 0, \"every eligible balanced hold releases before first fatal surfaces\");"
+    },
+    {
+      "line": 411,
+      "text": "            check(fixture.coordinator.cleanupLedger().firstFatal() == first && fixture.coordinator.cleanupLedger().abortFailure() == laterAbort, \"coordinator keeps F while observing H abort failure\");"
+    },
+    {
+      "line": 426,
+      "text": "            check(corrupt[0] && retained.ended && retained.counted && count(foreign.renderer) == 1, \"real foreign ended-but-countHeld native scope\");"
+    },
+    {
+      "line": 438,
+      "text": "                    refusedWithoutEffects(() -> local.a.record.input.fieldPreservationEnd(foreign.a.record, retained), states);"
+    },
+    {
+      "line": 439,
+      "text": "                    refusedWithoutEffects(() -> local.a.record.input.fieldPreservationBegin(foreign.a.record, retained), states);"
+    },
+    {
+      "line": 440,
+      "text": "                    refusedWithoutEffects(() -> foreign.a.record.input.fieldPreservationEnd(local.a.record, localCohort.scopes[0]), states);"
+    },
+    {
+      "line": 441,
+      "text": "                    refusedWithoutEffects(() -> call(local.renderer, \"finishV2\", foreignCohort.candidate, foreignCohort.journal), states);"
+    },
+    {
+      "line": 442,
+      "text": "                    refusedWithoutEffects(() -> call(local.renderer, \"finishV2\", localCohort.candidate, foreignCohort.journal), states);"
+    },
+    {
+      "line": 443,
+      "text": "                    refusedWithoutEffects(() -> call(local.renderer, \"completeFailedV2\", foreignCohort.candidate, null, null), states);"
+    },
+    {
+      "line": 444,
+      "text": "                    check(count(foreign.renderer) == 1 && retained.counted && count(local.renderer) == 3, \"neither owner lends its actual held count\");"
+    },
+    {
+      "line": 446,
+      "text": "                check(local.edit(), \"local real compatible edit survives foreign endpoint refusals\"); ConcreteHostProbe.hook = null;"
+    },
+    {
+      "line": 447,
+      "text": "                check(attempted[0], \"real local cohort exercised every foreign endpoint\"); localCohort.balanced(false);"
+    },
+    {
+      "line": 448,
+      "text": "                check(foreign.renderer.editorDisposalBusyV2() && count(foreign.renderer) == 1 && retained.counted, \"foreign retained custody remains independent after local unwind\");"
+    },
+    {
+      "line": 455,
+      "text": "            check(fixture.targetA.closeCalls == 1 && fixture.targetC.closeCalls == 1 && fixture.targetB.closeCalls == 0 && !fixture.fence.terminal, \"old-source-only real three-field fixture is healthy\");"
+    },
+    {
+      "line": 465,
+      "text": "                    check(!(Boolean) get(cohort.journal, \"failedInvoked\"), \"success preclaim has not consumed failed-endpoint invocation\");"
+    },
+    {
+      "line": 479,
+      "text": "            check(constructed[0] && (Boolean) get(cohort.journal, \"failedInvoked\") && get(cohort.journal, \"completion\").equals(4), \"first failed invocation completes despite success progress and used/complete flags\");"
+    },
+    {
+      "line": 480,
+      "text": "            check(!cohort.scopes[0].counted && !cohort.scopes[1].counted && cohort.scopes[0].released && cohort.scopes[1].released &&"
+    },
+    {
+      "line": 483,
+      "text": "            refusedWithoutEffects(() -> call(fixture.renderer, \"completeFailedV2\", cohort.candidate, null, null), fixture.renderer, fixture.fence, cohort.candidate, cohort.journal, cohort.scopes[0], cohort.scopes[1], fixture.a.record, fixture.c.record);"
+    },
+    {
+      "line": 494,
+      "text": "                    check(count(fixture.renderer) == 3 && !cohort.scopes[0].ended && !cohort.scopes[1].ended && cohort.scopes[0].counted && cohort.scopes[1].counted,"
+    },
+    {
+      "line": 496,
+      "text": "                    check(fixture.a.record.fieldPreservation == cohort.scopes[0] && fixture.c.record.fieldPreservation == cohort.scopes[1] &&"
+    },
+    {
+      "line": 499,
+      "text": "                    check(get(fixture.renderer, \"packet\") == get(cohort.candidate, \"base\") && get(fixture.renderer, \"v2Records\") == get(cohort.candidate, \"baseRecords\"), \"no prepared presentation/reference swap precedes cohort refusal\");"
+    },
+    {
+      "line": 514,
+      "text": "            check(injected[0] && report[0] && !returned && fixture.fence.terminal, \"whole-cohort supported refusal reaches actual deferred report\");"
+    },
+    {
+      "line": 515,
+      "text": "            check((Boolean) get(cohort.journal, \"failedInvoked\") && !cohort.scopes[0].counted && cohort.scopes[0].released, \"failure endpoint remained available and released exact balanced A\");"
+    },
+    {
+      "line": 516,
+      "text": "            check(count(fixture.renderer) == (imbalance ? 1 : 0) && cohort.scopes[1].counted == imbalance, \"C custody follows its independent balance; original B unwinds once\");"
+    },
+    {
+      "line": 517,
+      "text": "            if (imbalance) check(fixture.renderer.editorDisposalBusyV2() && NativeBridge.destroyCalls == 0, \"retained C imbalance prevents disposal\");"
+    },
+    {
+      "line": 527,
+      "text": "            Cohort foreign = new Cohort(other); ConcreteHostProbe.hook = foreign::observe; check(other.edit(), \"foreign actual completed cohort\"); ConcreteHostProbe.hook = null;"
+    },
+    {
+      "line": 557,
+      "text": "                        if (finishing) refusedWithoutEffects(() -> call(fixture.renderer, \"finishV2\", cohort.candidate, cohort.journal), snapshot);"
+    },
+    {
+      "line": 559,
+      "text": "                            refusedWithoutEffects(() -> exactInput.fieldPreservationBegin(fixture.a.record, scope), snapshot);"
+    },
+    {
+      "line": 560,
+      "text": "                            refusedWithoutEffects(() -> exactInput.fieldPreservationEnd(fixture.a.record, scope), snapshot);"
+    },
+    {
+      "line": 561,
+      "text": "                            refusedWithoutEffects(() -> call(fixture.renderer, \"completeFailedV2\", cohort.candidate, null, null), snapshot);"
+    },
+    {
+      "line": 567,
+      "text": "            check(fixture.edit(), \"valid own success remains after complete identity matrix\"); ConcreteHostProbe.hook = null;"
+    },
+    {
+      "line": 568,
+      "text": "            check(nativePhase[0] && finishPhase[0] && count(other.renderer) == 0 && count(fixture.renderer) == 0, \"both real owners preserved across all endpoint substitutions\");"
+    },
+    {
+      "line": 589,
+      "text": "                    fired[0] = true; check(cohort.scopes[0].checking, \"actual final snapshot getter remains checking at lifecycle reentry\");"
+    },
+    {
+      "line": 592,
+      "text": "                if (fired[0] && event.receiver == selected && method.equals(nativeName) && phase.equals(\"entry\")) { supers[0]++; check(count(fixture.renderer) == 3, \"exact captured superclass suffix uses original A/C/B custody\"); }"
+    },
+    {
+      "line": 595,
+      "text": "            check(fired[0] && supers[0] == (repeated ? 2 : 1) && (Long) get(fixture.renderer, \"editorLossSerial\") == before + (repeated ? 2 : 1), \"each own/foreign actual getter loss observes denial and exactly matching native superclass: \" + hook);"
+    },
+    {
+      "line": 596,
+      "text": "            check(!returned && !cohort.commit && fixture.fence.terminal && count(fixture.renderer) == 0 && !cohort.scopes[0].counted && !cohort.scopes[1].counted, \"new or repeated lifecycle loss cannot commit or retain balanced native counts\");"
+    },
+    {
+      "line": 621,
+      "text": "            check(constructed[0] && !returned && fixture.fence.terminal && !get(cohort.journal, \"completion\").equals(2), \"duplicated owned journal membership must not complete success or double-decrement one exact count\");"
+    }
+  ],
+  "scope": "Retained whole-source assertion locations, not execution coverage"
+}

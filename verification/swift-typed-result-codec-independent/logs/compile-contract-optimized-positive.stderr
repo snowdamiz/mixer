@@ -1,0 +1,45 @@
+warning: function `borrowed_view_and_code` is never used
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-typed-result-codec-implementation/compile_cases/positive.rs:2:4
+  |
+2 | fn borrowed_view_and_code<'a>(input: &'a [u8]) -> (UnverifiedResultViewV1<'a>, &'a str) {
+  |    ^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `caller_retains_original` is never used
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-typed-result-codec-implementation/compile_cases/positive.rs:7:4
+  |
+7 | fn caller_retains_original(f: &super::control::SwiftRunFailure, output: &mut [u8]) -> (&'static str, bool) {
+  |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-typed-result-codec-independent/review-host-fll0rp7g/compile-source/src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-typed-result-codec-independent/review-host-fll0rp7g/compile-source/src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: 4 warnings emitted
+

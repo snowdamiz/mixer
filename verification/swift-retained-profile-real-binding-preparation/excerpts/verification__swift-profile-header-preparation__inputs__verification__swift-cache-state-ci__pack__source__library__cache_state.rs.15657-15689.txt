@@ -1,0 +1,22 @@
+fn cache_core<S: InputFile, P: InputFile, C: InputFile, O: OutputFile>(
+    stream: &mut S,
+    profile_file: &mut P,
+    context: &mut C,
+    output: &mut O,
+    limit: u64,
+) -> Result<FixtureCacheStateOutcomeV1, AnalyzerError> {
+    cache_body!(stream, profile_file, context, output, limit)
+}
+/// Four distinct, quiescent regular Files at offset0; empty exclusive output.
+/// Only parsed synthetic MIXFIX01/MIXPRF01 identity is observed.
+pub fn analyze_fixture_cache_state_v1(
+    stream: &mut File,
+    profile_file: &mut File,
+    context: &mut File,
+    output: &mut File,
+) -> Result<FixtureCacheStateOutcomeV1, AnalyzerError> {
+    cache_body!(stream, profile_file, context, output, STEP_LIMIT)
+}
+#[cfg(test)]
+#[path = "../tests/cache_state_tests.rs"]
+mod tests;

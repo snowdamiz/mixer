@@ -1,0 +1,74 @@
+                if writer.observed_mask!=writer.expected_mask||writer.phase!=5{writer.freeze(LIFECYCLE);}
+                receipt.attempts_before=writer.attempts;
+                writer.finish(footer);
+                receipt.stored=writer.stored;receipt.attempted=writer.attempted;
+                receipt.flags=writer.flags;receipt.attempts_after=writer.attempts;receipt.finalized=true;
+                match writer.sink.metadata(){Ok(meta)=>receipt.custody=Some(Custody::from_metadata(&meta)),Err(_)=>receipt.flags|=IO}
+            });receipt
+        }
+    }
+    pub fn retire_after_quiescence(){
+        let now=GATE_STATE.load(Ordering::Acquire);assert_ne!(now&CLOSED,0);assert_eq!(now&COUNTS,0);
+        WRITER.with(|w|drop(w.borrow_mut().take()));OWNER.with(|o|o.set(0));
+        GATE_STATE.store(CLOSED,Ordering::Release);
+    }
+    pub fn observe(payload:[u64;11],coordinates:(u64,u64))->bool {
+        if !enter(){return false;}
+        if !owner(){invalidate(CONTEXT);leave();return false;}
+        let accepted=WRITER.with(|cell|{
+            let Ok(mut state)=cell.try_borrow_mut()else{invalidate(BORROW);return false;};
+            let Some(writer)=state.as_mut()else{invalidate(LIFECYCLE);return false;};
+            writer.freeze(FLAGS.load(Ordering::Acquire));
+            let operation=match payload[0]{1=>match writer.operation.checked_add(1){Some(n)=>n,None=>{writer.freeze(OVERFLOW);return false;}},12|13=>0,14=>if payload[5]==ABSENT{writer.operation}else{0},_=>writer.operation};
+            let mut event=Record([0,payload[0],writer.phase,operation,coordinates.0,coordinates.1,payload[1],payload[2],payload[3],payload[4],payload[5],payload[6],payload[7],payload[8],payload[9],payload[10]]);
+            if payload[0]==13{event.0[2]=payload[8];}
+            if payload[0]==14{event.0[10]=ABSENT;}
+            writer.push(event);true
+        });leave();accepted
+    }
+    pub fn acquire(function:u32,coordinates:(u64,u64)){observe([1,function as u64,ABSENT,ABSENT,ABSENT,ABSENT,ABSENT,0,0,0,0],coordinates);}
+    pub fn phase(phase:u64,coordinates:(u64,u64)){observe([13,ABSENT,ABSENT,ABSENT,ABSENT,ABSENT,ABSENT,0,phase,0,0],coordinates);}
+    pub fn failure(f:&SwiftRunFailure,terminal:bool){
+        let code=source_code(f.code);
+        if code==0 {if enter(){invalidate(CODE);leave();}return;}
+        let operation=if terminal{0}else{ABSENT};
+        observe([14,f.function.map_or(ABSENT,|n|n as u64),ABSENT,ABSENT,ABSENT,operation,ABSENT,0,kind(f.kind),code,stage(f.stage)],(f.at_failure.cache_work,f.at_failure.instructions));
+    }
+    pub fn stage(s:SwiftRunStage)->u64{match s{SwiftRunStage::Adoption=>1,SwiftRunStage::Cache=>2,SwiftRunStage::Initialization=>3,SwiftRunStage::Invocation=>4,SwiftRunStage::Wasi=>5,SwiftRunStage::Cleanup=>6}}
+    pub fn kind(k:SwiftRunFailureKind)->u64{match k{SwiftRunFailureKind::InvalidBudget=>1,SwiftRunFailureKind::Cancelled=>2,SwiftRunFailureKind::Deadline=>3,SwiftRunFailureKind::Allocation=>4,SwiftRunFailureKind::Adoption=>5,SwiftRunFailureKind::CategoryExhausted=>6,SwiftRunFailureKind::CombinedExhausted=>7,SwiftRunFailureKind::ResourceExhausted=>8,SwiftRunFailureKind::FuelExhausted=>9,SwiftRunFailureKind::WorkExhausted=>10,SwiftRunFailureKind::HostCallLimit=>11,SwiftRunFailureKind::PinLimit=>12,SwiftRunFailureKind::FrameLimit=>13,SwiftRunFailureKind::ValueLimit=>14,SwiftRunFailureKind::ControlLimit=>15,SwiftRunFailureKind::DecoderMismatch=>16,SwiftRunFailureKind::UnsupportedEnvironment=>17,SwiftRunFailureKind::GuestTrap=>18,SwiftRunFailureKind::GuestExit=>19,SwiftRunFailureKind::Wasi=>20,SwiftRunFailureKind::Invariant=>21}}
+    pub fn cleanup(k:Option<SwiftCleanupInvariant>)->u64{match k{None=>0,Some(SwiftCleanupInvariant::ReservationOwner)=>1,Some(SwiftCleanupInvariant::ReservationUnderflow)=>2,Some(SwiftCleanupInvariant::MissingConstruction)=>3,Some(SwiftCleanupInvariant::ConstructionBound)=>4,Some(SwiftCleanupInvariant::LiveUnderflow)=>5}}
+    pub fn source_code(code:&str)->u64{match code{
+        "swift_run_cancelled"=>1,
+        "swift_run_deadline"=>2,
+        "swift_run_work"=>3,
+        "swift_run_invalid_budget"=>4,
+        "swift_run_category_capacity"=>5,
+        "swift_run_combined_capacity"=>6,
+        "swift_run_cache_entry_capacity"=>7,
+        "swift_run_unexpected_capacity"=>8,
+        "swift_cache_allocation"=>9,
+        "not_defined_function"=>10,
+        "pin_nonce_exhausted"=>11,
+        "pin_slots_exhausted"=>12,
+        "all_entries_pinned"=>13,
+        "swift_plan_identity"=>14,
+        "swift_plan_layout"=>15,
+        "swift_cache_layout_overflow"=>16,
+        "swift_run_live_limit"=>17,
+        "swift_run_fuel"=>18,
+        "entry_bytes"=>19,
+        "entry_cannot_fit"=>20,
+        "entry_size_overflow"=>21,
+        "swift_cache_index_victim"=>22,
+        "swift_cache_index_missing"=>23,
+        "swift_cache_index_insert"=>24,
+        _=>0,
+    }}
+    pub fn footer(usage:&SwiftRunUsage,failure:Option<&SwiftRunFailure>)->[u64;64]{
+        let mut w=[0;64];w[10]=usage.cache_work;w[11]=usage.instructions;w[14]=ABSENT;
+        if let Some(f)=failure{w[12]=kind(f.kind);w[13]=source_code(f.code);w[14]=stage(f.stage);w[32]=1;}
+        let r=&usage.reservations;
+        w[16..25].copy_from_slice(&[r.retained_source.current as u64,r.retained_metadata.current as u64,r.cache.current as u64,r.state.current as u64,r.wasi.current as u64,r.shared.current as u64,r.construction.current as u64,r.combined.current as u64,r.live_tickets as u64]);
+        let l=&usage.live;w[25..31].copy_from_slice(&[l.cache_entries.current as u64,l.active_pins.current as u64,l.frames.current as u64,l.values.current as u64,l.controls.current as u64,l.memory_pages.current as u64]);w[31]=cleanup(usage.cleanup_invariant);w
+    }
+    pub fn with_borrowed(call:impl FnOnce()){WRITER.with(|w|{let _held=w.borrow_mut();call();});}

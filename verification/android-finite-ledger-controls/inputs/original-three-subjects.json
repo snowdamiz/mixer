@@ -1,0 +1,774 @@
+{
+  "input": {
+    "path": "verification/android-editor-membership-qualification-independent/semantic-applicability/applicability-checklist.json",
+    "bytes": 3312566,
+    "sha256": "c782b54865efc29534908b8ae71b6c83f749ad79af1d62c3d0a4a364772c20b2"
+  },
+  "subjects": [
+    {
+      "id": "dev/mixer/android/NativeCoordinatorV2#remember(Ljava/lang/Throwable;)V",
+      "class": "dev/mixer/android/NativeCoordinatorV2",
+      "method": "remember",
+      "descriptor": "(Ljava/lang/Throwable;)V",
+      "categories": [
+        "cleanup-and-first-fatal"
+      ],
+      "required_semantic_cases": [
+        "counted-busy-balanced",
+        "first-fatal-exact-identity",
+        "ordinary-primary-preserved",
+        "original-obligation-retained",
+        "reentrant-cleanup-refuses-new-work",
+        "target-close-once-or-explicit-held-pending"
+      ],
+      "source_sha256": "cc7121aa496ee03de49aceb294265fe28818d77c95743087fc702fa9a931ec51",
+      "class_sha256": "6f42dde051726b4ce6d736c38646056ebf2a47a6eea24e58c55f582416ade289",
+      "proposed_applicability": "local-first-failure-ledger",
+      "reason": "Actual method has no invoke instruction. Source/bytecode can read/write fields, branch, return or throw existing identity; seven native callback states cannot be inferred for its own body.",
+      "source_file": "NativeCoordinatorV2.java",
+      "source_witness": [
+        {
+          "line": 240,
+          "text": "        if (failure == null) return;"
+        },
+        {
+          "line": 241,
+          "text": "        if (ledger.primary == null) ledger.primary = failure;"
+        },
+        {
+          "line": 242,
+          "text": "        if (failure instanceof Error fatal && ledger.firstFatal == null) ledger.firstFatal = fatal;"
+        },
+        {
+          "line": 243,
+          "text": "    }"
+        }
+      ],
+      "actual_invocations": [],
+      "actual_instructions": [
+        {
+          "bci": 0,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 240,
+          "bytes": "2b"
+        },
+        {
+          "bci": 1,
+          "opcode": 199,
+          "mnemonic": "op_c7",
+          "line": 240,
+          "bytes": "c70004"
+        },
+        {
+          "bci": 4,
+          "opcode": 177,
+          "mnemonic": "return",
+          "line": 240,
+          "bytes": "b1"
+        },
+        {
+          "bci": 5,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 241,
+          "bytes": "2a"
+        },
+        {
+          "bci": 6,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 241,
+          "target": {
+            "owner": "dev/mixer/android/NativeCoordinatorV2",
+            "name": "ledger",
+            "descriptor": "Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;"
+          },
+          "bytes": "b4000a"
+        },
+        {
+          "bci": 9,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 241,
+          "target": {
+            "owner": "dev/mixer/android/NativeCoordinatorV2$CleanupLedger",
+            "name": "primary",
+            "descriptor": "Ljava/lang/Throwable;"
+          },
+          "bytes": "b400c4"
+        },
+        {
+          "bci": 12,
+          "opcode": 199,
+          "mnemonic": "op_c7",
+          "line": 241,
+          "bytes": "c7000b"
+        },
+        {
+          "bci": 15,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 241,
+          "bytes": "2a"
+        },
+        {
+          "bci": 16,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 241,
+          "target": {
+            "owner": "dev/mixer/android/NativeCoordinatorV2",
+            "name": "ledger",
+            "descriptor": "Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;"
+          },
+          "bytes": "b4000a"
+        },
+        {
+          "bci": 19,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 241,
+          "bytes": "2b"
+        },
+        {
+          "bci": 20,
+          "opcode": 181,
+          "mnemonic": "putfield",
+          "line": 241,
+          "target": {
+            "owner": "dev/mixer/android/NativeCoordinatorV2$CleanupLedger",
+            "name": "primary",
+            "descriptor": "Ljava/lang/Throwable;"
+          },
+          "bytes": "b500c4"
+        },
+        {
+          "bci": 23,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 242,
+          "bytes": "2b"
+        },
+        {
+          "bci": 24,
+          "opcode": 193,
+          "mnemonic": "op_c1",
+          "line": 242,
+          "bytes": "c1005b"
+        },
+        {
+          "bci": 27,
+          "opcode": 153,
+          "mnemonic": "op_99",
+          "line": 242,
+          "bytes": "99001a"
+        },
+        {
+          "bci": 30,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 242,
+          "bytes": "2b"
+        },
+        {
+          "bci": 31,
+          "opcode": 192,
+          "mnemonic": "op_c0",
+          "line": 242,
+          "bytes": "c0005b"
+        },
+        {
+          "bci": 34,
+          "opcode": 77,
+          "mnemonic": "op_4d",
+          "line": 242,
+          "bytes": "4d"
+        },
+        {
+          "bci": 35,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 242,
+          "bytes": "2a"
+        },
+        {
+          "bci": 36,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 242,
+          "target": {
+            "owner": "dev/mixer/android/NativeCoordinatorV2",
+            "name": "ledger",
+            "descriptor": "Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;"
+          },
+          "bytes": "b4000a"
+        },
+        {
+          "bci": 39,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 242,
+          "target": {
+            "owner": "dev/mixer/android/NativeCoordinatorV2$CleanupLedger",
+            "name": "firstFatal",
+            "descriptor": "Ljava/lang/Error;"
+          },
+          "bytes": "b400c7"
+        },
+        {
+          "bci": 42,
+          "opcode": 199,
+          "mnemonic": "op_c7",
+          "line": 242,
+          "bytes": "c7000b"
+        },
+        {
+          "bci": 45,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 242,
+          "bytes": "2a"
+        },
+        {
+          "bci": 46,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 242,
+          "target": {
+            "owner": "dev/mixer/android/NativeCoordinatorV2",
+            "name": "ledger",
+            "descriptor": "Ldev/mixer/android/NativeCoordinatorV2$CleanupLedger;"
+          },
+          "bytes": "b4000a"
+        },
+        {
+          "bci": 49,
+          "opcode": 44,
+          "mnemonic": "op_2c",
+          "line": 242,
+          "bytes": "2c"
+        },
+        {
+          "bci": 50,
+          "opcode": 181,
+          "mnemonic": "putfield",
+          "line": 242,
+          "target": {
+            "owner": "dev/mixer/android/NativeCoordinatorV2$CleanupLedger",
+            "name": "firstFatal",
+            "descriptor": "Ljava/lang/Error;"
+          },
+          "bytes": "b500c7"
+        },
+        {
+          "bci": 53,
+          "opcode": 177,
+          "mnemonic": "return",
+          "line": 243,
+          "bytes": "b1"
+        }
+      ],
+      "required_finite_or_enclosing_cases": [
+        "Null behavior exactly as source; retain any scalar diagnostics flag update.",
+        "First ordinary/primary identity is retained; later ordinary does not replace it.",
+        "First Error identity is retained independently of primary; later Error does not replace first fatal.",
+        "No native cleanup occurs in this body; actual caller cleanup/exception propagation needs its own cases."
+      ],
+      "selection_status": "pending-independent-root-policy-selection",
+      "native_callback_state_deletion_authorized": false,
+      "behavior_accepted": false
+    },
+    {
+      "id": "dev/mixer/android/NativeEnvironmentV2$Observer#remember(Ljava/lang/Throwable;)V",
+      "class": "dev/mixer/android/NativeEnvironmentV2$Observer",
+      "method": "remember",
+      "descriptor": "(Ljava/lang/Throwable;)V",
+      "categories": [
+        "cleanup-and-first-fatal"
+      ],
+      "required_semantic_cases": [
+        "counted-busy-balanced",
+        "first-fatal-exact-identity",
+        "ordinary-primary-preserved",
+        "original-obligation-retained",
+        "reentrant-cleanup-refuses-new-work",
+        "target-close-once-or-explicit-held-pending"
+      ],
+      "source_sha256": "2cff6cc20d1c3c9ae751e217bba3192e315125f438312f29e933d0c79d339eb1",
+      "class_sha256": "723f7d10f690d62e5c6f1fea5ac9e94e0d6e934ef0a6c097d176ad9fed737ad7",
+      "proposed_applicability": "local-first-failure-ledger",
+      "reason": "Actual method has no invoke instruction. Source/bytecode can read/write fields, branch, return or throw existing identity; seven native callback states cannot be inferred for its own body.",
+      "source_file": "NativeEnvironmentV2.java",
+      "source_witness": [
+        {
+          "line": 134,
+          "text": "            diagnosticsAttached = false;"
+        },
+        {
+          "line": 135,
+          "text": "            if (primaryFailure == null) primaryFailure = failure;"
+        },
+        {
+          "line": 136,
+          "text": "            if (failure instanceof Error && fatalFailure == null) fatalFailure = (Error)failure;"
+        },
+        {
+          "line": 137,
+          "text": "        }"
+        }
+      ],
+      "actual_invocations": [],
+      "actual_instructions": [
+        {
+          "bci": 0,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 134,
+          "bytes": "2a"
+        },
+        {
+          "bci": 1,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 134,
+          "bytes": "03"
+        },
+        {
+          "bci": 2,
+          "opcode": 181,
+          "mnemonic": "putfield",
+          "line": 134,
+          "target": {
+            "owner": "dev/mixer/android/NativeEnvironmentV2$Observer",
+            "name": "diagnosticsAttached",
+            "descriptor": "Z"
+          },
+          "bytes": "b5010a"
+        },
+        {
+          "bci": 5,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 135,
+          "bytes": "2a"
+        },
+        {
+          "bci": 6,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 135,
+          "target": {
+            "owner": "dev/mixer/android/NativeEnvironmentV2$Observer",
+            "name": "primaryFailure",
+            "descriptor": "Ljava/lang/Throwable;"
+          },
+          "bytes": "b400f3"
+        },
+        {
+          "bci": 9,
+          "opcode": 199,
+          "mnemonic": "op_c7",
+          "line": 135,
+          "bytes": "c70008"
+        },
+        {
+          "bci": 12,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 135,
+          "bytes": "2a"
+        },
+        {
+          "bci": 13,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 135,
+          "bytes": "2b"
+        },
+        {
+          "bci": 14,
+          "opcode": 181,
+          "mnemonic": "putfield",
+          "line": 135,
+          "target": {
+            "owner": "dev/mixer/android/NativeEnvironmentV2$Observer",
+            "name": "primaryFailure",
+            "descriptor": "Ljava/lang/Throwable;"
+          },
+          "bytes": "b500f3"
+        },
+        {
+          "bci": 17,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 136,
+          "bytes": "2b"
+        },
+        {
+          "bci": 18,
+          "opcode": 193,
+          "mnemonic": "op_c1",
+          "line": 136,
+          "bytes": "c100e7"
+        },
+        {
+          "bci": 21,
+          "opcode": 153,
+          "mnemonic": "op_99",
+          "line": 136,
+          "bytes": "990012"
+        },
+        {
+          "bci": 24,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 136,
+          "bytes": "2a"
+        },
+        {
+          "bci": 25,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 136,
+          "target": {
+            "owner": "dev/mixer/android/NativeEnvironmentV2$Observer",
+            "name": "fatalFailure",
+            "descriptor": "Ljava/lang/Error;"
+          },
+          "bytes": "b400f7"
+        },
+        {
+          "bci": 28,
+          "opcode": 199,
+          "mnemonic": "op_c7",
+          "line": 136,
+          "bytes": "c7000b"
+        },
+        {
+          "bci": 31,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 136,
+          "bytes": "2a"
+        },
+        {
+          "bci": 32,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 136,
+          "bytes": "2b"
+        },
+        {
+          "bci": 33,
+          "opcode": 192,
+          "mnemonic": "op_c0",
+          "line": 136,
+          "bytes": "c000e7"
+        },
+        {
+          "bci": 36,
+          "opcode": 181,
+          "mnemonic": "putfield",
+          "line": 136,
+          "target": {
+            "owner": "dev/mixer/android/NativeEnvironmentV2$Observer",
+            "name": "fatalFailure",
+            "descriptor": "Ljava/lang/Error;"
+          },
+          "bytes": "b500f7"
+        },
+        {
+          "bci": 39,
+          "opcode": 177,
+          "mnemonic": "return",
+          "line": 137,
+          "bytes": "b1"
+        }
+      ],
+      "required_finite_or_enclosing_cases": [
+        "Null behavior exactly as source; retain any scalar diagnostics flag update.",
+        "First ordinary/primary identity is retained; later ordinary does not replace it.",
+        "First Error identity is retained independently of primary; later Error does not replace first fatal.",
+        "No native cleanup occurs in this body; actual caller cleanup/exception propagation needs its own cases."
+      ],
+      "selection_status": "pending-independent-root-policy-selection",
+      "native_callback_state_deletion_authorized": false,
+      "behavior_accepted": false
+    },
+    {
+      "id": "dev/mixer/android/NativeOwnerV2#remember(Ljava/lang/Throwable;)V",
+      "class": "dev/mixer/android/NativeOwnerV2",
+      "method": "remember",
+      "descriptor": "(Ljava/lang/Throwable;)V",
+      "categories": [
+        "cleanup-and-first-fatal"
+      ],
+      "required_semantic_cases": [
+        "counted-busy-balanced",
+        "first-fatal-exact-identity",
+        "ordinary-primary-preserved",
+        "original-obligation-retained",
+        "reentrant-cleanup-refuses-new-work",
+        "target-close-once-or-explicit-held-pending"
+      ],
+      "source_sha256": "056aa51d07e765b59a3859ce76090477a24211c973b63336406ff4b0d4102269",
+      "class_sha256": "f591013acfc0c216c001e97d3078970635d6f5975b7de32e63d7eea3895b73bb",
+      "proposed_applicability": "local-first-failure-ledger",
+      "reason": "Actual method has no invoke instruction. Source/bytecode can read/write fields, branch, return or throw existing identity; seven native callback states cannot be inferred for its own body.",
+      "source_file": "NativeOwnerV2.java",
+      "source_witness": [
+        {
+          "line": 436,
+          "text": "        if (failure == null) return;"
+        },
+        {
+          "line": 437,
+          "text": "        if (ledger.primary == null) ledger.primary = failure;"
+        },
+        {
+          "line": 438,
+          "text": "        if (failure instanceof Error fatal && ledger.firstFatal == null) ledger.firstFatal = fatal;"
+        },
+        {
+          "line": 439,
+          "text": "    }"
+        }
+      ],
+      "actual_invocations": [],
+      "actual_instructions": [
+        {
+          "bci": 0,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 436,
+          "bytes": "2b"
+        },
+        {
+          "bci": 1,
+          "opcode": 199,
+          "mnemonic": "op_c7",
+          "line": 436,
+          "bytes": "c70004"
+        },
+        {
+          "bci": 4,
+          "opcode": 177,
+          "mnemonic": "return",
+          "line": 436,
+          "bytes": "b1"
+        },
+        {
+          "bci": 5,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 437,
+          "bytes": "2a"
+        },
+        {
+          "bci": 6,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 437,
+          "target": {
+            "owner": "dev/mixer/android/NativeOwnerV2",
+            "name": "ledger",
+            "descriptor": "Ldev/mixer/android/NativeOwnerV2$CleanupLedger;"
+          },
+          "bytes": "b40016"
+        },
+        {
+          "bci": 9,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 437,
+          "target": {
+            "owner": "dev/mixer/android/NativeOwnerV2$CleanupLedger",
+            "name": "primary",
+            "descriptor": "Ljava/lang/Throwable;"
+          },
+          "bytes": "b4027d"
+        },
+        {
+          "bci": 12,
+          "opcode": 199,
+          "mnemonic": "op_c7",
+          "line": 437,
+          "bytes": "c7000b"
+        },
+        {
+          "bci": 15,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 437,
+          "bytes": "2a"
+        },
+        {
+          "bci": 16,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 437,
+          "target": {
+            "owner": "dev/mixer/android/NativeOwnerV2",
+            "name": "ledger",
+            "descriptor": "Ldev/mixer/android/NativeOwnerV2$CleanupLedger;"
+          },
+          "bytes": "b40016"
+        },
+        {
+          "bci": 19,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 437,
+          "bytes": "2b"
+        },
+        {
+          "bci": 20,
+          "opcode": 181,
+          "mnemonic": "putfield",
+          "line": 437,
+          "target": {
+            "owner": "dev/mixer/android/NativeOwnerV2$CleanupLedger",
+            "name": "primary",
+            "descriptor": "Ljava/lang/Throwable;"
+          },
+          "bytes": "b5027d"
+        },
+        {
+          "bci": 23,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 438,
+          "bytes": "2b"
+        },
+        {
+          "bci": 24,
+          "opcode": 193,
+          "mnemonic": "op_c1",
+          "line": 438,
+          "bytes": "c10097"
+        },
+        {
+          "bci": 27,
+          "opcode": 153,
+          "mnemonic": "op_99",
+          "line": 438,
+          "bytes": "99001a"
+        },
+        {
+          "bci": 30,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 438,
+          "bytes": "2b"
+        },
+        {
+          "bci": 31,
+          "opcode": 192,
+          "mnemonic": "op_c0",
+          "line": 438,
+          "bytes": "c00097"
+        },
+        {
+          "bci": 34,
+          "opcode": 77,
+          "mnemonic": "op_4d",
+          "line": 438,
+          "bytes": "4d"
+        },
+        {
+          "bci": 35,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 438,
+          "bytes": "2a"
+        },
+        {
+          "bci": 36,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 438,
+          "target": {
+            "owner": "dev/mixer/android/NativeOwnerV2",
+            "name": "ledger",
+            "descriptor": "Ldev/mixer/android/NativeOwnerV2$CleanupLedger;"
+          },
+          "bytes": "b40016"
+        },
+        {
+          "bci": 39,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 438,
+          "target": {
+            "owner": "dev/mixer/android/NativeOwnerV2$CleanupLedger",
+            "name": "firstFatal",
+            "descriptor": "Ljava/lang/Error;"
+          },
+          "bytes": "b4027f"
+        },
+        {
+          "bci": 42,
+          "opcode": 199,
+          "mnemonic": "op_c7",
+          "line": 438,
+          "bytes": "c7000b"
+        },
+        {
+          "bci": 45,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 438,
+          "bytes": "2a"
+        },
+        {
+          "bci": 46,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 438,
+          "target": {
+            "owner": "dev/mixer/android/NativeOwnerV2",
+            "name": "ledger",
+            "descriptor": "Ldev/mixer/android/NativeOwnerV2$CleanupLedger;"
+          },
+          "bytes": "b40016"
+        },
+        {
+          "bci": 49,
+          "opcode": 44,
+          "mnemonic": "op_2c",
+          "line": 438,
+          "bytes": "2c"
+        },
+        {
+          "bci": 50,
+          "opcode": 181,
+          "mnemonic": "putfield",
+          "line": 438,
+          "target": {
+            "owner": "dev/mixer/android/NativeOwnerV2$CleanupLedger",
+            "name": "firstFatal",
+            "descriptor": "Ljava/lang/Error;"
+          },
+          "bytes": "b5027f"
+        },
+        {
+          "bci": 53,
+          "opcode": 177,
+          "mnemonic": "return",
+          "line": 439,
+          "bytes": "b1"
+        }
+      ],
+      "required_finite_or_enclosing_cases": [
+        "Null behavior exactly as source; retain any scalar diagnostics flag update.",
+        "First ordinary/primary identity is retained; later ordinary does not replace it.",
+        "First Error identity is retained independently of primary; later Error does not replace first fatal.",
+        "No native cleanup occurs in this body; actual caller cleanup/exception propagation needs its own cases."
+      ],
+      "selection_status": "pending-independent-root-policy-selection",
+      "native_callback_state_deletion_authorized": false,
+      "behavior_accepted": false
+    }
+  ]
+}

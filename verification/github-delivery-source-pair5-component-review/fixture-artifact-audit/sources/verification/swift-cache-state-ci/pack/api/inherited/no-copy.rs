@@ -1,0 +1,1 @@
+use mixer_absence::*;fn need<T:Copy>(){}fn main(){need::<FixtureEnvelopeOutcomeV1>();}

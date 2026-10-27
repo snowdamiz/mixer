@@ -1,0 +1,41 @@
+test_preclose_error_does_not_forget_known_open_descriptor (unchanged_witness.Independent.test_preclose_error_does_not_forget_known_open_descriptor) ... ERROR
+test_preclose_error_does_not_forget_known_open_descriptor (unchanged_witness.Independent.test_preclose_error_does_not_forget_known_open_descriptor) ... FAIL
+
+======================================================================
+ERROR: test_preclose_error_does_not_forget_known_open_descriptor (unchanged_witness.Independent.test_preclose_error_does_not_forget_known_open_descriptor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/corrected/test_independent.py", line 140, in test_preclose_error_does_not_forget_known_open_descriptor
+    os.fstat(leaf)
+    ~~~~~~~~^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/corrected/replay/prototype.py", line 137, in __index__
+    self._owner.idle()
+    ~~~~~~~~~~~~~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/corrected/replay/prototype.py", line 279, in idle
+    raise Refusal("owner-not-open", "parent-access")
+prototype.Refusal: owner-not-open:parent-access
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/corrected/test_independent.py", line 147, in test_preclose_error_does_not_forget_known_open_descriptor
+    p.OPEN_FDS.discard(fd)
+    ~~~~~~~~~~~~~~~~~~^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/corrected/replay/prototype.py", line 117, in remove
+    def remove(self, _): raise Refusal("accounting-view-read-only", "ownership")
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+prototype.Refusal: accounting-view-read-only:ownership
+
+======================================================================
+FAIL: test_preclose_error_does_not_forget_known_open_descriptor (unchanged_witness.Independent.test_preclose_error_does_not_forget_known_open_descriptor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-correction/corrected/test_independent.py", line 30, in tearDown
+    self.assertFalse(p.OPEN_FDS)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: {15} is not false
+
+----------------------------------------------------------------------
+Ran 1 test in 0.003s
+
+FAILED (failures=1, errors=1)

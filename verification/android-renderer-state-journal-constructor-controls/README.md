@@ -1,0 +1,32 @@
+# Exact NativeState and AttachmentJournal constructor controls
+
+Selected run: `run-3`. The run passed 85 actual direct constructor invocations and 2,556 executable assertions on the macOS host JVM. This is narrow host evidence pending root review and producer selection. It does not grant membership, completion, release, publication, native, OTA or GA authority.
+
+The runner verifies every member of the four named frozen input packets before compilation: coherent pair5 `0dc913d...`, semantic released24 `35e5cf5...` (34 members), finite6 `e901741...`, and accepted passive v4 `8501bfa...` (schema4 path map). Exact complete hashes are in the runner and provenance. It reproduces all 209 product classes from 16 original sources without a BCI remap, preserving source/class context `1b71af17048675296435ca74af284d54f93f2506b9c406517a452a3ce816dbdd`. The executed fixture source remains the exact released `3752075126e21678880e431a833ade2511c1a5c8c1110c3f5f7a39fe194d1c2b` selected6 source. B87 contains the selected eight v4 instrumentation files. There is no dependency on the producer's larger whole-host test source.
+
+The fixture is ordinarily allocated as the original `Fixture(true,true)`. A real compatible edit pauses synchronously at its original A `View.invalidate/entry` callback, after obtaining the actual candidate and journal at held/shared counts `[2,2,3]`. The controls call only the exact two emitted constructors through ordinary Java reflection. Host-field perturbations and record/map references are restored in `finally` before the original edit resumes; that edit succeeds and releases counts to `[0,0,0]`.
+
+| Constructor | Finite controls | Exact tuples and callback controls |
+| --- | --- | --- |
+| `NativeState` | 11: NativeField idle/focused/composing/selectable; TextView selectable/unselected/nonselectable/null buffer; nontext View; checked/unchecked Switch | BCI67 `EditText.getText`: 7 states on actual NativeField. BCI145 `TextView.getText`: 7 states each on NativeField, TextView, Switch. BCI222 void `View.getLocationInWindow`: 7 states each on NativeField, TextView, View, Switch. |
+| `AttachmentJournal` | 4: mixed input order, reverse order, null old gate, empty base map | BCI184 width and BCI192 height: 7 states each. |
+
+The canonical seven callback states remain `clean`, `terminal-at-entry`, `terminal-before-return`, `dirty-at-entry`, `dirty-before-return`, `ordinary-throw-after-callback`, and `fatal-throw-after-callback`. Terminal controls perturb the original fence; dirty controls perturb the original environment source generation. Throwing controls perform the dirty callback perturbation and then throw the exact preallocated RuntimeException/Error. No original constructor guard, transaction coordinator result, or authority predicate is copied into the oracle.
+
+Each hook binds its actual immutable event reference/index, original own native receiver, full original caller descriptor and BCI, and complete captured production frames. Every captured list is 17 entries. The control explicitly refuses any list reaching the probe's 24-entry cap, so the selected receipt cannot silently accept truncated frames. The passive recorder is explicitly begun/ended; qualification hooks are identity-installed/cleared. Any failed/dirty recorder immediately aborts the attempt before another begin could reset it. `clean()` is used only for observation integrity, never as general body-exception coverage.
+
+Normal NativeState results capture every constructor field: argument/journal/record/binding/geometry references; copied text and native-buffer identity; composition span identities/types/order/ranges/flags; drawable/window array contents; frame, measurement, enabled, selection, scroll, active, checked, focus and pressed values; and default preservation/membership fields. Mutable text content is frozen at its actual passive native return. The independent configured values are asserted before serialization; they are not generated from the observed rows. Unhooked getters use actual finite host values and receive no invented callbacks.
+
+Journal results preserve map-value iteration order, positions, the identity between `previous` and `states` members, state count, group parent/child snapshots, root child order/references, independently configured `1100 x 1600` root dimensions, old gate/canvas, OPEN/incomplete defaults, and the unchanged published candidate journal reference. Every callback row preserves actual held/shared counts and transaction/presentation/pending identities.
+
+Void BCI222 has no normal passive return value. Its evidence is the actual completed enclosing NativeState object's `int[2]` values `[108,209]`, with an immutable snapshot check; throwing controls retain the exact original exception. Ordinary reflection cannot expose the failed constructor receiver or its private partially constructed output array. Internal source `getDrawableState` array identity, runtime allocation failures, and full enclosing authority/cohort/funding/completion/cleanup obligations remain pending. All original case IDs/dispositions are preserved in `inputs/exact-two-subject-contracts.json`.
+
+`run-1/failure.json` retains a setup-time path error: NativeOutcomeProbe was sought under v4 `leaves/` although its source resides at the v4 root. No Java/Javac child started and no pass credit exists. The first runner source was not snapshotted before this setup failure; this is an explicit failed-attempt provenance limit. `run-2` corrected that path and passed the same 85 calls/2,225 checks. `run-3` adds the explicit frame-cap refusal and passes the same 85 calls/2,556 checks. The actual run2/run3 sources, argv, JDK identities/versions, output digests, input checks and cleanup are retained.
+
+Reproduce only the bounded host controls with a fresh run name:
+
+```sh
+python3 -B verification/android-renderer-state-journal-constructor-controls/run_controls.py fresh-run
+```
+
+Compilation uses the authorized read/execute-only JDK lease, `--release 17 -proc:none -Xlint:all -Werror`, empty source/class paths and default javac debug settings. No `-g` or `-g:none` is used. Each child is bounded to 60 seconds and reaped. Compile scratch is removed; the JDK is preserved. No native runtime, simulator/emulator, physical phone, UI, capture, process inventory, hosted inspector, credential, Git, or canonical/index operation was performed. Original fixture close may catch disposal errors, so it provides host disposal only and no physical cleanup credit.

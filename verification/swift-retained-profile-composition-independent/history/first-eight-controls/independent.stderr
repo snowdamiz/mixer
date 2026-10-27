@@ -1,0 +1,38 @@
+test_all_eight_original_transport_claim_ranges_are_zero_and_only_claims_change (__main__.Independent.test_all_eight_original_transport_claim_ranges_are_zero_and_only_claims_change) ... ok
+test_canonical_decode_closes_duplicate_and_noncanonical_number_forms (__main__.Independent.test_canonical_decode_closes_duplicate_and_noncanonical_number_forms) ... ok
+test_close_failure_still_accounts_for_and_closes_remaining_owned_descriptors (__main__.Independent.test_close_failure_still_accounts_for_and_closes_remaining_owned_descriptors) ... FAIL
+test_closed_retained_wrapper_cannot_reauthorize_reused_descriptor (__main__.Independent.test_closed_retained_wrapper_cannot_reauthorize_reused_descriptor) ... FAIL
+test_complete_snapshot_field_sets_match_frozen_owner_and_accounting (__main__.Independent.test_complete_snapshot_field_sets_match_frozen_owner_and_accounting) ... ok
+test_independent_explicit_io_envelope_arithmetic (__main__.Independent.test_independent_explicit_io_envelope_arithmetic) ... ok
+test_nonterminal_child_model_keeps_body_and_profile_leased (__main__.Independent.test_nonterminal_child_model_keeps_body_and_profile_leased) ... ok
+test_source_manifest_roles_are_domain_separated (__main__.Independent.test_source_manifest_roles_are_domain_separated) ... ok
+
+======================================================================
+FAIL: test_close_failure_still_accounts_for_and_closes_remaining_owned_descriptors (__main__.Independent.test_close_failure_still_accounts_for_and_closes_remaining_owned_descriptors)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-independent/test_independent.py", line 80, in test_close_failure_still_accounts_for_and_closes_remaining_owned_descriptors
+    self.assertEqual(live, [], "close failure must not strand every remaining ancestor descriptor")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] != []
+
+First list contains 11 additional elements.
+First extra element 0:
+3
+
+- [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
++ [] : close failure must not strand every remaining ancestor descriptor
+
+======================================================================
+FAIL: test_closed_retained_wrapper_cannot_reauthorize_reused_descriptor (__main__.Independent.test_closed_retained_wrapper_cannot_reauthorize_reused_descriptor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-retained-profile-composition-independent/test_independent.py", line 52, in test_closed_retained_wrapper_cannot_reauthorize_reused_descriptor
+    self.assertIn("refused", observation, "closed wrapper must refuse; reused fd belongs to fresh owner")
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'refused' not found in {'id': 'R01', 'stale_fd_equal_fresh_fd': True, 'stale_owned_fds': 0, 'fresh_owned_fds': 12, 'stale_hash_accepted': '427408c65f1bfe046e5a9911ae7f08db654e2fe271f7c903032f79a62138ee6a'} : closed wrapper must refuse; reused fd belongs to fresh owner
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.033s
+
+FAILED (failures=2)

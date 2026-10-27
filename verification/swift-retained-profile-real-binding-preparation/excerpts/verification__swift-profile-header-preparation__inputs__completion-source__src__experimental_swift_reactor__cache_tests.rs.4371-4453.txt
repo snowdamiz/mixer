@@ -1,0 +1,83 @@
+    use std::path::{Path,PathBuf};
+    use std::sync::atomic::{AtomicU64,Ordering};
+    static CASE:AtomicU64=AtomicU64::new(0);
+
+    // A bounded synchronous formatter, rather than an allocated format! buffer.
+    // Each fill uses at most 32 writes, and the entire receipt is <=8192 bytes.
+    struct ReceiptWriter {file:File,buffer:[u8;512],used:usize,total:usize,attempts:u64}
+    impl ReceiptWriter {
+        fn create(path:&Path)->Self {
+            Self{file:OpenOptions::new().write(true).create_new(true).custom_flags(0x100).open(path).unwrap(),buffer:[0;512],used:0,total:0,attempts:0}
+        }
+        fn drain(&mut self)->std::fmt::Result {
+            if self.used!=0 {
+                if !bounded_write(&mut self.file,&self.buffer[..self.used],&mut self.attempts){return Err(std::fmt::Error);}
+                self.used=0;
+            } Ok(())
+        }
+        fn finish(mut self){self.drain().unwrap();assert!(self.total<=8192);}
+    }
+    impl std::fmt::Write for ReceiptWriter {
+        fn write_str(&mut self,text:&str)->std::fmt::Result {
+            let next=self.total.checked_add(text.len()).ok_or(std::fmt::Error)?;
+            if next>8192{return Err(std::fmt::Error);}
+            self.total=next;let mut bytes=text.as_bytes();
+            while !bytes.is_empty(){let n=(512-self.used).min(bytes.len());self.buffer[self.used..self.used+n].copy_from_slice(&bytes[..n]);self.used+=n;bytes=&bytes[n..];if self.used==512{self.drain()?;}}
+            Ok(())
+        }
+    }
+    fn path()->PathBuf {
+        let id=CASE.fetch_add(1,Ordering::Relaxed);
+        let name=format!("completion-{id}.bin");assert!(name.capacity()<=128);
+        let p=PathBuf::from(std::env::var_os("TMPDIR").unwrap()).join(name);assert!(p.capacity()<=512);p
+    }
+    fn receipt_path(path:&Path,extension:&str)->PathBuf{let p=path.with_extension(extension);assert!(p.capacity()<=512);p}
+    fn custody(path:&Path,c:Custody){
+        let mut out=ReceiptWriter::create(path);
+        write!(out,"{{\"dev\":{},\"ino\":{},\"mode\":{},\"len\":{},\"mtime_sec\":{},\"mtime_nsec\":{},\"ctime_sec\":{},\"ctime_nsec\":{}}}\n",c.dev,c.ino,c.mode,c.len,c.mtime_sec,c.mtime_nsec,c.ctime_sec,c.ctime_nsec).unwrap();out.finish();
+    }
+    fn start(path:&Path)->DispatchGuard {
+        let file=OpenOptions::new().write(true).create_new(true).custom_flags(0x100).open(path).unwrap();
+        {let m=file.metadata().unwrap();assert!(m.is_file());assert_eq!(m.len(),0);custody(&receipt_path(path,"initial.json"),Custody::from_metadata(&m));}
+        let h=header(4096,49,[[7;32];4]).unwrap();
+        let writer=Writer::new(file,4096,49,24,&h).unwrap();begin(writer).unwrap()
+    }
+    #[derive(Default)]struct Rows {count:u64,kinds:u64,published:u64,pin_fail:bool,terminal_fail:bool,taken_index:Option<u64>,taken_prior:u64,forbidden_after_taken:bool}
+    fn rows(path:&Path)->Rows{
+        let mut file=File::open(path).unwrap();let bytes=file.metadata().unwrap().len();assert!((1024..=16384).contains(&bytes));assert_eq!((bytes-1024)%128,0);file.seek(SeekFrom::Start(512)).unwrap();
+        let mut out=Rows::default();let mut raw=[0;128];let mut prior=0;
+        for index in 0..(bytes-1024)/128{file.read_exact(&mut raw).unwrap();let r=Record::decode(&raw);let w=r.0;out.count+=1;out.kinds|=1<<w[1];if w[1]==11{out.published+=1;}
+            if w[1]==14{if w[3]>0&&w[13..16]==[2,1,2]{out.pin_fail=true;}if w[3]==0{out.terminal_fail=true;}}
+            if out.taken_index.is_some()&&[8,9,10,11,14].contains(&w[1]){out.forbidden_after_taken=true;}
+            if w[1]==7{assert!(out.taken_index.is_none());out.taken_index=Some(index);out.taken_prior=prior;}prior=w[1];}
+        out
+    }
+    fn usage_keys(out:&mut ReceiptWriter,u:&SwiftRunUsage){
+        write!(out,"{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}\n",
+            u.reservations,u.live,u.cache_work,u.execution_work,u.instruction_fuel,u.instructions,u.host_calls,u.cleanup_invariant,u.deadline_ms,u.deadline_origin,u.deadline_overshoot_micros,
+            u.validation.input_visible_bytes,u.validation.source_bytes,u.validation.metadata_reserved,u.validation.scratch_reserved,u.validation.metadata_peak_reserved,u.validation.scratch_peak_reserved,u.validation.total_peak_reserved,u.validation.work_used,u.validation.deadline_ms).unwrap();
+        assert!(u.wasi.is_none());
+    }
+    fn failure_keys(out:&mut ReceiptWriter,f:&SwiftRunFailure){
+        write!(out,"{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}|{:?}\n",f.stage,f.kind,f.code,f.function,f.offset,f.resource,f.attempted,f.limit,f.observed_capacity,f.deadline_origin,f.wasi_failure,f.guest_exit).unwrap();
+        usage_keys(out,&f.at_failure);if let Some(ref u)=f.after_cleanup{usage_keys(out,u);}
+    }
+    struct Outcome {
+        original:Option<SwiftRunFailure>,before:SwiftRunUsage,final_usage:SwiftRunUsage,
+        cache:SwiftCacheUsage,cleanup:Option<SwiftRunFailure>,foreign:Option<SwiftRunUsage>,
+        stats:AllocationStats,token:[u64;2],
+    }
+    fn persist(path:&Path,o:&Outcome){
+        // Called only after End and quiescent retirement. TLS Option storage is
+        // still fully charged; no formatter or receipt buffer escapes its scope.
+        {let mut out=ReceiptWriter::create(&receipt_path(path,"original.txt"));write!(out,"original_failure={:?}\noriginal_final_usage={:?}\n",o.original,o.final_usage).unwrap();out.finish();}
+        {let mut out=ReceiptWriter::create(&receipt_path(path,"details.txt"));write!(out,"before={:?}\ncache={:?}\ncleanup={:?}\nforeign={:?}\nallocations={:?}\ntoken={:?}\n",o.before,o.cache,o.cleanup,o.foreign,o.stats,o.token).unwrap();out.finish();}
+        {let mut out=ReceiptWriter::create(&receipt_path(path,"semantic.txt"));
+            if let Some(ref f)=o.original{failure_keys(&mut out,f);}usage_keys(&mut out,&o.before);usage_keys(&mut out,&o.final_usage);
+            if let Some(ref f)=o.cleanup{failure_keys(&mut out,f);}if let Some(ref u)=o.foreign{usage_keys(&mut out,u);}
+            write!(out,"{:?}|{:?}|{:?}\n",o.cache,o.stats,o.token).unwrap();out.finish();}
+    }
+    fn close(enabled:Option<DispatchGuard>,path:&Path,u:&SwiftRunUsage,f:Option<&SwiftRunFailure>)->Option<EndReceipt>{
+        enabled.map(|g|{phase(5,(u.cache_work,u.instructions));let receipt=g.end(footer(u,f));retire_after_quiescence();if let Some(m)=receipt.custody{custody(&receipt_path(path,"final.json"),m);}receipt})
+    }
+    fn consume(mut enabled:Option<DispatchGuard>,cache:SwiftFunctionCache,mut c:RuntimeControl,f:&SwiftRunFailure)->(SwiftRunUsage,Option<SwiftRunFailure>,Option<DispatchGuard>){

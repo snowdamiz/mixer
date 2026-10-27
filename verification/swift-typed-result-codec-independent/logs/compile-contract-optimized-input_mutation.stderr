@@ -1,0 +1,13 @@
+error[E0502]: cannot borrow `*input` as mutable because it is also borrowed as immutable
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-typed-result-codec-implementation/compile_cases/input_mutation.rs:4:5
+  |
+3 |     let view = decode_result_v1(input).unwrap();
+  |                                 ----- immutable borrow occurs here
+4 |     input.fill(0);
+  |     ^^^^^^^^^^^^^ mutable borrow occurs here
+5 |     view.encoded().len()
+  |     ---- immutable borrow later used here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0502`.

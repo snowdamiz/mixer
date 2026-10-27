@@ -1,0 +1,186 @@
+        // No owner has moved until every provenance check above succeeded.
+        let mut cache = owned.take().expect("preflight retained owner");
+        let mut failure = None;
+        for record in &mut cache.pins {
+            if record.nonce != 0 {
+                *record = PinRecord::default();
+                capture(
+                    &mut failure,
+                    control.remove_live_with_wasi(
+                        Live::ActivePins,
+                        1,
+                        wasi.map(AccountedWasi::usage),
+                    ),
+                );
+            }
+        }
+        for slot in &mut cache.slots {
+            slot.pins = 0;
+            if let Some(resident) = slot.resident.take() {
+                capture(
+                    &mut failure,
+                    control.drop_reserved_with_wasi(
+                        resident.decoded,
+                        resident.ticket,
+                        wasi.map(AccountedWasi::usage),
+                    ),
+                );
+                capture(
+                    &mut failure,
+                    control.remove_live_with_wasi(
+                        Live::CacheEntries,
+                        1,
+                        wasi.map(AccountedWasi::usage),
+                    ),
+                );
+            }
+        }
+        if let Some(ticket) = cache.buffers[0].take() {
+            capture(
+                &mut failure,
+                control.drop_reserved_with_wasi(
+                    take(&mut cache.slots),
+                    ticket,
+                    wasi.map(AccountedWasi::usage),
+                ),
+            );
+        }
+        if let Some(ticket) = cache.buffers[1].take() {
+            capture(
+                &mut failure,
+                control.drop_reserved_with_wasi(
+                    take(&mut cache.pins),
+                    ticket,
+                    wasi.map(AccountedWasi::usage),
+                ),
+            );
+        }
+        if let Some(ticket) = cache.buffers[2].take() {
+            capture(
+                &mut failure,
+                control.drop_reserved_with_wasi(
+                    take(&mut cache.patches),
+                    ticket,
+                    wasi.map(AccountedWasi::usage),
+                ),
+            );
+        }
+        // Destroy index payload before the header moves into its cleanup tail.
+        drop(take(&mut cache.index));
+        drop(take(&mut cache.plans));
+        let SwiftFunctionCache {
+            adopted, header, ..
+        } = cache;
+        capture(
+            &mut failure,
+            control.drop_proof_with_wasi(adopted, wasi.map(AccountedWasi::usage)),
+        );
+        if failure.is_none() {
+            failure = control.record_cleanup(wasi.map(AccountedWasi::usage));
+        }
+        Ok(CacheCleanupTail {
+            control,
+            wasi,
+            header,
+            failure,
+        })
+    }
+}
+fn capture(first: &mut Option<SwiftRunFailure>, result: Result<(), SwiftRunFailure>) {
+    if let Err(failure) = result {
+        if first.is_none() {
+            *first = Some(failure);
+        }
+    }
+}
+type CleanupCompletionParts<'a> = (
+    &'a mut RuntimeControl,
+    Option<&'a AccountedWasi>,
+    Option<ReservationTicket>,
+);
+/// This helper frame (including the original tail and its failure) has ended
+/// before complete begins the observed refund. It returns only small borrows
+/// and the same ticket; no possible-cache owner or failure wrapper survives.
+fn drop_cleanup_return_storage<'a, T>(
+    tail: CacheCleanupTail<'a>,
+    storage: T,
+) -> CleanupCompletionParts<'a> {
+    let CacheCleanupTail {
+        control,
+        wasi,
+        header,
+        failure,
+    } = tail;
+    drop((storage, failure));
+    (control, wasi, header)
+}
+impl CacheCleanupTail<'_> {
+    pub(crate) fn complete<T>(
+        self,
+        returned_phase_storage: T,
+        outcome: &mut Option<SwiftRunFailure>,
+    ) {
+        let (control, wasi, header) = drop_cleanup_return_storage(self, returned_phase_storage);
+        if let Some(ticket) = header {
+            let _ = control.drop_reserved_with_wasi((), ticket, wasi.map(AccountedWasi::usage));
+        }
+        *outcome = control.record_cleanup(wasi.map(AccountedWasi::usage));
+    }
+}
+impl CacheConstructionPhase<'_> {
+    pub(crate) fn construct(
+        &mut self,
+        adopted: AdoptedProof,
+    ) -> Result<SwiftFunctionCache, CacheConstructionFailure> {
+        let check = pairing(self.control.control, self.control.wasi, self.control.cursor).and_then(
+            |observation| {
+                self.control
+                    .control
+                    .check_adopted_owner(&adopted, self.control.cursor, observation)
+            },
+        );
+        if let Err(failure) = check {
+            self.constructed = true;
+            return Err(CacheConstructionFailure {
+                failure,
+                rejected_adopted: Some(adopted),
+            });
+        }
+        let repeated = std::mem::replace(&mut self.constructed, true);
+        if repeated {
+            let failure = self
+                .control
+                .error(CacheFailureKind::InvalidPin, "swift_cache_construct_once");
+            return Err(CacheConstructionFailure {
+                failure,
+                rejected_adopted: Some(adopted),
+            });
+        }
+        let mut partial = Partial::new(adopted);
+        let result = self.construct_partial(&mut partial);
+        match result {
+            Ok((owner, usage)) => Ok(SwiftFunctionCache {
+                adopted: partial.adopted.take().expect("whole adopted owner"),
+                usage,
+                owner,
+                next_nonce: 1,
+                slots: take(&mut partial.slots),
+                pins: take(&mut partial.pins),
+                patches: take(&mut partial.patches),
+                index: take(&mut partial.index),
+                plans: take(&mut partial.plans),
+                buffers: std::mem::replace(&mut partial.buffers, std::array::from_fn(|_| None)),
+                header: partial.header.take(),
+            }),
+            Err(failure) => {
+                partial.cleanup(&mut self.control);
+                Err(CacheConstructionFailure {
+                    failure,
+                    rejected_adopted: None,
+                })
+            }
+        }
+    }
+    fn construct_partial(
+        &mut self,
+        partial: &mut Partial,

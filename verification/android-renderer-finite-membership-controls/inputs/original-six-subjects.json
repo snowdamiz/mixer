@@ -1,0 +1,3773 @@
+{
+  "checklist": {
+    "bytes": 3312566,
+    "sha256": "c782b54865efc29534908b8ae71b6c83f749ad79af1d62c3d0a4a364772c20b2"
+  },
+  "subjects": [
+    {
+      "id": "dev/mixer/android/NativeRenderer#preservationMembershipV2(Ldev/mixer/android/NativeRenderer$AttachmentJournal;)Z",
+      "class": "dev/mixer/android/NativeRenderer",
+      "method": "preservationMembershipV2",
+      "descriptor": "(Ldev/mixer/android/NativeRenderer$AttachmentJournal;)Z",
+      "categories": [
+        "exact-membership-and-completion"
+      ],
+      "required_semantic_cases": [
+        "allocation-failure-source-proof-only-pending-runtime",
+        "duplicate-or-foreign-state-refuses",
+        "held-failure-funded-membership",
+        "no-tail-callback-before-complete-roster",
+        "ordered-constructor-bound-membership",
+        "same-first-fatal"
+      ],
+      "source_sha256": "ce27e468021ad9d041f3da35a035502aa9a8595683b19ef0e6fb3d011c75ca3a",
+      "class_sha256": "c7ad938bb6a6cc5403927006171a344750966bef2d1fa8e8b6b6ae7ef8551d2f",
+      "proposed_applicability": "local-scalar-reference-or-ledger",
+      "reason": "Actual method has no invoke instruction. Source/bytecode can read/write fields, branch, return or throw existing identity; seven native callback states cannot be inferred for its own body.",
+      "source_file": "NativeRenderer.java",
+      "source_witness": [
+        {
+          "line": 627,
+          "text": "        if(journal==null||journal.states==null||journal.stateCount!=journal.states.length)return false;"
+        },
+        {
+          "line": 628,
+          "text": "        for(int i=0;i<journal.stateCount;i++){"
+        },
+        {
+          "line": 629,
+          "text": "            NativeState state=journal.states[i];"
+        },
+        {
+          "line": 630,
+          "text": "            if(state==null||state.journal!=journal||state.position!=i)return false;"
+        },
+        {
+          "line": 631,
+          "text": "            PreservationMembership membership=state.membership;"
+        },
+        {
+          "line": 632,
+          "text": "            if(membership==null){if(state.preservation!=null||state.forwardPreserved)return false;}"
+        },
+        {
+          "line": 633,
+          "text": "            else if(membership.state!=state||membership.scope!=state.preservation||!state.forwardPreserved||"
+        },
+        {
+          "line": 634,
+          "text": "                membership.scope.record!=state.record||membership.scope.journal!=journal)return false;"
+        },
+        {
+          "line": 636,
+          "text": "        return true;"
+        }
+      ],
+      "actual_invocations": [],
+      "actual_instructions": [
+        {
+          "bci": 0,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 627,
+          "bytes": "2b"
+        },
+        {
+          "bci": 1,
+          "opcode": 198,
+          "mnemonic": "op_c6",
+          "line": 627,
+          "bytes": "c60016"
+        },
+        {
+          "bci": 4,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 627,
+          "bytes": "2b"
+        },
+        {
+          "bci": 5,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 627,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "states",
+            "descriptor": "[Ldev/mixer/android/NativeRenderer$NativeState;"
+          },
+          "bytes": "b4065b"
+        },
+        {
+          "bci": 8,
+          "opcode": 198,
+          "mnemonic": "op_c6",
+          "line": 627,
+          "bytes": "c6000f"
+        },
+        {
+          "bci": 11,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 627,
+          "bytes": "2b"
+        },
+        {
+          "bci": 12,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 627,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "stateCount",
+            "descriptor": "I"
+          },
+          "bytes": "b40658"
+        },
+        {
+          "bci": 15,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 627,
+          "bytes": "2b"
+        },
+        {
+          "bci": 16,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 627,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "states",
+            "descriptor": "[Ldev/mixer/android/NativeRenderer$NativeState;"
+          },
+          "bytes": "b4065b"
+        },
+        {
+          "bci": 19,
+          "opcode": 190,
+          "mnemonic": "op_be",
+          "line": 627,
+          "bytes": "be"
+        },
+        {
+          "bci": 20,
+          "opcode": 159,
+          "mnemonic": "op_9f",
+          "line": 627,
+          "bytes": "9f0005"
+        },
+        {
+          "bci": 23,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 627,
+          "bytes": "03"
+        },
+        {
+          "bci": 24,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 627,
+          "bytes": "ac"
+        },
+        {
+          "bci": 25,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 628,
+          "bytes": "03"
+        },
+        {
+          "bci": 26,
+          "opcode": 61,
+          "mnemonic": "op_3d",
+          "line": 628,
+          "bytes": "3d"
+        },
+        {
+          "bci": 27,
+          "opcode": 28,
+          "mnemonic": "op_1c",
+          "line": 628,
+          "bytes": "1c"
+        },
+        {
+          "bci": 28,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 628,
+          "bytes": "2b"
+        },
+        {
+          "bci": 29,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 628,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "stateCount",
+            "descriptor": "I"
+          },
+          "bytes": "b40658"
+        },
+        {
+          "bci": 32,
+          "opcode": 162,
+          "mnemonic": "op_a2",
+          "line": 628,
+          "bytes": "a2007a"
+        },
+        {
+          "bci": 35,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 629,
+          "bytes": "2b"
+        },
+        {
+          "bci": 36,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 629,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "states",
+            "descriptor": "[Ldev/mixer/android/NativeRenderer$NativeState;"
+          },
+          "bytes": "b4065b"
+        },
+        {
+          "bci": 39,
+          "opcode": 28,
+          "mnemonic": "op_1c",
+          "line": 629,
+          "bytes": "1c"
+        },
+        {
+          "bci": 40,
+          "opcode": 50,
+          "mnemonic": "op_32",
+          "line": 629,
+          "bytes": "32"
+        },
+        {
+          "bci": 41,
+          "opcode": 78,
+          "mnemonic": "op_4e",
+          "line": 629,
+          "bytes": "4e"
+        },
+        {
+          "bci": 42,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 630,
+          "bytes": "2d"
+        },
+        {
+          "bci": 43,
+          "opcode": 198,
+          "mnemonic": "op_c6",
+          "line": 630,
+          "bytes": "c60013"
+        },
+        {
+          "bci": 46,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 630,
+          "bytes": "2d"
+        },
+        {
+          "bci": 47,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 630,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "journal",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$AttachmentJournal;"
+          },
+          "bytes": "b4069a"
+        },
+        {
+          "bci": 50,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 630,
+          "bytes": "2b"
+        },
+        {
+          "bci": 51,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 630,
+          "bytes": "a6000b"
+        },
+        {
+          "bci": 54,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 630,
+          "bytes": "2d"
+        },
+        {
+          "bci": 55,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 630,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "position",
+            "descriptor": "I"
+          },
+          "bytes": "b4069b"
+        },
+        {
+          "bci": 58,
+          "opcode": 28,
+          "mnemonic": "op_1c",
+          "line": 630,
+          "bytes": "1c"
+        },
+        {
+          "bci": 59,
+          "opcode": 159,
+          "mnemonic": "op_9f",
+          "line": 630,
+          "bytes": "9f0005"
+        },
+        {
+          "bci": 62,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 630,
+          "bytes": "03"
+        },
+        {
+          "bci": 63,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 630,
+          "bytes": "ac"
+        },
+        {
+          "bci": 64,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 631,
+          "bytes": "2d"
+        },
+        {
+          "bci": 65,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 631,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "membership",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$PreservationMembership;"
+          },
+          "bytes": "b40679"
+        },
+        {
+          "bci": 68,
+          "opcode": 58,
+          "mnemonic": "op_3a",
+          "line": 631,
+          "bytes": "3a04"
+        },
+        {
+          "bci": 70,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 632,
+          "bytes": "1904"
+        },
+        {
+          "bci": 72,
+          "opcode": 199,
+          "mnemonic": "op_c7",
+          "line": 632,
+          "bytes": "c70013"
+        },
+        {
+          "bci": 75,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 632,
+          "bytes": "2d"
+        },
+        {
+          "bci": 76,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 632,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "preservation",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;"
+          },
+          "bytes": "b4065f"
+        },
+        {
+          "bci": 79,
+          "opcode": 199,
+          "mnemonic": "op_c7",
+          "line": 632,
+          "bytes": "c7000a"
+        },
+        {
+          "bci": 82,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 632,
+          "bytes": "2d"
+        },
+        {
+          "bci": 83,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 632,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "forwardPreserved",
+            "descriptor": "Z"
+          },
+          "bytes": "b4067d"
+        },
+        {
+          "bci": 86,
+          "opcode": 153,
+          "mnemonic": "op_99",
+          "line": 632,
+          "bytes": "99003e"
+        },
+        {
+          "bci": 89,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 632,
+          "bytes": "03"
+        },
+        {
+          "bci": 90,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 632,
+          "bytes": "ac"
+        },
+        {
+          "bci": 91,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 633,
+          "bytes": "1904"
+        },
+        {
+          "bci": 93,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 633,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$PreservationMembership",
+            "name": "state",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$NativeState;"
+          },
+          "bytes": "b4069e"
+        },
+        {
+          "bci": 96,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 633,
+          "bytes": "2d"
+        },
+        {
+          "bci": 97,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 633,
+          "bytes": "a60031"
+        },
+        {
+          "bci": 100,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 633,
+          "bytes": "1904"
+        },
+        {
+          "bci": 102,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 633,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$PreservationMembership",
+            "name": "scope",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;"
+          },
+          "bytes": "b406a2"
+        },
+        {
+          "bci": 105,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 633,
+          "bytes": "2d"
+        },
+        {
+          "bci": 106,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 633,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "preservation",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;"
+          },
+          "bytes": "b4065f"
+        },
+        {
+          "bci": 109,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 633,
+          "bytes": "a60025"
+        },
+        {
+          "bci": 112,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 633,
+          "bytes": "2d"
+        },
+        {
+          "bci": 113,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 633,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "forwardPreserved",
+            "descriptor": "Z"
+          },
+          "bytes": "b4067d"
+        },
+        {
+          "bci": 116,
+          "opcode": 153,
+          "mnemonic": "op_99",
+          "line": 633,
+          "bytes": "99001e"
+        },
+        {
+          "bci": 119,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 633,
+          "bytes": "1904"
+        },
+        {
+          "bci": 121,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 633,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$PreservationMembership",
+            "name": "scope",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;"
+          },
+          "bytes": "b406a2"
+        },
+        {
+          "bci": 124,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 633,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "record",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Record;"
+          },
+          "bytes": "b40321"
+        },
+        {
+          "bci": 127,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 633,
+          "bytes": "2d"
+        },
+        {
+          "bci": 128,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 633,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "record",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Record;"
+          },
+          "bytes": "b403b3"
+        },
+        {
+          "bci": 131,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 633,
+          "bytes": "a6000f"
+        },
+        {
+          "bci": 134,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 633,
+          "bytes": "1904"
+        },
+        {
+          "bci": 136,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 633,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$PreservationMembership",
+            "name": "scope",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;"
+          },
+          "bytes": "b406a2"
+        },
+        {
+          "bci": 139,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 633,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "journal",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$AttachmentJournal;"
+          },
+          "bytes": "b40339"
+        },
+        {
+          "bci": 142,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 633,
+          "bytes": "2b"
+        },
+        {
+          "bci": 143,
+          "opcode": 165,
+          "mnemonic": "op_a5",
+          "line": 633,
+          "bytes": "a50005"
+        },
+        {
+          "bci": 146,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 634,
+          "bytes": "03"
+        },
+        {
+          "bci": 147,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 634,
+          "bytes": "ac"
+        },
+        {
+          "bci": 148,
+          "opcode": 132,
+          "mnemonic": "op_84",
+          "line": 628,
+          "bytes": "840201"
+        },
+        {
+          "bci": 151,
+          "opcode": 167,
+          "mnemonic": "op_a7",
+          "line": 628,
+          "bytes": "a7ff84"
+        },
+        {
+          "bci": 154,
+          "opcode": 4,
+          "mnemonic": "op_04",
+          "line": 636,
+          "bytes": "04"
+        },
+        {
+          "bci": 155,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 636,
+          "bytes": "ac"
+        }
+      ],
+      "required_finite_or_enclosing_cases": [
+        "Finite source predicate/field-write/return/throw branches with exact before/after identities and counts.",
+        "No native callback/target-close/event may be manufactured; qualify actual enclosing callbacks separately."
+      ],
+      "selection_status": "pending-independent-root-policy-selection",
+      "native_callback_state_deletion_authorized": false,
+      "behavior_accepted": false
+    },
+    {
+      "id": "dev/mixer/android/NativeRenderer#fieldPreservationCapturedV2(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;Ldev/mixer/android/NativeAppearanceViewsV2$Record;Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;)Z",
+      "class": "dev/mixer/android/NativeRenderer",
+      "method": "fieldPreservationCapturedV2",
+      "descriptor": "(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;Ldev/mixer/android/NativeAppearanceViewsV2$Record;Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;)Z",
+      "categories": [
+        "exact-membership-and-completion"
+      ],
+      "required_semantic_cases": [
+        "allocation-failure-source-proof-only-pending-runtime",
+        "duplicate-or-foreign-state-refuses",
+        "held-failure-funded-membership",
+        "no-tail-callback-before-complete-roster",
+        "ordered-constructor-bound-membership",
+        "same-first-fatal"
+      ],
+      "source_sha256": "ce27e468021ad9d041f3da35a035502aa9a8595683b19ef0e6fb3d011c75ca3a",
+      "class_sha256": "c7ad938bb6a6cc5403927006171a344750966bef2d1fa8e8b6b6ae7ef8551d2f",
+      "proposed_applicability": "local-scalar-reference-or-ledger",
+      "reason": "Actual method has no invoke instruction. Source/bytecode can read/write fields, branch, return or throw existing identity; seven native callback states cannot be inferred for its own body.",
+      "source_file": "NativeRenderer.java",
+      "source_witness": [
+        {
+          "line": 639,
+          "text": "        return !(c==null||c.owner!=this||journal==null||journal!=c.journal||journal.candidate!=c||scope==null||scope.renderer!=this||scope.candidate!=c||scope.journal!=journal||"
+        }
+      ],
+      "actual_invocations": [],
+      "actual_instructions": [
+        {
+          "bci": 0,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 639,
+          "bytes": "2b"
+        },
+        {
+          "bci": 1,
+          "opcode": 198,
+          "mnemonic": "op_c6",
+          "line": 639,
+          "bytes": "c600de"
+        },
+        {
+          "bci": 4,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 639,
+          "bytes": "2b"
+        },
+        {
+          "bci": 5,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "owner",
+            "descriptor": "Ldev/mixer/android/NativeRenderer;"
+          },
+          "bytes": "b405e9"
+        },
+        {
+          "bci": 8,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 639,
+          "bytes": "2a"
+        },
+        {
+          "bci": 9,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 639,
+          "bytes": "a600d6"
+        },
+        {
+          "bci": 12,
+          "opcode": 44,
+          "mnemonic": "op_2c",
+          "line": 639,
+          "bytes": "2c"
+        },
+        {
+          "bci": 13,
+          "opcode": 198,
+          "mnemonic": "op_c6",
+          "line": 639,
+          "bytes": "c600d2"
+        },
+        {
+          "bci": 16,
+          "opcode": 44,
+          "mnemonic": "op_2c",
+          "line": 639,
+          "bytes": "2c"
+        },
+        {
+          "bci": 17,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 639,
+          "bytes": "2b"
+        },
+        {
+          "bci": 18,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "journal",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$AttachmentJournal;"
+          },
+          "bytes": "b40608"
+        },
+        {
+          "bci": 21,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 639,
+          "bytes": "a600ca"
+        },
+        {
+          "bci": 24,
+          "opcode": 44,
+          "mnemonic": "op_2c",
+          "line": 639,
+          "bytes": "2c"
+        },
+        {
+          "bci": 25,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "candidate",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$Candidate;"
+          },
+          "bytes": "b40441"
+        },
+        {
+          "bci": 28,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 639,
+          "bytes": "2b"
+        },
+        {
+          "bci": 29,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 639,
+          "bytes": "a600c2"
+        },
+        {
+          "bci": 32,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 639,
+          "bytes": "1904"
+        },
+        {
+          "bci": 34,
+          "opcode": 198,
+          "mnemonic": "op_c6",
+          "line": 639,
+          "bytes": "c600bd"
+        },
+        {
+          "bci": 37,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 639,
+          "bytes": "1904"
+        },
+        {
+          "bci": 39,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "renderer",
+            "descriptor": "Ldev/mixer/android/NativeRenderer;"
+          },
+          "bytes": "b406a5"
+        },
+        {
+          "bci": 42,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 639,
+          "bytes": "2a"
+        },
+        {
+          "bci": 43,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 639,
+          "bytes": "a600b4"
+        },
+        {
+          "bci": 46,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 639,
+          "bytes": "1904"
+        },
+        {
+          "bci": 48,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "candidate",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$Candidate;"
+          },
+          "bytes": "b40336"
+        },
+        {
+          "bci": 51,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 639,
+          "bytes": "2b"
+        },
+        {
+          "bci": 52,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 639,
+          "bytes": "a600ab"
+        },
+        {
+          "bci": 55,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 639,
+          "bytes": "1904"
+        },
+        {
+          "bci": 57,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "journal",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$AttachmentJournal;"
+          },
+          "bytes": "b40339"
+        },
+        {
+          "bci": 60,
+          "opcode": 44,
+          "mnemonic": "op_2c",
+          "line": 639,
+          "bytes": "2c"
+        },
+        {
+          "bci": 61,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 639,
+          "bytes": "a600a2"
+        },
+        {
+          "bci": 64,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 639,
+          "bytes": "2d"
+        },
+        {
+          "bci": 65,
+          "opcode": 198,
+          "mnemonic": "op_c6",
+          "line": 639,
+          "bytes": "c6009e"
+        },
+        {
+          "bci": 68,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 639,
+          "bytes": "1904"
+        },
+        {
+          "bci": 70,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "record",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Record;"
+          },
+          "bytes": "b40321"
+        },
+        {
+          "bci": 73,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 639,
+          "bytes": "2d"
+        },
+        {
+          "bci": 74,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 639,
+          "bytes": "a60095"
+        },
+        {
+          "bci": 77,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 639,
+          "bytes": "2d"
+        },
+        {
+          "bci": 78,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$Record",
+            "name": "view",
+            "descriptor": "Landroid/view/View;"
+          },
+          "bytes": "b40078"
+        },
+        {
+          "bci": 81,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 639,
+          "bytes": "1904"
+        },
+        {
+          "bci": 83,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "field",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$NativeField;"
+          },
+          "bytes": "b406a8"
+        },
+        {
+          "bci": 86,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 639,
+          "bytes": "a60089"
+        },
+        {
+          "bci": 89,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 639,
+          "bytes": "1904"
+        },
+        {
+          "bci": 91,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "field",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$NativeField;"
+          },
+          "bytes": "b406a8"
+        },
+        {
+          "bci": 94,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$NativeField",
+            "name": "record",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Record;"
+          },
+          "bytes": "b406a9"
+        },
+        {
+          "bci": 97,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 639,
+          "bytes": "2d"
+        },
+        {
+          "bci": 98,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 639,
+          "bytes": "a6007d"
+        },
+        {
+          "bci": 101,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 639,
+          "bytes": "2d"
+        },
+        {
+          "bci": 102,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$Record",
+            "name": "input",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Input;"
+          },
+          "bytes": "b4068a"
+        },
+        {
+          "bci": 105,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 639,
+          "bytes": "2a"
+        },
+        {
+          "bci": 106,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "v2Input",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Input;"
+          },
+          "bytes": "b402df"
+        },
+        {
+          "bci": 109,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 639,
+          "bytes": "a60072"
+        },
+        {
+          "bci": 112,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 639,
+          "bytes": "2d"
+        },
+        {
+          "bci": 113,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$Record",
+            "name": "editorFence",
+            "descriptor": "Ldev/mixer/android/NativeOwnerV2$Fence;"
+          },
+          "bytes": "b406aa"
+        },
+        {
+          "bci": 116,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 639,
+          "bytes": "2a"
+        },
+        {
+          "bci": 117,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "v2Fence",
+            "descriptor": "Ldev/mixer/android/NativeOwnerV2$Fence;"
+          },
+          "bytes": "b40032"
+        },
+        {
+          "bci": 120,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 639,
+          "bytes": "a60067"
+        },
+        {
+          "bci": 123,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 639,
+          "bytes": "2b"
+        },
+        {
+          "bci": 124,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "originalMutation",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;"
+          },
+          "bytes": "b40614"
+        },
+        {
+          "bci": 127,
+          "opcode": 198,
+          "mnemonic": "op_c6",
+          "line": 639,
+          "bytes": "c60060"
+        },
+        {
+          "bci": 130,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 639,
+          "bytes": "1904"
+        },
+        {
+          "bci": 132,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "original",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;"
+          },
+          "bytes": "b406ad"
+        },
+        {
+          "bci": 135,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 639,
+          "bytes": "2b"
+        },
+        {
+          "bci": 136,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "originalMutation",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;"
+          },
+          "bytes": "b40614"
+        },
+        {
+          "bci": 139,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 639,
+          "bytes": "a60054"
+        },
+        {
+          "bci": 142,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 639,
+          "bytes": "1904"
+        },
+        {
+          "bci": 144,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "original",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;"
+          },
+          "bytes": "b406ad"
+        },
+        {
+          "bci": 147,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$Mutation",
+            "name": "fence",
+            "descriptor": "Ldev/mixer/android/NativeOwnerV2$Fence;"
+          },
+          "bytes": "b406b0"
+        },
+        {
+          "bci": 150,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 639,
+          "bytes": "2a"
+        },
+        {
+          "bci": 151,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "v2Fence",
+            "descriptor": "Ldev/mixer/android/NativeOwnerV2$Fence;"
+          },
+          "bytes": "b40032"
+        },
+        {
+          "bci": 154,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 639,
+          "bytes": "a60045"
+        },
+        {
+          "bci": 157,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 639,
+          "bytes": "1904"
+        },
+        {
+          "bci": 159,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "original",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;"
+          },
+          "bytes": "b406ad"
+        },
+        {
+          "bci": 162,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$Mutation",
+            "name": "mode",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Mutation$Mode;"
+          },
+          "bytes": "b406b3"
+        },
+        {
+          "bci": 165,
+          "opcode": 178,
+          "mnemonic": "getstatic",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$Mutation$Mode",
+            "name": "TRANSACTION",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Mutation$Mode;"
+          },
+          "bytes": "b206b7"
+        },
+        {
+          "bci": 168,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 639,
+          "bytes": "a60037"
+        },
+        {
+          "bci": 171,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 639,
+          "bytes": "1904"
+        },
+        {
+          "bci": 173,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "original",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;"
+          },
+          "bytes": "b406ad"
+        },
+        {
+          "bci": 176,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$Mutation",
+            "name": "token",
+            "descriptor": "Ldev/mixer/android/OwnerLifecycleV2$Token;"
+          },
+          "bytes": "b406bc"
+        },
+        {
+          "bci": 179,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 639,
+          "bytes": "2b"
+        },
+        {
+          "bci": 180,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "operation",
+            "descriptor": "Ldev/mixer/android/OwnerLifecycleV2$Token;"
+          },
+          "bytes": "b405fb"
+        },
+        {
+          "bci": 183,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 639,
+          "bytes": "a60028"
+        },
+        {
+          "bci": 186,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 639,
+          "bytes": "1904"
+        },
+        {
+          "bci": 188,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "original",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;"
+          },
+          "bytes": "b406ad"
+        },
+        {
+          "bci": 191,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$Mutation",
+            "name": "editorLease",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$EditorLease;"
+          },
+          "bytes": "b406bf"
+        },
+        {
+          "bci": 194,
+          "opcode": 199,
+          "mnemonic": "op_c7",
+          "line": 639,
+          "bytes": "c7001d"
+        },
+        {
+          "bci": 197,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 639,
+          "bytes": "1904"
+        },
+        {
+          "bci": 199,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "original",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;"
+          },
+          "bytes": "b406ad"
+        },
+        {
+          "bci": 202,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$Mutation",
+            "name": "replacementLease",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Replacement;"
+          },
+          "bytes": "b406c2"
+        },
+        {
+          "bci": 205,
+          "opcode": 199,
+          "mnemonic": "op_c7",
+          "line": 639,
+          "bytes": "c70012"
+        },
+        {
+          "bci": 208,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 639,
+          "bytes": "1904"
+        },
+        {
+          "bci": 210,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "original",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Mutation;"
+          },
+          "bytes": "b406ad"
+        },
+        {
+          "bci": 213,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 639,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$Mutation",
+            "name": "fieldLease",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;"
+          },
+          "bytes": "b406c5"
+        },
+        {
+          "bci": 216,
+          "opcode": 199,
+          "mnemonic": "op_c7",
+          "line": 639,
+          "bytes": "c70007"
+        },
+        {
+          "bci": 219,
+          "opcode": 4,
+          "mnemonic": "op_04",
+          "line": 639,
+          "bytes": "04"
+        },
+        {
+          "bci": 220,
+          "opcode": 167,
+          "mnemonic": "op_a7",
+          "line": 639,
+          "bytes": "a70004"
+        },
+        {
+          "bci": 223,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 639,
+          "bytes": "03"
+        },
+        {
+          "bci": 224,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 639,
+          "bytes": "ac"
+        }
+      ],
+      "required_finite_or_enclosing_cases": [
+        "Finite source predicate/field-write/return/throw branches with exact before/after identities and counts.",
+        "No native callback/target-close/event may be manufactured; qualify actual enclosing callbacks separately."
+      ],
+      "selection_status": "pending-independent-root-policy-selection",
+      "native_callback_state_deletion_authorized": false,
+      "behavior_accepted": false
+    },
+    {
+      "id": "dev/mixer/android/NativeRenderer#preservationProvenanceV2(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;)Z",
+      "class": "dev/mixer/android/NativeRenderer",
+      "method": "preservationProvenanceV2",
+      "descriptor": "(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;)Z",
+      "categories": [
+        "exact-membership-and-completion"
+      ],
+      "required_semantic_cases": [
+        "allocation-failure-source-proof-only-pending-runtime",
+        "duplicate-or-foreign-state-refuses",
+        "held-failure-funded-membership",
+        "no-tail-callback-before-complete-roster",
+        "ordered-constructor-bound-membership",
+        "same-first-fatal"
+      ],
+      "source_sha256": "ce27e468021ad9d041f3da35a035502aa9a8595683b19ef0e6fb3d011c75ca3a",
+      "class_sha256": "c7ad938bb6a6cc5403927006171a344750966bef2d1fa8e8b6b6ae7ef8551d2f",
+      "proposed_applicability": "pending-source-specific-callback-or-enclosing-outcome-review",
+      "reason": "Contains actual invocations; no no-callback inference is made from an adjacent event, name or static identity.",
+      "source_file": "NativeRenderer.java",
+      "source_witness": [
+        {
+          "line": 646,
+          "text": "        if(journal.states==null)return true; // Malformed own roster, never release authority."
+        },
+        {
+          "line": 647,
+          "text": "        for(int i=0;i<journal.states.length;i++){"
+        },
+        {
+          "line": 648,
+          "text": "            NativeState state=journal.states[i];if(state==null||state.journal!=journal)continue;"
+        },
+        {
+          "line": 649,
+          "text": "            PreservationMembership membership=state.membership;"
+        },
+        {
+          "line": 650,
+          "text": "            if(membership!=null&&!fieldPreservationCapturedV2(c,journal,state.record,membership.scope))return false;"
+        },
+        {
+          "line": 651,
+          "text": "            var scope=state.preservation;"
+        },
+        {
+          "line": 652,
+          "text": "            if(scope!=null&&(!fieldPreservationCapturedV2(c,journal,state.record,scope)||"
+        },
+        {
+          "line": 654,
+          "text": "                (membership==null||state.record.fieldPreservation!=membership.scope)))return false;"
+        },
+        {
+          "line": 656,
+          "text": "        return true;"
+        }
+      ],
+      "actual_invocations": [
+        {
+          "bci": 70,
+          "opcode": 182,
+          "mnemonic": "invokevirtual",
+          "line": 650,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "fieldPreservationCapturedV2",
+            "descriptor": "(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;Ldev/mixer/android/NativeAppearanceViewsV2$Record;Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;)Z"
+          },
+          "bytes": "b606c8"
+        },
+        {
+          "bci": 100,
+          "opcode": 182,
+          "mnemonic": "invokevirtual",
+          "line": 652,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "fieldPreservationCapturedV2",
+            "descriptor": "(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;Ldev/mixer/android/NativeAppearanceViewsV2$Record;Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;)Z"
+          },
+          "bytes": "b606c8"
+        }
+      ],
+      "actual_instructions": [
+        {
+          "bci": 0,
+          "opcode": 44,
+          "mnemonic": "op_2c",
+          "line": 646,
+          "bytes": "2c"
+        },
+        {
+          "bci": 1,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 646,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "states",
+            "descriptor": "[Ldev/mixer/android/NativeRenderer$NativeState;"
+          },
+          "bytes": "b4065b"
+        },
+        {
+          "bci": 4,
+          "opcode": 199,
+          "mnemonic": "op_c7",
+          "line": 646,
+          "bytes": "c70005"
+        },
+        {
+          "bci": 7,
+          "opcode": 4,
+          "mnemonic": "op_04",
+          "line": 646,
+          "bytes": "04"
+        },
+        {
+          "bci": 8,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 646,
+          "bytes": "ac"
+        },
+        {
+          "bci": 9,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 647,
+          "bytes": "03"
+        },
+        {
+          "bci": 10,
+          "opcode": 62,
+          "mnemonic": "op_3e",
+          "line": 647,
+          "bytes": "3e"
+        },
+        {
+          "bci": 11,
+          "opcode": 29,
+          "mnemonic": "op_1d",
+          "line": 647,
+          "bytes": "1d"
+        },
+        {
+          "bci": 12,
+          "opcode": 44,
+          "mnemonic": "op_2c",
+          "line": 647,
+          "bytes": "2c"
+        },
+        {
+          "bci": 13,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 647,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "states",
+            "descriptor": "[Ldev/mixer/android/NativeRenderer$NativeState;"
+          },
+          "bytes": "b4065b"
+        },
+        {
+          "bci": 16,
+          "opcode": 190,
+          "mnemonic": "op_be",
+          "line": 647,
+          "bytes": "be"
+        },
+        {
+          "bci": 17,
+          "opcode": 162,
+          "mnemonic": "op_a2",
+          "line": 647,
+          "bytes": "a2008e"
+        },
+        {
+          "bci": 20,
+          "opcode": 44,
+          "mnemonic": "op_2c",
+          "line": 648,
+          "bytes": "2c"
+        },
+        {
+          "bci": 21,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 648,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "states",
+            "descriptor": "[Ldev/mixer/android/NativeRenderer$NativeState;"
+          },
+          "bytes": "b4065b"
+        },
+        {
+          "bci": 24,
+          "opcode": 29,
+          "mnemonic": "op_1d",
+          "line": 648,
+          "bytes": "1d"
+        },
+        {
+          "bci": 25,
+          "opcode": 50,
+          "mnemonic": "op_32",
+          "line": 648,
+          "bytes": "32"
+        },
+        {
+          "bci": 26,
+          "opcode": 58,
+          "mnemonic": "op_3a",
+          "line": 648,
+          "bytes": "3a04"
+        },
+        {
+          "bci": 28,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 648,
+          "bytes": "1904"
+        },
+        {
+          "bci": 30,
+          "opcode": 198,
+          "mnemonic": "op_c6",
+          "line": 648,
+          "bytes": "c6007b"
+        },
+        {
+          "bci": 33,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 648,
+          "bytes": "1904"
+        },
+        {
+          "bci": 35,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 648,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "journal",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$AttachmentJournal;"
+          },
+          "bytes": "b4069a"
+        },
+        {
+          "bci": 38,
+          "opcode": 44,
+          "mnemonic": "op_2c",
+          "line": 648,
+          "bytes": "2c"
+        },
+        {
+          "bci": 39,
+          "opcode": 165,
+          "mnemonic": "op_a5",
+          "line": 648,
+          "bytes": "a50006"
+        },
+        {
+          "bci": 42,
+          "opcode": 167,
+          "mnemonic": "op_a7",
+          "line": 648,
+          "bytes": "a7006f"
+        },
+        {
+          "bci": 45,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 649,
+          "bytes": "1904"
+        },
+        {
+          "bci": 47,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 649,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "membership",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$PreservationMembership;"
+          },
+          "bytes": "b40679"
+        },
+        {
+          "bci": 50,
+          "opcode": 58,
+          "mnemonic": "op_3a",
+          "line": 649,
+          "bytes": "3a05"
+        },
+        {
+          "bci": 52,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 650,
+          "bytes": "1905"
+        },
+        {
+          "bci": 54,
+          "opcode": 198,
+          "mnemonic": "op_c6",
+          "line": 650,
+          "bytes": "c60018"
+        },
+        {
+          "bci": 57,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 650,
+          "bytes": "2a"
+        },
+        {
+          "bci": 58,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 650,
+          "bytes": "2b"
+        },
+        {
+          "bci": 59,
+          "opcode": 44,
+          "mnemonic": "op_2c",
+          "line": 650,
+          "bytes": "2c"
+        },
+        {
+          "bci": 60,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 650,
+          "bytes": "1904"
+        },
+        {
+          "bci": 62,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 650,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "record",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Record;"
+          },
+          "bytes": "b403b3"
+        },
+        {
+          "bci": 65,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 650,
+          "bytes": "1905"
+        },
+        {
+          "bci": 67,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 650,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$PreservationMembership",
+            "name": "scope",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;"
+          },
+          "bytes": "b406a2"
+        },
+        {
+          "bci": 70,
+          "opcode": 182,
+          "mnemonic": "invokevirtual",
+          "line": 650,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "fieldPreservationCapturedV2",
+            "descriptor": "(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;Ldev/mixer/android/NativeAppearanceViewsV2$Record;Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;)Z"
+          },
+          "bytes": "b606c8"
+        },
+        {
+          "bci": 73,
+          "opcode": 154,
+          "mnemonic": "op_9a",
+          "line": 650,
+          "bytes": "9a0005"
+        },
+        {
+          "bci": 76,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 650,
+          "bytes": "03"
+        },
+        {
+          "bci": 77,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 650,
+          "bytes": "ac"
+        },
+        {
+          "bci": 78,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 651,
+          "bytes": "1904"
+        },
+        {
+          "bci": 80,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 651,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "preservation",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;"
+          },
+          "bytes": "b4065f"
+        },
+        {
+          "bci": 83,
+          "opcode": 58,
+          "mnemonic": "op_3a",
+          "line": 651,
+          "bytes": "3a06"
+        },
+        {
+          "bci": 85,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 652,
+          "bytes": "1906"
+        },
+        {
+          "bci": 87,
+          "opcode": 198,
+          "mnemonic": "op_c6",
+          "line": 652,
+          "bytes": "c60042"
+        },
+        {
+          "bci": 90,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 652,
+          "bytes": "2a"
+        },
+        {
+          "bci": 91,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 652,
+          "bytes": "2b"
+        },
+        {
+          "bci": 92,
+          "opcode": 44,
+          "mnemonic": "op_2c",
+          "line": 652,
+          "bytes": "2c"
+        },
+        {
+          "bci": 93,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 652,
+          "bytes": "1904"
+        },
+        {
+          "bci": 95,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 652,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "record",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Record;"
+          },
+          "bytes": "b403b3"
+        },
+        {
+          "bci": 98,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 652,
+          "bytes": "1906"
+        },
+        {
+          "bci": 100,
+          "opcode": 182,
+          "mnemonic": "invokevirtual",
+          "line": 652,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "fieldPreservationCapturedV2",
+            "descriptor": "(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;Ldev/mixer/android/NativeAppearanceViewsV2$Record;Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;)Z"
+          },
+          "bytes": "b606c8"
+        },
+        {
+          "bci": 103,
+          "opcode": 153,
+          "mnemonic": "op_99",
+          "line": 652,
+          "bytes": "990030"
+        },
+        {
+          "bci": 106,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 652,
+          "bytes": "1904"
+        },
+        {
+          "bci": 108,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 652,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "record",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Record;"
+          },
+          "bytes": "b403b3"
+        },
+        {
+          "bci": 111,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 652,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$Record",
+            "name": "fieldPreservation",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;"
+          },
+          "bytes": "b4031d"
+        },
+        {
+          "bci": 114,
+          "opcode": 198,
+          "mnemonic": "op_c6",
+          "line": 652,
+          "bytes": "c60027"
+        },
+        {
+          "bci": 117,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 652,
+          "bytes": "1904"
+        },
+        {
+          "bci": 119,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 652,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "record",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Record;"
+          },
+          "bytes": "b403b3"
+        },
+        {
+          "bci": 122,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 652,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$Record",
+            "name": "fieldPreservation",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;"
+          },
+          "bytes": "b4031d"
+        },
+        {
+          "bci": 125,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 652,
+          "bytes": "1906"
+        },
+        {
+          "bci": 127,
+          "opcode": 165,
+          "mnemonic": "op_a5",
+          "line": 652,
+          "bytes": "a5001a"
+        },
+        {
+          "bci": 130,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 652,
+          "bytes": "1905"
+        },
+        {
+          "bci": 132,
+          "opcode": 198,
+          "mnemonic": "op_c6",
+          "line": 652,
+          "bytes": "c60013"
+        },
+        {
+          "bci": 135,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 652,
+          "bytes": "1904"
+        },
+        {
+          "bci": 137,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 652,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "record",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Record;"
+          },
+          "bytes": "b403b3"
+        },
+        {
+          "bci": 140,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 652,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$Record",
+            "name": "fieldPreservation",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;"
+          },
+          "bytes": "b4031d"
+        },
+        {
+          "bci": 143,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 652,
+          "bytes": "1905"
+        },
+        {
+          "bci": 145,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 652,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$PreservationMembership",
+            "name": "scope",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;"
+          },
+          "bytes": "b406a2"
+        },
+        {
+          "bci": 148,
+          "opcode": 165,
+          "mnemonic": "op_a5",
+          "line": 652,
+          "bytes": "a50005"
+        },
+        {
+          "bci": 151,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 654,
+          "bytes": "03"
+        },
+        {
+          "bci": 152,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 654,
+          "bytes": "ac"
+        },
+        {
+          "bci": 153,
+          "opcode": 132,
+          "mnemonic": "op_84",
+          "line": 647,
+          "bytes": "840301"
+        },
+        {
+          "bci": 156,
+          "opcode": 167,
+          "mnemonic": "op_a7",
+          "line": 647,
+          "bytes": "a7ff6f"
+        },
+        {
+          "bci": 159,
+          "opcode": 4,
+          "mnemonic": "op_04",
+          "line": 656,
+          "bytes": "04"
+        },
+        {
+          "bci": 160,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 656,
+          "bytes": "ac"
+        }
+      ],
+      "required_finite_or_enclosing_cases": [
+        "Keep all original categories and required cases pending source-backed per-case disposition. No removal or behavior credit."
+      ],
+      "selection_status": "pending-independent-root-policy-selection",
+      "native_callback_state_deletion_authorized": false,
+      "behavior_accepted": false
+    },
+    {
+      "id": "dev/mixer/android/NativeRenderer#fieldPreservationIdentityV2(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;Ldev/mixer/android/NativeAppearanceViewsV2$Record;Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;)Z",
+      "class": "dev/mixer/android/NativeRenderer",
+      "method": "fieldPreservationIdentityV2",
+      "descriptor": "(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;Ldev/mixer/android/NativeAppearanceViewsV2$Record;Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;)Z",
+      "categories": [
+        "exact-membership-and-completion"
+      ],
+      "required_semantic_cases": [
+        "allocation-failure-source-proof-only-pending-runtime",
+        "duplicate-or-foreign-state-refuses",
+        "held-failure-funded-membership",
+        "no-tail-callback-before-complete-roster",
+        "ordered-constructor-bound-membership",
+        "same-first-fatal"
+      ],
+      "source_sha256": "ce27e468021ad9d041f3da35a035502aa9a8595683b19ef0e6fb3d011c75ca3a",
+      "class_sha256": "c7ad938bb6a6cc5403927006171a344750966bef2d1fa8e8b6b6ae7ef8551d2f",
+      "proposed_applicability": "pending-source-specific-callback-or-enclosing-outcome-review",
+      "reason": "Contains actual invocations; no no-callback inference is made from an adjacent event, name or static identity.",
+      "source_file": "NativeRenderer.java",
+      "source_witness": [
+        {
+          "line": 659,
+          "text": "        if(!fieldPreservationCapturedV2(c,journal,record,scope)||!preservationMembershipV2(journal))return false;"
+        },
+        {
+          "line": 660,
+          "text": "        for(int i=0;i<journal.stateCount;i++){NativeState state=journal.states[i];if(state.record==record)return state.forwardPreserved&&state.preservation==scope;}"
+        },
+        {
+          "line": 661,
+          "text": "        return false;"
+        }
+      ],
+      "actual_invocations": [
+        {
+          "bci": 6,
+          "opcode": 182,
+          "mnemonic": "invokevirtual",
+          "line": 659,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "fieldPreservationCapturedV2",
+            "descriptor": "(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;Ldev/mixer/android/NativeAppearanceViewsV2$Record;Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;)Z"
+          },
+          "bytes": "b606c8"
+        },
+        {
+          "bci": 14,
+          "opcode": 182,
+          "mnemonic": "invokevirtual",
+          "line": 659,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "preservationMembershipV2",
+            "descriptor": "(Ldev/mixer/android/NativeRenderer$AttachmentJournal;)Z"
+          },
+          "bytes": "b606cb"
+        }
+      ],
+      "actual_instructions": [
+        {
+          "bci": 0,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 659,
+          "bytes": "2a"
+        },
+        {
+          "bci": 1,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 659,
+          "bytes": "2b"
+        },
+        {
+          "bci": 2,
+          "opcode": 44,
+          "mnemonic": "op_2c",
+          "line": 659,
+          "bytes": "2c"
+        },
+        {
+          "bci": 3,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 659,
+          "bytes": "2d"
+        },
+        {
+          "bci": 4,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 659,
+          "bytes": "1904"
+        },
+        {
+          "bci": 6,
+          "opcode": 182,
+          "mnemonic": "invokevirtual",
+          "line": 659,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "fieldPreservationCapturedV2",
+            "descriptor": "(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;Ldev/mixer/android/NativeAppearanceViewsV2$Record;Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;)Z"
+          },
+          "bytes": "b606c8"
+        },
+        {
+          "bci": 9,
+          "opcode": 153,
+          "mnemonic": "op_99",
+          "line": 659,
+          "bytes": "99000b"
+        },
+        {
+          "bci": 12,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 659,
+          "bytes": "2a"
+        },
+        {
+          "bci": 13,
+          "opcode": 44,
+          "mnemonic": "op_2c",
+          "line": 659,
+          "bytes": "2c"
+        },
+        {
+          "bci": 14,
+          "opcode": 182,
+          "mnemonic": "invokevirtual",
+          "line": 659,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "preservationMembershipV2",
+            "descriptor": "(Ldev/mixer/android/NativeRenderer$AttachmentJournal;)Z"
+          },
+          "bytes": "b606cb"
+        },
+        {
+          "bci": 17,
+          "opcode": 154,
+          "mnemonic": "op_9a",
+          "line": 659,
+          "bytes": "9a0005"
+        },
+        {
+          "bci": 20,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 659,
+          "bytes": "03"
+        },
+        {
+          "bci": 21,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 659,
+          "bytes": "ac"
+        },
+        {
+          "bci": 22,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 660,
+          "bytes": "03"
+        },
+        {
+          "bci": 23,
+          "opcode": 54,
+          "mnemonic": "op_36",
+          "line": 660,
+          "bytes": "3605"
+        },
+        {
+          "bci": 25,
+          "opcode": 21,
+          "mnemonic": "op_15",
+          "line": 660,
+          "bytes": "1505"
+        },
+        {
+          "bci": 27,
+          "opcode": 44,
+          "mnemonic": "op_2c",
+          "line": 660,
+          "bytes": "2c"
+        },
+        {
+          "bci": 28,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 660,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "stateCount",
+            "descriptor": "I"
+          },
+          "bytes": "b40658"
+        },
+        {
+          "bci": 31,
+          "opcode": 162,
+          "mnemonic": "op_a2",
+          "line": 660,
+          "bytes": "a20033"
+        },
+        {
+          "bci": 34,
+          "opcode": 44,
+          "mnemonic": "op_2c",
+          "line": 660,
+          "bytes": "2c"
+        },
+        {
+          "bci": 35,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 660,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "states",
+            "descriptor": "[Ldev/mixer/android/NativeRenderer$NativeState;"
+          },
+          "bytes": "b4065b"
+        },
+        {
+          "bci": 38,
+          "opcode": 21,
+          "mnemonic": "op_15",
+          "line": 660,
+          "bytes": "1505"
+        },
+        {
+          "bci": 40,
+          "opcode": 50,
+          "mnemonic": "op_32",
+          "line": 660,
+          "bytes": "32"
+        },
+        {
+          "bci": 41,
+          "opcode": 58,
+          "mnemonic": "op_3a",
+          "line": 660,
+          "bytes": "3a06"
+        },
+        {
+          "bci": 43,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 660,
+          "bytes": "1906"
+        },
+        {
+          "bci": 45,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 660,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "record",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$Record;"
+          },
+          "bytes": "b403b3"
+        },
+        {
+          "bci": 48,
+          "opcode": 45,
+          "mnemonic": "op_2d",
+          "line": 660,
+          "bytes": "2d"
+        },
+        {
+          "bci": 49,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 660,
+          "bytes": "a6001b"
+        },
+        {
+          "bci": 52,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 660,
+          "bytes": "1906"
+        },
+        {
+          "bci": 54,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 660,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "forwardPreserved",
+            "descriptor": "Z"
+          },
+          "bytes": "b4067d"
+        },
+        {
+          "bci": 57,
+          "opcode": 153,
+          "mnemonic": "op_99",
+          "line": 660,
+          "bytes": "990011"
+        },
+        {
+          "bci": 60,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 660,
+          "bytes": "1906"
+        },
+        {
+          "bci": 62,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 660,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "preservation",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;"
+          },
+          "bytes": "b4065f"
+        },
+        {
+          "bci": 65,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 660,
+          "bytes": "1904"
+        },
+        {
+          "bci": 67,
+          "opcode": 166,
+          "mnemonic": "op_a6",
+          "line": 660,
+          "bytes": "a60007"
+        },
+        {
+          "bci": 70,
+          "opcode": 4,
+          "mnemonic": "op_04",
+          "line": 660,
+          "bytes": "04"
+        },
+        {
+          "bci": 71,
+          "opcode": 167,
+          "mnemonic": "op_a7",
+          "line": 660,
+          "bytes": "a70004"
+        },
+        {
+          "bci": 74,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 660,
+          "bytes": "03"
+        },
+        {
+          "bci": 75,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 660,
+          "bytes": "ac"
+        },
+        {
+          "bci": 76,
+          "opcode": 132,
+          "mnemonic": "op_84",
+          "line": 660,
+          "bytes": "840501"
+        },
+        {
+          "bci": 79,
+          "opcode": 167,
+          "mnemonic": "op_a7",
+          "line": 660,
+          "bytes": "a7ffca"
+        },
+        {
+          "bci": 82,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 661,
+          "bytes": "03"
+        },
+        {
+          "bci": 83,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 661,
+          "bytes": "ac"
+        }
+      ],
+      "required_finite_or_enclosing_cases": [
+        "Keep all original categories and required cases pending source-backed per-case disposition. No removal or behavior credit."
+      ],
+      "selection_status": "pending-independent-root-policy-selection",
+      "native_callback_state_deletion_authorized": false,
+      "behavior_accepted": false
+    },
+    {
+      "id": "dev/mixer/android/NativeRenderer#preservationCohortV2(Ldev/mixer/android/NativeRenderer$Candidate;)Z",
+      "class": "dev/mixer/android/NativeRenderer",
+      "method": "preservationCohortV2",
+      "descriptor": "(Ldev/mixer/android/NativeRenderer$Candidate;)Z",
+      "categories": [
+        "exact-membership-and-completion"
+      ],
+      "required_semantic_cases": [
+        "allocation-failure-source-proof-only-pending-runtime",
+        "duplicate-or-foreign-state-refuses",
+        "held-failure-funded-membership",
+        "no-tail-callback-before-complete-roster",
+        "ordered-constructor-bound-membership",
+        "same-first-fatal"
+      ],
+      "source_sha256": "ce27e468021ad9d041f3da35a035502aa9a8595683b19ef0e6fb3d011c75ca3a",
+      "class_sha256": "c7ad938bb6a6cc5403927006171a344750966bef2d1fa8e8b6b6ae7ef8551d2f",
+      "proposed_applicability": "pending-source-specific-callback-or-enclosing-outcome-review",
+      "reason": "Contains actual invocations; no no-callback inference is made from an adjacent event, name or static identity.",
+      "source_file": "NativeRenderer.java",
+      "source_witness": [
+        {
+          "line": 664,
+          "text": "        if(!preservationMembershipV2(c.journal))return false;"
+        },
+        {
+          "line": 665,
+          "text": "        int held=0;for(int i=0;i<c.journal.stateCount;i++){var scope=c.journal.states[i].preservation;if(scope!=null&&scope.counted)held++;}"
+        },
+        {
+          "line": 666,
+          "text": "        return c.heldPreservations==held&&outstandingFieldPreservations==held&&held>=0&&held<=c.journal.stateCount&&outstandingEditorNativeCalls>=held;"
+        }
+      ],
+      "actual_invocations": [
+        {
+          "bci": 5,
+          "opcode": 182,
+          "mnemonic": "invokevirtual",
+          "line": 664,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "preservationMembershipV2",
+            "descriptor": "(Ldev/mixer/android/NativeRenderer$AttachmentJournal;)Z"
+          },
+          "bytes": "b606cb"
+        }
+      ],
+      "actual_instructions": [
+        {
+          "bci": 0,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 664,
+          "bytes": "2a"
+        },
+        {
+          "bci": 1,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 664,
+          "bytes": "2b"
+        },
+        {
+          "bci": 2,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 664,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "journal",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$AttachmentJournal;"
+          },
+          "bytes": "b40608"
+        },
+        {
+          "bci": 5,
+          "opcode": 182,
+          "mnemonic": "invokevirtual",
+          "line": 664,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "preservationMembershipV2",
+            "descriptor": "(Ldev/mixer/android/NativeRenderer$AttachmentJournal;)Z"
+          },
+          "bytes": "b606cb"
+        },
+        {
+          "bci": 8,
+          "opcode": 154,
+          "mnemonic": "op_9a",
+          "line": 664,
+          "bytes": "9a0005"
+        },
+        {
+          "bci": 11,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 664,
+          "bytes": "03"
+        },
+        {
+          "bci": 12,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 664,
+          "bytes": "ac"
+        },
+        {
+          "bci": 13,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 665,
+          "bytes": "03"
+        },
+        {
+          "bci": 14,
+          "opcode": 61,
+          "mnemonic": "op_3d",
+          "line": 665,
+          "bytes": "3d"
+        },
+        {
+          "bci": 15,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 665,
+          "bytes": "03"
+        },
+        {
+          "bci": 16,
+          "opcode": 62,
+          "mnemonic": "op_3e",
+          "line": 665,
+          "bytes": "3e"
+        },
+        {
+          "bci": 17,
+          "opcode": 29,
+          "mnemonic": "op_1d",
+          "line": 665,
+          "bytes": "1d"
+        },
+        {
+          "bci": 18,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 665,
+          "bytes": "2b"
+        },
+        {
+          "bci": 19,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 665,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "journal",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$AttachmentJournal;"
+          },
+          "bytes": "b40608"
+        },
+        {
+          "bci": 22,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 665,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "stateCount",
+            "descriptor": "I"
+          },
+          "bytes": "b40658"
+        },
+        {
+          "bci": 25,
+          "opcode": 162,
+          "mnemonic": "op_a2",
+          "line": 665,
+          "bytes": "a20027"
+        },
+        {
+          "bci": 28,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 665,
+          "bytes": "2b"
+        },
+        {
+          "bci": 29,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 665,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "journal",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$AttachmentJournal;"
+          },
+          "bytes": "b40608"
+        },
+        {
+          "bci": 32,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 665,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "states",
+            "descriptor": "[Ldev/mixer/android/NativeRenderer$NativeState;"
+          },
+          "bytes": "b4065b"
+        },
+        {
+          "bci": 35,
+          "opcode": 29,
+          "mnemonic": "op_1d",
+          "line": 665,
+          "bytes": "1d"
+        },
+        {
+          "bci": 36,
+          "opcode": 50,
+          "mnemonic": "op_32",
+          "line": 665,
+          "bytes": "32"
+        },
+        {
+          "bci": 37,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 665,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "preservation",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;"
+          },
+          "bytes": "b4065f"
+        },
+        {
+          "bci": 40,
+          "opcode": 58,
+          "mnemonic": "op_3a",
+          "line": 665,
+          "bytes": "3a04"
+        },
+        {
+          "bci": 42,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 665,
+          "bytes": "1904"
+        },
+        {
+          "bci": 44,
+          "opcode": 198,
+          "mnemonic": "op_c6",
+          "line": 665,
+          "bytes": "c6000e"
+        },
+        {
+          "bci": 47,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 665,
+          "bytes": "1904"
+        },
+        {
+          "bci": 49,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 665,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "counted",
+            "descriptor": "Z"
+          },
+          "bytes": "b40325"
+        },
+        {
+          "bci": 52,
+          "opcode": 153,
+          "mnemonic": "op_99",
+          "line": 665,
+          "bytes": "990006"
+        },
+        {
+          "bci": 55,
+          "opcode": 132,
+          "mnemonic": "op_84",
+          "line": 665,
+          "bytes": "840201"
+        },
+        {
+          "bci": 58,
+          "opcode": 132,
+          "mnemonic": "op_84",
+          "line": 665,
+          "bytes": "840301"
+        },
+        {
+          "bci": 61,
+          "opcode": 167,
+          "mnemonic": "op_a7",
+          "line": 665,
+          "bytes": "a7ffd4"
+        },
+        {
+          "bci": 64,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 666,
+          "bytes": "2b"
+        },
+        {
+          "bci": 65,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 666,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "heldPreservations",
+            "descriptor": "I"
+          },
+          "bytes": "b406ce"
+        },
+        {
+          "bci": 68,
+          "opcode": 28,
+          "mnemonic": "op_1c",
+          "line": 666,
+          "bytes": "1c"
+        },
+        {
+          "bci": 69,
+          "opcode": 160,
+          "mnemonic": "op_a0",
+          "line": 666,
+          "bytes": "a00026"
+        },
+        {
+          "bci": 72,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 666,
+          "bytes": "2a"
+        },
+        {
+          "bci": 73,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 666,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "outstandingFieldPreservations",
+            "descriptor": "I"
+          },
+          "bytes": "b4029e"
+        },
+        {
+          "bci": 76,
+          "opcode": 28,
+          "mnemonic": "op_1c",
+          "line": 666,
+          "bytes": "1c"
+        },
+        {
+          "bci": 77,
+          "opcode": 160,
+          "mnemonic": "op_a0",
+          "line": 666,
+          "bytes": "a0001e"
+        },
+        {
+          "bci": 80,
+          "opcode": 28,
+          "mnemonic": "op_1c",
+          "line": 666,
+          "bytes": "1c"
+        },
+        {
+          "bci": 81,
+          "opcode": 155,
+          "mnemonic": "op_9b",
+          "line": 666,
+          "bytes": "9b001a"
+        },
+        {
+          "bci": 84,
+          "opcode": 28,
+          "mnemonic": "op_1c",
+          "line": 666,
+          "bytes": "1c"
+        },
+        {
+          "bci": 85,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 666,
+          "bytes": "2b"
+        },
+        {
+          "bci": 86,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 666,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "journal",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$AttachmentJournal;"
+          },
+          "bytes": "b40608"
+        },
+        {
+          "bci": 89,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 666,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "stateCount",
+            "descriptor": "I"
+          },
+          "bytes": "b40658"
+        },
+        {
+          "bci": 92,
+          "opcode": 163,
+          "mnemonic": "op_a3",
+          "line": 666,
+          "bytes": "a3000f"
+        },
+        {
+          "bci": 95,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 666,
+          "bytes": "2a"
+        },
+        {
+          "bci": 96,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 666,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "outstandingEditorNativeCalls",
+            "descriptor": "I"
+          },
+          "bytes": "b4029b"
+        },
+        {
+          "bci": 99,
+          "opcode": 28,
+          "mnemonic": "op_1c",
+          "line": 666,
+          "bytes": "1c"
+        },
+        {
+          "bci": 100,
+          "opcode": 161,
+          "mnemonic": "op_a1",
+          "line": 666,
+          "bytes": "a10007"
+        },
+        {
+          "bci": 103,
+          "opcode": 4,
+          "mnemonic": "op_04",
+          "line": 666,
+          "bytes": "04"
+        },
+        {
+          "bci": 104,
+          "opcode": 167,
+          "mnemonic": "op_a7",
+          "line": 666,
+          "bytes": "a70004"
+        },
+        {
+          "bci": 107,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 666,
+          "bytes": "03"
+        },
+        {
+          "bci": 108,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 666,
+          "bytes": "ac"
+        }
+      ],
+      "required_finite_or_enclosing_cases": [
+        "Keep all original categories and required cases pending source-backed per-case disposition. No removal or behavior credit."
+      ],
+      "selection_status": "pending-independent-root-policy-selection",
+      "native_callback_state_deletion_authorized": false,
+      "behavior_accepted": false
+    },
+    {
+      "id": "dev/mixer/android/NativeRenderer#preservationFailureFundedV2(Ldev/mixer/android/NativeRenderer$Candidate;)Z",
+      "class": "dev/mixer/android/NativeRenderer",
+      "method": "preservationFailureFundedV2",
+      "descriptor": "(Ldev/mixer/android/NativeRenderer$Candidate;)Z",
+      "categories": [
+        "exact-membership-and-completion"
+      ],
+      "required_semantic_cases": [
+        "allocation-failure-source-proof-only-pending-runtime",
+        "duplicate-or-foreign-state-refuses",
+        "held-failure-funded-membership",
+        "no-tail-callback-before-complete-roster",
+        "ordered-constructor-bound-membership",
+        "same-first-fatal"
+      ],
+      "source_sha256": "ce27e468021ad9d041f3da35a035502aa9a8595683b19ef0e6fb3d011c75ca3a",
+      "class_sha256": "c7ad938bb6a6cc5403927006171a344750966bef2d1fa8e8b6b6ae7ef8551d2f",
+      "proposed_applicability": "pending-source-specific-callback-or-enclosing-outcome-review",
+      "reason": "Contains actual invocations; no no-callback inference is made from an adjacent event, name or static identity.",
+      "source_file": "NativeRenderer.java",
+      "source_witness": [
+        {
+          "line": 669,
+          "text": "        if(!preservationMembershipV2(c.journal))return false;"
+        },
+        {
+          "line": 670,
+          "text": "        int represented=0;for(int i=0;i<c.journal.stateCount;i++){var scope=c.journal.states[i].preservation;if(scope!=null&&scope.counted)represented++;}"
+        },
+        {
+          "line": 671,
+          "text": "        return c.heldPreservations>=represented&&c.heldPreservations>=0&&c.heldPreservations<=c.journal.stateCount&&"
+        }
+      ],
+      "actual_invocations": [
+        {
+          "bci": 5,
+          "opcode": 182,
+          "mnemonic": "invokevirtual",
+          "line": 669,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "preservationMembershipV2",
+            "descriptor": "(Ldev/mixer/android/NativeRenderer$AttachmentJournal;)Z"
+          },
+          "bytes": "b606cb"
+        }
+      ],
+      "actual_instructions": [
+        {
+          "bci": 0,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 669,
+          "bytes": "2a"
+        },
+        {
+          "bci": 1,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 669,
+          "bytes": "2b"
+        },
+        {
+          "bci": 2,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 669,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "journal",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$AttachmentJournal;"
+          },
+          "bytes": "b40608"
+        },
+        {
+          "bci": 5,
+          "opcode": 182,
+          "mnemonic": "invokevirtual",
+          "line": 669,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "preservationMembershipV2",
+            "descriptor": "(Ldev/mixer/android/NativeRenderer$AttachmentJournal;)Z"
+          },
+          "bytes": "b606cb"
+        },
+        {
+          "bci": 8,
+          "opcode": 154,
+          "mnemonic": "op_9a",
+          "line": 669,
+          "bytes": "9a0005"
+        },
+        {
+          "bci": 11,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 669,
+          "bytes": "03"
+        },
+        {
+          "bci": 12,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 669,
+          "bytes": "ac"
+        },
+        {
+          "bci": 13,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 670,
+          "bytes": "03"
+        },
+        {
+          "bci": 14,
+          "opcode": 61,
+          "mnemonic": "op_3d",
+          "line": 670,
+          "bytes": "3d"
+        },
+        {
+          "bci": 15,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 670,
+          "bytes": "03"
+        },
+        {
+          "bci": 16,
+          "opcode": 62,
+          "mnemonic": "op_3e",
+          "line": 670,
+          "bytes": "3e"
+        },
+        {
+          "bci": 17,
+          "opcode": 29,
+          "mnemonic": "op_1d",
+          "line": 670,
+          "bytes": "1d"
+        },
+        {
+          "bci": 18,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 670,
+          "bytes": "2b"
+        },
+        {
+          "bci": 19,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 670,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "journal",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$AttachmentJournal;"
+          },
+          "bytes": "b40608"
+        },
+        {
+          "bci": 22,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 670,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "stateCount",
+            "descriptor": "I"
+          },
+          "bytes": "b40658"
+        },
+        {
+          "bci": 25,
+          "opcode": 162,
+          "mnemonic": "op_a2",
+          "line": 670,
+          "bytes": "a20027"
+        },
+        {
+          "bci": 28,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 670,
+          "bytes": "2b"
+        },
+        {
+          "bci": 29,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 670,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "journal",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$AttachmentJournal;"
+          },
+          "bytes": "b40608"
+        },
+        {
+          "bci": 32,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 670,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "states",
+            "descriptor": "[Ldev/mixer/android/NativeRenderer$NativeState;"
+          },
+          "bytes": "b4065b"
+        },
+        {
+          "bci": 35,
+          "opcode": 29,
+          "mnemonic": "op_1d",
+          "line": 670,
+          "bytes": "1d"
+        },
+        {
+          "bci": 36,
+          "opcode": 50,
+          "mnemonic": "op_32",
+          "line": 670,
+          "bytes": "32"
+        },
+        {
+          "bci": 37,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 670,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$NativeState",
+            "name": "preservation",
+            "descriptor": "Ldev/mixer/android/NativeAppearanceViewsV2$FieldPreservation;"
+          },
+          "bytes": "b4065f"
+        },
+        {
+          "bci": 40,
+          "opcode": 58,
+          "mnemonic": "op_3a",
+          "line": 670,
+          "bytes": "3a04"
+        },
+        {
+          "bci": 42,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 670,
+          "bytes": "1904"
+        },
+        {
+          "bci": 44,
+          "opcode": 198,
+          "mnemonic": "op_c6",
+          "line": 670,
+          "bytes": "c6000e"
+        },
+        {
+          "bci": 47,
+          "opcode": 25,
+          "mnemonic": "op_19",
+          "line": 670,
+          "bytes": "1904"
+        },
+        {
+          "bci": 49,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 670,
+          "target": {
+            "owner": "dev/mixer/android/NativeAppearanceViewsV2$FieldPreservation",
+            "name": "counted",
+            "descriptor": "Z"
+          },
+          "bytes": "b40325"
+        },
+        {
+          "bci": 52,
+          "opcode": 153,
+          "mnemonic": "op_99",
+          "line": 670,
+          "bytes": "990006"
+        },
+        {
+          "bci": 55,
+          "opcode": 132,
+          "mnemonic": "op_84",
+          "line": 670,
+          "bytes": "840201"
+        },
+        {
+          "bci": 58,
+          "opcode": 132,
+          "mnemonic": "op_84",
+          "line": 670,
+          "bytes": "840301"
+        },
+        {
+          "bci": 61,
+          "opcode": 167,
+          "mnemonic": "op_a7",
+          "line": 670,
+          "bytes": "a7ffd4"
+        },
+        {
+          "bci": 64,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 671,
+          "bytes": "2b"
+        },
+        {
+          "bci": 65,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 671,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "heldPreservations",
+            "descriptor": "I"
+          },
+          "bytes": "b406ce"
+        },
+        {
+          "bci": 68,
+          "opcode": 28,
+          "mnemonic": "op_1c",
+          "line": 671,
+          "bytes": "1c"
+        },
+        {
+          "bci": 69,
+          "opcode": 161,
+          "mnemonic": "op_a1",
+          "line": 671,
+          "bytes": "a10032"
+        },
+        {
+          "bci": 72,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 671,
+          "bytes": "2b"
+        },
+        {
+          "bci": 73,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 671,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "heldPreservations",
+            "descriptor": "I"
+          },
+          "bytes": "b406ce"
+        },
+        {
+          "bci": 76,
+          "opcode": 155,
+          "mnemonic": "op_9b",
+          "line": 671,
+          "bytes": "9b002b"
+        },
+        {
+          "bci": 79,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 671,
+          "bytes": "2b"
+        },
+        {
+          "bci": 80,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 671,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "heldPreservations",
+            "descriptor": "I"
+          },
+          "bytes": "b406ce"
+        },
+        {
+          "bci": 83,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 671,
+          "bytes": "2b"
+        },
+        {
+          "bci": 84,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 671,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "journal",
+            "descriptor": "Ldev/mixer/android/NativeRenderer$AttachmentJournal;"
+          },
+          "bytes": "b40608"
+        },
+        {
+          "bci": 87,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 671,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$AttachmentJournal",
+            "name": "stateCount",
+            "descriptor": "I"
+          },
+          "bytes": "b40658"
+        },
+        {
+          "bci": 90,
+          "opcode": 163,
+          "mnemonic": "op_a3",
+          "line": 671,
+          "bytes": "a3001d"
+        },
+        {
+          "bci": 93,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 671,
+          "bytes": "2a"
+        },
+        {
+          "bci": 94,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 671,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "outstandingFieldPreservations",
+            "descriptor": "I"
+          },
+          "bytes": "b4029e"
+        },
+        {
+          "bci": 97,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 671,
+          "bytes": "2b"
+        },
+        {
+          "bci": 98,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 671,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "heldPreservations",
+            "descriptor": "I"
+          },
+          "bytes": "b406ce"
+        },
+        {
+          "bci": 101,
+          "opcode": 160,
+          "mnemonic": "op_a0",
+          "line": 671,
+          "bytes": "a00012"
+        },
+        {
+          "bci": 104,
+          "opcode": 42,
+          "mnemonic": "op_2a",
+          "line": 671,
+          "bytes": "2a"
+        },
+        {
+          "bci": 105,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 671,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer",
+            "name": "outstandingEditorNativeCalls",
+            "descriptor": "I"
+          },
+          "bytes": "b4029b"
+        },
+        {
+          "bci": 108,
+          "opcode": 43,
+          "mnemonic": "op_2b",
+          "line": 671,
+          "bytes": "2b"
+        },
+        {
+          "bci": 109,
+          "opcode": 180,
+          "mnemonic": "getfield",
+          "line": 671,
+          "target": {
+            "owner": "dev/mixer/android/NativeRenderer$Candidate",
+            "name": "heldPreservations",
+            "descriptor": "I"
+          },
+          "bytes": "b406ce"
+        },
+        {
+          "bci": 112,
+          "opcode": 161,
+          "mnemonic": "op_a1",
+          "line": 671,
+          "bytes": "a10007"
+        },
+        {
+          "bci": 115,
+          "opcode": 4,
+          "mnemonic": "op_04",
+          "line": 671,
+          "bytes": "04"
+        },
+        {
+          "bci": 116,
+          "opcode": 167,
+          "mnemonic": "op_a7",
+          "line": 671,
+          "bytes": "a70004"
+        },
+        {
+          "bci": 119,
+          "opcode": 3,
+          "mnemonic": "op_03",
+          "line": 671,
+          "bytes": "03"
+        },
+        {
+          "bci": 120,
+          "opcode": 172,
+          "mnemonic": "ireturn",
+          "line": 671,
+          "bytes": "ac"
+        }
+      ],
+      "required_finite_or_enclosing_cases": [
+        "Keep all original categories and required cases pending source-backed per-case disposition. No removal or behavior credit."
+      ],
+      "selection_status": "pending-independent-root-policy-selection",
+      "native_callback_state_deletion_authorized": false,
+      "behavior_accepted": false
+    }
+  ]
+}

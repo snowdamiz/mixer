@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T23:21:06.537423+00:00",
+  "status": "bounded-isolated-host-prototype-correction-selected",
+  "input_seal_sha256": "c7a8ead8257b8e13543c4fb3bb3ed385513f83080c960a58333b617d05c44860",
+  "review_seal": "verification/swift-retained-profile-composition-independent/seal.json",
+  "review_seal_sha256": "ce7f9d15730411060284df6659ed7d5c3278a7f3b543142cd31b8d3dfa2091c1",
+  "review_members_verified": 29,
+  "required_findings": [
+    "R01 stale closed wrapper can authorize descriptor numbers reused by a fresh retained owner",
+    "R02 close error aborts remaining ancestor cleanup and can discard still-open descriptor accounting"
+  ],
+  "source_reasoning_reviewed": true,
+  "raw_independent_result": {
+    "passed": 6,
+    "failed": 3,
+    "producer_replay_passed": 26
+  },
+  "ownership": "verification/swift-retained-profile-composition-correction/**",
+  "required_contract": [
+    "Explicit wrapper and descriptor ownership/lifecycle; once close starts saved handles grant no read/seek/check/lease/compose/adopt authority",
+    "At most one operational close attempt per owned descriptor generation; continue closing independent remaining owned descriptors after failure",
+    "Retain uncertain close state without assuming OS closure, blind numeric retry, authority over reused handles or healthy-zero claims",
+    "Preserve original composition or construction failure as primary with cleanup failures attached",
+    "Keep unchanged original controls and corrected raw results; any test-cleanup adaptation must be separate and leave behavioral assertions intact",
+    "Synthetic known-fault cleanup or process-exit containment must be distinct from resolution of an actual OS ambiguous close",
+    "All source/tool/input/output identities, bounded child commands, finite registry/quarantine state and scratch cleanup recorded"
+  ],
+  "canonical_or_Rust_product_implementation_selected": false,
+  "real_binding_or_context_accepted": false,
+  "native_OTA_GA_accepted": false
+}

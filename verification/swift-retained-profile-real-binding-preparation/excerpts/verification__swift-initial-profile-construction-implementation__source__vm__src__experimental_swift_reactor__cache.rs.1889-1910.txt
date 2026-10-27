@@ -1,0 +1,22 @@
+            owner,
+            SwiftCacheUsage {
+                fixed_reserved,
+                ..SwiftCacheUsage::default()
+            },
+        ))
+    }
+    pub(crate) fn complete<T>(self, returned_phase_storage: T) -> Result<(), SwiftRunFailure> {
+        let Self {
+            control: CacheControl { control, wasi, .. },
+            previous_bound,
+            ..
+        } = self;
+        control.end_construction_phase_with_wasi(
+            returned_phase_storage,
+            previous_bound,
+            wasi.map(AccountedWasi::usage),
+        )
+    }
+}
+fn reserve<T>(
+    values: &mut Vec<T>,

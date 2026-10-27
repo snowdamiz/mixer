@@ -1,0 +1,127 @@
+{
+  "at": "2026-10-26T23:14:41.714316+00:00",
+  "boundaries": {
+    "actual_8192_byte_context": false,
+    "actual_original_typed_result_or_15_word_ledger_join": false,
+    "actual_rust_exporter_compiled_or_tested": false,
+    "canonical_product_changed": false,
+    "commit_or_push": false,
+    "native_runtime_or_ui_or_capture": false,
+    "only_review_directory_written": true,
+    "process_inventory": false,
+    "prohibited_hosted_read_import_execute": false,
+    "protocol_types_compiled": false,
+    "real_binding_or_release_or_GA_accepted": false
+  },
+  "cleanup": {
+    "actual_successful_and_timeout_children_terminal_reaped": true,
+    "close_failure_remnants_reviewer_retired_after_recording": true,
+    "owned_retained_fds_final": 0,
+    "owned_scratch_entries_final": 0,
+    "owned_stdio_fds_final": 0,
+    "quarantine_control": "finite no-process model; explicitly retired only after recording; actual stuck OS branch unrun"
+  },
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "verification/swift-retained-profile-composition-independent/verify_custody.py"
+      ],
+      "exit_code": 1,
+      "output": "initial-custody-failure.stderr",
+      "scope": "initial exact filesystem closure before exact sidecar selection"
+    },
+    {
+      "argv": [
+        "python3",
+        "verification/swift-retained-profile-composition-independent/verify_custody.py"
+      ],
+      "exit_code": 0,
+      "scope": "corrected root-selected exact metadata closure",
+      "stderr": "custody.stderr",
+      "stdout": "custody.stdout"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "verification/swift-retained-profile-composition-independent/prepare_replay.py"
+      ],
+      "exit_code": 0,
+      "stderr": "source-custody.stderr",
+      "stdout": "source-custody.stdout"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "test_preparation.py"
+      ],
+      "cwd": "replay",
+      "exit_code": 0,
+      "observed_unittest_seconds": 0.679,
+      "stderr": "producer-replay.stderr",
+      "stdout": "producer-replay.stdout"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "verification/swift-retained-profile-composition-independent/test_independent.py"
+      ],
+      "exit_code": 1,
+      "observed_unittest_seconds": 0.033,
+      "scope": "original eight independent methods",
+      "stderr": "history/first-eight-controls/independent.stderr",
+      "stdout": "history/first-eight-controls/independent.stdout"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "verification/swift-retained-profile-composition-independent/test_independent.py"
+      ],
+      "exit_code": 1,
+      "observed_unittest_seconds": 0.023,
+      "scope": "nine methods after root-requested pre-close reporting fault",
+      "stderr": "independent.stderr",
+      "stdout": "independent.stdout"
+    }
+  ],
+  "committed_tree": "b6dc1f9e74933989781e0acb5ee086717a596d9d",
+  "disposition": "two required lifecycle corrections; no product implementation selection",
+  "independent": {
+    "errors": 0,
+    "finding_ids": [
+      "R01",
+      "R02"
+    ],
+    "methods": 9,
+    "passed": 6,
+    "raw_failures_preserved": true,
+    "required_failed_controls": 3,
+    "required_findings": 2,
+    "skips": 0
+  },
+  "producer_member_count": 41,
+  "producer_replay": {
+    "errors": 0,
+    "failures": 0,
+    "methods": 26,
+    "passed": 26,
+    "skips": 0,
+    "snapshot_mutations": 307,
+    "sufficient_for_claimed_lifecycle": false
+  },
+  "producer_seal_sha256": "c7a8ead8257b8e13543c4fb3bb3ed385513f83080c960a58333b617d05c44860",
+  "producer_source_tree_sha256": "fd3c6972e040cb038a5e59d0836eba0c8315c3c4c2eb230f1c82925e5aeed13b",
+  "schema": 1,
+  "scope": "independent frozen preparation/source/host review only",
+  "source_commit": "6450104dc3b02d0f4d4e572c6b05ad7fdc6657b2",
+  "tool": {
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python_executable": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+    "python_sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a",
+    "python_version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+  }
+}

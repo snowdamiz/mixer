@@ -1,0 +1,178 @@
+{
+  "schema": 1,
+  "at": "2026-10-27T00:56:24.951441+00:00",
+  "reviewer": "root",
+  "status": "pure-typed-result-codec-contract-selected-actual-isolated-VM-implementation-authorized",
+  "source_revision_context": "6450104dc3b02d0f4d4e572c6b05ad7fdc6657b2",
+  "preparation": {
+    "path": "verification/swift-retained-profile-real-binding-preparation",
+    "seal_sha256": "e6e4b3b1d32ade11ef3136f3e4416e86bb8c0a32889af6bbe62a1799cb093b01",
+    "members_verified": 69,
+    "bytes_verified": 859841
+  },
+  "independent_review": {
+    "path": "verification/swift-retained-profile-real-binding-contract-review",
+    "seal_sha256": "2b94fd0095c898f427809b8f088d5dc2708cdc3f33c8b12bd9936bb10da4d60e",
+    "members_verified": 22,
+    "bytes_verified": 48596,
+    "exact_path_set_verified": true,
+    "selection_sha256": "377060f15c2c55f3d7312b03ebbc8bf96131550b6d4caafcc220da11e0641c4d",
+    "rust_methods_each_mode": 21,
+    "python_methods": 15
+  },
+  "root_review": "Verified both frozen packets, read full contract/review/selection and independent complete-envelope controls and result receipts. Explicitly selected codec-only scope and unverified reference semantics; older framing helper is not promoted.",
+  "selected_contract": {
+    "schema": 1,
+    "status": "closed-independent-review-root-selected-pure-codec-next",
+    "reviewed_seal_sha256": "e6e4b3b1d32ade11ef3136f3e4416e86bb8c0a32889af6bbe62a1799cb093b01",
+    "reviewed_members": 69,
+    "reviewed_bytes": 859841,
+    "implementation_scope": "actual accepted isolated VM pure typed-result codec; no provenance authority",
+    "distribution_baseline": 140,
+    "host_support_baseline": 11,
+    "new_distribution_sources": [
+      "source/vm/src/experimental_swift_reactor/diagnostic_result_v1.rs",
+      "source/vm/src/experimental_swift_reactor/diagnostic_result_v1_tests.rs"
+    ],
+    "existing_source_mutations": [
+      "source/vm/src/experimental_swift_reactor/mod.rs: private module declaration only"
+    ],
+    "candidate_distribution_count": 142,
+    "candidate_host_support_count": 11,
+    "public_proof_control_layouts_changed": false,
+    "runtime_exporter_guard_accounting_route_changes": false,
+    "new_dependencies": [],
+    "byte_order": "little-endian-u64 logical fields; no Rust object image",
+    "usage_bytes": 512,
+    "failure_scalar_bytes": 256,
+    "result_bytes": 2048,
+    "result_magic": "MIXRES01",
+    "result_version": 1,
+    "result_terminal_form": 1,
+    "valid_result_masks": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      7
+    ],
+    "result_partitions": {
+      "metadata": [
+        0,
+        256
+      ],
+      "failure_scalar": [
+        256,
+        512
+      ],
+      "at_failure": [
+        512,
+        1024
+      ],
+      "after_cleanup": [
+        1024,
+        1536
+      ],
+      "final_consuming": [
+        1536,
+        2048
+      ]
+    },
+    "presence_rules": [
+      "bit0 requires complete scalar and at_failure decode",
+      "bit1 requires bit0 and complete after_cleanup decode",
+      "bit2 independently requires complete final_consuming decode",
+      "absent payloads and all reserved bytes are zero",
+      "WASI absence and Some(all-zero) differ; absent WASI tail is zero"
+    ],
+    "code": {
+      "length_min": 1,
+      "length_max": 128,
+      "byte_min": 32,
+      "byte_max": 126,
+      "unknown_text_allowed_as_data": true,
+      "semantic_applicability_checked": false,
+      "decoder_borrows_input": true
+    },
+    "widths": {
+      "source_usize": "checked to/from u64; supported host usize<=64",
+      "function": "u32 checked from u64",
+      "guest_exit": "u32 checked from u64",
+      "counters": "u64",
+      "reference_lengths": "u64"
+    },
+    "references": {
+      "raw_original": {
+        "required": true,
+        "length_min": 0,
+        "length_max": "u64::MAX",
+        "zero_length": "empty referenced artifact, never absence",
+        "digest_bytes": 32
+      },
+      "constructor": {
+        "tag0": "length0 and zero32 digest means absent",
+        "tags1_to_8": "length1..65536; arbitrary opaque32 digest",
+        "other_tags": "refuse"
+      },
+      "session": {
+        "required": true,
+        "digest_bytes": 32
+      },
+      "typed_result_schema": {
+        "required": true,
+        "digest_bytes": 32
+      },
+      "writer": {
+        "required": true,
+        "digest_bytes": 32
+      },
+      "required_digest_bit_patterns": "all permitted as opaque data; zero is not absence",
+      "preimages_files_session_provenance_checked": false
+    },
+    "encoder_refusal": "validate complete input and exact output extent before first write; output unchanged; borrowed originals retained",
+    "decoder_refusal": "validate exact input extent and every present payload before returning explicitly unverified borrowed view",
+    "ledger_usage_words": [
+      0,
+      2,
+      4,
+      6,
+      8,
+      10,
+      12,
+      14,
+      16,
+      18,
+      20,
+      22,
+      24,
+      26,
+      28
+    ],
+    "fresh_actual_module_tests_required": [
+      "complete full-result roundtrip all six masks x nine constructor states",
+      "malformed present scalar and each usage partition",
+      "canonical absent options and reserved bytes",
+      "constructor absent/present length boundaries",
+      "unknown codes preserved without semantic authority",
+      "wrong input/output extents and unchanged output on any refusal",
+      "borrowed result/code view lifetime compile controls",
+      "exhaustive matches against actual imported enum types",
+      "all15 independent ledger values and distinct at_failure/after_cleanup/final observations"
+    ],
+    "future_carrier_selection": "private loader-minted selected wrapper and AdoptedProof sidecar; public proof layout unchanged",
+    "full_real_binding_schema_migration_selected": false,
+    "producer_provenance_semantic_full_context_replay_FieldLog_OTA_GA_accepted": false
+  },
+  "baseline": {
+    "path": "verification/swift-initial-profile-construction-implementation",
+    "seal_sha256": "50d1c32174ee4cbcade6095039261ea0ff8eed05680322bfb59b5de0dd4cd8b1",
+    "source_tree_sha256": "71a00fde8a43aef5a7e6104932d3f0ca10a5989fb686c99828937b05aa363c7c",
+    "root_reverified_distribution_members": 140,
+    "root_reverified_host_support_members": 11
+  },
+  "implementation_ownership": "verification/swift-typed-result-codec-implementation/**",
+  "original_types_control_proof_cache_guard_layouts_unchanged": true,
+  "runtime_invocation_or_accounting_acceptance": false,
+  "canonical_provenance_semantic_native_OTA_GA_accepted": false
+}

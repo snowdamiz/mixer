@@ -1,0 +1,10 @@
+--- old/prototype.py
++++ new/prototype.py
+@@ -555,6 +555,7 @@
+             except InterruptedError:continue
+             if not part:return b"".join(parts)
+             parts.append(part);remaining-=len(part)
++        if remaining==0:return b"".join(parts)
+         raise Refusal("stdio-read-attempts","stdio-access")
+ 
+     def close(self):

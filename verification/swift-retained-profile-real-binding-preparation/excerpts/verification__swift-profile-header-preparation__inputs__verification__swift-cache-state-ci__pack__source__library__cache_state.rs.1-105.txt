@@ -1,0 +1,105 @@
+//! Standalone fixture-only successful cache transitions. No release authority.
+use super::*;
+const SEMANTIC_RECORD: u64 = 7680;
+const CACHE_COMBINED: u64 = 8151;
+const SEMANTIC_SETUP: u64 = 512;
+const SEMANTIC_FINISH: u64 = 256;
+const SEMANTIC_GUARD: u64 = 128;
+const SC: usize = 1688;
+// Snapshot words M,work,instructions,stage,operation,function,count,bytes,pins,
+// nonce,selected,taken,committed,pending,destination,feasible. Additional staged
+// words free_pin,lookup_slot,requested_bytes occupy 16..18. All other words zero.
+const EXTRA_CELLS: [usize; 2] = [71, 78];
+const ROW_CELLS: [usize; 10] = [21, 22, 23, 17, 128, 130, 131, 137, 84, 141];
+#[derive(Debug, PartialEq, Eq)]
+#[repr(u64)]
+pub enum FixtureCacheStateBoundaryV1 {
+    Unavailable = 0,
+    ClosedFixtureObserved = 1,
+    CapCutUnknownTail = 2,
+    Refused = 3,
+    AnalysisLimited = 4,
+    InternalPoisoned = 5,
+    ApplicabilityUnavailable = 6,
+}
+#[derive(Debug, PartialEq, Eq)]
+#[repr(u64)]
+pub enum FixtureCacheStateReasonV1 {
+    Observed = 0,
+    Steps = 1,
+    FramingUnavailable = 2,
+    FramingInvalid = 3,
+    EnvelopeRefused = 4,
+    EnvelopeUnavailable = 5,
+    Identity = 6,
+    Resident = 7,
+    Plan = 8,
+    Victim = 9,
+    Bytes = 10,
+    Token = 11,
+    Nonce = 12,
+    Invariant = 13,
+    FailureApplicability = 14,
+    IncompleteBoundary = 15,
+    InternalPoison = 16,
+    OutputUnavailable = 17,
+}
+#[derive(Debug)]
+#[repr(C)]
+pub struct FixtureCacheStateObservationV1 {
+    boundary: FixtureCacheStateBoundaryV1,
+    reason: FixtureCacheStateReasonV1,
+    extent: [u64; 30],
+}
+impl FixtureCacheStateObservationV1 {
+    pub fn boundary(&self) -> &FixtureCacheStateBoundaryV1 {
+        &self.boundary
+    }
+    pub fn reason(&self) -> &FixtureCacheStateReasonV1 {
+        &self.reason
+    }
+    pub const fn stored_prefix_validated(&self) -> bool {
+        false
+    }
+    pub const fn full_replay_accepted(&self) -> bool {
+        false
+    }
+    pub const fn semantic_metrics_valid(&self) -> bool {
+        false
+    }
+    pub const fn real_binding_verified(&self) -> bool {
+        false
+    }
+}
+#[derive(Debug)]
+#[repr(C)]
+pub struct FixtureCacheStateOutcomeV1 {
+    framing: ReplayOutcome,
+    envelope: FixtureEnvelopeObservationV1,
+    cache_state: FixtureCacheStateObservationV1,
+}
+impl FixtureCacheStateOutcomeV1 {
+    pub fn framing(&self) -> &ReplayOutcome {
+        &self.framing
+    }
+    pub fn envelope(&self) -> &FixtureEnvelopeObservationV1 {
+        &self.envelope
+    }
+    pub fn cache_state(&self) -> &FixtureCacheStateObservationV1 {
+        &self.cache_state
+    }
+    pub const fn stored_prefix_validated(&self) -> bool {
+        false
+    }
+    pub const fn full_replay_accepted(&self) -> bool {
+        false
+    }
+    pub const fn semantic_metrics_valid(&self) -> bool {
+        false
+    }
+    pub const fn real_binding_verified(&self) -> bool {
+        false
+    }
+}
+#[repr(C)]
+struct Progress {
