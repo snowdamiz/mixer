@@ -1,0 +1,2924 @@
+{
+  "declarations": [
+    {
+      "kind": "struct",
+      "name": "CostV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1/host_account_v1.rs",
+      "raw_source": "struct CostV1 {\n    work: u64,\n    storage: u64,\n}",
+      "start_line": 8,
+      "variants": [
+        {
+          "fields": [
+            "u64",
+            "u64"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "DestroyedStorageV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1/host_account_v1.rs",
+      "raw_source": "struct DestroyedStorageV1<'a> { reservation: ReservationV1<'a> }",
+      "start_line": 177,
+      "variants": [
+        {
+          "fields": [
+            "ReservationV1<'a>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "FrozenFixtureV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "raw_source": "struct FrozenFixtureV1 { binding: &'static ReviewedFixtureBindingV1 }",
+      "start_line": 710,
+      "variants": [
+        {
+          "fields": [
+            "&'staticReviewedFixtureBindingV1"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "LoaderFailureV1",
+      "path": "src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "raw_source": "struct LoaderFailureV1 {\n    kind: Refusal,\n    role: Role,\n    offset: u64,\n    attempts: u32,\n    io: Option<io::Error>,\n    validation: Option<SwiftValidationFailure>,\n}",
+      "start_line": 87,
+      "variants": [
+        {
+          "fields": [
+            "Refusal",
+            "Role",
+            "u64",
+            "u32",
+            "Option<io::Error>",
+            "Option<SwiftValidationFailure>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "LoaderUsageV1",
+      "path": "src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "raw_source": "struct LoaderUsageV1 {\n    read_calls: [u64; 4],\n    read_bytes: [u64; 4],\n    hash_bytes: u64,\n    source_equality_bytes: u64,\n    allocated_peak_requested: usize,\n}",
+      "start_line": 121,
+      "variants": [
+        {
+          "fields": [
+            "[u64;4]",
+            "[u64;4]",
+            "u64",
+            "u64",
+            "usize"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "OwnedFixtureOutcomeV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "raw_source": "enum OwnedFixtureOutcomeV1 {\n        SetupRefused(SetupOutcomeV1),\n        Loaded {\n            original_files: ReturnedLoaderFilesV1,\n            original_loader_usage: LoaderUsageV1,\n            rows: File,\n            snapshot: File,\n            cancellation_owner: Cancellation,\n            claims_owner: UnverifiedProfileDigestBytesV1,\n            primary: PrimaryOutcomeV1,\n        },\n    }",
+      "start_line": 723,
+      "variants": [
+        {
+          "fields": [
+            "SetupOutcomeV1"
+          ],
+          "name": "SetupRefused"
+        },
+        {
+          "fields": [
+            "ReturnedLoaderFilesV1",
+            "LoaderUsageV1",
+            "File",
+            "File",
+            "Cancellation",
+            "UnverifiedProfileDigestBytesV1",
+            "PrimaryOutcomeV1"
+          ],
+          "name": "Loaded"
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "PrepaidOwnedV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1/host_account_v1.rs",
+      "raw_source": "struct PrepaidOwnedV1<'a, T> {\n    owned: Option<T>,\n    reservation: Option<ReservationV1<'a>>,\n}",
+      "start_line": 144,
+      "variants": [
+        {
+          "fields": [
+            "Option<T>",
+            "Option<ReservationV1<'a>>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "PrimaryOutcomeV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "raw_source": "enum PrimaryOutcomeV1 {\n        LoaderRefused(LoaderFailureV1),\n        Leaf(Result<SnapshotScopeFinishV1, SnapshotPreScopeFailureV1>),\n    }",
+      "start_line": 718,
+      "variants": [
+        {
+          "fields": [
+            "LoaderFailureV1"
+          ],
+          "name": "LoaderRefused"
+        },
+        {
+          "fields": [
+            "Result<SnapshotScopeFinishV1,SnapshotPreScopeFailureV1>"
+          ],
+          "name": "Leaf"
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "ProfileAdapterErrorV1",
+      "path": "src/experimental_swift_reactor/diagnostic_profile.rs",
+      "raw_source": "struct ProfileAdapterErrorV1 {\n    code: u32,\n    stage: u32,\n    offset: u64,\n    output_bytes: u64,\n    output_attempts: u64,\n}",
+      "start_line": 38,
+      "variants": [
+        {
+          "fields": [
+            "u32",
+            "u32",
+            "u64",
+            "u64",
+            "u64"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "ProfileHeaderErrorV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "raw_source": "struct ProfileHeaderErrorV1 { code:u32, stage:u32, offset:u64 }",
+      "start_line": 12,
+      "variants": [
+        {
+          "fields": [
+            "u32",
+            "u32",
+            "u64"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "ProfileRowsObservationV1",
+      "path": "src/experimental_swift_reactor/diagnostic_profile.rs",
+      "raw_source": "struct ProfileRowsObservationV1 {\n    rows: u64,\n    defined_functions: u64,\n    imported_functions: u64,\n    source_extent: u64,\n    type_count: u64,\n    output_bytes: u64,\n    output_attempts: u64,\n    reserved: u64,\n}",
+      "start_line": 26,
+      "variants": [
+        {
+          "fields": [
+            "u64",
+            "u64",
+            "u64",
+            "u64",
+            "u64",
+            "u64",
+            "u64",
+            "u64"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "Refusal",
+      "path": "src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "raw_source": "enum Refusal {\n    UnsupportedScope,\n    UnsupportedBuild,\n    ProcessApi,\n    ProcessEncoding,\n    ProcessLimit,\n    DuplicateEnvironment,\n    MissingIdentity,\n    InvalidIdentity,\n    FileType,\n    FileOffset,\n    FileLimit,\n    AliasedFiles,\n    MetadataChanged,\n    Allocation,\n    Capacity,\n    Io,\n    ShortInput,\n    ExtraInput,\n    Attempts,\n    OverreportedRead,\n    Header,\n    Extent,\n    Reserved,\n    Digest,\n    BuildIdentity,\n    SessionIdentity,\n    SessionNonce,\n    ProcessMismatch,\n    SourceIdentity,\n    BudgetMismatch,\n    InvalidBudget,\n    Validation,\n    SourceEquality,\n}",
+      "start_line": 51,
+      "variants": [
+        {
+          "fields": [],
+          "name": "UnsupportedScope"
+        },
+        {
+          "fields": [],
+          "name": "UnsupportedBuild"
+        },
+        {
+          "fields": [],
+          "name": "ProcessApi"
+        },
+        {
+          "fields": [],
+          "name": "ProcessEncoding"
+        },
+        {
+          "fields": [],
+          "name": "ProcessLimit"
+        },
+        {
+          "fields": [],
+          "name": "DuplicateEnvironment"
+        },
+        {
+          "fields": [],
+          "name": "MissingIdentity"
+        },
+        {
+          "fields": [],
+          "name": "InvalidIdentity"
+        },
+        {
+          "fields": [],
+          "name": "FileType"
+        },
+        {
+          "fields": [],
+          "name": "FileOffset"
+        },
+        {
+          "fields": [],
+          "name": "FileLimit"
+        },
+        {
+          "fields": [],
+          "name": "AliasedFiles"
+        },
+        {
+          "fields": [],
+          "name": "MetadataChanged"
+        },
+        {
+          "fields": [],
+          "name": "Allocation"
+        },
+        {
+          "fields": [],
+          "name": "Capacity"
+        },
+        {
+          "fields": [],
+          "name": "Io"
+        },
+        {
+          "fields": [],
+          "name": "ShortInput"
+        },
+        {
+          "fields": [],
+          "name": "ExtraInput"
+        },
+        {
+          "fields": [],
+          "name": "Attempts"
+        },
+        {
+          "fields": [],
+          "name": "OverreportedRead"
+        },
+        {
+          "fields": [],
+          "name": "Header"
+        },
+        {
+          "fields": [],
+          "name": "Extent"
+        },
+        {
+          "fields": [],
+          "name": "Reserved"
+        },
+        {
+          "fields": [],
+          "name": "Digest"
+        },
+        {
+          "fields": [],
+          "name": "BuildIdentity"
+        },
+        {
+          "fields": [],
+          "name": "SessionIdentity"
+        },
+        {
+          "fields": [],
+          "name": "SessionNonce"
+        },
+        {
+          "fields": [],
+          "name": "ProcessMismatch"
+        },
+        {
+          "fields": [],
+          "name": "SourceIdentity"
+        },
+        {
+          "fields": [],
+          "name": "BudgetMismatch"
+        },
+        {
+          "fields": [],
+          "name": "InvalidBudget"
+        },
+        {
+          "fields": [],
+          "name": "Validation"
+        },
+        {
+          "fields": [],
+          "name": "SourceEquality"
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "RefusalV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1/host_account_v1.rs",
+      "raw_source": "enum RefusalV1 {\n    RootPolicyPending,\n    WholeQuotePending,\n    UnpricedComponent(usize),\n    QuoteOverflow,\n    WorkOverflow,\n    StorageOverflow,\n    InsufficientWork,\n    InsufficientStorage,\n}",
+      "start_line": 21,
+      "variants": [
+        {
+          "fields": [],
+          "name": "RootPolicyPending"
+        },
+        {
+          "fields": [],
+          "name": "WholeQuotePending"
+        },
+        {
+          "fields": [
+            "usize"
+          ],
+          "name": "UnpricedComponent"
+        },
+        {
+          "fields": [],
+          "name": "QuoteOverflow"
+        },
+        {
+          "fields": [],
+          "name": "WorkOverflow"
+        },
+        {
+          "fields": [],
+          "name": "StorageOverflow"
+        },
+        {
+          "fields": [],
+          "name": "InsufficientWork"
+        },
+        {
+          "fields": [],
+          "name": "InsufficientStorage"
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "ReservationV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1/host_account_v1.rs",
+      "raw_source": "struct ReservationV1<'a> {\n    account: &'a TrustedHostAccountV1,\n    storage: u64,\n}",
+      "start_line": 128,
+      "variants": [
+        {
+          "fields": [
+            "&'aTrustedHostAccountV1",
+            "u64"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "Resource",
+      "path": "src/experimental_wasi/mod.rs",
+      "raw_source": "enum Resource {\n    Calls,\n    Transfer,\n    TransferSize,\n    Work,\n    Iovecs,\n}",
+      "start_line": 84,
+      "variants": [
+        {
+          "fields": [],
+          "name": "Calls"
+        },
+        {
+          "fields": [],
+          "name": "Transfer"
+        },
+        {
+          "fields": [],
+          "name": "TransferSize"
+        },
+        {
+          "fields": [],
+          "name": "Work"
+        },
+        {
+          "fields": [],
+          "name": "Iovecs"
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "ReturnedLoaderFilesV1",
+      "path": "src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "raw_source": "struct ReturnedLoaderFilesV1 {\n    pub(super) source: File,\n    pub(super) build: File,\n    pub(super) session: File,\n    pub(super) executable: Option<File>,\n}",
+      "start_line": 129,
+      "variants": [
+        {
+          "fields": [
+            "File",
+            "File",
+            "File",
+            "Option<File>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "ReviewedWholeQuoteV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1/host_account_v1.rs",
+      "raw_source": "struct ReviewedWholeQuoteV1 {\n    total: CostV1,\n}",
+      "start_line": 42,
+      "variants": [
+        {
+          "fields": [
+            "CostV1"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "Role",
+      "path": "src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "raw_source": "enum Role {\n    Source = 0,\n    Build = 1,\n    Session = 2,\n    Executable = 3,\n    Process = 4,\n}",
+      "start_line": 43,
+      "variants": [
+        {
+          "fields": [],
+          "name": "Source"
+        },
+        {
+          "fields": [],
+          "name": "Build"
+        },
+        {
+          "fields": [],
+          "name": "Session"
+        },
+        {
+          "fields": [],
+          "name": "Executable"
+        },
+        {
+          "fields": [],
+          "name": "Process"
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "SetupOutcomeV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "raw_source": "enum SetupOutcomeV1 {\n        Ready { source: File, build: File, session: File, rows: File, snapshot: File },\n        Refused { stage: usize, original: io::Error, files: [Option<File>; 5] },\n        InvariantRefused { files: [Option<File>; 5] },\n    }",
+      "start_line": 712,
+      "variants": [
+        {
+          "fields": [
+            "File",
+            "File",
+            "File",
+            "File",
+            "File"
+          ],
+          "name": "Ready"
+        },
+        {
+          "fields": [
+            "usize",
+            "io::Error",
+            "[Option<File>;5]"
+          ],
+          "name": "Refused"
+        },
+        {
+          "fields": [
+            "[Option<File>;5]"
+          ],
+          "name": "InvariantRefused"
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "SnapshotAdmissionErrorV1",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "enum SnapshotAdmissionErrorV1 {\n    Stop(SnapshotStopV1),Owner,Layout,Arithmetic,WorkAuditPending,\n    Work {used:u64,requested:u64,limit:u64},\n    Storage {current:usize,additional:usize,limit:usize},\n}",
+      "start_line": 2041,
+      "variants": [
+        {
+          "fields": [
+            "SnapshotStopV1"
+          ],
+          "name": "Stop"
+        },
+        {
+          "fields": [],
+          "name": "Owner"
+        },
+        {
+          "fields": [],
+          "name": "Layout"
+        },
+        {
+          "fields": [],
+          "name": "Arithmetic"
+        },
+        {
+          "fields": [],
+          "name": "WorkAuditPending"
+        },
+        {
+          "fields": [
+            "u64",
+            "u64",
+            "u64"
+          ],
+          "name": "Work"
+        },
+        {
+          "fields": [
+            "usize",
+            "usize",
+            "usize"
+          ],
+          "name": "Storage"
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "SnapshotAttemptV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "raw_source": "enum SnapshotAttemptV1 {NotReached,AdmissionRefused(AError),Completed(SnapshotObservationV1),Failed(SnapshotExportErrorV1)}",
+      "start_line": 417,
+      "variants": [
+        {
+          "fields": [],
+          "name": "NotReached"
+        },
+        {
+          "fields": [
+            "AError"
+          ],
+          "name": "AdmissionRefused"
+        },
+        {
+          "fields": [
+            "SnapshotObservationV1"
+          ],
+          "name": "Completed"
+        },
+        {
+          "fields": [
+            "SnapshotExportErrorV1"
+          ],
+          "name": "Failed"
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "SnapshotCauseV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "raw_source": "enum SnapshotCauseV1 {Stop(Stop),Encode(SnapshotEncodeErrorV2),Shape,NotRegular,NotEmpty,Alias,Position,Io,Zero,Overreported,Attempts,Arithmetic}",
+      "start_line": 414,
+      "variants": [
+        {
+          "fields": [
+            "Stop"
+          ],
+          "name": "Stop"
+        },
+        {
+          "fields": [
+            "SnapshotEncodeErrorV2"
+          ],
+          "name": "Encode"
+        },
+        {
+          "fields": [],
+          "name": "Shape"
+        },
+        {
+          "fields": [],
+          "name": "NotRegular"
+        },
+        {
+          "fields": [],
+          "name": "NotEmpty"
+        },
+        {
+          "fields": [],
+          "name": "Alias"
+        },
+        {
+          "fields": [],
+          "name": "Position"
+        },
+        {
+          "fields": [],
+          "name": "Io"
+        },
+        {
+          "fields": [],
+          "name": "Zero"
+        },
+        {
+          "fields": [],
+          "name": "Overreported"
+        },
+        {
+          "fields": [],
+          "name": "Attempts"
+        },
+        {
+          "fields": [],
+          "name": "Arithmetic"
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "SnapshotEncodeErrorV2",
+      "path": "src/experimental/swift.rs",
+      "raw_source": "enum SnapshotEncodeErrorV2 {\n    MissingSelectedProvenance,\n    UnsupportedLayout,\n    UnsupportedPolicy,\n    Arithmetic,\n    InternalField { code: u32, section: u32, index: u64 },\n}",
+      "start_line": 743,
+      "variants": [
+        {
+          "fields": [],
+          "name": "MissingSelectedProvenance"
+        },
+        {
+          "fields": [],
+          "name": "UnsupportedLayout"
+        },
+        {
+          "fields": [],
+          "name": "UnsupportedPolicy"
+        },
+        {
+          "fields": [],
+          "name": "Arithmetic"
+        },
+        {
+          "fields": [
+            "u32",
+            "u32",
+            "u64"
+          ],
+          "name": "InternalField"
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SnapshotExportErrorV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "raw_source": "struct SnapshotExportErrorV1 {cause:SnapshotCauseV1,stage:u32,progress:SnapshotProgressV1,io:Option<io::Error>,post_stop:Option<Stop>}",
+      "start_line": 415,
+      "variants": [
+        {
+          "fields": [
+            "SnapshotCauseV1",
+            "u32",
+            "SnapshotProgressV1",
+            "Option<io::Error>",
+            "Option<Stop>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SnapshotObservationV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "raw_source": "struct SnapshotObservationV1 {bytes:u64,calls:u64,planning:u64,emission:u64}",
+      "start_line": 416,
+      "variants": [
+        {
+          "fields": [
+            "u64",
+            "u64",
+            "u64",
+            "u64"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SnapshotPreScopeFailureV1",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "struct SnapshotPreScopeFailureV1 {\n    pub(super) primary:SwiftRunFailure,\n    pub(super) retirement:Result<(),SwiftRunFailure>,\n}",
+      "start_line": 1905,
+      "variants": [
+        {
+          "fields": [
+            "SwiftRunFailure",
+            "Result<(),SwiftRunFailure>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SnapshotPrimaryRetirementV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "raw_source": "struct SnapshotPrimaryRetirementV1 {\n    variant:u32,primary:Option<SwiftRunFailure>,header_error:Option<ProfileHeaderErrorV1>,\n    header:Option<UnverifiedProfileHeaderV1>,rows:Option<Result<ProfileRowsObservationV1,ProfileAdapterErrorV1>>,\n    construction_completion:Option<Result<(),SwiftRunFailure>>,adopted_retirement:Result<(),SwiftRunFailure>,\n    export:SnapshotAttemptV1,phase_completion:Result<(),SwiftRunFailure>,\n}",
+      "start_line": 520,
+      "variants": [
+        {
+          "fields": [
+            "u32",
+            "Option<SwiftRunFailure>",
+            "Option<ProfileHeaderErrorV1>",
+            "Option<UnverifiedProfileHeaderV1>",
+            "Option<Result<ProfileRowsObservationV1,ProfileAdapterErrorV1>>",
+            "Option<Result<(),SwiftRunFailure>>",
+            "Result<(),SwiftRunFailure>",
+            "SnapshotAttemptV1",
+            "Result<(),SwiftRunFailure>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SnapshotProgressV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "raw_source": "struct SnapshotProgressV1 {bytes:u64,calls:u64,block:u64,attempt:u32,requested:u64}",
+      "start_line": 413,
+      "variants": [
+        {
+          "fields": [
+            "u64",
+            "u64",
+            "u64",
+            "u32",
+            "u64"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SnapshotScopeFinishV1",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "struct SnapshotScopeFinishV1 {\n    pub(super) primary_retirement:SnapshotPrimaryRetirementV1,\n    pub(super) cache_retirement:Option<SwiftRunFailure>,\n    pub(super) scope_adopted_retirement:Result<(),SwiftRunFailure>,\n    pub(super) wasi_attachment:Option<SnapshotWasiAttachmentV1>,\n    pub(super) wasi_retirement:Result<(),SwiftRunFailure>,\n    pub(super) usage:SwiftRunUsage,\n}",
+      "start_line": 1953,
+      "variants": [
+        {
+          "fields": [
+            "SnapshotPrimaryRetirementV1",
+            "Option<SwiftRunFailure>",
+            "Result<(),SwiftRunFailure>",
+            "Option<SnapshotWasiAttachmentV1>",
+            "Result<(),SwiftRunFailure>",
+            "SwiftRunUsage"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "SnapshotStopV1",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "enum SnapshotStopV1 {Existing(SwiftRunFailure),Cancelled,Deadline(SwiftDeadlineOrigin)}",
+      "start_line": 2039,
+      "variants": [
+        {
+          "fields": [
+            "SwiftRunFailure"
+          ],
+          "name": "Existing"
+        },
+        {
+          "fields": [],
+          "name": "Cancelled"
+        },
+        {
+          "fields": [
+            "SwiftDeadlineOrigin"
+          ],
+          "name": "Deadline"
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SnapshotWasiAttachmentV1",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "struct SnapshotWasiAttachmentV1 {\n    pub(super) construction:Result<(),SwiftRunFailure>,\n    pub(super) completion:Result<(),SwiftRunFailure>,\n}",
+      "start_line": 1961,
+      "variants": [
+        {
+          "fields": [
+            "Result<(),SwiftRunFailure>",
+            "Result<(),SwiftRunFailure>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "SwiftCleanupInvariant",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "enum SwiftCleanupInvariant {\n    ReservationOwner,\n    ReservationUnderflow,\n    MissingConstruction,\n    ConstructionBound,\n    LiveUnderflow,\n}",
+      "start_line": 178,
+      "variants": [
+        {
+          "fields": [],
+          "name": "ReservationOwner"
+        },
+        {
+          "fields": [],
+          "name": "ReservationUnderflow"
+        },
+        {
+          "fields": [],
+          "name": "MissingConstruction"
+        },
+        {
+          "fields": [],
+          "name": "ConstructionBound"
+        },
+        {
+          "fields": [],
+          "name": "LiveUnderflow"
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "SwiftDeadlineOrigin",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "enum SwiftDeadlineOrigin {\n    Run,\n    Wasi,\n}",
+      "start_line": 120,
+      "variants": [
+        {
+          "fields": [],
+          "name": "Run"
+        },
+        {
+          "fields": [],
+          "name": "Wasi"
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SwiftLiveUsage",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "struct SwiftLiveUsage {\n    pub cache_entries: SwiftReservationUsage,\n    pub active_pins: SwiftReservationUsage,\n    pub frames: SwiftReservationUsage,\n    pub values: SwiftReservationUsage,\n    pub controls: SwiftReservationUsage,\n    pub memory_pages: SwiftReservationUsage,\n}",
+      "start_line": 186,
+      "variants": [
+        {
+          "fields": [
+            "SwiftReservationUsage",
+            "SwiftReservationUsage",
+            "SwiftReservationUsage",
+            "SwiftReservationUsage",
+            "SwiftReservationUsage",
+            "SwiftReservationUsage"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "SwiftReservationCategory",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "enum SwiftReservationCategory {\n    RetainedSource,\n    RetainedMetadata,\n    Cache,\n    State,\n    Wasi,\n    Shared,\n    Construction,\n}",
+      "start_line": 66,
+      "variants": [
+        {
+          "fields": [],
+          "name": "RetainedSource"
+        },
+        {
+          "fields": [],
+          "name": "RetainedMetadata"
+        },
+        {
+          "fields": [],
+          "name": "Cache"
+        },
+        {
+          "fields": [],
+          "name": "State"
+        },
+        {
+          "fields": [],
+          "name": "Wasi"
+        },
+        {
+          "fields": [],
+          "name": "Shared"
+        },
+        {
+          "fields": [],
+          "name": "Construction"
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SwiftReservationUsage",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "struct SwiftReservationUsage {\n    pub current: usize,\n    pub peak: usize,\n}",
+      "start_line": 76,
+      "variants": [
+        {
+          "fields": [
+            "usize",
+            "usize"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SwiftReservations",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "struct SwiftReservations {\n    pub retained_source: SwiftReservationUsage,\n    pub retained_metadata: SwiftReservationUsage,\n    pub cache: SwiftReservationUsage,\n    pub state: SwiftReservationUsage,\n    pub wasi: SwiftReservationUsage,\n    pub shared: SwiftReservationUsage,\n    pub construction: SwiftReservationUsage,\n    pub combined: SwiftReservationUsage,\n    pub live_tickets: usize,\n    pub peak_tickets: usize,\n}",
+      "start_line": 83,
+      "variants": [
+        {
+          "fields": [
+            "SwiftReservationUsage",
+            "SwiftReservationUsage",
+            "SwiftReservationUsage",
+            "SwiftReservationUsage",
+            "SwiftReservationUsage",
+            "SwiftReservationUsage",
+            "SwiftReservationUsage",
+            "SwiftReservationUsage",
+            "usize",
+            "usize"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SwiftRunFailure",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "struct SwiftRunFailure {\n    pub stage: SwiftRunStage,\n    pub kind: SwiftRunFailureKind,\n    pub code: &'static str,\n    pub function: Option<u32>,\n    pub offset: Option<usize>,\n    pub resource: Option<SwiftRunResource>,\n    pub attempted: u64,\n    pub limit: u64,\n    pub observed_capacity: Option<usize>,\n    pub deadline_origin: SwiftDeadlineOrigin,\n    pub wasi_failure: Option<WasiFailure>,\n    pub guest_exit: Option<u32>,\n    pub at_failure: SwiftRunUsage,\n    pub after_cleanup: Option<SwiftRunUsage>,\n}",
+      "start_line": 216,
+      "variants": [
+        {
+          "fields": [
+            "SwiftRunStage",
+            "SwiftRunFailureKind",
+            "&'staticstr",
+            "Option<u32>",
+            "Option<usize>",
+            "Option<SwiftRunResource>",
+            "u64",
+            "u64",
+            "Option<usize>",
+            "SwiftDeadlineOrigin",
+            "Option<WasiFailure>",
+            "Option<u32>",
+            "SwiftRunUsage",
+            "Option<SwiftRunUsage>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "SwiftRunFailureKind",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "enum SwiftRunFailureKind {\n    InvalidBudget,\n    Cancelled,\n    Deadline,\n    Allocation,\n    Adoption,\n    CategoryExhausted,\n    CombinedExhausted,\n    ResourceExhausted,\n    FuelExhausted,\n    WorkExhausted,\n    HostCallLimit,\n    PinLimit,\n    FrameLimit,\n    ValueLimit,\n    ControlLimit,\n    DecoderMismatch,\n    UnsupportedEnvironment,\n    GuestTrap,\n    GuestExit,\n    Wasi,\n    Invariant,\n}",
+      "start_line": 154,
+      "variants": [
+        {
+          "fields": [],
+          "name": "InvalidBudget"
+        },
+        {
+          "fields": [],
+          "name": "Cancelled"
+        },
+        {
+          "fields": [],
+          "name": "Deadline"
+        },
+        {
+          "fields": [],
+          "name": "Allocation"
+        },
+        {
+          "fields": [],
+          "name": "Adoption"
+        },
+        {
+          "fields": [],
+          "name": "CategoryExhausted"
+        },
+        {
+          "fields": [],
+          "name": "CombinedExhausted"
+        },
+        {
+          "fields": [],
+          "name": "ResourceExhausted"
+        },
+        {
+          "fields": [],
+          "name": "FuelExhausted"
+        },
+        {
+          "fields": [],
+          "name": "WorkExhausted"
+        },
+        {
+          "fields": [],
+          "name": "HostCallLimit"
+        },
+        {
+          "fields": [],
+          "name": "PinLimit"
+        },
+        {
+          "fields": [],
+          "name": "FrameLimit"
+        },
+        {
+          "fields": [],
+          "name": "ValueLimit"
+        },
+        {
+          "fields": [],
+          "name": "ControlLimit"
+        },
+        {
+          "fields": [],
+          "name": "DecoderMismatch"
+        },
+        {
+          "fields": [],
+          "name": "UnsupportedEnvironment"
+        },
+        {
+          "fields": [],
+          "name": "GuestTrap"
+        },
+        {
+          "fields": [],
+          "name": "GuestExit"
+        },
+        {
+          "fields": [],
+          "name": "Wasi"
+        },
+        {
+          "fields": [],
+          "name": "Invariant"
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "SwiftRunResource",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "enum SwiftRunResource {\n    Reservation(SwiftReservationCategory),\n    Combined,\n    CacheEntryBytes,\n    CacheEntries,\n    ActivePins,\n    Frames,\n    Values,\n    Controls,\n    MemoryPages,\n    CacheWork,\n    ExecutionWork,\n    InstructionFuel,\n    HostCalls,\n    Deadline,\n    TicketInventory,\n    OwnerIdentity,\n    ExactCapacity,\n}",
+      "start_line": 134,
+      "variants": [
+        {
+          "fields": [
+            "SwiftReservationCategory"
+          ],
+          "name": "Reservation"
+        },
+        {
+          "fields": [],
+          "name": "Combined"
+        },
+        {
+          "fields": [],
+          "name": "CacheEntryBytes"
+        },
+        {
+          "fields": [],
+          "name": "CacheEntries"
+        },
+        {
+          "fields": [],
+          "name": "ActivePins"
+        },
+        {
+          "fields": [],
+          "name": "Frames"
+        },
+        {
+          "fields": [],
+          "name": "Values"
+        },
+        {
+          "fields": [],
+          "name": "Controls"
+        },
+        {
+          "fields": [],
+          "name": "MemoryPages"
+        },
+        {
+          "fields": [],
+          "name": "CacheWork"
+        },
+        {
+          "fields": [],
+          "name": "ExecutionWork"
+        },
+        {
+          "fields": [],
+          "name": "InstructionFuel"
+        },
+        {
+          "fields": [],
+          "name": "HostCalls"
+        },
+        {
+          "fields": [],
+          "name": "Deadline"
+        },
+        {
+          "fields": [],
+          "name": "TicketInventory"
+        },
+        {
+          "fields": [],
+          "name": "OwnerIdentity"
+        },
+        {
+          "fields": [],
+          "name": "ExactCapacity"
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "SwiftRunStage",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "enum SwiftRunStage {\n    Adoption,\n    Cache,\n    Initialization,\n    Invocation,\n    Wasi,\n    Cleanup,\n}",
+      "start_line": 125,
+      "variants": [
+        {
+          "fields": [],
+          "name": "Adoption"
+        },
+        {
+          "fields": [],
+          "name": "Cache"
+        },
+        {
+          "fields": [],
+          "name": "Initialization"
+        },
+        {
+          "fields": [],
+          "name": "Invocation"
+        },
+        {
+          "fields": [],
+          "name": "Wasi"
+        },
+        {
+          "fields": [],
+          "name": "Cleanup"
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SwiftRunUsage",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "struct SwiftRunUsage {\n    pub reservations: SwiftReservations,\n    pub live: SwiftLiveUsage,\n    pub cache_work: u64,\n    pub execution_work: u64,\n    pub instruction_fuel: u64,\n    pub instructions: u64,\n    pub host_calls: u64,\n    /// Independent cleanup observation; never replaces the first terminal cause.\n    pub cleanup_invariant: Option<SwiftCleanupInvariant>,\n    pub elapsed_micros: u64,\n    pub deadline_ms: u64,\n    pub deadline_origin: SwiftDeadlineOrigin,\n    pub deadline_overshoot_micros: u64,\n    /// Historical validation observations, never added to runtime admission.\n    pub validation: SwiftValidationUsage,\n    /// Copied observation only. None means no context observation was supplied;\n    /// no field in this snapshot is consulted for admission by RuntimeControl.\n    pub wasi: Option<WasiUsage>,\n}",
+      "start_line": 195,
+      "variants": [
+        {
+          "fields": [
+            "SwiftReservations",
+            "SwiftLiveUsage",
+            "u64",
+            "u64",
+            "u64",
+            "u64",
+            "u64",
+            "Option<SwiftCleanupInvariant>",
+            "u64",
+            "u64",
+            "SwiftDeadlineOrigin",
+            "u64",
+            "SwiftValidationUsage",
+            "Option<WasiUsage>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SwiftValidationFailure",
+      "path": "src/experimental/swift.rs",
+      "raw_source": "struct SwiftValidationFailure {\n    pub kind: SwiftValidationFailureKind,\n    pub code: &'static str,\n    /// Absolute function index, including the 34 imports, when in a body.\n    pub function: Option<u32>,\n    /// Absolute source byte offset.\n    pub offset: usize,\n    pub resource: Option<SwiftValidationResource>,\n    pub attempted: u64,\n    pub limit: u64,\n    pub usage: SwiftValidationUsage,\n}",
+      "start_line": 73,
+      "variants": [
+        {
+          "fields": [
+            "SwiftValidationFailureKind",
+            "&'staticstr",
+            "Option<u32>",
+            "usize",
+            "Option<SwiftValidationResource>",
+            "u64",
+            "u64",
+            "SwiftValidationUsage"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "SwiftValidationFailureKind",
+      "path": "src/experimental/swift.rs",
+      "raw_source": "enum SwiftValidationFailureKind {\n    Malformed,\n    Unsupported,\n    Validation,\n    AbiShape,\n    ResourceExhausted,\n    Cancelled,\n    Deadline,\n    InvalidBudget,\n    AllocationFailure,\n}",
+      "start_line": 34,
+      "variants": [
+        {
+          "fields": [],
+          "name": "Malformed"
+        },
+        {
+          "fields": [],
+          "name": "Unsupported"
+        },
+        {
+          "fields": [],
+          "name": "Validation"
+        },
+        {
+          "fields": [],
+          "name": "AbiShape"
+        },
+        {
+          "fields": [],
+          "name": "ResourceExhausted"
+        },
+        {
+          "fields": [],
+          "name": "Cancelled"
+        },
+        {
+          "fields": [],
+          "name": "Deadline"
+        },
+        {
+          "fields": [],
+          "name": "InvalidBudget"
+        },
+        {
+          "fields": [],
+          "name": "AllocationFailure"
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "SwiftValidationResource",
+      "path": "src/experimental/swift.rs",
+      "raw_source": "enum SwiftValidationResource {\n    Source,\n    Metadata,\n    Scratch,\n    Work,\n    StaticPolicy,\n}",
+      "start_line": 47,
+      "variants": [
+        {
+          "fields": [],
+          "name": "Source"
+        },
+        {
+          "fields": [],
+          "name": "Metadata"
+        },
+        {
+          "fields": [],
+          "name": "Scratch"
+        },
+        {
+          "fields": [],
+          "name": "Work"
+        },
+        {
+          "fields": [],
+          "name": "StaticPolicy"
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SwiftValidationUsage",
+      "path": "src/experimental/swift.rs",
+      "raw_source": "struct SwiftValidationUsage {\n    pub input_visible_bytes: usize,\n    pub source_bytes: usize,\n    pub metadata_reserved: usize,\n    pub scratch_reserved: usize,\n    pub metadata_peak_reserved: usize,\n    pub scratch_peak_reserved: usize,\n    pub total_peak_reserved: usize,\n    pub work_used: u64,\n    pub elapsed_micros: u64,\n    pub deadline_ms: u64,\n}",
+      "start_line": 59,
+      "variants": [
+        {
+          "fields": [
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "u64",
+            "u64",
+            "u64"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "TrustedHostAccountV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1/host_account_v1.rs",
+      "raw_source": "struct TrustedHostAccountV1 {\n    limits: CostV1,\n    usage: Cell<UsageV1>,\n    // Retain the independently provisioned P0 authority/allocation record.\n    root: TrustedRootPolicyV1,\n}",
+      "start_line": 87,
+      "variants": [
+        {
+          "fields": [
+            "CostV1",
+            "Cell<UsageV1>",
+            "TrustedRootPolicyV1"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "TrustedRootPolicyV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1/host_account_v1.rs",
+      "raw_source": "struct TrustedRootPolicyV1 {\n    child_limits: CostV1,\n    p0_preexisting_allocation: CostV1,\n    source_and_review_binding: [u8; 32],\n}",
+      "start_line": 36,
+      "variants": [
+        {
+          "fields": [
+            "CostV1",
+            "CostV1",
+            "[u8;32]"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "UnverifiedProfileDigestBytesV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "raw_source": "struct UnverifiedProfileDigestBytesV1 {\n    baseline:[u8;32], candidate:[u8;32], original_input:[u8;32], event_schema:[u8;32],\n    profile_adapter_binary:[u8;32], layout_receipt:[u8;32], original_validated_snapshot:[u8;32], profile_row_body:[u8;32],\n}",
+      "start_line": 19,
+      "variants": [
+        {
+          "fields": [
+            "[u8;32]",
+            "[u8;32]",
+            "[u8;32]",
+            "[u8;32]",
+            "[u8;32]",
+            "[u8;32]",
+            "[u8;32]",
+            "[u8;32]"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "UnverifiedProfileHeaderV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "raw_source": "struct UnverifiedProfileHeaderV1 { bytes:[u8;512] }",
+      "start_line": 24,
+      "variants": [
+        {
+          "fields": [
+            "[u8;512]"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "UsageV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1/host_account_v1.rs",
+      "raw_source": "struct UsageV1 {\n    work: u64,\n    storage: u64,\n    peak_storage: u64,\n}",
+      "start_line": 14,
+      "variants": [
+        {
+          "fields": [
+            "u64",
+            "u64",
+            "u64"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "WasiFailure",
+      "path": "src/experimental_wasi/mod.rs",
+      "raw_source": "enum WasiFailure {\n    InvalidBudget,\n    Allocation,\n    InvalidArguments,\n    InvalidMemory,\n    Budget(Resource),\n    Cancelled,\n    Deadline,\n    Invariant,\n}",
+      "start_line": 92,
+      "variants": [
+        {
+          "fields": [],
+          "name": "InvalidBudget"
+        },
+        {
+          "fields": [],
+          "name": "Allocation"
+        },
+        {
+          "fields": [],
+          "name": "InvalidArguments"
+        },
+        {
+          "fields": [],
+          "name": "InvalidMemory"
+        },
+        {
+          "fields": [
+            "Resource"
+          ],
+          "name": "Budget"
+        },
+        {
+          "fields": [],
+          "name": "Cancelled"
+        },
+        {
+          "fields": [],
+          "name": "Deadline"
+        },
+        {
+          "fields": [],
+          "name": "Invariant"
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "WasiReservations",
+      "path": "src/experimental_wasi/mod.rs",
+      "raw_source": "struct WasiReservations {\n    pub fixed_state_bytes: u64,\n    pub staging_bytes: u64,\n    pub rollback_bytes: u64,\n    pub stdout_bytes: u64,\n    pub stderr_bytes: u64,\n    pub current_bytes: u64,\n    pub peak_bytes: u64,\n}",
+      "start_line": 111,
+      "variants": [
+        {
+          "fields": [
+            "u64",
+            "u64",
+            "u64",
+            "u64",
+            "u64",
+            "u64",
+            "u64"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "WasiUsage",
+      "path": "src/experimental_wasi/mod.rs",
+      "raw_source": "struct WasiUsage {\n    pub calls: u64,\n    pub work: u64,\n    pub transfer_bytes: u64,\n    /// Successful OS random bytes, including bytes discarded after a later failure.\n    pub random_bytes: u64,\n    pub log_bytes: u64,\n    /// Non-success errno outcomes and the first terminal failure/exit.\n    pub failures: u64,\n    pub reservations: WasiReservations,\n}",
+      "start_line": 121,
+      "variants": [
+        {
+          "fields": [
+            "u64",
+            "u64",
+            "u64",
+            "u64",
+            "u64",
+            "u64",
+            "WasiReservations"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "Cancellation",
+      "path": "src/execute.rs",
+      "raw_source": "struct Cancellation(Arc<AtomicBool>)",
+      "start_line": 9,
+      "variants": [
+        {
+          "fields": [
+            "Arc<AtomicBool>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SelectedValidatedProfileV1",
+      "path": "src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "raw_source": "struct SelectedValidatedProfileV1 {\n    proof: ValidatedSwiftReactor,\n    provenance: LoaderProvenanceV1,\n}",
+      "start_line": 136,
+      "variants": [
+        {
+          "fields": [
+            "ValidatedSwiftReactor",
+            "LoaderProvenanceV1"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "AdoptionBodyV1",
+      "path": "src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "raw_source": "struct AdoptionBodyV1 {\n    proof: ValidatedSwiftReactor,\n    selected: Option<LoaderProvenanceV1>,\n}",
+      "start_line": 142,
+      "variants": [
+        {
+          "fields": [
+            "ValidatedSwiftReactor",
+            "Option<LoaderProvenanceV1>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "LoaderProvenanceV1",
+      "path": "src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "raw_source": "struct LoaderProvenanceV1 {\n    validation_budget: SwiftValidationBudget,\n    source_extent: u64,\n    source: [u8; 32],\n    manifest: [u8; 32],\n    build: [u8; 32],\n    session: [u8; 32],\n    executable: [u8; 32],\n    nonce: [u8; 32],\n    identities: [FileIdentityV1; 4],\n}",
+      "start_line": 187,
+      "variants": [
+        {
+          "fields": [
+            "SwiftValidationBudget",
+            "u64",
+            "[u8;32]",
+            "[u8;32]",
+            "[u8;32]",
+            "[u8;32]",
+            "[u8;32]",
+            "[u8;32]",
+            "[FileIdentityV1;4]"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "FileIdentityV1",
+      "path": "src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "raw_source": "struct FileIdentityV1 {\n    dev: u64,\n    inode: u64,\n    bytes: u64,\n    mode: u64,\n    mtime: i64,\n    mtime_ns: i64,\n    ctime: i64,\n    ctime_ns: i64,\n}",
+      "start_line": 204,
+      "variants": [
+        {
+          "fields": [
+            "u64",
+            "u64",
+            "u64",
+            "u64",
+            "i64",
+            "i64",
+            "i64",
+            "i64"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "ValidatedSwiftReactor",
+      "path": "src/experimental/swift.rs",
+      "raw_source": "struct ValidatedSwiftReactor {\n    source: Box<[u8]>,\n    metadata: SwiftMetadata,\n    policy: policy::Policy<'static>,\n    imports: [WasiFunction; 34],\n    usage: SwiftValidationUsage,\n    observations: SwiftReactorObservations,\n}",
+      "start_line": 145,
+      "variants": [
+        {
+          "fields": [
+            "Box<[u8]>",
+            "SwiftMetadata",
+            "policy::Policy<'static>",
+            "[WasiFunction;34]",
+            "SwiftValidationUsage",
+            "SwiftReactorObservations"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SwiftReactorObservations",
+      "path": "src/experimental/swift.rs",
+      "raw_source": "struct SwiftReactorObservations {\n    pub types: usize,\n    pub type_parameters: usize,\n    pub imported_functions: usize,\n    pub defined_functions: usize,\n    pub validated_bodies: usize,\n    pub instructions: usize,\n    pub globals: usize,\n    pub exports: usize,\n    pub data_segments: usize,\n    pub element_segments: usize,\n    pub max_parameters_plus_locals: usize,\n    pub max_operand_values: usize,\n    pub max_control_depth: usize,\n    pub memory_minimum: u32,\n    pub memory_declared_maximum: Option<u32>,\n    pub memory_host_maximum: u32,\n    pub table_minimum: u32,\n    pub table_declared_maximum: Option<u32>,\n}",
+      "start_line": 93,
+      "variants": [
+        {
+          "fields": [
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "u32",
+            "Option<u32>",
+            "u32",
+            "u32",
+            "Option<u32>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SwiftValidationBudget",
+      "path": "src/experimental/swift.rs",
+      "raw_source": "struct SwiftValidationBudget {\n    pub source_bytes: usize,\n    pub metadata_bytes: usize,\n    pub scratch_bytes: usize,\n    pub work_credits: u64,\n    pub deadline_ms: u64,\n}",
+      "start_line": 14,
+      "variants": [
+        {
+          "fields": [
+            "usize",
+            "usize",
+            "usize",
+            "u64",
+            "u64"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "Metadata",
+      "path": "src/experimental/metadata.rs",
+      "raw_source": "struct Metadata<D: Declaration = FrozenDeclaration> {\n    pub signatures: Buffer<Signature>,\n    pub parameters: Buffer<Type>,\n    pub imports: Buffer<Import>,\n    pub functions: Buffer<Function>,\n    pub globals: Buffer<Global>,\n    pub exports: Buffer<Export>,\n    pub data: Buffer<Segment>,\n    pub elements: Buffer<Segment>,\n    pub memory: Option<(u32, u32)>,\n    pub table: Option<(u32, u32)>,\n    // Preserve declaration form separately from the resolved host maximum.\n    pub declarations: D,\n    pub instructions: usize,\n}",
+      "start_line": 79,
+      "variants": [
+        {
+          "fields": [
+            "Buffer<Signature>",
+            "Buffer<Type>",
+            "Buffer<Import>",
+            "Buffer<Function>",
+            "Buffer<Global>",
+            "Buffer<Export>",
+            "Buffer<Segment>",
+            "Buffer<Segment>",
+            "Option<(u32,u32)>",
+            "Option<(u32,u32)>",
+            "D",
+            "usize"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "Buffer",
+      "path": "src/experimental/account.rs",
+      "raw_source": "struct Buffer<T: Copy> {\n    values: Vec<T>,\n    charged: usize,\n    category: Resource,\n}",
+      "start_line": 219,
+      "variants": [
+        {
+          "fields": [
+            "Vec<T>",
+            "usize",
+            "Resource"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SwiftDeclaration",
+      "path": "src/experimental/metadata.rs",
+      "raw_source": "struct SwiftDeclaration {\n    pub memory_maximum: Option<u32>,\n    pub table_maximum: Option<u32>,\n    pub memory_offset: usize,\n    pub table_offset: usize,\n}",
+      "start_line": 62,
+      "variants": [
+        {
+          "fields": [
+            "Option<u32>",
+            "Option<u32>",
+            "usize",
+            "usize"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "Signature",
+      "path": "src/experimental/metadata.rs",
+      "raw_source": "struct Signature {\n    pub first: u32,\n    pub count: u32,\n    pub result: Option<Type>,\n}",
+      "start_line": 19,
+      "variants": [
+        {
+          "fields": [
+            "u32",
+            "u32",
+            "Option<Type>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "Import",
+      "path": "src/experimental/metadata.rs",
+      "raw_source": "struct Import {\n    pub(super) module: Span,\n    pub(super) name: Span,\n    pub type_index: u32,\n}",
+      "start_line": 25,
+      "variants": [
+        {
+          "fields": [
+            "Span",
+            "Span",
+            "u32"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "Function",
+      "path": "src/experimental/metadata.rs",
+      "raw_source": "struct Function {\n    pub body: Span,\n    pub type_index: u32,\n}",
+      "start_line": 31,
+      "variants": [
+        {
+          "fields": [
+            "Span",
+            "u32"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "Global",
+      "path": "src/experimental/metadata.rs",
+      "raw_source": "struct Global {\n    pub ty: Type,\n    pub mutable: bool,\n    pub initializer: Span,\n}",
+      "start_line": 36,
+      "variants": [
+        {
+          "fields": [
+            "Type",
+            "bool",
+            "Span"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "Export",
+      "path": "src/experimental/metadata.rs",
+      "raw_source": "struct Export {\n    pub(super) name: Span,\n    pub(super) kind: u8,\n    pub(super) index: u32,\n}",
+      "start_line": 42,
+      "variants": [
+        {
+          "fields": [
+            "Span",
+            "u8",
+            "u32"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "Segment",
+      "path": "src/experimental/metadata.rs",
+      "raw_source": "struct Segment {\n    pub payload: Span,\n    pub destination: u32,\n    pub count: u32,\n}",
+      "start_line": 48,
+      "variants": [
+        {
+          "fields": [
+            "Span",
+            "u32",
+            "u32"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "MetaSpan",
+      "path": "src/experimental/metadata.rs",
+      "raw_source": "struct Span {\n    pub offset: u32,\n    pub bytes: u32,\n}",
+      "start_line": 7,
+      "variants": [
+        {
+          "fields": [
+            "u32",
+            "u32"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "Type",
+      "path": "src/lib.rs",
+      "raw_source": "enum Type {\n    I32,\n    I64,\n    F32,\n    F64,\n}",
+      "start_line": 40,
+      "variants": [
+        {
+          "fields": [],
+          "name": "I32"
+        },
+        {
+          "fields": [],
+          "name": "I64"
+        },
+        {
+          "fields": [],
+          "name": "F32"
+        },
+        {
+          "fields": [],
+          "name": "F64"
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "Policy",
+      "path": "src/experimental/policy.rs",
+      "raw_source": "enum Policy<'a> {\n    Frozen(&'a Limits),\n    #[cfg(feature = \"experimental-swift-reactor\")]\n    SwiftReactorExperimentV1,\n}",
+      "start_line": 4,
+      "variants": [
+        {
+          "fields": [
+            "&'aLimits"
+          ],
+          "name": "Frozen"
+        },
+        {
+          "fields": [],
+          "name": "SwiftReactorExperimentV1"
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "WasiFunction",
+      "path": "src/experimental_wasi/descriptor.rs",
+      "raw_source": "enum WasiFunction {\n    ArgsGet,\n    ArgsSizesGet,\n    EnvironGet,\n    EnvironSizesGet,\n    ClockResGet,\n    ClockTimeGet,\n    FdClose,\n    FdFdstatGet,\n    FdFdstatSetFlags,\n    FdFilestatGet,\n    FdFilestatSetSize,\n    FdFilestatSetTimes,\n    FdPread,\n    FdPrestatGet,\n    FdPrestatDirName,\n    FdRead,\n    FdReaddir,\n    FdSeek,\n    FdSync,\n    FdTell,\n    FdWrite,\n    PathCreateDirectory,\n    PathFilestatGet,\n    PathFilestatSetTimes,\n    PathLink,\n    PathOpen,\n    PathReadlink,\n    PathRemoveDirectory,\n    PathRename,\n    PathSymlink,\n    PathUnlinkFile,\n    PollOneoff,\n    ProcExit,\n    RandomGet,\n}",
+      "start_line": 5,
+      "variants": [
+        {
+          "fields": [],
+          "name": "ArgsGet"
+        },
+        {
+          "fields": [],
+          "name": "ArgsSizesGet"
+        },
+        {
+          "fields": [],
+          "name": "EnvironGet"
+        },
+        {
+          "fields": [],
+          "name": "EnvironSizesGet"
+        },
+        {
+          "fields": [],
+          "name": "ClockResGet"
+        },
+        {
+          "fields": [],
+          "name": "ClockTimeGet"
+        },
+        {
+          "fields": [],
+          "name": "FdClose"
+        },
+        {
+          "fields": [],
+          "name": "FdFdstatGet"
+        },
+        {
+          "fields": [],
+          "name": "FdFdstatSetFlags"
+        },
+        {
+          "fields": [],
+          "name": "FdFilestatGet"
+        },
+        {
+          "fields": [],
+          "name": "FdFilestatSetSize"
+        },
+        {
+          "fields": [],
+          "name": "FdFilestatSetTimes"
+        },
+        {
+          "fields": [],
+          "name": "FdPread"
+        },
+        {
+          "fields": [],
+          "name": "FdPrestatGet"
+        },
+        {
+          "fields": [],
+          "name": "FdPrestatDirName"
+        },
+        {
+          "fields": [],
+          "name": "FdRead"
+        },
+        {
+          "fields": [],
+          "name": "FdReaddir"
+        },
+        {
+          "fields": [],
+          "name": "FdSeek"
+        },
+        {
+          "fields": [],
+          "name": "FdSync"
+        },
+        {
+          "fields": [],
+          "name": "FdTell"
+        },
+        {
+          "fields": [],
+          "name": "FdWrite"
+        },
+        {
+          "fields": [],
+          "name": "PathCreateDirectory"
+        },
+        {
+          "fields": [],
+          "name": "PathFilestatGet"
+        },
+        {
+          "fields": [],
+          "name": "PathFilestatSetTimes"
+        },
+        {
+          "fields": [],
+          "name": "PathLink"
+        },
+        {
+          "fields": [],
+          "name": "PathOpen"
+        },
+        {
+          "fields": [],
+          "name": "PathReadlink"
+        },
+        {
+          "fields": [],
+          "name": "PathRemoveDirectory"
+        },
+        {
+          "fields": [],
+          "name": "PathRename"
+        },
+        {
+          "fields": [],
+          "name": "PathSymlink"
+        },
+        {
+          "fields": [],
+          "name": "PathUnlinkFile"
+        },
+        {
+          "fields": [],
+          "name": "PollOneoff"
+        },
+        {
+          "fields": [],
+          "name": "ProcExit"
+        },
+        {
+          "fields": [],
+          "name": "RandomGet"
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "ValidatorResource",
+      "path": "src/experimental/mod.rs",
+      "raw_source": "enum Resource {\n    Source,\n    Metadata,\n    Scratch,\n    Work,\n    /// An unchanged executable-profile count/stack/table/memory ceiling.\n    Profile,\n}",
+      "start_line": 55,
+      "variants": [
+        {
+          "fields": [],
+          "name": "Source"
+        },
+        {
+          "fields": [],
+          "name": "Metadata"
+        },
+        {
+          "fields": [],
+          "name": "Scratch"
+        },
+        {
+          "fields": [],
+          "name": "Work"
+        },
+        {
+          "fields": [],
+          "name": "Profile"
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "AdoptedProof",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "struct AdoptedProof {\n    body: AdoptionBodyV1,\n    source: ReservationTicket,\n    metadata: ReservationTicket,\n}",
+      "start_line": 345,
+      "variants": [
+        {
+          "fields": [
+            "AdoptionBodyV1",
+            "ReservationTicket",
+            "ReservationTicket"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "ReservationTicket",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "struct ReservationTicket {\n    owner: u64,\n    category: SwiftReservationCategory,\n    bytes: usize,\n}",
+      "start_line": 289,
+      "variants": [
+        {
+          "fields": [
+            "u64",
+            "SwiftReservationCategory",
+            "usize"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SwiftRunBudget",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "struct SwiftRunBudget {\n    pub source_bytes: usize,\n    pub metadata_bytes: usize,\n    pub cache_bytes: usize,\n    pub cache_entry_bytes: usize,\n    pub cache_entries: usize,\n    pub active_pins: usize,\n    pub cache_work: u64,\n    pub frames: usize,\n    pub values: usize,\n    pub controls: usize,\n    pub memory_pages: u32,\n    pub state_bytes: usize,\n    pub combined_bytes: usize,\n    pub instruction_fuel: u64,\n    pub execution_work: u64,\n    pub host_calls: u64,\n    pub deadline_ms: u64,\n}",
+      "start_line": 22,
+      "variants": [
+        {
+          "fields": [
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "u64",
+            "usize",
+            "usize",
+            "usize",
+            "u32",
+            "usize",
+            "usize",
+            "u64",
+            "u64",
+            "u64",
+            "u64"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "RuntimeControl",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "struct RuntimeControl {\n    owner: u64,\n    budget: SwiftRunBudget,\n    started: Instant,\n    deadline: Instant,\n    deadline_origin: SwiftDeadlineOrigin,\n    cancellation: Cancellation,\n    validation: SwiftValidationUsage,\n    reservations: SwiftReservations,\n    live: SwiftLiveUsage,\n    cache_work: u64,\n    execution_work: u64,\n    instruction_fuel: u64,\n    instructions: u64,\n    host_calls: u64,\n    cleanup_invariant: Option<SwiftCleanupInvariant>,\n    first_failure: Option<SwiftRunFailure>,\n    control_header: Option<ReservationTicket>,\n    cancellation_backing: Option<ReservationTicket>,\n    construction: Option<ReservationTicket>,\n}",
+      "start_line": 401,
+      "variants": [
+        {
+          "fields": [
+            "u64",
+            "SwiftRunBudget",
+            "Instant",
+            "Instant",
+            "SwiftDeadlineOrigin",
+            "Cancellation",
+            "SwiftValidationUsage",
+            "SwiftReservations",
+            "SwiftLiveUsage",
+            "u64",
+            "u64",
+            "u64",
+            "u64",
+            "u64",
+            "Option<SwiftCleanupInvariant>",
+            "Option<SwiftRunFailure>",
+            "Option<ReservationTicket>",
+            "Option<ReservationTicket>",
+            "Option<ReservationTicket>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SnapshotScopeV1",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "struct SnapshotScopeV1 {\n    control:RuntimeControl,\n    adopted:Option<AdoptedProof>,\n    cache:Option<super::cache::SwiftFunctionCache>,\n    wasi:Option<AccountedWasi>,\n    wasi_attachment:Option<SnapshotWasiAttachmentV1>,\n    base_foundation:usize,\n}",
+      "start_line": 1930,
+      "variants": [
+        {
+          "fields": [
+            "RuntimeControl",
+            "Option<AdoptedProof>",
+            "Option<super::cache::SwiftFunctionCache>",
+            "Option<AccountedWasi>",
+            "Option<SnapshotWasiAttachmentV1>",
+            "usize"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SnapshotRunV1",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "raw_source": "struct SnapshotRunV1 { scope:SnapshotScopeV1,outer:SnapshotOuterV1 }",
+      "start_line": 1952,
+      "variants": [
+        {
+          "fields": [
+            "SnapshotScopeV1",
+            "SnapshotOuterV1"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SwiftFunctionCache",
+      "path": "src/experimental_swift_reactor/cache.rs",
+      "raw_source": "struct SwiftFunctionCache {\n    adopted: AdoptedProof,\n    usage: SwiftCacheUsage,\n    owner: u64,\n    next_nonce: u64,\n    slots: Vec<SwiftSlot>,\n    pins: Vec<PinRecord>,\n    patches: Vec<decode::Patch>,\n    index: Vec<u8>,\n    plans: Vec<Option<ScanPlan>>,\n    buffers: [Option<ReservationTicket>; 3],\n    header: Option<ReservationTicket>,\n}",
+      "start_line": 268,
+      "variants": [
+        {
+          "fields": [
+            "AdoptedProof",
+            "SwiftCacheUsage",
+            "u64",
+            "u64",
+            "Vec<SwiftSlot>",
+            "Vec<PinRecord>",
+            "Vec<decode::Patch>",
+            "Vec<u8>",
+            "Vec<Option<ScanPlan>>",
+            "[Option<ReservationTicket>;3]",
+            "Option<ReservationTicket>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SwiftCacheUsage",
+      "path": "src/experimental_swift_reactor/cache.rs",
+      "raw_source": "struct SwiftCacheUsage {\n    pub fixed_reserved: usize,\n    pub resident_bytes: usize,\n    pub pinned_bytes: usize,\n    pub construction_bytes: usize,\n    pub peak_resident_bytes: usize,\n    pub peak_pinned_bytes: usize,\n    pub peak_construction_bytes: usize,\n    pub active_pins: usize,\n    pub hits: u64,\n    pub misses: u64,\n    pub decodes: u64,\n    pub evictions: u64,\n}",
+      "start_line": 184,
+      "variants": [
+        {
+          "fields": [
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "usize",
+            "u64",
+            "u64",
+            "u64",
+            "u64"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SwiftSlot",
+      "path": "src/experimental_swift_reactor/cache.rs",
+      "raw_source": "struct SwiftSlot {\n    resident: Option<SwiftResident>,\n    pins: usize,\n    last_used: u64,\n}",
+      "start_line": 239,
+      "variants": [
+        {
+          "fields": [
+            "Option<SwiftResident>",
+            "usize",
+            "u64"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SwiftResident",
+      "path": "src/experimental_swift_reactor/cache.rs",
+      "raw_source": "struct SwiftResident {\n    decoded: DecodedFunction,\n    ticket: ReservationTicket,\n}",
+      "start_line": 235,
+      "variants": [
+        {
+          "fields": [
+            "DecodedFunction",
+            "ReservationTicket"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "ScanPlan",
+      "path": "src/experimental_swift_reactor/cache.rs",
+      "raw_source": "struct ScanPlan {\n    function: u32,\n    body_offset: usize,\n    body_len: usize,\n    type_index: u32,\n    counts: decode::Counts,\n}",
+      "start_line": 19,
+      "variants": [
+        {
+          "fields": [
+            "u32",
+            "usize",
+            "usize",
+            "u32",
+            "decode::Counts"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "CacheConstructionFailure",
+      "path": "src/experimental_swift_reactor/cache.rs",
+      "raw_source": "struct CacheConstructionFailure {\n    pub failure: SwiftRunFailure,\n    pub rejected_adopted: Option<AdoptedProof>,\n}",
+      "start_line": 300,
+      "variants": [
+        {
+          "fields": [
+            "SwiftRunFailure",
+            "Option<AdoptedProof>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "DecodedFunction",
+      "path": "src/experimental/cache/mod.rs",
+      "raw_source": "struct DecodedFunction {\n    pub(crate) function: u32,\n    pub(crate) type_index: u32,\n    pub(crate) body_offset: usize,\n    pub(crate) locals: Vec<Type>,\n    pub(crate) instructions: Vec<DecodedInstruction>,\n    pub(crate) branch_targets: Vec<u32>,\n    pub(crate) bytes: usize,\n}",
+      "start_line": 190,
+      "variants": [
+        {
+          "fields": [
+            "u32",
+            "u32",
+            "usize",
+            "Vec<Type>",
+            "Vec<DecodedInstruction>",
+            "Vec<u32>",
+            "usize"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "PinRecord",
+      "path": "src/experimental/cache/mod.rs",
+      "raw_source": "struct PinRecord {\n    pub(crate) nonce: u64,\n    pub(crate) entry: usize,\n}",
+      "start_line": 205,
+      "variants": [
+        {
+          "fields": [
+            "u64",
+            "usize"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "DecodedInstruction",
+      "path": "src/experimental/cache/mod.rs",
+      "raw_source": "struct DecodedInstruction {\n    pub operation: Operation,\n    pub offset: usize,\n}",
+      "start_line": 177,
+      "variants": [
+        {
+          "fields": [
+            "Operation",
+            "usize"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "Operation",
+      "path": "src/experimental/cache/mod.rs",
+      "raw_source": "enum Operation {\n    Unreachable,\n    Nop,\n    Block {\n        kind: ControlKind,\n        result: Option<Type>,\n        end: usize,\n        alternative: Option<usize>,\n    },\n    Else {\n        end: usize,\n    },\n    End,\n    Br(u32),\n    BrIf(u32),\n    BrTable {\n        first: usize,\n        count: usize,\n        default: u32,\n    },\n    Return,\n    Call(u32),\n    CallIndirect(u32),\n    MemoryCopy,\n    MemoryFill,\n    Drop,\n    Select,\n    LocalGet(u32),\n    LocalSet(u32),\n    LocalTee(u32),\n    GlobalGet(u32),\n    GlobalSet(u32),\n    Load {\n        opcode: u8,\n        offset: u32,\n    },\n    Store {\n        opcode: u8,\n        offset: u32,\n    },\n    MemorySize,\n    MemoryGrow,\n    Const(Value),\n    Numeric(u8),\n    Saturating(u8),\n}",
+      "start_line": 130,
+      "variants": [
+        {
+          "fields": [],
+          "name": "Unreachable"
+        },
+        {
+          "fields": [],
+          "name": "Nop"
+        },
+        {
+          "fields": [
+            "ControlKind",
+            "Option<Type>",
+            "usize",
+            "Option<usize>"
+          ],
+          "name": "Block"
+        },
+        {
+          "fields": [
+            "usize"
+          ],
+          "name": "Else"
+        },
+        {
+          "fields": [],
+          "name": "End"
+        },
+        {
+          "fields": [
+            "u32"
+          ],
+          "name": "Br"
+        },
+        {
+          "fields": [
+            "u32"
+          ],
+          "name": "BrIf"
+        },
+        {
+          "fields": [
+            "usize",
+            "usize",
+            "u32"
+          ],
+          "name": "BrTable"
+        },
+        {
+          "fields": [],
+          "name": "Return"
+        },
+        {
+          "fields": [
+            "u32"
+          ],
+          "name": "Call"
+        },
+        {
+          "fields": [
+            "u32"
+          ],
+          "name": "CallIndirect"
+        },
+        {
+          "fields": [],
+          "name": "MemoryCopy"
+        },
+        {
+          "fields": [],
+          "name": "MemoryFill"
+        },
+        {
+          "fields": [],
+          "name": "Drop"
+        },
+        {
+          "fields": [],
+          "name": "Select"
+        },
+        {
+          "fields": [
+            "u32"
+          ],
+          "name": "LocalGet"
+        },
+        {
+          "fields": [
+            "u32"
+          ],
+          "name": "LocalSet"
+        },
+        {
+          "fields": [
+            "u32"
+          ],
+          "name": "LocalTee"
+        },
+        {
+          "fields": [
+            "u32"
+          ],
+          "name": "GlobalGet"
+        },
+        {
+          "fields": [
+            "u32"
+          ],
+          "name": "GlobalSet"
+        },
+        {
+          "fields": [
+            "u8",
+            "u32"
+          ],
+          "name": "Load"
+        },
+        {
+          "fields": [
+            "u8",
+            "u32"
+          ],
+          "name": "Store"
+        },
+        {
+          "fields": [],
+          "name": "MemorySize"
+        },
+        {
+          "fields": [],
+          "name": "MemoryGrow"
+        },
+        {
+          "fields": [
+            "Value"
+          ],
+          "name": "Const"
+        },
+        {
+          "fields": [
+            "u8"
+          ],
+          "name": "Numeric"
+        },
+        {
+          "fields": [
+            "u8"
+          ],
+          "name": "Saturating"
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "ControlKind",
+      "path": "src/experimental/cache/mod.rs",
+      "raw_source": "enum ControlKind {\n    Block,\n    Loop,\n    If,\n}",
+      "start_line": 124,
+      "variants": [
+        {
+          "fields": [],
+          "name": "Block"
+        },
+        {
+          "fields": [],
+          "name": "Loop"
+        },
+        {
+          "fields": [],
+          "name": "If"
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "Value",
+      "path": "src/lib.rs",
+      "raw_source": "enum Value {\n    I32(i32),\n    I64(i64),\n    /// Raw IEEE-754 bits preserve signed zero and NaN payloads.\n    F32(u32),\n    F64(u64),\n}",
+      "start_line": 57,
+      "variants": [
+        {
+          "fields": [
+            "i32"
+          ],
+          "name": "I32"
+        },
+        {
+          "fields": [
+            "i64"
+          ],
+          "name": "I64"
+        },
+        {
+          "fields": [
+            "u32"
+          ],
+          "name": "F32"
+        },
+        {
+          "fields": [
+            "u64"
+          ],
+          "name": "F64"
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "Patch",
+      "path": "src/experimental/cache/decode.rs",
+      "raw_source": "struct Patch {\n    start: usize,\n    alternative: Option<usize>,\n    kind: ControlKind,\n}",
+      "start_line": 137,
+      "variants": [
+        {
+          "fields": [
+            "usize",
+            "Option<usize>",
+            "ControlKind"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "Counts",
+      "path": "src/experimental/cache/decode.rs",
+      "raw_source": "struct Counts {\n    locals: usize,\n    instructions: usize,\n    targets: usize,\n}",
+      "start_line": 106,
+      "variants": [
+        {
+          "fields": [
+            "usize",
+            "usize",
+            "usize"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "AccountedWasi",
+      "path": "src/experimental_wasi/accounted.rs",
+      "raw_source": "struct AccountedWasi {\n    context: WasiContext,\n    buffers: [Option<ReservationTicket>; 4],\n    header: Option<ReservationTicket>,\n    #[cfg(test)]\n    test: DispatchTest,\n}",
+      "start_line": 19,
+      "variants": [
+        {
+          "fields": [
+            "WasiContext",
+            "[Option<ReservationTicket>;4]",
+            "Option<ReservationTicket>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "WasiContext",
+      "path": "src/experimental_wasi/mod.rs",
+      "raw_source": "struct WasiContext {\n    grants: WasiGrants,\n    budget: WasiBudget,\n    cancellation: Cancellation,\n    deadline: Instant,\n    terminal: Option<WasiOutcome>,\n    usage: WasiUsage,\n    scratch: Vec<u8>,\n    rollback: Vec<u8>,\n    stdout: Vec<u8>,\n    stderr: Vec<u8>,\n    stdout_len: usize,\n    stderr_len: usize,\n    stdout_open: bool,\n    stderr_open: bool,\n    iovec_scratch: [Span; 64],\n    #[cfg(test)]\n    test: tests::TestState,\n}",
+      "start_line": 162,
+      "variants": [
+        {
+          "fields": [
+            "WasiGrants",
+            "WasiBudget",
+            "Cancellation",
+            "Instant",
+            "Option<WasiOutcome>",
+            "WasiUsage",
+            "Vec<u8>",
+            "Vec<u8>",
+            "Vec<u8>",
+            "Vec<u8>",
+            "usize",
+            "usize",
+            "bool",
+            "bool",
+            "[Span;64]"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "WasiSpan",
+      "path": "src/experimental_wasi/mod.rs",
+      "raw_source": "struct Span {\n    start: usize,\n    end: usize,\n}",
+      "start_line": 134,
+      "variants": [
+        {
+          "fields": [
+            "usize",
+            "usize"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "WasiGrants",
+      "path": "src/experimental_wasi/mod.rs",
+      "raw_source": "struct WasiGrants {\n    pub secure_random: bool,\n    pub realtime: bool,\n    pub monotonic: bool,\n    pub stdout: bool,\n    pub stderr: bool,\n}",
+      "start_line": 33,
+      "variants": [
+        {
+          "fields": [
+            "bool",
+            "bool",
+            "bool",
+            "bool",
+            "bool"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "WasiBudget",
+      "path": "src/experimental_wasi/mod.rs",
+      "raw_source": "struct WasiBudget {\n    pub calls: u64,\n    pub transfer_bytes: u64,\n    pub work: u64,\n    pub one_transfer_bytes: u32,\n    pub iovecs: u32,\n    pub log_bytes: u32,\n    pub deadline_ms: u64,\n}",
+      "start_line": 43,
+      "variants": [
+        {
+          "fields": [
+            "u64",
+            "u64",
+            "u64",
+            "u32",
+            "u32",
+            "u32",
+            "u64"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "WasiOutcome",
+      "path": "src/experimental_wasi/mod.rs",
+      "raw_source": "enum WasiOutcome {\n    Errno(Errno),\n    Exit(u32),\n    Failure(WasiFailure),\n}",
+      "start_line": 103,
+      "variants": [
+        {
+          "fields": [
+            "Errno"
+          ],
+          "name": "Errno"
+        },
+        {
+          "fields": [
+            "u32"
+          ],
+          "name": "Exit"
+        },
+        {
+          "fields": [
+            "WasiFailure"
+          ],
+          "name": "Failure"
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "Errno",
+      "path": "src/experimental_wasi/mod.rs",
+      "raw_source": "enum Errno {\n    Success = 0,\n    Badf = 8,\n    Fault = 21,\n    Inval = 28,\n    Io = 29,\n    Nospc = 51,\n    Notsup = 58,\n    Overflow = 61,\n    Notcapable = 76,\n}",
+      "start_line": 20,
+      "variants": [
+        {
+          "fields": [],
+          "name": "Success"
+        },
+        {
+          "fields": [],
+          "name": "Badf"
+        },
+        {
+          "fields": [],
+          "name": "Fault"
+        },
+        {
+          "fields": [],
+          "name": "Inval"
+        },
+        {
+          "fields": [],
+          "name": "Io"
+        },
+        {
+          "fields": [],
+          "name": "Nospc"
+        },
+        {
+          "fields": [],
+          "name": "Notsup"
+        },
+        {
+          "fields": [],
+          "name": "Overflow"
+        },
+        {
+          "fields": [],
+          "name": "Notcapable"
+        }
+      ]
+    },
+    {
+      "kind": "struct",
+      "name": "SnapshotOuterV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "raw_source": "struct SnapshotOuterV1 {\n    primary:InitialProfileConstructionOutcomeV1,export:SnapshotAttemptV1,phase_completion:Result<(),SwiftRunFailure>,\n}",
+      "start_line": 419,
+      "variants": [
+        {
+          "fields": [
+            "InitialProfileConstructionOutcomeV1",
+            "SnapshotAttemptV1",
+            "Result<(),SwiftRunFailure>"
+          ],
+          "name": null
+        }
+      ]
+    },
+    {
+      "kind": "enum",
+      "name": "InitialProfileConstructionOutcomeV1",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "raw_source": "enum InitialProfileConstructionOutcomeV1 {\n    SlotOccupied { adopted:AdoptedProof }=1,\n    SelectionRefused { error:ProfileHeaderErrorV1, adopted:AdoptedProof }=2,\n    PreparationFailed { failure:SwiftRunFailure, adopted:AdoptedProof }=3,\n    ConstructionFailed { failure:CacheConstructionFailure, completion:Result<(),SwiftRunFailure> }=4,\n    PhaseCompletionFailed { failure:SwiftRunFailure }=5,\n    HeaderRefused { error:ProfileHeaderErrorV1 }=6,\n    HeaderOwnerCheckFailed { failure:SwiftRunFailure }=7,\n    HeaderEncoded { header:UnverifiedProfileHeaderV1, rows:Result<ProfileRowsObservationV1,ProfileAdapterErrorV1> }=8,\n}",
+      "start_line": 38,
+      "variants": [
+        {
+          "fields": [
+            "AdoptedProof"
+          ],
+          "name": "SlotOccupied"
+        },
+        {
+          "fields": [
+            "ProfileHeaderErrorV1",
+            "AdoptedProof"
+          ],
+          "name": "SelectionRefused"
+        },
+        {
+          "fields": [
+            "SwiftRunFailure",
+            "AdoptedProof"
+          ],
+          "name": "PreparationFailed"
+        },
+        {
+          "fields": [
+            "CacheConstructionFailure",
+            "Result<(),SwiftRunFailure>"
+          ],
+          "name": "ConstructionFailed"
+        },
+        {
+          "fields": [
+            "SwiftRunFailure"
+          ],
+          "name": "PhaseCompletionFailed"
+        },
+        {
+          "fields": [
+            "ProfileHeaderErrorV1"
+          ],
+          "name": "HeaderRefused"
+        },
+        {
+          "fields": [
+            "SwiftRunFailure"
+          ],
+          "name": "HeaderOwnerCheckFailed"
+        },
+        {
+          "fields": [
+            "UnverifiedProfileHeaderV1",
+            "Result<ProfileRowsObservationV1,ProfileAdapterErrorV1>"
+          ],
+          "name": "HeaderEncoded"
+        }
+      ]
+    }
+  ],
+  "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185"
+}

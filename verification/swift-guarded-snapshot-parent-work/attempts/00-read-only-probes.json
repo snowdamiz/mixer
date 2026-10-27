@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "scope": "Preserved read-only exploration failures before model construction; no frozen source was changed.",
+  "failures": [
+    {"command": "Python inspection of mir-roles.json using f['role_count']", "exit": 1, "error": "KeyError: 'role_count'", "correction": "mir-roles.json exposes roles; caller-inventory.json carries role_count and measured_logical_bytes"},
+    {"command": "Python inspection of source-manifest.json using d['files']", "exit": 1, "error": "KeyError: 'files'", "correction": "frozen source-manifest.json uses members"},
+    {"command": "rg on presumed experimental_wasi/types.rs and experimental_swift_reactor/types.rs", "exit": 2, "error": "No such file or directory", "correction": "Read actual frozen mod.rs and exact declaration owners"},
+    {"command": "ls -ld verification/swift-guarded-snapshot-parent-work", "exit": 1, "error": "No such file or directory", "correction": "Created only the assigned ownership directory"}
+  ]
+}

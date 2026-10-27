@@ -1,0 +1,161 @@
+--- source145/src/experimental_swift_reactor/cache/initial_profile_v1.rs
++++ source146/src/experimental_swift_reactor/cache/initial_profile_v1.rs
+@@ -342,7 +342,7 @@
+ }
+ 
+ enum SnapshotAccessV1<'c> {
+-    Admitted {control:&'c mut RuntimeControl,previous:usize,wasi:Option<crate::experimental_wasi::WasiUsage>},
++    Admitted {control:&'c mut RuntimeControl,retained:usize,wasi:Option<crate::experimental_wasi::WasiUsage>},
+     Refused {control:&'c mut RuntimeControl,error:AError},
+ }
+ impl SharedControlV1 for SnapshotAccessV1<'_>{
+@@ -351,7 +351,7 @@
+ impl SnapshotAccessV1<'_> {
+     fn complete(self,storage:SnapshotPhaseStorageV1)->Result<(),SwiftRunFailure>{
+         match self{
+-            Self::Admitted{control,previous,wasi}=>control.end_construction_phase_with_wasi(storage,previous,wasi),
++            Self::Admitted{control,retained,wasi}=>control.end_construction_phase_with_wasi(storage,retained,wasi),
+             Self::Refused{control:_,error:_}=>{drop(storage);Ok(())},
+         }
+     }
+@@ -375,6 +375,9 @@
+     let blocks=checked_add_v1(extent/4096,u64::from(extent%4096!=0))?;
+     Ok(SnapshotShapeV1 {counts:converted,extent,blocks,records,words})
+ }
++// Additive unused candidate; WorkAuditPending below is unchanged.
++mod emission_bound_v1;
++
+ fn proposed_emission_work_v1(_shape:&SnapshotShapeV1)->Result<u64,AError>{
+     // Deliberate compile-time preparation stop. The old P/R record rationale
+     // does not cover repeated record_word validation/directory search. Root is
+@@ -393,14 +396,14 @@
+         let shape=snapshot_shape_v1(cache.proof().snapshot_counts_v1())?;
+         let emission=proposed_emission_work_v1(&shape)?;
+         control.snapshot_debit_v1(emission)?;
+-        let previous=control.snapshot_commit_storage_v1(additional)?;
+-        Ok::<_,AError>((previous,shape,planning,emission))
++        let retained=control.snapshot_commit_storage_v1(additional)?;
++        Ok::<_,AError>((retained,shape,planning,emission))
+     })();
+     match decision{
+-        Ok((previous,shape,planning,emission))=>{
++        Ok((retained,shape,planning,emission))=>{
+             let wasi=wasi.map(AccountedWasi::usage); // Pairing completed above.
+             let storage=SnapshotPhaseStorageV1 {plan:Some(SnapshotPlanV1{shape,planning,emission}),transfer:Some([0;4096]),refusal:None};
+-            (SnapshotAccessV1::Admitted{control,previous,wasi},storage)
++            (SnapshotAccessV1::Admitted{control,retained,wasi},storage)
+         },
+         Err(error)=>(SnapshotAccessV1::Refused{control,error},SnapshotPhaseStorageV1{plan:None,transfer:None,refusal:Some(error)}),
+     }
+--- source145/src/experimental_swift_reactor/cache/initial_profile_v1/emission_bound_v1.rs
++++ source146/src/experimental_swift_reactor/cache/initial_profile_v1/emission_bound_v1.rs
+@@ -0,0 +1,13 @@
++//! Unselected pure arithmetic candidate. No admission path calls this helper.
++use super::{AError, SnapshotShapeV1};
++
++// 19_537 = accepted encoder fixed14_224 + writer fixed1_217 + initializer4_096.
++// 299_377 = encoder nonempty-call ceiling291_214 + writer block4_259
++//           +32 attempts * writer attempt122. Native requested bytes add32E.
++// Only a private validated shape supplies E/blocks; this is not shape authority.
++pub(super) fn checked_snapshot_emission_bound_v1(shape: &SnapshotShapeV1) -> Result<u64, AError> {
++    let blocks = shape.blocks.checked_mul(299_377u64).ok_or(AError::Arithmetic)?;
++    let transfers = shape.extent.checked_mul(32u64).ok_or(AError::Arithmetic)?;
++    let fixed_and_transfers = 19_537u64.checked_add(transfers).ok_or(AError::Arithmetic)?;
++    blocks.checked_add(fixed_and_transfers).ok_or(AError::Arithmetic)
++}
+--- source145/src/experimental_swift_reactor/control.rs
++++ source146/src/experimental_swift_reactor/control.rs
+@@ -585,13 +585,24 @@
+ // correction. Every addition is const-evaluated; no runtime helper, local,
+ // iterable, allocation or second foundation is introduced by this recipe.
+ const COMMON_ADOPTION_SOURCE_EXTRA_BYTES_V1: usize = 78_240;
++// Closed source144 logical prefix, ingress, and both optional terms are
++// conservatively prepaid once. The exact new shell branch upper-sum is 1272.
++// Planning16384 and the separately gated emission quote remain later debits.
++const SNAPSHOT_FIXED_EXECUTION_WORK_V1: u64 =
++    451_703_621 + 33_613 + 68_781 + 7_155 + 1_272;
++// Twenty new shared, non-P-dependent unoptimized source roles total1436
++// logical bytes. Charge every role to common C; no old role is credited.
++const COMMON_WORK_ADMISSION_SOURCE_EXTRA_BYTES_V1: usize = 1_436;
+ const SELECTED_SNAPSHOT_SOURCE_EXTRA_BYTES_V1: usize = 941_467;
+ pub(super) const SNAPSHOT_ADMITTED_SOURCE_EXTRA_BYTES_V1: usize = 430_175;
+ #[cfg(test)]
+ const SNAPSHOT_HOST_CALLER_SOURCE_EXTRA_BYTES_V1: usize = 81_327;
+ const COMMON_FOUNDATION_CONSTRUCTION_BYTES_V1: Option<usize> =
+     match FOUNDATION_CONSTRUCTION_BYTES {
+-        Some(original) => original.checked_add(COMMON_ADOPTION_SOURCE_EXTRA_BYTES_V1),
++        Some(original) => match original.checked_add(COMMON_ADOPTION_SOURCE_EXTRA_BYTES_V1) {
++            Some(common) => common.checked_add(COMMON_WORK_ADMISSION_SOURCE_EXTRA_BYTES_V1),
++            None => None,
++        },
+         None => None,
+     };
+ const SNAPSHOT_SELECTED_FOUNDATION_CONSTRUCTION_BYTES_V1: Option<usize> =
+@@ -687,6 +698,23 @@
+                     )
+                 })?;
+             control.check(cursor)?;
++            // Private selected admission shell. Budget/deadline/stop checks
++            // above retain precedence. No host bootstrap grant is minted here.
++            // Only the sealed policy selects this source-derived fixed price.
++            if P::FIXED_EXECUTION_WORK_V1 != 0 {
++                if P::FIXED_EXECUTION_WORK_V1 > control.budget.execution_work {
++                    return Err(control.fail(
++                        cursor,
++                        Fault::new(SwiftRunFailureKind::WorkExhausted, "swift_run_work")
++                            .limit(SwiftRunResource::ExecutionWork,
++                                P::FIXED_EXECUTION_WORK_V1, control.budget.execution_work),
++                        None,
++                    ));
++                }
++                // The prepaid interval starts after this same-counter commit.
++                // Refusal leaves the counter and all reservations unchanged.
++                control.execution_work = P::FIXED_EXECUTION_WORK_V1;
++            }
+             control.owner = NEXT_OWNER
+                 .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))
+                 .map_err(|_| {
+@@ -1857,6 +1885,7 @@
+ trait ClosedAdoptionV1: adoption_state_seal_v1::Closed {
+     type Failure;
+     type Retirement;
++    const FIXED_EXECUTION_WORK_V1: u64;
+     fn foundation()->Option<usize>;
+     fn retire_tickets(control:&mut RuntimeControl,source:Option<ReservationTicket>,metadata:Option<ReservationTicket>)->Self::Retirement;
+     fn failure(primary:SwiftRunFailure,retirement:Self::Retirement)->Self::Failure;
+@@ -1864,6 +1893,7 @@
+ impl ClosedAdoptionV1 for OriginalAdoptionV1 {
+     type Failure=SwiftRunFailure;
+     type Retirement=();
++    const FIXED_EXECUTION_WORK_V1: u64 = 0;
+     fn foundation()->Option<usize>{foundation_construction_bytes()}
+     fn retire_tickets(control:&mut RuntimeControl,source:Option<ReservationTicket>,metadata:Option<ReservationTicket>){
+         // Exact Original order/semantics; there is no Selected retirement value.
+@@ -1879,6 +1909,7 @@
+ impl ClosedAdoptionV1 for SnapshotAdoptionV1 {
+     type Failure=SnapshotPreScopeFailureV1;
+     type Retirement=Result<(),SwiftRunFailure>;
++    const FIXED_EXECUTION_WORK_V1: u64 = SNAPSHOT_FIXED_EXECUTION_WORK_V1;
+     fn foundation()->Option<usize>{snapshot_scope_candidate_foundation_v1()}
+     fn retire_tickets(control:&mut RuntimeControl,source:Option<ReservationTicket>,metadata:Option<ReservationTicket>)->Self::Retirement{
+         let source=match source {Some(ticket)=>control.refund(ticket),None=>Ok(())};
+@@ -2096,7 +2127,7 @@
+         self.reservations.construction.peak=self.reservations.construction.peak.max(construction);
+         self.reservations.combined.current=combined;
+         self.reservations.combined.peak=self.reservations.combined.peak.max(combined);
+-        Ok(previous)
++        Ok(construction)
+     }
+ }
+ 
+--- source145/src/experimental_swift_reactor/retained_profile_loader_v1.rs
++++ source146/src/experimental_swift_reactor/retained_profile_loader_v1.rs
+@@ -406,7 +406,7 @@
+ }
+ fn parse_build(b: &[u8]) -> Result<BuildView<'_>, LoaderFailureV1> {
+     header(b, b"MIXLBD01", Role::Build, BUILD_CAP)?;
+-    if word(b, 32) != 144
++    if word(b, 32) != 146
+         || word(b, 40) != 11
+         || word(b, 80) > SOURCE_CAP as u64
+         || word(b, 80) == 0

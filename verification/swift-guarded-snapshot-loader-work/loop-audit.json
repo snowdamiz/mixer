@@ -1,0 +1,327 @@
+{
+  "proof_status": "manual-control-flow-argument; does not establish source-operation-to-host-action counting representation",
+  "rows": [
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 285,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/account.rs",
+      "proof": "Buffer.reserve copy iteration calls meter.work(1) before next.push; first failed attempt terminal",
+      "source_line": "        for item in &self.values {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 451,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/swift.rs",
+      "proof": "Source copy chunk calls meter.work(chunk.len()); input.chunks(16384) yields strictly positive nonempty chunks before extend; failed attempt terminal",
+      "source_line": "    for (chunk_index, chunk) in input.chunks(16 * 1024).enumerate() {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 516,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/swift.rs",
+      "proof": "ABI iteration charges module bytes+name bytes+signature count+34, hence >=34 before resolve; first attempt may execute prefix",
+      "source_line": "    for (index, expected) in WasiFunction::ALL.into_iter().enumerate() {"
+    },
+    {
+      "iteration_ceiling": "3",
+      "kind": "fixed-outer",
+      "line": 564,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/swift.rs",
+      "proof": "Three literal exports; exact m.exports.len()==3 is checked before entry. Each outer body has inner three attempts with positive export.name.bytes+1. Empty no-credit repetitions impossible here",
+      "source_line": "    for (name, kind, index, result) in ["
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 575,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/swift.rs",
+      "proof": "Each export scan charges export.name.bytes+1 >=1 before compare",
+      "source_line": "        for export in m.exports.as_slice() {"
+    },
+    {
+      "iteration_ceiling": "2",
+      "kind": "fixed-outer",
+      "line": 608,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/swift.rs",
+      "proof": "Two literal segment categories, including empty categories; charge two setup/exit bodies without relying on credit",
+      "source_line": "    for (segments, extent, code) in ["
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 612,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/swift.rs",
+      "proof": "Segment iteration meter.work(1) before checked extent comparison",
+      "source_line": "        for segment in segments.as_slice() {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 60,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/reader.rs",
+      "proof": "Reader.uint body begins Reader.byte, which charges1; maximum5 also explicit",
+      "source_line": "        for i in 0..5 {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 79,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/reader.rs",
+      "proof": "Reader.signed body begins Reader.byte; bits32/64 yields maximum5/10",
+      "source_line": "        for i in 0..max {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 154,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "UTF8 lead iteration charges1 before accessing lead",
+      "source_line": "    while i < bytes.len() {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 168,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "UTF8 continuation charges1 before byte access; width<=4",
+      "source_line": "        for j in 1..width {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 271,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Metadata section begins Reader.byte charge1",
+      "source_line": "    while r.position < r.bytes.len() {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 293,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Type iteration Reader.byte charge1",
+      "source_line": "                for _ in 0..count {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 319,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Parameter iteration Reader.ty -> Reader.byte charge1",
+      "source_line": "                    for _ in 0..count {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 342,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Import iteration name -> Reader.count -> Reader.uint -> Reader.byte charge1",
+      "source_line": "                for _ in 0..count {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 363,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Function iteration Reader.uint -> Reader.byte charge1",
+      "source_line": "                for _ in 0..count {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 398,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Global iteration Reader.ty -> Reader.byte charge1",
+      "source_line": "                for _ in 0..count {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 431,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Export iteration name -> Reader.count -> Reader.byte charge1",
+      "source_line": "                for _ in 0..count {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 443,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Element segment iteration Reader.uint -> Reader.byte charge1",
+      "source_line": "                for _ in 0..count {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 466,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Element payload iteration Reader.uint -> Reader.byte charge1",
+      "source_line": "                    for _ in 0..count {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 495,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Code-body iteration Reader.uint -> Reader.byte charge1",
+      "source_line": "                for index in 0..count {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 506,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Data segment iteration Reader.uint -> Reader.byte charge1",
+      "source_line": "                for _ in 0..count {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 539,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Import audit meter.work(18) before audit",
+      "source_line": "    for import in m.imports.as_slice() {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 558,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Function audit meter.work(1)",
+      "source_line": "    for f in m.functions.as_slice() {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 564,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Export audit meter.work(1)",
+      "source_line": "    for export in m.exports.as_slice() {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 596,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Name comparison loop meter.work(1) before compare",
+      "source_line": "    for (a, b) in a.iter().zip(b) {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 615,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Sift loop meter.work(1) before child calculation",
+      "source_line": "    loop {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 661,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Indices push charges1 before reserve/store",
+      "source_line": "    for i in 0..count {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 664,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Sift begins positive meter.work(1); caller prefix before attempt included",
+      "source_line": "    for i in (0..count / 2).rev() {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 667,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "Heapsort outer meter.work(1) before swap/sift",
+      "source_line": "    for end in (1..count).rev() {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 672,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/metadata.rs",
+      "proof": "compare_names charges1 before each pair comparison or final length comparison, even empty names",
+      "source_line": "    for i in 1..count {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 133,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/validate.rs",
+      "proof": "call params pop -> pop_any charges1; empty parameter sequence has no loopbody",
+      "source_line": "        for ty in m.params(signature).iter().rev() {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 154,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/validate.rs",
+      "proof": "Each function body reaches Reader.count -> Reader.byte charge1 before possible repeat; precharge state setup body included in each epoch",
+      "source_line": "    for defined in 0..m.functions.len() {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 167,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/validate.rs",
+      "proof": "Parameter locals Buffer.push charges1 before store",
+      "source_line": "        for ty in m.params(signature) {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 170,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/validate.rs",
+      "proof": "Local group Reader.count -> Reader.byte charges1",
+      "source_line": "        for _ in 0..r.count(limits.local_groups(), meter)? {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 178,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/validate.rs",
+      "proof": "Each local Buffer.push charges1",
+      "source_line": "            for _ in 0..n {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 195,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/validate.rs",
+      "proof": "Instruction loop Reader.byte charges1 before opcode branch",
+      "source_line": "        loop {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 320,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/validate.rs",
+      "proof": "Branch-table label Reader.uint -> Reader.byte charges1",
+      "source_line": "                    for _ in 0..count {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 491,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/validate.rs",
+      "proof": "Numeric pop -> pop_any charges1; numeric_type also caps count<=2",
+      "source_line": "                    for _ in 0..count {"
+    },
+    {
+      "iteration_ceiling": "B+1",
+      "kind": "positive-credit",
+      "line": 511,
+      "path": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental/validate.rs",
+      "proof": "Literal three pop iterations each pop_any charges1",
+      "source_line": "                            for _ in 0..3 {"
+    }
+  ],
+  "schema": 1,
+  "theorem": "Each particular fully expanded acyclic source occurrence executes at most B+1 times if every enclosing dynamic backedge crosses a positive credit before repeat; fixed no-credit loops expanded separately. Nested loops do not multiply B: all successful positive charges share the same monotone meter. The final failed attempt contributes one additional epoch."
+}

@@ -1,0 +1,1606 @@
+{
+  "drop_sites": [
+    {
+      "block": "bb19",
+      "function": "setup_files_once_v1",
+      "repeat": 6,
+      "statement": "drop(_2[_39]) -> [return: bb20, unwind: bb21];"
+    },
+    {
+      "block": "bb31",
+      "function": "setup_files_once_v1",
+      "repeat": 6,
+      "statement": "drop(_37) -> [return: bb52, unwind terminate(cleanup)];"
+    },
+    {
+      "block": "bb35",
+      "function": "setup_files_once_v1",
+      "repeat": 6,
+      "statement": "drop(((_2[0 of 5] as Some).0: std::fs::File)) -> [return: bb30, unwind terminate(cleanup)];"
+    },
+    {
+      "block": "bb39",
+      "function": "setup_files_once_v1",
+      "repeat": 6,
+      "statement": "drop(((_2[1 of 5] as Some).0: std::fs::File)) -> [return: bb33, unwind terminate(cleanup)];"
+    },
+    {
+      "block": "bb43",
+      "function": "setup_files_once_v1",
+      "repeat": 6,
+      "statement": "drop(((_2[2 of 5] as Some).0: std::fs::File)) -> [return: bb37, unwind terminate(cleanup)];"
+    },
+    {
+      "block": "bb47",
+      "function": "setup_files_once_v1",
+      "repeat": 6,
+      "statement": "drop(((_2[3 of 5] as Some).0: std::fs::File)) -> [return: bb41, unwind terminate(cleanup)];"
+    },
+    {
+      "block": "bb50",
+      "function": "setup_files_once_v1",
+      "repeat": 6,
+      "statement": "drop(((_2[4 of 5] as Some).0: std::fs::File)) -> [return: bb45, unwind terminate(cleanup)];"
+    },
+    {
+      "block": "bb16",
+      "function": "run_prepaid_fixture_v1",
+      "repeat": 1,
+      "statement": "drop(_27) -> [return: bb29, unwind terminate(cleanup)];"
+    },
+    {
+      "block": "bb22",
+      "function": "run_prepaid_fixture_v1",
+      "repeat": 1,
+      "statement": "drop(_9) -> [return: bb4, unwind: bb33];"
+    },
+    {
+      "block": "bb23",
+      "function": "run_prepaid_fixture_v1",
+      "repeat": 1,
+      "statement": "drop(_45) -> [return: bb16, unwind terminate(cleanup)];"
+    },
+    {
+      "block": "bb26",
+      "function": "run_prepaid_fixture_v1",
+      "repeat": 1,
+      "statement": "drop(((_26 as Ok).0: experimental_swift_reactor::retained_profile_loader_v1::SelectedValidatedProfileV1)) -> [return: bb31, unwind terminate(cleanup)];"
+    },
+    {
+      "block": "bb28",
+      "function": "run_prepaid_fixture_v1",
+      "repeat": 1,
+      "statement": "drop(((_26 as Err).0: experimental_swift_reactor::retained_profile_loader_v1::LoaderFailureV1)) -> [return: bb31, unwind terminate(cleanup)];"
+    },
+    {
+      "block": "bb30",
+      "function": "run_prepaid_fixture_v1",
+      "repeat": 1,
+      "statement": "drop(_25) -> [return: bb33, unwind terminate(cleanup)];"
+    },
+    {
+      "block": "bb32",
+      "function": "run_prepaid_fixture_v1",
+      "repeat": 1,
+      "statement": "drop(_7) -> [return: bb17, unwind terminate(cleanup)];"
+    },
+    {
+      "block": "bb34",
+      "function": "run_prepaid_fixture_v1",
+      "repeat": 1,
+      "statement": "drop(_6) -> [return: bb18, unwind terminate(cleanup)];"
+    },
+    {
+      "block": "bb35",
+      "function": "run_prepaid_fixture_v1",
+      "repeat": 1,
+      "statement": "drop(_5) -> [return: bb19, unwind terminate(cleanup)];"
+    },
+    {
+      "block": "bb36",
+      "function": "run_prepaid_fixture_v1",
+      "repeat": 1,
+      "statement": "drop(_4) -> [return: bb20, unwind terminate(cleanup)];"
+    },
+    {
+      "block": "bb37",
+      "function": "run_prepaid_fixture_v1",
+      "repeat": 1,
+      "statement": "drop(_3) -> [return: bb21, unwind terminate(cleanup)];"
+    }
+  ],
+  "drop_visit_bound": 53,
+  "expanded_source_core": 119922,
+  "formula": "119922 + 24 + sum(five native-open request bounds) + io-error native bound + 53*entry-drop-payload-bound",
+  "functions": {
+    "cancellation_clone": {
+      "blocks": {
+        "bb0": {
+          "cleanup": false,
+          "statements": [
+            "StorageLive(_2);",
+            "StorageLive(_3);",
+            "StorageLive(_4);",
+            "_4 = &((*_1).0: std::sync::Arc<std::sync::atomic::Atomic<bool>>);",
+            "_3 = &(*_4);",
+            "_2 = <Arc<Atomic<bool>> as Clone>::clone(move _3) -> [return: bb1, unwind continue];"
+          ]
+        },
+        "bb1": {
+          "cleanup": false,
+          "statements": [
+            "StorageDead(_3);",
+            "_0 = execute::Cancellation(move _2);",
+            "StorageDead(_4);",
+            "StorageDead(_2);",
+            "return;"
+          ]
+        }
+      },
+      "local_actions": 59,
+      "local_count": 5,
+      "parts": {
+        "local_leaf_fetch_store": 28,
+        "parameter_leaf_fetch_store": 2,
+        "primitive_control_projection": 27
+      }
+    },
+    "cancellation_default": {
+      "blocks": {
+        "bb0": {
+          "cleanup": false,
+          "statements": [
+            "StorageLive(_1);",
+            "_1 = <Arc<Atomic<bool>> as Default>::default() -> [return: bb1, unwind continue];"
+          ]
+        },
+        "bb1": {
+          "cleanup": false,
+          "statements": [
+            "_0 = execute::Cancellation(move _1);",
+            "StorageDead(_1);",
+            "return;"
+          ]
+        }
+      },
+      "local_actions": 24,
+      "local_count": 2,
+      "parts": {
+        "local_leaf_fetch_store": 10,
+        "parameter_leaf_fetch_store": 0,
+        "primitive_control_projection": 12
+      }
+    },
+    "copy_claims_v1": {
+      "blocks": {
+        "bb0": {
+          "cleanup": false,
+          "statements": [
+            "StorageLive(_2);",
+            "_2 = copy ((*_1).0: [u8; 32]);",
+            "StorageLive(_3);",
+            "_3 = copy ((*_1).1: [u8; 32]);",
+            "StorageLive(_4);",
+            "_4 = copy ((*_1).2: [u8; 32]);",
+            "StorageLive(_5);",
+            "_5 = copy ((*_1).3: [u8; 32]);",
+            "StorageLive(_6);",
+            "_6 = copy ((*_1).4: [u8; 32]);",
+            "StorageLive(_7);",
+            "_7 = copy ((*_1).5: [u8; 32]);",
+            "StorageLive(_8);",
+            "_8 = copy ((*_1).6: [u8; 32]);",
+            "StorageLive(_9);",
+            "_9 = copy ((*_1).7: [u8; 32]);",
+            "_0 = initial_profile_v1::UnverifiedProfileDigestBytesV1 { baseline: move _2, candidate: move _3, original_input: move _4, event_schema: move _5, profile_adapter_binary: move _6, layout_receipt: move _7, original_validated_snapshot: move _8, profile_row_body: move _9 };",
+            "StorageDead(_9);",
+            "StorageDead(_8);",
+            "StorageDead(_7);",
+            "StorageDead(_6);",
+            "StorageDead(_5);",
+            "StorageDead(_4);",
+            "StorageDead(_3);",
+            "StorageDead(_2);",
+            "return;"
+          ]
+        }
+      },
+      "local_actions": 2664,
+      "local_count": 10,
+      "parts": {
+        "local_leaf_fetch_store": 2576,
+        "parameter_leaf_fetch_store": 2,
+        "primitive_control_projection": 84
+      }
+    },
+    "invoke_loaded_leaf_once_v1": {
+      "blocks": {
+        "bb0": {
+          "cleanup": false,
+          "statements": [
+            "StorageLive(_8);",
+            "_8 = move _1;",
+            "StorageLive(_9);",
+            "_9 = copy _2;",
+            "StorageLive(_10);",
+            "_10 = copy _3;",
+            "StorageLive(_11);",
+            "_11 = move _4;",
+            "StorageLive(_12);",
+            "_12 = &(*_5);",
+            "StorageLive(_13);",
+            "_13 = &mut (*_6);",
+            "StorageLive(_14);",
+            "_14 = &mut (*_7);",
+            "_0 = run_one_loaded_fixture_v1(move _8, move _9, move _10, move _11, move _12, move _13, move _14) -> [return: bb1, unwind: bb2];"
+          ]
+        },
+        "bb1": {
+          "cleanup": false,
+          "statements": [
+            "StorageDead(_14);",
+            "StorageDead(_13);",
+            "StorageDead(_12);",
+            "StorageDead(_11);",
+            "StorageDead(_10);",
+            "StorageDead(_9);",
+            "StorageDead(_8);",
+            "return;"
+          ]
+        },
+        "bb2": {
+          "cleanup": true,
+          "statements": [
+            "resume;"
+          ]
+        }
+      },
+      "local_actions": 8885,
+      "local_count": 15,
+      "parts": {
+        "local_leaf_fetch_store": 8118,
+        "parameter_leaf_fetch_store": 712,
+        "primitive_control_projection": 53
+      }
+    },
+    "run_prepaid_fixture_v1": {
+      "blocks": {
+        "bb0": {
+          "cleanup": false,
+          "statements": [
+            "_73 = const false;",
+            "_72 = const false;",
+            "_71 = const false;",
+            "_70 = const false;",
+            "_69 = const false;",
+            "_68 = const false;",
+            "_65 = const false;",
+            "_64 = const false;",
+            "_67 = const false;",
+            "_63 = const false;",
+            "_66 = const false;",
+            "StorageLive(_2);",
+            "_2 = copy (_1.0: &experimental_swift_reactor::cache::initial_profile_v1::trusted_local_host_account_entry_v1::ReviewedFixtureBindingV1);",
+            "StorageLive(_8);",
+            "StorageLive(_9);",
+            "StorageLive(_10);",
+            "_10 = &(*_2);",
+            "_9 = setup_files_once_v1(move _10) -> [return: bb1, unwind continue];"
+          ]
+        },
+        "bb1": {
+          "cleanup": false,
+          "statements": [
+            "StorageDead(_10);",
+            "_11 = discriminant(_9);",
+            "switchInt(move _11) -> [0: bb3, otherwise: bb2];"
+          ]
+        },
+        "bb10": {
+          "cleanup": false,
+          "statements": [
+            "StorageLive(_41);",
+            "_66 = const false;",
+            "_41 = move ((_26 as Err).0: experimental_swift_reactor::retained_profile_loader_v1::LoaderFailureV1);",
+            "StorageLive(_42);",
+            "_42 = move _41;",
+            "_39 = PrimaryOutcomeV1::LoaderRefused(move _42);",
+            "StorageDead(_42);",
+            "StorageDead(_41);",
+            "goto -> bb14;"
+          ]
+        },
+        "bb11": {
+          "cleanup": false,
+          "statements": [
+            "StorageLive(_48);",
+            "StorageLive(_49);",
+            "_49 = &_25;",
+            "_48 = <execute::Cancellation as Clone>::clone(move _49) -> [return: bb12, unwind: bb24];"
+          ]
+        },
+        "bb12": {
+          "cleanup": false,
+          "statements": [
+            "StorageDead(_49);",
+            "StorageLive(_50);",
+            "StorageLive(_51);",
+            "_51 = &_36;",
+            "_50 = &(*_51);",
+            "StorageLive(_52);",
+            "StorageLive(_53);",
+            "_53 = &mut _6;",
+            "_52 = &mut (*_53);",
+            "StorageLive(_54);",
+            "StorageLive(_55);",
+            "_55 = &mut _7;",
+            "_54 = &mut (*_55);",
+            "_65 = const false;",
+            "_44 = invoke_loaded_leaf_once_v1(move _45, move _46, move _47, move _48, move _50, move _52, move _54) -> [return: bb13, unwind: bb24];"
+          ]
+        },
+        "bb13": {
+          "cleanup": false,
+          "statements": [
+            "StorageDead(_54);",
+            "StorageDead(_52);",
+            "StorageDead(_50);",
+            "StorageDead(_48);",
+            "StorageDead(_47);",
+            "StorageDead(_46);",
+            "_65 = const false;",
+            "StorageDead(_45);",
+            "_39 = PrimaryOutcomeV1::Leaf(move _44);",
+            "StorageDead(_44);",
+            "StorageDead(_55);",
+            "StorageDead(_53);",
+            "StorageDead(_51);",
+            "StorageDead(_43);",
+            "goto -> bb14;"
+          ]
+        },
+        "bb14": {
+          "cleanup": false,
+          "statements": [
+            "StorageLive(_56);",
+            "_56 = move _27;",
+            "StorageLive(_57);",
+            "_57 = copy _28;",
+            "StorageLive(_58);",
+            "_70 = const false;",
+            "_58 = move _6;",
+            "StorageLive(_59);",
+            "_69 = const false;",
+            "_59 = move _7;",
+            "StorageLive(_60);",
+            "_68 = const false;",
+            "_60 = move _25;",
+            "StorageLive(_61);",
+            "_61 = move _36;",
+            "StorageLive(_62);",
+            "_62 = move _39;",
+            "_0 = OwnedFixtureOutcomeV1::Loaded { original_files: move _56, original_loader_usage: move _57, rows: move _58, snapshot: move _59, cancellation_owner: move _60, claims_owner: move _61, primary: move _62 };",
+            "StorageDead(_62);",
+            "StorageDead(_61);",
+            "StorageDead(_60);",
+            "StorageDead(_59);",
+            "StorageDead(_58);",
+            "StorageDead(_57);",
+            "StorageDead(_56);",
+            "StorageDead(_39);",
+            "StorageDead(_36);",
+            "StorageDead(_28);",
+            "StorageDead(_27);",
+            "_63 = const false;",
+            "_66 = const false;",
+            "_64 = const false;",
+            "_67 = const false;",
+            "StorageDead(_26);",
+            "_68 = const false;",
+            "StorageDead(_25);",
+            "_69 = const false;",
+            "StorageDead(_7);",
+            "_70 = const false;",
+            "StorageDead(_6);",
+            "_71 = const false;",
+            "StorageDead(_5);",
+            "_72 = const false;",
+            "StorageDead(_4);",
+            "_73 = const false;",
+            "StorageDead(_3);",
+            "StorageDead(_2);",
+            "goto -> bb15;"
+          ]
+        },
+        "bb15": {
+          "cleanup": false,
+          "statements": [
+            "return;"
+          ]
+        },
+        "bb16": {
+          "cleanup": true,
+          "statements": [
+            "drop(_27) -> [return: bb29, unwind terminate(cleanup)];"
+          ]
+        },
+        "bb17": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _70) -> [0: bb18, otherwise: bb34];"
+          ]
+        },
+        "bb18": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _71) -> [0: bb19, otherwise: bb35];"
+          ]
+        },
+        "bb19": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _72) -> [0: bb20, otherwise: bb36];"
+          ]
+        },
+        "bb2": {
+          "cleanup": false,
+          "statements": [
+            "StorageLive(_22);",
+            "_22 = move _9;",
+            "StorageLive(_24);",
+            "_24 = move _22;",
+            "_0 = OwnedFixtureOutcomeV1::SetupRefused(move _24);",
+            "StorageDead(_24);",
+            "StorageDead(_22);",
+            "StorageDead(_9);",
+            "StorageDead(_8);",
+            "StorageDead(_2);",
+            "goto -> bb15;"
+          ]
+        },
+        "bb20": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _73) -> [0: bb21, otherwise: bb37];"
+          ]
+        },
+        "bb21": {
+          "cleanup": true,
+          "statements": [
+            "resume;"
+          ]
+        },
+        "bb22": {
+          "cleanup": false,
+          "statements": [
+            "drop(_9) -> [return: bb4, unwind: bb33];"
+          ]
+        },
+        "bb23": {
+          "cleanup": true,
+          "statements": [
+            "drop(_45) -> [return: bb16, unwind terminate(cleanup)];"
+          ]
+        },
+        "bb24": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _65) -> [0: bb16, otherwise: bb23];"
+          ]
+        },
+        "bb25": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _67) -> [0: bb31, otherwise: bb26];"
+          ]
+        },
+        "bb26": {
+          "cleanup": true,
+          "statements": [
+            "drop(((_26 as Ok).0: experimental_swift_reactor::retained_profile_loader_v1::SelectedValidatedProfileV1)) -> [return: bb31, unwind terminate(cleanup)];"
+          ]
+        },
+        "bb27": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _66) -> [0: bb31, otherwise: bb28];"
+          ]
+        },
+        "bb28": {
+          "cleanup": true,
+          "statements": [
+            "drop(((_26 as Err).0: experimental_swift_reactor::retained_profile_loader_v1::LoaderFailureV1)) -> [return: bb31, unwind terminate(cleanup)];"
+          ]
+        },
+        "bb29": {
+          "cleanup": true,
+          "statements": [
+            "_76 = discriminant(_26);",
+            "switchInt(move _76) -> [0: bb25, otherwise: bb27];"
+          ]
+        },
+        "bb3": {
+          "cleanup": false,
+          "statements": [
+            "StorageLive(_12);",
+            "_12 = move ((_9 as Ready).0: std::fs::File);",
+            "StorageLive(_13);",
+            "_13 = move ((_9 as Ready).1: std::fs::File);",
+            "StorageLive(_14);",
+            "_14 = move ((_9 as Ready).2: std::fs::File);",
+            "StorageLive(_15);",
+            "_15 = move ((_9 as Ready).3: std::fs::File);",
+            "StorageLive(_16);",
+            "_16 = move ((_9 as Ready).4: std::fs::File);",
+            "StorageLive(_17);",
+            "_17 = move _12;",
+            "StorageLive(_18);",
+            "_18 = move _13;",
+            "StorageLive(_19);",
+            "_19 = move _14;",
+            "StorageLive(_20);",
+            "_20 = move _15;",
+            "StorageLive(_21);",
+            "_21 = move _16;",
+            "_8 = (move _17, move _18, move _19, move _20, move _21);",
+            "StorageDead(_21);",
+            "StorageDead(_20);",
+            "StorageDead(_19);",
+            "StorageDead(_18);",
+            "StorageDead(_17);",
+            "StorageDead(_16);",
+            "StorageDead(_15);",
+            "StorageDead(_14);",
+            "StorageDead(_13);",
+            "StorageDead(_12);",
+            "StorageLive(_3);",
+            "_73 = const true;",
+            "_3 = move (_8.0: std::fs::File);",
+            "StorageLive(_4);",
+            "_72 = const true;",
+            "_4 = move (_8.1: std::fs::File);",
+            "StorageLive(_5);",
+            "_71 = const true;",
+            "_5 = move (_8.2: std::fs::File);",
+            "StorageLive(_6);",
+            "_70 = const true;",
+            "_6 = move (_8.3: std::fs::File);",
+            "StorageLive(_7);",
+            "_69 = const true;",
+            "_7 = move (_8.4: std::fs::File);",
+            "_74 = discriminant(_9);",
+            "switchInt(move _74) -> [0: bb4, otherwise: bb22];"
+          ]
+        },
+        "bb30": {
+          "cleanup": true,
+          "statements": [
+            "drop(_25) -> [return: bb33, unwind terminate(cleanup)];"
+          ]
+        },
+        "bb31": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _68) -> [0: bb33, otherwise: bb30];"
+          ]
+        },
+        "bb32": {
+          "cleanup": true,
+          "statements": [
+            "drop(_7) -> [return: bb17, unwind terminate(cleanup)];"
+          ]
+        },
+        "bb33": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _69) -> [0: bb17, otherwise: bb32];"
+          ]
+        },
+        "bb34": {
+          "cleanup": true,
+          "statements": [
+            "drop(_6) -> [return: bb18, unwind terminate(cleanup)];"
+          ]
+        },
+        "bb35": {
+          "cleanup": true,
+          "statements": [
+            "drop(_5) -> [return: bb19, unwind terminate(cleanup)];"
+          ]
+        },
+        "bb36": {
+          "cleanup": true,
+          "statements": [
+            "drop(_4) -> [return: bb20, unwind terminate(cleanup)];"
+          ]
+        },
+        "bb37": {
+          "cleanup": true,
+          "statements": [
+            "drop(_3) -> [return: bb21, unwind terminate(cleanup)];"
+          ]
+        },
+        "bb4": {
+          "cleanup": false,
+          "statements": [
+            "StorageDead(_9);",
+            "StorageDead(_8);",
+            "StorageLive(_25);",
+            "_25 = <execute::Cancellation as Default>::default() -> [return: bb5, unwind: bb33];"
+          ]
+        },
+        "bb5": {
+          "cleanup": false,
+          "statements": [
+            "_68 = const true;",
+            "StorageLive(_29);",
+            "StorageLive(_30);",
+            "_73 = const false;",
+            "_30 = move _3;",
+            "StorageLive(_31);",
+            "_72 = const false;",
+            "_31 = move _4;",
+            "StorageLive(_32);",
+            "_71 = const false;",
+            "_32 = move _5;",
+            "StorageLive(_33);",
+            "_33 = copy ((*_2).2: experimental::swift::SwiftValidationBudget);",
+            "StorageLive(_34);",
+            "StorageLive(_35);",
+            "_35 = &_25;",
+            "_34 = &(*_35);",
+            "_29 = load_selected_retained_profile_v1(move _30, move _31, move _32, move _33, move _34) -> [return: bb6, unwind: bb31];"
+          ]
+        },
+        "bb6": {
+          "cleanup": false,
+          "statements": [
+            "StorageDead(_34);",
+            "StorageDead(_33);",
+            "StorageDead(_32);",
+            "StorageDead(_31);",
+            "StorageDead(_30);",
+            "StorageLive(_26);",
+            "_63 = const true;",
+            "_66 = const true;",
+            "_64 = const true;",
+            "_67 = const true;",
+            "_26 = move (_29.0: std::result::Result<experimental_swift_reactor::retained_profile_loader_v1::SelectedValidatedProfileV1, experimental_swift_reactor::retained_profile_loader_v1::LoaderFailureV1>);",
+            "StorageLive(_27);",
+            "_27 = move (_29.1: experimental_swift_reactor::retained_profile_loader_v1::ReturnedLoaderFilesV1);",
+            "StorageLive(_28);",
+            "_28 = copy (_29.2: experimental_swift_reactor::retained_profile_loader_v1::LoaderUsageV1);",
+            "StorageDead(_35);",
+            "StorageDead(_29);",
+            "StorageLive(_36);",
+            "StorageLive(_37);",
+            "StorageLive(_38);",
+            "_38 = &((*_2).1: experimental_swift_reactor::cache::initial_profile_v1::UnverifiedProfileDigestBytesV1);",
+            "_37 = &(*_38);",
+            "_36 = copy_claims_v1(move _37) -> [return: bb7, unwind: bb16];"
+          ]
+        },
+        "bb7": {
+          "cleanup": false,
+          "statements": [
+            "StorageDead(_37);",
+            "StorageDead(_38);",
+            "StorageLive(_39);",
+            "_40 = discriminant(_26);",
+            "switchInt(move _40) -> [0: bb9, 1: bb10, otherwise: bb8];"
+          ]
+        },
+        "bb8": {
+          "cleanup": false,
+          "statements": [
+            "unreachable;"
+          ]
+        },
+        "bb9": {
+          "cleanup": false,
+          "statements": [
+            "StorageLive(_43);",
+            "_67 = const false;",
+            "_43 = move ((_26 as Ok).0: experimental_swift_reactor::retained_profile_loader_v1::SelectedValidatedProfileV1);",
+            "StorageLive(_44);",
+            "StorageLive(_45);",
+            "_65 = const true;",
+            "_45 = move _43;",
+            "StorageLive(_46);",
+            "_46 = copy ((*_2).3: experimental_swift_reactor::control::SwiftRunBudget);",
+            "StorageLive(_47);",
+            "_47 = Instant::now() -> [return: bb11, unwind: bb24];"
+          ]
+        }
+      },
+      "local_actions": 92906,
+      "local_count": 78,
+      "parts": {
+        "local_leaf_fetch_store": 92296,
+        "parameter_leaf_fetch_store": 2,
+        "primitive_control_projection": 606
+      }
+    },
+    "setup_files_once_v1": {
+      "blocks": {
+        "bb0": {
+          "cleanup": false,
+          "statements": [
+            "_63 = const false;",
+            "_74 = const false;",
+            "_72 = const false;",
+            "_73 = const false;",
+            "_79 = const false;",
+            "_70 = const false;",
+            "_71 = const false;",
+            "_78 = const false;",
+            "_68 = const false;",
+            "_69 = const false;",
+            "_77 = const false;",
+            "_66 = const false;",
+            "_67 = const false;",
+            "_76 = const false;",
+            "_64 = const false;",
+            "_65 = const false;",
+            "_75 = const false;",
+            "StorageLive(_2);",
+            "StorageLive(_3);",
+            "_3 = Option::<std::fs::File>::None;",
+            "StorageLive(_4);",
+            "_4 = Option::<std::fs::File>::None;",
+            "StorageLive(_5);",
+            "_5 = Option::<std::fs::File>::None;",
+            "StorageLive(_6);",
+            "_6 = Option::<std::fs::File>::None;",
+            "StorageLive(_7);",
+            "_7 = Option::<std::fs::File>::None;",
+            "_63 = const true;",
+            "_64 = const true;",
+            "_65 = const true;",
+            "_75 = const true;",
+            "_66 = const true;",
+            "_67 = const true;",
+            "_76 = const true;",
+            "_68 = const true;",
+            "_69 = const true;",
+            "_77 = const true;",
+            "_70 = const true;",
+            "_71 = const true;",
+            "_78 = const true;",
+            "_72 = const true;",
+            "_73 = const true;",
+            "_79 = const true;",
+            "_2 = [move _3, move _4, move _5, move _6, move _7];",
+            "StorageDead(_7);",
+            "StorageDead(_6);",
+            "StorageDead(_5);",
+            "StorageDead(_4);",
+            "StorageDead(_3);",
+            "StorageLive(_8);",
+            "StorageLive(_9);",
+            "StorageLive(_10);",
+            "_10 = std::ops::Range::<usize> { start: const 0_usize, end: const 5_usize };",
+            "_9 = <std::ops::Range<usize> as IntoIterator>::into_iter(move _10) -> [return: bb1, unwind: bb52];"
+          ]
+        },
+        "bb1": {
+          "cleanup": false,
+          "statements": [
+            "StorageDead(_10);",
+            "StorageLive(_11);",
+            "_11 = move _9;",
+            "goto -> bb2;"
+          ]
+        },
+        "bb10": {
+          "cleanup": false,
+          "statements": [
+            "StorageDead(_22);",
+            "StorageLive(_26);",
+            "StorageLive(_27);",
+            "StorageLive(_28);",
+            "StorageLive(_29);",
+            "StorageLive(_30);",
+            "StorageLive(_31);",
+            "_31 = OpenOptions::new() -> [return: bb11, unwind: bb52];"
+          ]
+        },
+        "bb11": {
+          "cleanup": false,
+          "statements": [
+            "_30 = &mut _31;",
+            "_29 = OpenOptions::write(move _30, const true) -> [return: bb12, unwind: bb52];"
+          ]
+        },
+        "bb12": {
+          "cleanup": false,
+          "statements": [
+            "_28 = &mut (*_29);",
+            "StorageDead(_30);",
+            "_27 = OpenOptions::create_new(move _28, const true) -> [return: bb13, unwind: bb52];"
+          ]
+        },
+        "bb13": {
+          "cleanup": false,
+          "statements": [
+            "_26 = &(*_27);",
+            "StorageDead(_28);",
+            "StorageLive(_32);",
+            "StorageLive(_33);",
+            "_33 = copy _19;",
+            "_34 = Lt(copy _33, const 5_usize);",
+            "assert(move _34, \"index out of bounds: the length is {} but the index is {}\", const 5_usize, copy _33) -> [success: bb14, unwind: bb52];"
+          ]
+        },
+        "bb14": {
+          "cleanup": false,
+          "statements": [
+            "_32 = copy ((*_1).0: [&std::path::Path; 5])[_33];",
+            "_20 = OpenOptions::open::<&Path>(move _26, move _32) -> [return: bb15, unwind: bb52];"
+          ]
+        },
+        "bb15": {
+          "cleanup": false,
+          "statements": [
+            "StorageDead(_32);",
+            "StorageDead(_26);",
+            "StorageDead(_33);",
+            "StorageDead(_31);",
+            "StorageDead(_29);",
+            "StorageDead(_27);",
+            "goto -> bb16;"
+          ]
+        },
+        "bb16": {
+          "cleanup": false,
+          "statements": [
+            "StorageDead(_21);",
+            "_35 = discriminant(_20);",
+            "switchInt(move _35) -> [0: bb18, 1: bb17, otherwise: bb4];"
+          ]
+        },
+        "bb17": {
+          "cleanup": false,
+          "statements": [
+            "StorageLive(_41);",
+            "_41 = move ((_20 as Err).0: std::io::Error);",
+            "StorageLive(_43);",
+            "_43 = copy _19;",
+            "StorageLive(_44);",
+            "_44 = move _41;",
+            "StorageLive(_45);",
+            "_63 = const false;",
+            "_64 = const false;",
+            "_65 = const false;",
+            "_75 = const false;",
+            "_66 = const false;",
+            "_67 = const false;",
+            "_76 = const false;",
+            "_68 = const false;",
+            "_69 = const false;",
+            "_77 = const false;",
+            "_70 = const false;",
+            "_71 = const false;",
+            "_78 = const false;",
+            "_72 = const false;",
+            "_73 = const false;",
+            "_79 = const false;",
+            "_45 = move _2;",
+            "_0 = SetupOutcomeV1::Refused { stage: move _43, original: move _44, files: move _45 };",
+            "StorageDead(_45);",
+            "StorageDead(_44);",
+            "StorageDead(_43);",
+            "StorageDead(_41);",
+            "StorageDead(_20);",
+            "StorageDead(_19);",
+            "StorageDead(_16);",
+            "StorageDead(_14);",
+            "StorageDead(_13);",
+            "StorageDead(_11);",
+            "StorageDead(_9);",
+            "StorageDead(_8);",
+            "_63 = const false;",
+            "_64 = const false;",
+            "_65 = const false;",
+            "_75 = const false;",
+            "_66 = const false;",
+            "_67 = const false;",
+            "_76 = const false;",
+            "_68 = const false;",
+            "_69 = const false;",
+            "_77 = const false;",
+            "_70 = const false;",
+            "_71 = const false;",
+            "_78 = const false;",
+            "_72 = const false;",
+            "_73 = const false;",
+            "_79 = const false;",
+            "StorageDead(_2);",
+            "goto -> bb29;"
+          ]
+        },
+        "bb18": {
+          "cleanup": false,
+          "statements": [
+            "StorageLive(_36);",
+            "_36 = move ((_20 as Ok).0: std::fs::File);",
+            "StorageLive(_37);",
+            "StorageLive(_38);",
+            "_38 = move _36;",
+            "_74 = const true;",
+            "_37 = Option::<std::fs::File>::Some(move _38);",
+            "StorageDead(_38);",
+            "StorageLive(_39);",
+            "_39 = copy _19;",
+            "_40 = Lt(copy _39, const 5_usize);",
+            "assert(move _40, \"index out of bounds: the length is {} but the index is {}\", const 5_usize, copy _39) -> [success: bb19, unwind: bb32];"
+          ]
+        },
+        "bb19": {
+          "cleanup": false,
+          "statements": [
+            "drop(_2[_39]) -> [return: bb20, unwind: bb21];"
+          ]
+        },
+        "bb2": {
+          "cleanup": false,
+          "statements": [
+            "StorageLive(_13);",
+            "StorageLive(_14);",
+            "StorageLive(_15);",
+            "StorageLive(_16);",
+            "_16 = &mut _11;",
+            "_15 = &mut (*_16);",
+            "_14 = <std::ops::Range<usize> as Iterator>::next(move _15) -> [return: bb3, unwind: bb52];"
+          ]
+        },
+        "bb20": {
+          "cleanup": false,
+          "statements": [
+            "_74 = const false;",
+            "_2[_39] = move _37;",
+            "_13 = const ();",
+            "_74 = const false;",
+            "StorageDead(_37);",
+            "StorageDead(_39);",
+            "StorageDead(_36);",
+            "StorageDead(_20);",
+            "StorageDead(_19);",
+            "StorageDead(_16);",
+            "StorageDead(_14);",
+            "StorageDead(_13);",
+            "_12 = const ();",
+            "goto -> bb2;"
+          ]
+        },
+        "bb21": {
+          "cleanup": true,
+          "statements": [
+            "_74 = const false;",
+            "_2[_39] = move _37;",
+            "goto -> bb32;"
+          ]
+        },
+        "bb22": {
+          "cleanup": false,
+          "statements": [
+            "StorageLive(_61);",
+            "_63 = const false;",
+            "_64 = const false;",
+            "_65 = const false;",
+            "_75 = const false;",
+            "_66 = const false;",
+            "_67 = const false;",
+            "_76 = const false;",
+            "_68 = const false;",
+            "_69 = const false;",
+            "_77 = const false;",
+            "_70 = const false;",
+            "_71 = const false;",
+            "_78 = const false;",
+            "_72 = const false;",
+            "_73 = const false;",
+            "_79 = const false;",
+            "_61 = move _2;",
+            "StorageLive(_62);",
+            "_62 = move _61;",
+            "_0 = SetupOutcomeV1::InvariantRefused { files: move _62 };",
+            "StorageDead(_62);",
+            "StorageDead(_61);",
+            "goto -> bb28;"
+          ]
+        },
+        "bb23": {
+          "cleanup": false,
+          "statements": [
+            "_49 = discriminant(_2[1 of 5]);",
+            "switchInt(move _49) -> [1: bb24, otherwise: bb22];"
+          ]
+        },
+        "bb24": {
+          "cleanup": false,
+          "statements": [
+            "_48 = discriminant(_2[2 of 5]);",
+            "switchInt(move _48) -> [1: bb25, otherwise: bb22];"
+          ]
+        },
+        "bb25": {
+          "cleanup": false,
+          "statements": [
+            "_47 = discriminant(_2[3 of 5]);",
+            "switchInt(move _47) -> [1: bb26, otherwise: bb22];"
+          ]
+        },
+        "bb26": {
+          "cleanup": false,
+          "statements": [
+            "_46 = discriminant(_2[4 of 5]);",
+            "switchInt(move _46) -> [1: bb27, otherwise: bb22];"
+          ]
+        },
+        "bb27": {
+          "cleanup": false,
+          "statements": [
+            "StorageLive(_51);",
+            "_79 = const false;",
+            "_51 = move ((_2[0 of 5] as Some).0: std::fs::File);",
+            "StorageLive(_52);",
+            "_78 = const false;",
+            "_52 = move ((_2[1 of 5] as Some).0: std::fs::File);",
+            "StorageLive(_53);",
+            "_77 = const false;",
+            "_53 = move ((_2[2 of 5] as Some).0: std::fs::File);",
+            "StorageLive(_54);",
+            "_76 = const false;",
+            "_54 = move ((_2[3 of 5] as Some).0: std::fs::File);",
+            "StorageLive(_55);",
+            "_75 = const false;",
+            "_55 = move ((_2[4 of 5] as Some).0: std::fs::File);",
+            "StorageLive(_56);",
+            "_56 = move _51;",
+            "StorageLive(_57);",
+            "_57 = move _52;",
+            "StorageLive(_58);",
+            "_58 = move _53;",
+            "StorageLive(_59);",
+            "_59 = move _54;",
+            "StorageLive(_60);",
+            "_60 = move _55;",
+            "_0 = SetupOutcomeV1::Ready { source: move _56, build: move _57, session: move _58, rows: move _59, snapshot: move _60 };",
+            "StorageDead(_60);",
+            "StorageDead(_59);",
+            "StorageDead(_58);",
+            "StorageDead(_57);",
+            "StorageDead(_56);",
+            "StorageDead(_55);",
+            "StorageDead(_54);",
+            "StorageDead(_53);",
+            "StorageDead(_52);",
+            "StorageDead(_51);",
+            "goto -> bb28;"
+          ]
+        },
+        "bb28": {
+          "cleanup": false,
+          "statements": [
+            "_64 = const false;",
+            "_66 = const false;",
+            "_68 = const false;",
+            "_70 = const false;",
+            "_72 = const false;",
+            "_63 = const false;",
+            "_63 = const false;",
+            "_64 = const false;",
+            "_65 = const false;",
+            "_75 = const false;",
+            "_66 = const false;",
+            "_67 = const false;",
+            "_76 = const false;",
+            "_68 = const false;",
+            "_69 = const false;",
+            "_77 = const false;",
+            "_70 = const false;",
+            "_71 = const false;",
+            "_78 = const false;",
+            "_72 = const false;",
+            "_73 = const false;",
+            "_79 = const false;",
+            "StorageDead(_2);",
+            "goto -> bb29;"
+          ]
+        },
+        "bb29": {
+          "cleanup": false,
+          "statements": [
+            "return;"
+          ]
+        },
+        "bb3": {
+          "cleanup": false,
+          "statements": [
+            "StorageDead(_15);",
+            "_17 = discriminant(_14);",
+            "switchInt(move _17) -> [0: bb6, 1: bb5, otherwise: bb4];"
+          ]
+        },
+        "bb30": {
+          "cleanup": true,
+          "statements": [
+            "resume;"
+          ]
+        },
+        "bb31": {
+          "cleanup": true,
+          "statements": [
+            "drop(_37) -> [return: bb52, unwind terminate(cleanup)];"
+          ]
+        },
+        "bb32": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _74) -> [0: bb52, otherwise: bb31];"
+          ]
+        },
+        "bb33": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _72) -> [0: bb30, otherwise: bb36];"
+          ]
+        },
+        "bb34": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _79) -> [0: bb30, otherwise: bb35];"
+          ]
+        },
+        "bb35": {
+          "cleanup": true,
+          "statements": [
+            "drop(((_2[0 of 5] as Some).0: std::fs::File)) -> [return: bb30, unwind terminate(cleanup)];"
+          ]
+        },
+        "bb36": {
+          "cleanup": true,
+          "statements": [
+            "_80 = discriminant(_2[0 of 5]);",
+            "switchInt(move _80) -> [1: bb34, otherwise: bb30];"
+          ]
+        },
+        "bb37": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _70) -> [0: bb33, otherwise: bb40];"
+          ]
+        },
+        "bb38": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _78) -> [0: bb33, otherwise: bb39];"
+          ]
+        },
+        "bb39": {
+          "cleanup": true,
+          "statements": [
+            "drop(((_2[1 of 5] as Some).0: std::fs::File)) -> [return: bb33, unwind terminate(cleanup)];"
+          ]
+        },
+        "bb4": {
+          "cleanup": false,
+          "statements": [
+            "unreachable;"
+          ]
+        },
+        "bb40": {
+          "cleanup": true,
+          "statements": [
+            "_81 = discriminant(_2[1 of 5]);",
+            "switchInt(move _81) -> [1: bb38, otherwise: bb33];"
+          ]
+        },
+        "bb41": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _68) -> [0: bb37, otherwise: bb44];"
+          ]
+        },
+        "bb42": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _77) -> [0: bb37, otherwise: bb43];"
+          ]
+        },
+        "bb43": {
+          "cleanup": true,
+          "statements": [
+            "drop(((_2[2 of 5] as Some).0: std::fs::File)) -> [return: bb37, unwind terminate(cleanup)];"
+          ]
+        },
+        "bb44": {
+          "cleanup": true,
+          "statements": [
+            "_82 = discriminant(_2[2 of 5]);",
+            "switchInt(move _82) -> [1: bb42, otherwise: bb37];"
+          ]
+        },
+        "bb45": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _66) -> [0: bb41, otherwise: bb48];"
+          ]
+        },
+        "bb46": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _76) -> [0: bb41, otherwise: bb47];"
+          ]
+        },
+        "bb47": {
+          "cleanup": true,
+          "statements": [
+            "drop(((_2[3 of 5] as Some).0: std::fs::File)) -> [return: bb41, unwind terminate(cleanup)];"
+          ]
+        },
+        "bb48": {
+          "cleanup": true,
+          "statements": [
+            "_83 = discriminant(_2[3 of 5]);",
+            "switchInt(move _83) -> [1: bb46, otherwise: bb41];"
+          ]
+        },
+        "bb49": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _75) -> [0: bb45, otherwise: bb50];"
+          ]
+        },
+        "bb5": {
+          "cleanup": false,
+          "statements": [
+            "StorageLive(_19);",
+            "_19 = copy ((_14 as Some).0: usize);",
+            "StorageLive(_20);",
+            "StorageLive(_21);",
+            "StorageLive(_22);",
+            "_22 = copy _19;",
+            "_21 = Lt(move _22, const 3_usize);",
+            "switchInt(move _21) -> [0: bb10, otherwise: bb7];"
+          ]
+        },
+        "bb50": {
+          "cleanup": true,
+          "statements": [
+            "drop(((_2[4 of 5] as Some).0: std::fs::File)) -> [return: bb45, unwind terminate(cleanup)];"
+          ]
+        },
+        "bb51": {
+          "cleanup": true,
+          "statements": [
+            "_84 = discriminant(_2[4 of 5]);",
+            "switchInt(move _84) -> [1: bb49, otherwise: bb45];"
+          ]
+        },
+        "bb52": {
+          "cleanup": true,
+          "statements": [
+            "switchInt(copy _64) -> [0: bb45, otherwise: bb51];"
+          ]
+        },
+        "bb6": {
+          "cleanup": false,
+          "statements": [
+            "_8 = const ();",
+            "StorageDead(_16);",
+            "StorageDead(_14);",
+            "StorageDead(_13);",
+            "StorageDead(_11);",
+            "StorageDead(_9);",
+            "StorageDead(_8);",
+            "_50 = discriminant(_2[0 of 5]);",
+            "switchInt(move _50) -> [1: bb23, otherwise: bb22];"
+          ]
+        },
+        "bb7": {
+          "cleanup": false,
+          "statements": [
+            "StorageDead(_22);",
+            "StorageLive(_23);",
+            "StorageLive(_24);",
+            "_24 = copy _19;",
+            "_25 = Lt(copy _24, const 5_usize);",
+            "assert(move _25, \"index out of bounds: the length is {} but the index is {}\", const 5_usize, copy _24) -> [success: bb8, unwind: bb52];"
+          ]
+        },
+        "bb8": {
+          "cleanup": false,
+          "statements": [
+            "_23 = copy ((*_1).0: [&std::path::Path; 5])[_24];",
+            "_20 = std::fs::File::open::<&Path>(move _23) -> [return: bb9, unwind: bb52];"
+          ]
+        },
+        "bb9": {
+          "cleanup": false,
+          "statements": [
+            "StorageDead(_23);",
+            "StorageDead(_24);",
+            "goto -> bb16;"
+          ]
+        }
+      },
+      "local_actions": 2564,
+      "local_count": 85,
+      "parts": {
+        "local_leaf_fetch_store": 1728,
+        "parameter_leaf_fetch_store": 2,
+        "primitive_control_projection": 832
+      }
+    }
+  },
+  "inventory_is_work": false,
+  "native_inventory_bytes": 76696,
+  "setup_prefix_controls": [
+    {
+      "attempts": 1,
+      "first_failure_or_success_endpoint": 0,
+      "iterator_observations": 1,
+      "read_attempts": 1,
+      "unwind": false,
+      "write_create_new_attempts": 0
+    },
+    {
+      "attempts": 1,
+      "first_failure_or_success_endpoint": 0,
+      "iterator_observations": 1,
+      "read_attempts": 1,
+      "unwind": true,
+      "write_create_new_attempts": 0
+    },
+    {
+      "attempts": 2,
+      "first_failure_or_success_endpoint": 1,
+      "iterator_observations": 2,
+      "read_attempts": 2,
+      "unwind": false,
+      "write_create_new_attempts": 0
+    },
+    {
+      "attempts": 2,
+      "first_failure_or_success_endpoint": 1,
+      "iterator_observations": 2,
+      "read_attempts": 2,
+      "unwind": true,
+      "write_create_new_attempts": 0
+    },
+    {
+      "attempts": 3,
+      "first_failure_or_success_endpoint": 2,
+      "iterator_observations": 3,
+      "read_attempts": 3,
+      "unwind": false,
+      "write_create_new_attempts": 0
+    },
+    {
+      "attempts": 3,
+      "first_failure_or_success_endpoint": 2,
+      "iterator_observations": 3,
+      "read_attempts": 3,
+      "unwind": true,
+      "write_create_new_attempts": 0
+    },
+    {
+      "attempts": 4,
+      "first_failure_or_success_endpoint": 3,
+      "iterator_observations": 4,
+      "read_attempts": 3,
+      "unwind": false,
+      "write_create_new_attempts": 1
+    },
+    {
+      "attempts": 4,
+      "first_failure_or_success_endpoint": 3,
+      "iterator_observations": 4,
+      "read_attempts": 3,
+      "unwind": true,
+      "write_create_new_attempts": 1
+    },
+    {
+      "attempts": 5,
+      "first_failure_or_success_endpoint": 4,
+      "iterator_observations": 5,
+      "read_attempts": 3,
+      "unwind": false,
+      "write_create_new_attempts": 2
+    },
+    {
+      "attempts": 5,
+      "first_failure_or_success_endpoint": 4,
+      "iterator_observations": 5,
+      "read_attempts": 3,
+      "unwind": true,
+      "write_create_new_attempts": 2
+    },
+    {
+      "attempts": 5,
+      "first_failure_or_success_endpoint": 5,
+      "iterator_observations": 6,
+      "read_attempts": 3,
+      "unwind": false,
+      "write_create_new_attempts": 2
+    },
+    {
+      "attempts": 5,
+      "first_failure_or_success_endpoint": 5,
+      "iterator_observations": 6,
+      "read_attempts": 3,
+      "unwind": true,
+      "write_create_new_attempts": 2
+    }
+  ],
+  "synthetic_arithmetic_example_only": {
+    "arithmetic_sum_with_external_cuts": 124575,
+    "complete_component_accepted": false,
+    "core_source_work": 119922,
+    "cuts": {
+      "during_entry_payload_drop_work": 9,
+      "io_error_native_request_bytes": 7,
+      "leaf_payload_work": 11,
+      "loader_payload_work": 10,
+      "p0_path_backing_bytes": [
+        3,
+        4,
+        5,
+        6,
+        4099
+      ],
+      "path_bytes": [
+        1,
+        2,
+        3,
+        4,
+        4097
+      ],
+      "path_native_request_bytes": [
+        2,
+        3,
+        4,
+        5,
+        4098
+      ],
+      "retained_io_error_backing_bytes": 8,
+      "returned_outcome_payload_drop_work": 12
+    },
+    "during_entry_payload_drop_work": 477,
+    "entry_shell_work": 124542,
+    "native_requested_byte_allowance": 4143,
+    "operational_grant": false,
+    "qualifications": [
+      "Native/path/error/destructor cuts are explicit required positive reviewed upper bounds, not prices proved by evaluating this arithmetic.",
+      "Five source setup attempts plus sixth loop/exhaustion visit are covered; path lengths are not capped by this source.",
+      "One fixed24-byte/align8 allocation request is qualified only for the exact1.99 Arc<AtomicBool> probe; no allocator overhead/RSS/CPU evidence.",
+      "Loader146/P3/P4/P5 payload costs and final complete host policy remain separately required."
+    ],
+    "remaining_caller_argument_source_work": 104538,
+    "root_bindings_verified": false,
+    "schema": 1,
+    "separate_external_payload_work": {
+      "leaf_P3_P4": 11,
+      "loader": 10,
+      "returned_P5": 12
+    },
+    "setup_source_work": 15384,
+    "source146": true,
+    "status": "symbolic-producer-candidate-requires-independent-review-and-final-bindings",
+    "storage_obligations": {
+      "Cancellation_alignment": 8,
+      "Cancellation_requested_backing_bytes": 24,
+      "inline188_role_inventory_bytes": 76696,
+      "p0_path_backing_bytes": [
+        3,
+        4,
+        5,
+        6,
+        4099
+      ],
+      "retained_error_backing_bytes": 8,
+      "selected_lifetime_union": false
+    },
+    "whole_quote": false
+  },
+  "typed_dereference_copies": [
+    {
+      "destination": "_23",
+      "function": "setup_files_once_v1",
+      "paid_mention_actions": 6,
+      "required_fetch_store_actions": 2,
+      "statement": "_23 = copy ((*_1).0: [&std::path::Path; 5])[_24];",
+      "value_type": "&std::path::Path"
+    },
+    {
+      "destination": "_32",
+      "function": "setup_files_once_v1",
+      "paid_mention_actions": 6,
+      "required_fetch_store_actions": 2,
+      "statement": "_32 = copy ((*_1).0: [&std::path::Path; 5])[_33];",
+      "value_type": "&std::path::Path"
+    },
+    {
+      "destination": "_2",
+      "function": "copy_claims_v1",
+      "paid_mention_actions": 66,
+      "required_fetch_store_actions": 64,
+      "statement": "_2 = copy ((*_1).0: [u8; 32]);",
+      "value_type": "[u8; 32]"
+    },
+    {
+      "destination": "_3",
+      "function": "copy_claims_v1",
+      "paid_mention_actions": 66,
+      "required_fetch_store_actions": 64,
+      "statement": "_3 = copy ((*_1).1: [u8; 32]);",
+      "value_type": "[u8; 32]"
+    },
+    {
+      "destination": "_4",
+      "function": "copy_claims_v1",
+      "paid_mention_actions": 66,
+      "required_fetch_store_actions": 64,
+      "statement": "_4 = copy ((*_1).2: [u8; 32]);",
+      "value_type": "[u8; 32]"
+    },
+    {
+      "destination": "_5",
+      "function": "copy_claims_v1",
+      "paid_mention_actions": 66,
+      "required_fetch_store_actions": 64,
+      "statement": "_5 = copy ((*_1).3: [u8; 32]);",
+      "value_type": "[u8; 32]"
+    },
+    {
+      "destination": "_6",
+      "function": "copy_claims_v1",
+      "paid_mention_actions": 66,
+      "required_fetch_store_actions": 64,
+      "statement": "_6 = copy ((*_1).4: [u8; 32]);",
+      "value_type": "[u8; 32]"
+    },
+    {
+      "destination": "_7",
+      "function": "copy_claims_v1",
+      "paid_mention_actions": 66,
+      "required_fetch_store_actions": 64,
+      "statement": "_7 = copy ((*_1).5: [u8; 32]);",
+      "value_type": "[u8; 32]"
+    },
+    {
+      "destination": "_8",
+      "function": "copy_claims_v1",
+      "paid_mention_actions": 66,
+      "required_fetch_store_actions": 64,
+      "statement": "_8 = copy ((*_1).6: [u8; 32]);",
+      "value_type": "[u8; 32]"
+    },
+    {
+      "destination": "_9",
+      "function": "copy_claims_v1",
+      "paid_mention_actions": 66,
+      "required_fetch_store_actions": 64,
+      "statement": "_9 = copy ((*_1).7: [u8; 32]);",
+      "value_type": "[u8; 32]"
+    },
+    {
+      "destination": "_33",
+      "function": "run_prepaid_fixture_v1",
+      "paid_mention_actions": 12,
+      "required_fetch_store_actions": 10,
+      "statement": "_33 = copy ((*_2).2: experimental::swift::SwiftValidationBudget);",
+      "value_type": "experimental::swift::SwiftValidationBudget"
+    },
+    {
+      "destination": "_46",
+      "function": "run_prepaid_fixture_v1",
+      "paid_mention_actions": 36,
+      "required_fetch_store_actions": 34,
+      "statement": "_46 = copy ((*_2).3: experimental_swift_reactor::control::SwiftRunBudget);",
+      "value_type": "experimental_swift_reactor::control::SwiftRunBudget"
+    }
+  ]
+}

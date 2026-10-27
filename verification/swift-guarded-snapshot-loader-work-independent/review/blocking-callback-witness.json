@@ -1,0 +1,44 @@
+{
+  "PathOpen_source_only_model": {
+    "maximum_callbacks": 10,
+    "parameters": 9,
+    "priced_callbacks": 2,
+    "results": 1,
+    "unattributed_callbacks": 8,
+    "unattributed_logical_actions": 832
+  },
+  "advertised128_edge_present": false,
+  "authored_Type_equality_body": "<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work/owned-work/vm/src/lib.rs:39:30: 39:39>::eq",
+  "body_actions": 104,
+  "exact_edges": [
+    {
+      "callee": "<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work/owned-work/vm/src/lib.rs:39:30: 39:39>::eq",
+      "multiplicity": 1,
+      "target": "<&[Type] as PartialEq>::ne"
+    },
+    {
+      "callee": "<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work/owned-work/vm/src/lib.rs:39:30: 39:39>::eq",
+      "multiplicity": 1,
+      "target": "<&[Type] as PartialEq>::ne"
+    }
+  ],
+  "other_broad_matches": {
+    "Option_Type": "At most one Type callback, so multiplicity1 covers the actual Option<Type> comparisons.",
+    "direct_Type_ne": "Standard ne delegates to one authored Type equality; multiplicity1 is sufficient.",
+    "metadata_Type_slice_vs_array1": "At most one Type callback because the authored other slice is [Type;1]; multiplicity1 covers this frozen site."
+  },
+  "severity_analysis": {
+    "missing_advertised_callbacks_actions": 26416,
+    "native_name_bound": 278528,
+    "scalar_surplus": 134364,
+    "scope": "Scalar surplus explains that a whole-quote shortfall is not demonstrated; it does not complete or fix the named edge ledger. No slack reattribution is accepted.",
+    "source_specific_comparison_upper": 144164
+  },
+  "source_lines": [
+    167,
+    185
+  ],
+  "source_path": "src/experimental_wasi/descriptor.rs",
+  "status": "concrete per-operation ledger defect; candidate not independently accepted",
+  "why": "resolve() finds Type substring inside the slice target and returns direct Type::eq first; the later128 fallback runs only if resolve(target) is None, so it is bypassed"
+}

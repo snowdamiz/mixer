@@ -1,0 +1,254 @@
+{
+  "actual_payload_destructor_body_occurrences_bound": 1,
+  "actual_payload_destructor_body_priced_here": false,
+  "authored_P0_Drop_body_occurrences": 1,
+  "combined_surface_units": 131334,
+  "counterexample_if_hook_did_not_take_before_drop": "If owned remained Some while its payload destructor unwound, wrapper field finalization could destroy it again; exact frozen take-before-drop source and tests rule out that state. Source change invalidates this schema.",
+  "historical_controls": {
+    "debug": {
+      "historical_only_not_rerun": true,
+      "named_controls": [
+        "callback_unwind_or_unused_ticket_never_refunds",
+        "ordinary_owner_drop_never_refunds_while_source_frame_is_live",
+        "destructor_unwind_does_not_claim_storage_was_released",
+        "original_refusal_output_and_diagnostic_owners_keep_storage_through_drop",
+        "destroyed_token_releases_only_its_original_borrowed_account"
+      ]
+    },
+    "optimized": {
+      "historical_only_not_rerun": true,
+      "named_controls": [
+        "callback_unwind_or_unused_ticket_never_refunds",
+        "ordinary_owner_drop_never_refunds_while_source_frame_is_live",
+        "destructor_unwind_does_not_claim_storage_was_released",
+        "original_refusal_output_and_diagnostic_owners_keep_storage_through_drop",
+        "destroyed_token_releases_only_its_original_borrowed_account"
+      ]
+    }
+  },
+  "native_sized_occurrence_byte_allowance": 110452,
+  "private_std_compiler_lowering_inherited_unit": "excluded, not a missing in-unit cost assigned zero",
+  "rows": [
+    {
+      "combined_surface_units_each": 32390,
+      "native_sized_occurrence_bytes_each": 27264,
+      "occurrence_bound": 1,
+      "operand_selectors": [
+        [
+          "drop",
+          "_1"
+        ],
+        [
+          "dispatch_v1",
+          "_0"
+        ]
+      ],
+      "operands": [
+        {
+          "bytes": 8,
+          "scalar_leaves": 1,
+          "type": "&mut PrepaidOwnedV1<'_, OwnedFixtureOutcomeV1>"
+        },
+        {
+          "bytes": 13624,
+          "scalar_leaves": 2560,
+          "type": "experimental_swift_reactor::cache::initial_profile_v1::trusted_local_host_account_entry_v1::host_account_v1::PrepaidOwnedV1<'_, OwnedFixtureOutcomeV1>"
+        }
+      ],
+      "operation": "call_authored_wrapper_Drop",
+      "reason": "One P0 hook call; normal explicit drop(self), cleanup, and ordinary Drop are alternatives. The full authored body is charged separately once.",
+      "source_action_units_each": 5126
+    },
+    {
+      "combined_surface_units_each": 32334,
+      "native_sized_occurrence_bytes_each": 27216,
+      "occurrence_bound": 2,
+      "operand_selectors": [
+        [
+          "dispatch_v1",
+          "_6"
+        ]
+      ],
+      "operands": [
+        {
+          "bytes": 13608,
+          "scalar_leaves": 2557,
+          "type": "std::option::Option<OwnedFixtureOutcomeV1>"
+        }
+      ],
+      "operation": "owned_None_discriminant_and_branch_after_hook",
+      "reason": "Hook takes owned before any payload destructor; normal or payload-unwind field finalization sees None, preventing a second payload destructor.",
+      "source_action_units_each": 5118
+    },
+    {
+      "combined_surface_units_each": 42,
+      "native_sized_occurrence_bytes_each": 32,
+      "occurrence_bound": 2,
+      "operand_selectors": [
+        [
+          "dispatch_v1",
+          "_8"
+        ]
+      ],
+      "operands": [
+        {
+          "bytes": 16,
+          "scalar_leaves": 3,
+          "type": "std::option::Option<experimental_swift_reactor::cache::initial_profile_v1::trusted_local_host_account_entry_v1::host_account_v1::ReservationV1<'_>>"
+        }
+      ],
+      "operation": "reservation_option_discriminant_and_branch",
+      "reason": "Two carrier control actions; optional remaining ticket contains only account reference and storage u64, with no refund or authored destructor.",
+      "source_action_units_each": 10
+    },
+    {
+      "combined_surface_units_each": 40,
+      "native_sized_occurrence_bytes_each": 32,
+      "occurrence_bound": 2,
+      "operand_selectors": [
+        [
+          "dispatch_v1",
+          "_1"
+        ]
+      ],
+      "operands": [
+        {
+          "bytes": 16,
+          "scalar_leaves": 2,
+          "type": "experimental_swift_reactor::cache::initial_profile_v1::trusted_local_host_account_entry_v1::host_account_v1::ReservationV1<'_>"
+        }
+      ],
+      "operation": "reservation_scalar_field_end",
+      "reason": "Conservatively charge both reference and u64 field ends using the whole measured reservation extent.",
+      "source_action_units_each": 8
+    },
+    {
+      "combined_surface_units_each": 32372,
+      "native_sized_occurrence_bytes_each": 27248,
+      "occurrence_bound": 1,
+      "operand_selectors": [
+        [
+          "dispatch_v1",
+          "_0"
+        ]
+      ],
+      "operands": [
+        {
+          "bytes": 13624,
+          "scalar_leaves": 2560,
+          "type": "experimental_swift_reactor::cache::initial_profile_v1::trusted_local_host_account_entry_v1::host_account_v1::PrepaidOwnedV1<'_, OwnedFixtureOutcomeV1>"
+        }
+      ],
+      "operation": "wrapper_carrier_retirement_end",
+      "reason": "Final carrier end before returning any destroyed token.",
+      "source_action_units_each": 5124
+    },
+    {
+      "combined_surface_units_each": 8,
+      "native_sized_occurrence_bytes_each": 2,
+      "occurrence_bound": 2,
+      "operand_selectors": [
+        [
+          "drop",
+          "_8"
+        ]
+      ],
+      "operands": [
+        {
+          "bytes": 1,
+          "scalar_leaves": 1,
+          "type": "bool"
+        }
+      ],
+      "operation": "wrapper_normal_and_unwind_control_flags",
+      "reason": "Both written exit alternatives charged without discount.",
+      "source_action_units_each": 6
+    },
+    {
+      "combined_surface_units_each": 40,
+      "native_sized_occurrence_bytes_each": 32,
+      "occurrence_bound": 36,
+      "operand_selectors": [
+        [
+          "checked_components_v1",
+          "_2"
+        ]
+      ],
+      "operands": [
+        {
+          "bytes": 16,
+          "scalar_leaves": 2,
+          "type": "experimental_swift_reactor::cache::initial_profile_v1::trusted_local_host_account_entry_v1::host_account_v1::CostV1"
+        }
+      ],
+      "operation": "iterator_remaining_Cost_scalar_field_ends",
+      "reason": "At most three written iterator drop sites times six Cost elements times two scalar fields; no Cost Drop impl or callback exists. Private iterator traversal instructions are outside the unit.",
+      "source_action_units_each": 8
+    },
+    {
+      "combined_surface_units_each": 40,
+      "native_sized_occurrence_bytes_each": 32,
+      "occurrence_bound": 2,
+      "operand_selectors": [
+        [
+          "dispatch_v1",
+          "_1"
+        ]
+      ],
+      "operands": [
+        {
+          "bytes": 16,
+          "scalar_leaves": 2,
+          "type": "experimental_swift_reactor::cache::initial_profile_v1::trusted_local_host_account_entry_v1::host_account_v1::ReservationV1<'_>"
+        }
+      ],
+      "operation": "unused_reservation_field_ends",
+      "reason": "Unused ticket Drop retains charge; reference/u64 have no authored destructor.",
+      "source_action_units_each": 8
+    },
+    {
+      "combined_surface_units_each": 40,
+      "native_sized_occurrence_bytes_each": 32,
+      "occurrence_bound": 4,
+      "operand_selectors": [
+        [
+          "release_destroyed_v1",
+          "_1"
+        ]
+      ],
+      "operands": [
+        {
+          "bytes": 16,
+          "scalar_leaves": 2,
+          "type": "DestroyedStorageV1<'_>"
+        }
+      ],
+      "operation": "destroyed_token_discard_or_release_field_ends",
+      "reason": "Both discard and consumed-release alternatives charged at two fields each; token holds a Reservation only and has no resource or payload.",
+      "source_action_units_each": 8
+    },
+    {
+      "combined_surface_units_each": 22,
+      "native_sized_occurrence_bytes_each": 16,
+      "occurrence_bound": 2,
+      "operand_selectors": [
+        [
+          "run_one_fixture_v1",
+          "_2"
+        ]
+      ],
+      "operands": [
+        {
+          "bytes": 8,
+          "scalar_leaves": 1,
+          "type": "FrozenFixtureV1"
+        }
+      ],
+      "operation": "unused_fixture_or_closure_header_end",
+      "reason": "FrozenFixture and its exact closure capture each contain one reference header; no authored destructor or child callback on discard.",
+      "source_action_units_each": 6
+    }
+  ],
+  "schema": 1,
+  "source_action_units": 20882
+}

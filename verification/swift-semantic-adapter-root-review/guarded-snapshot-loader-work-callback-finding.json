@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "at": "2026-10-27T10:53:32.433548+00:00",
+  "status": "root-confirmed-pricing-ledger-callback-multiplicity-defect-correction-selected",
+  "producer_seal_sha256": "0550b44baf9f576d8379e1dd93f89ea9bd5b48ff7367762ae008181d29d2c30c",
+  "source_tree_sha256": "450b6d9b3a05d160e19fa888b68173286b8f6af20ecc7216fdf86283f09b308a",
+  "finding": "wresolve has two <&[Type] as PartialEq>::ne edges resolved to Type::eq at multiplicity1; README and intended source envelope require128 each. Greedy broad resolve(target) makes the later resolve(target) is None fallback unreachable.",
+  "root_inspected_files": [
+    "verification/swift-guarded-snapshot-loader-work/price_mir.py",
+    "verification/swift-guarded-snapshot-loader-work/mir-ledger.json"
+  ],
+  "affected_edges": 2,
+  "observed_multiplicity_each": 1,
+  "selected_multiplicity_each": 128,
+  "independent_total_slack_analysis": "Reviewer reports a source-specific native-name allowance could cover the omitted callbacks. Root selects direct per-operation correction instead of reallocating native slack.",
+  "correction_owner": "/root/swift_snapshot_loader_work",
+  "correction_ownership": "verification/swift-guarded-snapshot-loader-work-correction",
+  "selected_change": "Repair callback receiver classification and exact finite multiplicities in actual pricing tool and regenerated ledger. Retain all existing native allowances, source/MIR/type/operation and repeat terms; monotonically recompute quote. Preserve original defect and negative control. No compiler or product-source changes.",
+  "source145_only": true,
+  "independent_correction_review_required": true,
+  "operational_budget_or_grant": false,
+  "native_OTA_GA_accepted": false
+}

@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-payload-destruction-independent/review.py", line 548, in <module>
+    if __name__=='__main__': main()
+                             ~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-payload-destruction-independent/review.py", line 465, in main
+    require('declaration-owned-fields:'+d['name'],[[ast(f,d['path']) for f in a['fields']] for a in actual['variants']]==[[ast(f,d['path']) for f in a['fields']] for a in expected])
+                                                    ~~~^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-payload-destruction-independent/review.py", line 205, in ast
+    args=[] if left==len(v) else [ast(''.join(t[0] for t in c),context) for c in split(ts[left+1:-1]) if not c[0][0].startswith("'")]
+                                  ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-payload-destruction-independent/review.py", line 197, in ast
+    if len(chunks)!=2: raise ValueError('unbound-array')
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: unbound-array

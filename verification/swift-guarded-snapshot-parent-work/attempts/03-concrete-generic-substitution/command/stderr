@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-parent-work/derive.py", line 690, in <module>
+    main()
+    ~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-parent-work/derive.py", line 675, in main
+    outputs = derive()
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-parent-work/derive.py", line 516, in derive
+    leaves = shapes.shape(ty)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-parent-work/derive.py", line 211, in shape
+    n = sum(self.shape(x) for x in fields) or 1
+        ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-parent-work/derive.py", line 211, in <genexpr>
+    n = sum(self.shape(x) for x in fields) or 1
+            ~~~~~~~~~~^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-parent-work/derive.py", line 188, in shape
+    n = 1 + max([0] + [self.shape(x) for x in args])
+                       ~~~~~~~~~~^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-parent-work/derive.py", line 207, in shape
+    check('known unambiguous concrete source shape ' + ty, len(candidates) == 1)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-parent-work/derive.py", line 38, in check
+    raise AssertionError(label)
+AssertionError: known unambiguous concrete source shape T

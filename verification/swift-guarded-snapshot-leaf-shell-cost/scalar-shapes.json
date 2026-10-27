@@ -1,0 +1,1799 @@
+{
+  "definitions": {
+    "AccountedWasi": {
+      "declaration_sha256": "e0de40e791187dda68b40ed1a9dc595db6eb930d6166b5da3914d05a99e41354",
+      "fields": [
+        "WasiContext",
+        "[Option<ReservationTicket>; 4]",
+        "Option<ReservationTicket>"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_wasi/accounted.rs",
+      "scalar_leaves": 187
+    },
+    "AdoptedProof": {
+      "declaration_sha256": "db2837ea0d312e0649abf82154d2390eae1a99f1039e923ba2eb5f6d7144f699",
+      "fields": [
+        "AdoptionBodyV1",
+        "ReservationTicket",
+        "ReservationTicket"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 341
+    },
+    "AdoptionBodyV1": {
+      "declaration_sha256": "7fb2c7b9194f176f5616d0b10d4b56f679879d0fe0efcd916e9a0a95e2a383a9",
+      "fields": [
+        "ValidatedSwiftReactor",
+        "Option<LoaderProvenanceV1>"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "scalar_leaves": 335
+    },
+    "Buffer": {
+      "declaration_sha256": "3b61aa25aa0d25aecf6009295432970e553f4e5c7e55b02b8cbeb5619e29c128",
+      "fields": [
+        "Vec<T>",
+        "usize",
+        "experimental::Resource"
+      ],
+      "kind": "struct",
+      "path": "src/experimental/account.rs",
+      "scalar_leaves": 3
+    },
+    "CacheCleanupTail": {
+      "declaration_sha256": "5bf0c624c97c5c88cdb114b4f90d2e2093376743bea3caea0d7c85887e2547d5",
+      "fields": [
+        "&'a mut RuntimeControl",
+        "Option<&'a AccountedWasi>",
+        "Option<ReservationTicket>",
+        "Option<SwiftRunFailure>"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/cache.rs",
+      "scalar_leaves": 159
+    },
+    "CacheConstructionFailure": {
+      "declaration_sha256": "62d070cbb72d4446f176e0950cad67106ddbd30ebfc7d603cc04c4454727220d",
+      "fields": [
+        "SwiftRunFailure",
+        "Option<AdoptedProof>"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/cache.rs",
+      "scalar_leaves": 493
+    },
+    "Cancellation": {
+      "declaration_sha256": "681ede669b312d4027740237426b10b3834a40190bf87ac965a112c84a90a960",
+      "fields": [
+        "Arc<AtomicBool>"
+      ],
+      "kind": "tuple-struct",
+      "path": "src/execute.rs",
+      "scalar_leaves": 1
+    },
+    "Errno": {
+      "declaration_sha256": "6b2b386ca074611f6323ba4f3f7eeb345cfae5c0eeef19fc45bd2d404f56877e",
+      "kind": "enum",
+      "path": "src/experimental_wasi/mod.rs",
+      "scalar_leaves": 1,
+      "variants": [
+        {
+          "fields": [],
+          "name": "Success",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Badf",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Fault",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Inval",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Io",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Nospc",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Notsup",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Overflow",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Notcapable",
+          "payload_leaves": 0
+        }
+      ]
+    },
+    "FileIdentityV1": {
+      "declaration_sha256": "4cb86405ed4d594671c73466e59e0e85b107000b20e9e79e8a5338c0ab8f9071",
+      "fields": [
+        "u64",
+        "u64",
+        "u64",
+        "u64",
+        "i64",
+        "i64",
+        "i64",
+        "i64"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "scalar_leaves": 8
+    },
+    "InitialProfileConstructionOutcomeV1": {
+      "declaration_sha256": "df2b1ca76a11f13e70f967ee5bf0da0196c0785a99a879343181855003a4ab88",
+      "kind": "enum",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "scalar_leaves": 646,
+      "variants": [
+        {
+          "fields": [
+            "AdoptedProof"
+          ],
+          "name": "SlotOccupied",
+          "payload_leaves": 341
+        },
+        {
+          "fields": [
+            "ProfileHeaderErrorV1",
+            "AdoptedProof"
+          ],
+          "name": "SelectionRefused",
+          "payload_leaves": 344
+        },
+        {
+          "fields": [
+            "SwiftRunFailure",
+            "AdoptedProof"
+          ],
+          "name": "PreparationFailed",
+          "payload_leaves": 492
+        },
+        {
+          "fields": [
+            "CacheConstructionFailure",
+            "Result<(),SwiftRunFailure>"
+          ],
+          "name": "ConstructionFailed",
+          "payload_leaves": 645
+        },
+        {
+          "fields": [
+            "SwiftRunFailure"
+          ],
+          "name": "PhaseCompletionFailed",
+          "payload_leaves": 151
+        },
+        {
+          "fields": [
+            "ProfileHeaderErrorV1"
+          ],
+          "name": "HeaderRefused",
+          "payload_leaves": 3
+        },
+        {
+          "fields": [
+            "SwiftRunFailure"
+          ],
+          "name": "HeaderOwnerCheckFailed",
+          "payload_leaves": 151
+        },
+        {
+          "fields": [
+            "UnverifiedProfileHeaderV1",
+            "Result<ProfileRowsObservationV1,ProfileAdapterErrorV1>"
+          ],
+          "name": "HeaderEncoded",
+          "payload_leaves": 521
+        }
+      ]
+    },
+    "Limits": {
+      "declaration_sha256": "fba789a96a161b54b7af968754fd87e779dc1c89da142c9d7c1f30c54a19d9f2",
+      "fields": [
+        "Profile",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "u32",
+        "u64",
+        "u64"
+      ],
+      "kind": "struct",
+      "path": "src/lib.rs",
+      "scalar_leaves": 13
+    },
+    "LoaderProvenanceV1": {
+      "declaration_sha256": "15aabe4f0b39a5948360fc25fba5cc30b456df7d28872afe2ad0aed0c70a08e4",
+      "fields": [
+        "SwiftValidationBudget",
+        "u64",
+        "[u8; 32]",
+        "[u8; 32]",
+        "[u8; 32]",
+        "[u8; 32]",
+        "[u8; 32]",
+        "[u8; 32]",
+        "[FileIdentityV1; 4]"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "scalar_leaves": 230
+    },
+    "Metadata": {
+      "declaration_sha256": "dc15982276202e5b9eeb08f6232abf18bd40b9dc3cf9c5b3504fb05829fd1eaf",
+      "fields": [
+        "Buffer<Signature>",
+        "Buffer<Type>",
+        "Buffer<Import>",
+        "Buffer<Function>",
+        "Buffer<Global>",
+        "Buffer<Export>",
+        "Buffer<Segment>",
+        "Buffer<Segment>",
+        "Option<(u32, u32)>",
+        "Option<(u32, u32)>",
+        "SwiftDeclaration",
+        "usize"
+      ],
+      "kind": "struct",
+      "path": "src/experimental/metadata.rs",
+      "scalar_leaves": 37
+    },
+    "Policy": {
+      "declaration_sha256": "f1b8cc87d364e7825e80571857ea1b22215310c5961107bbfe063dc1dd6da3dc",
+      "kind": "enum",
+      "path": "src/experimental/policy.rs",
+      "scalar_leaves": 2,
+      "variants": [
+        {
+          "fields": [
+            "&'a Limits"
+          ],
+          "name": "Frozen",
+          "payload_leaves": 1
+        },
+        {
+          "fields": [],
+          "name": "SwiftReactorExperimentV1",
+          "payload_leaves": 0
+        }
+      ]
+    },
+    "Profile": {
+      "declaration_sha256": "d8d3f1067f91bbb5bcb57dcbc725b6d7046cca669204142e2cbf66760bddffd6",
+      "kind": "enum",
+      "path": "src/lib.rs",
+      "scalar_leaves": 1,
+      "variants": [
+        {
+          "fields": [],
+          "name": "IntegerV1",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "NumericV2",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "TableMemoryV3",
+          "payload_leaves": 0
+        }
+      ]
+    },
+    "ProfileAdapterErrorV1": {
+      "declaration_sha256": "11b7ccf502acc4540f94d21e0e8c1284469442d5866fca061270526167437685",
+      "fields": [
+        "u32",
+        "u32",
+        "u64",
+        "u64",
+        "u64"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/diagnostic_profile.rs",
+      "scalar_leaves": 5
+    },
+    "ProfileHeaderErrorV1": {
+      "declaration_sha256": "32c6207964dbb8a8936258151ebff81f05930bd2e2bc599407ed7717c99a94c4",
+      "fields": [
+        "u32",
+        "u32",
+        "u64"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "scalar_leaves": 3
+    },
+    "ProfileRowsObservationV1": {
+      "declaration_sha256": "8dccc45c88163723d9cd436e3417a83cb4419b20e472f17f3b4e7af7d1267f8f",
+      "fields": [
+        "u64",
+        "u64",
+        "u64",
+        "u64",
+        "u64",
+        "u64",
+        "u64",
+        "u64"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/diagnostic_profile.rs",
+      "scalar_leaves": 8
+    },
+    "ReservationTicket": {
+      "declaration_sha256": "a2626ddee9645d2dca7147be925fd760389046600744febf0b955400ef815527",
+      "fields": [
+        "u64",
+        "SwiftReservationCategory",
+        "usize"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 3
+    },
+    "RuntimeControl": {
+      "declaration_sha256": "67ca72c73131d0d4d249f3893a7367b87a699516e8e15ad90f15b359f5fd9901",
+      "fields": [
+        "u64",
+        "SwiftRunBudget",
+        "Instant",
+        "Instant",
+        "SwiftDeadlineOrigin",
+        "Cancellation",
+        "SwiftValidationUsage",
+        "SwiftReservations",
+        "SwiftLiveUsage",
+        "u64",
+        "u64",
+        "u64",
+        "u64",
+        "u64",
+        "Option<SwiftCleanupInvariant>",
+        "Option<SwiftRunFailure>",
+        "Option<ReservationTicket>",
+        "Option<ReservationTicket>",
+        "Option<ReservationTicket>"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 233
+    },
+    "SelectedSnapshotBodyV1": {
+      "declaration_sha256": "e0e5e9a376ce3909f57e553a28e1468925c67d24377d45fd3728efbdecca9d28",
+      "fields": [
+        "AdoptionBodyV1"
+      ],
+      "kind": "tuple-struct",
+      "path": "src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "scalar_leaves": 335
+    },
+    "SelectedValidatedProfileV1": {
+      "declaration_sha256": "02f5523605be52da3bc3bd6aaadf02f22ee5223fbbbba4b6160e36ff45878ef5",
+      "fields": [
+        "ValidatedSwiftReactor",
+        "LoaderProvenanceV1"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "scalar_leaves": 334
+    },
+    "SnapshotAdmissionErrorV1": {
+      "declaration_sha256": "8805706ea35b779bbca67f537d195e3ed52c00ae425462c403d8c4e83332de39",
+      "kind": "enum",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 153,
+      "variants": [
+        {
+          "fields": [
+            "SnapshotStopV1"
+          ],
+          "name": "Stop",
+          "payload_leaves": 152
+        },
+        {
+          "fields": [],
+          "name": "Owner",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Layout",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Arithmetic",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "WorkAuditPending",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [
+            "u64",
+            "u64",
+            "u64"
+          ],
+          "name": "Work",
+          "payload_leaves": 3
+        },
+        {
+          "fields": [
+            "usize",
+            "usize",
+            "usize"
+          ],
+          "name": "Storage",
+          "payload_leaves": 3
+        }
+      ]
+    },
+    "SnapshotAttemptV1": {
+      "declaration_sha256": "5e7bd65e2b9969411238f83049e13ff3a2ad2570f94b49cfbfeff149efab98c6",
+      "kind": "enum",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "scalar_leaves": 315,
+      "variants": [
+        {
+          "fields": [],
+          "name": "NotReached",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [
+            "AError"
+          ],
+          "name": "AdmissionRefused",
+          "payload_leaves": 153
+        },
+        {
+          "fields": [
+            "SnapshotObservationV1"
+          ],
+          "name": "Completed",
+          "payload_leaves": 4
+        },
+        {
+          "fields": [
+            "SnapshotExportErrorV1"
+          ],
+          "name": "Failed",
+          "payload_leaves": 314
+        }
+      ]
+    },
+    "SnapshotCauseV1": {
+      "declaration_sha256": "eb0f45cc74e4e8850c895b91d31812601d12c33ec0f3fe1a17314e625faeb3c2",
+      "kind": "enum",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "scalar_leaves": 153,
+      "variants": [
+        {
+          "fields": [
+            "Stop"
+          ],
+          "name": "Stop",
+          "payload_leaves": 152
+        },
+        {
+          "fields": [
+            "SnapshotEncodeErrorV2"
+          ],
+          "name": "Encode",
+          "payload_leaves": 4
+        },
+        {
+          "fields": [],
+          "name": "Shape",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "NotRegular",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "NotEmpty",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Alias",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Position",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Io",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Zero",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Overreported",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Attempts",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Arithmetic",
+          "payload_leaves": 0
+        }
+      ]
+    },
+    "SnapshotEncodeErrorV2": {
+      "declaration_sha256": "09d3256717f05b6fca8ab5a8769b42f9f8ec513c88ea0c90ee753548fd92ff22",
+      "kind": "enum",
+      "path": "src/experimental/swift.rs",
+      "scalar_leaves": 4,
+      "variants": [
+        {
+          "fields": [],
+          "name": "MissingSelectedProvenance",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "UnsupportedLayout",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "UnsupportedPolicy",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Arithmetic",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [
+            "u32",
+            "u32",
+            "u64"
+          ],
+          "name": "InternalField",
+          "payload_leaves": 3
+        }
+      ]
+    },
+    "SnapshotExportErrorV1": {
+      "declaration_sha256": "1fdcbdde8cb47ae53cad6b8189f0d3cba45b4e26b6e544f9b3a117cf3f30a6a3",
+      "fields": [
+        "SnapshotCauseV1",
+        "u32",
+        "SnapshotProgressV1",
+        "Option<io::Error>",
+        "Option<Stop>"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "scalar_leaves": 314
+    },
+    "SnapshotObservationV1": {
+      "declaration_sha256": "ffa1f1efd37cb01d551cfc6b446ada2389e898a26c10436083948d672a6e8354",
+      "fields": [
+        "u64",
+        "u64",
+        "u64",
+        "u64"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "scalar_leaves": 4
+    },
+    "SnapshotOuterV1": {
+      "declaration_sha256": "34c034b2b3bd25372b12414bea68ec359a0761a7380effc8f0377f36abe0dd59",
+      "fields": [
+        "InitialProfileConstructionOutcomeV1",
+        "SnapshotAttemptV1",
+        "Result<(),SwiftRunFailure>"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "scalar_leaves": 1113
+    },
+    "SnapshotPreScopeFailureV1": {
+      "declaration_sha256": "997d98b11a8f1dd9f0f6640269e36bbc0b6d4c56d24f0494ca543ecd2e767a26",
+      "fields": [
+        "SwiftRunFailure",
+        "Result<(),SwiftRunFailure>"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 303
+    },
+    "SnapshotPrimaryRetirementV1": {
+      "declaration_sha256": "ccba1a24a7e26db15c50fd4b849849b945366d0b59c73bbd279375b1a5cee4e5",
+      "fields": [
+        "u32",
+        "Option<SwiftRunFailure>",
+        "Option<ProfileHeaderErrorV1>",
+        "Option<UnverifiedProfileHeaderV1>",
+        "Option<Result<ProfileRowsObservationV1,ProfileAdapterErrorV1>>",
+        "Option<Result<(),SwiftRunFailure>>",
+        "Result<(),SwiftRunFailure>",
+        "SnapshotAttemptV1",
+        "Result<(),SwiftRunFailure>"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "scalar_leaves": 1452
+    },
+    "SnapshotProgressV1": {
+      "declaration_sha256": "c7519622c9d295631835624a08521a035ad3ab4d6ab56b07f26ccb228efff175",
+      "fields": [
+        "u64",
+        "u64",
+        "u64",
+        "u32",
+        "u64"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "scalar_leaves": 5
+    },
+    "SnapshotRunV1": {
+      "declaration_sha256": "cb0a4fe6b6937d4bd7e0ce0b056e890ed2fc7150ddb02d9e8ca70175928c5bad",
+      "fields": [
+        "SnapshotScopeV1",
+        "SnapshotOuterV1"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 2559
+    },
+    "SnapshotScopeBorrowV1": {
+      "declaration_sha256": "40f09aba7261aff00920785d93d5381fe0ecaa038be1989db3280e5112b666d6",
+      "fields": [
+        "&'a mut Option<super::cache::SwiftFunctionCache>",
+        "&'a mut RuntimeControl",
+        "Option<&'a AccountedWasi>",
+        "AdoptedProof"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 345
+    },
+    "SnapshotScopeFinishV1": {
+      "declaration_sha256": "c840fb39403f7f153e5f7c87264ffef5c146feb89d533baa03eb2cd72b49f6de",
+      "fields": [
+        "SnapshotPrimaryRetirementV1",
+        "Option<SwiftRunFailure>",
+        "Result<(),SwiftRunFailure>",
+        "Option<SnapshotWasiAttachmentV1>",
+        "Result<(),SwiftRunFailure>",
+        "SwiftRunUsage"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 2278
+    },
+    "SnapshotScopeV1": {
+      "declaration_sha256": "a8d358cd15328ae22b13f65aab5e6fa28078bdf075045273286486cd98f0a27a",
+      "fields": [
+        "RuntimeControl",
+        "Option<AdoptedProof>",
+        "Option<super::cache::SwiftFunctionCache>",
+        "Option<AccountedWasi>",
+        "Option<SnapshotWasiAttachmentV1>",
+        "usize"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 1446
+    },
+    "SnapshotStopV1": {
+      "declaration_sha256": "bf5c2d300b1774de507b672f89a835fb2a5ea501632ef4f24fcceb967fffdfa0",
+      "kind": "enum",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 152,
+      "variants": [
+        {
+          "fields": [
+            "SwiftRunFailure"
+          ],
+          "name": "Existing",
+          "payload_leaves": 151
+        },
+        {
+          "fields": [],
+          "name": "Cancelled",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [
+            "SwiftDeadlineOrigin"
+          ],
+          "name": "Deadline",
+          "payload_leaves": 1
+        }
+      ]
+    },
+    "SnapshotWasiAttachmentV1": {
+      "declaration_sha256": "f920fc72c5e88ed620981f0d205071ae74b382ef0507351929cd22c5dacdde79",
+      "fields": [
+        "Result<(),SwiftRunFailure>",
+        "Result<(),SwiftRunFailure>"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 304
+    },
+    "Span": {
+      "declaration_sha256": "1623d6e63e1edff42180005943af112cd0c1b067243c617065a1230f75984d6e",
+      "fields": [
+        "usize",
+        "usize"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_wasi/mod.rs",
+      "scalar_leaves": 2
+    },
+    "SwiftCacheUsage": {
+      "declaration_sha256": "602655bb194ac81ffa2d40aa8c720c918930b8501686548e01737c325d6c77ac",
+      "fields": [
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "u64",
+        "u64",
+        "u64",
+        "u64"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/cache.rs",
+      "scalar_leaves": 12
+    },
+    "SwiftCleanupInvariant": {
+      "declaration_sha256": "718905dfec694149a61fff0caafa23437c061eb4af968767b5664b91800a7a58",
+      "kind": "enum",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 1,
+      "variants": [
+        {
+          "fields": [],
+          "name": "ReservationOwner",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "ReservationUnderflow",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "MissingConstruction",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "ConstructionBound",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "LiveUnderflow",
+          "payload_leaves": 0
+        }
+      ]
+    },
+    "SwiftDeadlineOrigin": {
+      "declaration_sha256": "0ff0f53fdb819af0d565535f2ab594c964e80dc5f9d44c657d44cf0db885395a",
+      "kind": "enum",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 1,
+      "variants": [
+        {
+          "fields": [],
+          "name": "Run",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Wasi",
+          "payload_leaves": 0
+        }
+      ]
+    },
+    "SwiftDeclaration": {
+      "declaration_sha256": "7f179eadf3943458a7c888153485b04ce48e6a434d8cf4e4a21b4546f97524b6",
+      "fields": [
+        "Option<u32>",
+        "Option<u32>",
+        "usize",
+        "usize"
+      ],
+      "kind": "struct",
+      "path": "src/experimental/metadata.rs",
+      "scalar_leaves": 6
+    },
+    "SwiftFunctionCache": {
+      "declaration_sha256": "4c87009c2f33bee0beade59b3f1a1a3655e1fdd3256f2f429b026fb1af0aa74d",
+      "fields": [
+        "AdoptedProof",
+        "SwiftCacheUsage",
+        "u64",
+        "u64",
+        "Vec<SwiftSlot>",
+        "Vec<PinRecord>",
+        "Vec<decode::Patch>",
+        "Vec<u8>",
+        "Vec<Option<ScanPlan>>",
+        "[Option<ReservationTicket>; 3]",
+        "Option<ReservationTicket>"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/cache.rs",
+      "scalar_leaves": 376
+    },
+    "SwiftLiveUsage": {
+      "declaration_sha256": "8af71d0a8b7b1130f4370ec00189a93e2bceb71db84697be53a7bcae8ec6da20",
+      "fields": [
+        "SwiftReservationUsage",
+        "SwiftReservationUsage",
+        "SwiftReservationUsage",
+        "SwiftReservationUsage",
+        "SwiftReservationUsage",
+        "SwiftReservationUsage"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 12
+    },
+    "SwiftReactorObservations": {
+      "declaration_sha256": "a2d80975ea9948f4c99f91d630c2f90c0883ad5263ac2a40846ebf681aada3d9",
+      "fields": [
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "u32",
+        "Option<u32>",
+        "u32",
+        "u32",
+        "Option<u32>"
+      ],
+      "kind": "struct",
+      "path": "src/experimental/swift.rs",
+      "scalar_leaves": 20
+    },
+    "SwiftReservationCategory": {
+      "declaration_sha256": "8482b48546f769ac5c3ae92ca50ce153841a2e5ee5d8eee4ea6f31ddad1e2cec",
+      "kind": "enum",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 1,
+      "variants": [
+        {
+          "fields": [],
+          "name": "RetainedSource",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "RetainedMetadata",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Cache",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "State",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Wasi",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Shared",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Construction",
+          "payload_leaves": 0
+        }
+      ]
+    },
+    "SwiftReservationUsage": {
+      "declaration_sha256": "91579c785d08486c9af32eb7ed90a989b517cddd84f282cb133b1498070a43ce",
+      "fields": [
+        "usize",
+        "usize"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 2
+    },
+    "SwiftReservations": {
+      "declaration_sha256": "0af533c97c769cdec50344faffdaf5a763b4ef0e142e9578565278e15a22f3f6",
+      "fields": [
+        "SwiftReservationUsage",
+        "SwiftReservationUsage",
+        "SwiftReservationUsage",
+        "SwiftReservationUsage",
+        "SwiftReservationUsage",
+        "SwiftReservationUsage",
+        "SwiftReservationUsage",
+        "SwiftReservationUsage",
+        "usize",
+        "usize"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 18
+    },
+    "SwiftRunBudget": {
+      "declaration_sha256": "8ac6fb98b0f2b4f989f9e0f2a7b727e0816dae5163c149cfd3473f85bedf3ab8",
+      "fields": [
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "u64",
+        "usize",
+        "usize",
+        "usize",
+        "u32",
+        "usize",
+        "usize",
+        "u64",
+        "u64",
+        "u64",
+        "u64"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 17
+    },
+    "SwiftRunFailure": {
+      "declaration_sha256": "38ca05a9cbbc7bf855fbb79b8708bbfb2e68c49121dae1078be28b24be665715",
+      "fields": [
+        "SwiftRunStage",
+        "SwiftRunFailureKind",
+        "&'static str",
+        "Option<u32>",
+        "Option<usize>",
+        "Option<SwiftRunResource>",
+        "u64",
+        "u64",
+        "Option<usize>",
+        "SwiftDeadlineOrigin",
+        "Option<WasiFailure>",
+        "Option<u32>",
+        "SwiftRunUsage",
+        "Option<SwiftRunUsage>"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 151
+    },
+    "SwiftRunFailureKind": {
+      "declaration_sha256": "18d625412f2546dc7f1e6aab3755acf987d564e6e7b610ea869611d0944e9859",
+      "kind": "enum",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 1,
+      "variants": [
+        {
+          "fields": [],
+          "name": "InvalidBudget",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Cancelled",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Deadline",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Allocation",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Adoption",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "CategoryExhausted",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "CombinedExhausted",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "ResourceExhausted",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FuelExhausted",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "WorkExhausted",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "HostCallLimit",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "PinLimit",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FrameLimit",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "ValueLimit",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "ControlLimit",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "DecoderMismatch",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "UnsupportedEnvironment",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "GuestTrap",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "GuestExit",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Wasi",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Invariant",
+          "payload_leaves": 0
+        }
+      ]
+    },
+    "SwiftRunResource": {
+      "declaration_sha256": "f3cfebc1fbfd63388b14defd957e52dd015168bfc78a53b7482e70223df23260",
+      "kind": "enum",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 2,
+      "variants": [
+        {
+          "fields": [
+            "SwiftReservationCategory"
+          ],
+          "name": "Reservation",
+          "payload_leaves": 1
+        },
+        {
+          "fields": [],
+          "name": "Combined",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "CacheEntryBytes",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "CacheEntries",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "ActivePins",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Frames",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Values",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Controls",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "MemoryPages",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "CacheWork",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "ExecutionWork",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "InstructionFuel",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "HostCalls",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Deadline",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "TicketInventory",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "OwnerIdentity",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "ExactCapacity",
+          "payload_leaves": 0
+        }
+      ]
+    },
+    "SwiftRunStage": {
+      "declaration_sha256": "986eb8c7901ff98873155a3ab0f2cc0959d8b78ef199781ca072d3d3269b0423",
+      "kind": "enum",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 1,
+      "variants": [
+        {
+          "fields": [],
+          "name": "Adoption",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Cache",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Initialization",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Invocation",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Wasi",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Cleanup",
+          "payload_leaves": 0
+        }
+      ]
+    },
+    "SwiftRunUsage": {
+      "declaration_sha256": "3558539afd52f7d06081b2e87ac85dfe4b2b18a38e917ebd2346d53250d8775a",
+      "fields": [
+        "SwiftReservations",
+        "SwiftLiveUsage",
+        "u64",
+        "u64",
+        "u64",
+        "u64",
+        "u64",
+        "Option<SwiftCleanupInvariant>",
+        "u64",
+        "u64",
+        "SwiftDeadlineOrigin",
+        "u64",
+        "SwiftValidationUsage",
+        "Option<WasiUsage>"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "scalar_leaves": 65
+    },
+    "SwiftValidationBudget": {
+      "declaration_sha256": "36387b3978d779da4cf03c156791586e36487b7d99666bae92a9c313e9b396d6",
+      "fields": [
+        "usize",
+        "usize",
+        "usize",
+        "u64",
+        "u64"
+      ],
+      "kind": "struct",
+      "path": "src/experimental/swift.rs",
+      "scalar_leaves": 5
+    },
+    "SwiftValidationUsage": {
+      "declaration_sha256": "2d5136b10c41ef95817e5a729aec34821907a8da9e46c67e220931c8084b146d",
+      "fields": [
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "usize",
+        "u64",
+        "u64",
+        "u64"
+      ],
+      "kind": "struct",
+      "path": "src/experimental/swift.rs",
+      "scalar_leaves": 10
+    },
+    "UnverifiedProfileDigestBytesV1": {
+      "declaration_sha256": "def3d038028cc3f00d385fab0e5946d8feb2c6eb04e1ecde66c3312f5046feca",
+      "fields": [
+        "[u8;32]",
+        "[u8;32]",
+        "[u8;32]",
+        "[u8;32]",
+        "[u8;32]",
+        "[u8;32]",
+        "[u8;32]",
+        "[u8;32]"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "scalar_leaves": 256
+    },
+    "UnverifiedProfileHeaderV1": {
+      "declaration_sha256": "e6848eac4ff00083c6120adcf2d651e159896ea6c8ecbde2587a97367699be65",
+      "fields": [
+        "[u8;512]"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "scalar_leaves": 512
+    },
+    "ValidatedSwiftReactor": {
+      "declaration_sha256": "237f3a6d14e0282419b114718a2a43fb84249930fff2ea15bb81e86a997d9355",
+      "fields": [
+        "Box<[u8]>",
+        "SwiftMetadata",
+        "policy::Policy<'static>",
+        "[WasiFunction; 34]",
+        "SwiftValidationUsage",
+        "SwiftReactorObservations"
+      ],
+      "kind": "struct",
+      "path": "src/experimental/swift.rs",
+      "scalar_leaves": 104
+    },
+    "WasiBudget": {
+      "declaration_sha256": "4a0cb60b01ccaf049e1674651ccc4bcf9bf0848f108f40b0bec4014b48fa8ef3",
+      "fields": [
+        "u64",
+        "u64",
+        "u64",
+        "u32",
+        "u32",
+        "u32",
+        "u64"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_wasi/mod.rs",
+      "scalar_leaves": 7
+    },
+    "WasiContext": {
+      "declaration_sha256": "c68f15c25b60f811d28bcfc49c940392c0a1efc03703af3379dd9741f6b55e2e",
+      "fields": [
+        "WasiGrants",
+        "WasiBudget",
+        "Cancellation",
+        "Instant",
+        "Option<WasiOutcome>",
+        "WasiUsage",
+        "Vec<u8>",
+        "Vec<u8>",
+        "Vec<u8>",
+        "Vec<u8>",
+        "usize",
+        "usize",
+        "bool",
+        "bool",
+        "[Span; 64]"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_wasi/mod.rs",
+      "scalar_leaves": 167
+    },
+    "WasiFailure": {
+      "declaration_sha256": "53a970c14f0bd895999045c195c7ec16111d647958e476dc37a8f68f5d3092c5",
+      "kind": "enum",
+      "path": "src/experimental_wasi/mod.rs",
+      "scalar_leaves": 2,
+      "variants": [
+        {
+          "fields": [],
+          "name": "InvalidBudget",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Allocation",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "InvalidArguments",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "InvalidMemory",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [
+            "experimental_wasi::Resource"
+          ],
+          "name": "Budget",
+          "payload_leaves": 1
+        },
+        {
+          "fields": [],
+          "name": "Cancelled",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Deadline",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Invariant",
+          "payload_leaves": 0
+        }
+      ]
+    },
+    "WasiFunction": {
+      "declaration_sha256": "74537a79f73ea35e1683b226b1b6daf6b106ea54b3dbb5fdb1d3cdfe2b4dc98f",
+      "kind": "enum",
+      "path": "src/experimental_wasi/descriptor.rs",
+      "scalar_leaves": 1,
+      "variants": [
+        {
+          "fields": [],
+          "name": "ArgsGet",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "ArgsSizesGet",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "EnvironGet",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "EnvironSizesGet",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "ClockResGet",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "ClockTimeGet",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FdClose",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FdFdstatGet",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FdFdstatSetFlags",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FdFilestatGet",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FdFilestatSetSize",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FdFilestatSetTimes",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FdPread",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FdPrestatGet",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FdPrestatDirName",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FdRead",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FdReaddir",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FdSeek",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FdSync",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FdTell",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "FdWrite",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "PathCreateDirectory",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "PathFilestatGet",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "PathFilestatSetTimes",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "PathLink",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "PathOpen",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "PathReadlink",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "PathRemoveDirectory",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "PathRename",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "PathSymlink",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "PathUnlinkFile",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "PollOneoff",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "ProcExit",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "RandomGet",
+          "payload_leaves": 0
+        }
+      ]
+    },
+    "WasiGrants": {
+      "declaration_sha256": "eec33c7c02e9e0a43c4f95525ad332ce391f7e2f2f7eb93d5ab1ef85a08a2d41",
+      "fields": [
+        "bool",
+        "bool",
+        "bool",
+        "bool",
+        "bool"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_wasi/mod.rs",
+      "scalar_leaves": 5
+    },
+    "WasiOutcome": {
+      "declaration_sha256": "35a04f3fb1a5cd0561e4f7146db4d66ec5cfb01124e345eb7b58b9d0f783491a",
+      "kind": "enum",
+      "path": "src/experimental_wasi/mod.rs",
+      "scalar_leaves": 3,
+      "variants": [
+        {
+          "fields": [
+            "Errno"
+          ],
+          "name": "Errno",
+          "payload_leaves": 1
+        },
+        {
+          "fields": [
+            "u32"
+          ],
+          "name": "Exit",
+          "payload_leaves": 1
+        },
+        {
+          "fields": [
+            "WasiFailure"
+          ],
+          "name": "Failure",
+          "payload_leaves": 2
+        }
+      ]
+    },
+    "WasiReservations": {
+      "declaration_sha256": "561e34d1778f7aedb760da191d1c54ee90978e5e890023a00a8b7cca4e62a7f7",
+      "fields": [
+        "u64",
+        "u64",
+        "u64",
+        "u64",
+        "u64",
+        "u64",
+        "u64"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_wasi/mod.rs",
+      "scalar_leaves": 7
+    },
+    "WasiUsage": {
+      "declaration_sha256": "2be24fb48018490329687f9399c75416c8ba2dd2c377b5b200cc65844ddc6699",
+      "fields": [
+        "u64",
+        "u64",
+        "u64",
+        "u64",
+        "u64",
+        "u64",
+        "WasiReservations"
+      ],
+      "kind": "struct",
+      "path": "src/experimental_wasi/mod.rs",
+      "scalar_leaves": 13
+    },
+    "experimental::Resource": {
+      "declaration_sha256": "bf9a975f5a142e9c5cdf2009b64d619470ccf9956c6733205c89f13149ef273e",
+      "kind": "enum",
+      "path": "src/experimental/mod.rs",
+      "scalar_leaves": 1,
+      "variants": [
+        {
+          "fields": [],
+          "name": "Source",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Metadata",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Scratch",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Work",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Profile",
+          "payload_leaves": 0
+        }
+      ]
+    },
+    "experimental_wasi::Resource": {
+      "declaration_sha256": "bc44f318f5b31f4a3acb2d86bac483696de1f021612f157fe14dcdd381bc3fd2",
+      "kind": "enum",
+      "path": "src/experimental_wasi/mod.rs",
+      "scalar_leaves": 1,
+      "variants": [
+        {
+          "fields": [],
+          "name": "Calls",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Transfer",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "TransferSize",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Work",
+          "payload_leaves": 0
+        },
+        {
+          "fields": [],
+          "name": "Iovecs",
+          "payload_leaves": 0
+        }
+      ]
+    }
+  },
+  "opaque_std_backing_price": "required positive separate cut; never native pointer-size zero",
+  "opaque_std_carriers": [
+    "File",
+    "Error",
+    "Cancellation",
+    "Instant",
+    "Duration",
+    "Vec",
+    "String",
+    "Arc",
+    "Rc",
+    "Box"
+  ],
+  "schema": 1,
+  "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185"
+}

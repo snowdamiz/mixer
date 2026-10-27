@@ -1,0 +1,1767 @@
+{
+  "method": "source patterns plus manual product-call resolution; independent review required",
+  "resolutions": {
+    "bdispose": [
+      {
+        "callee": "meter_release",
+        "count": 1,
+        "reason": "source pattern meter\\.release\\("
+      }
+    ],
+    "bget": [],
+    "bgetmut": [],
+    "blast": [],
+    "blastmut": [],
+    "blen": [],
+    "bnew": [],
+    "bpop": [],
+    "bpush": [
+      {
+        "callee": "meter_error",
+        "count": 1,
+        "reason": "source pattern meter\\.error\\("
+      },
+      {
+        "callee": "meter_work",
+        "count": 1,
+        "reason": "source pattern meter\\.work\\("
+      },
+      {
+        "callee": "blen",
+        "count": 1,
+        "reason": "all written .len sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "breserve",
+        "count": 1,
+        "reason": "all written .reserve sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bpush",
+        "count": 1,
+        "reason": "all written .push sites; includes conservative non-Buffer duplicates"
+      }
+    ],
+    "breserve": [
+      {
+        "callee": "meter_error",
+        "count": 3,
+        "reason": "source pattern meter\\.error\\("
+      },
+      {
+        "callee": "meter_work",
+        "count": 1,
+        "reason": "source pattern meter\\.work\\("
+      },
+      {
+        "callee": "meter_release",
+        "count": 4,
+        "reason": "source pattern meter\\.release\\("
+      },
+      {
+        "callee": "meter_reserve",
+        "count": 1,
+        "reason": "source pattern meter\\.reserve\\("
+      },
+      {
+        "callee": "breserve",
+        "count": 1,
+        "reason": "all written .reserve sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bpush",
+        "count": 1,
+        "reason": "all written .push sites; includes conservative non-Buffer duplicates"
+      }
+    ],
+    "bslice": [],
+    "bswap": [],
+    "btruncate": [],
+    "budget": [],
+    "build": [
+      {
+        "callee": "failure",
+        "count": 3,
+        "reason": "source pattern LoaderFailureV1::new\\("
+      },
+      {
+        "callee": "header",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "sections",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "list",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "word",
+        "count": 5,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "bytes_new": [],
+    "bytes_put": [
+      {
+        "callee": "failure",
+        "count": 2,
+        "reason": "source pattern LoaderFailureV1::new\\("
+      }
+    ],
+    "bytes_slice": [],
+    "bytes_word": [
+      {
+        "callee": "bytes_put",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "cancel": [],
+    "control_body": [],
+    "control_control": [],
+    "control_expired": [],
+    "control_locals": [],
+    "control_operand": [],
+    "control_source": [],
+    "cstring": [
+      {
+        "callee": "failure",
+        "count": 2,
+        "reason": "source pattern LoaderFailureV1::new\\("
+      }
+    ],
+    "env": [
+      {
+        "callee": "failure",
+        "count": 3,
+        "reason": "source pattern LoaderFailureV1::new\\("
+      },
+      {
+        "callee": "bytes_word",
+        "count": 65,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "bytes_put",
+        "count": 64,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "equality": [
+      {
+        "callee": "proof_source",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "failure": [],
+    "final_all": [
+      {
+        "callee": "final_one",
+        "count": 4,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "identity",
+        "count": 4,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "final_one": [
+      {
+        "callee": "failure",
+        "count": 1,
+        "reason": "source pattern LoaderFailureV1::new\\("
+      },
+      {
+        "callee": "failure",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "hash": [
+      {
+        "callee": "failure",
+        "count": 2,
+        "reason": "source pattern LoaderFailureV1::new\\("
+      },
+      {
+        "callee": "failure",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "header": [
+      {
+        "callee": "failure",
+        "count": 2,
+        "reason": "source pattern LoaderFailureV1::new\\("
+      },
+      {
+        "callee": "word",
+        "count": 3,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "hex": [],
+    "identity": [
+      {
+        "callee": "failure",
+        "count": 1,
+        "reason": "source pattern LoaderFailureV1::new\\("
+      },
+      {
+        "callee": "io_failure",
+        "count": 1,
+        "reason": "source pattern LoaderFailureV1::io\\("
+      }
+    ],
+    "identity_encode": [
+      {
+        "callee": "word",
+        "count": 8,
+        "reason": "eight u64 little-endian word-equivalent primitive calls; covers all encode iterations"
+      }
+    ],
+    "inner": [
+      {
+        "callee": "failure",
+        "count": 16,
+        "reason": "source pattern LoaderFailureV1::new\\("
+      },
+      {
+        "callee": "io_failure",
+        "count": 1,
+        "reason": "source pattern LoaderFailureV1::io\\("
+      },
+      {
+        "callee": "budget",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "observe",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "identity",
+        "count": 4,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "retained",
+        "count": 4,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "read_attempt",
+        "count": "read_requests",
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "build",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "session",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "hex",
+        "count": 5,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "hash",
+        "count": 12,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "identity_encode",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "peak",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "equality",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "final_all",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "io_failure": [
+      {
+        "callee": "failure",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "list": [
+      {
+        "callee": "failure",
+        "count": 1,
+        "reason": "source pattern LoaderFailureV1::new\\("
+      },
+      {
+        "callee": "word",
+        "count": 65,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "loader": [
+      {
+        "callee": "failure",
+        "count": 1,
+        "reason": "source pattern LoaderFailureV1::new\\("
+      },
+      {
+        "callee": "inner",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "mcompare": [
+      {
+        "callee": "meter_work",
+        "count": 2,
+        "reason": "source pattern meter\\.work\\("
+      },
+      {
+        "callee": "blen",
+        "count": 2,
+        "reason": "all written .len sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bget",
+        "count": 2,
+        "reason": "all written .get sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "span_slice",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "mconstant": [
+      {
+        "callee": "rerror",
+        "count": 2,
+        "reason": "source pattern \\b[rs]\\.error\\("
+      },
+      {
+        "callee": "rbyte",
+        "count": 2,
+        "reason": "source pattern \\b[rs]\\.byte\\("
+      },
+      {
+        "callee": "rtake",
+        "count": 2,
+        "reason": "source pattern \\b[rs]\\.take\\("
+      },
+      {
+        "callee": "rsigned",
+        "count": 2,
+        "reason": "source pattern \\b[rs]\\.signed\\("
+      }
+    ],
+    "mduplicate": [
+      {
+        "callee": "meter_error",
+        "count": 1,
+        "reason": "source pattern meter\\.error\\("
+      },
+      {
+        "callee": "meter_work",
+        "count": 1,
+        "reason": "source pattern meter\\.work\\("
+      },
+      {
+        "callee": "blen",
+        "count": 1,
+        "reason": "all written .len sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bget",
+        "count": 2,
+        "reason": "all written .get sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bswap",
+        "count": 1,
+        "reason": "all written .swap sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "breserve",
+        "count": 1,
+        "reason": "all written .reserve sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bpush",
+        "count": 1,
+        "reason": "all written .push sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bdispose",
+        "count": 1,
+        "reason": "all written .dispose sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "mcompare",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "msift",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "bnew",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "meter_check": [
+      {
+        "callee": "cancel",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "control_expired",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "meter_error": [],
+    "meter_new": [],
+    "meter_release": [],
+    "meter_reserve": [
+      {
+        "callee": "resource",
+        "count": 2,
+        "reason": "source pattern \\.resource\\("
+      },
+      {
+        "callee": "meter_check",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "meter_error",
+        "count": 3,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "meter_source",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "resource",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "meter_source": [
+      {
+        "callee": "control_source",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "meter_usage": [],
+    "meter_work": [
+      {
+        "callee": "resource",
+        "count": 2,
+        "reason": "source pattern \\.resource\\("
+      },
+      {
+        "callee": "meter_check",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "meter_error",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "mlimits": [
+      {
+        "callee": "resource",
+        "count": 1,
+        "reason": "source pattern \\.resource\\("
+      },
+      {
+        "callee": "rerror",
+        "count": 2,
+        "reason": "source pattern \\b[rs]\\.error\\("
+      },
+      {
+        "callee": "rbyte",
+        "count": 1,
+        "reason": "source pattern \\b[rs]\\.byte\\("
+      },
+      {
+        "callee": "ruint",
+        "count": 2,
+        "reason": "source pattern \\b[rs]\\.uint\\("
+      }
+    ],
+    "mname": [
+      {
+        "callee": "rcursor",
+        "count": 2,
+        "reason": "source pattern \\b[rs]\\.cursor\\("
+      },
+      {
+        "callee": "rtake",
+        "count": 1,
+        "reason": "source pattern \\b[rs]\\.take\\("
+      },
+      {
+        "callee": "rcount",
+        "count": 1,
+        "reason": "source pattern \\b[rs]\\.count\\("
+      },
+      {
+        "callee": "mutf8",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "mspan",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "policy_name_bytes",
+        "count": 1,
+        "reason": "source pattern (?:policy|limits)\\.name_bytes\\("
+      }
+    ],
+    "mnew": [
+      {
+        "callee": "bnew",
+        "count": 8,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "moffset": [
+      {
+        "callee": "meter_error",
+        "count": 1,
+        "reason": "source pattern meter\\.error\\("
+      }
+    ],
+    "mparams": [
+      {
+        "callee": "bslice",
+        "count": 1,
+        "reason": "all written .as_slice sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bslice",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "mread": [
+      {
+        "callee": "meter_work",
+        "count": 3,
+        "reason": "source pattern meter\\.work\\("
+      },
+      {
+        "callee": "resource",
+        "count": 1,
+        "reason": "source pattern \\.resource\\("
+      },
+      {
+        "callee": "rcursor",
+        "count": 33,
+        "reason": "source pattern \\b[rs]\\.cursor\\("
+      },
+      {
+        "callee": "rerror",
+        "count": 28,
+        "reason": "source pattern \\b[rs]\\.error\\("
+      },
+      {
+        "callee": "rbyte",
+        "count": 7,
+        "reason": "source pattern \\b[rs]\\.byte\\("
+      },
+      {
+        "callee": "rtake",
+        "count": 4,
+        "reason": "source pattern \\b[rs]\\.take\\("
+      },
+      {
+        "callee": "ruint",
+        "count": 10,
+        "reason": "source pattern \\b[rs]\\.uint\\("
+      },
+      {
+        "callee": "rcount",
+        "count": 14,
+        "reason": "source pattern \\b[rs]\\.count\\("
+      },
+      {
+        "callee": "rty",
+        "count": 3,
+        "reason": "source pattern \\b[rs]\\.ty\\("
+      },
+      {
+        "callee": "rend",
+        "count": 1,
+        "reason": "source pattern \\b[rs]\\.end\\("
+      },
+      {
+        "callee": "mparams",
+        "count": 1,
+        "reason": "source pattern m\\.params\\("
+      },
+      {
+        "callee": "blen",
+        "count": 13,
+        "reason": "all written .len sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bslice",
+        "count": 4,
+        "reason": "all written .as_slice sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bget",
+        "count": 1,
+        "reason": "all written .get sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bgetmut",
+        "count": 1,
+        "reason": "all written .get_mut sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "breserve",
+        "count": 7,
+        "reason": "all written .reserve sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bpush",
+        "count": 8,
+        "reason": "all written .push sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "rnew",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "mnew",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "mname",
+        "count": 4,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "mconstant",
+        "count": 3,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "mlimits",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "moffset",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "mspan",
+        "count": 4,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "mduplicate",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "policy_legacy_imports",
+        "count": 1,
+        "reason": "source pattern (?:policy|limits)\\.legacy_imports\\("
+      },
+      {
+        "callee": "policy_floats",
+        "count": 6,
+        "reason": "source pattern (?:policy|limits)\\.floats\\("
+      },
+      {
+        "callee": "policy_tables",
+        "count": 2,
+        "reason": "source pattern (?:policy|limits)\\.tables\\("
+      },
+      {
+        "callee": "policy_module_bytes",
+        "count": 1,
+        "reason": "source pattern (?:policy|limits)\\.module_bytes\\("
+      },
+      {
+        "callee": "policy_functions",
+        "count": 3,
+        "reason": "source pattern (?:policy|limits)\\.functions\\("
+      },
+      {
+        "callee": "policy_types",
+        "count": 1,
+        "reason": "source pattern (?:policy|limits)\\.types\\("
+      },
+      {
+        "callee": "policy_type_parameters_total",
+        "count": 2,
+        "reason": "source pattern (?:policy|limits)\\.type_parameters_total\\("
+      },
+      {
+        "callee": "policy_parameters_per_signature",
+        "count": 1,
+        "reason": "source pattern (?:policy|limits)\\.parameters_per_signature\\("
+      },
+      {
+        "callee": "policy_globals",
+        "count": 1,
+        "reason": "source pattern (?:policy|limits)\\.globals\\("
+      },
+      {
+        "callee": "policy_exports",
+        "count": 1,
+        "reason": "source pattern (?:policy|limits)\\.exports\\("
+      },
+      {
+        "callee": "policy_data_segments",
+        "count": 1,
+        "reason": "source pattern (?:policy|limits)\\.data_segments\\("
+      },
+      {
+        "callee": "policy_element_segments",
+        "count": 1,
+        "reason": "source pattern (?:policy|limits)\\.element_segments\\("
+      },
+      {
+        "callee": "policy_table_elements",
+        "count": 2,
+        "reason": "source pattern (?:policy|limits)\\.table_elements\\("
+      },
+      {
+        "callee": "policy_memory_pages",
+        "count": 1,
+        "reason": "source pattern (?:policy|limits)\\.memory_pages\\("
+      }
+    ],
+    "msift": [
+      {
+        "callee": "meter_error",
+        "count": 1,
+        "reason": "source pattern meter\\.error\\("
+      },
+      {
+        "callee": "meter_work",
+        "count": 1,
+        "reason": "source pattern meter\\.work\\("
+      },
+      {
+        "callee": "bget",
+        "count": 4,
+        "reason": "all written .get sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bswap",
+        "count": 1,
+        "reason": "all written .swap sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "mcompare",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "msignature": [
+      {
+        "callee": "blen",
+        "count": 2,
+        "reason": "all written .len sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bget",
+        "count": 3,
+        "reason": "all written .get sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "blen",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "bget",
+        "count": 3,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "mspan": [
+      {
+        "callee": "meter_error",
+        "count": 1,
+        "reason": "source pattern meter\\.error\\("
+      },
+      {
+        "callee": "meter_source",
+        "count": 1,
+        "reason": "source pattern meter\\.source_limit\\("
+      },
+      {
+        "callee": "moffset",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "mutf8": [
+      {
+        "callee": "meter_error",
+        "count": 4,
+        "reason": "source pattern meter\\.error\\("
+      },
+      {
+        "callee": "meter_work",
+        "count": 2,
+        "reason": "source pattern meter\\.work\\("
+      },
+      {
+        "callee": "blen",
+        "count": 1,
+        "reason": "all written .len sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bget",
+        "count": 1,
+        "reason": "all written .get sites; includes conservative non-Buffer duplicates"
+      }
+    ],
+    "numeric": [
+      {
+        "callee": "shape",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "observe": [
+      {
+        "callee": "failure",
+        "count": 15,
+        "reason": "source pattern LoaderFailureV1::new\\("
+      },
+      {
+        "callee": "io_failure",
+        "count": 1,
+        "reason": "source pattern LoaderFailureV1::io\\("
+      },
+      {
+        "callee": "bytes_new",
+        "count": 5,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "bytes_word",
+        "count": 129,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "bytes_put",
+        "count": 128,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "cstring",
+        "count": 128,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "hex",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "env",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "peak": [],
+    "policy_control_depth": [],
+    "policy_data_segments": [],
+    "policy_element_segments": [],
+    "policy_exports": [],
+    "policy_floats": [],
+    "policy_functions": [],
+    "policy_globals": [],
+    "policy_instructions": [],
+    "policy_legacy_imports": [],
+    "policy_local_groups": [],
+    "policy_memory_pages": [],
+    "policy_module_bytes": [],
+    "policy_name_bytes": [],
+    "policy_operand_stack": [],
+    "policy_parameters_per_signature": [],
+    "policy_parameters_plus_locals": [],
+    "policy_swift": [],
+    "policy_table_elements": [],
+    "policy_tables": [],
+    "policy_type_parameters_total": [],
+    "policy_types": [],
+    "proof_source": [],
+    "proof_usage": [],
+    "rbyte": [
+      {
+        "callee": "meter_work",
+        "count": 1,
+        "reason": "source pattern meter\\.work\\("
+      },
+      {
+        "callee": "bget",
+        "count": 1,
+        "reason": "all written .get sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "meter_work",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "rcursor",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "rerror",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "rcount": [
+      {
+        "callee": "resource",
+        "count": 1,
+        "reason": "source pattern \\.resource\\("
+      },
+      {
+        "callee": "ruint",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "rerror",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "rcursor": [],
+    "read_attempt": [
+      {
+        "callee": "failure",
+        "count": 4,
+        "reason": "source pattern LoaderFailureV1::new\\("
+      },
+      {
+        "callee": "io_failure",
+        "count": 1,
+        "reason": "source pattern LoaderFailureV1::io\\("
+      }
+    ],
+    "rend": [
+      {
+        "callee": "blen",
+        "count": 1,
+        "reason": "all written .len sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "rerror",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "rerror": [
+      {
+        "callee": "meter_error",
+        "count": 1,
+        "reason": "source pattern meter\\.error\\("
+      },
+      {
+        "callee": "rcursor",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "meter_error",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "resource": [],
+    "retained": [
+      {
+        "callee": "failure",
+        "count": 6,
+        "reason": "source pattern LoaderFailureV1::new\\("
+      },
+      {
+        "callee": "io_failure",
+        "count": 1,
+        "reason": "source pattern LoaderFailureV1::io\\("
+      },
+      {
+        "callee": "read_attempt",
+        "count": 32,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "identity",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "rnew": [],
+    "rsigned": [
+      {
+        "callee": "rbyte",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "rerror",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "rtake": [
+      {
+        "callee": "meter_work",
+        "count": 1,
+        "reason": "source pattern meter\\.work\\("
+      },
+      {
+        "callee": "blen",
+        "count": 1,
+        "reason": "all written .len sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "meter_work",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "rcursor",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "rerror",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "rty": [
+      {
+        "callee": "rbyte",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "rerror",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "ruint": [
+      {
+        "callee": "rbyte",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "rerror",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "saturating": [],
+    "scall": [
+      {
+        "callee": "mparams",
+        "count": 1,
+        "reason": "source pattern m\\.params\\("
+      },
+      {
+        "callee": "bpop",
+        "count": 1,
+        "reason": "all written .pop sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bpush",
+        "count": 1,
+        "reason": "all written .push sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "spop",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "spush",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "sdispose": [
+      {
+        "callee": "bdispose",
+        "count": 3,
+        "reason": "all written .dispose sites; includes conservative non-Buffer duplicates"
+      }
+    ],
+    "sections": [
+      {
+        "callee": "failure",
+        "count": 4,
+        "reason": "source pattern LoaderFailureV1::new\\("
+      },
+      {
+        "callee": "word",
+        "count": 4,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "serror": [
+      {
+        "callee": "meter_error",
+        "count": 1,
+        "reason": "source pattern meter\\.error\\("
+      },
+      {
+        "callee": "meter_error",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "session": [
+      {
+        "callee": "failure",
+        "count": 5,
+        "reason": "source pattern LoaderFailureV1::new\\("
+      },
+      {
+        "callee": "header",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "sections",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "list",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "word",
+        "count": 7,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "shape": [],
+    "slabel": [
+      {
+        "callee": "meter_work",
+        "count": 1,
+        "reason": "source pattern meter\\.work\\("
+      },
+      {
+        "callee": "blen",
+        "count": 1,
+        "reason": "all written .len sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bget",
+        "count": 1,
+        "reason": "all written .get sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "meter_work",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "serror",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "snew": [
+      {
+        "callee": "bnew",
+        "count": 3,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "span_slice": [],
+    "spop": [
+      {
+        "callee": "spopany",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "serror",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "spopany": [
+      {
+        "callee": "meter_work",
+        "count": 1,
+        "reason": "source pattern meter\\.work\\("
+      },
+      {
+        "callee": "blen",
+        "count": 2,
+        "reason": "all written .len sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "blast",
+        "count": 1,
+        "reason": "all written .last sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bpop",
+        "count": 1,
+        "reason": "all written .pop sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "meter_work",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "serror",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "spush": [
+      {
+        "callee": "resource",
+        "count": 1,
+        "reason": "source pattern \\.resource\\("
+      },
+      {
+        "callee": "blen",
+        "count": 3,
+        "reason": "all written .len sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bpush",
+        "count": 1,
+        "reason": "all written .push sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "control_operand",
+        "count": 1,
+        "reason": "source pattern meter\\.control\\.operand\\("
+      }
+    ],
+    "sresult": [
+      {
+        "callee": "bpop",
+        "count": 1,
+        "reason": "all written .pop sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "spop",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "sunreachable": [
+      {
+        "callee": "meter_work",
+        "count": 1,
+        "reason": "source pattern meter\\.work\\("
+      },
+      {
+        "callee": "blast",
+        "count": 1,
+        "reason": "all written .last sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "blastmut",
+        "count": 1,
+        "reason": "all written .last_mut sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "btruncate",
+        "count": 1,
+        "reason": "all written .truncate sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "meter_work",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "serror",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "vabi": [
+      {
+        "callee": "meter_error",
+        "count": 8,
+        "reason": "source pattern meter\\.error\\("
+      },
+      {
+        "callee": "meter_work",
+        "count": 3,
+        "reason": "source pattern meter\\.work\\("
+      },
+      {
+        "callee": "mparams",
+        "count": 1,
+        "reason": "source pattern m\\.params\\("
+      },
+      {
+        "callee": "blen",
+        "count": 2,
+        "reason": "all written .len sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bslice",
+        "count": 5,
+        "reason": "all written .as_slice sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bget",
+        "count": 2,
+        "reason": "all written .get sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "wresolve",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "span_slice",
+        "count": 3,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "validator_entry": [
+      {
+        "callee": "blen",
+        "count": 1,
+        "reason": "all written .len sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "vvalidate",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "vfailure",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "vall": [
+      {
+        "callee": "meter_error",
+        "count": 2,
+        "reason": "source pattern meter\\.error\\("
+      },
+      {
+        "callee": "resource",
+        "count": 2,
+        "reason": "source pattern \\.resource\\("
+      },
+      {
+        "callee": "rcursor",
+        "count": 5,
+        "reason": "source pattern \\b[rs]\\.cursor\\("
+      },
+      {
+        "callee": "rerror",
+        "count": 7,
+        "reason": "source pattern \\b[rs]\\.error\\("
+      },
+      {
+        "callee": "rbyte",
+        "count": 3,
+        "reason": "source pattern \\b[rs]\\.byte\\("
+      },
+      {
+        "callee": "rtake",
+        "count": 2,
+        "reason": "source pattern \\b[rs]\\.take\\("
+      },
+      {
+        "callee": "ruint",
+        "count": 16,
+        "reason": "source pattern \\b[rs]\\.uint\\("
+      },
+      {
+        "callee": "rsigned",
+        "count": 2,
+        "reason": "source pattern \\b[rs]\\.signed\\("
+      },
+      {
+        "callee": "rcount",
+        "count": 3,
+        "reason": "source pattern \\b[rs]\\.count\\("
+      },
+      {
+        "callee": "rty",
+        "count": 1,
+        "reason": "source pattern \\b[rs]\\.ty\\("
+      },
+      {
+        "callee": "rend",
+        "count": 1,
+        "reason": "source pattern \\b[rs]\\.end\\("
+      },
+      {
+        "callee": "mparams",
+        "count": 1,
+        "reason": "source pattern m\\.params\\("
+      },
+      {
+        "callee": "spop",
+        "count": 14,
+        "reason": "source pattern state\\.pop\\("
+      },
+      {
+        "callee": "spopany",
+        "count": 3,
+        "reason": "source pattern state\\.pop_any\\("
+      },
+      {
+        "callee": "spush",
+        "count": 13,
+        "reason": "source pattern state\\.push\\("
+      },
+      {
+        "callee": "sresult",
+        "count": 6,
+        "reason": "source pattern state\\.result\\("
+      },
+      {
+        "callee": "sunreachable",
+        "count": 4,
+        "reason": "source pattern state\\.unreachable\\("
+      },
+      {
+        "callee": "slabel",
+        "count": 4,
+        "reason": "source pattern state\\.label\\("
+      },
+      {
+        "callee": "scall",
+        "count": 2,
+        "reason": "source pattern state\\.call\\("
+      },
+      {
+        "callee": "sdispose",
+        "count": 1,
+        "reason": "source pattern state\\.dispose\\("
+      },
+      {
+        "callee": "serror",
+        "count": 22,
+        "reason": "source pattern state\\.error\\("
+      },
+      {
+        "callee": "blen",
+        "count": 12,
+        "reason": "all written .len sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bget",
+        "count": 5,
+        "reason": "all written .get sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "blast",
+        "count": 2,
+        "reason": "all written .last sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "blastmut",
+        "count": 1,
+        "reason": "all written .last_mut sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bpop",
+        "count": 15,
+        "reason": "all written .pop sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bpush",
+        "count": 17,
+        "reason": "all written .push sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bdispose",
+        "count": 1,
+        "reason": "all written .dispose sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "snew",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "rnew",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "span_slice",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "numeric",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "saturating",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "control_control",
+        "count": 2,
+        "reason": "source pattern meter\\.control\\.control\\("
+      },
+      {
+        "callee": "control_locals",
+        "count": 1,
+        "reason": "source pattern meter\\.control\\.locals\\("
+      },
+      {
+        "callee": "control_body",
+        "count": 1,
+        "reason": "source pattern meter\\.control\\.body\\("
+      },
+      {
+        "callee": "policy_floats",
+        "count": 9,
+        "reason": "source pattern (?:policy|limits)\\.floats\\("
+      },
+      {
+        "callee": "policy_tables",
+        "count": 2,
+        "reason": "source pattern (?:policy|limits)\\.tables\\("
+      },
+      {
+        "callee": "policy_local_groups",
+        "count": 1,
+        "reason": "source pattern (?:policy|limits)\\.local_groups\\("
+      },
+      {
+        "callee": "policy_instructions",
+        "count": 3,
+        "reason": "source pattern (?:policy|limits)\\.instructions\\("
+      },
+      {
+        "callee": "policy_operand_stack",
+        "count": 1,
+        "reason": "source pattern (?:policy|limits)\\.operand_stack\\("
+      },
+      {
+        "callee": "policy_control_depth",
+        "count": 2,
+        "reason": "source pattern (?:policy|limits)\\.control_depth\\("
+      }
+    ],
+    "vdefault": [],
+    "vfailure": [
+      {
+        "callee": "vusage",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "vsegments": [
+      {
+        "callee": "meter_error",
+        "count": 1,
+        "reason": "source pattern meter\\.error\\("
+      },
+      {
+        "callee": "meter_work",
+        "count": 1,
+        "reason": "source pattern meter\\.work\\("
+      },
+      {
+        "callee": "bslice",
+        "count": 1,
+        "reason": "all written .as_slice sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "bslice",
+        "count": 2,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "meter_work",
+        "count": 1,
+        "reason": "second segment-category body, fixed count2 even if empty"
+      }
+    ],
+    "vusage": [],
+    "vvalidate": [
+      {
+        "callee": "meter_error",
+        "count": 2,
+        "reason": "source pattern meter\\.error\\("
+      },
+      {
+        "callee": "meter_work",
+        "count": 2,
+        "reason": "source pattern meter\\.work\\("
+      },
+      {
+        "callee": "meter_check",
+        "count": 6,
+        "reason": "source pattern meter\\.check\\("
+      },
+      {
+        "callee": "meter_release",
+        "count": 1,
+        "reason": "source pattern meter\\.release\\("
+      },
+      {
+        "callee": "meter_reserve",
+        "count": 3,
+        "reason": "source pattern meter\\.reserve\\("
+      },
+      {
+        "callee": "meter_usage",
+        "count": 1,
+        "reason": "source pattern meter\\.usage\\("
+      },
+      {
+        "callee": "resource",
+        "count": 1,
+        "reason": "source pattern \\.resource\\("
+      },
+      {
+        "callee": "blen",
+        "count": 16,
+        "reason": "all written .len sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "breserve",
+        "count": 3,
+        "reason": "all written .reserve sites; includes conservative non-Buffer duplicates"
+      },
+      {
+        "callee": "vdefault",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "meter_new",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "mread",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "vabi",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "vsegments",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "vall",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "vusage",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "policy_swift",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "wname": [],
+    "word": [],
+    "wparams": [],
+    "wresolve": [
+      {
+        "callee": "wname",
+        "count": 34,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "wparams",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      },
+      {
+        "callee": "wresults",
+        "count": 1,
+        "reason": "manual call-DAG occurrence"
+      }
+    ],
+    "wresults": []
+  },
+  "schema": 1
+}
