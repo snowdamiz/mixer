@@ -1,0 +1,85 @@
+{
+  "accepted_authority_source_tree_sha256": "575b55d3391729749039dc2badccc9107449cb2c9a021d8ef67282c39b2e1896",
+  "exact_four_functions": [
+    {
+      "bytes": 480,
+      "file": "verification/swift-guarded-snapshot-scope-authority-correction/source/vm/src/experimental_swift_reactor/control.rs",
+      "sha256": "7dfada6566525eb224350432af102241297c25e54a2afcca55557753a93aa69e",
+      "source": "pub(super) fn construct_v1(mut self,claims:&SnapshotClaimsV1,rows:&mut File,snapshot:&mut File)->SnapshotRunV1 {\n        let adopted=self.adopted.take().expect(\"one-shot actual adopted owner\");\n        let owners=SnapshotScopeBorrowV1 {\n            cache:&mut self.cache,control:&mut self.control,wasi:self.wasi.as_ref(),adopted,\n        };\n        let outer=super::cache::construct_snapshot_in_scope_v1(owners,claims,rows,snapshot);\n        SnapshotRunV1 {scope:self,outer}\n    }",
+      "start_line": 1937
+    },
+    {
+      "bytes": 240,
+      "file": "verification/swift-guarded-snapshot-scope-authority-correction/source/vm/src/experimental_swift_reactor/control.rs",
+      "sha256": "929e1fa23e77244182c0ad83ef53223435ece8221acc34fc8e8636543bdf9330",
+      "source": "pub(super) fn into_parts(self)->(&'a mut Option<super::cache::SwiftFunctionCache>,&'a mut RuntimeControl,Option<&'a AccountedWasi>,AdoptedProof){\n        let Self {cache,control,wasi,adopted}=self;\n        (cache,control,wasi,adopted)\n    }",
+      "start_line": 1885
+    },
+    {
+      "bytes": 272,
+      "file": "verification/swift-guarded-snapshot-scope-authority-correction/source/vm/src/experimental_swift_reactor/cache.rs",
+      "sha256": "ff0a297d84f53d7f696bc90fe3c05c1812657415d2c621f0d9082219d6ecba5d",
+      "source": "pub(super) fn construct_snapshot_in_scope_v1(owners:super::control::SnapshotScopeBorrowV1<'_>,claims:&SnapshotClaimsV1,rows:&mut std::fs::File,snapshot:&mut std::fs::File)->SnapshotOuterV1{\n    initial_profile_v1::construct_snapshot_owned_v1(owners,claims,rows,snapshot)\n}",
+      "start_line": 4868
+    },
+    {
+      "bytes": 384,
+      "file": "verification/swift-guarded-snapshot-scope-authority-correction/source/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "sha256": "39cf997828ae7232fa9649e44659ec87e5fd53b9eab22e789d249a7697ea0d6f",
+      "source": "pub(super) fn construct_snapshot_owned_v1(owners:super::super::control::SnapshotScopeBorrowV1<'_>,claims:&UnverifiedProfileDigestBytesV1,rows:&mut File,snapshot:&mut File)->SnapshotOuterV1{\n    let (cache,control,wasi,adopted)=owners.into_parts();\n    construct_profile_core_v1(cache,control,wasi,adopted,&selected_initial_profile_v1(),claims,rows,SnapshotBranchV1{output:snapshot})\n}",
+      "start_line": 541
+    }
+  ],
+  "no_repeated_compiler_or_runtime_execution": true,
+  "old_ledger": {
+    "path": "verification/swift-guarded-snapshot-writer-work-audit/ledger.json",
+    "sha256": "14cbaf3e68c528bf0f0f52b367f17766f2cd248d11cb4ba2f56f728f81879543"
+  },
+  "references": [
+    {
+      "path": "verification/swift-semantic-adapter-root-review/guarded-snapshot-authority-work-delta-release.json",
+      "sha256": "c9910093451dda292364135ab06987fca3dcb4af4ef3927fa763f67f34b3bea5"
+    },
+    {
+      "path": "verification/swift-semantic-adapter-root-review/guarded-snapshot-scope-authority-host-acceptance.json",
+      "sha256": "d0eda272985957f2fb8fb14e893de8ad20ab535095b3d9df11b3ff6fe426ce76"
+    }
+  ],
+  "schema": 1,
+  "seals": [
+    {
+      "member_bytes": 23539,
+      "members_verified": 9,
+      "path": "verification/swift-guarded-snapshot-authority-work-delta/seal.json",
+      "sha256": "625ca2e549dbf32545722b44d2fc8af5715f70cf31a623f6cd432590d96e626d"
+    },
+    {
+      "member_bytes": 20277823,
+      "members_verified": 225,
+      "path": "verification/swift-guarded-snapshot-scope-authority-correction/seal.json",
+      "sha256": "351caf4860621989119d16b474dbb53c496a688c4efb0cbb3abb918825b79e6c"
+    },
+    {
+      "member_bytes": 626195,
+      "members_verified": 77,
+      "path": "verification/swift-guarded-snapshot-composition-independent/authority-correction-review/seal.json",
+      "sha256": "ed396b3b74fb5e399d7ebee1759b19dae35d8f7fc577fdd92825f7eb31421b36"
+    },
+    {
+      "member_bytes": 166080,
+      "members_verified": 14,
+      "path": "verification/swift-guarded-snapshot-writer-work-audit/seal.json",
+      "sha256": "1dba5632efbf285f303eddc4c9dcb727d0bfaae9f24400a32de98a8989d292ea"
+    },
+    {
+      "member_bytes": 86324,
+      "members_verified": 9,
+      "path": "verification/swift-guarded-snapshot-writer-work-correction/seal.json",
+      "sha256": "b1dd6bf46cd8416637e169ab00fc4e1aa03c094d6c89edb71f0f9721369bd5f7"
+    }
+  ],
+  "source_role_delta": {
+    "path": "verification/swift-guarded-snapshot-composition-independent/authority-correction-review/source-role-delta.md",
+    "sha256": "cb29603668f017b4565c399b4f5839ff907af47419e0f66a7ead12d6f83af5b6"
+  }
+}

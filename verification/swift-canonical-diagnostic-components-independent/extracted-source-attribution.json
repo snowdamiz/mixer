@@ -1,0 +1,35 @@
+{
+  "fixture": {
+    "exact_fixture": "struct OwnedDirectory(PathBuf);\nimpl OwnedDirectory {\n    fn new() -> Self {\n        use std::sync::atomic::{AtomicU64, Ordering};\n        static NEXT: AtomicU64 = AtomicU64::new(0);\n        for _ in 0..64 {\n            let path = std::env::temp_dir().join(format!(\n                \"mixer-diagnostic-profile-{}-{}\",\n                std::process::id(),\n                NEXT.fetch_add(1, Ordering::Relaxed)\n            ));\n            match fs::create_dir(&path) {\n                Ok(()) => return Self(path),\n                Err(error) if error.kind() == io::ErrorKind::AlreadyExists => continue,\n                Err(error) => panic!(\"create owned diagnostic fixture: {error}\"),\n            }\n        }\n        panic!(\"owned diagnostic fixture names exhausted\");\n    }\n    fn fresh(&self, name: &str) -> File {\n        OpenOptions::new()\n            .read(true)\n            .write(true)\n            .create_new(true)\n            .open(self.0.join(name))\n            .unwrap()\n    }\n}\nimpl Drop for OwnedDirectory {\n    fn drop(&mut self) {\n        let result = fs::remove_dir_all(&self.0);\n        if !std::thread::panicking() {\n            result.expect(\"remove owned diagnostic fixture\");\n        }\n    }\n}\n",
+    "exact_fixture_sha256": "23c05e31042dd7cfa64c8566de3c1f23e457374956baeef3573fcbb9c0c32422",
+    "harness": {
+      "bytes": 3261,
+      "path": "probes/fixture-ownership.rs",
+      "sha256": "23416eec2ab0f7cb7e426ec8310e19370dd82adff4fedf25a4df0081aa3c8ef2"
+    },
+    "new_native_or_runtime_authority": false,
+    "path": "vm/src/experimental_swift_reactor/diagnostic_profile_tests.rs",
+    "source": {
+      "bytes": 19194,
+      "path": "vm/src/experimental_swift_reactor/diagnostic_profile_tests.rs",
+      "sha256": "584a44ba2aefa83daa369b63416481d59afe7982e8de97a56a133bafabf1800c"
+    }
+  },
+  "scalar": {
+    "exact_function": "fn write_words(output: &mut [u8], words: &[u64]) {\n    for (slot, word) in output.as_chunks_mut::<8>().0.iter_mut().zip(words) {\n        slot.copy_from_slice(&word.to_le_bytes());\n    }\n}\n",
+    "exact_function_sha256": "8563b9e51a4cc4fe7f98fbe75c1341d071aabe75ef6ad80c40f2e95f3e711abb",
+    "harness": {
+      "bytes": 2949,
+      "path": "probes/scalar-boundaries.rs",
+      "sha256": "32b34a0498b5f9c60c56ff5a2035836d24b26482afe1bb5eea7b791c7fee61dc"
+    },
+    "oracle": "scalar index and bit shifts; full prefix, suffix, short word count and incomplete trailing byte preservation",
+    "path": "vm/src/experimental_swift_reactor/diagnostic_result_v1.rs",
+    "source": {
+      "bytes": 22501,
+      "path": "vm/src/experimental_swift_reactor/diagnostic_result_v1.rs",
+      "sha256": "3c199c4e514d5bc725ef4d5f31da22bc2d6bd5001aee7f2fb6bb709cc3e98468"
+    }
+  },
+  "schema": 1
+}

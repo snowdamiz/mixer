@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "file": "vm/src/experimental_swift_reactor/diagnostic_result_v1.rs",
+  "line": 40,
+  "before": "output.chunks_exact_mut(8).zip(words)",
+  "after": "output.as_chunks_mut::<8>().0.iter_mut().zip(words)",
+  "before_sha256": "6f6e776b5c29d37142c8422dd217e0963c4dc479a1b8977eaa1220b8eab6d1a2",
+  "after_sha256": "3c199c4e514d5bc725ef4d5f31da22bc2d6bd5001aee7f2fb6bb709cc3e98468",
+  "reason": "Rust1.99 production Clippy -D warnings rejects chunks_exact_to_as_chunks; both iterate full eight-byte mutable chunks in order and ignore the same trailing remainder.",
+  "behavior_or_api_expansion": false,
+  "failed_command": "commands/reactor-clippy",
+  "source_before": "source-manifest-before-clippy-repair.json"
+}

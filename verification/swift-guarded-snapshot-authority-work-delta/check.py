@@ -1,0 +1,63 @@
+"""Price only the accepted owner-routing source delta; no runtime admission."""
+from pathlib import Path
+import hashlib,json,sys
+HERE=Path(__file__).resolve().parent
+V=HERE.parent
+def sha(b):return hashlib.sha256(b).hexdigest()
+def record(path):
+    b=path.read_bytes();return {'path':path.relative_to(V.parent).as_posix(),'bytes':len(b),'sha256':sha(b)}
+def extract(path,needle):
+    text=path.read_text();assert text.count(needle)==1
+    start=text.index(needle);opening=text.index('{',start);depth=1;i=opening+1
+    # These exact four short source bodies have no brace-containing strings.
+    # This extracts a bound source slice, not authority or an OTA decision.
+    while depth:
+        if text[i]=='{':depth+=1
+        elif text[i]=='}':depth-=1
+        i+=1
+    body=text[start:i]
+    return {'file':path.relative_to(V.parent).as_posix(),'start_line':text[:start].count('\n')+1,'source':body,'bytes':len(body.encode()),'sha256':sha(body.encode())}
+def calculate():
+    inputs=[('swift-guarded-snapshot-scope-authority-correction/seal.json','351caf4860621989119d16b474dbb53c496a688c4efb0cbb3abb918825b79e6c'),('swift-guarded-snapshot-composition-independent/authority-correction-review/seal.json','ed396b3b74fb5e399d7ebee1759b19dae35d8f7fc577fdd92825f7eb31421b36'),('swift-semantic-adapter-root-review/guarded-snapshot-scope-authority-host-acceptance.json','d0eda272985957f2fb8fb14e893de8ad20ab535095b3d9df11b3ff6fe426ce76'),('swift-guarded-snapshot-writer-work-audit/seal.json','1dba5632efbf285f303eddc4c9dcb727d0bfaae9f24400a32de98a8989d292ea')]
+    for path,expected in inputs:assert sha((V/path).read_bytes())==expected
+    old=json.loads((V/'swift-guarded-snapshot-writer-work-audit/ledger.json').read_text())
+    named={row['name']:row for row in old['rows']}
+    scope=named['SnapshotScope.construct_v1_added_bookkeeping']
+    forwarding=named['selected_construction_forwarding_added_bookkeeping']
+    assert scope['credits']==sum(scope['parts'].values())==16
+    assert forwarding['credits']==sum(forwarding['parts'].values())==5
+    vm=V/'swift-guarded-snapshot-scope-authority-correction/source/vm'
+    bindings=[extract(vm/'src/experimental_swift_reactor/control.rs','pub(super) fn construct_v1(mut self,'),extract(vm/'src/experimental_swift_reactor/control.rs',"pub(super) fn into_parts(self)->(&'a mut Option<super::cache::SwiftFunctionCache>"),extract(vm/'src/experimental_swift_reactor/cache.rs','pub(super) fn construct_snapshot_in_scope_v1('),extract(vm/'src/experimental_swift_reactor/cache/initial_profile_v1.rs','pub(super) fn construct_snapshot_owned_v1(')]
+    assert 'let owners=SnapshotScopeBorrowV1 {' in bindings[0]['source']
+    assert 'let Self {cache,control,wasi,adopted}=self;' in bindings[1]['source']
+    assert '(cache,control,wasi,adopted)' in bindings[1]['source']
+    assert 'let (cache,control,wasi,adopted)=owners.into_parts();' in bindings[3]['source']
+    new_scope={**scope['parts'],'token_aggregate_fields':4,'token_local_binding':1}
+    helper={'enter_return':2,'four_field_pattern_bindings':4,'four_tuple_output_slots':4}
+    new_forward={**forwarding['parts'],'into_parts_helper':sum(helper.values()),'four_caller_tuple_pattern_bindings':4}
+    assert sum(new_scope.values())==21 and sum(helper.values())==10 and sum(new_forward.values())==19
+    checks=[]
+    def check(name,predicate):
+        assert predicate,name;checks.append({'name':name,'passed':True})
+    check('old_scoped_pair',scope['credits']+forwarding['credits']==21)
+    check('new_scoped_pair',sum(new_scope.values())+sum(new_forward.values())==40)
+    check('delta_is_nineteen',40-21==19)
+    check('borrow_expressions_relocated_once',new_scope['cache_control_and_WASI_references']==scope['parts']['cache_control_and_WASI_references']==5)
+    check('existing_forward_boundaries_once',new_forward['cache_forward_enter_return']+new_forward['owned_forward_enter_return']==4)
+    check('original_core_branch_slot_once',new_forward['SnapshotBranch_output_slot']==1)
+    for key in ['token_aggregate_fields','token_local_binding']:
+        changed=dict(new_scope);changed[key]=0;check('reject_missing_'+key,sum(changed.values())!=21)
+    for key in helper:
+        changed=dict(helper);changed[key]=0;check('reject_missing_helper_'+key,sum(changed.values())!=10)
+    changed=dict(new_forward);changed['four_caller_tuple_pattern_bindings']=0;check('reject_missing_caller_pattern',sum(changed.values())!=19)
+    check('reject_double_pricing_old_raw_borrows',sum(new_scope.values())+5!=21)
+    check('reject_adding_entire_old_pair_again',40+21!=40)
+    check('no_new_encoder_native_or_stop_call',all(term not in ''.join(b['source'] for b in bindings) for term in ['next_block(','.write(','.stop(']))
+    return {'schema':1,'inputs':[record(V/path) for path,_ in inputs],'source_bindings':bindings,'cost_convention':record(V/'swift-guarded-snapshot-writer-work-audit/cost-convention.md'),'old_scope_construct':scope,'old_forwarding':forwarding,'new_scope_construct_parts':new_scope,'new_scope_construct_credits':21,'into_parts_helper_parts':helper,'into_parts_helper_credits':10,'new_forwarding_parts':new_forward,'new_forwarding_credits':19,'old_combined':21,'new_combined':40,'added_once_per_consuming_construction':19,'controls':checks,'complete_operational_work_selected':False,'no_runtime_or_native_execution':True,'scope':'Only accepted authority routing replaces former raw-owner wrapper rows. Named local operands and owned moves are free under inherited convention; aggregate output slots and destructured bindings are charged once. Original core/encoder/writer/admission/cleanup are outside this delta.'}
+def main():
+    value=calculate()
+    if '--write' in sys.argv:
+        p=HERE/'results.json';assert not p.exists();p.write_text(json.dumps(value,indent=2)+'\n')
+    else:assert json.loads((HERE/'results.json').read_text())==value
+    print(json.dumps({'controls_passed':len(value['controls']),'old_combined':21,'new_combined':40,'added':19,'operational_work_selected':False}))
+if __name__=='__main__':main()

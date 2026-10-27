@@ -18,3 +18,10 @@ pub use crate::experimental::swift::{
 mod execution;
 #[cfg(test)]
 mod execution_tests;
+
+// Private finite diagnostic row helper; no runtime or publication route.
+#[deny(warnings)]
+mod diagnostic_profile;
+
+// Pure unverified typed-result data; no owner authority or public export.
+mod diagnostic_result_v1;

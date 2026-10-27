@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "source_path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+  "source_sha256": "965c26b645390c5690476e4ef0e3bbf0caf812b3a87efecc14fa804fe69eed7c",
+  "function": "future_genuine_composition_v1::selected_owned_files_v1",
+  "cfg": "test",
+  "source_start_line": 603,
+  "source_end_line": 648,
+  "profile": "gated-unit-debug",
+  "source_occurrence_seeds": [
+    {
+      "id": "host::selected_owned_files_v1::parameter.selected",
+      "type": "SelectedValidatedProfileV1",
+      "measured_unit_bytes": null,
+      "role": "selected argument",
+      "starts": "function entry",
+      "ends": "into_snapshot_scope consuming receiver"
+    },
+    {
+      "id": "host::selected_owned_files_v1::call.into_snapshot_scope.result",
+      "type": "Result<SnapshotScopeV1,SnapshotPreScopeFailureV1>",
+      "measured_unit_bytes": 8176,
+      "role": "ingress call result",
+      "starts": "before Construction",
+      "ends": "scope success/error match"
+    },
+    {
+      "id": "host::selected_owned_files_v1::match.scope.success",
+      "type": "SnapshotScopeV1",
+      "measured_unit_bytes": 8176,
+      "role": "Ok(scope) pattern and move",
+      "starts": "ingress match",
+      "ends": "scope binding; alias only by actual slot"
+    },
+    {
+      "id": "host::selected_owned_files_v1::match.scope.failure",
+      "type": "SnapshotPreScopeFailureV1",
+      "measured_unit_bytes": 2192,
+      "role": "Err(failure) pattern and primary/retirement borrows",
+      "starts": "ingress refusal",
+      "ends": "panic/harness transfer; actual engine argument slots included"
+    },
+    {
+      "id": "host::selected_owned_files_v1::local.scope",
+      "type": "SnapshotScopeV1",
+      "measured_unit_bytes": 8176,
+      "role": "let mut scope binding",
+      "starts": "ingress success",
+      "ends": "consuming construct_v1"
+    },
+    {
+      "id": "host::selected_owned_files_v1::optional_wasi.arguments",
+      "type": "Option<(WasiBudget,WasiGrants)>",
+      "measured_unit_bytes": null,
+      "role": "host parameter and Some budget/grants patterns",
+      "starts": "function entry",
+      "ends": "at most one attachment call"
+    },
+    {
+      "id": "host::selected_owned_files_v1::call.attach_wasi.result",
+      "type": "&SnapshotWasiAttachmentV1",
+      "measured_unit_bytes": 8,
+      "role": "let attachment reference",
+      "starts": "optional attach call",
+      "ends": "assertion borrows end; scope retains actual attachment"
+    },
+    {
+      "id": "host::selected_owned_files_v1::call.construct.scope_receiver",
+      "type": "SnapshotScopeV1",
+      "measured_unit_bytes": 8176,
+      "role": "consuming scope receiver source operand",
+      "starts": "construct call",
+      "ends": "same actual moved owner; avoid invented operand copy"
+    },
+    {
+      "id": "host::selected_owned_files_v1::call.construct.result",
+      "type": "SnapshotRunV1",
+      "measured_unit_bytes": 14936,
+      "role": "construct call-expression result",
+      "starts": "construct returns",
+      "ends": "run binding; exact materialized alias mapping required"
+    },
+    {
+      "id": "host::selected_owned_files_v1::local.run",
+      "type": "SnapshotRunV1",
+      "measured_unit_bytes": 14936,
+      "role": "let run binding",
+      "starts": "construct returns",
+      "ends": "consuming finish_v1"
+    },
+    {
+      "id": "host::selected_owned_files_v1::call.outer.receiver",
+      "type": "&SnapshotRunV1",
+      "measured_unit_bytes": 8,
+      "role": "outer_v1 shared receiver expression",
+      "starts": "after construct",
+      "ends": "getter call ends"
+    },
+    {
+      "id": "host::selected_owned_files_v1::call.outer.result",
+      "type": "&SnapshotOuterV1",
+      "measured_unit_bytes": 8,
+      "role": "outer_v1 reference return/call result",
+      "starts": "exactly one getter",
+      "ends": "outer caller binding"
+    },
+    {
+      "id": "host::selected_owned_files_v1::local.outer",
+      "type": "&SnapshotOuterV1",
+      "measured_unit_bytes": 8,
+      "role": "let outer reference binding",
+      "starts": "getter returns",
+      "ends": "all outer borrows end before Run consume"
+    },
+    {
+      "id": "host::selected_owned_files_v1::call.finish.run_receiver",
+      "type": "SnapshotRunV1",
+      "measured_unit_bytes": 14936,
+      "role": "finish_v1 consuming receiver source operand",
+      "starts": "finish call",
+      "ends": "same actual moved owner; avoid invented operand copy"
+    },
+    {
+      "id": "host::selected_owned_files_v1::call.finish.result",
+      "type": "SnapshotScopeFinishV1",
+      "measured_unit_bytes": 13232,
+      "role": "finish_v1 call-expression result",
+      "starts": "finish returns",
+      "ends": "finish caller binding; exact materialized alias mapping required"
+    },
+    {
+      "id": "host::selected_owned_files_v1::local.finish",
+      "type": "SnapshotScopeFinishV1",
+      "measured_unit_bytes": 13232,
+      "role": "let finish binding and diagnostic borrows",
+      "starts": "finish returns",
+      "ends": "function end after retained diagnostic assertions"
+    }
+  ],
+  "materialization_rule": "Bind every expression seed to compiler slot IDs; aliases, field projections and operand moves sharing one slot charge once. Callee parameters/returns and caller materialized results remain distinct.",
+  "before_ingress_temporaries": [
+    "selected_initial_profile_v1().budget",
+    "Instant::now()",
+    "Cancellation::default()"
+  ],
+  "engine_call_arguments": [
+    "scope attachment grants/budget/Instant",
+    "claims reference",
+    "rows mutable reference",
+    "snapshot mutable reference"
+  ],
+  "native_harness_exclusions": [
+    "Path/directory and joined paths",
+    "OpenOptions/File create_new/open/unwrap",
+    "claims test literal construction",
+    "primary header std::fs::write",
+    "assertion/panic formatting",
+    "test framework and diagnostic observer bodies; engine call-site slots and product wrappers remain included"
+  ],
+  "exclusions_are_zero_engine_cost": false,
+  "excluded_harness_cost": "nonzero and unbounded by this engine-source inventory; no process/physical-stack claim",
+  "calls": {
+    "attachment_min": 0,
+    "attachment_max": 1,
+    "outer_getter": 1,
+    "construct": 1,
+    "finish": 1
+  },
+  "production_caller_accepted": false,
+  "operational_host_execution_accepted": false
+}

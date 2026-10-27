@@ -1,0 +1,12 @@
+    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/vm)
+error: using `chunks_exact_mut` with a constant chunk size
+  --> src/experimental_swift_reactor/diagnostic_result_v1.rs:40:32
+   |
+40 |     for (slot, word) in output.chunks_exact_mut(8).zip(words) {
+   |                                ^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks_mut` instead: `as_chunks_mut::<8>().0.iter_mut()`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#chunks_exact_to_as_chunks
+   = note: `-D clippy::chunks-exact-to-as-chunks` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::chunks_exact_to_as_chunks)]`
+
+error: could not compile `mixer-vm` (lib) due to 1 previous error

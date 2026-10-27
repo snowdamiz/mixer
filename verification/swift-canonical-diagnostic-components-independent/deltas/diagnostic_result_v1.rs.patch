@@ -1,0 +1,11 @@
+--- verification/swift-typed-result-codec-implementation/source/vm/src/experimental_swift_reactor/diagnostic_result_v1.rs
++++ vm/src/experimental_swift_reactor/diagnostic_result_v1.rs
+@@ -37,7 +37,7 @@
+     }
+ }
+ fn write_words(output: &mut [u8], words: &[u64]) {
+-    for (slot, word) in output.chunks_exact_mut(8).zip(words) {
++    for (slot, word) in output.as_chunks_mut::<8>().0.iter_mut().zip(words) {
+         slot.copy_from_slice(&word.to_le_bytes());
+     }
+ }

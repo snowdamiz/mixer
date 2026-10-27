@@ -1,0 +1,139 @@
+--- accepted/diagnostic_profile_tests.rs
++++ canonical/diagnostic_profile_tests.rs
+@@ -164,18 +164,43 @@
+     )
+     .unwrap()
+ }
+-fn directory() -> PathBuf {
+-    PathBuf::from(
+-        std::env::var_os("MIXER_PROFILE_EVIDENCE_DIR").expect("owned supervisor evidence path"),
+-    )
+-}
+-fn fresh(name: &str) -> File {
+-    OpenOptions::new()
+-        .read(true)
+-        .write(true)
+-        .create_new(true)
+-        .open(directory().join(name))
+-        .unwrap()
++// Each test owns a fresh directory and closes its File values before this guard.
++// Ordinary Cargo runs need no supervisor environment or shared file names.
++struct OwnedDirectory(PathBuf);
++impl OwnedDirectory {
++    fn new() -> Self {
++        use std::sync::atomic::{AtomicU64, Ordering};
++        static NEXT: AtomicU64 = AtomicU64::new(0);
++        for _ in 0..64 {
++            let path = std::env::temp_dir().join(format!(
++                "mixer-diagnostic-profile-{}-{}",
++                std::process::id(),
++                NEXT.fetch_add(1, Ordering::Relaxed)
++            ));
++            match fs::create_dir(&path) {
++                Ok(()) => return Self(path),
++                Err(error) if error.kind() == io::ErrorKind::AlreadyExists => continue,
++                Err(error) => panic!("create owned diagnostic fixture: {error}"),
++            }
++        }
++        panic!("owned diagnostic fixture names exhausted");
++    }
++    fn fresh(&self, name: &str) -> File {
++        OpenOptions::new()
++            .read(true)
++            .write(true)
++            .create_new(true)
++            .open(self.0.join(name))
++            .unwrap()
++    }
++}
++impl Drop for OwnedDirectory {
++    fn drop(&mut self) {
++        let result = fs::remove_dir_all(&self.0);
++        if !std::thread::panicking() {
++            result.expect("remove owned diagnostic fixture");
++        }
++    }
+ }
+ fn assert_wire(bytes: &[u8], e: &Encoded) {
+     assert_eq!(bytes.len(), 2_560_000);
+@@ -292,9 +317,10 @@
+ }
+ #[test]
+ fn file_complete_exact_bytes_and_no_allocations() {
++    let directory = OwnedDirectory::new();
+     let e = module(130, true);
+     let s = validate(&e);
+-    let mut file = fresh("actual-rows.bin");
++    let mut file = directory.fresh("actual-rows.bin");
+     let (result, stats) =
+         super::super::allocation_tests::measure(|| write_profile_row_body_v1(&s, &mut file));
+     let o = result.unwrap();
+@@ -307,26 +333,28 @@
+     let mut bytes = Vec::new();
+     file.read_to_end(&mut bytes).unwrap();
+     assert_wire(&bytes, &e);
+-    fs::write(directory().join("actual-module.wasm"), &e.bytes).unwrap();
+-    fs::write(directory().join("actual-module.json"),format!("{{\"source_extent\":{},\"type_count\":130,\"first_offset\":{},\"first_len\":132,\"second_offset\":{},\"second_len\":2,\"defined_functions\":130,\"imported_functions\":34}}\n",e.bytes.len(),e.offsets[0],e.offsets[1])).unwrap();
++    fs::write(directory.0.join("actual-module.wasm"), &e.bytes).unwrap();
++    fs::write(directory.0.join("actual-module.json"),format!("{{\"source_extent\":{},\"type_count\":130,\"first_offset\":{},\"first_len\":132,\"second_offset\":{},\"second_len\":2,\"defined_functions\":130,\"imported_functions\":34}}\n",e.bytes.len(),e.offsets[0],e.offsets[1])).unwrap();
+     println!("WRITER_ALLOCATIONS {:?} OBS {:?}", stats, o);
+ }
+ #[test]
+ fn file_nonempty_refuses_and_preserves() {
+-    let s = validate(&module(29, false));
+-    let mut f = fresh("nonempty.bin");
++    let directory = OwnedDirectory::new();
++    let s = validate(&module(29, false));
++    let mut f = directory.fresh("nonempty.bin");
+     f.write_all(b"keep").unwrap();
+     f.seek(SeekFrom::Start(0)).unwrap();
+     assert_eq!(
+         write_profile_row_body_v1(&s, &mut f).unwrap_err(),
+         error(8, 3, 0)
+     );
+-    assert_eq!(fs::read(directory().join("nonempty.bin")).unwrap(), b"keep");
++    assert_eq!(fs::read(directory.0.join("nonempty.bin")).unwrap(), b"keep");
+ }
+ #[test]
+ fn file_nonzero_offset_refuses_empty() {
+-    let s = validate(&module(29, false));
+-    let mut f = fresh("offset.bin");
++    let directory = OwnedDirectory::new();
++    let s = validate(&module(29, false));
++    let mut f = directory.fresh("offset.bin");
+     f.seek(SeekFrom::Start(9)).unwrap();
+     assert_eq!(
+         write_profile_row_body_v1(&s, &mut f).unwrap_err(),
+@@ -337,8 +365,9 @@
+ }
+ #[test]
+ fn file_nonregular_refuses() {
+-    let s = validate(&module(29, false));
+-    let mut f = File::open(directory()).unwrap();
++    let directory = OwnedDirectory::new();
++    let s = validate(&module(29, false));
++    let mut f = File::open(&directory.0).unwrap();
+     assert_eq!(
+         write_profile_row_body_v1(&s, &mut f).unwrap_err(),
+         error(6, 3, 0)
+@@ -346,9 +375,10 @@
+ }
+ #[test]
+ fn file_partial_failure_bytes_and_coordinates() {
++    let directory = OwnedDirectory::new();
+     let e = module(29, false);
+     let s = validate(&e);
+-    let mut f = fresh("partial.bin");
++    let mut f = directory.fresh("partial.bin");
+     admit_output(&mut f).unwrap();
+     let mut calls = 0;
+     let err = write_body(&s, |b| {
+@@ -370,7 +400,7 @@
+         ),
+         (9, 4, 4103, 4103, 3)
+     );
+-    let actual = fs::read(directory().join("partial.bin")).unwrap();
++    let actual = fs::read(directory.0.join("partial.bin")).unwrap();
+     assert_eq!(actual.len(), 4103);
+     let mut expected = Vec::new();
+     for n in 0..129usize {
