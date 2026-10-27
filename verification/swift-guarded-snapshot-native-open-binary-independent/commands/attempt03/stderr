@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 797, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 773, in main
+    cases,coverage,edges,calls=native_checks(fs,objects);control=hostile(fs,objects,llvm);front=frontier(fs,coverage,edges,calls)
+                                                                 ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 714, in hostile
+    patch('unknown-callback-pointer','11OpenOptions5__open',0x2ecfc,0x91000484)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 689, in patch
+    reject(name,lambda:path_case(fs,objects,n,pos,write,errno,patch={(s,pc):w}))
+    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 686, in reject
+    raise AssertionError(('independent-hostile-escaped',name))
+AssertionError: ('independent-hostile-escaped', 'unknown-callback-pointer')

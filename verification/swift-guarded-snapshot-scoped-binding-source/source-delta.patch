@@ -1,0 +1,125 @@
+--- accepted/src/experimental_swift_reactor/cache/initial_profile_v1.rs
++++ candidate/src/experimental_swift_reactor/cache/initial_profile_v1.rs
+@@ -700,14 +700,14 @@
+     // The future root selects and reviews this immutable binding before P1.
+     // No binding or token constructor is selected in this packet. Root must
+     // fund this backing as P0 and bind paths/claims/limits/source/tool identities.
+-    struct ReviewedFixtureBindingV1 {
+-        paths: [&'static Path; 5],
++    struct ReviewedFixtureBindingV1<'p0> {
++        paths: [&'p0 Path; 5],
+         claims: UnverifiedProfileDigestBytesV1,
+         original_validation_budget: SwiftValidationBudget,
+         product_budget: SwiftRunBudget,
+     }
+     // Not Clone/Copy. Consumed on every success/refusal; no retry entry exists.
+-    struct FrozenFixtureV1 { binding: &'static ReviewedFixtureBindingV1 }
++    struct FrozenFixtureV1<'p0> { binding: &'p0 ReviewedFixtureBindingV1<'p0> }
+ 
+     enum SetupOutcomeV1 {
+         Ready { source: File, build: File, session: File, rows: File, snapshot: File },
+@@ -733,7 +733,7 @@
+         },
+     }
+ 
+-    fn run_one_fixture_v1<'a>(account: &'a TrustedHostAccountV1, fixture: FrozenFixtureV1)
++    fn run_one_fixture_v1<'a>(account: &'a TrustedHostAccountV1, fixture: FrozenFixtureV1<'_>)
+         -> Result<PrepaidOwnedV1<'a, OwnedFixtureOutcomeV1>, RefusalV1>
+     {
+         // Actual selected quote currently returns WholeQuotePending. No File,
+@@ -758,7 +758,7 @@
+         destroyed.release_destroyed_v1();
+     }
+ 
+-    fn setup_files_once_v1(binding: &ReviewedFixtureBindingV1) -> SetupOutcomeV1 {
++    fn setup_files_once_v1(binding: &ReviewedFixtureBindingV1<'_>) -> SetupOutcomeV1 {
+         let mut files = [None, None, None, None, None];
+         for stage in 0..5 {
+             let opened = if stage < 3 {
+@@ -793,7 +793,7 @@
+         }
+     }
+ 
+-    fn run_prepaid_fixture_v1(fixture: FrozenFixtureV1) -> OwnedFixtureOutcomeV1 {
++    fn run_prepaid_fixture_v1(fixture: FrozenFixtureV1<'_>) -> OwnedFixtureOutcomeV1 {
+         let binding = fixture.binding;
+         let (source, build, session, mut rows, mut snapshot) = match setup_files_once_v1(binding) {
+             SetupOutcomeV1::Ready { source, build, session, rows, snapshot } =>
+@@ -863,42 +863,43 @@
+     // A future independently reviewed producer must retain these exact actual
+     // preimages, not merely a digest that claims they once existed. No values
+     // for future build/session/executable/compiler/process identities exist here.
+-    struct ImmutableIdentityPreimageV1 {
+-        bytes: &'static [u8],
++    struct ImmutableIdentityPreimageV1<'p0> {
++        bytes: &'p0 [u8],
+         sha256: [u8; 32],
+     }
+-    struct ImmutableFixtureIdentitiesV1 {
+-        source: ImmutableIdentityPreimageV1,
+-        build: ImmutableIdentityPreimageV1,
+-        session: ImmutableIdentityPreimageV1,
+-        executable: ImmutableIdentityPreimageV1,
+-        compiler: ImmutableIdentityPreimageV1,
+-        compiler_version: ImmutableIdentityPreimageV1,
+-        compile_manifest: ImmutableIdentityPreimageV1,
+-        compile_argv: ImmutableIdentityPreimageV1,
+-        compile_environment: ImmutableIdentityPreimageV1,
+-        process_argv: ImmutableIdentityPreimageV1,
+-        process_environment: ImmutableIdentityPreimageV1,
+-        review: ImmutableIdentityPreimageV1,
++    struct ImmutableFixtureIdentitiesV1<'p0> {
++        source: ImmutableIdentityPreimageV1<'p0>,
++        build: ImmutableIdentityPreimageV1<'p0>,
++        session: ImmutableIdentityPreimageV1<'p0>,
++        executable: ImmutableIdentityPreimageV1<'p0>,
++        compiler: ImmutableIdentityPreimageV1<'p0>,
++        compiler_version: ImmutableIdentityPreimageV1<'p0>,
++        compile_manifest: ImmutableIdentityPreimageV1<'p0>,
++        compile_argv: ImmutableIdentityPreimageV1<'p0>,
++        compile_environment: ImmutableIdentityPreimageV1<'p0>,
++        process_argv: ImmutableIdentityPreimageV1<'p0>,
++        process_environment: ImmutableIdentityPreimageV1<'p0>,
++        review: ImmutableIdentityPreimageV1<'p0>,
+     }
+     // Storage is pre-existing P0, including every native Path pointee and all
+-    // backing reachable through identities/claims. 'static is a lifetime only;
+-    // it neither prices backing nor grants fixture/root authority. The five
++    // backing reachable through identities/claims. Its owner outlives the entire
++    // consuming call and result; this neither prices backing nor grants fixture/root
++    // authority. The five
+     // path bodies are the exact native encoding of binding.paths in order;
+     // the future producer must independently establish that correspondence.
+-    struct PreexistingImmutableBindingV1 {
+-        binding: ReviewedFixtureBindingV1,
+-        native_path_bodies: [&'static [u8]; 5],
+-        identities: ImmutableFixtureIdentitiesV1,
++    struct PreexistingImmutableBindingV1<'p0> {
++        binding: ReviewedFixtureBindingV1<'p0>,
++        native_path_bodies: [&'p0 [u8]; 5],
++        identities: ImmutableFixtureIdentitiesV1<'p0>,
+     }
+     // Private, affine one-fixture request. No Clone/Copy, retry, public mint,
+     // environment/argv constructor, allocation/leak, or borrowed-output escape.
+-    struct OneFixtureOuterRequestV1 {
+-        preexisting: &'static PreexistingImmutableBindingV1,
++    struct OneFixtureOuterRequestV1<'p0> {
++        preexisting: &'p0 PreexistingImmutableBindingV1<'p0>,
+     }
+     enum BindingSelectionRefusalV1 { ImmutableBindingAndP0ReviewPending }
+-    fn selected_outer_request_v1()
+-        -> Result<OneFixtureOuterRequestV1, BindingSelectionRefusalV1>
++    fn selected_outer_request_v1<'p0>()
++        -> Result<OneFixtureOuterRequestV1<'p0>, BindingSelectionRefusalV1>
+     {
+         // Changing this exact source requires actual immutable identity, full
+         // binding/native backing layout, source work and root P0 funding review.
+@@ -1013,7 +1014,7 @@
+         };
+         consume_outer_request_v1(request)
+     }
+-    fn consume_outer_request_v1(request: OneFixtureOuterRequestV1) -> OuterResultV1 {
++    fn consume_outer_request_v1(request: OneFixtureOuterRequestV1<'_>) -> OuterResultV1 {
+         // Before reaching this function, independently provisioned P0 must
+         // already cover this frame, policy/account/quote places and all late
+         // return/token/result places. Child admission cannot fund this frame.

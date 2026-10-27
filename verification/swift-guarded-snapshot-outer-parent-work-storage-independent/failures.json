@@ -1,0 +1,34 @@
+{
+  "candidate_changed": false,
+  "candidate_failures_retained_unchanged": [
+    "attempts/derive-001/failure.json",
+    "preliminary-failures.json"
+  ],
+  "reviewer_command_failures": [
+    {
+      "correction": "Reviewer independently sorts source member path components, matching the frozen canonical manifest order.",
+      "exit_code": 1,
+      "path": "commands/review-001",
+      "reason": "Reviewer manifest ordering used lexicographic strings instead of path components."
+    },
+    {
+      "correction": "Catch ValueError rejection family, without catching unrelated exceptions.",
+      "exit_code": 1,
+      "path": "commands/controls-001",
+      "reason": "Reviewer caught only new model Refused, while inherited storage overflow correctly raises its own ValueError subclass."
+    },
+    {
+      "correction": "Materialize returned view only on return edge; consuming observer return or completed unwind ends its shared references before caller cleanup.",
+      "exit_code": 1,
+      "path": "commands/controls-002",
+      "reason": "Reviewer view marker incorrectly survived a completed unwind of the callee that consumes the view."
+    }
+  ],
+  "reviewer_read_only_lookup_failure": {
+    "effect": "No write or execution; actual frozen independent query-layout.inc.rs read next.",
+    "exit_code": 2,
+    "missing_path": "verification/swift-guarded-snapshot-outer-parent-source/query-outer-layout.inc.rs"
+  },
+  "schema": 1,
+  "unresolved_product_failures": []
+}

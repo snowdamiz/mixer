@@ -1,0 +1,24 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-work-storage-independent/controls.py", line 202, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-work-storage-independent/controls.py", line 197, in main
+    arithmetic();bindings();ownership();mir_ownership()
+                 ~~~~~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-work-storage-independent/controls.py", line 118, in bindings
+    rejects('storage obligation '+field+' '+str(bad),lambda field=field,bad=bad:M.storage(DC.replace(v,**{field:bad})))
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-work-storage-independent/controls.py", line 28, in rejects
+    try:action()
+        ~~~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-work-storage-independent/controls.py", line 118, in <lambda>
+    rejects('storage obligation '+field+' '+str(bad),lambda field=field,bad=bad:M.storage(DC.replace(v,**{field:bad})))
+                                                                                ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-work-storage/model.py", line 140, in storage
+    result=M.evaluate(inv,old_input)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-host-storage-composition/model.py", line 190, in evaluate
+    p0=add(sums['P0'],outer_inline,outer_backing,bindings,immutable,*[p[1] for p in paths])
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-host-storage-composition/model.py", line 37, in add
+    if v>U64-result:raise Refused('add-overflow')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+outer_inherited_storage.Refused: add-overflow

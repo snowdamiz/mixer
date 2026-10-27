@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 789, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 765, in main
+    cases,coverage,edges,calls=native_checks(fs,objects);control=hostile(fs,objects,llvm);front=frontier(fs,coverage,edges,calls)
+                                                                 ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 690, in hostile
+    patch('stack-terminal-position-offset','11OpenOptions5__open',0x2ec94,0x38356adf,n=17)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 687, in patch
+    reject(name,lambda:path_case(fs,objects,n,pos,write,errno,patch={(s,pc):w}))
+    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 684, in reject
+    raise AssertionError(('independent-hostile-escaped',name))
+AssertionError: ('independent-hostile-escaped', 'stack-terminal-position-offset')

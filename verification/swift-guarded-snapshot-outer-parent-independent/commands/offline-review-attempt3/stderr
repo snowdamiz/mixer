@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-independent/review_independent.py", line 202, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-independent/review_independent.py", line 170, in main
+    for previous in ['I','fixture','destroy-call','destroy-returned','token']:check('mir-route',previous in events and events.index(previous)<events.index('release'),('premature release',previous,route))
+                                                                              ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-independent/review_independent.py", line 18, in check
+    assert condition, detail
+           ^^^^^^^^^
+AssertionError: ('premature release', 'token', {'blocks': ['bb0', 'bb1', 'bb4', 'bb5', 'bb6', 'bb8', 'bb10', 'bb11', 'bb12', 'bb13', 'bb15', 'bb16', 'bb17', 'bb18', 'bb20'], 'events': ['U', 'fixture', 'U', 'I', 'destroy-call', 'destroy-returned', 'release', 'token', 'U'], 'terminal': 'return'})

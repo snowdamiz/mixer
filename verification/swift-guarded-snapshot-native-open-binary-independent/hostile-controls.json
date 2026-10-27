@@ -1,0 +1,443 @@
+[
+  {
+    "exception_type": "AssertionError",
+    "name": "threshold384-to385",
+    "reason": "('allocation-contract', 384, [])",
+    "rejected": true,
+    "rejection_site": {
+      "function": "path_case",
+      "line": 565,
+      "source": "assert allocations==([('allocate',n+1,1)] if n>=384 else []),('allocation-contract',n,allocations)"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "threshold-bypasses-long-heap-route",
+    "reason": "('allocation-contract', 384, [])",
+    "rejected": true,
+    "rejection_site": {
+      "function": "path_case",
+      "line": 565,
+      "source": "assert allocations==([('allocate',n+1,1)] if n>=384 else []),('allocation-contract',n,allocations)"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "stack-terminal-position-offset",
+    "reason": "('NUL-gating', 17, None, [])",
+    "rejected": true,
+    "rejection_site": {
+      "function": "path_case",
+      "line": 570,
+      "source": "assert len(opens)==int(position is None),('NUL-gating',n,position,opens)"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "short-CStr-extent-loses-terminal",
+    "reason": "('NUL-gating', 17, None, [])",
+    "rejected": true,
+    "rejection_site": {
+      "function": "path_case",
+      "line": 570,
+      "source": "assert len(opens)==int(position is None),('NUL-gating',n,position,opens)"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "short-validator-bypass",
+    "reason": "('undefined-read', '0x0', 18)",
+    "rejected": true,
+    "rejection_site": {
+      "function": "data",
+      "line": 245,
+      "source": "assert all(a+i in self.memory for i in range(n)), ('undefined-read',hex(a),n)"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "CString-request-n-plus2",
+    "reason": "('unsupported-call', '__RNvCsdtSMxSA38aw_7___rustc14___rust_realloc')",
+    "rejected": true,
+    "rejection_site": {
+      "function": "external",
+      "line": 309,
+      "source": "raise AssertionError(('unsupported-call',s))"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "CString-allocation-alignment8",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "external",
+      "line": 285,
+      "source": "assert a==1;self.x[0]=self.alloc;self.allocations[self.alloc]=n;self.blob(self.alloc,b'\\xcc'*n)"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "CString-NUL-success-guard-inverted",
+    "reason": "('NUL-gating', 384, None, [])",
+    "rejected": true,
+    "rejection_site": {
+      "function": "path_case",
+      "line": 570,
+      "source": "assert len(opens)==int(position is None),('NUL-gating',n,position,opens)"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "CString-NUL-return-pointer-register",
+    "reason": "('free-contract', 536870912, 385, 1)",
+    "rejected": true,
+    "rejection_site": {
+      "function": "external",
+      "line": 289,
+      "source": "assert p in self.allocations and self.allocations.pop(p)==n and a==1,('free-contract',p,n,a)"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "CString-reserve-guard-inverted",
+    "reason": "('unsupported-call', '__RNvMs5_NtCs6zY7rJBZy9D_5alloc7raw_vecNtB5_11RawVecInner11finish_growB7_')",
+    "rejected": true,
+    "rejection_site": {
+      "function": "external",
+      "line": 309,
+      "source": "raise AssertionError(('unsupported-call',s))"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "CString-capacity-load-uses-length",
+    "reason": "('unsupported-call', '__RNvMs5_NtCs6zY7rJBZy9D_5alloc7raw_vecNtB5_11RawVecInner11finish_growB7_')",
+    "rejected": true,
+    "rejection_site": {
+      "function": "external",
+      "line": 309,
+      "source": "raise AssertionError(('unsupported-call',s))"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "CString-shrink-bypass-inverted",
+    "reason": "('unsupported-call', '__RNvCsdtSMxSA38aw_7___rustc14___rust_realloc')",
+    "rejected": true,
+    "rejection_site": {
+      "function": "external",
+      "line": 309,
+      "source": "raise AssertionError(('unsupported-call',s))"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "CString-terminator-store-omitted",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "path_case",
+      "line": 577,
+      "source": "_,p,hexdata,flags,mode,result=opens[0];assert hexdata==(data+b'\\0').hex() and flags==(0x1000a01 if write else 0x1000000) and mode==438"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "CString-normal-drop-clear-omitted",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "path_case",
+      "line": 582,
+      "source": "assert frees[0][4]==(0 if position is None or position==0 else ord('z'))"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "CString-normal-free-length-register",
+    "reason": "('free-contract', 1610612736, 4328595632, 1)",
+    "rejected": true,
+    "rejection_site": {
+      "function": "external",
+      "line": 289,
+      "source": "assert p in self.allocations and self.allocations.pop(p)==n and a==1,('free-contract',p,n,a)"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "CString-normal-free-align2",
+    "reason": "('free-contract', 1610612736, 385, 2)",
+    "rejected": true,
+    "rejection_site": {
+      "function": "external",
+      "line": 289,
+      "source": "assert p in self.allocations and self.allocations.pop(p)==n and a==1,('free-contract',p,n,a)"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "open-read-test-bypassed",
+    "reason": "('NUL-gating', 17, None, [])",
+    "rejected": true,
+    "rejection_site": {
+      "function": "path_case",
+      "line": 570,
+      "source": "assert len(opens)==int(position is None),('NUL-gating',n,position,opens)"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "open-CLOEXEC-omitted",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "path_case",
+      "line": 577,
+      "source": "_,p,hexdata,flags,mode,result=opens[0];assert hexdata==(data+b'\\0').hex() and flags==(0x1000a01 if write else 0x1000000) and mode==438"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "open-mode-offset-shifted",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "path_case",
+      "line": 577,
+      "source": "_,p,hexdata,flags,mode,result=opens[0];assert hexdata==(data+b'\\0').hex() and flags==(0x1000a01 if write else 0x1000000) and mode==438"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "Os-error-shift32-lost",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "path_case",
+      "line": 574,
+      "source": "elif errno is not None:assert v.read(out+8,8)==((errno&0xffffffff)<<32)|2"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "Os-error-tag3",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "path_case",
+      "line": 574,
+      "source": "elif errno is not None:assert v.read(out+8,8)==((errno&0xffffffff)<<32)|2"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "core-terminal-position-guard-inverted",
+    "reason": "('NUL-gating', 17, None, [])",
+    "rejected": true,
+    "rejection_site": {
+      "function": "path_case",
+      "line": 570,
+      "source": "assert len(opens)==int(position is None),('NUL-gating',n,position,opens)"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "unsupported-active-SVC",
+    "reason": "('unsupported-word', '0xd4000001')",
+    "rejected": true,
+    "rejection_site": {
+      "function": "decode",
+      "line": 216,
+      "source": "raise AssertionError(('unsupported-word', hex(w)))"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "unsupported-active-BRK",
+    "reason": "('active-trap', '__RNvMsj_NtCs1SSuMAdGM58_3std2fsNtB5_11OpenOptions5__open', '0x2ec78')",
+    "rejected": true,
+    "rejection_site": {
+      "function": "run",
+      "line": 317,
+      "source": "elif op=='trap':raise AssertionError(('active-trap',symbol,hex(pc)))"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "unsupported-PAGEOFF-addend",
+    "reason": "('unsupported-pageoff-addend-or-opcode', 191740, ('arithimm', 4, 4, 64, False, False, 1))",
+    "rejected": true,
+    "rejection_site": {
+      "function": "run",
+      "line": 346,
+      "source": "assert imm==0 and width==64 and not sub and not flags,('unsupported-pageoff-addend-or-opcode',pc,ins)"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "unknown-callback-pointer-base-register",
+    "reason": "('unknown-indirect-target', '0xb0')",
+    "rejected": true,
+    "rejection_site": {
+      "function": "run",
+      "line": 335,
+      "source": "a=self.get(ins[1]);assert a==self.interrupt or a in self.reverse,('unknown-indirect-target',hex(a))"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "foreign-direct-call-target",
+    "reason": "('unsupported-call', '_unapproved_foreign')",
+    "rejected": true,
+    "rejection_site": {
+      "function": "external",
+      "line": 309,
+      "source": "raise AssertionError(('unsupported-call',s))"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "static-NUL-record-relocation-pair-retargeted",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "path_case",
+      "line": 573,
+      "source": "assert v.read(out+8,8)==v.address['l_anon.fe79d0da482d11692d25899e0a8a72b8.79']"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "unwind-drop-first-byte-clear-omitted",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "unwind_mutation",
+      "line": 797,
+      "source": "assert v.noreturn=='unwind-resume' and ('free',v.alloc,385,1,0) in v.events and not v.allocations"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "unwind-deallocation-length-register",
+    "reason": "('free-contract', 1610612736, 687865856, 1)",
+    "rejected": true,
+    "rejection_site": {
+      "function": "external",
+      "line": 289,
+      "source": "assert p in self.allocations and self.allocations.pop(p)==n and a==1,('free-contract',p,n,a)"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "raw-word-mutated-original-annotations-preserved",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "verify_bodies",
+      "line": 142,
+      "source": "assert digest(o['raw']) == f['archive_member_sha256'] and o['member'] == f['archive_member']"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "raw-relocation-symbol-index-mutated-original-annotations-preserved",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "verify_bodies",
+      "line": 148,
+      "source": "assert sorted(actual, key=lambda r: r['record_offset']) == sorted(f['relocations'], key=lambda r: r['record_offset'])"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "raw-NUL-static-record-length-changed",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "static_error",
+      "line": 669,
+      "source": "raw,off,sec=at_address(o,s['value'],24);assert struct.unpack('<3Q',raw)==(0,42,20)"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "LLVM-active-read-store-zero-comment-decoy",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "ir_mutation",
+      "line": 826,
+      "source": "assert v.calls==[(0x900000,exp.hex(),0x200000,384)]"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "LLVM-active-read-route-disconnected-comment-decoy",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "ir_mutation",
+      "line": 826,
+      "source": "assert v.calls==[(0x900000,exp.hex(),0x200000,384)]"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "LLVM-active-write-false-comment-decoy",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "ir_mutation",
+      "line": 826,
+      "source": "assert v.calls==[(0x900000,exp.hex(),0x200000,384)]"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "LLVM-active-create-new-false-comment-decoy",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "ir_mutation",
+      "line": 826,
+      "source": "assert v.calls==[(0x900000,exp.hex(),0x200000,384)]"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "LLVM-active-unsupported-opcode-comment-decoy",
+    "reason": "('unsupported-LLVM', '_RINvMs2_NtCs1SSuMAdGM58_3std2fsNtB6_4File4openRNtNtB8_4path4PathECscBrn2zMo5wc_8mixer_vm', 'start', 'fence seq_cst')",
+    "rejected": true,
+    "rejection_site": {
+      "function": "run",
+      "line": 519,
+      "source": "else:raise AssertionError(('unsupported-LLVM',symbol,block,ins))"
+    }
+  },
+  {
+    "exception_type": "AssertionError",
+    "name": "LLVM-active-path-length-load-rebound-comment-decoy",
+    "reason": "",
+    "rejected": true,
+    "rejection_site": {
+      "function": "ir_mutation",
+      "line": 826,
+      "source": "assert v.calls==[(0x900000,exp.hex(),0x200000,384)]"
+    }
+  },
+  {
+    "identical_raw_trace_and_events": true,
+    "name": "all-native-annotation-decoys-ignored",
+    "positive_control": true,
+    "rejected": false
+  },
+  {
+    "identical_active_trace": true,
+    "name": "LLVM-injected-comment-decoys-ignored",
+    "positive_control": true,
+    "rejected": false
+  }
+]

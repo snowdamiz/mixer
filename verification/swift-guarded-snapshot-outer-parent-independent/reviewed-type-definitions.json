@@ -1,0 +1,86 @@
+{
+  "LoaderFailureV1": {
+    "definition": "struct LoaderFailureV1 {\n    kind: Refusal,\n    role: Role,\n    offset: u64,\n    attempts: u32,\n    io: Option<io::Error>,\n    validation: Option<SwiftValidationFailure>,\n}",
+    "line": 87,
+    "origin": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+    "source_sha256": "ebe88f37d2721c41371c9f726aeefaf533451cc9b6309b296053bc3b327240b9"
+  },
+  "OwnedFixtureOutcomeV1": {
+    "definition": "enum OwnedFixtureOutcomeV1 {\n        SetupRefused(SetupOutcomeV1),\n        Loaded {\n            original_files: ReturnedLoaderFilesV1,\n            original_loader_usage: LoaderUsageV1,\n            rows: File,\n            snapshot: File,\n            cancellation_owner: Cancellation,\n            claims_owner: UnverifiedProfileDigestBytesV1,\n            primary: PrimaryOutcomeV1,\n        },\n    }",
+    "line": 723,
+    "origin": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+    "source_sha256": "04c5e5895586f5270c3d2bcaeaa1cfa451872d75b5b9260dbf3a1c9beb7d5876"
+  },
+  "ReturnedLoaderFilesV1": {
+    "definition": "struct ReturnedLoaderFilesV1 {\n    pub(super) source: File,\n    pub(super) build: File,\n    pub(super) session: File,\n    pub(super) executable: Option<File>,\n}",
+    "line": 129,
+    "origin": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+    "source_sha256": "ebe88f37d2721c41371c9f726aeefaf533451cc9b6309b296053bc3b327240b9"
+  },
+  "ReviewedFixtureBindingV1": {
+    "definition": "struct ReviewedFixtureBindingV1 {\n        paths: [&'static Path; 5],\n        claims: UnverifiedProfileDigestBytesV1,\n        original_validation_budget: SwiftValidationBudget,\n        product_budget: SwiftRunBudget,\n    }",
+    "line": 703,
+    "origin": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+    "source_sha256": "04c5e5895586f5270c3d2bcaeaa1cfa451872d75b5b9260dbf3a1c9beb7d5876"
+  },
+  "SetupOutcomeV1": {
+    "definition": "enum SetupOutcomeV1 {\n        Ready { source: File, build: File, session: File, rows: File, snapshot: File },\n        Refused { stage: usize, original: io::Error, files: [Option<File>; 5] },\n        InvariantRefused { files: [Option<File>; 5] },\n    }",
+    "line": 712,
+    "origin": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+    "source_sha256": "04c5e5895586f5270c3d2bcaeaa1cfa451872d75b5b9260dbf3a1c9beb7d5876"
+  },
+  "SnapshotAttemptV1": {
+    "definition": "enum SnapshotAttemptV1 {NotReached,AdmissionRefused(AError),Completed(SnapshotObservationV1),Failed(SnapshotExportErrorV1)}",
+    "line": 417,
+    "origin": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+    "source_sha256": "04c5e5895586f5270c3d2bcaeaa1cfa451872d75b5b9260dbf3a1c9beb7d5876"
+  },
+  "SnapshotExportErrorV1": {
+    "definition": "struct SnapshotExportErrorV1 {cause:SnapshotCauseV1,stage:u32,progress:SnapshotProgressV1,io:Option<io::Error>,post_stop:Option<Stop>}",
+    "line": 415,
+    "origin": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+    "source_sha256": "04c5e5895586f5270c3d2bcaeaa1cfa451872d75b5b9260dbf3a1c9beb7d5876"
+  },
+  "SnapshotPreScopeFailureV1": {
+    "definition": "struct SnapshotPreScopeFailureV1 {\n    pub(super) primary:SwiftRunFailure,\n    pub(super) retirement:Result<(),SwiftRunFailure>,\n}",
+    "line": 1905,
+    "origin": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/control.rs",
+    "source_sha256": "60043ae832ba156426b025ca9fb87ea60bffc9f3939ff22554cb20f71977acc3"
+  },
+  "SnapshotPrimaryRetirementV1": {
+    "definition": "struct SnapshotPrimaryRetirementV1 {\n    variant:u32,primary:Option<SwiftRunFailure>,header_error:Option<ProfileHeaderErrorV1>,\n    header:Option<UnverifiedProfileHeaderV1>,rows:Option<Result<ProfileRowsObservationV1,ProfileAdapterErrorV1>>,\n    construction_completion:Option<Result<(),SwiftRunFailure>>,adopted_retirement:Result<(),SwiftRunFailure>,\n    export:SnapshotAttemptV1,phase_completion:Result<(),SwiftRunFailure>,\n}",
+    "line": 520,
+    "origin": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+    "source_sha256": "04c5e5895586f5270c3d2bcaeaa1cfa451872d75b5b9260dbf3a1c9beb7d5876"
+  },
+  "SnapshotScopeFinishV1": {
+    "definition": "struct SnapshotScopeFinishV1 {\n    pub(super) primary_retirement:SnapshotPrimaryRetirementV1,\n    pub(super) cache_retirement:Option<SwiftRunFailure>,\n    pub(super) scope_adopted_retirement:Result<(),SwiftRunFailure>,\n    pub(super) wasi_attachment:Option<SnapshotWasiAttachmentV1>,\n    pub(super) wasi_retirement:Result<(),SwiftRunFailure>,\n    pub(super) usage:SwiftRunUsage,\n}",
+    "line": 1953,
+    "origin": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/control.rs",
+    "source_sha256": "60043ae832ba156426b025ca9fb87ea60bffc9f3939ff22554cb20f71977acc3"
+  },
+  "SnapshotWasiAttachmentV1": {
+    "definition": "struct SnapshotWasiAttachmentV1 {\n    pub(super) construction:Result<(),SwiftRunFailure>,\n    pub(super) completion:Result<(),SwiftRunFailure>,\n}",
+    "line": 1961,
+    "origin": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/control.rs",
+    "source_sha256": "60043ae832ba156426b025ca9fb87ea60bffc9f3939ff22554cb20f71977acc3"
+  },
+  "SwiftRunBudget": {
+    "definition": "struct SwiftRunBudget {\n    pub source_bytes: usize,\n    pub metadata_bytes: usize,\n    pub cache_bytes: usize,\n    pub cache_entry_bytes: usize,\n    pub cache_entries: usize,\n    pub active_pins: usize,\n    pub cache_work: u64,\n    pub frames: usize,\n    pub values: usize,\n    pub controls: usize,\n    pub memory_pages: u32,\n    pub state_bytes: usize,\n    pub combined_bytes: usize,\n    pub instruction_fuel: u64,\n    pub execution_work: u64,\n    pub host_calls: u64,\n    pub deadline_ms: u64,\n}",
+    "line": 22,
+    "origin": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/control.rs",
+    "source_sha256": "60043ae832ba156426b025ca9fb87ea60bffc9f3939ff22554cb20f71977acc3"
+  },
+  "SwiftRunFailure": {
+    "definition": "struct SwiftRunFailure {\n    pub stage: SwiftRunStage,\n    pub kind: SwiftRunFailureKind,\n    pub code: &'static str,\n    pub function: Option<u32>,\n    pub offset: Option<usize>,\n    pub resource: Option<SwiftRunResource>,\n    pub attempted: u64,\n    pub limit: u64,\n    pub observed_capacity: Option<usize>,\n    pub deadline_origin: SwiftDeadlineOrigin,\n    pub wasi_failure: Option<WasiFailure>,\n    pub guest_exit: Option<u32>,\n    pub at_failure: SwiftRunUsage,\n    pub after_cleanup: Option<SwiftRunUsage>,\n}",
+    "line": 216,
+    "origin": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/control.rs",
+    "source_sha256": "60043ae832ba156426b025ca9fb87ea60bffc9f3939ff22554cb20f71977acc3"
+  },
+  "WasiFailure": {
+    "definition": "enum WasiFailure {\n    InvalidBudget,\n    Allocation,\n    InvalidArguments,\n    InvalidMemory,\n    Budget(Resource),\n    Cancelled,\n    Deadline,\n    Invariant,\n}",
+    "line": 92,
+    "origin": "verification/swift-guarded-snapshot-funding-implementation/source/vm/src/experimental_wasi/mod.rs",
+    "source_sha256": "4b541ccee949bc0049b861579664dade03a631f034a012150805548855524762"
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "allocating_path": {
+    "algebra": "Borrowed slice invariant n<=isize::MAX. On normal allocation path n+1<2^63, alloc receives size n+1/alignment1 before memcpy and the external memchr interface. Capacity/allocation handlers are non-returning external boundaries, not returned io::Error.",
+    "external_memchr_private_body_proved": false,
+    "operands": [
+      {
+        "address": 26160,
+        "imm": 1,
+        "raw_word": "0xb1000434",
+        "rd": 20,
+        "rn": 1,
+        "set_flags": true,
+        "subtract": false
+      },
+      {
+        "address": 26164,
+        "condition": 4,
+        "raw_word": "0x540005c4",
+        "target": 26348
+      }
+    ]
+  },
+  "cleanup": "File helper discriminant -1 selects callback with the CString pointer and length; normal callback return writes0 to first CString byte and deallocates same pointer,n+1,alignment1. NulError branch selects static diagnostic and deallocates its Vec backing at unchanged capacity n+1. Synthetic landingpad state verifies zero/deallocation/Unwind_Resume, while real unwinder selection remains outside this packet.",
+  "generic_source_to_IR": "The exact preserved146 original source members plus declared inert append instantiate File::open<&Path> and the typed output wrapper. The active LLVM evaluator follows connected branches, initializes12 option bytes and passes unchanged Path pointer/length through both AsRef bodies to the exact installed native declaration symbol. It does not establish an actual immutable caller or executable.",
+  "private_unit": "Allocator implementation, memcpy/memchr implementation, libc/kernel effects, OS callback body, unbounded private EINTR attempts, panic/OOM/unwinder effects remain outside inherited public-interface/requested-backing logical unit. Retained native words are evaluated offline with explicit interface stubs; no native instructions execute.",
+  "returned_errors": "NUL uses raw24-byte static record with kind20/message42 and relocation to exact message. Selected native open error reads borrowed __error i32, uses private interruption classification/retry, then constructs tag2 | (sign-extended errno <<32). Selected options exclude both dynamic Error::new branches. Foreign/custom Errors and callback effects are not generalized.",
+  "same_backing_CString": {
+    "algebra": "Vec fields [capacity,pointer,length]=[n+1,p,n]. capacity!=length bypasses reserve. Byte p[n]=0 and length becomes n+1. capacity<=new_length is true at equality, bypassing realloc/shrink. Return is the same p and n+1. No allocator call executes in this constructor under those connected guards.",
+    "operands": [
+      {
+        "address": 21024,
+        "condition": 0,
+        "raw_word": "0x540002e0",
+        "target": 21116
+      },
+      {
+        "address": 21036,
+        "imm": 1,
+        "raw_word": "0x910006b5",
+        "rd": 21,
+        "rn": 21,
+        "set_flags": false,
+        "subtract": false
+      },
+      {
+        "address": 21044,
+        "condition": 9,
+        "raw_word": "0x54000449",
+        "target": 21180
+      }
+    ]
+  },
+  "short_path": {
+    "actual_physical_stack_price_claim": false,
+    "algebra": "unsigned n>383 iff n>=384. Otherwise copied bytes occupy stack scratch[0,n), terminal zero at scratch[n], CStr extent n+1. Source MaybeUninit array384 and native scratch at sp+24 correspond; native total frame496 is separate from the logical384 operand array.",
+    "native_stack_scratch_fixed_operand_bytes": 384,
+    "operands": [
+      {
+        "address": 191608,
+        "imm": 383,
+        "raw_word": "0xf105fc5f",
+        "rd": 31,
+        "rn": 2,
+        "set_flags": true,
+        "subtract": true
+      },
+      {
+        "address": 191612,
+        "condition": 8,
+        "raw_word": "0x540003e8",
+        "target": 191736
+      }
+    ]
+  },
+  "source_to_native_layout": "Active LLVM defaults: custom_flags u32@0=0, mode u16@4=438, read/write/append/truncate/create/create_new bytes@6..11. Read route sets read only; output route sets write/create_new only. The installed open_c reads exactly those offsets. Exhaustive64 boolean combinations independently match source get_access_mode/get_creation_mode; selected2 combinations cannot reach dynamic Error::new."
+}

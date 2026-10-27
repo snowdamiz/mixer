@@ -1,0 +1,31 @@
+error[E0308]: mismatched types
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-work-storage/owned-work/result-layout/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:1076:48
+     |
+1076 | ...UEST_SIZE: [u8; 0] = [0; std::mem::size_of::<Result<OneFixtureOuterRequestV1, BindingSelectionRefusalV1>>()];
+     |               -------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected an array with a size of 0, found one with a size of 8
+     |               |
+     |               expected because of the type of the constant
+     |
+help: consider specifying the actual array length
+     |
+1076 -     const OUTER_RESULT_REQUEST_SIZE: [u8; 0] = [0; std::mem::size_of::<Result<OneFixtureOuterRequestV1, BindingSelectionRefusalV1>>()];
+1076 +     const OUTER_RESULT_REQUEST_SIZE: [u8; 8] = [0; std::mem::size_of::<Result<OneFixtureOuterRequestV1, BindingSelectionRefusalV1>>()];
+     |
+
+error[E0308]: mismatched types
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-work-storage/owned-work/result-layout/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:1077:49
+     |
+1077 | ...EST_ALIGN: [u8; 0] = [0; std::mem::align_of::<Result<OneFixtureOuterRequestV1, BindingSelectionRefusalV1>>()];
+     |               -------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected an array with a size of 0, found one with a size of 8
+     |               |
+     |               expected because of the type of the constant
+     |
+help: consider specifying the actual array length
+     |
+1077 -     const OUTER_RESULT_REQUEST_ALIGN: [u8; 0] = [0; std::mem::align_of::<Result<OneFixtureOuterRequestV1, BindingSelectionRefusalV1>>()];
+1077 +     const OUTER_RESULT_REQUEST_ALIGN: [u8; 8] = [0; std::mem::align_of::<Result<OneFixtureOuterRequestV1, BindingSelectionRefusalV1>>()];
+     |
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0308`.

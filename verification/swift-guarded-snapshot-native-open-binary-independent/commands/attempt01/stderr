@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 784, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 760, in main
+    cases,coverage,edges,calls=native_checks(fs,objects);control=hostile(fs,objects,llvm);front=frontier(fs,coverage,edges,calls)
+                               ~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 565, in native_checks
+    row,v=path_case(fs,objects,n,pos,write,alignment=align);rows.append(row);absorb(v)
+          ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 513, in path_case
+    v=Machine(fs,objects,patch,relocpatch);path=0x20000000+alignment;options=0x21000000;out=0x22000000
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 228, in __init__
+    self.record=self.address[named(self.address, 'l_anon.fe79d0da482d11692d25899e0a8a72b8.76')]
+                             ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 40, in named
+    def named(fs, s): return unique([n for n in fs if s in n])
+                             ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-native-open-binary-independent/independent.py", line 38, in unique
+    assert len(rows) == 1, rows
+           ^^^^^^^^^^^^^^
+AssertionError: ['l_anon.fe79d0da482d11692d25899e0a8a72b8.76', 'l_anon.fe79d0da482d11692d25899e0a8a72b8.763', 'l_anon.fe79d0da482d11692d25899e0a8a72b8.760', 'l_anon.fe79d0da482d11692d25899e0a8a72b8.762', 'l_anon.fe79d0da482d11692d25899e0a8a72b8.761', 'l_anon.fe79d0da482d11692d25899e0a8a72b8.764', 'l_anon.fe79d0da482d11692d25899e0a8a72b8.765', 'l_anon.fe79d0da482d11692d25899e0a8a72b8.766', 'l_anon.fe79d0da482d11692d25899e0a8a72b8.767', 'l_anon.fe79d0da482d11692d25899e0a8a72b8.768', 'l_anon.fe79d0da482d11692d25899e0a8a72b8.769']

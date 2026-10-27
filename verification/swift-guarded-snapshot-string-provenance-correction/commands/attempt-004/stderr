@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-correction/prepare_contracts.py", line 51, in <module>
+    if __name__=='__main__':main('--check' in sys.argv)
+                            ~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-correction/prepare_contracts.py", line 24, in main
+    functions,_,_=parse_functions(gzip.decompress((base/'whole-source146.mir.gz').read_bytes()).decode(),source)
+                  ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-correction/mir_graph.py", line 181, in parse_functions
+    'arguments':call_operands(rhs,target,locals_),
+                ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-correction/mir_graph.py", line 146, in call_operands
+    return [{'operand':v,'type':operand_type(v,locals_)} for v in operands]
+                                ~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-correction/mir_graph.py", line 138, in operand_type
+    raise Refused('unresolved-typed-operand:'+operand)
+mir_graph.Refused: unresolved-typed-operand:out(reg) _3

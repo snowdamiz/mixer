@@ -1,0 +1,67 @@
+test_actual_multibyte_byte_bound_stays_fail_closed (__main__.FailClosedExpectations.test_actual_multibyte_byte_bound_stays_fail_closed) ... ok
+test_comparison_basename_must_not_authorize_unknown_trait (__main__.FailClosedExpectations.test_comparison_basename_must_not_authorize_unknown_trait) ... FAIL
+test_existing_frozen_omissions_are_reproducible (__main__.FailClosedExpectations.test_existing_frozen_omissions_are_reproducible) ... ok
+test_named_callback_must_be_censused (__main__.FailClosedExpectations.test_named_callback_must_be_censused) ... FAIL
+test_nested_scope_str_assignments_must_be_censused (__main__.FailClosedExpectations.test_nested_scope_str_assignments_must_be_censused) ... FAIL
+test_unknown_generic_trait_producer_must_refuse (__main__.FailClosedExpectations.test_unknown_generic_trait_producer_must_refuse) ... FAIL
+test_unknown_reference_trait_producer_must_refuse (__main__.FailClosedExpectations.test_unknown_reference_trait_producer_must_refuse) ... FAIL
+test_unreviewed_std_namespace_must_refuse (__main__.FailClosedExpectations.test_unreviewed_std_namespace_must_refuse) ... FAIL
+
+======================================================================
+FAIL: test_comparison_basename_must_not_authorize_unknown_trait (__main__.FailClosedExpectations.test_comparison_basename_must_not_authorize_unknown_trait)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-independent/adverse.py", line 23, in test_comparison_basename_must_not_authorize_unknown_trait
+    with self.assertRaises(producer.Refused):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: Refused not raised
+
+======================================================================
+FAIL: test_named_callback_must_be_censused (__main__.FailClosedExpectations.test_named_callback_must_be_censused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-independent/adverse.py", line 54, in test_named_callback_must_be_censused
+    self.assertIn('Foreign::make',call['callbacks'])
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Foreign::make' not found in []
+
+======================================================================
+FAIL: test_nested_scope_str_assignments_must_be_censused (__main__.FailClosedExpectations.test_nested_scope_str_assignments_must_be_censused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-independent/adverse.py", line 40, in test_nested_scope_str_assignments_must_be_censused
+    self.assertEqual(len(functions['f0000']['str_assignments']),1)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_unknown_generic_trait_producer_must_refuse (__main__.FailClosedExpectations.test_unknown_generic_trait_producer_must_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-independent/adverse.py", line 20, in test_unknown_generic_trait_producer_must_refuse
+    with self.assertRaises(producer.Refused):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: Refused not raised
+
+======================================================================
+FAIL: test_unknown_reference_trait_producer_must_refuse (__main__.FailClosedExpectations.test_unknown_reference_trait_producer_must_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-independent/adverse.py", line 17, in test_unknown_reference_trait_producer_must_refuse
+    with self.assertRaises(producer.Refused):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: Refused not raised
+
+======================================================================
+FAIL: test_unreviewed_std_namespace_must_refuse (__main__.FailClosedExpectations.test_unreviewed_std_namespace_must_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-independent/adverse.py", line 26, in test_unreviewed_std_namespace_must_refuse
+    with self.assertRaises(producer.Refused):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: Refused not raised
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.055s
+
+FAILED (failures=6)

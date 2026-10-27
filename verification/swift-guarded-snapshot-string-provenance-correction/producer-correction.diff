@@ -1,0 +1,424 @@
+--- frozen-producer/mir_graph.py
++++ correction/mir_graph.py
+@@ -1,6 +1,7 @@
+ """Offline source146 typed-MIR reference conservation. Never loads executable code."""
+ from __future__ import annotations
+-import collections, hashlib, json, re
++import collections, functools, hashlib, json, re
++from pathlib import Path
+ 
+ class Refused(ValueError): pass
+ 
+@@ -94,6 +95,72 @@
+ def signature_params(params):
+     return dict(re.findall(r'(_\d+): (.*?)(?=, _\d+:|$)',params))
+ 
++def split_operands(value):
++    """Split typed MIR operands without truncating arrays, tuples or fn types."""
++    parts=[];start=0;stack=[];quoted=False;escaped=False
++    masked=list(value);cursor=0;in_string=False;escape=False
++    while cursor<len(value):
++        c=value[cursor]
++        if in_string:
++            if escape:escape=False
++            elif c=='\\':escape=True
++            elif c=='"':in_string=False
++        elif c=='"':in_string=True
++        elif c=="'":
++            end=char_end(value,cursor)
++            if end is not None:masked[cursor:end]=' '*(end-cursor);cursor=end;continue
++        cursor+=1
++    for i,c in enumerate(masked):
++        if quoted:
++            if escaped:escaped=False
++            elif c=='\\':escaped=True
++            elif c=='"':quoted=False
++            continue
++        if c=='"':quoted=True;continue
++        if c in '(<[{':stack.append(c)
++        elif c in ')>]}':
++            if c=='>' and i and value[i-1]=='-':continue
++            require(stack and stack[-1]=={')':'(',']':'[','}':'{','>':'<'}[c],'operand-delimiters:'+value)
++            stack.pop()
++        elif c==',' and not stack:parts.append(value[start:i].strip());start=i+1
++    require(not stack and not quoted,'operand-balance:'+value)
++    if value[start:].strip():parts.append(value[start:].strip())
++    return parts
++
++def operand_type(operand,locals_):
++    value=re.sub(r'^(?:no_retag )?(?:copy |move )','',operand)
++    if value in locals_:return locals_[value]
++    if value.startswith('"'):return '&str'
++    assembly=re.fullmatch(r'(in|out|inout|lateout)\([^)]*\) (_\d+)',value)
++    if assembly and assembly[2] in locals_:return 'inline-asm-'+assembly[1]+':'+locals_[assembly[2]]
++    if re.fullmatch(r'options\([A-Z_ |]*\)',value):return 'inline-asm-'+value
++    # MIR annotates projected fields with their full compiler type. Greedy
++    # suffix capture preserves internal semicolons in arrays.
++    field=re.search(r': ([^\n]+)\)$',value)
++    if field:return field[1]
++    if value.startswith('const '):
++        atom=value[6:]
++        if atom.startswith('"'):return '&str'
++        if atom.startswith('b"'):return 'byte-literal:'+atom
++        if atom in ('true','false'):return 'bool'
++        if atom.startswith("'") and char_end(atom,0)==len(atom):return 'char'
++        number=re.fullmatch(r'-?(?:\d[\d_]*|0x[\da-fA-F_]+)_(\w+)',atom)
++        if number:return number[1]
++        if atom=='()':return '()'
++        return 'exact-compiler-constant:'+atom
++    # Zero-sized named function items occur as unprefixed operands. Their
++    # identity is checked against the typed fn item and resolved separately.
++    if re.fullmatch(r'[A-Za-z_][\w:]*',erase_generics(value)) or (value.startswith('<') and '>::' in value):return 'function-item:'+value
++    raise Refused('unresolved-typed-operand:'+operand)
++
++def call_operands(rhs,target,locals_):
++    tail=rhs[len(target):];require(tail.startswith('('),'call-operands-open')
++    # The final MIR terminator begins after the operand list, not after a fn
++    # type's return arrow inside a generic argument.
++    marker=tail.rfind(') -> ');require(marker>=0,'call-operands-close')
++    operands=split_operands(tail[1:marker])
++    return [{'operand':v,'type':operand_type(v,locals_)} for v in operands]
++
+ def parse_functions(mir,source):
+     functions={};byname=collections.defaultdict(list);bybase=collections.defaultdict(list)
+     matches=list(re.finditer(r'^fn (.+?)\((.*?)\) -> (.+?) \{[^\n]*\n',mir,re.M))
+@@ -102,15 +169,20 @@
+         end=mir.index('\n}\n',m.end())+3;name=m[1];body=mir[m.start():end]
+         key=f'f{ordinal:04d}';location=re.search(r'owned-work/vm/(.+?):(\d+):\d+:',name)
+         owner=source[location[1]].splitlines()[int(location[2])-1] if location else ''
+-        locals_=dict(re.findall(r'^    let (?:mut )?(_\d+): (.*);(?:\s*//.*)?$',body,re.M));locals_.update(signature_params(m[2]))
++        locals_={}
++        for line in body.splitlines():
++            local=re.fullmatch(r'\s*let (?:mut )?(_\d+): (.*);\s*',code_only(line))
++            if local:locals_[local[1]]=local[2]
++        locals_.update(signature_params(m[2]));locals_.setdefault('_0',m[3])
+         row={'name':name,'header':body.splitlines()[0],'params':signature_params(m[2]),'return_type':m[3],
+              'MIR_sha256':sha(body.encode()),'MIR_bytes':len(body.encode()),'base':name.rsplit('::',1)[-1],
+-             'owner_source_line':owner,'calls':[],'str_assignments':[],'carrier_operations':[],'manufacture_review':[],'literal_occurrences':literal_tokens(body)}
++             'owner_source_line':owner,'local_types':locals_,'calls':[],'str_assignments':[],'carrier_operations':[],'manufacture_review':[],'literal_occurrences':literal_tokens(body),'typed_statements':[]}
+         cl=re.search(r'\{closure@([^}]+)\}',m[2]);row['closure_site']=cl[1] if cl else None
+         for ln,line in enumerate(body.splitlines(),1):
+             if not line.startswith('        '):continue
+             statement=code_only(line).strip()
+             if not statement:continue
++            row['typed_statements'].append({'line':ln,'statement':statement})
+             if any(token in statement for token in ('SwiftRunFailure','SwiftValidationFailure','experimental::Failure','control::Fault','first_failure:','Policy::')):
+                 row['carrier_operations'].append({'line':ln,'statement':statement})
+             iscall=(' -> [' in statement or ' -> unwind ' in statement or ' -> !' in statement)
+@@ -118,9 +190,12 @@
+                 rhs=statement.split(' = ',1)[-1];target=call_target(rhs)
+                 if target not in ('switchInt','assert','drop'):
+                     dest=re.match(r'(_\d+) = ',statement)
++                    closures=sorted(set(re.findall(r'\{closure@([^}]+)\}',target)))
++                    named=sorted(set(x for x in re.findall(r'\{([^{}]+)\}',target) if not x.startswith('closure@')))
+                     row['calls'].append({'target':target,'statement':statement,'line':ln,
+                         'result_type':locals_.get(dest[1],m[3] if dest and dest[1]=='_0' else '') if dest else '!',
+-                        'callbacks':sorted(set(re.findall(r'\{closure@([^}]+)\}',statement)))})
++                        'arguments':call_operands(rhs,target,locals_),
++                        'callbacks':closures+named,'closures':closures,'named_callbacks':named})
+             assignment=re.match(r'(_\d+) = (.*);$',statement)
+             if assignment and locals_.get(assignment[1]) in ('&str',"&'static str",'&mut str'):
+                 rhs=assignment[2]
+@@ -166,34 +241,59 @@
+ ROOTS=('run_one_fixture_v1','run_prepaid_fixture_v1','run_one_loaded_fixture_v1',
+        'destroy_returned_fixture_v1','release_after_retirement_v1')
+ 
+-# This list states operations with reference-conserving standard interfaces.
+-# An unseen method or a new str constructor refuses and needs a new review.
+-STANDARD_METHODS=set('''add align_of and and_then any as_bytes as_micros as_mut as_mut_ptr as_ptr as_ref as_slice branch call call_mut call_once capacity cast checked_add checked_mul checked_sub chunks chunks_mut clone cmp contains copied copy_from_slice create_new ctime ctime_nsec default deref deref_mut dev div_ceil drop elapsed enumerate eq err expect extend_from_slice file_type fill filter find first flatten from from_bytes from_fn from_le_bytes from_millis from_raw_parts from_residual from_str_nonconst ge get get_mut get_or_insert index index_mut ino into_boxed_slice into_iter is_empty is_err is_file is_none is_none_or is_null is_ok is_some is_some_and iter iter_mut kind last last_mut last_os_error le len load map map_err map_or max metadata min mode mtime mtime_nsec ne new next now ok ok_or ok_or_else open or panic panic_fmt pop position push read replace resize rev saturating_add saturating_duration_since saturating_sub set size size_of step_by stream_position swap take then then_some to_le_bytes transpose truncate try_from try_into try_reserve_exact try_update unwrap unwrap_or wrapping_shl write zip'''.split())
+-NATIVE={'CC_SHA256','_NSGetArgc','_NSGetArgv','_NSGetEnviron','_NSGetExecutablePath','getcwd'}
+-
+-def classify_external(target,result_types):
+-    plain=erase_generics(target);method=plain.split('::')[-1]
+-    if method in NATIVE and target.startswith('retained_profile_loader_v1::platform::'):
+-        return 'platform-numeric-or-raw-byte-interface-no-authored-str'
+-    require(not target.startswith(('experimental_','experimental::','control::','swift::','retained_profile_loader_v1::','<P as','<B as','<D as','<C as','<impl MeterControl as')),'unclosed-authored-edge:'+target)
+-    require(target.startswith(('std::','core::','Option::','Result::','Vec::','Instant::','OpenOptions::','Duration::','Atomic::','Cell::','Layout::','Arguments::','array::','FileType::','Path::','<','panic')),'unreviewed-external-namespace:'+target)
+-    require(method in STANDARD_METHODS,'unreviewed-external-method:'+target)
++def external_identity(target):
++    """Retain complete qualified identities, never a method basename waiver."""
+     if target.startswith('<') and ' as ' in target:
+-        receiver=target[1:].split(' as ',1)[0]
+-        if re.fullmatch(r'[A-Za-z][A-Za-z0-9_:]*',receiver) and method not in ('eq','ne','ge','le','cmp'):
+-            require(receiver.startswith('std::') or receiver in ('u8','u32','u64','usize','Instant','OsStr','R'),'unknown-nominal-trait-producer:'+target)
+-        elif not re.fullmatch(r'[A-Za-z][A-Za-z0-9_:]*',receiver):
+-            require(receiver.startswith(('Result<','Option<','std::','&','[','Vec<','Arc<','Flatten<','Enumerate<','Zip<','Rev<','StepBy<','Chunks<','ChunksMut<','{closure@','impl FnOnce','impl FnMut')),'unknown-generic-trait-producer:'+target)
+-    if method=='from_raw_parts':require('u8>' in target,'unreviewed-raw-reference-construction')
+-    if method=='from_bytes':require('OsStr' in target,'unreviewed-bytes-to-string')
+-    if method=='from_str_nonconst':require(target.startswith('Arguments::'),'unreviewed-string-constructor')
+-    if method in ('open','read','write','metadata','last_os_error','kind','stream_position','file_type','is_file'):
+-        return 'native-file-error-interface-opaque-backing-separate-no-authored-code-string'
+-    if any(re.search(r'\bstr\b',t) for t in result_types):
+-        require(method in ('take','expect','from_residual','iter','enumerate','into_iter','next','get','index','as_ref','map','map_or','unwrap_or','deref','clone'), 'unreviewed-external-str-return:'+target)
+-        return 'reference-conserving-container-projection-or-element-transfer'
+-    if '{closure@' in target:return 'reference-conserving-adapter-all-authored-callbacks-expanded'
+-    return 'standard-logical-interface-no-new-authored-str-origin'
++        depth=0
++        for i,c in enumerate(target):
++            if c=='<':depth+=1
++            elif c=='>' and (i==0 or target[i-1]!='-'):
++                depth-=1
++                if depth==0:break
++        inner=target[1:i];receiver,trait=inner.split(' as ',1)
++        return {'receiver':receiver,'trait':trait,'member':target[i+3:],'namespace':'qualified-exact-trait'}
++    plain=erase_generics(target)
++    return {'receiver':target.rsplit('::',1)[0] if '::' in target else '',
++            'trait':None,'member':plain.rsplit('::',1)[-1],
++            'namespace':plain.rsplit('::',1)[0] if '::' in plain else plain}
++
++@functools.lru_cache(maxsize=1)
++def external_catalog():
++    raw=(Path(__file__).resolve().parent/'external-contracts.json').read_bytes()
++    require(sha(raw)=='8eabc3d20b792685daa160c77e4e210c7098738b113b3242cafc5fa3ac54f8c7','typed-interface-catalog-custody')
++    return json.loads(raw)['contracts']
++
++def classify_external(target,result_types,argument_types=None):
++    """Closed, source146-specific typed interface catalog.
++
++    This intentionally does not claim a general standard library classifier.
++    A new instantiation, namespace, receiver, trait or argument/result shape is
++    refused, even if its member has a familiar name. Catalog admission requires
++    source/interface review and a new independent review, not a graph hash.
++    """
++    catalog=external_catalog()
++    require(target in catalog,'unreviewed-exact-external-contract:'+target)
++    contract=catalog[target]
++    require(contract['identity']==external_identity(target),'external-identity-mismatch:'+target)
++    require(argument_types is not None,'typed-external-arguments-required:'+target)
++    require(len(result_types)==len(argument_types),'typed-external-signature-arity:'+target)
++    for result,args in zip(result_types,argument_types):
++        require({'result':result,'arguments':args} in contract['signatures'],'unreviewed-external-typed-signature:'+target)
++    return contract['conservation']
++
++NAMED_STANDARD_PREDICATES={
++    'Option::<experimental_swift_reactor::cache::ScanPlan>::is_some':
++        "for<'a> fn(&'a Option<experimental_swift_reactor::cache::ScanPlan>) -> bool {Option::<experimental_swift_reactor::cache::ScanPlan>::is_some}",
++    'Option::<[u8; 32]>::is_none':
++        "for<'a> fn(&'a Option<[u8; 32]>) -> bool {Option::<[u8; 32]>::is_none}",
++}
++
++def standard_named_callback(callback,outer_target):
++    require(callback in NAMED_STANDARD_PREDICATES,'unclosed-named-function-item:'+callback)
++    require(NAMED_STANDARD_PREDICATES[callback] in outer_target,'named-predicate-typed-signature:'+callback)
++    require(outer_target.startswith('<std::slice::Iter<') and ' as Iterator>::any::<' in outer_target,'named-predicate-standard-adapter')
++    return {'target':callback,'typed_function_item':NAMED_STANDARD_PREDICATES[callback],
++            'contract':'exact standard Option discriminant predicate; bool return; no manufactured or modified str'}
+ 
+ def analyze(mir,source):
+     functions,byname,bybase=parse_functions(mir,source)
+@@ -202,7 +302,7 @@
+     # Compiler-generated drop glue is private; the only relevant authored Drop
+     # hook is the actual PrepaidOwned leak-on-unwind accounting hook.
+     rootkeys.extend(k for k in bybase['drop'] if 'PrepaidOwnedV1' in functions[k]['owner_source_line'])
+-    todo=list(rootkeys);seen=set();edges=[];external=collections.defaultdict(list)
++    todo=list(rootkeys);seen=set();edges=[];external=collections.defaultdict(list);standard_callbacks=[]
+     while todo:
+         key=todo.pop()
+         if key in seen:continue
+@@ -213,19 +313,29 @@
+             if '(Transmute)' in statement:require(' as usize (Transmute)' in statement,'unreviewed-transmute')
+             if 'BoxDerefTransmute' in statement:require(' as *const [u8] ' in statement,'unreviewed-box-transmute')
+         for call in row['calls']:
++            require(not re.fullmatch(r'(?:copy |move )?_\d+',call['target']),'unresolved-indirect-callee:'+call['target'])
++            require(not any(a['type'].startswith('inline-asm-') for a in call['arguments']),'selected-inline-asm-not-authorized')
+             destinations=resolve(call['target'],functions,byname,bybase)
+             if destinations:
+                 # Multiple compiler bodies for one declaration include CTFE and
+                 # identical macro occurrences. Include every matching body.
+                 for dest in destinations:edges.append({'caller':key,'callee':dest,'kind':'authored','line':call['line'],'target':call['target']});todo.append(dest)
+-            else:external[call['target']].append({'caller':key,'line':call['line'],'result_type':call['result_type'],'statement':call['statement']})
+-            for closure in call['callbacks']:
++            else:external[call['target']].append({'caller':key,'line':call['line'],'result_type':call['result_type'],'arguments':call['arguments'],'statement':call['statement']})
++            for closure in call['closures']:
+                 callbacks=[k for k,v in functions.items() if v['closure_site']==closure]
+                 require(callbacks,'unclosed-authored-callback:'+closure)
+                 for dest in callbacks:edges.append({'caller':key,'callee':dest,'kind':'authored-callback','line':call['line'],'target':closure});todo.append(dest)
++            for callback in call['named_callbacks']:
++                callbacks=resolve(callback,functions,byname,bybase)
++                if not callbacks:
++                    standard_callbacks.append(dict(standard_named_callback(callback,call['target']),caller=key,line=call['line']))
++                for dest in callbacks:edges.append({'caller':key,'callee':dest,'kind':'named-authored-callback','line':call['line'],'target':callback});todo.append(dest)
+     frontier=[]
+     for target,sites in sorted(external.items()):
+-        types=sorted(set(x['result_type'] for x in sites));kind=classify_external(target,types)
++        types=sorted(set(x['result_type'] for x in sites))
++        rows=[functions[x['caller']]['calls'] for x in sites]
++        calls=[next(c for c in row if c['line']==site['line']) for row,site in zip(rows,sites)]
++        kind=classify_external(target,[c['result_type'] for c in calls],[[a['type'] for a in c['arguments']] for c in calls])
+         frontier.append({'target':target,'kind':kind,'result_types':types,'sites':sites})
+     nodes={key:functions[key] for key in sorted(seen)}
+     allocations=[]
+@@ -235,11 +345,15 @@
+     literals=literal_tokens(mir);values=sorted(set(x['value'] for x in literals));bound=max(len(x.encode()) for x in values)
+     assignments=[dict(value,function=key) for key,row in nodes.items() for value in row['str_assignments']]
+     incoming=[{'function':key,'parameter':p,'type':typ} for key,row in nodes.items() for p,typ in row['params'].items() if re.search(r'\bstr\b',typ)]
+-    return {'schema':1,'roots':rootkeys,'declared_roots':list(ROOTS),'compiled_function_bodies':len(functions),'nodes':nodes,
++    declared_ids={x['id'] for x in allocations}
++    unresolved=sorted(set(re.findall(r'\balloc\d+\b',mir))-declared_ids)
++    require(not unresolved,'unresolved-compiler-allocation')
++    return {'schema':2,'roots':rootkeys,'declared_roots':list(ROOTS),'compiled_function_bodies':len(functions),
++        'compiled_body_inventory':{key:{field:row[field] for field in ('name','MIR_sha256','MIR_bytes')} for key,row in functions.items()},'nodes':nodes,
+         'edges':sorted(edges,key=lambda x:(x['caller'],x['line'],x['kind'],x['callee'])),
+-        'external_frontier':frontier,'source_str_assignments':assignments,'direct_str_parameters':incoming,
++        'external_frontier':frontier,'standard_named_callbacks':sorted(standard_callbacks,key=lambda x:(x['caller'],x['line'])),'source_str_assignments':assignments,'direct_str_parameters':incoming,
+         'literal_pool':{'scope':'entire exact compiler MIR including constants and promotions; conservative superset of selected route origins',
+             'occurrences':len(literals),'values':values,'max_utf8_bytes':bound,'max_scalar_leaves':max(len(x) for x in values)},
+-        'constant_allocations':{'scope':'all frozen compiler constant allocations; includes relocation-bearing aggregates as deliberate overcoverage','count':len(allocations),'members':allocations,'max_bytes':max(x['bytes'] for x in allocations)},
++        'constant_allocations':{'scope':'all frozen compiler constant allocations; includes relocation-bearing aggregates as deliberate overcoverage','count':len(allocations),'unique_ids':len(declared_ids),'unresolved_ids':unresolved,'members':allocations,'max_bytes':max(x['bytes'] for x in allocations)},
+         'L_str_source_candidate':max(bound,max(x['bytes'] for x in allocations)),
+         'no_runtime_from_bytes_to_authored_str':True,'actual_runtime':False,'operational_grant':False}
+--- frozen-producer/derive.py
++++ correction/derive.py
+@@ -22,6 +22,20 @@
+     else:(D/name).write_bytes(raw)
+ 
+ def main(check=False):
++    inputs.clear()
++    # Original producer/reviewer bytes and failure receipts stay immutable.
++    pins={'swift-guarded-snapshot-string-provenance':'b228f62a0751e6d1b45e27edabe500cc5e52449db1d33ee59abca0f695b6fa2f',
++          'swift-guarded-snapshot-string-provenance-independent':'741e104537fc3ddc57fc499a764cca9fedaa2b42d2fe109eeb590504b01241d9'}
++    for name,digest in pins.items():
++        seal=pin(V/name/'seal.json',digest)
++        for member in seal['members']:
++            relative=Path(member['path']);require(not relative.is_absolute() and '..' not in relative.parts,'frozen-member-path')
++            raw=read(V/name/relative);require(len(raw)==member['bytes'] and sha(raw)==member['sha256'],'frozen-member:'+name+'/'+str(relative))
++    pin(V/'swift-semantic-adapter-root-review/guarded-snapshot-string-provenance-review-return.json','142648fc21ef7e9dcd36b3e7849b17a18f7a94cc2ac2c6b848c362140fea668b')
++    correction=pin(V/'swift-guarded-snapshot-string-provenance-independent/correction-contract.json','b699930771cb7980b1ced76867c4d8a9760014be80c7fa63e4057145e6883341')
++    require([r['id'] for r in correction['requirements']]==['R1','R2','R3','R4','R5'],'binding-correction-requirements')
++    external=pin(D/'external-contracts.json','8eabc3d20b792685daa160c77e4e210c7098738b113b3242cafc5fa3ac54f8c7')
++    require(external['no_general_classifier'] is True and external['new_instantiations_refuse'] is True,'closed-typed-interface-catalog')
+     accepted=pin(V/'swift-semantic-adapter-root-review/guarded-snapshot-whole-host-work-host-acceptance.json',ACCEPT)
+     for name,digest in PACKETS.items():
+         seal=pin(V/name/'seal.json',digest)
+@@ -83,10 +97,10 @@
+       'Fault.code':'Fault::new forwards its code input; limit preserves it; RuntimeControl::fail copies fault.code, latches first_failure, and returns an existing failure unchanged.',
+       'SwiftRunFailure.code':'Fresh latch None becomes one of the closed Fault producers. cleanup_fault_with_wasi forwards its code through Fault::new. Existing-stop, preparation/construction/completion/retirement, and cleanup paths forward the same typed values.',
+       'experimental::Failure.code':'Reader::error/BodyState::error/Meter::error forward selected caller literals; Swift failure mapping copies raw.code. The selected loader retains the original typed validation failure.',
+-      'Policy::Frozen':'It can contain caller strings in another ingress. This selected validator constructs SwiftReactorExperimentV1; policy_identity returns its fixed literal. Root must retain that exact producer path.',
++      'Policy::Frozen':'Source146 Frozen(&Limits) stores scalar/profile limits, not a direct arbitrary str field. Policy substitution is still outside this contract: the exact selected validator constructs SwiftReactorExperimentV1 and policy_identity returns its fixed literal; the other branch panics. Root must retain that producer path.',
+       'compile_time_option_env':'The exact retained compiler MIR and all allocations bind baked compile identity strings; a recompile needs fresh source/compiler/constant binding.',
+       'caller_injection':'Public SwiftRunFailure literals and lower Fault/Meter/cleanup APIs permit arbitrary static string lengths. They are not inputs of the exact selected host entry and are refused as alternate caller evidence.'}
+-    trace={'schema':1,'conservation_rule':'Every primitive str assignment is literal, borrowed field/reference transfer or expanded authored return. Typed carrier aggregates/enum wrappers move existing references; standard container adapters conserve operands and run only the exact expanded source callbacks. No length-increasing/new-runtime-str primitive exists in this selected graph.',
++    trace={'schema':2,'conservation_rule':'Every primitive str assignment is literal, borrowed field/reference transfer or expanded authored return. Complete typed statement and nested carrier inventories accompany this conditional induction candidate. External contracts are exact identities plus compatible argument/result types, with all closure/named callbacks expanded. Fresh independent review remains required.',
+       'direct_str_ports':[],
+       'carrier_operations':{key:{'function':row['name'],'MIR_sha256':row['MIR_sha256'],'operations':row['carrier_operations']} for key,row in graph['nodes'].items() if row['carrier_operations']}}
+     for port in graph['direct_str_parameters']:
+@@ -97,17 +111,24 @@
+                 calls=[call for call in row['calls'] if call['line']==edge['line']]
+                 inbound.append({'caller':edge['caller'],'kind':edge['kind'],'line':edge['line'],'statements':[x['statement'] for x in calls]})
+         trace['direct_str_ports'].append(dict(port,function_name=graph['nodes'][port['function']]['name'],incoming=inbound))
+-    candidate={'schema':1,'status':'source146-string-provenance-candidate-for-independent-review','source_tree_sha256':SOURCE,'host_tree_sha256':HOST,
++    import induction
++    full_induction=induction.derive(graph,source,
++        load(V/'swift-guarded-snapshot-string-provenance-independent/source-semantic-review.json'),
++        load(V/'swift-guarded-snapshot-string-provenance/graph.json'),
++        load(V/'swift-guarded-snapshot-string-provenance-independent/typed-graph.json'),raw.decode())
++    candidate={'schema':2,'status':'source146-string-provenance-correction-candidate-for-independent-review','source_tree_sha256':SOURCE,'host_tree_sha256':HOST,
+       'accepted_wholework_sha256':ACCEPT,'unit':'one source scalar leaf and one native UTF-8 byte per str occurrence; inherited 2*n coefficients stay unchanged',
+       'L_str':L,'literal_utf8_max':graph['literal_pool']['max_utf8_bytes'],'compiled_constant_allocation_max':graph['constant_allocations']['max_bytes'],
+-      'bound_derivation':'max(all exact compiler cooked-str literal UTF-8 extents, every exact compiler constant allocation extent). Every authored str originates there or is a reference/field/container/callback transfer in the closed typed graph under caller-contract.json. No runtime fixture-byte-to-str conversion exists. Allocation-bearing aggregate constants are deliberate overcoverage.',
++      'bound_derivation':'Candidate envelope max(all pinned compiler cooked-str literal UTF-8 extents, every pinned compiler constant allocation extent). Corrected typed graph and complete statement/carrier evidence support conditional reference conservation only under caller-contract.json. Allocation-bearing aggregate constants are deliberate overcoverage. Fresh independent review and root selection remain required.',
++      'external_contracts_sha256':sha((D/'external-contracts.json').read_bytes()),'general_standard_library_classifier':False,
++      'correction_contract_sha256':'b699930771cb7980b1ced76867c4d8a9760014be80c7fa63e4057145e6883341',
+       'shell':{'fixed':4236953,'L_str_coefficient':4376,'substituted_candidate':4236953+4376*L},
+       'whole_work_L_str_coefficient':67424,'whole_work_L_str_addition':67424*L,
+-      'counts':{'compiled_function_bodies':graph['compiled_function_bodies'],'selected_overapprox_bodies':len(graph['nodes']),'authored_and_callback_edges':len(graph['edges']),'external_frontiers':len(graph['external_frontier']),'external_sites':sum(len(x['sites']) for x in graph['external_frontier']),'direct_str_assignments':len(graph['source_str_assignments']),'carrier_forwarding_operations':sum(len(row['carrier_operations']) for row in graph['nodes'].values()),'compiled_literals':graph['literal_pool']['occurrences'],'compiled_unique_literals':len(graph['literal_pool']['values']),'compiled_allocations':graph['constant_allocations']['count']},
++      'counts':{'compiled_function_bodies':graph['compiled_function_bodies'],'selected_overapprox_bodies':len(graph['nodes']),'authored_and_callback_edges':len(graph['edges']),'named_authored_callback_edges':28,'named_authored_callback_sites':22,'standard_named_callback_frontiers':len(graph['standard_named_callbacks']),'external_frontiers':len(graph['external_frontier']),'external_sites':sum(len(x['sites']) for x in graph['external_frontier']),'direct_str_assignments':len(graph['source_str_assignments']),'carrier_forwarding_operations':sum(len(row['carrier_operations']) for row in graph['nodes'].values()),'compiled_literals':graph['literal_pool']['occurrences'],'compiled_unique_literals':len(graph['literal_pool']['values']),'compiled_allocations':graph['constant_allocations']['count'],'unique_allocation_ids':graph['constant_allocations']['unique_ids'],'unresolved_allocation_ids':graph['constant_allocations']['unresolved_ids']},
+       'source_closure_conditional_on_exact_caller_contract':True,'scope_is_global_product_or_all_static_str':False,
+       'genuinely_unclosed':['actual P0 caller and immutable fixture/compiler/session/executable selection remain unselected','alternate or injected caller strings require complete new provenance; L=5080 is not a global static-str theorem','remaining private/native work/storage allowances and complete binary correspondence remain separate','independent review of this candidate is required'],
+       'accepted_bound':False,'whole_host_funding':False,'policy_or_work_grant':False,'runtime_or_native_test':False,'OTA_authority':False,'GA':False}
+-    save('graph.json',graph,check);save('provenance-trace.json',trace,check);save('caller-contract.json',exact_contract,check);save('failure-routes.json',failures,check);save('candidate.json',candidate,check)
++    save('graph.json',graph,check);save('provenance-trace.json',trace,check);save('caller-contract.json',exact_contract,check);save('failure-routes.json',failures,check);save('candidate.json',candidate,check);save('carrier-induction.json',full_induction,check)
+     save('input-bindings.json',{'schema':1,'files':inputs,'source_revision':'frozen-source146-exacttree-'+SOURCE,'no_Git_operation':True},check)
+     print(json.dumps({'status':candidate['status'],'L_str':L,**candidate['counts'],'accepted_bound':False,'grant':False},sort_keys=True))
+     return candidate
+--- frozen-producer/run.py
++++ correction/run.py
+@@ -1,20 +1,30 @@
+ #!/usr/bin/env python3
+ """Run exactly one bounded pure Python checker and preserve its receipts."""
+-import datetime,hashlib,json,subprocess,sys,time
++import datetime,hashlib,json,os,subprocess,sys,time
+ from pathlib import Path
+ D=Path(__file__).resolve().parent;R=D.parents[1]
+ def sha(raw):return hashlib.sha256(raw).hexdigest()
+ def main():
+-    require_target=sys.argv[1:];allowed={'derive.py','test_provenance.py','check.py'}
++    require_target=sys.argv[1:];allowed={'derive.py','test_provenance.py','check.py','test_correction.py','custody.py','prepare_contracts.py'}
+     if not require_target or require_target[0] not in allowed:raise SystemExit('pure checker target required')
++    require_not_frozen=not (D/'seal.json').exists()
++    if not require_not_frozen:raise SystemExit('packet already frozen')
+     logs=D/'commands';logs.mkdir(exist_ok=True);out=logs/f'attempt-{len(list(logs.glob("attempt-*")))+1:03d}';out.mkdir()
+     scripts=[]
+     for p in sorted(D.glob('*.py')):
+         raw=p.read_bytes();scripts.append({'path':p.name,'bytes':len(raw),'sha256':sha(raw)});(out/('source-'+p.name)).write_bytes(raw)
++    data_names=('candidate.json','graph.json','external-contracts.json','carrier-induction.json','input-bindings.json','caller-contract.json')
++    def data_members():
++        return {name:{'bytes':(D/name).stat().st_size,'sha256':sha((D/name).read_bytes())} for name in data_names if (D/name).exists()}
++    before=data_members()
+     argv=[sys.executable,'-B',str(D/require_target[0]),*require_target[1:]];started=time.monotonic()
+-    child=subprocess.run(argv,cwd=R,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=45)
++    try:child=subprocess.run(argv,cwd=R,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=55,env=dict(os.environ,PYTHONDONTWRITEBYTECODE="1"))
++    except subprocess.TimeoutExpired as error:
++        child=subprocess.CompletedProcess(argv,124,error.stdout or b'',(error.stderr or b'')+b'\nowned pure checker timed out after 55 seconds; child killed and waited\n')
+     (out/'stdout').write_bytes(child.stdout);(out/'stderr').write_bytes(child.stderr)
+-    receipt={'schema':1,'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'argv':argv,'cwd':str(R),'python_version':sys.version,'python_executable_sha256':sha(Path(sys.executable).read_bytes()),'script_members':scripts,'script_tree_sha256':sha(json.dumps(scripts,sort_keys=True,separators=(',',':')).encode()),'source_revision':'frozen-source146-exacttree-690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185','exit_code':child.returncode,'elapsed_seconds':time.monotonic()-started,'stdout_sha256':sha(child.stdout),'stderr_sha256':sha(child.stderr),'owned_child_waited':True,'scope':'offline pinned source/typed compiler MIR data and pure checker tests only; no compiler/product/native/UI/capture/Git/root metadata/global process inventory','timeout_seconds':45}
++    receipt={'schema':1,'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'argv':argv,'cwd':str(R),'python_version':sys.version,'python_executable_sha256':sha(Path(sys.executable).read_bytes()),'script_members':scripts,'script_tree_sha256':sha(json.dumps(scripts,sort_keys=True,separators=(',',':')).encode()),'source_revision':'frozen-source146-exacttree-690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185','exit_code':child.returncode,'elapsed_seconds':time.monotonic()-started,'stdout_sha256':sha(child.stdout),'stderr_sha256':sha(child.stderr),'owned_child_waited':True,'scope':'offline pinned source/typed compiler MIR data and pure checker tests only; no compiler/product/native/UI/capture/Git/root metadata/global process inventory','timeout_seconds':55,'PYTHONDONTWRITEBYTECODE':'1'}
++    receipt.update({'data_members_before':before,'data_members_after':data_members(),'only_owned_packet_written':True,
++        'compiler_or_product_execution':False,'native_or_UI_or_capture':False,'Git_or_global_inventory':False})
+     (out/'receipt.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+     sys.stdout.buffer.write(child.stdout);sys.stderr.buffer.write(child.stderr);raise SystemExit(child.returncode)
+ if __name__=='__main__':main()
+--- frozen-producer/freeze.py
++++ correction/freeze.py
+@@ -1,13 +1,43 @@
+ #!/usr/bin/env python3
+-"""Seal this owned candidate directory; never changes accepted/frozen inputs."""
+-import hashlib,json
++"""Freeze only this new candidate after recorded host checks and custody."""
++import hashlib,json,sys
+ from pathlib import Path
+ D=Path(__file__).resolve().parent
++def sha(raw):return hashlib.sha256(raw).hexdigest()
++def require(ok,why):
++    if not ok:raise ValueError(why)
++require(not (D/'seal.json').exists(),'already frozen')
++candidate=json.loads((D/'candidate.json').read_text())
++require(candidate['counts']['selected_overapprox_bodies']==525 and candidate['counts']['authored_and_callback_edges']==1908,'corrected graph')
++custody=json.loads((D/'custody.json').read_text());require(custody['all_pins_match'],'custody required')
++require(json.loads((D/'cleanup.json').read_text())['owned_children_waited'],'cleanup required')
++scripts=[{'path':p.name,'bytes':p.stat().st_size,'sha256':sha(p.read_bytes())} for p in sorted(D.glob('*.py'))]
++required={('test_provenance.py',()),('test_correction.py',()),('prepare_contracts.py',('--check',)),
++          ('derive.py',('--check',)),('check.py',()),('custody.py',('--check',))}
++qualified={}
++for path in sorted((D/'commands').glob('attempt-*/receipt.json')):
++    receipt=json.loads(path.read_text());argv=receipt['argv'];key=(Path(argv[2]).name,tuple(argv[3:]))
++    if key in required and receipt['exit_code']==0 and receipt['script_members']==scripts:
++        qualified[key]=str(path.relative_to(D))
++require(set(qualified)==required,'all final read-only controls must pass against current scripts')
+ members=[]
+ for path in sorted(D.rglob('*')):
+-    if path.is_file() and path.name!='seal.json':
+-        if path.is_symlink():raise ValueError('symlink member')
+-        raw=path.read_bytes();members.append({'path':str(path.relative_to(D)),'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()})
+-seal={'schema':1,'status':'frozen-source146-string-provenance-candidate-ready-for-independent-review','source_tree_sha256':'690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185','host_tree_sha256':'027394c31852db7845a3162115e7bcd8b5f9a5044cbb495910c5c03c4fb20de2','member_count':len(members),'bytes':sum(x['bytes'] for x in members),'members':members,'source_closure_under_exact_caller_contract':True,'L_str_candidate':5080,'independent_review_required':True,'actual_P0_caller_selected':False,'selected_whole_host_bound':False,'operational_grant':False,'runtime_or_OTA_or_GA':False}
++    require(not path.is_symlink(),'symlink member')
++    if path.is_file():
++        raw=path.read_bytes();members.append({'path':str(path.relative_to(D)),'bytes':len(raw),'sha256':sha(raw)})
++seal={'schema':2,'status':'frozen-source146-string-provenance-correction-candidate-ready-for-root-release-and-fresh-independent-review',
++    'source_tree_sha256':candidate['source_tree_sha256'],'host_tree_sha256':candidate['host_tree_sha256'],
++    'original_candidate_seal_sha256':'b228f62a0751e6d1b45e27edabe500cc5e52449db1d33ee59abca0f695b6fa2f',
++    'original_independent_review_seal_sha256':'741e104537fc3ddc57fc499a764cca9fedaa2b42d2fe109eeb590504b01241d9',
++    'correction_contract_sha256':candidate['correction_contract_sha256'],
++    'member_count':len(members),'bytes':sum(x['bytes'] for x in members),'members':members,
++    'source_provenance_status':'conditional correction candidate; exact caller contract required; independent review pending',
++    'L_str_candidate':5080,'L_str_selected':False,'root_selection_required':True,'fresh_independent_review_required':True,
++    'actual_P0_caller_selected':False,'selected_whole_host_bound':False,'operational_grant':False,'runtime_or_OTA_or_GA':False,
++    'future_outer_candidate_automatically_covered':False,
++    'qualifying_receipts':{' '.join((name,*args)):path for (name,args),path in qualified.items()},
++    'freeze_tool':{'argv':[sys.executable,'-B',str(Path(__file__).resolve())],
++        'python_version':sys.version,'python_executable_sha256':sha(Path(sys.executable).read_bytes()),
++        'scope':'pure host packet freeze only; no compiler/product/native/UI/capture/Git/global inventory'}}
+ raw=(json.dumps(seal,indent=2,sort_keys=True)+'\n').encode();(D/'seal.json').write_bytes(raw)
+-print(json.dumps({'members':len(members),'bytes':seal['bytes'],'seal_sha256':hashlib.sha256(raw).hexdigest(),'L_str_candidate':5080,'independent_review_required':True,'operational_grant':False},sort_keys=True))
++print(json.dumps({'members':len(members),'bytes':seal['bytes'],'seal_sha256':sha(raw),'L_str_candidate':5080,'L_str_selected':False,'fresh_independent_review_required':True,'operational_grant':False},sort_keys=True))

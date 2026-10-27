@@ -1,0 +1,75 @@
+error[E0515]: cannot return value referencing function parameter `preexisting`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-scoped-binding-source/owned-work/negative/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:1127:5
+     |
+1127 |     OneFixtureOuterRequestV1 { preexisting: &preexisting }
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^------------^^
+     |     |                                       |
+     |     |                                       `preexisting` is borrowed here
+     |     returns a value referencing data owned by the current function
+
+error[E0515]: cannot return value referencing local variable `bytes`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-scoped-binding-source/owned-work/negative/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:1131:5
+     |
+1131 |     ImmutableIdentityPreimageV1 { bytes: &bytes, sha256: [0; 32] }
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^------^^^^^^^^^^^^^^^^^^^
+     |     |                                    |
+     |     |                                    `bytes` is borrowed here
+     |     returns a value referencing data owned by the current function
+
+error[E0506]: cannot assign to `bytes[_]` because it is borrowed
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-scoped-binding-source/owned-work/negative/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:1135:5
+     |
+1134 |     let identity = ImmutableIdentityPreimageV1 { bytes, sha256: [0; 32] };
+     |                                                  ----- `bytes[_]` is borrowed here
+1135 |     bytes[0] = 1;
+     |     ^^^^^^^^^^^^ `bytes[_]` is assigned to here but it was already borrowed
+1136 |     std::hint::black_box(identity.bytes);
+     |                          -------------- borrow later used here
+
+error[E0505]: cannot move out of `bytes` because it is borrowed
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-scoped-binding-source/owned-work/negative/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:1140:10
+     |
+1138 | fn reject_drop_live_identity_v1(bytes: Vec<u8>) {
+     |                                 ----- binding `bytes` declared here
+1139 |     let identity = ImmutableIdentityPreimageV1 { bytes: &bytes, sha256: [0; 32] };
+     |                                                         ------ borrow of `bytes` occurs here
+1140 |     drop(bytes);
+     |          ^^^^^ move out of `bytes` occurs here
+1141 |     std::hint::black_box(identity.bytes);
+     |                          -------------- borrow later used here
+     |
+help: consider cloning the value if the performance cost is acceptable
+     |
+1139 |     let identity = ImmutableIdentityPreimageV1 { bytes: &bytes.clone(), sha256: [0; 32] };
+     |                                                               ++++++++
+
+error[E0382]: use of moved value: `request`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-scoped-binding-source/owned-work/negative/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:1145:30
+     |
+1143 | fn reject_double_consume_request_v1(request: OneFixtureOuterRequestV1<'_>) {
+     |                                     ------- move occurs because `request` has type `OneFixtureOuterRequestV1<'_>`, which does not implement the `Copy` trait
+1144 |     consume_outer_request_v1(request);
+     |                              ------- value moved here
+1145 |     consume_outer_request_v1(request);
+     |                              ^^^^^^^ value used here after move
+     |
+note: consider changing this parameter type in function `consume_outer_request_v1` to borrow instead if owning the value isn't necessary
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-scoped-binding-source/owned-work/negative/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:1017:42
+     |
+1017 |     fn consume_outer_request_v1(request: OneFixtureOuterRequestV1<'_>) -> OuterResultV1 {
+     |        ------------------------          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this parameter takes ownership of the value
+     |        |
+     |        in this function
+note: if `OneFixtureOuterRequestV1<'_>` implemented `Clone`, you could clone the value
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-scoped-binding-source/owned-work/negative/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:897:5
+     |
+ 897 |     struct OneFixtureOuterRequestV1<'p0> {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider implementing `Clone` for this type
+...
+1144 |     consume_outer_request_v1(request);
+     |                              ------- you could clone this value
+
+error: aborting due to 5 previous errors
+
+Some errors have detailed explanations: E0382, E0505, E0506, E0515.
+For more information about an error, try `rustc --explain E0382`.

@@ -1,0 +1,37 @@
+{
+  "additional_assertions": 47,
+  "candidate_source_findings": 0,
+  "failures": [
+    {
+      "attempt": 1,
+      "reason": "Reviewer required literal original_files spelling, but the roster identifies that owner by ReturnedLoaderFilesV1; source and full type correspondence establish the same owner.",
+      "receipt_sha256": "004139c5dd8f08dab128008607b8c02544b38a0890b9fc4f170985926a50c15c",
+      "script_sha256": "284ea970fb08e8cc62eda6498fdb9aa4f42d1978cd8beebfb142d0528f83dc2d",
+      "status": "reviewer-harness-failure-corrected",
+      "stderr_sha256": "a685dfab8ca411866a8dfd430bd985f011584bcf48e27487426d6d48bb46e4e2",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "attempt": 2,
+      "reason": "Reviewer treated every MIR -> [ branch as a call; switchInt is a branch. The final check recognizes return-labelled call terminators.",
+      "receipt_sha256": "59050fb706e272bf57187f962f0e0b6d801ab01f52038018b77c93c50e478855",
+      "script_sha256": "2bb33e0e292259501ff2d652765da20a585cd5ebd37b13d76414a8450bbf28e1",
+      "status": "reviewer-harness-failure-corrected",
+      "stderr_sha256": "2930cd3e351b3b5b165bc5b00f80128c29b93bb29d535821e33388ec1e55f37c",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "attempt": 3,
+      "reason": "Reviewer appended token event after all call markers in a basic block; actual compiled statements move the Some token before the release call. Final traversal retains statement order.",
+      "receipt_sha256": "8080ee8869b3bddf32e3037bd090f3999da2cb464982e861b4e1a13bb6a51b49",
+      "script_sha256": "c2f05d06c859097efd7c8d4805c6fcfdf1578b3356def9d3e42384402f136717",
+      "status": "reviewer-harness-failure-corrected",
+      "stderr_sha256": "3f5ac96ab3514a624b89cdce99b8728df463498e27334c6c521635c50db14259",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "final_assertions": 917,
+  "final_pass": "commands/offline-review-attempt4/receipt.json",
+  "prospective_oracle_correction": "Release is permitted after token return on the normal path; unwind performs no automatic call.",
+  "schema": 1
+}

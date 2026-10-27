@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "kind": "owned-recorder-attempt-directory-race",
+  "command": "PYTHONDONTWRITEBYTECODE=1 python3 -B verification/swift-guarded-snapshot-string-provenance-independent/run.py verification/swift-guarded-snapshot-string-provenance/derive.py --check",
+  "exit_code": 1,
+  "error": "FileExistsError: [Errno 17] File exists: verification/swift-guarded-snapshot-string-provenance-independent/commands/attempt-007",
+  "cause": "Two independent read-only children were dispatched concurrently through a recorder whose attempt directory reservation was not atomic.",
+  "requested_child_started": false,
+  "candidate_or_source_mutated": false,
+  "correction": "Recorder now reserves the attempt directory with mkdir in a retry loop. Subsequent recording is sequential. Failed dispatch is retained and does not count as a derivation result."
+}
