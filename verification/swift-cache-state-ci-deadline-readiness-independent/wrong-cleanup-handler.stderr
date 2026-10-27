@@ -1,0 +1,33 @@
+test_postflight_deadline_is_terminal_and_preserves_scratch (test_runner.RunnerControls.test_postflight_deadline_is_terminal_and_preserves_scratch) ... FAIL
+test_retention_deadline_is_terminal_and_preserves_scratch (test_runner.RunnerControls.test_retention_deadline_is_terminal_and_preserves_scratch) ... FAIL
+
+======================================================================
+FAIL: test_postflight_deadline_is_terminal_and_preserves_scratch (test_runner.RunnerControls.test_postflight_deadline_is_terminal_and_preserves_scratch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-deadline-readiness-independent/wrong-cleanup-handler/test_runner.py", line 156, in test_postflight_deadline_is_terminal_and_preserves_scratch
+    def test_postflight_deadline_is_terminal_and_preserves_scratch(self):self.deadline_control('postflight')
+                                                                         ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-deadline-readiness-independent/wrong-cleanup-handler/test_runner.py", line 154, in deadline_control
+    if stage=='postflight':self.assertEqual(state['pack_calls'],3);self.assertEqual(receipt['postflight'],{})
+                                                                   ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'pack': {'error': 'Fixed overall deadline exhausted', 'passed': False}} != {}
+- {'pack': {'error': 'Fixed overall deadline exhausted', 'passed': False}}
++ {}
+
+======================================================================
+FAIL: test_retention_deadline_is_terminal_and_preserves_scratch (test_runner.RunnerControls.test_retention_deadline_is_terminal_and_preserves_scratch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-deadline-readiness-independent/wrong-cleanup-handler/test_runner.py", line 157, in test_retention_deadline_is_terminal_and_preserves_scratch
+    def test_retention_deadline_is_terminal_and_preserves_scratch(self):self.deadline_control('retention')
+                                                                        ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-deadline-readiness-independent/wrong-cleanup-handler/test_runner.py", line 153, in deadline_control
+    receipt=json.loads((out/'receipt.json').read_bytes());self.assertEqual(status,1);self.assertTrue(receipt['cleanup']['deadline_expired']);self.assertFalse(receipt['cleanup']['removed']);self.assertTrue((out/'scratch/ownership.json').is_file());self.assertEqual(receipt['commands'],[]);self.assertFalse(state['after_delay']);self.assertTrue(state['stage_timer_started']);self.assertEqual(state['cleanup_entered'],stage=='retention');self.assertLess(receipt['cleanup_elapsed_seconds'],.20)
+                                                                                     ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.615s
+
+FAILED (failures=2)

@@ -1,0 +1,213 @@
+{
+  "at": "2026-10-27T04:00:23.898277+00:00",
+  "base_revision": "dee2d199dfbd6396153e1bb951e809b0ee0f8e86",
+  "canonical_or_git_writes": false,
+  "capture_or_ui": false,
+  "cleanup": {
+    "actual_copy_roster": "source-manifest.json",
+    "all_91_original_member_hashes_verified_after_execution": true,
+    "candidate_stage_receipts_retained": [
+      "candidate-postflight-control.json",
+      "candidate-retention-control.json"
+    ],
+    "no_process_inventory_or_unrelated_cleanup": true,
+    "owned_execution_copies_removed": [
+      "source",
+      "missing-cleanup-timer",
+      "wrong-cleanup-handler",
+      "ignored-cleanup-handler",
+      "tmp"
+    ],
+    "owned_temporary_directories_remaining": [],
+    "reviewed_python_bytes_retained": [
+      {
+        "bytes": 17857,
+        "path": "reviewed-source/source/test_runner.py",
+        "sha256": "c754ea8c8cb40d0090c676de61263939e6e58b140f9902e97901126a4287e9ab"
+      },
+      {
+        "bytes": 29248,
+        "path": "reviewed-source/source/check_cache_state.py",
+        "sha256": "e531311facb7b38967d3b904b26e92ff3f6c4dc7444c856cd799b70a1d91373b"
+      },
+      {
+        "bytes": 17857,
+        "path": "reviewed-source/missing-cleanup-timer/test_runner.py",
+        "sha256": "c754ea8c8cb40d0090c676de61263939e6e58b140f9902e97901126a4287e9ab"
+      },
+      {
+        "bytes": 29163,
+        "path": "reviewed-source/missing-cleanup-timer/check_cache_state.py",
+        "sha256": "832948d5be355a6c9814222140b50c2fd5a98fc176fa36f01dae329ce46b6ad0"
+      },
+      {
+        "bytes": 17857,
+        "path": "reviewed-source/wrong-cleanup-handler/test_runner.py",
+        "sha256": "c754ea8c8cb40d0090c676de61263939e6e58b140f9902e97901126a4287e9ab"
+      },
+      {
+        "bytes": 29240,
+        "path": "reviewed-source/wrong-cleanup-handler/check_cache_state.py",
+        "sha256": "9a5283846fc1a084432aaaa59c20db02936f61c39a4d414f7a7151eb12df01fd"
+      },
+      {
+        "bytes": 17857,
+        "path": "reviewed-source/ignored-cleanup-handler/test_runner.py",
+        "sha256": "c754ea8c8cb40d0090c676de61263939e6e58b140f9902e97901126a4287e9ab"
+      },
+      {
+        "bytes": 29259,
+        "path": "reviewed-source/ignored-cleanup-handler/check_cache_state.py",
+        "sha256": "6f0ce3f7cda0b1fafc9af8c0d26c740726b7f227ee6abb071bb5f6ce8a2becfb"
+      }
+    ]
+  },
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "test_runner.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-deadline-readiness-independent/source",
+      "elapsed_seconds": 2.302255,
+      "exit": 0,
+      "name": "all-29",
+      "owned_direct_child_returned": true,
+      "stderr": "all-29.stderr",
+      "stderr_sha256": "f68c7bce77470ccab17358280ce12a6060173ffbfbabd071e1bc059ad6a9e0cc",
+      "stdout": "all-29.stdout",
+      "stdout_sha256": "93b53a7bb433a2bc437daa5ebebf1811184d110b5ef0ea0ecd3ef1aeb012f7e5",
+      "timed_out": false,
+      "timeout_seconds": 20
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-m",
+        "unittest",
+        "-v",
+        "test_runner.RunnerControls.test_postflight_deadline_is_terminal_and_preserves_scratch",
+        "test_runner.RunnerControls.test_retention_deadline_is_terminal_and_preserves_scratch"
+      ],
+      "both_deadline_tests_rejected_mutation": true,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-deadline-readiness-independent/missing-cleanup-timer",
+      "elapsed_seconds": 0.286487,
+      "exit": 1,
+      "expected_exit": 1,
+      "mutation": {
+        "after": "signal.signal(signal.SIGALRM,cleanup_alarm)",
+        "before": "signal.signal(signal.SIGALRM,cleanup_alarm);signal.setitimer(signal.ITIMER_REAL,max(0.000001,cleanup_deadline-time.monotonic()))",
+        "runner_sha256": "832948d5be355a6c9814222140b50c2fd5a98fc176fa36f01dae329ce46b6ad0"
+      },
+      "name": "missing-cleanup-timer",
+      "owned_direct_child_returned": true,
+      "stderr": "missing-cleanup-timer.stderr",
+      "stderr_sha256": "7f4df410b69070c98b23d76b956b154fad6ea37169a5e808617895dbf60ece3a",
+      "stdout": "missing-cleanup-timer.stdout",
+      "stdout_sha256": "e4334f5873f4e6eb4a2312853b4f0f30aff0848d20cd6f24deb6d82def72a26a",
+      "timed_out": false,
+      "timeout_seconds": 20
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-m",
+        "unittest",
+        "-v",
+        "test_runner.RunnerControls.test_postflight_deadline_is_terminal_and_preserves_scratch",
+        "test_runner.RunnerControls.test_retention_deadline_is_terminal_and_preserves_scratch"
+      ],
+      "both_deadline_tests_rejected_mutation": true,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-deadline-readiness-independent/wrong-cleanup-handler",
+      "elapsed_seconds": 0.774312,
+      "exit": 1,
+      "expected_exit": 1,
+      "mutation": {
+        "after": "signal.signal(signal.SIGALRM,alarm);signal.setitimer",
+        "before": "signal.signal(signal.SIGALRM,cleanup_alarm);signal.setitimer",
+        "runner_sha256": "9a5283846fc1a084432aaaa59c20db02936f61c39a4d414f7a7151eb12df01fd"
+      },
+      "name": "wrong-cleanup-handler",
+      "owned_direct_child_returned": true,
+      "stderr": "wrong-cleanup-handler.stderr",
+      "stderr_sha256": "7068d16bbbac285955142ab00332b0c290b994e1ddef64180fb88b4d97edc3a5",
+      "stdout": "wrong-cleanup-handler.stdout",
+      "stdout_sha256": "09f59d7a193477c80a4d508d56089b4f8a5117dd659372c0c58be9ce06c6b9c3",
+      "timed_out": false,
+      "timeout_seconds": 20
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-m",
+        "unittest",
+        "-v",
+        "test_runner.RunnerControls.test_postflight_deadline_is_terminal_and_preserves_scratch",
+        "test_runner.RunnerControls.test_retention_deadline_is_terminal_and_preserves_scratch"
+      ],
+      "both_deadline_tests_rejected_mutation": true,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-deadline-readiness-independent/ignored-cleanup-handler",
+      "elapsed_seconds": 0.724831,
+      "exit": 1,
+      "expected_exit": 1,
+      "mutation": {
+        "after": "signal.signal(signal.SIGALRM,lambda signum,frame:None);signal.setitimer",
+        "before": "signal.signal(signal.SIGALRM,cleanup_alarm);signal.setitimer",
+        "runner_sha256": "6f0ce3f7cda0b1fafc9af8c0d26c740726b7f227ee6abb071bb5f6ce8a2becfb"
+      },
+      "name": "ignored-cleanup-handler",
+      "owned_direct_child_returned": true,
+      "stderr": "ignored-cleanup-handler.stderr",
+      "stderr_sha256": "62ab854c2fbf4d7a66cbb71928baf478476c8e8db86f0417c941b48ce27d46ca",
+      "stdout": "ignored-cleanup-handler.stdout",
+      "stdout_sha256": "48f52d81cee67567abf637d8ec3e24aafe55210f2a23b47a9f12a21116e426bc",
+      "timed_out": false,
+      "timeout_seconds": 20
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-deadline-readiness-independent/natural_clock.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-deadline-readiness-independent/source",
+      "elapsed_seconds": 0.348443,
+      "exit": 0,
+      "name": "natural-clock",
+      "owned_direct_child_returned": true,
+      "stderr": "natural-clock.stderr",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "natural-clock.stdout",
+      "stdout_sha256": "df618ec25d32f2dabd54e145af61eeb8595540a5911b8f0565b843b840b16327",
+      "timed_out": false,
+      "timeout_seconds": 20
+    }
+  ],
+  "discarded_review_harness_attempt": {
+    "cause": "First independent no-op mutant used SIG_IGN unavailable on test signal proxy, so it errored before reaching timer control. Replaced only owned mutant with real callable no-op handler and reran both controls.",
+    "not_candidate_source_defect": true,
+    "outputs": [
+      "invalid-mutant-ignored-handler.stdout",
+      "invalid-mutant-ignored-handler.stderr"
+    ]
+  },
+  "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "native_execution": false,
+  "owned_temporary_directories_remaining": [],
+  "process_inventory": false,
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "python_launcher": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+  "python_resolved": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+  "python_sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a",
+  "runner_sha256": "e531311facb7b38967d3b904b26e92ff3f6c4dc7444c856cd799b70a1d91373b",
+  "rust_compiler_invocations": 0,
+  "schema": 1,
+  "scope": "Independent host-only test review; no native, release, CI rerun or GA qualification.",
+  "selected_tree_sha256": "41a547be1e4829bcd98123287a97ae17f84cd55eeec2c80e380cbe0ed2baf4c8",
+  "test_sha256": "c754ea8c8cb40d0090c676de61263939e6e58b140f9902e97901126a4287e9ab"
+}

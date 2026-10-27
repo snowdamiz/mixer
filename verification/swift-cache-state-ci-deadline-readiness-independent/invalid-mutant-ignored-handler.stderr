@@ -1,0 +1,37 @@
+test_postflight_deadline_is_terminal_and_preserves_scratch (test_runner.RunnerControls.test_postflight_deadline_is_terminal_and_preserves_scratch) ... ERROR
+test_retention_deadline_is_terminal_and_preserves_scratch (test_runner.RunnerControls.test_retention_deadline_is_terminal_and_preserves_scratch) ... ERROR
+
+======================================================================
+ERROR: test_postflight_deadline_is_terminal_and_preserves_scratch (test_runner.RunnerControls.test_postflight_deadline_is_terminal_and_preserves_scratch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-deadline-readiness-independent/ignored-cleanup-handler/test_runner.py", line 156, in test_postflight_deadline_is_terminal_and_preserves_scratch
+    def test_postflight_deadline_is_terminal_and_preserves_scratch(self):self.deadline_control('postflight')
+                                                                         ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-deadline-readiness-independent/ignored-cleanup-handler/test_runner.py", line 152, in deadline_control
+    out=r.fresh_output(runs/'deadline');status=r.execute(out,'mixer-no-such-official-compiler-control')
+                                               ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-deadline-readiness-independent/ignored-cleanup-handler/check_cache_state.py", line 301, in execute
+    signal.signal(signal.SIGALRM,signal.SIG_IGN);signal.setitimer(signal.ITIMER_REAL,max(0.000001,cleanup_deadline-time.monotonic()))
+                                 ^^^^^^^^^^^^^^
+AttributeError: 'types.SimpleNamespace' object has no attribute 'SIG_IGN'
+
+======================================================================
+ERROR: test_retention_deadline_is_terminal_and_preserves_scratch (test_runner.RunnerControls.test_retention_deadline_is_terminal_and_preserves_scratch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-deadline-readiness-independent/ignored-cleanup-handler/test_runner.py", line 157, in test_retention_deadline_is_terminal_and_preserves_scratch
+    def test_retention_deadline_is_terminal_and_preserves_scratch(self):self.deadline_control('retention')
+                                                                        ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-deadline-readiness-independent/ignored-cleanup-handler/test_runner.py", line 152, in deadline_control
+    out=r.fresh_output(runs/'deadline');status=r.execute(out,'mixer-no-such-official-compiler-control')
+                                               ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-state-ci-deadline-readiness-independent/ignored-cleanup-handler/check_cache_state.py", line 301, in execute
+    signal.signal(signal.SIGALRM,signal.SIG_IGN);signal.setitimer(signal.ITIMER_REAL,max(0.000001,cleanup_deadline-time.monotonic()))
+                                 ^^^^^^^^^^^^^^
+AttributeError: 'types.SimpleNamespace' object has no attribute 'SIG_IGN'
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.113s
+
+FAILED (errors=2)

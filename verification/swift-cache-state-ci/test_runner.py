@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Focused controls for the isolated fixed fixture runner, no native runtime."""
-import copy,importlib.util,json,os,pathlib,signal,subprocess,sys,tempfile,time,unittest
+import copy,importlib.util,json,os,pathlib,signal,subprocess,sys,tempfile,time,types,unittest
 from unittest import mock
 HERE=pathlib.Path(__file__).resolve().parent
 spec=importlib.util.spec_from_file_location('cache_runner',HERE/'check_cache_state.py');r=importlib.util.module_from_spec(spec);spec.loader.exec_module(r)
@@ -117,19 +117,42 @@ class RunnerControls(unittest.TestCase):
   self.bad(unbound.bind_scratch,out/'..');self.assertIsNone(unbound.scratch);self.assertFalse((self.base/'command-tmp').exists())
  def deadline_control(self,stage):
   runs=self.base/'runs';runs.mkdir();state={'pack_calls':0,'cleanup_entered':False,'after_delay':False};original_verify=r.verify_pack;original_cleanup=r.cleanup
+  clock={'held':None,'offset':0.0,'last':None};timers=[];pending=[]
+  def monotonic():
+   clock['last']=clock['held']if clock['held']is not None else time.monotonic()-clock['offset']
+   return clock['last']
+  def setitimer(which,seconds,interval=0):
+   if seconds>0:
+    timers.append(seconds)
+    if len(timers)==2:
+     # Hold only the test cleanup clock until its target stage is ready.
+     # Keep the runner's actual timer registration and installed handler.
+     self.assertEqual(which,signal.ITIMER_REAL);self.assertEqual(interval,0)
+     self.assertGreater(seconds,0);self.assertLessEqual(seconds,.05)
+     clock['held']=clock['last'];pending.append(seconds)
+     return signal.setitimer(which,0)
+   return signal.setitimer(which,seconds,interval)
+  def delay():
+   self.assertEqual(len(timers),2);self.assertEqual(len(pending),1)
+   self.assertIsNotNone(clock['held'])
+   clock['offset']=time.monotonic()-clock['held'];clock['held']=None
+   state['stage_timer_started']=True
+   signal.setitimer(signal.ITIMER_REAL,pending.pop())
+   time.sleep(.25);state['after_delay']=True
+  test_signal=types.SimpleNamespace(**{name:getattr(signal,name)for name in ['SIGALRM','SIGINT','SIGTERM','ITIMER_REAL','signal','getsignal']},setitimer=setitimer)
   def verify(base):
    state['pack_calls']+=1
-   if stage=='postflight'and state['pack_calls']==3:time.sleep(.25);state['after_delay']=True
+   if stage=='postflight'and state['pack_calls']==3:delay()
    return original_verify(base)
   def clean(*args):
    state['cleanup_entered']=True
-   if stage=='retention':time.sleep(.25);state['after_delay']=True
+   if stage=='retention':delay()
    return original_cleanup(*args)
-  with mock.patch.object(r,'RUNS',runs),mock.patch.object(r,'CLEANUP_SECONDS',.05),mock.patch.object(r,'verify_pack',verify),mock.patch.object(r,'cleanup',clean):
+  with mock.patch.object(r,'RUNS',runs),mock.patch.object(r,'CLEANUP_SECONDS',.05),mock.patch.object(r,'time',types.SimpleNamespace(monotonic=monotonic)),mock.patch.object(r,'signal',test_signal),mock.patch.object(r,'verify_pack',verify),mock.patch.object(r,'cleanup',clean):
    out=r.fresh_output(runs/'deadline');status=r.execute(out,'mixer-no-such-official-compiler-control')
-  receipt=json.loads((out/'receipt.json').read_bytes());self.assertEqual(status,1);self.assertTrue(receipt['cleanup']['deadline_expired']);self.assertFalse(receipt['cleanup']['removed']);self.assertTrue((out/'scratch/ownership.json').is_file());self.assertEqual(receipt['commands'],[]);self.assertFalse(state['after_delay']);self.assertEqual(state['cleanup_entered'],stage=='retention');self.assertLess(receipt['cleanup_elapsed_seconds'],.20)
+  receipt=json.loads((out/'receipt.json').read_bytes());self.assertEqual(status,1);self.assertTrue(receipt['cleanup']['deadline_expired']);self.assertFalse(receipt['cleanup']['removed']);self.assertTrue((out/'scratch/ownership.json').is_file());self.assertEqual(receipt['commands'],[]);self.assertFalse(state['after_delay']);self.assertTrue(state['stage_timer_started']);self.assertEqual(state['cleanup_entered'],stage=='retention');self.assertLess(receipt['cleanup_elapsed_seconds'],.20)
   if stage=='postflight':self.assertEqual(state['pack_calls'],3);self.assertEqual(receipt['postflight'],{})
-  r.save(HERE/'logs'/('deadline-'+stage+'-control.json'),{'scope':'Actual corrected runner with lowered test-only cleanup allowance, deliberately slow hook and missing compiler; zero child commands','state':state,'receipt':receipt,'scratch_preserved_at_assertion':True,'owned_test_directory_removed_by_tearDown':True})
+  r.save(HERE/'logs'/('deadline-'+stage+'-control.json'),{'scope':'Actual runner handler and registered real timer with test-only stage readiness and 50ms logical cleanup allowance; deliberately slow hook and missing compiler, zero child commands. Preceding postflight wall time is excluded from this injected-stage control.','state':state,'receipt':receipt,'scratch_preserved_at_assertion':True,'owned_test_directory_removed_by_tearDown':True})
  def test_postflight_deadline_is_terminal_and_preserves_scratch(self):self.deadline_control('postflight')
  def test_retention_deadline_is_terminal_and_preserves_scratch(self):self.deadline_control('retention')
 if __name__=='__main__':unittest.main(verbosity=2)
