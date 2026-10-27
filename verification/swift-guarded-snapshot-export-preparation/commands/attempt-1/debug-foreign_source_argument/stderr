@@ -1,0 +1,35 @@
+error[E0753]: expected outer doc comment
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/prototype/validator_bridge.rs:1:1
+  |
+1 | //! Compile-signature preparation only. This module is never executed or integrated.
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2 | use super::*;
+  | ------------- the inner doc comment doesn't annotate this `use` import
+  |
+help: to annotate the `use` import, change the doc comment from inner to outer style
+  |
+1 - //! Compile-signature preparation only. This module is never executed or integrated.
+1 + /// Compile-signature preparation only. This module is never executed or integrated.
+  |
+
+error[E0061]: this function takes 2 arguments but 3 arguments were supplied
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/compile-cases/foreign_source_argument.rs:1:168
+   |
+ 1 | ...::fs::File) {let _=crate::experimental::swift::snapshot_export_preparation_v1::export_signature_v1(g,p,f);}
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   - unexpected argument #2 of type `&swift::ValidatedSwiftReactor`
+   |
+note: function defined here
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/prototype/validator_bridge.rs:50:15
+   |
+50 | pub(crate) fn export_signature_v1(
+   |               ^^^^^^^^^^^^^^^^^^^
+help: remove the extra argument
+   |
+ 1 - fn forbidden(g:&crate::experimental_swift_reactor::InitialProfileBorrowV1<'_>,p:&crate::experimental_swift_reactor::ValidatedSwiftReactor,f:&mut std::fs::File) {let _=crate::experimental::swift::snapshot_export_preparation_v1::export_signature_v1(g,p,f);}
+ 1 + fn forbidden(g:&crate::experimental_swift_reactor::InitialProfileBorrowV1<'_>,p:&crate::experimental_swift_reactor::ValidatedSwiftReactor,f:&mut std::fs::File) {let _=crate::experimental::swift::snapshot_export_preparation_v1::export_signature_v1(g,f);}
+   |
+
+error: aborting due to 2 previous errors
+
+Some errors have detailed explanations: E0061, E0753.
+For more information about an error, try `rustc --explain E0061`.

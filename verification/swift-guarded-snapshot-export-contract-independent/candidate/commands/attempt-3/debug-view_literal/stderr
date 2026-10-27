@@ -1,0 +1,65 @@
+warning: method `preparation_inventory_v1` is never used
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/preparation-compile-zj5ga1uc/variant/src/experimental/account.rs:330:19
+    |
+329 | impl<T:Copy> Buffer<T> {
+    | ---------------------- method in this implementation
+330 |     pub(super) fn preparation_inventory_v1(&self)->(usize,usize,usize,usize,Resource) {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: enum `PreparationErrorV1` is never used
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/prototype/validator_bridge.rs:6:17
+  |
+6 | pub(crate) enum PreparationErrorV1 { MissingSelected, PreparationOnly }
+  |                 ^^^^^^^^^^^^^^^^^^
+
+warning: struct `PreparationObservationV1` is never constructed
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/prototype/validator_bridge.rs:7:19
+  |
+7 | pub(crate) struct PreparationObservationV1 { _private: () }
+  |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: fields `proof` and `provenance` are never read
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/prototype/validator_bridge.rs:9:5
+   |
+ 8 | pub(crate) struct LogicalSnapshotViewV1<'guard> {
+   |                   --------------------- fields in this struct
+ 9 |     proof: &'guard ValidatedSwiftReactor,
+   |     ^^^^^
+10 |     provenance: &'guard LoaderProvenanceV1,
+   |     ^^^^^^^^^^
+
+warning: methods `source` and `signature_coverage` are never used
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/prototype/validator_bridge.rs:13:19
+   |
+12 | impl<'guard> LogicalSnapshotViewV1<'guard> {
+   | ------------------------------------------ methods in this implementation
+13 |     pub(crate) fn source(&self) -> &'guard [u8] { &self.proof.source }
+   |                   ^^^^^^
+14 |     fn signature_coverage(&self) {
+   |        ^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_logical_snapshot_v1` is never used
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/prototype/validator_bridge.rs:42:15
+   |
+42 | pub(crate) fn borrow_logical_snapshot_v1<'guard>(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `export_signature_v1` is never used
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/prototype/validator_bridge.rs:50:15
+   |
+50 | pub(crate) fn export_signature_v1(
+   |               ^^^^^^^^^^^^^^^^^^^
+
+error[E0451]: fields `proof` and `provenance` of struct `LogicalSnapshotViewV1` are private
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/compile-cases/view_literal.rs:1:222
+  |
+1 | ...ot_export_preparation_v1::LogicalSnapshotViewV1 {proof:p,provenance:s};}
+  |                                                     ^^^^^   ^^^^^^^^^^ private field
+  |                                                     |
+  |                                                     private field
+
+error: aborting due to 1 previous error; 7 warnings emitted
+
+For more information about this error, try `rustc --explain E0451`.

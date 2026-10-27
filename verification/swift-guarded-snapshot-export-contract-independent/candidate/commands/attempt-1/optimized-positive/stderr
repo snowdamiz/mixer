@@ -1,0 +1,17 @@
+error[E0753]: expected outer doc comment
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/prototype/validator_bridge.rs:1:1
+  |
+1 | //! Compile-signature preparation only. This module is never executed or integrated.
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2 | use super::*;
+  | ------------- the inner doc comment doesn't annotate this `use` import
+  |
+help: to annotate the `use` import, change the doc comment from inner to outer style
+  |
+1 - //! Compile-signature preparation only. This module is never executed or integrated.
+1 + /// Compile-signature preparation only. This module is never executed or integrated.
+  |
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0753`.

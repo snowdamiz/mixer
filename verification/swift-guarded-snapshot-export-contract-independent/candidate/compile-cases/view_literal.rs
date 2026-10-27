@@ -1,0 +1,1 @@
+fn forbidden(p:&crate::experimental_swift_reactor::ValidatedSwiftReactor,s:&crate::experimental_swift_reactor::LoaderProvenanceV1) {let _=crate::experimental::swift::snapshot_export_preparation_v1::LogicalSnapshotViewV1 {proof:p,provenance:s};}

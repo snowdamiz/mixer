@@ -1,0 +1,1 @@
+fn forbidden(p:&crate::experimental_swift_reactor::ValidatedSwiftReactor,f:&mut std::fs::File) {let _=crate::experimental::swift::snapshot_export_preparation_v1::export_signature_v1(p,f);}

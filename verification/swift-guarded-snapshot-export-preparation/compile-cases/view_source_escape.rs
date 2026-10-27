@@ -1,0 +1,1 @@
+fn forbidden<'a>(g:crate::experimental_swift_reactor::InitialProfileBorrowV1<'a>)->&'a[u8] { match crate::experimental::swift::snapshot_export_preparation_v1::borrow_logical_snapshot_v1(&g) {Ok(v)=>v.source(),Err(_)=>panic!()} }

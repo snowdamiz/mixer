@@ -1,0 +1,50 @@
+{
+  "actionable_findings": [],
+  "at": "2026-10-27T04:02:06.675233+00:00",
+  "base_revision": "dee2d199dfbd6396153e1bb951e809b0ee0f8e86",
+  "candidate_test_sha256": "c754ea8c8cb40d0090c676de61263939e6e58b140f9902e97901126a4287e9ab",
+  "candidate_tree_sha256": "41a547be1e4829bcd98123287a97ae17f84cd55eeec2c80e380cbe0ed2baf4c8",
+  "decision": "accept-narrow-test-only-correction",
+  "evidence": [
+    "execution.json",
+    "source-manifest.json",
+    "natural-clock.json",
+    "candidate-postflight-control.json",
+    "candidate-retention-control.json",
+    "all-29.stderr",
+    "missing-cleanup-timer.stderr",
+    "wrong-cleanup-handler.stderr",
+    "ignored-cleanup-handler.stderr"
+  ],
+  "fresh_execution": {
+    "all_29": "passed, unittest 2.184 seconds; subprocess receipt 2.302255 seconds",
+    "callable_noop_handler": "both deadline controls rejected mutant",
+    "missing_registration": "both deadline controls rejected mutant",
+    "supplemental_real_clock_cleanup_seconds": {
+      "postflight": 0.054751,
+      "retention": 0.054918
+    },
+    "wrong_handler": "both deadline controls rejected mutant"
+  },
+  "frozen": true,
+  "limits": [
+    "Host Python tests only. No genuine Rust compiler run, compiler fixture qualification, native runtime, simulator, emulator, physical device, signing/store, published package, customer operation, release or GA evidence.",
+    "No CI re-run authority is conferred; root coordinates delivery.",
+    "No canonical or Git writes, forbidden hosted/WorkerV2/stopped Android content inspection, capture/UI work or process inventory."
+  ],
+  "ownership": "verification/swift-cache-state-ci-deadline-readiness-independent/**",
+  "prerequisite_and_harness_limitations": [
+    "The documented logs directory prerequisite was initially omitted from my copy; preserved setup outputs show both successful deadline assertions followed by log-write errors. The review setup was corrected without candidate changes.",
+    "An initial independent no-op mutant referenced SIG_IGN outside the signal proxy allowlist and errored before timer behavior. It was discarded and replaced by a real callable no-op handler; only the corrected mutant supports the conclusion."
+  ],
+  "reasoning": [
+    "The original CI failure is consistent with its real 50ms cleanup timer expiring in expensive postflight before the retention hook. That observed runner behavior correctly fails and preserves scratch; it does not establish a missing production deadline.",
+    "The candidate intercepts only the second positive runner timer registration, checks ITIMER_REAL, one-shot interval and remaining budget <=50ms, holds only its test logical clock until the selected hook, then resumes that exact budget with real signal.setitimer and leaves the runner-installed cleanup handler in place.",
+    "stage_timer_started, after_delay, terminal deadline, preserved scratch, no child commands, selected cleanup entry and postflight-empty checks jointly require actual selected-stage alarm interruption. The no-op handler mutation proves the test does not pass merely because later logical remaining() notices expiration.",
+    "With the missing registration mutation, both test outcomes are non-success: postflight errors when the required deadline receipt is absent, and retention fails its deadline assertion. With the wrong installed active handler, postflight fails the empty-postflight check and retention fails cleanup deadline classification. The no-op handler fails postflight after_delay and retention scratch-preservation assertions.",
+    "Preceding postflight wall time is deliberately excluded by this injected-stage control and is disclosed in its receipt. cleanup_elapsed_seconds in this control measures adjusted logical cleanup time, not total wall time for all cleanup work. This change is not production whole-cleanup wall-time qualification.",
+    "Separate supplemental real-clock probes use the unchanged runner with no clock or timer proxy, confirm both actual SIGALRM interruptions, preserve scratch, record zero commands, clear the timer and restore original signal handlers. The retention probe explicitly cheapens predecessor pack verification and Python executable hashing; that probe is scoped to interruption after readiness."
+  ],
+  "schema": 1,
+  "unchanged_runner_sha256": "e531311facb7b38967d3b904b26e92ff3f6c4dc7444c856cd799b70a1d91373b"
+}

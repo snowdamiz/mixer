@@ -1,0 +1,14 @@
+error[E0502]: cannot borrow `*cache` as mutable because it is also borrowed as immutable
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/compile-cases/cache_mutation_while_view.rs:6:15
+  |
+4 |  let g=InitialProfileBorrowV1 {cache,control,wasi:None,scalars};
+  |                                ----- immutable borrow occurs here
+5 |  let v=crate::experimental::swift::snapshot_export_preparation_v1::borrow_logical_snapshot_v1(&g);
+6 |  let _mutable=&mut *cache;
+  |               ^^^^^^^^^^^ mutable borrow occurs here
+7 |  if let Ok(v)=v {let _=v.source();}
+  |               - immutable borrow later used here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0502`.

@@ -1,0 +1,323 @@
+{
+  "format_function_source": {
+    "bytes": 16176,
+    "path": "verification/swift-guarded-snapshot-export-contract-independent/review_controls.py",
+    "sha256": "c12de7e337df0b3f559bced3fc81f5ab3a6153258d2a6b0f9f484b245c2c2e11"
+  },
+  "fresh_independent_compilers": false,
+  "group_count": 6,
+  "groups": [
+    {
+      "expectation_met": true,
+      "id": "F01",
+      "name": "independent maximum and deterministic envelope",
+      "subcases": [
+        {
+          "candidate_cap": 69765152,
+          "derived_cap": 69765152,
+          "expectation_met": true,
+          "name": "cap-derived-from-accepted-policy"
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": true,
+          "candidate_refusal": null,
+          "expectation_met": true,
+          "expected_candidate_acceptance": true,
+          "fixture_sha256": "2d2e3655e4248f403428f6c4f02c2c03957dd56d8fb607c111f509e4646fab43",
+          "independent_detail": null,
+          "independent_envelope_accepted": true,
+          "name": "independent-positive"
+        },
+        {
+          "expectation_met": true,
+          "name": "fixture-deterministic"
+        }
+      ]
+    },
+    {
+      "expectation_met": true,
+      "id": "F02",
+      "name": "exact scalar optional enum and reserved grammar",
+      "subcases": [
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "reserved or absent bytes",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "d4c7cb32ba21d55925044c9c5191ae3c6d88ab8f5145d5679df7f5bc2a8a1a0c",
+          "independent_detail": null,
+          "independent_envelope_accepted": true,
+          "name": "bad-reserved"
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "option flag",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "4b08bbeeed9d757f6d92b4469837254b5eb81addbb518ee887ac4872c84a1a97",
+          "independent_detail": "memory declared maximum duplicates differ",
+          "independent_envelope_accepted": false,
+          "name": "bad-option-tag"
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "absent option payload",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "bdd8acd730a633c6759ce901e342bc8eb8fc3e58d22105ace8fbbad05de66ceb",
+          "independent_detail": "memory declared maximum duplicates differ",
+          "independent_envelope_accepted": false,
+          "name": "bad-absent-option-payload"
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "resolved import enum",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "95b8b44f923f3f57408b3b16dd429097bb6d2c28e617555a9703866b8c4473e1",
+          "independent_detail": null,
+          "independent_envelope_accepted": true,
+          "name": "bad-resolved-import"
+        }
+      ]
+    },
+    {
+      "expectation_met": true,
+      "id": "F03",
+      "name": "buffer coverage and duplicated immutable metadata",
+      "subcases": [
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "buffer charged capacity",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "5bcf3c755a8733eeec53d766d8dd0578bec847b33cfb43f9e65bae2915c2e78d",
+          "independent_detail": "",
+          "independent_envelope_accepted": false,
+          "name": "bad-buffer-charge"
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "memory observation duplicate",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "4e1f44c59e7999e2c97d9a2150e913df518c47409101804c54b0305aaecf4853",
+          "independent_detail": "memory minimum duplicates differ",
+          "independent_envelope_accepted": false,
+          "name": "bad-memory-minimum-duplicate"
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "memory observation duplicate",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "8eac0f1af55f174b985028a5464b43a240ea867e040da8f15e46fa53f47b70c8",
+          "independent_detail": "memory host maximum duplicates differ",
+          "independent_envelope_accepted": false,
+          "name": "bad-memory-host-duplicate"
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "table observation duplicate",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "a9b050531b13dca356d62283f7c6d3072bb3d85bf6a6e15058357e30ae9ee9a2",
+          "independent_detail": "table minimum duplicates differ",
+          "independent_envelope_accepted": false,
+          "name": "bad-table-minimum-duplicate"
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "table declared maximum duplicate",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "cbcf1beec2518d131d5721e0ac8b4c7e052ee0f0db66fea6b15bda34d9655b6f",
+          "independent_detail": "table declared maximum duplicates differ",
+          "independent_envelope_accepted": false,
+          "name": "bad-table-max-option-duplicate"
+        }
+      ]
+    },
+    {
+      "expectation_met": true,
+      "id": "F04",
+      "name": "truncated trailing gap duplicate and reordered sections",
+      "subcases": [
+        {
+          "bytes": 4167,
+          "candidate_accepted": false,
+          "candidate_refusal": "snapshot header",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "01a4217ab73695fb2ee8f68c437e4780b3f1a47e78ff83715dd9b1fddf63373f",
+          "independent_detail": "",
+          "independent_envelope_accepted": false,
+          "name": "truncation"
+        },
+        {
+          "bytes": 4169,
+          "candidate_accepted": false,
+          "candidate_refusal": "snapshot header",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "754a8462dbccf314350d9bab6ddcbfe8eeec42638feb50172e84e975b038f448",
+          "independent_detail": "",
+          "independent_envelope_accepted": false,
+          "name": "trailer"
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "section offset/extent",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "f4c90fa45bed2983d40eb2b5ff5b1b331dc1d005d085a3c5a3fa4d661e86ea20",
+          "independent_detail": "",
+          "independent_envelope_accepted": false,
+          "name": "gap"
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "directory identity/count",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "574f76f9a677b41b71aa432fccb813ed578ce22d9818f2c6e226fe52cfbe5d41",
+          "independent_detail": "",
+          "independent_envelope_accepted": false,
+          "name": "duplicate-id"
+        }
+      ]
+    },
+    {
+      "expectation_met": true,
+      "id": "F05",
+      "name": "provenance signed identities and contextual runtime duplicates",
+      "subcases": [
+        {
+          "bytes": 4168,
+          "candidate_accepted": true,
+          "candidate_refusal": null,
+          "expectation_met": true,
+          "expected_candidate_acceptance": true,
+          "fixture_sha256": "2d2e3655e4248f403428f6c4f02c2c03957dd56d8fb607c111f509e4646fab43",
+          "independent_detail": null,
+          "independent_envelope_accepted": true,
+          "name": "signed-identity-preserved"
+        },
+        {
+          "expectation_met": true,
+          "name": "signed-mtime-decoded-exactly",
+          "signed_mtime": -1
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": true,
+          "candidate_refusal": null,
+          "expectation_met": true,
+          "expected_candidate_acceptance": true,
+          "fixture_sha256": "4ce3ff312f93b443d1945cc3f1ad2fdda27e8e80b6a2cda186bf351df78d0038",
+          "independent_detail": null,
+          "independent_envelope_accepted": true,
+          "name": "some-wasi-zero-distinct-from-none"
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "runtime type count duplicate",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "40c57e31f053ce394d064b34793c1f4741b431773a0890d83aff5224b6c58f1b",
+          "independent_detail": "runtime type_count differs from immutable snapshot",
+          "independent_envelope_accepted": false,
+          "name": "bad-runtime-type-count-duplicate"
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "loader/header equality",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "afb2e4269b40c830936bf0af08ac4bf8d38116b40a320234cacd1a4c23718530",
+          "independent_detail": "",
+          "independent_envelope_accepted": false,
+          "name": "bad-source-provenance-duplicate"
+        }
+      ]
+    },
+    {
+      "expectation_met": true,
+      "id": "F06",
+      "name": "ceiling overflow and unknown tags fail closed",
+      "subcases": [
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "run ceiling",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "e4f1fea095cde162e067f4fdeea5442de5cd613594efd0c7c31455cd19f80407",
+          "independent_detail": null,
+          "independent_envelope_accepted": true,
+          "name": "bad-run-ceiling"
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "buffer charged capacity",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "6393b3421c49e059c59e25e17ba2428ebb53eb36613023d7a9d53f5045619482",
+          "independent_detail": "",
+          "independent_envelope_accepted": false,
+          "name": "overflow-capacity"
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "snapshot header",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "7bf2eaac21247afd4ff698356a2851fdb6edcf3770b96636c67b4afef362e6fa",
+          "independent_detail": "",
+          "independent_envelope_accepted": false,
+          "name": "unknown-policy"
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "snapshot header",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "ad24aab0b3a4d4e8e913d637f48015ce26ceb3123b799cec212f301a0b48ce1b",
+          "independent_detail": "",
+          "independent_envelope_accepted": false,
+          "name": "unknown-version"
+        },
+        {
+          "bytes": 4168,
+          "candidate_accepted": false,
+          "candidate_refusal": "directory identity/count",
+          "expectation_met": true,
+          "expected_candidate_acceptance": false,
+          "fixture_sha256": "88f4922edbff5e9cb92bf3e51358703037e4164c29ea6dea84ab55a20977c9c4",
+          "independent_detail": "",
+          "independent_envelope_accepted": false,
+          "name": "unknown-section-id"
+        }
+      ]
+    }
+  ],
+  "only_formats_function_invoked": true,
+  "subcase_count": 26
+}

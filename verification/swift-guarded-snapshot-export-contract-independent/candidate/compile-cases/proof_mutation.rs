@@ -1,0 +1,1 @@
+fn forbidden(g:&crate::experimental_swift_reactor::InitialProfileBorrowV1<'_>) {if let Ok(v)=crate::experimental::swift::snapshot_export_preparation_v1::borrow_logical_snapshot_v1(g) {v.source()[0]=0;}}

@@ -1,0 +1,433 @@
+{
+  "command": "python3 verification/swift-guarded-snapshot-export-binding-review/review_binding.py",
+  "controls": [
+    {
+      "name": "released seal and accepted original source manifest",
+      "observation": {
+        "producer_seal_sha256": "7787c8bbd9164ebdd360186f79c5d696739e89d6b08cd2f7cfbc71e9c156a1fe",
+        "source_members": 144,
+        "source_tree_sha256": "9fbdabbc5122f71809483b3b0a0e95a71b9813def61572f366bcebc8ac6d08fb"
+      },
+      "passed": true
+    },
+    {
+      "name": "actual loader IDs and five-limit validation binding",
+      "observation": {
+        "actual_loader_ids": [
+          "MIXLBD01",
+          "MIXLSE01"
+        ],
+        "actual_session_budget": "SwiftValidationBudget; not the 17-field SwiftRunBudget",
+        "observation_ids": [
+          "MIXLPR01",
+          "MIXRTB01"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "actual session first section binds Source identity",
+      "observation": {
+        "finding": "B01",
+        "identity_roles": [
+          "Source",
+          "Build",
+          "Session",
+          "Executable"
+        ],
+        "session_first_section_role": "Source"
+      },
+      "passed": true
+    },
+    {
+      "name": "canonical retained preimages and independent nonce comparison",
+      "observation": {
+        "build": "SHA256 complete MIXLBD01 artifact",
+        "build_header_digest_order": [
+          "manifest",
+          "command",
+          "compile_environment",
+          "compiler_version",
+          "compiler",
+          "executable"
+        ],
+        "compiled_identity_order": [
+          "manifest",
+          "command",
+          "compile_environment",
+          "compiler",
+          "compiler_version"
+        ],
+        "executable": "SHA256 complete retained executable bytes",
+        "limits": "trusted quiescent local process correlation; no package authentication or File-close proof",
+        "manifest": "SHA256 complete manifest bytes, compared with embedded compile identity",
+        "nonce": "32 retained observed bytes; direct equality, not a hash or signature",
+        "session": "SHA256 complete MIXLSE01 artifact",
+        "source": "SHA256 complete retained source and full equality against proof source"
+      },
+      "passed": true
+    },
+    {
+      "name": "MIXLPR01 source-backed retained-field and identity order",
+      "observation": {
+        "file_fields": [
+          "dev",
+          "inode",
+          "bytes",
+          "mode",
+          "mtime",
+          "mtime_ns",
+          "ctime",
+          "ctime_ns"
+        ],
+        "negative_i64_example_wire_word": 18446744073709551615,
+        "no_added_provenance_field": true,
+        "provenance_fields": [
+          "validation_budget",
+          "source_extent",
+          "source",
+          "manifest",
+          "build",
+          "session",
+          "executable",
+          "nonce",
+          "identities"
+        ],
+        "wire_bytes": 576
+      },
+      "passed": true
+    },
+    {
+      "name": "six private proof fields and exact 34 import wire identities",
+      "observation": {
+        "authority_boundary": "Resolved IDs are observations of actual proof.imports; recognized mutated IDs do not issue a proof",
+        "proof_fields": [
+          "source",
+          "metadata",
+          "policy",
+          "imports",
+          "usage",
+          "observations"
+        ],
+        "wire_imports": [
+          {
+            "variant": "ArgsGet",
+            "wire_id": 1
+          },
+          {
+            "variant": "ArgsSizesGet",
+            "wire_id": 2
+          },
+          {
+            "variant": "EnvironGet",
+            "wire_id": 3
+          },
+          {
+            "variant": "EnvironSizesGet",
+            "wire_id": 4
+          },
+          {
+            "variant": "ClockResGet",
+            "wire_id": 5
+          },
+          {
+            "variant": "ClockTimeGet",
+            "wire_id": 6
+          },
+          {
+            "variant": "FdClose",
+            "wire_id": 7
+          },
+          {
+            "variant": "FdFdstatGet",
+            "wire_id": 8
+          },
+          {
+            "variant": "FdFdstatSetFlags",
+            "wire_id": 9
+          },
+          {
+            "variant": "FdFilestatGet",
+            "wire_id": 10
+          },
+          {
+            "variant": "FdFilestatSetSize",
+            "wire_id": 11
+          },
+          {
+            "variant": "FdFilestatSetTimes",
+            "wire_id": 12
+          },
+          {
+            "variant": "FdPread",
+            "wire_id": 13
+          },
+          {
+            "variant": "FdPrestatGet",
+            "wire_id": 14
+          },
+          {
+            "variant": "FdPrestatDirName",
+            "wire_id": 15
+          },
+          {
+            "variant": "FdRead",
+            "wire_id": 16
+          },
+          {
+            "variant": "FdReaddir",
+            "wire_id": 17
+          },
+          {
+            "variant": "FdSeek",
+            "wire_id": 18
+          },
+          {
+            "variant": "FdSync",
+            "wire_id": 19
+          },
+          {
+            "variant": "FdTell",
+            "wire_id": 20
+          },
+          {
+            "variant": "FdWrite",
+            "wire_id": 21
+          },
+          {
+            "variant": "PathCreateDirectory",
+            "wire_id": 22
+          },
+          {
+            "variant": "PathFilestatGet",
+            "wire_id": 23
+          },
+          {
+            "variant": "PathFilestatSetTimes",
+            "wire_id": 24
+          },
+          {
+            "variant": "PathLink",
+            "wire_id": 25
+          },
+          {
+            "variant": "PathOpen",
+            "wire_id": 26
+          },
+          {
+            "variant": "PathReadlink",
+            "wire_id": 27
+          },
+          {
+            "variant": "PathRemoveDirectory",
+            "wire_id": 28
+          },
+          {
+            "variant": "PathRename",
+            "wire_id": 29
+          },
+          {
+            "variant": "PathSymlink",
+            "wire_id": 30
+          },
+          {
+            "variant": "PathUnlinkFile",
+            "wire_id": 31
+          },
+          {
+            "variant": "PollOneoff",
+            "wire_id": 32
+          },
+          {
+            "variant": "ProcExit",
+            "wire_id": 33
+          },
+          {
+            "variant": "RandomGet",
+            "wire_id": 34
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "separate validation/runtime/WASI field orders",
+      "observation": {
+        "WASI_limits": [
+          "calls",
+          "transfer_bytes",
+          "work",
+          "one_transfer_bytes",
+          "iovecs",
+          "log_bytes",
+          "deadline_ms"
+        ],
+        "distinction": "Actual validation and later actual runtime grants are separate records; source declarations alone do not establish same-owner binding",
+        "grant_booleans": [
+          "secure_random",
+          "realtime",
+          "monotonic",
+          "stdout",
+          "stderr"
+        ],
+        "implemented_runtime_observation_accessor": false,
+        "run_limits": [
+          "source_bytes",
+          "metadata_bytes",
+          "cache_bytes",
+          "cache_entry_bytes",
+          "cache_entries",
+          "active_pins",
+          "cache_work",
+          "frames",
+          "values",
+          "controls",
+          "memory_pages",
+          "state_bytes",
+          "combined_bytes",
+          "instruction_fuel",
+          "execution_work",
+          "host_calls",
+          "deadline_ms"
+        ],
+        "validation_limits": [
+          "source_bytes",
+          "metadata_bytes",
+          "scratch_bytes",
+          "work_credits",
+          "deadline_ms"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "sole original guard and unchanged eight typed outcomes/order",
+      "observation": {
+        "new_outer_observation": "proposed only; no current constructor body change or export hook",
+        "outcomes": [
+          {
+            "id": 1,
+            "inline_payload": " adopted:AdoptedProof ",
+            "variant": "SlotOccupied"
+          },
+          {
+            "id": 2,
+            "inline_payload": " error:ProfileHeaderErrorV1, adopted:AdoptedProof ",
+            "variant": "SelectionRefused"
+          },
+          {
+            "id": 3,
+            "inline_payload": " failure:SwiftRunFailure, adopted:AdoptedProof ",
+            "variant": "PreparationFailed"
+          },
+          {
+            "id": 4,
+            "inline_payload": " failure:CacheConstructionFailure, completion:Result<(),SwiftRunFailure> ",
+            "variant": "ConstructionFailed"
+          },
+          {
+            "id": 5,
+            "inline_payload": " failure:SwiftRunFailure ",
+            "variant": "PhaseCompletionFailed"
+          },
+          {
+            "id": 6,
+            "inline_payload": " error:ProfileHeaderErrorV1 ",
+            "variant": "HeaderRefused"
+          },
+          {
+            "id": 7,
+            "inline_payload": " failure:SwiftRunFailure ",
+            "variant": "HeaderOwnerCheckFailed"
+          },
+          {
+            "id": 8,
+            "inline_payload": " header:UnverifiedProfileHeaderV1, rows:Result<ProfileRowsObservationV1,ProfileAdapterErrorV1> ",
+            "variant": "HeaderEncoded"
+          }
+        ],
+        "source_order": [
+          "phase completion",
+          "initial inspection",
+          "sole guard",
+          "header encoding",
+          "row writing"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "guard-bounded callback-free private bridge remains preparation-only",
+      "observation": {
+        "current_MIXRTB01_same_owner_join": false,
+        "current_successful_exporter": false,
+        "entry": "&InitialProfileBorrowV1; no replacement guard, digest/bool, arbitrary proof, provenance or callback argument",
+        "limitation": "source review only; independent main reviewer owns compiler/privacy matrix",
+        "references": "bounded by guard borrow; selected provenance derives from same cache's AdoptedProof"
+      },
+      "passed": true
+    }
+  ],
+  "not_run": [
+    "producer wrapper",
+    "Rust program",
+    "compiler privacy matrix",
+    "native/device/simulator/emulator runtime",
+    "UI or capture",
+    "process inventory"
+  ],
+  "read_members": {
+    "contract.md": {
+      "bytes": 20698,
+      "sha256": "ecf4533244e93a6679af1eddbf601ddfcd1ad9cc755b47ea6b2440d8085f8e86"
+    },
+    "format_model.py": {
+      "bytes": 12672,
+      "sha256": "0af01149e85f680df2d1ab1f7ddaae055a0087f06783821295b5e41b5700f1c5"
+    },
+    "inputs/accepted-source/vm/src/experimental/swift.rs": {
+      "bytes": 28482,
+      "sha256": "8c9938306112b9288646baa68b7f7f29f487c77ef7c96dffb516516525533798"
+    },
+    "inputs/accepted-source/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs": {
+      "bytes": 14213,
+      "sha256": "0be47f604c16ad52efcdcdfcae9eddfe273ec77349c66f878704df44a29edf06"
+    },
+    "inputs/accepted-source/vm/src/experimental_swift_reactor/control.rs": {
+      "bytes": 65112,
+      "sha256": "c1d71faf33efe1264d4267623d19fe356aafc5a98e9a7871024e22682139776f"
+    },
+    "inputs/accepted-source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs": {
+      "bytes": 48893,
+      "sha256": "823430022d0f26db66f5731f8e814dbe54965c5e1e27707acf1a88194fe4155d"
+    },
+    "inputs/accepted-source/vm/src/experimental_wasi/descriptor.rs": {
+      "bytes": 5813,
+      "sha256": "5d62e14ef35bd53911d7b251fdcf0f25454767d225e20abdfe7dfccfccafbdff"
+    },
+    "inputs/accepted-source/vm/src/experimental_wasi/mod.rs": {
+      "bytes": 21589,
+      "sha256": "c4748ab5c2dc29a6562e503c534021661ce5d94b6b9daa50243ac5b33c578160"
+    },
+    "inputs/source-manifest.json": {
+      "bytes": 25258,
+      "sha256": "f17270c23f09cef85bf1aa5254f94e0355d11678702a876f00ac8520b7d186f3"
+    },
+    "prototype/validator_bridge.rs": {
+      "bytes": 3901,
+      "sha256": "1583305eaeea88f524f2c24580cb265940ba08305b1c5859abab43c7d7a8d714"
+    },
+    "run_preparation.py": {
+      "bytes": 12028,
+      "sha256": "a06f85170656eb9ba15635443049fb7927d3c87991636078aa3ae1c3eb2074f2"
+    }
+  },
+  "schema": 1,
+  "scope": "independent frozen binding/encoding source review; no product selection",
+  "time_utc": "2026-10-27T04:38:29.591334+00:00",
+  "tool": {
+    "implementation": "CPython",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+  },
+  "writes": "only this new review directory"
+}

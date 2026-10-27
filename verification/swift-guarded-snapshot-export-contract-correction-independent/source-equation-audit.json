@@ -1,0 +1,388 @@
+{
+  "blocking_findings": [],
+  "equation_count": 29,
+  "equations": [
+    {
+      "accepted_source_evidence_indexes": [
+        1,
+        15,
+        16,
+        8
+      ],
+      "candidate_fields": {
+        "loader": 536,
+        "outer": 64,
+        "runtime_guard": 1360,
+        "source_directory_bytes": 1656,
+        "source_directory_capacity": 1616,
+        "source_directory_charge": 1632,
+        "source_directory_count": 1608,
+        "source_identity_bytes": 792,
+        "usage_input": 144,
+        "usage_source": 152
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E01",
+      "independent_source_reason": "The proof source allocation/copy, loader retained source extent and File identity, guard source() length, and source reservation provide the same source byte length. Directory exact source capacity and unit element size force charge/count/payload equality."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        16
+      ],
+      "candidate_fields": {
+        "loader_limits": 544,
+        "outer_limits": 96
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E02",
+      "independent_source_reason": "The retained loader provenance stores the actual validation_budget value as one struct; its five fields are copied in source order into both proposed observations."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        0,
+        2,
+        16
+      ],
+      "candidate_fields": {
+        "loader_validation_deadline_ms": 576,
+        "usage_deadline_ms": 216,
+        "validation_deadline_ms": 128
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E03",
+      "independent_source_reason": "usage() receives budget.deadline_ms and stores it, so the validation usage deadline joins the retained and outer validation limits. The separate runtime deadline is not part of this join."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2
+      ],
+      "candidate_fields": {
+        "metadata_instructions": 480,
+        "observation_instructions": 264,
+        "outer_instructions": 72
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E04",
+      "independent_source_reason": "observations.instructions reads metadata.instructions directly; the outer instruction scalar serializes that same private metadata field."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2
+      ],
+      "candidate_fields": {
+        "directory_count": 1672,
+        "observation": 224
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E05",
+      "independent_source_reason": "observations.types reads signatures.len()."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2
+      ],
+      "candidate_fields": {
+        "directory_count": 1736,
+        "observation": 232
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E06",
+      "independent_source_reason": "observations.type_parameters reads parameters.len()."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2
+      ],
+      "candidate_fields": {
+        "directory_count": 1800,
+        "observation": 240
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E07",
+      "independent_source_reason": "observations.imported_functions reads imports.len()."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2
+      ],
+      "candidate_fields": {
+        "directory_count": 1864,
+        "observation": 248
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E08",
+      "independent_source_reason": "observations.defined_functions reads functions.len()."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2
+      ],
+      "candidate_fields": {
+        "directory_count": 1928,
+        "observation": 272
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E09",
+      "independent_source_reason": "observations.globals reads globals.len()."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2
+      ],
+      "candidate_fields": {
+        "directory_count": 1992,
+        "observation": 280
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E10",
+      "independent_source_reason": "observations.exports reads exports.len()."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2
+      ],
+      "candidate_fields": {
+        "directory_count": 2056,
+        "observation": 288
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E11",
+      "independent_source_reason": "observations.data_segments reads data.len()."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2
+      ],
+      "candidate_fields": {
+        "directory_count": 2120,
+        "observation": 296
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E12",
+      "independent_source_reason": "observations.element_segments reads elements.len()."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2,
+        7
+      ],
+      "candidate_fields": {
+        "import_directory_count": 1800,
+        "observation_imported_functions": 240,
+        "resolved_import_count": 56
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E13",
+      "independent_source_reason": "The guard checks exactly 34 imported functions, equality of validated_bodies and defined_functions, and checked imported+defined <=80000; the resolved import array has the separately fixed 34-entry representation."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2
+      ],
+      "candidate_fields": {
+        "metadata_memory_minimum": 392,
+        "observation_memory_minimum": 328
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E14",
+      "independent_source_reason": "observations.memory_minimum reads metadata.memory.unwrap().0 directly."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2
+      ],
+      "candidate_fields": {
+        "metadata_memory_host_maximum": 400,
+        "observation_memory_host_maximum": 352
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E15",
+      "independent_source_reason": "observations.memory_host_maximum reads metadata.memory.unwrap().1 directly."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2,
+        4
+      ],
+      "candidate_fields": {
+        "metadata_memory_maximum_pair": 432,
+        "observation_memory_maximum_pair": 336
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E16",
+      "independent_source_reason": "The declaration stores the parsed Option<u32>; observations.memory_declared_maximum copies it. Presence and payload must both agree; absent payload is canonical zero."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2
+      ],
+      "candidate_fields": {
+        "metadata_table_minimum": 416,
+        "observation_table_minimum": 360
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E17",
+      "independent_source_reason": "observations.table_minimum reads metadata.table.unwrap().0 directly."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2,
+        4
+      ],
+      "candidate_fields": {
+        "metadata_table_maximum_pair": 448,
+        "observation_table_maximum_pair": 368
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E18",
+      "independent_source_reason": "The declaration stores the parsed table Option<u32>; observations.table_declared_maximum copies it. Presence and payload both agree; absent payload is canonical zero."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2,
+        3,
+        6
+      ],
+      "candidate_fields": {
+        "metadata_memory_present": 384,
+        "metadata_table_present": 408
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E19",
+      "independent_source_reason": "Before unwrapping, exact_abi requires memory Some((584,768)) with declared maximum None and table Some((46713,46713)) with declared maximum Some(46713). Tuple presence cannot be replaced by the declaration Option tag. The data model enforces presence but explicitly does not implement the full ABI."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        5,
+        6
+      ],
+      "candidate_fields": {
+        "memory_declared_pair": 432,
+        "memory_host": 400,
+        "table_declared_pair": 448,
+        "table_host": 424
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E20",
+      "independent_source_reason": "metadata::limits resolves max from an explicit payload or policy maximum, checks min<=max and max<=policy. Policy source supplies 768 memory pages and 65536 table elements. The table host maximum has no observation duplicate."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        2,
+        8
+      ],
+      "candidate_fields": {
+        "guard_type_count": 1368,
+        "observation_types": 224
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E21",
+      "independent_source_reason": "The guard converts o.types, where o is the same cache proof observations, into type_count."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        7,
+        8
+      ],
+      "candidate_fields": {
+        "guard_slot_limit": 1376,
+        "observation_defined_functions": 248,
+        "runtime_cache_entries": 1160
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E22",
+      "independent_source_reason": "The guard derives entries=budget.cache_entries.min(o.defined_functions), then requires entries in 1..=64. Direct equality to cache_entries would be wrong when defined_functions is smaller."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        7,
+        8
+      ],
+      "candidate_fields": {
+        "guard_pin_limit": 1384,
+        "runtime_active_pins": 1168
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E23",
+      "independent_source_reason": "The guard requires active_pins in 1..=64 and copies budget.active_pins to pin_limit."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        8
+      ],
+      "candidate_fields": {
+        "guard_initial_nonce": 1392
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E24",
+      "independent_source_reason": "The guard refuses cache.next_nonce !=1, then copies that nonce."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        8
+      ],
+      "candidate_fields": {
+        "guard_cache_capacity": 1408,
+        "runtime_cache_bytes": 1144
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E25",
+      "independent_source_reason": "The guard directly converts budget.cache_bytes into cache_capacity."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        8
+      ],
+      "candidate_fields": {
+        "guard_entry_limit": 1416,
+        "runtime_cache_entry_bytes": 1152
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E26",
+      "independent_source_reason": "The guard directly converts budget.cache_entry_bytes into entry_limit."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        1,
+        17,
+        18
+      ],
+      "candidate_fields": {
+        "metadata_reserved": 160,
+        "proof_bytes": 88
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E27",
+      "independent_source_reason": "The validator reserves size_of::<ValidatedSwiftReactor>() to Metadata; all eight metadata Buffers use Resource::Metadata. Buffer growth retains and replaces exact charged capacity. The 664 proof-size constant remains inherited compiler evidence, not a fresh measurement."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        1,
+        17,
+        18
+      ],
+      "candidate_fields": {
+        "directories_start": 1600
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E28",
+      "independent_source_reason": "Buffer::reserve checked-multiplies native element size by requested capacity and insists the actual Vec capacity equals that request. The logical wire payload encodes initialized values only; spare native capacity remains charged separately."
+    },
+    {
+      "accepted_source_evidence_indexes": [
+        8
+      ],
+      "candidate_fields": {
+        "guard_cache_base": 1400,
+        "guard_cache_capacity": 1408
+      },
+      "conclusion": "supported within stated finite source/data scope",
+      "id": "E29",
+      "independent_source_reason": "The actual guard computes a fixed cache layout sum, checks fixed<=budget.cache_bytes and matching reservations, and copies fixed into cache_base. This inequality is appropriate to the finite grammar; no fresh actual layout or equality to the capacity is claimed."
+    }
+  ],
+  "exact_source_verification": "controls/source-checks.json",
+  "finite_controls": "controls/new-independent-controls.json",
+  "schema": 1,
+  "scope": "Human independent source review plus exact source hashes and executable format controls; no semantic or OTA authority"
+}

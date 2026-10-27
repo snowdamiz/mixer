@@ -1,0 +1,159 @@
+{
+  "accepted_source_tree_sha256": "9fbdabbc5122f71809483b3b0a0e95a71b9813def61572f366bcebc8ac6d08fb",
+  "schema": 1,
+  "scope": "bounded verbatim accepted source excerpts only; no copies or edits of accepted source",
+  "sources": [
+    {
+      "line_end": 320,
+      "line_start": 308,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental/swift.rs",
+      "role": "usage input and validation deadline copies",
+      "sha256": "8c9938306112b9288646baa68b7f7f29f487c77ef7c96dffb516516525533798",
+      "text": "fn usage(raw: Usage, input: usize, started: Instant, deadline_ms: u64) -> SwiftValidationUsage {\n    SwiftValidationUsage {\n        input_visible_bytes: input,\n        source_bytes: raw.source_bytes,\n        metadata_reserved: raw.metadata_reserved,\n        scratch_reserved: raw.scratch_reserved,\n        metadata_peak_reserved: raw.metadata_peak_reserved,\n        scratch_peak_reserved: raw.scratch_peak_reserved,\n        total_peak_reserved: raw.total_peak_reserved,\n        work_used: raw.work_used,\n        elapsed_micros: u64::try_from(started.elapsed().as_micros()).unwrap_or(u64::MAX),\n        deadline_ms,\n    }"
+    },
+    {
+      "line_end": 460,
+      "line_start": 419,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental/swift.rs",
+      "role": "proof/header reserve; exact source capacity and complete bounded copy",
+      "sha256": "8c9938306112b9288646baa68b7f7f29f487c77ef7c96dffb516516525533798",
+      "text": "        + std::mem::size_of::<validate::BodyState>()\n        + std::mem::size_of::<Buffer<u32>>()\n        + 2 * std::mem::size_of::<SwiftValidationFailure>()\n        + std::mem::size_of::<policy::Policy<'_>>()\n        + 256;\n    meter.reserve(Resource::Scratch, scratch_fixed, cursor)?;\n    if input.len() > budget.source_bytes {\n        return Err(meter\n            .error(FailureKind::ResourceExhausted, \"module_bytes\", cursor)\n            .resource(\n                Resource::Source,\n                input.len() as u64,\n                budget.source_bytes as u64,\n            ));\n    }\n    meter.reserve(\n        Resource::Metadata,\n        std::mem::size_of::<ValidatedSwiftReactor>(),\n        cursor,\n    )?;\n    meter.check(cursor)?;\n    meter.reserve(Resource::Source, input.len(), cursor)?;\n    let mut source = Vec::new();\n    // Work is charged before the corresponding bounded copy. Capacity is reserved\n    // before allocator entry, and overlap belongs to the caller's runner category.\n    meter.work(0, cursor)?;\n    source\n        .try_reserve_exact(input.len())\n        .map_err(|_| meter.error(FailureKind::AllocationFailure, \"source_allocation\", cursor))?;\n    if source.capacity() != input.len() {\n        return Err(meter.error(FailureKind::AllocationFailure, \"source_capacity\", cursor));\n    }\n    for (chunk_index, chunk) in input.chunks(16 * 1024).enumerate() {\n        let cursor = Cursor {\n            function: None,\n            offset: chunk_index * 16 * 1024,\n        };\n        meter.work(chunk.len() as u64, cursor)?;\n        source.extend_from_slice(chunk);\n        meter.check(Cursor {\n            offset: cursor.offset + chunk.len(),\n            ..cursor"
+    },
+    {
+      "line_end": 494,
+      "line_start": 464,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental/swift.rs",
+      "role": "observations directly derived from immutable metadata; both memory and table unwrapped",
+      "sha256": "8c9938306112b9288646baa68b7f7f29f487c77ef7c96dffb516516525533798",
+      "text": "    let source = source.into_boxed_slice(); // exact capacity: no shrink allocation\n    let mut metadata: SwiftMetadata = metadata::read(&source, &policy, &mut meter)?;\n    let imports = exact_abi(&source, &metadata, &mut meter)?;\n    segments_fit(&metadata, &mut meter)?;\n    validate::all(&source, &policy, &mut metadata, &mut meter)?;\n    meter.check(cursor)?;\n    let memory = metadata.memory.unwrap();\n    let table = metadata.table.unwrap();\n    let observations = SwiftReactorObservations {\n        types: metadata.signatures.len(),\n        type_parameters: metadata.parameters.len(),\n        imported_functions: metadata.imports.len(),\n        defined_functions: metadata.functions.len(),\n        validated_bodies: meter.control.observations.validated_bodies,\n        instructions: metadata.instructions,\n        globals: metadata.globals.len(),\n        exports: metadata.exports.len(),\n        data_segments: metadata.data.len(),\n        element_segments: metadata.elements.len(),\n        max_parameters_plus_locals: meter.control.observations.max_parameters_plus_locals,\n        max_operand_values: meter.control.observations.max_operand_values,\n        max_control_depth: meter.control.observations.max_control_depth,\n        memory_minimum: memory.0,\n        memory_declared_maximum: metadata.declarations.memory_maximum,\n        memory_host_maximum: memory.1,\n        table_minimum: table.0,\n        table_declared_maximum: metadata.declarations.table_maximum,\n    };\n    meter.check(cursor)?;\n    meter.release(Resource::Scratch, scratch_fixed);\n    let usage = usage(meter.usage(), input.len(), started, budget.deadline_ms);"
+    },
+    {
+      "line_end": 562,
+      "line_start": 541,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental/swift.rs",
+      "role": "exact ABI requires memory Some(584,768) with declaration None and table Some(46713,46713) with Some(46713)",
+      "sha256": "8c9938306112b9288646baa68b7f7f29f487c77ef7c96dffb516516525533798",
+      "text": "    if m.memory != Some((584, 768)) || m.declarations.memory_maximum.is_some() {\n        return Err(meter.error(\n            FailureKind::Validation,\n            \"swift_memory_shape\",\n            Cursor {\n                offset: m.declarations.memory_offset,\n                ..cursor\n            },\n        ));\n    }\n    if m.table != Some((46_713, 46_713)) || m.declarations.table_maximum != Some(46_713) {\n        return Err(meter.error(\n            FailureKind::Validation,\n            \"swift_table_shape\",\n            Cursor {\n                offset: m.declarations.table_offset,\n                ..cursor\n            },\n        ));\n    }\n    if m.exports.len() != 3 {\n        return Err(meter.error(FailureKind::Validation, \"swift_export_count\", cursor));"
+    },
+    {
+      "line_end": 77,
+      "line_start": 62,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental/metadata.rs",
+      "role": "declaration maximum copy and declaration offsets",
+      "sha256": "b28fc01a158e65acd0c6e2761e7876541459f73bd8665964aa91d6944791392d",
+      "text": "pub(super) struct SwiftDeclaration {\n    pub memory_maximum: Option<u32>,\n    pub table_maximum: Option<u32>,\n    pub memory_offset: usize,\n    pub table_offset: usize,\n}\n#[cfg(feature = \"experimental-swift-reactor\")]\nimpl Declaration for SwiftDeclaration {\n    fn memory(&mut self, max: Option<u32>, offset: usize) {\n        self.memory_maximum = max;\n        self.memory_offset = offset;\n    }\n    fn table(&mut self, max: Option<u32>, offset: usize) {\n        self.table_maximum = max;\n        self.table_offset = offset;\n    }"
+    },
+    {
+      "line_end": 256,
+      "line_start": 228,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental/metadata.rs",
+      "role": "metadata limits Some value or None policy maximum; minimum<=host maximum",
+      "sha256": "b28fc01a158e65acd0c6e2761e7876541459f73bd8665964aa91d6944791392d",
+      "text": "fn limits(\n    r: &mut Reader<'_>,\n    maximum: u32,\n    meter: &mut Meter<'_, impl MeterControl>,\n) -> Result<(u32, u32, Option<u32>), Failure> {\n    let flags = r.byte(meter)?;\n    if flags > 1 {\n        return Err(r.error(meter, FailureKind::Unsupported, \"limits_form\"));\n    }\n    let min = r.uint(meter)?;\n    let max = if flags == 1 { r.uint(meter)? } else { maximum };\n    if min > max {\n        return Err(r.error(\n            meter,\n            FailureKind::Validation,\n            \"limit_minimum_exceeds_maximum\",\n        ));\n    }\n    if max > maximum {\n        return Err(r\n            .error(\n                meter,\n                FailureKind::ResourceExhausted,\n                \"profile_memory_table_limit\",\n            )\n            .resource(Resource::Profile, max as u64, maximum as u64));\n    }\n    Ok((min, max, (flags == 1).then_some(max)))\n}"
+    },
+    {
+      "line_end": 393,
+      "line_start": 372,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental/metadata.rs",
+      "role": "memory/table present only when parsed count is one; store parsed tuple and declaration",
+      "sha256": "b28fc01a158e65acd0c6e2761e7876541459f73bd8665964aa91d6944791392d",
+      "text": "                    )?;\n                }\n            }\n            4 if policy.tables() => {\n                if s.count(1, meter)? == 1 {\n                    if s.byte(meter)? != 0x70 {\n                        return Err(s.error(meter, FailureKind::Unsupported, \"table_type\"));\n                    }\n                    let offset = s.cursor().offset;\n                    let (min, max, declared) =\n                        limits(&mut s, policy.table_elements() as u32, meter)?;\n                    m.table = Some((min, max));\n                    m.declarations.table(declared, offset);\n                }\n            }\n            5 => {\n                if s.count(1, meter)? == 1 {\n                    let offset = s.cursor().offset;\n                    let (min, max, declared) = limits(&mut s, policy.memory_pages(), meter)?;\n                    m.memory = Some((min, max));\n                    m.declarations.memory(declared, offset);\n                }"
+    },
+    {
+      "line_end": 209,
+      "line_start": 197,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "role": "original control budget and immutable observation conditions; entries=min(cache_entries,defined)",
+      "sha256": "0be47f604c16ad52efcdcdfcae9eddfe273ec77349c66f878704df44a29edf06",
+      "text": "    let budget=control.budget();\n    let o=cache.proof().observations();\n    let total=o.imported_functions.checked_add(o.defined_functions).ok_or_else(||Refused(profile_error(8,1,32)))?;\n    if ValidatedSwiftReactor::VALIDATOR_REVISION!=1 || SwiftFunctionCache::DECODER_REVISION!=1\n        || cache.proof().policy_identity()!=\"swift-reactor-experiment-v1\" || o.imported_functions!=34\n        || o.validated_bodies!=o.defined_functions || o.types>u32::MAX as usize || total>80000 {\n        return Err(Refused(profile_error(1,1,0)));\n    }\n    let entries=budget.cache_entries.min(o.defined_functions);\n    if !(1..=64).contains(&entries) || !(1..=64).contains(&budget.active_pins)\n        || cache.slots.len()!=entries || cache.slots.capacity()!=entries\n        || cache.pins.len()!=budget.active_pins || cache.pins.capacity()!=budget.active_pins {\n        return Err(Refused(profile_error(5,2,0)));"
+    },
+    {
+      "line_end": 244,
+      "line_start": 219,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "role": "original fixed cache floor, initial nonce and direct scalar copies",
+      "sha256": "0be47f604c16ad52efcdcdfcae9eddfe273ec77349c66f878704df44a29edf06",
+      "text": "    let fixed=cache_header_bytes().and_then(|n|entries.checked_mul(size_of::<SwiftSlot>()).and_then(|v|n.checked_add(v)))\n        .and_then(|n|budget.active_pins.checked_mul(size_of::<PinRecord>()).and_then(|v|n.checked_add(v)))\n        .and_then(|n|PATCH_CAPACITY.checked_mul(size_of::<decode::Patch>()).and_then(|v|n.checked_add(v)))\n        .ok_or_else(||Refused(profile_error(8,3,80)))?;\n    let usage=control.usage(observation);\n    if cache.owner==0 {return Err(Refused(profile_error(3,1,0)));}\n    if cache.next_nonce!=1 || cache.usage!=(SwiftCacheUsage {fixed_reserved:cache.usage.fixed_reserved,..SwiftCacheUsage::default()})\n        || cache.slots.iter().any(|s|s.resident.is_some() || s.pins!=0 || s.last_used!=0)\n        || cache.pins.iter().any(|p|p.nonce!=0 || p.entry!=0)\n        || cache.patches.len()!=PATCH_CAPACITY || cache.patches.capacity()!=PATCH_CAPACITY\n        || cache.index.len()!=RESIDENT_INDEX_BYTES || cache.index.capacity()!=RESIDENT_INDEX_BYTES\n        || cache.index.iter().any(|v|*v!=0)\n        || cache.plans.len()!=PLAN_CAPACITY || cache.plans.capacity()!=PLAN_CAPACITY\n        || cache.plans.iter().any(Option::is_some)\n        || usage.live.cache_entries!=SwiftReservationUsage::default() || usage.live.active_pins!=SwiftReservationUsage::default() {\n        return Err(Refused(profile_error(4,2,0)));\n    }\n    if fixed>budget.cache_bytes || cache.usage.fixed_reserved!=fixed || usage.reservations.cache.current!=fixed {\n        return Err(Refused(profile_error(7,3,80)));\n    }\n    let convert=|n:usize,offset|u64::try_from(n).map_err(|_|Refused(profile_error(8,3,offset)));\n    Ok(InitialProfileScalarsV1 {\n        source_extent:convert(cache.proof().source().len(),40)?,type_count:convert(o.types,48)?,\n        slot_limit:convert(entries,56)?,pin_limit:convert(budget.active_pins,64)?,initial_nonce:cache.next_nonce,\n        cache_base:convert(fixed,80)?,cache_capacity:convert(budget.cache_bytes,88)?,entry_limit:convert(budget.cache_entry_bytes,96)?,\n    })"
+    },
+    {
+      "line_end": 1496,
+      "line_start": 1471,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental_swift_reactor/cache.rs",
+      "role": "existing generic shared construction prepare method",
+      "sha256": "b835799cc36c6362226df3e658bf087f3ef9fd821357d8b8f03998a764debf4c",
+      "text": "impl SwiftFunctionCache {\n    pub(crate) const DECODER_REVISION: u32 = 1;\n    pub(crate) fn prepare<'a>(\n        control: &'a mut RuntimeControl,\n        wasi: Option<&'a AccountedWasi>,\n        adopted: &AdoptedProof,\n        cursor: Cursor,\n    ) -> Result<CacheConstructionPhase<'a>, SwiftRunFailure> {\n        test_step(CacheStep::Constructor);\n        let PreparedBounds {\n            previous: previous_bound,\n            enlarged: bound,\n        } = construction_preflight(control, wasi, adopted, cursor)?;\n        let observation = wasi.map(AccountedWasi::usage);\n        checkpoint(control, cursor);\n        control.enlarge_construction_with_wasi(bound, cursor, observation)?;\n        Ok(CacheConstructionPhase {\n            control: CacheControl {\n                control,\n                wasi,\n                cursor,\n            },\n            previous_bound,\n            constructed: false,\n        })\n    }"
+    },
+    {
+      "line_end": 143,
+      "line_start": 125,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "role": "existing wrapper call to original prepare",
+      "sha256": "0be47f604c16ad52efcdcdfcae9eddfe273ec77349c66f878704df44a29edf06",
+      "text": "fn construct_with_initial_profile_v1(\n    cache_out:&mut Option<SwiftFunctionCache>, control:&mut RuntimeControl,\n    wasi:Option<&AccountedWasi>, adopted:AdoptedProof,\n    selected:&SelectedInitialProfileV1, claims:&UnverifiedProfileDigestBytesV1,\n    row_output:&mut File,\n)->InitialProfileConstructionOutcomeV1 {\n    if cache_out.is_some() { return InitialProfileConstructionOutcomeV1::SlotOccupied { adopted }; }\n    if let Err(error)=compare_budget_v1(control.budget(),selected.budget)\n        .and_then(|()|compare_local_structure_v1(&selected.local)) {\n        return InitialProfileConstructionOutcomeV1::SelectionRefused { error,adopted };\n    }\n    #[cfg(any(test,mixer_initial_profile_component_host))] tests::boundary(1,control,None);\n    let mut preparation=Some(SwiftFunctionCache::prepare(control,wasi,&adopted,CONSTRUCTION_CURSOR_V1));\n    let mut phase=match preparation.take().expect(\"actual prepare return\") {\n        Ok(phase)=>phase,\n        Err(failure)=>return InitialProfileConstructionOutcomeV1::PreparationFailed { failure,adopted },\n    };\n    #[cfg(any(test,mixer_initial_profile_component_host))] tests::phase_boundary(&mut phase);\n    let mut original_return:ConstructionReturnSlot=Some(phase.construct(adopted));"
+    },
+    {
+      "line_end": 442,
+      "line_start": 396,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "role": "actual build counts, cap, manifest/command/environment/version sections",
+      "sha256": "823430022d0f26db66f5731f8e814dbe54965c5e1e27707acf1a88194fe4155d",
+      "text": "fn parse_build(b: &[u8]) -> Result<BuildView<'_>, LoaderFailureV1> {\n    header(b, b\"MIXLBD01\", Role::Build, BUILD_CAP)?;\n    if word(b, 32) != 144\n        || word(b, 40) != 11\n        || word(b, 80) > SOURCE_CAP as u64\n        || word(b, 80) == 0\n    {\n        return Err(LoaderFailureV1::new(\n            Refusal::BuildIdentity,\n            Role::Build,\n            32,\n            0,\n        ));\n    }\n    let target = b\"aarch64-apple-darwin\";\n    if &b[88..88 + target.len()] != target\n        || b[88 + target.len()..152].iter().any(|x| *x != 0)\n        || b[344..HEADER].iter().any(|x| *x != 0)\n    {\n        return Err(LoaderFailureV1::new(Refusal::Reserved, Role::Build, 88, 0));\n    }\n    let parts = sections(b, 48, Role::Build)?;\n    // Exact section caps include the complete manifest and complete byte encodings.\n    for (part, cap) in parts.iter().zip([65536, 16384, 16384, 16384]) {\n        if part.bytes.len() > cap {\n            return Err(LoaderFailureV1::new(\n                Refusal::Extent,\n                Role::Build,\n                part.bytes.len(),\n                0,\n            ));\n        }\n    }\n    validate_list(parts[1].bytes, false, true)?;\n    validate_list(parts[2].bytes, true, true)?;\n    Ok(BuildView {\n        sections: parts,\n        output_bytes: word(b, 80),\n        digests: [\n            &b[152..184],\n            &b[184..216],\n            &b[216..248],\n            &b[248..280],\n            &b[280..312],\n            &b[312..344],\n        ],\n    })"
+    },
+    {
+      "line_end": 470,
+      "line_start": 444,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "role": "actual session first section has exact64byte extent",
+      "sha256": "823430022d0f26db66f5731f8e814dbe54965c5e1e27707acf1a88194fe4155d",
+      "text": "fn parse_session(b: &[u8]) -> Result<SessionView<'_>, LoaderFailureV1> {\n    header(b, b\"MIXLSE01\", Role::Session, SESSION_CAP)?;\n    if b[368..HEADER].iter().any(|x| *x != 0) {\n        return Err(LoaderFailureV1::new(\n            Refusal::Reserved,\n            Role::Session,\n            368,\n            0,\n        ));\n    }\n    let parts = sections(b, 40, Role::Session)?;\n    for (part, cap) in parts.iter().zip([64, PROCESS_CAP, PROCESS_CAP, STR_CAP]) {\n        if part.bytes.len() > cap {\n            return Err(LoaderFailureV1::new(\n                Refusal::Extent,\n                Role::Session,\n                part.bytes.len(),\n                0,\n            ));\n        }\n    }\n    if parts[0].bytes.len() != 64 {\n        return Err(LoaderFailureV1::new(Refusal::Extent, Role::Session, 40, 0));\n    }\n    validate_list(parts[1].bytes, false, false)?;\n    validate_list(parts[2].bytes, true, false)?;\n    if parts[3].bytes.first() != Some(&b'/')"
+    },
+    {
+      "line_end": 940,
+      "line_start": 931,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "role": "actual four-role identity order Source/Build/Session/Executable",
+      "sha256": "823430022d0f26db66f5731f8e814dbe54965c5e1e27707acf1a88194fe4155d",
+      "text": "    files.executable = Some(executable);\n    let identities = [\n        identity(&files.source, Role::Source)?,\n        identity(&files.build, Role::Build)?,\n        identity(&files.session, Role::Session)?,\n        identity(\n            files.executable.as_ref().expect(\"owned opened file\"),\n            Role::Executable,\n        )?,\n    ];"
+    },
+    {
+      "line_end": 1001,
+      "line_start": 975,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "role": "embedded manifest and other build hash binding; section hashes, no155file runtime loop",
+      "sha256": "823430022d0f26db66f5731f8e814dbe54965c5e1e27707acf1a88194fe4155d",
+      "text": "            Refusal::UnsupportedBuild,\n            Role::Build,\n            0,\n            0,\n        ));\n    }\n    // Embedded hash order differs intentionally from header compiler/version order.\n    for (index, claim) in [\n        b.digests[0],\n        b.digests[1],\n        b.digests[2],\n        b.digests[4],\n        b.digests[3],\n    ]\n    .into_iter()\n    .enumerate()\n    {\n        if claim != embedded[index].expect(\"all present\") {\n            return Err(LoaderFailureV1::new(\n                Refusal::BuildIdentity,\n                Role::Build,\n                index,\n                0,\n            ));\n        }\n    }\n    for i in 0..4 {"
+    },
+    {
+      "line_end": 1063,
+      "line_start": 1038,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "role": "Source identity first section and source extent equality",
+      "sha256": "823430022d0f26db66f5731f8e814dbe54965c5e1e27707acf1a88194fe4155d",
+      "text": "        ));\n    }\n    for i in 0..4 {\n        if platform::hash(s.sections[i].bytes, usage)? != s.digests[i] {\n            return Err(LoaderFailureV1::new(Refusal::Digest, Role::Session, i, 0));\n        }\n    }\n    if s.sections[0].bytes != identities[0].encode() || s.source_bytes != identities[0].bytes {\n        return Err(LoaderFailureV1::new(\n            Refusal::SourceIdentity,\n            Role::Source,\n            0,\n            0,\n        ));\n    }\n    if s.sections[1].bytes != observed.argv.slice()\n        || s.sections[2].bytes != observed.environment.slice()\n        || s.sections[3].bytes != observed.cwd.slice()\n    {\n        return Err(LoaderFailureV1::new(\n            Refusal::ProcessMismatch,\n            Role::Process,\n            0,\n            0,\n        ));\n    }"
+    },
+    {
+      "line_end": 1141,
+      "line_start": 1129,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "role": "actual retained five digests plus nonce and original identity array",
+      "sha256": "823430022d0f26db66f5731f8e814dbe54965c5e1e27707acf1a88194fe4155d",
+      "text": "        proof,\n        provenance: LoaderProvenanceV1 {\n            validation_budget: budget,\n            source_extent: input.len() as u64,\n            source: source_digest,\n            manifest: embedded[0].expect(\"checked\"),\n            build: build_digest,\n            session: session_digest,\n            executable: executable_digest,\n            nonce: observed.nonce,\n            identities,\n        },\n    })"
+    },
+    {
+      "line_end": 299,
+      "line_start": 259,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental/account.rs",
+      "role": "Buffer charge = checked capacity times native size; exact capacity and original ticket replacement",
+      "sha256": "a4a26f3690352e656e175e1ed0bcb3231b222934fb020e5f1fe7c9bf979bddc5",
+      "text": "    pub fn reserve(\n        &mut self,\n        capacity: usize,\n        meter: &mut Meter<'_, impl MeterControl>,\n        cursor: Cursor,\n    ) -> Result<(), Failure> {\n        if capacity <= self.values.capacity() {\n            return Ok(());\n        }\n        let bytes = capacity\n            .checked_mul(std::mem::size_of::<T>())\n            .ok_or_else(|| {\n                meter.error(FailureKind::ResourceExhausted, \"capacity_overflow\", cursor)\n            })?;\n        meter.reserve(self.category, bytes, cursor)?;\n        let mut next = Vec::new();\n        if next.try_reserve_exact(capacity).is_err() {\n            meter.release(self.category, bytes);\n            return Err(meter.error(FailureKind::AllocationFailure, \"vector_allocation\", cursor));\n        }\n        if next.capacity() != capacity {\n            drop(next);\n            meter.release(self.category, bytes);\n            return Err(meter.error(FailureKind::AllocationFailure, \"vector_capacity\", cursor));\n        }\n        // Fallible copying leaves old storage intact until the new buffer is complete.\n        for item in &self.values {\n            if let Err(error) = meter.work(1, cursor) {\n                drop(next);\n                meter.release(self.category, bytes);\n                return Err(error);\n            }\n            next.push(*item);\n        }\n        let old = std::mem::replace(&mut self.values, next);\n        drop(old);\n        meter.release(self.category, self.charged);\n        self.charged = bytes;\n        Ok(())\n    }\n    pub fn push("
+    },
+    {
+      "line_end": 110,
+      "line_start": 79,
+      "path": "verification/swift-guarded-snapshot-export-preparation/inputs/accepted-source/vm/src/experimental/metadata.rs",
+      "role": "eight Metadata-category Buffers, tuple Options and declaration state",
+      "sha256": "b28fc01a158e65acd0c6e2761e7876541459f73bd8665964aa91d6944791392d",
+      "text": "pub(super) struct Metadata<D: Declaration = FrozenDeclaration> {\n    pub signatures: Buffer<Signature>,\n    pub parameters: Buffer<Type>,\n    pub imports: Buffer<Import>,\n    pub functions: Buffer<Function>,\n    pub globals: Buffer<Global>,\n    pub exports: Buffer<Export>,\n    pub data: Buffer<Segment>,\n    pub elements: Buffer<Segment>,\n    pub memory: Option<(u32, u32)>,\n    pub table: Option<(u32, u32)>,\n    // Preserve declaration form separately from the resolved host maximum.\n    pub declarations: D,\n    pub instructions: usize,\n}\nimpl<D: Declaration> Metadata<D> {\n    fn new() -> Self {\n        Self {\n            signatures: Buffer::new(Resource::Metadata),\n            parameters: Buffer::new(Resource::Metadata),\n            imports: Buffer::new(Resource::Metadata),\n            functions: Buffer::new(Resource::Metadata),\n            globals: Buffer::new(Resource::Metadata),\n            exports: Buffer::new(Resource::Metadata),\n            data: Buffer::new(Resource::Metadata),\n            elements: Buffer::new(Resource::Metadata),\n            memory: None,\n            table: None,\n            declarations: D::default(),\n            instructions: 0,\n        }\n    }"
+    }
+  ]
+}

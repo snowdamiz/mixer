@@ -1,0 +1,35 @@
+--- parent/audit-content.py
++++ current/audit-content.py
+@@ -14,7 +14,7 @@
+ 
+ HERE = Path(__file__).absolute().parent
+ CANONICAL = HERE / 'sources/verification/swift-cache-state-ci'
+-RUN_PREFIX = 'runs/ci-40447941540-1'
++RUN_PREFIX = 'runs/ci-40450561458-1'
+ DATA = {}
+ SOURCE_AMENDMENT = {}
+ class ArchivePath:
+@@ -27,8 +27,8 @@
+     def __str__(self): return self.path
+ RUN = ArchivePath(RUN_PREFIX)
+ EXPECTED_RUNNER = 'e531311facb7b38967d3b904b26e92ff3f6c4dc7444c856cd799b70a1d91373b'
+-EXPECTED_REVISION = '606c42876855897c315ee279dcd38fabaeb561ad'
+-EXPECTED_TREE = '6e7ef189ea796effb2099eff927436bd407a080b'
++EXPECTED_REVISION = '43cbfb9c925e2ee7de43afd92bd588edb7ff60b6'
++EXPECTED_TREE = '93cc6868f445fa98c170acf771db73e50d90b4e2'
+ APPEND = b'\n#[cfg(test)]\n#[path = "../selected_controls.rs"]\nmod selected_scalar_controls;\n\n#[cfg(test)]\n#[path = "../scalar_cursor_independent.rs"]\nmod scalar_cursor_independent;\n'
+ 
+ def sha(path):
+@@ -87,10 +87,10 @@
+     archive = HERE / 'fixture-artifact.zip'
+     raw = archive.read_bytes()
+     metadata = strict((HERE / 'artifact-metadata.stdout').read_bytes())
+-    name = 'swift-cache-state-fixture-' + EXPECTED_REVISION + '-40447941540-1'
++    name = 'swift-cache-state-fixture-' + EXPECTED_REVISION + '-40450561458-1'
+     artifact, = [a for a in metadata['artifacts'] if a['name'] == name]
+     assert artifact['digest'] == 'sha256:' + hashlib.sha256(raw).hexdigest()
+-    assert artifact['workflow_run']['id'] == 40447941540 and artifact['workflow_run']['head_sha'] == EXPECTED_REVISION and not artifact['expired']
++    assert artifact['workflow_run']['id'] == 40450561458 and artifact['workflow_run']['head_sha'] == EXPECTED_REVISION and not artifact['expired']
+     member_rows = []
+     with zipfile.ZipFile(archive) as z:
+         for info in z.infolist():

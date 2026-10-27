@@ -1,0 +1,299 @@
+{
+  "actionable_accounting_findings": [],
+  "actionable_source_roster_findings": [
+    {
+      "actual_source_line": 1473,
+      "actual_source_path": "inputs/accepted-source/vm/src/experimental_swift_reactor/cache.rs",
+      "expected_correction": "Use existing pub(crate) fn prepare<'a> at line1473, remove planned-absent status, preserve original shared admission role.",
+      "id": "SR01",
+      "problem": "Existing generic prepare function is marked as a planned absent accessor because roster token omits its lifetime generic.",
+      "producer_path": "source-roster.json",
+      "scope": "source-roster accuracy only; no product/runtime defect alleged",
+      "severity": "documentation correction required"
+    }
+  ],
+  "control_groups": 8,
+  "controls": [
+    {
+      "detail": {
+        "all14_source_roster_entries_match_frozen_members": true,
+        "copied_members": 17,
+        "producer_seal_sha256": "7787c8bbd9164ebdd360186f79c5d696739e89d6b08cd2f7cfbc71e9c156a1fe"
+      },
+      "id": "A01-input-custody",
+      "passed": true
+    },
+    {
+      "detail": {
+        "coverage": "six fields have explicit proposed wire locations; metadata scalar state separately reviewed",
+        "fields": [
+          "source",
+          "metadata",
+          "policy",
+          "imports",
+          "usage",
+          "observations"
+        ],
+        "observation_fields": [
+          "types",
+          "type_parameters",
+          "imported_functions",
+          "defined_functions",
+          "validated_bodies",
+          "instructions",
+          "globals",
+          "exports",
+          "data_segments",
+          "element_segments",
+          "max_parameters_plus_locals",
+          "max_operand_values",
+          "max_control_depth",
+          "memory_minimum",
+          "memory_declared_maximum",
+          "memory_host_maximum",
+          "table_minimum",
+          "table_declared_maximum"
+        ],
+        "usage_fields": [
+          "input_visible_bytes",
+          "source_bytes",
+          "metadata_reserved",
+          "scratch_reserved",
+          "metadata_peak_reserved",
+          "scratch_peak_reserved",
+          "total_peak_reserved",
+          "work_used",
+          "elapsed_micros",
+          "deadline_ms"
+        ],
+        "wire_observation_words": 20
+      },
+      "id": "A02-all6-proof-fields",
+      "passed": true
+    },
+    {
+      "detail": {
+        "buffers": [
+          "signatures",
+          "parameters",
+          "imports",
+          "functions",
+          "globals",
+          "exports",
+          "data",
+          "elements"
+        ],
+        "metadata_scalars": [
+          "memory",
+          "table",
+          "declarations",
+          "instructions"
+        ],
+        "native_charge_rule": "actual Vec capacity * actual native element size; metadata category; count <= capacity",
+        "native_element_bytes_inherited_not_remeasured": [
+          12,
+          1,
+          20,
+          12,
+          12,
+          16,
+          16,
+          16
+        ],
+        "record_fields": {
+          "Export": [
+            "pub(super) name",
+            "pub(super) kind",
+            "pub(super) index"
+          ],
+          "Function": [
+            "body",
+            "type_index"
+          ],
+          "Global": [
+            "ty",
+            "mutable",
+            "initializer"
+          ],
+          "Import": [
+            "pub(super) module",
+            "pub(super) name",
+            "type_index"
+          ],
+          "Segment": [
+            "payload",
+            "destination",
+            "count"
+          ],
+          "Signature": [
+            "first",
+            "count",
+            "result"
+          ],
+          "Span": [
+            "offset",
+            "bytes"
+          ],
+          "SwiftDeclaration": [
+            "memory_maximum",
+            "table_maximum",
+            "memory_offset",
+            "table_offset"
+          ]
+        }
+      },
+      "id": "A03-all8-buffers",
+      "passed": true
+    },
+    {
+      "detail": {
+        "complete_maximum_bytes": 69765152,
+        "header_bytes": 2560,
+        "last_block_bytes": 2080,
+        "logical_caps": {
+          "data": 4096,
+          "elements": 4096,
+          "exports": 4096,
+          "functions": 79966,
+          "globals": 8192,
+          "imports": 34,
+          "parameters": 8192,
+          "signatures": 512
+        },
+        "maximum_continuous_blocks": 17033,
+        "maximum_section_bytes": {
+          "data": 131072,
+          "elements": 131072,
+          "exports": 131072,
+          "functions": 1919184,
+          "globals": 262144,
+          "imports": 1360,
+          "parameters": 65536,
+          "signatures": 12288
+        },
+        "maximum_write_attempts_at32_perblock": 545056,
+        "scope": "independent logical envelope only, no allocation, work grant, reachability, or RSS claim",
+        "source_cap": 67108864,
+        "wire_record_words": {
+          "data": 4,
+          "elements": 4,
+          "exports": 4,
+          "functions": 3,
+          "globals": 4,
+          "imports": 5,
+          "parameters": 1,
+          "signatures": 3
+        }
+      },
+      "id": "A04-source-derived-wire-envelope",
+      "passed": true
+    },
+    {
+      "detail": {
+        "cases": 7,
+        "native_target": "selected 64-bit little-endian aarch64 Apple; different layout must be selected",
+        "scope": "independent arithmetic model only; future exporter checked conversions not executed",
+        "u32_widens_losslessly": true
+      },
+      "id": "A05-width-and-overflow-controls",
+      "passed": true
+    },
+    {
+      "detail": {
+        "capacity_above_logical_cap_allowed": {
+          "capacity": 131072,
+          "functions_count": 79966
+        },
+        "cases": 7,
+        "independent_hypothetical_inventory_bytes": 1884056,
+        "native_proof_bytes_inherited": 664,
+        "scope": "synthetic arithmetic; not a claim that a genuine accepted proof reaches all logical maxima together"
+      },
+      "id": "A06-capacity-charge-controls",
+      "passed": true
+    },
+    {
+      "detail": {
+        "future_host_positive_grant": "requires fresh complete measured source-place requirement and separate root selection",
+        "groups": [
+          {
+            "lifetime": "foundation",
+            "named_places": 7,
+            "type": "OuterSnapshotCallerPlacesV1"
+          },
+          {
+            "lifetime": "foundation",
+            "named_places": 4,
+            "type": "SnapshotWrapperIngressV1"
+          },
+          {
+            "lifetime": "before-guard",
+            "named_places": 6,
+            "type": "SnapshotPlanPlacesV1"
+          },
+          {
+            "lifetime": "guard-live",
+            "named_places": 13,
+            "type": "SnapshotBridgePlacesV1"
+          },
+          {
+            "lifetime": "guard-live",
+            "named_places": 7,
+            "type": "SnapshotEncodingPlacesV1"
+          },
+          {
+            "lifetime": "guard-live",
+            "named_places": 11,
+            "type": "SnapshotWriterPlacesV1"
+          },
+          {
+            "lifetime": "guard-live-and-return",
+            "named_places": 7,
+            "type": "SnapshotExportReturnPlacesV1"
+          },
+          {
+            "lifetime": "after-guard",
+            "named_places": 4,
+            "type": "SnapshotCleanupPlacesV1"
+          }
+        ],
+        "new_measurement_or_reservation": false,
+        "original300000": "refuses both inherited foundation floors before exporter additions",
+        "original400000fixture": "refusal-path only; no positive relabelling"
+      },
+      "id": "A07-source-place-and-original-grants",
+      "passed": true
+    },
+    {
+      "detail": {
+        "conclusion": "explicit selection/implementation obligations, not claimed implemented admission",
+        "pending": [
+          "concrete checked work formula and charging category",
+          "per-place native measurement/simultaneous floor",
+          "read-only cancellation/deadline observation and bounded check schedule",
+          "accounted cancellation handle/backing if cloned",
+          "actual failure/cleanup/return move accounting"
+        ],
+        "proposed_safety_boundary": "admit all storage/work before sole immutable guard; no ledger mutation or construction reentry while live",
+        "source_fact": "existing work/check mutate RuntimeControl; current cancellation accessor clones handle; deadline reads immutably"
+      },
+      "id": "A08-work-lifetime-reentrancy-and-stop-contract",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "source-data/arithmetic only",
+    "no product or runtime tests/builds",
+    "no new native size measurement",
+    "no actual exporter or operational admission",
+    "no semantic validation, custody, replay, release, publication or GA authority",
+    "no producer import/execution",
+    "no Git/native/UI/capture/process inventories"
+  ],
+  "schema": 1,
+  "status": "finite-independent-accounting-controls-pass-with-source-roster-finding",
+  "tool": {
+    "implementation": "CPython",
+    "python": "3.14.8"
+  }
+}

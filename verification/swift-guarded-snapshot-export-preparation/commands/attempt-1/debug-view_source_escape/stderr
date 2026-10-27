@@ -1,0 +1,26 @@
+error[E0753]: expected outer doc comment
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/prototype/validator_bridge.rs:1:1
+  |
+1 | //! Compile-signature preparation only. This module is never executed or integrated.
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2 | use super::*;
+  | ------------- the inner doc comment doesn't annotate this `use` import
+  |
+help: to annotate the `use` import, change the doc comment from inner to outer style
+  |
+1 - //! Compile-signature preparation only. This module is never executed or integrated.
+1 + /// Compile-signature preparation only. This module is never executed or integrated.
+  |
+
+error[E0515]: cannot return value referencing function parameter `g`
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/compile-cases/view_source_escape.rs:1:199
+  |
+1 | ...w_logical_snapshot_v1(&g) {Ok(v)=>v.source(),Err(_)=>panic!()} }
+  |                          --          ^^^^^^^^^^ returns a value referencing data owned by the current function
+  |                          |
+  |                          `g` is borrowed here
+
+error: aborting due to 2 previous errors
+
+Some errors have detailed explanations: E0515, E0753.
+For more information about an error, try `rustc --explain E0515`.

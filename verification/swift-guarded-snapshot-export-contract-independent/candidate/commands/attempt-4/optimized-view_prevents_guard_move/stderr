@@ -1,0 +1,23 @@
+error[E0505]: cannot move out of `g` because it is borrowed
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/compile-cases/view_prevents_guard_move.rs:1:190
+   |
+ 1 | ...en(g:crate::experimental_swift_reactor::InitialProfileBorrowV1<'_>) {if let Ok(v)=crate::experimental::swift::snapshot_export_preparation_v1::borrow_logical_snapshot_v1(&g) {drop(g);let _=v.so...
+   |       -                                                                                                                                                                     --        ^        - borrow later used here
+   |       |                                                                                                                                                                     |         |
+   |       |                                                                                                                                                                     |         move out of `g` occurs here
+   |       binding `g` declared here                                                                                                                                             borrow of `g` occurs here
+   |
+note: if `initial_profile_v1::InitialProfileBorrowV1<'_>` implemented `Clone`, you could clone the value
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/preparation-compile-5g80lfv4/variant/src/experimental_swift_reactor/cache/initial_profile_v1.rs:25:1
+   |
+25 | pub(crate) struct InitialProfileBorrowV1<'a> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider implementing `Clone` for this type
+   |
+  ::: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/compile-cases/view_prevents_guard_move.rs:1:181
+   |
+ 1 | ...xport_preparation_v1::borrow_logical_snapshot_v1(&g) {drop(g);let _=v.source();}}
+   |                                                      - you could clone this value
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0505`.

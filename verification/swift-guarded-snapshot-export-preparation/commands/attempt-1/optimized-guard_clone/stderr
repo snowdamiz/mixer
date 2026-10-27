@@ -1,0 +1,33 @@
+error[E0753]: expected outer doc comment
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/prototype/validator_bridge.rs:1:1
+  |
+1 | //! Compile-signature preparation only. This module is never executed or integrated.
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2 | use super::*;
+  | ------------- the inner doc comment doesn't annotate this `use` import
+  |
+help: to annotate the `use` import, change the doc comment from inner to outer style
+  |
+1 - //! Compile-signature preparation only. This module is never executed or integrated.
+1 + /// Compile-signature preparation only. This module is never executed or integrated.
+  |
+
+error[E0599]: no method named `clone` found for struct `initial_profile_v1::InitialProfileBorrowV1<'a>` in the current scope
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/compile-cases/guard_clone.rs:1:88
+   |
+ 1 | fn forbidden(g:crate::experimental_swift_reactor::InitialProfileBorrowV1<'_>) {let _=g.clone();}
+   |                                                                                        ^^^^^ method not found in `initial_profile_v1::InitialProfileBorrowV1<'_>`
+   |
+  ::: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/preparation-compile-fiaoao7c/variant/src/experimental_swift_reactor/cache/initial_profile_v1.rs:25:1
+   |
+25 | pub(crate) struct InitialProfileBorrowV1<'a> {
+   | -------------------------------------------- method `clone` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `clone`, perhaps you need to implement it:
+           candidate #1: `Clone`
+
+error: aborting due to 2 previous errors
+
+Some errors have detailed explanations: E0599, E0753.
+For more information about an error, try `rustc --explain E0599`.

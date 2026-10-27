@@ -1,0 +1,36 @@
+error[E0753]: expected outer doc comment
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/prototype/validator_bridge.rs:1:1
+  |
+1 | //! Compile-signature preparation only. This module is never executed or integrated.
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2 | use super::*;
+  | ------------- the inner doc comment doesn't annotate this `use` import
+  |
+help: to annotate the `use` import, change the doc comment from inner to outer style
+  |
+1 - //! Compile-signature preparation only. This module is never executed or integrated.
+1 + /// Compile-signature preparation only. This module is never executed or integrated.
+  |
+
+error[E0308]: mismatched types
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/compile-cases/raw_proof_alternate.rs:1:183
+   |
+ 1 | ...::fs::File) {let _=crate::experimental::swift::snapshot_export_preparation_v1::export_signature_v1(p,f);}
+   |                       ------------------------------------------------------------------------------- ^ expected `&InitialProfileBorrowV1<'_>`, found `&ValidatedSwiftReactor`
+   |                       |
+   |                       arguments to this function are incorrect
+   |
+   = note: expected reference `&initial_profile_v1::InitialProfileBorrowV1<'_>`
+              found reference `&swift::ValidatedSwiftReactor`
+note: function defined here
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-preparation/prototype/validator_bridge.rs:50:15
+   |
+50 | pub(crate) fn export_signature_v1(
+   |               ^^^^^^^^^^^^^^^^^^^
+51 |     initial: &InitialProfileBorrowV1<'_>, _output:&mut std::fs::File,
+   |     ------------------------------------
+
+error: aborting due to 2 previous errors
+
+Some errors have detailed explanations: E0308, E0753.
+For more information about an error, try `rustc --explain E0308`.

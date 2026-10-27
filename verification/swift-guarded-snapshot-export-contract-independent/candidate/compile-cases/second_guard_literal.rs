@@ -1,0 +1,1 @@
+fn forbidden(g:&crate::experimental_swift_reactor::InitialProfileBorrowV1<'_>) {let _=crate::experimental_swift_reactor::InitialProfileBorrowV1 {cache:g.cache,control:g.control,wasi:g.wasi,scalars:g.scalars};}
