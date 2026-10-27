@@ -1,0 +1,57 @@
+warning: unused import: `OwnedCorrelationOutcomeV1`
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:703:54
+    |
+703 |         BootstrapFailureV1, SuppliedLoaderCarrierV1, OwnedCorrelationOutcomeV1,
+    |                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `BorrowedOwnerDataV1` and `selected_bootstrap_ledger_v1`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2780:44
+     |
+2780 |     BootstrapFailureV1, BootstrapLedgerV1, BorrowedOwnerDataV1, SuppliedLoaderCarrierV1,
+     |                                            ^^^^^^^^^^^^^^^^^^^
+2781 |     OriginalCorrelationRefusalV1, OwnedCorrelationOutcomeV1, selected_bootstrap_ledger_v1,
+     |                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated method `std::sync::atomic::Atomic::<u64>::fetch_update`: renamed to `try_update` for consistency
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:1929:63
+     |
+1929 |         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+     |                                                               ^^^^^^^^^^^^
+     |
+     = note: `#[warn(deprecated)]` on by default
+help: replace the use of the deprecated method
+     |
+1929 -         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+1929 +         let association = match NEXT_ADMISSION_ASSOCIATION_V1.try_update(std::sync::atomic::Ordering::Relaxed,
+     |
+
+error[E0277]: the trait bound `OwnedCorrelationOutcomeV1<'_>: DerefMut` is not satisfied
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/probes/N18.inc.rs:19:107
+   |
+19 | fn ir02_negative_v1(value:&mut OwnedCorrelationOutcomeV1<'_>) {let _mutable=std::ops::DerefMut::deref_mut(value);}
+   |                                                                             ----------------------------- ^^^^^ the trait `DerefMut` is not implemented for `OwnedCorrelationOutcomeV1<'_>`
+   |                                                                             |
+   |                                                                             required by a bound introduced by this call
+   |
+help: consider mutably borrowing here
+   |
+19 | fn ir02_negative_v1(value:&mut OwnedCorrelationOutcomeV1<'_>) {let _mutable=std::ops::DerefMut::deref_mut(&mut value);}
+   |                                                                                                           ++++
+
+error[E0277]: the trait bound `OwnedCorrelationOutcomeV1<'_>: Deref` is not satisfied
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/probes/N18.inc.rs:19:77
+     |
+  19 | fn ir02_negative_v1(value:&mut OwnedCorrelationOutcomeV1<'_>) {let _mutable=std::ops::DerefMut::deref_mut(value);}
+     |                                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+     |
+help: the trait `Deref` is not implemented for `OwnedCorrelationOutcomeV1<'_>`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2054:5
+     |
+2054 |     pub(in crate::experimental_swift_reactor) struct OwnedCorrelationOutcomeV1<'root>(RootBoundV1<'root, RawCorrelationOutcomeV1>);
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors; 3 warnings emitted
+
+For more information about this error, try `rustc --explain E0277`.

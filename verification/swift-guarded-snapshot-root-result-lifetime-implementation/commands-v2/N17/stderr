@@ -1,0 +1,52 @@
+warning: unused import: `OwnedCorrelationOutcomeV1`
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:703:54
+    |
+703 |         BootstrapFailureV1, SuppliedLoaderCarrierV1, OwnedCorrelationOutcomeV1,
+    |                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `BorrowedOwnerDataV1` and `selected_bootstrap_ledger_v1`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2780:44
+     |
+2780 |     BootstrapFailureV1, BootstrapLedgerV1, BorrowedOwnerDataV1, SuppliedLoaderCarrierV1,
+     |                                            ^^^^^^^^^^^^^^^^^^^
+2781 |     OriginalCorrelationRefusalV1, OwnedCorrelationOutcomeV1, selected_bootstrap_ledger_v1,
+     |                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated method `std::sync::atomic::Atomic::<u64>::fetch_update`: renamed to `try_update` for consistency
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:1929:63
+     |
+1929 |         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+     |                                                               ^^^^^^^^^^^^
+     |
+     = note: `#[warn(deprecated)]` on by default
+help: replace the use of the deprecated method
+     |
+1929 -         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+1929 +         let association = match NEXT_ADMISSION_ASSOCIATION_V1.try_update(std::sync::atomic::Ordering::Relaxed,
+     |
+
+error[E0599]: `OwnedCorrelationOutcomeV1<'root>` is not an iterator
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/probes/N17.inc.rs:21:11
+     |
+  21 |     value.map(|raw|caller_slot=Some(raw));
+     |           ^^^ `OwnedCorrelationOutcomeV1<'root>` is not an iterator
+     |
+    ::: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2054:5
+     |
+2054 |     pub(in crate::experimental_swift_reactor) struct OwnedCorrelationOutcomeV1<'root>(RootBoundV1<'root, RawCorrelationOutcomeV1>);
+     |     --------------------------------------------------------------------------------- method `map` not found for this struct because it doesn't satisfy `OwnedCorrelationOutcomeV1<'root>: Iterator`
+     |
+     = note: the following trait bounds were not satisfied:
+             `OwnedCorrelationOutcomeV1<'root>: Iterator`
+             which is required by `&mut OwnedCorrelationOutcomeV1<'root>: Iterator`
+note: the trait `Iterator` must be implemented
+    --> /rustc/b940084d7eb6a299eb4bfeb8e34901bc051e7ac4/library/core/src/iter/traits/iterator.rs:42:0
+     = help: items from traits can only be used if the trait is implemented and in scope
+     = note: the following trait defines an item `map`, perhaps you need to implement it:
+             candidate #1: `Iterator`
+
+error: aborting due to 1 previous error; 3 warnings emitted
+
+For more information about this error, try `rustc --explain E0599`.

@@ -1,0 +1,300 @@
+** (Mix) mix format failed due to --check-formatted.
+The following files are not formatted:
+
+[1m[31m/home/runner/work/mixer/mixer/hosted/lib/mixer_hosted_web/browser_workspace_dispatcher.ex
+[0m
+         |
+113 113  |    if is_list(optional) and is_list(headers) and length(headers) <= 4 and
+114 114  |         Enum.sort(headers) === Enum.sort(required ++ optional),
+115     -|      do: {:ok, required ++ optional},
+116     -|      else: {:error, :authorization_unavailable}
+    115 +|       do: {:ok, required ++ optional},
+    116 +|       else: {:error, :authorization_unavailable}
+117 117  |  end
+118 118  |
+         |
+
+[1m[31m/home/runner/work/mixer/mixer/hosted/test/mixer_hosted_web/browser_workspace_dispatcher_request_test.exs
+[0m
+         |
+ 48  48  |      conn = admit(request)
+ 49  49  |      refute conn.halted
+     50 +|
+ 50  51  |      assert conn.assigns.customer_workspace_request == %{
+ 51  52  |               organization_id: nil,
+         |
+ 66  67  |               path: "/v3/projects",
+ 67  68  |               query:
+ 68     -|                 "organization_id=" <> URI.encode_www_form(organization) <>
+     69 +|                 "organization_id=" <>
+     70 +|                   URI.encode_www_form(organization) <>
+ 69  71  |                   "&limit=100&cursor=" <> URI.encode_www_form(cursor)
+ 70  72  |             }
+         |
+ 73  75  |      conn = admit(request)
+ 74  76  |      refute conn.halted
+     77 +|
+ 75  78  |      assert conn.assigns.customer_workspace_request == %{
+ 76  79  |               organization_id: organization,
+         |
+ 87  90  |    refute conn.halted
+ 88  91  |    assert conn.assigns.customer_workspace_request.page.cursor == cursor
+ 89     -|    assert CustomerWorkspaceRequest.decode_cursor(cursor, :organizations, nil) == {:ok, "org+ &%/租"}
+     92 +|
+     93 +|    assert CustomerWorkspaceRequest.decode_cursor(cursor, :organizations, nil) ==
+     94 +|             {:ok, "org+ &%/租"}
+ 90  95  |  end
+ 91  96  |
+         |
+ 94  99  |
+ 95 100  |    for value <- [
+ 96     -|          nil, :organizations, [:organizations, page], {:unknown, page},
+ 97     -|          {:organizations, page, %{}}, {:projects, page},
+ 98     -|          {:organizations, %{limit: 50}}, {:organizations, %{cursor: nil}},
+    101 +|          nil,
+    102 +|          :organizations,
+    103 +|          [:organizations, page],
+    104 +|          {:unknown, page},
+    105 +|          {:organizations, page, %{}},
+    106 +|          {:projects, page},
+    107 +|          {:organizations, %{limit: 50}},
+    108 +|          {:organizations, %{cursor: nil}},
+ 99 109  |          {:organizations, %{"limit" => 50, "cursor" => nil}},
+100 110  |          {:organizations, Map.put(page, :after, "org")},
+101     -|          {:organizations, %Page{}}, {:organizations, %{limit: 0, cursor: nil}},
+    111 +|          {:organizations, %Page{}},
+    112 +|          {:organizations, %{limit: 0, cursor: nil}},
+102 113  |          {:organizations, %{limit: 101, cursor: nil}},
+103 114  |          {:organizations, %{limit: 1.0, cursor: nil}},
+         |
+112 123  |
+113 124  |  test "organization identifiers reject invalid bytes without normalization" do
+114     -|    for organization <- [nil, :org, "", "*", "line\nfeed", <<0>>, <<255>>, String.duplicate("x", 129)] do
+    125 +|    for organization <- [
+    126 +|          nil,
+    127 +|          :org,
+    128 +|          "",
+    129 +|          "*",
+    130 +|          "line\nfeed",
+    131 +|          <<0>>,
+    132 +|          <<255>>,
+    133 +|          String.duplicate("x", 129)
+    134 +|        ] do
+115 135  |      assert Request.new({:projects, organization, %{limit: 50, cursor: nil}}) ==
+116 136  |               {:error, :invalid_request}
+         |
+
+[1m[31m/home/runner/work/mixer/mixer/hosted/test/mixer_hosted_web/browser_workspace_dispatcher_capture_adapter_test.exs
+[0m
+         |
+ 15  15  |  defp synthetic_identity do
+ 16  16  |    %VerifiedIdentity{
+ 17     -|      profile_id: "synthetic-profile", profile_version: 1,
+ 18     -|      issuer: "https://synthetic.invalid", subject: "synthetic-subject",
+ 19     -|      client_id: "synthetic-client", credential_ref: "synthetic-credential",
+ 20     -|      issued_at: 1, expires_at: 2, identity_class: :human,
+     17 +|      profile_id: "synthetic-profile",
+     18 +|      profile_version: 1,
+     19 +|      issuer: "https://synthetic.invalid",
+     20 +|      subject: "synthetic-subject",
+     21 +|      client_id: "synthetic-client",
+     22 +|      credential_ref: "synthetic-credential",
+     23 +|      issued_at: 1,
+     24 +|      expires_at: 2,
+     25 +|      identity_class: :human,
+ 21  26  |      scopes: ["mixer.workspace.read"]
+ 22  27  |    }
+         |
+ 27  32  |
+ 28  33  |    conn = %Plug.Conn{
+ 29     -|      adapter: CaptureAdapter.new(), owner: nil,
+ 30     -|      method: "GET", request_path: if(operation == :organizations, do: "/v3/orgs", else: "/v3/projects"),
+ 31     -|      query_string: if(operation == :organizations, do: "limit=100", else: "organization_id=org&limit=100"),
+     34 +|      adapter: CaptureAdapter.new(),
+     35 +|      owner: nil,
+     36 +|      method: "GET",
+     37 +|      request_path: if(operation == :organizations, do: "/v3/orgs", else: "/v3/projects"),
+     38 +|      query_string:
+     39 +|        if(operation == :organizations, do: "limit=100", else: "organization_id=org&limit=100"),
+ 32  40  |      assigns: %{verified_identity: synthetic_identity()},
+ 33  41  |      resp_headers: [{"x-request-id", String.duplicate("a", 32)}]
+         |
+ 57  65  |    body = String.duplicate("x", 262_144)
+ 58  66  |    assert {:ok, ^body, _} = CaptureAdapter.send_resp(state, 200, [], body)
+ 59     -|    assert {:ok, ^body, _} = CaptureAdapter.send_resp(state, 200, [], [binary_part(body, 0, 131_072), [binary_part(body, 131_072, 131_072)]])
+ 60  67  |
+     68 +|    assert {:ok, ^body, _} =
+     69 +|             CaptureAdapter.send_resp(state, 200, [], [
+     70 +|               binary_part(body, 0, 131_072),
+     71 +|               [binary_part(body, 131_072, 131_072)]
+     72 +|             ])
+     73 +|
+ 61  74  |    for invalid <- [[body, "x"], [256], ["valid" | :invalid], :not_iodata] do
+ 62  75  |      assert_raise ArgumentError, "local response unavailable", fn ->
+         |
+ 97 110  |  test "canonical controller accepts synthetic 65 and 100 row pages without a second decoder" do
+ 98 111  |    for count <- [65, 100] do
+ 99     -|      rows = for n <- 1..count, do: %{id: "org-" <> String.pad_leading(Integer.to_string(n), 3, "0"), display_name: nil, organization_roles: []}
+    112 +|      rows =
+    113 +|        for n <- 1..count,
+    114 +|            do: %{
+    115 +|              id: "org-" <> String.pad_leading(Integer.to_string(n), 3, "0"),
+    116 +|              display_name: nil,
+    117 +|              organization_roles: []
+    118 +|            }
+    119 +|
+100 120  |      page = %{organizations: rows, next_cursor: nil}
+101 121  |      conn = controller({:ok, page})
+         |
+116 136  |    assert conn.resp_body == Jason.encode!(page)
+117 137  |
+118     -|    for invalid <- [Map.put(row, :organization_id, "other"), Map.put(row, :roles, []), Map.put(row, :secret, "private-marker")] do
+    138 +|    for invalid <- [
+    139 +|          Map.put(row, :organization_id, "other"),
+    140 +|          Map.put(row, :roles, []),
+    141 +|          Map.put(row, :secret, "private-marker")
+    142 +|        ] do
+119 143  |      conn = controller({:ok, %{projects: [invalid], next_cursor: nil}}, :projects)
+120 144  |      assert conn.status == 503 and conn.state == :sent
+         |
+125 149  |
+126 150  |  test "canonical controller denials keep fixed redacted bodies and headers" do
+127     -|    for {reason, status} <- [{:unauthenticated, 401}, {:permission_denied, 403}, {:not_found, 404}, {:invalid_request, 400}, {:authorization_unavailable, 503}] do
+    151 +|    for {reason, status} <- [
+    152 +|          {:unauthenticated, 401},
+    153 +|          {:permission_denied, 403},
+    154 +|          {:not_found, 404},
+    155 +|          {:invalid_request, 400},
+    156 +|          {:authorization_unavailable, 503}
+    157 +|        ] do
+128 158  |      conn = controller({:error, reason})
+129 159  |      assert conn.status == status and conn.state == :sent
+130 160  |      assert Plug.Conn.get_resp_header(conn, "cache-control") == ["no-store"]
+131     -|      assert Plug.Conn.get_resp_header(conn, "content-type") == ["application/json; charset=utf-8"]
+    161 +|
+    162 +|      assert Plug.Conn.get_resp_header(conn, "content-type") == [
+    163 +|               "application/json; charset=utf-8"
+    164 +|             ]
+    165 +|
+132 166  |      assert Plug.Conn.get_resp_header(conn, "x-request-id") == [String.duplicate("a", 32)]
+133 167  |      assert byte_size(conn.resp_body) < 512
+         |
+
+[1m[31m/home/runner/work/mixer/mixer/hosted/test/mixer_hosted_web/browser_workspace_dispatcher_test.exs
+[0m
+         |
+ 27  27  |    refute function_exported?(Dispatcher, :dispatch, 2)
+ 28  28  |    refute function_exported?(Dispatcher, :dispatch, 4)
+ 29     -|    assert Dispatcher.dispatch("opaque.Token", @request, Map.put(@metadata, :verifier, __MODULE__)) == {:error, :invalid_request}
+ 30     -|    assert Dispatcher.dispatch("opaque.Token", {:organizations, %{limit: 50, cursor: nil, repo: Repo}}, @metadata) == {:error, :invalid_request}
+     29 +|
+     30 +|    assert Dispatcher.dispatch(
+     31 +|             "opaque.Token",
+     32 +|             @request,
+     33 +|             Map.put(@metadata, :verifier, __MODULE__)
+     34 +|           ) == {:error, :invalid_request}
+     35 +|
+     36 +|    assert Dispatcher.dispatch(
+     37 +|             "opaque.Token",
+     38 +|             {:organizations, %{limit: 50, cursor: nil, repo: Repo}},
+     39 +|             @metadata
+     40 +|           ) == {:error, :invalid_request}
+ 31  41  |  end
+ 32  42  |
+         |
+ 39  49  |      end
+ 40  50  |
+ 41     -|      for metadata <- [nil, [], %{}, %{"request_id" => @id}, %Metadata{}, %{request_id: @id, extra: true}, %{request_id: String.upcase(@id)}, %{request_id: String.duplicate("a", 31)}, %{request_id: String.duplicate("a", 33)}, %{request_id: String.duplicate("g", 32)}, %{request_id: <<255::size(256)>>}] do
+ 42     -|        assert Dispatcher.dispatch("opaque.Token", @request, metadata) == {:error, :invalid_request}
+     51 +|      for metadata <- [
+     52 +|            nil,
+     53 +|            [],
+     54 +|            %{},
+     55 +|            %{"request_id" => @id},
+     56 +|            %Metadata{},
+     57 +|            %{request_id: @id, extra: true},
+     58 +|            %{request_id: String.upcase(@id)},
+     59 +|            %{request_id: String.duplicate("a", 31)},
+     60 +|            %{request_id: String.duplicate("a", 33)},
+     61 +|            %{request_id: String.duplicate("g", 32)},
+     62 +|            %{request_id: <<255::size(256)>>}
+     63 +|          ] do
+     64 +|        assert Dispatcher.dispatch("opaque.Token", @request, metadata) ==
+     65 +|                 {:error, :invalid_request}
+ 43  66  |      end
+ 44  67  |
+ 45     -|      assert Dispatcher.dispatch("opaque.Token", {:projects, "*", %{limit: 50, cursor: nil}}, @metadata) == {:error, :invalid_request}
+     68 +|      assert Dispatcher.dispatch(
+     69 +|               "opaque.Token",
+     70 +|               {:projects, "*", %{limit: 50, cursor: nil}},
+     71 +|               @metadata
+     72 +|             ) == {:error, :invalid_request}
+     73 +|
+ 46  74  |      assert Repo.get_dynamic_repo() === :synthetic_wrong_repo
+ 47  75  |    after
+         |
+ 54  82  |
+ 55  83  |    try do
+ 56     -|      assert Dispatcher.dispatch("opaque.Token", @request, @metadata) == {:error, :authorization_unavailable}
+     84 +|      assert Dispatcher.dispatch("opaque.Token", @request, @metadata) ==
+     85 +|               {:error, :authorization_unavailable}
+     86 +|
+ 57  87  |      assert Repo.get_dynamic_repo() === self()
+ 58  88  |    after
+         |
+ 68  98  |      assert Map.keys(response) |> Enum.sort() == [:body, :headers, :status]
+ 69  99  |      assert response.status == 503
+    100 +|
+ 70 101  |      assert response.headers == [
+ 71 102  |               {"cache-control", "no-store"},
+         |
+ 76 107  |
+ 77 108  |      assert Jason.decode!(response.body) == %{
+ 78     -|               "error" => %{"code" => "identity_unavailable", "message" => "Identity verification unavailable. Retry shortly."},
+    109 +|               "error" => %{
+    110 +|                 "code" => "identity_unavailable",
+    111 +|                 "message" => "Identity verification unavailable. Retry shortly."
+    112 +|               },
+ 79 113  |               "request_id" => @id
+ 80 114  |             }
+         |
+ 92 126  |      assert {:ok, response} = Dispatcher.dispatch(token, @request, @metadata)
+ 93 127  |      assert response.status == 400
+    128 +|
+ 94 129  |      assert response.headers == [
+ 95 130  |               {"cache-control", "no-store"},
+         |
+109 144  |    Process.put(:synthetic_dispatcher_context, :preserved)
+110 145  |    Process.put({MixerHosted.CustomerWorkspace.Storage, :active}, :synthetic_active_storage)
+111     -|    Process.put({MixerHosted.Authorization.Transaction.Context, :active}, :synthetic_active_context)
+    146 +|
+    147 +|    Process.put(
+    148 +|      {MixerHosted.Authorization.Transaction.Context, :active},
+    149 +|      :synthetic_active_context
+    150 +|    )
+    151 +|
+112 152  |    {:messages, before} = Process.info(self(), :messages)
+113 153  |
+114 154  |    try do
+115 155  |      for request <- [@request, {:projects, " org+&%/租 ", %{limit: 100, cursor: nil}}] do
+116     -|        assert {:ok, %{status: 503, headers: headers}} = Dispatcher.dispatch("opaque.Token", request, @metadata)
+    156 +|        assert {:ok, %{status: 503, headers: headers}} =
+    157 +|                 Dispatcher.dispatch("opaque.Token", request, @metadata)
+    158 +|
+117 159  |        assert List.keyfind(headers, "x-request-id", 0) == {"x-request-id", @id}
+118 160  |        assert Process.info(self(), :messages) == {:messages, before}
+119 161  |        assert Process.get(:synthetic_dispatcher_context) == :preserved
+120     -|        assert Process.get({MixerHosted.CustomerWorkspace.Storage, :active}) == :synthetic_active_storage
+121     -|        assert Process.get({MixerHosted.Authorization.Transaction.Context, :active}) == :synthetic_active_context
+    162 +|
+    163 +|        assert Process.get({MixerHosted.CustomerWorkspace.Storage, :active}) ==
+    164 +|                 :synthetic_active_storage
+    165 +|
+    166 +|        assert Process.get({MixerHosted.Authorization.Transaction.Context, :active}) ==
+    167 +|                 :synthetic_active_context
+122 168  |      end
+123 169  |    after
+         |
+
+
+

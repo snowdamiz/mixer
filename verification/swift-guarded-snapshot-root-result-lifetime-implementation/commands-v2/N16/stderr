@@ -1,0 +1,50 @@
+error[E0603]: function `correlate_core_v1` is private
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/probes/N16.inc.rs:19:66
+     |
+  19 | fn ir02_negative_v1() {let _private_core=prepaid_input_owner_v1::correlate_core_v1::<File>;}
+     |                                                                  ^^^^^^^^^^^^^^^^^ private function
+     |
+note: the function `correlate_core_v1` is defined here
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2146:5
+     |
+2146 | /     fn correlate_core_v1<'owner, 'root: 'owner, 'expected_root: 'owner, R>(
+2147 | |         attempt: PrepaidCorrelationAttemptV1<'owner, 'root>, carrier: LoaderCarrierCoreV1<R>,
+2148 | |         expected: &AdmittedLoaderCorrespondenceV1<'owner, 'expected_root>,
+2149 | |     ) -> RootBoundV1<'root, Result<LoaderCarrierCoreV1<R>, (OriginalCorrelationRefusalV1, LoaderCarrierCoreV1<R>)>>
+...    |
+2165 | |         RootBoundV1 { payload: Ok(carrier), root }
+2166 | |     }
+     | |_____^
+
+warning: unused import: `OwnedCorrelationOutcomeV1`
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:703:54
+    |
+703 |         BootstrapFailureV1, SuppliedLoaderCarrierV1, OwnedCorrelationOutcomeV1,
+    |                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `BorrowedOwnerDataV1` and `selected_bootstrap_ledger_v1`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2780:44
+     |
+2780 |     BootstrapFailureV1, BootstrapLedgerV1, BorrowedOwnerDataV1, SuppliedLoaderCarrierV1,
+     |                                            ^^^^^^^^^^^^^^^^^^^
+2781 |     OriginalCorrelationRefusalV1, OwnedCorrelationOutcomeV1, selected_bootstrap_ledger_v1,
+     |                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated method `std::sync::atomic::Atomic::<u64>::fetch_update`: renamed to `try_update` for consistency
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:1929:63
+     |
+1929 |         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+     |                                                               ^^^^^^^^^^^^
+     |
+     = note: `#[warn(deprecated)]` on by default
+help: replace the use of the deprecated method
+     |
+1929 -         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+1929 +         let association = match NEXT_ADMISSION_ASSOCIATION_V1.try_update(std::sync::atomic::Ordering::Relaxed,
+     |
+
+error: aborting due to 1 previous error; 3 warnings emitted
+
+For more information about this error, try `rustc --explain E0603`.

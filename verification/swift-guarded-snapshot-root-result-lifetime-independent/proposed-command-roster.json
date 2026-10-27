@@ -1,0 +1,644 @@
+{
+  "schema": 1,
+  "status": "independent-finite-proposal-not-execution-authority",
+  "at_utc": "2026-10-27T19:29:07.791653+00:00",
+  "commands": [
+    {
+      "id": "P01-facade",
+      "kind": "compiler-positive",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--crate-name",
+        "mixer_vm",
+        "--edition=2021",
+        "--target",
+        "aarch64-apple-darwin",
+        "-C",
+        "overflow-checks=yes",
+        "-C",
+        "panic=unwind",
+        "--cfg",
+        "feature=\"experimental-swift-reactor\"",
+        "--cfg",
+        "feature=\"experimental-swift-wasi\"",
+        "--cfg",
+        "feature=\"experimental-stream-validation\"",
+        "--cfg",
+        "feature=\"experimental-function-cache\"",
+        "--cfg",
+        "mixer_bootstrap_one_fixture_v1",
+        "--cfg",
+        "mixer_ir02_probe_facade_v1",
+        "-C",
+        "opt-level=0",
+        "--crate-type",
+        "rlib",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/source/vm/src/lib.rs",
+        "--emit=metadata=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/P01-facade.rmeta"
+      ],
+      "environment_additions": {
+        "MIXER_IR02_PROBE_PATH_V1": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/probes/P01-facade.inc.rs"
+      },
+      "probe": {
+        "path": "probes/P01-facade.inc.rs",
+        "bytes": 2112,
+        "sha256": "82cb4fad746f702946538d1409544fb2ed2bd12b2c52e4bc02f45d46cb4bf8b6"
+      },
+      "intended_diagnostic_phrases": [],
+      "scope": "Actual opaque facade permits acquisition-owner retirement before complete result/final result return while exact original root survives; shared diagnostic views have short carrier borrows.",
+      "output_files": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/P01-facade.rmeta"
+      ],
+      "semantic_review_required": true
+    },
+    {
+      "id": "P02-cache",
+      "kind": "compiler-positive",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--crate-name",
+        "mixer_vm",
+        "--edition=2021",
+        "--target",
+        "aarch64-apple-darwin",
+        "-C",
+        "overflow-checks=yes",
+        "-C",
+        "panic=unwind",
+        "--cfg",
+        "feature=\"experimental-swift-reactor\"",
+        "--cfg",
+        "feature=\"experimental-swift-wasi\"",
+        "--cfg",
+        "feature=\"experimental-stream-validation\"",
+        "--cfg",
+        "feature=\"experimental-function-cache\"",
+        "--cfg",
+        "mixer_bootstrap_one_fixture_v1",
+        "--cfg",
+        "mixer_ir02_probe_cache_v1",
+        "-C",
+        "opt-level=0",
+        "--crate-type",
+        "rlib",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/source/vm/src/lib.rs",
+        "--emit=metadata=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/P02-cache.rmeta"
+      ],
+      "environment_additions": {
+        "MIXER_IR02_PROBE_PATH_V1": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/probes/P02-cache.inc.rs"
+      },
+      "probe": {
+        "path": "probes/P02-cache.inc.rs",
+        "bytes": 766,
+        "sha256": "aa8bc345da73f0e45bc1b7c125a8231ea87afa4b4b62afbee0635b6348578d81"
+      },
+      "intended_diagnostic_phrases": [],
+      "scope": "Actual admitted child retains separate child/root lifetimes after acquisition-owner retirement; complete destruction may return child-only token without payload.",
+      "output_files": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/P02-cache.rmeta"
+      ],
+      "semantic_review_required": true
+    },
+    {
+      "id": "IN01-history",
+      "kind": "compiler-observation",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--crate-name",
+        "mixer_vm",
+        "--edition=2021",
+        "--target",
+        "aarch64-apple-darwin",
+        "-C",
+        "overflow-checks=yes",
+        "-C",
+        "panic=unwind",
+        "--cfg",
+        "feature=\"experimental-swift-reactor\"",
+        "--cfg",
+        "feature=\"experimental-swift-wasi\"",
+        "--cfg",
+        "feature=\"experimental-stream-validation\"",
+        "--cfg",
+        "feature=\"experimental-function-cache\"",
+        "--cfg",
+        "mixer_bootstrap_one_fixture_v1",
+        "--cfg",
+        "mixer_ir02_probe_facade_v1",
+        "-C",
+        "opt-level=0",
+        "--crate-type",
+        "rlib",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/source/vm/src/lib.rs",
+        "--emit=metadata=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/IN01-history.rmeta"
+      ],
+      "environment_additions": {
+        "MIXER_IR02_PROBE_PATH_V1": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/probes/IN01-history.inc.rs"
+      },
+      "probe": {
+        "path": "probes/IN01-history.inc.rs",
+        "bytes": 801,
+        "sha256": "4d078378ba1637829c3a0c8e87822316ea4b2966cbc7dfa343628de17b3b85f6"
+      },
+      "intended_diagnostic_phrases": [],
+      "scope": "Verbatim historical IR02 helper. Preserve accepted lifetime elision or historical shape refusal as observed, without declaring an escape or forcing API churn.",
+      "output_files": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/IN01-history.rmeta"
+      ],
+      "semantic_review_required": true
+    },
+    {
+      "id": "IN02-static",
+      "kind": "compiler-negative",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--crate-name",
+        "mixer_vm",
+        "--edition=2021",
+        "--target",
+        "aarch64-apple-darwin",
+        "-C",
+        "overflow-checks=yes",
+        "-C",
+        "panic=unwind",
+        "--cfg",
+        "feature=\"experimental-swift-reactor\"",
+        "--cfg",
+        "feature=\"experimental-swift-wasi\"",
+        "--cfg",
+        "feature=\"experimental-stream-validation\"",
+        "--cfg",
+        "feature=\"experimental-function-cache\"",
+        "--cfg",
+        "mixer_bootstrap_one_fixture_v1",
+        "--cfg",
+        "mixer_ir02_probe_facade_v1",
+        "-C",
+        "opt-level=0",
+        "--crate-type",
+        "rlib",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/source/vm/src/lib.rs",
+        "--emit=metadata=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/IN02-static.rmeta"
+      ],
+      "environment_additions": {
+        "MIXER_IR02_PROBE_PATH_V1": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/probes/IN02-static.inc.rs"
+      },
+      "probe": {
+        "path": "probes/IN02-static.inc.rs",
+        "bytes": 228,
+        "sha256": "dd88a55df0b155b5946c078e0a1052eba8797548b1997dd11084b35ee0079f5b"
+      },
+      "intended_diagnostic_phrases": [
+        "lifetime may not live long enough",
+        "'root",
+        "'static"
+      ],
+      "scope": "Force actual original-root result to static through genuine opaque facade after acquisition-owner retirement.",
+      "output_files": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/IN02-static.rmeta"
+      ],
+      "semantic_review_required": true
+    },
+    {
+      "id": "IN03-foreign-substitution",
+      "kind": "compiler-negative",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--crate-name",
+        "mixer_vm",
+        "--edition=2021",
+        "--target",
+        "aarch64-apple-darwin",
+        "-C",
+        "overflow-checks=yes",
+        "-C",
+        "panic=unwind",
+        "--cfg",
+        "feature=\"experimental-swift-reactor\"",
+        "--cfg",
+        "feature=\"experimental-swift-wasi\"",
+        "--cfg",
+        "feature=\"experimental-stream-validation\"",
+        "--cfg",
+        "feature=\"experimental-function-cache\"",
+        "--cfg",
+        "mixer_bootstrap_one_fixture_v1",
+        "--cfg",
+        "mixer_ir02_probe_facade_v1",
+        "-C",
+        "opt-level=0",
+        "--crate-type",
+        "rlib",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/source/vm/src/lib.rs",
+        "--emit=metadata=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/IN03-foreign-substitution.rmeta"
+      ],
+      "environment_additions": {
+        "MIXER_IR02_PROBE_PATH_V1": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/probes/IN03-foreign-substitution.inc.rs"
+      },
+      "probe": {
+        "path": "probes/IN03-foreign-substitution.inc.rs",
+        "bytes": 305,
+        "sha256": "b9e9628e45ff3bdeac5e0c43c475539add931b3853e6a7c76b8048ce5d9ebae9"
+      },
+      "intended_diagnostic_phrases": [
+        "lifetime may not live long enough",
+        "'original",
+        "'foreign"
+      ],
+      "scope": "Try substituting independently live foreign expected-root lifetime for actual supplying attempt-root output. Positive original-root-return control is P01.",
+      "output_files": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/IN03-foreign-substitution.rmeta"
+      ],
+      "semantic_review_required": true
+    },
+    {
+      "id": "IN04-lexical-core",
+      "kind": "compiler-negative",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--crate-name",
+        "mixer_vm",
+        "--edition=2021",
+        "--target",
+        "aarch64-apple-darwin",
+        "-C",
+        "overflow-checks=yes",
+        "-C",
+        "panic=unwind",
+        "--cfg",
+        "feature=\"experimental-swift-reactor\"",
+        "--cfg",
+        "feature=\"experimental-swift-wasi\"",
+        "--cfg",
+        "feature=\"experimental-stream-validation\"",
+        "--cfg",
+        "feature=\"experimental-function-cache\"",
+        "--cfg",
+        "mixer_bootstrap_one_fixture_v1",
+        "--cfg",
+        "mixer_independent_ir02_lexical_v1",
+        "-C",
+        "opt-level=0",
+        "--test",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/source/vm/src/lib.rs",
+        "--emit=metadata=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/IN04-lexical-core.rmeta"
+      ],
+      "environment_additions": {
+        "MIXER_INDEPENDENT_IR02_LEXICAL_PATH_V1": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/probes/IN04-lexical-core.inc.rs"
+      },
+      "probe": {
+        "path": "probes/IN04-lexical-core.inc.rs",
+        "bytes": 1002,
+        "sha256": "6b0732ca5b735dd6d1c31d9f34bb440a8711d119ced95fdb6cc6d93b90608dce"
+      },
+      "intended_diagnostic_phrases": [
+        "E0597",
+        "original_root",
+        "does not live long enough"
+      ],
+      "scope": "Actual generic production core, actual admission/validator proof and original Guards; original inner ledger ends before accessible proof/guards use, with foreign ledger still alive. Never executed.",
+      "output_files": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/IN04-lexical-core.rmeta"
+      ],
+      "semantic_review_required": true
+    },
+    {
+      "id": "IN05-short-borrow",
+      "kind": "compiler-negative",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--crate-name",
+        "mixer_vm",
+        "--edition=2021",
+        "--target",
+        "aarch64-apple-darwin",
+        "-C",
+        "overflow-checks=yes",
+        "-C",
+        "panic=unwind",
+        "--cfg",
+        "feature=\"experimental-swift-reactor\"",
+        "--cfg",
+        "feature=\"experimental-swift-wasi\"",
+        "--cfg",
+        "feature=\"experimental-stream-validation\"",
+        "--cfg",
+        "feature=\"experimental-function-cache\"",
+        "--cfg",
+        "mixer_bootstrap_one_fixture_v1",
+        "--cfg",
+        "mixer_ir02_probe_facade_v1",
+        "-C",
+        "opt-level=0",
+        "--crate-type",
+        "rlib",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/source/vm/src/lib.rs",
+        "--emit=metadata=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/IN05-short-borrow.rmeta"
+      ],
+      "environment_additions": {
+        "MIXER_IR02_PROBE_PATH_V1": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/probes/IN05-short-borrow.inc.rs"
+      },
+      "probe": {
+        "path": "probes/IN05-short-borrow.inc.rs",
+        "bytes": 203,
+        "sha256": "00ebae74ba3a16c4d6dfb2d1bc6d5cd8f56c54d9f2b6d7c5df823febe76e0dcc"
+      },
+      "intended_diagnostic_phrases": [
+        "lifetime may not live long enough",
+        "'view",
+        "'root"
+      ],
+      "scope": "Try promoting a short shared diagnostic carrier view to root-length lifetime. P01 returns the legitimate short view.",
+      "output_files": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/IN05-short-borrow.rmeta"
+      ],
+      "semantic_review_required": true
+    },
+    {
+      "id": "IN06-own-leaf-ok",
+      "kind": "compiler-negative",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--crate-name",
+        "mixer_vm",
+        "--edition=2021",
+        "--target",
+        "aarch64-apple-darwin",
+        "-C",
+        "overflow-checks=yes",
+        "-C",
+        "panic=unwind",
+        "--cfg",
+        "feature=\"experimental-swift-reactor\"",
+        "--cfg",
+        "feature=\"experimental-swift-wasi\"",
+        "--cfg",
+        "feature=\"experimental-stream-validation\"",
+        "--cfg",
+        "feature=\"experimental-function-cache\"",
+        "--cfg",
+        "mixer_bootstrap_one_fixture_v1",
+        "--cfg",
+        "mixer_ir02_probe_facade_v1",
+        "-C",
+        "opt-level=0",
+        "--crate-type",
+        "rlib",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/source/vm/src/lib.rs",
+        "--emit=metadata=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/IN06-own-leaf-ok.rmeta"
+      ],
+      "environment_additions": {
+        "MIXER_IR02_PROBE_PATH_V1": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/probes/IN06-own-leaf-ok.inc.rs"
+      },
+      "probe": {
+        "path": "probes/IN06-own-leaf-ok.inc.rs",
+        "bytes": 401,
+        "sha256": "36e6828b4240d165fb64bdc9e4985ecb26603a3d12e18b99dfe862e5a6ec7c31"
+      },
+      "intended_diagnostic_phrases": [
+        "E0507",
+        "original",
+        "shared reference"
+      ],
+      "scope": "Actual fixed leaf API then try returning owning SnapshotScopeFinishV1 through shared primary view. Compile-only; no product leaf arm executed.",
+      "output_files": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/IN06-own-leaf-ok.rmeta"
+      ],
+      "semantic_review_required": true
+    },
+    {
+      "id": "IN07-own-leaf-err",
+      "kind": "compiler-negative",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--crate-name",
+        "mixer_vm",
+        "--edition=2021",
+        "--target",
+        "aarch64-apple-darwin",
+        "-C",
+        "overflow-checks=yes",
+        "-C",
+        "panic=unwind",
+        "--cfg",
+        "feature=\"experimental-swift-reactor\"",
+        "--cfg",
+        "feature=\"experimental-swift-wasi\"",
+        "--cfg",
+        "feature=\"experimental-stream-validation\"",
+        "--cfg",
+        "feature=\"experimental-function-cache\"",
+        "--cfg",
+        "mixer_bootstrap_one_fixture_v1",
+        "--cfg",
+        "mixer_ir02_probe_facade_v1",
+        "-C",
+        "opt-level=0",
+        "--crate-type",
+        "rlib",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/source/vm/src/lib.rs",
+        "--emit=metadata=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/IN07-own-leaf-err.rmeta"
+      ],
+      "environment_additions": {
+        "MIXER_IR02_PROBE_PATH_V1": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/probes/IN07-own-leaf-err.inc.rs"
+      },
+      "probe": {
+        "path": "probes/IN07-own-leaf-err.inc.rs",
+        "bytes": 407,
+        "sha256": "e3779cf34ebeb5b3bbbbb4fbfaaac14d77e10a8b56023b5453c5c892566ce112"
+      },
+      "intended_diagnostic_phrases": [
+        "E0507",
+        "original",
+        "shared reference"
+      ],
+      "scope": "Actual fixed leaf API then try returning owning SnapshotPreScopeFailureV1 through shared primary view. Compile-only; no product leaf arm executed.",
+      "output_files": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/IN07-own-leaf-err.rmeta"
+      ],
+      "semantic_review_required": true
+    },
+    {
+      "id": "build-debug",
+      "kind": "compiler-positive",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--crate-name",
+        "mixer_vm",
+        "--edition=2021",
+        "--target",
+        "aarch64-apple-darwin",
+        "-C",
+        "overflow-checks=yes",
+        "-C",
+        "panic=unwind",
+        "--cfg",
+        "feature=\"experimental-swift-reactor\"",
+        "--cfg",
+        "feature=\"experimental-swift-wasi\"",
+        "--cfg",
+        "feature=\"experimental-stream-validation\"",
+        "--cfg",
+        "feature=\"experimental-function-cache\"",
+        "--cfg",
+        "mixer_bootstrap_one_fixture_v1",
+        "--cfg",
+        "mixer_independent_ir02_host_v1",
+        "--test",
+        "-C",
+        "opt-level=0",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/source/vm/src/lib.rs",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/tests-debug"
+      ],
+      "environment_additions": {
+        "MIXER_INDEPENDENT_IR02_HOST_PATH_V1": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/independent-host.inc.rs"
+      },
+      "output_files": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/tests-debug"
+      ],
+      "scope": "Build exact candidate production bytes plus only cfg(test) include sites and independent core host fragment; no runtime invoked."
+    },
+    {
+      "id": "run-debug",
+      "kind": "host",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/tests-debug",
+        "prepaid_actual_owner_v1",
+        "trusted_local_host_account_entry_v1::host_account_v1::tests",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "environment_additions": {},
+      "output_files": [],
+      "scope": "Four independent actual-core host tests with exactly22 finite subcases plus original38 selected tests; expected42 tests and470 filtered. Native File setup/loader/VM/product leaf are never run."
+    },
+    {
+      "id": "build-opt2",
+      "kind": "compiler-positive",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--crate-name",
+        "mixer_vm",
+        "--edition=2021",
+        "--target",
+        "aarch64-apple-darwin",
+        "-C",
+        "overflow-checks=yes",
+        "-C",
+        "panic=unwind",
+        "--cfg",
+        "feature=\"experimental-swift-reactor\"",
+        "--cfg",
+        "feature=\"experimental-swift-wasi\"",
+        "--cfg",
+        "feature=\"experimental-stream-validation\"",
+        "--cfg",
+        "feature=\"experimental-function-cache\"",
+        "--cfg",
+        "mixer_bootstrap_one_fixture_v1",
+        "--cfg",
+        "mixer_independent_ir02_host_v1",
+        "--test",
+        "-C",
+        "opt-level=2",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/source/vm/src/lib.rs",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/tests-opt2"
+      ],
+      "environment_additions": {
+        "MIXER_INDEPENDENT_IR02_HOST_PATH_V1": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/independent-host.inc.rs"
+      },
+      "output_files": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/tests-opt2"
+      ],
+      "scope": "Build exact candidate production bytes plus only cfg(test) include sites and independent core host fragment; no runtime invoked."
+    },
+    {
+      "id": "run-opt2",
+      "kind": "host",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build/tests-opt2",
+        "prepaid_actual_owner_v1",
+        "trusted_local_host_account_entry_v1::host_account_v1::tests",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "environment_additions": {},
+      "output_files": [],
+      "scope": "Four independent actual-core host tests with exactly22 finite subcases plus original38 selected tests; expected42 tests and470 filtered. Native File setup/loader/VM/product leaf are never run."
+    }
+  ],
+  "compiler_commands": 11,
+  "positive_companions": 2,
+  "semantic_negative_commands": 6,
+  "historical_compatibility_observations": 1,
+  "test_builds": 2,
+  "host_runs": 2,
+  "new_host_tests": 4,
+  "new_host_subcases": 22,
+  "existing_test_replay": 38,
+  "expected_test_total_per_mode": 42,
+  "native_or_product_leaf_runs": 0,
+  "tool": {
+    "bytes": 413480,
+    "path": "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+    "sha256": "dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0"
+  },
+  "tool_version": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1\n",
+  "tool_version_source": "Producer's pinned rustc -vV receipt, no new version query requested",
+  "environment": {
+    "CARGO_MANIFEST_DIR": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/source/vm",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "PATH": "/usr/bin:/bin",
+    "RUSTC_BOOTSTRAP": "1",
+    "SDKROOT": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+    "TMPDIR": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/build",
+    "TZ": "UTC"
+  },
+  "production_candidate_tree_sha256": "91bab68a8aef4a7cbe300af0fca8145462e08dcaaef2631f42a0d2d55748bd8f",
+  "independent_instrumented_tree_sha256": "a4089a9d0c5c991aba41b19c20fbdde656402bf342fc60887d6864039ce25343",
+  "host11_tree_sha256": "027394c31852db7845a3162115e7bcd8b5f9a5044cbb495910c5c03c4fb20de2",
+  "producer_seal_sha256": "7efe39286257be85d0e91f4bdd80b6098d24d7d2f446dcdc2e8dd7adb0159fa4",
+  "producer_roster_sha256": "8bc1c1ef947c0eb05332729967c82890aadf279a52745451f86c4aedde1b01a3",
+  "preaccess_oracle_adoption": {
+    "path": "oracle-adoption.json",
+    "bytes": 3852,
+    "sha256": "bfdca819370195f365fd2d6053e87964bb51192192800c0567d7e138720ae287"
+  },
+  "runner": {
+    "path": "run-once.py",
+    "bytes": 10079,
+    "sha256": "44c1a2d789cd6364b095e13913313261b6f9245384dd04c9551f1489099973ec"
+  },
+  "each_command_seconds_max": 55,
+  "work_seconds_max": 51,
+  "cleanup_seconds_max": 54.5,
+  "simultaneous_compilers": 1,
+  "simultaneous_host_binaries": 1,
+  "stdout_stderr_each_bytes_max": 4194304,
+  "write_once_each_command": true,
+  "exact_owned_PID_PGID_cleanup_only": true,
+  "global_process_inventory": false,
+  "blind_retries_or_extra_commands": false,
+  "release_required": {
+    "execution_released": true,
+    "independent_roster_sha256": "exact hash of this file",
+    "independent_freeze_sha256": "exact hash of command-freeze.json"
+  },
+  "preaccess_N12_N13": "Reviewed finite private body boundary only; no claim raw private File/Selected intrinsically borrows root. No negative privacy probe is substituted for that body review.",
+  "producer_evidence_reuse": "Review producer metadata/full MIR and18 diagnostics explicitly as producer evidence. Do not repeat equivalent visibility/Some-None/whole-family probes as independent evidence.",
+  "historical_interpretation": {
+    "path": "historical-oracle-interpretation.json",
+    "bytes": 940,
+    "sha256": "dddd06e01c3518353c1d25e6b57eb05b8deb31293d155ff668072a6742be91fa"
+  },
+  "claim_limits": [
+    "No native File/VM/leaf/runtime or setup-prefix execution",
+    "No new price/layout/funding qualification",
+    "No forgotten-result/root durable funding or shutdown",
+    "No useful joint retirement or full charge lifetime",
+    "No selector/custody/native healthy close, FieldLog, OTA or GA acceptance"
+  ]
+}

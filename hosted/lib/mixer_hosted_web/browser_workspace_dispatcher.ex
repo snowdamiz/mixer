@@ -112,8 +112,8 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcher do
 
     if is_list(optional) and is_list(headers) and length(headers) <= 4 and
          Enum.sort(headers) === Enum.sort(required ++ optional),
-      do: {:ok, required ++ optional},
-      else: {:error, :authorization_unavailable}
+       do: {:ok, required ++ optional},
+       else: {:error, :authorization_unavailable}
   end
 
   defp challenge(headers, status) when is_list(headers) do

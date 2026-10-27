@@ -1,0 +1,55 @@
+warning: unused import: `OwnedCorrelationOutcomeV1`
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:703:54
+    |
+703 |         BootstrapFailureV1, SuppliedLoaderCarrierV1, OwnedCorrelationOutcomeV1,
+    |                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `BorrowedOwnerDataV1` and `selected_bootstrap_ledger_v1`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2780:44
+     |
+2780 |     BootstrapFailureV1, BootstrapLedgerV1, BorrowedOwnerDataV1, SuppliedLoaderCarrierV1,
+     |                                            ^^^^^^^^^^^^^^^^^^^
+2781 |     OriginalCorrelationRefusalV1, OwnedCorrelationOutcomeV1, selected_bootstrap_ledger_v1,
+     |                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated method `std::sync::atomic::Atomic::<u64>::fetch_update`: renamed to `try_update` for consistency
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:1929:63
+     |
+1929 |         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+     |                                                               ^^^^^^^^^^^^
+     |
+     = note: `#[warn(deprecated)]` on by default
+help: replace the use of the deprecated method
+     |
+1929 -         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+1929 +         let association = match NEXT_ADMISSION_ASSOCIATION_V1.try_update(std::sync::atomic::Ordering::Relaxed,
+     |
+
+error[E0505]: cannot move out of `root` because it is borrowed
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/probes/N02.inc.rs:15:10
+     |
+  13 | fn ir02_negative_v1(root:BootstrapLedgerV1,provider:for<'root> fn(&'root BootstrapLedgerV1)->AdmittedImmutableOwnerV1<'root>,carri...
+     |                     ---- binding `root` declared here
+  14 |     let returned=ir02_positive_correlate_v1(provider(&root),carrier);
+     |                                                      ----- borrow of `root` occurs here
+  15 |     drop(root);
+     |          ^^^^ move out of `root` occurs here
+  16 |     drop(returned);
+     |          -------- borrow later used here
+     |
+note: if `BootstrapLedgerV1` implemented `Clone`, you could clone the value
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:1475:5
+     |
+1475 |     pub(in crate::experimental_swift_reactor) struct BootstrapLedgerV1 {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider implementing `Clone` for this type
+     |
+    ::: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/probes/N02.inc.rs:14:55
+     |
+  14 |     let returned=ir02_positive_correlate_v1(provider(&root),carrier);
+     |                                                       ---- you could clone this value
+
+error: aborting due to 1 previous error; 3 warnings emitted
+
+For more information about this error, try `rustc --explain E0505`.

@@ -26,8 +26,18 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherTest do
     assert function_exported?(Dispatcher, :dispatch, 3)
     refute function_exported?(Dispatcher, :dispatch, 2)
     refute function_exported?(Dispatcher, :dispatch, 4)
-    assert Dispatcher.dispatch("opaque.Token", @request, Map.put(@metadata, :verifier, __MODULE__)) == {:error, :invalid_request}
-    assert Dispatcher.dispatch("opaque.Token", {:organizations, %{limit: 50, cursor: nil, repo: Repo}}, @metadata) == {:error, :invalid_request}
+
+    assert Dispatcher.dispatch(
+             "opaque.Token",
+             @request,
+             Map.put(@metadata, :verifier, __MODULE__)
+           ) == {:error, :invalid_request}
+
+    assert Dispatcher.dispatch(
+             "opaque.Token",
+             {:organizations, %{limit: 50, cursor: nil, repo: Repo}},
+             @metadata
+           ) == {:error, :invalid_request}
   end
 
   test "closed token, request and metadata shapes fail locally even with a wrong Repo" do
@@ -38,11 +48,29 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherTest do
         assert Dispatcher.dispatch(token, @request, @metadata) == {:error, :invalid_request}
       end
 
-      for metadata <- [nil, [], %{}, %{"request_id" => @id}, %Metadata{}, %{request_id: @id, extra: true}, %{request_id: String.upcase(@id)}, %{request_id: String.duplicate("a", 31)}, %{request_id: String.duplicate("a", 33)}, %{request_id: String.duplicate("g", 32)}, %{request_id: <<255::size(256)>>}] do
-        assert Dispatcher.dispatch("opaque.Token", @request, metadata) == {:error, :invalid_request}
+      for metadata <- [
+            nil,
+            [],
+            %{},
+            %{"request_id" => @id},
+            %Metadata{},
+            %{request_id: @id, extra: true},
+            %{request_id: String.upcase(@id)},
+            %{request_id: String.duplicate("a", 31)},
+            %{request_id: String.duplicate("a", 33)},
+            %{request_id: String.duplicate("g", 32)},
+            %{request_id: <<255::size(256)>>}
+          ] do
+        assert Dispatcher.dispatch("opaque.Token", @request, metadata) ==
+                 {:error, :invalid_request}
       end
 
-      assert Dispatcher.dispatch("opaque.Token", {:projects, "*", %{limit: 50, cursor: nil}}, @metadata) == {:error, :invalid_request}
+      assert Dispatcher.dispatch(
+               "opaque.Token",
+               {:projects, "*", %{limit: 50, cursor: nil}},
+               @metadata
+             ) == {:error, :invalid_request}
+
       assert Repo.get_dynamic_repo() === :synthetic_wrong_repo
     after
       Repo.put_dynamic_repo(previous)
@@ -53,7 +81,9 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherTest do
     previous = Repo.put_dynamic_repo(self())
 
     try do
-      assert Dispatcher.dispatch("opaque.Token", @request, @metadata) == {:error, :authorization_unavailable}
+      assert Dispatcher.dispatch("opaque.Token", @request, @metadata) ==
+               {:error, :authorization_unavailable}
+
       assert Repo.get_dynamic_repo() === self()
     after
       Repo.put_dynamic_repo(previous)
@@ -67,6 +97,7 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherTest do
       assert {:ok, response} = Dispatcher.dispatch(token, @request, @metadata)
       assert Map.keys(response) |> Enum.sort() == [:body, :headers, :status]
       assert response.status == 503
+
       assert response.headers == [
                {"cache-control", "no-store"},
                {"content-type", "application/json; charset=utf-8"},
@@ -75,7 +106,10 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherTest do
              ]
 
       assert Jason.decode!(response.body) == %{
-               "error" => %{"code" => "identity_unavailable", "message" => "Identity verification unavailable. Retry shortly."},
+               "error" => %{
+                 "code" => "identity_unavailable",
+                 "message" => "Identity verification unavailable. Retry shortly."
+               },
                "request_id" => @id
              }
 
@@ -91,6 +125,7 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherTest do
     for token <- ["Bearer opaque.Token", "Cookie=private-marker", "bad\ntoken", "x y", <<255>>] do
       assert {:ok, response} = Dispatcher.dispatch(token, @request, @metadata)
       assert response.status == 400
+
       assert response.headers == [
                {"cache-control", "no-store"},
                {"content-type", "application/json; charset=utf-8"},
@@ -108,17 +143,28 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherTest do
     send(self(), {:synthetic_dispatcher_mailbox, :preserved})
     Process.put(:synthetic_dispatcher_context, :preserved)
     Process.put({MixerHosted.CustomerWorkspace.Storage, :active}, :synthetic_active_storage)
-    Process.put({MixerHosted.Authorization.Transaction.Context, :active}, :synthetic_active_context)
+
+    Process.put(
+      {MixerHosted.Authorization.Transaction.Context, :active},
+      :synthetic_active_context
+    )
+
     {:messages, before} = Process.info(self(), :messages)
 
     try do
       for request <- [@request, {:projects, " org+&%/租 ", %{limit: 100, cursor: nil}}] do
-        assert {:ok, %{status: 503, headers: headers}} = Dispatcher.dispatch("opaque.Token", request, @metadata)
+        assert {:ok, %{status: 503, headers: headers}} =
+                 Dispatcher.dispatch("opaque.Token", request, @metadata)
+
         assert List.keyfind(headers, "x-request-id", 0) == {"x-request-id", @id}
         assert Process.info(self(), :messages) == {:messages, before}
         assert Process.get(:synthetic_dispatcher_context) == :preserved
-        assert Process.get({MixerHosted.CustomerWorkspace.Storage, :active}) == :synthetic_active_storage
-        assert Process.get({MixerHosted.Authorization.Transaction.Context, :active}) == :synthetic_active_context
+
+        assert Process.get({MixerHosted.CustomerWorkspace.Storage, :active}) ==
+                 :synthetic_active_storage
+
+        assert Process.get({MixerHosted.Authorization.Transaction.Context, :active}) ==
+                 :synthetic_active_context
       end
     after
       Process.delete(:synthetic_dispatcher_context)

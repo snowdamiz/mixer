@@ -47,6 +47,7 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherRequestTest do
       assert query == "limit=#{limit}"
       conn = admit(request)
       refute conn.halted
+
       assert conn.assigns.customer_workspace_request == %{
                organization_id: nil,
                page: %{limit: limit, cursor: nil}
@@ -65,13 +66,15 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherRequestTest do
                operation: :projects,
                path: "/v3/projects",
                query:
-                 "organization_id=" <> URI.encode_www_form(organization) <>
+                 "organization_id=" <>
+                   URI.encode_www_form(organization) <>
                    "&limit=100&cursor=" <> URI.encode_www_form(cursor)
              }
 
       assert byte_size(request.query) <= 8_192
       conn = admit(request)
       refute conn.halted
+
       assert conn.assigns.customer_workspace_request == %{
                organization_id: organization,
                page: %{limit: 100, cursor: cursor}
@@ -86,19 +89,27 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherRequestTest do
     conn = admit(request)
     refute conn.halted
     assert conn.assigns.customer_workspace_request.page.cursor == cursor
-    assert CustomerWorkspaceRequest.decode_cursor(cursor, :organizations, nil) == {:ok, "org+ &%/租"}
+
+    assert CustomerWorkspaceRequest.decode_cursor(cursor, :organizations, nil) ==
+             {:ok, "org+ &%/租"}
   end
 
   test "request and page shapes are closed" do
     page = %{limit: 50, cursor: nil}
 
     for value <- [
-          nil, :organizations, [:organizations, page], {:unknown, page},
-          {:organizations, page, %{}}, {:projects, page},
-          {:organizations, %{limit: 50}}, {:organizations, %{cursor: nil}},
+          nil,
+          :organizations,
+          [:organizations, page],
+          {:unknown, page},
+          {:organizations, page, %{}},
+          {:projects, page},
+          {:organizations, %{limit: 50}},
+          {:organizations, %{cursor: nil}},
           {:organizations, %{"limit" => 50, "cursor" => nil}},
           {:organizations, Map.put(page, :after, "org")},
-          {:organizations, %Page{}}, {:organizations, %{limit: 0, cursor: nil}},
+          {:organizations, %Page{}},
+          {:organizations, %{limit: 0, cursor: nil}},
           {:organizations, %{limit: 101, cursor: nil}},
           {:organizations, %{limit: 1.0, cursor: nil}},
           {:organizations, %{limit: "1", cursor: nil}},
@@ -111,7 +122,16 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherRequestTest do
   end
 
   test "organization identifiers reject invalid bytes without normalization" do
-    for organization <- [nil, :org, "", "*", "line\nfeed", <<0>>, <<255>>, String.duplicate("x", 129)] do
+    for organization <- [
+          nil,
+          :org,
+          "",
+          "*",
+          "line\nfeed",
+          <<0>>,
+          <<255>>,
+          String.duplicate("x", 129)
+        ] do
       assert Request.new({:projects, organization, %{limit: 50, cursor: nil}}) ==
                {:error, :invalid_request}
     end

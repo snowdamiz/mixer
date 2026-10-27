@@ -192,6 +192,70 @@ jobs:
         with:
           # Builder boundary fixtures read the independently reviewed native pin.
           fetch-depth: 0
+          # Keep the committed VM export, declared packages and exact host fixtures.
+          # The builder boundary tests still need the historical native pin.
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /scripts/ci/verify-apple-toolchain.py
+            /scripts/ci/check-android-binding.py
+            /experimental-capability-runtime/Package.swift
+            /experimental-capability-runtime/Package.resolved
+            /experimental-capability-runtime/Sources/
+            /experimental-capability-runtime/Tests/
+            /experimental-capability-runtime/build-vm.py
+            /experimental-capability-runtime/build-tests/
+            /experimental-capability-runtime/verification/with-loopback.py
+            /sdk/Package.swift
+            /sdk/Package.resolved
+            /sdk/Sources/
+            /sdk/Tests/
+            /runtime-identity/Package.swift
+            /runtime-identity/Package.resolved
+            /runtime-identity/Sources/
+            /runtime-identity/Tests/
+            /updates/Package.swift
+            /updates/Package.resolved
+            /updates/Sources/
+            /updates/Tests/
+            /capability-activation/Package.swift
+            /capability-activation/Package.resolved
+            /capability-activation/Sources/
+            /capability-activation/Tests/
+            /capabilities/schema/
+            /capabilities/java/mixer/capabilities/
+            /capabilities/tools/export-native-preimage.py
+            /capabilities/tools/generate.py
+            /vm/Cargo.toml
+            /vm/Cargo.lock
+            /vm/build.rs
+            /vm/src/
+            /vm/include/
+            /vm/profiles/
+            /vm/tests/
+            /vm/tools/
+            /contracts/vm-profile-v1.json
+            /contracts/vm-session-v1.json
+            /contracts/guest-capability-transport-v1.json
+            /runtime/Sources/CMixerVM/include/mixer_vm.h
+            /verification/capability-bridge-review/Package.swift
+            /verification/capability-bridge-review/Package.resolved
+            /verification/capability-bridge-review/PublicHarness/
+            /verification/capability-installed-material/test_native_preimage.py
+            /native/android/signed-guest-ui/binding/include/
+            /native/android/signed-guest-ui/transport/transport.c
+            /native/android/signed-guest-ui/transport/internal.h
+            /native/android/signed-guest-ui/transport/include/mixer_ui_transport.h
+            /verification/android-binding-stage4/HostEntry.swift
+            /verification/android-binding-stage4/HostTests.swift
+            /verification/android-binding-stage4/HoldingExecutor.swift
+            /verification/android-binding-stage4/host-bridge/host_bridge.c
+            /verification/android-binding-stage4/host-bridge/mixer_android_host_bridge.h
+            /verification/android-binding-stage4/host-bridge/host_test.h
+            /verification/android-binding-stage4/host-bridge/module.modulemap
+            /verification/android-binding-stage4/host-bridge/test.modulemap
+            /verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json
+            /verification/ui-shared-appearance-contract/v2/mixer-default-appearance-v1.json
+            /verification/ui-appearance-foundation/design-corpus.json
       - name: Verify and record pinned Apple toolchain
         run: |
           python3 scripts/ci/verify-apple-toolchain.py \

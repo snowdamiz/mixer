@@ -1,0 +1,44 @@
+warning: unused import: `OwnedCorrelationOutcomeV1`
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/source/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:703:54
+    |
+703 |         BootstrapFailureV1, SuppliedLoaderCarrierV1, OwnedCorrelationOutcomeV1,
+    |                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `BorrowedOwnerDataV1` and `selected_bootstrap_ledger_v1`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2785:44
+     |
+2785 |     BootstrapFailureV1, BootstrapLedgerV1, BorrowedOwnerDataV1, SuppliedLoaderCarrierV1,
+     |                                            ^^^^^^^^^^^^^^^^^^^
+2786 |     OriginalCorrelationRefusalV1, OwnedCorrelationOutcomeV1, selected_bootstrap_ledger_v1,
+     |                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated method `std::sync::atomic::Atomic::<u64>::fetch_update`: renamed to `try_update` for consistency
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:1929:63
+     |
+1929 |         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+     |                                                               ^^^^^^^^^^^^
+     |
+     = note: `#[warn(deprecated)]` on by default
+help: replace the use of the deprecated method
+     |
+1929 -         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+1929 +         let association = match NEXT_ADMISSION_ASSOCIATION_V1.try_update(std::sync::atomic::Ordering::Relaxed,
+     |
+
+warning: hiding a lifetime that's named elsewhere is confusing
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-independent/probes/IN01-history.inc.rs:7:96
+  |
+7 | fn escape<'root>(owner: AdmittedImmutableOwnerV1<'root>, supplied: SuppliedLoaderCarrierV1) -> OwnedCorrelationOutcomeV1 {
+  |                                                  ----- the lifetime is named here              ^^^^^^^^^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+  |
+  = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+  = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: consistently use `'root`
+  |
+7 | fn escape<'root>(owner: AdmittedImmutableOwnerV1<'root>, supplied: SuppliedLoaderCarrierV1) -> OwnedCorrelationOutcomeV1<'root> {
+  |                                                                                                                         +++++++
+
+warning: 4 warnings emitted
+

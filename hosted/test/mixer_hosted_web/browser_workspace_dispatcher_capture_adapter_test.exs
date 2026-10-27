@@ -14,10 +14,15 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherCaptureAdapterTest do
 
   defp synthetic_identity do
     %VerifiedIdentity{
-      profile_id: "synthetic-profile", profile_version: 1,
-      issuer: "https://synthetic.invalid", subject: "synthetic-subject",
-      client_id: "synthetic-client", credential_ref: "synthetic-credential",
-      issued_at: 1, expires_at: 2, identity_class: :human,
+      profile_id: "synthetic-profile",
+      profile_version: 1,
+      issuer: "https://synthetic.invalid",
+      subject: "synthetic-subject",
+      client_id: "synthetic-client",
+      credential_ref: "synthetic-credential",
+      issued_at: 1,
+      expires_at: 2,
+      identity_class: :human,
       scopes: ["mixer.workspace.read"]
     }
   end
@@ -26,9 +31,12 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherCaptureAdapterTest do
     Process.put(:synthetic_capture_result, result)
 
     conn = %Plug.Conn{
-      adapter: CaptureAdapter.new(), owner: nil,
-      method: "GET", request_path: if(operation == :organizations, do: "/v3/orgs", else: "/v3/projects"),
-      query_string: if(operation == :organizations, do: "limit=100", else: "organization_id=org&limit=100"),
+      adapter: CaptureAdapter.new(),
+      owner: nil,
+      method: "GET",
+      request_path: if(operation == :organizations, do: "/v3/orgs", else: "/v3/projects"),
+      query_string:
+        if(operation == :organizations, do: "limit=100", else: "organization_id=org&limit=100"),
       assigns: %{verified_identity: synthetic_identity()},
       resp_headers: [{"x-request-id", String.duplicate("a", 32)}]
     }
@@ -56,7 +64,12 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherCaptureAdapterTest do
     {_, state} = CaptureAdapter.new()
     body = String.duplicate("x", 262_144)
     assert {:ok, ^body, _} = CaptureAdapter.send_resp(state, 200, [], body)
-    assert {:ok, ^body, _} = CaptureAdapter.send_resp(state, 200, [], [binary_part(body, 0, 131_072), [binary_part(body, 131_072, 131_072)]])
+
+    assert {:ok, ^body, _} =
+             CaptureAdapter.send_resp(state, 200, [], [
+               binary_part(body, 0, 131_072),
+               [binary_part(body, 131_072, 131_072)]
+             ])
 
     for invalid <- [[body, "x"], [256], ["valid" | :invalid], :not_iodata] do
       assert_raise ArgumentError, "local response unavailable", fn ->
@@ -96,7 +109,14 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherCaptureAdapterTest do
 
   test "canonical controller accepts synthetic 65 and 100 row pages without a second decoder" do
     for count <- [65, 100] do
-      rows = for n <- 1..count, do: %{id: "org-" <> String.pad_leading(Integer.to_string(n), 3, "0"), display_name: nil, organization_roles: []}
+      rows =
+        for n <- 1..count,
+            do: %{
+              id: "org-" <> String.pad_leading(Integer.to_string(n), 3, "0"),
+              display_name: nil,
+              organization_roles: []
+            }
+
       page = %{organizations: rows, next_cursor: nil}
       conn = controller({:ok, page})
       assert conn.status == 200 and conn.state == :sent
@@ -115,7 +135,11 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherCaptureAdapterTest do
     assert conn.status == 200
     assert conn.resp_body == Jason.encode!(page)
 
-    for invalid <- [Map.put(row, :organization_id, "other"), Map.put(row, :roles, []), Map.put(row, :secret, "private-marker")] do
+    for invalid <- [
+          Map.put(row, :organization_id, "other"),
+          Map.put(row, :roles, []),
+          Map.put(row, :secret, "private-marker")
+        ] do
       conn = controller({:ok, %{projects: [invalid], next_cursor: nil}}, :projects)
       assert conn.status == 503 and conn.state == :sent
       refute conn.resp_body =~ "private-marker"
@@ -124,11 +148,21 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherCaptureAdapterTest do
   end
 
   test "canonical controller denials keep fixed redacted bodies and headers" do
-    for {reason, status} <- [{:unauthenticated, 401}, {:permission_denied, 403}, {:not_found, 404}, {:invalid_request, 400}, {:authorization_unavailable, 503}] do
+    for {reason, status} <- [
+          {:unauthenticated, 401},
+          {:permission_denied, 403},
+          {:not_found, 404},
+          {:invalid_request, 400},
+          {:authorization_unavailable, 503}
+        ] do
       conn = controller({:error, reason})
       assert conn.status == status and conn.state == :sent
       assert Plug.Conn.get_resp_header(conn, "cache-control") == ["no-store"]
-      assert Plug.Conn.get_resp_header(conn, "content-type") == ["application/json; charset=utf-8"]
+
+      assert Plug.Conn.get_resp_header(conn, "content-type") == [
+               "application/json; charset=utf-8"
+             ]
+
       assert Plug.Conn.get_resp_header(conn, "x-request-id") == [String.duplicate("a", 32)]
       assert byte_size(conn.resp_body) < 512
     end
