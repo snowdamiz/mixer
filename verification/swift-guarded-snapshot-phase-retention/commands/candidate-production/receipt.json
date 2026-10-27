@@ -1,0 +1,697 @@
+{
+  "argv": [
+    "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+    "--crate-name",
+    "mixer_vm",
+    "--edition=2021",
+    "--target",
+    "aarch64-apple-darwin",
+    "-C",
+    "opt-level=0",
+    "-C",
+    "overflow-checks=yes",
+    "-C",
+    "panic=unwind",
+    "-Zmir-opt-level=0",
+    "-Zmir-include-spans=yes",
+    "--cfg",
+    "feature=\"experimental-swift-reactor\"",
+    "--cfg",
+    "feature=\"experimental-swift-wasi\"",
+    "--cfg",
+    "feature=\"experimental-stream-validation\"",
+    "--cfg",
+    "feature=\"experimental-function-cache\"",
+    "--crate-type",
+    "rlib",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-phase-retention/owned-work/candidate-production/vm/src/lib.rs",
+    "--emit=metadata=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-phase-retention/owned-work/candidate-production/candidate.rmeta,mir=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-phase-retention/owned-work/candidate-production/candidate.mir"
+  ],
+  "child_reaped": true,
+  "cleanup_actions": [],
+  "compiler_sha256": "dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0",
+  "compiler_version": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1\n",
+  "compiler_version_command": {
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+      "--version",
+      "--verbose"
+    ],
+    "child_reaped": true,
+    "cleanup_actions": [],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-phase-retention",
+    "elapsed_seconds": 0.20042570820078254,
+    "exit_code": 0,
+    "new_session": true,
+    "owned_group_absent": true,
+    "owned_process_group": 14418,
+    "timed_out": false,
+    "timeout_seconds": 10
+  },
+  "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+  "elapsed_seconds": 10.816301333950832,
+  "environment": {
+    "CARGO_MANIFEST_DIR": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-phase-retention/owned-work/candidate-production/vm",
+    "MIXER_LOADER_COMMAND_SHA256": "ba6ae0ab290e8c7feb155e254771371197d989e7bf965595d14bff9f74cad594",
+    "MIXER_LOADER_COMPILER_SHA256": "dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0",
+    "MIXER_LOADER_COMPILER_VERSION_SHA256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909",
+    "MIXER_LOADER_COMPILE_ENV_SHA256": "5b0e4f38c2ce9e9a9b1479a80d76d81fdd84ef5ffe9349e611de01cf312289cf",
+    "MIXER_LOADER_MANIFEST_SHA256": "005a5e1e2d70acfb5ed0c165a6e0b863c91a64822390d22f1a2addb6826b54b6",
+    "PATH": "/usr/bin:/bin",
+    "RUSTC_BOOTSTRAP": "1",
+    "TMPDIR": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-phase-retention/owned-work/candidate-production"
+  },
+  "exit_code": 0,
+  "expectation_met": true,
+  "expected_result": "success",
+  "focused_headers": {
+    "begin": "fn begin_snapshot_access_v1(_1: &experimental_swift_reactor::cache::SwiftFunctionCache, _2: &mut control::RuntimeControl, _3: Option<&accounted::AccountedWasi>) -> (SnapshotAccessV1<'_>, SnapshotPhaseStorageV1) {",
+    "begin-closure": "fn begin_snapshot_access_v1::{closure#0}(_1: &mut {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-phase-retention/owned-work/candidate-production/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:387:19: 387:21}) -> Result<(usize, SnapshotShapeV1, u64, u64), SnapshotAdmissionErrorV1> {",
+    "commit": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-phase-retention/owned-work/candidate-production/vm/src/experimental_swift_reactor/control.rs:2015:1: 2015:20>::snapshot_commit_storage_v1(_1: &mut control::RuntimeControl, _2: usize) -> Result<usize, SnapshotAdmissionErrorV1> {",
+    "common-floor": "fn foundation_construction_bytes() -> Option<usize> {",
+    "complete": "fn initial_profile_v1::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-phase-retention/owned-work/candidate-production/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:351:1: 351:26>::complete(_1: SnapshotAccessV1<'_>, _2: SnapshotPhaseStorageV1) -> Result<(), control::SwiftRunFailure> {",
+    "normalizer": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-phase-retention/owned-work/candidate-production/vm/src/experimental_swift_reactor/control.rs:621:1: 621:20>::end_construction_phase_with_wasi(_1: &mut control::RuntimeControl, _2: T, _3: usize, _4: Option<experimental_wasi::WasiUsage>) -> Result<(), control::SwiftRunFailure> {",
+    "selected-floor": "fn snapshot_scope_candidate_foundation_v1() -> Option<usize> {"
+  },
+  "focused_roles": {
+    "begin": [
+      {
+        "name": "_0",
+        "type": "(experimental_swift_reactor::cache::initial_profile_v1::SnapshotAccessV1<'_>, experimental_swift_reactor::cache::initial_profile_v1::SnapshotPhaseStorageV1)"
+      },
+      {
+        "name": "_4",
+        "type": "std::result::Result<(usize, experimental_swift_reactor::cache::initial_profile_v1::SnapshotShapeV1, u64, u64), experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_5",
+        "type": "&mut {closure@source/experimental_swift_reactor/cache/initial_profile_v1.rs:387:19: 387:21}"
+      },
+      {
+        "name": "_6",
+        "type": "{closure@source/experimental_swift_reactor/cache/initial_profile_v1.rs:387:19: 387:21}"
+      },
+      {
+        "name": "_7",
+        "type": "&experimental_swift_reactor::cache::SwiftFunctionCache"
+      },
+      {
+        "name": "_8",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_9",
+        "type": "&std::option::Option<&experimental_wasi::AccountedWasi>"
+      },
+      {
+        "name": "_17",
+        "type": "std::option::Option<&experimental_wasi::AccountedWasi>"
+      },
+      {
+        "name": "_19",
+        "type": "std::option::Option<experimental_swift_reactor::cache::initial_profile_v1::SnapshotPlanV1>"
+      },
+      {
+        "name": "_20",
+        "type": "experimental_swift_reactor::cache::initial_profile_v1::SnapshotPlanV1"
+      },
+      {
+        "name": "_21",
+        "type": "experimental_swift_reactor::cache::initial_profile_v1::SnapshotShapeV1"
+      },
+      {
+        "name": "_24",
+        "type": "std::option::Option<[u8; 4096]>"
+      },
+      {
+        "name": "_26",
+        "type": "std::option::Option<experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_27",
+        "type": "experimental_swift_reactor::cache::initial_profile_v1::SnapshotAccessV1<'_>"
+      },
+      {
+        "name": "_28",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_30",
+        "type": "std::option::Option<experimental_wasi::WasiUsage>"
+      },
+      {
+        "name": "_31",
+        "type": "experimental_swift_reactor::cache::initial_profile_v1::SnapshotPhaseStorageV1"
+      },
+      {
+        "name": "_33",
+        "type": "experimental_swift_reactor::cache::initial_profile_v1::SnapshotAccessV1<'_>"
+      },
+      {
+        "name": "_34",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_35",
+        "type": "experimental_swift_reactor::SnapshotAdmissionErrorV1"
+      },
+      {
+        "name": "_36",
+        "type": "experimental_swift_reactor::cache::initial_profile_v1::SnapshotPhaseStorageV1"
+      },
+      {
+        "name": "_37",
+        "type": "std::option::Option<experimental_swift_reactor::cache::initial_profile_v1::SnapshotPlanV1>"
+      },
+      {
+        "name": "_38",
+        "type": "std::option::Option<[u8; 4096]>"
+      },
+      {
+        "name": "_39",
+        "type": "std::option::Option<experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_40",
+        "type": "experimental_swift_reactor::SnapshotAdmissionErrorV1"
+      },
+      {
+        "name": "_13",
+        "type": "experimental_swift_reactor::cache::initial_profile_v1::SnapshotShapeV1"
+      },
+      {
+        "name": "_32",
+        "type": "experimental_swift_reactor::SnapshotAdmissionErrorV1"
+      },
+      {
+        "name": "_16",
+        "type": "std::option::Option<experimental_wasi::WasiUsage>"
+      },
+      {
+        "name": "_18",
+        "type": "experimental_swift_reactor::cache::initial_profile_v1::SnapshotPhaseStorageV1"
+      }
+    ],
+    "begin-closure": [
+      {
+        "name": "_0",
+        "type": "std::result::Result<(usize, experimental_swift_reactor::cache::initial_profile_v1::SnapshotShapeV1, u64, u64), experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_3",
+        "type": "std::ops::ControlFlow<std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>>"
+      },
+      {
+        "name": "_4",
+        "type": "std::result::Result<(), experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_5",
+        "type": "&experimental_swift_reactor::cache::SwiftFunctionCache"
+      },
+      {
+        "name": "_6",
+        "type": "&experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_7",
+        "type": "std::option::Option<&experimental_wasi::AccountedWasi>"
+      },
+      {
+        "name": "_9",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_11",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_15",
+        "type": "std::ops::ControlFlow<std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>, usize>"
+      },
+      {
+        "name": "_16",
+        "type": "std::result::Result<usize, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_17",
+        "type": "&experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_22",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_26",
+        "type": "std::ops::ControlFlow<std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>>"
+      },
+      {
+        "name": "_27",
+        "type": "std::result::Result<(), experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_28",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_33",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_36",
+        "type": "std::ops::ControlFlow<std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>, experimental_swift_reactor::cache::initial_profile_v1::SnapshotShapeV1>"
+      },
+      {
+        "name": "_37",
+        "type": "std::result::Result<experimental_swift_reactor::cache::initial_profile_v1::SnapshotShapeV1, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_39",
+        "type": "&experimental::swift::ValidatedSwiftReactor"
+      },
+      {
+        "name": "_40",
+        "type": "&experimental::swift::ValidatedSwiftReactor"
+      },
+      {
+        "name": "_41",
+        "type": "&experimental_swift_reactor::cache::SwiftFunctionCache"
+      },
+      {
+        "name": "_45",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_48",
+        "type": "std::ops::ControlFlow<std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>, u64>"
+      },
+      {
+        "name": "_49",
+        "type": "std::result::Result<u64, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_50",
+        "type": "&experimental_swift_reactor::cache::initial_profile_v1::SnapshotShapeV1"
+      },
+      {
+        "name": "_51",
+        "type": "&experimental_swift_reactor::cache::initial_profile_v1::SnapshotShapeV1"
+      },
+      {
+        "name": "_55",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_58",
+        "type": "std::ops::ControlFlow<std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>>"
+      },
+      {
+        "name": "_59",
+        "type": "std::result::Result<(), experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_60",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_65",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_68",
+        "type": "std::ops::ControlFlow<std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>, usize>"
+      },
+      {
+        "name": "_69",
+        "type": "std::result::Result<usize, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_70",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_75",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_77",
+        "type": "(usize, experimental_swift_reactor::cache::initial_profile_v1::SnapshotShapeV1, u64, u64)"
+      },
+      {
+        "name": "_79",
+        "type": "experimental_swift_reactor::cache::initial_profile_v1::SnapshotShapeV1"
+      },
+      {
+        "name": "_82",
+        "type": "&experimental_swift_reactor::cache::SwiftFunctionCache"
+      },
+      {
+        "name": "_83",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_84",
+        "type": "&std::option::Option<&experimental_wasi::AccountedWasi>"
+      },
+      {
+        "name": "_85",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_86",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_87",
+        "type": "&experimental_swift_reactor::cache::SwiftFunctionCache"
+      },
+      {
+        "name": "_88",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_89",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_20",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_31",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_35",
+        "type": "experimental_swift_reactor::cache::initial_profile_v1::SnapshotShapeV1"
+      },
+      {
+        "name": "_43",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_46",
+        "type": "experimental_swift_reactor::cache::initial_profile_v1::SnapshotShapeV1"
+      },
+      {
+        "name": "_53",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_63",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_73",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      }
+    ],
+    "commit": [
+      {
+        "name": "_0",
+        "type": "std::result::Result<usize, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_4",
+        "type": "std::ops::ControlFlow<std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>, usize>"
+      },
+      {
+        "name": "_5",
+        "type": "std::result::Result<usize, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_6",
+        "type": "&experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_9",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_11",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_14",
+        "type": "std::ops::ControlFlow<std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>, usize>"
+      },
+      {
+        "name": "_15",
+        "type": "std::result::Result<usize, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_16",
+        "type": "std::option::Option<usize>"
+      },
+      {
+        "name": "_19",
+        "type": "experimental_swift_reactor::SnapshotAdmissionErrorV1"
+      },
+      {
+        "name": "_23",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_26",
+        "type": "std::ops::ControlFlow<std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>, usize>"
+      },
+      {
+        "name": "_27",
+        "type": "std::result::Result<usize, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_28",
+        "type": "std::option::Option<usize>"
+      },
+      {
+        "name": "_31",
+        "type": "experimental_swift_reactor::SnapshotAdmissionErrorV1"
+      },
+      {
+        "name": "_35",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_38",
+        "type": "&mut experimental_swift_reactor::ReservationTicket"
+      },
+      {
+        "name": "_39",
+        "type": "std::option::Option<&mut experimental_swift_reactor::ReservationTicket>"
+      },
+      {
+        "name": "_40",
+        "type": "&mut std::option::Option<experimental_swift_reactor::ReservationTicket>"
+      },
+      {
+        "name": "_21",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      },
+      {
+        "name": "_33",
+        "type": "std::result::Result<std::convert::Infallible, experimental_swift_reactor::SnapshotAdmissionErrorV1>"
+      }
+    ],
+    "common-floor": [
+      {
+        "name": "_0",
+        "type": "std::option::Option<usize>"
+      }
+    ],
+    "complete": [
+      {
+        "name": "_0",
+        "type": "std::result::Result<(), experimental_swift_reactor::SwiftRunFailure>"
+      },
+      {
+        "name": "_4",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_6",
+        "type": "std::option::Option<experimental_wasi::WasiUsage>"
+      },
+      {
+        "name": "_7",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_8",
+        "type": "experimental_swift_reactor::cache::initial_profile_v1::SnapshotPhaseStorageV1"
+      },
+      {
+        "name": "_10",
+        "type": "std::option::Option<experimental_wasi::WasiUsage>"
+      },
+      {
+        "name": "_12",
+        "type": "experimental_swift_reactor::cache::initial_profile_v1::SnapshotPhaseStorageV1"
+      }
+    ],
+    "normalizer": [
+      {
+        "name": "_0",
+        "type": "std::result::Result<(), experimental_swift_reactor::SwiftRunFailure>"
+      },
+      {
+        "name": "_8",
+        "type": "experimental_swift_reactor::SwiftRunFailure"
+      },
+      {
+        "name": "_9",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_10",
+        "type": "experimental_swift_reactor::SwiftCleanupInvariant"
+      },
+      {
+        "name": "_11",
+        "type": "std::option::Option<experimental_wasi::WasiUsage>"
+      },
+      {
+        "name": "_12",
+        "type": "&experimental_swift_reactor::ReservationTicket"
+      },
+      {
+        "name": "_13",
+        "type": "std::option::Option<&experimental_swift_reactor::ReservationTicket>"
+      },
+      {
+        "name": "_14",
+        "type": "&std::option::Option<experimental_swift_reactor::ReservationTicket>"
+      },
+      {
+        "name": "_21",
+        "type": "&experimental_swift_reactor::SwiftReservationCategory"
+      },
+      {
+        "name": "_22",
+        "type": "&experimental_swift_reactor::SwiftReservationCategory"
+      },
+      {
+        "name": "_23",
+        "type": "experimental_swift_reactor::SwiftReservationCategory"
+      },
+      {
+        "name": "_25",
+        "type": "experimental_swift_reactor::SwiftRunFailure"
+      },
+      {
+        "name": "_26",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_27",
+        "type": "experimental_swift_reactor::SwiftCleanupInvariant"
+      },
+      {
+        "name": "_28",
+        "type": "std::option::Option<experimental_wasi::WasiUsage>"
+      },
+      {
+        "name": "_30",
+        "type": "std::option::Option<usize>"
+      },
+      {
+        "name": "_39",
+        "type": "experimental_swift_reactor::SwiftRunFailure"
+      },
+      {
+        "name": "_40",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_41",
+        "type": "experimental_swift_reactor::SwiftCleanupInvariant"
+      },
+      {
+        "name": "_42",
+        "type": "std::option::Option<experimental_wasi::WasiUsage>"
+      },
+      {
+        "name": "_54",
+        "type": "experimental_swift_reactor::SwiftRunFailure"
+      },
+      {
+        "name": "_55",
+        "type": "&mut experimental_swift_reactor::RuntimeControl"
+      },
+      {
+        "name": "_56",
+        "type": "experimental_swift_reactor::SwiftCleanupInvariant"
+      },
+      {
+        "name": "_57",
+        "type": "std::option::Option<experimental_wasi::WasiUsage>"
+      },
+      {
+        "name": "_60",
+        "type": "(std::option::Option<usize>, std::option::Option<usize>)"
+      },
+      {
+        "name": "_61",
+        "type": "std::option::Option<usize>"
+      },
+      {
+        "name": "_62",
+        "type": "std::option::Option<usize>"
+      },
+      {
+        "name": "_68",
+        "type": "&mut experimental_swift_reactor::ReservationTicket"
+      },
+      {
+        "name": "_69",
+        "type": "std::option::Option<&mut experimental_swift_reactor::ReservationTicket>"
+      },
+      {
+        "name": "_70",
+        "type": "&mut std::option::Option<experimental_swift_reactor::ReservationTicket>"
+      },
+      {
+        "name": "_72",
+        "type": "&experimental_swift_reactor::SwiftReservationCategory"
+      },
+      {
+        "name": "_47",
+        "type": "std::option::Option<usize>"
+      },
+      {
+        "name": "_50",
+        "type": "std::option::Option<usize>"
+      }
+    ],
+    "selected-floor": [
+      {
+        "name": "_0",
+        "type": "std::option::Option<usize>"
+      }
+    ]
+  },
+  "new_session": true,
+  "owned_group_absent": true,
+  "owned_process_group": 14421,
+  "removed_artifact": {
+    "bytes": 25513195,
+    "sha256": "6850b9a7f4a1e6418d6bf1c67e9339a4676bed36e25eaec0b90594c1648a7b86"
+  },
+  "removed_full_mir": {
+    "bytes": 80221099,
+    "sha256": "d4c7bf097125fecc281904aee9f4791b39db42cb5034af908da1dcde09462a80"
+  },
+  "schema": 1,
+  "scope": "Exact source metadata and focused MIR only",
+  "source_binding": {
+    "baseline_source_tree_sha256": "7e3e861ca65d8c6359623443d6a7810b878c1029494a0ae557307d35ed43484b",
+    "funding_acceptance_sha256": "17789ef30bb818f91a928941162029a12c75ca7dddd33e8cfc073ec4950a615f",
+    "source_members": 144,
+    "source_tree_sha256": "9c654ec4967f184bcc262c36ac4d65067a3f9d48107f7f9e72789f4cd88960fd",
+    "writer_admission_selected": false
+  },
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "test_overlay": false,
+  "timed_out": false,
+  "timeout_seconds": 55
+}

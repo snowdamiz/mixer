@@ -1,0 +1,73 @@
+{
+  "acceptance": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-semantic-adapter-root-review/guarded-snapshot-funding-host-acceptance.json",
+    "sha256": "17789ef30bb818f91a928941162029a12c75ca7dddd33e8cfc073ec4950a615f"
+  },
+  "added_runtime_arithmetic": 0,
+  "added_runtime_locals": 0,
+  "added_type_fields": 0,
+  "baseline_source_tree_sha256": "7e3e861ca65d8c6359623443d6a7810b878c1029494a0ae557307d35ed43484b",
+  "candidate_source_tree_sha256": "9c654ec4967f184bcc262c36ac4d65067a3f9d48107f7f9e72789f4cd88960fd",
+  "canonical_product_changed": false,
+  "changed_files": [
+    "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+    "src/experimental_swift_reactor/control.rs"
+  ],
+  "conservative_charges_retained": true,
+  "exact_replacements": [
+    {
+      "new": "        self.reservations.combined.peak=self.reservations.combined.peak.max(combined);\n        Ok(construction)\n    }\n}",
+      "old": "        self.reservations.combined.peak=self.reservations.combined.peak.max(combined);\n        Ok(previous)\n    }\n}",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "reason": "Return the already computed and committed total; no new expression role or arithmetic."
+    },
+    {
+      "new": "Admitted {control:&'c mut RuntimeControl,retained:usize,wasi:",
+      "old": "Admitted {control:&'c mut RuntimeControl,previous:usize,wasi:",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "reason": "Coherent same-length retention-target rename, preserving existing places/types."
+    },
+    {
+      "new": "Self::Admitted{control,retained,wasi}=>control.end_construction_phase_with_wasi(storage,retained,wasi),",
+      "old": "Self::Admitted{control,previous,wasi}=>control.end_construction_phase_with_wasi(storage,previous,wasi),",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "reason": "Coherent same-length retention-target rename, preserving existing places/types."
+    },
+    {
+      "new": "let retained=control.snapshot_commit_storage_v1(additional)?;",
+      "old": "let previous=control.snapshot_commit_storage_v1(additional)?;",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "reason": "Coherent same-length retention-target rename, preserving existing places/types."
+    },
+    {
+      "new": "Ok::<_,AError>((retained,shape,planning,emission))",
+      "old": "Ok::<_,AError>((previous,shape,planning,emission))",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "reason": "Coherent same-length retention-target rename, preserving existing places/types."
+    },
+    {
+      "new": "Ok((retained,shape,planning,emission))=>{",
+      "old": "Ok((previous,shape,planning,emission))=>{",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "reason": "Coherent same-length retention-target rename, preserving existing places/types."
+    },
+    {
+      "new": "(SnapshotAccessV1::Admitted{control,retained,wasi},storage)",
+      "old": "(SnapshotAccessV1::Admitted{control,previous,wasi},storage)",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "reason": "Coherent same-length retention-target rename, preserving existing places/types."
+    }
+  ],
+  "frozen_funding": {
+    "members": 225,
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-funding-implementation/seal.json",
+    "sha256": "e006b90b8c9e351e0d4dd504c6de309e2c7970b628fe9fc4f788cb30e77bedf7"
+  },
+  "independent_funding": {
+    "members": 25,
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-funding-independent/seal.json",
+    "sha256": "e971c908328ef36e8e5c582fd84d01999c1c4ddce473819b673cfda5ef48a8fc"
+  },
+  "root_approach_authorized": true,
+  "schema": 1
+}

@@ -1,0 +1,54 @@
+{
+  "authority": {
+    "members": 225,
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-scope-authority-correction/seal.json",
+    "sha256": "351caf4860621989119d16b474dbb53c496a688c4efb0cbb3abb918825b79e6c"
+  },
+  "baseline_source_tree_sha256": "575b55d3391729749039dc2badccc9107449cb2c9a021d8ef67282c39b2e1896",
+  "candidate_source_tree_sha256": "7e3e861ca65d8c6359623443d6a7810b878c1029494a0ae557307d35ed43484b",
+  "canonical_changed": false,
+  "changed_files": [
+    "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+    "src/experimental_swift_reactor/control.rs"
+  ],
+  "engine_or_writer_executed": false,
+  "exact_replacements": [
+    {
+      "new": "// Exact logical source-place recipe bound to the separately frozen owner\n// correction. Every addition is const-evaluated; no runtime helper, local,\n// iterable, allocation or second foundation is introduced by this recipe.\nconst COMMON_ADOPTION_SOURCE_EXTRA_BYTES_V1: usize = 78_240;\nconst SELECTED_SNAPSHOT_SOURCE_EXTRA_BYTES_V1: usize = 941_467;\npub(super) const SNAPSHOT_ADMITTED_SOURCE_EXTRA_BYTES_V1: usize = 430_175;\n#[cfg(test)]\nconst SNAPSHOT_HOST_CALLER_SOURCE_EXTRA_BYTES_V1: usize = 81_327;\nconst COMMON_FOUNDATION_CONSTRUCTION_BYTES_V1: Option<usize> =\n    match FOUNDATION_CONSTRUCTION_BYTES {\n        Some(original) => original.checked_add(COMMON_ADOPTION_SOURCE_EXTRA_BYTES_V1),\n        None => None,\n    };\nconst SNAPSHOT_SELECTED_FOUNDATION_CONSTRUCTION_BYTES_V1: Option<usize> =\n    match COMMON_FOUNDATION_CONSTRUCTION_BYTES_V1 {\n        Some(common) => common.checked_add(SELECTED_SNAPSHOT_SOURCE_EXTRA_BYTES_V1),\n        None => None,\n    };\n#[cfg(not(test))]\nconst SNAPSHOT_SCOPE_FOUNDATION_CONSTRUCTION_BYTES_V1: Option<usize> =\n    SNAPSHOT_SELECTED_FOUNDATION_CONSTRUCTION_BYTES_V1;\n#[cfg(test)]\nconst SNAPSHOT_SCOPE_FOUNDATION_CONSTRUCTION_BYTES_V1: Option<usize> =\n    match SNAPSHOT_SELECTED_FOUNDATION_CONSTRUCTION_BYTES_V1 {\n        Some(selected) => selected.checked_add(SNAPSHOT_HOST_CALLER_SOURCE_EXTRA_BYTES_V1),\n        None => None,\n    };\n// cfg(test) conservatively reserves the concrete future caller's H at selected\n// Construction admission. This does not prove ownership/funding of arguments\n// already live before ingress or of the independent external test harness.\n\n/// Common named-source foundation: the unchanged Original F0 plus C once.\n/// Composition enlarges the same ticket; this is not physical stack/RSS.\npub(crate) fn foundation_construction_bytes() -> Option<usize> {\n    COMMON_FOUNDATION_CONSTRUCTION_BYTES_V1\n}",
+      "old": "/// Conservative named-object foundation envelope. Composition enlarges this\n/// same ticket before creating additional wrappers. This is not physical stack/RSS.\npub(crate) fn foundation_construction_bytes() -> Option<usize> {\n    FOUNDATION_CONSTRUCTION_BYTES\n}",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "reason": "Fund shared common source roles from F0+C at sole initial Construction admission."
+    },
+    {
+      "new": "fn snapshot_scope_candidate_foundation_v1()->Option<usize>{\n    // Exact selected source recipe, with no placeholder type aggregates.\n    // The original selected-finalizer conservative charge remains unchanged.\n    SNAPSHOT_SCOPE_FOUNDATION_CONSTRUCTION_BYTES_V1\n}",
+      "old": "fn snapshot_scope_candidate_foundation_v1()->Option<usize>{\n    // Original common-core funding is separately pending selection. These are\n    // intentionally conservative additional named source roles, not RSS.\n    foundation_construction_bytes()?.checked_add(size_of::<CommonAdoptionPlacesV1>())?\n        .checked_add(size_of::<SnapshotScopePlacesV1>())?\n        .checked_add(super::cache::SNAPSHOT_FOUNDATION_PLACES_V1)\n}",
+      "path": "src/experimental_swift_reactor/control.rs",
+      "reason": "Copy const Fcommon+S, plus conservative cfg(test) H; retain old removed-role charge."
+    },
+    {
+      "new": "const SNAPSHOT_PHASE_PLACES_V1:usize=super::super::control::SNAPSHOT_ADMITTED_SOURCE_EXTRA_BYTES_V1;",
+      "old": "const SNAPSHOT_PHASE_PLACES_V1:usize=size_of::<SnapshotPhasePlacesV1<'static>>();",
+      "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "reason": "Preflight and same-ticket conditional commit use exact A, without adding the placeholder inventory."
+    }
+  ],
+  "outstanding": [
+    "cfg(test) H at selected Construction admission does not prove pre-ingress host ownership",
+    "Preserved admitted-A completion narrowing needs independent survivor/lifetime review before writer release",
+    "WorkAuditPending remains; no writer/delegation/delivery release"
+  ],
+  "recipe": {
+    "members": 75,
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-owner-storage-alias-correction/seal.json",
+    "sha256": "cd6e7596559b604a0915353c694526ba02d6fd05d4ad2baddf92a4f3bea523ee"
+  },
+  "recipe_status": "provisional until independent owner correction acceptance is supplied by root",
+  "root_coordination": {
+    "approach": "constants-only; conservative cfg(test) H; preserve selected completion",
+    "approval": "Parent root explicitly approved source preparation and metadata/pure arithmetic controls."
+  },
+  "runtime_selected": false,
+  "schema": 1,
+  "source_binding": "immutable authority source144, not mutable Git checkout",
+  "source_members": 144
+}

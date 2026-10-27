@@ -1,0 +1,9 @@
+The first measure_constants.py command returned exit 1 after both expected
+E0308 compiler commands completed and their receipts were saved. Its final
+assertion incorrectly assumed F0 was identical between production and cfg(test).
+Actual compiler evidence is F0=366312 (production) and F0=366896 (cfg(test)).
+Both commands passed their separate F0+C/S/H arithmetic assertions and exited
+with the three intentional E0308 diagnostics. Both child groups were reaped and
+absent, and owned scratch was removed before the incorrect equality assertion.
+The script now records per-context values. No compile was repeated because the
+failure was in the post-measurement equality assumption, not compiler evidence.

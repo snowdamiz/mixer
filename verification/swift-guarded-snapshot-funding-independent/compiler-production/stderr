@@ -1,0 +1,45 @@
+error[E0308]: mismatched types
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-funding-independent/owned-work/vm/src/experimental_swift_reactor/control.rs:2146:40
+     |
+2146 | const INDEPENDENT_REVEAL_F0: [(); 0] = [(); FOUNDATION_CONSTRUCTION_BYTES.unwrap()];
+     |                              -------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected an array with a size of 0, found one with a size of 366312
+     |                              |
+     |                              expected because of the type of the constant
+     |
+help: consider specifying the actual array length
+     |
+2146 - const INDEPENDENT_REVEAL_F0: [(); 0] = [(); FOUNDATION_CONSTRUCTION_BYTES.unwrap()];
+2146 + const INDEPENDENT_REVEAL_F0: [(); 366312] = [(); FOUNDATION_CONSTRUCTION_BYTES.unwrap()];
+     |
+
+error[E0308]: mismatched types
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-funding-independent/owned-work/vm/src/experimental_swift_reactor/control.rs:2147:44
+     |
+2147 | const INDEPENDENT_REVEAL_COMMON: [(); 0] = [(); COMMON_FOUNDATION_CONSTRUCTION_BYTES_V1.unwrap()];
+     |                                  -------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected an array with a size of 0, found one with a size of 444552
+     |                                  |
+     |                                  expected because of the type of the constant
+     |
+help: consider specifying the actual array length
+     |
+2147 - const INDEPENDENT_REVEAL_COMMON: [(); 0] = [(); COMMON_FOUNDATION_CONSTRUCTION_BYTES_V1.unwrap()];
+2147 + const INDEPENDENT_REVEAL_COMMON: [(); 444552] = [(); COMMON_FOUNDATION_CONSTRUCTION_BYTES_V1.unwrap()];
+     |
+
+error[E0308]: mismatched types
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-funding-independent/owned-work/vm/src/experimental_swift_reactor/control.rs:2148:46
+     |
+2148 | const INDEPENDENT_REVEAL_SELECTED: [(); 0] = [(); SNAPSHOT_SCOPE_FOUNDATION_CONSTRUCTION_BYTES_V1.unwrap()];
+     |                                    -------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected an array with a size of 0, found one with a size of 1386019
+     |                                    |
+     |                                    expected because of the type of the constant
+     |
+help: consider specifying the actual array length
+     |
+2148 - const INDEPENDENT_REVEAL_SELECTED: [(); 0] = [(); SNAPSHOT_SCOPE_FOUNDATION_CONSTRUCTION_BYTES_V1.unwrap()];
+2148 + const INDEPENDENT_REVEAL_SELECTED: [(); 1386019] = [(); SNAPSHOT_SCOPE_FOUNDATION_CONSTRUCTION_BYTES_V1.unwrap()];
+     |
+
+error: aborting due to 3 previous errors
+
+For more information about this error, try `rustc --explain E0308`.

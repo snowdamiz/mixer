@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "at": "2026-10-27T08:57:06.387604+00:00",
+  "status": "producer-frozen-root-custody-verified-arithmetic-model-correction-required",
+  "seal": "verification/swift-guarded-snapshot-complete-work-plan/seal.json",
+  "seal_sha256": "7198ae0748ce0c8c576afc953aef8f3827b0a0d925ea246225245ba4cf000a27",
+  "verified_members": 5,
+  "verified_bytes": 47303,
+  "proposed_fixed_prefix": 451703621,
+  "producer_controls": 226,
+  "ingress_setup_finish_prices_pending": true,
+  "source_unit": "abstract logical callsite plus requested native bytes; no private-library retries/kernel/CPU/time bound",
+  "root_finding": {
+    "file": "check.py",
+    "symbol": "checked_mul",
+    "problem": "Validates multiplication inputs by checked_sum(a,b), which can overflow despite a valid product. Scalar example(MAX64,1) must returnMAX64 but raises addition overflow.",
+    "case": {
+      "a": 18446744073709551615,
+      "b": 1,
+      "expected": 18446744073709551615,
+      "actual_exception": "u64 addition"
+    },
+    "impact": "Unnecessarily refuses generic u64 multiplication; no undercharge or writer admission demonstrated. Correct independently validated input ranges then multiply and check result.",
+    "method": "Read AST and executed only checked_sum/checked_mul definitions withMAX64; no make(), frozen writes, producer harness, compiler, VM or writer executed"
+  },
+  "complete_work_accepted": false,
+  "runtime_selected": false
+}

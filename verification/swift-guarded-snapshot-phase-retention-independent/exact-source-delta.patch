@@ -1,0 +1,50 @@
+--- funding144/src/experimental_swift_reactor/cache/initial_profile_v1.rs
++++ retention144/src/experimental_swift_reactor/cache/initial_profile_v1.rs
+@@ -342,7 +342,7 @@
+ }
+ 
+ enum SnapshotAccessV1<'c> {
+-    Admitted {control:&'c mut RuntimeControl,previous:usize,wasi:Option<crate::experimental_wasi::WasiUsage>},
++    Admitted {control:&'c mut RuntimeControl,retained:usize,wasi:Option<crate::experimental_wasi::WasiUsage>},
+     Refused {control:&'c mut RuntimeControl,error:AError},
+ }
+ impl SharedControlV1 for SnapshotAccessV1<'_>{
+@@ -351,7 +351,7 @@
+ impl SnapshotAccessV1<'_> {
+     fn complete(self,storage:SnapshotPhaseStorageV1)->Result<(),SwiftRunFailure>{
+         match self{
+-            Self::Admitted{control,previous,wasi}=>control.end_construction_phase_with_wasi(storage,previous,wasi),
++            Self::Admitted{control,retained,wasi}=>control.end_construction_phase_with_wasi(storage,retained,wasi),
+             Self::Refused{control:_,error:_}=>{drop(storage);Ok(())},
+         }
+     }
+@@ -393,14 +393,14 @@
+         let shape=snapshot_shape_v1(cache.proof().snapshot_counts_v1())?;
+         let emission=proposed_emission_work_v1(&shape)?;
+         control.snapshot_debit_v1(emission)?;
+-        let previous=control.snapshot_commit_storage_v1(additional)?;
+-        Ok::<_,AError>((previous,shape,planning,emission))
++        let retained=control.snapshot_commit_storage_v1(additional)?;
++        Ok::<_,AError>((retained,shape,planning,emission))
+     })();
+     match decision{
+-        Ok((previous,shape,planning,emission))=>{
++        Ok((retained,shape,planning,emission))=>{
+             let wasi=wasi.map(AccountedWasi::usage); // Pairing completed above.
+             let storage=SnapshotPhaseStorageV1 {plan:Some(SnapshotPlanV1{shape,planning,emission}),transfer:Some([0;4096]),refusal:None};
+-            (SnapshotAccessV1::Admitted{control,previous,wasi},storage)
++            (SnapshotAccessV1::Admitted{control,retained,wasi},storage)
+         },
+         Err(error)=>(SnapshotAccessV1::Refused{control,error},SnapshotPhaseStorageV1{plan:None,transfer:None,refusal:Some(error)}),
+     }
+--- funding144/src/experimental_swift_reactor/control.rs
++++ retention144/src/experimental_swift_reactor/control.rs
+@@ -2096,7 +2096,7 @@
+         self.reservations.construction.peak=self.reservations.construction.peak.max(construction);
+         self.reservations.combined.current=combined;
+         self.reservations.combined.peak=self.reservations.combined.peak.max(combined);
+-        Ok(previous)
++        Ok(construction)
+     }
+ }
+ 

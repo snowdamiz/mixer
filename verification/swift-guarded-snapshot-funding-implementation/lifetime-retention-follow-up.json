@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "status": "specific-next-source-amendment-option-only-unselected",
+  "candidate_source_tree_sha256": "7e3e861ca65d8c6359623443d6a7810b878c1029494a0ae557307d35ed43484b",
+  "current_source_changed_by_this_proposal": false,
+  "original_source": {
+    "path": "source/vm/src/experimental_swift_reactor/control.rs",
+    "function": "RuntimeControl::snapshot_commit_storage_v1",
+    "existing_computation": "let construction=previous.checked_add(additional).ok_or(SnapshotAdmissionErrorV1::Arithmetic)?;",
+    "current_return": "Ok(previous)",
+    "actual_commit": "self.construction.as_mut().expect(\"preflight actual ticket\").bytes=construction;"
+  },
+  "option": {
+    "return": "Ok(construction)",
+    "meaning": "The existing committed construction total becomes the selected completion retention target.",
+    "coordinate_names": "Rename Admitted.previous and all of its forwarded binding/uses coherently to retained construction target, preserving types and actual owner/control/WASI pairing.",
+    "completion": "Keep end_construction_phase_with_wasi and all of its owner, bound, underflow and error validation. Passing the already committed target should make its difference zero and retain A through the returned diagnostics.",
+    "new_arithmetic_intended": false,
+    "new_runtime_locals_or_types_intended": false,
+    "no_error_branch_suppression": true,
+    "required_review": "Confirm the returned target is used only by this selected Admitted completion path; collect fresh compiler/source-role and layout deltas, preserve all error branches, and independently review the full return/caller lifetime before writer release. This option is not implementation or acceptance."
+  },
+  "writer_runtime_selected": false,
+  "WorkAuditPending_preserved": true,
+  "healthy_cleanup_selected": false
+}
