@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scope": "Independent source/diagnostic review of eight retained producer compiler probes; no replay",
+  "status": "eight-intended-negative-operations-observed-with-exact-subcase-gaps",
+  "categories": [
+    {"id": "C01", "actual_probe": "N01", "observed": "E0277 rejects Copy on reservation and attempt", "gap": "No explicit Clone requirement at the two additional planned sites. Source declares neither Clone nor Copy."},
+    {"id": "C02", "actual_probe": "N02", "observed": "E0382 rejects second dispatch of moved attempt", "gap": null},
+    {"id": "C03", "actual_probe": "N03", "observed": "E0505 rejects retirement while scoped binding is used afterward", "gap": "The equivalent correspondence-borrow site specified in preaccess was not included."},
+    {"id": "C04", "actual_probe": "N04", "observed": "Intended lifetime diagnostic rejects BorrowedOwnerDataV1 widening to static", "gap": "No actual proof.source static escape or AcquisitionReservationV1 root-borrow lifetime widening site was included. Those exact compiler subcases remain unrun."},
+    {"id": "C05", "actual_probe": "N05", "observed": "E0423 rejects private correlated tuple constructor", "gap": "The same source also attempts expected fields, but rustc emits the wrapper diagnostic first; expected-field and admitted-owner literal privacy are not separately compiler qualified. No external metadata privacy probe ran."},
+    {"id": "C06", "actual_probe": "N06", "observed": "E0308 rejects actual unqualified candidate at actual admitted owner caller", "gap": null},
+    {"id": "C07", "actual_probe": "N07", "observed": "E0308 rejects a HashMap as the real expected correspondence argument", "gap": "This is a qualifying wrong-expected-type refusal, not the prospective E0061 fourth-argument form; public callback absence is a source review observation."},
+    {"id": "C08", "actual_probe": "N08", "observed": "E0599 rejects known cfg(test)-only fixed-claims constructor in production configuration", "gap": "The planned test_provenance_v1 site was replaced by the actual test-only claims helper; no separate metadata consumer invocation ran."}
+  ],
+  "extra_replay_requested_now": false,
+  "reason": "IR01 first requires a root-selected accounting-core correction. Do not spend a broad compiler budget on this returned candidate.",
+  "native_or_GA_acceptance": false
+}

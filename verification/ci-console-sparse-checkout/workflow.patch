@@ -1,0 +1,20 @@
+diff --git a/.github/workflows/console.yml b/.github/workflows/console.yml
+index 01ff84623..7dc617396 100644
+--- a/.github/workflows/console.yml
++++ b/.github/workflows/console.yml
+@@ -15,6 +15,15 @@ jobs:
+         working-directory: console
+     steps:
+       - uses: actions/checkout@v4
++        with:
++          sparse-checkout-cone-mode: false
++          sparse-checkout: |
++            /console/
++            /website/src/styles.css
++            /website/public/assets/flick-128.webp
++            /website/public/assets/favicon-32.png
++            /hosted/lib/mixer_hosted/authorization/scope.ex
++            /hosted/.tool-versions
+       - uses: actions/setup-node@v4
+         with:
+           node-version: '22.23.3'

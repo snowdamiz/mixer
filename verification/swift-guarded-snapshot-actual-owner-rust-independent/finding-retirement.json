@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "status": "required-PA06-H11-shared-core-correction",
+  "id": "IR01",
+  "title": "Complete acquisition token can release correlation/result overlap while result is live",
+  "basis": "Fresh independent desired-property witness against the frozen final source, adding only one private cfg(test) method; product core bytes unchanged.",
+  "frozen_packet_seal": "3592011c00794c12dcb76cecc41d4d2913e01a3d6e97612f3ce90f10cb4e5e23",
+  "source146_tree": "338ef290399450c712b140736fb714031a333891dc1acf5439c758ae97602564",
+  "contract": "PA06/H11 requires complete original retirement only after every child, proof, result, borrow and backing carrier has ended. Correlation storage/work is prepaid within the original acquisition reservation before publication.",
+  "trace": [
+    "Private host fixture passes the actual owning admission core; the actual host validator constructs a proof with its own source Box.",
+    "correlation_scope_core_v1 borrows the live admitted owner and yields one attempt plus expected value.",
+    "correlate_core_v1 consumes the attempt and entire fixed typed carrier, returning a matched carrier containing the same real proof, four resource guards and usage.",
+    "After the expected/attempt borrows end, the matched carrier has no owner lifetime or retirement obligation. The same admitted owner can be consumed while that carrier is live.",
+    "retire_acquired_owner_core_v1 drops all thirteen acquired guard resources and backing, returning CompleteAcquisitionRetirementV1 without checking correlation-result survival.",
+    "CompleteAcquisitionRetirementV1::release_v1 releases the whole original acquisition storage, including the fixed correlation/result overlap; the result still owns its proof and four loader guards."
+  ],
+  "observed": {
+    "before_storage": 1000000,
+    "while_complete_token_owned_storage": 1000000,
+    "after_complete_token_release_storage": 0,
+    "proof_source_pointer_preserved": true,
+    "live_proof_source_bytes": 1947,
+    "live_loader_guard_tags": [20, 21, 22, 23],
+    "already_dropped_acquisition_guard_tags": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    "desired_property_passed": false,
+    "test_exit": 101
+  },
+  "source_locations": {
+    "loader": "verification/swift-guarded-snapshot-actual-owner-rust-implementation/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+    "prepaid_ingress_lines": [1913, 1920],
+    "carrier_and_outcome_lines": [1990, 2006],
+    "correlation_lines": [2017, 2052],
+    "retirement_and_release_lines": [2055, 2105],
+    "caller": "verification/swift-guarded-snapshot-actual-owner-rust-implementation/source/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+    "ordered_child_then_owner_retirement_lines": [1145, 1164]
+  },
+  "reachability_limits": [
+    "The witness is a private host-component use of the real shared generic production core, with guard resources and validator-created proof; it is not a native File or fixture run.",
+    "The present concrete outer caller explicitly destroys its child result before acquisition retirement, so this witness does not establish a refund through that caller.",
+    "NativeInputBridgeV1::retire_v1 always refuses healthy completion. Native admission and bootstrap remain Pending. No currently reachable native complete-token refund is established.",
+    "The failed invariant prevents accepting the generic token as proof that all charged correlation/result carriers have ended. Enabling a future successful native retirement bridge would require correction."
+  ],
+  "required_resolution": "Tie outstanding correlation/result ownership to acquisition retirement using a closed lifetime/ownership protocol, or retain the relevant storage conservatively until complete original result retirement. A manually correct positive caller order does not make the shared generic complete token certify this missing condition.",
+  "preserve_witness": "Keep the current failure and exact original source. The unchanged desired outcome is no whole acquisition release while a correlated success, mismatch or loader-error carrier remains live; a refusal or compiler-enforced prevention is acceptable.",
+  "new_commands": {
+    "Debug_compiler_invocations": 1,
+    "exact_independent_filtered_runs": 1,
+    "additional_compiler_or_host_runs": 0,
+    "build_receipt": "commands/witness-build-001/receipt.json",
+    "run_receipt": "commands/witness-run-001/receipt.json",
+    "owned_pid_pgid_pairs": [[8053, 8053], [8260, 8260]],
+    "all_waited_and_groups_absent": true
+  },
+  "native_policy_funding_prices_layouts_FieldLog_OTA_GA": "Pending"
+}

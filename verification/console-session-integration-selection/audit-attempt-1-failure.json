@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "command": ["python3", "-B", "verification/console-session-integration-selection/audit.py"],
+  "actual_source": "audit-before-g22-scope-fix.py",
+  "python_version": "3.14.8",
+  "exit_code": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/console-session-integration-selection/audit.py\", line 100, in <module>\n    assert len(candidates) == 1, \"expected one recorded callback candidate status\"\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError: expected one recorded callback candidate status\n",
+  "reason": "Selection collector searched all GA gates for a repeated callback field instead of selecting G22 by exact id. Callback status is repeated in three gate records. Product source and callback review were unaffected.",
+  "correction": "Select exactly gates[id == G22].browserSessionStorageIntegration.callbackStorageCandidate.",
+  "pid_captured": false,
+  "cleanup": "Tool observed Python exit 1; all subprocess.run Git reads were synchronously waited. No server, scratch directory, compile/test binary or long-lived resource was started. No process inventory was used to reconstruct an unavailable PID.",
+  "source_selection_pass_claimed": false
+}
