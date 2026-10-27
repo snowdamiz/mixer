@@ -4,6 +4,15 @@ This directory contains the exact independently reviewed fixture runner and its
 closed source pack. It qualifies the isolated cache-state host component; it does
 not integrate that component into the live interpreter or admit arbitrary files.
 
+The context-schema fixture now constructs its baseline once and independently
+clones it for each of the same 1,003 malformed inputs. All inputs, assertions,
+method coverage, fresh file cursors and cleanup are preserved. The original
+Rust 1.98.1 CI timeout remains a failed observation. The revised pack passes
+29 runner controls and all 103 commands on local Rust 1.99.0, within unchanged
+60-second child and 600-second active limits; fresh Rust 1.98.1 CI is pending.
+The root integration, original preimages and complete qualification are in
+`../swift-host-resource-ci-cache-state-root-review/qualification.json`.
+
 Run the 29 focused runner controls with:
 
 ```sh
@@ -38,7 +47,7 @@ performance. The pack manifest fixes all source and expected observation bytes.
 
 The dedicated `swift-cache-state-fixture` Actions job runs focused controls and
 the full fixture after a shallow sparse checkout, then retains the complete
-directory, including hidden inputs and failure evidence. The dedicated job now passes on actual Rust 1.98.1 macOS arm64: all 103
+directory, including hidden inputs and failure evidence. The preceding pack passed on actual Rust 1.98.1 macOS arm64: all 103
 commands and 29 focused controls pass within the unchanged deadlines. Source and
 retained output evidence are verified in
 `../swift-cache-state-ci-workflow-root-review/CI-1.98.1-qualification.json`.

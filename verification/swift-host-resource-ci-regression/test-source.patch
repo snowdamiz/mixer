@@ -1,0 +1,117 @@
+diff --git a/scripts/ci/tests/test_analyzer_envelope_runner.py b/scripts/ci/tests/test_analyzer_envelope_runner.py
+index 8a3537b60..9a9ed113b 100644
+--- a/scripts/ci/tests/test_analyzer_envelope_runner.py
++++ b/scripts/ci/tests/test_analyzer_envelope_runner.py
+@@ -58,13 +58,13 @@ class RunnerControls(unittest.TestCase):
+         receipt = {'commands': []}
+         return r.Commands(out, receipt, time.monotonic() + deadline)
+ 
+-    def ready_timeout(self, commands, name, code):
++    def ready_timeout(self, commands, name, code, popen=None):
+         # Readiness belongs to this control, not the production timeout policy.
+         # Wait for the real child to establish the condition being tested before
+         # starting its short timed wait. A startup failure still fails the test,
+         # and Commands.run's finally block reaps its exact owned process group.
+         ready = self.base / (name + '.ready')
+-        popen = subprocess.Popen
++        popen = popen or subprocess.Popen
+ 
+         def spawn(*args, **kwargs):
+             process = popen(*args, **kwargs)
+@@ -255,16 +255,90 @@ class RunnerControls(unittest.TestCase):
+         self.assertTrue(row['timed_out']); self.assertTrue(row['child_returned']); self.assertTrue(row['owned_group_gone'])
+         self.assertIn('partial-before-timeout', (c.out/'commands/timeout.stdout').read_text())
+ 
+-    def test_descendant_timeout_return_and_group_identity(self):
++    def test_timeout_kills_all_owned_group_members_and_returns_children(self):
+         c = self.commands()
+-        # A real concurrent descendant inherits the owned process group. On
+-        # macOS init reaps it after group termination; no global discovery.
+-        code = 'import subprocess,sys,time;from pathlib import Path;subprocess.Popen([sys.executable,"-c","import time;time.sleep(20)"]);print("descendant-started",flush=True);Path(sys.argv[1]).write_text("ready");time.sleep(20)'
+-        self.ready_timeout(c, 'descendant', code)
++        member_ready = self.base / 'group-member.ready'
++        children = []
++        popen = subprocess.Popen
++
++        def cleanup():
++            for child in children:
++                if child.poll() is None:
++                    child.kill()
++            for child in reversed(children):
++                child.wait(timeout=5)
++
++        self.addCleanup(cleanup)
++
++        def spawn_group(*args, **kwargs):
++            # Group signaling depends on membership, not ancestry. Keep both
++            # real children directly waitable instead of making an orphan whose
++            # disappearance depends on the host's init reaping it. The runner
++            # must still request isolation; only this test factory substitutes
++            # a fresh group in our session so the second owned child can join.
++            self.assertIs(kwargs.pop('start_new_session'), True)
++            process = popen(*args, **kwargs, process_group=0)
++            children.append(process)
++            member = popen([sys.executable, '-c',
++                            'import json,os,sys,time;from pathlib import Path;'
++                            'Path(sys.argv[1]).write_text(json.dumps({"pid":os.getpid(),"pgid":os.getpgrp()}));'
++                            'time.sleep(20)', str(member_ready)],
++                           cwd=kwargs['cwd'], env=kwargs['env'],
++                           stdout=kwargs['stdout'], stderr=kwargs['stderr'],
++                           process_group=process.pid)
++            children.append(member)
++            wait = process.wait
++
++            def wait_group(timeout=None):
++                result = wait(timeout=timeout)
++                member.wait(timeout=5)
++                return result
++
++            process.wait = wait_group
++            return process
++
++        code = ('import sys,time;from pathlib import Path;'
++                'member=Path(' + repr(str(member_ready)) + ');'
++                '\nwhile not member.is_file(): time.sleep(.01)\n'
++                'print("group-member-started",flush=True);'
++                'Path(sys.argv[1]).write_text("ready");time.sleep(20)')
++        self.ready_timeout(c, 'group', code, popen=spawn_group)
+         row = c.receipt['commands'][-1]
+         self.assertTrue(row['timed_out']); self.assertTrue(row['child_returned']); self.assertTrue(row['owned_group_gone'])
+         self.assertEqual(row['pid'], row['owned_pgid'])
+-        self.assertIn('descendant-started', (c.out/'commands/descendant.stdout').read_text())
++        self.assertEqual(row['timeout_seconds'], .2)
++        self.assertTrue(row['owned_group_killed'])
++        self.assertEqual([child.returncode for child in children], [-signal.SIGKILL, -signal.SIGKILL])
++        self.assertEqual(json.loads(member_ready.read_text()), {'pid': children[1].pid, 'pgid': row['pid']})
++        self.assertIsNone(c.active)
++        self.assertIn('group-member-started', (c.out/'commands/group.stdout').read_text())
++
++    def test_unconfirmed_group_disappearance_is_refused_after_clean_child_exit(self):
++        c = self.commands()
++        killpg, monotonic = os.killpg, time.monotonic
++        offset = 0
++
++        def group_still_visible(pgid, sig):
++            if sig:
++                return killpg(pgid, sig)
++            # Deterministically model a killed but still visible orphan group.
++            return None
++
++        def advance_poll(_):
++            nonlocal offset
++            offset += 6
++
++        clock = mock.Mock(monotonic=lambda: monotonic() + offset, sleep=advance_poll)
++        with mock.patch.object(r.os, 'killpg', group_still_visible), mock.patch.object(r, 'time', clock):
++            with self.assertRaisesRegex(RuntimeError, 'Command failed: unconfirmed'):
++                c.run('unconfirmed', [sys.executable, '-c', 'pass'], cwd=self.base)
++        row = c.receipt['commands'][-1]
++        self.assertEqual(row['exit'], 0)
++        self.assertTrue(row['child_returned'])
++        self.assertFalse(row['timed_out'])
++        self.assertFalse(row['owned_group_gone'])
++        self.assertTrue(row['descendants_outlived_direct_child'])
++        self.assertIsNone(c.active)
+ 
+     def test_overall_deadline_refuses_spawn(self):
+         c = self.commands(deadline=-1)

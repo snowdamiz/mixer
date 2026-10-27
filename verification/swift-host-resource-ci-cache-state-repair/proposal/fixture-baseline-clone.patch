@@ -1,0 +1,19 @@
+--- pack/source/regression/independent_tests.rs
++++ pack/source/regression/independent_tests.rs
+@@ -208,11 +208,12 @@
+ 
+ #[test]
+ fn context_schema_scalar_reserved_and_lengths() {
++    let baseline=Fixture::new();
+     for (word,value) in [(1,2),(2,8191),(3,0),(3,2),(4,0),(4,4194305),(5,32),(5,64),(6,M),(7,0),(7,4294967296),(8,0),(8,65),(9,0),(9,65),(10,0),(10,2),(11,M),(12,99),(13,0),(13,1001),(14,1),(15,1)] {
+-        let mut f=Fixture::new();f.context(word,value);run(&f,false,&format!("context-{word}-{value}"));
+-    }
+-    for word in 48..1024 {let mut f=Fixture::new();f.context(word,1);run(&f,false,&format!("context-reserved-{word}"));}
+-    for len in [0usize,1,8191,8193] {let mut f=Fixture::new();f.context.resize(len,0);run(&f,false,&format!("context-length-{len}"));}
++        let mut f=baseline.clone();f.context(word,value);run(&f,false,&format!("context-{word}-{value}"));
++    }
++    for word in 48..1024 {let mut f=baseline.clone();f.context(word,1);run(&f,false,&format!("context-reserved-{word}"));}
++    for len in [0usize,1,8191,8193] {let mut f=baseline.clone();f.context.resize(len,0);run(&f,false,&format!("context-length-{len}"));}
+ }
+ 
+ #[test]

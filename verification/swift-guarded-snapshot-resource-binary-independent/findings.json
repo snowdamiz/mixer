@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "frozen_candidate_seal_sha256": "58f49d3bcc844678bef604bc4989e81b2bfea758b300ca3158b229a510018f1d",
+  "frozen_actual_data_required_correction": false,
+  "finding_scope": "Producer semantic helper predicates in isolation; whole-packet/object hash custody remains effective. These findings do not show that changed bytes can pass the full frozen review.",
+  "findings": [
+    {
+      "id": "IR01",
+      "predicate": "audit.check_ir debug_assert_fd_is_open fcntl body substring and count",
+      "mutation": "Move the expected fcntl invocation into a comment; call an unreviewed callee with command2 in the active instruction.",
+      "producer_helper": "accepted",
+      "independent_check": "refused; exact active call operands and bb1 control sequence required"
+    },
+    {
+      "id": "IR02",
+      "predicate": "audit.check_ir EBADF comparison substring",
+      "mutation": "Keep comparison9 in a comment and use comparison4 in the active instruction.",
+      "producer_helper": "accepted",
+      "independent_check": "refused; exact active errno-load/comparison/branch sequence in bb3 required"
+    },
+    {
+      "id": "IR03",
+      "predicate": "audit.check_ir abort symbol body substring",
+      "mutation": "Keep the expected abort call in a comment and actively call a substituted symbol.",
+      "producer_helper": "accepted",
+      "independent_check": "refused; active abort call in abort block required"
+    },
+    {
+      "id": "IR04",
+      "predicate": "audit.check_ir Vec live length offset body substring",
+      "mutation": "Keep i64 offset16 in a comment and actively load the length from offset0.",
+      "producer_helper": "accepted",
+      "independent_check": "refused; active GEP16/load pairing and slice-call operands required"
+    },
+    {
+      "id": "IR05",
+      "predicate": "audit.check_ir SwiftSlot normal slice traversal",
+      "mutation": "Reverse the normal slice loop conditional exit destinations while retaining its comparison and increment.",
+      "producer_helper": "accepted",
+      "independent_check": "refused; bb6 branches to return only when cursor equals live length"
+    },
+    {
+      "id": "IR06",
+      "predicate": "audit.check_ir SwiftSlot unwind slice traversal",
+      "mutation": "Reverse the unwind slice loop conditional exit destinations.",
+      "producer_helper": "accepted",
+      "independent_check": "refused; bb4 branches to resume only when cursor equals live length"
+    },
+    {
+      "id": "N01",
+      "predicate": "audit.check_native_semantics File Os error ORR assembly annotation",
+      "mutation": "Replace the ORR instruction word with NOP while retaining the ORR assembly string.",
+      "producer_helper": "accepted",
+      "independent_check": "refused; decode the actual ORR word including tag register, errno register, destination and LSL32"
+    }
+  ],
+  "disposition": "Independent checks cover the exact affected predicates for this frozen packet. Root may explicitly select these independent checks as amendments; this review does not mutate or silently repair the frozen candidate.",
+  "original_candidate_attempts_preserved": "The candidate attempt-history.json remains sealed, including the earlier default-nm LLVM incompatibility, parser development fixes and original commented-call weakness.",
+  "reviewer_attempts": [
+    "First independent checker run failed because percent formatting interpreted the LLVM %self token; replaced that formatting with an f-string, then reran.",
+    "First helper-coverage census expected six IR helper acceptances but one fcntl decoy duplicated @fcntl and was correctly refused by the count check. The revised mutation substitutes the active callee and leaves exactly one expected spelling in the comment; it is accepted by the producer helper and refused independently.",
+    "Dependency seal validation initially assumed total_bytes; inherited seals use member_bytes or derive bytes from members. The independent parser now validates each supported inherited form and its canonical member-tree digest."
+  ],
+  "compiler_or_native_retries": 0,
+  "pending": [
+    "Complete generic File::open/OpenOptions/stack path-wrapper constructor binding, including source-ruled-out invalid-options branches.",
+    "Actual immutable caller/build/session/executable/compiler-context composition binding.",
+    "External private allocator/libc/kernel implementations and successful effects remain outside the inherited interface/requested-backing unit.",
+    "Native device/UI/capture/simulator/emulator runtime remains paused; FieldLog, OTA and GA are unaccepted."
+  ]
+}

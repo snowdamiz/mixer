@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-whole-host-work-independent/audit.py", line 419, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-whole-host-work-independent/audit.py", line 153, in main
+    prices = {row['type'].replace(' ',''):resource_price(row,cuts) for row in rows}
+                                          ~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-whole-host-work-independent/audit.py", line 89, in resource_price
+    value += count * cut['max_live_elements'] * resource_price(child, cut['element_cuts'])
+                                                ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-whole-host-work-independent/audit.py", line 85, in resource_price
+    if kind in row['dynamic_resource_elements']:
+               ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'dynamic_resource_elements'

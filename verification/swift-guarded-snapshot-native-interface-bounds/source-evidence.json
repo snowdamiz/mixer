@@ -1,0 +1,212 @@
+{
+  "entries": [
+    {
+      "claim": "path dispatch, stack scratch, interior NUL, allocating CString",
+      "excerpt_sha256": "4937e62944c12210b700c6a804ee5df8cc77bbef3bd019dec70dd53c58244431",
+      "file_sha256": "6f8b59e7841fcd20e24809e2f182b7120e4c2edff2917877e6de2a5cf5436a73",
+      "first_line": 9,
+      "last_line": 67,
+      "path": "verification/swift-guarded-snapshot-resource-cost/official-source/library/std/src/sys/helpers/small_c_string.rs",
+      "source": "const MAX_STACK_ALLOCATION: usize = 384;\n#[cfg(target_os = \"espidf\")]\nconst MAX_STACK_ALLOCATION: usize = 32;\n\nconst NUL_ERR: io::Error =\n    io::const_error!(io::ErrorKind::InvalidInput, \"file name contained an unexpected NUL byte\");\n\n#[inline]\npub fn run_path_with_cstr<T>(path: &Path, f: &dyn Fn(&CStr) -> io::Result<T>) -> io::Result<T> {\n    run_with_cstr(path.as_os_str().as_encoded_bytes(), f)\n}\n\n#[inline]\npub fn run_with_cstr<T>(bytes: &[u8], f: &dyn Fn(&CStr) -> io::Result<T>) -> io::Result<T> {\n    // Dispatch and dyn erase the closure type to prevent mono bloat.\n    // See https://github.com/rust-lang/rust/pull/121101.\n    if bytes.len() >= MAX_STACK_ALLOCATION {\n        run_with_cstr_allocating(bytes, f)\n    } else {\n        unsafe { run_with_cstr_stack(bytes, f) }\n    }\n}\n\n/// # Safety\n///\n/// `bytes` must have a length less than `MAX_STACK_ALLOCATION`.\nunsafe fn run_with_cstr_stack<T>(\n    bytes: &[u8],\n    f: &dyn Fn(&CStr) -> io::Result<T>,\n) -> io::Result<T> {\n    let mut buf = MaybeUninit::<[u8; MAX_STACK_ALLOCATION]>::uninit();\n    let buf_ptr = buf.as_mut_ptr() as *mut u8;\n\n    unsafe {\n        ptr::copy_nonoverlapping(bytes.as_ptr(), buf_ptr, bytes.len());\n        buf_ptr.add(bytes.len()).write(0);\n    }\n\n    match CStr::from_bytes_with_nul(unsafe { slice::from_raw_parts(buf_ptr, bytes.len() + 1) }) {\n        Ok(s) => f(s),\n        Err(_) => Err(NUL_ERR),\n    }\n}\n\n#[cold]\n#[inline(never)]\nfn run_with_cstr_allocating<T>(bytes: &[u8], f: &dyn Fn(&CStr) -> io::Result<T>) -> io::Result<T> {\n    match CString::new(bytes) {\n        Ok(s) => f(&s),\n        Err(_) => Err(NUL_ERR),\n    }\n}\n"
+    },
+    {
+      "claim": "borrowed-byte specialization allocates n+1 before validation",
+      "excerpt_sha256": "17477b83f97c9cf9a0971e45ee9b7d425bef0176a9ff0b10db41b3e5805c6a84",
+      "file_sha256": "59c4767c527acfe425121a0826ba2e7b4329d2dce00e976ae56df0e0babaf2a0",
+      "first_line": 274,
+      "last_line": 313,
+      "path": "verification/swift-guarded-snapshot-native-interface-bounds/official-source/library/alloc/src/ffi/c_str.rs",
+      "source": "        fn spec_new_impl_bytes(bytes: &[u8]) -> Result<CString, NulError> {\n            // We cannot have such large slice that we would overflow here\n            // but using `checked_add` allows LLVM to assume that capacity never overflows\n            // and generate twice shorter code.\n            // `saturating_add` doesn't help for some reason.\n            let capacity = bytes.len().checked_add(1).unwrap();\n\n            // Allocate before validation to avoid duplication of allocation code.\n            // We still need to allocate and copy memory even if we get an error.\n            let mut buffer = Vec::with_capacity(capacity);\n            buffer.extend(bytes);\n\n            // Check memory of self instead of new buffer.\n            // This allows better optimizations if lto enabled.\n            match memchr::memchr(0, bytes) {\n                Some(i) => Err(NulError(i, buffer)),\n                None => Ok(unsafe { CString::_from_vec_unchecked(buffer) }),\n            }\n        }\n\n        impl SpecNewImpl for &'_ [u8] {\n            fn spec_new_impl(self) -> Result<CString, NulError> {\n                spec_new_impl_bytes(self)\n            }\n        }\n\n        impl SpecNewImpl for &'_ str {\n            fn spec_new_impl(self) -> Result<CString, NulError> {\n                spec_new_impl_bytes(self.as_bytes())\n            }\n        }\n\n        impl SpecNewImpl for &'_ mut [u8] {\n            fn spec_new_impl(self) -> Result<CString, NulError> {\n                spec_new_impl_bytes(self)\n            }\n        }\n\n        t.spec_new_impl()\n    }\n"
+    },
+    {
+      "claim": "reserve1 fits exact n+1 capacity; push NUL; Box conversion",
+      "excerpt_sha256": "16489423e50a7125e930f9d30986775ec5122402691108e632b93ea4801fc4f6",
+      "file_sha256": "59c4767c527acfe425121a0826ba2e7b4329d2dce00e976ae56df0e0babaf2a0",
+      "first_line": 345,
+      "last_line": 349,
+      "path": "verification/swift-guarded-snapshot-native-interface-bounds/official-source/library/alloc/src/ffi/c_str.rs",
+      "source": "    unsafe fn _from_vec_unchecked(mut v: Vec<u8>) -> Self {\n        v.reserve_exact(1);\n        v.push(0);\n        Self { inner: v.into_boxed_slice() }\n    }\n"
+    },
+    {
+      "claim": "CString drop writes already owned first byte, no allocation",
+      "excerpt_sha256": "f208d1cabfb06fee4f55981b4b998879572e20f7ef06700d77cda815329d9baa",
+      "file_sha256": "59c4767c527acfe425121a0826ba2e7b4329d2dce00e976ae56df0e0babaf2a0",
+      "first_line": 702,
+      "last_line": 709,
+      "path": "verification/swift-guarded-snapshot-native-interface-bounds/official-source/library/alloc/src/ffi/c_str.rs",
+      "source": "impl Drop for CString {\n    #[inline]\n    fn drop(&mut self) {\n        unsafe {\n            *self.inner.get_unchecked_mut(0) = 0;\n        }\n    }\n}\n"
+    },
+    {
+      "claim": "Global returns requested size; deallocation does not allocate",
+      "excerpt_sha256": "e1af40ca734243bcd58b00b2b97aee3dc9c17991dd85dabcb4348a24ba5f58b5",
+      "file_sha256": "3949baaebc3310d1a88a097d3b31b02445bfcad74b196ea4f6ea776de368ab97",
+      "first_line": 297,
+      "last_line": 327,
+      "path": "verification/swift-guarded-snapshot-stdlib-resource-source/official-source/library/alloc/src/alloc.rs",
+      "source": "    fn alloc_impl_runtime(layout: Layout, zeroed: bool) -> Result<NonNull<[u8]>, AllocError> {\n        match layout.size() {\n            0 => Ok(layout.dangling_ptr().cast_slice(0)),\n            // SAFETY: `layout` is non-zero in size,\n            size => unsafe {\n                let raw_ptr = if zeroed { alloc_zeroed(layout) } else { alloc(layout) };\n                let ptr = NonNull::new(raw_ptr).ok_or(AllocError)?;\n                Ok(ptr.cast_slice(size))\n            },\n        }\n    }\n\n    #[inline]\n    #[cfg_attr(miri, track_caller)] // even without panics, this helps for Miri backtraces\n    fn deallocate_impl_runtime(ptr: NonNull<u8>, layout: Layout) {\n        if layout.size() != 0 {\n            // SAFETY:\n            // * We have checked that `layout` is non-zero in size.\n            // * The caller is obligated to provide a layout that \"fits\", and in this case,\n            //   \"fit\" always means a layout that is equal to the original, because our\n            //   `allocate()`, `grow()`, and `shrink()` implementations never returns a larger\n            //   allocation than requested.\n            // * Other conditions must be upheld by the caller, as per `Allocator::deallocate()`'s\n            //   safety documentation.\n            unsafe { dealloc_nonnull(ptr, layout) }\n        }\n    }\n\n    // SAFETY: Same as `Allocator::grow`\n    #[inline]\n    #[cfg_attr(miri, track_caller)] // even without panics, this helps for Miri backtraces\n"
+    },
+    {
+      "claim": "equal capacity avoids shrink allocation",
+      "excerpt_sha256": "3d759927158f9fa55effc5fd9e8d5622e295b6df9948a5f41564d0080e1663fd",
+      "file_sha256": "e0c798ff16cf1770ef3266d28440d93dd65402b3afe1df4e184f15af17fb1e3e",
+      "first_line": 1594,
+      "last_line": 1602,
+      "path": "verification/swift-guarded-snapshot-stdlib-resource-source/official-source/library/alloc/src/vec/mod.rs",
+      "source": "    pub fn shrink_to_fit(&mut self) {\n        // The capacity is never less than the length, and there's nothing to do when\n        // they are equal, so we can avoid the panic case in `RawVec::shrink_to_fit`\n        // by only calling it with a greater capacity.\n        if self.capacity() > self.len {\n            self.buf.shrink_to_fit(self.len);\n        }\n    }\n\n"
+    },
+    {
+      "claim": "actual two valid fixed option combinations exclude custom errors",
+      "excerpt_sha256": "04acccb39f57d4ef470a5464111d11af143c6545179511224bd79f14d6c3bb13",
+      "file_sha256": "61f4ef3a4b679a38182e76634f96e551ef0b21b06c5695f36187f557d1efc232",
+      "first_line": 1154,
+      "last_line": 1200,
+      "path": "verification/swift-guarded-snapshot-stdlib-resource-source/official-source/library/std/src/sys/fs/unix.rs",
+      "source": "    fn get_access_mode(&self) -> io::Result<c_int> {\n        match (self.read, self.write, self.append) {\n            (true, false, false) => Ok(libc::O_RDONLY),\n            (false, true, false) => Ok(libc::O_WRONLY),\n            (true, true, false) => Ok(libc::O_RDWR),\n            (false, _, true) => Ok(libc::O_WRONLY | libc::O_APPEND),\n            (true, _, true) => Ok(libc::O_RDWR | libc::O_APPEND),\n            (false, false, false) => {\n                // If no access mode is set, check if any creation flags are set\n                // to provide a more descriptive error message\n                if self.create || self.create_new || self.truncate {\n                    Err(io::Error::new(\n                        io::ErrorKind::InvalidInput,\n                        \"creating or truncating a file requires write or append access\",\n                    ))\n                } else {\n                    Err(io::Error::new(\n                        io::ErrorKind::InvalidInput,\n                        \"must specify at least one of read, write, or append access\",\n                    ))\n                }\n            }\n        }\n    }\n\n    fn get_creation_mode(&self) -> io::Result<c_int> {\n        match (self.write, self.append) {\n            (true, false) => {}\n            (false, false) => {\n                if self.truncate || self.create || self.create_new {\n                    return Err(io::Error::new(\n                        io::ErrorKind::InvalidInput,\n                        \"creating or truncating a file requires write or append access\",\n                    ));\n                }\n            }\n            (_, true) => {\n                if self.truncate && !self.create_new {\n                    return Err(io::Error::new(\n                        io::ErrorKind::InvalidInput,\n                        \"creating or truncating a file requires write or append access\",\n                    ));\n                }\n            }\n        }\n\n        Ok(match (self.create, self.truncate, self.create_new) {\n"
+    },
+    {
+      "claim": "public open request, cvt_r, inline fstat output",
+      "excerpt_sha256": "8d7711b47011b24de4b5b2c80206de48bd51dcfef3693db962e6586ed9f209dc",
+      "file_sha256": "61f4ef3a4b679a38182e76634f96e551ef0b21b06c5695f36187f557d1efc232",
+      "first_line": 1228,
+      "last_line": 1262,
+      "path": "verification/swift-guarded-snapshot-stdlib-resource-source/official-source/library/std/src/sys/fs/unix.rs",
+      "source": "    pub fn open(path: &Path, opts: &OpenOptions) -> io::Result<File> {\n        run_path_with_cstr(path, &|path| File::open_c(path, opts))\n    }\n\n    pub fn open_c(path: &CStr, opts: &OpenOptions) -> io::Result<File> {\n        let flags = libc::O_CLOEXEC\n            | opts.get_access_mode()?\n            | opts.get_creation_mode()?\n            | (opts.custom_flags as c_int & !libc::O_ACCMODE);\n        // The third argument of `open64` is documented to have type `mode_t`. On\n        // some platforms (like macOS, where `open64` is actually `open`), `mode_t` is `u16`.\n        // However, since this is a variadic function, C integer promotion rules mean that on\n        // the ABI level, this still gets passed as `c_int` (aka `u32` on Unix platforms).\n        let fd = cvt_r(|| unsafe { open64(path.as_ptr(), flags, opts.mode as c_int) })?;\n        Ok(File(unsafe { FileDesc::from_raw_fd(fd) }))\n    }\n\n    pub fn file_attr(&self) -> io::Result<FileAttr> {\n        let fd = self.as_raw_fd();\n\n        cfg_has_statx! {\n            if let Some(ret) = unsafe { try_statx(\n                fd,\n                c\"\".as_ptr() as *const c_char,\n                libc::AT_EMPTY_PATH | libc::AT_STATX_SYNC_AS_STAT,\n                libc::STATX_BASIC_STATS | libc::STATX_BTIME,\n            ) } {\n                return ret;\n            }\n        }\n\n        let mut stat: stat64 = unsafe { mem::zeroed() };\n        cvt(unsafe { fstat64(fd, &mut stat) })?;\n        Ok(FileAttr::from_stat64(stat))\n    }\n"
+    },
+    {
+      "claim": "private EINTR loop has no finite syscall attempt bound",
+      "excerpt_sha256": "4ed1e6c7685086a2aae356681b1872fbe641da0c01c5dd992158dd9ad32afffa",
+      "file_sha256": "6c706c9a79d6a6ca3870a605800d7a74ba98cf41764c12cd4538a37812bba6aa",
+      "first_line": 244,
+      "last_line": 258,
+      "path": "verification/swift-guarded-snapshot-resource-cost/official-source/library/std/src/sys/pal/unix/mod.rs",
+      "source": "pub fn cvt_r<T, F>(mut f: F) -> io::Result<T>\nwhere\n    T: IsMinusOne,\n    F: FnMut() -> T,\n{\n    loop {\n        match cvt(f()) {\n            Err(ref e) if e.is_interrupted() => {}\n            other => return other,\n        }\n    }\n}\n\n#[allow(dead_code)] // Not used on all platforms.\n/// Zero means `Ok()`, all other values are treated as raw OS errors. Does not look at `errno`.\n"
+    },
+    {
+      "claim": "Apple errno is borrowed __error pointer to c_int",
+      "excerpt_sha256": "218c90c8e7c5166d9c740c23df0a6f75b4c1faf82e6b1f264ee362c67bb441f1",
+      "file_sha256": "4ac04298541758028422e9460960618d460d7ea1b9d627a34d7e224809ed452d",
+      "first_line": 44,
+      "last_line": 58,
+      "path": "verification/swift-guarded-snapshot-native-interface-bounds/official-source/library/std/src/sys/io/error/unix.rs",
+      "source": "    pub safe fn errno_location() -> *mut c_int;\n}\n\n/// Returns the platform-specific value of errno\n#[cfg(not(any(\n    target_os = \"dragonfly\",\n    target_os = \"vxworks\",\n    target_os = \"rtems\",\n    target_os = \"wasi\"\n)))]\n#[inline]\npub fn errno() -> i32 {\n    unsafe { (*errno_location()) as i32 }\n}\n\n"
+    },
+    {
+      "claim": "complete fixed Darwin stat fields",
+      "excerpt_sha256": "e2aa68ed3f74e1beae4e7877676682791f061b3c17f6558dc4f2fdb1beb71aeb",
+      "file_sha256": "953ac89b5a2ff86e6229fc774e63aea296d6c9710e99c7b95b9bfb5f3a09f154",
+      "first_line": 312,
+      "last_line": 336,
+      "path": "verification/swift-guarded-snapshot-native-interface-bounds/official-libc/src/unix/bsd/apple/mod.rs",
+      "source": "    pub struct stat {\n        pub st_dev: dev_t,\n        pub st_mode: mode_t,\n        pub st_nlink: nlink_t,\n        pub st_ino: ino_t,\n        pub st_uid: crate::uid_t,\n        pub st_gid: crate::gid_t,\n        pub st_rdev: dev_t,\n        pub st_atime: time_t,\n        pub st_atime_nsec: c_long,\n        pub st_mtime: time_t,\n        pub st_mtime_nsec: c_long,\n        pub st_ctime: time_t,\n        pub st_ctime_nsec: c_long,\n        pub st_birthtime: time_t,\n        pub st_birthtime_nsec: c_long,\n        pub st_size: off_t,\n        pub st_blocks: crate::blkcnt_t,\n        pub st_blksize: blksize_t,\n        pub st_flags: u32,\n        pub st_gen: u32,\n        pub st_lspare: i32,\n        pub st_qspare: [i64; 2],\n    }\n\n"
+    },
+    {
+      "claim": "libc s! objects use repr(C)",
+      "excerpt_sha256": "4d78bb9f1fb6d6231ab89ff78ae100a251650cc1b9ebb7a1819ce792adf10b75",
+      "file_sha256": "e1a7439f50a1d7a47a3268b625e36e7c9a916909f5b3a7fae35217e454e5680c",
+      "first_line": 145,
+      "last_line": 162,
+      "path": "verification/swift-guarded-snapshot-native-interface-bounds/official-libc/src/macros.rs",
+      "source": "macro_rules! s {\n    ($(\n        $(#[$attr:meta])*\n        $pub:vis $t:ident $i:ident { $($field:tt)* }\n    )*) => ($(\n        s!(it: $(#[$attr])* $pub $t $i { $($field)* });\n    )*);\n\n    (it: $(#[$attr:meta])* $pub:vis union $i:ident { $($field:tt)* }) => (\n        compile_error!(\"unions cannot derive extra traits, use s_no_extra_traits instead\");\n    );\n\n    (it: $(#[$attr:meta])* $pub:vis struct $i:ident { $($field:tt)* }) => (\n        #[repr(C)]\n        #[::core::prelude::v1::derive(\n            ::core::clone::Clone,\n            ::core::marker::Copy,\n            ::core::fmt::Debug,\n"
+    },
+    {
+      "claim": "actual three input and two create_new output opens, retained failures",
+      "excerpt_sha256": "0ec0b706a8ea11ff7a7b67f2cd1459ac2581444322a0fa4cfd7ff9638736a254",
+      "file_sha256": "04c5e5895586f5270c3d2bcaeaa1cfa451872d75b5b9260dbf3a1c9beb7d5876",
+      "first_line": 761,
+      "last_line": 787,
+      "path": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "source": "    fn setup_files_once_v1(binding: &ReviewedFixtureBindingV1) -> SetupOutcomeV1 {\n        let mut files = [None, None, None, None, None];\n        for stage in 0..5 {\n            let opened = if stage < 3 {\n                File::open(binding.paths[stage])\n            } else {\n                // Never truncate an existing output. A setup error terminates\n                // this one attempt and returns all earlier actual File owners.\n                OpenOptions::new().write(true).create_new(true).open(binding.paths[stage])\n            };\n            match opened {\n                Ok(file) => files[stage] = Some(file),\n                Err(original) => return SetupOutcomeV1::Refused { stage, original, files },\n            }\n        }\n        match files {\n            [Some(source), Some(build), Some(session), Some(rows), Some(snapshot)] =>\n                SetupOutcomeV1::Ready { source, build, session, rows, snapshot },\n            files => SetupOutcomeV1::InvariantRefused { files },\n        }\n    }\n\n    fn copy_claims_v1(claims: &UnverifiedProfileDigestBytesV1)\n        -> UnverifiedProfileDigestBytesV1\n    {\n        UnverifiedProfileDigestBytesV1 {\n            baseline: claims.baseline, candidate: claims.candidate,\n"
+    },
+    {
+      "claim": "actual File/Error/Cancellation ownership path",
+      "excerpt_sha256": "98a10b47865a3d653edbd500177691d2db7a6178b6bb41a2ec4289a34b112371",
+      "file_sha256": "04c5e5895586f5270c3d2bcaeaa1cfa451872d75b5b9260dbf3a1c9beb7d5876",
+      "first_line": 796,
+      "last_line": 832,
+      "path": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "source": "    fn run_prepaid_fixture_v1(fixture: FrozenFixtureV1) -> OwnedFixtureOutcomeV1 {\n        let binding = fixture.binding;\n        let (source, build, session, mut rows, mut snapshot) = match setup_files_once_v1(binding) {\n            SetupOutcomeV1::Ready { source, build, session, rows, snapshot } =>\n                (source, build, session, rows, snapshot),\n            refused => return OwnedFixtureOutcomeV1::SetupRefused(refused),\n        };\n        let cancellation = Cancellation::default();\n        // Exact original five-limit validator budget is retained independently\n        // of the host quote and the fixed product 1B/256MiB limits.\n        let LoaderOutcomeV1 { selected, files, usage } = load_selected_retained_profile_v1(\n            source, build, session, binding.original_validation_budget, &cancellation,\n        );\n        let claims = copy_claims_v1(&binding.claims);\n        let primary = match selected {\n            Err(original) => PrimaryOutcomeV1::LoaderRefused(original),\n            Ok(selected) => PrimaryOutcomeV1::Leaf(invoke_loaded_leaf_once_v1(\n                selected, binding.product_budget, Instant::now(), cancellation.clone(),\n                &claims, &mut rows, &mut snapshot,\n            )),\n        };\n        // No diagnostic flattening, fake proof, scalar carrier, close-success\n        // assertion or product-store-triggered host refund. Every typed result\n        // remains held under the same external reservation through final Drop.\n        OwnedFixtureOutcomeV1::Loaded {\n            original_files: files, original_loader_usage: usage, rows, snapshot,\n            cancellation_owner: cancellation, claims_owner: claims, primary,\n        }\n    }\n\n    fn invoke_loaded_leaf_once_v1(\n        selected: SelectedValidatedProfileV1,\n        budget: SwiftRunBudget,\n        started: Instant,\n        cancellation: Cancellation,\n        claims: &UnverifiedProfileDigestBytesV1,\n        rows: &mut File,\n"
+    },
+    {
+      "claim": "native hash/process helper declarations",
+      "excerpt_sha256": "07021c6f3070284957757f5f0afb36bf62d57486327f1e65beccd9d1158cdd86",
+      "file_sha256": "ebe88f37d2721c41371c9f726aeefaf533451cc9b6309b296053bc3b327240b9",
+      "first_line": 658,
+      "last_line": 665,
+      "path": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "source": "        fn CC_SHA256(data: *const c_void, len: u32, md: *mut u8) -> *mut u8;\n        fn _NSGetArgc() -> *mut c_int;\n        fn _NSGetArgv() -> *mut *mut *mut c_char;\n        fn _NSGetEnviron() -> *mut *mut *mut c_char;\n        fn _NSGetExecutablePath(buf: *mut c_char, size: *mut u32) -> c_int;\n        fn getcwd(buf: *mut c_char, size: usize) -> *mut c_char;\n    }\n    pub(super) fn hash(\n"
+    },
+    {
+      "claim": "fixed caller byte buffers; executable path first NUL and nonempty absolute checks",
+      "excerpt_sha256": "899d75a1c1e1376c8ee873529128aaab989f8461239bb43c2755f3f10dec279b",
+      "file_sha256": "ebe88f37d2721c41371c9f726aeefaf533451cc9b6309b296053bc3b327240b9",
+      "first_line": 813,
+      "last_line": 875,
+      "path": "verification/swift-guarded-snapshot-host-composition/overlay/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "source": "        // Caller-provided4096-byte buffers avoid unbounded PathBuf allocation.\n        let mut size = STR_CAP as u32;\n        let result =\n            unsafe { _NSGetExecutablePath(executable_path.data.as_mut_ptr().cast(), &mut size) };\n        if result != 0 || size as usize > STR_CAP {\n            return Err(LoaderFailureV1::new(\n                Refusal::ProcessLimit,\n                Role::Executable,\n                size as usize,\n                0,\n            ));\n        }\n        executable_path.len = executable_path\n            .data\n            .iter()\n            .position(|x| *x == 0)\n            .ok_or_else(|| {\n                LoaderFailureV1::new(Refusal::ProcessEncoding, Role::Executable, STR_CAP, 0)\n            })?;\n        if executable_path.len == 0 || executable_path.data[0] != b'/' {\n            return Err(LoaderFailureV1::new(\n                Refusal::ProcessEncoding,\n                Role::Executable,\n                0,\n                0,\n            ));\n        }\n        if unsafe { getcwd(cwd.data.as_mut_ptr().cast(), STR_CAP) }.is_null() {\n            return Err(LoaderFailureV1::io(\n                Role::Process,\n                0,\n                0,\n                io::Error::last_os_error(),\n            ));\n        }\n        cwd.len = cwd.data.iter().position(|x| *x == 0).ok_or_else(|| {\n            LoaderFailureV1::new(Refusal::ProcessEncoding, Role::Process, STR_CAP, 0)\n        })?;\n        if cwd.len == 0 || cwd.data[0] != b'/' {\n            return Err(LoaderFailureV1::new(\n                Refusal::ProcessEncoding,\n                Role::Process,\n                0,\n                0,\n            ));\n        }\n        Ok(ProcessObservationV1 {\n            argv,\n            environment,\n            cwd,\n            executable_path,\n            expected_session: expected_session.ok_or_else(|| {\n                LoaderFailureV1::new(Refusal::MissingIdentity, Role::Process, 0, 0)\n            })?,\n            nonce: nonce.ok_or_else(|| {\n                LoaderFailureV1::new(Refusal::MissingIdentity, Role::Process, 0, 0)\n            })?,\n        })\n    }\n}\nfn encode_environment(\n    raw: &[u8],\n    entries: &mut [(usize, usize, usize)],\n"
+    },
+    {
+      "claim": "Unix OsStr encoded bytes are unchanged byte slice",
+      "excerpt_sha256": "98485968d0e28e699d1ae30bda484c0909f1d26d3ffd18ce0717fe6f240ccf85",
+      "file_sha256": "b8db748fa98d57b9c5358dd0ad48c4950691defea188786b0d17c2c23533a721",
+      "first_line": 229,
+      "last_line": 232,
+      "path": "verification/swift-guarded-snapshot-native-interface-bounds/official-source/library/std/src/sys/os_str/bytes.rs",
+      "source": "    pub fn as_encoded_bytes(&self) -> &[u8] {\n        &self.inner\n    }\n\n"
+    },
+    {
+      "claim": "File final owner only checks and closes; no explicit new backing request",
+      "excerpt_sha256": "6953f640543a1a8e608c5c1ff956c2c133b2e7889eec38f564df9e225ebc8297",
+      "file_sha256": "baea17171eb861778e6b00c6998a16682449c9122f403401a39e1a6d1f6cfedc",
+      "first_line": 200,
+      "last_line": 226,
+      "path": "verification/swift-guarded-snapshot-stdlib-resource-source/official-source/library/std/src/os/fd/owned.rs",
+      "source": "impl Drop for OwnedFd {\n    #[inline]\n    fn drop(&mut self) {\n        unsafe {\n            // Note that errors are ignored when closing a file descriptor. According to POSIX 2024,\n            // we can and indeed should retry `close` on `EINTR`\n            // (https://pubs.opengroup.org/onlinepubs/9799919799/functions/close.html),\n            // but it is not clear yet how well widely-used implementations are conforming with this\n            // mandate since older versions of POSIX left the state of the FD after an `EINTR`\n            // unspecified. Ignoring errors is \"fine\" because some of the major Unices (in\n            // particular, Linux) do make sure to always close the FD, even when `close()` is\n            // interrupted, and the scenario is rare to begin with. If we retried on a\n            // not-POSIX-compliant implementation, the consequences could be really bad since we may\n            // close the wrong FD. Helpful link to an epic discussion by POSIX workgroup that led to\n            // the latest POSIX wording: http://austingroupbugs.net/view.php?id=529\n            #[cfg(not(target_os = \"hermit\"))]\n            {\n                #[cfg(unix)]\n                crate::sys::fs::debug_assert_fd_is_open(self.fd.as_inner());\n\n                let _ = libc::close(self.fd.as_inner());\n            }\n            #[cfg(target_os = \"hermit\")]\n            let _ = hermit_abi::close(self.fd.as_inner());\n        }\n    }\n}\n"
+    },
+    {
+      "claim": "only Custom tag constructs owning custom callback; actual Os/static tags have none",
+      "excerpt_sha256": "eebddc1ba5c99777a395b718926ee8e40b60848caf5da1dd9c9047c686881aa0",
+      "file_sha256": "63a2d7f7cac44f9caa1e294562c976514f0839980b8153624a986a7010c09556",
+      "first_line": 229,
+      "last_line": 283,
+      "path": "verification/swift-guarded-snapshot-stdlib-resource-source/official-source/library/core/src/io/error/repr_bitpacked.rs",
+      "source": "impl Drop for Repr {\n    #[inline]\n    fn drop(&mut self) {\n        // SAFETY: We're a Repr, decode_repr is fine. The `Box::from_raw` is\n        // safe because we're being dropped.\n        unsafe {\n            let _ = decode_repr(self.0, |p| {\n                CustomOwner::from_raw(core::ptr::NonNull::new_unchecked(p))\n            });\n        }\n    }\n}\n\n// Shared helper to decode a `Repr`'s internal pointer into an ErrorData.\n//\n// Safety: `ptr`'s bits should be encoded as described in the document at the\n// top (it should `some_repr.0`)\n#[inline]\nunsafe fn decode_repr<C, F>(ptr: NonNull<()>, make_custom: F) -> ErrorData<C>\nwhere\n    F: FnOnce(*mut Custom) -> C,\n{\n    let bits = ptr.as_ptr().addr();\n    match bits & TAG_MASK {\n        TAG_OS => {\n            let code = ((bits as i64) >> 32) as RawOsError;\n            ErrorData::Os(code)\n        }\n        TAG_SIMPLE => {\n            let kind_bits = (bits >> 32) as u32;\n            let kind = ErrorKind::from_prim(kind_bits).unwrap_or_else(|| {\n                debug_assert!(false, \"Invalid io::error::Repr bits: `Repr({:#018x})`\", bits);\n                // SAFETY: This means the `ptr` passed in was not valid, which violates\n                // the unsafe contract of `decode_repr`.\n                //\n                // Using this rather than unwrap meaningfully improves the code\n                // for callers which only care about one variant (usually\n                // `Custom`)\n                unsafe { core::hint::unreachable_unchecked() };\n            });\n            ErrorData::Simple(kind)\n        }\n        TAG_SIMPLE_MESSAGE => {\n            // SAFETY: per tag\n            unsafe { ErrorData::SimpleMessage(&*ptr.cast::<SimpleMessage>().as_ptr()) }\n        }\n        TAG_CUSTOM => {\n            // It would be correct for us to use `ptr::byte_sub` here (see the\n            // comment above the `wrapping_add` call in `new_custom` for why),\n            // but it isn't clear that it makes a difference, so we don't.\n            let custom = ptr.as_ptr().wrapping_byte_sub(TAG_CUSTOM).cast::<Custom>();\n            ErrorData::Custom(make_custom(custom))\n        }\n        _ => {\n            // Can't happen, and compiler can tell\n"
+    },
+    {
+      "claim": "Vec visits initialized elements and RawVec deallocates existing backing",
+      "excerpt_sha256": "c8ab8b7ed99e765eb1f62e021415c0dc65cc9018e6c326c0a2b9948d8401a510",
+      "file_sha256": "e0c798ff16cf1770ef3266d28440d93dd65402b3afe1df4e184f15af17fb1e3e",
+      "first_line": 4350,
+      "last_line": 4365,
+      "path": "verification/swift-guarded-snapshot-stdlib-resource-source/official-source/library/alloc/src/vec/mod.rs",
+      "source": "const unsafe impl<#[may_dangle] T: [const] Destruct, A: [const] Allocator + [const] Destruct> Drop\n    for Vec<T, A>\n{\n    fn drop(&mut self) {\n        unsafe {\n            // use drop for [T]\n            // use a raw slice to refer to the elements of the vector as weakest necessary type;\n            // could avoid questions of validity in certain cases\n            self.as_mut_ptr().cast_slice(self.len).drop_in_place()\n        }\n        // RawVec handles deallocation\n    }\n}\n\n#[stable(feature = \"rust1\", since = \"1.0.0\")]\n#[rustc_const_unstable(feature = \"const_default\", issue = \"143894\")]\n"
+    },
+    {
+      "claim": "Box calls Global deallocate on original pointer/layout after byte-slice drop",
+      "excerpt_sha256": "fc8add9fbaf8b02268e78a565c1761e35b1dcb57b700198329b418b4b30c9b9f",
+      "file_sha256": "760cb37a7639e6c7287f197f1d59c70b81f510870a58f21f64bbc79641e0f62b",
+      "first_line": 1990,
+      "last_line": 2004,
+      "path": "verification/swift-guarded-snapshot-stdlib-resource-source/official-source/library/alloc/src/boxed.rs",
+      "source": "unsafe impl<#[may_dangle] T: ?Sized, A: Allocator> Drop for Box<T, A> {\n    #[inline]\n    fn drop(&mut self) {\n        // the T in the Box is dropped by the compiler before the destructor is run\n\n        let ptr = self.0;\n\n        unsafe {\n            let layout = Layout::for_value_raw(ptr.as_ptr());\n            if layout.size() != 0 {\n                self.1.deallocate(From::from(ptr.cast()), layout);\n            }\n        }\n    }\n}\n"
+    },
+    {
+      "claim": "Arc AtomicBool payload and implicit Weak, no added allocation",
+      "excerpt_sha256": "e8503fe6bda2a75bd3d5ba8f13243af8ef9b3c85b828787e67d6717c85e375d3",
+      "file_sha256": "b2f806b0f696a181018072625dceed25304aa97dfef6a79bac9800d529afdd0e",
+      "first_line": 2138,
+      "last_line": 2154,
+      "path": "verification/swift-guarded-snapshot-stdlib-resource-source/official-source/library/alloc/src/sync.rs",
+      "source": "    unsafe fn drop_slow(&mut self) {\n        // Drop the weak ref collectively held by all strong references when this\n        // variable goes out of scope. This ensures that the memory is deallocated\n        // even if the destructor of `T` panics.\n        // Take a reference to `self.alloc` instead of cloning because 1. it'll last long\n        // enough, and 2. you should be able to drop `Arc`s with unclonable allocators\n        let _weak = Weak { ptr: self.ptr, alloc: &self.alloc };\n\n        // Destroy the data at this time, even though we must not free the box\n        // allocation itself (there might still be weak pointers lying around).\n        // We cannot use `get_mut_unchecked` here, because `self.alloc` is borrowed.\n        unsafe { ptr::drop_in_place(&mut (*self.ptr.as_ptr()).data) };\n    }\n\n    /// Returns `true` if the two `Arc`s point to the same allocation in a vein similar to\n    /// [`ptr::eq`]. This function ignores the metadata of  `dyn Trait` pointers.\n    ///\n"
+    },
+    {
+      "claim": "last_os_error constructs inline raw OS error, without formatting",
+      "excerpt_sha256": "d4c3517151f87e5222aced414d43aaa2c41ca52f245393ce949a8f149bf3b013",
+      "file_sha256": "78710ae8be5b0d60e00bc265e13e99ce3bbe7e43b597d4e415f84f8be827ee75",
+      "first_line": 43,
+      "last_line": 48,
+      "path": "verification/swift-guarded-snapshot-stdlib-resource-source/official-source/library/std/src/io/error.rs",
+      "source": "    pub fn last_os_error() -> Error {\n        Error::from_raw_os_error(errno())\n    }\n\n    /// Creates a new instance of an [`Error`] from a particular OS error code.\n    ///\n"
+    }
+  ],
+  "schema": 1
+}

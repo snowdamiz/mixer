@@ -1,0 +1,61 @@
+{
+  "entries": [
+    {
+      "claim": "exact capacity Layout::array and Global request without rounded physical inference",
+      "excerpt_sha256": "bc880e27d49e325076181a080f6a157b800423efb7f80b4943e26a792f7fd4f8",
+      "file_sha256": "cda0e96514e65a55b8ed559b02b7bc5f2dcb7854695a501ac0b03b0eeab0361c",
+      "first_line": 447,
+      "last_line": 484,
+      "path": "verification/swift-guarded-snapshot-stdlib-resource-source/official-source/library/alloc/src/raw_vec/mod.rs",
+      "source": "    fn try_allocate_in(\n        capacity: usize,\n        init: AllocInit,\n        alloc: A,\n        elem_layout: Layout,\n    ) -> Result<Self, TryReserveError> {\n        // We avoid `unwrap_or_else` here because it bloats the amount of\n        // LLVM IR generated.\n        let layout = match layout_array(capacity, elem_layout) {\n            Ok(layout) => layout,\n            Err(_) => return Err(CapacityOverflow.into()),\n        };\n\n        // Don't allocate here because `Drop` will not deallocate when `capacity` is 0.\n        if layout.size() == 0 {\n            return Ok(Self::new_in(alloc, elem_layout.alignment()));\n        }\n\n        let result = match init {\n            AllocInit::Uninitialized => alloc.allocate(layout),\n            #[cfg(not(no_global_oom_handling))]\n            AllocInit::Zeroed => alloc.allocate_zeroed(layout),\n        };\n        let ptr = match result {\n            Ok(ptr) => ptr,\n            Err(_) => return Err(AllocError { layout, non_exhaustive: () }.into()),\n        };\n\n        // Allocators currently return a `NonNull<[u8]>` whose length\n        // matches the size requested. If that ever changes, the capacity\n        // here should change to `ptr.len() / size_of::<T>()`.\n        Ok(Self {\n            ptr: Unique::from(ptr.cast()),\n            cap: unsafe { Cap::new_unchecked(capacity) },\n            alloc,\n        })\n    }\n\n"
+    },
+    {
+      "claim": "RawVec Drop deallocates owned backing",
+      "excerpt_sha256": "d25d43de6d48f9a348e1ebcda893e0b59dc92281b676be24b40c965d83d31a07",
+      "file_sha256": "cda0e96514e65a55b8ed559b02b7bc5f2dcb7854695a501ac0b03b0eeab0361c",
+      "first_line": 421,
+      "last_line": 429,
+      "path": "verification/swift-guarded-snapshot-stdlib-resource-source/official-source/library/alloc/src/raw_vec/mod.rs",
+      "source": "const unsafe impl<#[may_dangle] T, A: [const] Allocator + [const] Destruct> Drop for RawVec<T, A> {\n    /// Frees the memory owned by the `RawVec` *without* trying to drop its contents.\n    fn drop(&mut self) {\n        // SAFETY: We are in a Drop impl, self.inner will not be used again.\n        unsafe { self.inner.deallocate(T::LAYOUT) }\n    }\n}\n\n#[rustc_const_unstable(feature = \"const_heap\", issue = \"79597\")]\n"
+    },
+    {
+      "claim": "CString boxed-slice transition reuses fully occupied exact requested capacity",
+      "excerpt_sha256": "13e9b32c372dea4a02226753a46191ce49ecc4d1d8c6cfc9f230bf889eb07e40",
+      "file_sha256": "e0c798ff16cf1770ef3266d28440d93dd65402b3afe1df4e184f15af17fb1e3e",
+      "first_line": 1723,
+      "last_line": 1737,
+      "path": "verification/swift-guarded-snapshot-stdlib-resource-source/official-source/library/alloc/src/vec/mod.rs",
+      "source": "    pub fn into_boxed_slice(mut self) -> Box<[T], A> {\n        unsafe {\n            self.shrink_to_fit();\n            let me = ManuallyDrop::new(self);\n            let buf = ptr::read(&me.buf);\n            let len = me.len();\n            buf.into_box(len).assume_init()\n        }\n    }\n\n    /// Converts the Vec into a boxed array. This conversion will discard any spare capacity,\n    /// if there is any, see [`Vec::shrink_to_fit`].\n    /// If you merely wish for a reference to an array, use [`as_array`](https://doc.rust-lang.org/stable/std/primitive.slice.html#method.as_array).\n    ///\n    /// # Errors\n"
+    },
+    {
+      "claim": "implicit Weak releases original allocation on final owner; no new allocation",
+      "excerpt_sha256": "a637d3dde1d09843436397b2ab9b7daef455351c3d0004e97b4b9609ba552577",
+      "file_sha256": "b2f806b0f696a181018072625dceed25304aa97dfef6a79bac9800d529afdd0e",
+      "first_line": 3508,
+      "last_line": 3562,
+      "path": "verification/swift-guarded-snapshot-stdlib-resource-source/official-source/library/alloc/src/sync.rs",
+      "source": "unsafe impl<#[may_dangle] T: ?Sized, A: Allocator> Drop for Weak<T, A> {\n    /// Drops the `Weak` pointer.\n    ///\n    /// # Examples\n    ///\n    /// ```\n    /// use std::sync::{Arc, Weak};\n    ///\n    /// struct Foo;\n    ///\n    /// impl Drop for Foo {\n    ///     fn drop(&mut self) {\n    ///         println!(\"dropped!\");\n    ///     }\n    /// }\n    ///\n    /// let foo = Arc::new(Foo);\n    /// let weak_foo = Arc::downgrade(&foo);\n    /// let other_weak_foo = Weak::clone(&weak_foo);\n    ///\n    /// drop(weak_foo);   // Doesn't print anything\n    /// drop(foo);        // Prints \"dropped!\"\n    ///\n    /// assert!(other_weak_foo.upgrade().is_none());\n    /// ```\n    fn drop(&mut self) {\n        // If we find out that we were the last weak pointer, then its time to\n        // deallocate the data entirely. See the discussion in Arc::drop() about\n        // the memory orderings\n        //\n        // It's not necessary to check for the locked state here, because the\n        // weak count can only be locked if there was precisely one weak ref,\n        // meaning that drop could only subsequently run ON that remaining weak\n        // ref, which can only happen after the lock is released.\n        let inner = if let Some(inner) = self.inner() { inner } else { return };\n\n        if inner.weak.fetch_sub(1, Release) == 1 {\n            acquire!(inner.weak);\n\n            // Make sure we aren't trying to \"deallocate\" the shared static for empty slices\n            // used by Default::default.\n            debug_assert!(\n                !ptr::addr_eq(self.ptr.as_ptr(), &STATIC_INNER_SLICE.inner),\n                \"Arc/Weaks backed by a static should never be deallocated. \\\n                Likely decrement_strong_count or from_raw were called too many times.\",\n            );\n\n            unsafe {\n                self.alloc.deallocate(self.ptr.cast(), Layout::for_value_raw(self.ptr.as_ptr()))\n            }\n        }\n    }\n}\n\n#[stable(feature = \"rust1\", since = \"1.0.0\")]\n"
+    },
+    {
+      "claim": "FileDesc read uses caller buffer and cvt native result",
+      "excerpt_sha256": "99472fd9cb01e397798a652d53b67737c6d239cca03ba750e00f1f80bfd38d38",
+      "file_sha256": "7ae90a0b33ebe207a7025ea0637ea4b9be1ac15631079bb2ef1079a9c3d0142d",
+      "first_line": 138,
+      "last_line": 149,
+      "path": "verification/swift-guarded-snapshot-stdlib-resource-source/official-source/library/std/src/sys/fd/unix.rs",
+      "source": "    pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {\n        let ret = cvt(unsafe {\n            libc::read(\n                self.as_raw_fd(),\n                buf.as_mut_ptr() as *mut libc::c_void,\n                cmp::min(buf.len(), READ_LIMIT),\n            )\n        })?;\n        Ok(ret as usize)\n    }\n\n    #[cfg(not(any(\n"
+    },
+    {
+      "claim": "LP64 declarations",
+      "excerpt_sha256": "ea7e28520f5f3991ab444f9262cb8497a8794ced2cf5e1754795fe82ebed5fb7",
+      "file_sha256": "ea7e28520f5f3991ab444f9262cb8497a8794ced2cf5e1754795fe82ebed5fb7",
+      "first_line": 1,
+      "last_line": 95,
+      "path": "verification/swift-guarded-snapshot-native-interface-bounds/official-libc/src/primitives.rs",
+      "source": "//! This module contains type aliases for C's platform-specific types\n//! and fixed-width integer types.\n//!\n//! The platform-specific types definitions were taken from rust-lang/rust in\n//! library/core/src/ffi/primitives.rs\n//!\n//! The fixed-width integer aliases are deprecated: use the Rust types instead.\n\npub type c_schar = i8;\npub type c_uchar = u8;\npub type c_short = i16;\npub type c_ushort = u16;\n\npub type c_longlong = i64;\npub type c_ulonglong = u64;\n\npub type c_float = f32;\npub type c_double = f64;\n\ncfg_if! {\n    if #[cfg(all(\n        not(windows),\n        not(target_vendor = \"apple\"),\n        not(target_os = \"vita\"),\n        any(\n            target_arch = \"aarch64\",\n            target_arch = \"arm\",\n            target_arch = \"csky\",\n            target_arch = \"hexagon\",\n            target_arch = \"msp430\",\n            target_arch = \"powerpc\",\n            target_arch = \"powerpc64\",\n            target_arch = \"riscv32\",\n            target_arch = \"riscv64\",\n            target_arch = \"s390x\",\n            target_arch = \"xtensa\",\n        )\n    ))] {\n        pub type c_char = u8;\n    } else {\n        // On every other target, c_char is signed.\n        pub type c_char = i8;\n    }\n}\n\ncfg_if! {\n    if #[cfg(any(target_arch = \"avr\", target_arch = \"msp430\"))] {\n        pub type c_int = i16;\n        pub type c_uint = u16;\n    } else {\n        pub type c_int = i32;\n        pub type c_uint = u32;\n    }\n}\n\ncfg_if! {\n    if #[cfg(all(target_pointer_width = \"64\", not(windows)))] {\n        pub type c_long = i64;\n        pub type c_ulong = u64;\n    } else {\n        // The minimal size of `long` in the C standard is 32 bits\n        pub type c_long = i32;\n        pub type c_ulong = u32;\n    }\n}\n\n#[deprecated(since = \"0.2.55\", note = \"Use i8 instead.\")]\npub type int8_t = i8;\n#[deprecated(since = \"0.2.55\", note = \"Use i16 instead.\")]\npub type int16_t = i16;\n#[deprecated(since = \"0.2.55\", note = \"Use i32 instead.\")]\npub type int32_t = i32;\n#[deprecated(since = \"0.2.55\", note = \"Use i64 instead.\")]\npub type int64_t = i64;\n#[deprecated(since = \"0.2.55\", note = \"Use u8 instead.\")]\npub type uint8_t = u8;\n#[deprecated(since = \"0.2.55\", note = \"Use u16 instead.\")]\npub type uint16_t = u16;\n#[deprecated(since = \"0.2.55\", note = \"Use u32 instead.\")]\npub type uint32_t = u32;\n#[deprecated(since = \"0.2.55\", note = \"Use u64 instead.\")]\npub type uint64_t = u64;\n\ncfg_if! {\n    if #[cfg(all(target_arch = \"aarch64\", not(target_os = \"windows\")))] {\n        /// C `__int128` (a GCC extension that's part of many ABIs)\n        pub type __int128 = i128;\n        /// C `unsigned __int128` (a GCC extension that's part of many ABIs)\n        pub type __uint128 = u128;\n        /// C __int128_t (alternate name for [__int128][])\n        pub type __int128_t = i128;\n        /// C __uint128_t (alternate name for [__uint128][])\n        pub type __uint128_t = u128;\n    }\n}\n"
+    }
+  ],
+  "rust_revision": "b940084d7eb6a299eb4bfeb8e34901bc051e7ac4",
+  "schema": 1,
+  "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185"
+}

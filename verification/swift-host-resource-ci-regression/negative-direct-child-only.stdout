@@ -1,0 +1,134 @@
+{
+  "schema": 1,
+  "mode": "negative-direct-child-only",
+  "test": "test_timeout_kills_all_owned_group_members_and_returns_children",
+  "at": "2026-10-27T13:16:31.655579+00:00",
+  "elapsed_seconds": 10.285339999943972,
+  "passed": false,
+  "failures": [],
+  "errors": [
+    "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/check-analyzer-envelope.py\", line 283, in run\n    proc.wait(timeout=budget)\n    ~~~~~~~~~^^^^^^^^^^^^^^^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/tests/test_analyzer_envelope_runner.py\", line 83, in wait_ready\n    return wait(timeout=timeout)\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/tests/test_analyzer_envelope_runner.py\", line 293, in wait_group\n    result = wait(timeout=timeout)\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/swift-host-resource-ci-regression/checks.py\", line 45, in record_wait\n    row['returncode'] = wait(timeout=timeout)\n                        ~~~~^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py\", line 1279, in wait\n    return self._wait(timeout=timeout)\n           ~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py\", line 2076, in _wait\n    raise TimeoutExpired(self.args, timeout)\nsubprocess.TimeoutExpired: Command '['/opt/homebrew/opt/python@3.14/bin/python3.14', '-c', 'import sys,time;from pathlib import Path;member=Path(\\'/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-envelope-runner-controls-y4hqpyoz/group-member.ready\\');\\nwhile not member.is_file(): time.sleep(.01)\\nprint(\"group-member-started\",flush=True);Path(sys.argv[1]).write_text(\"ready\");time.sleep(20)', '/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-envelope-runner-controls-y4hqpyoz/group.ready']' timed out after 0.2 seconds\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/check-analyzer-envelope.py\", line 286, in run\n    self.stop_group(proc, row)\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/check-analyzer-envelope.py\", line 243, in stop_group\n    proc.wait(timeout=5)\n    ~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/tests/test_analyzer_envelope_runner.py\", line 83, in wait_ready\n    return wait(timeout=timeout)\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/tests/test_analyzer_envelope_runner.py\", line 294, in wait_group\n    member.wait(timeout=5)\n    ~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/swift-host-resource-ci-regression/checks.py\", line 45, in record_wait\n    row['returncode'] = wait(timeout=timeout)\n                        ~~~~^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py\", line 1279, in wait\n    return self._wait(timeout=timeout)\n           ~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py\", line 2076, in _wait\n    raise TimeoutExpired(self.args, timeout)\nsubprocess.TimeoutExpired: Command '['/opt/homebrew/opt/python@3.14/bin/python3.14', '-c', 'import json,os,sys,time;from pathlib import Path;Path(sys.argv[1]).write_text(json.dumps({\"pid\":os.getpid(),\"pgid\":os.getpgrp()}));time.sleep(20)', '/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-envelope-runner-controls-y4hqpyoz/group-member.ready']' timed out after 5 seconds\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/tests/test_analyzer_envelope_runner.py\", line 305, in test_timeout_kills_all_owned_group_members_and_returns_children\n    self.ready_timeout(c, 'group', code, popen=spawn_group)\n    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/tests/test_analyzer_envelope_runner.py\", line 89, in ready_timeout\n    self.raises(commands.run, name, [sys.executable, '-c', code, str(ready)],\n    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                cwd=self.base, timeout=.2)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/tests/test_analyzer_envelope_runner.py\", line 47, in raises\n    function(*args, **kwargs)\n    ~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/swift-host-resource-ci-regression/checks.py\", line 59, in record_run\n    return run(self, *args, **kwargs)\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/check-analyzer-envelope.py\", line 301, in run\n    self.stop_group(proc, row)\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/check-analyzer-envelope.py\", line 243, in stop_group\n    proc.wait(timeout=5)\n    ~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/tests/test_analyzer_envelope_runner.py\", line 83, in wait_ready\n    return wait(timeout=timeout)\n  File \"/Users/andreyyurlov/Documents/dev/mixer/scripts/ci/tests/test_analyzer_envelope_runner.py\", line 294, in wait_group\n    member.wait(timeout=5)\n    ~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/swift-host-resource-ci-regression/checks.py\", line 45, in record_wait\n    row['returncode'] = wait(timeout=timeout)\n                        ~~~~^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py\", line 1279, in wait\n    return self._wait(timeout=timeout)\n           ~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py\", line 2076, in _wait\n    raise TimeoutExpired(self.args, timeout)\nsubprocess.TimeoutExpired: Command '['/opt/homebrew/opt/python@3.14/bin/python3.14', '-c', 'import json,os,sys,time;from pathlib import Path;Path(sys.argv[1]).write_text(json.dumps({\"pid\":os.getpid(),\"pgid\":os.getpgrp()}));time.sleep(20)', '/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-envelope-runner-controls-y4hqpyoz/group-member.ready']' timed out after 5 seconds\n"
+  ],
+  "commands": [
+    {
+      "name": "group",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-c",
+        "import sys,time;from pathlib import Path;member=Path('/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-envelope-runner-controls-y4hqpyoz/group-member.ready');\nwhile not member.is_file(): time.sleep(.01)\nprint(\"group-member-started\",flush=True);Path(sys.argv[1]).write_text(\"ready\");time.sleep(20)",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-envelope-runner-controls-y4hqpyoz/group.ready"
+      ],
+      "cwd": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-envelope-runner-controls-y4hqpyoz",
+      "environment": {
+        "PATH": "/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/andreyyurlov/.local/bin:/Users/andreyyurlov/.bun/bin:/Users/andreyyurlov/.local/state/fnm_multishells/27882_1792943790093/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/opt/homebrew/bin:/Users/andreyyurlov/.codex/tmp/arg0/codex-arg0vfC1Qy:/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/andreyyurlov/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/andreyyurlov/.local/bin:/Users/andreyyurlov/.bun/bin:/Users/andreyyurlov/.local/state/fnm_multishells/11246_1792761103599/bin:/opt/homebrew/sbin:/Users/andreyyurlov/.docker/bin:/Users/andreyyurlov/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/Applications/ChatGPT.app/Contents/Resources:/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS:/Users/andreyyurlov/.docker/bin",
+        "HOME": "/Users/andreyyurlov",
+        "TMPDIR": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/",
+        "RUSTUP_AUTO_INSTALL": "0",
+        "LC_ALL": "C"
+      },
+      "environment_policy": "allowlist",
+      "caller_injection_variables_removed": [
+        "RUSTFLAGS",
+        "CARGO_ENCODED_RUSTFLAGS",
+        "RUSTC_WRAPPER",
+        "RUSTC_WORKSPACE_WRAPPER",
+        "RUSTC",
+        "RUSTDOCFLAGS",
+        "RUST_TEST_THREADS",
+        "RUST_TEST_NOCAPTURE",
+        "RUST_TEST_TIME_UNIT",
+        "RUST_TEST_TIME_INTEGRATION",
+        "RUST_TEST_TIME_DOCTEST",
+        "RUST_TEST_SHUFFLE",
+        "RUST_TEST_SHUFFLE_SEED",
+        "RUST_TEST_FORCE_RUN_IN_PROCESS",
+        "RUST_TEST_RUN_IGNORED"
+      ],
+      "started_utc": "2026-10-27T13:16:21.373365+00:00",
+      "timeout_seconds": 0.2,
+      "exit": null,
+      "timed_out": true,
+      "child_returned": false,
+      "owned_group_gone": false,
+      "pid": 47484,
+      "owned_pgid": 47484,
+      "owned_group_killed": true
+    }
+  ],
+  "signals": [
+    {
+      "pgid": 47484,
+      "signal": 9
+    },
+    {
+      "pgid": 47484,
+      "signal": 9
+    }
+  ],
+  "owned_children": [
+    {
+      "pid": 47484,
+      "returncode": -9,
+      "direct_child_returned": true
+    },
+    {
+      "pid": 47485,
+      "returncode": -9,
+      "direct_child_returned": true
+    }
+  ],
+  "waits": [
+    {
+      "pid": 47484,
+      "timeout": 0.2,
+      "exception": "TimeoutExpired",
+      "elapsed_seconds": 0.20121395913884044
+    },
+    {
+      "pid": 47484,
+      "timeout": 5,
+      "returncode": -9,
+      "elapsed_seconds": 0.0015399169642478228
+    },
+    {
+      "pid": 47485,
+      "timeout": 5,
+      "exception": "TimeoutExpired",
+      "elapsed_seconds": 5.006850750185549
+    },
+    {
+      "pid": 47484,
+      "timeout": 5,
+      "returncode": -9,
+      "elapsed_seconds": 9.041046723723412e-06
+    },
+    {
+      "pid": 47485,
+      "timeout": 5,
+      "exception": "TimeoutExpired",
+      "elapsed_seconds": 5.001115458086133
+    },
+    {
+      "pid": 47485,
+      "timeout": 5,
+      "returncode": -9,
+      "elapsed_seconds": 0.0015431251376867294
+    },
+    {
+      "pid": 47484,
+      "timeout": 5,
+      "returncode": -9,
+      "elapsed_seconds": 9.168870747089386e-07
+    },
+    {
+      "pid": 47485,
+      "timeout": 5,
+      "returncode": -9,
+      "elapsed_seconds": 2.50060111284256e-07
+    }
+  ],
+  "all_exact_owned_children_returned": true,
+  "production_runner_sha256": "4c56beec330b8118f01be3a6e7460f9857e4b1e8b61f29b4a9bce16fb6c1130c",
+  "test_source_sha256": "8eac83b0e1ec6f32f6db5b7103eeaeee10942322f3430ca9dc75f92e79b38f9f",
+  "scope": "two directly waitable real group members; no orphan-reaping qualification"
+}

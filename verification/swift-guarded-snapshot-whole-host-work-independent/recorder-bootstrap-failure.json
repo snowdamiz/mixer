@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "command": "python3 -B verification/swift-guarded-snapshot-whole-host-work-independent/run.py producer-derive",
+  "exit_code": 1,
+  "stage": "Receipt-directory allocation before child launch",
+  "error": "FileExistsError: [Errno 17] File exists: verification/swift-guarded-snapshot-whole-host-work-independent/commands/attempt-001",
+  "reason": "Two read-only replays used a shared check-then-create receipt-directory allocation. The recorder itself is a mutation and must allocate directories atomically.",
+  "correction": "Atomic mkdir loop; successful producer test attempt remains untouched.",
+  "child_launched": false,
+  "candidate_or_source_mutated": false,
+  "compiler_or_native_run": false
+}
