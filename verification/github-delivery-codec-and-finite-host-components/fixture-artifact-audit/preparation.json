@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "at": "2026-10-27T01:49:32.896284+00:00",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "source_revision": "1734ea490c7c65c0086a6c60dd20c3687131c26b",
+  "source_tree": "6bd8baa4d20339764a000bc2c4babe66e0a12994",
+  "run": 40433480424,
+  "scripts": [
+    {
+      "source": "verification/github-delivery-source-pair5-component-review/fixture-artifact-audit/collect.py",
+      "source_sha256": "428ad792f8a2c7dd6a0d83d11abde3922a744d2e410e2e9908a38bbe11ea227e",
+      "target": "verification/github-delivery-codec-and-finite-host-components/fixture-artifact-audit/collect.py",
+      "adapted_digest": {
+        "bytes": 3304,
+        "sha256": "508a43da1178d9acb8502fa7b3242ca7cc6fde2cc240c06242cec6efcaaa0358"
+      },
+      "diff": "--- verification/github-delivery-source-pair5-component-review/fixture-artifact-audit/collect.py\n+++ verification/github-delivery-codec-and-finite-host-components/fixture-artifact-audit/collect.py\n@@ -5,9 +5,9 @@\n import sys\n from capture import capture, digest, ROOT, REPO\n \n-SHA = '6450104dc3b02d0f4d4e572c6b05ad7fdc6657b2'\n-TREE = 'b6dc1f9e74933989781e0acb5ee086717a596d9d'\n-RUN = 40418529771\n+SHA = '1734ea490c7c65c0086a6c60dd20c3687131c26b'\n+TREE = '6bd8baa4d20339764a000bc2c4babe66e0a12994'\n+RUN = 40433480424\n assert __debug__ and not (ROOT / 'source-custody.json').exists()\n capture('gh-version', ['gh', '--version'])\n capture('git-version', ['git', '--version'])\n"
+    },
+    {
+      "source": "verification/github-delivery-source-pair5-component-review/fixture-artifact-audit/capture.py",
+      "source_sha256": "fc745e4b78a9fcfc1c9f1b35af8bcd0303156930a4e3b998c471365337d00ba8",
+      "target": "verification/github-delivery-codec-and-finite-host-components/fixture-artifact-audit/capture.py",
+      "adapted_digest": {
+        "bytes": 1507,
+        "sha256": "fc745e4b78a9fcfc1c9f1b35af8bcd0303156930a4e3b998c471365337d00ba8"
+      },
+      "diff": ""
+    },
+    {
+      "source": "verification/github-delivery-source-pair5-component-review/fixture-artifact-audit/audit-content.py",
+      "source_sha256": "7b111cceb05a5ca23d3ac0734bc44931eac85f85705e203ea9c975a6dc381431",
+      "target": "verification/github-delivery-codec-and-finite-host-components/fixture-artifact-audit/audit-content.py",
+      "adapted_digest": {
+        "bytes": 31033,
+        "sha256": "878a45d0283eefaf871137243606d771a0e0ba146d2ba37d10c35cc34649596c"
+      },
+      "diff": "--- verification/github-delivery-source-pair5-component-review/fixture-artifact-audit/audit-content.py\n+++ verification/github-delivery-codec-and-finite-host-components/fixture-artifact-audit/audit-content.py\n@@ -14,7 +14,7 @@\n \n HERE = Path(__file__).absolute().parent\n CANONICAL = HERE / 'sources/verification/swift-cache-state-ci'\n-RUN_PREFIX = 'runs/ci-40418529771-1'\n+RUN_PREFIX = 'runs/ci-40433480424-1'\n DATA = {}\n class ArchivePath:\n     def __init__(self,path=''): self.path = str(path).strip('/')\n@@ -26,8 +26,8 @@\n     def __str__(self): return self.path\n RUN = ArchivePath(RUN_PREFIX)\n EXPECTED_RUNNER = 'e531311facb7b38967d3b904b26e92ff3f6c4dc7444c856cd799b70a1d91373b'\n-EXPECTED_REVISION = '6450104dc3b02d0f4d4e572c6b05ad7fdc6657b2'\n-EXPECTED_TREE = 'b6dc1f9e74933989781e0acb5ee086717a596d9d'\n+EXPECTED_REVISION = '1734ea490c7c65c0086a6c60dd20c3687131c26b'\n+EXPECTED_TREE = '6bd8baa4d20339764a000bc2c4babe66e0a12994'\n APPEND = b'\\n#[cfg(test)]\\n#[path = \"../selected_controls.rs\"]\\nmod selected_scalar_controls;\\n\\n#[cfg(test)]\\n#[path = \"../scalar_cursor_independent.rs\"]\\nmod scalar_cursor_independent;\\n'\n \n def sha(path):\n@@ -48,10 +48,10 @@\n     archive = HERE / 'fixture-artifact.zip'\n     raw = archive.read_bytes()\n     metadata = strict((HERE / 'artifact-metadata.stdout').read_bytes())\n-    name = 'swift-cache-state-fixture-' + EXPECTED_REVISION + '-40418529771-1'\n+    name = 'swift-cache-state-fixture-' + EXPECTED_REVISION + '-40433480424-1'\n     artifact, = [a for a in metadata['artifacts'] if a['name'] == name]\n     assert artifact['digest'] == 'sha256:' + hashlib.sha256(raw).hexdigest()\n-    assert artifact['workflow_run']['id'] == 40418529771 and artifact['workflow_run']['head_sha'] == EXPECTED_REVISION and not artifact['expired']\n+    assert artifact['workflow_run']['id'] == 40433480424 and artifact['workflow_run']['head_sha'] == EXPECTED_REVISION and not artifact['expired']\n     member_rows = []\n     with zipfile.ZipFile(archive) as z:\n         for info in z.infolist():\n"
+    },
+    {
+      "source": "verification/github-delivery-source-pair5-component-review/fixture-artifact-audit/finalize.py",
+      "source_sha256": "fcc50b3c5d4fb472982e11760299369a908fcb7bd22a6ff9018711f8e4926725",
+      "target": "verification/github-delivery-codec-and-finite-host-components/fixture-artifact-audit/finalize.py",
+      "adapted_digest": {
+        "bytes": 4679,
+        "sha256": "fcc50b3c5d4fb472982e11760299369a908fcb7bd22a6ff9018711f8e4926725"
+      },
+      "diff": ""
+    }
+  ],
+  "scope": "Exact copied reviewed data-only auditor with only run/source revision/tree adaptations; no artifact code execution or extraction.",
+  "execution_started": false
+}

@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "at": "2026-10-27T01:53:08.494364+00:00",
+  "source_revision": "1734ea490c7c65c0086a6c60dd20c3687131c26b",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "commands": [
+    {
+      "argv": [
+        "ruby",
+        "--version"
+      ],
+      "exit": 0,
+      "stdout": "ruby 4.0.7 (2026-09-15 revision 229531a6cf) +PRISM [arm64-darwin27]\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "ruby",
+        "-e",
+        "require \"yaml\"; require \"json\"; x=YAML.safe_load(File.read(ARGV[0])); abort \"schema\" unless x[\"schema\"]==1; puts JSON.generate({schema:x[\"schema\"],dependencies:x[\"dependencies\"].length,apple:x[\"dependencies\"].find{|d|d[\"owner\"]==\"apple\"}})",
+        "THIRD_PARTY.yml"
+      ],
+      "exit": 0,
+      "stdout": "{\"schema\":1,\"dependencies\":49,\"apple\":{\"name\":\"Apple SDKs, CryptoKit, CommonCrypto and Darwin system APIs\",\"origin\":\"https://developer.apple.com\",\"version\":\"Xcode-27.1\",\"license\":\"Apple-SDK-agreements\",\"purpose\":\"native-UI-established-cryptography-and-URLSession-system-HTTP-TLS\",\"distribution\":\"system-frameworks-not-vendored\",\"owner\":\"apple\",\"selected_host_use\":\"isolated-retained-profile-loader-SHA256-and-bounded-raw-process-observations\",\"inventory_receipt\":\"verification/swift-semantic-adapter-root-review/real-loader-first-implementation-selection.json\",\"qualification\":\"loader-host-implementation-selected-source-behavior-lifetime-review-pending-no-runtime-adoption-or-authenticated-package-acceptance\"}}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "PLAN.md",
+        "STATUS.md",
+        "work-graph.json",
+        "gates/ga.json",
+        "THIRD_PARTY.yml"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "metadata_sha256": {
+    "PLAN.md": "350ae0ad41679a24b3b5574f35a690eae4b1e40906fb0068348017dbbf54505b",
+    "STATUS.md": "18c138b747c57990830583593d50fd666424dddd8ef070c66fd83faaeffbc54d",
+    "work-graph.json": "5a880f02a30f2117fea5d51897a4214d8fcc33908a03ad9ff097609d9e89207f",
+    "gates/ga.json": "8dc2da2ec3fa6a8d259e3b9dc1c38b7f197455044e29cd14edeae924821c82c1",
+    "THIRD_PARTY.yml": "545b109ba17530f828f0663c96fe42fbbbf74f43999c449390118ba678117712"
+  },
+  "packages": 18,
+  "gates": {
+    "running": 8,
+    "planned": 30,
+    "verified": 0
+  },
+  "both_candidate_mirrors_equal": true,
+  "protected_dirty_work_unchanged": {
+    ".github/workflows/hosted.yml": "fafd2560cc385a4113ea140bf2d4445d456e1f7f396539dfe2c3e7d6302e8b57",
+    "hosted/lib/mixer_hosted/browser_auth/store.ex": "8c314b1d3ce288a6dc617251233796bd0a9d8894247ccb15b101e1292e513299"
+  },
+  "scope": "Current root metadata and new selected Apple platform attribution only; no runtime/GA acceptance."
+}

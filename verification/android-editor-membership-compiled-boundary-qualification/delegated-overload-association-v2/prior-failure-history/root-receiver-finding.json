@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "at": "2026-10-27T01:47:41.150968+00:00",
+  "status": "raw-global-receiver-association-gap",
+  "packet_sha256": "8982c8e5e30165487d69e80e703d2a5610498883dd9421cb90d84431b16be12f",
+  "members_verified": 14,
+  "member_bytes": 79576,
+  "source_revision": "1734ea490c7c65c0086a6c60dd20c3687131c26b",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "fresh_tests": {
+    "argv": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "-B",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-subject-typed-join-validator-delegated-addendum/test_delegated_raw.py"
+    ],
+    "exit": 0,
+    "elapsed_seconds": 0.43468874995596707,
+    "tests": 13
+  },
+  "independent_mutation": {
+    "method": "BaseInputConnection.setComposingRegion",
+    "replace_both_raw_receiver_identity": "android.view.inputmethod.BaseInputConnection@row-999999",
+    "original_target_unchanged": "android.view.inputmethod.BaseInputConnection@1",
+    "original_raw_receivers": [
+      "android.view.inputmethod.BaseInputConnection@row-10",
+      "android.view.inputmethod.BaseInputConnection@row-10"
+    ],
+    "actual_result": {
+      "state": "current",
+      "state_phase": "native-hook-before-return",
+      "canonical_alias": "clean",
+      "native_entries": 1,
+      "actual_normal_native_returns": 2,
+      "selected_event_index": 125,
+      "return_event_index": 125,
+      "native_result": {
+        "kind": "boolean",
+        "value": true
+      },
+      "public_outcome": {
+        "value": true,
+        "kind": "boolean"
+      },
+      "join": "typed-consistent",
+      "supplier_helper_body_outcome": "pending-no-method-exit-observation",
+      "qualified": false,
+      "policy_sha256": "83b33c36c1945c137619d166f1f403bac142ecdb1144a34c3a1e9b19d3e41acf",
+      "source_class_context": "requires-enclosing-immutable-product-source-and-class-verification",
+      "state_mutation_and_authority_review": "pending; typed data consistency is not state/helper/body admission",
+      "execution_closure": "pending-external-trusted-source-closure",
+      "native": "pending",
+      "OTA": "pending",
+      "GA": "pending"
+    }
+  },
+  "finding": "Raw ordinal receiver and global original/outcome receiver lack an emitted identity map. The helper checks only receiver class plus positive ordinal; changed raw identities are called typed-consistent. Actual Java recorder uses object identity, but serialized cross-representation equality is not independently checkable.",
+  "required_next": "Retain actual source-generated ordinal/global receiver binding and validate exact selected event/outcome joins. Preserve v1; no broad authority acceptance.",
+  "qualification_granted": false,
+  "native_UI_capture_process_inventory_started": false
+}

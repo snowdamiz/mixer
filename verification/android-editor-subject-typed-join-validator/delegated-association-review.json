@@ -1,0 +1,164 @@
+{
+  "schema": 1,
+  "input_seal_sha256": "68916bf61a5204f022c7e0e6190dd698f621924b25389c3ffcd4989fbbed3104",
+  "checked_members": {
+    "delegated_association.py": "32a37f1e317e08751c14c397c985ecde326120b0b56109013d056023cf05413e",
+    "test_delegated_association.py": "942968d627e99422be8fe0041d14835042044f30d932e85348361fc6435f205a",
+    "producer-run/OutcomeCapture.java": "147e11c79995c8a67e2b5cc446b4b5d93c0d13d1cefe1f927f7c223449b42d5b",
+    "producer-run/DirectBoundaryStates.java": "6d0f623c95e1abc4fbd76769ddf47e4e0f506f7cace704e9c07dc12ac15a0eaa",
+    "producer-run/EventJoinControls.java": "8119a543b6262312addff5773f5d3867bdc3152ed2957c5bb1f2acdb07e1d9bb",
+    "inputs/102/NativeOutcomeProbe.java": "cb230d4f73b44e40dd2d305762b9289da9652f61fe0253353c0796d6b71d5c13",
+    "producer-run/event-join-controls.stdout": "8e12be5e7ddc4579f97d31423071da87b997db898edc67bda85f601e7ecee610",
+    "standalone-replay/EventJoinControls.stdout": "8e12be5e7ddc4579f97d31423071da87b997db898edc67bda85f601e7ecee610"
+  },
+  "positive_reviews": [
+    {
+      "input": "producer-run/direct-setComposingRegionWithAttributes.rows.jsonl.gz",
+      "pair_helper_rows_checked": 13,
+      "independent_current_join": {
+        "selected_event_sequence_index": 125,
+        "raw_event_frame_set": 52,
+        "entry_index": 120,
+        "native_normal_returns": 2,
+        "public_result": true,
+        "qualified": false
+      }
+    },
+    {
+      "input": "standalone-replay/attribute-states.rows.jsonl.gz",
+      "pair_helper_rows_checked": 13,
+      "independent_current_join": {
+        "selected_event_sequence_index": 125,
+        "raw_event_frame_set": 52,
+        "entry_index": 120,
+        "native_normal_returns": 2,
+        "public_result": true,
+        "qualified": false
+      }
+    }
+  ],
+  "mutation_controls": [
+    {
+      "name": "wrong-one-frame",
+      "producer_pair_helper": {
+        "refused": true,
+        "reason": "actual delegated own receiver and full frame-chain equality"
+      },
+      "independent_raw_join": {
+        "refused": true,
+        "reason": "immutable complete raw frame chain"
+      }
+    },
+    {
+      "name": "missing-both-frames",
+      "producer_pair_helper": {
+        "refused": true,
+        "reason": "actual complete selected product frame chain"
+      },
+      "independent_raw_join": {
+        "refused": true,
+        "reason": "immutable complete raw frame chain"
+      }
+    },
+    {
+      "name": "coherent-truncated-frame-chain",
+      "producer_pair_helper": {
+        "refused": false
+      },
+      "independent_raw_join": {
+        "refused": true,
+        "reason": "immutable complete raw frame chain"
+      }
+    },
+    {
+      "name": "coherent-wrong-event-index",
+      "producer_pair_helper": {
+        "refused": false
+      },
+      "independent_raw_join": {
+        "refused": true,
+        "reason": "selected exact immutable event index"
+      }
+    },
+    {
+      "name": "coherent-wrong-receiver",
+      "producer_pair_helper": {
+        "refused": false
+      },
+      "independent_raw_join": {
+        "refused": true,
+        "reason": "immutable selected original receiver binding"
+      }
+    },
+    {
+      "name": "coherent-wrong-native-value",
+      "producer_pair_helper": {
+        "refused": false
+      },
+      "independent_raw_join": {
+        "refused": true,
+        "reason": "current native and public exact actual typed value"
+      }
+    },
+    {
+      "name": "wrong-outer-descriptor",
+      "producer_pair_helper": {
+        "refused": true,
+        "reason": "selected actual delegated descriptor order"
+      },
+      "independent_raw_join": {
+        "refused": true,
+        "reason": "exact pair descriptor order"
+      }
+    },
+    {
+      "name": "intervening-raw-native-entry",
+      "producer_pair_helper": {
+        "refused": false
+      },
+      "independent_raw_join": {
+        "refused": true,
+        "reason": "one actual entry/return pair; no intervening or duplicate entry"
+      }
+    },
+    {
+      "name": "duplicate-outer-completion",
+      "producer_pair_helper": {
+        "refused": true,
+        "reason": "missing or doubled actual delegated completion"
+      },
+      "independent_raw_join": {
+        "refused": true,
+        "reason": "exact pair count"
+      }
+    }
+  ],
+  "source_findings": [
+    {
+      "source": "producer-run/OutcomeCapture.java:7-11",
+      "finding": "Capture faults dirty the attempt; end latches cleanliness. Original return/exception identity is preserved by NativeOutcomeProbe. No authority decision is granted."
+    },
+    {
+      "source": "producer-run/OutcomeCapture.java:14-21",
+      "finding": "Actual boolean/integer and selected mutable text/reference snapshots are distinct. Unsupported reference bodies and absent outcomes do not supply typed snapshot/body coverage."
+    },
+    {
+      "source": "producer-run/DirectBoundaryStates.java:34-44",
+      "finding": "Recorder binds actual receiver object and exact complete frame chain to immutable original events. Only the exact inner(II)Z -> outer(II,TextAttribute)Z descriptor pair can share the last return, with equal actual Boolean values; extra pending entry, wrong value/receiver/order/descriptor and duplicate outer refuse."
+    },
+    {
+      "source": "producer-run/EventJoinControls.java:26-30",
+      "finding": "Frozen JVM controls cover real two-return/one-event delegation and actual wrong value, intervening entry, wrong descriptor, duplicate outer, wrong receiver and missing inner/order refusal. This review did not rerun a JVM."
+    },
+    {
+      "source": "delegated_association.py:5-23",
+      "finding": "The pair-level offline helper checks two typed observations, exact descriptors/order, equality, fixed first caller BCI and markers. It does not itself authenticate raw event index/full frame chain, original authority receiver, raw intervening entry or native/public value. Coherent data mutations accepted by that helper are refused by the independent bounded raw join."
+    }
+  ],
+  "source_recorder_association_verdict": "bounded exact source-selected delegation supported; missing body outcomes remain pending",
+  "pair_helper_general_use": "requires immutable raw/compact binding plus source-specific public result checks; pair helper alone is insufficient",
+  "execution_closure": "excluded and pending",
+  "stopped_v5_experiment": "excluded",
+  "native_runtime_started": false,
+  "qualified": false
+}

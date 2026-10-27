@@ -1,0 +1,11 @@
+--- before-run30/LegacyBoundaryStates.java
++++ receiver-bridge-run32/LegacyBoundaryStates.java
+@@ -27,7 +27,7 @@
+    selectedNow[0]=true;}))return;if(!selectedNow[0])return;NativeOwnerV2 owner=(NativeOwnerV2)DirectBoundaryStates.get(fixture[0],"owner");
+    if(state.startsWith("dirty"))owner.onPause();else if(!state.equals("clean"))owner.close();if(state.equals("ordinary-throw-after-callback"))throw ordinary;if(state.equals("fatal-throw-after-callback"))throw fatal;
+   };ConcreteHostProbe.installQualificationHook(selectedHook);
+-  try{if(scenario.equals("eligible-toggle-rollback"))eligibleToggleRollback();else run.invoke(null,scenario);}catch(InvocationTargetException f){escaped=f.getCause();}catch(RuntimeException|Error f){escaped=f;}finally{ConcreteHostProbe.clearQualificationHook(selectedHook);ConcreteHostProbe.hook=null;trace.event(null);outcomes.end();row.put("outcome_capture_diagnostic",outcomes.diagnostic());}
++  try{if(scenario.equals("eligible-toggle-rollback"))eligibleToggleRollback();else run.invoke(null,scenario);}catch(InvocationTargetException f){escaped=f.getCause();}catch(RuntimeException|Error f){escaped=f;}finally{ConcreteHostProbe.clearQualificationHook(selectedHook);ConcreteHostProbe.hook=null;trace.event(null);outcomes.end();row.put("native_receiver_bindings",List.copyOf(trace.receiverBindings));row.put("outcome_capture_diagnostic",outcomes.diagnostic());}
+   try{
+    DirectBoundaryStates.require(fired[0],"fresh exact callback not reached");NativeOwnerV2 owner=(NativeOwnerV2)DirectBoundaryStates.get(fixture[0],"owner");NativeOwnerV2.Fence fence=(NativeOwnerV2.Fence)DirectBoundaryStates.get(owner,"fence");row.put("post_fence",Map.of("terminal",fence.terminal,"draw_allowed",fence.drawAllowed,"input_allowed",fence.inputAllowed));row.put("jni_commit_at_hook",commits[0]);row.put("jni_commit_after_scenario",NativeBridge.commitCalls);row.put("owner_first_fatal_exact",owner.cleanupLedger().firstFatal()==fatal);row.put("owner_primary_class",owner.cleanupLedger().primary()==null?null:owner.cleanupLedger().primary().getClass().getName());
+    if(state.equals("clean"))DirectBoundaryStates.require(escaped==null,"unchanged positive scenario failed");

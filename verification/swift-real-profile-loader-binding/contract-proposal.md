@@ -1,0 +1,29 @@
+# Actual retained-source loader/carrier proposal
+
+Pending root selection. Scope: isolated source copied from frozen codec distribution142 plus unchanged host support11. The codec is not considered root-accepted until root says so. Own only this packet.
+
+Preserve public `ValidatedSwiftReactor`, all current owner/control/cache/guard layouts and API, original validation behavior and all existing caps. First implement the genuine retained source loader and private carrier without invoking a new runtime ownership path. Runtime AdoptedProof sidecar/shared-adoption/layout integration remains a required follow-up with its own exact accounting and root selection.
+
+## Ingress and result ownership
+
+Proposed sole private entry consumes safely opened `std::fs::File` source/build/session handles; it must never accept a raw descriptor or use from_raw_fd. It returns all retained handles with success or failure so it does not silently claim close success through File::drop. The caller retains cleanup/name obligations; returning a handle is not cleanup. If the loader opens its own current executable handle it must return that handle too. Typed failures preserve original `SwiftValidationFailure` inline and all I/O role/offset/attempt coordinates; no Debug parser or error-string authority.
+
+Each actual File must be regular, initially offset0, have exact finite expected extent, and remain equal in dev/inode/size/mtime/ctime pre/post metadata in the accepted trusted quiescent local scope. Read blocks<=4096 and explicit calls<=32/block, including Interrupted; a completed32nd call succeeds, incomplete32nd refuses, no33rd call. Exact EOF gets a separate one-byte bounded request. No retry/read growth outside this closed loop. Source is<=the actual selected five-limit source bound and the unchanged64MiB maximum; build<=128KiB, session<=64KiB, self executable<=64MiB. Exact allocations use try_reserve_exact and reject capacity mismatch before read. Hashing the executable completes and drops that allocation before source+proof coexist.
+
+The loader calls the original complete `validate_swift_reactor` with the actual complete five-field `SwiftValidationBudget`, keeps the loaded source live, and compares every returned proof.source byte against the loaded buffer. Length/hash claims alone are insufficient. Only this path can construct `SelectedValidatedProfileV1 { proof: ValidatedSwiftReactor, provenance: LoaderProvenanceV1 }`; no Clone, deserializer, proof extraction or caller-construction path. Captured provenance contains the actual budget, source byte extent, source/tree/build/session/self-executable commitments and session nonce. Inspection borrows must remain tied to the carrier borrow.
+
+## Provenance boundary
+
+A trusted bounded host runner verifies every member of the complete candidate distribution142+host11 before/after compilation; it records exact compiler executable/version, argv, selected environment, target/configuration, output bytes/hash, and build preimage. It injects exact source-tree/command identities through compile-time env values. The runtime loader verifies retained build preimage joins with those embedded identities and verifies actual current executable bytes against its build output. It also verifies the actual session preimage joins to source/build/five limits and observed argv/environment/cwd in the root-selected closed schema. No boolean, arbitrary digest argument, git revision, basename or partial manifest grants provenance.
+
+Use standard cryptography only. Proposed selected-host SHA256 is CommonCrypto CC_SHA256 through a minimal bounded macOS-only audited FFI; alternative requires root-selected reviewed general-purpose dependency. No custom primitive. Hashes are correlation commitments under the trusted-launcher/quiescent-local assumption. There is no signed package/build trust root or hostile-parent protection, and no OTA/public release authorization.
+
+## Required concrete controls
+
+Genuine complete proof and exact actual budget capture; independently substituted source/build/session/current-binary/tree/flags/nonces refuse; all five limit narrowing/widening paths and original cancellation/malformed/deadline diagnostics; regular/offset/extent and changed metadata; exact EOF/extra/short; Interrupted/short-read32nd success and failure without33rd; allocation failure/capacity mismatch; returned File identities and no hidden close; source equality while both allocations live; carrier literal/clone/deserializer/raw-proof extraction/input-mutation/borrow-escape privacy compilation failures; actual source/build outputs and before/after manifests, Debug/optimized ordinary builds, typed lifetime accounting.
+
+## Accounting and remaining work
+
+New runtime adoption is not invoked in this stage. Loader allocation phases are explicit: executable<=64MiB plus build128KiB/session64KiB, then loaded source<=64MiB + retained proof source<=64MiB + original validation metadata<=16MiB/scratch<=1MiB + retained preimages + finite named fixed objects and result-move slots. This is logical source-object accounting, not RSS or complete compiler-stack accounting. Include actual result/handle/header/move/discriminant sizes per selected config; return original validation usage, do not borrow the unrelated cache_work scalar. No original limit is raised.
+
+Follow-up root-selected work must consume the carrier into `AdoptedProof` through shared original admission/cleanup, account sidecar and every affected owner/guard/result lifetime, maintain the sole fresh guard, and implement actual metadata export, original constructor/result/cleanup receipts, real session/build/custody context and semantic replay. Existing165 layouts cannot qualify a sidecar change. No real-binding, FieldLog, native/simulator/emulator, OTA/store/customer/operations or GA acceptance follows from this stage.

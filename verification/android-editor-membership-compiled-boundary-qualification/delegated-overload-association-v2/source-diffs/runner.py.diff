@@ -1,0 +1,10 @@
+--- before-run30/runner.py
++++ receiver-bridge-run32/runner.py
+@@ -43,6 +43,7 @@
+  assert run('typed-snapshot-controls',[jdk/'bin/java','-ea','-Xmx256m','-cp',classes,'dev.mixer.android.TypedSnapshotControls'])==0
+  assert run('observer-failure-controls',[jdk/'bin/java','-ea','-Xmx256m','-cp',classes,'dev.mixer.android.ObserverFailureControls'])==0
+  assert run('event-join-controls',[jdk/'bin/java','-ea','-Xmx256m','-cp',classes,'dev.mixer.android.EventJoinControls'])==0
++ assert run('receiver-bridge-controls',[jdk/'bin/java','-ea','-Xmx256m','-cp',classes,'dev.mixer.android.ReceiverBridgeControls',E/'receiver-bridge-controls.json'])==0
+  if any(x in selector for x in ('all','direct','direct-extra')) or any(x.startswith('direct-family:') for x in selector):
+   families=[] if 'direct-extra' in selector else [r['family'] for r in json.loads((Q/'inputs/protocol/family-migration.json').read_bytes())['families']]
+   families+=['performContextMenuAction','reportFullscreenMode','requestCursorUpdates','requestCursorUpdatesFiltered']

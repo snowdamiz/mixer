@@ -1,0 +1,18 @@
+error[E0599]: no associated function or constant named `from_bytes` found for struct `retained_profile_loader_v1::SelectedValidatedProfileV1` in the current scope
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-real-profile-loader-binding/compile_cases/deserialize.rs:2:66
+    |
+  2 | fn forbidden(bytes: &[u8]) { let _ = SelectedValidatedProfileV1::from_bytes(bytes); }
+    |                                                                  ^^^^^^^^^^ associated function or constant not found in `retained_profile_loader_v1::SelectedValidatedProfileV1`
+    |
+   ::: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-real-profile-loader-binding/loader-host-em1r_ixn/variant/src/experimental_swift_reactor/retained_profile_loader_v1.rs:134:1
+    |
+134 | pub(super) struct SelectedValidatedProfileV1 {
+    | -------------------------------------------- associated function or constant `from_bytes` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `from_bytes`, perhaps you need to implement it:
+            candidate #1: `OsStrExt`
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0599`.
