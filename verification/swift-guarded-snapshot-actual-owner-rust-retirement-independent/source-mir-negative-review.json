@@ -1,0 +1,236 @@
+{
+  "GA_native_funding_layouts_prices_FieldLog_OTA": "Pending",
+  "MIR": {
+    "all_items_exact": true,
+    "archive": {
+      "bytes": 3849862,
+      "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/mir/actual.mir.gz",
+      "sha256": "9f0a788a3645f065542faccfb243ab5ef19969ef71091a02e31c6d8e1ca04c55"
+    },
+    "count": 6207,
+    "counts": {
+      "alloc": 1999,
+      "const": 2059,
+      "fn": 2141,
+      "standalone_const": 1,
+      "static": 7
+    },
+    "reviewed": "correlation scope bb0 set true, bb1 replace attempt, bb4 publish; retirement bb0 get, bb1 branch, bb2 return Retained->bb78; cleanup branch begins only bb5 and cannot be reached from blocked normal return. Correlate/facade moves originals on every return. Token release preserves work/peak; facade drops retained owner without refund.",
+    "selected_exact": [
+      {
+        "bytes": 52275,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/mir/correlate-core.mir",
+        "sha256": "89b317f1b99842225b3c0a4d393221d811a6250f7ffe429029be7b79a6705049"
+      },
+      {
+        "bytes": 94229,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/mir/correlate-facade.mir",
+        "sha256": "9d9f268cdaffd7b4d776bd203d3c4eeec372bf4da41835f47c27db02c6530f78"
+      },
+      {
+        "bytes": 23989,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/mir/correlation-scope.mir",
+        "sha256": "b29302ac235d9ed2987a4f81242568753b5597bed05f7fbce00c37ced5dbfb56"
+      },
+      {
+        "bytes": 18021,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/mir/release-token.mir",
+        "sha256": "c048dda2953e10ce8bd1810b11f821c87e9a5691270ef422432c73ea30bd7801"
+      },
+      {
+        "bytes": 227879,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/mir/retire-acquired.mir",
+        "sha256": "d425eaeeb7c2e69533d3bf4d3deeb067fd3820e9df1b538a71670edf7597f6a1"
+      },
+      {
+        "bytes": 18657,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/mir/retire-facade.mir",
+        "sha256": "7065d28982d3c006757791b14ab0ad6acfc147439d9e1312ef2d5f09b482f0ee"
+      }
+    ],
+    "uncompressed_bytes": 85605256,
+    "uncompressed_sha256": "607443be7812f74afb7d2556c5b00c34cf0721aabe2f2d53bd6d788e1462e4c2",
+    "unpriced": "New Cell and all owner/call/capture/move/return changes remain unpriced; full MIR custody and control-flow review do not establish stack/layout/native costs."
+  },
+  "changed": [
+    "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+    "src/experimental_swift_reactor/retained_profile_loader_v1.rs"
+  ],
+  "command": [
+    "verification/swift-guarded-snapshot-actual-owner-rust-retirement-independent/audit.py"
+  ],
+  "compiler_claim_limits": "No new independent negatives. Fresh producer negatives prove selected six operations only; Copy/replay/unqualified/caller-map/cfg(test) negatives are historical; external metadata consumer unrun. C03 protects live expected borrow, not owned result after that borrow ends.",
+  "compiler_runtime_executed": false,
+  "loader_prefix_and_host_account_unchanged": true,
+  "offline_review": true,
+  "original_IR01_witness_exact": true,
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "schema": 1,
+  "selected_producer_negatives": [
+    {
+      "claim": "Only the explicitly selected trait/borrow/lifetime/privacy operation shown by exact source and diagnostics.",
+      "errors": [
+        "error[E0277]: the trait bound `AcquisitionReservationV1<'_>: Clone` is not satisfied",
+        "error[E0277]: the trait bound `PrepaidCorrelationAttemptV1<'_>: Clone` is not satisfied"
+      ],
+      "id": "C01-clone",
+      "probe": {
+        "bytes": 28544,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/probes/C01-clone/probe.json",
+        "sha256": "61f2faac818ae7db49e0c9c7bafd2be398fecb834a1a65a1215fd75ead8e7e91"
+      },
+      "receipt": {
+        "bytes": 1126,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/commands/C01-clone/receipt.json",
+        "sha256": "13de02baf981321e089f78cb12c74da977524193ec392d1462fee975abbf6a07"
+      },
+      "stderr": {
+        "bytes": 4405,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/commands/C01-clone/stderr",
+        "sha256": "a7f25fd31ca313d600cfc629df3546b9ced6df4ecaf0aa53e392e4d4c3eaa5fa"
+      }
+    },
+    {
+      "claim": "Only the explicitly selected trait/borrow/lifetime/privacy operation shown by exact source and diagnostics.",
+      "errors": [
+        "error[E0505]: cannot move out of `owner` because it is borrowed"
+      ],
+      "id": "C03-correspondence",
+      "probe": {
+        "bytes": 28493,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/probes/C03-correspondence/probe.json",
+        "sha256": "598f30f3eb5f731e013e567bc475680b7d4b8f56d903fd09bd60b3f75a603834"
+      },
+      "receipt": {
+        "bytes": 1099,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/commands/C03-correspondence/receipt.json",
+        "sha256": "12f42d38fade3b00b5b55bd847b0f06f212ce8a80f553a99fd0a8da29998b825"
+      },
+      "stderr": {
+        "bytes": 3625,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/commands/C03-correspondence/stderr",
+        "sha256": "91ca2f86c6c9b2f6d9cb204efb00b44c54bd1819127817b3f0dbdf6c656969d2"
+      }
+    },
+    {
+      "claim": "Only the explicitly selected trait/borrow/lifetime/privacy operation shown by exact source and diagnostics.",
+      "errors": [
+        "error[E0515]: cannot return value referencing local data `selected.proof`"
+      ],
+      "id": "C04-proof-source",
+      "probe": {
+        "bytes": 28350,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/probes/C04-proof-source/probe.json",
+        "sha256": "6d62bf69f01b82f479f08d9d7c8059441f807a79777ccceaefa7702a7bd8cd57"
+      },
+      "receipt": {
+        "bytes": 1088,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/commands/C04-proof-source/receipt.json",
+        "sha256": "582c65471b0c032ce3248e71761a851f7c3a4c10a97549c55b30a94b81e7b113"
+      },
+      "stderr": {
+        "bytes": 2477,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/commands/C04-proof-source/stderr",
+        "sha256": "1f2dfb0dc4f0e761840c4b411b4c3e775fdbd4de57194215f03e73a2c96f0f21"
+      }
+    },
+    {
+      "claim": "Only the explicitly selected trait/borrow/lifetime/privacy operation shown by exact source and diagnostics.",
+      "errors": [
+        "error: lifetime may not live long enough"
+      ],
+      "id": "C04-root-reservation",
+      "probe": {
+        "bytes": 28401,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/probes/C04-root-reservation/probe.json",
+        "sha256": "4f065fc66ae727019466e4721db5fa1ccd1be64211b5049e6b3d8642a8372ced"
+      },
+      "receipt": {
+        "bytes": 1132,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/commands/C04-root-reservation/receipt.json",
+        "sha256": "c6810d8abf15c6f787d37ac23858e5b5b05e32d573a9f4f7f676115e3fddb4b1"
+      },
+      "stderr": {
+        "bytes": 2488,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/commands/C04-root-reservation/stderr",
+        "sha256": "8b6756ac3bb8fe0939d88001f8bfc87727626c66d028288afed05f62311d2aab"
+      }
+    },
+    {
+      "claim": "Only the explicitly selected trait/borrow/lifetime/privacy operation shown by exact source and diagnostics.",
+      "errors": [
+        "error[E0451]: fields `owner_data` and `association` of struct `AdmittedLoaderCorrespondenceV1` are private"
+      ],
+      "id": "C05-expected-fields",
+      "probe": {
+        "bytes": 28415,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/probes/C05-expected-fields/probe.json",
+        "sha256": "a583d8060121e4d2b9de14608dfbb71c95a45c243e3df72484e83f60f583d75a"
+      },
+      "receipt": {
+        "bytes": 1127,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/commands/C05-expected-fields/receipt.json",
+        "sha256": "a43db64242d1ee3b4f29a558d368613c658ba9ede2c9abe36a657a53365be364"
+      },
+      "stderr": {
+        "bytes": 2630,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/commands/C05-expected-fields/stderr",
+        "sha256": "477367fd98e04ba4e1ec1180b47b6583a7f54dec83e78ee8de116c3c79fc4505"
+      }
+    },
+    {
+      "claim": "Only the explicitly selected trait/borrow/lifetime/privacy operation shown by exact source and diagnostics.",
+      "errors": [
+        "error[E0423]: cannot initialize a tuple struct which contains private fields"
+      ],
+      "id": "C05-admitted-constructor",
+      "probe": {
+        "bytes": 28390,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/probes/C05-admitted-constructor/probe.json",
+        "sha256": "05dd2d5f0cf16dc72c24c7a084e68e9ce055e626886e2f9276862dd91896c5b1"
+      },
+      "receipt": {
+        "bytes": 1138,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/commands/C05-admitted-constructor/receipt.json",
+        "sha256": "b8d74c058134b43571650c6865352df234cd8ac1cbb20f4240fda80355b620c8"
+      },
+      "stderr": {
+        "bytes": 3365,
+        "path": "verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/commands/C05-admitted-constructor/stderr",
+        "sha256": "38c3ab36380379cbb341718614b134fed04eb9f60b19d5ffae91b82478321e75"
+      }
+    }
+  ],
+  "source146_tree": "c3a33b76eef6bf9ad86ef1cb0320e94bcefa5a0609ec1a30872a9d83371bd0db",
+  "source_barrier_uses": [
+    {
+      "line": 1571,
+      "text": "correlation_retirement_blocked: Cell<bool>,"
+    },
+    {
+      "line": 1787,
+      "text": "correlation_retirement_blocked: Cell::new(false) }"
+    },
+    {
+      "line": 1974,
+      "text": "self.owned.correlation_retirement_blocked.set(true);"
+    },
+    {
+      "line": 2075,
+      "text": "if owner.correlation_retirement_blocked.get() { return AcquisitionRetirementOutcomeV1::Retained(owner); }"
+    },
+    {
+      "line": 2110,
+      "text": "let PrepaidInputOwnerV1 { reservation: paid, actual: None, retirement_started: _, correlation_retirement_blocked: _ } = owner else { unreachable!() };"
+    }
+  ],
+  "source_conclusions": [
+    "Flag initialized false only at owner construction; set true before duplicate-attempt test and expected/attempt publication. No production reset/discharge API.",
+    "Retirement reads flag before retirement_started, original resources, cleanup work or bridge effects. True returns same owner; no Complete token exists on that branch.",
+    "Matched, loader-error, provenance-mismatch, association/live refusal, extracted/forgotten/destroyed or unused result cannot change the permanent flag.",
+    "Unissued token release subtracts original storage only with checked subtraction, retains work/peak and reserved once flag. Dropping token/owner/reservation has no refund implementation.",
+    "Result and extractor have no owner/root lifetime. Result can outlive owner and ledger; no durable charge owner survives ledger destruction. This separate limit prevents broad root-lifetime/ownership acceptance.",
+    "Production outer caller destroys child before owner retirement and returns scalar observations; current concrete route does not return the escaping proof carrier.",
+    "Production bootstrap policy/startup/allocator/custody remain Pending; native retirement bridge always returns original File with RetirementIncomplete. No currently reachable native success/refund path established."
+  ]
+}

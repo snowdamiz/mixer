@@ -1,0 +1,55 @@
+Scope: checkout-only optimization of android-owner-host in .github/workflows/verify.yml.
+Base: ee9f6dc77f88259e2b143fc81dc1085b34a4a943.
+
+The change adds a non-cone sparse checkout retaining /native/android/ and four
+canonical JSON files. The exact byte comparison in verify.py proves all other
+workflow bytes, including the recent Swift checkout, commands, action versions,
+timeouts, triggers and artifacts, are unchanged. Default checkout fetch depth
+remains unchanged: only git rev-parse HEAD is used by these host invocations.
+
+Command:
+python3 -B verification/ci-android-owner-host-sparse-checkout/verify.py
+
+Offline result: Git 2.56.0 check-rules with --no-cone selected exactly 304 files
+and 2,108,263 bytes from 330,732 tracked files / 17,646,706,549 tracked blob bytes.
+This is a source-byte selection comparison, not measured GitHub network transfer,
+checkout duration, disk allocation or end-to-end CI improvement.
+
+The finite Java closures contain A=87, B=90 and default environment=34 files;
+their union is 193 files. Including the two runners and four JSON inputs gives
+199 required files, all selected. NativeEnvironmentPlatformV2.java is present.
+The retained native/android directory contains 300 files and 1,725,470 bytes;
+the four external data inputs contain 382,793 bytes. Their canonical Git blob,
+byte count and SHA256 identities are in input-review.json and retained-files.json.
+
+Review of both runner sources and all finite Java source files confirms:
+- The roster chooses the two source closures, including every substitute and
+  support/test source; no historical roster receipt is read recursively.
+- The A test reads the supplied descriptor. B reads that descriptor plus the
+  supplied barrier map and treats its record paths as data. Reports are outputs.
+- InstalledAppearanceV2 reads AssetManager streams; the selected host leaves
+  supply in-memory maps seeded by the tests with that descriptor's bytes.
+- Environment's default closure has no Java filesystem input; the runner freezes
+  all four JSON inputs and itself. Its selection reads context_revision only;
+  historical packet manifest references are not additional filesystem reads.
+
+Materialization used only canonical selected Git blobs, after the inventory
+passed a 40,000,000-byte cap. It checked exact paths and SHA256 identities, then
+removed the owned temporary directory. No worktree/index/config was changed.
+No compiler, JVM, native/UI/capture/network/product test, stopped Android v5 or
+callback/PG16/broad hosted/catalog harness, or process inventory was invoked.
+The canonical base isolates this packet from dirty active dispatcher/Rust lanes.
+
+Pending: GitHub action checkout integration and the existing JVM job result after
+root coordinates delivery. This offline pass establishes checkout coverage only.
+It supplies no native runtime, physical-phone, immutable FieldLog, OTA, signing,
+store, operational or GA qualification. The earlier in-progress Engine CI job is
+not diagnosed as failed, timed out or cancelled here.
+
+Workflow SHA256: fa8fd8887391ffc00f55bc70b370e725cf99ee330c744387f498bea7a2626a88
+workflow.diff SHA256: a475d9cb12c1dd9f230f4075d9afb924596ef86ddd838330326d8a0f827e4f14
+
+Packet: receipt.json records versions/tree/digests/scope/cleanup; commands.json
+records exact offline Git argv, stdin/stdout/stderr identities and exit status;
+stdout.txt preserves the verification command's output; workflow.diff is the
+exact reviewed delta. Root owns status/graph/gate metadata, commit and push.

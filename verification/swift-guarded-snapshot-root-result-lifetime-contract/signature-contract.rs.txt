@@ -1,0 +1,156 @@
+// CONTRACT SIGNATURES ONLY. Not Rust implementation or compiler evidence.
+// All 'root references originate in attempt's exact original reservation.
+// V = pub(in crate::experimental_swift_reactor). All unspecified items private.
+
+// retained_profile_loader_v1::prepaid_input_owner_v1
+struct RootBoundV1<'root, T> {
+    // Drop payload before ending the reference field in ordinary destruction.
+    payload: T,
+    root: &'root BootstrapLedgerV1,
+}
+// No public generic constructor/map, raw getter, Deref or mutable getter.
+
+V struct AdmittedLoaderCorrespondenceV1<'owner, 'root: 'owner> {
+    owner_data: &'owner LoaderProvenanceV1,
+    association: u64,
+    root: &'root BootstrapLedgerV1,
+}
+V struct PrepaidCorrelationAttemptV1<'owner, 'root: 'owner> {
+    expected: &'owner LoaderProvenanceV1,
+    live: &'owner Cell<bool>,
+    association: u64,
+    root: &'root BootstrapLedgerV1,
+}
+impl<'root> AdmittedImmutableOwnerV1<'root> {
+    V fn correlation_scope_v1<'owner>(&'owner self)
+        -> Result<(AdmittedLoaderCorrespondenceV1<'owner,'root>,
+                   PrepaidCorrelationAttemptV1<'owner,'root>),BootstrapFailureV1>;
+}
+impl<'owner,'root: 'owner> PrepaidCorrelationAttemptV1<'owner,'root> {
+    // Shared original reference only; no root constructor or authority grant.
+    // Needed before setup in the separate private admitted cache container.
+    V fn original_root_v1(&self) -> &'root BootstrapLedgerV1;
+}
+
+// Actual generic production correlation program. Not reexported or pub(super).
+fn correlate_core_v1<'owner,'root: 'owner,'expected_root: 'owner,R>(
+    attempt: PrepaidCorrelationAttemptV1<'owner,'root>,
+    carrier: LoaderCarrierCoreV1<R>,
+    expected: &AdmittedLoaderCorrespondenceV1<'owner,'expected_root>,
+) -> RootBoundV1<'root,Result<LoaderCarrierCoreV1<R>,
+      (OriginalCorrelationRefusalV1,LoaderCarrierCoreV1<R>)>>;
+
+// Private enum retains complete original variant payloads, including files,
+// optional executable, usage and retained selected/error on provenance refusal.
+enum RawCorrelationOutcomeV1 {
+    Correlated { selected:SelectedValidatedProfileV1, files:ReturnedLoaderFilesV1, usage:LoaderUsageV1 },
+    LoaderRefused { original:LoaderFailureV1, files:ReturnedLoaderFilesV1, usage:LoaderUsageV1 },
+    Refused { original:OriginalCorrelationRefusalV1, files:ReturnedLoaderFilesV1, usage:LoaderUsageV1 },
+}
+V struct OwnedCorrelationOutcomeV1<'root>(RootBoundV1<'root,RawCorrelationOutcomeV1>);
+V fn correlate_admitted_loader_v1<'owner,'root: 'owner,'expected_root: 'owner>(
+    attempt: PrepaidCorrelationAttemptV1<'owner,'root>,
+    carrier: SuppliedLoaderCarrierV1,
+    expected: &AdmittedLoaderCorrespondenceV1<'owner,'expected_root>,
+) -> OwnedCorrelationOutcomeV1<'root>;
+
+// PRIVATE: remove CorrelatedSelectedProfileV1 from facade reexports.
+// These bundles retain selected + all returned Files + original usage.
+struct RawSelectedBundleV1 {
+    selected:SelectedValidatedProfileV1,
+    files:ReturnedLoaderFilesV1,
+    usage:LoaderUsageV1,
+}
+struct CorrelatedSelectedProfileV1<'root>(RootBoundV1<'root,RawSelectedBundleV1>);
+struct RootBoundSelectedProfileV1<'root>(RootBoundV1<'root,RawSelectedBundleV1>);
+impl<'root> CorrelatedSelectedProfileV1<'root> {
+    fn into_selected_v1(self) -> RootBoundSelectedProfileV1<'root>;
+}
+// There is no caller-visible -> SelectedValidatedProfileV1 extractor,
+// ordinary .adopt(), scope extractor, body extractor or control/proof pair.
+
+// These arguments own every final resource, and do not create a root grant.
+// Fields are V so the existing cache lane can construct the fixed arguments.
+#[cfg(mixer_bootstrap_one_fixture_v1)]
+V struct FixtureLeafArgumentsV1 {
+    V rows: File,
+    V snapshot: File,
+    V cancellation: Cancellation,
+    V claims: SnapshotClaimsV1,
+    V budget: SwiftRunBudget,
+    V started: Instant,
+}
+// Complete originals, including LoaderFailureV1 with original io/validation,
+// OriginalCorrelationRefusalV1 with its retained selection, OR both leaf arms.
+// Plus original loader files/usage and owned fixture arguments/resources.
+enum RawFixturePrimaryV1 {
+    LoaderRefused(LoaderFailureV1),
+    CorrelationRefused(OriginalCorrelationRefusalV1),
+    Leaf(Result<SnapshotScopeFinishV1,SnapshotPreScopeFailureV1>),
+}
+struct RawFixtureResultV1 {
+    primary:RawFixturePrimaryV1,
+    original_files:ReturnedLoaderFilesV1,
+    original_loader_usage:LoaderUsageV1,
+    rows:File,
+    snapshot:File,
+    cancellation_owner:Cancellation,
+    claims_owner:SnapshotClaimsV1,
+}
+V struct RootBoundFixtureOutcomeV1<'root>(RootBoundV1<'root,RawFixtureResultV1>);
+impl<'root> OwnedCorrelationOutcomeV1<'root> {
+    #[cfg(mixer_bootstrap_one_fixture_v1)]
+    V fn run_fixture_once_v1(self,args:FixtureLeafArgumentsV1)
+        -> RootBoundFixtureOutcomeV1<'root>;
+}
+// Implementation holds root in this exact synchronous frame while the private
+// fixed admitted leaf directly uses existing raw selected.into_snapshot_scope,
+// scope.construct_v1, run.outer_v1 and run.finish_v1 methods.
+// cache::initial_profile_v1 is private; do NOT call its raw run_one_loaded
+// helper from this sibling or widen cache.rs visibility/reexports.
+// Existing raw adoption/control/run APIs remain private implementation inputs;
+// no raw result/owner/callback may leave this operation.
+
+// Borrow-only view. Discriminants/scalars may be copied, original errors stay
+// borrowed from this carrier. No File owner, cloneable handle, control, proof,
+// mutable scope or arbitrary FnOnce(raw payload) is exposed by this view.
+V enum RootBoundPrimaryBorrowV1<'view> {
+    LoaderRefused(&'view LoaderFailureV1),
+    CorrelationRefused(&'view OriginalCorrelationRefusalV1),
+    Leaf(&'view Result<SnapshotScopeFinishV1,SnapshotPreScopeFailureV1>),
+}
+impl<'root> RootBoundFixtureOutcomeV1<'root> {
+    V fn primary_v1<'view>(&'view self) -> RootBoundPrimaryBorrowV1<'view>;
+    V fn usage_v1(&self) -> LoaderUsageV1; // existing Copy scalar usage only
+}
+// Current OriginalCorrelationRefusalV1 stays opaque; accessors, if needed,
+// borrow contained LoaderFailureV1/SelectedValidatedProfileV1 without exposing
+// any owning/mutable or generic conversion. Selected source views borrow [u8].
+
+// cache::initial_profile_v1::trusted_local_host_account_entry_v1
+// All below PRIVATE. Existing unadmitted OwnedFixtureOutcomeV1 unchanged.
+struct AdmittedFixtureOutcomeV1<'root> {
+    payload: AdmittedFixturePayloadV1<'root>,
+    root: &'root BootstrapLedgerV1,
+}
+enum AdmittedFixturePayloadV1<'root> {
+    SetupRefused(SetupOutcomeV1), // original io error and partial file owners
+    Loaded(RootBoundFixtureOutcomeV1<'root>),
+}
+fn run_prepaid_admitted_fixture_v1<'owner,'root: 'owner,'expected_root: 'owner>(
+    fixture:FrozenFixtureV1<'_>,
+    attempt:PrepaidCorrelationAttemptV1<'owner,'root>,
+    expected:&AdmittedLoaderCorrespondenceV1<'owner,'expected_root>,
+) -> AdmittedFixtureOutcomeV1<'root>;
+fn run_one_admitted_fixture_v1<'child,'owner,'root: 'owner,'expected_root: 'owner>(
+    account:&'child TrustedHostAccountV1,
+    fixture:FrozenFixtureV1<'_>,
+    attempt:PrepaidCorrelationAttemptV1<'owner,'root>,
+    expected:&AdmittedLoaderCorrespondenceV1<'owner,'expected_root>,
+) -> Result<PrepaidOwnedV1<'child,AdmittedFixtureOutcomeV1<'root>>,RefusalV1>;
+fn destroy_returned_admitted_fixture_v1<'child,'root>(
+    owned:PrepaidOwnedV1<'child,AdmittedFixtureOutcomeV1<'root>>,
+) -> Option<DestroyedStorageV1<'child>>;
+// Borrow/observe admitted diagnostics gets short shared views, no raw unwrapping.
+// consume_admitted_owner_once_v1 retains its original scalar return signature.
+// retire_admitted_owner_v1 remains unchanged, including permanent IR01 barrier.

@@ -1,0 +1,18 @@
+--- a/.github/workflows/verify.yml
++++ b/.github/workflows/verify.yml
+@@ -10,6 +10,15 @@
+     timeout-minutes: 15
+     steps:
+       - uses: actions/checkout@v4
++        with:
++          # Host closures use Android sources and these four canonical data inputs.
++          sparse-checkout-cone-mode: false
++          sparse-checkout: |
++            /native/android/
++            /verification/android-private-owner-effect-roster-amendment/required-host-roster.json
++            /verification/android-private-owner-integration-implementation/barrier-map.json
++            /verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json
++            /verification/android-environment-platform-root-review/selection.json
+       - name: Private Android owner orchestration on the JVM
+         timeout-minutes: 5
+         run: |

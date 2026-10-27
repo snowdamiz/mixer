@@ -1,0 +1,381 @@
+{
+  "barrier_selection": "B test loadBarriers reads records/candidates/boundary values from the supplied barrier JSON; source references are data, not additional file reads. A ignores extra barrier arguments.",
+  "canonical_data_inputs": {
+    "verification/android-environment-platform-root-review/selection.json": {
+      "bytes": 4475,
+      "git_blob": "f7365df0706df36844381468d7ed70b0ce467e28",
+      "mode": "100644",
+      "sha256": "55214c11fcf73b9a788421e70a99546f696a72b76183001ad3ed93e3639c6ba7",
+      "type": "blob"
+    },
+    "verification/android-private-owner-effect-roster-amendment/required-host-roster.json": {
+      "bytes": 150965,
+      "git_blob": "9d1e9df66f6cd4133a09101aadce938fd4eaeb56",
+      "mode": "100644",
+      "sha256": "22571127b6fa21c54c3369bcd3dd6d7427ae274866cda6595aa23292ceffe191",
+      "type": "blob"
+    },
+    "verification/android-private-owner-integration-implementation/barrier-map.json": {
+      "bytes": 217766,
+      "git_blob": "cdeff4449a958d1e941071463e35cc372a0deef2",
+      "mode": "100644",
+      "sha256": "065099211419b03e3f6988db175f7445f43efce2c37f2fb0140f41889ea335a8",
+      "type": "blob"
+    },
+    "verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json": {
+      "bytes": 9587,
+      "git_blob": "05e7b00d1b09a772111e2089f1a791223462fea3",
+      "mode": "100644",
+      "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3",
+      "type": "blob"
+    }
+  },
+  "descriptor_selection": "A/B read the supplied canonical descriptor; tests seed in-memory AssetManager maps used by InstalledAppearanceV2.capture. No packaged asset file is opened.",
+  "environment_selection": "Default environment closure is 34 explicit Java files; no Java test filesystem inputs. Runner freezes its five auxiliary paths, including itself and all four JSON files.",
+  "git_use_by_ci_runners": "Only private runner git rev-parse HEAD; environment runner inherits selection context and does not invoke Git. Default shallow fetch is sufficient.",
+  "java_io_sites": {
+    "native/android/app/src/dev/mixer/android/InstalledAppearanceV2.java": [
+      {
+        "line": 5,
+        "text": "import java.io.ByteArrayOutputStream;"
+      },
+      {
+        "line": 6,
+        "text": "import java.io.IOException;"
+      },
+      {
+        "line": 7,
+        "text": "import java.io.InputStream;"
+      }
+    ],
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/content/res/AssetManager.java": [
+      {
+        "line": 2,
+        "text": "import java.io.ByteArrayInputStream;import java.io.FileNotFoundException;import java.io.InputStream;import java.io.IOException;import java.util.LinkedHashMap;import java.util.Map;import dev.mixer.android.ConcreteHostProbe;"
+      }
+    ],
+    "native/android/tests/NativeOwnerV2ConcreteHostTests.java": [
+      {
+        "line": 608,
+        "text": "        var root=Json.object(Json.parse(Files.readAllBytes(path)));List<Barrier> selected=new ArrayList<>();"
+      },
+      {
+        "line": 651,
+        "text": "        StringBuilder report=new StringBuilder();write(report,Json.map(\"scope\",\"actual fourteen product subjects with explicit mechanical leaves; lifecycle dirty is separate from actual observer invalidation\",\"baselineSites\",new Json.Num(\"184\"),\"introducedSites\",new Json.Num(Integer.toString(barriers.size()-184)),\"missing\",missed,\"cases\",results));Files.writeString(output,report);"
+      },
+      {
+        "line": 655,
+        "text": "        descriptor=Files.readAllBytes(Path.of(args[0]));if(args.length>2)loadBarriers(Path.of(args[2]));"
+      },
+      {
+        "line": 658,
+        "text": "        if(args.length>3)runMatrix(Path.of(args[3]));"
+      },
+      {
+        "line": 660,
+        "text": "        if(args.length>1){StringBuilder report=new StringBuilder();for(var e:sites.entrySet())report.append(e.getKey()).append('|').append(e.getValue()).append('\\n');Files.writeString(Path.of(args[1]),report);}"
+      }
+    ],
+    "native/android/tests/NativeOwnerV2HostLeaves/android/content/res/AssetManager.java": [
+      {
+        "line": 2,
+        "text": "import java.io.ByteArrayInputStream;import java.io.FileNotFoundException;import java.io.InputStream;import java.io.IOException;import java.util.LinkedHashMap;import java.util.Map;import dev.mixer.android.OwnerHostProbe;"
+      }
+    ],
+    "native/android/tests/NativeOwnerV2HostTests.java": [
+      {
+        "line": 406,
+        "text": " public static void main(String[] args)throws Exception{descriptor=Files.readAllBytes(Path.of(args[0]));inertAndReadiness();registrationTerminalCallback();registrationCoreFault();staleAndWindow();inputAndRefresh();reentry();focusAdmission();completionPublication();observerDuringOperation();terminalReports();schedulingAndCleanup();disposalPriority();latePostCleanup();migratedFaults();migratedCommitAndCleanup();migratedCombinedVectors();migratedHiddenOutcomesAndInputFatal();migratedLifecycle();cancellationLedger();successfulDispositionAfterFailure();unreportedCompletion();exhaustionAndThreads();if(args.length>1)Files.writeString(Path.of(args[1]),String.join(\"\\n\",migrated)+\"\\n\");System.out.println(\"PASS actual owner/core/coordinator/observer closure A cases=\"+cases+\" assertions=\"+checks+\"; renderer leaf only, native runtime pending\");}"
+      }
+    ]
+  },
+  "review_scope": "Checkout input coverage only. Source inspection authorizes no OTA, compiler, JVM, native, device, store or GA claim.",
+  "reviewed_java_sources": [
+    "native/android/app/src/dev/mixer/android/AppearanceDescriptorV2.java",
+    "native/android/app/src/dev/mixer/android/AppearanceGeometryV2.java",
+    "native/android/app/src/dev/mixer/android/AppearanceNativePathsV2.java",
+    "native/android/app/src/dev/mixer/android/AppearanceResolverV2.java",
+    "native/android/app/src/dev/mixer/android/AuthoredToggleInputV2.java",
+    "native/android/app/src/dev/mixer/android/InstalledAppearanceV2.java",
+    "native/android/app/src/dev/mixer/android/Json.java",
+    "native/android/app/src/dev/mixer/android/NativeAppearanceViewsV2.java",
+    "native/android/app/src/dev/mixer/android/NativeCoordinatorV2.java",
+    "native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java",
+    "native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java",
+    "native/android/app/src/dev/mixer/android/NativeOwnerV2.java",
+    "native/android/app/src/dev/mixer/android/NativeRenderer.java",
+    "native/android/app/src/dev/mixer/android/OwnerLifecycleV2.java",
+    "native/android/app/src/dev/mixer/android/UiPacket.java",
+    "native/android/tests/NativeEnvironmentPlatformV2HostTests.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/app/Activity.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/app/UiModeManager.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/content/ComponentCallbacks.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/content/ContentResolver.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/content/Context.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/content/res/Configuration.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/content/res/Resources.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/database/ContentObserver.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/graphics/Insets.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/net/Uri.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/os/Build.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/os/Handler.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/os/LocaleList.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/os/Looper.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/provider/Settings.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/util/DisplayMetrics.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/util/TypedValue.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/view/View.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/view/ViewTreeObserver.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/view/Window.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/view/WindowInsets.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/view/accessibility/AccessibilityManager.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/widget/FrameLayout.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/dev/mixer/android/NativeRenderer.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostLeaves/dev/mixer/android/ObserverHostProbe.java",
+    "native/android/tests/NativeEnvironmentV2ObserverHostTests.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/R.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/app/Activity.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/app/UiModeManager.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/content/ClipData.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/content/ClipboardManager.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/content/ComponentCallbacks.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/content/ContentResolver.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/content/Context.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/content/res/AssetManager.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/content/res/ColorStateList.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/content/res/Configuration.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/content/res/Resources.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/database/ContentObserver.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/graphics/Canvas.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/graphics/Color.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/graphics/ColorFilter.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/graphics/Insets.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/graphics/Paint.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/graphics/Path.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/graphics/PixelFormat.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/graphics/Rect.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/graphics/RectF.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/graphics/Typeface.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/graphics/drawable/Drawable.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/net/Uri.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/os/Build.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/os/Bundle.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/os/CancellationSignal.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/os/Handler.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/os/LocaleList.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/os/Looper.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/provider/Settings.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/text/Annotation.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/text/Editable.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/text/InputFilter.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/text/InputType.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/text/Layout.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/text/Spanned.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/text/TextUtils.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/text/TextWatcher.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/text/style/UnderlineSpan.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/util/DisplayMetrics.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/util/TypedValue.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/Gravity.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/KeyEvent.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/MotionEvent.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/View.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/ViewConfiguration.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/ViewGroup.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/ViewParent.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/ViewTreeObserver.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/Window.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/WindowInsets.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/accessibility/AccessibilityManager.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/accessibility/AccessibilityNodeInfo.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/BaseInputConnection.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/CompletionInfo.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/CorrectionInfo.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/EditorInfo.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/HandwritingGesture.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/InputConnection.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/InputConnectionWrapper.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/InputContentInfo.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/PreviewableHandwritingGesture.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/TextAttribute.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/widget/Button.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/widget/EditText.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/widget/FrameLayout.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/widget/LinearLayout.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/widget/ScrollView.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/widget/Switch.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/widget/TextView.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/dev/mixer/android/ConcreteHostProbe.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostLeaves/dev/mixer/android/NativeBridge.java",
+    "native/android/tests/NativeOwnerV2ConcreteHostTests.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/R.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/app/Activity.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/app/UiModeManager.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/content/ClipData.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/content/ClipboardManager.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/content/ComponentCallbacks.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/content/ContentResolver.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/content/Context.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/content/res/AssetManager.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/content/res/ColorStateList.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/content/res/Configuration.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/content/res/Resources.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/database/ContentObserver.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/graphics/Canvas.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/graphics/Color.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/graphics/ColorFilter.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/graphics/Insets.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/graphics/Paint.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/graphics/Path.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/graphics/PixelFormat.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/graphics/Rect.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/graphics/RectF.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/graphics/Typeface.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/graphics/drawable/Drawable.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/net/Uri.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/os/Build.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/os/Bundle.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/os/CancellationSignal.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/os/Handler.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/os/LocaleList.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/os/Looper.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/provider/Settings.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/text/Annotation.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/text/Editable.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/text/InputFilter.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/text/InputType.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/text/Layout.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/text/Spanned.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/text/TextUtils.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/text/TextWatcher.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/text/style/UnderlineSpan.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/util/DisplayMetrics.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/util/TypedValue.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/Gravity.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/KeyEvent.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/MotionEvent.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/View.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/ViewConfiguration.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/ViewGroup.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/ViewParent.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/ViewTreeObserver.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/Window.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/WindowInsets.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/accessibility/AccessibilityManager.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/accessibility/AccessibilityNodeInfo.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/inputmethod/BaseInputConnection.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/inputmethod/CompletionInfo.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/inputmethod/CorrectionInfo.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/inputmethod/EditorInfo.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/inputmethod/HandwritingGesture.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/inputmethod/InputConnection.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/inputmethod/InputConnectionWrapper.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/inputmethod/InputContentInfo.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/inputmethod/PreviewableHandwritingGesture.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/view/inputmethod/TextAttribute.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/widget/Button.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/widget/EditText.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/widget/FrameLayout.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/widget/LinearLayout.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/widget/ScrollView.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/widget/Switch.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/android/widget/TextView.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/dev/mixer/android/NativeBridge.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/dev/mixer/android/NativeRenderer.java",
+    "native/android/tests/NativeOwnerV2HostLeaves/dev/mixer/android/OwnerHostProbe.java",
+    "native/android/tests/NativeOwnerV2HostTests.java"
+  ],
+  "roster_selection": "Private runner A and B select only closures.A-orchestration or closures.B-concrete-renderer-views; source arrays and substitutes are all retained.",
+  "runner_read_sites": {
+    "native/android/tests/run-environment-platform-host.py": [
+      {
+        "line": 19,
+        "text": " roster=json.loads((ROOT/ROSTER).read_text());selection=json.loads((ROOT/SELECTION).read_text())"
+      },
+      {
+        "line": 19,
+        "text": " roster=json.loads((ROOT/ROSTER).read_text());selection=json.loads((ROOT/SELECTION).read_text())"
+      },
+      {
+        "line": 28,
+        "text": " frozen={s:(ROOT/s).read_bytes() for s in sources+auxiliary}"
+      },
+      {
+        "line": 51,
+        "text": "  return outpath.read_bytes()"
+      },
+      {
+        "line": 54,
+        "text": "  receipt['tools']={str(t):ident(t.resolve().read_bytes()) for t in (java,javac,javap)}"
+      },
+      {
+        "line": 49,
+        "text": "  commands.append({'label':label,'argv':[str(v) for v in argv],'exit':child.returncode,'seconds':time.monotonic()-start,'timeout':timed,'output_limit_exceeded':overflow,'child_reaped':True,'stdout':ident(outpath.read_bytes()),'stderr':ident(errpath.read_bytes())});save(evidence/'commands.json',commands)"
+      },
+      {
+        "line": 49,
+        "text": "  commands.append({'label':label,'argv':[str(v) for v in argv],'exit':child.returncode,'seconds':time.monotonic()-start,'timeout':timed,'output_limit_exceeded':overflow,'child_reaped':True,'stdout':ident(outpath.read_bytes()),'stderr':ident(errpath.read_bytes())});save(evidence/'commands.json',commands)"
+      },
+      {
+        "line": 58,
+        "text": "   sdk=Path('/opt/homebrew/share/android-commandlinetools');classpath=sdk/'platforms/android-37.0/android.jar';d8=sdk/'build-tools/37.0.0/d8';receipt['official_android_tools']={str(t):ident(t.read_bytes()) for t in (classpath,d8)}"
+      },
+      {
+        "line": 61,
+        "text": "  classfiles=sorted(classes.rglob('*.class'));save(evidence/'classes.json',{str(f.relative_to(classes)):ident(f.read_bytes()) for f in classfiles})"
+      },
+      {
+        "line": 94,
+        "text": "  shutil.rmtree(scratch);receipt['cleanup']={'owned_scratch_removed':not scratch.exists(),'owned_children_reaped':all(c['child_reaped'] for c in commands),'native_or_capture_instances_created':False};receipt['source_stable']=all((ROOT/s).read_bytes()==b for s,b in frozen.items());receipt['pending']=['native API28..36 class loading/runtime','public V2 routing','physical-phone acceptance','immutable separate-repository FieldLog packages','OTA/signing/store/operations/GA'];save(evidence/'receipt.json',receipt)"
+      },
+      {
+        "line": 77,
+        "text": "   dex=scratch/'dex';dex.mkdir();run('dex',[d8,'--min-api','28','--lib',classpath,'--output',dex,*classfiles]);save(evidence/'dex.json',{str(f.relative_to(dex)):ident(f.read_bytes()) for f in sorted(dex.rglob('*')) if f.is_file()});receipt['status']='passed-crosscompile-only';print('PASS official JDK/SDK Java/D8 min-api28 crosscompile; runtime/linkage pending')"
+      }
+    ],
+    "native/android/tests/run-private-owner-host.py": [
+      {
+        "line": 16,
+        "text": " frozen={s:(ROOT/s).read_bytes() for s in sources};frozen['native/android/tests/run-private-owner-host.py']=Path(__file__).read_bytes()"
+      },
+      {
+        "line": 17,
+        "text": " mapping='verification/android-private-owner-integration-implementation/barrier-map.json';frozen[mapping]=(ROOT/mapping).read_bytes()"
+      },
+      {
+        "line": 18,
+        "text": " descriptor='verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json';frozen[descriptor]=(ROOT/descriptor).read_bytes()"
+      },
+      {
+        "line": 13,
+        "text": " roster=json.loads(ROSTER.read_text());closure=roster['closures']['A-orchestration' if a.closure=='A' else 'B-concrete-renderer-views']"
+      },
+      {
+        "line": 16,
+        "text": " frozen={s:(ROOT/s).read_bytes() for s in sources};frozen['native/android/tests/run-private-owner-host.py']=Path(__file__).read_bytes()"
+      },
+      {
+        "line": 37,
+        "text": "  out=outpath.read_bytes();err=errpath.read_bytes()"
+      },
+      {
+        "line": 37,
+        "text": "  out=outpath.read_bytes();err=errpath.read_bytes()"
+      },
+      {
+        "line": 43,
+        "text": "  jdk=a.jdk.resolve(strict=True);java=jdk/'bin/java';javac=jdk/'bin/javac';javap=jdk/'bin/javap';receipt['tools']={str(x):ident(x.resolve().read_bytes()) for x in (java,javac,javap)}"
+      },
+      {
+        "line": 53,
+        "text": "  save(evidence/'class-map.json',{str(x.relative_to(classes)):ident(x.read_bytes()) for x in sorted(classes.rglob('*.class'))})"
+      },
+      {
+        "line": 61,
+        "text": "  shutil.rmtree(scratch);receipt['cleanup']={'scratch_removed':not scratch.exists(),'children_reaped':all(c['child_reaped'] for c in commands),'native_instances_created':False};receipt['source_stable']=all((ROOT/s).read_bytes()==b for s,b in frozen.items());save(evidence/'receipt.json',receipt)"
+      }
+    ]
+  },
+  "selection_context_revision": "fb4c8f074f1a3e5eb2b1b1a45b44f0fa61a7cc62",
+  "selection_is_data_only": "Environment runner reads context_revision only; historical packet paths are not opened or traversed."
+}

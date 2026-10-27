@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "verification/console-fixed-workspace-dispatcher/inspect_parallel_compiler_docs.py"
+  ],
+  "tool": "Python stdlib only; no Elixir/BEAM/compiler execution",
+  "source": "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/lib/elixir/ebin/Elixir.Kernel.ParallelCompiler.beam",
+  "source_sha256": "33bf6fc4d39c32c998cac9dd5850df6a3e65cb8e95a7ec73da4d08792fb36104",
+  "documentation": [
+    {
+      "entry": [
+        "function",
+        "compile",
+        2
+      ],
+      "documentation": "Compiles the given files.\n\nThose files are compiled in parallel and can automatically\ndetect dependencies between them. Once a dependency is found,\nthe current file stops being compiled until the dependency is\nresolved.\n\nIt must be invoked with `return_diagnostics: true` as option, so it returns\n`{:ok, modules, warnings_info}` or `{:error, errors, warnings_info}`,\nwhere `warnings_info` has the shape:\n\n    %{\n      runtime_warnings: [warning],\n      compile_warnings: [warning]\n    }\n\n"
+    },
+    {
+      "entry": [
+        "function",
+        "compile_to_path",
+        3
+      ],
+      "documentation": "Compiles the given files and writes resulting BEAM files into path.\n\nSee `compile/2` for more information.\n"
+    }
+  ],
+  "decision": "Use return_diagnostics:true and require exact zero compile_warnings/runtime_warnings lists. Report fixed count/classification for all other compiler results."
+}

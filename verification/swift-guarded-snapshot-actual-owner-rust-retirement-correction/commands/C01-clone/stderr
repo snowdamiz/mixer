@@ -1,0 +1,64 @@
+warning: unused imports: `BootstrapLedgerV1`, `BorrowedOwnerDataV1`, `CorrelatedSelectedProfileV1`, and `selected_bootstrap_ledger_v1`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/probes/C01-clone/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2609:25
+     |
+2609 |     BootstrapFailureV1, BootstrapLedgerV1, BorrowedOwnerDataV1, SuppliedLoaderCarrierV1, CorrelatedSelectedProfileV1,
+     |                         ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2610 |     OriginalCorrelationRefusalV1, OwnedCorrelationOutcomeV1, selected_bootstrap_ledger_v1,
+     |                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: use of deprecated method `std::sync::atomic::Atomic::<u64>::fetch_update`: renamed to `try_update` for consistency
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/probes/C01-clone/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:1929:63
+     |
+1929 |         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+     |                                                               ^^^^^^^^^^^^
+     |
+     = note: `#[warn(deprecated)]` on by default
+help: replace the use of the deprecated method
+     |
+1929 -         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+1929 +         let association = match NEXT_ADMISSION_ASSOCIATION_V1.try_update(std::sync::atomic::Ordering::Relaxed,
+     |
+
+error[E0277]: the trait bound `AcquisitionReservationV1<'_>: Clone` is not satisfied
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/probes/C01-clone/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2602:38
+     |
+2602 |         missing_clone_requirement_v1(reservation);
+     |         ---------------------------- ^^^^^^^^^^^ the trait `Clone` is not implemented for `AcquisitionReservationV1<'_>`
+     |         |
+     |         required by a bound introduced by this call
+     |
+note: required by a bound in `missing_clone_requirement_v1`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/probes/C01-clone/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2600:39
+     |
+2600 |     fn missing_clone_requirement_v1<T:Clone>(_:T) {}
+     |                                       ^^^^^ required by this bound in `missing_clone_requirement_v1`
+help: consider annotating `AcquisitionReservationV1<'_>` with `#[derive(Clone)]`
+     |
+1506 +     #[derive(Clone)]
+1507 |     struct AcquisitionReservationV1<'root> {
+     |
+
+error[E0277]: the trait bound `PrepaidCorrelationAttemptV1<'_>: Clone` is not satisfied
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/probes/C01-clone/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2603:38
+     |
+2603 |         missing_clone_requirement_v1(attempt);
+     |         ---------------------------- ^^^^^^^ the trait `Clone` is not implemented for `PrepaidCorrelationAttemptV1<'_>`
+     |         |
+     |         required by a bound introduced by this call
+     |
+note: required by a bound in `missing_clone_requirement_v1`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-retirement-correction/probes/C01-clone/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2600:39
+     |
+2600 |     fn missing_clone_requirement_v1<T:Clone>(_:T) {}
+     |                                       ^^^^^ required by this bound in `missing_clone_requirement_v1`
+help: consider annotating `PrepaidCorrelationAttemptV1<'_>` with `#[derive(Clone)]`
+     |
+1964 +     #[derive(Clone)]
+1965 |     pub(in crate::experimental_swift_reactor) struct PrepaidCorrelationAttemptV1<'owner> {
+     |
+
+error: aborting due to 2 previous errors; 2 warnings emitted
+
+For more information about this error, try `rustc --explain E0277`.

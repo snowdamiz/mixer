@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "IR02",
+  "status": "separate-open-root-result-charge-lifetime-boundary",
+  "title": "Owned correlation results do not retain the original bootstrap ledger lifetime",
+  "IR01_token_refund_correction": "Independently established within the original live ledger; this finding is not a Complete-token or refund bypass.",
+  "contract_basis": "Root contract amendment requires a caller-retained BootstrapLedger borrowed by reservations/owners. Broad charge coverage also needs an accountable root to remain alive for every charged proof/result/resource carrier. Permanent storage in a ledger that can itself end is not proof of that lifetime coverage.",
+  "evidence": {
+    "helper": "independent.inc.rs:166 independent_facade_result_escape_signature_v1",
+    "production_API_signature": "fn escape<'root>(owner: AdmittedImmutableOwnerV1<'root>, supplied: SuppliedLoaderCarrierV1) -> OwnedCorrelationOutcomeV1",
+    "production_API_trace": [
+      "Call owner.correlation_scope_v1(); pass its actual expected and one-shot attempt plus the complete supplied carrier into correlate_admitted_loader_v1.",
+      "End expected/attempt borrows after obtaining the owned result.",
+      "Consume owner through retire_admitted_owner_v1(owner); the barrier conservatively retains the charge and drops acquisition backing.",
+      "Return the same OwnedCorrelationOutcomeV1, which has no root lifetime. No private field reads, fabricated File, native execution or test-only constructor is needed in this helper."
+    ],
+    "helper_scope": "Additional cfg(test) function compiled against exact production-visible opaque File facade APIs in both successful test builds; never executed and not an external-crate metadata test.",
+    "host_witness": "independent_i04_result_outlives_original_owner_and_ledger_v1",
+    "host_witness_scope": "Actual generic production admission/correlation/retirement core specialized with original private guards and actual validator-created proof; acquisition owner dropped, original lexical ledger ends, then original proof pointer, 1947 source bytes and loader guards20..23 remain accessible.",
+    "observed_in_both_modes": "last live ledger storage1000000; original acquisition guards0..12 dropped; proof/guards survive ledger end; no Complete token or release was invoked."
+  },
+  "source_locations": {
+    "loader": "../swift-guarded-snapshot-actual-owner-rust-retirement-correction/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+    "root_and_reservation": [1475, 1506, 1565, 1877, 1881],
+    "scope": [1968, 1992],
+    "owned_carrier_extractor_and_outcomes": [2000, 2008, 2013, 2041],
+    "retire_facade": 2121,
+    "caller": "../swift-guarded-snapshot-actual-owner-rust-retirement-correction/source/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+    "child_result_is_tied_to_separate_account_not_bootstrap_root": [733, 739, 842, 851],
+    "current_ordered_outer_caller": 1124
+  },
+  "current_concrete_caller_limit": "consume_admitted_owner_once_v1 keeps bindings/scopes inside the owner lifetime, obtains child under a separate TrustedHostAccount, observes and destroys owned_child, releases only its child token, then retires acquisition owner and returns scalar observations. This particular caller does not return the escaping correlation payload.",
+  "native_reachability_limit": "No native admitted owner can currently be constructed by the selected production startup/custody path. NativeInputBridgeV1 always refuses healthy retirement. This review establishes neither an existing native escape nor a production refund.",
+  "disposition": "Keep full root/result-lifetime and charge-coverage acceptance Pending. A narrow IR01 no-Complete/no-refund repair can be accepted independently. Do not claim whole ownership, useful joint retirement, native funding, source prices or GA.",
+  "required_followon": "result-root-obligation-followon.json"
+}
