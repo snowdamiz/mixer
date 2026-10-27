@@ -10,6 +10,8 @@ export function WorkspacePage() {
     onSelectProject={controller.selectProject}
     onNextOrganizations={controller.nextOrganizations}
     onNextProjects={controller.nextProjects}
+    onFirstOrganizations={controller.firstOrganizations}
+    onFirstProjects={controller.firstProjects}
     onRetryOrganizations={controller.retryOrganizations}
     onRetryProjects={controller.retryProjects} />;
 }

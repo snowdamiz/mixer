@@ -32,7 +32,8 @@ test("actual Node client and HTTP responses update the shared Solid owner and ex
     seen.push({ url: request.url, authorization: request.headers.authorization });
     const url = new URL(request.url, "http://localhost");
     response.writeHead(200, { "content-type": "application/json" });
-    response.end(JSON.stringify(url.pathname === "/v3/orgs" ? orgs : projects));
+    const result = url.pathname === "/v3/orgs" ? orgs : projects;
+    response.end(JSON.stringify({ ...result, next_cursor: url.searchParams.has("cursor") ? null : "NEXT" }));
   });
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
   const app = owner();
@@ -49,9 +50,27 @@ test("actual Node client and HTTP responses update the shared Solid owner and ex
     assert.equal(seen.length, 2);
     assert.equal(seen[1].url, `/v3/projects?organization_id=${encodeURIComponent(organizationId)}`);
     assert.ok(seen.every(row => row.authorization === "Bearer synthetic.binding.token"));
+    app.binding.controller.nextProjects({ organizationId, cursor: "NEXT" });
+    await until(() => app.binding.state().projects.kind === "ready");
+    assert.equal(app.binding.state().canReturnToFirstProjects, true);
+    app.binding.controller.firstProjects(organizationId);
+    await until(() => app.binding.state().projects.kind === "ready");
+    assert.equal(seen.at(-2).url, `/v3/projects?organization_id=${encodeURIComponent(organizationId)}&cursor=NEXT`);
+    assert.equal(seen.at(-1).url, `/v3/projects?organization_id=${encodeURIComponent(organizationId)}`);
+    assert.equal(app.binding.state().canReturnToFirstProjects, undefined);
+    app.binding.controller.selectProject({ organizationId, projectId: "project/one" });
     // Child route ownership can end without disposing the app's shared selection.
     createRoot(stop => { assert.equal(app.binding.state().selectedProjectId, "project/one"); stop(); });
     assert.equal(app.binding.state().selectedProjectId, "project/one");
+    app.binding.controller.nextOrganizations("NEXT");
+    await until(() => app.binding.state().organizations.kind === "ready");
+    assert.equal(app.binding.state().canReturnToFirstOrganizations, true);
+    app.binding.controller.firstOrganizations();
+    await until(() => app.binding.state().organizations.kind === "ready");
+    assert.equal(seen.at(-2).url, "/v3/orgs?cursor=NEXT"); assert.equal(seen.at(-1).url, "/v3/orgs");
+    assert.equal(app.binding.state().selectedProjectId, undefined);
+    assert.equal(app.binding.state().canReturnToFirstOrganizations, undefined);
+    assert.ok(seen.every(row => row.authorization === "Bearer synthetic.binding.token"));
     app.setSession({ kind: "unauthenticated" });
     assert.deepEqual(app.binding.state(), { organizations: { kind: "unauthenticated" }, projects: { kind: "unselected" } });
     assert.doesNotMatch(JSON.stringify(app.binding.state()), /Studio|FieldLog|synthetic.binding.token/);
@@ -101,8 +120,9 @@ test("disposing the application owner aborts pending projects and erases retaine
 test("pure consumers registered before binding cannot read old rows or act with an old session", async () => {
   let binding, setSession, dispose, prior;
   const observations = [];
-  let projectCalls = 0;
-  const client = { organizations() { return Promise.resolve(orgs); }, projects() { projectCalls++; return Promise.resolve(projects); } };
+  let projectCalls = 0, organizationCalls = 0;
+  const client = { organizations() { organizationCalls++; return Promise.resolve({ ...orgs, next_cursor: "NEXT" }); },
+    projects() { projectCalls++; return Promise.resolve(projects); } };
   const replacement = { kind: "ready", client };
   createRoot(stop => {
     dispose = stop;
@@ -114,7 +134,10 @@ test("pure consumers registered before binding cannot read old rows or act with 
         prior = current;
         observations.push({ session: current?.kind, state: binding.state() });
         // This runs before the binding's effect admits the replacement epoch.
-        if (current === replacement) binding.controller.selectOrganization(organizationId);
+        if (current === replacement) {
+          binding.controller.firstOrganizations(); binding.controller.firstProjects(organizationId);
+          binding.controller.selectOrganization(organizationId);
+        }
       }
     });
     binding = createWorkspaceBinding(session);
@@ -122,7 +145,12 @@ test("pure consumers registered before binding cannot read old rows or act with 
   try {
     setSession({ kind: "ready", client });
     await until(() => binding.state().organizations.kind === "ready");
+    binding.controller.nextOrganizations("NEXT");
+    await until(() => binding.state().organizations.kind === "ready");
+    assert.equal(binding.state().canReturnToFirstOrganizations, true);
+    const beforeReplacement = organizationCalls;
     setSession(replacement);
+    assert.equal(organizationCalls, beforeReplacement + 1, "only the replacement session may request its first page");
     assert.equal(projectCalls, 0);
     await until(() => binding.state().organizations.kind === "ready");
     setSession({ kind: "unauthenticated" });

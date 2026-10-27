@@ -32,6 +32,8 @@ Both role arrays are lexicographically sorted, unique and limited to `administra
 | `projects` | `unselected`, or the same load states with the exact `organizationId` |
 | `selectedOrganizationId` | Optional controlled selection within the current organization page |
 | `selectedProjectId` | Optional controlled selection within the current project page |
+| `canReturnToFirstOrganizations` | Optional boolean from the caller's nonfirst organization-page attempt |
+| `canReturnToFirstProjects` | Optional boolean from the caller's nonfirst project-page attempt in the current organization |
 
 `error.reason` is `permission_denied`, `not_found` or `request_failed`. Error messages are fixed customer-facing copy and never echo HTTP details. `resolveWorkspaceDirectory` validates every ready page and resolves selection only against its copied current rows. Missing/stale organization selection hides all project data. A project response from another organization fails closed even when the project ID matches. A malformed page hides every row from that page; it cannot leave a prior project highlighted.
 
@@ -42,11 +44,13 @@ onSelectOrganization(organizationId: string): void
 onSelectProject({ organizationId, projectId }): void
 onNextOrganizations?(cursor: string): void
 onNextProjects?({ organizationId, cursor }): void
+onFirstOrganizations?(): void
+onFirstProjects?(organizationId: string): void
 onRetryOrganizations?(): void
 onRetryProjects?(organizationId: string): void
 ```
 
-Selecting another organization, paging and replacing authentication state are caller-owned operations. Update the selected IDs and corresponding scoped project state together; clear a project selection when its page or organization changes. Next controls appear only for an available validated cursor and are disabled without their callback. No previous-page behavior is invented; a caller may retain its own request history. The current page is replaced rather than merged by this component.
+Selecting another organization, paging and replacing authentication state are caller-owned operations. Update the selected IDs and corresponding scoped project state together; clear a project selection when its page or organization changes. Next controls appear only for an available validated cursor and are disabled without their callback. First controls appear only for an explicitly true navigation flag with a valid current list state; a project First control also requires the current organization scope. They remain reachable after a later-page error or unavailability, and are disabled while their list is loading or their callback is absent. Signed-out, invalid or stale scoped state hides them. The controller supplies the navigation flags and makes a fresh cursor-free request; no earlier response is cached and no cursor is decoded. The current page is replaced rather than merged by this component.
 
 The view supplies semantic headings and lists, native keyboard-operable buttons, `aria-pressed` selection, focus outlines, polite selected-project announcements and distinct loading/authentication/unavailable/error/empty messages. An empty organization list and an accessible organization with no accessible projects are different states. There are no unimplemented creation/import actions or fabricated production rows.
 
@@ -64,5 +68,9 @@ node --test tests/brand-parity.test.mjs
 The 21 focused tests exercise byte/Unicode boundaries, closed response/role shape, opaque cursor bounds, immutable copies, organization/project scope separation, selection changes and all load states, plus actual Vite-compiled Solid server rendering for escaped labels, semantic/accessibility markup, pagination controls and stale-data suppression. The parity test loads only the standalone ordinary `authorization/scope.ex` helper with `elixir -r` and compares 85 identifier vectors, including control/noncharacter ranges and invalid surrogate bytes. It does not compile or start the hosted application. Test fixtures exist only in test code. Temporary SSR output is removed after each test process.
 
 Evidence is in `verification/console-workspace-directory/`. The initial focused run contained three test-fixture default-argument mistakes; `undefined` test inputs were replaced by factory defaults rather than reaching the boundary. The corrected fixture construction and successful rerun are recorded separately. No production validator correction was needed for those failures.
+
+First-page navigation adds strict availability and compiled rendering cases,
+including failed later pages and disabled controls during loading. Its separate
+source and execution record is `verification/console-workflow-next-slice-review/`.
 
 This lane delivers the reusable component/data boundary. The root lane owns the actual API client, session/authentication and `App.tsx` composition; a standalone component test is not connected customer workflow evidence. The initial production build predates that composition and may tree-shake the unreferenced component; the focused SSR test independently compiles and renders it. Source parity confirms the shared website brand tokens and exact logo bytes, not visual layout acceptance. Browser interaction, screen capture and native runtime tests were not run because they are paused. Live identity/provider behavior, deployed API isolation, Cloudflare hosting, operational qualification, physical devices and G22 remain pending; no GA gate is passed by these host results.

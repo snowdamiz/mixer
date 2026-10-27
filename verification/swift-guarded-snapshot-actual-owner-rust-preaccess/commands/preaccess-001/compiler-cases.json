@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "status": "eight-unexecuted-producer-owned-probe-categories",
+  "adaptation": "Only private symbol paths/lifetime parameters may be bound to eventual actual source; preserve forbidden operation and expected diagnostic. Parent provides production metadata success baseline. Internal probes are inserted only into an owned copied query crate; external probes consume production metadata. Never cfg(test) for privacy probes.",
+  "cases": [
+    {
+      "id": "C01",
+      "category": "clone_or_copy_acquisition_reservation_or_correlation_attempt",
+      "scope": "private child copied production crate",
+      "snippet": "fn needs_clone<T: Clone>() {} fn needs_copy<T: Copy>() {} fn probe<'r>() { needs_clone::<AcquisitionReservationV1<'r>>(); needs_copy::<AcquisitionReservationV1<'r>>(); needs_clone::<PrepaidCorrelationAttemptV1<'r>>(); needs_copy::<PrepaidCorrelationAttemptV1<'r>>(); }",
+      "expect": "E0277 for every4site; noClone/Copy implemented",
+      "positive_control": "production core moves eachtype once; do notaccept failure causedbymissingtype"
+    },
+    {
+      "id": "C02",
+      "category": "dispatch_same_correlation_attempt_twice",
+      "scope": "private child copied production crate",
+      "snippet": "fn consume(_: PrepaidCorrelationAttemptV1<'_>) {} fn probe(a: PrepaidCorrelationAttemptV1<'_>) { consume(a); consume(a); }",
+      "expect": "E0382 useofmovedvalue a atsecondconsume",
+      "positive_control": "singleconsume compiles intheproductionbaseline; runtimegenerationreplacement cannotrenewattempt"
+    },
+    {
+      "id": "C03",
+      "category": "retire_owner_while_scoped_binding_or_correspondence_borrow_live",
+      "scope": "private caller copied production crate",
+      "snippet": "fn probe(owner: AdmittedImmutableOwnerV1) { let view = scoped_binding_v1(&owner); drop(owner); std::hint::black_box(view); }",
+      "expect": "E0505 cannotmoveowner whileborrowusedafterdrop; addcorrespondence siblingfunction underthissameprobe",
+      "positive_control": "scoped viewlastuse ->endview ->consumeowner compiles; noleak/staticwidening"
+    },
+    {
+      "id": "C04",
+      "category": "return_binding_or_source_as_static_orafter_owner_end",
+      "scope": "production copied crate/existing publicproofsignature",
+      "snippet": "fn probe(p: ValidatedSwiftReactor) -> &'static [u8] { p.source() }",
+      "expect": "E0515 returningreferenceownedbycurrentfunction orintendedlifetimeerror; alsoownerbindingcannotoutliveowner",
+      "positive_control": "fn borrowed(p: &ValidatedSwiftReactor) -> &[u8] { p.source() }; rootreservationalso cannotoutlivecallerownedledger"
+    },
+    {
+      "id": "C05",
+      "category": "construct_expected_correlated_wrapper_oradmitted_owner_from_parts",
+      "scope": "siblingoutsideprivatechild plusexternalprivacywithproductionrmeta",
+      "snippet": "fn forbidden(p: SelectedValidatedProfileV1) { let _ = CorrelatedSelectedProfileV1(p); } // siblingalso attempts structliteral for AdmittedLoaderCorrespondenceV1/AdmittedImmutableOwnerV1",
+      "expect": "E0603/E0616/E0423 intendedprivacy/privateconstructor atnameditem; positivevisibilitycontrolmustresolveexistingopaque type",
+      "positive_control": "privateadmission/correlationonlyconstructswrappersafterownedchecks; noexposedpartssetter orproofgetter returningownedvalue"
+    },
+    {
+      "id": "C06",
+      "category": "use_unqualified_existing_candidate_as_admitted",
+      "scope": "ownedprivatecallerquerywithbothactualtypesvisible",
+      "snippet": "fn requires_admitted(_: &AdmittedImmutableOwnerV1) {} fn probe(x: &UnqualifiedExistingOwnerCandidateV1<'_>) { requires_admitted(x); }",
+      "expect": "E0308 mismatchedtypes,actualunqualifiedvsadmitted; noInto/Fromcoercion",
+      "positive_control": "requires_admitted acceptsborrowfromprivatecfg(test)fixtureonlyinhosttestbuild,productionadmittedtypeexists"
+    },
+    {
+      "id": "C07",
+      "category": "supply_caller_expected_dictionary_orpublic_trait_callback",
+      "scope": "privatecopiedcrate resolveactual3argcorrelation",
+      "snippet": "fn probe(a: PrepaidCorrelationAttemptV1<'_>, c: SuppliedLoaderCarrierV1, e: &AdmittedLoaderCorrespondenceV1<'_>) { let supplied = [(\"source\", [0u8;32])]; correlate_admitted_loader_v1(a, c, e, &supplied); }",
+      "expect": "E0061 unexpectedfourthargument atactualfunction; nolegacyexpectedroute/publictraitcallback accepted",
+      "positive_control": "same3arguments productionroute compiles; separateexternalproductioninspectionensuresnocallback/expectedmint API"
+    },
+    {
+      "id": "C08",
+      "category": "production_access_test_only_admission_orloader_provenance_constructor",
+      "scope": "externalorinternalnon-testproductionqueryagainstrealtargetcfg",
+      "snippet": "// Resolve eventual private cfg(test) helper name in its legitimate internal scope, then call it without cfg(test). Also attempt the loader's test_provenance_v1 helper on the actual selected type.",
+      "expect": "intendedcfg-removal E0425/E0599 orprivacy E0603 atverifiedtest-onlysymbol; noacceptancefromunrelatedmissingimports",
+      "positive_control": "exacthelperexistsandisusedinactualcfg(test)hostsource; productionrmeta builtwithouttest; no test-only admission routeexported"
+    }
+  ],
+  "budget": {
+    "preaccess_invocations": 0,
+    "producer_negative_invocations": 8,
+    "producer_total_planned_invocations": 11,
+    "producer_total_final_host_runs": 2,
+    "layout_queries": 0,
+    "each_command_seconds_max": 55,
+    "native_runtime_invocations": 0
+  },
+  "extra_noncompiler_requirement": "H02/H08 test same-lifetime foreign owner association; Rust lifetime equality alone doesnotprove exactsameowner. PA03 also requires actualborrowed ledger API; fold its escape negative into C04 ratherthan mintingextra compilerbudget."
+}

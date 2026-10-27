@@ -25,6 +25,8 @@ interface WorkspaceController {
   selectProject(selection: { organizationId: string; projectId: string }): void;
   nextOrganizations(cursor: string): void;
   nextProjects(page: { organizationId: string; cursor: string }): void;
+  firstOrganizations(): void;
+  firstProjects(organizationId: string): void;
   retryOrganizations(): void;
   retryProjects(organizationId: string): void;
   dispose(): void;
@@ -55,6 +57,22 @@ they are never merged. Missing/stale callbacks and retries while loading make no
 request. A retry is allowed only for an `error` or transport `unavailable` list,
 and reuses that list's last attempted canonical page parameters. Changing the
 organization or session discards the former project attempt.
+
+After a nonfirst page attempt, `firstOrganizations()` requests a fresh first
+organization page and `firstProjects(organizationId)` requests a fresh first
+project page for the current exact organization. Both use the same frozen empty
+page object and ordinary client as initial loading. They retain no earlier rows
+or cursor history. The controller derives optional
+`canReturnToFirstOrganizations` and `canReturnToFirstProjects` flags from the
+canonical attempted request; the latter belongs only to the current selected
+organization. The flags remain true while a later page is loading or failed, so
+the view can disable its First control during loading and offer recovery from a
+failed later cursor. A First action is inert during that list's active request,
+on a first-page attempt, after session replacement or disposal, or for a stale
+project organization. Returning to first clears the corresponding flag and
+selection immediately; organization return also aborts and clears project work.
+If the first-page request fails, the ordinary retry action retries that empty
+request. Transport, response validation and authorization contracts are unchanged.
 
 ## Response identity and failures
 
@@ -115,6 +133,12 @@ snapshot, including all console source files used by typechecking. Controlled de
 session/logout/scope replacement, canonical pagination/retries, arbitrary IDs,
 response mutation, errors, notifications, reentrancy and cleanup. Test-generated
 JavaScript is removed after success and compiler failure.
+
+The First actions add focused controller, Solid binding and directory rendering
+cases for fresh cursor-free requests, later-cursor failure recovery, immediate
+selection clearing, exact scope, session replacement, late completion and
+disposal. Their current execution receipt is recorded separately under
+`verification/console-workflow-next-slice-review/`.
 
 This is host controller evidence. App/session/login composition, actual browser
 interaction and accessibility runtime, provider and deployed tenant isolation,

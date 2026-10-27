@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "status": "eight-unexecuted-producer-owned-probe-categories",
+  "adaptation": "Only private symbol paths/lifetime parameters may be bound to eventual actual source; preserve forbidden operation and expected diagnostic. Parent provides production metadata success baseline. Internal probes are inserted only into an owned copied query crate; external probes consume production metadata. Never cfg(test) for privacy probes.",
+  "cases": [
+    {
+      "id": "C01",
+      "category": "clone_or_copy_acquisition_reservation_or_correlation_attempt",
+      "scope": "private child copied production crate",
+      "snippet": "fn needs_clone<T: Clone>() {} fn needs_copy<T: Copy>() {} fn probe<'r>() { needs_clone::<AcquisitionReservationV1<'r>>(); needs_copy::<AcquisitionReservationV1<'r>>(); needs_clone::<PrepaidCorrelationAttemptV1<'r>>(); needs_copy::<PrepaidCorrelationAttemptV1<'r>>(); }",
+      "expect": "E0277 at all four sites; neither reservation nor attempt implements Clone or Copy.",
+      "positive_control": "The production core moves each type once. Missing imports/types do not qualify."
+    },
+    {
+      "id": "C02",
+      "category": "dispatch_same_correlation_attempt_twice",
+      "scope": "private child copied production crate",
+      "snippet": "fn consume(_: PrepaidCorrelationAttemptV1<'_>) {} fn probe(a: PrepaidCorrelationAttemptV1<'_>) { consume(a); consume(a); }",
+      "expect": "E0382 use of moved value a at the second consume.",
+      "positive_control": "A single consumption compiles in the production baseline. Runtime generation replacement cannot renew the attempt."
+    },
+    {
+      "id": "C03",
+      "category": "retire_owner_while_scoped_binding_or_correspondence_borrow_live",
+      "scope": "private caller copied production crate",
+      "snippet": "fn probe(owner: AdmittedImmutableOwnerV1) { let view = scoped_binding_v1(&owner); drop(owner); std::hint::black_box(view); }",
+      "expect": "E0505 cannot move owner while the view is used after drop. Include the equivalent correspondence borrow in this same probe.",
+      "positive_control": "Using the view for the last time, ending the borrow, then consuming owner compiles. No leak or static widening."
+    },
+    {
+      "id": "C04",
+      "category": "return_binding_or_source_as_static_orafter_owner_end",
+      "scope": "production copied crate/existing publicproofsignature",
+      "snippet": "fn probe(p: ValidatedSwiftReactor) -> &'static [u8] { p.source() }\nfn bad_reservation_lifetime<'short>(r: AcquisitionReservationV1<'short>) -> AcquisitionReservationV1<'static> { r }",
+      "expect": "E0515 for returning source borrowed from the owned argument, plus the intended lifetime error for widening a borrowed reservation to static.",
+      "positive_control": "fn borrowed(p: &ValidatedSwiftReactor) -> &[u8] { p.source() } compiles. An explicit root borrow also controls acquisition reservation lifetime."
+    },
+    {
+      "id": "C05",
+      "category": "construct_expected_correlated_wrapper_oradmitted_owner_from_parts",
+      "scope": "siblingoutsideprivate child plusexternal privacy with production metadata",
+      "snippet": "fn forbidden(p: SelectedValidatedProfileV1) { let _ = CorrelatedSelectedProfileV1(p); } // siblingalso attempts structliteral for AdmittedLoaderCorrespondenceV1/AdmittedImmutableOwnerV1",
+      "expect": "E0603, E0616 or E0423 on the intended private type/field/tuple constructor. Resolve the opaque type in a positive visibility control first.",
+      "positive_control": "Only private admission/correlation constructs these wrappers after owned checks; no exposed parts setter or owned proof extraction."
+    },
+    {
+      "id": "C06",
+      "category": "use_unqualified_existing_candidate_as_admitted",
+      "scope": "owned private caller query with both actual types visible",
+      "snippet": "fn requires_admitted(_: &AdmittedImmutableOwnerV1) {} fn probe(x: &UnqualifiedExistingOwnerCandidateV1<'_>) { requires_admitted(x); }",
+      "expect": "E0308 identifies actual unqualified versus admitted types; no From/Into coercion exists.",
+      "positive_control": "A real admitted borrow satisfies requires_admitted in the proper private host-test fixture; the production opaque type itself exists."
+    },
+    {
+      "id": "C07",
+      "category": "supply_caller_expected_dictionary_orpublic_trait_callback",
+      "scope": "private copied crate resolving actual three-argument correlation",
+      "snippet": "fn probe(a: PrepaidCorrelationAttemptV1<'_>, c: SuppliedLoaderCarrierV1, e: &AdmittedLoaderCorrespondenceV1<'_>) { let supplied = [(\"source\", [0u8;32])]; correlate_admitted_loader_v1(a, c, e, &supplied); }",
+      "expect": "E0061 rejects the fourth caller-supplied argument at the real correlation function.",
+      "positive_control": "The same three legitimate arguments compile. Source/metadata review checks that no public callback or expected-value mint route exists."
+    },
+    {
+      "id": "C08",
+      "category": "production_access_test_only_admission_orloader_provenance_constructor",
+      "scope": "internal non-test production query under actual target configuration",
+      "snippet": "fn probe(s: &SelectedValidatedProfileV1) { let _ = s.test_provenance_v1(); } // injected into loader scope in copied production crate, without cfg(test)",
+      "expect": "E0599 for the known cfg(test) test_provenance_v1 method when queried without test; any additional eventual test-only custody helper must also be source-reviewed.",
+      "positive_control": "The method exists and is used under cfg(test). Production rmeta is built without test. No test-only admission route is exported."
+    }
+  ],
+  "budget": {
+    "preaccess_invocations": 0,
+    "producer_negative_invocations": 8,
+    "producer_total_planned_invocations": 11,
+    "producer_total_final_host_runs": 2,
+    "layout_queries": 0,
+    "each_command_seconds_max": 55,
+    "native_runtime_invocations": 0
+  },
+  "extra_noncompiler_requirement": "H02/H08 check same-lifetime foreign-owner association; matching Rust lifetimes do not prove the same owner. PA03 also requires the borrowed ledger API. Fold its lifetime-widening negative into C04; do not add compiler budget."
+}

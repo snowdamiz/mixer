@@ -1,0 +1,47 @@
+{
+  "argv": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "-c",
+    "import sys,json\nfrom pathlib import Path\nsys.path.insert(0,sys.argv[1])\nimport review_custody as c\ncurrent=c.snapshot()\nold=c.load(c.HERE/'commands/fresh-independent-03/inputs-before.json')\nguidance={'AGENTS.md','PLAN.md','mixer-product-plan.md'}\ndef priced(x):\n    return {**x,'files':[r for r in x['files'] if r['path'] not in guidance]}\nassert priced(current)==priced(old)\nprint(json.dumps({'success':True,'frozen_packets':current['complete_frozen_packets_checked'],'inherited_priced_inputs':current['inherited_priced_inputs'],'frozen_files':len(priced(current)['files']),'mutable_guidance_excluded_from_priced_custody':True,'snapshot_sha256':c.sha(c.canonical(priced(current)))}))\n",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-callee-source-correction-independent"
+  ],
+  "environment": {
+    "PATH": "/opt/homebrew/bin:/usr/bin:/bin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONHASHSEED": "0"
+  },
+  "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+  "timeout_seconds": 45,
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "python_sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a",
+  "script": {
+    "path": "verification/swift-semantic-adapter-root-review/accept-callee-source-correction.py",
+    "bytes": 6762,
+    "sha256": "a6dd2b1da0974bee8f84e82e7182af7f2b3c7c6c2de3ee1fe97cc66ffbb475e2"
+  },
+  "review_custody_helper": {
+    "path": "verification/swift-guarded-snapshot-callee-source-correction-independent/review_custody.py",
+    "bytes": 5804,
+    "sha256": "56427017ce7147c72c2137847dbe1725e1e803fd779ff82bc5d39402b9e5a0f0"
+  },
+  "custody_before": [
+    {
+      "path": "verification/swift-guarded-snapshot-provider-callee-source-correction",
+      "seal_sha256": "e80dd24b7cb7e18c97abb1effa705cbc2b7882b36ac8e439a181bc6cf3a6dfb1",
+      "members": 219,
+      "bytes": 13305313
+    },
+    {
+      "path": "verification/swift-guarded-snapshot-callee-source-correction-independent",
+      "seal_sha256": "00db7ec194949f945acb86d78e051873be7792076f05793e009ed9c7325739b5",
+      "members": 42,
+      "bytes": 3063531
+    }
+  ],
+  "source_revision": "d6af73813244c330a979afb83b45f53490ff5b29",
+  "scope": "read-only complete frozen custody and retained final command evidence; no replay/compiler"
+}

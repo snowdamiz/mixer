@@ -1,0 +1,563 @@
+diff --git a/console/src/components/WorkspaceDirectory.tsx b/console/src/components/WorkspaceDirectory.tsx
+index deacb2a5d..b746a31cd 100644
+--- a/console/src/components/WorkspaceDirectory.tsx
++++ b/console/src/components/WorkspaceDirectory.tsx
+@@ -8,6 +8,8 @@ export interface WorkspaceDirectoryProps extends WorkspaceDirectoryState {
+   readonly onSelectProject: (selection: { readonly organizationId: string; readonly projectId: string }) => void;
+   readonly onNextOrganizations?: (cursor: string) => void;
+   readonly onNextProjects?: (page: { readonly organizationId: string; readonly cursor: string }) => void;
++  readonly onFirstOrganizations?: () => void;
++  readonly onFirstProjects?: (organizationId: string) => void;
+   readonly onRetryOrganizations?: () => void;
+   readonly onRetryProjects?: (organizationId: string) => void;
+ }
+@@ -117,6 +119,11 @@ export function WorkspaceDirectory(props: WorkspaceDirectoryProps) {
+             <DirectoryMessage state={view().organizations as MessageState} onRetry={props.onRetryOrganizations} />
+           </Match>
+         </Switch>
++        <Show when={view().canReturnToFirstOrganizations}><div class="workspace-pagination">
++          <p>Return to the start of your organizations.</p><button type="button" class="workspace-page-button"
++            disabled={!props.onFirstOrganizations || view().organizations.kind === "loading"}
++            onClick={() => props.onFirstOrganizations?.()}>First organizations</button>
++        </div></Show>
+       </section>
+       <section class="workspace-directory-panel" aria-labelledby="workspace-projects-heading">
+         <header class="workspace-directory-heading"><span class="workspace-directory-symbol"><WorkspaceSymbol project /></span>
+@@ -158,6 +165,13 @@ export function WorkspaceDirectory(props: WorkspaceDirectoryProps) {
+             } : undefined} />
+           </Match>
+         </Switch>
++        <Show when={view().canReturnToFirstProjects}><div class="workspace-pagination">
++          <p>Return to the start of this organization’s projects.</p><button type="button" class="workspace-page-button"
++            disabled={!props.onFirstProjects || view().projects.kind === "loading"} onClick={() => {
++              const organization = view().selectedOrganization;
++              if (organization) props.onFirstProjects?.(organization.id);
++            }}>First projects</button>
++        </div></Show>
+       </section>
+     </div>
+     <Show when={view().selectedProject}>{project => <p class="workspace-current-selection" role="status" aria-live="polite" aria-atomic="true">
+diff --git a/console/src/components/WorkspacePage.tsx b/console/src/components/WorkspacePage.tsx
+index f26601352..16c34ef3e 100644
+--- a/console/src/components/WorkspacePage.tsx
++++ b/console/src/components/WorkspacePage.tsx
+@@ -10,6 +10,8 @@ export function WorkspacePage() {
+     onSelectProject={controller.selectProject}
+     onNextOrganizations={controller.nextOrganizations}
+     onNextProjects={controller.nextProjects}
++    onFirstOrganizations={controller.firstOrganizations}
++    onFirstProjects={controller.firstProjects}
+     onRetryOrganizations={controller.retryOrganizations}
+     onRetryProjects={controller.retryProjects} />;
+ }
+diff --git a/console/src/domain/workspace-directory.ts b/console/src/domain/workspace-directory.ts
+index 59aed38eb..d494a4103 100644
+--- a/console/src/domain/workspace-directory.ts
++++ b/console/src/domain/workspace-directory.ts
+@@ -39,6 +39,9 @@ export interface WorkspaceDirectoryState {
+   readonly projects: WorkspaceProjectsState;
+   readonly selectedOrganizationId?: string;
+   readonly selectedProjectId?: string;
++  /** Navigation availability comes from the caller's canonical request, never the response cursor. */
++  readonly canReturnToFirstOrganizations?: boolean;
++  readonly canReturnToFirstProjects?: boolean;
+ }
+ 
+ type OrganizationView = LoadState | { readonly kind: "invalid" } |
+@@ -50,6 +53,8 @@ export interface WorkspaceDirectoryView {
+   readonly projects: ProjectView;
+   readonly selectedOrganization: WorkspaceOrganization | null;
+   readonly selectedProject: WorkspaceProject | null;
++  readonly canReturnToFirstOrganizations: boolean;
++  readonly canReturnToFirstProjects: boolean;
+ }
+ 
+ const roles: readonly string[] = ["administrator", "billing_manager", "developer", "owner", "release_manager", "viewer"];
+@@ -161,6 +166,8 @@ export function resolveWorkspaceDirectory(input: WorkspaceDirectoryState): Works
+   let projects: ProjectView = { kind: "unselected" };
+   let selectedOrganization: WorkspaceOrganization | null = null;
+   let selectedProject: WorkspaceProject | null = null;
++  let canReturnToFirstOrganizations = false;
++  let canReturnToFirstProjects = false;
+   try {
+     const state = input.organizations;
+     if (object(state, ["kind", "input"]) && state.kind === "ready") {
+@@ -181,10 +188,15 @@ export function resolveWorkspaceDirectory(input: WorkspaceDirectoryState): Works
+         }
+       }
+     }
++    // Fail closed for malformed flags, invalid rows, signed-out state or a stale project scope.
++    canReturnToFirstOrganizations = input.canReturnToFirstOrganizations === true &&
++      ["ready", "loading", "error", "unavailable"].includes(organizations.kind);
++    canReturnToFirstProjects = input.canReturnToFirstProjects === true && selectedOrganization !== null &&
++      ["ready", "loading", "error", "unavailable"].includes(projects.kind);
+   } catch {
+     if (selectedOrganization === null) organizations = { kind: "invalid" };
+     else projects = { kind: "invalid" };
+   }
+   return Object.freeze({ organizations: Object.freeze(organizations), projects: Object.freeze(projects),
+-    selectedOrganization, selectedProject });
++    selectedOrganization, selectedProject, canReturnToFirstOrganizations, canReturnToFirstProjects });
+ }
+diff --git a/console/src/state/workspace-binding.ts b/console/src/state/workspace-binding.ts
+index e318aec00..07c457d54 100644
+--- a/console/src/state/workspace-binding.ts
++++ b/console/src/state/workspace-binding.ts
+@@ -5,7 +5,7 @@ import type { WorkspaceController, WorkspaceSession } from "./workspace-controll
+ import type { WorkspaceDirectoryState } from "../domain/workspace-directory.js";
+ 
+ export type WorkspaceActions = Pick<WorkspaceController, "selectOrganization" | "selectProject" |
+-  "nextOrganizations" | "nextProjects" | "retryOrganizations" | "retryProjects">;
++  "nextOrganizations" | "nextProjects" | "firstOrganizations" | "firstProjects" | "retryOrganizations" | "retryProjects">;
+ export interface WorkspaceBinding {
+   readonly state: Accessor<WorkspaceDirectoryState>;
+   readonly controller: Readonly<WorkspaceActions>;
+@@ -44,6 +44,8 @@ export function createWorkspaceBinding(session: Accessor<WorkspaceSession | unde
+     selectProject(selection: { organizationId: string; projectId: string }) { if (current()) controller.selectProject(selection); },
+     nextOrganizations(cursor: string) { if (current()) controller.nextOrganizations(cursor); },
+     nextProjects(page: { organizationId: string; cursor: string }) { if (current()) controller.nextProjects(page); },
++    firstOrganizations() { if (current()) controller.firstOrganizations(); },
++    firstProjects(organizationId: string) { if (current()) controller.firstProjects(organizationId); },
+     retryOrganizations() { if (current()) controller.retryOrganizations(); },
+     retryProjects(organizationId: string) { if (current()) controller.retryProjects(organizationId); },
+   });
+diff --git a/console/src/state/workspace-controller.ts b/console/src/state/workspace-controller.ts
+index d418f051c..fffd4aeea 100644
+--- a/console/src/state/workspace-controller.ts
++++ b/console/src/state/workspace-controller.ts
+@@ -16,6 +16,8 @@ export interface WorkspaceController {
+   selectProject(selection: { organizationId: string; projectId: string }): void;
+   nextOrganizations(cursor: string): void;
+   nextProjects(page: { organizationId: string; cursor: string }): void;
++  firstOrganizations(): void;
++  firstProjects(organizationId: string): void;
+   retryOrganizations(): void;
+   retryProjects(organizationId: string): void;
+   dispose(): void;
+@@ -94,7 +96,13 @@ export function createWorkspaceController(): WorkspaceController {
+   }
+ 
+   function update(next: WorkspaceDirectoryState, cancelled: readonly (Request | undefined)[] = []): void {
+-    state = snapshot(next);
++    const navigation = { ...next };
++    delete navigation.canReturnToFirstOrganizations;
++    delete navigation.canReturnToFirstProjects;
++    if (client && organizationAttempt?.cursor !== undefined) navigation.canReturnToFirstOrganizations = true;
++    if (client && projectAttempt?.page.cursor !== undefined &&
++      projectAttempt.organizationId === next.selectedOrganizationId) navigation.canReturnToFirstProjects = true;
++    state = snapshot(navigation);
+     revision++;
+     // Abort handlers may reenter, so state and request slots are coherent first.
+     for (const request of cancelled) request?.controller.abort();
+@@ -237,6 +245,15 @@ export function createWorkspaceController(): WorkspaceController {
+         typeof page.cursor !== "string" || (state.projects.input as WorkspaceProjectPage).next_cursor !== page.cursor) return;
+       beginProjects(page.organizationId, Object.freeze({ cursor: page.cursor }));
+     },
++    firstOrganizations(): void {
++      if (disposed || !client || organizationRequest || organizationAttempt?.cursor === undefined) return;
++      beginOrganizations(firstPage);
++    },
++    firstProjects(organizationId: string): void {
++      if (disposed || !client || projectRequest || !selectedOrganization(organizationId) ||
++        projectAttempt?.organizationId !== organizationId || projectAttempt.page.cursor === undefined) return;
++      beginProjects(organizationId, firstPage);
++    },
+     retryOrganizations(): void {
+       if (disposed || !client || !organizationAttempt ||
+         (state.organizations.kind !== "error" && state.organizations.kind !== "unavailable")) return;
+diff --git a/console/tests/workspace-binding-runner.mjs b/console/tests/workspace-binding-runner.mjs
+index 487bd7849..20f92c8e6 100644
+--- a/console/tests/workspace-binding-runner.mjs
++++ b/console/tests/workspace-binding-runner.mjs
+@@ -32,7 +32,8 @@ test("actual Node client and HTTP responses update the shared Solid owner and ex
+     seen.push({ url: request.url, authorization: request.headers.authorization });
+     const url = new URL(request.url, "http://localhost");
+     response.writeHead(200, { "content-type": "application/json" });
+-    response.end(JSON.stringify(url.pathname === "/v3/orgs" ? orgs : projects));
++    const result = url.pathname === "/v3/orgs" ? orgs : projects;
++    response.end(JSON.stringify({ ...result, next_cursor: url.searchParams.has("cursor") ? null : "NEXT" }));
+   });
+   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+   const app = owner();
+@@ -49,9 +50,27 @@ test("actual Node client and HTTP responses update the shared Solid owner and ex
+     assert.equal(seen.length, 2);
+     assert.equal(seen[1].url, `/v3/projects?organization_id=${encodeURIComponent(organizationId)}`);
+     assert.ok(seen.every(row => row.authorization === "Bearer synthetic.binding.token"));
++    app.binding.controller.nextProjects({ organizationId, cursor: "NEXT" });
++    await until(() => app.binding.state().projects.kind === "ready");
++    assert.equal(app.binding.state().canReturnToFirstProjects, true);
++    app.binding.controller.firstProjects(organizationId);
++    await until(() => app.binding.state().projects.kind === "ready");
++    assert.equal(seen.at(-2).url, `/v3/projects?organization_id=${encodeURIComponent(organizationId)}&cursor=NEXT`);
++    assert.equal(seen.at(-1).url, `/v3/projects?organization_id=${encodeURIComponent(organizationId)}`);
++    assert.equal(app.binding.state().canReturnToFirstProjects, undefined);
++    app.binding.controller.selectProject({ organizationId, projectId: "project/one" });
+     // Child route ownership can end without disposing the app's shared selection.
+     createRoot(stop => { assert.equal(app.binding.state().selectedProjectId, "project/one"); stop(); });
+     assert.equal(app.binding.state().selectedProjectId, "project/one");
++    app.binding.controller.nextOrganizations("NEXT");
++    await until(() => app.binding.state().organizations.kind === "ready");
++    assert.equal(app.binding.state().canReturnToFirstOrganizations, true);
++    app.binding.controller.firstOrganizations();
++    await until(() => app.binding.state().organizations.kind === "ready");
++    assert.equal(seen.at(-2).url, "/v3/orgs?cursor=NEXT"); assert.equal(seen.at(-1).url, "/v3/orgs");
++    assert.equal(app.binding.state().selectedProjectId, undefined);
++    assert.equal(app.binding.state().canReturnToFirstOrganizations, undefined);
++    assert.ok(seen.every(row => row.authorization === "Bearer synthetic.binding.token"));
+     app.setSession({ kind: "unauthenticated" });
+     assert.deepEqual(app.binding.state(), { organizations: { kind: "unauthenticated" }, projects: { kind: "unselected" } });
+     assert.doesNotMatch(JSON.stringify(app.binding.state()), /Studio|FieldLog|synthetic.binding.token/);
+@@ -101,8 +120,9 @@ test("disposing the application owner aborts pending projects and erases retaine
+ test("pure consumers registered before binding cannot read old rows or act with an old session", async () => {
+   let binding, setSession, dispose, prior;
+   const observations = [];
+-  let projectCalls = 0;
+-  const client = { organizations() { return Promise.resolve(orgs); }, projects() { projectCalls++; return Promise.resolve(projects); } };
++  let projectCalls = 0, organizationCalls = 0;
++  const client = { organizations() { organizationCalls++; return Promise.resolve({ ...orgs, next_cursor: "NEXT" }); },
++    projects() { projectCalls++; return Promise.resolve(projects); } };
+   const replacement = { kind: "ready", client };
+   createRoot(stop => {
+     dispose = stop;
+@@ -114,7 +134,10 @@ test("pure consumers registered before binding cannot read old rows or act with
+         prior = current;
+         observations.push({ session: current?.kind, state: binding.state() });
+         // This runs before the binding's effect admits the replacement epoch.
+-        if (current === replacement) binding.controller.selectOrganization(organizationId);
++        if (current === replacement) {
++          binding.controller.firstOrganizations(); binding.controller.firstProjects(organizationId);
++          binding.controller.selectOrganization(organizationId);
++        }
+       }
+     });
+     binding = createWorkspaceBinding(session);
+@@ -122,7 +145,12 @@ test("pure consumers registered before binding cannot read old rows or act with
+   try {
+     setSession({ kind: "ready", client });
+     await until(() => binding.state().organizations.kind === "ready");
++    binding.controller.nextOrganizations("NEXT");
++    await until(() => binding.state().organizations.kind === "ready");
++    assert.equal(binding.state().canReturnToFirstOrganizations, true);
++    const beforeReplacement = organizationCalls;
+     setSession(replacement);
++    assert.equal(organizationCalls, beforeReplacement + 1, "only the replacement session may request its first page");
+     assert.equal(projectCalls, 0);
+     await until(() => binding.state().organizations.kind === "ready");
+     setSession({ kind: "unauthenticated" });
+diff --git a/console/tests/workspace-controller.test.mjs b/console/tests/workspace-controller.test.mjs
+index 770f040ab..457a6f0e2 100644
+--- a/console/tests/workspace-controller.test.mjs
++++ b/console/tests/workspace-controller.test.mjs
+@@ -55,8 +55,9 @@ async function selected(controller, api, organizationId = "a", page = projects(o
+   api.calls.at(-1).resolve(page);
+   await flush();
+ }
+-function assertEmpty(state, kind) {
+-  assert.deepEqual(state, { organizations: { kind }, projects: { kind: "unselected" } });
++function assertEmpty(state, kind, canReturnToFirstOrganizations = false) {
++  assert.deepEqual(state, { organizations: { kind }, projects: { kind: "unselected" },
++    ...(canReturnToFirstOrganizations ? { canReturnToFirstOrganizations: true } : {}) });
+ }
+ 
+ test("initial state is immutable unavailable and invalid actions make no requests", () => {
+@@ -70,6 +71,7 @@ test("initial state is immutable unavailable and invalid actions make no request
+   controller.selectOrganization("a"); controller.selectProject({ organizationId: "a", projectId: "p" });
+   controller.nextOrganizations("old"); controller.nextProjects({ organizationId: "a", cursor: "old" });
+   controller.retryOrganizations(); controller.retryProjects("a");
++  controller.firstOrganizations(); controller.firstProjects("a");
+   assert.equal(controller.getState(), state);
+   controller.dispose();
+ });
+@@ -153,7 +155,7 @@ test("organization pagination accepts only the offered cursor and replaces all d
+   controller.selectProject({ organizationId: "a", projectId: "p" });
+   controller.nextOrganizations("old"); assert.equal(api.calls.length, 2);
+   controller.nextOrganizations("ORG_next-1");
+-  assertEmpty(controller.getState(), "loading"); assert.deepEqual(api.calls.at(-1).page, { cursor: "ORG_next-1" });
++  assertEmpty(controller.getState(), "loading", true); assert.deepEqual(api.calls.at(-1).page, { cursor: "ORG_next-1" });
+   controller.nextOrganizations("ORG_next-1"); controller.selectOrganization("a"); controller.retryOrganizations();
+   assert.equal(api.calls.length, 3);
+   api.calls.at(-1).resolve(organizations(["c"], "SECOND")); await flush();
+@@ -186,7 +188,7 @@ test("pagination invalidates an in-flight project success and its old callbacks"
+   await ready(controller, api, organizations(["a"], "NEXT"));
+   controller.selectOrganization("a"); const old = api.calls.at(-1);
+   controller.nextOrganizations("NEXT"); assert.equal(old.signal.aborted, true);
+-  old.resolve(projects()); await flush(); assertEmpty(controller.getState(), "loading");
++  old.resolve(projects()); await flush(); assertEmpty(controller.getState(), "loading", true);
+   api.calls.at(-1).resolve(organizations(["b"])); await flush();
+   controller.retryProjects("a"); controller.nextProjects({ organizationId: "a", cursor: "NEXT" });
+   controller.selectProject({ organizationId: "a", projectId: "p" }); assert.equal(api.calls.length, 3);
+@@ -415,6 +417,7 @@ test("disposal aborts and clears, suppresses late completions, and makes every a
+     controller.selectOrganization("a"); controller.selectProject({ organizationId: "a", projectId: "p" });
+     controller.nextOrganizations("NEXT"); controller.nextProjects({ organizationId: "a", cursor: "NEXT" });
+     controller.retryOrganizations(); controller.retryProjects("a"); controller.subscribe(() => { throw new Error("called after disposal"); })();
++    controller.firstOrganizations(); controller.firstProjects("a");
+     if (completion === "success") old.resolve(projects()); else old.reject(new WorkspaceClientError("unauthenticated"));
+     await flush(); assert.equal(controller.getState(), state); assert.equal(seen.length, notifications); assert.equal(api.calls.length, 2);
+   }
+@@ -427,3 +430,104 @@ test("disposal inside notification prevents later observers and starts no reques
+   controller.setSession({ kind: "ready", client: api.client });
+   assert.deepEqual(seen, ["unavailable"]); assert.equal(api.calls.length, 0); assertEmpty(controller.getState(), "unavailable");
+ });
++
++test("first organizations requests fresh first-page data and clears dependent work and selection", async () => {
++  const controller = createWorkspaceController(); const api = controlled();
++  await ready(controller, api, organizations(["a"], "NEXT"));
++  controller.firstOrganizations(); assert.equal(api.calls.length, 1);
++  controller.nextOrganizations("NEXT");
++  assert.equal(controller.getState().canReturnToFirstOrganizations, true);
++  controller.firstOrganizations(); assert.equal(api.calls.length, 2, "return is inert during an active page request");
++  api.calls[1].resolve(organizations(["c"])); await flush();
++  await selected(controller, api, "c", projects("c", ["r"], "PROJECT_NEXT"));
++  controller.selectProject({ organizationId: "c", projectId: "r" });
++  controller.nextProjects({ organizationId: "c", cursor: "PROJECT_NEXT" }); const oldProject = api.calls.at(-1);
++  controller.firstOrganizations(); const first = api.calls.at(-1);
++  assert.equal(oldProject.signal.aborted, true); assertEmpty(controller.getState(), "loading");
++  assert.deepEqual(first.page, {}); assert.ok(Object.isFrozen(first.page));
++  controller.firstOrganizations(); controller.firstProjects("c"); assert.equal(api.calls.length, 5);
++  oldProject.resolve(projects("c", ["private-old"])); await flush();
++  assertEmpty(controller.getState(), "loading");
++  first.resolve(organizations(["fresh-first"])); await flush();
++  assert.deepEqual(controller.getState().organizations.input.organizations.map(row => row.id), ["fresh-first"]);
++  assert.equal(controller.getState().canReturnToFirstOrganizations, undefined);
++  assert.equal(controller.getState().canReturnToFirstProjects, undefined); controller.dispose();
++});
++
++test("first projects preserves exact organization, clears selection and rejects stale scoped actions", async () => {
++  const controller = createWorkspaceController(); const api = controlled();
++  await ready(controller, api); await selected(controller, api, "a", projects("a", ["p"], "NEXT"));
++  controller.firstProjects("a"); assert.equal(api.calls.length, 2);
++  controller.nextProjects({ organizationId: "a", cursor: "NEXT" });
++  controller.firstProjects("a"); assert.equal(api.calls.length, 3, "return is inert while loading");
++  api.calls[2].resolve(projects("a", ["q"])); await flush();
++  controller.selectProject({ organizationId: "a", projectId: "q" });
++  assert.equal(controller.getState().canReturnToFirstProjects, true);
++  controller.firstProjects("b"); assert.equal(api.calls.length, 3);
++  controller.firstProjects("a"); const first = api.calls.at(-1);
++  assert.equal(first.organizationId, "a"); assert.deepEqual(first.page, {}); assert.ok(Object.isFrozen(first.page));
++  assert.equal(controller.getState().selectedOrganizationId, "a");
++  assert.equal(controller.getState().selectedProjectId, undefined);
++  assert.deepEqual(controller.getState().projects, { kind: "loading", organizationId: "a" });
++  controller.firstProjects("a"); assert.equal(api.calls.length, 4);
++  controller.selectOrganization("b"); assert.equal(first.signal.aborted, true);
++  controller.firstProjects("a"); assert.equal(api.calls.length, 5);
++  first.resolve(projects("a", ["old-first"])); await flush();
++  assert.deepEqual(controller.getState().projects, { kind: "loading", organizationId: "b" });
++  api.calls[4].resolve(projects("b", ["new-scope"])); await flush();
++  assert.equal(controller.getState().canReturnToFirstProjects, undefined);
++  assert.deepEqual(controller.getState().projects.input.projects.map(row => row.id), ["new-scope"]); controller.dispose();
++});
++
++test("first-page actions recover from failed later cursors and first-page retry stays cursor-free", async () => {
++  for (const code of ["not_found", "permission_denied", "unavailable", "invalid_response"]) {
++    for (const list of ["organizations", "projects"]) {
++      const controller = createWorkspaceController(); const api = controlled();
++      await ready(controller, api, organizations(["a"], "ORG_NEXT"));
++      if (list === "projects") await selected(controller, api, "a", projects("a", ["p"], "PROJECT_NEXT"));
++      const next = () => list === "organizations" ? controller.nextOrganizations("ORG_NEXT") :
++        controller.nextProjects({ organizationId: "a", cursor: "PROJECT_NEXT" });
++      const first = () => list === "organizations" ? controller.firstOrganizations() : controller.firstProjects("a");
++      const retry = () => list === "organizations" ? controller.retryOrganizations() : controller.retryProjects("a");
++      next(); api.calls.at(-1).reject(new WorkspaceClientError(code)); await flush();
++      assert.equal(controller.getState()[list === "organizations" ? "canReturnToFirstOrganizations" : "canReturnToFirstProjects"], true);
++      const previousCount = api.calls.length; first();
++      assert.equal(api.calls.length, previousCount + 1); assert.deepEqual(api.calls.at(-1).page, {});
++      api.calls.at(-1).reject(new WorkspaceClientError("unavailable")); await flush();
++      first(); assert.equal(api.calls.length, previousCount + 1, "failed first page uses retry, not another reset");
++      retry(); assert.deepEqual(api.calls.at(-1).page, {});
++      api.calls.at(-1).resolve(list === "organizations" ? organizations(["fresh"]) : projects("a", ["fresh"])); await flush();
++      assert.equal(controller.getState()[list].kind, "ready"); controller.dispose();
++    }
++  }
++});
++
++test("first-page responses cannot cross session replacement or disposal", async () => {
++  for (const list of ["organizations", "projects"]) {
++    for (const ending of ["replacement", "disposal"]) {
++      for (const completion of ["success", "failure"]) {
++        const controller = createWorkspaceController(); const api = controlled();
++        await ready(controller, api, organizations(["a"], "ORG_NEXT"));
++        if (list === "organizations") {
++          controller.nextOrganizations("ORG_NEXT"); api.calls.at(-1).resolve(organizations(["b"])); await flush();
++          controller.firstOrganizations();
++        } else {
++          await selected(controller, api, "a", projects("a", ["p"], "PROJECT_NEXT"));
++          controller.nextProjects({ organizationId: "a", cursor: "PROJECT_NEXT" });
++          api.calls.at(-1).resolve(projects("a", ["q"])); await flush(); controller.firstProjects("a");
++        }
++        const old = api.calls.at(-1);
++        if (ending === "replacement") controller.setSession({ kind: "ready", client: api.client }); else controller.dispose();
++        assert.equal(old.signal.aborted, true);
++        const current = controller.getState();
++        if (completion === "success") old.resolve(list === "organizations" ? organizations(["private-old"]) : projects("a", ["private-old"]));
++        else old.reject(new WorkspaceClientError("unauthenticated"));
++        await flush(); assert.equal(controller.getState(), current);
++        assert.equal(controller.getState().canReturnToFirstOrganizations, undefined);
++        assert.equal(controller.getState().canReturnToFirstProjects, undefined);
++        const count = api.calls.length; controller.firstOrganizations(); controller.firstProjects("a");
++        assert.equal(api.calls.length, count); controller.dispose();
++      }
++    }
++  }
++});
+diff --git a/console/tests/workspace-directory-domain.test.mjs b/console/tests/workspace-directory-domain.test.mjs
+index 1aa8451f3..10ebb46e9 100644
+--- a/console/tests/workspace-directory-domain.test.mjs
++++ b/console/tests/workspace-directory-domain.test.mjs
+@@ -182,3 +182,28 @@ test("malformed ready data and unsupported controlled states fail closed", () =>
+   }
+   assert.equal(resolveWorkspaceDirectory(null).organizations.kind, "invalid");
+ });
++
++test("first-page availability accepts only explicit flags and current valid organization scope", () => {
++  for (const flag of [undefined, false, "true", 1, {}, null]) {
++    const state = input(); state.canReturnToFirstOrganizations = flag; state.canReturnToFirstProjects = flag;
++    const view = resolveWorkspaceDirectory(state);
++    assert.equal(view.canReturnToFirstOrganizations, false); assert.equal(view.canReturnToFirstProjects, false);
++  }
++  for (const kind of ["ready", "loading", "error", "unavailable"]) {
++    const state = input(); state.canReturnToFirstOrganizations = true; state.canReturnToFirstProjects = true;
++    if (kind !== "ready") state.projects = { kind, organizationId: "org:北/..", ...(kind === "error" ? { reason: "not_found" } : {}) };
++    let view = resolveWorkspaceDirectory(state);
++    assert.equal(view.canReturnToFirstOrganizations, true); assert.equal(view.canReturnToFirstProjects, true);
++    state.projects.organizationId = "other"; view = resolveWorkspaceDirectory(state);
++    assert.equal(view.canReturnToFirstProjects, false);
++    state.organizations = kind === "ready" ? { kind, input: null } :
++      { kind, ...(kind === "error" ? { reason: "request_failed" } : {}) };
++    view = resolveWorkspaceDirectory(state);
++    assert.equal(view.canReturnToFirstOrganizations, kind !== "ready"); assert.equal(view.canReturnToFirstProjects, false);
++  }
++  const state = input(); state.canReturnToFirstOrganizations = true; state.canReturnToFirstProjects = true;
++  state.projects = { kind: "unauthenticated", organizationId: "org:北/.." };
++  assert.equal(resolveWorkspaceDirectory(state).canReturnToFirstProjects, false);
++  state.organizations = { kind: "unauthenticated" };
++  assert.equal(resolveWorkspaceDirectory(state).canReturnToFirstOrganizations, false);
++});
+diff --git a/console/tests/workspace-directory-view.test.mjs b/console/tests/workspace-directory-view.test.mjs
+index fba6803bd..d9b45a9bd 100644
+--- a/console/tests/workspace-directory-view.test.mjs
++++ b/console/tests/workspace-directory-view.test.mjs
+@@ -150,6 +150,38 @@ test("next-page controls reflect only validated server cursors and available han
+   html = render(input); assert.match(html, /Could not load projects/); assert.doesNotMatch(html, /Next projects|FieldLog/);
+ });
+ 
++test("first-page controls remain reachable after later-page failure and disabled during active requests", () => {
++  const input = state();
++  input.onFirstOrganizations = () => {}; input.onFirstProjects = () => {};
++  assert.doesNotMatch(render(input), /First organizations|First projects/);
++  input.canReturnToFirstOrganizations = true; input.canReturnToFirstProjects = true;
++  let html = render(input);
++  assert.match(html, /<button type="button" class="workspace-page-button">First organizations<\/button>/);
++  assert.match(html, /<button type="button" class="workspace-page-button">First projects<\/button>/);
++  input.projects = { kind: "loading", organizationId: "org:北/.." }; html = render(input);
++  assert.match(html, /disabled[^>]*>First projects<\/button>/);
++  for (const kind of ["error", "unavailable"]) {
++    input.projects = { kind, organizationId: "org:北/..", ...(kind === "error" ? { reason: "not_found" } : {}) };
++    html = render(input);
++    assert.match(html, /<button type="button" class="workspace-page-button">First projects<\/button>/);
++    assert.doesNotMatch(html, /FieldLog|Selected project/);
++    input.organizations = kind === "error" ? { kind, reason: "request_failed" } : { kind };
++    html = render(input);
++    assert.match(html, /<button type="button" class="workspace-page-button">First organizations<\/button>/);
++    assert.doesNotMatch(html, /First projects|FieldLog|Selected project/);
++    input.organizations = state().organizations;
++  }
++  input.organizations = { kind: "loading" }; html = render(input);
++  assert.match(html, /disabled[^>]*>First organizations<\/button>/);
++  input.organizations = state().organizations; input.projects.organizationId = "stale";
++  assert.doesNotMatch(render(input), /First projects/);
++  input.projects = state().projects; delete input.onFirstOrganizations; delete input.onFirstProjects;
++  html = render(input);
++  assert.match(html, /disabled[^>]*>First organizations<\/button>/); assert.match(html, /disabled[^>]*>First projects<\/button>/);
++  input.organizations = { kind: "unauthenticated" };
++  assert.doesNotMatch(render(input), /First organizations|First projects/);
++});
++
+ test("all malformed role/name data fails closed instead of fabricating names or access labels", () => {
+   for (const patch of [{ display_name: "" }, { display_name: "bad\nname" }, { organization_roles: ["admin"] }, { organization_roles: ["owner", "developer"] }]) {
+     const input = state(); Object.assign(input.organizations.input.organizations[0], patch);
+diff --git a/docs/console-workspace-controller.md b/docs/console-workspace-controller.md
+index a684c02f6..591905c40 100644
+--- a/docs/console-workspace-controller.md
++++ b/docs/console-workspace-controller.md
+@@ -25,6 +25,8 @@ interface WorkspaceController {
+   selectProject(selection: { organizationId: string; projectId: string }): void;
+   nextOrganizations(cursor: string): void;
+   nextProjects(page: { organizationId: string; cursor: string }): void;
++  firstOrganizations(): void;
++  firstProjects(organizationId: string): void;
+   retryOrganizations(): void;
+   retryProjects(organizationId: string): void;
+   dispose(): void;
+@@ -56,6 +58,22 @@ request. A retry is allowed only for an `error` or transport `unavailable` list,
+ and reuses that list's last attempted canonical page parameters. Changing the
+ organization or session discards the former project attempt.
+ 
++After a nonfirst page attempt, `firstOrganizations()` requests a fresh first
++organization page and `firstProjects(organizationId)` requests a fresh first
++project page for the current exact organization. Both use the same frozen empty
++page object and ordinary client as initial loading. They retain no earlier rows
++or cursor history. The controller derives optional
++`canReturnToFirstOrganizations` and `canReturnToFirstProjects` flags from the
++canonical attempted request; the latter belongs only to the current selected
++organization. The flags remain true while a later page is loading or failed, so
++the view can disable its First control during loading and offer recovery from a
++failed later cursor. A First action is inert during that list's active request,
++on a first-page attempt, after session replacement or disposal, or for a stale
++project organization. Returning to first clears the corresponding flag and
++selection immediately; organization return also aborts and clears project work.
++If the first-page request fails, the ordinary retry action retries that empty
++request. Transport, response validation and authorization contracts are unchanged.
++
+ ## Response identity and failures
+ 
+ Each request captures a unique generation, session generation, client and
+@@ -116,6 +134,12 @@ session/logout/scope replacement, canonical pagination/retries, arbitrary IDs,
+ response mutation, errors, notifications, reentrancy and cleanup. Test-generated
+ JavaScript is removed after success and compiler failure.
+ 
++The First actions add focused controller, Solid binding and directory rendering
++cases for fresh cursor-free requests, later-cursor failure recovery, immediate
++selection clearing, exact scope, session replacement, late completion and
++disposal. Their current execution receipt is recorded separately under
++`verification/console-workflow-next-slice-review/`.
++
+ This is host controller evidence. App/session/login composition, actual browser
+ interaction and accessibility runtime, provider and deployed tenant isolation,
+ native simulator/emulator runtime, physical phones, immutable FieldLog release
+diff --git a/docs/console-workspace-directory.md b/docs/console-workspace-directory.md
+index e9eee9d0a..cb86a2129 100644
+--- a/docs/console-workspace-directory.md
++++ b/docs/console-workspace-directory.md
+@@ -32,6 +32,8 @@ Both role arrays are lexicographically sorted, unique and limited to `administra
+ | `projects` | `unselected`, or the same load states with the exact `organizationId` |
+ | `selectedOrganizationId` | Optional controlled selection within the current organization page |
+ | `selectedProjectId` | Optional controlled selection within the current project page |
++| `canReturnToFirstOrganizations` | Optional boolean from the caller's nonfirst organization-page attempt |
++| `canReturnToFirstProjects` | Optional boolean from the caller's nonfirst project-page attempt in the current organization |
+ 
+ `error.reason` is `permission_denied`, `not_found` or `request_failed`. Error messages are fixed customer-facing copy and never echo HTTP details. `resolveWorkspaceDirectory` validates every ready page and resolves selection only against its copied current rows. Missing/stale organization selection hides all project data. A project response from another organization fails closed even when the project ID matches. A malformed page hides every row from that page; it cannot leave a prior project highlighted.
+ 
+@@ -42,11 +44,13 @@ onSelectOrganization(organizationId: string): void
+ onSelectProject({ organizationId, projectId }): void
+ onNextOrganizations?(cursor: string): void
+ onNextProjects?({ organizationId, cursor }): void
++onFirstOrganizations?(): void
++onFirstProjects?(organizationId: string): void
+ onRetryOrganizations?(): void
+ onRetryProjects?(organizationId: string): void
+ ```
+ 
+-Selecting another organization, paging and replacing authentication state are caller-owned operations. Update the selected IDs and corresponding scoped project state together; clear a project selection when its page or organization changes. Next controls appear only for an available validated cursor and are disabled without their callback. No previous-page behavior is invented; a caller may retain its own request history. The current page is replaced rather than merged by this component.
++Selecting another organization, paging and replacing authentication state are caller-owned operations. Update the selected IDs and corresponding scoped project state together; clear a project selection when its page or organization changes. Next controls appear only for an available validated cursor and are disabled without their callback. First controls appear only for an explicitly true navigation flag with a valid current list state; a project First control also requires the current organization scope. They remain reachable after a later-page error or unavailability, and are disabled while their list is loading or their callback is absent. Signed-out, invalid or stale scoped state hides them. The controller supplies the navigation flags and makes a fresh cursor-free request; no earlier response is cached and no cursor is decoded. The current page is replaced rather than merged by this component.
+ 
+ The view supplies semantic headings and lists, native keyboard-operable buttons, `aria-pressed` selection, focus outlines, polite selected-project announcements and distinct loading/authentication/unavailable/error/empty messages. An empty organization list and an accessible organization with no accessible projects are different states. There are no unimplemented creation/import actions or fabricated production rows.
+ 
+@@ -65,4 +69,8 @@ The 21 focused tests exercise byte/Unicode boundaries, closed response/role shap
+ 
+ Evidence is in `verification/console-workspace-directory/`. The initial focused run contained three test-fixture default-argument mistakes; `undefined` test inputs were replaced by factory defaults rather than reaching the boundary. The corrected fixture construction and successful rerun are recorded separately. No production validator correction was needed for those failures.
+ 
++First-page navigation adds strict availability and compiled rendering cases,
++including failed later pages and disabled controls during loading. Its separate
++source and execution record is `verification/console-workflow-next-slice-review/`.
++
+ This lane delivers the reusable component/data boundary. The root lane owns the actual API client, session/authentication and `App.tsx` composition; a standalone component test is not connected customer workflow evidence. The initial production build predates that composition and may tree-shake the unreferenced component; the focused SSR test independently compiles and renders it. Source parity confirms the shared website brand tokens and exact logo bytes, not visual layout acceptance. Browser interaction, screen capture and native runtime tests were not run because they are paused. Live identity/provider behavior, deployed API isolation, Cloudflare hosting, operational qualification, physical devices and G22 remain pending; no GA gate is passed by these host results.

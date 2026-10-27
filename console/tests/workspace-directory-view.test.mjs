@@ -150,6 +150,38 @@ test("next-page controls reflect only validated server cursors and available han
   html = render(input); assert.match(html, /Could not load projects/); assert.doesNotMatch(html, /Next projects|FieldLog/);
 });
 
+test("first-page controls remain reachable after later-page failure and disabled during active requests", () => {
+  const input = state();
+  input.onFirstOrganizations = () => {}; input.onFirstProjects = () => {};
+  assert.doesNotMatch(render(input), /First organizations|First projects/);
+  input.canReturnToFirstOrganizations = true; input.canReturnToFirstProjects = true;
+  let html = render(input);
+  assert.match(html, /<button type="button" class="workspace-page-button">First organizations<\/button>/);
+  assert.match(html, /<button type="button" class="workspace-page-button">First projects<\/button>/);
+  input.projects = { kind: "loading", organizationId: "org:北/.." }; html = render(input);
+  assert.match(html, /disabled[^>]*>First projects<\/button>/);
+  for (const kind of ["error", "unavailable"]) {
+    input.projects = { kind, organizationId: "org:北/..", ...(kind === "error" ? { reason: "not_found" } : {}) };
+    html = render(input);
+    assert.match(html, /<button type="button" class="workspace-page-button">First projects<\/button>/);
+    assert.doesNotMatch(html, /FieldLog|Selected project/);
+    input.organizations = kind === "error" ? { kind, reason: "request_failed" } : { kind };
+    html = render(input);
+    assert.match(html, /<button type="button" class="workspace-page-button">First organizations<\/button>/);
+    assert.doesNotMatch(html, /First projects|FieldLog|Selected project/);
+    input.organizations = state().organizations;
+  }
+  input.organizations = { kind: "loading" }; html = render(input);
+  assert.match(html, /disabled[^>]*>First organizations<\/button>/);
+  input.organizations = state().organizations; input.projects.organizationId = "stale";
+  assert.doesNotMatch(render(input), /First projects/);
+  input.projects = state().projects; delete input.onFirstOrganizations; delete input.onFirstProjects;
+  html = render(input);
+  assert.match(html, /disabled[^>]*>First organizations<\/button>/); assert.match(html, /disabled[^>]*>First projects<\/button>/);
+  input.organizations = { kind: "unauthenticated" };
+  assert.doesNotMatch(render(input), /First organizations|First projects/);
+});
+
 test("all malformed role/name data fails closed instead of fabricating names or access labels", () => {
   for (const patch of [{ display_name: "" }, { display_name: "bad\nname" }, { organization_roles: ["admin"] }, { organization_roles: ["owner", "developer"] }]) {
     const input = state(); Object.assign(input.organizations.input.organizations[0], patch);

@@ -8,6 +8,8 @@ export interface WorkspaceDirectoryProps extends WorkspaceDirectoryState {
   readonly onSelectProject: (selection: { readonly organizationId: string; readonly projectId: string }) => void;
   readonly onNextOrganizations?: (cursor: string) => void;
   readonly onNextProjects?: (page: { readonly organizationId: string; readonly cursor: string }) => void;
+  readonly onFirstOrganizations?: () => void;
+  readonly onFirstProjects?: (organizationId: string) => void;
   readonly onRetryOrganizations?: () => void;
   readonly onRetryProjects?: (organizationId: string) => void;
 }
@@ -117,6 +119,11 @@ export function WorkspaceDirectory(props: WorkspaceDirectoryProps) {
             <DirectoryMessage state={view().organizations as MessageState} onRetry={props.onRetryOrganizations} />
           </Match>
         </Switch>
+        <Show when={view().canReturnToFirstOrganizations}><div class="workspace-pagination">
+          <p>Return to the start of your organizations.</p><button type="button" class="workspace-page-button"
+            disabled={!props.onFirstOrganizations || view().organizations.kind === "loading"}
+            onClick={() => props.onFirstOrganizations?.()}>First organizations</button>
+        </div></Show>
       </section>
       <section class="workspace-directory-panel" aria-labelledby="workspace-projects-heading">
         <header class="workspace-directory-heading"><span class="workspace-directory-symbol"><WorkspaceSymbol project /></span>
@@ -158,6 +165,13 @@ export function WorkspaceDirectory(props: WorkspaceDirectoryProps) {
             } : undefined} />
           </Match>
         </Switch>
+        <Show when={view().canReturnToFirstProjects}><div class="workspace-pagination">
+          <p>Return to the start of this organization’s projects.</p><button type="button" class="workspace-page-button"
+            disabled={!props.onFirstProjects || view().projects.kind === "loading"} onClick={() => {
+              const organization = view().selectedOrganization;
+              if (organization) props.onFirstProjects?.(organization.id);
+            }}>First projects</button>
+        </div></Show>
       </section>
     </div>
     <Show when={view().selectedProject}>{project => <p class="workspace-current-selection" role="status" aria-live="polite" aria-atomic="true">

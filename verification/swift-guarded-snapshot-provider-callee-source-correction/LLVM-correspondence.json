@@ -1,0 +1,645 @@
+{
+  "artifact": {
+    "bytes": 1187317,
+    "path": "verification/swift-guarded-snapshot-owned-provider-work-storage/commands/capture-layout/query.ll.gz",
+    "sha256": "d135ed8a23d0530b438ffed42caf67900aa3cebd48f7d167842f848a9c83fd4a"
+  },
+  "compiler_plan_sha256": "63b3274f5e90218cf2d58f09d67aabbeff4e53c4c7a1c2195aca429a4be193bc",
+  "functions": [
+    {
+      "body": "define { i64, i64 } @_RNvXNtNtNtCsjIpoRzUjyHQ_4core4iter6traits7collectINtNtNtB8_3ops5range5RangejENtB2_12IntoIterator9into_iterCscBrn2zMo5wc_8mixer_vm(i64 %self.0, i64 %self.1) unnamed_addr #1 !guid !5123 {\nstart:\n  %0 = insertvalue { i64, i64 } poison, i64 %self.0, 0\n  %1 = insertvalue { i64, i64 } %0, i64 %self.1, 1\n  ret { i64, i64 } %1\n}",
+      "bytes": 344,
+      "calls": [],
+      "edges": {
+        "start": []
+      },
+      "header": "define { i64, i64 } @_RNvXNtNtNtCsjIpoRzUjyHQ_4core4iter6traits7collectINtNtNtB8_3ops5range5RangejENtB2_12IntoIterator9into_iterCscBrn2zMo5wc_8mixer_vm(i64 %self.0, i64 %self.1) unnamed_addr #1 !guid !5123 {",
+      "name": "<core::ops::range::Range<usize> as core::iter::traits::collect::IntoIterator>::into_iter",
+      "node": "range_into_iter",
+      "reachable": [
+        "start"
+      ],
+      "sha256": "5c27b92865f55514efd5a574e8fa255d693b0c81d6d5510095405b33eb485a81",
+      "symbol": "_RNvXNtNtNtCsjIpoRzUjyHQ_4core4iter6traits7collectINtNtNtB8_3ops5range5RangejENtB2_12IntoIterator9into_iterCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define { i64, i64 } @_RNvXs4_NtNtCsjIpoRzUjyHQ_4core4iter5rangeINtNtNtB9_3ops5range5RangejENtNtNtB7_6traits8iterator8Iterator4nextCscBrn2zMo5wc_8mixer_vm(ptr align 8 %self) unnamed_addr #1 !guid !5411 {\nstart:\n; call <core::ops::range::Range<usize> as core::iter::range::RangeIteratorImpl>::spec_next\n  %0 = call { i64, i64 } @_RNvXs3_NtNtCsjIpoRzUjyHQ_4core4iter5rangeINtNtNtB9_3ops5range5RangejENtB5_17RangeIteratorImpl9spec_nextCscBrn2zMo5wc_8mixer_vm(ptr align 8 %self) #26\n  %_0.0 = extractvalue { i64, i64 } %0, 0\n  %_0.1 = extractvalue { i64, i64 } %0, 1\n  %1 = insertvalue { i64, i64 } poison, i64 %_0.0, 0\n  %2 = insertvalue { i64, i64 } %1, i64 %_0.1, 1\n  ret { i64, i64 } %2\n}",
+      "bytes": 687,
+      "calls": [
+        "_RNvXs3_NtNtCsjIpoRzUjyHQ_4core4iter5rangeINtNtNtB9_3ops5range5RangejENtB5_17RangeIteratorImpl9spec_nextCscBrn2zMo5wc_8mixer_vm"
+      ],
+      "edges": {
+        "start": []
+      },
+      "header": "define { i64, i64 } @_RNvXs4_NtNtCsjIpoRzUjyHQ_4core4iter5rangeINtNtNtB9_3ops5range5RangejENtNtNtB7_6traits8iterator8Iterator4nextCscBrn2zMo5wc_8mixer_vm(ptr align 8 %self) unnamed_addr #1 !guid !5411 {",
+      "name": "<core::ops::range::Range<usize> as core::iter::traits::iterator::Iterator>::next",
+      "node": "range_next",
+      "reachable": [
+        "start"
+      ],
+      "sha256": "40ffa511a408d982ffdc0b534eeec6a82b35eda6ff0cebd81ce73129a1125441",
+      "symbol": "_RNvXs4_NtNtCsjIpoRzUjyHQ_4core4iter5rangeINtNtNtB9_3ops5range5RangejENtNtNtB7_6traits8iterator8Iterator4nextCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define { i64, i64 } @_RNvXs3_NtNtCsjIpoRzUjyHQ_4core4iter5rangeINtNtNtB9_3ops5range5RangejENtB5_17RangeIteratorImpl9spec_nextCscBrn2zMo5wc_8mixer_vm(ptr align 8 %self) unnamed_addr #1 !guid !5368 {\nstart:\n  %_0 = alloca [16 x i8], align 8\n  %_4 = getelementptr inbounds i8, ptr %self, i64 8\n  %_3.i = load i64, ptr %self, align 8\n  %_4.i = load i64, ptr %_4, align 8\n  %_0.i = icmp ult i64 %_3.i, %_4.i\n  br i1 %_0.i, label %bb2, label %bb4\n\nbb4:                                              ; preds = %start\n  store i64 0, ptr %_0, align 8\n  br label %bb5\n\nbb2:                                              ; preds = %start\n  %old = load i64, ptr %self, align 8\n; call <usize as core::iter::range::Step>::forward_unchecked\n  %_6 = call i64 @_RNvXsL_NtNtCsjIpoRzUjyHQ_4core4iter5rangejNtB5_4Step17forward_uncheckedCscBrn2zMo5wc_8mixer_vm(i64 %old, i64 1) #26\n  store i64 %_6, ptr %self, align 8\n  %0 = getelementptr inbounds i8, ptr %_0, i64 8\n  store i64 %old, ptr %0, align 8\n  store i64 1, ptr %_0, align 8\n  br label %bb5\n\nbb5:                                              ; preds = %bb2, %bb4\n  %1 = load i64, ptr %_0, align 8\n  %2 = getelementptr inbounds i8, ptr %_0, i64 8\n  %3 = load i64, ptr %2, align 8\n  %4 = insertvalue { i64, i64 } poison, i64 %1, 0\n  %5 = insertvalue { i64, i64 } %4, i64 %3, 1\n  ret { i64, i64 } %5\n}",
+      "bytes": 1333,
+      "calls": [
+        "_RNvXsL_NtNtCsjIpoRzUjyHQ_4core4iter5rangejNtB5_4Step17forward_uncheckedCscBrn2zMo5wc_8mixer_vm"
+      ],
+      "edges": {
+        "bb2": [
+          "bb5"
+        ],
+        "bb4": [
+          "bb5"
+        ],
+        "bb5": [],
+        "start": [
+          "bb2",
+          "bb4"
+        ]
+      },
+      "header": "define { i64, i64 } @_RNvXs3_NtNtCsjIpoRzUjyHQ_4core4iter5rangeINtNtNtB9_3ops5range5RangejENtB5_17RangeIteratorImpl9spec_nextCscBrn2zMo5wc_8mixer_vm(ptr align 8 %self) unnamed_addr #1 !guid !5368 {",
+      "name": "<core::ops::range::Range<usize> as core::iter::range::RangeIteratorImpl>::spec_next",
+      "node": "range_spec_next",
+      "reachable": [
+        "bb2",
+        "bb4",
+        "bb5",
+        "start"
+      ],
+      "sha256": "bec9d41886311844d6ac675667ea6ca38d4b03b3a1546dea0d797361c3870df9",
+      "symbol": "_RNvXs3_NtNtCsjIpoRzUjyHQ_4core4iter5rangeINtNtNtB9_3ops5range5RangejENtB5_17RangeIteratorImpl9spec_nextCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define internal i64 @_RNvXsL_NtNtCsjIpoRzUjyHQ_4core4iter5rangejNtB5_4Step17forward_uncheckedCscBrn2zMo5wc_8mixer_vm(i64 %start1, i64 %n) unnamed_addr #1 !guid !5584 {\nstart:\n  br label %bb1\n\nbb1:                                              ; preds = %start\n; call <usize>::unchecked_add::precondition_check\n  call void @_RNvNvMs9_NtCsjIpoRzUjyHQ_4core3numj13unchecked_add18precondition_checkCscBrn2zMo5wc_8mixer_vm(i64 %start1, i64 %n, ptr align 8 @alloc_0640c89466bfa58bc711c54a22561bde) #28\n  br label %bb2\n\nbb2:                                              ; preds = %bb1\n  %_0 = add nuw i64 %start1, %n\n  ret i64 %_0\n}",
+      "bytes": 624,
+      "calls": [
+        "_RNvNvMs9_NtCsjIpoRzUjyHQ_4core3numj13unchecked_add18precondition_checkCscBrn2zMo5wc_8mixer_vm"
+      ],
+      "edges": {
+        "bb1": [
+          "bb2"
+        ],
+        "bb2": [],
+        "start": [
+          "bb1"
+        ]
+      },
+      "header": "define internal i64 @_RNvXsL_NtNtCsjIpoRzUjyHQ_4core4iter5rangejNtB5_4Step17forward_uncheckedCscBrn2zMo5wc_8mixer_vm(i64 %start1, i64 %n) unnamed_addr #1 !guid !5584 {",
+      "name": "<usize as core::iter::range::Step>::forward_unchecked",
+      "node": "step_forward",
+      "reachable": [
+        "bb1",
+        "bb2",
+        "start"
+      ],
+      "sha256": "34a793ba90d8afa7432e828a3bfaaaf181a4d8df525a8c4d2157be41f830f667",
+      "symbol": "_RNvXsL_NtNtCsjIpoRzUjyHQ_4core4iter5rangejNtB5_4Step17forward_uncheckedCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define internal void @_RNvNvMs9_NtCsjIpoRzUjyHQ_4core3numj13unchecked_add18precondition_checkCscBrn2zMo5wc_8mixer_vm(i64 %lhs, i64 %rhs, ptr align 8 %0) unnamed_addr #6 !guid !5039 {\nstart:\n  %_7.0 = add i64 %lhs, %rhs\n  %_7.1 = icmp ult i64 %_7.0, %lhs\n  br i1 %_7.1, label %bb1, label %bb2\n\nbb2:                                              ; preds = %start\n  ret void\n\nbb1:                                              ; preds = %start\n; call core::panicking::panic_nounwind_fmt\n  call void @_RNvNtCsjIpoRzUjyHQ_4core9panicking18panic_nounwind_fmt(ptr @alloc_3e1ebac14318b612ab4efabc52799932, ptr inttoptr (i64 373 to ptr), i1 zeroext false, ptr align 8 %0) #34\n  unreachable\n}",
+      "bytes": 680,
+      "calls": [
+        "_RNvNtCsjIpoRzUjyHQ_4core9panicking18panic_nounwind_fmt"
+      ],
+      "edges": {
+        "bb1": [],
+        "bb2": [],
+        "start": [
+          "bb1",
+          "bb2"
+        ]
+      },
+      "header": "define internal void @_RNvNvMs9_NtCsjIpoRzUjyHQ_4core3numj13unchecked_add18precondition_checkCscBrn2zMo5wc_8mixer_vm(i64 %lhs, i64 %rhs, ptr align 8 %0) unnamed_addr #6 !guid !5039 {",
+      "name": "<usize>::unchecked_add::precondition_check",
+      "node": "unchecked_add_precondition",
+      "reachable": [
+        "bb1",
+        "bb2",
+        "start"
+      ],
+      "sha256": "9a29175b7062c071ba8c038cdd26f4f998833b324c1e61430be04ee711af7e7f",
+      "symbol": "_RNvNvMs9_NtCsjIpoRzUjyHQ_4core3numj13unchecked_add18precondition_checkCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define i64 @_RNvMNtCsjIpoRzUjyHQ_4core5sliceSh3lenCscBrn2zMo5wc_8mixer_vm(ptr %self.0, i64 %self.1) unnamed_addr #1 !guid !4192 {\nstart:\n  ret i64 %self.1\n}",
+      "bytes": 156,
+      "calls": [],
+      "edges": {
+        "start": []
+      },
+      "header": "define i64 @_RNvMNtCsjIpoRzUjyHQ_4core5sliceSh3lenCscBrn2zMo5wc_8mixer_vm(ptr %self.0, i64 %self.1) unnamed_addr #1 !guid !4192 {",
+      "name": "<[u8]>::len",
+      "node": "slice_len",
+      "reachable": [
+        "start"
+      ],
+      "sha256": "385ed4b6c19d8b00c068c6d8d44fcbb4cc24b44e909370da93a7741f43b85d6a",
+      "symbol": "_RNvMNtCsjIpoRzUjyHQ_4core5sliceSh3lenCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define internal { i64, i64 } @_RNvMs9_NtCsjIpoRzUjyHQ_4core3numj11checked_addCscBrn2zMo5wc_8mixer_vm(i64 %self, i64 %rhs) unnamed_addr #1 !guid !4633 {\nstart:\n  %_0 = alloca [16 x i8], align 8\n  %_4.0 = add i64 %self, %rhs\n  %_4.1 = icmp ult i64 %_4.0, %self\n  br i1 %_4.1, label %bb2, label %bb4\n\nbb4:                                              ; preds = %start\n  %_5 = add nuw i64 %self, %rhs\n  %0 = getelementptr inbounds i8, ptr %_0, i64 8\n  store i64 %_5, ptr %0, align 8\n  store i64 1, ptr %_0, align 8\n  br label %bb1\n\nbb2:                                              ; preds = %start\n  %1 = load i64, ptr @anon.89fd8161773878859b93b23ee4af1c85.0, align 8\n  %2 = load i64, ptr getelementptr inbounds (i8, ptr @anon.89fd8161773878859b93b23ee4af1c85.0, i64 8), align 8\n  store i64 %1, ptr %_0, align 8\n  %3 = getelementptr inbounds i8, ptr %_0, i64 8\n  store i64 %2, ptr %3, align 8\n  br label %bb1\n\nbb1:                                              ; preds = %bb2, %bb4\n  %4 = load i64, ptr %_0, align 8\n  %5 = getelementptr inbounds i8, ptr %_0, i64 8\n  %6 = load i64, ptr %5, align 8\n  %7 = insertvalue { i64, i64 } poison, i64 %4, 0\n  %8 = insertvalue { i64, i64 } %7, i64 %6, 1\n  ret { i64, i64 } %8\n}",
+      "bytes": 1214,
+      "calls": [],
+      "edges": {
+        "bb1": [],
+        "bb2": [
+          "bb1"
+        ],
+        "bb4": [
+          "bb1"
+        ],
+        "start": [
+          "bb2",
+          "bb4"
+        ]
+      },
+      "header": "define internal { i64, i64 } @_RNvMs9_NtCsjIpoRzUjyHQ_4core3numj11checked_addCscBrn2zMo5wc_8mixer_vm(i64 %self, i64 %rhs) unnamed_addr #1 !guid !4633 {",
+      "name": "<usize>::checked_add",
+      "node": "usize_checked_add",
+      "reachable": [
+        "bb1",
+        "bb2",
+        "bb4",
+        "start"
+      ],
+      "sha256": "ea186f7f8db774ad87dfcb1b1eb9ee11f56a28d0f8a1fe4c381aac4d30f6e00f",
+      "symbol": "_RNvMs9_NtCsjIpoRzUjyHQ_4core3numj11checked_addCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define void @_RINvMNtCsjIpoRzUjyHQ_4core6optionINtB3_6OptionjE5ok_orNtNtNtNtNtNtNtCscBrn2zMo5wc_8mixer_vm26experimental_swift_reactor5cache18initial_profile_v135trusted_local_host_account_entry_v115outer_parent_v127existing_owner_candidate_v123CandidateShapeRefusalV1EB14_(ptr sret([16 x i8]) align 8 %_0, i64 %0, i64 %1, i64 %err.0, i64 %err.1) unnamed_addr #1 !guid !2759 {\nstart:\n  %self = alloca [16 x i8], align 8\n  store i64 %0, ptr %self, align 8\n  %2 = getelementptr inbounds i8, ptr %self, i64 8\n  store i64 %1, ptr %2, align 8\n  %_3 = load i64, ptr %self, align 8\n  %3 = getelementptr inbounds i8, ptr %self, i64 8\n  %4 = load i64, ptr %3, align 8\n  %5 = trunc nuw i64 %_3 to i1\n  br i1 %5, label %bb3, label %bb2\n\nbb3:                                              ; preds = %start\n  %6 = getelementptr inbounds i8, ptr %self, i64 8\n  %v = load i64, ptr %6, align 8\n  %7 = getelementptr inbounds i8, ptr %_0, i64 8\n  store i64 %v, ptr %7, align 8\n  store i64 -1, ptr %_0, align 8\n  br label %bb4\n\nbb2:                                              ; preds = %start\n  store i64 %err.0, ptr %_0, align 8\n  %8 = getelementptr inbounds i8, ptr %_0, i64 8\n  store i64 %err.1, ptr %8, align 8\n  br label %bb4\n\nbb4:                                              ; preds = %bb3, %bb2\n  ret void\n\nbb1:                                              ; No predecessors!\n  unreachable\n}",
+      "bytes": 1380,
+      "calls": [],
+      "edges": {
+        "bb1": [],
+        "bb2": [
+          "bb4"
+        ],
+        "bb3": [
+          "bb4"
+        ],
+        "bb4": [],
+        "start": [
+          "bb3",
+          "bb2"
+        ]
+      },
+      "header": "define void @_RINvMNtCsjIpoRzUjyHQ_4core6optionINtB3_6OptionjE5ok_orNtNtNtNtNtNtNtCscBrn2zMo5wc_8mixer_vm26experimental_swift_reactor5cache18initial_profile_v135trusted_local_host_account_entry_v115outer_parent_v127existing_owner_candidate_v123CandidateShapeRefusalV1EB14_(ptr sret([16 x i8]) align 8 %_0, i64 %0, i64 %1, i64 %err.0, i64 %err.1) unnamed_addr #1 !guid !2759 {",
+      "name": "<core::option::Option<usize>>::ok_or::<mixer_vm::experimental_swift_reactor::cache::initial_profile_v1::trusted_local_host_account_entry_v1::outer_parent_v1::existing_owner_candidate_v1::CandidateShapeRefusalV1>",
+      "node": "option_ok_or_shape_refusal",
+      "reachable": [
+        "bb2",
+        "bb3",
+        "bb4",
+        "start"
+      ],
+      "sha256": "8ec89beeb727ae2f5340f4828b36e37c55d723af7d8c086217223dc41ca51f91",
+      "symbol": "_RINvMNtCsjIpoRzUjyHQ_4core6optionINtB3_6OptionjE5ok_orNtNtNtNtNtNtNtCscBrn2zMo5wc_8mixer_vm26experimental_swift_reactor5cache18initial_profile_v135trusted_local_host_account_entry_v115outer_parent_v127existing_owner_candidate_v123CandidateShapeRefusalV1EB14_",
+      "unreachable": [
+        "bb1"
+      ]
+    },
+    {
+      "body": "define void @_RNvXsp_NtCsjIpoRzUjyHQ_4core6resultINtB5_6ResultjNtNtNtNtNtNtNtCscBrn2zMo5wc_8mixer_vm26experimental_swift_reactor5cache18initial_profile_v135trusted_local_host_account_entry_v115outer_parent_v127existing_owner_candidate_v123CandidateShapeRefusalV1ENtNtNtB7_3ops9try_trait3Try6branchBZ_(ptr sret([16 x i8]) align 8 %_0, ptr align 8 %self) unnamed_addr #1 !guid !5988 {\nstart:\n  %0 = load i64, ptr %self, align 8\n  %1 = icmp eq i64 %0, -1\n  %_2 = select i1 %1, i64 0, i64 1\n  %2 = trunc nuw i64 %_2 to i1\n  br i1 %2, label %bb2, label %bb3\n\nbb2:                                              ; preds = %start\n  %e.0 = load i64, ptr %self, align 8\n  %3 = getelementptr inbounds i8, ptr %self, i64 8\n  %e.1 = load i64, ptr %3, align 8\n  store i64 %e.0, ptr %_0, align 8\n  %4 = getelementptr inbounds i8, ptr %_0, i64 8\n  store i64 %e.1, ptr %4, align 8\n  br label %bb4\n\nbb3:                                              ; preds = %start\n  %5 = getelementptr inbounds i8, ptr %self, i64 8\n  %v = load i64, ptr %5, align 8\n  %6 = getelementptr inbounds i8, ptr %_0, i64 8\n  store i64 %v, ptr %6, align 8\n  store i64 -1, ptr %_0, align 8\n  br label %bb4\n\nbb4:                                              ; preds = %bb2, %bb3\n  ret void\n\nbb1:                                              ; No predecessors!\n  unreachable\n}",
+      "bytes": 1329,
+      "calls": [],
+      "edges": {
+        "bb1": [],
+        "bb2": [
+          "bb4"
+        ],
+        "bb3": [
+          "bb4"
+        ],
+        "bb4": [],
+        "start": [
+          "bb2",
+          "bb3"
+        ]
+      },
+      "header": "define void @_RNvXsp_NtCsjIpoRzUjyHQ_4core6resultINtB5_6ResultjNtNtNtNtNtNtNtCscBrn2zMo5wc_8mixer_vm26experimental_swift_reactor5cache18initial_profile_v135trusted_local_host_account_entry_v115outer_parent_v127existing_owner_candidate_v123CandidateShapeRefusalV1ENtNtNtB7_3ops9try_trait3Try6branchBZ_(ptr sret([16 x i8]) align 8 %_0, ptr align 8 %self) unnamed_addr #1 !guid !5988 {",
+      "name": "<core::result::Result<usize, mixer_vm::experimental_swift_reactor::cache::initial_profile_v1::trusted_local_host_account_entry_v1::outer_parent_v1::existing_owner_candidate_v1::CandidateShapeRefusalV1> as core::ops::try_trait::Try>::branch",
+      "node": "result_try_branch",
+      "reachable": [
+        "bb2",
+        "bb3",
+        "bb4",
+        "start"
+      ],
+      "sha256": "802ee6d54ef89e3978a0d822fa4cde4e1b8e3ce11694df38acba1fba7e91f118",
+      "symbol": "_RNvXsp_NtCsjIpoRzUjyHQ_4core6resultINtB5_6ResultjNtNtNtNtNtNtNtCscBrn2zMo5wc_8mixer_vm26experimental_swift_reactor5cache18initial_profile_v135trusted_local_host_account_entry_v115outer_parent_v127existing_owner_candidate_v123CandidateShapeRefusalV1ENtNtNtB7_3ops9try_trait3Try6branchBZ_",
+      "unreachable": [
+        "bb1"
+      ]
+    },
+    {
+      "body": "define void @_RNvXsq_NtCsjIpoRzUjyHQ_4core6resultINtB5_6ResultNtNtNtNtNtNtNtCscBrn2zMo5wc_8mixer_vm26experimental_swift_reactor5cache18initial_profile_v135trusted_local_host_account_entry_v115outer_parent_v127existing_owner_candidate_v135UnqualifiedExistingOwnerCandidateV1NtBM_23CandidateShapeRefusalV1EINtNtNtB7_3ops9try_trait12FromResidualIBy_NtNtB7_7convert10InfallibleB49_EE13from_residualBY_(ptr sret([1352 x i8]) align 8 %_0, i64 %residual.0, i64 %residual.1, ptr align 8 %0) unnamed_addr #1 !guid !6080 {\nstart:\n  %1 = insertvalue { i64, i64 } poison, i64 %residual.0, 0\n  %2 = insertvalue { i64, i64 } %1, i64 %residual.1, 1\n  %_4.0 = extractvalue { i64, i64 } %2, 0\n  %_4.1 = extractvalue { i64, i64 } %2, 1\n  %3 = getelementptr inbounds i8, ptr %_0, i64 8\n  store i64 %_4.0, ptr %3, align 8\n  %4 = getelementptr inbounds i8, ptr %3, i64 8\n  store i64 %_4.1, ptr %4, align 8\n  store ptr null, ptr %_0, align 8\n  ret void\n}",
+      "bytes": 932,
+      "calls": [],
+      "edges": {
+        "start": []
+      },
+      "header": "define void @_RNvXsq_NtCsjIpoRzUjyHQ_4core6resultINtB5_6ResultNtNtNtNtNtNtNtCscBrn2zMo5wc_8mixer_vm26experimental_swift_reactor5cache18initial_profile_v135trusted_local_host_account_entry_v115outer_parent_v127existing_owner_candidate_v135UnqualifiedExistingOwnerCandidateV1NtBM_23CandidateShapeRefusalV1EINtNtNtB7_3ops9try_trait12FromResidualIBy_NtNtB7_7convert10InfallibleB49_EE13from_residualBY_(ptr sret([1352 x i8]) align 8 %_0, i64 %residual.0, i64 %residual.1, ptr align 8 %0) unnamed_addr #1 !guid !6080 {",
+      "name": "<core::result::Result<mixer_vm::experimental_swift_reactor::cache::initial_profile_v1::trusted_local_host_account_entry_v1::outer_parent_v1::existing_owner_candidate_v1::UnqualifiedExistingOwnerCandidateV1, mixer_vm::experimental_swift_reactor::cache::initial_profile_v1::trusted_local_host_account_entry_v1::outer_parent_v1::existing_owner_candidate_v1::CandidateShapeRefusalV1> as core::ops::try_trait::FromResidual<core::result::Result<core::convert::Infallible, mixer_vm::experimental_swift_reactor::cache::initial_profile_v1::trusted_local_host_account_entry_v1::outer_parent_v1::existing_owner_candidate_v1::CandidateShapeRefusalV1>>>::from_residual",
+      "node": "candidate_result_from_residual",
+      "reachable": [
+        "start"
+      ],
+      "sha256": "6339dcbd3c7d81c4c53fef1fc64e2a23fb1fecc0ac4d9b14d484494b170434f6",
+      "symbol": "_RNvXsq_NtCsjIpoRzUjyHQ_4core6resultINtB5_6ResultNtNtNtNtNtNtNtCscBrn2zMo5wc_8mixer_vm26experimental_swift_reactor5cache18initial_profile_v135trusted_local_host_account_entry_v115outer_parent_v127existing_owner_candidate_v135UnqualifiedExistingOwnerCandidateV1NtBM_23CandidateShapeRefusalV1EINtNtNtB7_3ops9try_trait12FromResidualIBy_NtNtB7_7convert10InfallibleB49_EE13from_residualBY_",
+      "unreachable": []
+    },
+    {
+      "body": "define internal { ptr, i64 } @_RNvMs16_NtCs1SSuMAdGM58_3std4pathNtB6_4Path9as_os_strCscBrn2zMo5wc_8mixer_vm(ptr %self.0, i64 %self.1) unnamed_addr #1 !guid !4347 {\nstart:\n  %0 = insertvalue { ptr, i64 } poison, ptr %self.0, 0\n  %1 = insertvalue { ptr, i64 } %0, i64 %self.1, 1\n  ret { ptr, i64 } %1\n}",
+      "bytes": 300,
+      "calls": [],
+      "edges": {
+        "start": []
+      },
+      "header": "define internal { ptr, i64 } @_RNvMs16_NtCs1SSuMAdGM58_3std4pathNtB6_4Path9as_os_strCscBrn2zMo5wc_8mixer_vm(ptr %self.0, i64 %self.1) unnamed_addr #1 !guid !4347 {",
+      "name": "<std::path::Path>::as_os_str",
+      "node": "path_as_os_str",
+      "reachable": [
+        "start"
+      ],
+      "sha256": "b7d40c987b8b8307053879aede801bef24ac28ef431fec504cf7293a308274ec",
+      "symbol": "_RNvMs16_NtCs1SSuMAdGM58_3std4pathNtB6_4Path9as_os_strCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define internal { ptr, i64 } @_RNvXs_NtNtNtNtCs1SSuMAdGM58_3std2os4unix3ffi6os_strNtNtNtBc_3ffi6os_str5OsStrNtB4_8OsStrExt8as_bytesCscBrn2zMo5wc_8mixer_vm(ptr %self.0, i64 %self.1) unnamed_addr #1 !guid !5686 {\nstart:\n  %0 = insertvalue { ptr, i64 } poison, ptr %self.0, 0\n  %1 = insertvalue { ptr, i64 } %0, i64 %self.1, 1\n  ret { ptr, i64 } %1\n}",
+      "bytes": 347,
+      "calls": [],
+      "edges": {
+        "start": []
+      },
+      "header": "define internal { ptr, i64 } @_RNvXs_NtNtNtNtCs1SSuMAdGM58_3std2os4unix3ffi6os_strNtNtNtBc_3ffi6os_str5OsStrNtB4_8OsStrExt8as_bytesCscBrn2zMo5wc_8mixer_vm(ptr %self.0, i64 %self.1) unnamed_addr #1 !guid !5686 {",
+      "name": "<std::ffi::os_str::OsStr as std::os::unix::ffi::os_str::OsStrExt>::as_bytes",
+      "node": "osstr_as_bytes",
+      "reachable": [
+        "start"
+      ],
+      "sha256": "ba62db87e3be1e8c1d6c95f9e2d245d5edd3c1a7c1cbd8c8a4b2e6751d4aba88",
+      "symbol": "_RNvXs_NtNtNtNtCs1SSuMAdGM58_3std2os4unix3ffi6os_strNtNtNtBc_3ffi6os_str5OsStrNtB4_8OsStrExt8as_bytesCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define zeroext i1 @_RNvMNtCsjIpoRzUjyHQ_4core5sliceSh8is_emptyCscBrn2zMo5wc_8mixer_vm(ptr %self.0, i64 %self.1) unnamed_addr #1 !guid !4197 {\nstart:\n  %_0 = icmp eq i64 %self.1, 0\n  ret i1 %_0\n}",
+      "bytes": 194,
+      "calls": [],
+      "edges": {
+        "start": []
+      },
+      "header": "define zeroext i1 @_RNvMNtCsjIpoRzUjyHQ_4core5sliceSh8is_emptyCscBrn2zMo5wc_8mixer_vm(ptr %self.0, i64 %self.1) unnamed_addr #1 !guid !4197 {",
+      "name": "<[u8]>::is_empty",
+      "node": "slice_is_empty",
+      "reachable": [
+        "start"
+      ],
+      "sha256": "7b0dbed1984fe7634b06cf644844972c88b36047193e6b8a74502b20a8bbb087",
+      "symbol": "_RNvMNtCsjIpoRzUjyHQ_4core5sliceSh8is_emptyCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define { i64, i64 } @_RINvMNtCsjIpoRzUjyHQ_4core6optionINtB3_6OptionjE8and_thenjNCNvNtNtNtNtNtNtCscBrn2zMo5wc_8mixer_vm26experimental_swift_reactor5cache18initial_profile_v135trusted_local_host_account_entry_v115outer_parent_v127existing_owner_candidate_v136describe_existing_owner_candidate_v10EB1a_(i64 %0, i64 %1, ptr align 8 %f.0, ptr align 8 %f.1) unnamed_addr #1 !guid !2803 {\nstart:\n  %_0 = alloca [16 x i8], align 8\n  %self = alloca [16 x i8], align 8\n  store i64 %0, ptr %self, align 8\n  %2 = getelementptr inbounds i8, ptr %self, i64 8\n  store i64 %1, ptr %2, align 8\n  %_3 = load i64, ptr %self, align 8\n  %3 = getelementptr inbounds i8, ptr %self, i64 8\n  %4 = load i64, ptr %3, align 8\n  %5 = trunc nuw i64 %_3 to i1\n  br i1 %5, label %bb3, label %bb2\n\nbb3:                                              ; preds = %start\n  %6 = getelementptr inbounds i8, ptr %self, i64 8\n  %x = load i64, ptr %6, align 8\n; call mixer_vm::experimental_swift_reactor::cache::initial_profile_v1::trusted_local_host_account_entry_v1::outer_parent_v1::existing_owner_candidate_v1::describe_existing_owner_candidate_v1::{closure#0}\n  %7 = call { i64, i64 } @_RNCNvNtNtNtNtNtNtCscBrn2zMo5wc_8mixer_vm26experimental_swift_reactor5cache18initial_profile_v135trusted_local_host_account_entry_v115outer_parent_v127existing_owner_candidate_v136describe_existing_owner_candidate_v10Bf_(ptr align 8 %f.0, ptr align 8 %f.1, i64 %x) #26\n  %8 = extractvalue { i64, i64 } %7, 0\n  %9 = extractvalue { i64, i64 } %7, 1\n  store i64 %8, ptr %_0, align 8\n  %10 = getelementptr inbounds i8, ptr %_0, i64 8\n  store i64 %9, ptr %10, align 8\n  br label %bb5\n\nbb2:                                              ; preds = %start\n  store i64 0, ptr %_0, align 8\n  br label %bb5\n\nbb5:                                              ; preds = %bb3, %bb2\n  %11 = load i64, ptr %_0, align 8\n  %12 = getelementptr inbounds i8, ptr %_0, i64 8\n  %13 = load i64, ptr %12, align 8\n  %14 = insertvalue { i64, i64 } poison, i64 %11, 0\n  %15 = insertvalue { i64, i64 } %14, i64 %13, 1\n  ret { i64, i64 } %15\n\nbb1:                                              ; No predecessors!\n  unreachable\n}",
+      "bytes": 2144,
+      "calls": [
+        "_RNCNvNtNtNtNtNtNtCscBrn2zMo5wc_8mixer_vm26experimental_swift_reactor5cache18initial_profile_v135trusted_local_host_account_entry_v115outer_parent_v127existing_owner_candidate_v136describe_existing_owner_candidate_v10Bf_"
+      ],
+      "edges": {
+        "bb1": [],
+        "bb2": [
+          "bb5"
+        ],
+        "bb3": [
+          "bb5"
+        ],
+        "bb5": [],
+        "start": [
+          "bb3",
+          "bb2"
+        ]
+      },
+      "header": "define { i64, i64 } @_RINvMNtCsjIpoRzUjyHQ_4core6optionINtB3_6OptionjE8and_thenjNCNvNtNtNtNtNtNtCscBrn2zMo5wc_8mixer_vm26experimental_swift_reactor5cache18initial_profile_v135trusted_local_host_account_entry_v115outer_parent_v127existing_owner_candidate_v136describe_existing_owner_candidate_v10EB1a_(i64 %0, i64 %1, ptr align 8 %f.0, ptr align 8 %f.1) unnamed_addr #1 !guid !2803 {",
+      "name": "<core::option::Option<usize>>::and_then::<usize, mixer_vm::experimental_swift_reactor::cache::initial_profile_v1::trusted_local_host_account_entry_v1::outer_parent_v1::existing_owner_candidate_v1::describe_existing_owner_candidate_v1::{closure#0}>",
+      "node": "option_and_then_excluding_authored_callback",
+      "reachable": [
+        "bb2",
+        "bb3",
+        "bb5",
+        "start"
+      ],
+      "sha256": "4fcfa1c32f46c4299e599013a271dad8aabaad354e63511cb4f94ed305015f56",
+      "symbol": "_RINvMNtCsjIpoRzUjyHQ_4core6optionINtB3_6OptionjE8and_thenjNCNvNtNtNtNtNtNtCscBrn2zMo5wc_8mixer_vm26experimental_swift_reactor5cache18initial_profile_v135trusted_local_host_account_entry_v115outer_parent_v127existing_owner_candidate_v136describe_existing_owner_candidate_v10EB1a_",
+      "unreachable": [
+        "bb1"
+      ]
+    },
+    {
+      "body": "define zeroext i1 @_RNvXNtNtCsjIpoRzUjyHQ_4core5array8equalityAhj20_NtNtB6_3cmp9PartialEq2neCscBrn2zMo5wc_8mixer_vm(ptr %self, ptr %other) unnamed_addr #1 !guid !5085 {\nstart:\n; call <u8 as core::array::equality::SpecArrayEq<u8, 32>>::spec_ne\n  %_0 = call zeroext i1 @_RNvXs7_NtNtCsjIpoRzUjyHQ_4core5array8equalityhINtB5_11SpecArrayEqhKj20_E7spec_neCscBrn2zMo5wc_8mixer_vm(ptr %self, ptr %other)\n  ret i1 %_0\n}",
+      "bytes": 410,
+      "calls": [
+        "_RNvXs7_NtNtCsjIpoRzUjyHQ_4core5array8equalityhINtB5_11SpecArrayEqhKj20_E7spec_neCscBrn2zMo5wc_8mixer_vm"
+      ],
+      "edges": {
+        "start": []
+      },
+      "header": "define zeroext i1 @_RNvXNtNtCsjIpoRzUjyHQ_4core5array8equalityAhj20_NtNtB6_3cmp9PartialEq2neCscBrn2zMo5wc_8mixer_vm(ptr %self, ptr %other) unnamed_addr #1 !guid !5085 {",
+      "name": "<[u8; 32] as core::cmp::PartialEq>::ne",
+      "node": "digest_array_ne32",
+      "reachable": [
+        "start"
+      ],
+      "sha256": "f4eb3e18712b405845f2d8032a75c75bf100482fbe1497f78665ac127a67e3e0",
+      "symbol": "_RNvXNtNtCsjIpoRzUjyHQ_4core5array8equalityAhj20_NtNtB6_3cmp9PartialEq2neCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define zeroext i1 @_RNvXs7_NtNtCsjIpoRzUjyHQ_4core5array8equalityhINtB5_11SpecArrayEqhKj20_E7spec_neCscBrn2zMo5wc_8mixer_vm(ptr %a, ptr %b) unnamed_addr #0 !guid !5460 {\nstart:\n  %0 = call i32 @memcmp(ptr %a, ptr %b, i64 32)\n  %_3 = icmp eq i32 %0, 0\n  %_0 = xor i1 %_3, true\n  ret i1 %_0\n}",
+      "bytes": 290,
+      "calls": [
+        "memcmp"
+      ],
+      "edges": {
+        "start": []
+      },
+      "header": "define zeroext i1 @_RNvXs7_NtNtCsjIpoRzUjyHQ_4core5array8equalityhINtB5_11SpecArrayEqhKj20_E7spec_neCscBrn2zMo5wc_8mixer_vm(ptr %a, ptr %b) unnamed_addr #0 !guid !5460 {",
+      "name": "<u8 as core::array::equality::SpecArrayEq<u8, 32>>::spec_ne",
+      "node": "array_spec_ne32",
+      "reachable": [
+        "start"
+      ],
+      "sha256": "fb274cfb251b26ce38fcab7c413682bbffec9fa58e0676902757a6d899dba663",
+      "symbol": "_RNvXs7_NtNtCsjIpoRzUjyHQ_4core5array8equalityhINtB5_11SpecArrayEqhKj20_E7spec_neCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define zeroext i1 @_RNvXs7_NtNtCsjIpoRzUjyHQ_4core3cmp5implsRShNtB7_9PartialEq2neCscBrn2zMo5wc_8mixer_vm(ptr align 8 %self, ptr align 8 %other) unnamed_addr #1 !guid !5456 {\nstart:\n  %_3.0 = load ptr, ptr %self, align 8\n  %0 = getelementptr inbounds i8, ptr %self, i64 8\n  %_3.1 = load i64, ptr %0, align 8\n  %_4.0 = load ptr, ptr %other, align 8\n  %1 = getelementptr inbounds i8, ptr %other, i64 8\n  %_4.1 = load i64, ptr %1, align 8\n; call <[u8] as core::cmp::PartialEq>::ne\n  %_0 = call zeroext i1 @_RNvYShNtNtCsjIpoRzUjyHQ_4core3cmp9PartialEq2neCscBrn2zMo5wc_8mixer_vm(ptr %_3.0, i64 %_3.1, ptr %_4.0, i64 %_4.1) #26\n  ret i1 %_0\n}",
+      "bytes": 635,
+      "calls": [
+        "_RNvYShNtNtCsjIpoRzUjyHQ_4core3cmp9PartialEq2neCscBrn2zMo5wc_8mixer_vm"
+      ],
+      "edges": {
+        "start": []
+      },
+      "header": "define zeroext i1 @_RNvXs7_NtNtCsjIpoRzUjyHQ_4core3cmp5implsRShNtB7_9PartialEq2neCscBrn2zMo5wc_8mixer_vm(ptr align 8 %self, ptr align 8 %other) unnamed_addr #1 !guid !5456 {",
+      "name": "<&[u8] as core::cmp::PartialEq>::ne",
+      "node": "slice_reference_ne",
+      "reachable": [
+        "start"
+      ],
+      "sha256": "6b04758dd9d9542a79e01a461fcf037cb66a5c0e7d01958be65cfa62bdeed121",
+      "symbol": "_RNvXs7_NtNtCsjIpoRzUjyHQ_4core3cmp5implsRShNtB7_9PartialEq2neCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define zeroext i1 @_RNvYShNtNtCsjIpoRzUjyHQ_4core3cmp9PartialEq2neCscBrn2zMo5wc_8mixer_vm(ptr %self.0, i64 %self.1, ptr %other.0, i64 %other.1) unnamed_addr #1 !guid !6213 {\nstart:\n; call <[u8] as core::cmp::PartialEq>::eq\n  %_3 = call zeroext i1 @_RNvXNtNtCsjIpoRzUjyHQ_4core5slice3cmpShNtNtB6_3cmp9PartialEq2eqCscBrn2zMo5wc_8mixer_vm(ptr %self.0, i64 %self.1, ptr %other.0, i64 %other.1) #26\n  %_0 = xor i1 %_3, true\n  ret i1 %_0\n}",
+      "bytes": 433,
+      "calls": [
+        "_RNvXNtNtCsjIpoRzUjyHQ_4core5slice3cmpShNtNtB6_3cmp9PartialEq2eqCscBrn2zMo5wc_8mixer_vm"
+      ],
+      "edges": {
+        "start": []
+      },
+      "header": "define zeroext i1 @_RNvYShNtNtCsjIpoRzUjyHQ_4core3cmp9PartialEq2neCscBrn2zMo5wc_8mixer_vm(ptr %self.0, i64 %self.1, ptr %other.0, i64 %other.1) unnamed_addr #1 !guid !6213 {",
+      "name": "<[u8] as core::cmp::PartialEq>::ne",
+      "node": "slice_default_ne",
+      "reachable": [
+        "start"
+      ],
+      "sha256": "19d223b36b3c93db150a2ae36e3401a3649c3345d917eca0ba1664b2807ebd66",
+      "symbol": "_RNvYShNtNtCsjIpoRzUjyHQ_4core3cmp9PartialEq2neCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define zeroext i1 @_RNvXNtNtCsjIpoRzUjyHQ_4core5slice3cmpShNtNtB6_3cmp9PartialEq2eqCscBrn2zMo5wc_8mixer_vm(ptr %self.0, i64 %self.1, ptr %other.0, i64 %other.1) unnamed_addr #1 !guid !5088 {\nstart:\n  %_0 = alloca [1 x i8], align 1\n  %_4 = icmp eq i64 %self.1, %other.1\n  br i1 %_4, label %bb1, label %bb3\n\nbb3:                                              ; preds = %start\n  store i8 0, ptr %_0, align 1\n  br label %bb4\n\nbb1:                                              ; preds = %start\n; call <u8 as core::slice::cmp::SlicePartialEq<u8>>::equal_same_length\n  %0 = call zeroext i1 @_RNvXs3_NtNtCsjIpoRzUjyHQ_4core5slice3cmphINtB5_14SlicePartialEqhE17equal_same_lengthCscBrn2zMo5wc_8mixer_vm(ptr %self.0, ptr %other.0, i64 %self.1) #26\n  %1 = zext i1 %0 to i8\n  store i8 %1, ptr %_0, align 1\n  br label %bb4\n\nbb4:                                              ; preds = %bb1, %bb3\n  %2 = load i8, ptr %_0, align 1\n  %3 = trunc nuw i8 %2 to i1\n  ret i1 %3\n}",
+      "bytes": 955,
+      "calls": [
+        "_RNvXs3_NtNtCsjIpoRzUjyHQ_4core5slice3cmphINtB5_14SlicePartialEqhE17equal_same_lengthCscBrn2zMo5wc_8mixer_vm"
+      ],
+      "edges": {
+        "bb1": [
+          "bb4"
+        ],
+        "bb3": [
+          "bb4"
+        ],
+        "bb4": [],
+        "start": [
+          "bb1",
+          "bb3"
+        ]
+      },
+      "header": "define zeroext i1 @_RNvXNtNtCsjIpoRzUjyHQ_4core5slice3cmpShNtNtB6_3cmp9PartialEq2eqCscBrn2zMo5wc_8mixer_vm(ptr %self.0, i64 %self.1, ptr %other.0, i64 %other.1) unnamed_addr #1 !guid !5088 {",
+      "name": "<[u8] as core::cmp::PartialEq>::eq",
+      "node": "slice_eq",
+      "reachable": [
+        "bb1",
+        "bb3",
+        "bb4",
+        "start"
+      ],
+      "sha256": "21eb3465c55a2bd89047317ff23fe1ed889787ba6e1cc9a0179f87a09c206cda",
+      "symbol": "_RNvXNtNtCsjIpoRzUjyHQ_4core5slice3cmpShNtNtB6_3cmp9PartialEq2eqCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define zeroext i1 @_RNvXs3_NtNtCsjIpoRzUjyHQ_4core5slice3cmphINtB5_14SlicePartialEqhE17equal_same_lengthCscBrn2zMo5wc_8mixer_vm(ptr %lhs, ptr %rhs, i64 %len) unnamed_addr #1 !guid !5379 {\nstart:\n  %size = mul nuw i64 %len, 1\n  %_5 = call i32 @memcmp(ptr %lhs, ptr %rhs, i64 %size)\n  %_0 = icmp eq i32 %_5, 0\n  ret i1 %_0\n}",
+      "bytes": 322,
+      "calls": [
+        "memcmp"
+      ],
+      "edges": {
+        "start": []
+      },
+      "header": "define zeroext i1 @_RNvXs3_NtNtCsjIpoRzUjyHQ_4core5slice3cmphINtB5_14SlicePartialEqhE17equal_same_lengthCscBrn2zMo5wc_8mixer_vm(ptr %lhs, ptr %rhs, i64 %len) unnamed_addr #1 !guid !5379 {",
+      "name": "<u8 as core::slice::cmp::SlicePartialEq<u8>>::equal_same_length",
+      "node": "bytewise_eq",
+      "reachable": [
+        "start"
+      ],
+      "sha256": "832bb10068bd85127e1666a707cf2e81c5bad864234a504eb1d1ff4c2e2505e2",
+      "symbol": "_RNvXs3_NtNtCsjIpoRzUjyHQ_4core5slice3cmphINtB5_14SlicePartialEqhE17equal_same_lengthCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define zeroext i1 @_RNvMNtCsjIpoRzUjyHQ_4core5sliceSh8containsCscBrn2zMo5wc_8mixer_vm(ptr %self.0, i64 %self.1, ptr %x) unnamed_addr #1 !guid !4196 {\nstart:\n; call <u8 as core::slice::cmp::SliceContains>::slice_contains\n  %_0 = call zeroext i1 @_RNvXsg_NtNtCsjIpoRzUjyHQ_4core5slice3cmphNtB5_13SliceContains14slice_containsCscBrn2zMo5wc_8mixer_vm(ptr %x, ptr %self.0, i64 %self.1) #26\n  ret i1 %_0\n}",
+      "bytes": 399,
+      "calls": [
+        "_RNvXsg_NtNtCsjIpoRzUjyHQ_4core5slice3cmphNtB5_13SliceContains14slice_containsCscBrn2zMo5wc_8mixer_vm"
+      ],
+      "edges": {
+        "start": []
+      },
+      "header": "define zeroext i1 @_RNvMNtCsjIpoRzUjyHQ_4core5sliceSh8containsCscBrn2zMo5wc_8mixer_vm(ptr %self.0, i64 %self.1, ptr %x) unnamed_addr #1 !guid !4196 {",
+      "name": "<[u8]>::contains",
+      "node": "slice_contains_u8",
+      "reachable": [
+        "start"
+      ],
+      "sha256": "b5acbb9bc8fd47e7ce22ff45960acf45723cb83b9cc6eeaead1910229103d289",
+      "symbol": "_RNvMNtCsjIpoRzUjyHQ_4core5sliceSh8containsCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": []
+    },
+    {
+      "body": "define zeroext i1 @_RNvXsg_NtNtCsjIpoRzUjyHQ_4core5slice3cmphNtB5_13SliceContains14slice_containsCscBrn2zMo5wc_8mixer_vm(ptr %self, ptr %x.0, i64 %x.1) unnamed_addr #1 !guid !5778 {\nstart:\n  %end_or_len = alloca [8 x i8], align 8\n  %_12 = alloca [16 x i8], align 8\n  %byte = alloca [1 x i8], align 1\n  %_0 = alloca [1 x i8], align 1\n  br label %bb1\n\nbb1:                                              ; preds = %start\n  br label %bb10\n\nbb3:                                              ; No predecessors!\n  br label %bb15\n\nbb15:                                             ; preds = %bb3\n  %_31 = getelementptr inbounds nuw i8, ptr %x.0, i64 %x.1\n  store ptr %_31, ptr %end_or_len, align 8\n  br label %bb16\n\nbb16:                                             ; preds = %bb15\n  store ptr %x.0, ptr %_12, align 8\n  %0 = load ptr, ptr %end_or_len, align 8\n  %1 = getelementptr inbounds i8, ptr %_12, i64 8\n  store ptr %0, ptr %1, align 8\n; call <core::slice::iter::Iter<u8> as core::iter::traits::iterator::Iterator>::any::<<u8 as core::slice::cmp::SliceContains>::slice_contains::{closure#0}>\n  %2 = call zeroext i1 @_RINvXs2J_NtNtCsjIpoRzUjyHQ_4core5slice4iterINtB7_4IterhENtNtNtNtBb_4iter6traits8iterator8Iterator3anyNCNvXsg_NtB9_3cmphNtB1J_13SliceContains14slice_contains0ECscBrn2zMo5wc_8mixer_vm(ptr align 8 %_12, ptr %self) #26\n  %3 = zext i1 %2 to i8\n  store i8 %3, ptr %_0, align 1\n  br label %bb5\n\nbb5:                                              ; preds = %bb13, %bb16\n  %4 = load i8, ptr %_0, align 1\n  %5 = trunc nuw i8 %4 to i1\n  ret i1 %5\n\nbb10:                                             ; preds = %bb1\n; call core::mem::transmute_copy::precondition_check\n  call void @_RNvNvNtCsjIpoRzUjyHQ_4core3mem14transmute_copy18precondition_checkCscBrn2zMo5wc_8mixer_vm(i64 1, i64 1, ptr align 8 @alloc_c23e86e3d4dea07126dfd89a6f10aa6d) #28\n  br label %bb6\n\nbb6:                                              ; preds = %bb10\n  br label %bb8\n\nbb8:                                              ; preds = %bb6\n  %6 = load i8, ptr %self, align 1\n  store i8 %6, ptr %byte, align 1\n  br label %bb9\n\nbb9:                                              ; preds = %bb7, %bb8\n  br label %bb11\n\nbb7:                                              ; No predecessors!\n  %_21 = load i8, ptr %self, align 1\n  store i8 %_21, ptr %byte, align 1\n  br label %bb9\n\nbb11:                                             ; preds = %bb9\n; call core::slice::raw::from_raw_parts::precondition_check\n  call void @_RNvNvNtNtCsjIpoRzUjyHQ_4core5slice3raw14from_raw_parts18precondition_checkCscBrn2zMo5wc_8mixer_vm(ptr %x.0, i64 1, i64 1, i64 %x.1, ptr align 8 @alloc_54371508a04b7899438615cb93acf736) #28\n  br label %bb13\n\nbb13:                                             ; preds = %bb11\n  %7 = load i8, ptr %byte, align 1\n; call core::slice::memchr::memchr\n  %8 = call { i64, i64 } @_RNvNtNtCsjIpoRzUjyHQ_4core5slice6memchr6memchrCscBrn2zMo5wc_8mixer_vm(i8 %7, ptr %x.0, i64 %x.1) #26\n  %_10.0 = extractvalue { i64, i64 } %8, 0\n  %_10.1 = extractvalue { i64, i64 } %8, 1\n  %9 = icmp eq i64 %_10.0, 1\n  %10 = zext i1 %9 to i8\n  store i8 %10, ptr %_0, align 1\n  br label %bb5\n\nbb14:                                             ; No predecessors!\n  unreachable\n}",
+      "bytes": 3226,
+      "calls": [
+        "_RNvNvNtCsjIpoRzUjyHQ_4core3mem14transmute_copy18precondition_checkCscBrn2zMo5wc_8mixer_vm",
+        "_RNvNvNtNtCsjIpoRzUjyHQ_4core5slice3raw14from_raw_parts18precondition_checkCscBrn2zMo5wc_8mixer_vm",
+        "_RNvNtNtCsjIpoRzUjyHQ_4core5slice6memchr6memchrCscBrn2zMo5wc_8mixer_vm"
+      ],
+      "edges": {
+        "bb1": [
+          "bb10"
+        ],
+        "bb10": [
+          "bb6"
+        ],
+        "bb11": [
+          "bb13"
+        ],
+        "bb13": [
+          "bb5"
+        ],
+        "bb14": [],
+        "bb15": [
+          "bb16"
+        ],
+        "bb16": [
+          "bb5"
+        ],
+        "bb3": [
+          "bb15"
+        ],
+        "bb5": [],
+        "bb6": [
+          "bb8"
+        ],
+        "bb7": [
+          "bb9"
+        ],
+        "bb8": [
+          "bb9"
+        ],
+        "bb9": [
+          "bb11"
+        ],
+        "start": [
+          "bb1"
+        ]
+      },
+      "header": "define zeroext i1 @_RNvXsg_NtNtCsjIpoRzUjyHQ_4core5slice3cmphNtB5_13SliceContains14slice_containsCscBrn2zMo5wc_8mixer_vm(ptr %self, ptr %x.0, i64 %x.1) unnamed_addr #1 !guid !5778 {",
+      "name": "<u8 as core::slice::cmp::SliceContains>::slice_contains",
+      "node": "u8_contains_shell",
+      "reachable": [
+        "bb1",
+        "bb10",
+        "bb11",
+        "bb13",
+        "bb5",
+        "bb6",
+        "bb8",
+        "bb9",
+        "start"
+      ],
+      "sha256": "e3b12aa20599472ddd3c46fa83db96c00158c15cc4b6aac9f73b7c1e88f79f80",
+      "symbol": "_RNvXsg_NtNtCsjIpoRzUjyHQ_4core5slice3cmphNtB5_13SliceContains14slice_containsCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": [
+        "bb14",
+        "bb15",
+        "bb16",
+        "bb3",
+        "bb7"
+      ]
+    },
+    {
+      "body": "define internal { i64, i64 } @_RNvNtNtCsjIpoRzUjyHQ_4core5slice6memchr6memchrCscBrn2zMo5wc_8mixer_vm(i8 %x, ptr %text.0, i64 %text.1) unnamed_addr #1 !guid !4999 {\nstart:\n  %i = alloca [8 x i8], align 8\n  %result = alloca [16 x i8], align 8\n  %_3 = icmp ult i64 %text.1, 16\n  br i1 %_3, label %bb1, label %bb2\n\nbb2:                                              ; preds = %start\n; call core::slice::memchr::memchr_aligned\n  %0 = call { i64, i64 } @_RNvNtNtCsjIpoRzUjyHQ_4core5slice6memchr14memchr_aligned(i8 %x, ptr %text.0, i64 %text.1)\n  %1 = extractvalue { i64, i64 } %0, 0\n  %2 = extractvalue { i64, i64 } %0, 1\n  store i64 %1, ptr %result, align 8\n  %3 = getelementptr inbounds i8, ptr %result, i64 8\n  store i64 %2, ptr %3, align 8\n  %_5 = load i64, ptr %result, align 8\n  %4 = getelementptr inbounds i8, ptr %result, i64 8\n  %5 = load i64, ptr %4, align 8\n  %6 = trunc nuw i64 %_5 to i1\n  br i1 %6, label %bb4, label %bb5\n\nbb1:                                              ; preds = %start\n  store i64 0, ptr %i, align 8\n  br label %bb6\n\nbb4:                                              ; preds = %bb9, %bb2\n  %7 = getelementptr inbounds i8, ptr %result, i64 8\n  %index = load i64, ptr %7, align 8\n  %cond = icmp ult i64 %index, %text.1\n  br label %bb12\n\nbb5:                                              ; preds = %bb13, %bb11, %bb2\n  %8 = load i64, ptr %result, align 8\n  %9 = getelementptr inbounds i8, ptr %result, i64 8\n  %10 = load i64, ptr %9, align 8\n  %11 = insertvalue { i64, i64 } poison, i64 %8, 0\n  %12 = insertvalue { i64, i64 } %11, i64 %10, 1\n  ret { i64, i64 } %12\n\nbb14:                                             ; No predecessors!\n  unreachable\n\nbb6:                                              ; preds = %bb10, %bb1\n  %_10 = load i64, ptr %i, align 8\n  %_9 = icmp ult i64 %_10, %text.1\n  br i1 %_9, label %bb7, label %bb11\n\nbb11:                                             ; preds = %bb6\n  %13 = load i64, ptr @anon.89fd8161773878859b93b23ee4af1c85.0, align 8\n  %14 = load i64, ptr getelementptr inbounds (i8, ptr @anon.89fd8161773878859b93b23ee4af1c85.0, i64 8), align 8\n  store i64 %13, ptr %result, align 8\n  %15 = getelementptr inbounds i8, ptr %result, i64 8\n  store i64 %14, ptr %15, align 8\n  br label %bb5\n\nbb7:                                              ; preds = %bb6\n  %_13 = load i64, ptr %i, align 8\n  %_14 = icmp ult i64 %_13, %text.1\n  br i1 %_14, label %bb8, label %panic\n\nbb8:                                              ; preds = %bb7\n  %16 = getelementptr inbounds nuw i8, ptr %text.0, i64 %_13\n  %_12 = load i8, ptr %16, align 1\n  %_11 = icmp eq i8 %_12, %x\n  br i1 %_11, label %bb9, label %bb10\n\npanic:                                            ; preds = %bb7\n; call core::panicking::panic_bounds_check\n  call void @_RNvNtCsjIpoRzUjyHQ_4core9panicking18panic_bounds_check(i64 %_13, i64 %text.1, ptr align 8 @alloc_0c0aeb8e0e895c64fd7b598c46c07c6a) #27\n  unreachable\n\nbb10:                                             ; preds = %bb8\n  %17 = load i64, ptr %i, align 8\n  %18 = add i64 %17, 1\n  store i64 %18, ptr %i, align 8\n  br label %bb6\n\nbb9:                                              ; preds = %bb8\n  %19 = load i64, ptr %i, align 8\n  %20 = getelementptr inbounds i8, ptr %result, i64 8\n  store i64 %19, ptr %20, align 8\n  store i64 1, ptr %result, align 8\n  br label %bb4\n\nbb12:                                             ; preds = %bb4\n; call core::hint::assert_unchecked::precondition_check\n  call void @_RNvNvNtCsjIpoRzUjyHQ_4core4hint16assert_unchecked18precondition_checkCscBrn2zMo5wc_8mixer_vm(i1 zeroext %cond, ptr align 8 @alloc_d627dcd5d8854b7bf8b1277ff1bff8f1) #28\n  br label %bb13\n\nbb13:                                             ; preds = %bb12\n  br label %bb5\n}",
+      "bytes": 3739,
+      "calls": [
+        "_RNvNtNtCsjIpoRzUjyHQ_4core5slice6memchr14memchr_aligned",
+        "_RNvNtCsjIpoRzUjyHQ_4core9panicking18panic_bounds_check",
+        "_RNvNvNtCsjIpoRzUjyHQ_4core4hint16assert_unchecked18precondition_checkCscBrn2zMo5wc_8mixer_vm"
+      ],
+      "edges": {
+        "bb1": [
+          "bb6"
+        ],
+        "bb10": [
+          "bb6"
+        ],
+        "bb11": [
+          "bb5"
+        ],
+        "bb12": [
+          "bb13"
+        ],
+        "bb13": [
+          "bb5"
+        ],
+        "bb14": [],
+        "bb2": [
+          "bb4",
+          "bb5"
+        ],
+        "bb4": [
+          "bb12"
+        ],
+        "bb5": [],
+        "bb6": [
+          "bb7",
+          "bb11"
+        ],
+        "bb7": [
+          "bb8",
+          "panic"
+        ],
+        "bb8": [
+          "bb9",
+          "bb10"
+        ],
+        "bb9": [
+          "bb4"
+        ],
+        "panic": [],
+        "start": [
+          "bb1",
+          "bb2"
+        ]
+      },
+      "header": "define internal { i64, i64 } @_RNvNtNtCsjIpoRzUjyHQ_4core5slice6memchr6memchrCscBrn2zMo5wc_8mixer_vm(i8 %x, ptr %text.0, i64 %text.1) unnamed_addr #1 !guid !4999 {",
+      "name": "core::slice::memchr::memchr",
+      "node": "memchr_shell",
+      "reachable": [
+        "bb1",
+        "bb10",
+        "bb11",
+        "bb12",
+        "bb13",
+        "bb2",
+        "bb4",
+        "bb5",
+        "bb6",
+        "bb7",
+        "bb8",
+        "bb9",
+        "panic",
+        "start"
+      ],
+      "sha256": "6de6ad8390abc1add3d3b210f99a77b882a2fbbebea8390d121482c4928aff6e",
+      "symbol": "_RNvNtNtCsjIpoRzUjyHQ_4core5slice6memchr6memchrCscBrn2zMo5wc_8mixer_vm",
+      "unreachable": [
+        "bb14"
+      ]
+    }
+  ],
+  "schema": 1
+}

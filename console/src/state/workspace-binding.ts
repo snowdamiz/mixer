@@ -5,7 +5,7 @@ import type { WorkspaceController, WorkspaceSession } from "./workspace-controll
 import type { WorkspaceDirectoryState } from "../domain/workspace-directory.js";
 
 export type WorkspaceActions = Pick<WorkspaceController, "selectOrganization" | "selectProject" |
-  "nextOrganizations" | "nextProjects" | "retryOrganizations" | "retryProjects">;
+  "nextOrganizations" | "nextProjects" | "firstOrganizations" | "firstProjects" | "retryOrganizations" | "retryProjects">;
 export interface WorkspaceBinding {
   readonly state: Accessor<WorkspaceDirectoryState>;
   readonly controller: Readonly<WorkspaceActions>;
@@ -44,6 +44,8 @@ export function createWorkspaceBinding(session: Accessor<WorkspaceSession | unde
     selectProject(selection: { organizationId: string; projectId: string }) { if (current()) controller.selectProject(selection); },
     nextOrganizations(cursor: string) { if (current()) controller.nextOrganizations(cursor); },
     nextProjects(page: { organizationId: string; cursor: string }) { if (current()) controller.nextProjects(page); },
+    firstOrganizations() { if (current()) controller.firstOrganizations(); },
+    firstProjects(organizationId: string) { if (current()) controller.firstProjects(organizationId); },
     retryOrganizations() { if (current()) controller.retryOrganizations(); },
     retryProjects(organizationId: string) { if (current()) controller.retryProjects(organizationId); },
   });

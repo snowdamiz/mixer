@@ -55,8 +55,9 @@ async function selected(controller, api, organizationId = "a", page = projects(o
   api.calls.at(-1).resolve(page);
   await flush();
 }
-function assertEmpty(state, kind) {
-  assert.deepEqual(state, { organizations: { kind }, projects: { kind: "unselected" } });
+function assertEmpty(state, kind, canReturnToFirstOrganizations = false) {
+  assert.deepEqual(state, { organizations: { kind }, projects: { kind: "unselected" },
+    ...(canReturnToFirstOrganizations ? { canReturnToFirstOrganizations: true } : {}) });
 }
 
 test("initial state is immutable unavailable and invalid actions make no requests", () => {
@@ -70,6 +71,7 @@ test("initial state is immutable unavailable and invalid actions make no request
   controller.selectOrganization("a"); controller.selectProject({ organizationId: "a", projectId: "p" });
   controller.nextOrganizations("old"); controller.nextProjects({ organizationId: "a", cursor: "old" });
   controller.retryOrganizations(); controller.retryProjects("a");
+  controller.firstOrganizations(); controller.firstProjects("a");
   assert.equal(controller.getState(), state);
   controller.dispose();
 });
@@ -153,7 +155,7 @@ test("organization pagination accepts only the offered cursor and replaces all d
   controller.selectProject({ organizationId: "a", projectId: "p" });
   controller.nextOrganizations("old"); assert.equal(api.calls.length, 2);
   controller.nextOrganizations("ORG_next-1");
-  assertEmpty(controller.getState(), "loading"); assert.deepEqual(api.calls.at(-1).page, { cursor: "ORG_next-1" });
+  assertEmpty(controller.getState(), "loading", true); assert.deepEqual(api.calls.at(-1).page, { cursor: "ORG_next-1" });
   controller.nextOrganizations("ORG_next-1"); controller.selectOrganization("a"); controller.retryOrganizations();
   assert.equal(api.calls.length, 3);
   api.calls.at(-1).resolve(organizations(["c"], "SECOND")); await flush();
@@ -186,7 +188,7 @@ test("pagination invalidates an in-flight project success and its old callbacks"
   await ready(controller, api, organizations(["a"], "NEXT"));
   controller.selectOrganization("a"); const old = api.calls.at(-1);
   controller.nextOrganizations("NEXT"); assert.equal(old.signal.aborted, true);
-  old.resolve(projects()); await flush(); assertEmpty(controller.getState(), "loading");
+  old.resolve(projects()); await flush(); assertEmpty(controller.getState(), "loading", true);
   api.calls.at(-1).resolve(organizations(["b"])); await flush();
   controller.retryProjects("a"); controller.nextProjects({ organizationId: "a", cursor: "NEXT" });
   controller.selectProject({ organizationId: "a", projectId: "p" }); assert.equal(api.calls.length, 3);
@@ -415,6 +417,7 @@ test("disposal aborts and clears, suppresses late completions, and makes every a
     controller.selectOrganization("a"); controller.selectProject({ organizationId: "a", projectId: "p" });
     controller.nextOrganizations("NEXT"); controller.nextProjects({ organizationId: "a", cursor: "NEXT" });
     controller.retryOrganizations(); controller.retryProjects("a"); controller.subscribe(() => { throw new Error("called after disposal"); })();
+    controller.firstOrganizations(); controller.firstProjects("a");
     if (completion === "success") old.resolve(projects()); else old.reject(new WorkspaceClientError("unauthenticated"));
     await flush(); assert.equal(controller.getState(), state); assert.equal(seen.length, notifications); assert.equal(api.calls.length, 2);
   }
@@ -426,4 +429,105 @@ test("disposal inside notification prevents later observers and starts no reques
   controller.subscribe(state => seen.push(state.organizations.kind));
   controller.setSession({ kind: "ready", client: api.client });
   assert.deepEqual(seen, ["unavailable"]); assert.equal(api.calls.length, 0); assertEmpty(controller.getState(), "unavailable");
+});
+
+test("first organizations requests fresh first-page data and clears dependent work and selection", async () => {
+  const controller = createWorkspaceController(); const api = controlled();
+  await ready(controller, api, organizations(["a"], "NEXT"));
+  controller.firstOrganizations(); assert.equal(api.calls.length, 1);
+  controller.nextOrganizations("NEXT");
+  assert.equal(controller.getState().canReturnToFirstOrganizations, true);
+  controller.firstOrganizations(); assert.equal(api.calls.length, 2, "return is inert during an active page request");
+  api.calls[1].resolve(organizations(["c"])); await flush();
+  await selected(controller, api, "c", projects("c", ["r"], "PROJECT_NEXT"));
+  controller.selectProject({ organizationId: "c", projectId: "r" });
+  controller.nextProjects({ organizationId: "c", cursor: "PROJECT_NEXT" }); const oldProject = api.calls.at(-1);
+  controller.firstOrganizations(); const first = api.calls.at(-1);
+  assert.equal(oldProject.signal.aborted, true); assertEmpty(controller.getState(), "loading");
+  assert.deepEqual(first.page, {}); assert.ok(Object.isFrozen(first.page));
+  controller.firstOrganizations(); controller.firstProjects("c"); assert.equal(api.calls.length, 5);
+  oldProject.resolve(projects("c", ["private-old"])); await flush();
+  assertEmpty(controller.getState(), "loading");
+  first.resolve(organizations(["fresh-first"])); await flush();
+  assert.deepEqual(controller.getState().organizations.input.organizations.map(row => row.id), ["fresh-first"]);
+  assert.equal(controller.getState().canReturnToFirstOrganizations, undefined);
+  assert.equal(controller.getState().canReturnToFirstProjects, undefined); controller.dispose();
+});
+
+test("first projects preserves exact organization, clears selection and rejects stale scoped actions", async () => {
+  const controller = createWorkspaceController(); const api = controlled();
+  await ready(controller, api); await selected(controller, api, "a", projects("a", ["p"], "NEXT"));
+  controller.firstProjects("a"); assert.equal(api.calls.length, 2);
+  controller.nextProjects({ organizationId: "a", cursor: "NEXT" });
+  controller.firstProjects("a"); assert.equal(api.calls.length, 3, "return is inert while loading");
+  api.calls[2].resolve(projects("a", ["q"])); await flush();
+  controller.selectProject({ organizationId: "a", projectId: "q" });
+  assert.equal(controller.getState().canReturnToFirstProjects, true);
+  controller.firstProjects("b"); assert.equal(api.calls.length, 3);
+  controller.firstProjects("a"); const first = api.calls.at(-1);
+  assert.equal(first.organizationId, "a"); assert.deepEqual(first.page, {}); assert.ok(Object.isFrozen(first.page));
+  assert.equal(controller.getState().selectedOrganizationId, "a");
+  assert.equal(controller.getState().selectedProjectId, undefined);
+  assert.deepEqual(controller.getState().projects, { kind: "loading", organizationId: "a" });
+  controller.firstProjects("a"); assert.equal(api.calls.length, 4);
+  controller.selectOrganization("b"); assert.equal(first.signal.aborted, true);
+  controller.firstProjects("a"); assert.equal(api.calls.length, 5);
+  first.resolve(projects("a", ["old-first"])); await flush();
+  assert.deepEqual(controller.getState().projects, { kind: "loading", organizationId: "b" });
+  api.calls[4].resolve(projects("b", ["new-scope"])); await flush();
+  assert.equal(controller.getState().canReturnToFirstProjects, undefined);
+  assert.deepEqual(controller.getState().projects.input.projects.map(row => row.id), ["new-scope"]); controller.dispose();
+});
+
+test("first-page actions recover from failed later cursors and first-page retry stays cursor-free", async () => {
+  for (const code of ["not_found", "permission_denied", "unavailable", "invalid_response"]) {
+    for (const list of ["organizations", "projects"]) {
+      const controller = createWorkspaceController(); const api = controlled();
+      await ready(controller, api, organizations(["a"], "ORG_NEXT"));
+      if (list === "projects") await selected(controller, api, "a", projects("a", ["p"], "PROJECT_NEXT"));
+      const next = () => list === "organizations" ? controller.nextOrganizations("ORG_NEXT") :
+        controller.nextProjects({ organizationId: "a", cursor: "PROJECT_NEXT" });
+      const first = () => list === "organizations" ? controller.firstOrganizations() : controller.firstProjects("a");
+      const retry = () => list === "organizations" ? controller.retryOrganizations() : controller.retryProjects("a");
+      next(); api.calls.at(-1).reject(new WorkspaceClientError(code)); await flush();
+      assert.equal(controller.getState()[list === "organizations" ? "canReturnToFirstOrganizations" : "canReturnToFirstProjects"], true);
+      const previousCount = api.calls.length; first();
+      assert.equal(api.calls.length, previousCount + 1); assert.deepEqual(api.calls.at(-1).page, {});
+      api.calls.at(-1).reject(new WorkspaceClientError("unavailable")); await flush();
+      first(); assert.equal(api.calls.length, previousCount + 1, "failed first page uses retry, not another reset");
+      retry(); assert.deepEqual(api.calls.at(-1).page, {});
+      api.calls.at(-1).resolve(list === "organizations" ? organizations(["fresh"]) : projects("a", ["fresh"])); await flush();
+      assert.equal(controller.getState()[list].kind, "ready"); controller.dispose();
+    }
+  }
+});
+
+test("first-page responses cannot cross session replacement or disposal", async () => {
+  for (const list of ["organizations", "projects"]) {
+    for (const ending of ["replacement", "disposal"]) {
+      for (const completion of ["success", "failure"]) {
+        const controller = createWorkspaceController(); const api = controlled();
+        await ready(controller, api, organizations(["a"], "ORG_NEXT"));
+        if (list === "organizations") {
+          controller.nextOrganizations("ORG_NEXT"); api.calls.at(-1).resolve(organizations(["b"])); await flush();
+          controller.firstOrganizations();
+        } else {
+          await selected(controller, api, "a", projects("a", ["p"], "PROJECT_NEXT"));
+          controller.nextProjects({ organizationId: "a", cursor: "PROJECT_NEXT" });
+          api.calls.at(-1).resolve(projects("a", ["q"])); await flush(); controller.firstProjects("a");
+        }
+        const old = api.calls.at(-1);
+        if (ending === "replacement") controller.setSession({ kind: "ready", client: api.client }); else controller.dispose();
+        assert.equal(old.signal.aborted, true);
+        const current = controller.getState();
+        if (completion === "success") old.resolve(list === "organizations" ? organizations(["private-old"]) : projects("a", ["private-old"]));
+        else old.reject(new WorkspaceClientError("unauthenticated"));
+        await flush(); assert.equal(controller.getState(), current);
+        assert.equal(controller.getState().canReturnToFirstOrganizations, undefined);
+        assert.equal(controller.getState().canReturnToFirstProjects, undefined);
+        const count = api.calls.length; controller.firstOrganizations(); controller.firstProjects("a");
+        assert.equal(api.calls.length, count); controller.dispose();
+      }
+    }
+  }
 });

@@ -39,6 +39,9 @@ export interface WorkspaceDirectoryState {
   readonly projects: WorkspaceProjectsState;
   readonly selectedOrganizationId?: string;
   readonly selectedProjectId?: string;
+  /** Navigation availability comes from the caller's canonical request, never the response cursor. */
+  readonly canReturnToFirstOrganizations?: boolean;
+  readonly canReturnToFirstProjects?: boolean;
 }
 
 type OrganizationView = LoadState | { readonly kind: "invalid" } |
@@ -50,6 +53,8 @@ export interface WorkspaceDirectoryView {
   readonly projects: ProjectView;
   readonly selectedOrganization: WorkspaceOrganization | null;
   readonly selectedProject: WorkspaceProject | null;
+  readonly canReturnToFirstOrganizations: boolean;
+  readonly canReturnToFirstProjects: boolean;
 }
 
 const roles: readonly string[] = ["administrator", "billing_manager", "developer", "owner", "release_manager", "viewer"];
@@ -161,6 +166,8 @@ export function resolveWorkspaceDirectory(input: WorkspaceDirectoryState): Works
   let projects: ProjectView = { kind: "unselected" };
   let selectedOrganization: WorkspaceOrganization | null = null;
   let selectedProject: WorkspaceProject | null = null;
+  let canReturnToFirstOrganizations = false;
+  let canReturnToFirstProjects = false;
   try {
     const state = input.organizations;
     if (object(state, ["kind", "input"]) && state.kind === "ready") {
@@ -181,10 +188,15 @@ export function resolveWorkspaceDirectory(input: WorkspaceDirectoryState): Works
         }
       }
     }
+    // Fail closed for malformed flags, invalid rows, signed-out state or a stale project scope.
+    canReturnToFirstOrganizations = input.canReturnToFirstOrganizations === true &&
+      ["ready", "loading", "error", "unavailable"].includes(organizations.kind);
+    canReturnToFirstProjects = input.canReturnToFirstProjects === true && selectedOrganization !== null &&
+      ["ready", "loading", "error", "unavailable"].includes(projects.kind);
   } catch {
     if (selectedOrganization === null) organizations = { kind: "invalid" };
     else projects = { kind: "invalid" };
   }
   return Object.freeze({ organizations: Object.freeze(organizations), projects: Object.freeze(projects),
-    selectedOrganization, selectedProject });
+    selectedOrganization, selectedProject, canReturnToFirstOrganizations, canReturnToFirstProjects });
 }

@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "at": "2026-10-27T17:39:22.002237+00:00",
+  "status": "root-accepted-bounded-partial-provider-callee-source-interface",
+  "custody": "\"\"\"Own exact-PID/PGID host-only commands, each bounded to 55 seconds.\"\"\"\nfrom pathlib import Path\nimport datetime, json, os, signal, subprocess, sys, time\nsys.dont_write_bytecode = True\nfrom review_custody import HERE, ROOT, TREE, canonical, row, sha, snapshot, need\n\ndef main():\n    label, script, *args = sys.argv[1:]\n    need(label.replace('-', '').isalnum() and script in ('independent_tests.py', 'finalize.py', 'audit.py'), 'own bounded command allowlist')\n    destination = HERE / 'commands' / label\n    destination.mkdir(parents=True, exist_ok=False)\n    before = snapshot()\n    (destination / 'inputs-before.json').write_bytes(canonical(before) + b'\\n')\n    programs = [row(p) for p in sorted(HERE.glob('*.py'))]\n    (destination / 'source-programs').mkdir()\n    for p in HERE.glob('*.py'):\n        (destination / 'source-programs' / p.name).write_bytes(p.read_bytes())\n    argv = [sys.executable, '-B', str(HERE / script), *args]\n    environment = {'PATH': '/usr/bin:/bin', 'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONHASHSEED': '0', 'LC_ALL': 'C', 'LANG': 'C'}\n    began = datetime.datetime.now(datetime.timezone.utc).isoformat()\n    clock = time.monotonic()\n    child = subprocess.Popen(argv, cwd=ROOT, env=environment, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)\n    timed_out = False\n    try:\n        stdout, stderr = child.communicate(timeout=55)\n    except subprocess.TimeoutExpired:\n        timed_out = True\n        os.killpg(child.pid, signal.SIGKILL)\n        stdout, stderr = child.communicate(timeout=2)\n    try:\n        os.killpg(child.pid, 0)\n        absent = False\n    except ProcessLookupError:\n        absent = True\n    (destination / 'stdout').write_bytes(stdout)\n    (destination / 'stderr').write_bytes(stderr)\n    after = snapshot()\n    (destination / 'inputs-after.json').write_bytes(canonical(after) + b'\\n')\n    receipt = {'schema': 1, 'started': began, 'elapsed_seconds': time.monotonic() - clock,\n               'argv': argv, 'cwd': str(ROOT), 'environment': environment, 'timeout_seconds': 55,\n               'tool_version': sys.version, 'python_executable': str(Path(sys.executable).resolve()),\n               'python_executable_sha256': sha(Path(sys.executable).resolve().read_bytes()),\n               'source146_tree_sha256': TREE, 'source_programs': programs,\n               'source_program_tree_sha256': sha(canonical(programs)),\n               'inputs_before': row(destination / 'inputs-before.json'), 'inputs_after': row(destination / 'inputs-after.json'),\n               'exact_frozen_inputs_before_after_unchanged': before == after,\n               'owned_PID': child.pid, 'owned_PGID': child.pid, 'waited_and_reaped': child.poll() is not None,\n               'owned_group_absent': absent, 'timed_out': timed_out, 'exit_code': child.returncode,\n               'stdout': row(destination / 'stdout'), 'stderr': row(destination / 'stderr'),\n               'scope': 'targeted offline independent partial-source contract checks only',\n               'compiler_native_UI_capture_phone_global_inventory_Git_or_other_lane_mutations': False}\n    (destination / 'receipt.json').write_text(json.dumps(receipt, sort_keys=True, indent=2) + '\\n')\n    print(json.dumps({'label': label, 'exit_code': child.returncode, 'seconds': receipt['elapsed_seconds'], 'owned_PID': child.pid,\n                      'owned_PGID': child.pid, 'group_absent': absent, 'custody_unchanged': before == after,\n                      'stdout': stdout.decode(errors='replace')[-5000:], 'stderr': stderr.decode(errors='replace')[-5000:]}))\n    if child.returncode or timed_out or not absent or before != after:\n        raise SystemExit(1)\n\nif __name__ == '__main__':\n    main()\n",
+  "root_check": {
+    "path": "verification/swift-semantic-adapter-root-review/callee-source-correction-root-check-after-runner-attribution/receipt.json",
+    "bytes": 1856,
+    "sha256": "daf01c5aa5b7d89d933afacd200cf47416e4ef6c605badd51222c48bd3c1588c"
+  },
+  "independent_review": {
+    "path": "verification/swift-guarded-snapshot-callee-source-correction-independent/review.json",
+    "bytes": 8417,
+    "sha256": "7163df954a1b626821fd96303400cd0b15bcc4628f369aa6e38c97f8795bae3f"
+  },
+  "fresh_checks": {
+    "adverse_cases_rejected": 1473,
+    "compiler_invocations": 0,
+    "errors": 0,
+    "failures": 0,
+    "fresh_independent_R1_R3_tests": true,
+    "independent_equalities": 532,
+    "methods": 7,
+    "native_UI_capture_simulator_emulator_phones_global_process_inventory_or_Git": false,
+    "producer_or_previous_review_tests_replayed": false,
+    "producer_seal_sha256": "e80dd24b7cb7e18c97abb1effa705cbc2b7882b36ac8e439a181bc6cf3a6dfb1",
+    "schema": 1,
+    "source146_tree_sha256": "acce2edaeb41d2e032cd9417897f828caa1c713721e162d2f455663600076e3d",
+    "synthetic_bounds_select_prices": false
+  },
+  "findings_disposition": [
+    {
+      "disposition": "satisfied-by-permitted-positive-partial-frontier",
+      "evidence": "Exact revision num/mod.rs:1450-1454 selects Self=usize and ActualT=u64. uint_macros.rs:2989-2992 writes usize->u64, usize->u64, u64->usize. The full helper entry, cast/intrinsic/destructure/final tuple result/return and every finite end remain mandatory in the range work AND storage frontier.",
+      "id": "R1",
+      "unknown_layout": "Full (u64,bool) remains unpriced; no i64 inference, field sum or (usize,bool) substitution. Observed outer (usize,bool) and production closure remain full16/alignment8."
+    },
+    {
+      "disposition": "satisfied-by-permitted-positive-partial-frontier-and-consumed-known-shell",
+      "evidence": "Exact empty capture retains unit (), both exact function items, intrinsic argument/result/return and finite endings. The selected source runtime()->bool entry, cfg!(miri), unary-not, bool result/return and finite ends remain inside the mandatory range frontier. Compiletime body only is unselected; its function-item argument stays retained. Private compiler implementation remains outside the inherited unit.",
+      "id": "R2",
+      "known_shell": "ConstEvalSelectResidual bool is consumed by switchInt; both ub_checks result and false arm are retained. No unused synthetic result or complete runtime-helper closure is claimed.",
+      "unknown_layout": "Both exact callable item layouts remain unpriced; no zero/one or fn-pointer price is substituted."
+    },
+    {
+      "actual_lengths": "Synthetic unequal-length native byte paths exercise per-context actual lengths, including invalid UTF-8 bytes; no decoded string length or selected maximum is substituted.",
+      "disposition": "satisfied-by-expanded-existing-five-positive-contains-composites",
+      "evidence": "All five composites explicitly require &Option<usize> receiver auto-borrow, Option::<usize>::is_some(&self), dereference and exact matches expansion match *self { Some(_) => true, _ => false }, all typed operands/results/returns and finite ends. Existing transmute_copy/from_raw_parts preconditions/helpers/slots, source tuple, assert_unchecked and installed memchr_aligned obligations remain mandatory.",
+      "id": "R3"
+    }
+  ],
+  "known_shell_only": {
+    "B": 6867,
+    "B2": 160,
+    "all15_phase_addition": 28911,
+    "complete_price_decrease_or_refund_claim": false,
+    "fixed": 187034,
+    "native_ABI_field_bytes": 9882,
+    "per_range_shell": 2246,
+    "provisional_P0_excluding_mandatory_positive_residual_storage": 330644,
+    "range_cap": 19,
+    "range_native_ABI_fields": 1824,
+    "range_request_shell": 42674,
+    "range_source_places": 3819,
+    "source_place_bytes": 19029
+  },
+  "mandatory_positive_residuals": {
+    "count_per_unit": 30,
+    "decomposition": {
+      "contains": 5,
+      "digest": 1,
+      "path": 5,
+      "range": 19
+    },
+    "final_None_headers": [
+      [
+        "identity",
+        12,
+        12
+      ],
+      [
+        "path",
+        5,
+        5
+      ]
+    ],
+    "range_contexts": "identity headers0..12 (13) plus path headers0..5 (6), with exact source/type/compiler/target/digest and immutable invocation context",
+    "work_and_storage_individually_positive": true,
+    "zero_default_alias_move_inactive_helper_None_refusal_unwind_credit": false
+  },
+  "preserved": {
+    "backing": "all12 full preimages+5 native Path+5 separate retained bodies; B=max of22 actual bodies",
+    "callback": "7675+120B full body;cap5",
+    "child_components": 6,
+    "diagnostics_root_backing_Error_native_destructor_obligations": "mandatory",
+    "inherited_work": "all10 including unselected67424*L_str",
+    "normal_release": "actual original payload/carrier destruction returning existing Some token remains required; never observed or qualified by this review",
+    "original_binding": 1168,
+    "phases": 15,
+    "provider": "276580+1324B;9696slots",
+    "upstream_work_terms": 2
+  },
+  "historical_failures_preserved": {
+    "own_setup_failures": "two retained with source preimages/output/receipt and reaped absent groups; final seven methods pass",
+    "producer_tuple_vs_JSON_array_audit_failure": "preserved failed, not replayed or relabelled",
+    "root_after_mode_hardening_release": "separate receipt verifies complete bytes and read-only modes",
+    "root_read_only_mode_preflight_failure": "preserved failed; initial byte loop did not complete and no release was written"
+  },
+  "root_runner_attribution_failure_preserved": {
+    "path": "verification/swift-semantic-adapter-root-review/callee-source-correction-root-runner-attribution-failure.json",
+    "bytes": 1248,
+    "sha256": "f9a979a348facb6728399e53e356869ad3f61bb11ee12934a416ed2a6266bb7b"
+  },
+  "independent_test_and_custody_sources_unchanged": true,
+  "test_command_bound_to_retained_3703_byte_runner_finalization_bound_to_later_5641_byte_runner": true,
+  "conditional_closed_interfaces": 10,
+  "partial_interfaces": 4,
+  "all30_work_and_storage_contexts_required": true,
+  "unobserved_u64_bool_aggregate_and_exact_callable_layouts_remain_unpriced": true,
+  "complete_price_decrease_or_refund_selected": false,
+  "root_policy_prices_funding_selected": false,
+  "old_source_interface_binds_future_changed_Rust": false,
+  "new_compiler_runtime_native_FieldLog_OTA_GA_acceptance": false
+}

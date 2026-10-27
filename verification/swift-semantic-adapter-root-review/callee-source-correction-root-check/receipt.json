@@ -1,0 +1,33 @@
+{
+  "argv": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "-c",
+    "import sys,json\nfrom pathlib import Path\nsys.path.insert(0,sys.argv[1])\nimport review_custody as c\ncurrent=c.snapshot()\nold=c.load(c.HERE/'commands/fresh-independent-03/inputs-before.json')\nguidance={'AGENTS.md','PLAN.md','mixer-product-plan.md'}\ndef priced(x):\n    return {**x,'files':[r for r in x['files'] if r['path'] not in guidance]}\nassert priced(current)==priced(old)\nprint(json.dumps({'success':True,'frozen_packets':current['complete_frozen_packets_checked'],'inherited_priced_inputs':current['inherited_priced_inputs'],'frozen_files':len(priced(current)['files']),'mutable_guidance_excluded_from_priced_custody':True,'snapshot_sha256':c.sha(c.canonical(priced(current)))}))\n",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-callee-source-correction-independent"
+  ],
+  "exit": 0,
+  "timed_out": false,
+  "elapsed_seconds": 0.34611433278769255,
+  "owned_pid": 90554,
+  "owned_pgid": 90554,
+  "child_reaped": true,
+  "owned_group_absent": true,
+  "outputs": [
+    {
+      "path": "verification/swift-semantic-adapter-root-review/callee-source-correction-root-check/stdout",
+      "bytes": 237,
+      "sha256": "a2be95d0aa7314fd92cb20df5d76f4ffa76fc8020c79704079faf23d9260ad7d"
+    },
+    {
+      "path": "verification/swift-semantic-adapter-root-review/callee-source-correction-root-check/stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "plan": {
+    "path": "verification/swift-semantic-adapter-root-review/callee-source-correction-root-check/plan.json",
+    "bytes": 2475,
+    "sha256": "31b399cbae664e4cdb483003bf70105a2901bf751eac695db75c5566892c28e2"
+  }
+}

@@ -182,3 +182,28 @@ test("malformed ready data and unsupported controlled states fail closed", () =>
   }
   assert.equal(resolveWorkspaceDirectory(null).organizations.kind, "invalid");
 });
+
+test("first-page availability accepts only explicit flags and current valid organization scope", () => {
+  for (const flag of [undefined, false, "true", 1, {}, null]) {
+    const state = input(); state.canReturnToFirstOrganizations = flag; state.canReturnToFirstProjects = flag;
+    const view = resolveWorkspaceDirectory(state);
+    assert.equal(view.canReturnToFirstOrganizations, false); assert.equal(view.canReturnToFirstProjects, false);
+  }
+  for (const kind of ["ready", "loading", "error", "unavailable"]) {
+    const state = input(); state.canReturnToFirstOrganizations = true; state.canReturnToFirstProjects = true;
+    if (kind !== "ready") state.projects = { kind, organizationId: "org:北/..", ...(kind === "error" ? { reason: "not_found" } : {}) };
+    let view = resolveWorkspaceDirectory(state);
+    assert.equal(view.canReturnToFirstOrganizations, true); assert.equal(view.canReturnToFirstProjects, true);
+    state.projects.organizationId = "other"; view = resolveWorkspaceDirectory(state);
+    assert.equal(view.canReturnToFirstProjects, false);
+    state.organizations = kind === "ready" ? { kind, input: null } :
+      { kind, ...(kind === "error" ? { reason: "request_failed" } : {}) };
+    view = resolveWorkspaceDirectory(state);
+    assert.equal(view.canReturnToFirstOrganizations, kind !== "ready"); assert.equal(view.canReturnToFirstProjects, false);
+  }
+  const state = input(); state.canReturnToFirstOrganizations = true; state.canReturnToFirstProjects = true;
+  state.projects = { kind: "unauthenticated", organizationId: "org:北/.." };
+  assert.equal(resolveWorkspaceDirectory(state).canReturnToFirstProjects, false);
+  state.organizations = { kind: "unauthenticated" };
+  assert.equal(resolveWorkspaceDirectory(state).canReturnToFirstOrganizations, false);
+});

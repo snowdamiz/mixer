@@ -1,0 +1,370 @@
+{
+  "contains": {
+    "actual_lengths": "each actual native readable path length, separately typed for each of five contexts; storage and work individually positive",
+    "all_prior_obligations_preserved": [
+      "transmute_copy::<u8,u8> precondition/helper work and slots",
+      "from_raw_parts::<u8> precondition/helper work and slots",
+      "source tuple(u8,&[u8]) if materialized",
+      "assert_unchecked precondition/helpers",
+      "installed memchr_aligned full argument/result/return/source/compiler/private-native frontier"
+    ],
+    "count": 5,
+    "expanded": "match *self { Some(_) => true, _ => false }",
+    "frontier": "CONTAINS_RESIDUAL_FRONTIER",
+    "macro_source": "official-source/library/core/src/macros/mod.rs:431-439",
+    "operations": [
+      "receiver auto-borrow with full Option<usize> pointee",
+      "helper entry and receiver argument",
+      "dereference and match discriminant/pattern operand",
+      "both true/false bool match results conservatively retained",
+      "bool result/return and caller boundary",
+      "positive finite ending for each receiver/operand/result/return place"
+    ],
+    "receiver": "auto-borrow memchr(...):Option<usize> as &Option<usize>",
+    "roles": [
+      {
+        "id": "memchr_result",
+        "storage": "mandatory existing contains composite residual",
+        "type": "Option<usize>"
+      },
+      {
+        "id": "receiver_autoborrow",
+        "storage": "mandatory existing contains composite residual",
+        "type": "&Option<usize>"
+      },
+      {
+        "id": "self",
+        "storage": "mandatory existing contains composite residual",
+        "type": "&Option<usize>"
+      },
+      {
+        "id": "deref_scrutinee",
+        "storage": "mandatory existing contains composite residual",
+        "type": "Option<usize>"
+      },
+      {
+        "id": "some_pattern",
+        "storage": "mandatory existing contains composite residual",
+        "type": "Some(_) of Option<usize>"
+      },
+      {
+        "id": "match_true",
+        "storage": "mandatory existing contains composite residual",
+        "type": "bool"
+      },
+      {
+        "id": "match_false",
+        "storage": "mandatory existing contains composite residual",
+        "type": "bool"
+      },
+      {
+        "id": "helper_return",
+        "storage": "mandatory existing contains composite residual",
+        "type": "bool"
+      },
+      {
+        "id": "caller_result",
+        "storage": "mandatory existing contains composite residual",
+        "type": "bool"
+      }
+    ],
+    "signature": "Option::<usize>::is_some(self: &Option<usize>) -> bool",
+    "source": "verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/option.rs:633-635",
+    "unit_pair": [
+      "work",
+      "bytes"
+    ]
+  },
+  "range_next": {
+    "R1": {
+      "casts": 3,
+      "lines": [
+        2989,
+        2990,
+        2991,
+        2992
+      ],
+      "observed_outer_return": {
+        "align": 8,
+        "evidence": "frozen source146-callee-storage-layouts/results.json",
+        "size": 16,
+        "type": "(usize, bool)"
+      },
+      "operations": [
+        "helper entry with self:usize and rhs:usize",
+        "self as u64",
+        "rhs as u64",
+        "intrinsics::add_with_overflow::<u64>(self_cast, rhs_cast)",
+        "full intrinsic argument/result/return and finite endings",
+        "destructure full (u64, bool) to a:u64,b:bool",
+        "a as usize",
+        "construct and return full (usize, bool)",
+        "positive finite ending for every argument/result/local/return place"
+      ],
+      "roles": [
+        {
+          "id": "self",
+          "storage": "mandatory compound residual; not assigned a numeric layout",
+          "type": "usize"
+        },
+        {
+          "id": "rhs",
+          "storage": "mandatory compound residual; not assigned a numeric layout",
+          "type": "usize"
+        },
+        {
+          "id": "self_cast",
+          "storage": "mandatory compound residual; not assigned a numeric layout",
+          "type": "u64"
+        },
+        {
+          "id": "rhs_cast",
+          "storage": "mandatory compound residual; not assigned a numeric layout",
+          "type": "u64"
+        },
+        {
+          "id": "intrinsic_result",
+          "storage": "mandatory compound residual; not assigned a numeric layout",
+          "type": "(u64, bool)"
+        },
+        {
+          "id": "a",
+          "storage": "mandatory compound residual; not assigned a numeric layout",
+          "type": "u64"
+        },
+        {
+          "id": "b",
+          "storage": "mandatory compound residual; not assigned a numeric layout",
+          "type": "bool"
+        },
+        {
+          "id": "result_cast",
+          "storage": "mandatory compound residual; not assigned a numeric layout",
+          "type": "usize"
+        },
+        {
+          "id": "return",
+          "storage": "mandatory compound residual; not assigned a numeric layout",
+          "type": "(usize, bool)"
+        }
+      ],
+      "signature": "overflowing_add(self: usize, rhs: usize) -> (usize, bool)",
+      "source": "verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/num/uint_macros.rs",
+      "unobserved_full_aggregate": {
+        "align": null,
+        "size": null,
+        "status": "pending exact full aggregate evidence; no field sum or usize tuple substitution",
+        "type": "(u64, bool)"
+      }
+    },
+    "R2": {
+      "call_site": "verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/ub_checks.rs:98-107",
+      "callable_layouts": {
+        "compiletime_item": null,
+        "runtime_item": null,
+        "status": "exact callable layouts pending; no 0/1 price or fn-pointer substitution"
+      },
+      "expanded": "fn runtime() -> bool { !cfg!(miri) }; const fn compiletime() -> bool { false }; const_eval_select::<(), CompiletimeItem, RuntimeItem, bool>((), compiletime, runtime)",
+      "macro_lines": [
+        2613,
+        2623,
+        2629,
+        2636
+      ],
+      "macro_source": "verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/intrinsics/mod.rs",
+      "operations": [
+        "construct empty captured-values tuple ()",
+        "materialize compiletime and runtime function-item arguments (not coerced fn pointers)",
+        "const_eval_select intrinsic entry with exact three arguments and bool return",
+        "selected runtime fn() -> bool entry",
+        "evaluate cfg!(miri) bool and unary !",
+        "runtime bool result and return",
+        "intrinsic bool result and return to source && consumer",
+        "positive finite endings of all unit/callable/operand/result/return places"
+      ],
+      "private_intrinsic_implementation": "outside inherited logical source unit; macro-generated runtime function is inside mandatory residual",
+      "roles": [
+        {
+          "id": "unit_argument",
+          "storage": "mandatory compound residual; unknown callable layout remains unpriced",
+          "type": "()"
+        },
+        {
+          "id": "compiletime_argument",
+          "storage": "mandatory compound residual; unknown callable layout remains unpriced",
+          "type": "function item check_language_ub::{compiletime}, signature fn() -> bool"
+        },
+        {
+          "id": "runtime_argument",
+          "storage": "mandatory compound residual; unknown callable layout remains unpriced",
+          "type": "function item check_language_ub::{runtime}, signature fn() -> bool"
+        },
+        {
+          "id": "runtime_return",
+          "storage": "mandatory compound residual; unknown callable layout remains unpriced",
+          "type": "bool"
+        },
+        {
+          "id": "runtime_not_operand",
+          "storage": "mandatory compound residual; unknown callable layout remains unpriced",
+          "type": "bool"
+        },
+        {
+          "id": "runtime_not_result",
+          "storage": "mandatory compound residual; unknown callable layout remains unpriced",
+          "type": "bool"
+        },
+        {
+          "id": "intrinsic_result",
+          "storage": "mandatory compound residual; unknown callable layout remains unpriced",
+          "type": "bool"
+        },
+        {
+          "id": "intrinsic_return",
+          "storage": "mandatory compound residual; unknown callable layout remains unpriced",
+          "type": "bool"
+        }
+      ],
+      "selection": "non-const source146 provider path retained in exact LLVM; runtime helper selected, cfg(miri) absent in compiler plan. compiletime BODY unselected; compiletime function-item intrinsic argument is retained."
+    },
+    "conservative_schedule": [
+      {
+        "header_index": 0,
+        "limit": 12,
+        "loop": "identity",
+        "occurrence": 0
+      },
+      {
+        "header_index": 1,
+        "limit": 12,
+        "loop": "identity",
+        "occurrence": 1
+      },
+      {
+        "header_index": 2,
+        "limit": 12,
+        "loop": "identity",
+        "occurrence": 2
+      },
+      {
+        "header_index": 3,
+        "limit": 12,
+        "loop": "identity",
+        "occurrence": 3
+      },
+      {
+        "header_index": 4,
+        "limit": 12,
+        "loop": "identity",
+        "occurrence": 4
+      },
+      {
+        "header_index": 5,
+        "limit": 12,
+        "loop": "identity",
+        "occurrence": 5
+      },
+      {
+        "header_index": 6,
+        "limit": 12,
+        "loop": "identity",
+        "occurrence": 6
+      },
+      {
+        "header_index": 7,
+        "limit": 12,
+        "loop": "identity",
+        "occurrence": 7
+      },
+      {
+        "header_index": 8,
+        "limit": 12,
+        "loop": "identity",
+        "occurrence": 8
+      },
+      {
+        "header_index": 9,
+        "limit": 12,
+        "loop": "identity",
+        "occurrence": 9
+      },
+      {
+        "header_index": 10,
+        "limit": 12,
+        "loop": "identity",
+        "occurrence": 10
+      },
+      {
+        "header_index": 11,
+        "limit": 12,
+        "loop": "identity",
+        "occurrence": 11
+      },
+      {
+        "header_index": 12,
+        "limit": 12,
+        "loop": "identity",
+        "occurrence": 12
+      },
+      {
+        "header_index": 0,
+        "limit": 5,
+        "loop": "path",
+        "occurrence": 13
+      },
+      {
+        "header_index": 1,
+        "limit": 5,
+        "loop": "path",
+        "occurrence": 14
+      },
+      {
+        "header_index": 2,
+        "limit": 5,
+        "loop": "path",
+        "occurrence": 15
+      },
+      {
+        "header_index": 3,
+        "limit": 5,
+        "loop": "path",
+        "occurrence": 16
+      },
+      {
+        "header_index": 4,
+        "limit": 5,
+        "loop": "path",
+        "occurrence": 17
+      },
+      {
+        "header_index": 5,
+        "limit": 5,
+        "loop": "path",
+        "occurrence": 18
+      }
+    ],
+    "count": 19,
+    "exact_macro_selection": {
+      "ActualT": "u64",
+      "Self": "usize",
+      "cfg": "target_pointer_width = \"64\"",
+      "lines": [
+        1450,
+        1451,
+        1452,
+        1453,
+        1454
+      ],
+      "not_inferred_from_LLVM_i64": true,
+      "revision": "b940084d7eb6a299eb4bfeb8e34901bc051e7ac4",
+      "source": "official-source/library/core/src/num/mod.rs"
+    },
+    "final_none_refusal_unwind": "all19 residual work and storage required; no inactive-helper, None, refusal or unwind refund",
+    "frontier": "RANGE_NEXT_SOURCE_CLOSURE_FRONTIER",
+    "unit_pair": [
+      "work",
+      "bytes"
+    ]
+  },
+  "schema": 1
+}

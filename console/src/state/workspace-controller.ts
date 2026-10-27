@@ -16,6 +16,8 @@ export interface WorkspaceController {
   selectProject(selection: { organizationId: string; projectId: string }): void;
   nextOrganizations(cursor: string): void;
   nextProjects(page: { organizationId: string; cursor: string }): void;
+  firstOrganizations(): void;
+  firstProjects(organizationId: string): void;
   retryOrganizations(): void;
   retryProjects(organizationId: string): void;
   dispose(): void;
@@ -94,7 +96,13 @@ export function createWorkspaceController(): WorkspaceController {
   }
 
   function update(next: WorkspaceDirectoryState, cancelled: readonly (Request | undefined)[] = []): void {
-    state = snapshot(next);
+    const navigation = { ...next };
+    delete navigation.canReturnToFirstOrganizations;
+    delete navigation.canReturnToFirstProjects;
+    if (client && organizationAttempt?.cursor !== undefined) navigation.canReturnToFirstOrganizations = true;
+    if (client && projectAttempt?.page.cursor !== undefined &&
+      projectAttempt.organizationId === next.selectedOrganizationId) navigation.canReturnToFirstProjects = true;
+    state = snapshot(navigation);
     revision++;
     // Abort handlers may reenter, so state and request slots are coherent first.
     for (const request of cancelled) request?.controller.abort();
@@ -236,6 +244,15 @@ export function createWorkspaceController(): WorkspaceController {
         state.projects.kind !== "ready" || state.projects.organizationId !== page.organizationId ||
         typeof page.cursor !== "string" || (state.projects.input as WorkspaceProjectPage).next_cursor !== page.cursor) return;
       beginProjects(page.organizationId, Object.freeze({ cursor: page.cursor }));
+    },
+    firstOrganizations(): void {
+      if (disposed || !client || organizationRequest || organizationAttempt?.cursor === undefined) return;
+      beginOrganizations(firstPage);
+    },
+    firstProjects(organizationId: string): void {
+      if (disposed || !client || projectRequest || !selectedOrganization(organizationId) ||
+        projectAttempt?.organizationId !== organizationId || projectAttempt.page.cursor === undefined) return;
+      beginProjects(organizationId, firstPage);
     },
     retryOrganizations(): void {
       if (disposed || !client || !organizationAttempt ||
