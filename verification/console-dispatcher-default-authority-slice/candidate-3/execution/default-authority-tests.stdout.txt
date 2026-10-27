@@ -1,0 +1,24 @@
+COMPILED 39 frozen ordinary modules; warnings=0
+COMPILED 3 test modules; warnings=0
+Running ExUnit with seed: 0, max_cases: 1
+
+???????
+
+  0) MixerHostedWeb.DispatcherDefaultAuthorityTest: failure on setup_all callback, all tests have been invalidated
+     Assertion with == failed
+     code:  assert [[13, true, true, true]] ==
+              sql(
+                "SELECT count(*),bool_and(relrowsecurity),bool_and(relforcerowsecurity),bool_and(pg_get_userbyid(relowner)='dispatcher_default_owner') FROM pg_class WHERE relnamespace='public'::regnamespace AND relname = ANY($1::text[])",
+                [Enum.map(@tables, &("mixer_authz_" <> &1))]
+              ).rows
+     left:  [[13, true, true, true]]
+     right: [[12, true, true, true]]
+     stacktrace:
+       /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-m5ybsckl/inputs/verification/console-dispatcher-default-authority-slice/default_authority_test-v3.exs:102: MixerHostedWeb.DispatcherDefaultAuthorityTest.__ex_unit_setup_all_0/1
+       /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-m5ybsckl/inputs/verification/console-dispatcher-default-authority-slice/default_authority_test-v3.exs:9: MixerHostedWeb.DispatcherDefaultAuthorityTest.__ex_unit__/2
+
+
+Finished in 0.2 seconds (0.00s async, 0.2s sync)
+
+Result: 0 tests, 7 invalid
+RESULT {"total":7,"failures":7,"skipped":0,"excluded":0}

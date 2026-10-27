@@ -1,0 +1,44 @@
+{
+  "status": "source-audit-only-no-runtime",
+  "migration003_create_tables": [
+    "mixer_authz_applications",
+    "mixer_authz_bindings",
+    "mixer_authz_credentials",
+    "mixer_authz_environments",
+    "mixer_authz_families",
+    "mixer_authz_memberships",
+    "mixer_authz_organization_heads",
+    "mixer_authz_organizations",
+    "mixer_authz_principals",
+    "mixer_authz_profiles",
+    "mixer_authz_project_heads",
+    "mixer_authz_projects"
+  ],
+  "created_table_count": 12,
+  "fixture_suffix_list_complete": true,
+  "authorization_guc_count": 20,
+  "authorization_guc_order_matches_storage": true,
+  "seed_row_shapes": {
+    "profiles": "six named columns; migration004 state_revision defaults1",
+    "bindings": "six named columns; migration004 revision defaults1",
+    "principals": "five positional columns match003",
+    "families": "eight positional columns match003",
+    "credentials": "nine positional columns match003",
+    "organizations": "003 id/active plus006 appendeddisplay_name",
+    "projects": "003 organization/id/active plus006 appendeddisplay_name",
+    "organization_heads": "two columns match003",
+    "project_heads": "three columns match003",
+    "memberships": "ten columns match003; exactproject referencesexist"
+  },
+  "identity_path": "existing testonly start_fixture removes :fixture fromallowedoptions, normal registereddefaultowner/fetch/finish; no database claim from warmup",
+  "lifecycle": "temporarychildren; reverse supervisedshutdown; conditionalpreexitTLSsnapshot; all6componentPID observations plus defaultnames/Admission absence; outer allownedgroups andports",
+  "pool_sizes": {
+    "admin": 2,
+    "migration": 2,
+    "default_runtime": 1
+  },
+  "behavior_expectations": "same seven defaultauthoritycontrols unchanged; sequential committed updates; no races or productionqualification",
+  "source_defect_found": "hardcoded tablecount13 conflicts with exact12created/listed tables",
+  "correction": "query all public ordinary mixer_authz_ tables, require exact explicit sorted twelve relationnames AND count12 AND ENABLE/FORCE RLS AND ownedby closed NOLOGIN schemaowner",
+  "limitations": "Static source audit does not execute SQL, prove default verification, current authority or qualify any runtime gate."
+}

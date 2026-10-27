@@ -1,0 +1,8 @@
+{
+  "status": "superseded-before-execution",
+  "runtime_started": false,
+  "execution_plan_sha256": "3ff45781a7daca271e3a266689d16ad0ff62adc2b569c2bf69293bdff715fcb2",
+  "source_review_finding": "New terminal artifact observation preceded owned process cleanup and called artifact.exists outside its local guard. An IO error could enter outer-cleanup failure handling without revisiting owned handles.",
+  "correction": "Candidate6 moves terminal artifact observation to final nested finally after owned-cleanup attempt and guards existence/read per artifact. Reuses unchanged v5 test and bootstrap. No behavioral or pass-criteria change.",
+  "retention": "All candidate5 referenced and frozen bytes remain unchanged; no runtime release or execution occurred."
+}

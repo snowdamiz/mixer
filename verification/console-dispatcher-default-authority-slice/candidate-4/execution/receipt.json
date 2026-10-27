@@ -1,0 +1,335 @@
+{
+  "schema": 2,
+  "status": "failed",
+  "started_at": "2026-10-27T19:53:30.616958+00:00",
+  "source_revision": "6f116c6a41994fcab5fa0d203198dc139dae9829",
+  "source_tree": "744e2c58845c52bee1038f1602827cdb8b95ae24",
+  "execution_plan_sha256": "4ab90c0e17cd2fe96dc9d3634bcf2a6baba95ff31f98238e13ba036d6defb180",
+  "commands": [
+    {
+      "label": "elixir-version",
+      "argv": [
+        "/opt/homebrew/Cellar/elixir/1.20.4/bin/elixir",
+        "--erl",
+        "+S 2:2 +A 2",
+        "--version"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg",
+      "pid": 77805,
+      "pgid": 77805,
+      "exit_code": 0,
+      "duration_seconds": 0.157,
+      "output": "elixir-version.stdout.txt",
+      "output_sha256": "3da2a97de0103514e71161d22abb0cb0a03593463d5b29a66c278730dbacd6d5"
+    },
+    {
+      "label": "postgres-version",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "--version"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg",
+      "pid": 77850,
+      "pgid": 77850,
+      "exit_code": 0,
+      "duration_seconds": 0.065,
+      "output": "postgres-version.stdout.txt",
+      "output_sha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2"
+    },
+    {
+      "label": "openssl-version",
+      "argv": [
+        "/usr/bin/openssl",
+        "version"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg",
+      "pid": 77851,
+      "pgid": 77851,
+      "exit_code": 0,
+      "duration_seconds": 0.003,
+      "output": "openssl-version.stdout.txt",
+      "output_sha256": "281a9d202102bf647f4daed64b98f57dfc22dcbf8f9b1bde9e39ed8836daa023"
+    },
+    {
+      "label": "postgres-init",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/pg",
+        "-U",
+        "mixer_dispatcher_fixture",
+        "-A",
+        "trust",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg",
+      "pid": 77852,
+      "pgid": 77852,
+      "exit_code": 0,
+      "duration_seconds": 0.385,
+      "output": "postgres-init.stdout.txt",
+      "output_sha256": "8e1769b2b05964c2882765ce0e98a618421840529e1777d1802d5ce2562fd96d"
+    },
+    {
+      "label": "postgres-server",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/pg",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "51406",
+        "-k",
+        "",
+        "-c",
+        "timezone=UTC",
+        "-c",
+        "max_connections=15"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg",
+      "pid": 77863,
+      "pgid": 77863
+    },
+    {
+      "label": "owned-cluster-identity",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+        "-X",
+        "-A",
+        "-t",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "51406",
+        "-U",
+        "mixer_dispatcher_fixture",
+        "-d",
+        "postgres",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "SHOW data_directory"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg",
+      "pid": 77871,
+      "pgid": 77871,
+      "exit_code": 0,
+      "duration_seconds": 0.032,
+      "output": "owned-cluster-identity.stdout.txt",
+      "output_sha256": "c31b00fe0b72707853e2e17d5a2ef6d2953b6d922660ad6992f11abddba508ea"
+    },
+    {
+      "label": "database-provision",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "51406",
+        "-U",
+        "mixer_dispatcher_fixture",
+        "-d",
+        "postgres",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-f",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/inputs/verification/console-dispatcher-default-authority-slice/provision.sql"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg",
+      "pid": 77873,
+      "pgid": 77873,
+      "exit_code": 0,
+      "duration_seconds": 0.052,
+      "output": "database-provision.stdout.txt",
+      "output_sha256": "6bf7f7e2f3ce37e594e07354f5ff62583af54e72ccb0d281ff4d6a934e3c3f31"
+    },
+    {
+      "label": "default-authority-tests",
+      "argv": [
+        "/opt/homebrew/Cellar/elixir/1.20.4/bin/elixir",
+        "--no-color",
+        "--erl",
+        "+S 2:2 +A 2",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/deps/decimal/ebin",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/deps/jason/ebin",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/deps/telemetry/ebin",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/deps/mime/ebin",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/deps/plug_crypto/ebin",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/deps/plug/ebin",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/deps/db_connection/ebin",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/deps/ecto/ebin",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/deps/postgrex/ebin",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/deps/ecto_sql/ebin",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/deps/jose/ebin",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/deps/hpax/ebin",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/deps/mint/ebin",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/inputs/verification/console-dispatcher-default-authority-slice/bootstrap-v4.exs",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/sources.json",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/inputs/verification/console-dispatcher-default-authority-slice/default_authority_test-v4.exs",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/app-ebin",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/dependency-metadata.json"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg",
+      "pid": 77876,
+      "pgid": 77876,
+      "exit_code": 1,
+      "duration_seconds": 3.004,
+      "output": "default-authority-tests.stdout.txt",
+      "output_sha256": "e5cf0e984a9b7ac26a0b18c39c325c987ed152769d4428a64540e5fc768918bf"
+    }
+  ],
+  "owned_processes": [
+    {
+      "label": "elixir-version",
+      "pid": 77805,
+      "pgid": 77805,
+      "direct_child_reaped": true,
+      "process_group_absent": true,
+      "exit_code": 0,
+      "cleanup_errors": []
+    },
+    {
+      "label": "postgres-version",
+      "pid": 77850,
+      "pgid": 77850,
+      "direct_child_reaped": true,
+      "process_group_absent": true,
+      "exit_code": 0,
+      "cleanup_errors": []
+    },
+    {
+      "label": "openssl-version",
+      "pid": 77851,
+      "pgid": 77851,
+      "direct_child_reaped": true,
+      "process_group_absent": true,
+      "exit_code": 0,
+      "cleanup_errors": []
+    },
+    {
+      "label": "postgres-init",
+      "pid": 77852,
+      "pgid": 77852,
+      "direct_child_reaped": true,
+      "process_group_absent": true,
+      "exit_code": 0,
+      "cleanup_errors": []
+    },
+    {
+      "label": "postgres-server",
+      "pid": 77863,
+      "pgid": 77863,
+      "direct_child_reaped": true,
+      "process_group_absent": true,
+      "exit_code": 0,
+      "cleanup_errors": []
+    },
+    {
+      "label": "owned-cluster-identity",
+      "pid": 77871,
+      "pgid": 77871,
+      "direct_child_reaped": true,
+      "process_group_absent": true,
+      "exit_code": 0,
+      "cleanup_errors": []
+    },
+    {
+      "label": "database-provision",
+      "pid": 77873,
+      "pgid": 77873,
+      "direct_child_reaped": true,
+      "process_group_absent": true,
+      "exit_code": 0,
+      "cleanup_errors": []
+    },
+    {
+      "label": "default-authority-tests",
+      "pid": 77876,
+      "pgid": 77876,
+      "direct_child_reaped": true,
+      "process_group_absent": true,
+      "exit_code": 1,
+      "cleanup_errors": []
+    }
+  ],
+  "cleanup": {
+    "all_owned_children_reaped_and_groups_absent": true,
+    "postgres_port_closed": true,
+    "postmaster_pid_file_absent": true,
+    "fixture_tls_port_closed": true,
+    "tls_key_directory_removed_at_start": true,
+    "scratch_path": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg",
+    "scratch_removed": true
+  },
+  "limitations": [
+    "No race/lock/commit-fault matrix beyond stated sequential committed state changes and inherited transaction control",
+    "No production identity provider/public DNS/startup/custody, browser_auth/callback/session/cookie authority, Endpoint/Router/HTTP integration",
+    "No Neon/Cloudflare deployment, customer workflow, publication, G22 or any GA acceptance",
+    "Computer use, capture and native simulator/emulator runtime paused; physical phones disconnected"
+  ],
+  "tools": {
+    "elixir": "1.20.4",
+    "erlang_package": "29.1.1_2",
+    "otp": "29.1.1",
+    "python": "3.14",
+    "postgresql": "17 expected; exact version unobserved until released version command",
+    "openssl": "pinned /usr/bin/openssl; exact version unobserved until released version command",
+    "python_observed": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "elixir_observed": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:2:2] [ds:2:2:10] [async-threads:2] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgresql_observed": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "openssl_observed": "LibreSSL 3.3.6"
+  },
+  "runtime_started": true,
+  "owned_postgres": {
+    "host": "127.0.0.1",
+    "port": 51406,
+    "data_directory": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/pg",
+    "tls": false
+  },
+  "owned_cluster_identity": {
+    "observed_data_directory": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/pg",
+    "expected_data_directory": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-6wdexygg/pg",
+    "match": true,
+    "owned_postgres_alive_before_mutation": true
+  },
+  "failure_events": [
+    {
+      "stage": "work",
+      "class": "RuntimeError"
+    }
+  ],
+  "failure": "owned command or cleanup failed: default-authority-tests",
+  "original_input_changes": [],
+  "original_input_read_errors": [],
+  "elapsed_seconds": 4.135,
+  "finished_at": "2026-10-27T19:53:34.752014+00:00",
+  "outputs": {
+    "postgres-init.stdout.txt": "8e1769b2b05964c2882765ce0e98a618421840529e1777d1802d5ce2562fd96d",
+    "owned-cluster-identity.stdout.txt": "c31b00fe0b72707853e2e17d5a2ef6d2953b6d922660ad6992f11abddba508ea",
+    "default-authority-tests.stdout.txt": "e5cf0e984a9b7ac26a0b18c39c325c987ed152769d4428a64540e5fc768918bf",
+    "component-cleanup.json": "2001fa89b9cd3435d790ac117f5ce4564bcb4e74b5d0313c37dab9c83d8d22cd",
+    "component-start.json": "b2294857d36533fee108a130b56b49761a280b5c1a064169e18c990534166daa",
+    "postgres-version.stdout.txt": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2",
+    "database-provision.stdout.txt": "6bf7f7e2f3ce37e594e07354f5ff62583af54e72ccb0d281ff4d6a934e3c3f31",
+    "openssl-version.stdout.txt": "281a9d202102bf647f4daed64b98f57dfc22dcbf8f9b1bde9e39ed8836daa023",
+    "elixir-version.stdout.txt": "3da2a97de0103514e71161d22abb0cb0a03593463d5b29a66c278730dbacd6d5",
+    "postgres.stdout.txt": "cfc48fada7b9e3e62dc314c13adfb11f694fac1fbcd5657b892efacc9112f97e"
+  }
+}

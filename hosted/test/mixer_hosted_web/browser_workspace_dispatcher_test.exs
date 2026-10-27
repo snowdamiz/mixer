@@ -13,10 +13,22 @@ defmodule MixerHostedWeb.BrowserWorkspaceDispatcherTest do
   end
 
   setup do
-    # The isolated runner starts no application or identity owner. Refuse to run
-    # this suite in an environment where a real configured owner could refresh.
+    # Refuse a configured owner or live admission table. An earlier synchronous
+    # test may leave a dead ETS reference after its owning process exits.
     assert Process.whereis(KeyOwner) == nil
-    assert :persistent_term.get({Admission, KeyOwner}, :absent) == :absent
+
+    case :persistent_term.get({Admission, KeyOwner}, :absent) do
+      :absent ->
+        :ok
+
+      table when is_reference(table) ->
+        assert :ets.info(table) == :undefined
+
+      _ ->
+        flunk("identity admission must be absent or a dead ETS reference")
+    end
+
+    assert Admission.acquire(KeyOwner, :configured) == {:error, :identity_unavailable}
     assert Repo.get_dynamic_repo() === Repo
     :ok
   end

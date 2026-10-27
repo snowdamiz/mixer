@@ -1,0 +1,62 @@
+COMPILED 39 frozen ordinary modules; warnings=0
+     warning: the following conditional expression will always succeed:
+
+         is_binary(body)
+
+     because it evaluates to:
+
+         dynamic(true)
+
+     where "body" was given the type:
+
+         # type: binary()
+         # from: /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-2hvuohuz/inputs/verification/console-dispatcher-default-authority-slice/default_authority_test-v2.exs:347
+         {projection, body, headers} =
+           case right do
+             ...
+           end
+
+     type warning found at:
+     │
+ 361 │     assert is_binary(body) and byte_size(body) <= 262_144
+     │     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     │
+     └─ /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-2hvuohuz/inputs/verification/console-dispatcher-default-authority-slice/default_authority_test-v2.exs:361: MixerHostedWeb.DispatcherDefaultAuthorityTest.dispatch/3
+
+Running ExUnit with seed: 0, max_cases: 1
+
+???????
+
+  0) MixerHostedWeb.DispatcherDefaultAuthorityTest: failure on setup_all callback, all tests have been invalidated
+     ** (Ecto.MigrationError) Migrations failed to run because the connection pool size is less than 2.
+
+     Ecto requires a pool size of at least 2 to support concurrent migrators.
+     When migrations run, Ecto uses one connection to maintain a lock and
+     another to run migrations.
+
+     If you are running migrations with Mix, you can increase the number
+     of connections via the pool size option:
+
+         mix ecto.migrate --pool-size 2
+
+     If you are running the Ecto.Migrator programmatically, you can configure
+     the pool size via your application config:
+
+         config :my_app, Repo,
+           ...,
+           pool_size: 2 # at least
+
+     stacktrace:
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1250: Ecto.Adapters.SQL.raise_migration_pool_size_error/0
+       (ecto_sql 3.14.0) lib/ecto/adapters/postgres.ex:311: Ecto.Adapters.Postgres.lock_for_migrations/3
+       (ecto_sql 3.14.0) lib/ecto/migrator.ex:584: Ecto.Migrator.lock_for_migrations/4
+       /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-2hvuohuz/inputs/verification/console-dispatcher-default-authority-slice/default_authority_test-v2.exs:71: anonymous fn/2 in MixerHostedWeb.DispatcherDefaultAuthorityTest.__ex_unit_setup_all_0/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-2hvuohuz/inputs/verification/console-dispatcher-default-authority-slice/default_authority_test-v2.exs:66: MixerHostedWeb.DispatcherDefaultAuthorityTest.__ex_unit_setup_all_0/1
+       /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dispatcher-default-2hvuohuz/inputs/verification/console-dispatcher-default-authority-slice/default_authority_test-v2.exs:9: MixerHostedWeb.DispatcherDefaultAuthorityTest.__ex_unit__/2
+
+
+Finished in 0.1 seconds (0.00s async, 0.1s sync)
+
+Result: 0 tests, 7 invalid
+RESULT {"total":7,"failures":7,"skipped":0,"excluded":0}

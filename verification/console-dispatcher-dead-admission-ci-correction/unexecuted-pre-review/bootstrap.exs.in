@@ -1,0 +1,219 @@
+# Frozen bounded template. Runner substitutes only verified scratch paths and phase constants.
+true = System.version() == "1.20.4"
+true = System.otp_release() == "29"
+IO.puts("TOOLS Elixir=" <> System.version() <> " OTP=" <> System.otp_release())
+Enum.each(@@DEPENDENCY_PATHS@@, &Code.prepend_path/1)
+false = Enum.any?(:code.get_path(), &String.contains?(to_string(&1), "_build"))
+Enum.each(@@DEPENDENCY_BEAMS@@, fn path ->
+  {:ok, {module, _}} = :beam_lib.chunks(String.to_charlist(path), [:exports])
+  false = String.starts_with?(Atom.to_string(module), "Elixir.MixerHosted")
+end)
+@@DEPENDENCY_CHECKS@@
+{:ok, mix_state} = Mix.State.start_link([])
+true = Mix.env() == :prod
+phase = @@PHASE_NAME@@
+app_ebin = @@APP_EBIN@@
+Code.prepend_path(app_ebin)
+
+compile_clean = fn sources, destination ->
+  result =
+    if destination,
+      do: Kernel.ParallelCompiler.compile_to_path(sources, destination, return_diagnostics: true),
+      else: Kernel.ParallelCompiler.compile(sources, return_diagnostics: true)
+
+  case result do
+    {:ok, modules, %{runtime_warnings: [], compile_warnings: []} = warnings}
+    when map_size(warnings) == 2 ->
+      IO.puts("COMPILED phase=" <> phase <> " modules=" <> Integer.to_string(length(modules)) <> " compile_warnings=0 runtime_warnings=0")
+
+    _ ->
+      raise "compile failed or diagnostics were not empty"
+  end
+end
+
+if phase == "compile-and-format" do
+  Enum.each(@@CANONICAL_TEST_PATHS@@, fn path ->
+    original = File.read!(path)
+    true = IO.iodata_to_binary(Code.format_string!(original)) <> "\n" == original
+  end)
+  IO.puts("FORMAT canonical_selected_tests=3 unchanged=true")
+  compile_clean.(@@SOURCE_PATHS@@, app_ebin)
+else
+  defmodule MixerDeadAdmissionCIProbe.Formatter do
+    use GenServer
+    def init(_options), do: {:ok, %{failed: 0, setup_failed: 0}}
+
+    def handle_cast({:test_finished, %{state: {:failed, failures}}}, state) do
+      setup? =
+        Enum.all?(failures, fn
+          {:error, %ExUnit.AssertionError{}, stacktrace} ->
+            Enum.any?(stacktrace, fn
+              {MixerHostedWeb.BrowserWorkspaceDispatcherTest, :__ex_unit_setup_0, 1, _} -> true
+              _ -> false
+            end)
+
+          _ ->
+            false
+        end)
+
+      {:noreply, %{failed: state.failed + 1, setup_failed: state.setup_failed + if(setup?, do: 1, else: 0)}}
+    end
+
+    def handle_cast({:suite_finished, _options}, state) do
+      send(Process.whereis(:mixer_dead_admission_ci_observer), {:formatter_evidence, state})
+      {:noreply, state}
+    end
+
+    def handle_cast(_event, state), do: {:noreply, state}
+  end
+
+  alias MixerHosted.Identity.{Admission, KeyOwner}
+  alias MixerHosted.Repo
+  alias MixerHostedWeb.BrowserWorkspaceDispatcher, as: Dispatcher
+  pointer_key = {Admission, KeyOwner}
+  true = is_nil(Process.whereis(KeyOwner))
+  true = is_nil(Process.whereis(Repo))
+  true = Repo.get_dynamic_repo() === Repo
+  :absent = :persistent_term.get(pointer_key, :absent)
+  pointer_mode = @@POINTER_MODE@@
+  parent = self()
+  Process.register(parent, :mixer_dead_admission_ci_observer)
+
+  {pointer, synthetic_owner} =
+    case pointer_mode do
+      :absent ->
+        {:absent, nil}
+
+      mode when mode in [:dead, :live] ->
+        {owner, monitor} =
+          spawn_monitor(fn ->
+            table = Admission.new(KeyOwner, %{"synthetic-admission" => %{}}, "synthetic-admission")
+            send(parent, {:synthetic_admission_table, self(), table})
+            receive do
+              :exit_synthetic_admission_owner -> :ok
+            after
+              5_000 -> exit(:synthetic_owner_timeout)
+            end
+          end)
+
+        table =
+          receive do
+            {:synthetic_admission_table, ^owner, table} -> table
+          after
+            1_000 -> raise "synthetic admission table was not published"
+          end
+
+        true = is_reference(table)
+        false = :ets.info(table) == :undefined
+        true = :persistent_term.get(pointer_key) === table
+        true = is_nil(Process.whereis(KeyOwner))
+
+        if mode == :dead do
+          send(owner, :exit_synthetic_admission_owner)
+          receive do
+            {:DOWN, ^monitor, :process, ^owner, :normal} -> :ok
+          after
+            1_000 -> raise "synthetic admission owner did not exit"
+          end
+          :undefined = :ets.info(table)
+          {table, nil}
+        else
+          {table, {owner, monitor}}
+        end
+
+      :malformed ->
+        :persistent_term.put(pointer_key, :synthetic_invalid_admission_pointer)
+        {:synthetic_invalid_admission_pointer, nil}
+    end
+
+  try do
+    if pointer_mode in [:absent, :dead] do
+      {:error, :identity_unavailable} = Admission.acquire(KeyOwner, :configured)
+    end
+
+    ExUnit.start(
+      autorun: false,
+      seed: 0,
+      max_cases: 1,
+      timeout: 1_000,
+      colors: [enabled: false],
+      formatters: [ExUnit.CLIFormatter, MixerDeadAdmissionCIProbe.Formatter]
+    )
+    compile_clean.(@@TEST_PATHS@@, nil)
+    true = Code.ensure_loaded?(Dispatcher)
+
+    tracer =
+      spawn(fn ->
+        loop = fn loop, count ->
+          receive do
+            {:trace, _pid, :call, {Dispatcher, :dispatch, _arguments}} -> loop.(loop, count + 1)
+            {:count, caller, reference} -> send(caller, {:dispatch_calls, reference, count})
+          end
+        end
+        loop.(loop, 0)
+      end)
+
+    1 = :erlang.trace_pattern({Dispatcher, :dispatch, 3}, true, [:local])
+    :erlang.trace(:new, true, [:call, {:tracer, tracer}])
+    result = ExUnit.run()
+    :erlang.trace(:new, false, [:call])
+    1 = :erlang.trace_pattern({Dispatcher, :dispatch, 3}, false, [:local])
+    delivered = :erlang.trace_delivered(:all)
+    receive do
+      {:trace_delivered, :all, ^delivered} -> :ok
+    after
+      1_000 -> raise "dispatch trace delivery was not confirmed"
+    end
+    reference = make_ref()
+    send(tracer, {:count, self(), reference})
+    calls =
+      receive do
+        {:dispatch_calls, ^reference, count} -> count
+      after
+        1_000 -> raise "dispatch trace count was not returned"
+      end
+    formatter =
+      receive do
+        {:formatter_evidence, evidence} -> evidence
+      after
+        1_000 -> raise "setup failure evidence was not returned"
+      end
+
+    true = result.total == @@EXPECTED_TOTAL@@
+    true = result.failures == @@EXPECTED_FAILURES@@
+    true = result.skipped == 0
+    true = result.excluded == 0
+    true = formatter.failed == @@EXPECTED_FAILURES@@
+    true = formatter.setup_failed == @@EXPECTED_FAILURES@@
+    true = if(@@EXPECTED_DISPATCH@@ == :zero, do: calls == 0, else: calls > 0)
+    true = :persistent_term.get(pointer_key, :absent) === pointer
+    true = is_nil(Process.whereis(KeyOwner))
+    true = is_nil(Process.whereis(Repo))
+    true = Repo.get_dynamic_repo() === Repo
+    if pointer_mode == :live, do: true = :ets.info(pointer, :size) == 1
+    if pointer_mode == :dead, do: :undefined = :ets.info(pointer)
+    IO.puts("PHASE_RESULT " <> Jason.encode!(%{phase: phase, result: result, setup_failures: formatter.setup_failed, dispatch_calls: calls, pointer_preserved: true, registered_key_owner_absent: true, repo_not_started: true}))
+  after
+    if synthetic_owner do
+      {owner, monitor} = synthetic_owner
+      send(owner, :exit_synthetic_admission_owner)
+      receive do
+        {:DOWN, ^monitor, :process, ^owner, :normal} -> :ok
+      after
+        1_000 -> raise "live synthetic owner cleanup did not complete"
+      end
+      :undefined = :ets.info(pointer)
+    end
+    # This pointer was created only by this fresh private BEAM. Canonical test
+    # setup never mutates persistent_term, and no shared BEAM is contacted.
+    if pointer_mode != :absent, do: Admission.close(KeyOwner)
+    :absent = :persistent_term.get(pointer_key, :absent)
+    IO.puts("PRIVATE_POINTER_CLEANUP phase=" <> phase <> " complete=true")
+  end
+end
+
+for app <- [:mixer_hosted, :ecto, :ecto_sql, :db_connection, :postgrex, :plug, :jose, :mint, :mix] do
+  false = List.keymember?(Application.started_applications(), app, 0)
+end
+GenServer.stop(mix_state)
+IO.puts("PHASE_PASS " <> phase)

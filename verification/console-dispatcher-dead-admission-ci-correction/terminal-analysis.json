@@ -1,0 +1,242 @@
+{
+  "schema": 1,
+  "status": "validated-test-only-correction-ready-for-root-delivery",
+  "scope": "Canonical dispatcher test setup only; no product implementation changed.",
+  "source_revision": "6f116c6a41994fcab5fa0d203198dc139dae9829",
+  "source_tree": "744e2c58845c52bee1038f1602827cdb8b95ae24",
+  "source_closure_sha256": "f7f025e85c255c58b0f522a589207ecae559d052569c68f560689b402b04d686",
+  "canonical_test": {
+    "path": "hosted/test/mixer_hosted_web/browser_workspace_dispatcher_test.exs",
+    "sha256": "e03227fde20ef946e538c17ed41b4d7d50d7fba88ef737c50e9caceb7c47e3ea",
+    "before_sha256": "5ecbb9d32b27049179437ef60d7e6ffc1be1223b2f0f0c010bc579f4a3156c5e"
+  },
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "verification/console-dispatcher-dead-admission-ci-correction/run_regression_v2.py"
+  ],
+  "run_count": 1,
+  "tools": {
+    "elixir": "1.20.4",
+    "otp_release": "29",
+    "otp_version_file": "29.1.1",
+    "erlang_package": "29.1.1_2",
+    "python_runtime": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+  },
+  "result_classification": "Six harness phases passed their exact assertions. Original/dead and corrected/live/malformed intentionally contain six ExUnit setup failures each; these are required regression/rejection observations, not passing dispatcher tests.",
+  "format": "Three canonical selected test sources format unchanged using Code.format_string!",
+  "compile": {
+    "ordinary_product_source_files": 32,
+    "modules": 35,
+    "compile_warnings": 0,
+    "runtime_warnings": 0,
+    "every_test_compile_warning_count": 0,
+    "raw_markers": [
+      "COMPILED phase=compile-and-format modules=35 compile_warnings=0 runtime_warnings=0",
+      "COMPILED phase=original-dead modules=2 compile_warnings=0 runtime_warnings=0",
+      "COMPILED phase=corrected-absent modules=6 compile_warnings=0 runtime_warnings=0",
+      "COMPILED phase=corrected-dead modules=2 compile_warnings=0 runtime_warnings=0",
+      "COMPILED phase=corrected-live-refused modules=2 compile_warnings=0 runtime_warnings=0",
+      "COMPILED phase=corrected-malformed-refused modules=2 compile_warnings=0 runtime_warnings=0"
+    ]
+  },
+  "phase_results": [
+    {
+      "result": {
+        "total": 6,
+        "failures": 6,
+        "skipped": 0,
+        "excluded": 0
+      },
+      "phase": "original-dead",
+      "dispatch_calls": 0,
+      "setup_failures": 6,
+      "pointer_preserved": true,
+      "registered_key_owner_absent": true,
+      "repo_not_started": true
+    },
+    {
+      "result": {
+        "total": 19,
+        "failures": 0,
+        "skipped": 0,
+        "excluded": 0
+      },
+      "phase": "corrected-absent",
+      "dispatch_calls": 31,
+      "setup_failures": 0,
+      "pointer_preserved": true,
+      "registered_key_owner_absent": true,
+      "repo_not_started": true
+    },
+    {
+      "result": {
+        "total": 6,
+        "failures": 0,
+        "skipped": 0,
+        "excluded": 0
+      },
+      "phase": "corrected-dead",
+      "dispatch_calls": 31,
+      "setup_failures": 0,
+      "pointer_preserved": true,
+      "registered_key_owner_absent": true,
+      "repo_not_started": true
+    },
+    {
+      "result": {
+        "total": 6,
+        "failures": 6,
+        "skipped": 0,
+        "excluded": 0
+      },
+      "phase": "corrected-live-refused",
+      "dispatch_calls": 0,
+      "setup_failures": 6,
+      "pointer_preserved": true,
+      "registered_key_owner_absent": true,
+      "repo_not_started": true
+    },
+    {
+      "result": {
+        "total": 6,
+        "failures": 6,
+        "skipped": 0,
+        "excluded": 0
+      },
+      "phase": "corrected-malformed-refused",
+      "dispatch_calls": 0,
+      "setup_failures": 6,
+      "pointer_preserved": true,
+      "registered_key_owner_absent": true,
+      "repo_not_started": true
+    }
+  ],
+  "safety_observations": [
+    "No registered KeyOwner in any phase.",
+    "No Repo process in any phase; default dynamic Repo preserved.",
+    "Pointer unchanged through every scenario before private fixture cleanup.",
+    "Live table retained only its one configuration record, proving setup added no admission reservations.",
+    "Absent/dead Admission.acquire returned identity_unavailable, also asserted by corrected canonical setup.",
+    "No DB, JWKS, HTTP, actual identity owner, native/UI/capture or phone processes started."
+  ],
+  "cleanup": {
+    "all_owned_children_reaped_and_groups_absent": true,
+    "exact_postrun_group_checks": [
+      {
+        "phase": "compile-and-format",
+        "pid": 81740,
+        "pgid": 81740,
+        "command_equivalent": [
+          "killpg",
+          81740,
+          0
+        ],
+        "present": false
+      },
+      {
+        "phase": "original-dead",
+        "pid": 81787,
+        "pgid": 81787,
+        "command_equivalent": [
+          "killpg",
+          81787,
+          0
+        ],
+        "present": false
+      },
+      {
+        "phase": "corrected-absent",
+        "pid": 81837,
+        "pgid": 81837,
+        "command_equivalent": [
+          "killpg",
+          81837,
+          0
+        ],
+        "present": false
+      },
+      {
+        "phase": "corrected-dead",
+        "pid": 81891,
+        "pgid": 81891,
+        "command_equivalent": [
+          "killpg",
+          81891,
+          0
+        ],
+        "present": false
+      },
+      {
+        "phase": "corrected-live-refused",
+        "pid": 81937,
+        "pgid": 81937,
+        "command_equivalent": [
+          "killpg",
+          81937,
+          0
+        ],
+        "present": false
+      },
+      {
+        "phase": "corrected-malformed-refused",
+        "pid": 81983,
+        "pgid": 81983,
+        "command_equivalent": [
+          "killpg",
+          81983,
+          0
+        ],
+        "present": false
+      }
+    ],
+    "scratch": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-dead-admission-ci-lqu4v3bt",
+    "scratch_removed": true,
+    "scratch_still_absent_at_terminal_analysis": true
+  },
+  "integrity": {
+    "copied_inputs_verified": 559,
+    "original_inputs_verified_after_run": 988,
+    "original_inputs_changed": []
+  },
+  "elapsed_seconds": 5.844,
+  "combined_output_bytes": 21813,
+  "primary_evidence": [
+    {
+      "path": "verification/console-dispatcher-dead-admission-ci-correction/execution-plan-v2.json",
+      "sha256": "773c4ed76bf21dc597d80627a13fe97b60219ded78c86289c764ab703017a903"
+    },
+    {
+      "path": "verification/console-dispatcher-dead-admission-ci-correction/run_regression_v2.py",
+      "sha256": "cc7bc0e8e05955f31ea4de4c3f00c7484fcad49a8f3ae4838a8f2d395d1eae98"
+    },
+    {
+      "path": "verification/console-dispatcher-dead-admission-ci-correction/bootstrap.exs.in",
+      "sha256": "41d4ae880c61af9fb74eebe7888cc02299b47a5b7bbec0d6225f36cc98c1324d"
+    },
+    {
+      "path": "verification/console-dispatcher-dead-admission-ci-correction/host-execution-release-v2.json",
+      "sha256": "f234a9c4f0d3f66b5c1feb515b6052685bf0038135b261fd1e53d270c3c3ab24"
+    },
+    {
+      "path": "verification/console-dispatcher-dead-admission-ci-correction/regression-v2-receipt.json",
+      "sha256": "111d44d0d5953908b7b30dcd71fd76c120bc90b426a935218f6a1107244a4129"
+    },
+    {
+      "path": "verification/console-dispatcher-dead-admission-ci-correction/regression-v2.stdout.txt",
+      "sha256": "c6e07778b8f042591dff6c2bcf3413b0679a0e45ed1b32909fd5f58bb974d304"
+    }
+  ],
+  "preserved_history": [
+    "Original failing canonical source and remote CI logs retained.",
+    "First frozen plan/runner remain byte-identical at their original paths and under unexecuted-pre-review/.",
+    "The first version was not executed. Only root-released v2 ran, once."
+  ],
+  "pending": [
+    "Broad Phoenix CI rerun at corrected source after root authorized delivery",
+    "Actual default verifier/default Repo 200 and operational configured identity proof",
+    "Database/RLS/revocation/context and cookie HTTP/ingress acceptance",
+    "Browser/UI/capture/native runtime and physical devices paused",
+    "Customer workflows, published FieldLog dogfood and all GA gates unqualified"
+  ]
+}
