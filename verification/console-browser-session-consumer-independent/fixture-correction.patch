@@ -1,0 +1,24 @@
+--- solid.test.mjs.before-so09-correction
++++ solid.test.mjs
+@@ -149,8 +149,10 @@
+ }));
+ test("SO09 actual cookie/workspace Solid join resets same and changed epochs with pure fences", () => scenario(async env => {
+   const observations = [];
++  let armed = false;
+   const owner = env.owner({ workspace: true, observe(binding, directory) {
+-    observations.push([binding.workspaceSession().kind, directory.state()]); directory.controller.nextProjects({ organizationId: "org α", cursor: "MORE" });
++    observations.push([binding.workspaceSession().kind, directory.state()]);
++    if (armed) directory.controller.nextProjects({ organizationId: "org α", cursor: "MORE" });
+   } });
+   let prior = await env.ready(owner);
+   for (const metadata of [auth(), auth({ generation: generation2 })]) {
+@@ -159,7 +161,9 @@
+     const project = env.calls.at(-1); assert.equal(project.path, "/console-api/v1/projects?organization_id=org%20%CE%B1"); project.resolve(json(projects)); await tick();
+     owner.directory.controller.selectProject({ organizationId: "org α", projectId: "project β" });
+     assert.equal(owner.directory.state().selectedProjectId, "project β");
++    armed = true;
+     batch(() => { owner.binding.revalidate(); owner.poke(); });
++    armed = false;
+     assert.equal(observations.at(-1)[0], "unavailable"); assert.doesNotMatch(JSON.stringify(observations.at(-1)), /Independent private|NEXT|MORE|project β/);
+     assert.equal(owner.directory.state().selectedOrganizationId, undefined); assert.equal(owner.directory.state().canReturnToFirstProjects, undefined);
+     env.calls.at(-1).resolve(json(metadata)); await tick(); const current = owner.binding.workspaceSession(); assert.notEqual(current, prior);

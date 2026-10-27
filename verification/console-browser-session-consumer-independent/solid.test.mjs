@@ -1,0 +1,196 @@
+// Independent real Solid client runtime; synthetic event targets are not browsers.
+import assert from "node:assert/strict";
+import { test, after } from "node:test";
+import { readFileSync } from "node:fs";
+import { moduleURL, solidURL, root, auth, unauth, generation2, orgs, projects, tick, deferred, json, clocked, Target, code } from "./probe-helpers.mjs";
+const { createRoot, createComputed, createSignal, batch } = await import(solidURL);
+const { createBrowserSessionBinding } = await import(moduleURL("state/browser-session-binding"));
+const { createWorkspaceBinding } = await import(moduleURL("state/workspace-binding"));
+const { WorkspaceClientError } = await import(moduleURL("api/workspace-client"));
+const unhandled = [];
+const rejected = error => unhandled.push(error);
+process.on("unhandledRejection", rejected);
+after(async () => { await tick(); process.off("unhandledRejection", rejected); assert.deepEqual(unhandled, []); });
+console.log(JSON.stringify({ node: process.version, platform: process.platform, arch: process.arch, fixture_scope: "actual Solid client/cookie/workspace modules with synthetic EventTargets, no browser/UI/capture" }));
+
+async function scenario(options, run) {
+  if (typeof options === "function") { run = options; options = {}; }
+  return clocked(async (time, timers) => {
+    const keys = ["document", "window", "fetch", "BroadcastChannel", "localStorage", "sessionStorage"];
+    const prior = new Map(keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
+    const document = new Target(), window = new Target(), calls = [], channels = [], owners = [];
+    document.visibilityState = options.visibility ?? "visible";
+    class Channel extends Target {
+      sent = []; closed = 0;
+      constructor(name) { super(); if (options.broadcast === "throws") throw Error("channel unavailable"); this.name = name; channels.push(this); }
+      postMessage(value) { this.sent.push(value); }
+      close() { this.closed++; }
+      receive(data) { this.dispatchEvent(new MessageEvent("message", { data })); }
+    }
+    const fetch = (path, init) => {
+      const pending = deferred(); let settled = false;
+      const call = { path, init, resolve(value) { if (!settled) { settled = true; pending.resolve(value); } }, reject(value) { if (!settled) { settled = true; pending.reject(value); } } };
+      calls.push(call); return pending.promise;
+    };
+    for (const [key, value] of Object.entries({ document, window, fetch, BroadcastChannel: options.broadcast === false ? undefined : Channel })) Object.defineProperty(globalThis, key, { configurable: true, value });
+    for (const key of ["localStorage", "sessionStorage"]) Object.defineProperty(globalThis, key, { configurable: true, get() { throw Error("Independent probe forbids persistence"); } });
+    const env = {
+      document, window, calls, channels, time, timers,
+      event(type) { window.dispatchEvent(new Event(type)); },
+      visibility(value, emit = true) { document.visibilityState = value; if (emit) document.dispatchEvent(new Event("visibilitychange")); },
+      owner({ workspace = false, observe } = {}) {
+        let binding, directory, stop, poke;
+        createRoot(dispose => {
+          stop = dispose;
+          const [trigger, set] = createSignal(0); poke = () => set(value => value + 1);
+          if (observe) createComputed(() => { trigger(); if (binding) observe(binding, directory); });
+          binding = createBrowserSessionBinding();
+          if (workspace) directory = createWorkspaceBinding(() => binding.workspaceSession());
+        });
+        let disposed = false;
+        const result = { binding, directory, poke, dispose() { if (!disposed) { disposed = true; stop(); } } };
+        owners.push(result); return result;
+      },
+      async ready(owner, metadata = auth()) {
+        await tick(); assert.equal(calls.at(-1).path, "/auth/session"); calls.at(-1).resolve(json(metadata)); await tick(); assert.equal(owner.binding.workspaceSession().kind, "ready"); return owner.binding.workspaceSession();
+      },
+    };
+    try { await run(env); }
+    finally {
+      for (const owner of owners) owner.dispose();
+      for (const call of calls) call.reject(Error("independent cleanup late reject"));
+      await tick();
+      const observed = { document: document.count, window: window.count, channels: channels.map(channel => ({ listeners: channel.count, closed: channel.closed })), timers: timers.size };
+      for (const [key, descriptor] of prior) if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key];
+      assert.equal(observed.document, 0); assert.equal(observed.window, 0); assert.equal(observed.timers, 0);
+      assert.ok(observed.channels.every(channel => channel.listeners === 0 && channel.closed === 1));
+    }
+  });
+}
+
+test("SO01 real Solid owner visible startup exactly once; hidden startup waits", async () => {
+  await scenario(async env => {
+    const owner = env.owner(); assert.ok(Object.isFrozen(owner.binding)); assert.equal(owner.binding.workspaceSession().kind, "unavailable");
+    env.event("focus"); env.event("pageshow"); env.document.dispatchEvent(new Event("visibilitychange"));
+    await env.ready(owner); assert.equal(env.calls.length, 1); assert.equal(env.channels[0].name, "mixer.browser-session.v1");
+  });
+  await scenario({ visibility: "hidden" }, async env => {
+    const owner = env.owner(); await tick(); assert.equal(env.calls.length, 0); assert.equal(owner.binding.workspaceSession().kind, "unavailable");
+    env.visibility("visible", false); assert.equal(owner.binding.workspaceSession().kind, "unavailable"); env.event("focus");
+    await env.ready(owner); assert.equal(env.calls.length, 1);
+  });
+});
+test("SO02 foreground notifications coalesce and replace older current check", () => scenario(async env => {
+  const owner = env.owner(); await tick(); const prior = env.calls[0];
+  env.event("focus"); env.event("pageshow"); env.document.dispatchEvent(new Event("visibilitychange")); await tick();
+  assert.equal(env.calls.length, 2); assert.equal(prior.init.signal.aborted, true);
+  prior.resolve(json(auth())); await tick(); assert.equal(owner.binding.workspaceSession().kind, "unavailable");
+  env.calls.at(-1).resolve(json(auth())); await tick(); assert.equal(owner.binding.workspaceSession().kind, "ready");
+  assert.equal(env.calls.length, 2);
+}));
+test("SO03 hidden pure read/action invalidates before Solid effects and clears private rows", () => scenario(async env => {
+  const observed = [];
+  const owner = env.owner({ workspace: true, observe(binding, directory) {
+    observed.push([binding.workspaceSession().kind, directory.state()]);
+    directory.controller.selectOrganization("org α"); directory.controller.nextOrganizations("NEXT"); directory.controller.retryProjects("org α");
+  } });
+  await env.ready(owner); assert.equal(env.calls.at(-1).path, "/console-api/v1/orgs"); env.calls.at(-1).resolve(json(orgs)); await tick();
+  owner.directory.controller.selectOrganization("org α"); await tick(); const project = env.calls.at(-1); assert.match(project.path, /projects\?/);
+  env.visibility("hidden", false); const count = env.calls.length; owner.poke();
+  assert.equal(observed.at(-1)[0], "unavailable"); assert.doesNotMatch(JSON.stringify(observed.at(-1)), /Independent private|NEXT|MORE/);
+  assert.equal(project.init.signal.aborted, true); assert.equal(env.calls.length, count);
+  project.resolve(json(projects)); await tick(); assert.equal(owner.directory.state().organizations.kind, "unavailable");
+}));
+test("SO04 pagehide fences visible document and pending metadata", () => scenario(async env => {
+  const owner = env.owner({ workspace: true }); await tick(); const pending = env.calls[0];
+  env.event("pagehide"); assert.equal(env.document.visibilityState, "visible"); assert.equal(pending.init.signal.aborted, true);
+  pending.resolve(json(auth())); await tick(); assert.equal(owner.binding.workspaceSession().kind, "unavailable"); assert.equal(env.calls.length, 1);
+  env.event("pageshow"); const prior = await env.ready(owner); const request = env.calls.at(-1);
+  assert.match(request.path, /orgs$/); env.event("pagehide"); assert.equal(request.init.signal.aborted, true); assert.equal(owner.binding.workspaceSession().kind, "unavailable");
+  const count = env.calls.length; await assert.rejects(prior.client.organizations(), code(WorkspaceClientError, "aborted")); assert.equal(env.calls.length, count);
+}));
+test("SO05 pageshow clears pagehide via a fresh epoch and first-page request", () => scenario(async env => {
+  const owner = env.owner({ workspace: true }); const prior = await env.ready(owner);
+  env.calls.at(-1).resolve(json(orgs)); await tick(); owner.directory.controller.selectOrganization("org α"); await tick(); env.calls.at(-1).resolve(json(projects)); await tick();
+  owner.directory.controller.selectProject({ organizationId: "org α", projectId: "project β" }); assert.equal(owner.directory.state().selectedProjectId, "project β");
+  env.event("pagehide"); assert.equal(owner.directory.state().selectedProjectId, undefined);
+  env.event("pageshow"); env.event("focus"); env.document.dispatchEvent(new Event("visibilitychange")); const fresh = await env.ready(owner);
+  assert.notEqual(fresh, prior); assert.equal(env.calls.filter(call => call.path === "/auth/session").length, 2);
+  assert.equal(env.calls.at(-1).path, "/console-api/v1/orgs"); assert.equal(owner.directory.state().organizations.kind, "loading"); assert.equal(owner.directory.state().selectedProjectId, undefined);
+}));
+test("SO06 exact plain cross-tab invalidation only and never rebroadcast", () => scenario(async env => {
+  const owner = env.owner(); const prior = await env.ready(owner), channel = env.channels[0]; let getter = 0;
+  const accessor = Object.defineProperty({}, "type", { enumerable: true, get() { getter++; return "invalidate"; } });
+  const nonenumerable = Object.defineProperty({ type: "invalidate" }, "csrf_token", { value: "private" });
+  class Message { type = "invalidate"; }
+  for (const value of [null, [], "invalidate", { type: "invalidate", generation: "private" }, { type: "invalidate", [Symbol()]: 1 }, Object.assign(Object.create(null), { type: "invalidate" }), new Message(), accessor, nonenumerable]) channel.receive(value);
+  await tick(); assert.equal(getter, 0); assert.equal(owner.binding.workspaceSession(), prior); assert.equal(env.calls.length, 1);
+  channel.receive({ type: "invalidate" }); assert.equal(owner.binding.workspaceSession().kind, "unavailable"); assert.deepEqual(channel.sent, []);
+  await tick(); assert.equal(env.calls.length, 2); env.calls.at(-1).resolve(json(unauth())); await tick(); assert.equal(owner.binding.workspaceSession().kind, "unauthenticated"); assert.deepEqual(channel.sent, []);
+}));
+test("SO07 local invalidate sends fixed signal; absent/failed channel retains foreground", async () => {
+  await scenario(async env => {
+    const owner = env.owner(); await env.ready(owner); owner.binding.invalidate();
+    assert.equal(owner.binding.workspaceSession().kind, "unavailable"); assert.deepEqual(env.channels[0].sent, [{ type: "invalidate" }]); await tick(); assert.equal(env.calls.length, 1);
+    env.visibility("hidden"); owner.binding.invalidate(); await tick(); assert.equal(env.calls.length, 1); assert.deepEqual(env.channels[0].sent, [{ type: "invalidate" }, { type: "invalidate" }]);
+  });
+  for (const broadcast of [false, "throws"]) await scenario({ broadcast }, async env => {
+    const owner = env.owner(); await env.ready(owner); owner.binding.invalidate(); env.event("focus"); await env.ready(owner); assert.equal(env.calls.length, 2); assert.deepEqual(env.channels, []);
+  });
+});
+test("SO08 queued foreground/invalidation races stop on hide and disposal", () => scenario(async env => {
+  const owner = env.owner(); env.event("focus"); env.channels[0].receive({ type: "invalidate" });
+  env.visibility("hidden", false); await tick(); assert.equal(env.calls.length, 0); assert.equal(owner.binding.workspaceSession().kind, "unavailable");
+  env.visibility("visible"); await tick(); assert.equal(env.calls.length, 1); const old = env.calls[0];
+  env.channels[0].receive({ type: "invalidate" }); env.event("focus"); env.event("pageshow"); await tick(); assert.equal(env.calls.length, 2); assert.equal(old.init.signal.aborted, true);
+  old.resolve(json(auth())); await tick(); assert.equal(owner.binding.workspaceSession().kind, "unavailable");
+  owner.dispose(); env.calls.at(-1).resolve(json(auth())); await tick(); assert.equal(owner.binding.workspaceSession().kind, "unavailable"); assert.equal(env.calls.length, 2);
+  const second = env.owner(); second.dispose(); await tick(); assert.equal(env.calls.length, 2);
+}));
+test("SO09 actual cookie/workspace Solid join resets same and changed epochs with pure fences", () => scenario(async env => {
+  const observations = [];
+  let armed = false;
+  const owner = env.owner({ workspace: true, observe(binding, directory) {
+    observations.push([binding.workspaceSession().kind, directory.state()]);
+    if (armed) directory.controller.nextProjects({ organizationId: "org α", cursor: "MORE" });
+  } });
+  let prior = await env.ready(owner);
+  for (const metadata of [auth(), auth({ generation: generation2 })]) {
+    const organizations = env.calls.at(-1); assert.equal(organizations.path, "/console-api/v1/orgs"); assert.deepEqual(organizations.init.headers, { accept: "application/json" }); assert.equal(organizations.init.credentials, "same-origin");
+    organizations.resolve(json(orgs)); await tick(); owner.directory.controller.selectOrganization("org α"); await tick();
+    const project = env.calls.at(-1); assert.equal(project.path, "/console-api/v1/projects?organization_id=org%20%CE%B1"); project.resolve(json(projects)); await tick();
+    owner.directory.controller.selectProject({ organizationId: "org α", projectId: "project β" });
+    assert.equal(owner.directory.state().selectedProjectId, "project β");
+    armed = true;
+    batch(() => { owner.binding.revalidate(); owner.poke(); });
+    armed = false;
+    assert.equal(observations.at(-1)[0], "unavailable"); assert.doesNotMatch(JSON.stringify(observations.at(-1)), /Independent private|NEXT|MORE|project β/);
+    assert.equal(owner.directory.state().selectedOrganizationId, undefined); assert.equal(owner.directory.state().canReturnToFirstProjects, undefined);
+    env.calls.at(-1).resolve(json(metadata)); await tick(); const current = owner.binding.workspaceSession(); assert.notEqual(current, prior);
+    const count = env.calls.length; await assert.rejects(prior.client.projects("org α"), code(WorkspaceClientError, "aborted")); assert.equal(env.calls.length, count); prior = current;
+  }
+  const last = env.calls.at(-1); last.resolve(new Response(null, { status: 401 })); await tick(); assert.equal(owner.binding.workspaceSession().kind, "unavailable"); assert.equal(owner.directory.state().organizations.kind, "unavailable");
+}));
+test("SO10 disposal removes only owned listeners and queued callbacks", () => scenario(async env => {
+  const external = () => {}; env.document.addEventListener("visibilitychange", external); env.window.addEventListener("focus", external);
+  const owner = env.owner(); await env.ready(owner); const pendingCount = env.calls.length;
+  env.event("focus"); owner.dispose(); await tick(); assert.equal(env.calls.length, pendingCount);
+  assert.equal(env.document.count, 1); assert.equal(env.window.count, 1); assert.equal(env.channels[0].closed, 1); assert.equal(env.channels[0].count, 0);
+  env.event("pageshow"); env.channels[0].receive({ type: "invalidate" }); owner.binding.revalidate(); owner.binding.invalidate(); await tick(); assert.equal(env.calls.length, pendingCount);
+  env.document.removeEventListener("visibilitychange", external); env.window.removeEventListener("focus", external);
+}));
+test("SO11 production entry owns one binding and live App prop; source-only App seam", () => {
+  const main = readFileSync(root + "console/src/main.tsx", "utf8"), app = readFileSync(root + "console/src/App.tsx", "utf8");
+  assert.match(main, /function ConsoleRoot\(\)\s*\{\s*const binding = createBrowserSessionBinding\(\);\s*return <App workspaceSession=\{binding\.workspaceSession\(\)\} \/>;/);
+  assert.match(main, /render\(\(\) => <ConsoleRoot \/>, container\)/); assert.match(main, /if \(!container\) throw/); assert.match(main, /import "\.\/styles\.css"/);
+  assert.match(app, /<WorkspaceProvider session=\{props\.workspaceSession\}>/);
+  assert.doesNotMatch(main, /csrf_token|generation|expires_at|localStorage|sessionStorage|authenticated|token|\/login|\/logout/);
+  assert.throws(() => createBrowserSessionBinding(), /Missing browser session owner/);
+});
+test("SO12 missing endpoint/outage/HTML/malformed headers stay unavailable with zero workspace", async () => {
+  for (const response of [new Response(null, { status: 404 }), new Response(null, { status: 503 }), new Response("<html>SPA</html>", { headers: { "content-type": "text/html" } }), json(auth(), { "cache-control": "no-cache" })]) await scenario(async env => {
+    const owner = env.owner({ workspace: true }); await tick(); env.calls[0].resolve(response); await tick();
+    assert.equal(owner.binding.workspaceSession().kind, "unavailable"); assert.equal(owner.directory.state().organizations.kind, "unavailable"); assert.equal(env.calls.length, 1);
+    assert.equal(env.calls[0].path, "/auth/session"); await tick(); assert.equal(env.calls.length, 1);
+  });
+});

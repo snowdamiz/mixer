@@ -1,0 +1,213 @@
+TAP version 13
+# Subtest: Solid client runtime checks synthetic lifecycle events, epoch fences and actual cookie/workspace binding join
+not ok 1 - Solid client runtime checks synthetic lifecycle events, epoch fences and actual cookie/workspace binding join
+  ---
+  duration_ms: 81.512958
+  type: 'test'
+  location: '/Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-binding.test.mjs:27:1'
+  failureType: 'testCodeFailure'
+  error: 'Command failed: /Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node --conditions=browser --test /Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-binding-runner.mjs'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    genericNodeError (node:internal/errors:983:15)
+    wrappedFn (node:internal/errors:537:14)
+    checkExecSyncError (node:child_process:916:11)
+    execFileSync (node:child_process:952:15)
+    TestContext.<anonymous> (file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-binding.test.mjs:33:18)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: actual App SSR accepts the session seam without requesting or serializing private metadata
+ok 2 - actual App SSR accepts the session seam without requesting or serializing private metadata
+  ---
+  duration_ms: 20.1735
+  type: 'test'
+  ...
+# Subtest: controller starts frozen unavailable and exposes only closed actions, without a network request
+ok 3 - controller starts frozen unavailable and exposes only closed actions, without a network request
+  ---
+  duration_ms: 0.927291
+  type: 'test'
+  ...
+# Subtest: valid signed-out is a fresh frozen capability; every other current outcome is unavailable
+ok 4 - valid signed-out is a fresh frozen capability; every other current outcome is unavailable
+  ---
+  duration_ms: 12.381292
+  type: 'test'
+  ...
+# Subtest: same and changed server generation both replace the local epoch and abort old workspace calls synchronously
+not ok 5 - same and changed server generation both replace the local epoch and abort old workspace calls synchronously
+  ---
+  duration_ms: 1.240958
+  type: 'test'
+  location: '/Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-controller.test.mjs:79:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 'unavailable'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unavailable'
+  operator: 'strictEqual'
+  stack: |-
+    file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-controller.test.mjs:88:73
+    async withClock (file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-controller.test.mjs:43:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late superseded session success and rejection cannot admit even an equal generation
+ok 6 - late superseded session success and rejection cannot admit even an equal generation
+  ---
+  duration_ms: 1.906083
+  type: 'test'
+  ...
+# Subtest: actual cookie adapter preserves org/project scope, caller cancellation and closed transport failures
+not ok 7 - actual cookie adapter preserves org/project scope, caller cancellation and closed transport failures
+  ---
+  duration_ms: 0.710542
+  type: 'test'
+  location: '/Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-controller.test.mjs:114:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '/auth/session'
+    - '/console-api/v1/orgs?limit=1&cursor=NEXT'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '/console-api/v1/orgs?limit=1&cursor=NEXT'
+  actual: '/auth/session'
+  operator: 'strictEqual'
+  stack: |-
+    file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-controller.test.mjs:119:12
+    async withClock (file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-controller.test.mjs:43:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a current actual workspace401 immediately removes outer ready and requires explicit revalidation
+not ok 8 - a current actual workspace401 immediately removes outer ready and requires explicit revalidation
+  ---
+  duration_ms: 0.601833
+  type: 'test'
+  location: '/Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-controller.test.mjs:136:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'resolve')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-controller.test.mjs:141:21
+    async withClock (file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-controller.test.mjs:43:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: getSession and delegate dispatch synchronously enforce wall expiry, monotonic expiry and backwards clocks
+not ok 9 - getSession and delegate dispatch synchronously enforce wall expiry, monotonic expiry and backwards clocks
+  ---
+  duration_ms: 0.582542
+  type: 'test'
+  location: '/Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-controller.test.mjs:151:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-controller.test.mjs:158:73
+    async withClock (file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-controller.test.mjs:43:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: postawait publication independently rejects clock expiry and old failures
+ok 10 - postawait publication independently rejects clock expiry and old failures
+  ---
+  duration_ms: 30003.7705
+  type: 'test'
+  ...
+# Subtest: 15minute maximum lifetime is captured before the session read rather than after its latency
+ok 11 - 15minute maximum lifetime is captured before the session read rather than after its latency
+  ---
+  duration_ms: 0.769875
+  type: 'test'
+  ...
+# Subtest: invalid start clocks, unsafe expiry arithmetic and already expired admission fail unavailable
+ok 12 - invalid start clocks, unsafe expiry arithmetic and already expired admission fail unavailable
+  ---
+  duration_ms: 1.222834
+  type: 'test'
+  ...
+# Subtest: invalid live clock samples and backwards admission samples cannot create or retain ready
+ok 13 - invalid live clock samples and backwards admission samples cannot create or retain ready
+  ---
+  duration_ms: 1.075708
+  type: 'test'
+  ...
+# Subtest: an owned expiry timer clears capability without a read, and disposal cancels owned timers
+ok 14 - an owned expiry timer clears capability without a read, and disposal cancels owned timers
+  ---
+  duration_ms: 1.38775
+  type: 'test'
+  ...
+# Subtest: subscriber throws, asynchronous rejection and reentrant invalidation cannot break coherent epochs
+ok 15 - subscriber throws, asynchronous rejection and reentrant invalidation cannot break coherent epochs
+  ---
+  duration_ms: 0.8575
+  type: 'test'
+  ...
+# Subtest: reentrant clear observers supersede the old check before it dispatches
+ok 16 - reentrant clear observers supersede the old check before it dispatches
+  ---
+  duration_ms: 0.293333
+  type: 'test'
+  ...
+# Subtest: dispose aborts session/workspace work, removes observers and suppresses late results
+not ok 17 - dispose aborts session/workspace work, removes observers and suppresses late results
+  ---
+  duration_ms: 0.447625
+  type: 'test'
+  location: '/Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-controller.test.mjs:257:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-controller.test.mjs:262:10
+    async withClock (file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/browser-session-controller.test.mjs:43:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Error: Test "same and changed server generation both replace the local epoch and abort old workspace calls synchronously" at tests/browser-session-controller.test.mjs:79:1 generated asynchronous activity after the test ended. This activity created the error "WorkspaceClientError: Workspace request aborted" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+# Error: Test "actual cookie adapter preserves org/project scope, caller cancellation and closed transport failures" at tests/browser-session-controller.test.mjs:114:1 generated asynchronous activity after the test ended. This activity created the error "WorkspaceClientError: Workspace request aborted" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+# Error: Test "a current actual workspace401 immediately removes outer ready and requires explicit revalidation" at tests/browser-session-controller.test.mjs:136:1 generated asynchronous activity after the test ended. This activity created the error "WorkspaceClientError: Workspace request aborted" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+# Error: Test "a current actual workspace401 immediately removes outer ready and requires explicit revalidation" at tests/browser-session-controller.test.mjs:136:1 generated asynchronous activity after the test ended. This activity created the error "WorkspaceClientError: Workspace request aborted" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+# Error: Test "getSession and delegate dispatch synchronously enforce wall expiry, monotonic expiry and backwards clocks" at tests/browser-session-controller.test.mjs:151:1 generated asynchronous activity after the test ended. This activity created the error "WorkspaceClientError: Workspace request aborted" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+# Error: Test "dispose aborts session/workspace work, removes observers and suppresses late results" at tests/browser-session-controller.test.mjs:257:1 generated asynchronous activity after the test ended. This activity created the error "WorkspaceClientError: Workspace request aborted" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+1..17
+# tests 17
+# suites 0
+# pass 11
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 30440.674416

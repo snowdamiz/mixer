@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "status": "proposed-closed-frontend-source-slice-awaiting-root-selection",
+  "canonical_backend_revision": "b231f3d405c06bfb348f193d46a348af0529bd84",
+  "scope": "Strict same-origin session consumer, in-memory capability owner and reactive production entry wiring; no server endpoint, login, provider, callback acceptance or authenticated readiness supplied by this slice",
+  "ownership": {
+    "new_product_files": [
+      "console/src/api/browser-session-client.ts",
+      "console/src/state/browser-session-controller.ts",
+      "console/src/state/browser-session-binding.ts"
+    ],
+    "existing_product_files_allowed_to_change": ["console/src/main.tsx"],
+    "new_tests": [
+      "console/tests/browser-session-client.test.mjs",
+      "console/tests/browser-session-controller.test.mjs",
+      "console/tests/browser-session-binding.test.mjs",
+      "console/tests/browser-session-binding-runner.mjs"
+    ],
+    "future_producer_evidence_directory": "verification/console-browser-session-consumer/",
+    "existing_read_only_inputs": [
+      "console/src/App.tsx",
+      "console/src/state/workspace-context.tsx",
+      "console/src/state/workspace-controller.ts",
+      "console/src/state/workspace-binding.ts",
+      "console/src/api/cookie-workspace-client.ts",
+      "console/src/api/workspace-transport.ts"
+    ],
+    "root_owned_metadata": ["PLAN.md", "STATUS.md", "work-graph.json", "gates/ga.json"],
+    "excluded": [
+      "released pagination implementation and tests",
+      "all hosted product files, callback candidates and workflow changes",
+      "all frozen, interrupted or active independent implementation/review lanes"
+    ]
+  },
+  "client_api": {
+    "factory": "createBrowserSessionClient(options = {}) -> frozen { read(signal?: AbortSignal): Promise<BrowserSessionMetadata> }",
+    "options_exact_optional_keys": ["fetch", "timeoutMs"],
+    "options_policy": "Trusted application/test construction only; reject null, arrays, nonobject options, unknown own keys, nonfunction fetch and invalid timeout. Production entry passes no arguments. No raw session, identity, token, Cookie, header map, origin, path, provider or dispatcher option.",
+    "timeout_ms_default": 15000,
+    "timeout_ms_integer_min": 1,
+    "timeout_ms_integer_max": 30000,
+    "request": {
+      "method": "GET",
+      "url": "/auth/session",
+      "headers_exact": {"accept": "application/json"},
+      "credentials": "same-origin",
+      "redirect": "error",
+      "cache": "no-store",
+      "referrerPolicy": "no-referrer",
+      "body": "absent",
+      "query": "absent"
+    },
+    "status_policy": {
+      "200": "Decode exactly one of the two closed metadata envelopes below. A valid unauthenticated envelope is the only HTTP result that directly publishes unauthenticated.",
+      "all_other_statuses": "Cancel response body best effort without waiting, return fixed unavailable; this includes 204, 3xx, 401, 403, 404, 429 and all 5xx. Never infer signed-out state from a missing endpoint, denial or outage, and never display an error body."
+    },
+    "response_policy": {
+      "redirected": "reject true",
+      "content_type": "application/json, optionally charset=utf-8; ASCII case-insensitive and surrounding media-type parameter whitespace allowed, no other parameters/media types",
+      "cache_control": "Require a syntactically separate no-store directive; absence, no-cache alone, malformed or combined field text without a no-store directive rejects. This verifies the response directive only, not CDN isolation.",
+      "declared_content_length": "If present, canonical nonnegative decimal digits within safe integer range and no larger than 8192; reject commas, signs, fractional/exponent forms and oversized declarations before reading. Count actual bytes independently; Content-Length is not authority.",
+      "hard_response_bytes_max": 8192,
+      "successful_metadata_body_bytes_max": 4096,
+      "successful_body_policy": "The consumer deliberately narrows the proposed 8-KiB outer response ceiling to a 4-KiB complete success body including JSON whitespace. Closed metadata is normally below 256 bytes. Stop immediately when success body exceeds 4096; do not buffer to the larger workspace limit.",
+      "reader_read_calls_max_including_final_done": 4096,
+      "body": "Required stream; strict fatal UTF-8 decode; reject BOM, trailing non-whitespace, malformed JSON, arrays/null, nested values, unknown/missing/duplicate keys and escaped-equivalent key aliases.",
+      "json_subset": "Accept a flat JSON object with field order arbitrary and standard JSON whitespace. Names and string values must contain literal allowed ASCII bytes with no escapes; this deliberately rejects otherwise equivalent escaped keys/values and catches alias/duplicate ambiguity. expires_at is a decimal integer token with no sign, decimal point or exponent. No general JSON parser or duplicate-key projection alone substitutes for this closed response parser.",
+      "resources": "One absolute deadline spans fetch, body consumption and decode/publication. Race a noncooperative fetch/read against cancellation/deadline; abort/release reader best effort without waiting for stalled cancel. Always remove listeners and clear timers; consume late promise rejection and withhold/cancel late responses.",
+      "headers_not_treated_as_authority": ["Set-Cookie (browser controlled and unavailable to script)", "request-id", "Server", "Date", "session-looking custom headers"]
+    },
+    "envelopes": [
+      {"exact_keys": ["state", "csrf_token"], "state": "unauthenticated", "csrf_token": "canonical43"},
+      {"exact_keys": ["state", "generation", "expires_at", "csrf_token"], "state": "authenticated", "generation": "canonical43", "expires_at": "JSON nonnegative safe integer Unix seconds", "csrf_token": "canonical43"}
+    ],
+    "canonical43": "Exactly 43 unpadded base64url ASCII characters whose decode is exactly 32 bytes and whose re-encoding is byte-for-byte equal; reject invalid unused trailing bits. generation and csrf_token are distinct fields, neither grants authorization. No email, issuer, subject, principal, tenant, role, token or additional field is admitted.",
+    "returned_metadata": "Copy and Object.freeze the closed scalar metadata. Retain only in memory; never render/log/broadcast/persist CSRF or generation.",
+    "errors": {
+      "class": "BrowserSessionClientError",
+      "closed_codes": ["invalid_request", "invalid_response", "unavailable", "aborted"],
+      "messages": "Fixed public category only; no URL, input, body, provider text, cookie, CSRF, token or stack from caught dependencies.",
+      "mapping": "Caller abort -> aborted; deadline/fetch rejection/non200 -> unavailable; malformed200 body/headers -> invalid_response; factory options -> invalid_request. The controller maps every current failure to unavailable. Superseded/disposed failures cannot change current state."
+    }
+  },
+  "controller_api": {
+    "factory": "createBrowserSessionController(options = {})",
+    "options": "Same closed fetch/timeoutMs trusted options as client; no session/verifier/provider/clock setter. Date.now and performance.now are fixed runtime dependencies; deterministic tests may control host globals without widening production inputs.",
+    "returns": "frozen {getSession(): WorkspaceSession, subscribe(listener): unsubscribe, revalidate(): void, invalidate(): void, dispose(): void}",
+    "initial_state": "Frozen unavailable; no workspace request or cookie-client construction before a live successful authenticated check.",
+    "startup": "Binding subscribes first, then initiates exactly one check if visible; initially hidden mounts stay unavailable until the first foreground event. The controller constructor alone performs no browser globals/listeners or network work.",
+    "revalidate": "Synchronous clear to unavailable and increment operation epoch before aborting previous work, then one fixed session read. No retained private view while revalidation is in progress. Every public retry starts a new epoch; at most one current operation. No automatic failure retry, polling, refresh endpoint or hidden login loop.",
+    "admission": "Only the latest live operation may admit metadata. Valid unauthenticated envelope publishes a fresh immutable unauthenticated capability. Valid authenticated envelope with unexpired deadlines creates a fresh immutable ready value wrapping the actual cookie workspace client. The raw metadata never enters App props.",
+    "generation": "Compare server generation by exact canonical string equality only, never ordering. Every admitted check is a new local capability epoch and a fresh immutable WorkspaceSession even when the server generation is unchanged; different generation necessarily invalidates prior requests, pages, selections and cursors. A late old operation cannot be admitted even if its generation text equals the current one.",
+    "expiry": {
+      "valid_time_inputs": "Date.now() must be a nonnegative safe integer millisecond value; performance.now() must be finite, nonnegative and no larger than Number.MAX_SAFE_INTEGER, with fractional milliseconds allowed. Invalid samples or unsafe deadline arithmetic fail unavailable.",
+      "capture": "Capture wallStartMs and monoStartMs immediately before the read. For authenticated metadata calculate wallDeadlineMs = expires_at*1000 only if the product is a safe integer, and monoDeadlineMs = monoStartMs + min(900000, wallDeadlineMs-wallStartMs) only if finite/nonnegative and within Number.MAX_SAFE_INTEGER. Require wallDeadlineMs > currentWallMs and monoDeadlineMs > currentMonoMs when admitting; no expiry grace.",
+      "live_checks": "Before every getSession result, workspace delegate invocation and workspace result/failure publication, require both nowWallMs < wallDeadlineMs and nowMonoMs < monoDeadlineMs, unchanged local capability epoch, nondecreasing monotonic samples and no backwards wall sample relative to the last sample in that epoch. On any failure synchronously remove ready and clear metadata; expose unavailable. This prevents local clock rollback or throttled timers from extending a capability.",
+      "timer": "One owned timer wakes no later than the captured remaining monotonic deadline and clears ready to unavailable; timers supplement synchronous checks and grant no lifetime extension. No automatic login/refresh/revalidation on expiry; later foreground or explicit retry may check again.",
+      "clock_scope": "Client wall-clock skew can conservatively deny a session; it cannot authorize past the server deadline. Backend current verifier/current session remains decisive. This is client state protection, not token verification."
+    },
+    "workspace_wrapper": "Frozen per-epoch WorkspaceClient delegates only organizations/projects to createCookieWorkspaceClient with matching trusted fetch/timeout options. Track and combine caller abort with an owned per-operation signal so outer invalidation aborts all owned workspace requests before waiting for Solid effects. Check live epoch/expiry before dispatch and after await, rejecting obsolete results with the existing fixed WorkspaceClientError aborted category. Release each operation/listener in finally. A current actual WorkspaceClientError unauthenticated invalidates the outer ready capability immediately to unavailable and is propagated; no auto recheck loop. Explicit session revalidation is then required. Other workspace operation errors retain their existing scoped controller behavior.",
+    "invalidate": "Synchronous new local epoch, unavailable and metadata drop before aborting session/workspace work; no ability to supply ready/session metadata. Local operation can emit only the fixed cross-tab invalidation signal through binding. Inbound signal never directly creates any authenticated/unauthenticated state.",
+    "publication": "Install coherent current epoch/state before abort handlers or subscribers can reenter. Subscriber throws/rejections cannot break admission, invalidation or disposal. Public state reads/actions must see unavailable immediately during any supersession, before Solid effects execute.",
+    "dispose": "Idempotently invalidate, drop metadata/references, cancel pending work/deadline timer and remove subscribers. No result may publish after dispose. No page/selection cache and no persistent storage."
+  },
+  "binding_and_entry": {
+    "factory": "createBrowserSessionBinding() inside a Solid owner -> frozen {workspaceSession: Accessor<WorkspaceSession>, revalidate(): void, invalidate(): void}",
+    "implementation": "Subscribe to controller state with createSignal; public workspaceSession accessor also calls current controller getSession to enforce expiry/epoch synchronously and checks visible/non-pagehidden state before returning ready. Hidden state or a pagehide flag synchronously invalidates before returning unavailable, even before a queued event/effect runs. Own cleanup with onCleanup. No ready constructor or externally writable session signal is exposed.",
+    "entry": "main.tsx defines/mounts a small Solid root component that constructs the binding once and returns <App workspaceSession={binding.workspaceSession()} />. Preserve the existing container check, styles and App/WorkspaceProvider/controller ownership. Do not compute the session once outside a reactive prop getter.",
+    "foreground": "Subscribe to document visibilitychange and window focus/pageshow; revalidate only when document.visibilityState is visible. Coalesce duplicate foreground notifications in one event turn into one request; abort/replace an older current request when a new check is actually needed. Visible startup initiates exactly one check; hidden startup waits. Hidden/pagehide invalidates ready immediately, including bfcache entry; foreground/pageshow clears pagehide state and freshly revalidates. A session result arriving while hidden cannot publish ready.",
+    "cross_tab": "If BroadcastChannel exists, own channel mixer.browser-session.v1. The only accepted/emitted data is an exact plain object {type:'invalidate'}; any other data is ignored. Receiving it synchronously invalidates and then, if visible, schedules one new session read, without rebroadcasting. Local invalidate broadcasts only this signal. Never broadcast credentials, CSRF, generation, identity or page data. Absence of BroadcastChannel retains startup/foreground checks and remains a browser qualification limit; no persistent-storage fallback.",
+    "cleanup": "Remove only owned event listeners, close owned BroadcastChannel, cancel queued revalidation and dispose controller at Solid owner cleanup. No global service worker, native runtime or process operation.",
+    "visible_ux_scope": "Use existing workspace unauthenticated/unavailable/loading/ready representations. This slice adds no sign-in/logout UI or login route. revalidate/invalidate APIs remain available for a separately selected login/retry UI; foreground checking provides bounded retry in this slice. Do not claim full login or customer workflow acceptance."
+  },
+  "server_and_stopped_review_boundary": {
+    "missing_canonical_session_endpoint": "GET /auth/session backed by fixed BrowserAuth.Sessions.bootstrap/2 admitting current active state",
+    "missing_canonical_workspace_endpoints": ["GET /console-api/v1/orgs", "GET /console-api/v1/projects"],
+    "missing_server_facade": "Sessions.workspace/3 with fixed ordinary protected pipeline/default verifier/default Repo and no injected dispatcher",
+    "preauth_is_not_authority": "RuntimeOwner storage_ready/bootstrap/load/begin_login cannot return authenticated readiness; load opens only Vault.Preauth in canonical source.",
+    "unit_a": "G22 independent Unit A review remains interrupted by automated safety check with zero PG16 methods; no rerun, delegation or main acceptance by this source slice. Branch 5595f7b6/9f15b11f CI is recorded isolated evidence only.",
+    "later_required": ["accepted UnitA storage", "UnitB supervised ClaimOwner/shared permit/wall handoff", "qualified bounded provider/OIDC and exact OIDC/API identity binding", "current verifier and active lifecycle/rotation/logout composition", "trusted Application/custody/lifecycle pool startup", "same-origin ingress/cache/cookie enforcement", "login/callback/logout endpoints and visible login UX"],
+    "canonical_behavior_after_frontend_slice": "Missing /auth/session (including a200HTMLSPA fallback) => unavailable and zero cookie workspace requests. No fake session, token entry, fixture issuer or unconditional ready is permitted."
+  },
+  "verification_selection": {
+    "required_host_evidence": ["strict client negative cases and bounded reader controls", "complete state and epoch/expiry/clock rollback tests", "actual Solid client runtime pure read/action fences", "actual cookie WorkspaceClient and workspace binding join with labelled synthetic session metadata", "strict TypeScript and production bundle", "existing complete console host regressions with released pagination unchanged", "owned HTTP/timer/listener/channel/scratch cleanup"],
+    "not_authorized_in_this_selection_lane": ["product edits", "compiler/test binary execution", "stopped callback harness execution", "browser/UI/capture/native/emulator/phone runs", "publication, credential or customer changes", "Git mutation"],
+    "pending_qualification": ["real Endpoint/default verifier/default Repo session-to-workspace join", "provider and startup/custody", "callback/activation/logout/revocation races", "browser cookie and cross-tab/bfcache behavior", "ingress/CDN/cache isolation", "customer/FieldLog and GA"]
+  }
+}

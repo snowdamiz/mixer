@@ -53,6 +53,32 @@ jobs:
         with:
           # Builder boundary fixtures read the independently reviewed native pin.
           fetch-depth: 0
+          # Retain source and every policy manifest; omit unrelated old receipts.
+          # Complete framing seals, envelope pack and external test inputs remain.
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/verification/*
+            /verification/**/Package.swift
+            /verification/**/Package.resolved
+            /verification/**/Cargo.toml
+            /verification/**/Cargo.lock
+            /verification/**/package.json
+            /verification/**/package-lock.json
+            /verification/**/go.mod
+            /verification/**/go.sum
+            /verification/**/build.gradle
+            /verification/**/build.gradle.kts
+            /verification/**/settings.gradle.kts
+            /verification/runtime-review/
+            /verification/guest-capability-contract/
+            /verification/swift-ordered-retention-analyzer-library/
+            /verification/swift-ordered-retention-analyzer-library-review/
+            /verification/swift-envelope-ci-pack/
+            /verification/android-default-appearance-packaging/run-2/created-descriptor.json
+            /verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json
+            /verification/ui-shared-appearance-contract/v2/mixer-default-appearance-v1.json
+            /verification/ui-appearance-foundation/design-corpus.json
       - name: Verify and record pinned Apple toolchain
         run: |
           python3 scripts/ci/verify-apple-toolchain.py \
