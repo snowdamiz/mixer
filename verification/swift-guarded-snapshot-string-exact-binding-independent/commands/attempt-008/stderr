@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-exact-binding-independent/audit.py", line 288, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-exact-binding-independent/audit.py", line 241, in main
+    member=name.rsplit('::',1)[-1];found=re.search(r'\bconst\s+'+re.escape(member)+r'\s*:\s*([^=;]+)[=;]',segment);need(found and ast(found[1].strip())==ast(t),'constant actual declaration:'+name)
+                                                                                                                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-exact-binding-independent/common.py", line 12, in need
+    if not ok:raise ValueError(why)
+              ^^^^^^^^^^^^^^^^^^^^^
+ValueError: constant actual declaration:experimental_swift_reactor::cache::initial_profile_v1::CONSTRUCTION_CURSOR_V1

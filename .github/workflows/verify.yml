@@ -241,6 +241,21 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Keep historical review packets out of this job's fetch/checkout.
+          # These inputs cover every VM, transport and public C-client step.
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /vm/
+            /contracts/guest-capability-transport-v1.json
+            /capabilities/schema/hashes.json
+            /scripts/ci/check-android-transport.py
+            /native/android/signed-guest-ui/transport/
+            /verification/android-transport-review/probes.c
+            /verification/android-facade-transport-review/probes.c
+            /experimental-capability-runtime/build-tests/guest_ui.c
+            /verification/capability-native-review/make-fixtures.py
+            /verification/capability-native-review/public_client.c
       - name: Record owned VM host tools
         run: |
           git rev-parse HEAD

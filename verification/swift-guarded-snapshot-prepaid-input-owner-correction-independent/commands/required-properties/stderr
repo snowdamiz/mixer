@@ -1,0 +1,68 @@
+test_forbidden_old_api_refusal_does_not_allow_retry (review_controls.RequiredPropertyControls.test_forbidden_old_api_refusal_does_not_allow_retry) ... FAIL
+test_public_correlation_refusal_consumes_the_attempt (review_controls.RequiredPropertyControls.test_public_correlation_refusal_consumes_the_attempt) ... FAIL
+test_public_correlation_refusal_keeps_selected_files_charged (review_controls.RequiredPropertyControls.test_public_correlation_refusal_keeps_selected_files_charged) ... FAIL
+test_strict_session_rejects_numeric_identity_and_extent_coercion (review_controls.RequiredPropertyControls.test_strict_session_rejects_numeric_identity_and_extent_coercion) ... 
+  test_strict_session_rejects_numeric_identity_and_extent_coercion (review_controls.RequiredPropertyControls.test_strict_session_rejects_numeric_identity_and_extent_coercion) (mutation=0) ... FAIL
+  test_strict_session_rejects_numeric_identity_and_extent_coercion (review_controls.RequiredPropertyControls.test_strict_session_rejects_numeric_identity_and_extent_coercion) (mutation=1) ... FAIL
+  test_strict_session_rejects_numeric_identity_and_extent_coercion (review_controls.RequiredPropertyControls.test_strict_session_rejects_numeric_identity_and_extent_coercion) (mutation=2) ... FAIL
+
+======================================================================
+FAIL: test_forbidden_old_api_refusal_does_not_allow_retry (review_controls.RequiredPropertyControls.test_forbidden_old_api_refusal_does_not_allow_retry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-prepaid-input-owner-correction-independent/review_controls.py", line 249, in test_forbidden_old_api_refusal_does_not_allow_retry
+    with self.assertRaises(m.Refused, msg="old-API refusal is still a consuming attempt"):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refused not raised : old-API refusal is still a consuming attempt
+
+======================================================================
+FAIL: test_public_correlation_refusal_consumes_the_attempt (review_controls.RequiredPropertyControls.test_public_correlation_refusal_consumes_the_attempt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-prepaid-input-owner-correction-independent/review_controls.py", line 227, in test_public_correlation_refusal_consumes_the_attempt
+    with self.assertRaises(m.Refused, msg="malformed selected refusal must consume original attempt"):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refused not raised : malformed selected refusal must consume original attempt
+
+======================================================================
+FAIL: test_public_correlation_refusal_keeps_selected_files_charged (review_controls.RequiredPropertyControls.test_public_correlation_refusal_keeps_selected_files_charged)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-prepaid-input-owner-correction-independent/review_controls.py", line 239, in test_public_correlation_refusal_keeps_selected_files_charged
+    self.assertFalse(token.complete and still_live,
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     "complete token while supplied selected/files remain live outside outcome")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : complete token while supplied selected/files remain live outside outcome
+
+======================================================================
+FAIL: test_strict_session_rejects_numeric_identity_and_extent_coercion (review_controls.RequiredPropertyControls.test_strict_session_rejects_numeric_identity_and_extent_coercion) (mutation=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-prepaid-input-owner-correction-independent/review_controls.py", line 260, in test_strict_session_rejects_numeric_identity_and_extent_coercion
+    with self.assertRaises(m.Refused, msg="strict session must reject JSON non-integer fields"):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refused not raised : strict session must reject JSON non-integer fields
+
+======================================================================
+FAIL: test_strict_session_rejects_numeric_identity_and_extent_coercion (review_controls.RequiredPropertyControls.test_strict_session_rejects_numeric_identity_and_extent_coercion) (mutation=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-prepaid-input-owner-correction-independent/review_controls.py", line 260, in test_strict_session_rejects_numeric_identity_and_extent_coercion
+    with self.assertRaises(m.Refused, msg="strict session must reject JSON non-integer fields"):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refused not raised : strict session must reject JSON non-integer fields
+
+======================================================================
+FAIL: test_strict_session_rejects_numeric_identity_and_extent_coercion (review_controls.RequiredPropertyControls.test_strict_session_rejects_numeric_identity_and_extent_coercion) (mutation=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-prepaid-input-owner-correction-independent/review_controls.py", line 260, in test_strict_session_rejects_numeric_identity_and_extent_coercion
+    with self.assertRaises(m.Refused, msg="strict session must reject JSON non-integer fields"):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refused not raised : strict session must reject JSON non-integer fields
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.003s
+
+FAILED (failures=6)

@@ -1,0 +1,49 @@
+test_correlation_expected_fields_derive_from_live_admitted_owner (__main__.CandidateDesiredPropertyRegressions.test_correlation_expected_fields_derive_from_live_admitted_owner) ... FAIL
+test_detached_admitted_view_cannot_dispatch_after_owner_retirement (__main__.CandidateDesiredPropertyRegressions.test_detached_admitted_view_cannot_dispatch_after_owner_retirement) ... FAIL
+test_partial_adoption_owned_by_returned_retirement_roster (__main__.CandidateDesiredPropertyRegressions.test_partial_adoption_owned_by_returned_retirement_roster) ... FAIL
+test_storage_cannot_release_while_adopted_descriptors_remain_live (__main__.CandidateDesiredPropertyRegressions.test_storage_cannot_release_while_adopted_descriptors_remain_live) ... FAIL
+
+======================================================================
+FAIL: test_correlation_expected_fields_derive_from_live_admitted_owner (__main__.CandidateDesiredPropertyRegressions.test_correlation_expected_fields_derive_from_live_admitted_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-prepaid-input-owner-independent/review_controls.py", line 408, in test_correlation_expected_fields_derive_from_live_admitted_owner
+    with self.assertRaises(model.Refused):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: Refused not raised
+
+======================================================================
+FAIL: test_detached_admitted_view_cannot_dispatch_after_owner_retirement (__main__.CandidateDesiredPropertyRegressions.test_detached_admitted_view_cannot_dispatch_after_owner_retirement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-prepaid-input-owner-independent/review_controls.py", line 400, in test_detached_admitted_view_cannot_dispatch_after_owner_retirement
+    with self.assertRaises(model.Refused):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: Refused not raised
+
+======================================================================
+FAIL: test_partial_adoption_owned_by_returned_retirement_roster (__main__.CandidateDesiredPropertyRegressions.test_partial_adoption_owned_by_returned_retirement_roster)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-prepaid-input-owner-independent/review_controls.py", line 384, in test_partial_adoption_owned_by_returned_retirement_roster
+    self.assertEqual(len([h for h in paid.owned if isinstance(h, model.TestHandle)]), 2,
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        "already adopted handles have no owning reservation/returned roster")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2 : already adopted handles have no owning reservation/returned roster
+
+======================================================================
+FAIL: test_storage_cannot_release_while_adopted_descriptors_remain_live (__main__.CandidateDesiredPropertyRegressions.test_storage_cannot_release_while_adopted_descriptors_remain_live)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-prepaid-input-owner-independent/review_controls.py", line 392, in test_storage_cannot_release_while_adopted_descriptors_remain_live
+    self.assertFalse(root.used_storage == 0 and any(h.adopted and h.slot_valid for h in slots),
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        "release clears charge without retiring a single handle")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : release clears charge without retiring a single handle
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.001s
+
+FAILED (failures=4)
