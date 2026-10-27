@@ -1,0 +1,710 @@
+{
+  "already_resolved_from_full_source146_data": 87,
+  "full_layout_binding": {
+    "archive_sha256": "1ddc23c6274a1c4f148e9d4a389aa0aeaa070384929280de044f4889a49ec9ec",
+    "path": "verification/swift-guarded-snapshot-host-composition-independent/commands/exact146-metadata-mir/stdout.gz",
+    "raw_bytes": 7641979,
+    "raw_sha256": "6c924c8088173db78afb1f648b284df7d8d139b3389bd090a9552df4130cfe7a",
+    "release_path": "verification/swift-semantic-adapter-root-review/guarded-snapshot-full-source146-layout-data-release.json",
+    "release_sha256": "7e9a1d8e2602e5b8eb8dfdad61da7f4c816ecd52b6e9beebd8759f173346e7ad"
+  },
+  "named_queries": 8,
+  "no_compiler_invoked": true,
+  "queries": [
+    {
+      "alignment_expression": "std::mem::align_of::<&'static[std::option::Option<crate::experimental_swift_reactor::control::ReservationTicket>]>()",
+      "concrete_type": "&'static[std::option::Option<crate::experimental_swift_reactor::control::ReservationTicket>]",
+      "creation_contexts": [],
+      "index": 0,
+      "insertion_context": "append private const diagnostic module in initial_profile_v1, a child of cache, preserving its access to private parent and own local types",
+      "insertion_file": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "key": "&[Option<ReservationTicket>]",
+      "qualified_type": "&[std::option::Option<experimental_swift_reactor::control::ReservationTicket>]",
+      "role_contexts": [
+        {
+          "MIR_header": "fn accounted::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_wasi/accounted.rs:435:1: 435:19>::snapshot_pair_v1(_1: &accounted::AccountedWasi, _2: &control::RuntimeControl) -> Result<usize, SnapshotAdmissionErrorV1> {",
+          "compiler_type": "&[std::option::Option<experimental_swift_reactor::control::ReservationTicket>]",
+          "local": "_104",
+          "node": "wasi_pair",
+          "source_binding": {
+            "MIR_sha256": "5404bcf520ff67e712c69691c63e81ddbde5a75280030c2806b0871ce7a93584",
+            "bytes": 1106,
+            "function": "snapshot_pair_v1",
+            "line": 436,
+            "path": "src/experimental_wasi/accounted.rs",
+            "sha256": "16cfe5d548792910fea5de13f3bf640d9b3186d5104fd33d4c36e488a1f24144",
+            "source": "fn snapshot_pair_v1(&self,control:&RuntimeControl)->Result<usize,crate::experimental_swift_reactor::control::SnapshotAdmissionErrorV1>{\n        use crate::experimental_swift_reactor::control::SnapshotAdmissionErrorV1 as E;\n        use crate::experimental_swift_reactor::control::SwiftReservationCategory as C;\n        let header=accounted_header_bytes().ok_or(E::Arithmetic)?;\n        control.snapshot_ticket_identity_v1(self.header.as_ref().ok_or(E::Layout)?)?;\n        for ticket in &self.buffers {control.snapshot_ticket_identity_v1(ticket.as_ref().ok_or(E::Layout)?)?;}\n        control.snapshot_ticket_v1(self.header.as_ref().ok_or(E::Layout)?,C::Wasi,header)?;\n        let capacities=[self.context.scratch.capacity(),self.context.rollback.capacity(),self.context.stdout.capacity(),self.context.stderr.capacity()];\n        let mut total=header;\n        for (ticket,bytes) in self.buffers.iter().zip(capacities) {\n            control.snapshot_ticket_v1(ticket.as_ref().ok_or(E::Layout)?,C::Wasi,bytes)?;\n            total=total.checked_add(bytes).ok_or(E::Arithmetic)?;\n        }\n        Ok(total)\n    }"
+          }
+        }
+      ],
+      "size_expression": "std::mem::size_of::<&'static[std::option::Option<crate::experimental_swift_reactor::control::ReservationTicket>]>()",
+      "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185",
+      "strategy": "direct-size-and-alignment-E0308-array-length"
+    },
+    {
+      "alignment_expression": "std::mem::align_of::<(&mut std::option::Option<crate::experimental_swift_reactor::cache::SwiftFunctionCache>, &mut crate::experimental_swift_reactor::control::RuntimeControl, std::option::Option<&crate::experimental_wasi::accounted::AccountedWasi>, crate::experimental_swift_reactor::control::AdoptedProof)>()",
+      "concrete_type": "(&mut std::option::Option<crate::experimental_swift_reactor::cache::SwiftFunctionCache>, &mut crate::experimental_swift_reactor::control::RuntimeControl, std::option::Option<&crate::experimental_wasi::accounted::AccountedWasi>, crate::experimental_swift_reactor::control::AdoptedProof)",
+      "creation_contexts": [],
+      "index": 1,
+      "insertion_context": "append private const diagnostic module in initial_profile_v1, a child of cache, preserving its access to private parent and own local types",
+      "insertion_file": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "key": "(&mut Option<SwiftFunctionCache>, &mut RuntimeControl, Option<&AccountedWasi>, AdoptedProof)",
+      "qualified_type": "(&mut std::option::Option<experimental_swift_reactor::cache::SwiftFunctionCache>, &mut experimental_swift_reactor::control::RuntimeControl, std::option::Option<&experimental_wasi::accounted::AccountedWasi>, experimental_swift_reactor::control::AdoptedProof)",
+      "role_contexts": [
+        {
+          "MIR_header": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:1946:1: 1946:35>::into_parts(_1: SnapshotScopeBorrowV1<'_>) -> (&mut Option<experimental_swift_reactor::cache::SwiftFunctionCache>, &mut control::RuntimeControl, Option<&accounted::AccountedWasi>, control::AdoptedProof) {",
+          "compiler_type": "(&mut std::option::Option<experimental_swift_reactor::cache::SwiftFunctionCache>, &mut experimental_swift_reactor::control::RuntimeControl, std::option::Option<&experimental_wasi::accounted::AccountedWasi>, experimental_swift_reactor::control::AdoptedProof)",
+          "local": "_0",
+          "node": "authored::951a41922772a0790ff8",
+          "source_binding": {
+            "MIR_sha256": "ec0cc4b65330c43f20f9f4ed38e69a54d110f9d38dab2a45b8e5ab18aa0b4c7c",
+            "bytes": 229,
+            "function": "into_parts",
+            "line": 1947,
+            "path": "src/experimental_swift_reactor/control.rs",
+            "sha256": "33a7a988fd96a6bbecde62630c1a3b8cc3a540f825ed7e25587ddcf92c24a740",
+            "source": "fn into_parts(self)->(&'a mut Option<super::cache::SwiftFunctionCache>,&'a mut RuntimeControl,Option<&'a AccountedWasi>,AdoptedProof){\n        let Self {cache,control,wasi,adopted}=self;\n        (cache,control,wasi,adopted)\n    }"
+          }
+        },
+        {
+          "MIR_header": "fn construct_snapshot_owned_v1(_1: SnapshotScopeBorrowV1<'_>, _2: &initial_profile_v1::UnverifiedProfileDigestBytesV1, _3: &mut std::fs::File, _4: &mut std::fs::File) -> SnapshotOuterV1 {",
+          "compiler_type": "(&mut std::option::Option<experimental_swift_reactor::cache::SwiftFunctionCache>, &mut experimental_swift_reactor::control::RuntimeControl, std::option::Option<&experimental_wasi::accounted::AccountedWasi>, experimental_swift_reactor::control::AdoptedProof)",
+          "local": "_9",
+          "node": "construct_owned",
+          "source_binding": {
+            "MIR_sha256": "42d66362bb0d6f1dc91de1b27151d679b18855f36eb06fa0f28c4060fab2f24b",
+            "bytes": 373,
+            "function": "construct_snapshot_owned_v1",
+            "line": 544,
+            "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+            "sha256": "262f1d054b7a9d09b0a22cc2ba332c93f6a66e389faeabdb9b3e83452f707941",
+            "source": "fn construct_snapshot_owned_v1(owners:super::super::control::SnapshotScopeBorrowV1<'_>,claims:&UnverifiedProfileDigestBytesV1,rows:&mut File,snapshot:&mut File)->SnapshotOuterV1{\n    let (cache,control,wasi,adopted)=owners.into_parts();\n    construct_profile_core_v1(cache,control,wasi,adopted,&selected_initial_profile_v1(),claims,rows,SnapshotBranchV1{output:snapshot})\n}"
+          }
+        }
+      ],
+      "size_expression": "std::mem::size_of::<(&mut std::option::Option<crate::experimental_swift_reactor::cache::SwiftFunctionCache>, &mut crate::experimental_swift_reactor::control::RuntimeControl, std::option::Option<&crate::experimental_wasi::accounted::AccountedWasi>, crate::experimental_swift_reactor::control::AdoptedProof)>()",
+      "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185",
+      "strategy": "direct-size-and-alignment-E0308-array-length"
+    },
+    {
+      "alignment_expression": "std::mem::align_of::<(&mut crate::experimental_swift_reactor::control::RuntimeControl, std::option::Option<&crate::experimental_wasi::accounted::AccountedWasi>, std::option::Option<crate::experimental_swift_reactor::control::ReservationTicket>)>()",
+      "concrete_type": "(&mut crate::experimental_swift_reactor::control::RuntimeControl, std::option::Option<&crate::experimental_wasi::accounted::AccountedWasi>, std::option::Option<crate::experimental_swift_reactor::control::ReservationTicket>)",
+      "creation_contexts": [],
+      "index": 2,
+      "insertion_context": "append private const diagnostic module in initial_profile_v1, a child of cache, preserving its access to private parent and own local types",
+      "insertion_file": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "key": "(&mut RuntimeControl, Option<&AccountedWasi>, Option<ReservationTicket>)",
+      "qualified_type": "(&mut experimental_swift_reactor::control::RuntimeControl, std::option::Option<&experimental_wasi::accounted::AccountedWasi>, std::option::Option<experimental_swift_reactor::control::ReservationTicket>)",
+      "role_contexts": [
+        {
+          "MIR_header": "fn experimental_swift_reactor::cache::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/cache.rs:1741:1: 1741:26>::complete(_1: experimental_swift_reactor::cache::CacheCleanupTail<'_>, _2: T, _3: &mut Option<control::SwiftRunFailure>) -> () {",
+          "compiler_type": "(&mut experimental_swift_reactor::control::RuntimeControl, std::option::Option<&experimental_wasi::accounted::AccountedWasi>, std::option::Option<experimental_swift_reactor::control::ReservationTicket>)",
+          "local": "_7",
+          "node": "cache_complete",
+          "source_binding": {
+            "MIR_sha256": "4dd98f6665bc4e62d10c6cd47761fe25133365f1182c83755b7b96007af2b41b",
+            "bytes": 443,
+            "function": "complete",
+            "line": 1742,
+            "path": "src/experimental_swift_reactor/cache.rs",
+            "sha256": "a90a6e29c70a2906cdf21f841ae8284a49e4dadc3a0608b63266c7b0f5c39237",
+            "source": "fn complete<T>(\n        self,\n        returned_phase_storage: T,\n        outcome: &mut Option<SwiftRunFailure>,\n    ) {\n        let (control, wasi, header) = drop_cleanup_return_storage(self, returned_phase_storage);\n        if let Some(ticket) = header {\n            let _ = control.drop_reserved_with_wasi((), ticket, wasi.map(AccountedWasi::usage));\n        }\n        *outcome = control.record_cleanup(wasi.map(AccountedWasi::usage));\n    }"
+          }
+        },
+        {
+          "MIR_header": "fn experimental_swift_reactor::cache::drop_cleanup_return_storage(_1: experimental_swift_reactor::cache::CacheCleanupTail<'_>, _2: T) -> (&mut control::RuntimeControl, Option<&accounted::AccountedWasi>, Option<control::ReservationTicket>) {",
+          "compiler_type": "(&mut experimental_swift_reactor::control::RuntimeControl, std::option::Option<&experimental_wasi::accounted::AccountedWasi>, std::option::Option<experimental_swift_reactor::control::ReservationTicket>)",
+          "local": "_0",
+          "node": "drop_cleanup_storage",
+          "source_binding": {
+            "MIR_sha256": "d5b186c9c30ae64caf7901053768e436867b568e3cd854a84774cb8cbcf7f768",
+            "bytes": 285,
+            "function": "drop_cleanup_return_storage",
+            "line": 1728,
+            "path": "src/experimental_swift_reactor/cache.rs",
+            "sha256": "dd1e51ee62dc5d7e1d1071b98a1d43af36f5a37246c6f6890dce7f0db3dbbf1d",
+            "source": "fn drop_cleanup_return_storage<'a, T>(\n    tail: CacheCleanupTail<'a>,\n    storage: T,\n) -> CleanupCompletionParts<'a> {\n    let CacheCleanupTail {\n        control,\n        wasi,\n        header,\n        failure,\n    } = tail;\n    drop((storage, failure));\n    (control, wasi, header)\n}"
+          }
+        }
+      ],
+      "size_expression": "std::mem::size_of::<(&mut crate::experimental_swift_reactor::control::RuntimeControl, std::option::Option<&crate::experimental_wasi::accounted::AccountedWasi>, std::option::Option<crate::experimental_swift_reactor::control::ReservationTicket>)>()",
+      "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185",
+      "strategy": "direct-size-and-alignment-E0308-array-length"
+    },
+    {
+      "alignment_expression": "std::mem::align_of::<(std::option::Option<crate::experimental_swift_reactor::cache::SwiftFunctionCache>, std::option::Option<crate::experimental_swift_reactor::control::SwiftRunFailure>)>()",
+      "concrete_type": "(std::option::Option<crate::experimental_swift_reactor::cache::SwiftFunctionCache>, std::option::Option<crate::experimental_swift_reactor::control::SwiftRunFailure>)",
+      "creation_contexts": [],
+      "index": 3,
+      "insertion_context": "append private const diagnostic module in initial_profile_v1, a child of cache, preserving its access to private parent and own local types",
+      "insertion_file": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "key": "(Option<SwiftFunctionCache>, Option<SwiftRunFailure>)",
+      "qualified_type": "(std::option::Option<experimental_swift_reactor::cache::SwiftFunctionCache>, std::option::Option<experimental_swift_reactor::control::SwiftRunFailure>)",
+      "role_contexts": [
+        {
+          "MIR_header": "fn experimental_swift_reactor::cache::drop_cleanup_return_storage(_1: experimental_swift_reactor::cache::CacheCleanupTail<'_>, _2: T) -> (&mut control::RuntimeControl, Option<&accounted::AccountedWasi>, Option<control::ReservationTicket>) {",
+          "compiler_type": "(Option<SwiftFunctionCache>, std::option::Option<experimental_swift_reactor::control::SwiftRunFailure>)",
+          "local": "_8",
+          "node": "drop_cleanup_storage",
+          "source_binding": {
+            "MIR_sha256": "d5b186c9c30ae64caf7901053768e436867b568e3cd854a84774cb8cbcf7f768",
+            "bytes": 285,
+            "function": "drop_cleanup_return_storage",
+            "line": 1728,
+            "path": "src/experimental_swift_reactor/cache.rs",
+            "sha256": "dd1e51ee62dc5d7e1d1071b98a1d43af36f5a37246c6f6890dce7f0db3dbbf1d",
+            "source": "fn drop_cleanup_return_storage<'a, T>(\n    tail: CacheCleanupTail<'a>,\n    storage: T,\n) -> CleanupCompletionParts<'a> {\n    let CacheCleanupTail {\n        control,\n        wasi,\n        header,\n        failure,\n    } = tail;\n    drop((storage, failure));\n    (control, wasi, header)\n}"
+          }
+        }
+      ],
+      "size_expression": "std::mem::size_of::<(std::option::Option<crate::experimental_swift_reactor::cache::SwiftFunctionCache>, std::option::Option<crate::experimental_swift_reactor::control::SwiftRunFailure>)>()",
+      "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185",
+      "strategy": "direct-size-and-alignment-E0308-array-length"
+    },
+    {
+      "alignment_expression": "std::mem::align_of::<(crate::experimental_swift_reactor::control::SwiftCleanupInvariant, &str)>()",
+      "concrete_type": "(crate::experimental_swift_reactor::control::SwiftCleanupInvariant, &str)",
+      "creation_contexts": [],
+      "index": 4,
+      "insertion_context": "append private const diagnostic module in initial_profile_v1, a child of cache, preserving its access to private parent and own local types",
+      "insertion_file": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "key": "(SwiftCleanupInvariant, &str)",
+      "qualified_type": "(experimental_swift_reactor::control::SwiftCleanupInvariant, &str)",
+      "role_contexts": [
+        {
+          "MIR_header": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:632:1: 632:20>::check_reservation_owner(_1: &mut control::RuntimeControl, _2: &control::ReservationTicket, _3: control::Cursor, _4: Option<experimental_wasi::WasiUsage>) -> Result<(), control::SwiftRunFailure> {",
+          "compiler_type": "(experimental_swift_reactor::control::SwiftCleanupInvariant, &str)",
+          "local": "_11",
+          "node": "authored::b0b8b92eca74d4839957",
+          "source_binding": {
+            "MIR_sha256": "83b2a756ac2c27a9a8a48fdc2266d5e9bd3335c670d3575e570088e68cd2d43b",
+            "bytes": 1102,
+            "function": "check_reservation_owner",
+            "line": 1341,
+            "path": "src/experimental_swift_reactor/control.rs",
+            "sha256": "61099c8c4bcdc2c9be419268f87b56fe0a4e40b5fbf5140d677404000db4ccd0",
+            "source": "fn check_reservation_owner(\n        &mut self,\n        ticket: &ReservationTicket,\n        cursor: Cursor,\n        wasi: Option<WasiUsage>,\n    ) -> Result<(), SwiftRunFailure> {\n        let violation = if ticket.owner != self.owner || ticket.owner == 0 {\n            Some((\n                SwiftCleanupInvariant::ReservationOwner,\n                \"swift_run_reservation_owner\",\n            ))\n        } else if self.reservations.live_tickets == 0\n            || self.reservations.category(ticket.category).current < ticket.bytes\n            || self.reservations.combined.current < ticket.bytes\n        {\n            Some((\n                SwiftCleanupInvariant::ReservationUnderflow,\n                \"swift_run_reservation_underflow\",\n            ))\n        } else {\n            None\n        };\n        if let Some((invariant, code)) = violation {\n            self.cleanup_invariant.get_or_insert(invariant);\n            return Err(self.fail(\n                cursor,\n                Fault::new(SwiftRunFailureKind::Invariant, code),\n                wasi,\n            ));\n        }\n        Ok(())\n    }"
+          }
+        },
+        {
+          "MIR_header": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:632:1: 632:20>::check_reservation_owner(_1: &mut control::RuntimeControl, _2: &control::ReservationTicket, _3: control::Cursor, _4: Option<experimental_wasi::WasiUsage>) -> Result<(), control::SwiftRunFailure> {",
+          "compiler_type": "(experimental_swift_reactor::control::SwiftCleanupInvariant, &str)",
+          "local": "_24",
+          "node": "authored::b0b8b92eca74d4839957",
+          "source_binding": {
+            "MIR_sha256": "83b2a756ac2c27a9a8a48fdc2266d5e9bd3335c670d3575e570088e68cd2d43b",
+            "bytes": 1102,
+            "function": "check_reservation_owner",
+            "line": 1341,
+            "path": "src/experimental_swift_reactor/control.rs",
+            "sha256": "61099c8c4bcdc2c9be419268f87b56fe0a4e40b5fbf5140d677404000db4ccd0",
+            "source": "fn check_reservation_owner(\n        &mut self,\n        ticket: &ReservationTicket,\n        cursor: Cursor,\n        wasi: Option<WasiUsage>,\n    ) -> Result<(), SwiftRunFailure> {\n        let violation = if ticket.owner != self.owner || ticket.owner == 0 {\n            Some((\n                SwiftCleanupInvariant::ReservationOwner,\n                \"swift_run_reservation_owner\",\n            ))\n        } else if self.reservations.live_tickets == 0\n            || self.reservations.category(ticket.category).current < ticket.bytes\n            || self.reservations.combined.current < ticket.bytes\n        {\n            Some((\n                SwiftCleanupInvariant::ReservationUnderflow,\n                \"swift_run_reservation_underflow\",\n            ))\n        } else {\n            None\n        };\n        if let Some((invariant, code)) = violation {\n            self.cleanup_invariant.get_or_insert(invariant);\n            return Err(self.fail(\n                cursor,\n                Fault::new(SwiftRunFailureKind::Invariant, code),\n                wasi,\n            ));\n        }\n        Ok(())\n    }"
+          }
+        }
+      ],
+      "size_expression": "std::mem::size_of::<(crate::experimental_swift_reactor::control::SwiftCleanupInvariant, &str)>()",
+      "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185",
+      "strategy": "direct-size-and-alignment-E0308-array-length"
+    },
+    {
+      "alignment_expression": "std::mem::align_of::<(crate::experimental_swift_reactor::control::SwiftReservationUsage, usize, crate::experimental_swift_reactor::control::SwiftRunResource, crate::experimental_swift_reactor::control::SwiftRunFailureKind)>()",
+      "concrete_type": "(crate::experimental_swift_reactor::control::SwiftReservationUsage, usize, crate::experimental_swift_reactor::control::SwiftRunResource, crate::experimental_swift_reactor::control::SwiftRunFailureKind)",
+      "creation_contexts": [],
+      "index": 5,
+      "insertion_context": "append private const diagnostic module in initial_profile_v1, a child of cache, preserving its access to private parent and own local types",
+      "insertion_file": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "key": "(SwiftReservationUsage, usize, SwiftRunResource, SwiftRunFailureKind)",
+      "qualified_type": "(experimental_swift_reactor::control::SwiftReservationUsage, usize, experimental_swift_reactor::control::SwiftRunResource, experimental_swift_reactor::control::SwiftRunFailureKind)",
+      "role_contexts": [
+        {
+          "MIR_header": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:632:1: 632:20>::remove_live_with_wasi(_1: &mut control::RuntimeControl, _2: control::Live, _3: usize, _4: Option<experimental_wasi::WasiUsage>) -> Result<(), control::SwiftRunFailure> {",
+          "compiler_type": "(experimental_swift_reactor::control::SwiftReservationUsage, usize, experimental_swift_reactor::control::SwiftRunResource, experimental_swift_reactor::control::SwiftRunFailureKind)",
+          "local": "_6",
+          "node": "authored::3a47c62a96a08ea26ee1",
+          "source_binding": {
+            "MIR_sha256": "ea5b5b7ac9bf5016aa56247003b6c36b9b03b27e481e2a7184deeeb69f1782fe",
+            "bytes": 556,
+            "function": "remove_live_with_wasi",
+            "line": 1722,
+            "path": "src/experimental_swift_reactor/control.rs",
+            "sha256": "7cda3e4fd85b01ba8983da3cfecb504b1abc485c9e847d289d68db0cbf427906",
+            "source": "fn remove_live_with_wasi(\n        &mut self,\n        resource: Live,\n        amount: usize,\n        wasi: Option<WasiUsage>,\n    ) -> Result<(), SwiftRunFailure> {\n        let (usage, _, _, _) = self.live_parts(resource);\n        let Some(next) = usage.current.checked_sub(amount) else {\n            return Err(self.cleanup_fault_with_wasi(\n                SwiftCleanupInvariant::LiveUnderflow,\n                \"swift_run_live_underflow\",\n                wasi,\n            ));\n        };\n        self.live_mut(resource).current = next;\n        Ok(())\n    }"
+          }
+        },
+        {
+          "MIR_header": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:632:1: 632:20>::live_parts(_1: &control::RuntimeControl, _2: control::Live) -> (control::SwiftReservationUsage, usize, control::SwiftRunResource, control::SwiftRunFailureKind) {",
+          "compiler_type": "(experimental_swift_reactor::control::SwiftReservationUsage, usize, experimental_swift_reactor::control::SwiftRunResource, experimental_swift_reactor::control::SwiftRunFailureKind)",
+          "local": "_0",
+          "node": "authored::55071c0b4a473db08c40",
+          "source_binding": {
+            "MIR_sha256": "9c4b7c05e15bb99abf5272264e1f1ab7bac5b5efcc68d60dc8808e72b7dd2193",
+            "bytes": 1547,
+            "function": "live_parts",
+            "line": 1620,
+            "path": "src/experimental_swift_reactor/control.rs",
+            "sha256": "d71fc046a2d9fba4d9d60e2164e7f7f28fe6579cdc2195d329340dd163ac5c6d",
+            "source": "fn live_parts(\n        &self,\n        resource: Live,\n    ) -> (\n        SwiftReservationUsage,\n        usize,\n        SwiftRunResource,\n        SwiftRunFailureKind,\n    ) {\n        match resource {\n            Live::CacheEntries => (\n                self.live.cache_entries,\n                self.budget.cache_entries,\n                SwiftRunResource::CacheEntries,\n                SwiftRunFailureKind::ResourceExhausted,\n            ),\n            Live::ActivePins => (\n                self.live.active_pins,\n                self.budget.active_pins,\n                SwiftRunResource::ActivePins,\n                SwiftRunFailureKind::PinLimit,\n            ),\n            Live::Frames => (\n                self.live.frames,\n                self.budget.frames,\n                SwiftRunResource::Frames,\n                SwiftRunFailureKind::FrameLimit,\n            ),\n            Live::Values => (\n                self.live.values,\n                self.budget.values,\n                SwiftRunResource::Values,\n                SwiftRunFailureKind::ValueLimit,\n            ),\n            Live::Controls => (\n                self.live.controls,\n                self.budget.controls,\n                SwiftRunResource::Controls,\n                SwiftRunFailureKind::ControlLimit,\n            ),\n            Live::MemoryPages => (\n                self.live.memory_pages,\n                self.budget.memory_pages as usize,\n                SwiftRunResource::MemoryPages,\n                SwiftRunFailureKind::ResourceExhausted,\n            ),\n        }\n    }"
+          }
+        }
+      ],
+      "size_expression": "std::mem::size_of::<(crate::experimental_swift_reactor::control::SwiftReservationUsage, usize, crate::experimental_swift_reactor::control::SwiftRunResource, crate::experimental_swift_reactor::control::SwiftRunFailureKind)>()",
+      "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185",
+      "strategy": "direct-size-and-alignment-E0308-array-length"
+    },
+    {
+      "alignment_expression": "std::mem::align_of::<(u32, std::option::Option<crate::experimental_swift_reactor::control::SwiftRunFailure>, std::option::Option<crate::experimental_swift_reactor::cache::initial_profile_v1::ProfileHeaderErrorV1>, std::option::Option<crate::experimental_swift_reactor::cache::initial_profile_v1::UnverifiedProfileHeaderV1>, std::option::Option<std::result::Result<crate::experimental_swift_reactor::diagnostic_profile::ProfileRowsObservationV1, crate::experimental_swift_reactor::diagnostic_profile::ProfileAdapterErrorV1>>, std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>, std::option::Option<crate::experimental_swift_reactor::control::AdoptedProof>)>()",
+      "concrete_type": "(u32, std::option::Option<crate::experimental_swift_reactor::control::SwiftRunFailure>, std::option::Option<crate::experimental_swift_reactor::cache::initial_profile_v1::ProfileHeaderErrorV1>, std::option::Option<crate::experimental_swift_reactor::cache::initial_profile_v1::UnverifiedProfileHeaderV1>, std::option::Option<std::result::Result<crate::experimental_swift_reactor::diagnostic_profile::ProfileRowsObservationV1, crate::experimental_swift_reactor::diagnostic_profile::ProfileAdapterErrorV1>>, std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>, std::option::Option<crate::experimental_swift_reactor::control::AdoptedProof>)",
+      "creation_contexts": [],
+      "index": 6,
+      "insertion_context": "append private const diagnostic module in initial_profile_v1, a child of cache, preserving its access to private parent and own local types",
+      "insertion_file": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "key": "(u32, Option<SwiftRunFailure>, Option<ProfileHeaderErrorV1>, Option<UnverifiedProfileHeaderV1>, Option<Result<ProfileRowsObservationV1, ProfileAdapterErrorV1>>, Option<Result<(), SwiftRunFailure>>, Option<AdoptedProof>)",
+      "qualified_type": "(u32, std::option::Option<experimental_swift_reactor::control::SwiftRunFailure>, std::option::Option<experimental_swift_reactor::cache::initial_profile_v1::ProfileHeaderErrorV1>, std::option::Option<experimental_swift_reactor::cache::initial_profile_v1::UnverifiedProfileHeaderV1>, std::option::Option<std::result::Result<experimental_swift_reactor::diagnostic_profile::ProfileRowsObservationV1, experimental_swift_reactor::diagnostic_profile::ProfileAdapterErrorV1>>, std::option::Option<std::result::Result<(), experimental_swift_reactor::control::SwiftRunFailure>>, std::option::Option<experimental_swift_reactor::control::AdoptedProof>)",
+      "role_contexts": [
+        {
+          "MIR_header": "fn initial_profile_v1::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:526:1: 526:21>::retire_v1(_1: SnapshotOuterV1, _2: &mut control::RuntimeControl, _3: Option<experimental_wasi::WasiUsage>) -> SnapshotPrimaryRetirementV1 {",
+          "compiler_type": "(u32, std::option::Option<experimental_swift_reactor::control::SwiftRunFailure>, std::option::Option<experimental_swift_reactor::cache::initial_profile_v1::ProfileHeaderErrorV1>, std::option::Option<experimental_swift_reactor::cache::initial_profile_v1::UnverifiedProfileHeaderV1>, std::option::Option<std::result::Result<experimental_swift_reactor::diagnostic_profile::ProfileRowsObservationV1, experimental_swift_reactor::diagnostic_profile::ProfileAdapterErrorV1>>, std::option::Option<std::result::Result<(), experimental_swift_reactor::control::SwiftRunFailure>>, std::option::Option<experimental_swift_reactor::control::AdoptedProof>)",
+          "local": "_14",
+          "node": "outer_retire",
+          "source_binding": {
+            "MIR_sha256": "48375cef27d211a960cf272fc4ec492df8ef467cfc88ec128461b4c7642d0b5d",
+            "bytes": 1615,
+            "function": "retire_v1",
+            "line": 527,
+            "path": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+            "sha256": "c47a042941f1dbb7cab91bfa32182d0620553c7703cc8c5a808f39de8753f6b2",
+            "source": "fn retire_v1(self,control:&mut RuntimeControl,wasi:Option<crate::experimental_wasi::WasiUsage>)->SnapshotPrimaryRetirementV1{\n        let Self{primary,export,phase_completion}=self;\n        let (variant,primary,header_error,header,rows,construction_completion,adopted)=match primary {\n            InitialProfileConstructionOutcomeV1::SlotOccupied{adopted}=>(1,None,None,None,None,None,Some(adopted)),\n            InitialProfileConstructionOutcomeV1::SelectionRefused{error,adopted}=>(2,None,Some(error),None,None,None,Some(adopted)),\n            InitialProfileConstructionOutcomeV1::PreparationFailed{failure,adopted}=>(3,Some(failure),None,None,None,None,Some(adopted)),\n            InitialProfileConstructionOutcomeV1::ConstructionFailed{failure,completion}=>(4,Some(failure.failure),None,None,None,Some(completion),failure.rejected_adopted),\n            InitialProfileConstructionOutcomeV1::PhaseCompletionFailed{failure}=>(5,Some(failure),None,None,None,None,None),\n            InitialProfileConstructionOutcomeV1::HeaderRefused{error}=>(6,None,Some(error),None,None,None,None),\n            InitialProfileConstructionOutcomeV1::HeaderOwnerCheckFailed{failure}=>(7,Some(failure),None,None,None,None,None),\n            InitialProfileConstructionOutcomeV1::HeaderEncoded{header,rows}=>(8,None,None,Some(header),Some(rows),None,None),\n        };\n        let adopted_retirement=match adopted{Some(adopted)=>control.drop_proof_with_wasi(adopted,wasi),None=>Ok(())};\n        SnapshotPrimaryRetirementV1 {variant,primary,header_error,header,rows,construction_completion,adopted_retirement,export,phase_completion}\n    }"
+          }
+        }
+      ],
+      "size_expression": "std::mem::size_of::<(u32, std::option::Option<crate::experimental_swift_reactor::control::SwiftRunFailure>, std::option::Option<crate::experimental_swift_reactor::cache::initial_profile_v1::ProfileHeaderErrorV1>, std::option::Option<crate::experimental_swift_reactor::cache::initial_profile_v1::UnverifiedProfileHeaderV1>, std::option::Option<std::result::Result<crate::experimental_swift_reactor::diagnostic_profile::ProfileRowsObservationV1, crate::experimental_swift_reactor::diagnostic_profile::ProfileAdapterErrorV1>>, std::option::Option<std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>>, std::option::Option<crate::experimental_swift_reactor::control::AdoptedProof>)>()",
+      "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185",
+      "strategy": "direct-size-and-alignment-E0308-array-length"
+    },
+    {
+      "alignment_expression": "std::mem::align_of::<(u64, bool)>()",
+      "concrete_type": "(u64, bool)",
+      "creation_contexts": [],
+      "index": 7,
+      "insertion_context": "append private const diagnostic module in initial_profile_v1, a child of cache, preserving its access to private parent and own local types",
+      "insertion_file": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "key": "(u64, bool)",
+      "qualified_type": "(u64, bool)",
+      "role_contexts": [
+        {
+          "MIR_header": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:632:1: 632:20>::adopt_body_core_v1::{closure#0}::{closure#2}(_1: {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:720:26: 720:29}, _2: u64) -> control::SwiftRunFailure {",
+          "compiler_type": "(u64, bool)",
+          "local": "_10",
+          "node": "closure::e91d42e59723dda33729",
+          "source_binding": {
+            "MIR_sha256": "1cfd80ec627ec5f6643568eaea969f202e8d0e03fe7db94a95d79d52f6b3916c",
+            "bytes": 5141,
+            "function": "adopt_body_core_v1",
+            "line": 657,
+            "path": "src/experimental_swift_reactor/control.rs",
+            "sha256": "2f2f4d31ea61f2423a779ec5fd77a6db78052c2399ffebcaafc990b3c51dc5c8",
+            "source": "fn adopt_body_core_v1<P: ClosedAdoptionV1>(\n        body: AdoptionBodyV1, budget: SwiftRunBudget, started: Instant,\n        cancellation: Cancellation,\n    ) -> Result<(Self, AdoptedProof), P::Failure> {\n        let validation = body.proof().usage();\n        let mut control = Self {\n            owner: 0,\n            budget,\n            started,\n            deadline: started,\n            deadline_origin: SwiftDeadlineOrigin::Run,\n            cancellation,\n            validation,\n            reservations: SwiftReservations::default(),\n            live: SwiftLiveUsage::default(),\n            cache_work: 0,\n            execution_work: 0,\n            instruction_fuel: 0,\n            instructions: 0,\n            host_calls: 0,\n            cleanup_invariant: None,\n            first_failure: None,\n            control_header: None,\n            cancellation_backing: None,\n            construction: None,\n        };\n        let cursor = Cursor::adoption();\n        let mut source = None;\n        let mut metadata = None;\n        let result = (|| {\n            control.check_budget(cursor)?;\n            control.deadline = started\n                .checked_add(Duration::from_millis(budget.deadline_ms))\n                .ok_or_else(|| {\n                    control.fail(\n                        cursor,\n                        Fault::new(\n                            SwiftRunFailureKind::InvalidBudget,\n                            \"swift_run_deadline_overflow\",\n                        ),\n                        None,\n                    )\n                })?;\n            control.check(cursor)?;\n            // Private selected admission shell. Budget/deadline/stop checks\n            // above retain precedence. No host bootstrap grant is minted here.\n            // Only the sealed policy selects this source-derived fixed price.\n            if P::FIXED_EXECUTION_WORK_V1 != 0 {\n                if P::FIXED_EXECUTION_WORK_V1 > control.budget.execution_work {\n                    return Err(control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::WorkExhausted, \"swift_run_work\")\n                            .limit(SwiftRunResource::ExecutionWork,\n                                P::FIXED_EXECUTION_WORK_V1, control.budget.execution_work),\n                        None,\n                    ));\n                }\n                // The prepaid interval starts after this same-counter commit.\n                // Refusal leaves the counter and all reservations unchanged.\n                control.execution_work = P::FIXED_EXECUTION_WORK_V1;\n            }\n            control.owner = NEXT_OWNER\n                .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))\n                .map_err(|_| {\n                    control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_owner_exhausted\")\n                            .limit(SwiftRunResource::OwnerIdentity, u64::MAX, u64::MAX - 1),\n                        None,\n                    )\n                })?;\n            source = Some(control.admit(\n                SwiftReservationCategory::RetainedSource,\n                validation.source_bytes,\n                cursor,\n            )?);\n            metadata = Some(control.admit(\n                SwiftReservationCategory::RetainedMetadata,\n                validation.metadata_reserved,\n                cursor,\n            )?);\n            control.control_header =\n                Some(control.admit(SwiftReservationCategory::Shared, size_of::<Self>(), cursor)?);\n            control.cancellation_backing = Some(control.admit(\n                SwiftReservationCategory::Shared,\n                Cancellation::requested_backing_layout().size(),\n                cursor,\n            )?);\n            let construction = P::foundation().ok_or_else(|| {\n                control.fail(\n                    cursor,\n                    Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_layout_overflow\"),\n                    None,\n                )\n            })?;\n            control.construction = Some(control.admit(\n                SwiftReservationCategory::Construction,\n                construction,\n                cursor,\n            )?);\n            control.check(cursor)\n        })();\n        if let Err(mut failure) = result {\n            // Actual storage destruction precedes every proof refund. Refunding\n            // control's own headers is possible only by consuming/dropping the\n            // entire closure below; no admission can follow that operation.\n            drop(body);\n            let retirement = P::retire_tickets(&mut control,source,metadata);\n            failure.after_cleanup = Some(control.finish_owned_cleanup(None));\n            return Err(P::failure(failure,retirement));\n        }\n        Ok((\n            control,\n            AdoptedProof {\n                body,\n                source: source.expect(\"successful sealed adoption owns source ticket\"),\n                metadata: metadata.expect(\"successful sealed adoption owns metadata ticket\"),\n            },\n        ))\n    }"
+          }
+        }
+      ],
+      "size_expression": "std::mem::size_of::<(u64, bool)>()",
+      "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185",
+      "strategy": "direct-size-and-alignment-E0308-array-length"
+    },
+    {
+      "actual_capture_fields": [
+        [
+          {
+            "compiler_type": "&mut experimental_swift_reactor::control::RuntimeControl",
+            "field": "control",
+            "local": "_29"
+          },
+          {
+            "compiler_type": "&experimental_swift_reactor::control::Cursor",
+            "field": "cursor",
+            "local": "_30"
+          },
+          {
+            "compiler_type": "&std::time::Instant",
+            "field": "started",
+            "local": "_31"
+          },
+          {
+            "compiler_type": "&u64",
+            "field": "budget",
+            "local": "_32"
+          },
+          {
+            "compiler_type": "&mut std::option::Option<experimental_swift_reactor::control::ReservationTicket>",
+            "field": "validation",
+            "local": "_33"
+          },
+          {
+            "compiler_type": "&usize",
+            "field": "source",
+            "local": "_34"
+          },
+          {
+            "compiler_type": "&usize",
+            "field": "metadata",
+            "local": "_35"
+          }
+        ]
+      ],
+      "creation_contexts": [
+        {
+          "block": "bb5",
+          "captures": [
+            {
+              "compiler_type": "&mut experimental_swift_reactor::control::RuntimeControl",
+              "field": "control",
+              "local": "_29"
+            },
+            {
+              "compiler_type": "&experimental_swift_reactor::control::Cursor",
+              "field": "cursor",
+              "local": "_30"
+            },
+            {
+              "compiler_type": "&std::time::Instant",
+              "field": "started",
+              "local": "_31"
+            },
+            {
+              "compiler_type": "&u64",
+              "field": "budget",
+              "local": "_32"
+            },
+            {
+              "compiler_type": "&mut std::option::Option<experimental_swift_reactor::control::ReservationTicket>",
+              "field": "validation",
+              "local": "_33"
+            },
+            {
+              "compiler_type": "&usize",
+              "field": "source",
+              "local": "_34"
+            },
+            {
+              "compiler_type": "&usize",
+              "field": "metadata",
+              "local": "_35"
+            }
+          ],
+          "code": "_28 = {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:686:23: 686:25} { control: move _29, cursor: move _30, started: move _31, budget: move _32, validation: move _33, source: move _34, metadata: move _35 };",
+          "line": 215,
+          "node": "core"
+        }
+      ],
+      "do_not_substitute_named_capture_proxy_as_exact_layout": true,
+      "index": 8,
+      "insertion_file": "src/experimental_swift_reactor/control.rs",
+      "key": "{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:686:23: 686:25}",
+      "qualified_type": "{closure@src/experimental_swift_reactor/control.rs:686:23: 686:25}",
+      "query": "query-only local typecheck transmute::<_,[u8;0]>(actual closed closure value), expected size mismatch diagnostic; alternatively isolated codegen/print-type-size instantiation after root authorization",
+      "requires_no_runtime": true,
+      "role_contexts": [
+        {
+          "MIR_header": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:632:1: 632:20>::adopt_body_core_v1(_1: AdoptionBodyV1, _2: control::SwiftRunBudget, _3: Instant, _4: execute::Cancellation) -> Result<(control::RuntimeControl, control::AdoptedProof), <P as ClosedAdoptionV1>::Failure> {",
+          "compiler_type": "{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:686:23: 686:25}",
+          "local": "_28",
+          "node": "core",
+          "source_binding": {
+            "MIR_sha256": "d3a6c5f5a343054658ade61f6f2ae20601203067b4d51774d2ae16b36a8a4ac7",
+            "bytes": 5141,
+            "function": "adopt_body_core_v1",
+            "line": 657,
+            "path": "src/experimental_swift_reactor/control.rs",
+            "sha256": "2f2f4d31ea61f2423a779ec5fd77a6db78052c2399ffebcaafc990b3c51dc5c8",
+            "source": "fn adopt_body_core_v1<P: ClosedAdoptionV1>(\n        body: AdoptionBodyV1, budget: SwiftRunBudget, started: Instant,\n        cancellation: Cancellation,\n    ) -> Result<(Self, AdoptedProof), P::Failure> {\n        let validation = body.proof().usage();\n        let mut control = Self {\n            owner: 0,\n            budget,\n            started,\n            deadline: started,\n            deadline_origin: SwiftDeadlineOrigin::Run,\n            cancellation,\n            validation,\n            reservations: SwiftReservations::default(),\n            live: SwiftLiveUsage::default(),\n            cache_work: 0,\n            execution_work: 0,\n            instruction_fuel: 0,\n            instructions: 0,\n            host_calls: 0,\n            cleanup_invariant: None,\n            first_failure: None,\n            control_header: None,\n            cancellation_backing: None,\n            construction: None,\n        };\n        let cursor = Cursor::adoption();\n        let mut source = None;\n        let mut metadata = None;\n        let result = (|| {\n            control.check_budget(cursor)?;\n            control.deadline = started\n                .checked_add(Duration::from_millis(budget.deadline_ms))\n                .ok_or_else(|| {\n                    control.fail(\n                        cursor,\n                        Fault::new(\n                            SwiftRunFailureKind::InvalidBudget,\n                            \"swift_run_deadline_overflow\",\n                        ),\n                        None,\n                    )\n                })?;\n            control.check(cursor)?;\n            // Private selected admission shell. Budget/deadline/stop checks\n            // above retain precedence. No host bootstrap grant is minted here.\n            // Only the sealed policy selects this source-derived fixed price.\n            if P::FIXED_EXECUTION_WORK_V1 != 0 {\n                if P::FIXED_EXECUTION_WORK_V1 > control.budget.execution_work {\n                    return Err(control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::WorkExhausted, \"swift_run_work\")\n                            .limit(SwiftRunResource::ExecutionWork,\n                                P::FIXED_EXECUTION_WORK_V1, control.budget.execution_work),\n                        None,\n                    ));\n                }\n                // The prepaid interval starts after this same-counter commit.\n                // Refusal leaves the counter and all reservations unchanged.\n                control.execution_work = P::FIXED_EXECUTION_WORK_V1;\n            }\n            control.owner = NEXT_OWNER\n                .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))\n                .map_err(|_| {\n                    control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_owner_exhausted\")\n                            .limit(SwiftRunResource::OwnerIdentity, u64::MAX, u64::MAX - 1),\n                        None,\n                    )\n                })?;\n            source = Some(control.admit(\n                SwiftReservationCategory::RetainedSource,\n                validation.source_bytes,\n                cursor,\n            )?);\n            metadata = Some(control.admit(\n                SwiftReservationCategory::RetainedMetadata,\n                validation.metadata_reserved,\n                cursor,\n            )?);\n            control.control_header =\n                Some(control.admit(SwiftReservationCategory::Shared, size_of::<Self>(), cursor)?);\n            control.cancellation_backing = Some(control.admit(\n                SwiftReservationCategory::Shared,\n                Cancellation::requested_backing_layout().size(),\n                cursor,\n            )?);\n            let construction = P::foundation().ok_or_else(|| {\n                control.fail(\n                    cursor,\n                    Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_layout_overflow\"),\n                    None,\n                )\n            })?;\n            control.construction = Some(control.admit(\n                SwiftReservationCategory::Construction,\n                construction,\n                cursor,\n            )?);\n            control.check(cursor)\n        })();\n        if let Err(mut failure) = result {\n            // Actual storage destruction precedes every proof refund. Refunding\n            // control's own headers is possible only by consuming/dropping the\n            // entire closure below; no admission can follow that operation.\n            drop(body);\n            let retirement = P::retire_tickets(&mut control,source,metadata);\n            failure.after_cleanup = Some(control.finish_owned_cleanup(None));\n            return Err(P::failure(failure,retirement));\n        }\n        Ok((\n            control,\n            AdoptedProof {\n                body,\n                source: source.expect(\"successful sealed adoption owns source ticket\"),\n                metadata: metadata.expect(\"successful sealed adoption owns metadata ticket\"),\n            },\n        ))\n    }"
+          }
+        },
+        {
+          "MIR_header": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:632:1: 632:20>::adopt_body_core_v1(_1: AdoptionBodyV1, _2: control::SwiftRunBudget, _3: Instant, _4: execute::Cancellation) -> Result<(control::RuntimeControl, control::AdoptedProof), <P as ClosedAdoptionV1>::Failure> {",
+          "compiler_type": "{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:686:23: 686:25}",
+          "local": "_28",
+          "node": "core_before_fixed_store",
+          "source_binding": null
+        }
+      ],
+      "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185",
+      "strategy": "unnameable-local-closure-layout"
+    },
+    {
+      "actual_capture_fields": [
+        [
+          {
+            "compiler_type": "&mut experimental_swift_reactor::control::RuntimeControl",
+            "field": "control",
+            "local": "_20"
+          },
+          {
+            "compiler_type": "&experimental_swift_reactor::control::Cursor",
+            "field": "cursor",
+            "local": "_21"
+          }
+        ]
+      ],
+      "creation_contexts": [
+        {
+          "block": "bb8",
+          "captures": [
+            {
+              "compiler_type": "&mut experimental_swift_reactor::control::RuntimeControl",
+              "field": "control",
+              "local": "_20"
+            },
+            {
+              "compiler_type": "&experimental_swift_reactor::control::Cursor",
+              "field": "cursor",
+              "local": "_21"
+            }
+          ],
+          "code": "_19 = {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:690:29: 690:31} { control: move _20, cursor: move _21 };",
+          "line": 397,
+          "node": "closure::c431121f0512d03c77fd"
+        }
+      ],
+      "do_not_substitute_named_capture_proxy_as_exact_layout": true,
+      "index": 9,
+      "insertion_file": "src/experimental_swift_reactor/control.rs",
+      "key": "{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:690:29: 690:31}",
+      "qualified_type": "{closure@src/experimental_swift_reactor/control.rs:690:29: 690:31}",
+      "query": "query-only local typecheck transmute::<_,[u8;0]>(actual closed closure value), expected size mismatch diagnostic; alternatively isolated codegen/print-type-size instantiation after root authorization",
+      "requires_no_runtime": true,
+      "role_contexts": [
+        {
+          "MIR_header": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:632:1: 632:20>::adopt_body_core_v1::{closure#0}::{closure#0}(_1: {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:690:29: 690:31}) -> control::SwiftRunFailure {",
+          "compiler_type": "{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:690:29: 690:31}",
+          "local": "_1",
+          "node": "closure::37fe552e165a6a2849eb",
+          "source_binding": {
+            "MIR_sha256": "9ff716f54d25649579e0e5c30f64e902bd3b0d320931924c6938d9e336b0a8e4",
+            "bytes": 5141,
+            "function": "adopt_body_core_v1",
+            "line": 657,
+            "path": "src/experimental_swift_reactor/control.rs",
+            "sha256": "2f2f4d31ea61f2423a779ec5fd77a6db78052c2399ffebcaafc990b3c51dc5c8",
+            "source": "fn adopt_body_core_v1<P: ClosedAdoptionV1>(\n        body: AdoptionBodyV1, budget: SwiftRunBudget, started: Instant,\n        cancellation: Cancellation,\n    ) -> Result<(Self, AdoptedProof), P::Failure> {\n        let validation = body.proof().usage();\n        let mut control = Self {\n            owner: 0,\n            budget,\n            started,\n            deadline: started,\n            deadline_origin: SwiftDeadlineOrigin::Run,\n            cancellation,\n            validation,\n            reservations: SwiftReservations::default(),\n            live: SwiftLiveUsage::default(),\n            cache_work: 0,\n            execution_work: 0,\n            instruction_fuel: 0,\n            instructions: 0,\n            host_calls: 0,\n            cleanup_invariant: None,\n            first_failure: None,\n            control_header: None,\n            cancellation_backing: None,\n            construction: None,\n        };\n        let cursor = Cursor::adoption();\n        let mut source = None;\n        let mut metadata = None;\n        let result = (|| {\n            control.check_budget(cursor)?;\n            control.deadline = started\n                .checked_add(Duration::from_millis(budget.deadline_ms))\n                .ok_or_else(|| {\n                    control.fail(\n                        cursor,\n                        Fault::new(\n                            SwiftRunFailureKind::InvalidBudget,\n                            \"swift_run_deadline_overflow\",\n                        ),\n                        None,\n                    )\n                })?;\n            control.check(cursor)?;\n            // Private selected admission shell. Budget/deadline/stop checks\n            // above retain precedence. No host bootstrap grant is minted here.\n            // Only the sealed policy selects this source-derived fixed price.\n            if P::FIXED_EXECUTION_WORK_V1 != 0 {\n                if P::FIXED_EXECUTION_WORK_V1 > control.budget.execution_work {\n                    return Err(control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::WorkExhausted, \"swift_run_work\")\n                            .limit(SwiftRunResource::ExecutionWork,\n                                P::FIXED_EXECUTION_WORK_V1, control.budget.execution_work),\n                        None,\n                    ));\n                }\n                // The prepaid interval starts after this same-counter commit.\n                // Refusal leaves the counter and all reservations unchanged.\n                control.execution_work = P::FIXED_EXECUTION_WORK_V1;\n            }\n            control.owner = NEXT_OWNER\n                .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))\n                .map_err(|_| {\n                    control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_owner_exhausted\")\n                            .limit(SwiftRunResource::OwnerIdentity, u64::MAX, u64::MAX - 1),\n                        None,\n                    )\n                })?;\n            source = Some(control.admit(\n                SwiftReservationCategory::RetainedSource,\n                validation.source_bytes,\n                cursor,\n            )?);\n            metadata = Some(control.admit(\n                SwiftReservationCategory::RetainedMetadata,\n                validation.metadata_reserved,\n                cursor,\n            )?);\n            control.control_header =\n                Some(control.admit(SwiftReservationCategory::Shared, size_of::<Self>(), cursor)?);\n            control.cancellation_backing = Some(control.admit(\n                SwiftReservationCategory::Shared,\n                Cancellation::requested_backing_layout().size(),\n                cursor,\n            )?);\n            let construction = P::foundation().ok_or_else(|| {\n                control.fail(\n                    cursor,\n                    Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_layout_overflow\"),\n                    None,\n                )\n            })?;\n            control.construction = Some(control.admit(\n                SwiftReservationCategory::Construction,\n                construction,\n                cursor,\n            )?);\n            control.check(cursor)\n        })();\n        if let Err(mut failure) = result {\n            // Actual storage destruction precedes every proof refund. Refunding\n            // control's own headers is possible only by consuming/dropping the\n            // entire closure below; no admission can follow that operation.\n            drop(body);\n            let retirement = P::retire_tickets(&mut control,source,metadata);\n            failure.after_cleanup = Some(control.finish_owned_cleanup(None));\n            return Err(P::failure(failure,retirement));\n        }\n        Ok((\n            control,\n            AdoptedProof {\n                body,\n                source: source.expect(\"successful sealed adoption owns source ticket\"),\n                metadata: metadata.expect(\"successful sealed adoption owns metadata ticket\"),\n            },\n        ))\n    }"
+          }
+        },
+        {
+          "MIR_header": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:632:1: 632:20>::adopt_body_core_v1::{closure#0}(_1: &mut {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:686:23: 686:25}) -> Result<(), control::SwiftRunFailure> {",
+          "compiler_type": "{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:690:29: 690:31}",
+          "local": "_19",
+          "node": "closure::c431121f0512d03c77fd",
+          "source_binding": {
+            "MIR_sha256": "a88af7cecbef38130693fd8e34d57d32d34d4087265c576db723b1f22022614f",
+            "bytes": 5141,
+            "function": "adopt_body_core_v1",
+            "line": 657,
+            "path": "src/experimental_swift_reactor/control.rs",
+            "sha256": "2f2f4d31ea61f2423a779ec5fd77a6db78052c2399ffebcaafc990b3c51dc5c8",
+            "source": "fn adopt_body_core_v1<P: ClosedAdoptionV1>(\n        body: AdoptionBodyV1, budget: SwiftRunBudget, started: Instant,\n        cancellation: Cancellation,\n    ) -> Result<(Self, AdoptedProof), P::Failure> {\n        let validation = body.proof().usage();\n        let mut control = Self {\n            owner: 0,\n            budget,\n            started,\n            deadline: started,\n            deadline_origin: SwiftDeadlineOrigin::Run,\n            cancellation,\n            validation,\n            reservations: SwiftReservations::default(),\n            live: SwiftLiveUsage::default(),\n            cache_work: 0,\n            execution_work: 0,\n            instruction_fuel: 0,\n            instructions: 0,\n            host_calls: 0,\n            cleanup_invariant: None,\n            first_failure: None,\n            control_header: None,\n            cancellation_backing: None,\n            construction: None,\n        };\n        let cursor = Cursor::adoption();\n        let mut source = None;\n        let mut metadata = None;\n        let result = (|| {\n            control.check_budget(cursor)?;\n            control.deadline = started\n                .checked_add(Duration::from_millis(budget.deadline_ms))\n                .ok_or_else(|| {\n                    control.fail(\n                        cursor,\n                        Fault::new(\n                            SwiftRunFailureKind::InvalidBudget,\n                            \"swift_run_deadline_overflow\",\n                        ),\n                        None,\n                    )\n                })?;\n            control.check(cursor)?;\n            // Private selected admission shell. Budget/deadline/stop checks\n            // above retain precedence. No host bootstrap grant is minted here.\n            // Only the sealed policy selects this source-derived fixed price.\n            if P::FIXED_EXECUTION_WORK_V1 != 0 {\n                if P::FIXED_EXECUTION_WORK_V1 > control.budget.execution_work {\n                    return Err(control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::WorkExhausted, \"swift_run_work\")\n                            .limit(SwiftRunResource::ExecutionWork,\n                                P::FIXED_EXECUTION_WORK_V1, control.budget.execution_work),\n                        None,\n                    ));\n                }\n                // The prepaid interval starts after this same-counter commit.\n                // Refusal leaves the counter and all reservations unchanged.\n                control.execution_work = P::FIXED_EXECUTION_WORK_V1;\n            }\n            control.owner = NEXT_OWNER\n                .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))\n                .map_err(|_| {\n                    control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_owner_exhausted\")\n                            .limit(SwiftRunResource::OwnerIdentity, u64::MAX, u64::MAX - 1),\n                        None,\n                    )\n                })?;\n            source = Some(control.admit(\n                SwiftReservationCategory::RetainedSource,\n                validation.source_bytes,\n                cursor,\n            )?);\n            metadata = Some(control.admit(\n                SwiftReservationCategory::RetainedMetadata,\n                validation.metadata_reserved,\n                cursor,\n            )?);\n            control.control_header =\n                Some(control.admit(SwiftReservationCategory::Shared, size_of::<Self>(), cursor)?);\n            control.cancellation_backing = Some(control.admit(\n                SwiftReservationCategory::Shared,\n                Cancellation::requested_backing_layout().size(),\n                cursor,\n            )?);\n            let construction = P::foundation().ok_or_else(|| {\n                control.fail(\n                    cursor,\n                    Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_layout_overflow\"),\n                    None,\n                )\n            })?;\n            control.construction = Some(control.admit(\n                SwiftReservationCategory::Construction,\n                construction,\n                cursor,\n            )?);\n            control.check(cursor)\n        })();\n        if let Err(mut failure) = result {\n            // Actual storage destruction precedes every proof refund. Refunding\n            // control's own headers is possible only by consuming/dropping the\n            // entire closure below; no admission can follow that operation.\n            drop(body);\n            let retirement = P::retire_tickets(&mut control,source,metadata);\n            failure.after_cleanup = Some(control.finish_owned_cleanup(None));\n            return Err(P::failure(failure,retirement));\n        }\n        Ok((\n            control,\n            AdoptedProof {\n                body,\n                source: source.expect(\"successful sealed adoption owns source ticket\"),\n                metadata: metadata.expect(\"successful sealed adoption owns metadata ticket\"),\n            },\n        ))\n    }"
+          }
+        }
+      ],
+      "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185",
+      "strategy": "unnameable-local-closure-layout"
+    },
+    {
+      "actual_capture_fields": [
+        []
+      ],
+      "creation_contexts": [
+        {
+          "block": "bb26",
+          "captures": [],
+          "code": "_60 = {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:719:67: 719:70};",
+          "line": 625,
+          "node": "closure::c431121f0512d03c77fd"
+        }
+      ],
+      "do_not_substitute_named_capture_proxy_as_exact_layout": true,
+      "index": 10,
+      "insertion_file": "src/experimental_swift_reactor/control.rs",
+      "key": "{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:719:67: 719:70}",
+      "qualified_type": "{closure@src/experimental_swift_reactor/control.rs:719:67: 719:70}",
+      "query": "query-only local typecheck transmute::<_,[u8;0]>(actual closed closure value), expected size mismatch diagnostic; alternatively isolated codegen/print-type-size instantiation after root authorization",
+      "requires_no_runtime": true,
+      "role_contexts": [
+        {
+          "MIR_header": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:632:1: 632:20>::adopt_body_core_v1::{closure#0}(_1: &mut {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:686:23: 686:25}) -> Result<(), control::SwiftRunFailure> {",
+          "compiler_type": "{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:719:67: 719:70}",
+          "local": "_60",
+          "node": "closure::c431121f0512d03c77fd",
+          "source_binding": {
+            "MIR_sha256": "a88af7cecbef38130693fd8e34d57d32d34d4087265c576db723b1f22022614f",
+            "bytes": 5141,
+            "function": "adopt_body_core_v1",
+            "line": 657,
+            "path": "src/experimental_swift_reactor/control.rs",
+            "sha256": "2f2f4d31ea61f2423a779ec5fd77a6db78052c2399ffebcaafc990b3c51dc5c8",
+            "source": "fn adopt_body_core_v1<P: ClosedAdoptionV1>(\n        body: AdoptionBodyV1, budget: SwiftRunBudget, started: Instant,\n        cancellation: Cancellation,\n    ) -> Result<(Self, AdoptedProof), P::Failure> {\n        let validation = body.proof().usage();\n        let mut control = Self {\n            owner: 0,\n            budget,\n            started,\n            deadline: started,\n            deadline_origin: SwiftDeadlineOrigin::Run,\n            cancellation,\n            validation,\n            reservations: SwiftReservations::default(),\n            live: SwiftLiveUsage::default(),\n            cache_work: 0,\n            execution_work: 0,\n            instruction_fuel: 0,\n            instructions: 0,\n            host_calls: 0,\n            cleanup_invariant: None,\n            first_failure: None,\n            control_header: None,\n            cancellation_backing: None,\n            construction: None,\n        };\n        let cursor = Cursor::adoption();\n        let mut source = None;\n        let mut metadata = None;\n        let result = (|| {\n            control.check_budget(cursor)?;\n            control.deadline = started\n                .checked_add(Duration::from_millis(budget.deadline_ms))\n                .ok_or_else(|| {\n                    control.fail(\n                        cursor,\n                        Fault::new(\n                            SwiftRunFailureKind::InvalidBudget,\n                            \"swift_run_deadline_overflow\",\n                        ),\n                        None,\n                    )\n                })?;\n            control.check(cursor)?;\n            // Private selected admission shell. Budget/deadline/stop checks\n            // above retain precedence. No host bootstrap grant is minted here.\n            // Only the sealed policy selects this source-derived fixed price.\n            if P::FIXED_EXECUTION_WORK_V1 != 0 {\n                if P::FIXED_EXECUTION_WORK_V1 > control.budget.execution_work {\n                    return Err(control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::WorkExhausted, \"swift_run_work\")\n                            .limit(SwiftRunResource::ExecutionWork,\n                                P::FIXED_EXECUTION_WORK_V1, control.budget.execution_work),\n                        None,\n                    ));\n                }\n                // The prepaid interval starts after this same-counter commit.\n                // Refusal leaves the counter and all reservations unchanged.\n                control.execution_work = P::FIXED_EXECUTION_WORK_V1;\n            }\n            control.owner = NEXT_OWNER\n                .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))\n                .map_err(|_| {\n                    control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_owner_exhausted\")\n                            .limit(SwiftRunResource::OwnerIdentity, u64::MAX, u64::MAX - 1),\n                        None,\n                    )\n                })?;\n            source = Some(control.admit(\n                SwiftReservationCategory::RetainedSource,\n                validation.source_bytes,\n                cursor,\n            )?);\n            metadata = Some(control.admit(\n                SwiftReservationCategory::RetainedMetadata,\n                validation.metadata_reserved,\n                cursor,\n            )?);\n            control.control_header =\n                Some(control.admit(SwiftReservationCategory::Shared, size_of::<Self>(), cursor)?);\n            control.cancellation_backing = Some(control.admit(\n                SwiftReservationCategory::Shared,\n                Cancellation::requested_backing_layout().size(),\n                cursor,\n            )?);\n            let construction = P::foundation().ok_or_else(|| {\n                control.fail(\n                    cursor,\n                    Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_layout_overflow\"),\n                    None,\n                )\n            })?;\n            control.construction = Some(control.admit(\n                SwiftReservationCategory::Construction,\n                construction,\n                cursor,\n            )?);\n            control.check(cursor)\n        })();\n        if let Err(mut failure) = result {\n            // Actual storage destruction precedes every proof refund. Refunding\n            // control's own headers is possible only by consuming/dropping the\n            // entire closure below; no admission can follow that operation.\n            drop(body);\n            let retirement = P::retire_tickets(&mut control,source,metadata);\n            failure.after_cleanup = Some(control.finish_owned_cleanup(None));\n            return Err(P::failure(failure,retirement));\n        }\n        Ok((\n            control,\n            AdoptedProof {\n                body,\n                source: source.expect(\"successful sealed adoption owns source ticket\"),\n                metadata: metadata.expect(\"successful sealed adoption owns metadata ticket\"),\n            },\n        ))\n    }"
+          }
+        }
+      ],
+      "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185",
+      "strategy": "unnameable-local-closure-layout"
+    },
+    {
+      "actual_capture_fields": [
+        [
+          {
+            "compiler_type": "&mut experimental_swift_reactor::control::RuntimeControl",
+            "field": "control",
+            "local": "_62"
+          },
+          {
+            "compiler_type": "&experimental_swift_reactor::control::Cursor",
+            "field": "cursor",
+            "local": "_63"
+          }
+        ]
+      ],
+      "creation_contexts": [
+        {
+          "block": "bb27",
+          "captures": [
+            {
+              "compiler_type": "&mut experimental_swift_reactor::control::RuntimeControl",
+              "field": "control",
+              "local": "_62"
+            },
+            {
+              "compiler_type": "&experimental_swift_reactor::control::Cursor",
+              "field": "cursor",
+              "local": "_63"
+            }
+          ],
+          "code": "_61 = {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:720:26: 720:29} { control: move _62, cursor: move _63 };",
+          "line": 652,
+          "node": "closure::c431121f0512d03c77fd"
+        }
+      ],
+      "do_not_substitute_named_capture_proxy_as_exact_layout": true,
+      "index": 11,
+      "insertion_file": "src/experimental_swift_reactor/control.rs",
+      "key": "{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:720:26: 720:29}",
+      "qualified_type": "{closure@src/experimental_swift_reactor/control.rs:720:26: 720:29}",
+      "query": "query-only local typecheck transmute::<_,[u8;0]>(actual closed closure value), expected size mismatch diagnostic; alternatively isolated codegen/print-type-size instantiation after root authorization",
+      "requires_no_runtime": true,
+      "role_contexts": [
+        {
+          "MIR_header": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:632:1: 632:20>::adopt_body_core_v1::{closure#0}(_1: &mut {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:686:23: 686:25}) -> Result<(), control::SwiftRunFailure> {",
+          "compiler_type": "{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:720:26: 720:29}",
+          "local": "_61",
+          "node": "closure::c431121f0512d03c77fd",
+          "source_binding": {
+            "MIR_sha256": "a88af7cecbef38130693fd8e34d57d32d34d4087265c576db723b1f22022614f",
+            "bytes": 5141,
+            "function": "adopt_body_core_v1",
+            "line": 657,
+            "path": "src/experimental_swift_reactor/control.rs",
+            "sha256": "2f2f4d31ea61f2423a779ec5fd77a6db78052c2399ffebcaafc990b3c51dc5c8",
+            "source": "fn adopt_body_core_v1<P: ClosedAdoptionV1>(\n        body: AdoptionBodyV1, budget: SwiftRunBudget, started: Instant,\n        cancellation: Cancellation,\n    ) -> Result<(Self, AdoptedProof), P::Failure> {\n        let validation = body.proof().usage();\n        let mut control = Self {\n            owner: 0,\n            budget,\n            started,\n            deadline: started,\n            deadline_origin: SwiftDeadlineOrigin::Run,\n            cancellation,\n            validation,\n            reservations: SwiftReservations::default(),\n            live: SwiftLiveUsage::default(),\n            cache_work: 0,\n            execution_work: 0,\n            instruction_fuel: 0,\n            instructions: 0,\n            host_calls: 0,\n            cleanup_invariant: None,\n            first_failure: None,\n            control_header: None,\n            cancellation_backing: None,\n            construction: None,\n        };\n        let cursor = Cursor::adoption();\n        let mut source = None;\n        let mut metadata = None;\n        let result = (|| {\n            control.check_budget(cursor)?;\n            control.deadline = started\n                .checked_add(Duration::from_millis(budget.deadline_ms))\n                .ok_or_else(|| {\n                    control.fail(\n                        cursor,\n                        Fault::new(\n                            SwiftRunFailureKind::InvalidBudget,\n                            \"swift_run_deadline_overflow\",\n                        ),\n                        None,\n                    )\n                })?;\n            control.check(cursor)?;\n            // Private selected admission shell. Budget/deadline/stop checks\n            // above retain precedence. No host bootstrap grant is minted here.\n            // Only the sealed policy selects this source-derived fixed price.\n            if P::FIXED_EXECUTION_WORK_V1 != 0 {\n                if P::FIXED_EXECUTION_WORK_V1 > control.budget.execution_work {\n                    return Err(control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::WorkExhausted, \"swift_run_work\")\n                            .limit(SwiftRunResource::ExecutionWork,\n                                P::FIXED_EXECUTION_WORK_V1, control.budget.execution_work),\n                        None,\n                    ));\n                }\n                // The prepaid interval starts after this same-counter commit.\n                // Refusal leaves the counter and all reservations unchanged.\n                control.execution_work = P::FIXED_EXECUTION_WORK_V1;\n            }\n            control.owner = NEXT_OWNER\n                .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))\n                .map_err(|_| {\n                    control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_owner_exhausted\")\n                            .limit(SwiftRunResource::OwnerIdentity, u64::MAX, u64::MAX - 1),\n                        None,\n                    )\n                })?;\n            source = Some(control.admit(\n                SwiftReservationCategory::RetainedSource,\n                validation.source_bytes,\n                cursor,\n            )?);\n            metadata = Some(control.admit(\n                SwiftReservationCategory::RetainedMetadata,\n                validation.metadata_reserved,\n                cursor,\n            )?);\n            control.control_header =\n                Some(control.admit(SwiftReservationCategory::Shared, size_of::<Self>(), cursor)?);\n            control.cancellation_backing = Some(control.admit(\n                SwiftReservationCategory::Shared,\n                Cancellation::requested_backing_layout().size(),\n                cursor,\n            )?);\n            let construction = P::foundation().ok_or_else(|| {\n                control.fail(\n                    cursor,\n                    Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_layout_overflow\"),\n                    None,\n                )\n            })?;\n            control.construction = Some(control.admit(\n                SwiftReservationCategory::Construction,\n                construction,\n                cursor,\n            )?);\n            control.check(cursor)\n        })();\n        if let Err(mut failure) = result {\n            // Actual storage destruction precedes every proof refund. Refunding\n            // control's own headers is possible only by consuming/dropping the\n            // entire closure below; no admission can follow that operation.\n            drop(body);\n            let retirement = P::retire_tickets(&mut control,source,metadata);\n            failure.after_cleanup = Some(control.finish_owned_cleanup(None));\n            return Err(P::failure(failure,retirement));\n        }\n        Ok((\n            control,\n            AdoptedProof {\n                body,\n                source: source.expect(\"successful sealed adoption owns source ticket\"),\n                metadata: metadata.expect(\"successful sealed adoption owns metadata ticket\"),\n            },\n        ))\n    }"
+          }
+        },
+        {
+          "MIR_header": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:632:1: 632:20>::adopt_body_core_v1::{closure#0}::{closure#2}(_1: {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:720:26: 720:29}, _2: u64) -> control::SwiftRunFailure {",
+          "compiler_type": "{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:720:26: 720:29}",
+          "local": "_1",
+          "node": "closure::e91d42e59723dda33729",
+          "source_binding": {
+            "MIR_sha256": "1cfd80ec627ec5f6643568eaea969f202e8d0e03fe7db94a95d79d52f6b3916c",
+            "bytes": 5141,
+            "function": "adopt_body_core_v1",
+            "line": 657,
+            "path": "src/experimental_swift_reactor/control.rs",
+            "sha256": "2f2f4d31ea61f2423a779ec5fd77a6db78052c2399ffebcaafc990b3c51dc5c8",
+            "source": "fn adopt_body_core_v1<P: ClosedAdoptionV1>(\n        body: AdoptionBodyV1, budget: SwiftRunBudget, started: Instant,\n        cancellation: Cancellation,\n    ) -> Result<(Self, AdoptedProof), P::Failure> {\n        let validation = body.proof().usage();\n        let mut control = Self {\n            owner: 0,\n            budget,\n            started,\n            deadline: started,\n            deadline_origin: SwiftDeadlineOrigin::Run,\n            cancellation,\n            validation,\n            reservations: SwiftReservations::default(),\n            live: SwiftLiveUsage::default(),\n            cache_work: 0,\n            execution_work: 0,\n            instruction_fuel: 0,\n            instructions: 0,\n            host_calls: 0,\n            cleanup_invariant: None,\n            first_failure: None,\n            control_header: None,\n            cancellation_backing: None,\n            construction: None,\n        };\n        let cursor = Cursor::adoption();\n        let mut source = None;\n        let mut metadata = None;\n        let result = (|| {\n            control.check_budget(cursor)?;\n            control.deadline = started\n                .checked_add(Duration::from_millis(budget.deadline_ms))\n                .ok_or_else(|| {\n                    control.fail(\n                        cursor,\n                        Fault::new(\n                            SwiftRunFailureKind::InvalidBudget,\n                            \"swift_run_deadline_overflow\",\n                        ),\n                        None,\n                    )\n                })?;\n            control.check(cursor)?;\n            // Private selected admission shell. Budget/deadline/stop checks\n            // above retain precedence. No host bootstrap grant is minted here.\n            // Only the sealed policy selects this source-derived fixed price.\n            if P::FIXED_EXECUTION_WORK_V1 != 0 {\n                if P::FIXED_EXECUTION_WORK_V1 > control.budget.execution_work {\n                    return Err(control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::WorkExhausted, \"swift_run_work\")\n                            .limit(SwiftRunResource::ExecutionWork,\n                                P::FIXED_EXECUTION_WORK_V1, control.budget.execution_work),\n                        None,\n                    ));\n                }\n                // The prepaid interval starts after this same-counter commit.\n                // Refusal leaves the counter and all reservations unchanged.\n                control.execution_work = P::FIXED_EXECUTION_WORK_V1;\n            }\n            control.owner = NEXT_OWNER\n                .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))\n                .map_err(|_| {\n                    control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_owner_exhausted\")\n                            .limit(SwiftRunResource::OwnerIdentity, u64::MAX, u64::MAX - 1),\n                        None,\n                    )\n                })?;\n            source = Some(control.admit(\n                SwiftReservationCategory::RetainedSource,\n                validation.source_bytes,\n                cursor,\n            )?);\n            metadata = Some(control.admit(\n                SwiftReservationCategory::RetainedMetadata,\n                validation.metadata_reserved,\n                cursor,\n            )?);\n            control.control_header =\n                Some(control.admit(SwiftReservationCategory::Shared, size_of::<Self>(), cursor)?);\n            control.cancellation_backing = Some(control.admit(\n                SwiftReservationCategory::Shared,\n                Cancellation::requested_backing_layout().size(),\n                cursor,\n            )?);\n            let construction = P::foundation().ok_or_else(|| {\n                control.fail(\n                    cursor,\n                    Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_layout_overflow\"),\n                    None,\n                )\n            })?;\n            control.construction = Some(control.admit(\n                SwiftReservationCategory::Construction,\n                construction,\n                cursor,\n            )?);\n            control.check(cursor)\n        })();\n        if let Err(mut failure) = result {\n            // Actual storage destruction precedes every proof refund. Refunding\n            // control's own headers is possible only by consuming/dropping the\n            // entire closure below; no admission can follow that operation.\n            drop(body);\n            let retirement = P::retire_tickets(&mut control,source,metadata);\n            failure.after_cleanup = Some(control.finish_owned_cleanup(None));\n            return Err(P::failure(failure,retirement));\n        }\n        Ok((\n            control,\n            AdoptedProof {\n                body,\n                source: source.expect(\"successful sealed adoption owns source ticket\"),\n                metadata: metadata.expect(\"successful sealed adoption owns metadata ticket\"),\n            },\n        ))\n    }"
+          }
+        }
+      ],
+      "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185",
+      "strategy": "unnameable-local-closure-layout"
+    },
+    {
+      "actual_capture_fields": [
+        [
+          {
+            "compiler_type": "&mut experimental_swift_reactor::control::RuntimeControl",
+            "field": "control",
+            "local": "_128"
+          },
+          {
+            "compiler_type": "&experimental_swift_reactor::control::Cursor",
+            "field": "cursor",
+            "local": "_129"
+          }
+        ]
+      ],
+      "creation_contexts": [
+        {
+          "block": "bb56",
+          "captures": [
+            {
+              "compiler_type": "&mut experimental_swift_reactor::control::RuntimeControl",
+              "field": "control",
+              "local": "_128"
+            },
+            {
+              "compiler_type": "&experimental_swift_reactor::control::Cursor",
+              "field": "cursor",
+              "local": "_129"
+            }
+          ],
+          "code": "_127 = {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:745:59: 745:61} { control: move _128, cursor: move _129 };",
+          "line": 1032,
+          "node": "closure::c431121f0512d03c77fd"
+        }
+      ],
+      "do_not_substitute_named_capture_proxy_as_exact_layout": true,
+      "index": 12,
+      "insertion_file": "src/experimental_swift_reactor/control.rs",
+      "key": "{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:745:59: 745:61}",
+      "qualified_type": "{closure@src/experimental_swift_reactor/control.rs:745:59: 745:61}",
+      "query": "query-only local typecheck transmute::<_,[u8;0]>(actual closed closure value), expected size mismatch diagnostic; alternatively isolated codegen/print-type-size instantiation after root authorization",
+      "requires_no_runtime": true,
+      "role_contexts": [
+        {
+          "MIR_header": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:632:1: 632:20>::adopt_body_core_v1::{closure#0}::{closure#3}(_1: {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:745:59: 745:61}) -> control::SwiftRunFailure {",
+          "compiler_type": "{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:745:59: 745:61}",
+          "local": "_1",
+          "node": "closure::14d844d492634ae70b41",
+          "source_binding": {
+            "MIR_sha256": "16b33fc15163eadb48c343d9c62761b6062c0b8805807a6d32318a56f53b0540",
+            "bytes": 5141,
+            "function": "adopt_body_core_v1",
+            "line": 657,
+            "path": "src/experimental_swift_reactor/control.rs",
+            "sha256": "2f2f4d31ea61f2423a779ec5fd77a6db78052c2399ffebcaafc990b3c51dc5c8",
+            "source": "fn adopt_body_core_v1<P: ClosedAdoptionV1>(\n        body: AdoptionBodyV1, budget: SwiftRunBudget, started: Instant,\n        cancellation: Cancellation,\n    ) -> Result<(Self, AdoptedProof), P::Failure> {\n        let validation = body.proof().usage();\n        let mut control = Self {\n            owner: 0,\n            budget,\n            started,\n            deadline: started,\n            deadline_origin: SwiftDeadlineOrigin::Run,\n            cancellation,\n            validation,\n            reservations: SwiftReservations::default(),\n            live: SwiftLiveUsage::default(),\n            cache_work: 0,\n            execution_work: 0,\n            instruction_fuel: 0,\n            instructions: 0,\n            host_calls: 0,\n            cleanup_invariant: None,\n            first_failure: None,\n            control_header: None,\n            cancellation_backing: None,\n            construction: None,\n        };\n        let cursor = Cursor::adoption();\n        let mut source = None;\n        let mut metadata = None;\n        let result = (|| {\n            control.check_budget(cursor)?;\n            control.deadline = started\n                .checked_add(Duration::from_millis(budget.deadline_ms))\n                .ok_or_else(|| {\n                    control.fail(\n                        cursor,\n                        Fault::new(\n                            SwiftRunFailureKind::InvalidBudget,\n                            \"swift_run_deadline_overflow\",\n                        ),\n                        None,\n                    )\n                })?;\n            control.check(cursor)?;\n            // Private selected admission shell. Budget/deadline/stop checks\n            // above retain precedence. No host bootstrap grant is minted here.\n            // Only the sealed policy selects this source-derived fixed price.\n            if P::FIXED_EXECUTION_WORK_V1 != 0 {\n                if P::FIXED_EXECUTION_WORK_V1 > control.budget.execution_work {\n                    return Err(control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::WorkExhausted, \"swift_run_work\")\n                            .limit(SwiftRunResource::ExecutionWork,\n                                P::FIXED_EXECUTION_WORK_V1, control.budget.execution_work),\n                        None,\n                    ));\n                }\n                // The prepaid interval starts after this same-counter commit.\n                // Refusal leaves the counter and all reservations unchanged.\n                control.execution_work = P::FIXED_EXECUTION_WORK_V1;\n            }\n            control.owner = NEXT_OWNER\n                .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))\n                .map_err(|_| {\n                    control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_owner_exhausted\")\n                            .limit(SwiftRunResource::OwnerIdentity, u64::MAX, u64::MAX - 1),\n                        None,\n                    )\n                })?;\n            source = Some(control.admit(\n                SwiftReservationCategory::RetainedSource,\n                validation.source_bytes,\n                cursor,\n            )?);\n            metadata = Some(control.admit(\n                SwiftReservationCategory::RetainedMetadata,\n                validation.metadata_reserved,\n                cursor,\n            )?);\n            control.control_header =\n                Some(control.admit(SwiftReservationCategory::Shared, size_of::<Self>(), cursor)?);\n            control.cancellation_backing = Some(control.admit(\n                SwiftReservationCategory::Shared,\n                Cancellation::requested_backing_layout().size(),\n                cursor,\n            )?);\n            let construction = P::foundation().ok_or_else(|| {\n                control.fail(\n                    cursor,\n                    Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_layout_overflow\"),\n                    None,\n                )\n            })?;\n            control.construction = Some(control.admit(\n                SwiftReservationCategory::Construction,\n                construction,\n                cursor,\n            )?);\n            control.check(cursor)\n        })();\n        if let Err(mut failure) = result {\n            // Actual storage destruction precedes every proof refund. Refunding\n            // control's own headers is possible only by consuming/dropping the\n            // entire closure below; no admission can follow that operation.\n            drop(body);\n            let retirement = P::retire_tickets(&mut control,source,metadata);\n            failure.after_cleanup = Some(control.finish_owned_cleanup(None));\n            return Err(P::failure(failure,retirement));\n        }\n        Ok((\n            control,\n            AdoptedProof {\n                body,\n                source: source.expect(\"successful sealed adoption owns source ticket\"),\n                metadata: metadata.expect(\"successful sealed adoption owns metadata ticket\"),\n            },\n        ))\n    }"
+          }
+        },
+        {
+          "MIR_header": "fn control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:632:1: 632:20>::adopt_body_core_v1::{closure#0}(_1: &mut {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:686:23: 686:25}) -> Result<(), control::SwiftRunFailure> {",
+          "compiler_type": "{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:745:59: 745:61}",
+          "local": "_127",
+          "node": "closure::c431121f0512d03c77fd",
+          "source_binding": {
+            "MIR_sha256": "a88af7cecbef38130693fd8e34d57d32d34d4087265c576db723b1f22022614f",
+            "bytes": 5141,
+            "function": "adopt_body_core_v1",
+            "line": 657,
+            "path": "src/experimental_swift_reactor/control.rs",
+            "sha256": "2f2f4d31ea61f2423a779ec5fd77a6db78052c2399ffebcaafc990b3c51dc5c8",
+            "source": "fn adopt_body_core_v1<P: ClosedAdoptionV1>(\n        body: AdoptionBodyV1, budget: SwiftRunBudget, started: Instant,\n        cancellation: Cancellation,\n    ) -> Result<(Self, AdoptedProof), P::Failure> {\n        let validation = body.proof().usage();\n        let mut control = Self {\n            owner: 0,\n            budget,\n            started,\n            deadline: started,\n            deadline_origin: SwiftDeadlineOrigin::Run,\n            cancellation,\n            validation,\n            reservations: SwiftReservations::default(),\n            live: SwiftLiveUsage::default(),\n            cache_work: 0,\n            execution_work: 0,\n            instruction_fuel: 0,\n            instructions: 0,\n            host_calls: 0,\n            cleanup_invariant: None,\n            first_failure: None,\n            control_header: None,\n            cancellation_backing: None,\n            construction: None,\n        };\n        let cursor = Cursor::adoption();\n        let mut source = None;\n        let mut metadata = None;\n        let result = (|| {\n            control.check_budget(cursor)?;\n            control.deadline = started\n                .checked_add(Duration::from_millis(budget.deadline_ms))\n                .ok_or_else(|| {\n                    control.fail(\n                        cursor,\n                        Fault::new(\n                            SwiftRunFailureKind::InvalidBudget,\n                            \"swift_run_deadline_overflow\",\n                        ),\n                        None,\n                    )\n                })?;\n            control.check(cursor)?;\n            // Private selected admission shell. Budget/deadline/stop checks\n            // above retain precedence. No host bootstrap grant is minted here.\n            // Only the sealed policy selects this source-derived fixed price.\n            if P::FIXED_EXECUTION_WORK_V1 != 0 {\n                if P::FIXED_EXECUTION_WORK_V1 > control.budget.execution_work {\n                    return Err(control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::WorkExhausted, \"swift_run_work\")\n                            .limit(SwiftRunResource::ExecutionWork,\n                                P::FIXED_EXECUTION_WORK_V1, control.budget.execution_work),\n                        None,\n                    ));\n                }\n                // The prepaid interval starts after this same-counter commit.\n                // Refusal leaves the counter and all reservations unchanged.\n                control.execution_work = P::FIXED_EXECUTION_WORK_V1;\n            }\n            control.owner = NEXT_OWNER\n                .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))\n                .map_err(|_| {\n                    control.fail(\n                        cursor,\n                        Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_owner_exhausted\")\n                            .limit(SwiftRunResource::OwnerIdentity, u64::MAX, u64::MAX - 1),\n                        None,\n                    )\n                })?;\n            source = Some(control.admit(\n                SwiftReservationCategory::RetainedSource,\n                validation.source_bytes,\n                cursor,\n            )?);\n            metadata = Some(control.admit(\n                SwiftReservationCategory::RetainedMetadata,\n                validation.metadata_reserved,\n                cursor,\n            )?);\n            control.control_header =\n                Some(control.admit(SwiftReservationCategory::Shared, size_of::<Self>(), cursor)?);\n            control.cancellation_backing = Some(control.admit(\n                SwiftReservationCategory::Shared,\n                Cancellation::requested_backing_layout().size(),\n                cursor,\n            )?);\n            let construction = P::foundation().ok_or_else(|| {\n                control.fail(\n                    cursor,\n                    Fault::new(SwiftRunFailureKind::Invariant, \"swift_run_layout_overflow\"),\n                    None,\n                )\n            })?;\n            control.construction = Some(control.admit(\n                SwiftReservationCategory::Construction,\n                construction,\n                cursor,\n            )?);\n            control.check(cursor)\n        })();\n        if let Err(mut failure) = result {\n            // Actual storage destruction precedes every proof refund. Refunding\n            // control's own headers is possible only by consuming/dropping the\n            // entire closure below; no admission can follow that operation.\n            drop(body);\n            let retirement = P::retire_tickets(&mut control,source,metadata);\n            failure.after_cleanup = Some(control.finish_owned_cleanup(None));\n            return Err(P::failure(failure,retirement));\n        }\n        Ok((\n            control,\n            AdoptedProof {\n                body,\n                source: source.expect(\"successful sealed adoption owns source ticket\"),\n                metadata: metadata.expect(\"successful sealed adoption owns metadata ticket\"),\n            },\n        ))\n    }"
+          }
+        }
+      ],
+      "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185",
+      "strategy": "unnameable-local-closure-layout"
+    }
+  ],
+  "released_full_layout_observations_sha256": "9cf34961efec81aadf55bbbf4f23926374e510f8f16edfabf9af7af6f45b7dc6",
+  "remaining_queries": 13,
+  "schema": 1,
+  "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185",
+  "unnameable_closure_queries": 5
+}
