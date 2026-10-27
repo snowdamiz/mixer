@@ -1,0 +1,291 @@
+{
+  "schema": 1,
+  "at": "2026-10-27T17:08:26.351894+00:00",
+  "base": "9398732c23648a82097d5a72b02b1c77af818e41",
+  "scope": "Actual local Git sparse materialization, complete selected blob custody and one Go host protocol test with omitted-contract negative control; full remote race suite and transfer timing remain unrun",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "python_sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a",
+  "script_sha256": "52e56dd4b9324a4b26b0db929f12d6ffe0b8c290509938675f7404c923b3a9b5",
+  "environment": {
+    "PATH": "/Users/andreyyurlov/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOMODCACHE": "/Users/andreyyurlov/go/pkg/mod",
+    "GOCACHE": "/Users/andreyyurlov/Library/Caches/go-build",
+    "TMPDIR": "/Users/andreyyurlov/Documents/dev/mixer/verification/ci-services-sparse-checkout/owned-scratch/tmp",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_CONFIG_GLOBAL": "/dev/null",
+    "GIT_TERMINAL_PROMPT": "0"
+  },
+  "commands": [
+    {
+      "name": "original-workflow",
+      "argv": [
+        "git",
+        "show",
+        "9398732c23648a82097d5a72b02b1c77af818e41:.github/workflows/verify.yml"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "stdin_sha256": null,
+      "exit": 0,
+      "expected_exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.00900408299639821,
+      "owned_child_reaped": true,
+      "owned_group_absent": true,
+      "stdout_sha256": "37672b3fdb0ad35621b775ecdb931a94d17671d253a2bab26ed04d27cf5f05f7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "selected-tree",
+      "argv": [
+        "git",
+        "ls-tree",
+        "-rzl",
+        "9398732c23648a82097d5a72b02b1c77af818e41",
+        "--",
+        "services",
+        "contracts/release-v2.json"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "stdin_sha256": null,
+      "exit": 0,
+      "expected_exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.01746487501077354,
+      "owned_child_reaped": true,
+      "owned_group_absent": true,
+      "stdout_sha256": "eb9bfd554b8655d51307f171e6b030aaf2bdeada75edc05a1b2eb60e0e8e96bc",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "git-version",
+      "argv": [
+        "git",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "stdin_sha256": null,
+      "exit": 0,
+      "expected_exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.006550207966938615,
+      "owned_child_reaped": true,
+      "owned_group_absent": true,
+      "stdout_sha256": "c9e40977101870d17ec3a0ac1e444ceb5e268d1c0a37d6edd8a5ed477734a53c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "clone",
+      "argv": [
+        "git",
+        "clone",
+        "--shared",
+        "--no-checkout",
+        "--single-branch",
+        "--branch",
+        "main",
+        "/Users/andreyyurlov/Documents/dev/mixer",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ci-services-sparse-checkout/owned-scratch/checkout"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "stdin_sha256": null,
+      "exit": 0,
+      "expected_exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.024207624839618802,
+      "owned_child_reaped": true,
+      "owned_group_absent": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "1fd3911c9836dcba418c3a9397dfdbabe2f50372f11a12e94ea9ca1303212bad"
+    },
+    {
+      "name": "sparse",
+      "argv": [
+        "git",
+        "sparse-checkout",
+        "set",
+        "--no-cone",
+        "--stdin"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ci-services-sparse-checkout/owned-scratch/checkout",
+      "stdin_sha256": "e3262d3ca0a9d3675d3ef15a9747e31abe73ae1982221bfd6b910af0e3e7f00e",
+      "exit": 0,
+      "expected_exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.007250957889482379,
+      "owned_child_reaped": true,
+      "owned_group_absent": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "checkout",
+      "argv": [
+        "git",
+        "checkout",
+        "--detach",
+        "9398732c23648a82097d5a72b02b1c77af818e41"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ci-services-sparse-checkout/owned-scratch/checkout",
+      "stdin_sha256": null,
+      "exit": 0,
+      "expected_exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 1.969082749914378,
+      "owned_child_reaped": true,
+      "owned_group_absent": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "b44fe4ef9934a6800e6aae6a147ebaa83f0aabee9735e99c0b0984868c013203"
+    },
+    {
+      "name": "revision",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ci-services-sparse-checkout/owned-scratch/checkout",
+      "stdin_sha256": null,
+      "exit": 0,
+      "expected_exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.007336624898016453,
+      "owned_child_reaped": true,
+      "owned_group_absent": true,
+      "stdout_sha256": "891582ae1f5c798edc0efe40161d3147984a5029c65a7f5805fcf87cbe26dc16",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "go-version",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/bin/go",
+        "version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ci-services-sparse-checkout/owned-scratch/checkout/services",
+      "stdin_sha256": null,
+      "exit": 0,
+      "expected_exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.020594332832843065,
+      "owned_child_reaped": true,
+      "owned_group_absent": true,
+      "stdout_sha256": "36849436282e424cf1142184057f25a7bd6845d03b16fedbb1071bc6722524c4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "go-environment",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/bin/go",
+        "env",
+        "GOTOOLCHAIN",
+        "GOROOT",
+        "GOCACHE",
+        "GOMODCACHE",
+        "GOPROXY",
+        "GOSUMDB",
+        "GOENV",
+        "GOWORK"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ci-services-sparse-checkout/owned-scratch/checkout/services",
+      "stdin_sha256": null,
+      "exit": 0,
+      "expected_exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.006552916020154953,
+      "owned_child_reaped": true,
+      "owned_group_absent": true,
+      "stdout_sha256": "96e84652608c2c5a168e9a63b4918d4abecdfa33bc35777ca3ccfe29b2dceff4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "protocol-descriptor-positive",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/bin/go",
+        "test",
+        "-mod=readonly",
+        "-count=1",
+        "-run",
+        "^TestV2StaticCrossLanguageVectorAndFrozenDescriptor$",
+        "-v",
+        "./protocol"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ci-services-sparse-checkout/owned-scratch/checkout/services",
+      "stdin_sha256": null,
+      "exit": 0,
+      "expected_exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 2.8182116250973195,
+      "owned_child_reaped": true,
+      "owned_group_absent": true,
+      "stdout_sha256": "8c836132c21ea5c31a51271128c71d1738112b459f2f286bc09b49ea2ddd28cb",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "protocol-descriptor-missing-contract",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/bin/go",
+        "test",
+        "-mod=readonly",
+        "-count=1",
+        "-run",
+        "^TestV2StaticCrossLanguageVectorAndFrozenDescriptor$",
+        "-v",
+        "./protocol"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ci-services-sparse-checkout/owned-scratch/checkout/services",
+      "stdin_sha256": null,
+      "exit": 1,
+      "expected_exit": 1,
+      "timed_out": false,
+      "elapsed_seconds": 1.5918185419868678,
+      "owned_child_reaped": true,
+      "owned_group_absent": true,
+      "stdout_sha256": "a83003c8713754e5f5722f846386a313c96eedeff0f5523ea843cfde16fa097d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "selected-tracked-clean",
+      "argv": [
+        "git",
+        "status",
+        "--porcelain",
+        "--untracked-files=no"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ci-services-sparse-checkout/owned-scratch/checkout",
+      "stdin_sha256": null,
+      "exit": 0,
+      "expected_exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.2170708749908954,
+      "owned_child_reaped": true,
+      "owned_group_absent": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "Go_host_compilation_and_selected_protocol_test": true,
+  "native_device_or_UI_runtime_started": false,
+  "global_process_inventory": false,
+  "workflow_before_sha256": "2c701a47ef42129547048623eff7db7db721fb2fe39d3dabf4bb7bb6d1f939a0",
+  "selected_files": 153,
+  "selected_bytes": 4379716,
+  "inputs_sha256": "02d04030efb28dbf70794004f5c2689ff71bc02d109afcb2f66635d7bada108a",
+  "go_executable": {
+    "path": "/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/bin/go",
+    "sha256": "e61851b2c0cde9b9ac4ae044fcce6ba9d55cb15f98ded3964793acaa8632242f"
+  },
+  "selected_protocol_positive": true,
+  "missing_contract_negative_reproduced": true,
+  "full_service_race_suite_run": false,
+  "existing_go_cache_preserved": true,
+  "inputs_and_workflow_unchanged": true,
+  "result": "local-sparse-materialization-and-focused-protocol-check-pass",
+  "owned_scratch_removed": true
+}

@@ -316,6 +316,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Protocol tests also read the frozen descriptor outside services/.
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /services/
+            /contracts/release-v2.json
       - uses: actions/setup-go@v5
         with:
           go-version: '1.26.4'

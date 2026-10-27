@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "base": "9398732c23648a82097d5a72b02b1c77af818e41",
+  "method": "Source review of file-read/open/stat/embed/process calls across service Go files, bounded by complete tree custody and offline Linux go list package selection; no claim of arbitrary dynamic dependency analysis",
+  "job": "untagged go mod verify; go vet ./...; go test -race ./... from services",
+  "repository_file_reads_in_selected_tests": [
+    {"source": "services/protocol/protocol_test.go", "line": 17, "path": "services/protocol/testdata/signed-release-v1.json"},
+    {"source": "services/protocol/legacy_wire_test.go", "line": 40, "path": "services/protocol/testdata/legacy-v1-wire-cases.json"},
+    {"source": "services/protocol/v2_test.go", "line": 40, "path": "services/protocol/testdata/signed-release-v2.json"},
+    {"source": "services/protocol/v2_test.go", "line": 83, "path": "contracts/release-v2.json", "outside_services": true},
+    {"source": "services/protocol/v2_test.go", "line": 155, "path": "services/protocol/testdata/capability-grant-cases-v1.json"},
+    {"source": "services/protocol/v3_test.go", "line": 41, "path": "services/protocol/testdata/signed-release-v3.json"},
+    {"source": "services/protocol/v3_test.go", "line": 123, "path": "services/protocol/testdata/release-v3-cases.json"}
+  ],
+  "embed": [{"source": "services/release/postgres.go", "line": 22, "pattern": "migrations/*.sql", "selected_file": "services/release/migrations/001_release.sql"}],
+  "other_reads": [
+    {"files": ["services/updater/updater.go", "services/updater/updater_test.go"], "scope": "Caller-provided storage or test-owned temporary state and payloads"},
+    {"files": ["services/internal/durable/store.go", "services/internal/durable/free_unix.go"], "scope": "Caller-provided storage directory, temporary transaction files, filesystem free-space information and lock state"},
+    {"files": ["services/release/store.go", "services/release/server_test.go", "services/release/v2_test.go", "services/release/v3_test.go", "services/release/config_ownership_test.go"], "scope": "Caller-configured release storage, test-owned temporary release state and injected corruptions"},
+    {"files": ["services/cmd/mixer-service/main.go"], "scope": "MIXER_SERVICE_CONFIG names a runtime input; no tests invoke the command main"}
+  ],
+  "excluded_from_untagged_job": [
+    {"files": ["services/protocol/testdata/generate-v1-wire.go", "services/protocol/testdata/generate-v2.go", "services/protocol/testdata/generate-v3.go"], "reason": "Go does not traverse testdata for ./...; each also has go:build ignore; job does not invoke go generate or go run"},
+    {"files": ["services/release/postgres_guards_integration_test.go", "services/release/postgres_integration_test.go", "services/release/postgres_v2_integration_test.go", "services/release/postgres_v3_integration_test.go"], "reason": "go:build postgres_integration; independently confirmed in Linux package IgnoredGoFiles; job supplies no build tags"}
+  ],
+  "limitations": ["This dependency review applies to this exact base and unchanged job commands", "Standard-library and declared Go module source is supplied by the pinned Go toolchain and module mechanism", "No full service suite or PostgreSQL/HTTP harness was rerun by reviewer"]
+}

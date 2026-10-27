@@ -1,0 +1,305 @@
+
+FILE model.py
+"""Conditional host arithmetic, never price authority, identity or execution proof."""
+from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
+import hashlib, importlib.util, json, sys
+from ledger import COUNTS, FRONTIERS
+sys.dont_write_bytecode=True
+HERE=Path(__file__).resolve().parent
+ROOT=HERE.parents[1]
+TREE='acce2edaeb41d2e032cd9417897f828caa1c713721e162d2f455663600076e3d'
+TARGET='aarch64-apple-darwin'
+COMPILER='dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0'
+U64=(1<<64)-1
+class Refused(ValueError):pass
+def need(x,why):
+    if not x:raise Refused(why)
+def nat(x):need(type(x)is int and 0<=x<=U64,'not-u64');return x
+def pos(x):nat(x);need(x>0,'positive-unresolved-frontier-required');return x
+def add(*xs):
+    n=0
+    for x in xs:nat(x);need(x<=U64-n,'addition-overflow');n+=x
+    return n
+def mul(a,b):nat(a);nat(b);need(not a or b<=U64//a,'multiplication-overflow');return a*b
+def hex64(s):need(type(s)is str and len(s)==64 and all(c in '0123456789abcdef' for c in s),'evidence-digest-required');return s
+def sha(b):return hashlib.sha256(b).hexdigest()
+def sealed_input(path):
+    lock=json.loads((HERE/'input-lock.json').read_bytes());name=path.relative_to(ROOT).as_posix()
+    found=[x for x in lock['files'] if x['path']==name];need(len(found)==1,'exact retained input membership')
+    b=path.read_bytes();need((len(b),sha(b))==(found[0]['bytes'],found[0]['sha256']),'retained input drift');return b
+@lru_cache(maxsize=1)
+def provider():
+    p=ROOT/'verification/swift-guarded-snapshot-owned-provider-work-storage/model.py';sealed_input(p)
+    s=importlib.util.spec_from_file_location('callee_frozen_provider_model',p);m=importlib.util.module_from_spec(s);sys.modules[s.name]=m;s.loader.exec_module(m);return m
+def validate_proposal(p):
+    need(p['source_tree_sha256']==TREE and p['compiler_sha256']==COMPILER and p['target']==TARGET,'exact source/compiler/target proposal')
+    need(p['counts']==COUNTS and p['positive_residual_contracts']==FRONTIERS,'exact14 interfaces and3 positive composite frontier contracts')
+    need(p['all10_inherited_terms']==provider().INHERITED_WORK and p['prior_conditional_whole_fixed']==895084428326233374,'all10 original work terms and fixed caller remain intact')
+    need(p['provider_source_work_unchanged']=={'fixed':276580,'input_operand_bytes':1324} and p['provider_slots_unchanged']==9696 and p['authored_callback_body_cap_inherited']==5 and p['authored_callback_adapter_calls']==5 and p['authored_callback_body_new_charge']==0,'immutable caller/callback conservation')
+    return p
+def proposal():return validate_proposal(json.loads((HERE/'proposal.json').read_bytes()))
+@dataclass(frozen=True)
+class ResidualBound:
+    value:int
+    unit:str
+    frontier:str
+    occurrence:int
+    source_tree:str
+    target:str
+    compiler_sha256:str
+    native_target:str
+    argument_types:tuple
+    return_type:str
+    body_lengths:tuple
+    evidence_sha256:str
+    obligation:str
+def contexts(value):
+    M=provider()
+    try:shape=M.describe(value)
+    except M.Refused as error:raise Refused('provider-input:'+str(error)) from error
+    x=[{'frontier':'DIGEST_MEMCMP_FRONTIER','occurrence':0,'body_lengths':(32,32)}]
+    x += [{'frontier':'PATH_MEMCMP_FRONTIER','occurrence':i,'body_lengths':(shape['native_path_bytes'][i],shape['separately_retained_path_bytes'][i])} for i in range(5)]
+    x += [{'frontier':'CONTAINS_RESIDUAL_FRONTIER','occurrence':i,'body_lengths':(shape['native_path_bytes'][i],)} for i in range(5)]
+    return shape,x
+def residuals(value,items,unit):
+    need(type(items)is tuple,'immutable-residual-roster-required');_,expected=contexts(value);p=proposal()
+    need(len(items)==11,'exact1plus5plus5-frontier-contexts-required')
+    result=0
+    for item,context in zip(items,expected):
+        need(type(item)is ResidualBound,'typed-exact-residual-bound-required');pos(item.value)
+        need(item.unit==unit and unit in ('work','bytes'),'exact-frontier-unit-required')
+        need(item.source_tree==TREE and item.target==TARGET and item.compiler_sha256==COMPILER,'exact-frontier-source-compiler-target')
+        need(item.frontier==context['frontier'] and type(item.occurrence)is int and item.occurrence==context['occurrence'],'exact-frontier-identity-order-count')
+        need(type(item.body_lengths)is tuple and all(type(x)is int for x in item.body_lengths) and item.body_lengths==context['body_lengths'],'actual-length-aware-frontier-no-selected-max')
+        spec=p['positive_residual_contracts'][item.frontier]
+        need(item.native_target==spec['native_target'] and type(item.argument_types)is tuple and item.argument_types==tuple(spec['argument_types']) and item.return_type==spec['return_type'],'exact-frontier-target-type-arity-return')
+        hex64(item.evidence_sha256);need(type(item.obligation)is str and bool(item.obligation.strip()),'reviewed-composed-callee-obligation-required')
+        result=add(result,item.value)
+    return result
+def base_bound(item,unit):
+    M=provider()
+    try:return M.bound(item,unit)
+    except M.Refused as error:raise Refused('inherited-bound:'+str(error)) from error
+def polynomial(p,b):return add(p['fixed'],mul(p['B'],b),mul(p['B2'],mul(b,b)))
+def evaluate(value,inherited_work,frontier_work,frontier_storage,acquisition_work,future_caller_work,*,outcome='normal'):
+    need(outcome in ('normal','refusal','unwind'),'known-conservative-outcome-required')
+    M=provider();p=proposal();shape,_=contexts(value)
+    try:base_storage=M.storage(value)
+    except M.Refused as error:raise Refused('mandatory-inherited-backing-storage:'+str(error)) from error
+    need(type(inherited_work)is dict and set(inherited_work)==set(p['all10_inherited_terms']),'exact10-original-residual-terms-required')
+    old_work=add(*(mul(coefficient,base_bound(inherited_work[key],'work')) for key,coefficient in p['all10_inherited_terms'].items()))
+    fw=residuals(value,frontier_work,'work');fs=residuals(value,frontier_storage,'bytes')
+    b=shape['input_operand_bytes'];shell=polynomial(p['callee_source_shell_work'],b)
+    provider_work=add(276580,mul(1324,b))
+    total=add(p['prior_conditional_whole_fixed'],mul(1324,b),shell,old_work,fw,base_bound(acquisition_work,'work'),base_bound(future_caller_work,'work'))
+    storage_add=add(p['additional_total_slots'],fs)
+    return {'schema':1,'whole_conditional_work':total,'provider_source_work_unchanged':provider_work,'new_callee_source_native_shell':shell,'positive_unresolved_frontier_work':fw,'positive_unresolved_frontier_storage':fs,'B_from_all22_actual_bodies':b,'all10_original_residual_work':old_work,'source_ledger_and_native_ABI_slot_addition':p['additional_total_slots'],'P0_preexisting':add(base_storage['P0_preexisting'],storage_add),'whole_external_storage':add(base_storage['whole_external_storage'],storage_add),'all15_phases_hold_new_storage':True,'inherited_six_child_storage_parts':base_storage['inherited_six_child_storage_parts'],'inherited_child_prepaid':base_storage['inherited_child_prepaid'],'original_binding1168_preserved':True,'all12plus5plus5_backing_and_diagnostics_upstream_preserved':True,'all_original_destructor_error_and_native_operand_obligations_preserved':True,'outcome':outcome,'None_refusal_unwind_refund':False,'normal_release_requires_actual_original_payload_carrier_destruction_Some_token':True,'authored_callback_body_cap_inherited':5,'authored_callback_adapter_cap':5,'authored_callback_body_charge_added_again':False,'all_six_upstream':'Pending','all_three_selectors':'Pending','L_str_selected':False,'frontier_prices_selected':False,'actual_acquisition_authenticated_owner_or_root_funding':False,'accepted_bound':False,'operational_grant':False,'native_FieldLog_OTA_GA':False}
+
+
+FILE phase-reservations.json
+{
+  "no_alias_move_or_refund_credit": true,
+  "phases": {
+    "P0_AFTER_FINAL_RESULT_CONSUMPTION": {
+      "new_native_ABI_fields": 9882,
+      "new_source_ledger_places": 20739,
+      "new_total": 30621,
+      "positive_external_residual_storage": "mandatory, exact11 invocation contexts, no default or refund",
+      "provider_9696_retained": 9696
+    },
+    "P0_BEFORE_BINDING_POLICY_QUOTE_ACCOUNT_ENTRY": {
+      "new_native_ABI_fields": 9882,
+      "new_source_ledger_places": 20739,
+      "new_total": 30621,
+      "positive_external_residual_storage": "mandatory, exact11 invocation contexts, no default or refund",
+      "provider_9696_retained": 9696
+    },
+    "P0_CHILD_RESERVED": {
+      "new_native_ABI_fields": 9882,
+      "new_source_ledger_places": 20739,
+      "new_total": 30621,
+      "positive_external_residual_storage": "mandatory, exact11 invocation contexts, no default or refund",
+      "provider_9696_retained": 9696
+    },
+    "P0_DESTROYED_TOKEN_RETURNED": {
+      "new_native_ABI_fields": 9882,
+      "new_source_ledger_places": 20739,
+      "new_total": 30621,
+      "positive_external_residual_storage": "mandatory, exact11 invocation contexts, no default or refund",
+      "provider_9696_retained": 9696
+    },
+    "P0_FINAL_OWNED_RESULT": {
+      "new_native_ABI_fields": 9882,
+      "new_source_ledger_places": 20739,
+      "new_total": 30621,
+      "positive_external_residual_storage": "mandatory, exact11 invocation contexts, no default or refund",
+      "provider_9696_retained": 9696
+    },
+    "P0_RELEASE_AFTER_SOME_TOKEN": {
+      "new_native_ABI_fields": 9882,
+      "new_source_ledger_places": 20739,
+      "new_total": 30621,
+      "positive_external_residual_storage": "mandatory, exact11 invocation contexts, no default or refund",
+      "provider_9696_retained": 9696
+    },
+    "P1_LOADER": {
+      "new_native_ABI_fields": 9882,
+      "new_source_ledger_places": 20739,
+      "new_total": 30621,
+      "positive_external_residual_storage": "mandatory, exact11 invocation contexts, no default or refund",
+      "provider_9696_retained": 9696
+    },
+    "P1_SETUP": {
+      "new_native_ABI_fields": 9882,
+      "new_source_ledger_places": 20739,
+      "new_total": 30621,
+      "positive_external_residual_storage": "mandatory, exact11 invocation contexts, no default or refund",
+      "provider_9696_retained": 9696
+    },
+    "P2_ARGUMENTS": {
+      "new_native_ABI_fields": 9882,
+      "new_source_ledger_places": 20739,
+      "new_total": 30621,
+      "positive_external_residual_storage": "mandatory, exact11 invocation contexts, no default or refund",
+      "provider_9696_retained": 9696
+    },
+    "P3_SHELL": {
+      "new_native_ABI_fields": 9882,
+      "new_source_ledger_places": 20739,
+      "new_total": 30621,
+      "positive_external_residual_storage": "mandatory, exact11 invocation contexts, no default or refund",
+      "provider_9696_retained": 9696
+    },
+    "P4_LEAF": {
+      "new_native_ABI_fields": 9882,
+      "new_source_ledger_places": 20739,
+      "new_total": 30621,
+      "positive_external_residual_storage": "mandatory, exact11 invocation contexts, no default or refund",
+      "provider_9696_retained": 9696
+    },
+    "P5_PAYLOAD_AND_CARRIER_DESTROYING": {
+      "new_native_ABI_fields": 9882,
+      "new_source_ledger_places": 20739,
+      "new_total": 30621,
+      "positive_external_residual_storage": "mandatory, exact11 invocation contexts, no default or refund",
+      "provider_9696_retained": 9696
+    },
+    "P5_RETURNED_ORIGINAL_PAYLOAD": {
+      "new_native_ABI_fields": 9882,
+      "new_source_ledger_places": 20739,
+      "new_total": 30621,
+      "positive_external_residual_storage": "mandatory, exact11 invocation contexts, no default or refund",
+      "provider_9696_retained": 9696
+    },
+    "P5_SHARED_OBSERVATION": {
+      "new_native_ABI_fields": 9882,
+      "new_source_ledger_places": 20739,
+      "new_total": 30621,
+      "positive_external_residual_storage": "mandatory, exact11 invocation contexts, no default or refund",
+      "provider_9696_retained": 9696
+    },
+    "P5_SHARED_VIEW_ENDED": {
+      "new_native_ABI_fields": 9882,
+      "new_source_ledger_places": 20739,
+      "new_total": 30621,
+      "positive_external_residual_storage": "mandatory, exact11 invocation contexts, no default or refund",
+      "provider_9696_retained": 9696
+    }
+  },
+  "schema": 1
+}
+
+
+FILE final-validation.json
+{
+  "all3_residual_work_and_storage_inputs_still_positive": true,
+  "all6_upstream_and3_selectors": "Pending",
+  "at": "2026-10-27T16:57:58.233739+00:00",
+  "callee_shell_work": {
+    "B": 6867,
+    "B2": 160,
+    "fixed": 200334
+  },
+  "cleanup_sha256": "28630e62fa327f57e0ce6c709974ca04354195f5c2629bf86cb66bb2aad3fe40",
+  "compiler_or_runtime_or_GA": false,
+  "earlier_failures_and_preparations_not_qualifying": true,
+  "native_ABI_field_slots": 9882,
+  "qualifying_commands": [
+    "final-derive-check-002",
+    "final-host-controls-002"
+  ],
+  "qualifying_receipts": [
+    {
+      "command": "final-derive-check-002",
+      "input_members": 1245,
+      "receipt_sha256": "a83ab562755bd43886498882a74cd71f36d0bb14ea0699140dae7647d1e541b5",
+      "source_program_tree_sha256": "835d15c959e31b5dcf5a14f8b5b265d234fda9475ef233cbdfae969f5559bed5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "86e0b6255da8646f6566c505cde5b67908c7813df6399679bbb68d558d2d320f"
+    },
+    {
+      "command": "final-host-controls-002",
+      "input_members": 1245,
+      "receipt_sha256": "bcda759a41a91768f978f9d6d064c9dff5f4f558a4b532668b9e28df9db3b95c",
+      "source_program_tree_sha256": "835d15c959e31b5dcf5a14f8b5b265d234fda9475ef233cbdfae969f5559bed5",
+      "stderr_sha256": "2e4cbbac73263991a7d3be5151be77eb0e46fc3eb21fe4e37063bbff41ffb33a",
+      "stdout_sha256": "46af3862c8dc9a79deebe1296487118e794d035d07a5e2aa7146c62b2c00b47c"
+    }
+  ],
+  "schema": 1,
+  "source_ledger_slots": 20739,
+  "source_tree_sha256": "acce2edaeb41d2e032cd9417897f828caa1c713721e162d2f455663600076e3d",
+  "status": "producer-host-candidate-controls-and-readonly-derivation-pass-needs-independent-review",
+  "test_results": {
+    "Rust_product_native_UI_capture_or_global_inventory": false,
+    "compiler_invocations": 0,
+    "errors": 0,
+    "failures": 0,
+    "hostile_cases_rejected": 2276,
+    "independent_component_equalities": 2747,
+    "schema": 1,
+    "test_methods": 16
+  }
+}
+
+
+FILE analysis.json
+{
+  "aligned_source": "Exact official source53..109 reads two usize words per body iteration with initial alignment and final naive tail. This source is retained for scope, but its installed runtime body/correspondence remains missing and its work is not selected.",
+  "compile_runtime_pause": "No compiler, product executable, Rust tests, phone/simulator/emulator, UI/capture or global process inventory executed.",
+  "contains": "u8 size1 constant branch excludes Iter::any blocksbb3/bb15/bb16 and non-u8 vector macro. Active branch transmute_copy/from_raw_parts\u2192memchr; n<16 uses monotone naive scan, n>=16 calls missing installed memchr_aligned. All precondition helpers/assert_unchecked and missing aligned work/slots remain in positive composite residual.",
+  "digests": "Exact array32 uses BytewiseEq specialization \u2192 raw_eq \u2192 external memcmp32. Generic array/slice equality loops are not selected.",
+  "normal_refusal_unwind": "Both result branches and every finite source place/end are reserved. No panic path is called healthy refusal; any native/private panic/unwinder implementation remains outside logical unit and is never assigned zero. No result shape authenticates backing or funding.",
+  "schema": 1,
+  "short_loop": "i starts0, guard i<n, increment1, early Some; every ledger loop row uses B+1 and byte-body allowances use B. Both n actual and B are input-derived; resulting conservative B\u00b2 term is explicit. No arbitrary selected maximum or syscall/CPU bound.",
+  "slice_equality": "Reference ne\u2192slice default ne\u2192slice eq checks lengths\u2192BytewiseEq<u8>::equal_same_length\u2192compare_bytes\u2192external memcmp. No selected element loop or vector loop; 5 residual reservations kept across unequal lengths/refusal/unwind."
+}
+
+
+FILE root-contract.json
+{
+  "requested_delegation": {
+    "context": "fresh",
+    "model": "gpt-6.1-sol",
+    "no_additional_subagent": true,
+    "ownership": "verification/swift-guarded-snapshot-owned-provider-callee-interfaces/**",
+    "reasoning_effort": "xhigh"
+  },
+  "root_coordination": "Root explicitly allowed exact-revision official source retrieval and the proposed source-ledger/native-byte candidate contract, requiring fresh independent review and root price selection. This is not price acceptance.",
+  "schema": 1,
+  "scope": "No compiler authorized or invoked, product/native runtime/UI/capture/global inventory/Git/canonical/root metadata/frozen reference mutation; only owned packet writes.",
+  "source_delta": "No canonical source change; exact accepted source146 reused.",
+  "still_pending": [
+    "actual acquisition/authenticated owner and backing",
+    "root policy/quote/funding",
+    "L_str provenance/selection",
+    "all production selectors",
+    "linked executable/build/session/caller binding",
+    "runtime and physical/native acceptance",
+    "FieldLog published packages",
+    "OTA and GA"
+  ]
+}
+

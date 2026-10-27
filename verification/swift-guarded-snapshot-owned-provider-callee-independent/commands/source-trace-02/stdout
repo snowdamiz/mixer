@@ -1,0 +1,752 @@
+
+NODE range_into_iter CALLS [] SAFE None
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/iter/traits/collect.rs 47c3434877779443d4314cde2970263022f8fdd767a8eb709c86f5364b2d6acf
+322:    fn into_iter(self) -> I {
+323:        self
+324:    }
+ROLES [('_0', 'Range<usize>', 16, 8, 2, None, False), ('_1', 'Range<usize>', 16, 8, 2, None, False)]
+ROW 323 _0 = move _1; ['_0', '_1'] [] LOOP False
+ROW 324 return; [] [] LOOP False
+
+NODE range_next CALLS [{'count': 1, 'node': 'range_spec_next'}] SAFE None
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/iter/range.rs a4660edb9e3132936c631436ce50d89b57f1a9079bab7908934e912f89cb0ca5
+1184:    fn next(&mut self) -> Option<A> {
+1185:        self.spec_next()
+1186:    }
+ROLES [('_0', 'Option<usize>', 16, 8, 2, None, False), ('_1', '&mut Range<usize>', 8, 8, 1, [16, 2], False)]
+ROW 1185 _0 = range_spec_next(copy _1); ['_0', '_1'] [] LOOP False
+ROW 1186 return; [] [] LOOP False
+
+NODE range_spec_next CALLS [{'count': 1, 'node': 'step_forward'}] SAFE Only exact authored0..12/0..5 ranges; start<end implies old+1 does not overflow usize. Generic Step::forward_checked/expect is not selected.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/iter/range.rs a4660edb9e3132936c631436ce50d89b57f1a9079bab7908934e912f89cb0ca5
+1099:    fn spec_next(&mut self) -> Option<T> {
+1100:        if self.start < self.end {
+1101:            let old = self.start;
+1102:            // SAFETY: just checked precondition
+1103:            self.start = unsafe { Step::forward_unchecked(old, 1) };
+1104:            Some(old)
+1105:        } else {
+1106:            None
+1107:        }
+1108:    }
+ROLES [('_0', 'Option<usize>', 16, 8, 2, None, False), ('_1', '&mut Range<usize>', 8, 8, 1, [16, 2], False), ('_2', 'usize', 8, 8, 1, None, False), ('_3', 'usize', 8, 8, 1, None, False), ('_4', 'bool', 1, 1, 1, None, False), ('_5', 'usize', 8, 8, 1, None, False), ('_6', 'usize', 8, 8, 1, None, False)]
+ROW 1100 _2 = copy ((*_1).start: usize); ['_2', '_1'] [] LOOP False
+ROW 1100 _3 = copy ((*_1).end: usize); ['_3', '_1'] [] LOOP False
+ROW 1100 _4 = Lt(copy _2, copy _3); ['_4', '_2', '_3'] [] LOOP False
+ROW 1100 switchInt(copy _4); ['_4'] [] LOOP False
+ROW 1101 _5 = copy ((*_1).start: usize); ['_5', '_1'] [] LOOP False
+ROW 1103 _6 = step_forward(copy _5, const 1_usize); ['_6', '_5'] [{'bytes': 8, 'leaves': 1, 'text': '1_usize'}] LOOP False
+ROW 1103 ((*_1).start: usize) = move _6; ['_1', '_6'] [] LOOP False
+ROW 1104 _0 = Option::<usize>::Some(copy _5); ['_0', '_5'] [] LOOP False
+ROW 1106 _0 = Option::<usize>::None; ['_0'] [] LOOP False
+ROW 1108 return; [] [] LOOP False
+
+NODE step_forward CALLS [{'count': 1, 'node': 'unchecked_add_adapter'}] SAFE None
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/iter/range.rs a4660edb9e3132936c631436ce50d89b57f1a9079bab7908934e912f89cb0ca5
+263:        unsafe fn forward_unchecked(start: Self, n: usize) -> Self {
+264:            // SAFETY: the caller has to guarantee that `start + n` doesn't overflow.
+265:            unsafe { start.unchecked_add(n as Self) }
+266:        }
+ROLES [('_0', 'usize', 8, 8, 1, None, False), ('_1', 'usize', 8, 8, 1, None, False), ('_2', 'usize', 8, 8, 1, None, False), ('_3', 'usize', 8, 8, 1, None, False)]
+ROW 265 _3 = copy _2 as usize; ['_3', '_2'] [] LOOP False
+ROW 265 _0 = unchecked_add_adapter(copy _1, copy _3); ['_0', '_1', '_3'] [] LOOP False
+ROW 266 return; [] [] LOOP False
+
+NODE unchecked_add_adapter CALLS [{'count': 1, 'node': 'language_ub_check'}, {'count': 1, 'node': 'unchecked_add_precondition'}, {'count': 1, 'node': 'unchecked_add_intrinsic'}] SAFE Expand assert_unsafe_precondition macro53..80 with lhs/rhs usize and !overflowing_add. Charge optional gate and check once even if disabled; safe exact range proves panic edge unreachable.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/num/uint_macros.rs 39968a5edee5ecbe8bf38d38a87b6794e351076087c95483e1da083c8da0a19c
+1001:        pub const unsafe fn unchecked_add(self, rhs: Self) -> Self {
+1002:            assert_unsafe_precondition!(
+1003:                check_language_ub,
+1004:                concat!(stringify!($SelfT), "::unchecked_add cannot overflow"),
+1005:                (
+1006:                    lhs: $SelfT = self,
+1007:                    rhs: $SelfT = rhs,
+1008:                ) => !lhs.overflowing_add(rhs).1,
+1009:            );
+1010:
+1011:            // SAFETY: this is guaranteed to be safe by the caller.
+1012:            unsafe {
+1013:                intrinsics::unchecked_add(self, rhs)
+1014:            }
+1015:        }
+ROLES [('_0', 'usize', 8, 8, 1, None, False), ('_1', 'usize', 8, 8, 1, None, False), ('_2', 'usize', 8, 8, 1, None, False), ('_3', 'bool', 1, 1, 1, None, False)]
+ROW 1002 _3 = language_ub_check(); ['_3'] [] LOOP False
+ROW 1002 switchInt(copy _3); ['_3'] [] LOOP False
+ROW 1008 unchecked_add_precondition(copy _1, copy _2); ['_1', '_2'] [] LOOP False
+ROW 1013 _0 = unchecked_add_intrinsic(copy _1, copy _2); ['_0', '_1', '_2'] [] LOOP False
+ROW 1015 return; [] [] LOOP False
+
+NODE language_ub_check CALLS [{'count': 1, 'node': 'ub_checks_intrinsic'}] SAFE Exact non-const rustc target, cfg(miri) absent; const branch also positively charged. ConstEvalSelectRuntime is the compiler intrinsic macro boundary, not an unaccounted source helper. Compiler intrinsic implementation is outside inherited logical source unit.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/ub_checks.rs d05a661966104ee074957fb06263b40efa586b56c80248b5ae74cfbf47ad5c70
+96:pub(crate) const fn check_language_ub() -> bool {
+97:    // Only used for UB checks so we may const_eval_select.
+98:    const_eval_select!(
+99:        @capture { } -> bool:
+100:        if const {
+101:            // Always disable UB checks.
+102:            false
+103:        } else {
+104:            // Disable UB checks in Miri.
+105:            !cfg!(miri)
+106:        }
+107:    ) && intrinsics::ub_checks()
+108:}
+ROLES [('_0', 'bool', 1, 1, 1, None, False), ('_1', 'bool', 1, 1, 1, None, False), ('_2', 'bool', 1, 1, 1, None, False), ('_3', 'bool', 1, 1, 1, None, False)]
+ROW 98 _1 = ConstEvalSelectRuntime(const false); ['_1'] [{'bytes': 1, 'leaves': 1, 'text': 'false'}] LOOP False
+ROW 105 _2 = Not(const false); ['_2'] [{'bytes': 1, 'leaves': 1, 'text': 'false'}] LOOP False
+ROW 107 _3 = ub_checks_intrinsic(); ['_3'] [] LOOP False
+ROW 107 _0 = BitAnd(copy _2, copy _3); ['_0', '_2', '_3'] [] LOOP False
+ROW 108 return; [] [] LOOP False
+
+NODE unchecked_add_precondition CALLS [{'count': 1, 'node': 'overflowing_add_adapter'}] SAFE Macro replacement $e=!lhs.overflowing_add(rhs).1. The source panic/format construction70..73 is unreachable only by exact valid Range bounds; no claim on panic implementation. Track-caller boundary additionally charged by native compiler operand supplement.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/ub_checks.rs d05a661966104ee074957fb06263b40efa586b56c80248b5ae74cfbf47ad5c70
+68:            const fn precondition_check($($name:$ty),*) {
+69:                if !$e {
+70:                    let msg = concat!("unsafe precondition(s) violated: ", $message,
+71:                        "\n\nThis indicates a bug in the program. \
+72:                        This Undefined Behavior check is optional, and cannot be relied on for safety.");
+73:                    ::core::panicking::panic_nounwind_fmt(::core::fmt::Arguments::from_str(msg), false);
+74:                }
+75:            }
+ROLES [('_0', '()', 0, 1, 1, None, False), ('_1', 'usize', 8, 8, 1, None, False), ('_2', 'usize', 8, 8, 1, None, False), ('_3', '(usize, bool)', 16, 8, 2, None, False), ('_4', 'bool', 1, 1, 1, None, False), ('_5', 'bool', 1, 1, 1, None, False), ('_6', 'bool', 1, 1, 1, None, False)]
+ROW 69 _3 = overflowing_add_adapter(copy _1, copy _2); ['_3', '_1', '_2'] [] LOOP False
+ROW 69 _4 = copy (_3.1: bool); ['_4', '_3'] [] LOOP False
+ROW 69 _5 = Not(copy _4); ['_5', '_4'] [] LOOP False
+ROW 69 _6 = Not(copy _5); ['_6', '_5'] [] LOOP False
+ROW 69 switchInt(copy _6); ['_6'] [] LOOP False
+ROW 75 _0 = const (); ['_0'] [{'bytes': 0, 'leaves': 1, 'text': '()'}] LOOP False
+ROW 75 return; [] [] LOOP False
+
+NODE overflowing_add_adapter CALLS [{'count': 1, 'node': 'add_with_overflow_intrinsic'}] SAFE None
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/num/uint_macros.rs 39968a5edee5ecbe8bf38d38a87b6794e351076087c95483e1da083c8da0a19c
+2989:        pub const fn overflowing_add(self, rhs: Self) -> (Self, bool) {
+2990:            let (a, b) = intrinsics::add_with_overflow(self as $ActualT, rhs as $ActualT);
+2991:            (a as Self, b)
+2992:        }
+ROLES [('_0', '(usize, bool)', 16, 8, 2, None, False), ('_1', 'usize', 8, 8, 1, None, False), ('_2', 'usize', 8, 8, 1, None, False), ('_3', '(usize, bool)', 16, 8, 2, None, False), ('_4', 'usize', 8, 8, 1, None, False), ('_5', 'bool', 1, 1, 1, None, False)]
+ROW 2990 _3 = add_with_overflow_intrinsic(copy _1, copy _2); ['_3', '_1', '_2'] [] LOOP False
+ROW 2990 _4 = copy (_3.0: usize); ['_4', '_3'] [] LOOP False
+ROW 2990 _5 = copy (_3.1: bool); ['_5', '_3'] [] LOOP False
+ROW 2991 _0 = (copy _4, copy _5); ['_0', '_4', '_5'] [] LOOP False
+ROW 2992 return; [] [] LOOP False
+
+NODE add_with_overflow_intrinsic CALLS [] SAFE Exact nounwind compiler intrinsic boundary, result aggregate16/8 independently observed; not compiler lowering instruction pricing.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/intrinsics/mod.rs 4e5636408e09e41733b37bb5d9fa2f1c6a12ff60cb46099bc8d04284af427289
+2053:#[rustc_nounwind]
+2054:#[rustc_intrinsic]
+2055:pub const fn add_with_overflow<T: Copy>(x: T, y: T) -> (T, bool);
+ROLES [('_0', '(usize, bool)', 16, 8, 2, None, False), ('_1', 'usize', 8, 8, 1, None, False), ('_2', 'usize', 8, 8, 1, None, False)]
+ROW 2055 _0 = AddWithOverflow(copy _1, copy _2); ['_0', '_1', '_2'] [] LOOP False
+ROW 2055 return; [] [] LOOP False
+
+NODE unchecked_add_intrinsic CALLS [] SAFE Exact nounwind primitive with no-overflow precondition established in caller; private compiler implementation remains outside logical unit.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/intrinsics/mod.rs 4e5636408e09e41733b37bb5d9fa2f1c6a12ff60cb46099bc8d04284af427289
+2172:#[rustc_nounwind]
+2173:#[rustc_intrinsic]
+2174:pub const unsafe fn unchecked_add<T: Copy>(x: T, y: T) -> T;
+ROLES [('_0', 'usize', 8, 8, 1, None, False), ('_1', 'usize', 8, 8, 1, None, False), ('_2', 'usize', 8, 8, 1, None, False)]
+ROW 2174 _0 = AddUnchecked(copy _1, copy _2); ['_0', '_1', '_2'] [] LOOP False
+ROW 2174 return; [] [] LOOP False
+
+NODE ub_checks_intrinsic CALLS [] SAFE Exact compiler intrinsic source cfg!(ub_checks) boundary; actual retained opt0 precondition edges are present. Not a price for private compiler work.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/intrinsics/mod.rs 4e5636408e09e41733b37bb5d9fa2f1c6a12ff60cb46099bc8d04284af427289
+2783:pub const fn ub_checks() -> bool {
+2784:    cfg!(ub_checks)
+2785:}
+ROLES [('_0', 'bool', 1, 1, 1, None, False)]
+ROW 2784 _0 = CompilerCfgUbChecks(); ['_0'] [] LOOP False
+ROW 2785 return; [] [] LOOP False
+
+NODE unlikely_adapter CALLS [{'count': 1, 'node': 'cold_path_helper'}] SAFE Exact nounwind unlikely source helper and cold_path empty source helper boundary; both branches positively charged.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/intrinsics/mod.rs 4e5636408e09e41733b37bb5d9fa2f1c6a12ff60cb46099bc8d04284af427289
+477:pub const fn unlikely(b: bool) -> bool {
+478:    if b {
+479:        cold_path();
+480:        true
+481:    } else {
+482:        false
+483:    }
+484:}
+ROLES [('_0', 'bool', 1, 1, 1, None, False), ('_1', 'bool', 1, 1, 1, None, False)]
+ROW 478 switchInt(copy _1); ['_1'] [] LOOP False
+ROW 479 cold_path_helper(); [] [] LOOP False
+ROW 480 _0 = const true; ['_0'] [{'bytes': 1, 'leaves': 1, 'text': 'true'}] LOOP False
+ROW 482 _0 = const false; ['_0'] [{'bytes': 1, 'leaves': 1, 'text': 'false'}] LOOP False
+ROW 484 return; [] [] LOOP False
+
+NODE cold_path_helper CALLS [] SAFE Exact nounwind #[cold] helper has empty source body. Entry, unit return, source actions and finite end are positive; no arbitrary zero-cost leaf.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/intrinsics/mod.rs 4e5636408e09e41733b37bb5d9fa2f1c6a12ff60cb46099bc8d04284af427289
+438:pub const fn cold_path() {}
+ROLES [('_0', '()', 0, 1, 1, None, False)]
+ROW 438 _0 = const (); ['_0'] [{'bytes': 0, 'leaves': 1, 'text': '()'}] LOOP False
+ROW 438 return; [] [] LOOP False
+
+NODE slice_len CALLS [{'count': 1, 'node': 'ptr_metadata_adapter'}] SAFE None
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/slice/mod.rs 8026ddec62fb732d01dc6fcb700fbf109aa5dd94d2391387db3202f405669d43
+116:    pub const fn len(&self) -> usize {
+117:        ptr::metadata(self)
+118:    }
+ROLES [('_0', 'usize', 8, 8, 1, None, False), ('_1', '&[u8]', 16, 8, 1, None, True), ('_2', '*const [u8]', 16, 8, 1, None, True)]
+ROW 117 _2 = copy _1 as *const [u8]; ['_2', '_1'] [] LOOP False
+ROW 117 _0 = ptr_metadata_adapter(copy _2); ['_0', '_2'] [] LOOP False
+ROW 118 return; [] [] LOOP False
+
+NODE ptr_metadata_adapter CALLS [] SAFE Exact ptr_metadata intrinsic source boundary specialized to slice metadata usize; does not scan a pointee.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/ptr/metadata.rs 90be519b27b46064f0bec607170ffce37aa9afb160a1edfab9c51641c8af15e2
+100:pub const fn metadata<T: PointeeSized>(ptr: *const T) -> <T as Pointee>::Metadata {
+101:    ptr_metadata(ptr)
+102:}
+ROLES [('_0', 'usize', 8, 8, 1, None, False), ('_1', '*const [u8]', 16, 8, 1, None, True)]
+ROW 101 _0 = PtrMetadata(copy _1); ['_0', '_1'] [] LOOP False
+ROW 102 return; [] [] LOOP False
+
+NODE usize_checked_add CALLS [{'count': 1, 'node': 'add_with_overflow_intrinsic'}, {'count': 1, 'node': 'unchecked_add_intrinsic'}, {'count': 1, 'node': 'unlikely_adapter'}] SAFE Both overflow/None and non-overflow/Some source arms conservatively charged; unchecked_add is called only after false overflow. Unlikely source helper and its cold_path intrinsic boundary are included.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/num/uint_macros.rs 39968a5edee5ecbe8bf38d38a87b6794e351076087c95483e1da083c8da0a19c
+930:        pub const fn checked_add(self, rhs: Self) -> Option<Self> {
+931:            // This used to use `overflowing_add`, but that means it ends up being
+932:            // a `wrapping_add`, losing some optimization opportunities. Notably,
+933:            // phrasing it this way helps `.checked_add(1)` optimize to a check
+934:            // against `MAX` and a `add nuw`.
+935:            // Per <https://github.com/rust-lang/rust/pull/124114#issuecomment-2066173305>,
+936:            // LLVM is happy to re-form the intrinsic later if useful.
+937:
+938:            if intrinsics::unlikely(intrinsics::add_with_overflow(self, rhs).1) {
+939:                None
+940:            } else {
+941:                // SAFETY: Just checked it doesn't overflow
+942:                Some(unsafe { intrinsics::unchecked_add(self, rhs) })
+943:            }
+944:        }
+ROLES [('_0', 'Option<usize>', 16, 8, 2, None, False), ('_1', 'usize', 8, 8, 1, None, False), ('_2', 'usize', 8, 8, 1, None, False), ('_3', '(usize, bool)', 16, 8, 2, None, False), ('_4', 'bool', 1, 1, 1, None, False), ('_5', 'bool', 1, 1, 1, None, False), ('_6', 'usize', 8, 8, 1, None, False)]
+ROW 938 _3 = add_with_overflow_intrinsic(copy _1, copy _2); ['_3', '_1', '_2'] [] LOOP False
+ROW 938 _4 = copy (_3.1: bool); ['_4', '_3'] [] LOOP False
+ROW 938 _5 = unlikely_adapter(copy _4); ['_5', '_4'] [] LOOP False
+ROW 938 switchInt(copy _5); ['_5'] [] LOOP False
+ROW 939 _0 = Option::<usize>::None; ['_0'] [] LOOP False
+ROW 942 _6 = unchecked_add_intrinsic(copy _1, copy _2); ['_6', '_1', '_2'] [] LOOP False
+ROW 942 _0 = Option::<usize>::Some(copy _6); ['_0', '_6'] [] LOOP False
+ROW 944 return; [] [] LOOP False
+
+NODE option_ok_or_shape_refusal CALLS [] SAFE CandidateShapeRefusalV1 exact Copy enum of unit/usize only; unused err gets positive finite-end charge. No owned Drop frontier; LLVM has no call/invoke.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/option.rs 2dab92cdbec51b006307496b24cc757d7b2bc4056eff156d0fff445f66c1d2f5
+1333:    pub const fn ok_or<E: [const] Destruct>(self, err: E) -> Result<T, E> {
+1334:        match self {
+1335:            Some(v) => Ok(v),
+1336:            None => Err(err),
+1337:        }
+1338:    }
+ROLES [('_0', 'Result<usize,CandidateShapeRefusalV1>', 16, 8, 3, None, False), ('_1', 'Option<usize>', 16, 8, 2, None, False), ('_2', 'CandidateShapeRefusalV1', 16, 8, 2, None, False), ('_3', 'isize', 8, 8, 1, None, False), ('_4', 'usize', 8, 8, 1, None, False)]
+ROW 1334 _3 = discriminant(_1); ['_3', '_1'] [] LOOP False
+ROW 1334 switchInt(copy _3); ['_3'] [] LOOP False
+ROW 1335 _4 = copy ((_1 as Some).0: usize); ['_4', '_1'] [] LOOP False
+ROW 1335 _0 = Result::Ok(copy _4); ['_0', '_4'] [] LOOP False
+ROW 1336 _0 = Result::Err(move _2); ['_0', '_2'] [] LOOP False
+ROW 1338 return; [] [] LOOP False
+
+NODE result_try_branch CALLS [] SAFE Both Ok/Err paths retain all source places and finite ends; exact Copy enum has no owned destructors.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/result.rs b7a1da21e96c0fbb74af31dfcf4904c8f74a974733aa62a69b0ae41c2107a196
+2176:    fn branch(self) -> ControlFlow<Self::Residual, Self::Output> {
+2177:        match self {
+2178:            Ok(v) => ControlFlow::Continue(v),
+2179:            Err(e) => ControlFlow::Break(Err(e)),
+2180:        }
+2181:    }
+ROLES [('_0', 'ControlFlow<Residual,usize>', 16, 8, 4, None, False), ('_1', 'Result<usize,CandidateShapeRefusalV1>', 16, 8, 3, None, False), ('_2', 'isize', 8, 8, 1, None, False), ('_3', 'usize', 8, 8, 1, None, False), ('_4', 'CandidateShapeRefusalV1', 16, 8, 2, None, False), ('_5', 'Residual', 16, 8, 3, None, False)]
+ROW 2177 _2 = discriminant(_1); ['_2', '_1'] [] LOOP False
+ROW 2177 switchInt(copy _2); ['_2'] [] LOOP False
+ROW 2178 _3 = copy ((_1 as Ok).0: usize); ['_3', '_1'] [] LOOP False
+ROW 2178 _0 = ControlFlow::Continue(copy _3); ['_0', '_3'] [] LOOP False
+ROW 2179 _4 = copy ((_1 as Err).0: CandidateShapeRefusalV1); ['_4', '_1'] [] LOOP False
+ROW 2179 _5 = Result::Err(move _4); ['_5', '_4'] [] LOOP False
+ROW 2179 _0 = ControlFlow::Break(move _5); ['_0', '_5'] [] LOOP False
+ROW 2181 return; [] [] LOOP False
+
+NODE candidate_result_from_residual CALLS [{'count': 1, 'node': 'refusal_from_identity'}] SAFE Residual Ok(Infallible) is uninhabited. F=E exactly; generic error conversions refused. Track-caller compiler boundary separately charged.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/result.rs b7a1da21e96c0fbb74af31dfcf4904c8f74a974733aa62a69b0ae41c2107a196
+2191:    fn from_residual(residual: Result<convert::Infallible, E>) -> Self {
+2192:        match residual {
+2193:            Err(e) => Err(From::from(e)),
+2194:        }
+2195:    }
+ROLES [('_0', 'CandidateResult', 1352, 8, 714, None, False), ('_1', 'Residual', 16, 8, 3, None, False), ('_2', 'CandidateShapeRefusalV1', 16, 8, 2, None, False), ('_3', 'CandidateShapeRefusalV1', 16, 8, 2, None, False)]
+ROW 2192 _2 = copy ((_1 as Err).0: CandidateShapeRefusalV1); ['_2', '_1'] [] LOOP False
+ROW 2193 _3 = refusal_from_identity(move _2); ['_3', '_2'] [] LOOP False
+ROW 2193 _0 = Result::Err(move _3); ['_0', '_3'] [] LOOP False
+ROW 2195 return; [] [] LOOP False
+
+NODE refusal_from_identity CALLS [] SAFE Exact reflexive From<T> for T with T=CandidateShapeRefusalV1. LLVM inlines the Copy move; no arbitrary conversion closure.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/convert/mod.rs e3e2314f58cede71077d46befcab3a381f2082130e0672b1bf01f79b5199347c
+791:    fn from(t: T) -> T {
+792:        t
+793:    }
+ROLES [('_0', 'CandidateShapeRefusalV1', 16, 8, 2, None, False), ('_1', 'CandidateShapeRefusalV1', 16, 8, 2, None, False)]
+ROW 792 _0 = move _1; ['_0', '_1'] [] LOOP False
+ROW 793 return; [] [] LOOP False
+
+NODE path_as_os_str CALLS [] SAFE None
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/std/src/path.rs a41beffcf2ecd2b331c71cc7d6d2e7ca18f85e613106abee770821dd0e53be14
+2436:    pub fn as_os_str(&self) -> &OsStr {
+2437:        &self.inner
+2438:    }
+ROLES [('_0', '&OsStr', 16, 8, 1, None, True), ('_1', '&Path', 16, 8, 1, None, True)]
+ROW 2437 _0 = &((*_1).inner: OsStr); ['_0', '_1'] [] LOOP False
+ROW 2438 return; [] [] LOOP False
+
+NODE osstr_as_bytes CALLS [{'count': 1, 'node': 'osstr_as_inner'}] SAFE None
+SOURCE verification/swift-guarded-snapshot-native-interface-bounds/official-source/library/std/src/os/unix/ffi/os_str.rs 5db4bdbca5facd9f5df12a17709ca0e7df82acd462bf6e117106752f559f84b3
+60:    fn as_bytes(&self) -> &[u8] {
+61:        &self.as_inner().inner
+62:    }
+ROLES [('_0', '&[u8]', 16, 8, 1, None, True), ('_1', '&OsStr', 16, 8, 1, None, True), ('_2', '&UnixOsSlice', 16, 8, 1, None, True)]
+ROW 61 _2 = osstr_as_inner(copy _1); ['_2', '_1'] [] LOOP False
+ROW 61 _0 = &((*_2).inner: [u8]); ['_0', '_2'] [] LOOP False
+ROW 62 return; [] [] LOOP False
+
+NODE osstr_as_inner CALLS [] SAFE Exact aarch64-apple-darwin unix bytes Slice, repr(transparent) inner[u8]; OsStr repr(transparent) innerSlice. No encoding conversion or owned allocation.
+SOURCE verification/swift-guarded-snapshot-native-interface-bounds/official-source/library/std/src/ffi/os_str.rs fc18fd9479db9a95a94d96bd7b4c5ac5b479fbef97d13c2545aebebbbb2af9c0
+1800:    fn as_inner(&self) -> &Slice {
+1801:        &self.inner
+1802:    }
+ROLES [('_0', '&UnixOsSlice', 16, 8, 1, None, True), ('_1', '&OsStr', 16, 8, 1, None, True)]
+ROW 1801 _0 = &((*_1).inner: UnixOsSlice); ['_0', '_1'] [] LOOP False
+ROW 1802 return; [] [] LOOP False
+
+NODE slice_is_empty CALLS [{'count': 1, 'node': 'slice_len'}] SAFE None
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/slice/mod.rs 8026ddec62fb732d01dc6fcb700fbf109aa5dd94d2391387db3202f405669d43
+136:    pub const fn is_empty(&self) -> bool {
+137:        self.len() == 0
+138:    }
+ROLES [('_0', 'bool', 1, 1, 1, None, False), ('_1', '&[u8]', 16, 8, 1, None, True), ('_2', 'usize', 8, 8, 1, None, False)]
+ROW 137 _2 = slice_len(copy _1); ['_2', '_1'] [] LOOP False
+ROW 137 _0 = Eq(copy _2, const 0_usize); ['_0', '_2'] [{'bytes': 8, 'leaves': 1, 'text': '0_usize'}] LOOP False
+ROW 138 return; [] [] LOOP False
+
+NODE option_and_then_excluding_authored_callback CALLS [{'count': 1, 'node': 'AUTHORED_CALLBACK'}] SAFE Exact actual closure16/8, two shared references. Its body cap5 and all11 compiler roles already charged by provider base. This source ledger adds only the adapter call boundary, result forwarding and positive finite ends; None/unwind gives no refund.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/option.rs 2dab92cdbec51b006307496b24cc757d7b2bc4056eff156d0fff445f66c1d2f5
+1537:    pub const fn and_then<U, F>(self, f: F) -> Option<U>
+1538:    where
+1539:        F: [const] FnOnce(T) -> Option<U> + [const] Destruct,
+1540:    {
+1541:        match self {
+1542:            Some(x) => f(x),
+1543:            None => None,
+1544:        }
+1545:    }
+ROLES [('_0', 'Option<usize>', 16, 8, 2, None, False), ('_1', 'Option<usize>', 16, 8, 2, None, False), ('_2', 'ProductionClosure', 16, 8, 2, None, False), ('_3', 'isize', 8, 8, 1, None, False), ('_4', 'usize', 8, 8, 1, None, False), ('_5', 'Option<usize>', 16, 8, 2, None, False)]
+ROW 1541 _3 = discriminant(_1); ['_3', '_1'] [] LOOP False
+ROW 1541 switchInt(copy _3); ['_3'] [] LOOP False
+ROW 1542 _4 = copy ((_1 as Some).0: usize); ['_4', '_1'] [] LOOP False
+ROW 1542 _5 = AUTHORED_CALLBACK(move _2, move _4); ['_5', '_2', '_4'] [] LOOP False
+ROW 1542 _0 = move _5; ['_0', '_5'] [] LOOP False
+ROW 1543 _0 = Option::<usize>::None; ['_0'] [] LOOP False
+ROW 1545 return; [] [] LOOP False
+
+NODE digest_array_ne32 CALLS [{'count': 1, 'node': 'array_spec_ne32'}] SAFE None
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/array/equality.rs 8765b16c3149dcfcf531e2f5724bfc1d2e518a05742d1333d53ed7eee4f0ae78
+14:    fn ne(&self, other: &[U; N]) -> bool {
+15:        SpecArrayEq::spec_ne(self, other)
+16:    }
+ROLES [('_0', 'bool', 1, 1, 1, None, False), ('_1', '&[u8;32]', 8, 8, 1, [32, 32], False), ('_2', '&[u8;32]', 8, 8, 1, [32, 32], False)]
+ROW 15 _0 = array_spec_ne32(copy _1, copy _2); ['_0', '_1', '_2'] [] LOOP False
+ROW 16 return; [] [] LOOP False
+
+NODE array_spec_ne32 CALLS [{'count': 1, 'node': 'array_spec_eq32'}] SAFE None
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/array/equality.rs 8765b16c3149dcfcf531e2f5724bfc1d2e518a05742d1333d53ed7eee4f0ae78
+159:    fn spec_ne(a: &[T; N], b: &[U; N]) -> bool {
+160:        !Self::spec_eq(a, b)
+161:    }
+ROLES [('_0', 'bool', 1, 1, 1, None, False), ('_1', '&[u8;32]', 8, 8, 1, [32, 32], False), ('_2', '&[u8;32]', 8, 8, 1, [32, 32], False), ('_3', 'bool', 1, 1, 1, None, False)]
+ROW 160 _3 = array_spec_eq32(copy _1, copy _2); ['_3', '_1', '_2'] [] LOOP False
+ROW 160 _0 = Not(copy _3); ['_0', '_3'] [] LOOP False
+ROW 161 return; [] [] LOOP False
+
+NODE array_spec_eq32 CALLS [{'count': 1, 'node': 'DIGEST_MEMCMP_FRONTIER'}] SAFE u8 BytewiseEq specialization, raw_eq exactly32 readable bytes on each side. Retained LLVM calls external memcmp32; no generic element loop, vector-bound inference or private memcmp price.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/array/equality.rs 8765b16c3149dcfcf531e2f5724bfc1d2e518a05742d1333d53ed7eee4f0ae78
+153:    fn spec_eq(a: &[T; N], b: &[U; N]) -> bool {
+154:        // SAFETY: Arrays are compared element-wise, and don't add any padding
+155:        // between elements, so when the elements are `BytewiseEq`, we can
+156:        // compare the entire array at once.
+157:        unsafe { crate::intrinsics::raw_eq(a, crate::mem::transmute(b)) }
+158:    }
+ROLES [('_0', 'bool', 1, 1, 1, None, False), ('_1', '&[u8;32]', 8, 8, 1, [32, 32], False), ('_2', '&[u8;32]', 8, 8, 1, [32, 32], False), ('_3', '&[u8;32]', 8, 8, 1, [32, 32], False)]
+ROW 157 _3 = Transmute(copy _2); ['_3', '_2'] [] LOOP False
+ROW 157 _0 = RAW_EQ32_FRONTIER(copy _1, copy _3); ['_0', '_1', '_3'] [] LOOP False
+ROW 158 return; [] [] LOOP False
+
+NODE slice_reference_ne CALLS [{'count': 1, 'node': 'slice_default_ne'}] SAFE None
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/cmp.rs 953a01ad14ea229734b5307ef670169277b4c6e02dc4f0b3948c11282f1c2922
+2354:        fn ne(&self, other: &&B) -> bool {
+2355:            PartialEq::ne(*self, *other)
+2356:        }
+ROLES [('_0', 'bool', 1, 1, 1, None, False), ('_1', '&&[u8]', 8, 8, 1, [16, 1], False), ('_2', '&&[u8]', 8, 8, 1, [16, 1], False), ('_3', '&[u8]', 16, 8, 1, None, True), ('_4', '&[u8]', 16, 8, 1, None, True)]
+ROW 2355 _3 = copy (*_1); ['_3', '_1'] [] LOOP False
+ROW 2355 _4 = copy (*_2); ['_4', '_2'] [] LOOP False
+ROW 2355 _0 = slice_default_ne(copy _3, copy _4); ['_0', '_3', '_4'] [] LOOP False
+ROW 2356 return; [] [] LOOP False
+
+NODE slice_default_ne CALLS [{'count': 1, 'node': 'slice_eq'}] SAFE None
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/cmp.rs 953a01ad14ea229734b5307ef670169277b4c6e02dc4f0b3948c11282f1c2922
+275:    fn ne(&self, other: &Rhs) -> bool {
+276:        !self.eq(other)
+277:    }
+ROLES [('_0', 'bool', 1, 1, 1, None, False), ('_1', '&[u8]', 16, 8, 1, None, True), ('_2', '&[u8]', 16, 8, 1, None, True), ('_3', 'bool', 1, 1, 1, None, False)]
+ROW 276 _3 = slice_eq(copy _1, copy _2); ['_3', '_1', '_2'] [] LOOP False
+ROW 276 _0 = Not(copy _3); ['_0', '_3'] [] LOOP False
+ROW 277 return; [] [] LOOP False
+
+NODE slice_eq CALLS [{'count': 2, 'node': 'slice_len'}, {'count': 2, 'node': 'slice_as_ptr'}, {'count': 1, 'node': 'bytewise_eq'}] SAFE u8 BytewiseEq selected; unequal lengths skip comparison, but entire shell and residual reserve retained. Exact source as_ptr helper and each primitive cast are included; no ownership transfer.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/slice/cmp.rs 7c41479582d6cf55d342001ae1f846d240f153c23f9d148ea179af29f2467f51
+19:    fn eq(&self, other: &[U]) -> bool {
+20:        let len = self.len();
+21:        if len == other.len() {
+22:            // SAFETY: Just checked that they're the same length, and the pointers
+23:            // come from references-to-slices so they're guaranteed readable.
+24:            unsafe { SlicePartialEq::equal_same_length(self.as_ptr(), other.as_ptr(), len) }
+25:        } else {
+26:            false
+27:        }
+28:    }
+ROLES [('_0', 'bool', 1, 1, 1, None, False), ('_1', '&[u8]', 16, 8, 1, None, True), ('_2', '&[u8]', 16, 8, 1, None, True), ('_3', 'usize', 8, 8, 1, None, False), ('_4', 'usize', 8, 8, 1, None, False), ('_5', 'bool', 1, 1, 1, None, False), ('_6', '*const u8', 8, 8, 1, None, True), ('_7', '*const u8', 8, 8, 1, None, True)]
+ROW 20 _3 = slice_len(copy _1); ['_3', '_1'] [] LOOP False
+ROW 21 _4 = slice_len(copy _2); ['_4', '_2'] [] LOOP False
+ROW 21 _5 = Eq(copy _3, copy _4); ['_5', '_3', '_4'] [] LOOP False
+ROW 21 switchInt(copy _5); ['_5'] [] LOOP False
+ROW 24 _6 = slice_as_ptr(copy _1); ['_6', '_1'] [] LOOP False
+ROW 24 _7 = slice_as_ptr(copy _2); ['_7', '_2'] [] LOOP False
+ROW 24 _0 = bytewise_eq(copy _6, copy _7, copy _3); ['_0', '_6', '_7', '_3'] [] LOOP False
+ROW 26 _0 = const false; ['_0'] [{'bytes': 1, 'leaves': 1, 'text': 'false'}] LOOP False
+ROW 28 return; [] [] LOOP False
+
+NODE slice_as_ptr CALLS [] SAFE Exact reference→wide raw→thin raw casts; source/typed native operands are charged, no buffer allocation or backing credit.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/slice/mod.rs 8026ddec62fb732d01dc6fcb700fbf109aa5dd94d2391387db3202f405669d43
+728:    pub const fn as_ptr(&self) -> *const T {
+729:        self as *const [T] as *const T
+730:    }
+ROLES [('_0', '*const u8', 8, 8, 1, None, True), ('_1', '&[u8]', 16, 8, 1, None, True), ('_2', '*const [u8]', 16, 8, 1, None, True)]
+ROW 729 _2 = copy _1 as *const [u8]; ['_2', '_1'] [] LOOP False
+ROW 729 _0 = copy _2 as *const u8; ['_0', '_2'] [] LOOP False
+ROW 730 return; [] [] LOOP False
+
+NODE bytewise_eq CALLS [{'count': 1, 'node': 'PATH_MEMCMP_FRONTIER'}] SAFE Equal readable slice lengths; len*size_of(u8)=len, so no overflow. External memcmp length is actual native path length when equal, conservatively max(actual native,retained)<=B for every path.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/slice/cmp.rs 7c41479582d6cf55d342001ae1f846d240f153c23f9d148ea179af29f2467f51
+151:    unsafe fn equal_same_length(lhs: *const Self, rhs: *const B, len: usize) -> bool {
+152:        // SAFETY: by our precondition, `lhs` and `rhs` are guaranteed to be valid
+153:        // for reading `len` values, which also means the size is guaranteed
+154:        // not to overflow because it exists in memory;
+155:        unsafe {
+156:            let size = crate::intrinsics::unchecked_mul(len, Self::SIZE);
+157:            compare_bytes(lhs as _, rhs as _, size) == 0
+158:        }
+159:    }
+ROLES [('_0', 'bool', 1, 1, 1, None, False), ('_1', '*const u8', 8, 8, 1, None, True), ('_2', '*const u8', 8, 8, 1, None, True), ('_3', 'usize', 8, 8, 1, None, False), ('_4', 'usize', 8, 8, 1, None, False), ('_5', 'i32', 4, 4, 1, None, False)]
+ROW 156 _4 = MulUnchecked(copy _3, const 1_usize); ['_4', '_3'] [{'bytes': 8, 'leaves': 1, 'text': '1_usize'}] LOOP False
+ROW 157 _5 = PATH_MEMCMP_FRONTIER(copy _1, copy _2, copy _4); ['_5', '_1', '_2', '_4'] [] LOOP False
+ROW 157 _0 = Eq(copy _5, const 0_i32); ['_0', '_5'] [{'bytes': 4, 'leaves': 1, 'text': '0_i32'}] LOOP False
+ROW 159 return; [] [] LOOP False
+
+NODE slice_contains_u8 CALLS [{'count': 1, 'node': 'u8_contains_shell'}] SAFE None
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/slice/mod.rs 8026ddec62fb732d01dc6fcb700fbf109aa5dd94d2391387db3202f405669d43
+2600:    pub fn contains(&self, x: &T) -> bool
+2601:    where
+2602:        T: PartialEq,
+2603:    {
+2604:        cmp::SliceContains::slice_contains(x, self)
+2605:    }
+ROLES [('_0', 'bool', 1, 1, 1, None, False), ('_1', '&[u8]', 16, 8, 1, None, True), ('_2', '&u8', 8, 8, 1, [1, 1], False)]
+ROW 2604 _0 = u8_contains_shell(copy _2, copy _1); ['_0', '_2', '_1'] [] LOOP False
+ROW 2605 return; [] [] LOOP False
+
+NODE u8_contains_shell CALLS [{'count': 1, 'node': 'memchr_shell'}, {'count': 1, 'node': 'CONTAINS_RESIDUAL_FRONTIER'}] SAFE size_of(u8)=1, so source else406 Iter::any and macro vector specialization411..435 are unselected. All actual transmute_copy/from_raw_parts instrumented helper work, native operands/slots and assert_unchecked checking remain required inside the positive composite residual. Source primitive boundary occurrences above are additional shell work, never a claim to close those helpers.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/slice/cmp.rs 7c41479582d6cf55d342001ae1f846d240f153c23f9d148ea179af29f2467f51
+396:    default fn slice_contains(&self, x: &[Self]) -> bool {
+397:        if size_of::<T>() == 1 {
+398:            // SAFETY: `BytewiseEq` guarantees that values have no padding or provenance and
+399:            // compare like their underlying bytes. Since `T` is one byte, both the value and
+400:            // slice can be read as `u8`s.
+401:            let (byte, bytes) = unsafe {
+402:                (transmute_copy::<T, u8>(self), from_raw_parts(x.as_ptr().cast::<u8>(), x.len()))
+403:            };
+404:            memchr::memchr(byte, bytes).is_some()
+405:        } else {
+406:            x.iter().any(|y| *y == *self)
+407:        }
+408:    }
+ROLES [('_0', 'bool', 1, 1, 1, None, False), ('_1', '&u8', 8, 8, 1, [1, 1], False), ('_2', '&[u8]', 16, 8, 1, None, True), ('_3', 'usize', 8, 8, 1, None, False), ('_4', 'bool', 1, 1, 1, None, False), ('_5', 'u8', 1, 1, 1, None, False), ('_6', '&[u8]', 16, 8, 1, None, True), ('_7', 'Option<usize>', 16, 8, 2, None, False)]
+ROW 397 _3 = SizeOf::<u8>(); ['_3'] [] LOOP False
+ROW 397 _4 = Eq(copy _3, const 1_usize); ['_4', '_3'] [{'bytes': 8, 'leaves': 1, 'text': '1_usize'}] LOOP False
+ROW 397 switchInt(copy _4); ['_4'] [] LOOP False
+ROW 402 _5 = TransmuteCopyU8(copy _1); ['_5', '_1'] [] LOOP False
+ROW 402 _6 = FromRawPartsU8(copy _2); ['_6', '_2'] [] LOOP False
+ROW 404 _7 = memchr_shell(copy _5, copy _6); ['_7', '_5', '_6'] [] LOOP False
+ROW 404 _0 = IsSome(copy _7); ['_0', '_7'] [] LOOP False
+ROW 408 return; [] [] LOOP False
+
+NODE memchr_shell CALLS [{'count': 1, 'node': 'slice_len'}, {'count': 1, 'node': 'memchr_naive'}] SAFE 16=2*observed usize8, exact compiler/source branch. Aligned branch belongs to CONTAINS_RESIDUAL_FRONTIER, not a second term. Source result Some index<len assertion and all its helper work remain in that residual.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/slice/memchr.rs f18cfa48aa5cc6ecb054ec030df382de33677f9af374df4ff16f11192ff54f93
+25:pub const fn memchr(x: u8, text: &[u8]) -> Option<usize> {
+26:    // Fast path for small slices.
+27:    let result =
+28:        if text.len() < 2 * USIZE_BYTES { memchr_naive(x, text) } else { memchr_aligned(x, text) };
+29:    if let Some(index) = result {
+30:        // SAFETY: Both implementations only return an index from within `text`.
+31:        unsafe { crate::hint::assert_unchecked(index < text.len()) };
+32:    }
+33:    result
+34:}
+ROLES [('_0', 'Option<usize>', 16, 8, 2, None, False), ('_1', 'u8', 1, 1, 1, None, False), ('_2', '&[u8]', 16, 8, 1, None, True), ('_3', 'usize', 8, 8, 1, None, False), ('_4', 'bool', 1, 1, 1, None, False), ('_5', 'Option<usize>', 16, 8, 2, None, False), ('_6', 'isize', 8, 8, 1, None, False), ('_7', 'usize', 8, 8, 1, None, False), ('_8', 'bool', 1, 1, 1, None, False)]
+ROW 28 _3 = slice_len(copy _2); ['_3', '_2'] [] LOOP False
+ROW 28 _4 = Lt(copy _3, const 16_usize); ['_4', '_3'] [{'bytes': 8, 'leaves': 1, 'text': '16_usize'}] LOOP False
+ROW 28 switchInt(copy _4); ['_4'] [] LOOP False
+ROW 28 _5 = memchr_naive(copy _1, copy _2); ['_5', '_1', '_2'] [] LOOP False
+ROW 28 _5 = MEMCHR_ALIGNED_FRONTIER(copy _1, copy _2); ['_5', '_1', '_2'] [] LOOP False
+ROW 29 _6 = discriminant(_5); ['_6', '_5'] [] LOOP False
+ROW 29 switchInt(copy _6); ['_6'] [] LOOP False
+ROW 29 _7 = copy ((_5 as Some).0: usize); ['_7', '_5'] [] LOOP False
+ROW 31 _8 = Lt(copy _7, copy _3); ['_8', '_7', '_3'] [] LOOP False
+ROW 31 AssertUncheckedBoundary(copy _8); ['_8'] [] LOOP False
+ROW 33 _0 = copy _5; ['_0', '_5'] [] LOOP False
+ROW 34 return; [] [] LOOP False
+
+NODE memchr_naive CALLS [{'count': 'body+1', 'node': 'slice_len'}] SAFE Selected only when n<16. Loop uses n+1 conservatively for every row, n<=B actual path length; source ledger retains B² body allowances rather than selecting15 as an arbitrary maximum. Monotone i, valid slice and exact LLVM bound checks prove panic edge unreachable. No extra callback; this is not Iter::any.
+SOURCE verification/swift-guarded-snapshot-owned-provider-callee-interfaces/official-source/library/core/src/slice/memchr.rs f18cfa48aa5cc6ecb054ec030df382de33677f9af374df4ff16f11192ff54f93
+37:const fn memchr_naive(x: u8, text: &[u8]) -> Option<usize> {
+38:    let mut i = 0;
+39:
+40:    // FIXME(const-hack): Replace with `text.iter().pos(|c| *c == x)`.
+41:    while i < text.len() {
+42:        if text[i] == x {
+43:            return Some(i);
+44:        }
+45:
+46:        i += 1;
+47:    }
+48:
+49:    None
+50:}
+ROLES [('_0', 'Option<usize>', 16, 8, 2, None, False), ('_1', 'u8', 1, 1, 1, None, False), ('_2', '&[u8]', 16, 8, 1, None, True), ('_3', 'usize', 8, 8, 1, None, False), ('_4', 'usize', 8, 8, 1, None, False), ('_5', 'bool', 1, 1, 1, None, False), ('_6', 'u8', 1, 1, 1, None, False), ('_7', 'bool', 1, 1, 1, None, False)]
+ROW 38 _3 = const 0_usize; ['_3'] [{'bytes': 8, 'leaves': 1, 'text': '0_usize'}] LOOP False
+ROW 41 _4 = slice_len(copy _2); ['_4', '_2'] [] LOOP True
+ROW 41 _5 = Lt(copy _3, copy _4); ['_5', '_3', '_4'] [] LOOP True
+ROW 41 switchInt(copy _5); ['_5'] [] LOOP True
+ROW 42 _6 = copy (*_2)[_3]; ['_6', '_2', '_3'] [] LOOP True
+ROW 42 _7 = Eq(copy _6, copy _1); ['_7', '_6', '_1'] [] LOOP True
+ROW 42 switchInt(copy _7); ['_7'] [] LOOP True
+ROW 43 _0 = Option::<usize>::Some(copy _3); ['_0', '_3'] [] LOOP True
+ROW 43 return; [] [] LOOP True
+ROW 46 _3 = Add(copy _3, const 1_usize); ['_3', '_3'] [{'bytes': 8, 'leaves': 1, 'text': '1_usize'}] LOOP True
+ROW 49 _0 = Option::<usize>::None; ['_0'] [] LOOP False
+ROW 50 return; [] [] LOOP False
+TYPES {
+  "&&[u8]": {
+    "align": 8,
+    "body": false,
+    "bytes": 8,
+    "evidence": "exact retained production named size/alignment query:slice_header_ref",
+    "leaves": 1,
+    "pointee": [
+      16,
+      1
+    ]
+  },
+  "&OsStr": {
+    "align": 8,
+    "body": true,
+    "bytes": 16,
+    "evidence": "exact retained production named size/alignment query:osstr_ref",
+    "leaves": 1,
+    "pointee": null
+  },
+  "&Path": {
+    "align": 8,
+    "body": true,
+    "bytes": 16,
+    "evidence": "exact retained production named size/alignment query:path_ref",
+    "leaves": 1,
+    "pointee": null
+  },
+  "&UnixOsSlice": {
+    "align": 8,
+    "body": true,
+    "bytes": 16,
+    "evidence": "exact transparent OsStr\u2192Slice\u2192[u8] source projection and as_bytes LLVM ABI; inherited &OsStr observation",
+    "leaves": 1,
+    "pointee": null
+  },
+  "&[u8;32]": {
+    "align": 8,
+    "body": false,
+    "bytes": 8,
+    "evidence": "exact retained production named size/alignment query:digest_ref",
+    "leaves": 1,
+    "pointee": [
+      32,
+      32
+    ]
+  },
+  "&[u8]": {
+    "align": 8,
+    "body": true,
+    "bytes": 16,
+    "evidence": "exact retained production named size/alignment query:slice_ref",
+    "leaves": 1,
+    "pointee": null
+  },
+  "&mut Range<usize>": {
+    "align": 8,
+    "body": false,
+    "bytes": 8,
+    "evidence": "exact retained production named size/alignment query:range_ref",
+    "leaves": 1,
+    "pointee": [
+      16,
+      2
+    ]
+  },
+  "&u8": {
+    "align": 8,
+    "body": false,
+    "bytes": 8,
+    "evidence": "exact retained production named size/alignment query:byte_ref",
+    "leaves": 1,
+    "pointee": [
+      1,
+      1
+    ]
+  },
+  "()": {
+    "align": 1,
+    "body": false,
+    "bytes": 0,
+    "evidence": "exact aarch64 target scalar primitive; inherited provider/native scalar dimensions",
+    "leaves": 1,
+    "pointee": null
+  },
+  "(usize, bool)": {
+    "align": 8,
+    "body": false,
+    "bytes": 16,
+    "evidence": "exact retained same-compiler/target source146 query, full aggregate16/8",
+    "leaves": 2,
+    "pointee": null
+  },
+  "*const [u8]": {
+    "align": 8,
+    "body": true,
+    "bytes": 16,
+    "evidence": "exact reference-to-raw pointer coercion representation of observed &[u8], ptr_metadata intrinsic; not arbitrary pointer/catalog pricing",
+    "leaves": 1,
+    "pointee": null
+  },
+  "*const u8": {
+    "align": 8,
+    "body": true,
+    "bytes": 8,
+    "evidence": "exact &u8\u2192*const u8 coercion representation, selected slice::as_ptr source and LLVM pointer operand",
+    "leaves": 1,
+    "pointee": null
+  },
+  "CandidateResult": {
+    "align": 8,
+    "body": false,
+    "bytes": 1352,
+    "evidence": "exact fully-qualified print-type-size aggregate observation; provider accepted source-shape leaves",
+    "leaves": 714,
+    "pointee": null
+  },
+  "CandidateShapeRefusalV1": {
+    "align": 8,
+    "body": false,
+    "bytes": 16,
+    "evidence": "exact fully-qualified print-type-size aggregate observation; provider accepted source-shape leaves",
+    "leaves": 2,
+    "pointee": null
+  },
+  "ControlFlow<Residual,usize>": {
+    "align": 8,
+    "body": false,
+    "bytes": 16,
+    "evidence": "exact retained production named size/alignment query:control_flow",
+    "leaves": 4,
+    "pointee": null
+  },
+  "Option<usize>": {
+    "align": 8,
+    "body": false,
+    "bytes": 16,
+    "evidence": "exact retained production named size/alignment query:option_usize",
+    "leaves": 2,
+    "pointee": null
+  },
+  "ProductionClosure": {
+    "align": 8,
+    "body": false,
+    "bytes": 16,
+    "evidence": "exact production span1185:27 actual aggregate16/8 and capture types; no field sum",
+    "leaves": 2,
+    "pointee": null
+  },
+  "Range<usize>": {
+    "align": 8,
+    "body": false,
+    "bytes": 16,
+    "evidence": "exact retained production named size/alignment query:range",
+    "leaves": 2,
+    "pointee": null
+  },
+  "Residual": {
+    "align": 8,
+    "body": false,
+    "bytes": 16,
+    "evidence": "exact retained production named size/alignment query:residual",
+    "leaves": 3,
+    "pointee": null
+  },
+  "Result<usize,CandidateShapeRefusalV1>": {
+    "align": 8,
+    "body": false,
+    "bytes": 16,
+    "evidence": "exact retained production named size/alignment query:result_usize",
+    "leaves": 3,
+    "pointee": null
+  },
+  "bool": {
+    "align": 1,
+    "body": false,
+    "bytes": 1,
+    "evidence": "exact aarch64 target scalar primitive; inherited provider/native scalar dimensions",
+    "leaves": 1,
+    "pointee": null
+  },
+  "i32": {
+    "align": 4,
+    "body": false,
+    "bytes": 4,
+    "evidence": "exact aarch64 target scalar primitive; inherited provider/native scalar dimensions",
+    "leaves": 1,
+    "pointee": null
+  },
+  "isize": {
+    "align": 8,
+    "body": false,
+    "bytes": 8,
+    "evidence": "exact aarch64 target scalar primitive; inherited provider/native scalar dimensions",
+    "leaves": 1,
+    "pointee": null
+  },
+  "u8": {
+    "align": 1,
+    "body": false,
+    "bytes": 1,
+    "evidence": "exact aarch64 target scalar primitive; inherited provider/native scalar dimensions",
+    "leaves": 1,
+    "pointee": null
+  },
+  "usize": {
+    "align": 8,
+    "body": false,
+    "bytes": 8,
+    "evidence": "exact aarch64 target scalar primitive; inherited provider/native scalar dimensions",
+    "leaves": 1,
+    "pointee": null
+  }
+}

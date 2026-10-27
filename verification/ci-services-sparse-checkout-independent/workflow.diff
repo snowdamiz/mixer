@@ -1,0 +1,15 @@
+--- 9398732c23648a82097d5a72b02b1c77af818e41/verify.yml
++++ candidate/verify.yml
+@@ -316,6 +316,12 @@
+     timeout-minutes: 15
+     steps:
+       - uses: actions/checkout@v4
++        with:
++          # Protocol tests also read the frozen descriptor outside services/.
++          sparse-checkout-cone-mode: false
++          sparse-checkout: |
++            /services/
++            /contracts/release-v2.json
+       - uses: actions/setup-go@v5
+         with:
+           go-version: '1.26.4'
