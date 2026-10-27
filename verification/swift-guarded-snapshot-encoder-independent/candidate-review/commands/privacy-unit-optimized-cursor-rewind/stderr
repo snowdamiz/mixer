@@ -1,0 +1,13 @@
+error[E0599]: no method named `rewind` found for mutable reference `&mut SnapshotCursorV2<'_>` in the current scope
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-encoder-independent/candidate-review/privacy-work/unit-optimized/src/lib.rs:324:114
+    |
+324 | mod independent_privacy{fn check(c:&mut crate::experimental::swift::snapshot_encoder_v2::SnapshotCursorV2<'_>){c.rewind();}}
+    |                                                                                                                  ^^^^^^ method not found in `&mut SnapshotCursorV2<'_>`
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `rewind`, perhaps you need to implement it:
+            candidate #1: `std::io::Seek`
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0599`.

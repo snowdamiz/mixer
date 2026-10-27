@@ -1,0 +1,20 @@
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-encoder-independent/candidate-review/privacy-work/host-optimized/src/lib.rs:324:163
+    |
+324 | ...derProvenanceV1){let _=crate::experimental::swift::snapshot_encoder_v2::borrow_snapshot_v2(g,p);}}
+    |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   - unexpected argument #2 of type `&LoaderProvenanceV1`
+    |
+note: function defined here
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-encoder-independent/candidate-review/privacy-work/host-optimized/src/experimental/swift.rs:880:15
+    |
+880 | pub(crate) fn borrow_snapshot_v2<'guard>(
+    |               ^^^^^^^^^^^^^^^^^^
+help: remove the extra argument
+    |
+324 - mod independent_privacy{fn check(g:&crate::experimental_swift_reactor::InitialProfileBorrowV1<'_>,p:&crate::experimental_swift_reactor::LoaderProvenanceV1){let _=crate::experimental::swift::snapshot_encoder_v2::borrow_snapshot_v2(g,p);}}
+324 + mod independent_privacy{fn check(g:&crate::experimental_swift_reactor::InitialProfileBorrowV1<'_>,p:&crate::experimental_swift_reactor::LoaderProvenanceV1){let _=crate::experimental::swift::snapshot_encoder_v2::borrow_snapshot_v2(g);}}
+    |
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0061`.

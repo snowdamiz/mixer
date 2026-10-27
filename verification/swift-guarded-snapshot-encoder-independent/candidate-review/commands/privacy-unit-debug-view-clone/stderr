@@ -1,0 +1,18 @@
+error[E0599]: no method named `clone` found for struct `SnapshotViewV2<'guard>` in the current scope
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-encoder-independent/candidate-review/privacy-work/unit-debug/src/lib.rs:324:113
+    |
+324 | mod independent_privacy{fn check(v:crate::experimental::swift::snapshot_encoder_v2::SnapshotViewV2<'_>){let _=v.clone();}}
+    |                                                                                                                 ^^^^^ method not found in `SnapshotViewV2<'_>`
+    |
+   ::: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-encoder-independent/candidate-review/privacy-work/unit-debug/src/experimental/swift.rs:750:1
+    |
+750 | pub(crate) struct SnapshotViewV2<'guard> {
+    | ---------------------------------------- method `clone` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `clone`, perhaps you need to implement it:
+            candidate #1: `Clone`
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0599`.

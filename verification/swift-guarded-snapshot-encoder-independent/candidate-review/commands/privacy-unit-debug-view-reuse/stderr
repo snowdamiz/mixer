@@ -1,0 +1,18 @@
+error[E0382]: use of moved value: `v`
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-encoder-independent/candidate-review/privacy-work/unit-debug/src/lib.rs:324:133
+    |
+324 | ...y{fn check(v:crate::experimental::swift::snapshot_encoder_v2::SnapshotViewV2<'_>){let _=v.into_cursor();let _=v.into_cursor();}}
+    |               -                                                                              -------------       ^ value used here after move
+    |               |                                                                              |
+    |               |                                                                              `v` moved due to this method call
+    |               move occurs because `v` has type `SnapshotViewV2<'_>`, which does not implement the `Copy` trait
+    |
+note: `experimental::swift::snapshot_encoder_v2::SnapshotViewV2::<'guard>::into_cursor` takes ownership of the receiver `self`, which moves `v`
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-encoder-independent/candidate-review/privacy-work/unit-debug/src/experimental/swift.rs:893:31
+    |
+893 |     pub(crate) fn into_cursor(self) -> Result<SnapshotCursorV2<'guard>, SnapshotEncodeErrorV2> {
+    |                               ^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0382`.

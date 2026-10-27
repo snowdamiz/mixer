@@ -1,0 +1,23 @@
+error[E0505]: cannot move out of `g` because it is borrowed
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-encoder-implementation/owned-work/privacy-debug/src/lib.rs:324:193
+    |
+324 | ...ck(g:crate::experimental_swift_reactor::InitialProfileBorrowV1<'_>){let v=crate::experimental::swift::snapshot_encoder_v2::borrow_snapshot_v2(&g).unwrap();drop(g);let _=v.in...
+    |       -                                                                                                                                          --                ^        - borrow later used here
+    |       |                                                                                                                                          |                 |
+    |       |                                                                                                                                          |                 move out of `g` occurs here
+    |       binding `g` declared here                                                                                                                  borrow of `g` occurs here
+    |
+note: if `initial_profile_v1::InitialProfileBorrowV1<'_>` implemented `Clone`, you could clone the value
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-encoder-implementation/owned-work/privacy-debug/src/experimental_swift_reactor/cache/initial_profile_v1.rs:25:1
+    |
+ 25 | pub(crate) struct InitialProfileBorrowV1<'a> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider implementing `Clone` for this type
+    |
+   ::: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-encoder-implementation/owned-work/privacy-debug/src/lib.rs:324:176
+    |
+324 | ...::swift::snapshot_encoder_v2::borrow_snapshot_v2(&g).unwrap();drop(g);let _=v.into_cursor();}}
+    |                                                      - you could clone this value
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0505`.

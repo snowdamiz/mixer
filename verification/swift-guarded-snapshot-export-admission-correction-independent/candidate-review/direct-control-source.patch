@@ -1,0 +1,11 @@
+--- candidate/src/experimental_swift_reactor/cache/initial_profile_v1.rs
++++ direct-control/src/experimental_swift_reactor/cache/initial_profile_v1.rs
+@@ -307,7 +307,7 @@
+     let access=CorrectionAccessV1::signature_witness(control);
+     let primary='guarded: {
+         // The one original literal is relocated here in the disposable source.
+-        let initial=InitialProfileBorrowV1 { cache,control:access.shared_control(),wasi,scalars };
++        let initial=InitialProfileBorrowV1 { cache,control:control,wasi,scalars };
+         let proof_view=initial.cache.proof();
+         let control_view=initial.control;
+         let _=(proof_view.observations(),control_view.usage(wasi.map(AccountedWasi::usage)));

@@ -1,0 +1,174 @@
+{
+  "layouts": "52 interface/new-type/generic/aggregate compiler identities in layouts/*; scalar widths and borrowed slices follow selected64-bit target; aggregates are measured shapes, not a final simultaneous floor",
+  "pending": "later admission must name concrete selected scope/writer/stop/work/caller places and sum all actual moves; these places are not covered by old201 identities",
+  "places": {
+    "borrow_snapshot_v2": {
+      "ingress": [
+        "guard shared reference"
+      ],
+      "locals": [
+        "provenance Option shared reference",
+        "provenance shared reference",
+        "proof shared reference"
+      ],
+      "moves": [
+        "view literal",
+        "Result view return",
+        "caller Result view",
+        "view success pattern"
+      ]
+    },
+    "caller_and_moves": {
+      "cleanup": "view/cursor/block/scratch destruction must be included by actual later consuming scope; no refund or admission here",
+      "overlap": [
+        "view argument/literal/return/caller/pattern/into_cursor owned move",
+        "cursor literal/return/caller/Option/failure result move",
+        "block literal/Option/Result/caller/pattern/slice borrow",
+        "error literal/helper return/Result pattern/caller/result return"
+      ],
+      "retained": [
+        "borrowed sole guard remains original owner",
+        "Option view",
+        "Option cursor",
+        "one caller transfer [u8;4096]",
+        "optional borrowed block",
+        "independent Error/Result return"
+      ]
+    },
+    "helpers": {
+      "types": [
+        "field Error argument/return/literal copies",
+        "require Result unit argument/return",
+        "word checked conversion Result u64",
+        "put u64 argument + [u8;8] bytes",
+        "get [u8;8] TryInto result + u64 return",
+        "words scalar iterator and item",
+        "optional Option u32 argument + [u64;2] return",
+        "type_id/result_id/wasi_id enum/scalar argument and return",
+        "SpanCheckV2 receiver + Span argument + checked-end Option + Result unit"
+      ]
+    },
+    "into_cursor": {
+      "ingress": [
+        "owned view"
+      ],
+      "locals": [
+        "header [u8;2560]",
+        "proof reference",
+        "metadata reference",
+        "usage copy",
+        "observations copy",
+        "source u64 result and pattern",
+        "memory/table (u32,u32) Option result and patterns",
+        "four [u64;2] option values",
+        "source/usage/observations/metadata header word arrays widths 11,10,20,13",
+        "validation [u64;5]",
+        "loop inventory Result tuple, pattern tuple and scalar words",
+        "directory [u64;8]",
+        "charged accumulator and payload extent",
+        "34-enum iterator/current item/wire word",
+        "cursor literal",
+        "Result cursor return"
+      ]
+    },
+    "inventory": {
+      "ingress": [
+        "view reference",
+        "sid usize"
+      ],
+      "locals": [
+        "native tuple (usize,usize,usize,usize,Resource) return and pattern",
+        "logical tuple (u64,u64,u64,u64,u64) literal",
+        "five checked word Result/pattern transfers",
+        "Result logical tuple return",
+        "source count scalar"
+      ]
+    },
+    "next_block": {
+      "failure": "emitted_extent unchanged until a complete block returns; partially filled caller scratch unspecified",
+      "ingress": [
+        "cursor mutable reference",
+        "transfer mutable fixed-array reference"
+      ],
+      "locals": [
+        "base/at u64, filled usize",
+        "directory search Option tuple",
+        "range 0..9 and sid/start/bytes",
+        "found tuple pattern",
+        "section relative offset and row/index/word/skip scalars",
+        "conversion Result usize and patterns",
+        "encoded [u8;8] word",
+        "borrowed slice region arguments",
+        "block literal, Option block, Result Option block return",
+        "end-of-stream Result Option block"
+      ]
+    },
+    "provenance_bridge": {
+      "identity": "Existing private FileIdentityV1::encode preserves signed i64 two-complement bits; no Rust memory copied",
+      "ingress": [
+        "actual LoaderProvenance shared reference",
+        "header subarray mutable [u8;576] reference"
+      ],
+      "locals": [
+        "validation-budget shared reference",
+        "values [u64;8]",
+        "checked u64 conversions Results/patterns",
+        "six digest/nonce references array",
+        "four identities shared enumerate iterator/item",
+        "one [u8;64] identity encode return",
+        "scalar/digest/identity loop item and output-slice arguments",
+        "Result<(),()> return"
+      ]
+    },
+    "record_word": {
+      "ingress": [
+        "view reference",
+        "section/index/word usize"
+      ],
+      "locals": [
+        "metadata shared reference",
+        "source usize",
+        "SpanCheckV2 value",
+        "one selected metadata shared reference",
+        "[u64;5] record words",
+        "record shared-reference Option/Result pattern",
+        "span Result unit and field Error moves",
+        "checked parameter-span Option usize",
+        "u64 word Option/Result return"
+      ]
+    },
+    "runtime_bridge": {
+      "ingress": [
+        "guard shared reference",
+        "header subarray mutable [u8;512] reference"
+      ],
+      "locals": [
+        "actual SwiftRunBudget copy",
+        "guard scalar shared reference",
+        "optional actual (WasiBudget,WasiGrants) return/Option/pattern",
+        "run [u64;17]",
+        "envelope [u64;4]",
+        "WASI/grants [u64;12]",
+        "guard scalars [u64;8]",
+        "checked usize-to-u64 result/pattern",
+        "fixed scalar enumerate iterators/items",
+        "Result<(),()> return"
+      ]
+    },
+    "validate_runtime": {
+      "ingress": [
+        "header fixed-array shared reference",
+        "three u64 arguments"
+      ],
+      "locals": [
+        "run caps [u64;17]",
+        "WASI caps [u64;7]",
+        "grant/presence/scalar u64 reads",
+        "fixed enumerate iterators/items",
+        "Result unit/errors/checked comparisons"
+      ]
+    }
+  },
+  "schema": 1,
+  "scope": "complete named encoder/bridge source-place roster for later conservative admission composition; no granted floor"
+}

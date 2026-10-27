@@ -1,0 +1,1208 @@
+//! Original independently authored bounded owner behavior and failure prefixes.
+use super::super::tests::{
+    self as frame_tests, cursor, hooks, install_foreign, pin_ids, restore_foreign, retire, Hooks,
+};
+use super::*;
+use crate::experimental_swift_reactor::allocation_tests::measure_extended;
+use frame_tests::control_tests::body_owner;
+use std::cell::{Cell, RefCell};
+thread_local! {
+ pub(super) static PC_OVERFLOW:Cell<bool>=const{Cell::new(false)};
+ static CHECK_EXPIRE:Cell<Option<usize>>=const{Cell::new(None)};
+ static CHECK_CANCEL:Cell<Option<usize>>=const{Cell::new(None)};
+ static CHECKS:Cell<usize>=const{Cell::new(0)};
+ static CAPACITY_FAULT:Cell<bool>=const{Cell::new(false)};
+ static OBSERVE:Cell<bool>=const{Cell::new(false)};
+ static ZERO:Cell<usize>=const{Cell::new(0)};
+ static COPY:Cell<usize>=const{Cell::new(0)};
+ static FINAL:Cell<usize>=const{Cell::new(0)};
+ static FOREIGN_OLD:RefCell<Option<ReservationTicket>>=const{RefCell::new(None)};
+ static ACTUAL_OLD:RefCell<Option<ReservationTicket>>=const{RefCell::new(None)};
+ static SWAP_OLD:Cell<bool>=const{Cell::new(false)};
+ static FIXTURES:Cell<usize>=const{Cell::new(0)};
+ static STEPS:Cell<usize>=const{Cell::new(0)};
+}
+struct Bounds;
+impl Bounds {
+    fn new() -> Self {
+        reset();
+        FIXTURES.with(|x| x.set(0));
+        STEPS.with(|x| x.set(0));
+        Self
+    }
+}
+impl Drop for Bounds {
+    fn drop(&mut self) {
+        if !std::thread::panicking() {
+            assert!(FIXTURES.with(Cell::get) <= 24);
+            assert!(STEPS.with(Cell::get) <= 128);
+            println!(
+                "MG_BOUND fixtures={} steps={} maxFixtures=24 maxSteps=128 maxFrames=3",
+                FIXTURES.with(Cell::get),
+                STEPS.with(Cell::get)
+            );
+        }
+    }
+}
+fn reset() {
+    hooks(Hooks::default());
+    PC_OVERFLOW.with(|x| x.set(false));
+    CHECK_CANCEL.with(|x| x.set(None));
+    CHECK_EXPIRE.with(|x| x.set(None));
+    CHECKS.with(|x| x.set(0));
+    CAPACITY_FAULT.with(|x| x.set(false));
+    OBSERVE.with(|x| x.set(false));
+    ZERO.with(|x| x.set(0));
+    COPY.with(|x| x.set(0));
+    FINAL.with(|x| x.set(0));
+}
+pub(super) fn growth_checkpoint(control: &RuntimeControl) {
+    let n = CHECKS.with(|x| {
+        let n = x.get();
+        x.set(n + 1);
+        n
+    });
+    if CHECK_EXPIRE.with(Cell::get) == Some(n) {
+        std::thread::sleep(
+            control.deadline().saturating_duration_since(Instant::now())
+                + std::time::Duration::from_millis(2),
+        );
+        assert!(Instant::now() >= control.deadline());
+    }
+    if CHECK_CANCEL.with(Cell::get) == Some(n) {
+        control.cancellation().cancel();
+    }
+}
+pub(super) fn capacity(actual: usize) -> usize {
+    if CAPACITY_FAULT.with(Cell::get) {
+        actual + 1
+    } else {
+        actual
+    }
+}
+pub(super) fn before_old_refund(
+    _phase: &mut FrameOperationPhase<'_>,
+    growth: &mut SwiftGrowthStorage,
+) {
+    if SWAP_OLD.with(Cell::get) {
+        let foreign = FOREIGN_OLD.with(|x| x.borrow_mut().take());
+        let original = std::mem::replace(&mut growth.transfer.old_ticket, foreign);
+        ACTUAL_OLD.with(|x| *x.borrow_mut() = original);
+    }
+}
+pub(super) fn observe_memory(phase: &FrameOperationPhase<'_>, memory: &[u8], stage: u8) {
+    if !OBSERVE.with(Cell::get) {
+        return;
+    }
+    match stage {
+        1 => {
+            ZERO.with(|x| x.set(x.get() + 1));
+            assert!(memory.is_empty() || memory[memory.len() - 1] == 0);
+        }
+        2 => {
+            let copied = COPY.with(|x| {
+                let n = x.get();
+                x.set(n + 1);
+                n * CHUNK
+            });
+            if copied > 0 {
+                let edge = copied.min(phase.phase.parts.memory.len());
+                assert_eq!(
+                    &memory[edge - 8..edge],
+                    &phase.phase.parts.memory[edge - 8..edge]
+                );
+            }
+        }
+        3 => {
+            FINAL.with(|x| x.set(x.get() + 1));
+            assert_eq!(
+                &memory[..phase.phase.parts.memory.len()],
+                phase.phase.parts.memory.as_slice()
+            );
+            assert!(memory[phase.phase.parts.memory.len()..]
+                .iter()
+                .all(|b| *b == 0));
+        }
+        _ => unreachable!(),
+    }
+}
+fn frame_storage<'a>() -> FrameOperationStorage<'a> {
+    FrameOperationStorage {
+        preparation: None,
+        entry: None,
+        returned: None,
+        drained: None,
+        controlled: None,
+    }
+}
+fn observed(p: &FrameOperationPhase<'_>) -> SwiftRunUsage {
+    p.phase
+        .operation
+        .control
+        .usage(Some(p.phase.operation.wasi.usage()))
+}
+const BODY: &[u8] = &[0x41, 1, 0x40, 0, 0x1a, 0x0b];
+fn fixture_with(
+    budget: SwiftRunBudget,
+    body: &[u8],
+    enter: bool,
+    action: impl for<'a> FnOnce(
+        &mut FrameOperationPhase<'a>,
+        &mut SwiftGrowthContext<'a>,
+        &mut SwiftGrowthStorage,
+    ),
+) {
+    FIXTURES.with(|x| x.set(x.get() + 1));
+    let mut owned = body_owner(body, false, &[], budget);
+    let baseline = owned
+        .control
+        .as_ref()
+        .unwrap()
+        .usage(None)
+        .reservations
+        .construction
+        .current;
+    let mut preparation = Some(owned.prepare_growth(cursor()));
+    let (mut phase, mut context) = preparation.take().unwrap().unwrap();
+    let mut growth = SwiftGrowthStorage::empty();
+    if enter {
+        phase.enter(34).unwrap();
+    }
+    assert_eq!(phase.phase.parts.memory.len(), 584 * PAGE);
+    action(&mut phase, &mut context, &mut growth);
+    reset();
+    release_growth_pending(&mut phase, &mut context, &mut growth).unwrap();
+    let report = phase.drain();
+    assert_eq!(report.retained_frames, 0);
+    let debt = report.live_unreconciled;
+    let completed = complete_growth(phase, context, growth, frame_storage(), preparation);
+    if debt {
+        assert!(matches!(
+            completed,
+            GrowthCompletion::Completed(FrameCompletion::Retained(_))
+        ));
+        drop(completed);
+        let mut owned = Some(owned);
+        assert!(SwiftReactorInstance::cleanup_owned(&mut owned).is_err());
+        drop(owned);
+    } else {
+        assert!(matches!(
+            completed,
+            GrowthCompletion::Completed(FrameCompletion::Completed)
+        ));
+        drop(completed);
+        assert_eq!(
+            owned
+                .control
+                .as_ref()
+                .unwrap()
+                .usage(None)
+                .reservations
+                .construction
+                .current,
+            baseline
+        );
+        retire(owned);
+    }
+}
+fn fixture(
+    action: impl for<'a> FnOnce(
+        &mut FrameOperationPhase<'a>,
+        &mut SwiftGrowthContext<'a>,
+        &mut SwiftGrowthStorage,
+    ),
+) {
+    fixture_with(SwiftRunBudget::default(), BODY, true, action)
+}
+fn push(p: &mut FrameOperationPhase<'_>, delta: i32) {
+    p.phase.push_value(Value::I32(delta)).unwrap();
+}
+fn op<'a>(
+    p: &mut FrameOperationPhase<'a>,
+    c: &mut SwiftGrowthContext<'a>,
+    g: &mut SwiftGrowthStorage,
+    delta: i32,
+) -> Result<(), SwiftRunFailure> {
+    STEPS.with(|x| x.set(x.get() + 1));
+    push(p, delta);
+    let mut slot = None;
+    growth_operation(p, c, g, Operation::MemoryGrow, &mut slot).unwrap();
+    slot.unwrap()
+}
+fn seed(p: &mut FrameOperationPhase<'_>) {
+    for at in [0, CHUNK - 8, PAGE - 8, 584 * PAGE - 8] {
+        p.phase.parts.memory[at..at + 8].copy_from_slice(&[9, 8, 7, 6, 5, 4, 3, 2]);
+    }
+}
+#[test]
+fn mg01_zero_maximum_unsigned_no_allocation() {
+    let _b = Bounds::new();
+    for delta in [0, -1, 185, i32::MAX] {
+        fixture(|p, c, g| {
+            push(p, delta);
+            let before = observed(p);
+            let ptr = p.phase.parts.memory.as_ptr();
+            let ((outer, slot), stats) = measure_extended(Some(0), || {
+                let mut slot = None;
+                let result = growth_operation(p, c, g, Operation::MemoryGrow, &mut slot);
+                (result, slot)
+            });
+            outer.unwrap();
+            slot.unwrap().unwrap();
+            assert_eq!(stats.attempts, 0);
+            assert_eq!(
+                p.phase.parts.values.as_slice(),
+                &[Value::I32(if delta == 0 { 584 } else { -1 })]
+            );
+            assert_eq!(p.phase.parts.memory.as_ptr(), ptr);
+            assert_eq!(observed(p).reservations, before.reservations);
+            assert_eq!(observed(p).execution_work - before.execution_work, 2);
+            assert_eq!(observed(p).instruction_fuel, before.instruction_fuel);
+            assert!(g.vacant());
+        });
+    }
+}
+#[test]
+fn mg02_success_copy_zero_and_overlap() {
+    let _b = Bounds::new();
+    fixture(|p, c, g| {
+        seed(p);
+        OBSERVE.with(|x| x.set(true));
+        let before = observed(p);
+        let oldticket = c.memory_ticket.as_ref().unwrap();
+        assert!(oldticket.matches_layout(SwiftReservationCategory::State, 584 * PAGE));
+        op(p, c, g, 1).unwrap();
+        assert_eq!(p.phase.parts.values.as_slice(), &[Value::I32(584)]);
+        assert_eq!(p.phase.parts.memory.len(), 585 * PAGE);
+        assert_eq!(&p.phase.parts.memory[..8], &[9, 8, 7, 6, 5, 4, 3, 2]);
+        assert!(p.phase.parts.memory[584 * PAGE..].iter().all(|x| *x == 0));
+        assert_eq!(ZERO.with(Cell::get), 585 * PAGE / CHUNK);
+        assert_eq!(COPY.with(Cell::get), 584 * PAGE / CHUNK);
+        assert_eq!(FINAL.with(Cell::get), 1);
+        let after = observed(p);
+        assert_eq!(
+            after.execution_work - before.execution_work,
+            3 + ((585 + 584) * PAGE) as u64
+        );
+        assert_eq!(
+            after.reservations.state.current,
+            before.reservations.state.current + PAGE
+        );
+        assert!(after.reservations.state.peak >= before.reservations.state.current + 585 * PAGE);
+        assert_eq!(
+            after.reservations.live_tickets,
+            before.reservations.live_tickets
+        );
+        assert_eq!(after.live.memory_pages.current, 585);
+        assert!(c
+            .memory_ticket
+            .as_ref()
+            .unwrap()
+            .matches_layout(SwiftReservationCategory::State, 585 * PAGE));
+        assert!(g.vacant());
+    });
+}
+#[test]
+fn mg03_full_767_768_overlap() {
+    let _b = Bounds::new();
+    fixture(|p, c, g| {
+        op(p, c, g, 183).unwrap();
+        assert_eq!(p.phase.pop_value().unwrap(), Value::I32(584));
+        let before = observed(p);
+        let (_, stats) = measure_extended(None, || {
+            op(p, c, g, 1).unwrap();
+        });
+        assert_eq!(stats.allocations, 1);
+        assert_eq!(stats.allocated_bytes, 768 * PAGE);
+        assert_eq!(stats.deallocations, 1);
+        assert_eq!(stats.freed_bytes, 767 * PAGE);
+        assert_eq!(observed(p).live.memory_pages.current, 768);
+        assert!(
+            observed(p).reservations.state.peak >= before.reservations.state.current + 768 * PAGE
+        );
+        println!("MG_OVERLAP old=767 new=768 bytes={} completeStatePeak={} stateLimit={} combinedLimit={} tickets={}",(767+768)*PAGE,observed(p).reservations.state.peak,128*1024*1024,256*1024*1024,observed(p).reservations.peak_tickets);
+    });
+}
+#[test]
+fn mg04_state_combined_before_allocator() {
+    let _b = Bounds::new();
+    for combined in [false, true] {
+        fixture(|p, c, g| {
+            push(p, 1);
+            let before = observed(p);
+            let old = if combined {
+                p.phase.operation.control.test_replace_combined_limit(
+                    before.reservations.combined.current + 585 * PAGE - 1,
+                )
+            } else {
+                p.phase
+                    .operation
+                    .control
+                    .test_replace_state_limit(before.reservations.state.current + 585 * PAGE - 1)
+            };
+            let ((outer, slot), stats) = measure_extended(Some(0), || {
+                let mut slot = None;
+                let outer = growth_operation(p, c, g, Operation::MemoryGrow, &mut slot);
+                (outer, slot)
+            });
+            outer.unwrap();
+            let failure = slot.unwrap().unwrap_err();
+            assert_eq!(
+                failure.kind,
+                if combined {
+                    SwiftRunFailureKind::CombinedExhausted
+                } else {
+                    SwiftRunFailureKind::CategoryExhausted
+                }
+            );
+            assert_eq!(stats.attempts, 0);
+            assert_eq!(observed(p).live.memory_pages.current, 584);
+            assert_eq!(p.phase.parts.memory.len(), 584 * PAGE);
+            assert_eq!(observed(p).reservations, before.reservations);
+            if combined {
+                p.phase.operation.control.test_replace_combined_limit(old);
+            } else {
+                p.phase.operation.control.test_replace_state_limit(old);
+            }
+            assert!(g.vacant());
+        });
+    }
+}
+#[test]
+fn mg05_allocator_and_capacity_failure() {
+    let _b = Bounds::new();
+    for cap in [false, true] {
+        fixture(|p, c, g| {
+            seed(p);
+            push(p, 1);
+            CAPACITY_FAULT.with(|x| x.set(cap));
+            let before = observed(p);
+            let ptr = p.phase.parts.memory.as_ptr();
+            let ((outer, slot), stats) = measure_extended(if cap { None } else { Some(0) }, || {
+                let mut slot = None;
+                let outer = growth_operation(p, c, g, Operation::MemoryGrow, &mut slot);
+                (outer, slot)
+            });
+            outer.unwrap();
+            let failure = slot.unwrap().unwrap_err();
+            assert_eq!(failure.kind, SwiftRunFailureKind::Allocation);
+            assert_eq!(stats.attempts, 1);
+            assert_eq!(stats.injected_failures, usize::from(!cap));
+            assert_eq!(stats.deallocations, usize::from(cap));
+            assert_eq!(p.phase.parts.memory.as_ptr(), ptr);
+            assert_eq!(observed(p).live.memory_pages.current, 584);
+            assert_eq!(
+                observed(p).reservations.state.current,
+                before.reservations.state.current
+            );
+            assert_eq!(
+                observed(p).reservations.live_tickets,
+                before.reservations.live_tickets
+            );
+            assert_eq!(&p.phase.parts.memory[..8], &[9, 8, 7, 6, 5, 4, 3, 2]);
+            assert!(g.vacant());
+        });
+    }
+}
+#[test]
+fn mg06_work_prefix_and_postcommit_push() {
+    let _b = Bounds::new();
+    let growthwork = ((584 + 585) * PAGE) as u64;
+    for allowed in [0, 1, 1 + growthwork, 2 + growthwork] {
+        fixture(|p, c, g| {
+            push(p, 1);
+            let before = observed(p);
+            let limit = p
+                .phase
+                .operation
+                .control
+                .test_replace_execution_work_limit(before.execution_work + allowed);
+            let mut slot = None;
+            growth_operation(p, c, g, Operation::MemoryGrow, &mut slot).unwrap();
+            p.phase
+                .operation
+                .control
+                .test_replace_execution_work_limit(limit);
+            let committed = allowed >= 1 + growthwork;
+            assert_eq!(
+                p.phase.parts.memory.len(),
+                if committed { 585 * PAGE } else { 584 * PAGE }
+            );
+            assert_eq!(
+                observed(p).live.memory_pages.current,
+                if committed { 585 } else { 584 }
+            );
+            assert_eq!(slot.unwrap().is_ok(), allowed >= 2 + growthwork);
+            assert_eq!(
+                p.phase.parts.values.len(),
+                usize::from(allowed == 0 || allowed >= 2 + growthwork)
+            );
+            assert!(g.vacant());
+        });
+    }
+}
+#[test]
+fn mg07_cancel_zero_copy_final_prefix() {
+    let _b = Bounds::new();
+    let zero = 585 * PAGE / CHUNK;
+    let copy = 584 * PAGE / CHUNK;
+    for checkpoint in [0, 1, 2, 3, 2 + zero, 3 + zero, 2 + zero + copy] {
+        fixture(|p, c, g| {
+            seed(p);
+            push(p, 1);
+            OBSERVE.with(|x| x.set(true));
+            CHECK_CANCEL.with(|x| x.set(Some(checkpoint)));
+            let before = observed(p);
+            let ptr = p.phase.parts.memory.as_ptr();
+            let mut slot = None;
+            growth_operation(p, c, g, Operation::MemoryGrow, &mut slot).unwrap();
+            let failure = slot.unwrap().unwrap_err();
+            assert_eq!(failure.kind, SwiftRunFailureKind::Cancelled);
+            assert_eq!(p.phase.parts.memory.as_ptr(), ptr);
+            assert_eq!(p.phase.parts.memory.len(), 584 * PAGE);
+            assert_eq!(&p.phase.parts.memory[..8], &[9, 8, 7, 6, 5, 4, 3, 2]);
+            assert_eq!(observed(p).live.memory_pages.current, 584);
+            assert_eq!(
+                observed(p).reservations.state.current,
+                before.reservations.state.current
+            );
+            assert!(g.vacant());
+            assert_eq!(CHECKS.with(Cell::get), checkpoint + 1);
+            assert_eq!(
+                ZERO.with(Cell::get),
+                (checkpoint.saturating_sub(1)).min(zero)
+            );
+            assert_eq!(
+                COPY.with(Cell::get),
+                (checkpoint.saturating_sub(1 + zero)).min(copy)
+            );
+            assert_eq!(
+                FINAL.with(Cell::get),
+                usize::from(checkpoint == 2 + zero + copy)
+            );
+        });
+    }
+}
+#[test]
+fn mg08_preflight_frame_type_and_ticket() {
+    let _b = Bounds::new();
+    for fault in 0..7 {
+        fixture(|p, c, g| {
+            push(p, 1);
+            let scalar = (
+                p.phase.parts.frames[0].base,
+                p.phase.parts.frames[0].operands,
+                p.phase.parts.frames[0].controls,
+            );
+            let mut ticket = None;
+            match fault {
+                0 => p.phase.parts.values[0] = Value::I64(1),
+                1 => p.phase.parts.frames[0].operands = 1,
+                2 => p.phase.parts.frames[0].base = 1,
+                3 => p.phase.parts.frames[0].controls = 99,
+                4 => ticket = c.memory_ticket.take(),
+                5 => {
+                    p.phase.parts.memory.pop();
+                }
+                _ => p.terminal(),
+            };
+            let before = observed(p);
+            let mut slot = None;
+            growth_operation(p, c, g, Operation::MemoryGrow, &mut slot).unwrap();
+            assert!(slot.unwrap().is_err());
+            assert_eq!(p.phase.parts.values.len(), 1);
+            assert_eq!(observed(p).execution_work, before.execution_work);
+            let f = &mut p.phase.parts.frames[0];
+            (f.base, f.operands, f.controls) = scalar;
+            if fault == 4 {
+                *c.memory_ticket = ticket;
+            }
+            if fault == 5 {
+                p.phase.parts.memory.push(0);
+            }
+        });
+    }
+    fixture_with(SwiftRunBudget::default(), BODY, false, |p, c, g| {
+        let mut slot = None;
+        growth_operation(p, c, g, Operation::MemoryGrow, &mut slot).unwrap();
+        assert_eq!(
+            slot.unwrap().unwrap_err().code,
+            "swift_growth_frame_missing"
+        );
+    });
+}
+#[test]
+fn mg09_actual_pinned_cursor_pc_fuel() {
+    let _b = Bounds::new();
+    fixture(|p, c, g| {
+        seed(p);
+        push(p, 1);
+        p.phase.parts.frames[0].pc = 1;
+        let pins = pin_ids(p);
+        let selected = {
+            let f = &p.phase.parts.frames[0];
+            p.phase
+                .parts
+                .cache
+                .view(
+                    &f.pin,
+                    p.phase.operation.control,
+                    Some(&*p.phase.operation.wasi),
+                )
+                .unwrap()
+                .instructions[1]
+        };
+        let before = observed(p);
+        let mut storage = frame_storage();
+        growth_pinned_caller(p, c, g, &mut storage).unwrap();
+        assert_eq!(storage.entry, Some(Ok(())));
+        assert_eq!(p.phase.parts.frames[0].pc, 2);
+        assert_eq!(pin_ids(p), pins);
+        assert_eq!(p.phase.operation.cursor.function, Some(34));
+        assert_eq!(p.phase.operation.cursor.offset, Some(selected.offset));
+        assert_eq!(observed(p).instructions - before.instructions, 1);
+        assert_eq!(observed(p).instruction_fuel - before.instruction_fuel, 1);
+        assert_eq!(
+            observed(p).execution_work - before.execution_work,
+            3 + ((584 + 585) * PAGE) as u64
+        );
+    });
+}
+#[test]
+fn mg10_pinned_failures_before_effects() {
+    let _b = Bounds::new();
+    for fault in 0..5 {
+        fixture(|p, c, g| {
+            push(p, 1);
+            p.phase.parts.frames[0].pc = 1;
+            let previous = if fault == 3 {
+                Some(
+                    p.phase
+                        .operation
+                        .control
+                        .test_replace_execution_work_limit(observed(p).execution_work),
+                )
+            } else {
+                None
+            };
+            match fault {
+                0 => p.phase.operation.control.cancellation().cancel(),
+                1 => PC_OVERFLOW.with(|x| x.set(true)),
+                2 => p.phase.parts.frames[0].pc = usize::MAX,
+                4 => p.phase.parts.frames[0].pc = 0,
+                _ => {}
+            }
+            let before = observed(p);
+            let mut storage = frame_storage();
+            growth_pinned_caller(p, c, g, &mut storage).unwrap();
+            assert!(storage.entry.unwrap().is_err());
+            assert_eq!(p.phase.parts.values.len(), 1);
+            assert_eq!(p.phase.parts.memory.len(), 584 * PAGE);
+            if fault == 0 {
+                assert_eq!(observed(p).instructions, before.instructions);
+            }
+            if let Some(previous) = previous {
+                p.phase
+                    .operation
+                    .control
+                    .test_replace_execution_work_limit(previous);
+            }
+        });
+    }
+    fixture_with(
+        SwiftRunBudget {
+            instruction_fuel: 0,
+            ..SwiftRunBudget::default()
+        },
+        BODY,
+        true,
+        |p, c, g| {
+            push(p, 1);
+            p.phase.parts.frames[0].pc = 1;
+            let before = observed(p);
+            let mut s = frame_storage();
+            growth_pinned_caller(p, c, g, &mut s).unwrap();
+            assert_eq!(
+                s.entry.unwrap().unwrap_err().kind,
+                SwiftRunFailureKind::FuelExhausted
+            );
+            assert_eq!(p.phase.parts.frames[0].pc, 1);
+            assert_eq!(observed(p).execution_work, before.execution_work);
+        },
+    );
+}
+#[test]
+fn mg11_occupied_outcome_preserved() {
+    let _b = Bounds::new();
+    for direct in [false, true] {
+        for failed in [false, true] {
+            fixture(|p, c, g| {
+                push(p, 1);
+                p.phase.parts.frames[0].pc = 1;
+                let mut storage = frame_storage();
+                let saved = if failed {
+                    Err(p.invariant("growth_original_failure"))
+                } else {
+                    Ok(())
+                };
+                storage.entry = Some(saved);
+                let before = observed(p);
+                let result = if direct {
+                    growth_operation(p, c, g, Operation::MemoryGrow, &mut storage.entry)
+                } else {
+                    growth_pinned_caller(p, c, g, &mut storage)
+                };
+                assert!(result.is_err());
+                assert_eq!(storage.entry, Some(saved));
+                assert_eq!(observed(p).instructions, before.instructions);
+                assert_eq!(observed(p).execution_work, before.execution_work);
+                assert_eq!(p.phase.parts.frames[0].pc, 1);
+                assert_eq!(p.phase.parts.values.len(), 1);
+            });
+        }
+    }
+}
+#[test]
+fn mg12_ticket_retention_retry_refusal() {
+    let _b = Bounds::new();
+    FIXTURES.with(|x| x.set(x.get() + 2));
+    let mut foreign = body_owner(BODY, false, &[], SwiftRunBudget::default());
+    let mut foreign_ticket = foreign.state.as_mut().unwrap().buffers[3].take();
+    let mut own = body_owner(BODY, false, &[], SwiftRunBudget::default());
+    let before = own
+        .control
+        .as_ref()
+        .unwrap()
+        .usage(None)
+        .reservations
+        .construction
+        .current;
+    let mut preparation = Some(own.prepare_growth(cursor()));
+    let (mut p, mut c) = preparation.take().unwrap().unwrap();
+    p.enter(34).unwrap();
+    let mut growth = SwiftGrowthStorage::empty();
+    growth.transfer.next_pages = 584;
+    growth.transfer.ticket = Some(
+        p.phase
+            .operation
+            .control
+            .admit_with_wasi(
+                SwiftReservationCategory::State,
+                584 * PAGE,
+                p.phase.operation.cursor,
+                Some(p.phase.operation.wasi.usage()),
+            )
+            .unwrap(),
+    );
+    let original = growth.transfer.ticket.take();
+    growth.transfer.ticket = foreign_ticket.take();
+    let ledger = observed(&p).reservations;
+    let failure = release_growth_pending(&mut p, &mut c, &mut growth).unwrap_err();
+    assert_eq!(failure.code, "swift_run_reservation_owner");
+    assert!(growth.transfer.ticket.is_some());
+    assert_eq!(observed(&p).reservations, ledger);
+    let completion = complete_growth(p, c, growth, frame_storage(), preparation);
+    let (mut p, mut c, mut growth, storage, preparation) = match completion {
+        GrowthCompletion::Retained {
+            phase,
+            context,
+            growth,
+            storage,
+            preparation,
+        } => (phase, context, growth, storage, preparation),
+        _ => panic!("lost actual authority"),
+    };
+    assert!(observed(&p).reservations.construction.current > before);
+    foreign_ticket = growth.transfer.ticket.take();
+    growth.transfer.ticket = original;
+    release_growth_pending(&mut p, &mut c, &mut growth).unwrap();
+    assert!(growth.vacant());
+    p.drain();
+    assert!(matches!(
+        complete_growth(p, c, growth, storage, preparation),
+        GrowthCompletion::Completed(FrameCompletion::Completed)
+    ));
+    foreign.state.as_mut().unwrap().buffers[3] = foreign_ticket;
+    retire(foreign);
+    retire(own);
+}
+#[test]
+fn mg13_result_push_failure_committed_and_pin_retry() {
+    let _b = Bounds::new();
+    fixture(|p, c, g| {
+        push(p, 1);
+        hooks(Hooks {
+            push_fault: 2,
+            ..Hooks::default()
+        });
+        let mut slot = None;
+        growth_operation(p, c, g, Operation::MemoryGrow, &mut slot).unwrap();
+        assert_eq!(
+            slot.unwrap().unwrap_err().kind,
+            SwiftRunFailureKind::ValueLimit
+        );
+        assert_eq!(p.phase.parts.memory.len(), 585 * PAGE);
+        assert_eq!(observed(p).live.memory_pages.current, 585);
+        assert!(c
+            .memory_ticket
+            .as_ref()
+            .unwrap()
+            .matches_layout(SwiftReservationCategory::State, 585 * PAGE));
+        assert!(g.vacant());
+    });
+    FIXTURES.with(|x| x.set(x.get() + 2));
+    let mut foreign = body_owner(BODY, false, &[], SwiftRunBudget::default());
+    install_foreign(&mut foreign);
+    let mut own = body_owner(BODY, false, &[], SwiftRunBudget::default());
+    let mut prep = Some(own.prepare_growth(cursor()));
+    let (mut p, mut c) = prep.take().unwrap().unwrap();
+    p.enter(34).unwrap();
+    p.enter(36).unwrap();
+    p.enter(34).unwrap();
+    let mut g = SwiftGrowthStorage::empty();
+    CHECK_CANCEL.with(|x| x.set(Some(3)));
+    let failure = op(&mut p, &mut c, &mut g, 1).unwrap_err();
+    let pins = pin_ids(&p);
+    hooks(Hooks {
+        release_mask: 7,
+        ..Hooks::default()
+    });
+    assert_eq!(p.drain().retained_frames, 3);
+    assert_eq!(pin_ids(&p), pins);
+    reset();
+    assert!(matches!(
+        complete_growth(p, c, g, frame_storage(), prep),
+        GrowthCompletion::Completed(FrameCompletion::Retained(_))
+    ));
+    let mut resumed = Some(own.resume_frame_cleanup());
+    let mut p = resumed.take().unwrap().unwrap();
+    let report = p.drain();
+    assert_eq!(report.retained_frames, 0);
+    assert_eq!(report.first_failure.unwrap().code, failure.code);
+    assert!(matches!(
+        p.complete(FrameOperationStorage {
+            preparation: resumed,
+            ..frame_storage()
+        }),
+        FrameCompletion::Completed
+    ));
+    restore_foreign(&mut foreign);
+    retire(foreign);
+    retire(own);
+}
+#[test]
+fn mg14_post_pop_live_debt_and_fail_closed() {
+    let _b = Bounds::new();
+    fixture(|p, c, g| {
+        push(p, 1);
+        hooks(Hooks {
+            push_fault: 5,
+            ..Hooks::default()
+        });
+        let before = observed(p);
+        let mut slot = None;
+        growth_operation(p, c, g, Operation::MemoryGrow, &mut slot).unwrap();
+        let failure = slot.unwrap().unwrap_err();
+        assert_eq!(failure.code, "swift_run_live_underflow");
+        assert_eq!(
+            (failure.function, failure.offset),
+            (
+                p.phase.operation.cursor.function,
+                p.phase.operation.cursor.offset
+            )
+        );
+        assert!(p.cleanup.live_unreconciled);
+        assert!(p.phase.parts.values.is_empty());
+        assert_eq!(
+            observed(p).reservations.state.current,
+            before.reservations.state.current
+        );
+        assert!(g.vacant());
+    });
+    for operation in [
+        Operation::MemoryCopy,
+        Operation::MemoryFill,
+        Operation::MemorySize,
+        Operation::Nop,
+        Operation::Call(0),
+    ] {
+        fixture(|p, c, g| {
+            push(p, 1);
+            let before = observed(p);
+            let mut slot = None;
+            growth_operation(p, c, g, operation, &mut slot).unwrap();
+            assert_eq!(
+                slot.unwrap().unwrap_err().code,
+                "swift_growth_unsupported_operation"
+            );
+            assert_eq!(p.phase.parts.values.len(), 1);
+            assert_eq!(observed(p).execution_work, before.execution_work);
+            assert!(g.vacant());
+        });
+    }
+}
+#[test]
+fn mg15_narrowed_maximum_and_fuel_work() {
+    let _b = Bounds::new();
+    fixture_with(
+        SwiftRunBudget {
+            memory_pages: 584,
+            ..SwiftRunBudget::default()
+        },
+        BODY,
+        true,
+        |p, c, g| {
+            op(p, c, g, 1).unwrap();
+            assert_eq!(p.phase.parts.values.as_slice(), &[Value::I32(-1)]);
+            assert_eq!(p.phase.parts.memory.len(), 584 * PAGE);
+            assert!(g.vacant());
+        },
+    );
+    fixture(|p, c, g| {
+        push(p, 0);
+        p.phase.parts.frames[0].pc = 1;
+        let before = observed(p);
+        let mut s = frame_storage();
+        growth_pinned_caller(p, c, g, &mut s).unwrap();
+        assert_eq!(s.entry, Some(Ok(())));
+        assert_eq!(observed(p).instruction_fuel - before.instruction_fuel, 1);
+        assert_eq!(observed(p).execution_work - before.execution_work, 3);
+        assert_eq!(p.phase.parts.values.as_slice(), &[Value::I32(584)]);
+    });
+}
+#[test]
+fn mg16_accounting_limits() {
+    let _b = Bounds::new();
+    fixture(|p, c, g| {
+        op(p, c, g, 0).unwrap();
+        assert_eq!(SwiftRunBudget::default().state_bytes, 128 * 1024 * 1024);
+        assert_eq!(SwiftRunBudget::default().combined_bytes, 256 * 1024 * 1024);
+        assert_eq!(MAX_RESERVATION_TICKETS, 86);
+        println!(
+            "MG_COMPONENT growthPermanent={} growthActive={} frameEnvelope={} header={}",
+            PERMANENT_BYTES,
+            ACTIVE_BYTES,
+            FRAME_OPERATION_BYTES.unwrap(),
+            execution_header_bytes().unwrap()
+        );
+    });
+}
+
+#[test]
+fn mg17_old_refund_postcommit_retained_retry() {
+    let _b = Bounds::new();
+    FIXTURES.with(|x| x.set(x.get() + 1));
+    let mut foreign = body_owner(BODY, false, &[], SwiftRunBudget::default());
+    FOREIGN_OLD.with(|x| *x.borrow_mut() = foreign.state.as_mut().unwrap().buffers[3].take());
+    fixture(|p, c, g| {
+        SWAP_OLD.with(|x| x.set(true));
+        let before = observed(p);
+        let failure = op(p, c, g, 1).unwrap_err();
+        SWAP_OLD.with(|x| x.set(false));
+        assert_eq!(failure.code, "swift_run_reservation_owner");
+        assert_eq!(p.phase.parts.memory.len(), 585 * PAGE);
+        assert_eq!(observed(p).live.memory_pages.current, 585);
+        assert!(g.transfer.old_ticket.is_some());
+        assert_eq!(g.transfer.old.capacity(), 0);
+        assert_eq!(g.pages_debited, 0);
+        assert_eq!(
+            observed(p).reservations.state.current,
+            before.reservations.state.current + 585 * PAGE
+        );
+        assert!(c
+            .memory_ticket
+            .as_ref()
+            .unwrap()
+            .matches_layout(SwiftReservationCategory::State, 585 * PAGE));
+        let foreign = g.transfer.old_ticket.take();
+        FOREIGN_OLD.with(|x| *x.borrow_mut() = foreign);
+        g.transfer.old_ticket = ACTUAL_OLD.with(|x| x.borrow_mut().take());
+        release_growth_pending(p, c, g).unwrap();
+        assert!(g.vacant());
+        assert_eq!(
+            observed(p).reservations.state.current,
+            before.reservations.state.current + PAGE
+        );
+        assert_eq!(p.invariant("later").code, failure.code);
+    });
+    foreign.state.as_mut().unwrap().buffers[3] = FOREIGN_OLD.with(|x| x.borrow_mut().take());
+    retire(foreign);
+}
+#[test]
+fn mg18_sticky_uncommitted_debt_refuses_completion() {
+    let _b = Bounds::new();
+    FIXTURES.with(|x| x.set(x.get() + 1));
+    let mut own = body_owner(BODY, false, &[], SwiftRunBudget::default());
+    let mut prep = Some(own.prepare_growth(cursor()));
+    let (mut p, mut c) = prep.take().unwrap().unwrap();
+    p.enter(34).unwrap();
+    let mut g = SwiftGrowthStorage::empty();
+    g.transfer.next_pages = 585;
+    g.transfer.ticket = Some(
+        p.phase
+            .operation
+            .control
+            .admit_with_wasi(
+                SwiftReservationCategory::State,
+                585 * PAGE,
+                p.phase.operation.cursor,
+                Some(p.phase.operation.wasi.usage()),
+            )
+            .unwrap(),
+    );
+    g.pages_debited = 1;
+    p.phase
+        .operation
+        .control
+        .remove_live(Live::MemoryPages, 584)
+        .unwrap();
+    let ledger = observed(&p).reservations;
+    assert_eq!(
+        release_growth_pending(&mut p, &mut c, &mut g)
+            .unwrap_err()
+            .code,
+        "swift_run_live_underflow"
+    );
+    assert!(g.live_unreconciled);
+    assert!(g.transfer.ticket.is_some());
+    assert_eq!(observed(&p).reservations, ledger);
+    assert!(release_growth_pending(&mut p, &mut c, &mut g).is_err());
+    assert!(g.transfer.ticket.is_some());
+    let completed = complete_growth(p, c, g, frame_storage(), prep);
+    match &completed {
+        GrowthCompletion::Retained { phase, growth, .. } => {
+            assert!(growth.transfer.ticket.is_some());
+            assert!(growth.live_unreconciled);
+            assert_eq!(observed(phase).reservations, ledger);
+        }
+        _ => panic!("lost page debt authority"),
+    };
+    drop(completed);
+    let mut owned = Some(own);
+    assert!(SwiftReactorInstance::cleanup_owned(&mut owned).is_err());
+    assert!(owned.is_some());
+    drop(owned);
+    println!("MG_DEBT exact original N and envelope retained until deliberate test-owner drop; no accounting repair or clean receipt");
+}
+#[test]
+fn mg19_actual_deadline_at_growth_boundary() {
+    let _b = Bounds::new();
+    let final_check = 2 + 585 * PAGE / CHUNK + 584 * PAGE / CHUNK;
+    for (cancel, checkpoint) in [(false, 2), (false, final_check), (true, 2)] {
+        fixture_with(
+            SwiftRunBudget {
+                deadline_ms: 1000,
+                ..SwiftRunBudget::default()
+            },
+            BODY,
+            true,
+            |p, c, g| {
+                push(p, 1);
+                CHECK_EXPIRE.with(|x| x.set(Some(checkpoint)));
+                if cancel {
+                    CHECK_CANCEL.with(|x| x.set(Some(checkpoint)));
+                }
+                let mut slot = None;
+                growth_operation(p, c, g, Operation::MemoryGrow, &mut slot).unwrap();
+                let failure = slot.unwrap().unwrap_err();
+                assert_eq!(
+                    failure.kind,
+                    if cancel {
+                        SwiftRunFailureKind::Cancelled
+                    } else {
+                        SwiftRunFailureKind::Deadline
+                    }
+                );
+                assert_eq!(failure.deadline_origin, SwiftDeadlineOrigin::Run);
+                assert!(failure.at_failure.deadline_overshoot_micros > 0);
+                assert_eq!(p.phase.parts.memory.len(), 584 * PAGE);
+                assert_eq!(observed(p).live.memory_pages.current, 584);
+                assert!(g.vacant());
+                println!(
+                    "MG_DEADLINE checkedBoundary={} cancel={} origin={:?} overshootMicros={}",
+                    checkpoint,
+                    cancel,
+                    failure.deadline_origin,
+                    failure.at_failure.deadline_overshoot_micros
+                );
+            },
+        );
+    }
+}
+#[cfg(feature = "experimental-span-execution")]
+#[test]
+fn mg20_frozen_targeted_growth_semantics() {
+    let _b = Bounds::new();
+    use crate::experimental::{
+        cache::{CacheBudget, FunctionCache},
+        execution::{ExecutionBudget, SpanInstance},
+        validate_spans, ValidationBudget,
+    };
+    for (delta, encoded, answer, pages) in [
+        (0, 0, 1, 1),
+        (1, 1, 1, 2),
+        (2, 2, 1, 3),
+        (3, 3, -1, 1),
+        (-1, 0x7f, -1, 1),
+    ] {
+        let body = [0, 0x41, encoded, 0x40, 0, 0x0b];
+        let mut bytes = b"\0asm\x01\0\0\0".to_vec();
+        bytes.extend_from_slice(&[
+            1, 5, 1, 0x60, 0, 1, 0x7f, 3, 2, 1, 0, 5, 4, 1, 1, 1, 3, 7, 7, 1, 3, b'r', b'u', b'n',
+            0, 0, 10, 8, 1, 6,
+        ]);
+        bytes.extend_from_slice(&body);
+        let limits = crate::Limits {
+            profile: crate::Profile::TableMemoryV3,
+            ..crate::Limits::default()
+        };
+        let cancel = crate::Cancellation::default();
+        let spans = validate_spans(&bytes, limits, ValidationBudget::default(), &cancel).unwrap();
+        let cache = FunctionCache::new(spans, CacheBudget::default(), &cancel).unwrap();
+        let mut frozen = SpanInstance::new(cache, ExecutionBudget::default(), cancel).unwrap();
+        assert_eq!(frozen.invoke("run", &[]).unwrap(), Some(Value::I32(answer)));
+        assert_eq!(frozen.memory().len(), pages * PAGE);
+        assert!(frozen.memory().iter().all(|byte| *byte == 0));
+        println!(
+            "MG_FROZEN delta={} answer={} pages={} work={} fuel={}",
+            delta,
+            answer,
+            pages,
+            frozen.usage().work_used,
+            frozen.usage().fuel_used
+        );
+    }
+}
+
+#[test]
+fn cdr04_actual_pinned_growth_pop_attribution() {
+    let _b = Bounds::new();
+    fixture(|p, c, g| {
+        push(p, 1);
+        p.phase.parts.frames[0].pc = 1;
+        let actual = {
+            let f = &p.phase.parts.frames[0];
+            p.phase
+                .parts
+                .cache
+                .view(
+                    &f.pin,
+                    p.phase.operation.control,
+                    Some(&*p.phase.operation.wasi),
+                )
+                .unwrap()
+                .instructions[1]
+        };
+        hooks(Hooks {
+            push_fault: 5,
+            ..Hooks::default()
+        });
+        let mut s = frame_storage();
+        growth_pinned_caller(p, c, g, &mut s).unwrap();
+        let failure = s.entry.unwrap().unwrap_err();
+        assert_eq!(
+            (
+                failure.stage,
+                failure.function,
+                failure.offset,
+                failure.resource
+            ),
+            (
+                SwiftRunStage::Invocation,
+                Some(34),
+                Some(actual.offset),
+                Some(SwiftRunResource::Values)
+            )
+        );
+        assert_eq!((failure.attempted, failure.limit), (1, 0));
+        assert!(p.cleanup.live_unreconciled);
+        assert_eq!(p.phase.parts.memory.len(), 584 * PAGE);
+        assert!(g.vacant());
+    });
+}
+
+// CALL_DISPATCH_FIXTURE_HELPERS_BEGIN
+// Called only before/after the admitted loop. Existing runtime hook bodies and
+// TLS owners above are unchanged. RAII restores hook state even on test unwind.
+pub(in super::super) struct DispatchOldRefund<'s> {
+    foreign: &'s mut SwiftReactorInstance,
+    growth: &'s mut SwiftGrowthStorage,
+}
+pub(in super::super) fn dispatch_old_refund<'s>(
+    foreign: &'s mut SwiftReactorInstance,
+    growth: &'s mut SwiftGrowthStorage,
+) -> DispatchOldRefund<'s> {
+    assert!(!SWAP_OLD.with(Cell::get));
+    assert!(FOREIGN_OLD.with(|x| x.borrow().is_none()));
+    assert!(ACTUAL_OLD.with(|x| x.borrow().is_none()));
+    let ticket = foreign.state.as_mut().unwrap().buffers[3].take();
+    FOREIGN_OLD.with(|x| *x.borrow_mut() = ticket);
+    SWAP_OLD.with(|x| x.set(true));
+    DispatchOldRefund { foreign, growth }
+}
+impl DispatchOldRefund<'_> {
+    pub(in super::super) fn growth(&mut self) -> &mut SwiftGrowthStorage {
+        self.growth
+    }
+}
+impl Drop for DispatchOldRefund<'_> {
+    fn drop(&mut self) {
+        SWAP_OLD.with(|x| x.set(false));
+        let actual = ACTUAL_OLD.with(|x| x.borrow_mut().take());
+        let foreign = if actual.is_some() {
+            std::mem::replace(&mut self.growth.transfer.old_ticket, actual)
+        } else {
+            FOREIGN_OLD.with(|x| x.borrow_mut().take())
+        };
+        self.foreign.state.as_mut().unwrap().buffers[3] = foreign;
+    }
+}
+pub(in super::super) struct DispatchGrowthCheck {
+    cancel: Option<usize>,
+    expire: Option<usize>,
+    checks: usize,
+}
+pub(in super::super) fn dispatch_growth_check(at: usize, expire: bool) -> DispatchGrowthCheck {
+    let old = DispatchGrowthCheck {
+        cancel: CHECK_CANCEL.with(Cell::get),
+        expire: CHECK_EXPIRE.with(Cell::get),
+        checks: CHECKS.with(Cell::get),
+    };
+    CHECK_CANCEL.with(|x| x.set(if expire { None } else { Some(at) }));
+    CHECK_EXPIRE.with(|x| x.set(if expire { Some(at) } else { None }));
+    CHECKS.with(|x| x.set(0));
+    old
+}
+impl Drop for DispatchGrowthCheck {
+    fn drop(&mut self) {
+        CHECK_CANCEL.with(|x| x.set(self.cancel));
+        CHECK_EXPIRE.with(|x| x.set(self.expire));
+        CHECKS.with(|x| x.set(self.checks));
+    }
+}
+// CALL_DISPATCH_FIXTURE_HELPERS_END
+
+// Test-only setup of the already-existing actual growth checkpoint/refund hooks.
+pub(super) fn lifecycle_checkpoint(cancel: Option<usize>, expire: Option<usize>) {
+    reset();
+    CHECK_CANCEL.with(|x| x.set(cancel));
+    CHECK_EXPIRE.with(|x| x.set(expire));
+}
+pub(super) fn lifecycle_reset_hooks() {
+    reset();
+}
+pub(super) fn lifecycle_foreign_old(ticket: Option<ReservationTicket>) {
+    FOREIGN_OLD.with(|x| {
+        assert!(x.borrow().is_none());
+        *x.borrow_mut() = ticket;
+    });
+    ACTUAL_OLD.with(|x| assert!(x.borrow().is_none()));
+    SWAP_OLD.with(|x| x.set(true));
+}
+pub(super) fn lifecycle_restore_old(growth: &mut SwiftGrowthStorage) -> Option<ReservationTicket> {
+    SWAP_OLD.with(|x| x.set(false));
+    let foreign = growth.transfer.old_ticket.take();
+    growth.transfer.old_ticket = ACTUAL_OLD.with(|x| x.borrow_mut().take());
+    assert!(growth.transfer.old_ticket.is_some());
+    foreign
+}

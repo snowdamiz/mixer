@@ -1,0 +1,11 @@
+error[E0499]: cannot borrow `b` as mutable more than once at a time
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-encoder-independent/candidate-review/privacy-work/host-debug/src/lib.rs:324:195
+    |
+324 | ...let x=c.next_block(&mut b).unwrap().unwrap();let _=c.next_block(&mut b);let _=x.bytes();}}
+    |                       ------                                       ^^^^^^        - first borrow later used here
+    |                       |                                            |
+    |                       first mutable borrow occurs here             second mutable borrow occurs here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0499`.

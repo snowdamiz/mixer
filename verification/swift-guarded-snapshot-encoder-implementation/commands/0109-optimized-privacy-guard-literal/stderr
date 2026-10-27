@@ -1,0 +1,35 @@
+warning: unreachable expression
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-encoder-implementation/owned-work/privacy-optimized/src/lib.rs:324:133
+    |
+324 | ...::InitialProfileBorrowV1{cache:unimplemented!(),control:unimplemented!(),wasi:None,scalars:unimplemented!()};}}
+    |                                   ----------------         ^^^^^^^^^^^^^^^^ unreachable expression
+    |                                   |
+    |                                   any code following this expression is unreachable
+    |
+    = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `check` is never used
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-encoder-implementation/owned-work/privacy-optimized/src/lib.rs:324:30
+    |
+324 | mod encoder_privacy_probe{fn check(){let _=crate::experimental_swift_reactor::InitialProfileBorrowV1{cache:unimplemented!(),control...
+    |                              ^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+error[E0451]: fields `cache`, `control`, `wasi` and `scalars` of struct `initial_profile_v1::InitialProfileBorrowV1` are private
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-encoder-implementation/owned-work/privacy-optimized/src/lib.rs:324:102
+    |
+324 | ...:InitialProfileBorrowV1{cache:unimplemented!(),control:unimplemented!(),wasi:None,scalars:unimplemented!()};}}
+    |                            ^^^^^                  ^^^^^^^                  ^^^^      ^^^^^^^ private field
+    |                            |                      |                        |
+    |                            private field          private field            private field
+
+error: type `initial_profile_v1::InitialProfileScalarsV1` is private
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-encoder-implementation/owned-work/privacy-optimized/src/lib.rs:324:168
+    |
+324 | ...ed!(),control:unimplemented!(),wasi:None,scalars:unimplemented!()};}}
+    |                                                     ^^^^^^^^^^^^^^^^ private type
+
+error: aborting due to 2 previous errors; 2 warnings emitted
+
+For more information about this error, try `rustc --explain E0451`.

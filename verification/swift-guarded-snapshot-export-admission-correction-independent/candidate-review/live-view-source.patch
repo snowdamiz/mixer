@@ -1,0 +1,24 @@
+--- candidate/src/experimental_swift_reactor/cache/initial_profile_v1.rs
++++ live-view/src/experimental_swift_reactor/cache/initial_profile_v1.rs
+@@ -305,11 +305,13 @@
+     scalars:InitialProfileScalarsV1, claims:&UnverifiedProfileDigestBytesV1, row_output:&mut File,
+ )->CorrectionCompositionV1 {
+     let access=CorrectionAccessV1::signature_witness(control);
++    let leaked_control;
+     let primary='guarded: {
+         // The one original literal is relocated here in the disposable source.
+         let initial=InitialProfileBorrowV1 { cache,control:access.shared_control(),wasi,scalars };
+         let proof_view=initial.cache.proof();
+         let control_view=initial.control;
++        leaked_control=control_view;
+         let _=(proof_view.observations(),control_view.usage(wasi.map(AccountedWasi::usage)));
+         let header=match encode_profile_header_v1(&initial,claims) {
+             Ok(header)=>header,
+@@ -319,6 +321,7 @@
+         InitialProfileConstructionOutcomeV1::HeaderEncoded {header,rows}
+     }; // every initial/view/header borrow ends before the consuming call.
+     let phase_completion=access.complete(CorrectionPhaseStorageV1 {plan:None,temporary_output:None});
++    let _=leaked_control.usage(wasi.map(AccountedWasi::usage));
+     CorrectionCompositionV1 {primary,phase_completion}
+ }
+ impl<'c> CorrectionAccessV1<'c> {

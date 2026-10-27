@@ -1,0 +1,86 @@
+warning: type `control::CorrectionBoundaryV1` is more private than the item `control::RuntimeControl::correction_probe_adopt_body_v1`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-admission-correction/bounded-source-6vn5ibhr/vm/src/experimental_swift_reactor/control.rs:2124:5
+     |
+2124 | /     pub(super) fn correction_probe_adopt_body_v1(
+2125 | |         body: AdoptionBodyV1,
+2126 | |         budget: SwiftRunBudget,
+2127 | |         started: Instant,
+...    |
+2130 | |         storage:CorrectionEarlyStorageV1,
+2131 | |     ) -> CorrectionCoreReturnV1 {
+     | |_______________________________^ associated function `control::RuntimeControl::correction_probe_adopt_body_v1` is reachable at visibility `pub(in crate::experimental_swift_reactor)`
+     |
+note: but type `control::CorrectionBoundaryV1` is only usable at visibility `pub(self)`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-admission-correction/bounded-source-6vn5ibhr/vm/src/experimental_swift_reactor/control.rs:1950:1
+     |
+1950 | enum CorrectionBoundaryV1 { None, FinalCancel, FinalDeadline }
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+     = note: `#[warn(private_interfaces)]` on by default
+
+warning: type `CorrectionEarlyStorageV1` is more private than the item `control::RuntimeControl::correction_probe_adopt_body_v1`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-admission-correction/bounded-source-6vn5ibhr/vm/src/experimental_swift_reactor/control.rs:2124:5
+     |
+2124 | /     pub(super) fn correction_probe_adopt_body_v1(
+2125 | |         body: AdoptionBodyV1,
+2126 | |         budget: SwiftRunBudget,
+2127 | |         started: Instant,
+...    |
+2130 | |         storage:CorrectionEarlyStorageV1,
+2131 | |     ) -> CorrectionCoreReturnV1 {
+     | |_______________________________^ associated function `control::RuntimeControl::correction_probe_adopt_body_v1` is reachable at visibility `pub(in crate::experimental_swift_reactor)`
+     |
+note: but type `CorrectionEarlyStorageV1` is only usable at visibility `pub(self)`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-admission-correction/bounded-source-6vn5ibhr/vm/src/experimental_swift_reactor/control.rs:1887:1
+     |
+1887 | struct CorrectionEarlyStorageV1 {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type `control::CorrectionPreScopeFailureV1` is more private than the item `control::RuntimeControl::correction_probe_adopt_body_v1`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-admission-correction/bounded-source-6vn5ibhr/vm/src/experimental_swift_reactor/control.rs:2124:5
+     |
+2124 | /     pub(super) fn correction_probe_adopt_body_v1(
+2125 | |         body: AdoptionBodyV1,
+2126 | |         budget: SwiftRunBudget,
+2127 | |         started: Instant,
+...    |
+2130 | |         storage:CorrectionEarlyStorageV1,
+2131 | |     ) -> CorrectionCoreReturnV1 {
+     | |_______________________________^ associated function `control::RuntimeControl::correction_probe_adopt_body_v1` is reachable at visibility `pub(in crate::experimental_swift_reactor)`
+     |
+note: but type `control::CorrectionPreScopeFailureV1` is only usable at visibility `pub(self)`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-admission-correction/bounded-source-6vn5ibhr/vm/src/experimental_swift_reactor/control.rs:1895:1
+     |
+1895 | struct CorrectionPreScopeFailureV1 {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-admission-correction/bounded-source-6vn5ibhr/vm/src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-export-admission-correction/bounded-source-6vn5ibhr/vm/src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: 5 warnings emitted
+

@@ -1,0 +1,714 @@
+--- accepted/src/experimental_swift_reactor/control.rs
++++ candidate/src/experimental_swift_reactor/control.rs
+@@ -1813,3 +1813,432 @@
+ mod tests;
+ 
+ #[cfg(test)] impl RuntimeControl {pub(crate) fn host_test_counter(&mut self,value:u64){self.host_calls=value;}}
++
++// PROPOSAL ONLY. Appended to a disposable accepted-source copy for compilation.
++// No encoder, output entry, proof entry, RuntimeControl field, or owner mint.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub(crate) enum ProposalSnapshotStopV1 {
++    Existing(SwiftRunFailure), Cancelled, Deadline(SwiftDeadlineOrigin),
++}
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub(crate) enum ProposalSnapshotAdmissionErrorV1 {
++    Stop(ProposalSnapshotStopV1), Owner, Layout, Arithmetic,
++    Work { used:u64, requested:u64, limit:u64 },
++    Storage { current:usize, additional:usize, limit:usize },
++}
++pub(super) struct ProposalSnapshotDebitV1 { pub(super) credits:u64 }
++impl RuntimeControl {
++    // Actual Cancellation backing read, no clone, no caller clock hook.
++    pub(super) fn proposal_observe_snapshot_stop_v1(&self)
++        -> Result<(),ProposalSnapshotStopV1> {
++        if let Some(failure)=self.first_failure { return Err(ProposalSnapshotStopV1::Existing(failure)); }
++        if self.cancellation.is_cancelled() { return Err(ProposalSnapshotStopV1::Cancelled); }
++        if Instant::now()>=self.deadline { return Err(ProposalSnapshotStopV1::Deadline(self.deadline_origin)); }
++        Ok(())
++    }
++    pub(super) fn proposal_snapshot_owner_v1(&self, owner:u64)
++        -> Result<(),ProposalSnapshotAdmissionErrorV1> {
++        if owner==0 || owner!=self.owner { return Err(ProposalSnapshotAdmissionErrorV1::Owner); }
++        Ok(())
++    }
++    pub(crate) fn proposal_snapshot_ticket_v1(&self, ticket:&ReservationTicket)
++        -> Result<(),ProposalSnapshotAdmissionErrorV1> {
++        self.proposal_snapshot_owner_v1(ticket.owner)?;
++        if self.reservations.live_tickets==0
++            || self.reservations.category(ticket.category).current<ticket.bytes
++            || self.reservations.combined.current<ticket.bytes {
++            return Err(ProposalSnapshotAdmissionErrorV1::Layout);
++        }
++        Ok(())
++    }
++    pub(super) fn proposal_snapshot_adopted_v1(&self, adopted:&AdoptedProof)
++        -> Result<(),ProposalSnapshotAdmissionErrorV1> {
++        self.proposal_snapshot_ticket_v1(&adopted.source)?;
++        self.proposal_snapshot_ticket_v1(&adopted.metadata)?;
++        if !adopted.source.matches_layout(SwiftReservationCategory::RetainedSource,adopted.proof().usage().source_bytes)
++            || !adopted.metadata.matches_layout(SwiftReservationCategory::RetainedMetadata,adopted.proof().usage().metadata_reserved) {
++            return Err(ProposalSnapshotAdmissionErrorV1::Layout);
++        }
++        Ok(())
++    }
++    // Called only by the actual cache bridge after its full immutable pairing.
++    // A successful precharge advances ORIGINAL ExecutionWork. No refunds exist.
++    pub(super) fn proposal_debit_snapshot_work_v1(&mut self, credits:u64)
++        -> Result<ProposalSnapshotDebitV1,ProposalSnapshotAdmissionErrorV1> {
++        self.proposal_observe_snapshot_stop_v1().map_err(ProposalSnapshotAdmissionErrorV1::Stop)?;
++        let used=self.execution_work;
++        let limit=self.budget.execution_work;
++        let next=used.checked_add(credits).filter(|next|*next<=limit)
++            .ok_or(ProposalSnapshotAdmissionErrorV1::Work { used,requested:credits,limit })?;
++        self.execution_work=next;
++        Ok(ProposalSnapshotDebitV1 {credits})
++    }
++}
++
++// Design/source-proof correction only. No canonical entry or operational grant.
++// These are concrete additional retained places, not a complete source closure.
++enum CorrectionFoundationProfileV1 { Original, Snapshot }
++struct CorrectionOwnedScopeV1 {
++    control: RuntimeControl, adopted: Option<AdoptedProof>,
++    cache: Option<super::cache::SwiftFunctionCache>,
++    wasi: Option<crate::experimental_wasi::accounted::AccountedWasi>, base: usize,
++}
++type CorrectionScopeReturnV1 = Result<CorrectionOwnedScopeV1, SwiftRunFailure>;
++struct CorrectionEarlyStorageV1 {
++    ingress_body: Option<AdoptionBodyV1>,
++    profile: CorrectionFoundationProfileV1,
++    scope_return: Option<CorrectionScopeReturnV1>,
++    caller_return: Option<CorrectionScopeReturnV1>,
++    cleanup_return: Option<Result<(),SwiftRunFailure>>,
++    retirement_ticket: Option<ReservationTicket>,
++}
++struct CorrectionPreScopeFailureV1 {
++    primary: SwiftRunFailure,
++    retirement: Result<(),SwiftRunFailure>,
++}
++type CorrectionCoreReturnV1 = Result<(RuntimeControl,AdoptedProof),CorrectionPreScopeFailureV1>;
++struct CorrectionPreScopePlacesV1 {
++    early: CorrectionEarlyStorageV1, early_argument: CorrectionEarlyStorageV1,
++    early_drop_argument: CorrectionEarlyStorageV1,
++    core_return: CorrectionCoreReturnV1, adapter_return: CorrectionCoreReturnV1,
++    caller_return: Option<CorrectionCoreReturnV1>,
++    primary: SwiftRunFailure, primary_move: SwiftRunFailure,
++    retirement_result: Result<(),SwiftRunFailure>,
++    retirement_return: Result<(),SwiftRunFailure>,
++    error: CorrectionPreScopeFailureV1, error_move: CorrectionPreScopeFailureV1,
++    error_option: Option<CorrectionPreScopeFailureV1>,
++    control_borrows: [&'static mut RuntimeControl;3],
++}
++impl CorrectionEarlyStorageV1 {
++    // Drop the actual aggregate before its optional actual ticket refund. This
++    // does NOT retire the Snapshot foundation: primary/error/results remain live.
++    fn retire(self, control: &mut RuntimeControl) -> Result<(),SwiftRunFailure> {
++        let Self { ingress_body,profile,scope_return,caller_return,cleanup_return,retirement_ticket }=self;
++        drop((ingress_body,profile,scope_return,caller_return,cleanup_return));
++        match retirement_ticket { Some(ticket)=>control.refund(ticket), None=>Ok(()) }
++    }
++}
++impl RuntimeControl {
++    // Signature bridge only. No admission mutation, no additional grant. The
++    // full cache/WASI pairing and conditional storage preflight remain absent.
++    pub(super) fn correction_signature_bound_v1(&self)
++        -> Result<usize,ProposalSnapshotAdmissionErrorV1> {
++        self.proposal_observe_snapshot_stop_v1().map_err(ProposalSnapshotAdmissionErrorV1::Stop)?;
++        let ticket=self.construction.as_ref().ok_or(ProposalSnapshotAdmissionErrorV1::Layout)?;
++        self.proposal_snapshot_ticket_v1(ticket)?;
++        if ticket.category!=SwiftReservationCategory::Construction {return Err(ProposalSnapshotAdmissionErrorV1::Layout);}
++        Ok(ticket.bytes)
++    }
++}
++#[no_mangle]
++pub static MIXER_CORRECTION_EARLY_LAYOUT_V1:[usize;24]=[
++    size_of::<RuntimeControl>(),std::mem::align_of::<RuntimeControl>(),
++    size_of::<CorrectionOwnedScopeV1>(),std::mem::align_of::<CorrectionOwnedScopeV1>(),
++    size_of::<CorrectionScopeReturnV1>(),std::mem::align_of::<CorrectionScopeReturnV1>(),
++    size_of::<Option<CorrectionScopeReturnV1>>(),std::mem::align_of::<Option<CorrectionScopeReturnV1>>(),
++    size_of::<CorrectionEarlyStorageV1>(),std::mem::align_of::<CorrectionEarlyStorageV1>(),
++    size_of::<CorrectionPreScopeFailureV1>(),std::mem::align_of::<CorrectionPreScopeFailureV1>(),
++    size_of::<CorrectionCoreReturnV1>(),std::mem::align_of::<CorrectionCoreReturnV1>(),
++    size_of::<Option<CorrectionCoreReturnV1>>(),std::mem::align_of::<Option<CorrectionCoreReturnV1>>(),
++    size_of::<CorrectionPreScopePlacesV1>(),std::mem::align_of::<CorrectionPreScopePlacesV1>(),
++    size_of::<Result<(),SwiftRunFailure>>(),std::mem::align_of::<Result<(),SwiftRunFailure>>(),
++    size_of::<Option<ReservationTicket>>(),std::mem::align_of::<Option<ReservationTicket>>(),
++    size_of::<CorrectionFoundationProfileV1>(),std::mem::align_of::<CorrectionFoundationProfileV1>(),
++];
++
++#[derive(Clone,Copy)]
++enum CorrectionBoundaryV1 { None, FinalCancel, FinalDeadline }
++fn correction_early_v1(ticket:Option<ReservationTicket>)->CorrectionEarlyStorageV1 {
++    CorrectionEarlyStorageV1 {ingress_body:None,profile:CorrectionFoundationProfileV1::Snapshot,
++        scope_return:None,caller_return:None,cleanup_return:None,retirement_ticket:ticket}
++}
++// These controls invoke the reconstructed original admission body only, not any
++// initial-profile wrapper, exporter, launcher, or frozen runner.
++#[cfg(test)]
++mod correction_early_tests {
++    use super::*;
++    use crate::experimental_swift_reactor::{validate_swift_reactor,SwiftValidationBudget};
++    use crate::experimental_wasi::WasiFunction;
++    use crate::Type;
++    // The runner inserts the unchanged accepted-source proof builder here.
++    fn uint(mut value: u32, bytes: &mut Vec<u8>) {
++    loop {
++        let next = value & 0x7f;
++        value >>= 7;
++        bytes.push(next as u8 | if value == 0 { 0 } else { 0x80 });
++        if value == 0 {
++            break;
++        }
++    }
++}
++fn name(value: &[u8], bytes: &mut Vec<u8>) {
++    uint(value.len() as u32, bytes);
++    bytes.extend_from_slice(value);
++}
++fn section(module: &mut Vec<u8>, id: u8, bytes: &[u8]) {
++    module.push(id);
++    uint(bytes.len() as u32, module);
++    module.extend_from_slice(bytes);
++}
++fn signature(parameters: &[Type], results: &[Type], bytes: &mut Vec<u8>) {
++    let ty = |value| match value {
++        Type::I32 => 0x7f,
++        Type::I64 => 0x7e,
++        Type::F32 => 0x7d,
++        Type::F64 => 0x7c,
++    };
++    bytes.push(0x60);
++    uint(parameters.len() as u32, bytes);
++    bytes.extend(parameters.iter().copied().map(ty));
++    uint(results.len() as u32, bytes);
++    bytes.extend(results.iter().copied().map(ty));
++}
++fn proof() -> ValidatedSwiftReactor {
++    // Complete ordinary policy: 34 ordered Preview1 imports, 29 definitions,
++    // exact indices 35/62, initial memory584 and fixed table46713. Only body
++    // content is small. No private/relaxed fixture policy or proof construction.
++    let mut module = b"\0asm\x01\0\0\0".to_vec();
++    let mut types = vec![36];
++    for import in WasiFunction::ALL {
++        signature(import.parameters(), import.results(), &mut types);
++    }
++    signature(&[], &[], &mut types);
++    signature(&[], &[Type::I32], &mut types);
++    section(&mut module, 1, &types);
++    let mut imports = vec![34];
++    for (index, import) in WasiFunction::ALL.into_iter().enumerate() {
++        name(b"wasi_snapshot_preview1", &mut imports);
++        name(import.name(), &mut imports);
++        imports.push(0);
++        uint(index as u32, &mut imports);
++    }
++    section(&mut module, 2, &imports);
++    let mut functions = vec![29];
++    functions.extend([34; 28]);
++    functions.push(35);
++    section(&mut module, 3, &functions);
++    let mut table = vec![1, 0x70, 1];
++    uint(46_713, &mut table);
++    uint(46_713, &mut table);
++    section(&mut module, 4, &table);
++    let mut memory = vec![1, 0];
++    uint(584, &mut memory);
++    section(&mut module, 5, &memory);
++    let mut exports = vec![3];
++    for (export, kind, index) in [
++        (b"memory".as_slice(), 2, 0),
++        (b"_initialize".as_slice(), 0, 35),
++        (b"mixer_fieldlog_corpus_v1".as_slice(), 0, 62),
++    ] {
++        name(export, &mut exports);
++        exports.push(kind);
++        uint(index, &mut exports);
++    }
++    section(&mut module, 7, &exports);
++    let mut bodies = vec![29];
++    for _ in 0..28 {
++        bodies.extend_from_slice(&[2, 0, 0x0b]);
++    }
++    bodies.extend_from_slice(&[4, 0, 0x41, 0, 0x0b]);
++    section(&mut module, 10, &bodies);
++    validate_swift_reactor(
++        &module,
++        SwiftValidationBudget::default(),
++        &Cancellation::default(),
++    )
++    .unwrap()
++}
++
++    fn failed(budget:SwiftRunBudget,boundary:CorrectionBoundaryV1,ticket:Option<ReservationTicket>)
++        ->CorrectionPreScopeFailureV1 {
++        match RuntimeControl::correction_probe_adopt_body_v1(AdoptionBodyV1::ordinary(proof()),
++            budget,Instant::now(),Cancellation::default(),boundary,correction_early_v1(ticket)) {
++            Err(error)=>error,Ok(_)=>panic!("negative boundary did not fail"),
++        }
++    }
++    #[test]
++    fn correction_before_construction_failure_keeps_primary_and_zero() {
++        for budget in [SwiftRunBudget {source_bytes:0,..SwiftRunBudget::default()},
++            SwiftRunBudget {metadata_bytes:0,..SwiftRunBudget::default()},
++            SwiftRunBudget {combined_bytes:foundation_construction_bytes().unwrap()-1,..SwiftRunBudget::default()}] {
++            let error=failed(budget,CorrectionBoundaryV1::None,None);
++            assert_eq!(error.primary.stage,SwiftRunStage::Adoption);
++            assert!(error.retirement.is_ok());
++            assert_eq!(error.primary.at_failure.reservations.construction.current,0);
++            let after=error.primary.after_cleanup.unwrap();
++            assert_eq!(after.reservations.combined.current,0);
++            assert_eq!(after.reservations.live_tickets,0);
++            assert_eq!(after.cleanup_invariant,None);
++            println!("PRE_CONSTRUCTION {:?}",error.primary);
++        }
++    }
++    #[test]
++    fn correction_final_check_cancel_and_deadline_retain_real_charge() {
++        for boundary in [CorrectionBoundaryV1::FinalCancel,CorrectionBoundaryV1::FinalDeadline] {
++            let error=failed(SwiftRunBudget::default(),boundary,None);
++            let expected=match boundary {CorrectionBoundaryV1::FinalCancel=>SwiftRunFailureKind::Cancelled,
++                CorrectionBoundaryV1::FinalDeadline=>SwiftRunFailureKind::Deadline,_=>unreachable!()};
++            assert_eq!(error.primary.kind,expected);
++            assert_eq!(error.primary.stage,SwiftRunStage::Adoption);
++            assert!(error.retirement.is_ok());
++            let construction=error.primary.at_failure.reservations.construction.current;
++            assert_eq!(construction,foundation_construction_bytes().unwrap()+size_of::<CorrectionPreScopePlacesV1>());
++            let after=error.primary.after_cleanup.unwrap();
++            assert_eq!(after.reservations.construction.current,construction);
++            assert_eq!(after.reservations.combined.current,construction);
++            assert_eq!(after.reservations.live_tickets,1);
++            assert_eq!(after.cleanup_invariant,Some(SwiftCleanupInvariant::ConstructionBound));
++            println!("FINAL_CHECK_RETAINED {:?}",error.primary);
++        }
++    }
++    #[test]
++    fn correction_retirement_failure_preserves_actual_primary() {
++        let (mut foreign,adopted)=RuntimeControl::adopt(proof(),SwiftRunBudget::default(),Instant::now(),Cancellation::default()).unwrap();
++        let ticket=foreign.admit(SwiftReservationCategory::State,1,Cursor::adoption()).unwrap();
++        let error=failed(SwiftRunBudget::default(),CorrectionBoundaryV1::FinalCancel,Some(ticket));
++        assert_eq!(error.primary.kind,SwiftRunFailureKind::Cancelled);
++        assert_eq!(error.primary.code,"swift_run_cancelled");
++        assert_eq!(error.primary.at_failure.cleanup_invariant,None);
++        // refund's error is the unchanged original first failure; the independent
++        // cleanup invariant records the foreign-ticket retirement fault.
++        let retirement=error.retirement.unwrap_err();
++        let mut expected=error.primary;expected.after_cleanup=None;
++        assert_eq!(retirement,expected);
++        let after=error.primary.after_cleanup.unwrap();
++        assert_eq!(after.cleanup_invariant,Some(SwiftCleanupInvariant::ReservationOwner));
++        assert!(after.reservations.construction.current>foundation_construction_bytes().unwrap());
++        assert_eq!(after.reservations.combined.current,after.reservations.construction.current);
++        // The genuine foreign owner remains conservatively charged for its lost
++        // ticket; no fixture repairs or counterfeit refunds are performed.
++        foreign.drop_proof(adopted).unwrap();
++        let foreign_after=foreign.finish_owned_cleanup(None);
++        assert_eq!(foreign_after.reservations.state.current,1);
++        assert_eq!(foreign_after.reservations.combined.current,1);
++        println!("RETIREMENT_ERROR primary={:?} retirement={:?} foreign={:?}",error.primary,retirement,foreign_after);
++    }
++}
++
++// Derived by exact recorded replacements from accepted original adopt_body.
++#[cfg(test)]
++impl RuntimeControl {
++    pub(super) fn correction_probe_adopt_body_v1(
++        body: AdoptionBodyV1,
++        budget: SwiftRunBudget,
++        started: Instant,
++        cancellation: Cancellation,
++        boundary:CorrectionBoundaryV1,
++        storage:CorrectionEarlyStorageV1,
++    ) -> CorrectionCoreReturnV1 {
++        let validation = body.proof().usage();
++        let mut control = Self {
++            owner: 0,
++            budget,
++            started,
++            deadline: started,
++            deadline_origin: SwiftDeadlineOrigin::Run,
++            cancellation,
++            validation,
++            reservations: SwiftReservations::default(),
++            live: SwiftLiveUsage::default(),
++            cache_work: 0,
++            execution_work: 0,
++            instruction_fuel: 0,
++            instructions: 0,
++            host_calls: 0,
++            cleanup_invariant: None,
++            first_failure: None,
++            control_header: None,
++            cancellation_backing: None,
++            construction: None,
++        };
++        let cursor = Cursor::adoption();
++        let mut source = None;
++        let mut metadata = None;
++        let result = (|| {
++            control.check_budget(cursor)?;
++            control.deadline = started
++                .checked_add(Duration::from_millis(budget.deadline_ms))
++                .ok_or_else(|| {
++                    control.fail(
++                        cursor,
++                        Fault::new(
++                            SwiftRunFailureKind::InvalidBudget,
++                            "swift_run_deadline_overflow",
++                        ),
++                        None,
++                    )
++                })?;
++            control.check(cursor)?;
++            control.owner = NEXT_OWNER
++                .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))
++                .map_err(|_| {
++                    control.fail(
++                        cursor,
++                        Fault::new(SwiftRunFailureKind::Invariant, "swift_run_owner_exhausted")
++                            .limit(SwiftRunResource::OwnerIdentity, u64::MAX, u64::MAX - 1),
++                        None,
++                    )
++                })?;
++            source = Some(control.admit(
++                SwiftReservationCategory::RetainedSource,
++                validation.source_bytes,
++                cursor,
++            )?);
++            metadata = Some(control.admit(
++                SwiftReservationCategory::RetainedMetadata,
++                validation.metadata_reserved,
++                cursor,
++            )?);
++            control.control_header =
++                Some(control.admit(SwiftReservationCategory::Shared, size_of::<Self>(), cursor)?);
++            control.cancellation_backing = Some(control.admit(
++                SwiftReservationCategory::Shared,
++                Cancellation::requested_backing_layout().size(),
++                cursor,
++            )?);
++            let construction = foundation_construction_bytes().and_then(|base|base.checked_add(size_of::<CorrectionPreScopePlacesV1>())).ok_or_else(|| {
++                control.fail(
++                    cursor,
++                    Fault::new(SwiftRunFailureKind::Invariant, "swift_run_layout_overflow"),
++                    None,
++                )
++            })?;
++            control.construction = Some(control.admit(
++                SwiftReservationCategory::Construction,
++                construction,
++                cursor,
++            )?);
++            // Test-only event at the exact original post-Construction final check.
++            match boundary {
++                CorrectionBoundaryV1::FinalCancel=>control.cancellation.cancel(),
++                CorrectionBoundaryV1::FinalDeadline=>control.deadline=Instant::now(),
++                CorrectionBoundaryV1::None=>{},
++            }
++            control.check(cursor)
++        })();
++        if let Err(mut failure) = result {
++            // Actual storage destruction precedes every proof refund. Refunding
++            // control's own headers is possible only by consuming/dropping the
++            // entire closure below; no admission can follow that operation.
++            drop(body);
++            let retirement=storage.retire(&mut control);
++            if let Some(ticket) = source {
++                let _ = control.refund(ticket);
++            }
++            if let Some(ticket) = metadata {
++                let _ = control.refund(ticket);
++            }
++            failure.after_cleanup = Some(control.finish_owned_cleanup(None));
++            return Err(CorrectionPreScopeFailureV1 {primary:failure,retirement});
++        }
++        Ok((
++            control,
++            AdoptedProof {
++                body,
++                source: source.expect("successful sealed adoption owns source ticket"),
++                metadata: metadata.expect("successful sealed adoption owns metadata ticket"),
++            },
++        ))
++    }
++
++}
+--- accepted/src/experimental_swift_reactor/cache/initial_profile_v1.rs
++++ candidate/src/experimental_swift_reactor/cache/initial_profile_v1.rs
+@@ -159,16 +159,8 @@
+         Err(ProfileAdmissionFailureV1::Refused(error))=>return InitialProfileConstructionOutcomeV1::HeaderRefused { error },
+         Err(ProfileAdmissionFailureV1::Runtime(failure))=>return InitialProfileConstructionOutcomeV1::HeaderOwnerCheckFailed { failure },
+     };
+-    // Sole guard literal. No prepare/acquisition/callback/reentry follows it.
+-    let initial=InitialProfileBorrowV1 { cache,control,wasi,scalars };
+-    #[cfg(any(test,mixer_initial_profile_component_host))] tests::mark(3);
+-    let header=match encode_profile_header_v1(&initial,claims) {
+-        Ok(header)=>header,
+-        Err(error)=>return InitialProfileConstructionOutcomeV1::HeaderRefused { error },
+-    };
+-    #[cfg(any(test,mixer_initial_profile_component_host))] tests::mark(4);
+-    let rows=write_initial_profile_rows_v1(&initial,row_output);
+-    InitialProfileConstructionOutcomeV1::HeaderEncoded { header,rows }
++    // Compiler-only ABI adapter. Never executed by this packet.
++    correction_compose_signature_v1(cache,control,wasi,scalars,claims,row_output).primary
+ }
+ fn write_initial_profile_rows_v1(initial:&InitialProfileBorrowV1<'_>,output:&mut File)
+     ->Result<ProfileRowsObservationV1,ProfileAdapterErrorV1> {
+@@ -243,3 +235,257 @@
+         cache_base:convert(fixed,80)?,cache_capacity:convert(budget.cache_bytes,88)?,entry_limit:convert(budget.cache_entry_bytes,96)?,
+     })
+ }
++
++// Layout and actual-private-field signature probe only; never executed.
++use super::super::control::{ProposalSnapshotAdmissionErrorV1 as AError,ProposalSnapshotStopV1 as Stop};
++struct ProposalSnapshotPhaseV1<'a> { control:&'a mut RuntimeControl, previous_bound:usize }
++struct ProposalObservationV1 { bytes:u64, calls:u64, planning_debit:u64, emission_debit:u64 }
++struct ProposalExportErrorV1 {
++    code:u32, block_attempts:u32, acknowledged:u64, calls:u64, requested:u64,
++    io:Option<std::io::Error>, post_stop:Option<Stop>, admission:Option<AError>,
++}
++enum ProposalAttemptV1 {
++    NotReached, AdmissionRefused(AError), Attempted(Result<ProposalObservationV1,ProposalExportErrorV1>),
++}
++struct ProposalOuterV1 { primary:InitialProfileConstructionOutcomeV1, snapshot:ProposalAttemptV1 }
++// One concrete conservative shell. It is NOT a claim of globally minimal cost.
++// Early outcomes and admission failure still need outer/return/error places.
++struct ProposalAdmissionShellPlacesV1<'a> {
++    control:&'a mut RuntimeControl, wasi:Option<&'a AccountedWasi>, adopted:&'a AdoptedProof,
++    previous:usize, enlarged:Option<usize>,
++    phase_return:Result<ProposalSnapshotPhaseV1<'a>,AError>, admission_error:AError,
++    attempt_return:ProposalAttemptV1,
++    wrapper_return:ProposalOuterV1, caller_return:Option<ProposalOuterV1>,
++    wrapper_move:ProposalOuterV1, caller_move:Option<ProposalOuterV1>,
++    cleanup_failure:Option<SwiftRunFailure>, cleanup_return:Result<(),SwiftRunFailure>,
++}
++fn proposal_guard_stop_signature_v1(initial:&InitialProfileBorrowV1<'_>)->Result<(),Stop> {
++    initial.control.proposal_observe_snapshot_stop_v1()
++}
++fn proposal_cache_pair_signature_v1(cache:&SwiftFunctionCache,control:&RuntimeControl)
++    ->Result<(),AError> {
++    control.proposal_snapshot_owner_v1(cache.owner)?;
++    let header=cache.header.as_ref().ok_or(AError::Layout)?;
++    control.proposal_snapshot_ticket_v1(header)?;
++    control.proposal_snapshot_adopted_v1(&cache.adopted)?;
++    for ticket in &cache.buffers {
++        control.proposal_snapshot_ticket_v1(ticket.as_ref().ok_or(AError::Layout)?)?;
++    }
++    Ok(())
++}
++// Compiler emits exact native sizes/alignment into LLVM IR. No function runs.
++#[no_mangle]
++pub static MIXER_ADMISSION_DESIGN_LAYOUT_PROBE: [usize;18] = [
++    size_of::<RuntimeControl>(),std::mem::align_of::<RuntimeControl>(),
++    size_of::<AError>(),std::mem::align_of::<AError>(),
++    size_of::<Stop>(),std::mem::align_of::<Stop>(),
++    size_of::<ProposalSnapshotPhaseV1<'static>>(),std::mem::align_of::<ProposalSnapshotPhaseV1<'static>>(),
++    size_of::<ProposalExportErrorV1>(),std::mem::align_of::<ProposalExportErrorV1>(),
++    size_of::<ProposalAttemptV1>(),std::mem::align_of::<ProposalAttemptV1>(),
++    size_of::<ProposalOuterV1>(),std::mem::align_of::<ProposalOuterV1>(),
++    size_of::<ProposalAdmissionShellPlacesV1<'static>>(),std::mem::align_of::<ProposalAdmissionShellPlacesV1<'static>>(),
++    size_of::<InitialProfileConstructionOutcomeV1>(),std::mem::align_of::<InitialProfileConstructionOutcomeV1>(),
++];
++
++// Private exact sum ownership. Both variants retain the one exclusive control.
++// Constructor below is a signature witness, not full snapshot phase admission.
++enum CorrectionAccessV1<'c> {
++    Admitted { control:&'c mut RuntimeControl, previous:usize },
++    Refused { control:&'c mut RuntimeControl, error:AError },
++}
++struct CorrectionPhaseStorageV1 {
++    plan:Option<[u64;8]>, temporary_output:Option<[u8;4096]>,
++}
++struct CorrectionCompositionV1 {
++    primary:InitialProfileConstructionOutcomeV1,
++    phase_completion:Result<(),SwiftRunFailure>,
++}
++fn correction_compose_signature_v1(
++    cache:&SwiftFunctionCache, control:&mut RuntimeControl, wasi:Option<&AccountedWasi>,
++    scalars:InitialProfileScalarsV1, claims:&UnverifiedProfileDigestBytesV1, row_output:&mut File,
++)->CorrectionCompositionV1 {
++    let access=CorrectionAccessV1::signature_witness(control);
++    let primary='guarded: {
++        // The one original literal is relocated here in the disposable source.
++        let initial=InitialProfileBorrowV1 { cache,control:access.shared_control(),wasi,scalars };
++        let proof_view=initial.cache.proof();
++        let control_view=initial.control;
++        let _=(proof_view.observations(),control_view.usage(wasi.map(AccountedWasi::usage)));
++        let header=match encode_profile_header_v1(&initial,claims) {
++            Ok(header)=>header,
++            Err(error)=>break 'guarded InitialProfileConstructionOutcomeV1::HeaderRefused {error},
++        };
++        let rows=write_initial_profile_rows_v1(&initial,row_output);
++        InitialProfileConstructionOutcomeV1::HeaderEncoded {header,rows}
++    }; // every initial/view/header borrow ends before the consuming call.
++    let phase_completion=access.complete(CorrectionPhaseStorageV1 {plan:None,temporary_output:None});
++    CorrectionCompositionV1 {primary,phase_completion}
++}
++impl<'c> CorrectionAccessV1<'c> {
++    fn signature_witness(control:&'c mut RuntimeControl)->Self {
++        match control.correction_signature_bound_v1() {
++            Ok(previous)=>Self::Admitted { control,previous },
++            Err(error)=>Self::Refused { control,error },
++        }
++    }
++    fn shared_control<'s>(&'s self)->&'s RuntimeControl {
++        match self { Self::Admitted {control,..}|Self::Refused {control,..}=>control }
++    }
++    fn complete(self,storage:CorrectionPhaseStorageV1)->Result<(),SwiftRunFailure> {
++        match self {
++            Self::Admitted {control,previous}=>control.end_construction_phase(storage,previous),
++            Self::Refused {control:_,error:_}=>{drop(storage);Ok(())},
++        }
++    }
++}
++struct CorrectionReborrowPlacesV1<'c> {
++    access:CorrectionAccessV1<'c>, access_return:CorrectionAccessV1<'c>,
++    access_option:Option<CorrectionAccessV1<'c>>,
++    access_match:Result<usize,AError>, refusal:AError,
++    shared_receiver:&'c CorrectionAccessV1<'c>, shared_return:&'c RuntimeControl,
++    guard_control_argument:&'c RuntimeControl,
++    guard:InitialProfileBorrowV1<'c>, guard_reference:&'c InitialProfileBorrowV1<'c>,
++    proof_view:&'c ValidatedSwiftReactor, control_view:&'c RuntimeControl,
++    storage:CorrectionPhaseStorageV1, storage_move:CorrectionPhaseStorageV1,
++    storage_drop:CorrectionPhaseStorageV1,
++    primary:InitialProfileConstructionOutcomeV1,
++    primary_move:InitialProfileConstructionOutcomeV1,
++    completion:Result<(),SwiftRunFailure>, completion_move:Result<(),SwiftRunFailure>,
++    returned_pair:(InitialProfileConstructionOutcomeV1,Result<(),SwiftRunFailure>),
++}
++// Exact original header/row signatures are typechecked in the sole-guard block
++// in the disposable source. Neither this packet nor its tests execute that wrapper.
++#[no_mangle]
++pub static MIXER_CORRECTION_REBORROW_LAYOUT_V1:[usize;18]=[
++    size_of::<CorrectionAccessV1<'static>>(),std::mem::align_of::<CorrectionAccessV1<'static>>(),
++    size_of::<Option<CorrectionAccessV1<'static>>>(),std::mem::align_of::<Option<CorrectionAccessV1<'static>>>(),
++    size_of::<Result<usize,AError>>(),std::mem::align_of::<Result<usize,AError>>(),
++    size_of::<CorrectionPhaseStorageV1>(),std::mem::align_of::<CorrectionPhaseStorageV1>(),
++    size_of::<CorrectionReborrowPlacesV1<'static>>(),std::mem::align_of::<CorrectionReborrowPlacesV1<'static>>(),
++    size_of::<InitialProfileBorrowV1<'static>>(),std::mem::align_of::<InitialProfileBorrowV1<'static>>(),
++    size_of::<&'static CorrectionAccessV1<'static>>(),std::mem::align_of::<&'static CorrectionAccessV1<'static>>(),
++    size_of::<(InitialProfileConstructionOutcomeV1,Result<(),SwiftRunFailure>)>(),std::mem::align_of::<(InitialProfileConstructionOutcomeV1,Result<(),SwiftRunFailure>)>(),
++    size_of::<InitialProfileConstructionOutcomeV1>(),std::mem::align_of::<InitialProfileConstructionOutcomeV1>(),
++];
++
++#[cfg(test)]
++mod correction_reborrow_tests {
++    use super::*;
++    use crate::{Cancellation,Type};
++    use crate::experimental_swift_reactor::{validate_swift_reactor,SwiftValidationBudget};
++    use crate::experimental_wasi::WasiFunction;
++    use std::time::Instant;
++    fn uint(mut value: u32, bytes: &mut Vec<u8>) {
++    loop {
++        let next = value & 0x7f;
++        value >>= 7;
++        bytes.push(next as u8 | if value == 0 { 0 } else { 0x80 });
++        if value == 0 {
++            break;
++        }
++    }
++}
++fn name(value: &[u8], bytes: &mut Vec<u8>) {
++    uint(value.len() as u32, bytes);
++    bytes.extend_from_slice(value);
++}
++fn section(module: &mut Vec<u8>, id: u8, bytes: &[u8]) {
++    module.push(id);
++    uint(bytes.len() as u32, module);
++    module.extend_from_slice(bytes);
++}
++fn signature(parameters: &[Type], results: &[Type], bytes: &mut Vec<u8>) {
++    let ty = |value| match value {
++        Type::I32 => 0x7f,
++        Type::I64 => 0x7e,
++        Type::F32 => 0x7d,
++        Type::F64 => 0x7c,
++    };
++    bytes.push(0x60);
++    uint(parameters.len() as u32, bytes);
++    bytes.extend(parameters.iter().copied().map(ty));
++    uint(results.len() as u32, bytes);
++    bytes.extend(results.iter().copied().map(ty));
++}
++fn proof() -> ValidatedSwiftReactor {
++    // Complete ordinary policy: 34 ordered Preview1 imports, 29 definitions,
++    // exact indices 35/62, initial memory584 and fixed table46713. Only body
++    // content is small. No private/relaxed fixture policy or proof construction.
++    let mut module = b"\0asm\x01\0\0\0".to_vec();
++    let mut types = vec![36];
++    for import in WasiFunction::ALL {
++        signature(import.parameters(), import.results(), &mut types);
++    }
++    signature(&[], &[], &mut types);
++    signature(&[], &[Type::I32], &mut types);
++    section(&mut module, 1, &types);
++    let mut imports = vec![34];
++    for (index, import) in WasiFunction::ALL.into_iter().enumerate() {
++        name(b"wasi_snapshot_preview1", &mut imports);
++        name(import.name(), &mut imports);
++        imports.push(0);
++        uint(index as u32, &mut imports);
++    }
++    section(&mut module, 2, &imports);
++    let mut functions = vec![29];
++    functions.extend([34; 28]);
++    functions.push(35);
++    section(&mut module, 3, &functions);
++    let mut table = vec![1, 0x70, 1];
++    uint(46_713, &mut table);
++    uint(46_713, &mut table);
++    section(&mut module, 4, &table);
++    let mut memory = vec![1, 0];
++    uint(584, &mut memory);
++    section(&mut module, 5, &memory);
++    let mut exports = vec![3];
++    for (export, kind, index) in [
++        (b"memory".as_slice(), 2, 0),
++        (b"_initialize".as_slice(), 0, 35),
++        (b"mixer_fieldlog_corpus_v1".as_slice(), 0, 62),
++    ] {
++        name(export, &mut exports);
++        exports.push(kind);
++        uint(index, &mut exports);
++    }
++    section(&mut module, 7, &exports);
++    let mut bodies = vec![29];
++    for _ in 0..28 {
++        bodies.extend_from_slice(&[2, 0, 0x0b]);
++    }
++    bodies.extend_from_slice(&[4, 0, 0x41, 0, 0x0b]);
++    section(&mut module, 10, &bodies);
++    validate_swift_reactor(
++        &module,
++        SwiftValidationBudget::default(),
++        &Cancellation::default(),
++    )
++    .unwrap()
++}
++
++    #[test]
++    fn correction_admitted_and_refused_own_same_control_until_consumed() {
++        for cancelled in [false,true] {
++            let token=Cancellation::default();
++            let (mut control,adopted)=RuntimeControl::adopt(proof(),SwiftRunBudget::default(),Instant::now(),token.clone()).unwrap();
++            let before=control.usage(None);
++            if cancelled {token.cancel();}
++            let access=CorrectionAccessV1::signature_witness(&mut control);
++            assert_eq!(matches!(&access,CorrectionAccessV1::Refused {..}),cancelled);
++            {
++                let shared=access.shared_control();
++                let owner_view=adopted.proof();
++                assert_eq!(shared.usage(None).reservations,before.reservations);
++                assert_eq!(shared.usage(None).instructions,before.instructions);
++                assert!(owner_view.observations().validated_bodies>0);
++            }
++            access.complete(CorrectionPhaseStorageV1 {plan:None,temporary_output:None}).unwrap();
++            control.drop_proof(adopted).unwrap();
++            let after=control.finish_owned_cleanup(None);
++            assert_eq!(after.reservations.combined.current,0);
++            assert_eq!(after.reservations.live_tickets,0);
++            assert_eq!(after.cleanup_invariant,None);
++            println!("REBORROW cancelled={} {:?}",cancelled,after);
++        }
++    }
++}
