@@ -1,0 +1,76 @@
+{
+  "at": "2026-10-27T02:40:13.985949+00:00",
+  "parent_seal": {
+    "bytes": 11461,
+    "sha256": "99cb9ab40fb87bd2e9bf324f3d323253927837b5bb80832d93a4a65df6193253"
+  },
+  "closed_parent_members_verified": 65,
+  "selection": "same reviewed data-only audits with exact current commit/tree/run/fixture identities only",
+  "scripts": [
+    {
+      "source": "verification/github-delivery-codec-and-finite-host-components/terminal-artifact-audit/audit.py",
+      "source_digest": {
+        "bytes": 10781,
+        "sha256": "e8b4029264ccea0250dd51cff3744db041da5baf3878b2507f081fa400a15c15"
+      },
+      "target": "verification/github-delivery-receiver-join-and-loader-candidate/terminal-artifact-audit/audit.py",
+      "adapted_digest": {
+        "bytes": 10781,
+        "sha256": "fcecc78eb9b060e0669ee1ca8addd656b064c366b990dd6ad4de4f49a94e8ee3"
+      },
+      "diff": "--- accepted-parent/audit.py\n+++ current/audit.py\n@@ -11,8 +11,8 @@\n \n ROOT = pathlib.Path(__file__).resolve().parent\n REPO = ROOT.parents[2]\n-SHA = \"1734ea490c7c65c0086a6c60dd20c3687131c26b\"\n-RUN = 40433480424\n+SHA = \"3e105c206c88e18461feb66bdecc0ddb1f2b0f0a\"\n+RUN = 40437321290\n WORKFLOW_HASH = \"7f3ab7ef5ec94379a969c91e9f2348cecd2e80908c8a7330aef845f133f38e62\"\n SOURCE_RECORDS = {}\n SOURCE_COMMANDS = []\n"
+    },
+    {
+      "source": "verification/github-delivery-codec-and-finite-host-components/terminal-artifact-audit/capability_review.py",
+      "source_digest": {
+        "bytes": 16321,
+        "sha256": "a5ba16aa91b9b60ea77747b56dcb9f08be89f04fc39f102b2717127e0389932d"
+      },
+      "target": "verification/github-delivery-receiver-join-and-loader-candidate/terminal-artifact-audit/capability_review.py",
+      "adapted_digest": {
+        "bytes": 16321,
+        "sha256": "a5ba16aa91b9b60ea77747b56dcb9f08be89f04fc39f102b2717127e0389932d"
+      },
+      "diff": ""
+    },
+    {
+      "source": "verification/github-delivery-codec-and-finite-host-components/terminal-artifact-audit/collect-and-review.py",
+      "source_digest": {
+        "bytes": 7619,
+        "sha256": "83529f260b393636b3445c263cdc76c32ce548cec20b744b81b3a7ff4e4aa727"
+      },
+      "target": "verification/github-delivery-receiver-join-and-loader-candidate/terminal-artifact-audit/collect-and-review.py",
+      "adapted_digest": {
+        "bytes": 7623,
+        "sha256": "73f4e46fb571b33d067f2fac4ed417182459cb30dcf00e19cd3d32410895fa7b"
+      },
+      "diff": "--- accepted-parent/collect-and-review.py\n+++ current/collect-and-review.py\n@@ -8,7 +8,7 @@\n import audit\n \n HERE = pathlib.Path(__file__).resolve().parent\n-EXPECTED_TREE = '6bd8baa4d20339764a000bc2c4babe66e0a12994'\n+EXPECTED_TREE = 'd23017135c7b34cb030c5b515f7da1bd4b870bb8'\n assert __debug__, 'Assertions must remain enabled'\n assert not (HERE / 'acceptance.json').exists(), 'Accepted audit is one-shot'\n \n@@ -29,7 +29,7 @@\n     return result.stdout\n \n \n-assert audit.digest((audit.REPO / 'verification/github-delivery-codec-and-finite-host-components/fixture-artifact-audit/acceptance.json').read_bytes())['sha256'] == '6f3f8ed8f6c553fe619cb86073d002833f6e867a333d44ce773504ee70da046c'\n+assert audit.digest((audit.REPO / 'verification/github-delivery-receiver-join-and-loader-candidate/fixture-artifact-audit/acceptance.json').read_bytes())['sha256'] == '93c8eda821b45d995607f25203b4dee7d5d5d9c8a41b6c55eed8cd5cee75325a'\n capture('gh-version', ['gh', '--version'])\n capture('git-version', ['git', '--version'])\n run = json.loads(capture('ci-run-api', ['gh', 'api', f'repos/snowdamiz/mixer/actions/runs/{audit.RUN}']))\n@@ -84,7 +84,7 @@\n     'JVM': {k: jvm[k] for k in ('id', 'sha256', 'members', 'member_bytes')},\n     'capability': {k: capability[k] for k in ('id', 'sha256', 'members', 'member_bytes')},\n     'binding_cases_per_mode': 39, 'binding_command_logs_per_mode': 51,\n-    'separate_fixture_artifact_acceptance': {'path': 'verification/github-delivery-codec-and-finite-host-components/fixture-artifact-audit/acceptance.json', 'sha256': '6f3f8ed8f6c553fe619cb86073d002833f6e867a333d44ce773504ee70da046c', 'scope':'Actual Rust1.98.1 closed host fixture separately audited'},\n+    'separate_fixture_artifact_acceptance': {'path': 'verification/github-delivery-receiver-join-and-loader-candidate/fixture-artifact-audit/acceptance.json', 'sha256': '93c8eda821b45d995607f25203b4dee7d5d5d9c8a41b6c55eed8cd5cee75325a', 'scope':'Actual Rust1.98.1 closed host fixture separately audited'},\n     'limits': [\n         'Core library/build-log and capability native-library/tool/9 native command logs are receipt-only hashes',\n         'JVM environment class hashes only; other two closures retain 581 class members',\n"
+    },
+    {
+      "source": "verification/github-delivery-codec-and-finite-host-components/terminal-artifact-audit/run-reviewed.py",
+      "source_digest": {
+        "bytes": 1982,
+        "sha256": "471240158b27e281c445a8a8652162f49d276ac449998f513519cd615af0afce"
+      },
+      "target": "verification/github-delivery-receiver-join-and-loader-candidate/terminal-artifact-audit/run-reviewed.py",
+      "adapted_digest": {
+        "bytes": 1982,
+        "sha256": "471240158b27e281c445a8a8652162f49d276ac449998f513519cd615af0afce"
+      },
+      "diff": ""
+    },
+    {
+      "source": "verification/github-delivery-codec-and-finite-host-components/terminal-artifact-audit/freeze.py",
+      "source_digest": {
+        "bytes": 2305,
+        "sha256": "7edc417c729ddeea684f3658cce8e540f7fef69cbc157477285da214c54dfd59"
+      },
+      "target": "verification/github-delivery-receiver-join-and-loader-candidate/terminal-artifact-audit/freeze.py",
+      "adapted_digest": {
+        "bytes": 2305,
+        "sha256": "3cba36b2e2ea86cf31e9ad6de15562cfe30c9ebe7465cfb46736ff4aa1f83385"
+      },
+      "diff": "--- accepted-parent/freeze.py\n+++ current/freeze.py\n@@ -10,8 +10,8 @@\n     return {'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}\n \n acceptance = json.loads((ROOT / 'acceptance.json').read_bytes())\n-assert acceptance['source_revision'] == '1734ea490c7c65c0086a6c60dd20c3687131c26b'\n-assert acceptance['source_tree'] == '6bd8baa4d20339764a000bc2c4babe66e0a12994'\n+assert acceptance['source_revision'] == '3e105c206c88e18461feb66bdecc0ddb1f2b0f0a'\n+assert acceptance['source_tree'] == 'd23017135c7b34cb030c5b515f7da1bd4b870bb8'\n assert acceptance['successful_jobs'] == 6 and acceptance['successful_steps'] == 64\n assert acceptance['retries_executed'] == 0 and acceptance['run_attempt'] == 1\n commands = []\n"
+    }
+  ]
+}

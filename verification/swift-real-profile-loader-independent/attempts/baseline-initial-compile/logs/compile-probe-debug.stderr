@@ -1,0 +1,29 @@
+error[E0433]: cannot find module or crate `fixture` in this scope
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-real-profile-loader-independent/baseline_late_failure.rs:10:15
+   |
+10 |     let mut f=fixture::Fixture::default();
+   |               ^^^^^^^ use of unresolved module or unlinked crate `fixture`
+   |
+   = help: you might be missing a crate named `fixture`
+
+error[E0603]: struct `Cancellation` is private
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-real-profile-loader-independent/baseline_late_failure.rs:4:29
+   |
+ 4 | use mixer_vm::experimental::Cancellation;
+   |                             ^^^^^^^^^^^^ private struct
+   |
+note: the struct `Cancellation` is defined here
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-typed-result-codec-implementation/source/vm/src/experimental/mod.rs:34:13
+   |
+34 | use crate::{Cancellation, Limits, Profile};
+   |             ^^^^^^^^^^^^
+help: import `Cancellation` directly
+   |
+ 4 - use mixer_vm::experimental::Cancellation;
+ 4 + use mixer_vm::execute::Cancellation;
+   |
+
+error: aborting due to 2 previous errors
+
+Some errors have detailed explanations: E0433, E0603.
+For more information about an error, try `rustc --explain E0433`.
