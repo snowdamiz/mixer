@@ -1,0 +1,20 @@
+warning: unreachable expression
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-host-composition/owned-privacy-work/private_quote/driver.rs:3:51
+  |
+3 | fn fake() -> host_account::ReviewedWholeQuoteV1 { host_account::ReviewedWholeQuoteV1 { total: panic!() } }
+  |                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^--------^^
+  |                                                   |                                           |
+  |                                                   |                                           any code following this expression is unreachable
+  |                                                   unreachable expression
+  |
+  = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+error[E0451]: field `total` of struct `ReviewedWholeQuoteV1` is private
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-host-composition/owned-privacy-work/private_quote/driver.rs:3:88
+  |
+3 | fn fake() -> host_account::ReviewedWholeQuoteV1 { host_account::ReviewedWholeQuoteV1 { total: panic!() } }
+  |                                                                                        ^^^^^ private field
+
+error: aborting due to 1 previous error; 1 warning emitted
+
+For more information about this error, try `rustc --explain E0451`.

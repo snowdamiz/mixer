@@ -1,0 +1,24 @@
+error[E0624]: associated function `from_preexisting_root_v1` is private
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-host-account-independent/sources/negative_account_construct.rs:3:74
+   |
+ 3 | fn check()->account::TrustedHostAccountV1{account::TrustedHostAccountV1::from_preexisting_root_v1(panic!())}
+   |                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^ private associated function
+   |
+  ::: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-host-account-independent/sources/frozen_host_account.rs:95:5
+   |
+95 |     fn from_preexisting_root_v1(root: TrustedRootPolicyV1) -> Self {
+   |     -------------------------------------------------------------- private associated function defined here
+
+warning: unreachable call
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-host-account-independent/sources/negative_account_construct.rs:3:43
+  |
+3 | fn check()->account::TrustedHostAccountV1{account::TrustedHostAccountV1::from_preexisting_root_v1(panic!())}
+  |                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -------- any code following this expression is unreachable
+  |                                           |
+  |                                           unreachable call
+  |
+  = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+error: aborting due to 1 previous error; 1 warning emitted
+
+For more information about this error, try `rustc --explain E0624`.

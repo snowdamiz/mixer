@@ -1,0 +1,18 @@
+error[E0599]: no method named `clone` found for struct `ReservationV1<'a>` in the current scope
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-host-account-independent/sources/negative_ticket_clone.rs:3:48
+    |
+  3 | fn check(t:account::ReservationV1<'_>){let _=t.clone();}
+    |                                                ^^^^^ method not found in `ReservationV1<'_>`
+    |
+   ::: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-host-account-independent/sources/frozen_host_account.rs:128:1
+    |
+128 | pub(super) struct ReservationV1<'a> {
+    | ----------------------------------- method `clone` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `clone`, perhaps you need to implement it:
+            candidate #1: `Clone`
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0599`.

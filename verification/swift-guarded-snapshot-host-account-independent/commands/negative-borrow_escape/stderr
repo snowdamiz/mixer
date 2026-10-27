@@ -1,0 +1,12 @@
+error[E0515]: cannot return value referencing function parameter `o`
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-host-account-independent/sources/negative_borrow_escape.rs:3:66
+  |
+3 | fn check<'a>(o:account::PrepaidOwnedV1<'a,Vec<u8>>)->&'a Vec<u8>{o.inspect_v1().unwrap()}
+  |                                                                  -^^^^^^^^^^^^^^^^^^^^^^
+  |                                                                  |
+  |                                                                  returns a value referencing data owned by the current function
+  |                                                                  `o` is borrowed here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0515`.

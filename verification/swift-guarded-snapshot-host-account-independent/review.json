@@ -1,0 +1,83 @@
+{
+  "accepted_contracts": [
+    {
+      "contract": "Checked atomic work/storage reservation and peak updates",
+      "finding": "Both checked additions and both limit comparisons precede the single Cell commit; failure cannot partially update work, storage or peak. Cell is not Sync. Tests include nonzero existing usage and retained peak.",
+      "source": "host_account.rs:105-123"
+    },
+    {
+      "contract": "Six explicit nonzero child quote components",
+      "finding": "Every component requires positive work and storage, and both sums use checked arithmetic. This checks arithmetic only; it does not establish prices or reviewed evidence.",
+      "source": "host_account.rs:46-76"
+    },
+    {
+      "contract": "Pending selection before fixture activity",
+      "finding": "Both selected constructors return named pending errors. The typed caller obtains its quote and reservation before invoking its closure; all File setup, loading, cancellation/claims/leaf argument work is inside that closure. No selected fixture binding constructor exists.",
+      "source": "host_account.rs:70-85; entry.inc.rs:57-67"
+    },
+    {
+      "contract": "One consuming dispatch and no work refund",
+      "finding": "The non-Clone ticket is consumed by FnOnce dispatch. Work is never reduced. Unused ticket, callback unwind, forgotten owner and discarded destruction token retain charges.",
+      "source": "host_account.rs:126-140; 177-189"
+    },
+    {
+      "contract": "Retained ownership until explicit destruction",
+      "finding": "Actual setup errors, original I/O errors and earlier File owners, loader files including executable, loader usage/failure, typed scope finish or pre-scope failure, outputs, claims and cancellation owner remain in the typed outcome. Ordinary Drop destroys payload but does not refund storage.",
+      "source": "host_account.rs:143-174; entry.inc.rs:33-55; 130-157"
+    },
+    {
+      "contract": "Separate destruction and account-bound storage release",
+      "finding": "Explicit destruction takes and drops payload, takes the reservation, then drops the emptied wrapper. Only after returning does a separate non-Clone token permit storage release. That token borrows the original account; callers cannot supply a substitute account. Destructor unwind prevents token return and retains charges. Checked subtraction failure retains state.",
+      "source": "host_account.rs:149-189; entry.inc.rs:70-82"
+    },
+    {
+      "contract": "Actual typed loader and seven-argument leaf route",
+      "finding": "The exact selected loader receives its unchanged original validation budget. Its authentic SelectedValidatedProfileV1 is consumed by the seven-argument leaf. Both real leaf result alternatives are retained. Fresh exact145 metadata compilation succeeded without linking or executing a product route.",
+      "source": "entry.inc.rs:130-171; bootstrap driver.inc.rs:6-24"
+    },
+    {
+      "contract": "One setup pass and independent product counters",
+      "finding": "The finite setup loop opens each of five paths at most once, uses read-only File::open for inputs and create_new outputs, and terminates on the first original error while returning earlier owners. Frozen product source retains 1,000,000,000 execution work and 256 MiB maximum combined storage and independently validates requested limits. Host accounting is not transferred into product counters.",
+      "source": "entry.inc.rs:84-105; 138-148; funding source control.rs:15-61; 810-849"
+    }
+  ],
+  "accepted_source_tree_sha256": "5cd522af7e126d88496b5aefee722ff481821f0cf5babdbdbd7fbeba646c380b",
+  "at": "2026-10-27T10:23:26.234245+00:00",
+  "blocking_semantic_findings": [],
+  "complete_quote_root_policy_P0_fixture_binding_accepted": false,
+  "fresh_host_evidence": {
+    "independently_authored_tests_per_mode": 8,
+    "modes": [
+      "debug",
+      "optimized"
+    ],
+    "negative_compile_controls": 13,
+    "positive_compile_controls": 1,
+    "producer_tests_per_mode": 11,
+    "tests_per_mode": 19,
+    "whole_tree_metadata_compiles": 1
+  },
+  "limitations": [
+    "No complete quote, root policy, fixture constructor or successful selected account/grant exists.",
+    "The P0 allocation and source binding fields are stored placeholders, not validated or provisioned authority; all test accounts/prices are synthetic.",
+    "Borrow-only inspection prevents lifetime escape and mutable access through that API. An arbitrary generic T can still define interior-mutability or duplication methods. This review accepts the frozen private OwnedFixtureOutcomeV1 route with no escaping clone/transfer path; it is not an arbitrary-T resource sandbox.",
+    "Producer396-role/311071-byte inventory is assigned to another independent reviewer. This report does not accept its counts, phases, layouts or completeness and does not equate MIR counts with logical work prices.",
+    "Compile-only route evidence does not validate I/O outcomes, fixture freshness, loader observation, close/flush/durability, real VM/cache/scope/writer execution or operational pricing.",
+    "No global process inventory, native runtime, device, simulator, emulator, UI or screen capture was run. Those checks remain pending under the user pause.",
+    "No production publication, customer communication, credential changes, Patch/Skip code, Android v5/stopped experiment, hosted authority driver, FieldLog, OTA or GA qualification."
+  ],
+  "native_OTA_FieldLog_GA_accepted": false,
+  "operational_grant_or_real_runtime_accepted": false,
+  "ownership": "verification/swift-guarded-snapshot-host-account-independent/** only",
+  "required_before_any_grant": [
+    "Independently selected trusted outer-parent invocation and source/tool/fixture/process binding.",
+    "Finite pre-existing P0 storage and source-work funding, including root policy, quote construction, account and closure, caller/retirement frames, destruction token, release calls, all arguments/results/temporaries/moves and all error/unwind paths before child admission.",
+    "Complete independently reviewed six-component child work/storage quote covering unchanged loader and original validation, setup dynamic backing, argument backing, complete pre-store/failure work, final composed callee/leaf ownership and requested storage, retained diagnostics/output/destruction.",
+    "Final composed source identity and inventory reconciliation; this source145 is not combined145 and does not establish the fixed451814442 store."
+  ],
+  "schema": 1,
+  "source_basis": "funding144 plus released bootstrap leaf and private account/entry; not combined145",
+  "source_inventory_independent_acceptance": false,
+  "source_members": 145,
+  "status": "accepted-private-account-and-typed-entry-source-contract-only"
+}
