@@ -1,0 +1,5 @@
+Accepted the exact 3,339-member final archive for byte custody and the already reviewed finite observation-data consistency composition. All 280 whole original subjects, 2,705 pending cases, 189 whole historical bindings across seven states, 98 invocations/99 aliases, and five separate V1 sites are retained. All 844 missing selected-completion rows are reconstructed exactly and receive no invented typed outcomes. The failed parent remains failed; its partial gzip is excluded.
+
+The archive preserves exact v3, canonical84 and original98 outputs and their immutable source/input identities. Original98 recorded compile paths remain absolute to the original repository. The archive reference tree is an evidence copy; relocation or execution requires an explicitly reviewed path mapping. No archived code was run.
+
+There are no blocking archive-custody findings. Generic public-result/callee descriptor joins, original semantic/body/helper/enclosing/allocation outcomes, execution closure, canonical integration/default matrix/CI, native runtime, OTA and GA remain pending. This is not full matrix qualification. The separate active descriptor lane was not accessed.

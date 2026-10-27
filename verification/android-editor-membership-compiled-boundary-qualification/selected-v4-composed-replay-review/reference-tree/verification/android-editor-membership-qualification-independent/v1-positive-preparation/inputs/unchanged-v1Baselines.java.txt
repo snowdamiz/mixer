@@ -1,0 +1,11 @@
+    private static void v1Baselines(){
+        Activity activity=new Activity();List<byte[]> events=new ArrayList<>();NativeRenderer renderer=new NativeRenderer(activity,events::add);
+        UiPacket first=UiPacket.decode(packet(1));View root=renderer.apply(first);check(root==renderer.view("root")&&renderer.packet==first,"V1 initial apply");
+        ((android.view.ViewGroup)root).addView(new View(activity));View text=renderer.view("text");renderer.apply(UiPacket.decode(packet(2)));check(renderer.view("text")==text,"V1 exact generation reuse");
+        renderer.view("button").performClick();check(events.size()==1&&Json.object(Json.parse(events.get(0))).get("revision")!=null,"V1 native button event");
+        ((Switch)renderer.view("toggle")).performClick();check(events.size()==2,"V1 native toggle event");
+        EditText editor=(EditText)renderer.view("field");editor.hostReplace(0,editor.getText().length(),"legacy");check(events.size()==3,"V1 native field event");
+        renderer.apply(UiPacket.decode(packet(3,"replace")));check(renderer.view("replacement")!=root,"V1 hierarchy replacement");
+        for(String method:List.of("ViewGroup.removeViewAt","ViewGroup.addView","MarginLayoutParams.setMarginEnd"))check(ConcreteHostProbe.events().stream().anyMatch(event->event.method.equals(method)&&event.phase.equals("entry")&&event.productionFrames.stream().anyMatch(frame->frame.className().equals("dev.mixer.android.NativeRenderer")&&frame.methodName().equals("children"))),"V1 explicit baseline not reached "+method);
+        Set<Integer> layoutBci=new LinkedHashSet<>();for(var event:ConcreteHostProbe.events())if(event.method.equals("View.setLayoutParams")&&event.phase.equals("entry"))for(var frame:event.productionFrames)if(frame.className().equals("dev.mixer.android.NativeRenderer")&&frame.methodName().equals("children"))layoutBci.add(frame.bytecodeIndex());check(layoutBci.size()==2,"V1 two layout branches collapsed");collect();
+    }

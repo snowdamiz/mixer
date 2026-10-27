@@ -1,0 +1,126 @@
+{
+  "schema": 3,
+  "at": "2026-10-27T03:13:46.992925+00:00",
+  "argv": [
+    "python3",
+    "inline adapt accepted phased data-only CI audit"
+  ],
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "source_revision": "da558f826e6ca5c753861b4c992414d531fae027",
+  "source_tree": "9266a1db1fe6a3a8cb2fc6b561ebfcf0dd99e122",
+  "run_id": 40441050306,
+  "parent_seal": {
+    "bytes": 12947,
+    "sha256": "7d9b6268b00927352e806f9958447d4e47fa61d8a99a0c1461af99ee0226ac3f"
+  },
+  "closed_parent_members_verified": 74,
+  "closed_parent_bytes_verified": 8384560,
+  "execution_scripts": [
+    {
+      "path": "audit.py",
+      "digest": {
+        "bytes": 10781,
+        "sha256": "51bdac1a730353f788724462650e6d6cf5844d458a9593913f06ced2be2eba49"
+      }
+    },
+    {
+      "path": "capability_review.py",
+      "digest": {
+        "bytes": 16321,
+        "sha256": "a5ba16aa91b9b60ea77747b56dcb9f08be89f04fc39f102b2717127e0389932d"
+      }
+    },
+    {
+      "path": "phases.py",
+      "digest": {
+        "bytes": 11172,
+        "sha256": "81449adbc18252fb9076551006fd2e1961d70dceb086ba57c8da2145b6f692cd"
+      }
+    },
+    {
+      "path": "run-reviewed.py",
+      "digest": {
+        "bytes": 3957,
+        "sha256": "3c2773432b43804258438bc5509a4c49ddf9fef26681ece733ebca5fe534110f"
+      }
+    },
+    {
+      "path": "freeze.py",
+      "digest": {
+        "bytes": 3875,
+        "sha256": "14599e75ad62e7aa59d9b09961987830897450f064bae403349d2e3351b3ddef"
+      }
+    }
+  ],
+  "adaptations": [
+    {
+      "parent": "verification/github-delivery-receiver-join-and-loader-candidate/terminal-artifact-audit-v2/audit.py",
+      "parent_digest": {
+        "bytes": 10781,
+        "sha256": "fcecc78eb9b060e0669ee1ca8addd656b064c366b990dd6ad4de4f49a94e8ee3"
+      },
+      "target": "audit.py",
+      "adapted_digest": {
+        "bytes": 10781,
+        "sha256": "51bdac1a730353f788724462650e6d6cf5844d458a9593913f06ced2be2eba49"
+      },
+      "diff": "--- parent/audit.py\n+++ current/audit.py\n@@ -11,8 +11,8 @@\n \n ROOT = pathlib.Path(__file__).resolve().parent\n REPO = ROOT.parents[2]\n-SHA = \"3e105c206c88e18461feb66bdecc0ddb1f2b0f0a\"\n-RUN = 40437321290\n+SHA = \"da558f826e6ca5c753861b4c992414d531fae027\"\n+RUN = 40441050306\n WORKFLOW_HASH = \"7f3ab7ef5ec94379a969c91e9f2348cecd2e80908c8a7330aef845f133f38e62\"\n SOURCE_RECORDS = {}\n SOURCE_COMMANDS = []\n"
+    },
+    {
+      "parent": "verification/github-delivery-receiver-join-and-loader-candidate/terminal-artifact-audit-v2/capability_review.py",
+      "parent_digest": {
+        "bytes": 16321,
+        "sha256": "a5ba16aa91b9b60ea77747b56dcb9f08be89f04fc39f102b2717127e0389932d"
+      },
+      "target": "capability_review.py",
+      "adapted_digest": {
+        "bytes": 16321,
+        "sha256": "a5ba16aa91b9b60ea77747b56dcb9f08be89f04fc39f102b2717127e0389932d"
+      },
+      "diff": ""
+    },
+    {
+      "parent": "verification/github-delivery-receiver-join-and-loader-candidate/terminal-artifact-audit-v2/phases.py",
+      "parent_digest": {
+        "bytes": 11139,
+        "sha256": "fc6f039cb568308890c277eb769dc09816c13cc0bfd1b8579fd8cb5695ae0233"
+      },
+      "target": "phases.py",
+      "adapted_digest": {
+        "bytes": 11172,
+        "sha256": "81449adbc18252fb9076551006fd2e1961d70dceb086ba57c8da2145b6f692cd"
+      },
+      "diff": "--- parent/phases.py\n+++ current/phases.py\n@@ -8,10 +8,10 @@\n import audit\n \n HERE = Path(__file__).resolve().parent\n-EXPECTED_TREE = \"d23017135c7b34cb030c5b515f7da1bd4b870bb8\"\n-FIXTURE = \"verification/github-delivery-receiver-join-and-loader-candidate/fixture-artifact-audit\"\n-FIXTURE_ACCEPTANCE = \"93c8eda821b45d995607f25203b4dee7d5d5d9c8a41b6c55eed8cd5cee75325a\"\n-FIXTURE_SEAL = \"49db8464a033554950d97d7cfe4dc8ecbe093551606985e857c3689898fb5707\"\n+EXPECTED_TREE = \"9266a1db1fe6a3a8cb2fc6b561ebfcf0dd99e122\"\n+FIXTURE = \"verification/github-delivery-loader-host-and-field-observations/fixture-artifact-audit\"\n+FIXTURE_ACCEPTANCE = \"8a157f70fab4dfdfb3cb295ff62a136eeaf16909517577abd2debf73c105f91b\"\n+FIXTURE_SEAL = \"dd2b3f0ec9fa01b38a762ef8ccf8bfb9017e5b506adbcf40e2fd79e778cdc750\"\n EXPECTED_JOBS = {\"swift\", \"swift-capability-native\", \"vm\", \"services\", \"android-owner-host\", \"swift-cache-state-fixture\"}\n assert __debug__ and not (HERE / \"acceptance.json\").exists()\n \n@@ -137,18 +137,18 @@\n         \"JVM_exact_committed_source_counts\": [c[\"sources_bound_to_exact_commit_bytes\"] for c in jvm[\"closures\"]],\n         \"JVM_retained_class_counts\": [c[\"retained_class_bytes_verified\"] for c in jvm[\"closures\"]],\n         \"phase_records\": phase_records, \"separate_fixture_artifact_acceptance\": fixture(),\n-        \"prior_failed_collection\": json.loads((HERE / \"prior-failure.json\").read_bytes()),\n+        \"historical_parent_failed_collection\": json.loads((HERE / \"prior-failure.json\").read_bytes()),\n         \"limits\": [\n             \"Core library/build-log and capability native-library/tool/9 native command logs are receipt-only hashes\",\n             \"JVM environment class hashes only; other two closures retain 581 class members\",\n             \"TSAN covers the Swift host harness, not Rust archive\",\n             \"Other workflow artifact families were not downloaded or audited; this acceptance covers the three selected core/JVM/capability archives\",\n-            \"Original failed collection is diagnostic only; its descendant reaping remains unverified and its outputs provide no accepted phase provenance\",\n+            \"Historical parent failed collection is diagnostic only; its descendant reaping remains unverified and its outputs provide no accepted phase provenance\",\n             \"No new native runtime, UI, screen capture, physical device, simulator/emulator, public V2, signed package, FieldLog or GA qualification\",\n         ],\n         \"cleanup\": {\"artifacts_extracted_or_executed\": False, \"native_or_capture_processes_started_or_queried\": False,\n                     \"accepted_audit_phase_children_reaped\": True, \"accepted_audit_phase_process_groups_absent\": True,\n-                    \"prior_failed_collection_descendant_reaping_verified\": False, \"git_mutations\": False, \"network_mutations\": False},\n+                    \"historical_parent_failed_collection_descendant_reaping_verified\": False, \"git_mutations\": False, \"network_mutations\": False},\n     }\n     (HERE / \"acceptance.json\").write_text(json.dumps(receipt, indent=2) + \"\\n\")\n     print(json.dumps({\"status\": receipt[\"status\"], \"source_revision\": audit.SHA, \"run_id\": audit.RUN, \"successful_jobs\": 6, \"successful_steps\": 64}))\n"
+    },
+    {
+      "parent": "verification/github-delivery-receiver-join-and-loader-candidate/terminal-artifact-audit-v2/run-reviewed.py",
+      "parent_digest": {
+        "bytes": 3957,
+        "sha256": "3c2773432b43804258438bc5509a4c49ddf9fef26681ece733ebca5fe534110f"
+      },
+      "target": "run-reviewed.py",
+      "adapted_digest": {
+        "bytes": 3957,
+        "sha256": "3c2773432b43804258438bc5509a4c49ddf9fef26681ece733ebca5fe534110f"
+      },
+      "diff": ""
+    },
+    {
+      "parent": "verification/github-delivery-receiver-join-and-loader-candidate/terminal-artifact-audit-v2/freeze.py",
+      "parent_digest": {
+        "bytes": 3866,
+        "sha256": "c193f2909806778034d1c4c0f3fd56f9a3c35c8c35cd87375889821f8c9dd8eb"
+      },
+      "target": "freeze.py",
+      "adapted_digest": {
+        "bytes": 3875,
+        "sha256": "14599e75ad62e7aa59d9b09961987830897450f064bae403349d2e3351b3ddef"
+      },
+      "diff": "--- parent/freeze.py\n+++ current/freeze.py\n@@ -17,8 +17,8 @@\n for item in preparation[\"execution_scripts\"]:\n     assert digest((ROOT / item[\"path\"]).read_bytes()) == item[\"digest\"]\n acceptance = json.loads((ROOT / \"acceptance.json\").read_bytes())\n-assert acceptance[\"source_revision\"] == \"3e105c206c88e18461feb66bdecc0ddb1f2b0f0a\"\n-assert acceptance[\"source_tree\"] == \"d23017135c7b34cb030c5b515f7da1bd4b870bb8\"\n+assert acceptance[\"source_revision\"] == \"da558f826e6ca5c753861b4c992414d531fae027\"\n+assert acceptance[\"source_tree\"] == \"9266a1db1fe6a3a8cb2fc6b561ebfcf0dd99e122\"\n assert acceptance[\"successful_jobs\"] == 6 and acceptance[\"successful_steps\"] == 64\n assert acceptance[\"retries_executed\"] == 0 and acceptance[\"run_attempt\"] == 1\n commands = []\n@@ -44,7 +44,7 @@\n     \"python\": sys.version, \"source_revision\": acceptance[\"source_revision\"], \"source_tree\": acceptance[\"source_tree\"],\n     \"commands_verified\": len(commands), \"execution_scripts_checked_against_preexecution_hashes\": True,\n     \"scope\": \"In-process data-only finalizer; no subprocesses, imports of artifact code, extraction, native activity or mutations outside owned audit directory\",\n-    \"descendant_reaping_scope\": \"Only fresh accepted phases; original failed collection remains diagnostic with descendant reaping unverified\",\n+    \"descendant_reaping_scope\": \"Only fresh accepted phases; historical parent failed collection remains diagnostic with descendant reaping unverified\",\n }, indent=2) + \"\\n\")\n members = []\n for path in sorted(ROOT.rglob(\"*\")):\n"
+    }
+  ],
+  "bounds": "Five independently bounded60second phases; own child process group reaping; no broad inventory",
+  "selection": "Existing accepted data-only core/JVM/capability audit adapted only for current commit/tree/run/fixture and explicit historical failure labeling",
+  "prohibited_activity": "No artifact execution/import/extraction; no native/UI/capture/process inventories; no production, hosted harness or CI retries",
+  "current_execution_or_terminal_acceptance": false
+}
