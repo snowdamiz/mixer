@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-correction/prepare_contracts.py", line 51, in <module>
+    if __name__=='__main__':main('--check' in sys.argv)
+                            ~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-correction/prepare_contracts.py", line 24, in main
+    functions,_,_=parse_functions(gzip.decompress((base/'whole-source146.mir.gz').read_bytes()).decode(),source)
+                  ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-correction/mir_graph.py", line 184, in parse_functions
+    'arguments':call_operands(rhs,target,locals_),
+                ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-correction/mir_graph.py", line 148, in call_operands
+    operands=split_operands(tail[1:marker])
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-correction/mir_graph.py", line 114, in split_operands
+    require(not stack and not quoted,'operand-balance:'+value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance-correction/mir_graph.py", line 10, in require
+    if not condition: raise Refused(reason)
+                      ^^^^^^^^^^^^^^^^^^^^^
+mir_graph.Refused: operand-balance:move _59, const '"'

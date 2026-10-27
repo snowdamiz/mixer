@@ -1,0 +1,511 @@
+--- first-correction/mir_graph.py
++++ exact-binding-correction/mir_graph.py
+@@ -93,7 +93,43 @@
+     raise Refused('call-without-argument-list:'+rhs)
+ 
+ def signature_params(params):
+-    return dict(re.findall(r'(_\d+): (.*?)(?=, _\d+:|$)',params))
++    result={}
++    for text in split_operands(params):
++        match=re.fullmatch(r'(_\d+): (.+)',text)
++        require(match is not None,'complete-typed-header-parameter:'+text)
++        require(match[1] not in result,'duplicate-header-parameter')
++        result[match[1]]=match[2]
++    return result
++
++def parse_header(header):
++    """Locate the OUTER argument list, then balance its complete type syntax.
++
++    A function arrow is a token, never a generic close. Fn/FnMut/FnOnce return
++    arrows therefore cannot terminate the enclosing parameter list. The same
++    delimiter lexer verifies every parameter and the complete returned type.
++    """
++    require(header.startswith('fn ') and header.endswith(' {'),'function-header-shape')
++    start=len(call_target(header[3:]))+3
++    require(header[start]=='(','function-header-arguments')
++    depth=1;cursor=start+1;quoted=False;escaped=False
++    while cursor<len(header) and depth:
++        c=header[cursor]
++        if quoted:
++            if escaped:escaped=False
++            elif c=='\\':escaped=True
++            elif c=='"':quoted=False
++        elif c=='"':quoted=True
++        elif c=="'":
++            end=char_end(header,cursor)
++            if end is not None:cursor=end;continue
++        elif c=='(':depth+=1
++        elif c==')':depth-=1
++        cursor+=1
++    require(depth==0 and header[cursor:cursor+4]==' -> ','complete-outer-header-arguments')
++    name=header[3:start];params=header[start+1:cursor-1];returned=header[cursor+4:-2]
++    require(name and returned,'complete-header-name-return')
++    signature_params(params);require(len(split_operands(returned))==1,'complete-header-return-type')
++    return name,params,returned
+ 
+ def split_operands(value):
+     """Split typed MIR operands without truncating arrays, tuples or fn types."""
+@@ -163,21 +199,22 @@
+ 
+ def parse_functions(mir,source):
+     functions={};byname=collections.defaultdict(list);bybase=collections.defaultdict(list)
+-    matches=list(re.finditer(r'^fn (.+?)\((.*?)\) -> (.+?) \{[^\n]*\n',mir,re.M))
++    matches=list(re.finditer(r'^fn [^\n]+\n',mir,re.M))
+     require(len(matches)==sum(line.startswith('fn ') for line in mir.splitlines()),'complete-function-header-parse')
+     for ordinal,m in enumerate(matches):
+-        end=mir.index('\n}\n',m.end())+3;name=m[1];body=mir[m.start():end]
++        end=mir.index('\n}\n',m.end())+3;body=mir[m.start():end]
++        name,paramtext,returned=parse_header(body.splitlines()[0])
+         key=f'f{ordinal:04d}';location=re.search(r'owned-work/vm/(.+?):(\d+):\d+:',name)
+         owner=source[location[1]].splitlines()[int(location[2])-1] if location else ''
+         locals_={}
+         for line in body.splitlines():
+             local=re.fullmatch(r'\s*let (?:mut )?(_\d+): (.*);\s*',code_only(line))
+             if local:locals_[local[1]]=local[2]
+-        locals_.update(signature_params(m[2]));locals_.setdefault('_0',m[3])
+-        row={'name':name,'header':body.splitlines()[0],'params':signature_params(m[2]),'return_type':m[3],
++        locals_.update(signature_params(paramtext));locals_.setdefault('_0',returned)
++        row={'name':name,'header':body.splitlines()[0],'params':signature_params(paramtext),'return_type':returned,
+              'MIR_sha256':sha(body.encode()),'MIR_bytes':len(body.encode()),'base':name.rsplit('::',1)[-1],
+              'owner_source_line':owner,'local_types':locals_,'calls':[],'str_assignments':[],'carrier_operations':[],'manufacture_review':[],'literal_occurrences':literal_tokens(body),'typed_statements':[]}
+-        cl=re.search(r'\{closure@([^}]+)\}',m[2]);row['closure_site']=cl[1] if cl else None
++        cl=re.search(r'\{closure@([^}]+)\}',paramtext);row['closure_site']=cl[1] if cl else None
+         for ln,line in enumerate(body.splitlines(),1):
+             if not line.startswith('        '):continue
+             statement=code_only(line).strip()
+@@ -193,7 +230,7 @@
+                     closures=sorted(set(re.findall(r'\{closure@([^}]+)\}',target)))
+                     named=sorted(set(x for x in re.findall(r'\{([^{}]+)\}',target) if not x.startswith('closure@')))
+                     row['calls'].append({'target':target,'statement':statement,'line':ln,
+-                        'result_type':locals_.get(dest[1],m[3] if dest and dest[1]=='_0' else '') if dest else '!',
++                        'result_type':locals_.get(dest[1],returned if dest and dest[1]=='_0' else '') if dest else '!',
+                         'arguments':call_operands(rhs,target,locals_),
+                         'callbacks':closures+named,'closures':closures,'named_callbacks':named})
+             assignment=re.match(r'(_\d+) = (.*);$',statement)
+@@ -209,34 +246,78 @@
+         functions[key]=row;byname[name].append(key);bybase[row['base']].append(key)
+     return functions,byname,bybase
+ 
++@functools.lru_cache(maxsize=1)
++def authored_catalog():
++    raw=(Path(__file__).resolve().parent/'authored-contracts.json').read_bytes()
++    require(sha(raw)==AUTHORED_CATALOG_SHA256,'exact-authored-catalog-custody')
++    return json.loads(raw)['contracts']
++
++@functools.lru_cache(maxsize=1)
++def callback_catalog():
++    raw=(Path(__file__).resolve().parent/'authored-contracts.json').read_bytes()
++    require(sha(raw)==AUTHORED_CATALOG_SHA256,'exact-callback-catalog-custody')
++    return json.loads(raw)['closure_contracts']
++
++AUTHORED_CATALOG_SHA256='c9ace757bf31625665e9a708f1114c274cb510cc9129d2588dff528a5b67e699'
++
+ def resolve(target,functions,byname,bybase):
++    """Exact definitions precede a finite reviewed compiler-alias contract.
++
++    No generic erasure, owner basename, module suffix or trait substring is a
++    resolution rule. The full receiver, trait, member and type arguments form
++    the catalog key. In particular an exact module miss has no fallback.
++    """
+     if target in byname:return byname[target]
+-    selected=None
+-    if target.startswith('<B as ClosedBranchV1>::'):selected='SnapshotBranchV1'
+-    elif 'as SharedControlV1>::shared_control' in target:selected='SnapshotAccessV1'
+-    elif target.startswith('<P as ClosedAdoptionV1>::'):selected='SnapshotAdoptionV1'
+-    elif 'as experimental::account::MeterControl>::' in target:selected='SwiftControl'
+-    elif target.startswith(('<D as Declaration>::','<D as Default>::')):selected='SwiftDeclaration'
+-    elif target.startswith('<swift::ValidatedSwiftReactor as experimental::cache::borrowed::SnapshotView>::'):selected='ValidatedSwiftReactor'
+-    if selected:
+-        return [key for key in bybase[target.rsplit('::',1)[-1]] if re.search(r'\b'+selected+r'\b',functions[key]['owner_source_line']) or functions[key]['return_type'].split('::')[-1]==selected]
+-    if target.startswith('<') and ' as ' in target and re.fullmatch(r'[A-Za-z][A-Za-z0-9_:]*',target[1:].split(' as ',1)[0]):
+-        receiver=target[1:].split(' as ',1)[0];receiver_base=receiver.split('::')[-1].lstrip('&');base=target.rsplit('::',1)[-1];good=[]
+-        for key in bybase[base]:
+-            row=functions[key];first=row['params'].get('_1','').lstrip('&').removeprefix('mut ').split('::')[-1]
+-            if first==receiver_base or row['return_type'].split('::')[-1]==receiver_base:good.append(key)
+-        if good:
+-            module=receiver.rsplit('::',1)[0] if '::' in receiver else ''
+-            exact=[k for k in good if functions[k]['name'].startswith(module+'::<impl at ')] if module else []
+-            return exact or good
+-    plain=erase_generics(target)
+-    if plain in byname:return byname[plain]
+-    base=plain.rsplit('::',1)[-1];owner=plain.rsplit('::',1)[0].rsplit('::',1)[-1] if '::' in plain else ''
+-    if not owner:return []
+-    good=[key for key in bybase[base] if re.search(r'\b'+re.escape(owner)+r'\b',functions[key]['owner_source_line'])]
+-    module=plain.rsplit('::',2)[0] if plain.count('::')>=2 else ''
+-    exact=[key for key in good if functions[key]['name'].startswith(module+'::<impl at ')] if module else []
+-    return exact or good
++    contract=authored_catalog().get(target)
++    if contract is None:return []
++    require(contract['identity']==external_identity(target),'authored-exact-identity')
++    destinations=[]
++    for name,definition in contract['definitions'].items():
++        for key in byname.get(name,[]):
++            row=functions[key]
++            require(all(row[field]==definition[field] for field in ('params','return_type','owner_source_line')),'authored-definition-contract:'+target)
++            require(row['local_types']['_0']==definition['local_result_type'],'authored-local-result-contract:'+target)
++            destinations.append(key)
++    return destinations
++
++def validate_authored_call(target,call,destinations,functions):
++    from type_contracts import unify,unify_closure
++    contract=authored_catalog().get(target)
++    actual={'arguments':[a['type'] for a in call['arguments']],'result':call['result_type']}
++    if contract is not None:
++        require(any(all(sig[k]==actual[k] for k in actual) for sig in contract['signatures']),'unreviewed-authored-typed-signature:'+target)
++    for key in destinations:
++        row=functions[key];require(len(row['params'])==len(call['arguments']),'authored-call-arity:'+target)
++        bindings={}
++        for template,value in zip(list(row['params'].values())+[row['return_type']],actual['arguments']+[actual['result']]):
++            if template.startswith('impl Fn'):unify_closure(template,value,bindings,functions)
++            else:unify(template,value,bindings)
++        if contract is None:require(not bindings,'unreviewed-direct-authored-substitution:'+target)
++    return actual
++
++def validate_named_callback(callback,outer_target,destinations,functions):
++    from type_contracts import unify,callable_parts
++    contract=authored_catalog().get(callback)
++    require(contract is not None,'unreviewed-authored-function-item:'+callback)
++    sigs=[s for s in contract['named_callback_signatures'] if s['outer_target']==outer_target]
++    require(len(sigs)==1,'unreviewed-authored-function-item-type:'+callback)
++    sig=sigs[0];_,args,result=callable_parts(sig['function_item_type'])
++    for key in destinations:
++        row=functions[key];require(len(row['params'])==len(args),'named-authored-arity')
++        bindings={}
++        for template,actual in zip(list(row['params'].values())+[row['return_type']],args+[result]):
++            unify(template,re.sub(r"&'\w+\s+",'&',actual),bindings)
++    return sig
++
++def validate_closure_callback(closure,call,destinations,functions):
++    key=call['target']+' | '+closure
++    contract=callback_catalog().get(key)
++    require(contract is not None,'unreviewed-exact-closure-adapter:'+key)
++    require(contract['outer_identity']==external_identity(call['target']),'closure-adapter-identity')
++    require(contract['outer_arguments']==[a['type'] for a in call['arguments']] and contract['outer_result']==call['result_type'],'closure-adapter-typed-signature')
++    actual={functions[k]['name']:dict({f:functions[k][f] for f in ('params','return_type','owner_source_line')},local_result_type=functions[k]['local_types']['_0']) for k in destinations}
++    require(actual==contract['definitions'],'closure-definition-typed-signature:'+closure)
++    return contract
+ 
+ ROOTS=('run_one_fixture_v1','run_prepaid_fixture_v1','run_one_loaded_fixture_v1',
+        'destroy_returned_fixture_v1','release_after_retirement_v1')
+@@ -317,6 +398,7 @@
+             require(not any(a['type'].startswith('inline-asm-') for a in call['arguments']),'selected-inline-asm-not-authorized')
+             destinations=resolve(call['target'],functions,byname,bybase)
+             if destinations:
++                validate_authored_call(call['target'],call,destinations,functions)
+                 # Multiple compiler bodies for one declaration include CTFE and
+                 # identical macro occurrences. Include every matching body.
+                 for dest in destinations:edges.append({'caller':key,'callee':dest,'kind':'authored','line':call['line'],'target':call['target']});todo.append(dest)
+@@ -324,11 +406,13 @@
+             for closure in call['closures']:
+                 callbacks=[k for k,v in functions.items() if v['closure_site']==closure]
+                 require(callbacks,'unclosed-authored-callback:'+closure)
++                validate_closure_callback(closure,call,callbacks,functions)
+                 for dest in callbacks:edges.append({'caller':key,'callee':dest,'kind':'authored-callback','line':call['line'],'target':closure});todo.append(dest)
+             for callback in call['named_callbacks']:
+                 callbacks=resolve(callback,functions,byname,bybase)
+                 if not callbacks:
+                     standard_callbacks.append(dict(standard_named_callback(callback,call['target']),caller=key,line=call['line']))
++                if callbacks:validate_named_callback(callback,call['target'],callbacks,functions)
+                 for dest in callbacks:edges.append({'caller':key,'callee':dest,'kind':'named-authored-callback','line':call['line'],'target':callback});todo.append(dest)
+     frontier=[]
+     for target,sites in sorted(external.items()):
+--- first-correction/derive.py
++++ exact-binding-correction/derive.py
+@@ -2,7 +2,7 @@
+ """Rehash accepted immutable inputs; derive this source candidate only."""
+ import gzip,json,sys
+ from pathlib import Path
+-from mir_graph import analyze,sha,require,Refused
++from mir_graph import analyze,parse_functions,sha,require,Refused,AUTHORED_CATALOG_SHA256
+ D=Path(__file__).resolve().parent;R=D.parents[1];V=R/'verification'
+ SOURCE='690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185'
+ HOST='027394c31852db7845a3162115e7bcd8b5f9a5044cbb495910c5c03c4fb20de2'
+@@ -25,7 +25,9 @@
+     inputs.clear()
+     # Original producer/reviewer bytes and failure receipts stay immutable.
+     pins={'swift-guarded-snapshot-string-provenance':'b228f62a0751e6d1b45e27edabe500cc5e52449db1d33ee59abca0f695b6fa2f',
+-          'swift-guarded-snapshot-string-provenance-independent':'741e104537fc3ddc57fc499a764cca9fedaa2b42d2fe109eeb590504b01241d9'}
++          'swift-guarded-snapshot-string-provenance-independent':'741e104537fc3ddc57fc499a764cca9fedaa2b42d2fe109eeb590504b01241d9',
++          'swift-guarded-snapshot-string-provenance-correction':'4d2dcab90e7c9cfd7074a67fe8eac0d6807b6ed3704b74afe430ebc624b07994',
++          'swift-guarded-snapshot-string-correction-independent':'7c101623fa53d9207c467f196cca729085fff23a195f873a46da7a1369135f65'}
+     for name,digest in pins.items():
+         seal=pin(V/name/'seal.json',digest)
+         for member in seal['members']:
+@@ -34,6 +36,11 @@
+     pin(V/'swift-semantic-adapter-root-review/guarded-snapshot-string-provenance-review-return.json','142648fc21ef7e9dcd36b3e7849b17a18f7a94cc2ac2c6b848c362140fea668b')
+     correction=pin(V/'swift-guarded-snapshot-string-provenance-independent/correction-contract.json','b699930771cb7980b1ced76867c4d8a9760014be80c7fa63e4057145e6883341')
+     require([r['id'] for r in correction['requirements']]==['R1','R2','R3','R4','R5'],'binding-correction-requirements')
++    pin(V/'swift-semantic-adapter-root-review/guarded-snapshot-string-correction-second-return.json','9dba765988b0e464fe58245520586696945e9f4bbd87f1ca2b8bc4051cf68440')
++    exact_correction=pin(V/'swift-guarded-snapshot-string-correction-independent/correction-contract.json','e8c3364612e7e9f90b9da0456d54c1c806968474676b0efe6b5c038309976974')
++    require([r['id'] for r in exact_correction['requirements']]==['S1','S2','S3','S4','S5'],'exact-binding-correction-requirements')
++    authored=pin(D/'authored-contracts.json',AUTHORED_CATALOG_SHA256)
++    require(authored['no_shortname_fallback'] and authored['new_target_or_signature_refuses'],'exact-authored-contracts-required')
+     external=pin(D/'external-contracts.json','8eabc3d20b792685daa160c77e4e210c7098738b113b3242cafc5fa3ac54f8c7')
+     require(external['no_general_classifier'] is True and external['new_instantiations_refuse'] is True,'closed-typed-interface-catalog')
+     accepted=pin(V/'swift-semantic-adapter-root-review/guarded-snapshot-whole-host-work-host-acceptance.json',ACCEPT)
+@@ -62,6 +69,12 @@
+     require(sha(archive)==receipt['MIR']['archive_sha256'] and len(archive)==receipt['MIR']['archive_bytes'],'accepted-MIR-archive')
+     require(sha(raw)==receipt['MIR']['raw_sha256'] and len(raw)==receipt['MIR']['raw_bytes'],'accepted-MIR-raw')
+     graph=analyze(raw.decode(),source)
++    functions,_,_=parse_functions(raw.decode(),source)
++    header_inventory={key:{f:row[f] for f in ('name','header','params','return_type','local_types')} for key,row in functions.items()}
++    historical_headers=load(V/'swift-guarded-snapshot-string-correction-independent/header-discrepancies.json')
++    for discrepancy in historical_headers['discrepancies']:
++        require(header_inventory[discrepancy['function']][discrepancy['field']]==discrepancy['independent_value'],'balanced-type-correction:'+discrepancy['function'])
++    save('typed-header-inventory.json',{'schema':1,'compiled_headers':len(header_inventory),'headers':header_inventory,'historical_discrepancy_roster':historical_headers,'compiler_executed':False},check)
+     # The exact selected input has paths/bytes/numeric limits, with no caller
+     # Fault, SwiftRunFailure, RuntimeControl, arbitrary proof or custom callback.
+     initial=source['src/experimental_swift_reactor/cache/initial_profile_v1.rs']
+@@ -116,12 +129,13 @@
+         load(V/'swift-guarded-snapshot-string-provenance-independent/source-semantic-review.json'),
+         load(V/'swift-guarded-snapshot-string-provenance/graph.json'),
+         load(V/'swift-guarded-snapshot-string-provenance-independent/typed-graph.json'),raw.decode())
+-    candidate={'schema':2,'status':'source146-string-provenance-correction-candidate-for-independent-review','source_tree_sha256':SOURCE,'host_tree_sha256':HOST,
++    candidate={'schema':2,'status':'source146-exact-binding-string-provenance-correction-candidate-for-independent-review','source_tree_sha256':SOURCE,'host_tree_sha256':HOST,
+       'accepted_wholework_sha256':ACCEPT,'unit':'one source scalar leaf and one native UTF-8 byte per str occurrence; inherited 2*n coefficients stay unchanged',
+       'L_str':L,'literal_utf8_max':graph['literal_pool']['max_utf8_bytes'],'compiled_constant_allocation_max':graph['constant_allocations']['max_bytes'],
+       'bound_derivation':'Candidate envelope max(all pinned compiler cooked-str literal UTF-8 extents, every pinned compiler constant allocation extent). Corrected typed graph and complete statement/carrier evidence support conditional reference conservation only under caller-contract.json. Allocation-bearing aggregate constants are deliberate overcoverage. Fresh independent review and root selection remain required.',
+       'external_contracts_sha256':sha((D/'external-contracts.json').read_bytes()),'general_standard_library_classifier':False,
+-      'correction_contract_sha256':'b699930771cb7980b1ced76867c4d8a9760014be80c7fa63e4057145e6883341',
++      'correction_contract_sha256':'e8c3364612e7e9f90b9da0456d54c1c806968474676b0efe6b5c038309976974',
++      'authored_contracts_sha256':AUTHORED_CATALOG_SHA256,'authored_exact_targets':len(authored['contracts']),'authored_typed_signatures':sum(len(c['signatures']) for c in authored['contracts'].values()),'balanced_compiled_headers':len(header_inventory),
+       'shell':{'fixed':4236953,'L_str_coefficient':4376,'substituted_candidate':4236953+4376*L},
+       'whole_work_L_str_coefficient':67424,'whole_work_L_str_addition':67424*L,
+       'counts':{'compiled_function_bodies':graph['compiled_function_bodies'],'selected_overapprox_bodies':len(graph['nodes']),'authored_and_callback_edges':len(graph['edges']),'named_authored_callback_edges':28,'named_authored_callback_sites':22,'standard_named_callback_frontiers':len(graph['standard_named_callbacks']),'external_frontiers':len(graph['external_frontier']),'external_sites':sum(len(x['sites']) for x in graph['external_frontier']),'direct_str_assignments':len(graph['source_str_assignments']),'carrier_forwarding_operations':sum(len(row['carrier_operations']) for row in graph['nodes'].values()),'compiled_literals':graph['literal_pool']['occurrences'],'compiled_unique_literals':len(graph['literal_pool']['values']),'compiled_allocations':graph['constant_allocations']['count'],'unique_allocation_ids':graph['constant_allocations']['unique_ids'],'unresolved_allocation_ids':graph['constant_allocations']['unresolved_ids']},
+--- first-correction/type_contracts.py
++++ exact-binding-correction/type_contracts.py
+@@ -0,0 +1,142 @@
++"""Finite source146 compiler spelling aliases and structural type equations.
++
++Aliases enumerate exact path tokens. There is no basename stripping, suffix
++comparison, arbitrary receiver binding or namespace-wide replacement. Generic
++bindings are consistent across all arguments and the result, then frozen as
++exact per-target signatures by prepare_authored.py.
++"""
++import re
++from mir_graph import require,split_operands
++ALIASES={}
++def group(module,names,short=True,prefix=None):
++    for name in names.split():
++        canonical=module+'::'+name
++        if short:ALIASES[name]=canonical
++        if prefix:ALIASES[prefix+'::'+name]=canonical
++
++group('std::option','Option');group('std::result','Result');group('std::vec','Vec')
++group('std::time','Duration Instant');group('std::alloc','Layout');group('std::sync::atomic','Atomic')
++group('experimental::account','BodyObservations SwiftControl')
++group('experimental::validate','BodyState')
++group('experimental::metadata','Export Function Global Import Segment Signature SwiftDeclaration')
++group('experimental::cache::decode','Patch')
++group('experimental_wasi','WasiContext WasiBudget WasiGrants')
++group('experimental_wasi::accounted','AccountedWasi',prefix='accounted')
++group('experimental_wasi::descriptor','WasiFunction ResolveError',prefix='descriptor')
++group('experimental::descriptors','FunctionSpanView',False,'descriptors')
++group('experimental::swift','ValidatedSwiftReactor SwiftValidationFailure SwiftValidationBudget SwiftValidationUsage SwiftReactorObservations',prefix='swift')
++group('experimental_swift_reactor::control','AdoptedProof Cursor Fault Live ReservationTicket RuntimeControl SwiftReservationCategory SwiftReservationUsage SwiftReservations SwiftRunBudget SwiftRunFailure SwiftRunFailureKind SwiftRunResource SwiftRunUsage SwiftLiveUsage SwiftCleanupInvariant Work',False,'control')
++group('experimental_swift_reactor::control','SnapshotRunV1 SnapshotScopeBorrowV1 SnapshotScopeFinishV1 SnapshotScopeV1 SnapshotStopV1 SnapshotPreScopeFailureV1 SnapshotAdmissionErrorV1')
++group('experimental_swift_reactor::retained_profile_loader_v1','AdoptionBodyV1 LoaderProvenanceV1 ReturnedLoaderFilesV1 FileIdentityV1 LoaderOutcomeV1 SelectedSnapshotBodyV1 SelectedValidatedProfileV1 BuildView SessionView Section',prefix='retained_profile_loader_v1')
++group('experimental_swift_reactor::retained_profile_loader_v1','Bytes LoaderFailureV1 LoaderUsageV1 Refusal Role',False,'retained_profile_loader_v1')
++group('experimental_swift_reactor::retained_profile_loader_v1','ProcessObservationV1',False,'retained_profile_loader_v1')
++group('experimental::swift::snapshot_encoder_v2','SnapshotBlockV2 SnapshotCursorV2 SnapshotViewV2 SpanCheckV2 SnapshotEncodeErrorV2')
++group('experimental_swift_reactor::cache::initial_profile_v1','SnapshotAccessV1 SnapshotBranchV1 SnapshotPhaseStorageV1 SnapshotAttemptV1 SnapshotOuterV1 SnapshotPlanV1 SnapshotShapeV1 SnapshotWriterV1 SnapshotCauseV1 SnapshotExportErrorV1 SnapshotPrimaryRetirementV1')
++group('experimental_swift_reactor::cache::initial_profile_v1','InitialProfileBorrowV1 SelectedInitialProfileV1 SelectedLocalStructureV1 UnverifiedProfileDigestBytesV1 ProfileHeaderErrorV1 InitialProfileConstructionOutcomeV1 InitialProfileScalarsV1 ProfileAdmissionFailureV1 UnverifiedProfileHeaderV1',False,'initial_profile_v1')
++group('experimental_swift_reactor::diagnostic_profile','ProfileRowV1 ProfileRowsObservationV1 ProfileAdapterErrorV1',prefix='diagnostic_profile')
++group('experimental_swift_reactor::cache::initial_profile_v1::trusted_local_host_account_entry_v1','ReviewedFixtureBindingV1 FrozenFixtureV1 OwnedFixtureOutcomeV1 SetupOutcomeV1')
++group('experimental_swift_reactor::cache::initial_profile_v1::trusted_local_host_account_entry_v1::host_account_v1','PrepaidOwnedV1 DestroyedStorageV1 ReservationV1 RefusalV1 ReviewedWholeQuoteV1 TrustedHostAccountV1')
++PATH=re.compile(r'(?<![\w:])[A-Za-z_]\w*(?:::[A-Za-z_]\w*)*')
++
++# These are the caller-contract specializations, not arbitrary trait impls.
++# Only exact tokens below change; Foreign, foreign::MeterControl, etc. survive
++# unchanged and cannot match any declaration or finite target contract.
++SPECIALIZATIONS={
++    'B':"experimental_swift_reactor::cache::initial_profile_v1::SnapshotBranchV1<'_>",
++    'C':'experimental::account::SwiftControl',
++    'D':'experimental::metadata::SwiftDeclaration',
++    'impl MeterControl':'experimental::account::SwiftControl',
++    'impl metadata::Declaration':'experimental::metadata::SwiftDeclaration',
++    '<B as ClosedBranchV1>::Access': 'experimental_swift_reactor::cache::initial_profile_v1::SnapshotAccessV1',
++    '<B as ClosedBranchV1>::Storage':'experimental_swift_reactor::cache::initial_profile_v1::SnapshotPhaseStorageV1',
++    '<B as ClosedBranchV1>::Attempt':'experimental_swift_reactor::cache::initial_profile_v1::SnapshotAttemptV1',
++    '<B as ClosedBranchV1>::Output':'experimental_swift_reactor::cache::initial_profile_v1::SnapshotOuterV1',
++    '<B as experimental_swift_reactor::cache::initial_profile_v1::ClosedBranchV1>::Access':'experimental_swift_reactor::cache::initial_profile_v1::SnapshotAccessV1',
++    '<B as experimental_swift_reactor::cache::initial_profile_v1::ClosedBranchV1>::Storage':'experimental_swift_reactor::cache::initial_profile_v1::SnapshotPhaseStorageV1',
++    '<B as experimental_swift_reactor::cache::initial_profile_v1::ClosedBranchV1>::Attempt':'experimental_swift_reactor::cache::initial_profile_v1::SnapshotAttemptV1',
++    '<B as experimental_swift_reactor::cache::initial_profile_v1::ClosedBranchV1>::Output':'experimental_swift_reactor::cache::initial_profile_v1::SnapshotOuterV1',
++    '<P as ClosedAdoptionV1>::Failure':'experimental_swift_reactor::control::SnapshotPreScopeFailureV1',
++    '<P as experimental_swift_reactor::control::ClosedAdoptionV1>::Failure':'experimental_swift_reactor::control::SnapshotPreScopeFailureV1',
++    '<P as experimental_swift_reactor::control::ClosedAdoptionV1>::Retirement':'std::result::Result<(), experimental_swift_reactor::control::SwiftRunFailure>',
++}
++CONSTANT_TYPES={
++ 'core::num::<impl u64>::MAX':'u64','core::num::<impl usize>::MAX':'usize',
++ 'experimental_swift_reactor::cache::initial_profile_v1::CONSTRUCTION_CURSOR_V1':'experimental_swift_reactor::control::Cursor',
++ '<P as experimental_swift_reactor::control::ClosedAdoptionV1>::FIXED_EXECUTION_WORK_V1':'u64',
++ 'experimental_swift_reactor::cache::PLAN_CELL_CREDITS':'u64',
++ 'experimental_swift_reactor::retained_profile_loader_v1::ATTEMPTS':'u32',
++}
++CALLABLE_RETURN_ALIASES={'io::Result<usize>':'std::result::Result<usize, std::io::Error>'}
++for name in ('PATCH_CAPACITY','PLAN_CAPACITY','RESIDENT_INDEX_BYTES'):CONSTANT_TYPES['experimental_swift_reactor::cache::'+name]='usize'
++for name in ('BUILD_CAP','ENTRY_CAP','SESSION_CAP','SOURCE_CAP','STR_CAP'):CONSTANT_TYPES['experimental_swift_reactor::retained_profile_loader_v1::'+name]='usize'
++
++def canonical(typ,bindings=None):
++    if typ.startswith('exact-compiler-constant:'):
++        atom=typ[len('exact-compiler-constant:'):]
++        require(atom in CONSTANT_TYPES,'unreviewed-authored-constant-type:'+atom)
++        typ=CONSTANT_TYPES[atom]
++    # Associated types must be handled before their receiver variable.
++    for name in sorted(SPECIALIZATIONS,key=len,reverse=True):
++        if name in ('B','C','D'):continue
++        typ=typ.replace(name,SPECIALIZATIONS[name])
++    typ=PATH.sub(lambda m:ALIASES.get(m[0],SPECIALIZATIONS.get(m[0],m[0])),typ)
++    if bindings:
++        typ=PATH.sub(lambda m:bindings.get(m[0],m[0]),typ)
++    return re.sub(r'\s+','',typ)
++
++def callable_parts(typ):
++    """Parse Fn syntax with the exact same complete delimiter requirements."""
++    value=re.sub(r"^for<[^>]+>\s*",'',typ)
++    match=re.match(r'(?:impl (FnOnce|FnMut|Fn)|fn)\(',value)
++    require(match is not None,'reviewed-callable-type-required:'+typ)
++    start=match.end()-1;depth=1;i=start+1
++    while i<len(value) and depth:
++        if value[i]=='(':depth+=1
++        elif value[i]==')':depth-=1
++        i+=1
++    require(depth==0 and value[i:i+4]==' -> ','complete-callable-signature')
++    return match[1] or 'fn',split_operands(value[start+1:i-1]),value[i+4:]
++
++def unify_closure(template,actual,bindings,functions):
++    kind,args,result=callable_parts(template)
++    require(actual.startswith('{closure@') and actual.endswith('}'),'exact-closure-environment')
++    site=actual[9:-1];rows=[r for r in functions.values() if r['closure_site']==site]
++    require(rows,'exact-closure-body-required:'+site)
++    proofs=[]
++    for row in rows:
++        params=list(row['params'].values());require(params,'closure-environment-parameter')
++        expected={'FnOnce':actual,'FnMut':'&mut '+actual,'Fn':'&'+actual}[kind]
++        require(params[0]==expected,'closure-receiver-kind:'+kind)
++        require(len(params)-1==len(args),'closure-argument-arity')
++        for x,y in zip(args,params[1:]):unify(x,y,bindings)
++        returned=CALLABLE_RETURN_ALIASES.get(result,result)
++        unify(returned,row['return_type'],bindings)
++        proofs.append({'name':row['name'],'params':row['params'],'result':row['return_type'],'callable_kind':kind})
++    return proofs
++
++def unify(template,actual,bindings):
++    """Solve T/R/N only as complete structural subterms; no text wildcards."""
++    a=canonical(template,bindings);b=canonical(actual)
++    if a==b:return
++    # This finite generic set is independently recorded per target. Its solved
++    # values are checked against explicit turbofish args in prepare_authored.
++    if a in ('T','R','N'):
++        require(a not in bindings,'inconsistent-generic:'+a)
++        bindings[a]=b;return
++    # Structural recursion retains every nested tuple/array/generic boundary.
++    if a.startswith('&mut') and b.startswith('&mut'):return unify(a[4:],b[4:],bindings)
++    if a.startswith('&') and b.startswith('&') and not a.startswith('&mut') and not b.startswith('&mut'):return unify(a[1:],b[1:],bindings)
++    if a.startswith('[') and b.startswith('[') and a.endswith(']') and b.endswith(']'):
++        aa=a[1:-1].split(';');bb=b[1:-1].split(';');require(len(aa)==len(bb),'array-kind-mismatch')
++        for x,y in zip(aa,bb):unify(x,y,bindings)
++        return
++    if a.startswith('(') and b.startswith('(') and a.endswith(')') and b.endswith(')'):
++        aa=split_operands(a[1:-1]);bb=split_operands(b[1:-1]);require(len(aa)==len(bb),'tuple-arity-mismatch')
++        for x,y in zip(aa,bb):unify(x,y,bindings)
++        return
++    aa=a.find('<');bb=b.find('<')
++    if aa>0 and bb>0 and a[:aa]==b[:bb] and a.endswith('>') and b.endswith('>'):
++        xs=split_operands(a[aa+1:-1]);ys=split_operands(b[bb+1:-1]);require(len(xs)==len(ys),'generic-arity-mismatch')
++        for x,y in zip(xs,ys):unify(x,y,bindings)
++        return
++    require(False,'incompatible-authored-type:'+template+' != '+actual)
+--- first-correction/prepare_authored.py
++++ exact-binding-correction/prepare_authored.py
+@@ -0,0 +1,89 @@
++"""Review and reproduce exact authored identities and typed instantiations.
++
++The old independent edge roster is membership evidence only. It does not grant
++type compatibility or identity by basename. Every retained alias is an exact
++target-to-source-declaration relation and every positional type equation must
++unify with that declaration under the explicit source146 substitutions.
++"""
++import collections,gzip,json,re,sys
++from pathlib import Path
++from mir_graph import parse_functions,sha,require,external_identity
++from type_contracts import unify,unify_closure,canonical,ALIASES,SPECIALIZATIONS,CONSTANT_TYPES,callable_parts
++D=Path(__file__).resolve().parent;R=D.parents[1];V=R/'verification'
++
++def inputs():
++    base=V/'swift-guarded-snapshot-loader-work-source146'
++    ref=json.loads((base/'source-reference-map.json').read_text())
++    source={m['path']:(R/m['source']).read_text() for m in ref['members'] if m['path'].endswith('.rs')}
++    mir=gzip.decompress((base/'whole-source146.mir.gz').read_bytes()).decode()
++    functions,byname,bybase=parse_functions(mir,source)
++    old=json.loads((V/'swift-guarded-snapshot-string-provenance-independent/typed-graph.json').read_text())
++    return mir,source,functions,old
++
++def main(check=False):
++    mir,source,functions,old=inputs()
++    pairs=collections.Counter();identities={};mismatches=[]
++    for edge in old['edges']:
++        if edge['kind']!='authored':continue
++        row=functions[edge['callee']];call=next(c for c in functions[edge['caller']]['calls'] if c['line']==edge['line'])
++        require(call['target']==edge['target'],'authored-roster-target')
++        require(len(call['arguments'])==len(row['params']),'authored-arity')
++        bindings={};equations=[];closures=[]
++        for template,actual in zip(list(row['params'].values())+[row['return_type']],[a['type'] for a in call['arguments']]+[call['result_type']]):
++            if template!=actual:pairs[(template,actual)]+=1
++            try:
++                if template.startswith('impl Fn'):closures.extend(unify_closure(template,actual,bindings,functions))
++                else:unify(template,actual,bindings)
++            except ValueError as error:mismatches.append({'target':call['target'],'callee':edge['callee'],'template':template,'actual':actual,'reason':str(error)})
++            equations.append({'declaration':template,'call':actual})
++        contract=identities.setdefault(edge['target'],{'identity':external_identity(edge['target']),'definitions':{},'signatures':[],'named_callback_signatures':[]})
++        contract['definitions'][row['name']]={'params':row['params'],'return_type':row['return_type'],'owner_source_line':row['owner_source_line'],'local_result_type':row['local_types']['_0']}
++        sig={'arguments':[a['type'] for a in call['arguments']],'result':call['result_type'],'type_equations':equations,'generic_substitutions':bindings,'closure_contracts':closures}
++        if sig not in contract['signatures']:contract['signatures'].append(sig)
++    # A named function item must agree with the complete fn item signature.
++    # Higher-ranked reference lifetimes are alpha-renamed only here; no type
++    # token, reference mutability, carrier, argument or result is discarded.
++    for edge in old['edges']:
++        if edge['kind']!='named-authored-callback':continue
++        row=functions[edge['callee']];outer=next(c for c in functions[edge['caller']]['calls'] if c['line']==edge['line'])
++        marker='{'+edge['target']+'}';end=outer['target'].index(marker)
++        start=outer['target'].rfind('fn(',0,end);require(start>=0,'typed-named-callback')
++        fntext=outer['target'][start:end].rstrip();_,args,result=callable_parts(fntext)
++        require(len(args)==len(row['params']),'named-callback-arity')
++        bindings={};equations=[]
++        for template,actual in zip(list(row['params'].values())+[row['return_type']],args+[result]):
++            actual=re.sub(r"&'\w+\s+",'&',actual)
++            unify(template,actual,bindings);equations.append({'declaration':template,'function_item':actual})
++        contract=identities.setdefault(edge['target'],{'identity':external_identity(edge['target']),'definitions':{},'signatures':[],'named_callback_signatures':[]})
++        contract['definitions'][row['name']]={'params':row['params'],'return_type':row['return_type'],'owner_source_line':row['owner_source_line'],'local_result_type':row['local_types']['_0']}
++        sig={'function_item_type':fntext,'outer_target':outer['target'],'type_equations':equations,'generic_substitutions':bindings}
++        if sig not in contract['named_callback_signatures']:contract['named_callback_signatures'].append(sig)
++    for contract in identities.values():
++        for key in ('signatures','named_callback_signatures'):contract[key].sort(key=lambda x:json.dumps(x,sort_keys=True))
++    value=[{'template':a,'actual':b,'count':n} for (a,b),n in sorted(pairs.items())]
++    raw=(json.dumps(value,indent=2,sort_keys=True)+'\n').encode()
++    if check:require((D/'type-pair-preparation.json').read_bytes()==raw,'type-pair-preparation')
++    else:(D/'type-pair-preparation.json').write_bytes(raw)
++    if not check:(D/'type-unification-preparation.json').write_text(json.dumps(mismatches,indent=2,sort_keys=True)+'\n')
++    print(json.dumps({'nonidentical_positional_type_pairs':len(value),'compiled_headers':len(functions),'unresolved_type_equations':len(mismatches),'first':mismatches[:4]}))
++    require(not mismatches,'all-authored-positional-equations-must-unify')
++    closure_contracts={}
++    for edge in old['edges']:
++        if edge['kind']!='authored-callback':continue
++        row=functions[edge['callee']];outer=next(c for c in functions[edge['caller']]['calls'] if c['line']==edge['line'])
++        key=outer['target']+' | '+edge['target']
++        relation={'outer_identity':external_identity(outer['target']),'outer_arguments':[a['type'] for a in outer['arguments']],
++            'outer_result':outer['result_type'],'closure_site':edge['target'],'definitions':{}}
++        contract=closure_contracts.setdefault(key,relation)
++        require(all(contract[k]==relation[k] for k in relation if k!='definitions'),'closure-adapter-types-must-agree')
++        contract['definitions'][row['name']]={'params':row['params'],'return_type':row['return_type'],'owner_source_line':row['owner_source_line'],'local_result_type':row['local_types']['_0']}
++    value={'schema':1,'status':'exact-source146-authored-interface-candidate-pending-independent-review',
++        'source_tree_sha256':'690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185',
++        'scope':'finite full target identities, exact source owner declarations, structural positional type equations and reviewed source146 specializations; no basename or generic namespace waiver',
++        'type_path_aliases':ALIASES,'selected_specializations':SPECIALIZATIONS,'constant_types':CONSTANT_TYPES,
++        'no_shortname_fallback':True,'new_target_or_signature_refuses':True,'contracts':identities,'closure_contracts':closure_contracts}
++    raw=(json.dumps(value,indent=2,sort_keys=True)+'\n').encode()
++    if check:require((D/'authored-contracts.json').read_bytes()==raw,'exact-authored-contract-rederive')
++    else:(D/'authored-contracts.json').write_bytes(raw)
++    print(json.dumps({'exact_authored_targets':len(identities),'typed_signatures':sum(len(c['signatures']) for c in identities.values()),'named_callback_signatures':sum(len(c['named_callback_signatures']) for c in identities.values()),'read_only':check,'authority':False}))
++if __name__=='__main__':main('--check' in sys.argv)

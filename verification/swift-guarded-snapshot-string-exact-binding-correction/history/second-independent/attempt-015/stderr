@@ -1,0 +1,156 @@
+test_actual_selected_fnmut_header_preserves_complete_types (__main__.Adverse.test_actual_selected_fnmut_header_preserves_complete_types) ... FAIL
+test_actual_selected_fnonce_header_preserves_complete_types (__main__.Adverse.test_actual_selected_fnonce_header_preserves_complete_types) ... FAIL
+test_authored_exact_definition_is_resolved_before_external (__main__.Adverse.test_authored_exact_definition_is_resolved_before_external) ... ok
+test_direct_authored_signature_mismatch_must_refuse (__main__.Adverse.test_direct_authored_signature_mismatch_must_refuse) ... FAIL
+test_end_to_end_actual_selected_callback_header_types (__main__.Adverse.test_end_to_end_actual_selected_callback_header_types) ... FAIL
+test_end_to_end_unknown_nested_carrier_refuses (__main__.Adverse.test_end_to_end_unknown_nested_carrier_refuses) ... ok
+test_exact_external_signature_changed_result_or_arg_refuses (__main__.Adverse.test_exact_external_signature_changed_result_or_arg_refuses) ... ok
+test_selected_inline_asm_refuses (__main__.Adverse.test_selected_inline_asm_refuses) ... ok
+test_selected_meter_trait_does_not_waive_foreign_receiver (__main__.Adverse.test_selected_meter_trait_does_not_waive_foreign_receiver) ... FAIL
+test_selected_shared_trait_does_not_waive_foreign_receiver (__main__.Adverse.test_selected_shared_trait_does_not_waive_foreign_receiver) ... FAIL
+test_two_standard_predicate_signatures_exact (__main__.Adverse.test_two_standard_predicate_signatures_exact) ... ok
+test_unknown_fn_item_and_indirect_call_refuse (__main__.Adverse.test_unknown_fn_item_and_indirect_call_refuse) ... ok
+test_unknown_full_namespace_in_actual_frozen_route_must_refuse (__main__.Adverse.test_unknown_full_namespace_in_actual_frozen_route_must_refuse) ... FAIL
+test_unknown_namespace_policy_shadow_must_refuse (__main__.Adverse.test_unknown_namespace_policy_shadow_must_refuse) ... FAIL
+test_unknown_reference_generic_comparison_targets_refuse (__main__.Adverse.test_unknown_reference_generic_comparison_targets_refuse) ... ok
+test_unknown_std_namespace_authored_shadow_must_refuse (__main__.Adverse.test_unknown_std_namespace_authored_shadow_must_refuse) ... FAIL
+test_unknown_trait_with_authored_receiver_must_refuse (__main__.Adverse.test_unknown_trait_with_authored_receiver_must_refuse) ... FAIL
+
+======================================================================
+FAIL: test_actual_selected_fnmut_header_preserves_complete_types (__main__.Adverse.test_actual_selected_fnmut_header_preserves_complete_types)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-correction-independent/adverse.py", line 86, in test_actual_selected_fnmut_header_preserves_complete_types
+    self.assertEqual(row['params']['_2'],'impl FnMut(&[u8]) -> io::Result<usize>')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'impl FnMut(&[u8]' != 'impl FnMut(&[u8]) -> io::Result<usize>'
+- impl FnMut(&[u8]
++ impl FnMut(&[u8]) -> io::Result<usize>
+
+
+======================================================================
+FAIL: test_actual_selected_fnonce_header_preserves_complete_types (__main__.Adverse.test_actual_selected_fnonce_header_preserves_complete_types)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-correction-independent/adverse.py", line 81, in test_actual_selected_fnonce_header_preserves_complete_types
+    self.assertEqual(row['params']['_2'],'impl FnOnce() -> T')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'impl FnOnce(' != 'impl FnOnce() -> T'
+- impl FnOnce(
++ impl FnOnce() -> T
+?             ++++++
+
+
+======================================================================
+FAIL: test_direct_authored_signature_mismatch_must_refuse (__main__.Adverse.test_direct_authored_signature_mismatch_must_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-correction-independent/adverse.py", line 56, in test_direct_authored_signature_mismatch_must_refuse
+    self.refusal(target.analyze,mini(call,self.faultbody,'    let mut _9: Option<control::SwiftRunFailure>;\n    let mut _99: &str;\n').replace('        return;', '        _99 = const \"seed\";\n        return;', 1),self.source)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-correction-independent/adverse.py", line 36, in refusal
+    type(self).observations.append(row);self.fail('Refused not raised')
+                                        ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refused not raised
+
+======================================================================
+FAIL: test_end_to_end_actual_selected_callback_header_types (__main__.Adverse.test_end_to_end_actual_selected_callback_header_types)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-correction-independent/adverse.py", line 90, in test_end_to_end_actual_selected_callback_header_types
+    self.assertEqual(graph['nodes']['f0907']['params']['_2'],'impl FnOnce() -> T')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'impl FnOnce(' != 'impl FnOnce() -> T'
+- impl FnOnce(
++ impl FnOnce() -> T
+?             ++++++
+
+
+======================================================================
+FAIL: test_selected_meter_trait_does_not_waive_foreign_receiver (__main__.Adverse.test_selected_meter_trait_does_not_waive_foreign_receiver)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-correction-independent/adverse.py", line 49, in test_selected_meter_trait_does_not_waive_foreign_receiver
+    self.assertEqual(target.resolve('<Foreign as experimental::account::MeterControl>::expired',self.graph['nodes'],*self.indices),[])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['f0107'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'f0107'
+
+- ['f0107']
++ []
+
+======================================================================
+FAIL: test_selected_shared_trait_does_not_waive_foreign_receiver (__main__.Adverse.test_selected_shared_trait_does_not_waive_foreign_receiver)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-correction-independent/adverse.py", line 51, in test_selected_shared_trait_does_not_waive_foreign_receiver
+    self.assertEqual(target.resolve('<Foreign as SharedControlV1>::shared_control',self.graph['nodes'],*self.indices),[])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['f0862'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'f0862'
+
+- ['f0862']
++ []
+
+======================================================================
+FAIL: test_unknown_full_namespace_in_actual_frozen_route_must_refuse (__main__.Adverse.test_unknown_full_namespace_in_actual_frozen_route_must_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-correction-independent/adverse.py", line 41, in test_unknown_full_namespace_in_actual_frozen_route_must_refuse
+    self.refusal(target.analyze,altered,self.source)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-correction-independent/adverse.py", line 36, in refusal
+    type(self).observations.append(row);self.fail('Refused not raised')
+                                        ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refused not raised
+
+======================================================================
+FAIL: test_unknown_namespace_policy_shadow_must_refuse (__main__.Adverse.test_unknown_namespace_policy_shadow_must_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-correction-independent/adverse.py", line 53, in test_unknown_namespace_policy_shadow_must_refuse
+    self.assertEqual(target.resolve('foreign::Policy::swift',self.graph['nodes'],*self.indices),[])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['f0203'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'f0203'
+
+- ['f0203']
++ []
+
+======================================================================
+FAIL: test_unknown_std_namespace_authored_shadow_must_refuse (__main__.Adverse.test_unknown_std_namespace_authored_shadow_must_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-correction-independent/adverse.py", line 44, in test_unknown_std_namespace_authored_shadow_must_refuse
+    self.refusal(target.analyze,mini(call,self.faultbody,'    let mut _7: control::SwiftRunFailureKind;\n    let mut _9: control::Fault;\n'),self.source)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-correction-independent/adverse.py", line 36, in refusal
+    type(self).observations.append(row);self.fail('Refused not raised')
+                                        ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refused not raised
+
+======================================================================
+FAIL: test_unknown_trait_with_authored_receiver_must_refuse (__main__.Adverse.test_unknown_trait_with_authored_receiver_must_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-correction-independent/adverse.py", line 47, in test_unknown_trait_with_authored_receiver_must_refuse
+    self.refusal(target.analyze,mini(call,self.faultbody,'    let mut _7: control::SwiftRunFailureKind;\n    let mut _9: control::Fault;\n'),self.source)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-correction-independent/adverse.py", line 36, in refusal
+    type(self).observations.append(row);self.fail('Refused not raised')
+                                        ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refused not raised
+
+----------------------------------------------------------------------
+Ran 17 tests in 14.213s
+
+FAILED (failures=10)

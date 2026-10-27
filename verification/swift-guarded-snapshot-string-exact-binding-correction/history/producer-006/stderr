@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance/derive.py", line 114, in <module>
+    if __name__=='__main__':main('--check' in sys.argv)
+                            ~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance/derive.py", line 50, in main
+    graph=analyze(raw.decode(),source)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance/mir_graph.py", line 228, in analyze
+    types=sorted(set(x['result_type'] for x in sites));kind=classify_external(target,types)
+                                                            ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance/mir_graph.py", line 186, in classify_external
+    require(receiver.startswith(('Result<','Option<','std::','&','[','Vec<','Arc<','Flatten<','Enumerate<','Zip<','Rev<','StepBy<','{closure@','impl FnOnce')),'unknown-generic-trait-producer:'+target)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-provenance/mir_graph.py", line 9, in require
+    if not condition: raise Refused(reason)
+                      ^^^^^^^^^^^^^^^^^^^^^
+mir_graph.Refused: unknown-generic-trait-producer:<Chunks<'_, u8> as Iterator>::enumerate

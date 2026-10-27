@@ -1,0 +1,299 @@
+{
+  "GA": false,
+  "L_str_selected": false,
+  "OTA_authority": false,
+  "actual_P0_caller_or_fixture_selected": false,
+  "actual_selected_header_bodies": [
+    "f0907",
+    "f1405"
+  ],
+  "actual_selected_header_discrepancies": 6,
+  "candidate_bytes": 56817849,
+  "candidate_members": 358,
+  "candidate_seal_sha256": "4d2dcab90e7c9cfd7074a67fe8eac0d6807b6ed3704b74afe430ebc624b07994",
+  "compiler_binary_correspondence": "no new compiler authorized in this lane; pending separate scoped binding",
+  "complete_typed_graph_or_source_closure_accepted": false,
+  "conditional_constant_origin_extent": 5080,
+  "conditional_extent_is_not_global_static_str_bound": true,
+  "conditional_extent_supported_for_reviewed_exact_source_route": true,
+  "corrected_origin_and_callback_counts_supported": true,
+  "exact_source_semantic_review": "source-semantic-review.json",
+  "findings": [
+    {
+      "accepted_destination": "f0982",
+      "actual_frozen_route_mutation": "f0730 line20: control::Fault::new -> foreign::Fault::new; all other full MIR bytes unchanged",
+      "effect": "Unknown identities bypass the exact external catalog by resolving to an authored owner/method basename. Full-target fail-closed requirement is unmet. The exact frozen source remains pinned; this finding is analyzer hardening, not a compiled hostile fixture or observed runtime exploit.",
+      "id": "F1",
+      "line": 239,
+      "other_accepted_targets": [
+        "std::future_vendor::Fault::new",
+        "<control::Fault as foreign::Mint>::new",
+        "foreign::Policy::swift"
+      ],
+      "path": "verification/swift-guarded-snapshot-string-provenance-correction/mir_graph.py",
+      "priority": "P1",
+      "required": "Resolve using exact module/owner/trait identity or explicit reviewed alias+specialization contracts. An exact-module miss must never silently return an owner-basename match.",
+      "requirement": "R3",
+      "title": "Authored resolution falls back across full namespaces and traits"
+    },
+    {
+      "accepted_targets": {
+        "<Foreign as SharedControlV1>::shared_control": [
+          "f0862"
+        ],
+        "<Foreign as experimental::account::MeterControl>::expired": [
+          "f0107"
+        ]
+      },
+      "effect": "Selected caller/specialization obligations are weakened by substring matching without the exact generic receiver.",
+      "id": "F2",
+      "line": 216,
+      "path": "verification/swift-guarded-snapshot-string-provenance-correction/mir_graph.py",
+      "priority": "P1",
+      "required": "Bind the exact receiver variable or concrete receiver, complete trait identity, method and allowed type substitution, and reject every unreviewed receiver.",
+      "requirement": "R3/R4",
+      "title": "Closed specialization branches admit foreign trait receivers"
+    },
+    {
+      "actual_discrepancy_fields": 6,
+      "actual_selected_bodies": [
+        "f0907",
+        "f1405"
+      ],
+      "effect": "The current packet contains malformed typed parameter/return evidence for two selected authored bodies. All body bytes/statements are retained, but it cannot claim a complete accurate typed header inventory. This defect is present in the actual frozen graph and inherited prior independent graph.",
+      "id": "F3",
+      "line": 166,
+      "path": "verification/swift-guarded-snapshot-string-provenance-correction/mir_graph.py",
+      "priority": "P1",
+      "required": "Balance the outer header parameter delimiters and parse complete Fn/FnMut/FnOnce, nested tuple/array/generic types and return types. Re-derive all graph/port/carrier/catalog artifacts from corrected typed headers and retain a complete discrepancy roster.",
+      "requirement": "R1/R2/R4",
+      "title": "Function parameter and return types are truncated at inner function arrows",
+      "whole_pool_affected_headers": [
+        "f0907",
+        "f1257",
+        "f1258",
+        "f1297",
+        "f1298",
+        "f1299",
+        "f1300",
+        "f1319",
+        "f1405"
+      ]
+    },
+    {
+      "accepted_call": "control::Fault::new(const 7_u32) -> Option<control::SwiftRunFailure>",
+      "actual_authored_signature": {
+        "arguments": [
+          "control::SwiftRunFailureKind",
+          "&str"
+        ],
+        "result": "control::Fault"
+      },
+      "effect": "The analyzer silently binds the exact authored target despite missing code argument, incompatible kind argument and nested-carrier result. This is an invalid synthetic MIR parser/checker control, not compiler evidence. Exact source/compiler pins reduce current packet exposure but do not satisfy reusable typed fail-closed claims.",
+      "id": "F4",
+      "line": 315,
+      "path": "verification/swift-guarded-snapshot-string-provenance-correction/mir_graph.py",
+      "priority": "P2",
+      "required": "Validate authored-call arity and compatible argument/result contracts under explicit compiler namespace aliases and reviewed generic substitutions; named callbacks need equivalent typed binding.",
+      "requirement": "R3",
+      "title": "Authored destinations bypass typed argument/result compatibility"
+    }
+  ],
+  "future_outer_27deef_coverage": false,
+  "host_tree_sha256": "027394c31852db7845a3162115e7bcd8b5f9a5044cbb495910c5c03c4fb20de2",
+  "independent_adverse_attempt": "attempt-016",
+  "independent_controls_passed": 7,
+  "independent_fail_closed_expectations_failed": 10,
+  "independent_tests": 17,
+  "literal_max_utf8_extent": 92,
+  "native_or_device_verification": "pending and paused; not run",
+  "new_producer_failed_preparation_trace_attempts_preserved": 9,
+  "old_failures_preserved": true,
+  "original_and_current_frozen_packets_unchanged": true,
+  "policy_or_operational_grant": false,
+  "producer_correction_tests_passed": 16,
+  "producer_original_tests_passed": 14,
+  "producer_read_only_catalog_derivation_binder_custody_pass": true,
+  "receipts": [
+    {
+      "args": [],
+      "attempt": "attempt-001",
+      "exit_code": 0,
+      "frozen_packets_unchanged": true,
+      "owned_child_waited": true,
+      "receipt_sha256": "ea4f44c3308f40f04a48f47eb57cf97271330a5e1ad361b4c5807f669dbecdec",
+      "target": "verification/swift-guarded-snapshot-string-correction-independent/custody.py",
+      "timed_out": false
+    },
+    {
+      "args": [],
+      "attempt": "attempt-002",
+      "exit_code": 1,
+      "frozen_packets_unchanged": true,
+      "owned_child_waited": true,
+      "receipt_sha256": "c10baccb5bd9eee077c8158fd342ed84a9965331bfbe116e29777df57a720959",
+      "target": "verification/swift-guarded-snapshot-string-correction-independent/adverse.py",
+      "timed_out": false
+    },
+    {
+      "args": [],
+      "attempt": "attempt-003",
+      "exit_code": 1,
+      "frozen_packets_unchanged": true,
+      "owned_child_waited": true,
+      "receipt_sha256": "9d86da287b355c60644063b1cee6f4be0f5cc6baad74139a0c7616b561754562",
+      "target": "verification/swift-guarded-snapshot-string-correction-independent/adverse.py",
+      "timed_out": false
+    },
+    {
+      "args": [],
+      "attempt": "attempt-004",
+      "exit_code": 1,
+      "frozen_packets_unchanged": true,
+      "owned_child_waited": true,
+      "receipt_sha256": "e12fa9c63aaa083925ff7e2c7201f00b922790e5a5b7b8a3e4cb8d7b55721cbc",
+      "target": "verification/swift-guarded-snapshot-string-correction-independent/audit.py",
+      "timed_out": false
+    },
+    {
+      "args": [],
+      "attempt": "attempt-005",
+      "exit_code": 0,
+      "frozen_packets_unchanged": true,
+      "owned_child_waited": true,
+      "receipt_sha256": "9e3e629f6ed5b6276c31505b7294fce298666f16866e82806c1e04c648f83ecc",
+      "target": "verification/swift-guarded-snapshot-string-correction-independent/audit.py",
+      "timed_out": false
+    },
+    {
+      "args": [],
+      "attempt": "attempt-006",
+      "exit_code": 0,
+      "frozen_packets_unchanged": true,
+      "owned_child_waited": true,
+      "receipt_sha256": "37a0e35488fc7b5048142194f1d8518e823b08aea4bdaa82f01b7d0fe87b6cb3",
+      "target": "verification/swift-guarded-snapshot-string-correction-independent/audit.py",
+      "timed_out": false
+    },
+    {
+      "args": [],
+      "attempt": "attempt-007",
+      "exit_code": 1,
+      "frozen_packets_unchanged": true,
+      "owned_child_waited": true,
+      "receipt_sha256": "6ac08062ecd4d16d3732c38315b1d9348313b18ebfee669101f85da529743411",
+      "target": "verification/swift-guarded-snapshot-string-correction-independent/adverse.py",
+      "timed_out": false
+    },
+    {
+      "args": [],
+      "attempt": "attempt-008",
+      "exit_code": 0,
+      "frozen_packets_unchanged": true,
+      "owned_child_waited": true,
+      "receipt_sha256": "6c1b47e3e131baafa9145f690a2cb22609388b314c66e4418a935b5647652f6e",
+      "target": "verification/swift-guarded-snapshot-string-provenance-correction/test_provenance.py",
+      "timed_out": false
+    },
+    {
+      "args": [],
+      "attempt": "attempt-009",
+      "exit_code": 0,
+      "frozen_packets_unchanged": true,
+      "owned_child_waited": true,
+      "receipt_sha256": "d7870618dd6d431c9ca5d04a17957549a9ef73b2dab825f654ade402bdd2046c",
+      "target": "verification/swift-guarded-snapshot-string-provenance-correction/test_correction.py",
+      "timed_out": false
+    },
+    {
+      "args": [
+        "--check"
+      ],
+      "attempt": "attempt-010",
+      "exit_code": 0,
+      "frozen_packets_unchanged": true,
+      "owned_child_waited": true,
+      "receipt_sha256": "e6c00c3b6d5181a0bcd4e8320a325cec911737e6faf6e715cada5272ec031414",
+      "target": "verification/swift-guarded-snapshot-string-provenance-correction/prepare_contracts.py",
+      "timed_out": false
+    },
+    {
+      "args": [
+        "--check"
+      ],
+      "attempt": "attempt-011",
+      "exit_code": 0,
+      "frozen_packets_unchanged": true,
+      "owned_child_waited": true,
+      "receipt_sha256": "6faf8fdfc416cbed25ede5a63a3a887fd9a525038bbd5d05534c1afa61cf7807",
+      "target": "verification/swift-guarded-snapshot-string-provenance-correction/derive.py",
+      "timed_out": false
+    },
+    {
+      "args": [
+        "--check"
+      ],
+      "attempt": "attempt-013",
+      "exit_code": 0,
+      "frozen_packets_unchanged": true,
+      "owned_child_waited": true,
+      "receipt_sha256": "3e603599bd54dae71b69b750039ac724b72f0bc754fe60ef27a7eefa77041e5c",
+      "target": "verification/swift-guarded-snapshot-string-provenance-correction/custody.py",
+      "timed_out": false
+    },
+    {
+      "args": [],
+      "attempt": "attempt-014",
+      "exit_code": 0,
+      "frozen_packets_unchanged": true,
+      "owned_child_waited": true,
+      "receipt_sha256": "5fd83a90f93c75dc2113efb2c2697cbe053ce2efbe110253db09544fbcd2b739",
+      "target": "verification/swift-guarded-snapshot-string-correction-independent/audit.py",
+      "timed_out": false
+    },
+    {
+      "args": [],
+      "attempt": "attempt-015",
+      "exit_code": 1,
+      "frozen_packets_unchanged": true,
+      "owned_child_waited": true,
+      "receipt_sha256": "ae5c9422694283e559dbc1b8e5233db87fb0e1feb5fb5332f2e74215c4afdc26",
+      "target": "verification/swift-guarded-snapshot-string-correction-independent/adverse.py",
+      "timed_out": false
+    },
+    {
+      "args": [],
+      "attempt": "attempt-016",
+      "exit_code": 1,
+      "frozen_packets_unchanged": true,
+      "owned_child_waited": true,
+      "receipt_sha256": "0ce432d20afa9f1ea05d444ff108940fd5da61cc395be95c67b66e2ae15076de",
+      "target": "verification/swift-guarded-snapshot-string-correction-independent/adverse.py",
+      "timed_out": false
+    }
+  ],
+  "restored_counts_verified": {
+    "allocation_unique_ids": 1464,
+    "allocations": 1958,
+    "compiled_bodies": 2009,
+    "direct_str_ports": 9,
+    "edges_crosschecked_against_old_frozen_independent": 1908,
+    "external_sites": 3209,
+    "external_targets": 1127,
+    "external_typed_signatures": 1130,
+    "literal_occurrences": 3189,
+    "literal_unique": 1397,
+    "named_authored_edges": 28,
+    "named_authored_sites": 22,
+    "primitive_str_assignments": 80,
+    "selected_bodies": 525
+  },
+  "review_failures_preserved": true,
+  "schema": 1,
+  "scope": "pure bounded host offline source/MIR review and synthetic parser/checker attacks; no compiler/product/native/UI/capture/Git/global process inventory",
+  "simple_local_call_argument_result_discrepancies": 0,
+  "source_tree_sha256": "690755b7bfacf1b1ee03b4c60319a4be65fdd72ff20e4897a080bfebfd480185",
+  "status": "return-correction-candidate-for-further-correction",
+  "whole_compiler_pool_affected_headers": 9,
+  "whole_host_bound_selected": false
+}

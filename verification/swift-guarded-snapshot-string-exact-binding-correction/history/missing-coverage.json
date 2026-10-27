@@ -1,0 +1,358 @@
+{
+  "all_original_body_hashes_and_edges_reproduced": true,
+  "body_semantics": {
+    "f1590": "AccountedWasi::usage is already a candidate node through other calls; its 15 named-callback edges are absent.",
+    "f1605": "Copies AccountedWasi context reference into f1697 call; returns numeric budget/grants tuple.",
+    "f1697": "Reads existing context budget and grants fields into the returned tuple.",
+    "f1899/f1900": "Two retained MIR bodies for enum Runtime constructor, moving existing SwiftRunFailure unchanged into its wrapper.",
+    "f1927/f1928": "Two retained MIR bodies for enum Stop constructor, moving existing SnapshotStopV1 unchanged into its wrapper."
+  },
+  "missing_bodies": {
+    "f1605": {
+      "MIR_bytes": 2690,
+      "MIR_sha256": "e585ee62a72f2cc97cba743c1c142b21fab3c60fa4e0d8061959a0d48535040a",
+      "calls": [
+        {
+          "closures": [],
+          "line": 9,
+          "named_callbacks": [],
+          "result_type": "(experimental_wasi::WasiBudget, experimental_wasi::WasiGrants)",
+          "statement": "_0 = WasiContext::snapshot_configuration_v2(move _2) -> [return: bb1, unwind continue];",
+          "target": "WasiContext::snapshot_configuration_v2"
+        }
+      ],
+      "carrier_operations": [],
+      "header": "fn accounted::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_wasi/accounted.rs:432:1: 432:19>::snapshot_configuration_v2(_1: &accounted::AccountedWasi) -> (WasiBudget, WasiGrants) {",
+      "indirect_calls": [],
+      "method": "snapshot_configuration_v2",
+      "name": "accounted::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_wasi/accounted.rs:432:1: 432:19>::snapshot_configuration_v2",
+      "owner_source_line": "impl AccountedWasi {pub(crate) fn snapshot_configuration_v2(&self)->(WasiBudget,WasiGrants){self.context.snapshot_configuration_v2()}}",
+      "params": {
+        "_1": "&accounted::AccountedWasi"
+      },
+      "return_type": "(WasiBudget, WasiGrants)",
+      "sensitive_operations": [],
+      "string_assignments": []
+    },
+    "f1697": {
+      "MIR_bytes": 2944,
+      "MIR_sha256": "94538ce73c12bac112011b9a76ea0b3d201b5351aa0c3c77a71b6dbc10e7f372",
+      "calls": [],
+      "carrier_operations": [],
+      "header": "fn experimental_wasi::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_wasi/mod.rs:638:1: 638:17>::snapshot_configuration_v2(_1: &WasiContext) -> (WasiBudget, WasiGrants) {",
+      "indirect_calls": [],
+      "method": "snapshot_configuration_v2",
+      "name": "experimental_wasi::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_wasi/mod.rs:638:1: 638:17>::snapshot_configuration_v2",
+      "owner_source_line": "impl WasiContext {pub(crate) fn snapshot_configuration_v2(&self)->(WasiBudget,WasiGrants){(self.budget,self.grants)}}",
+      "params": {
+        "_1": "&WasiContext"
+      },
+      "return_type": "(WasiBudget, WasiGrants)",
+      "sensitive_operations": [],
+      "string_assignments": []
+    },
+    "f1899": {
+      "MIR_bytes": 983,
+      "MIR_sha256": "a50885876bebd43df04f71895eb96e9f7e3b573f0060713cb864adc4615dc344",
+      "calls": [],
+      "carrier_operations": [],
+      "header": "fn initial_profile_v1::ProfileAdmissionFailureV1::Runtime(_1: control::SwiftRunFailure) -> initial_profile_v1::ProfileAdmissionFailureV1 {",
+      "indirect_calls": [],
+      "method": "Runtime",
+      "name": "initial_profile_v1::ProfileAdmissionFailureV1::Runtime",
+      "owner_source_line": "",
+      "params": {
+        "_1": "control::SwiftRunFailure"
+      },
+      "return_type": "initial_profile_v1::ProfileAdmissionFailureV1",
+      "sensitive_operations": [],
+      "string_assignments": []
+    },
+    "f1900": {
+      "MIR_bytes": 983,
+      "MIR_sha256": "a50885876bebd43df04f71895eb96e9f7e3b573f0060713cb864adc4615dc344",
+      "calls": [],
+      "carrier_operations": [],
+      "header": "fn initial_profile_v1::ProfileAdmissionFailureV1::Runtime(_1: control::SwiftRunFailure) -> initial_profile_v1::ProfileAdmissionFailureV1 {",
+      "indirect_calls": [],
+      "method": "Runtime",
+      "name": "initial_profile_v1::ProfileAdmissionFailureV1::Runtime",
+      "owner_source_line": "",
+      "params": {
+        "_1": "control::SwiftRunFailure"
+      },
+      "return_type": "initial_profile_v1::ProfileAdmissionFailureV1",
+      "sensitive_operations": [],
+      "string_assignments": []
+    },
+    "f1927": {
+      "MIR_bytes": 843,
+      "MIR_sha256": "e3913b586cd31ab391cbc42b11cd9ec3cb684e3c3e72d8e68526580d10d79d1c",
+      "calls": [],
+      "carrier_operations": [],
+      "header": "fn SnapshotAdmissionErrorV1::Stop(_1: SnapshotStopV1) -> SnapshotAdmissionErrorV1 {",
+      "indirect_calls": [],
+      "method": "Stop",
+      "name": "SnapshotAdmissionErrorV1::Stop",
+      "owner_source_line": "",
+      "params": {
+        "_1": "SnapshotStopV1"
+      },
+      "return_type": "SnapshotAdmissionErrorV1",
+      "sensitive_operations": [],
+      "string_assignments": []
+    },
+    "f1928": {
+      "MIR_bytes": 843,
+      "MIR_sha256": "e3913b586cd31ab391cbc42b11cd9ec3cb684e3c3e72d8e68526580d10d79d1c",
+      "calls": [],
+      "carrier_operations": [],
+      "header": "fn SnapshotAdmissionErrorV1::Stop(_1: SnapshotStopV1) -> SnapshotAdmissionErrorV1 {",
+      "indirect_calls": [],
+      "method": "Stop",
+      "name": "SnapshotAdmissionErrorV1::Stop",
+      "owner_source_line": "",
+      "params": {
+        "_1": "SnapshotStopV1"
+      },
+      "return_type": "SnapshotAdmissionErrorV1",
+      "sensitive_operations": [],
+      "string_assignments": []
+    }
+  },
+  "missing_transitive_regular_edges": [
+    [
+      "f1605",
+      "f1697",
+      9,
+      "authored",
+      "WasiContext::snapshot_configuration_v2"
+    ]
+  ],
+  "named_callback_sites": [
+    {
+      "callees": [
+        "f1590"
+      ],
+      "caller": "f0763",
+      "line": 76,
+      "outer_target": "Option::<&accounted::AccountedWasi>::map::<experimental_wasi::WasiUsage, for<'a> fn(&'a accounted::AccountedWasi) -> experimental_wasi::WasiUsage {accounted::AccountedWasi::usage}>",
+      "target": "accounted::AccountedWasi::usage"
+    },
+    {
+      "callees": [
+        "f1590"
+      ],
+      "caller": "f0763",
+      "line": 117,
+      "outer_target": "Option::<&accounted::AccountedWasi>::map::<experimental_wasi::WasiUsage, for<'a> fn(&'a accounted::AccountedWasi) -> experimental_wasi::WasiUsage {accounted::AccountedWasi::usage}>",
+      "target": "accounted::AccountedWasi::usage"
+    },
+    {
+      "callees": [
+        "f1590"
+      ],
+      "caller": "f0758",
+      "line": 713,
+      "outer_target": "Option::<&accounted::AccountedWasi>::map::<experimental_wasi::WasiUsage, for<'a> fn(&'a accounted::AccountedWasi) -> experimental_wasi::WasiUsage {accounted::AccountedWasi::usage}>",
+      "target": "accounted::AccountedWasi::usage"
+    },
+    {
+      "callees": [
+        "f1590"
+      ],
+      "caller": "f0758",
+      "line": 847,
+      "outer_target": "Option::<&accounted::AccountedWasi>::map::<experimental_wasi::WasiUsage, for<'a> fn(&'a accounted::AccountedWasi) -> experimental_wasi::WasiUsage {accounted::AccountedWasi::usage}>",
+      "target": "accounted::AccountedWasi::usage"
+    },
+    {
+      "callees": [
+        "f1590"
+      ],
+      "caller": "f0758",
+      "line": 895,
+      "outer_target": "Option::<&accounted::AccountedWasi>::map::<experimental_wasi::WasiUsage, for<'a> fn(&'a accounted::AccountedWasi) -> experimental_wasi::WasiUsage {accounted::AccountedWasi::usage}>",
+      "target": "accounted::AccountedWasi::usage"
+    },
+    {
+      "callees": [
+        "f1590"
+      ],
+      "caller": "f0758",
+      "line": 992,
+      "outer_target": "Option::<&accounted::AccountedWasi>::map::<experimental_wasi::WasiUsage, for<'a> fn(&'a accounted::AccountedWasi) -> experimental_wasi::WasiUsage {accounted::AccountedWasi::usage}>",
+      "target": "accounted::AccountedWasi::usage"
+    },
+    {
+      "callees": [
+        "f1590"
+      ],
+      "caller": "f0758",
+      "line": 1095,
+      "outer_target": "Option::<&accounted::AccountedWasi>::map::<experimental_wasi::WasiUsage, for<'a> fn(&'a accounted::AccountedWasi) -> experimental_wasi::WasiUsage {accounted::AccountedWasi::usage}>",
+      "target": "accounted::AccountedWasi::usage"
+    },
+    {
+      "callees": [
+        "f1590"
+      ],
+      "caller": "f0758",
+      "line": 1198,
+      "outer_target": "Option::<&accounted::AccountedWasi>::map::<experimental_wasi::WasiUsage, for<'a> fn(&'a accounted::AccountedWasi) -> experimental_wasi::WasiUsage {accounted::AccountedWasi::usage}>",
+      "target": "accounted::AccountedWasi::usage"
+    },
+    {
+      "callees": [
+        "f1590"
+      ],
+      "caller": "f0758",
+      "line": 1315,
+      "outer_target": "Option::<&accounted::AccountedWasi>::map::<experimental_wasi::WasiUsage, for<'a> fn(&'a accounted::AccountedWasi) -> experimental_wasi::WasiUsage {accounted::AccountedWasi::usage}>",
+      "target": "accounted::AccountedWasi::usage"
+    },
+    {
+      "callees": [
+        "f1590"
+      ],
+      "caller": "f0758",
+      "line": 1371,
+      "outer_target": "Option::<&accounted::AccountedWasi>::map::<experimental_wasi::WasiUsage, for<'a> fn(&'a accounted::AccountedWasi) -> experimental_wasi::WasiUsage {accounted::AccountedWasi::usage}>",
+      "target": "accounted::AccountedWasi::usage"
+    },
+    {
+      "callees": [
+        "f1605"
+      ],
+      "caller": "f0850",
+      "line": 563,
+      "outer_target": "Option::<&accounted::AccountedWasi>::map::<(WasiBudget, WasiGrants), for<'a> fn(&'a accounted::AccountedWasi) -> (WasiBudget, WasiGrants) {accounted::AccountedWasi::snapshot_configuration_v2}>",
+      "target": "accounted::AccountedWasi::snapshot_configuration_v2"
+    },
+    {
+      "callees": [
+        "f1590"
+      ],
+      "caller": "f0870",
+      "line": 148,
+      "outer_target": "Option::<&accounted::AccountedWasi>::map::<experimental_wasi::WasiUsage, for<'a> fn(&'a accounted::AccountedWasi) -> experimental_wasi::WasiUsage {accounted::AccountedWasi::usage}>",
+      "target": "accounted::AccountedWasi::usage"
+    },
+    {
+      "callees": [
+        "f1927",
+        "f1928"
+      ],
+      "caller": "f1098",
+      "line": 368,
+      "outer_target": "Result::<(), SnapshotStopV1>::map_err::<SnapshotAdmissionErrorV1, fn(SnapshotStopV1) -> SnapshotAdmissionErrorV1 {SnapshotAdmissionErrorV1::Stop}>",
+      "target": "SnapshotAdmissionErrorV1::Stop"
+    },
+    {
+      "callees": [
+        "f1927",
+        "f1928"
+      ],
+      "caller": "f1096",
+      "line": 82,
+      "outer_target": "Result::<(), SnapshotStopV1>::map_err::<SnapshotAdmissionErrorV1, fn(SnapshotStopV1) -> SnapshotAdmissionErrorV1 {SnapshotAdmissionErrorV1::Stop}>",
+      "target": "SnapshotAdmissionErrorV1::Stop"
+    },
+    {
+      "callees": [
+        "f1927",
+        "f1928"
+      ],
+      "caller": "f0921",
+      "line": 1671,
+      "outer_target": "Result::<(), SnapshotStopV1>::map_err::<SnapshotAdmissionErrorV1, fn(SnapshotStopV1) -> SnapshotAdmissionErrorV1 {SnapshotAdmissionErrorV1::Stop}>",
+      "target": "SnapshotAdmissionErrorV1::Stop"
+    },
+    {
+      "callees": [
+        "f1899",
+        "f1900"
+      ],
+      "caller": "f0830",
+      "line": 619,
+      "outer_target": "Result::<(), control::SwiftRunFailure>::map_err::<initial_profile_v1::ProfileAdmissionFailureV1, fn(control::SwiftRunFailure) -> initial_profile_v1::ProfileAdmissionFailureV1 {initial_profile_v1::ProfileAdmissionFailureV1::Runtime}>",
+      "target": "initial_profile_v1::ProfileAdmissionFailureV1::Runtime"
+    },
+    {
+      "callees": [
+        "f1590"
+      ],
+      "caller": "f0830",
+      "line": 656,
+      "outer_target": "Option::<&accounted::AccountedWasi>::map::<experimental_wasi::WasiUsage, for<'a> fn(&'a accounted::AccountedWasi) -> experimental_wasi::WasiUsage {accounted::AccountedWasi::usage}>",
+      "target": "accounted::AccountedWasi::usage"
+    },
+    {
+      "callees": [
+        "f1899",
+        "f1900"
+      ],
+      "caller": "f0830",
+      "line": 711,
+      "outer_target": "Result::<(), control::SwiftRunFailure>::map_err::<initial_profile_v1::ProfileAdmissionFailureV1, fn(control::SwiftRunFailure) -> initial_profile_v1::ProfileAdmissionFailureV1 {initial_profile_v1::ProfileAdmissionFailureV1::Runtime}>",
+      "target": "initial_profile_v1::ProfileAdmissionFailureV1::Runtime"
+    },
+    {
+      "callees": [
+        "f1899",
+        "f1900"
+      ],
+      "caller": "f0830",
+      "line": 1714,
+      "outer_target": "Result::<(), control::SwiftRunFailure>::map_err::<initial_profile_v1::ProfileAdmissionFailureV1, fn(control::SwiftRunFailure) -> initial_profile_v1::ProfileAdmissionFailureV1 {initial_profile_v1::ProfileAdmissionFailureV1::Runtime}>",
+      "target": "initial_profile_v1::ProfileAdmissionFailureV1::Runtime"
+    },
+    {
+      "callees": [
+        "f1590"
+      ],
+      "caller": "f0731",
+      "line": 9,
+      "outer_target": "Option::<&accounted::AccountedWasi>::map::<experimental_wasi::WasiUsage, for<'a> fn(&'a accounted::AccountedWasi) -> experimental_wasi::WasiUsage {accounted::AccountedWasi::usage}>",
+      "target": "accounted::AccountedWasi::usage"
+    },
+    {
+      "callees": [
+        "f1590"
+      ],
+      "caller": "f0773",
+      "line": 38,
+      "outer_target": "Option::<&accounted::AccountedWasi>::map::<experimental_wasi::WasiUsage, for<'a> fn(&'a accounted::AccountedWasi) -> experimental_wasi::WasiUsage {accounted::AccountedWasi::usage}>",
+      "target": "accounted::AccountedWasi::usage"
+    },
+    {
+      "callees": [
+        "f1590"
+      ],
+      "caller": "f0749",
+      "line": 139,
+      "outer_target": "Option::<&accounted::AccountedWasi>::map::<experimental_wasi::WasiUsage, for<'a> fn(&'a accounted::AccountedWasi) -> experimental_wasi::WasiUsage {accounted::AccountedWasi::usage}>",
+      "target": "accounted::AccountedWasi::usage"
+    }
+  ],
+  "new_edges": 29,
+  "omitted_direct_str_assignments": [
+    {
+      "destination": "_35",
+      "function": "f0279",
+      "function_name": "segments_fit",
+      "line": 256,
+      "origin": "preserved_reference",
+      "statement": "_35 = copy (((_28 as Some).0: (&experimental::account::Buffer<experimental::metadata::Segment>, u64, &str)).2: &str);"
+    },
+    {
+      "destination": "_29",
+      "function": "f1035",
+      "function_name": "control::<impl at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-loader-work-source146/owned-work/vm/src/experimental_swift_reactor/control.rs:632:1: 632:20>::check_reservation_owner",
+      "line": 203,
+      "origin": "preserved_reference",
+      "statement": "_29 = copy (((_5 as Some).0: (experimental_swift_reactor::control::SwiftCleanupInvariant, &str)).1: &str);"
+    }
+  ],
+  "schema": 1
+}

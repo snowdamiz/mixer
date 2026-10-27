@@ -1,0 +1,45 @@
+test_full_mir_foreign_namespace_refuses (__main__.ExactBindingTests.test_full_mir_foreign_namespace_refuses) ... FAIL
+test_full_mir_policy_namespace_refuses (__main__.ExactBindingTests.test_full_mir_policy_namespace_refuses) ... ok
+test_full_mir_std_namespace_refuses (__main__.ExactBindingTests.test_full_mir_std_namespace_refuses) ... FAIL
+test_full_mir_unknown_trait_with_authored_receiver_refuses (__main__.ExactBindingTests.test_full_mir_unknown_trait_with_authored_receiver_refuses) ... FAIL
+
+======================================================================
+FAIL: test_full_mir_foreign_namespace_refuses (__main__.ExactBindingTests.test_full_mir_foreign_namespace_refuses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-exact-binding-correction/test_exact_binding.py", line 39, in test_full_mir_foreign_namespace_refuses
+    self.refuse_mir(self.altered_body('f0730','control::Fault::new','foreign::Fault::new'),'unreviewed-exact-external-contract')
+                    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-exact-binding-correction/test_exact_binding.py", line 16, in altered_body
+    body=self.mir[start:end];self.assertEqual(body.count(old),1,(key,old))
+                             ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 3 != 1 : ('f0730', 'control::Fault::new')
+
+======================================================================
+FAIL: test_full_mir_std_namespace_refuses (__main__.ExactBindingTests.test_full_mir_std_namespace_refuses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-exact-binding-correction/test_exact_binding.py", line 41, in test_full_mir_std_namespace_refuses
+    self.refuse_mir(self.altered_body('f0730','control::Fault::new','std::future_vendor::Fault::new'),'unreviewed-exact-external-contract')
+                    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-exact-binding-correction/test_exact_binding.py", line 16, in altered_body
+    body=self.mir[start:end];self.assertEqual(body.count(old),1,(key,old))
+                             ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 3 != 1 : ('f0730', 'control::Fault::new')
+
+======================================================================
+FAIL: test_full_mir_unknown_trait_with_authored_receiver_refuses (__main__.ExactBindingTests.test_full_mir_unknown_trait_with_authored_receiver_refuses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-exact-binding-correction/test_exact_binding.py", line 43, in test_full_mir_unknown_trait_with_authored_receiver_refuses
+    self.refuse_mir(self.altered_body('f0730','control::Fault::new','<control::Fault as foreign::Mint>::new'),'unreviewed-exact-external-contract')
+                    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-exact-binding-correction/test_exact_binding.py", line 16, in altered_body
+    body=self.mir[start:end];self.assertEqual(body.count(old),1,(key,old))
+                             ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 3 != 1 : ('f0730', 'control::Fault::new')
+
+----------------------------------------------------------------------
+Ran 4 tests in 4.954s
+
+FAILED (failures=3)

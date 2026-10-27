@@ -1,0 +1,53 @@
+{
+  "corrections": [
+    {
+      "correction": "Balanced typed-target parsing handles function arrows; regression test covers both.",
+      "issue": "Naive callee splitting mistook tuple/function-pointer parentheses and arrow > for generic delimiters."
+    },
+    {
+      "correction": "Nominal dispatch requires a simple exact receiver; generic standard wrappers remain explicit frontiers; all matching CTFE/macro bodies retained.",
+      "issue": "Nominal trait dispatch initially matched generic Result by a suffix, creating unrelated execution branches."
+    },
+    {
+      "correction": "Strict cooked-str lexer handles char escapes/comments, allocation dumps are parsed as typed allocation extents, and all 1958 allocations are included in the 5080 envelope.",
+      "issue": "A literal-only scan missed allocation-backed compiler constants and mistook character/hexdump quotes for strings."
+    },
+    {
+      "correction": "Full declaration terminator parsing retains exact array types.",
+      "issue": "Typed array-local parsing stopped at its internal semicolon."
+    },
+    {
+      "correction": "Failed derive receipts are preserved; reviewed standard container and exact selected byte callback interfaces are explicit. Foreign nominal/generic producers still refuse.",
+      "issue": "External namespace/trait hardening initially omitted Chunks/ChunksMut and exact FnMut byte-write interfaces."
+    }
+  ],
+  "interactive_exploration_not_receipt_wrapped": true,
+  "qualifying_evidence": "Final derive --check, 14-method pure test suite and strict re-deriving check receipts in commands/. Earlier incomplete results confer no authority.",
+  "removed_owned_scratch": [
+    {
+      "bytes": 5389,
+      "path": "explore.py",
+      "role": "discarded non-qualifying exploratory scratch",
+      "sha256": "ecef43714854cf58c76bfcf650418385c78b4b45eb267a44939f471aacb1df1e"
+    },
+    {
+      "bytes": 1659608,
+      "path": "exploration.json",
+      "role": "discarded non-qualifying exploratory scratch",
+      "sha256": "1f2c38caf6d5b22877ff10c413ffc23db6dc0a5102048db3e9be64a2cb2e2629"
+    },
+    {
+      "bytes": 13994,
+      "path": "string-assignments-exploration.json",
+      "role": "discarded non-qualifying exploratory scratch",
+      "sha256": "dc1828f1b4c5a174b88875eaaaa4114446ef3094f254f2e21af5be43ab94b4dd"
+    },
+    {
+      "bytes": 4653494,
+      "path": "debug-graph.json",
+      "role": "discarded non-qualifying exploratory scratch",
+      "sha256": "f1c9e920c122ab0c2ec14c8716b633adb432daca8a238e3d350143242c9bdf56"
+    }
+  ],
+  "schema": 1
+}

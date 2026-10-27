@@ -1,0 +1,24 @@
+test_full_mir_changed_closure_header_refuses (__main__.ExactBindingTests.test_full_mir_changed_closure_header_refuses) ... FAIL
+test_full_mir_changed_named_callback_result_refuses (__main__.ExactBindingTests.test_full_mir_changed_named_callback_result_refuses) ... ok
+test_full_mir_unknown_named_callback_refuses (__main__.ExactBindingTests.test_full_mir_unknown_named_callback_refuses) ... ok
+
+======================================================================
+FAIL: test_full_mir_changed_closure_header_refuses (__main__.ExactBindingTests.test_full_mir_changed_closure_header_refuses)
+----------------------------------------------------------------------
+mir_graph.Refused: incompatible-authored-type:u8 != u16
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-exact-binding-correction/test_exact_binding.py", line 76, in test_full_mir_changed_closure_header_refuses
+    self.refuse_mir(self.altered_body('f1412','_2: &[u8]','_2: &[u16]'),'closure-definition-typed-signature')
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-string-exact-binding-correction/test_exact_binding.py", line 19, in refuse_mir
+    with self.assertRaisesRegex(p.Refused,reason):p.analyze(mir,self.source)
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: "closure-definition-typed-signature" does not match "incompatible-authored-type:u8 != u16"
+
+----------------------------------------------------------------------
+Ran 3 tests in 13.968s
+
+FAILED (failures=1)

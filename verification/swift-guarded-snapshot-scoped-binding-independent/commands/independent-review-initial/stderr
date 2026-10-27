@@ -1,0 +1,41 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-scoped-binding-independent/audit.py", line 393, in <module>
+    print(json.dumps(derive(),sort_keys=True,indent=2))
+                     ~~~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-scoped-binding-independent/audit.py", line 363, in derive
+    mir=compare_blocks(old,new)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-scoped-binding-independent/audit.py", line 154, in compare_blocks
+    pair(a,b,'production_reference_role');pairs.append(dict(index=index,header=a.split('\n',1)[0],normalized_sha256=sha(a.encode())))
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-scoped-binding-independent/audit.py", line 142, in pair
+    require(af==bf,f'non-display MIR difference {a[:160]}\n'+''.join(difflib.unified_diff(af.splitlines(True),bf.splitlines(True)))[:2400])
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-scoped-binding-independent/audit.py", line 49, in require
+    if not condition: raise AssertionError(message)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: non-display MIR difference fn json_string(_1: &str) -> String {
+    debug s => _1;
+    let mut _0: std::string::String;
+    let mut _2: std::string::String;
+    let _3: ();
+    let mut _4
+--- 
++++ 
+@@ -137,85 +137,85 @@
+         StorageLive(_58);
+         StorageLive(_59);
+         _59 = &mut _2;
+-        _58 = String::push(move _59, const '"') -> [return: bb31, unwind: bb33]; // scope 1 at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-independent/owned-work/compiler-metadata-mir/vm/src/lib.rs:238:5: 238:18
+-                                         // mir::ConstOperand
+-                                         // + span: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-independent/owned-work/compiler-metadata-mir/vm/src/lib.rs:238:9: 238:13
++        _58 = String::push(move _59, const '"') -> [return: bb31, unwind: bb33]; // scope 1 at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-scoped-binding-source/owned-work/positive/vm/src/lib.rs:238:5: 238:18
++                                         // mir::ConstOperand
++                                         // + span: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-scoped-binding-source/owned-work/positive/vm/src/lib.rs:238:9: 238:13
+                                          // + const_: Const { ty: for<'a> fn(&'a mut String, char) {String::push}, val: Value(String::push) }
+     }
+     bb9: {
+-        StorageLive(_33);                // scope 3 at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-independent/owned-work/compiler-metadata-mir/vm/src/lib.rs:234:13: 234:14
+-        _33 = &_15;                      // scope 3 at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-independent/owned-work/compiler-metadata-mir/vm/src/lib.rs:234:13: 234:14
+-        StorageLive(_34);                // scope 3 at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-independent/owned-work/compiler-metadata-mir/vm/src/lib.rs:234:18: 234:25
+-        StorageLive(_35);                // scope 3 at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-independent/owned-work/compiler-metadata-mir/vm/src/lib.rs:234:18: 234:19
+-        _35 = copy (*_33);               // scope 3 at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-outer-parent-independent/owned-work/compiler-metadata-mir/vm/src/lib.rs:234:18: 
