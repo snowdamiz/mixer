@@ -1,0 +1,21 @@
+--- accepted-loader/src/experimental_swift_reactor/cache/initial_profile_v1/local_structure.rs
++++ selected-adoption/src/experimental_swift_reactor/cache/initial_profile_v1/local_structure.rs
+@@ -2,7 +2,7 @@
+ use std::mem::align_of;
+ pub(super) fn compare_local_structure_v1(selected:&SelectedLocalStructureV1)->Result<(),ProfileHeaderErrorV1> {
+  let refuse=||profile_error(6,3,0);
+- if selected.digest_bytes!=32 || selected.digest_slots!=8 || selected.entries!=165 || selected.header_bytes!=512 || selected.header_error_schema!=1 || selected.header_words!=16 || selected.little_endian!=1 || selected.outcome_variant_schema!=1 || selected.row_bytes!=32 || selected.rows!=80000 || selected.schema!=1 || selected.selected_pins!=64 || selected.selected_slots_max!=64 || selected.trailing_zero_bytes!=128 || selected.word_bytes!=8 {return Err(refuse());}
++ if selected.digest_bytes!=32 || selected.digest_slots!=8 || selected.entries!=201 || selected.header_bytes!=512 || selected.header_error_schema!=1 || selected.header_words!=16 || selected.little_endian!=1 || selected.outcome_variant_schema!=1 || selected.row_bytes!=32 || selected.rows!=80000 || selected.schema!=1 || selected.selected_pins!=64 || selected.selected_slots_max!=64 || selected.trailing_zero_bytes!=128 || selected.word_bytes!=8 {return Err(refuse());}
+  if size_of::<usize>()!=selected.word_bytes as usize || cfg!(target_endian="little")!=(selected.little_endian==1) {return Err(refuse());}
+  if cache_cleanup_temporary_bytes()!=Some(selected.cache_cleanup_bytes as usize) || cache_header_bytes()!=Some(selected.cache_header_bytes as usize) || cache_construction_bytes()!=Some(selected.cache_construction_bytes as usize) || cache_operation_bytes()!=Some(selected.cache_operation_bytes as usize) {return Err(refuse());}
+  let fixed=cache_header_bytes().and_then(|n|64usize.checked_mul(size_of::<SwiftSlot>()).and_then(|v|n.checked_add(v))).and_then(|n|64usize.checked_mul(size_of::<PinRecord>()).and_then(|v|n.checked_add(v))).and_then(|n|PATCH_CAPACITY.checked_mul(size_of::<decode::Patch>()).and_then(|v|n.checked_add(v)));
+@@ -173,5 +173,9 @@
+  compare!(163,&'static mut File);
+  compare!(164,u64);
+  compare!(165,usize);
++ for (index,(_,bytes,alignment)) in super::super::super::retained_profile_loader_v1::ADOPTION_LAYOUTS_V1.iter().enumerate() {
++  let entry=&selected.type_layout[165+index];
++  if entry.id!=(166+index) as u32 || entry.reserved!=0 || entry.bytes!=*bytes as u64 || entry.alignment!=*alignment as u64 {return Err(refuse());}
++ }
+  Ok(())
+ }

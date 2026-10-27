@@ -1,0 +1,12 @@
+--- accepted-loader/src/experimental_swift_reactor/execution.rs
++++ selected-adoption/src/experimental_swift_reactor/execution.rs
+@@ -849,6 +849,9 @@
+ /// conservative maximum; diagnostic/fault transfers already named by foundation
+ /// retain those classes and are not reused as smaller borrow slots here.
+ pub(super) struct ConstructionBootstrapInventory {
++    // Full carrier/body/adoption result moves and initial-profile wrapper
++    // ingress have separate foundation floors before this bootstrap. These
++    // existing borrowed roles do not stand in for those newly owned places.
+     pair_slot: [&'static mut Option<(RuntimeControl, AdoptedProof)>; 2],
+     control: [&'static mut RuntimeControl; 8],
+     adopted: [&'static AdoptedProof; 3],

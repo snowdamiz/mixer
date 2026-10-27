@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "command": "python3 verification/swift-selected-profile-adoption-control-correction/evidence.py suite debug",
+  "outer_exit_code": 1,
+  "test_child_exit_code": 0,
+  "test_child_receipt": "commands/0006-full-control-debug/receipt.json",
+  "observed_test_result": "37 passed; 0 failed; 0 ignored; 0 measured",
+  "exception": "AssertionError at evidence.py line236: assert actual == names",
+  "cause": "Initial output parser assumed each test status shared one line with its name; nocapture println splits six statuses onto a following ok line.",
+  "classification": "orchestration-only output parsing error; no compiler/test failure; exact original child output retained",
+  "resolution": "Parse bounded per-test output blocks and reprocess already captured Debug stdout without rerunning successful tests."
+}

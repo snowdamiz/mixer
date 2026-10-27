@@ -1,0 +1,20 @@
+error[E0599]: no associated function or constant named `selected` found for struct `AdoptionBodyV1` in the current scope
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/fixtures/body-no-boolean-selected-mint.rs:6:58
+    |
+  6 | fn f(p: ValidatedSwiftReactor) { let _ = AdoptionBodyV1::selected(p, true); }
+    |                                                          ^^^^^^^^ associated function or constant not found in `AdoptionBodyV1`
+    |
+   ::: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/scratch/debug-test-body-no-boolean-selected-mint/src/experimental_swift_reactor/retained_profile_loader_v1.rs:142:1
+    |
+142 | pub(super) struct AdoptionBodyV1 {
+    | -------------------------------- associated function or constant `selected` not found for this struct
+    |
+note: if you're trying to build a new `AdoptionBodyV1`, consider using `AdoptionBodyV1::ordinary` which returns `AdoptionBodyV1`
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/scratch/debug-test-body-no-boolean-selected-mint/src/experimental_swift_reactor/retained_profile_loader_v1.rs:147:5
+    |
+147 |     pub(super) fn ordinary(proof: ValidatedSwiftReactor) -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0599`.

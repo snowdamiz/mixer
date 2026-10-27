@@ -1,0 +1,125 @@
+error[E0425]: cannot find type `InitialProfileBorrowV1` in module `super`
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/compile_cases/guard-cache-sibling-positive_contract.rs:4:29
+   |
+ 4 | fn positive(initial:&super::InitialProfileBorrowV1<'_>,file:&mut std::fs::File) {
+   |                             ^^^^^^^^^^^^^^^^^^^^^^ not found in `super`
+   |
+note: struct `crate::experimental_swift_reactor::cache::initial_profile_v1::InitialProfileBorrowV1` exists but is inaccessible
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/owned-work/debug-contract-guard-cache-sibling-positive_contract/src/experimental_swift_reactor/cache/initial_profile_v1.rs:25:1
+   |
+25 | struct InitialProfileBorrowV1<'a> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0425]: cannot find type `ProfileRowsObservationV1` in module `super`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/compile_cases/guard-cache-sibling-positive_contract.rs:5:22
+     |
+   5 |  let _:Result<super::ProfileRowsObservationV1,super::ProfileAdapterErrorV1>=super::write_initial_profile_rows_v1(initial,file);
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^ not found in `super`
+     |
+help: consider importing this struct
+    -->  /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/owned-work/debug-contract-guard-cache-sibling-positive_contract/src/experimental_swift_reactor/cache.rs:4859:51
+     |
+4859 | #[cfg(test)] mod selected_adoption_compile_case { use crate::experimental_swift_reactor::diagnostic_profile::ProfileRowsObservationV1;
+     |                                                   ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+help: if you import `ProfileRowsObservationV1`, refer to it directly
+     |
+   5 -  let _:Result<super::ProfileRowsObservationV1,super::ProfileAdapterErrorV1>=super::write_initial_profile_rows_v1(initial,file);
+   5 +  let _:Result<ProfileRowsObservationV1,super::ProfileAdapterErrorV1>=super::write_initial_profile_rows_v1(initial,file);
+     |
+
+error[E0425]: cannot find type `ProfileAdapterErrorV1` in module `super`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/compile_cases/guard-cache-sibling-positive_contract.rs:5:54
+     |
+   5 |  let _:Result<super::ProfileRowsObservationV1,super::ProfileAdapterErrorV1>=super::write_initial_profile_rows_v1(initial,file);
+     |                                                      ^^^^^^^^^^^^^^^^^^^^^ not found in `super`
+     |
+help: consider importing this struct
+    -->  /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/owned-work/debug-contract-guard-cache-sibling-positive_contract/src/experimental_swift_reactor/cache.rs:4859:51
+     |
+4859 | #[cfg(test)] mod selected_adoption_compile_case { use crate::experimental_swift_reactor::diagnostic_profile::ProfileAdapterErrorV1;
+     |                                                   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+help: if you import `ProfileAdapterErrorV1`, refer to it directly
+     |
+   5 -  let _:Result<super::ProfileRowsObservationV1,super::ProfileAdapterErrorV1>=super::write_initial_profile_rows_v1(initial,file);
+   5 +  let _:Result<super::ProfileRowsObservationV1,ProfileAdapterErrorV1>=super::write_initial_profile_rows_v1(initial,file);
+     |
+
+error[E0425]: cannot find function `write_initial_profile_rows_v1` in module `super`
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/compile_cases/guard-cache-sibling-positive_contract.rs:5:84
+    |
+  5 |  let _:Result<super::ProfileRowsObservationV1,super::ProfileAdapterErrorV1>=super::write_initial_profile_rows_v1(initial,file);
+    |                                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in `super`
+    |
+note: function `crate::experimental_swift_reactor::cache::initial_profile_v1::write_initial_profile_rows_v1` exists but is inaccessible
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/owned-work/debug-contract-guard-cache-sibling-positive_contract/src/experimental_swift_reactor/cache/initial_profile_v1.rs:173:1
+    |
+173 | / fn write_initial_profile_rows_v1(initial:&InitialProfileBorrowV1<'_>,output:&mut File)
+174 | |     ->Result<ProfileRowsObservationV1,ProfileAdapterErrorV1> {
+175 | |     super::super::diagnostic_profile::write_profile_row_body_v1(initial.cache.proof(),output)
+176 | | }
+    | |_^ not accessible
+
+error[E0425]: cannot find type `InitialProfileBorrowV1` in module `super`
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/compile_cases/guard-cache-sibling-positive_contract.rs:6:19
+   |
+ 6 |  let _:fn(&super::InitialProfileBorrowV1<'_>,&super::UnverifiedProfileDigestBytesV1)->Result<super::UnverifiedProfileHeaderV1,super:...
+   |                   ^^^^^^^^^^^^^^^^^^^^^^ not found in `super`
+   |
+note: struct `crate::experimental_swift_reactor::cache::initial_profile_v1::InitialProfileBorrowV1` exists but is inaccessible
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/owned-work/debug-contract-guard-cache-sibling-positive_contract/src/experimental_swift_reactor/cache/initial_profile_v1.rs:25:1
+   |
+25 | struct InitialProfileBorrowV1<'a> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0425]: cannot find type `UnverifiedProfileDigestBytesV1` in module `super`
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/compile_cases/guard-cache-sibling-positive_contract.rs:6:54
+   |
+ 6 |  let _:fn(&super::InitialProfileBorrowV1<'_>,&super::UnverifiedProfileDigestBytesV1)->Result<super::UnverifiedProfileHeaderV1,super:...
+   |                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in `super`
+   |
+note: struct `crate::experimental_swift_reactor::cache::initial_profile_v1::UnverifiedProfileDigestBytesV1` exists but is inaccessible
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/owned-work/debug-contract-guard-cache-sibling-positive_contract/src/experimental_swift_reactor/cache/initial_profile_v1.rs:19:1
+   |
+19 | struct UnverifiedProfileDigestBytesV1 {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0425]: cannot find type `UnverifiedProfileHeaderV1` in module `super`
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/compile_cases/guard-cache-sibling-positive_contract.rs:6:101
+   |
+ 6 | ...fiedProfileDigestBytesV1)->Result<super::UnverifiedProfileHeaderV1,super::ProfileHeaderErrorV1>=super::header::encode_profile_hea...
+   |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in `super`
+   |
+note: struct `crate::experimental_swift_reactor::cache::initial_profile_v1::UnverifiedProfileHeaderV1` exists but is inaccessible
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/owned-work/debug-contract-guard-cache-sibling-positive_contract/src/experimental_swift_reactor/cache/initial_profile_v1.rs:24:1
+   |
+24 | struct UnverifiedProfileHeaderV1 { bytes:[u8;512] }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0425]: cannot find type `ProfileHeaderErrorV1` in module `super`
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/compile_cases/guard-cache-sibling-positive_contract.rs:6:134
+   |
+ 6 | ...ult<super::UnverifiedProfileHeaderV1,super::ProfileHeaderErrorV1>=super::header::encode_profile_header_v1;
+   |                                                ^^^^^^^^^^^^^^^^^^^^ not found in `super`
+   |
+note: struct `crate::experimental_swift_reactor::cache::initial_profile_v1::ProfileHeaderErrorV1` exists but is inaccessible
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/owned-work/debug-contract-guard-cache-sibling-positive_contract/src/experimental_swift_reactor/cache/initial_profile_v1.rs:12:1
+   |
+12 | struct ProfileHeaderErrorV1 { code:u32, stage:u32, offset:u64 }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: cannot find `header` in `super`
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/compile_cases/guard-cache-sibling-positive_contract.rs:6:163
+    |
+  6 | ...aderV1,super::ProfileHeaderErrorV1>=super::header::encode_profile_header_v1;
+    |                                               ^^^^^^ could not find `header` in `super`
+    |
+note: module `crate::experimental_swift_reactor::cache::initial_profile_v1::header` exists but is inaccessible
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/owned-work/debug-contract-guard-cache-sibling-positive_contract/src/experimental_swift_reactor/cache/initial_profile_v1.rs:113:1
+    |
+113 | mod header;
+    | ^^^^^^^^^^^ not accessible
+
+error: aborting due to 9 previous errors
+
+Some errors have detailed explanations: E0425, E0433.
+For more information about an error, try `rustc --explain E0425`.

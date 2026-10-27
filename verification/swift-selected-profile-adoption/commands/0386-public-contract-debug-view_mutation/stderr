@@ -1,0 +1,12 @@
+error[E0502]: cannot borrow `*c` as mutable because it is also borrowed as immutable
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/compile_cases/public-view_mutation.rs:1:166
+  |
+1 | ...){let v=c.view(&p).unwrap();let _=c.pin(0,&Cancellation::default());let _=v.instructions.len();}
+  |            -                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^       -------------- immutable borrow later used here
+  |            |                         |
+  |            |                         mutable borrow occurs here
+  |            immutable borrow occurs here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0502`.

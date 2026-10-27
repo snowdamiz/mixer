@@ -1,0 +1,209 @@
+#!/usr/bin/env python3
+"""Bounded owned host-only evidence steps. Each child <=60s, terminally reaped."""
+from pathlib import Path
+import datetime,hashlib,json,os,platform,secrets,shutil,struct,subprocess,sys,time
+sys.dont_write_bytecode=True
+HERE=Path(__file__).resolve().parent;REPO=Path('/Users/andreyyurlov/Documents/dev/mixer');SOURCE=HERE/'source/vm'
+WORK=HERE/'owned-work';WORK.mkdir(exist_ok=True)
+RUSTC=Path('/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc')
+FEATURES=['experimental-swift-reactor','experimental-swift-wasi','experimental-stream-validation','experimental-function-cache']
+PREFIX='experimental_swift_reactor::retained_profile_loader_v1::tests::'
+INITIAL='experimental_swift_reactor::cache::initial_profile_v1::tests::'
+IDENTITIES=['MIXER_LOADER_MANIFEST_SHA256','MIXER_LOADER_COMMAND_SHA256','MIXER_LOADER_COMPILE_ENV_SHA256','MIXER_LOADER_COMPILER_SHA256','MIXER_LOADER_COMPILER_VERSION_SHA256']
+def sha(b):return hashlib.sha256(b).hexdigest()
+def ident(p):
+ p=Path(p);b=p.read_bytes();return {'path':str(p),'bytes':len(b),'sha256':sha(b)}
+def write(p,v):p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(v,sort_keys=True,indent=2)+'\n')
+def manifest(folder):
+ files=sorted(p for p in folder.rglob('*') if p.is_file());assert not any(p.is_symlink() for p in folder.rglob('*'))
+ members=[{'path':str(p.relative_to(folder)),'bytes':p.stat().st_size,'sha256':sha(p.read_bytes())}for p in files]
+ return {'schema':1,'member_count':len(members),'members':members,'tree_sha256':sha(json.dumps(members,sort_keys=True,separators=(',',':')).encode())}
+def packed(v):
+ v=[os.fsencode(x)for x in v];return struct.pack('<Q',len(v))+b''.join(struct.pack('<Q',len(x))+x for x in v)
+def envpacked(v):return packed([os.fsencode(k)+b'='+os.fsencode(x)for k,x in sorted(v.items(),key=lambda p:os.fsencode(p[0]))])
+def identity(p):
+ s=os.stat(p);return struct.pack('<QQQQqqqq',s.st_dev,s.st_ino,s.st_size,s.st_mode,s.st_mtime_ns//10**9,s.st_mtime_ns%10**9,s.st_ctime_ns//10**9,s.st_ctime_ns%10**9)
+def flags(mode):
+ args=[str(RUSTC),'--crate-name','mixer_vm','--edition=2021','--target','aarch64-apple-darwin','-C','opt-level='+('0'if mode=='debug'else'3'),'-C','overflow-checks=yes','-C','panic=unwind']
+ for feature in FEATURES:args+=['--cfg','feature="'+feature+'"']
+ return args
+def cleanenv():return {'PATH':'/usr/bin:/bin','TMPDIR':str(WORK),'CARGO_MANIFEST_DIR':str(SOURCE)}
+def run(label,argv,env=None,expected=None,allow_failure=False,cwd=REPO):
+ records=HERE/'commands';records.mkdir(exist_ok=True)
+ folder=records/f'{len(list(records.iterdir()))+1:04d}-{label}';folder.mkdir()
+ started=time.monotonic();killed=None
+ with (folder/'stdout').open('wb')as out,(folder/'stderr').open('wb')as err:
+  child=subprocess.Popen([str(x)for x in argv],env=env or cleanenv(),cwd=cwd,stdout=out,stderr=err)
+  while True:
+   try:code=child.wait(timeout=.05);break
+   except subprocess.TimeoutExpired:
+    if time.monotonic()-started>55:killed='time'
+    if (folder/'stdout').stat().st_size+(folder/'stderr').stat().st_size>1048576:killed='output'
+    if killed:child.kill();child.wait();code=124;break
+ stdout=(folder/'stdout').read_text(errors='replace');stderr=(folder/'stderr').read_text(errors='replace')
+ passed=code==0 if expected is None else code!=0 and expected in stderr
+ receipt={'label':label,'argv':[str(x)for x in argv],'cwd':str(cwd),'environment':{os.fsdecode(k):os.fsdecode(v)for k,v in (env or cleanenv()).items()},'environment_raw_hex':[[os.fsencode(k).hex(),os.fsencode(v).hex()]for k,v in (env or cleanenv()).items()],'exit_code':code,'expected_diagnostic':expected,'expectation_met':passed,'allow_failure_for_measurement':allow_failure,'timeout_seconds':55,'output_byte_limit':1048576,'supervisor_killed_for':killed,'elapsed_seconds':time.monotonic()-started,'terminally_waited':True,'source_tree_sha256':manifest(SOURCE)['tree_sha256'],'executed_artifact':ident(argv[0]) if Path(str(argv[0])).is_file() else None,'compiled_context':json.loads((HERE/('compiled-'+Path(str(argv[0])).name.removeprefix('unit-')+'.json')).read_text()) if Path(str(argv[0])).name in ['unit-debug','unit-optimized'] else None,'runner':ident(__file__),'stdout':ident(folder/'stdout'),'stderr':ident(folder/'stderr')}
+ write(folder/'receipt.json',receipt);print(label+': '+('pass'if passed else'FAIL'),flush=True)
+ if not passed and not allow_failure:raise AssertionError((label,stdout[-1000:],stderr[-3000:]))
+ return stdout,stderr,receipt
+def closure():
+ source=manifest(SOURCE);assert source['member_count']==144
+ host=manifest(HERE/'host');assert host['member_count']==11
+ version,_,_=run('rustc-version',[RUSTC,'-vV'])
+ revision='root-released-source-tree22b6e945a062b3465156bb9995bce610bd712fa9d3e283e176316d75104bb442'
+ sdk=Path('/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk')
+ headers=[ident(sdk/p)for p in ['usr/include/CommonCrypto/CommonDigest.h','usr/include/crt_externs.h','usr/include/mach-o/dyld.h','usr/include/unistd.h']]
+ context={'schema':1,'distribution':source,'host_support':host,'orchestration':[ident(HERE/p)for p in ['evidence.py','selection.json','prepare_inputs.py','implement_selected.py','extend_roster.py','migrate_literals.py','contracts.py','public_contracts.py','CONTRACT-PROPOSAL.md']],'tools':{'rustc':ident(RUSTC),'rustc_version_sha256':sha(version.encode()),'python':ident(Path(sys.executable).resolve()),'python_version':sys.version,'SDK_headers':headers},'git_revision_context':revision.strip(),'platform':platform.platform()}
+ write(HERE/'build-input-manifest.json',context);write(HERE/'source-manifest.json',source)
+ return context,version.encode()
+def compile(mode,host=False):
+ archive=HERE/'build-history';archive.mkdir(exist_ok=True)
+ for name in [f'compiled-{mode}.json',f'build-preimage-{mode}.bin']:
+  previous=HERE/name
+  if previous.exists():
+   destination=archive/(sha(previous.read_bytes())+'-'+name)
+   if not destination.exists():destination.write_bytes(previous.read_bytes())
+ if host:
+  binary=WORK/f'host-{mode}.dylib'
+  run('compile-host-'+mode,flags(mode)+['--crate-type','cdylib','--cfg','mixer_initial_profile_component_host',SOURCE/'src/lib.rs','-o',binary]);return
+ context,version=closure();binary=WORK/f'unit-{mode}'
+ argv=flags(mode)+['--test',str(SOURCE/'src/lib.rs'),'-o',str(binary)]
+ parts=[json.dumps(context,sort_keys=True,separators=(',',':')).encode(),packed(argv),envpacked(cleanenv()),version];assert len(parts[0])<=65536
+ compiler=ident(RUSTC);env=cleanenv()|dict(zip(IDENTITIES,[sha(parts[0]),sha(parts[1]),sha(parts[2]),compiler['sha256'],sha(parts[3])]))
+ run('compile-unit-'+mode,argv,env)
+ data=binary.read_bytes();head=bytearray(512);head[:8]=b'MIXLBD01'
+ for at,n in [(8,1),(16,512),(24,512+sum(map(len,parts))),(32,144),(40,11),(80,len(data))]:struct.pack_into('<Q',head,at,n)
+ for i,p in enumerate(parts):struct.pack_into('<Q',head,48+8*i,len(p));head[152+32*i:184+32*i]=bytes.fromhex(sha(p))
+ head[88:108]=b'aarch64-apple-darwin';head[280:312]=bytes.fromhex(compiler['sha256']);head[312:344]=bytes.fromhex(sha(data))
+ (HERE/f'build-preimage-{mode}.bin').write_bytes(bytes(head)+b''.join(parts))
+ write(HERE/f'compiled-{mode}.json',{'binary':ident(binary),'context':context,'compile_argv':argv,'compile_environment':env,'build_preimage':ident(HERE/f'build-preimage-{mode}.bin')})
+def test(mode,method,env=None,allow_failure=False):
+ return run(mode+'-'+method.split('::')[-1],[WORK/f'unit-{mode}','--exact',method,'--nocapture','--test-threads=1'],env,allow_failure=allow_failure)
+def measure(mode,host=False):
+ if host:
+  binary=WORK/f'host-{mode}.dylib';env=cleanenv()|{'MIXER_MEASURED_LIBRARY_SHA256':ident(binary)['sha256']}
+  stdout,_,_=run('host-layout-'+mode,[sys.executable,__file__,'invoke',mode,'9'],env)
+ else:
+  test(mode,PREFIX+'complete_adoption_layout_inventory_v1')
+  stdout,_,_=test(mode,INITIAL+'selected_layout_and_places',allow_failure=True)
+ rows=[]
+ for line in stdout.splitlines():
+  if line.startswith('TYPE\t'):
+   _,i,name,bytes_,alignment=line.split('\t');rows.append({'id':int(i),'name':name,'bytes':int(bytes_),'alignment':int(alignment)})
+ values=next(line[line.index('VALUES '):]for line in stdout.splitlines()if 'VALUES ' in line)
+ assert len(rows)==201 and [x['id']for x in rows]==list(range(1,202))
+ write(HERE/'layouts'/f'{"production"if host else"unit"}-{mode}.json',{'source_tree_sha256':manifest(SOURCE)['tree_sha256'],'rows':rows,'values':{k:int(v)for k,v in [x.split('=')for x in values.split()[1:]]},'configuration':'production-host'if host else'unit','mode':mode})
+def invoke(mode,method):
+ import ctypes
+ binary=WORK/f'host-{mode}.dylib';assert ident(binary)['sha256']==os.environ['MIXER_MEASURED_LIBRARY_SHA256']
+ fn=ctypes.CDLL(str(binary)).mixer_initial_profile_component_host_v1;fn.argtypes=[ctypes.c_uint32];fn.restype=ctypes.c_uint32
+ raise SystemExit(fn(int(method)))
+def selected(mode,cases,ordinary=False):
+ binary=WORK/f'unit-{mode}';compiled=json.loads((HERE/f'compiled-{mode}.json').read_text());assert ident(binary)==compiled['binary'];assert manifest(SOURCE)==compiled['context']['distribution']
+ fixture=WORK/f'fixture-{mode}.wasm';emit=cleanenv()|{'MIXER_LOADER_FIXTURE_OUTPUT':str(fixture)}
+ if not fixture.exists():test(mode,PREFIX+'emit_genuine_validator_fixture',emit)
+ sourcebytes=fixture.read_bytes();assert len(sourcebytes)==1947
+ (HERE/'source-preimages').mkdir(exist_ok=True);(HERE/'source-preimages/genuine.wasm').write_bytes(sourcebytes)
+ build=(HERE/f'build-preimage-{mode}.bin').read_bytes();observations=[]
+ for case in cases:
+  scenario=case if ordinary else'adopt-'+case;directory=WORK/(mode+'-'+scenario+'-'+str(len(list((HERE/'commands').iterdir()))));directory.mkdir()
+  source=directory/'source.wasm';source.write_bytes(sourcebytes);source_digest=sha(sourcebytes);case_build=bytearray(build)
+  if ordinary and case=='source-substitute':v=bytearray(sourcebytes);v[-2]^=1;source.write_bytes(v)
+  if ordinary and case in ['malformed','large-malformed']:
+   v=bytearray(sourcebytes)if case=='malformed'else bytearray(8*1024*1024);v[:len(sourcebytes)]=sourcebytes;v[0]=255;source.write_bytes(v);source_digest=sha(v)
+   (HERE/'source-preimages'/(case+'.wasm')).write_bytes(v)
+  if ordinary and case in ['build-tail','build-identity','binary-substitute']:case_build[{'build-tail':512,'build-identity':280,'binary-substitute':312}[case]]^=1
+  buildfile=directory/'build.bin';buildfile.write_bytes(case_build);session=directory/'session.bin';outdir=directory/'profile';outdir.mkdir()
+  argv=[str(binary),'--exact',PREFIX+'actual_selected_loader_child','--nocapture','--test-threads=1']
+  env=cleanenv()|{'MIXER_LOADER_SOURCE_FILE':str(source),'MIXER_LOADER_BUILD_FILE':str(buildfile),'MIXER_LOADER_SESSION_FILE':str(session),'MIXER_LOADER_SCENARIO':scenario,'MIXER_INITIAL_PROFILE_EVIDENCE_DIR':str(outdir)}
+  if ordinary and case=='raw-environment':env['MIXER_LOADER_RAW']=b'value-\xff'
+  parts=[identity(source),packed(argv),envpacked(env),os.fsencode(REPO)]
+  if ordinary and case in ['argv','environment','cwd']:parts[{'argv':1,'environment':2,'cwd':3}[case]]={'argv':packed(['foreign-command']),'environment':envpacked({'FOREIGN':'x'}),'cwd':b'/foreign-cwd'}[case]
+  nonce=secrets.token_bytes(32);head=bytearray(512);head[:8]=b'MIXLSE01' 
+  for at,n in [(8,1),(16,512),(24,512+sum(map(len,parts))),(32,source.stat().st_size+(ordinary and case=='source-extent'))]:struct.pack_into('<Q',head,at,n)
+  for i,p in enumerate(parts):struct.pack_into('<Q',head,40+8*i,len(p));head[240+32*i:272+32*i]=bytes.fromhex(sha(p))
+  budget=[67108864,16777216,1048576,512000000,120000]
+  if ordinary and case=='narrowed':budget=[1947,1000000,65536,1000000,10000]
+  if ordinary and case.startswith('zero-'):budget[['source','metadata','scratch','work','deadline'].index(case[5:])]=0
+  for i,n in enumerate(budget):struct.pack_into('<Q',head,72+8*i,n)
+  head[112:144]=nonce if case!='nonce'else bytes([nonce[0]^1])+nonce[1:];head[144:176]=bytes.fromhex(source_digest);head[176:208]=bytes.fromhex(sha(case_build));head[208:240]=bytes.fromhex(ident(binary)['sha256']);data=bytes(head)+b''.join(parts);session.write_bytes(data)
+  env['MIXER_LOADER_EXPECTED_SESSION_SHA256']=sha(data);env['MIXER_LOADER_EXPECTED_NONCE_HEX']=nonce.hex()
+  if ordinary and case=='session-digest':v=bytearray(data);v[112]^=1;session.write_bytes(v)
+  if ordinary and case=='build-overcap':buildfile.write_bytes(bytes(131073))
+  if ordinary and case=='session-overcap':session.write_bytes(bytes(65537))
+  (HERE/'sessions').mkdir(exist_ok=True);retained=HERE/'sessions'/f'{mode}-{scenario}.bin'
+  if retained.exists():(HERE/'sessions'/(sha(retained.read_bytes())+'-'+retained.name)).write_bytes(retained.read_bytes())
+  retained.write_bytes(session.read_bytes())
+  if bytes(case_build)!=build or case=='build-overcap':(HERE/'sessions'/f'{mode}-{scenario}-build.bin').write_bytes(buildfile.read_bytes())
+  stdout,_,_=run(mode+'-'+scenario,argv,env)
+  if ordinary:assert ('SELECTED\t' in stdout)if case in ['success','narrowed','raw-environment']else('REFUSED\t' in stdout)
+  else:assert 'SELECTED_OUTCOME\t'+case in stdout
+  observations.append({'case':case,'mode':mode,'session':ident(retained),'source_identity_hex':parts[0].hex(),'source_sha256':sha(source.read_bytes()),'build_sha256':sha(buildfile.read_bytes()),'producer_binary':compiled['binary'],'argv':argv,'environment':{os.fsdecode(k):os.fsdecode(v)for k,v in env.items()},'cwd':str(REPO),'nonce_from_OS_randomness_hex':nonce.hex(),'Files_dropped_is_close_success':False})
+  shutil.rmtree(directory)
+ previous=HERE/f'{"loader"if ordinary else"selected"}-observations-{mode}.json';old=json.loads(previous.read_text())if previous.exists()else[];write(previous,old+observations)
+def initial(mode,methods):
+ for method in methods:
+  directory=WORK/(mode+'-initial-'+method+'-'+str(len(list((HERE/'commands').iterdir()))));directory.mkdir()
+  env=cleanenv()|{'MIXER_INITIAL_PROFILE_EVIDENCE_DIR':str(directory),'MIXER_PROFILE_EVIDENCE_DIR':str(directory)}
+  test(mode,INITIAL+method,env);shutil.rmtree(directory)
+def ordinary(mode):
+ import re
+ variant=WORK/f'ordinary-variant-{mode}';shutil.copytree(SOURCE,variant)
+ measured=json.loads((HERE/f'layouts/production-{mode}.json').read_text());rows={e['id']:e for e in measured['rows']}
+ source=(SOURCE/'src/experimental_swift_reactor/cache/initial_profile_v1/tests.rs').read_text()
+ old=re.findall(r'\brow!\((\d+),(.*?)\);',source,re.S);assert len(old)==165
+ delta='\n// Owned ordinary-production metadata-only exact layout assertions.\nconst _: () = {\n'
+ for id_,type_ in old:
+  e=rows[int(id_)];delta+=f'assert!(size_of::<{type_}>()=={e["bytes"]});assert!(std::mem::align_of::<{type_}>()=={e["alignment"]});\n'
+ for name,key in [('compute_cache_cleanup_temporary_bytes','cleanup'),('compute_cache_header_bytes','header'),('compute_cache_construction_bytes','construction'),('compute_cache_operation_bytes','operation')]:
+  delta+=f'match {name}() {{Some(n)=>assert!(n=={measured["values"][key]}),None=>panic!("layout")}};\n'
+ delta+='};\n'
+ path=variant/'src/experimental_swift_reactor/cache/initial_profile_v1.rs';path.write_text(path.read_text()+delta)
+ appended=json.loads((HERE/'appended-layout-types.json').read_text());ldelta='\nconst _: () = {\n'
+ for e in appended:
+  actual=rows[e['id']]
+  if e['name']=='AdoptionCleanupPlacesV1':ldelta+=f'assert!(super::control::ADOPTION_CLEANUP_BYTES_V1=={actual["bytes"]});assert!(super::control::ADOPTION_CLEANUP_ALIGNMENT_V1=={actual["alignment"]});\n'
+  else:ldelta+=f'assert!(std::mem::size_of::<{e["definition_site_type"]}>()=={actual["bytes"]});assert!(std::mem::align_of::<{e["definition_site_type"]}>()=={actual["alignment"]});\n'
+ ldelta+='};\n';lp=variant/'src/experimental_swift_reactor/retained_profile_loader_v1.rs';lp.write_text(lp.read_text()+ldelta)
+ cdelta=f'\nconst _: () = {{match FOUNDATION_CONSTRUCTION_BYTES {{Some(n)=>assert!(n=={measured["values"]["foundation"]}),None=>panic!("layout")}}}};\n'
+ cp=variant/'src/experimental_swift_reactor/control.rs';cp.write_text(cp.read_text()+cdelta)
+ write(HERE/'compiler-variants'/f'ordinary-{mode}.json',{'source':manifest(SOURCE),'variant':manifest(variant),'appends':{'src/experimental_swift_reactor/cache/initial_profile_v1.rs':delta,'src/experimental_swift_reactor/retained_profile_loader_v1.rs':ldelta,'src/experimental_swift_reactor/control.rs':cdelta},'201ordinary_layout_assertions':True,'test_or_host_cfg':False})
+ output=WORK/f'ordinary-{mode}.rmeta';run('ordinary-production-layout-'+mode,flags(mode)+['--crate-type','rlib','--emit=metadata',variant/'src/lib.rs','-o',output],cleanenv()|{'CARGO_MANIFEST_DIR':str(variant)})
+ write(HERE/f'ordinary-{mode}-artifact.json',ident(output));shutil.rmtree(variant);output.unlink()
+def host_methods(mode,methods):
+ for method in methods:
+  directory=WORK/(f'host-{mode}-method-{method}-'+str(len(list((HERE/'commands').iterdir()))));directory.mkdir()
+  binary=WORK/f'host-{mode}.dylib'
+  env=cleanenv()|{'MIXER_MEASURED_LIBRARY_SHA256':ident(binary)['sha256'],'MIXER_INITIAL_PROFILE_EVIDENCE_DIR':str(directory)}
+  run(f'host-{mode}-method-{method}',[sys.executable,__file__,'invoke',mode,method],env);shutil.rmtree(directory)
+def suite(mode,filter_):
+ directory=WORK/(mode+'-suite-'+filter_.replace(':','-')+'-'+str(len(list((HERE/'commands').iterdir()))));directory.mkdir()
+ env=cleanenv()|{'MIXER_INITIAL_PROFILE_EVIDENCE_DIR':str(directory),'MIXER_PROFILE_EVIDENCE_DIR':str(directory),'MIXER_LOADER_HELPER_DIR':str(directory)}
+ run(mode+'-suite-'+filter_,[WORK/f'unit-{mode}',filter_,'--nocapture','--test-threads=1']+(['--skip','external_surface_and_borrow_privacy']if filter_.endswith('cache_tests::')else[]),env);shutil.rmtree(directory)
+def main():
+ command=sys.argv[1];mode=sys.argv[2]if len(sys.argv)>2 else'debug'
+ if command=='compile':compile(mode)
+ elif command=='compile-host':compile(mode,True)
+ elif command=='measure':measure(mode)
+ elif command=='measure-host':measure(mode,True)
+ elif command=='invoke':invoke(mode,sys.argv[3])
+ elif command=='selected':selected(mode,sys.argv[3:])
+ elif command=='loader':selected(mode,sys.argv[3:],True)
+ elif command=='initial':initial(mode,sys.argv[3:])
+ elif command=='ordinary':ordinary(mode)
+ elif command=='suite':suite(mode,sys.argv[3])
+ elif command=='host-methods':host_methods(mode,sys.argv[3:])
+ elif command=='test':
+  for method in sys.argv[3:]:test(mode,method)
+ elif command=='helpers':
+  directory=WORK/f'helpers-{mode}';directory.mkdir();env=cleanenv()|{'MIXER_LOADER_HELPER_DIR':str(directory)}
+  run(mode+'-loader-helpers',[WORK/f'unit-{mode}',PREFIX,'--skip','actual_selected_loader_child','--nocapture','--test-threads=1'],env);shutil.rmtree(directory)
+ else:raise AssertionError(command)
+if __name__=='__main__':
+ try:main()
+ except Exception:
+  import traceback
+  failures=HERE/'runner-failures';failures.mkdir(exist_ok=True)
+  (failures/f'{len(list(failures.iterdir()))+1:03d}.stderr').write_text(traceback.format_exc())
+  raise
+

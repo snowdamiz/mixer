@@ -1,0 +1,22 @@
+error[E0505]: cannot move out of `p` because it is borrowed
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/compile_cases/owner_drop_while_provenance_borrowed.rs:1:201
+    |
+  1 | ...eControl,p:AdoptedProof){let q=p.selected_provenance();let _=c.drop_proof(p);let _:Option<&LoaderProvenanceV1>=q;}
+    |             -                     - borrow of `p` occurs here                ^ move out of `p` occurs here        - borrow later used here
+    |             |
+    |             binding `p` declared here
+    |
+note: if `control::AdoptedProof` implemented `Clone`, you could clone the value
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/owned-work/optimized-contract-owner_drop_while_provenance_borrowed/src/experimental_swift_reactor/control.rs:345:1
+    |
+345 | pub(crate) struct AdoptedProof {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider implementing `Clone` for this type
+    |
+   ::: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/compile_cases/owner_drop_while_provenance_borrowed.rs:1:158
+    |
+  1 | ...;fn f(c:&mut RuntimeControl,p:AdoptedProof){let q=p.selected_provenance();let _=c.drop_proof(p);let _:Option<&LoaderProvenanceV1...
+    |                                                      - you could clone this value
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0505`.

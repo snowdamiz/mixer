@@ -1,0 +1,12 @@
+error[E0515]: cannot return value referencing function parameter `p`
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/fixtures/provenance-cannot-outlive-body.rs:6:66
+  |
+6 | fn f(p: AdoptionBodyV1) -> Option<&'static LoaderProvenanceV1> { p.selected_provenance() }
+  |                                                                  -^^^^^^^^^^^^^^^^^^^^^^
+  |                                                                  |
+  |                                                                  returns a value referencing data owned by the current function
+  |                                                                  `p` is borrowed here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0515`.

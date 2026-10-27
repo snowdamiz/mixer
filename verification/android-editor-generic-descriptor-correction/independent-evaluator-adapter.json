@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "original_review_source": "verification/android-generic-descriptor-join-independent/actual-review/review_candidate.py",
+  "original_review_source_sha256": "2200a47fee590e8e34793bcdc7b403226ba33019f4f853f425060d812a8b4280",
+  "original_extracted_fixture_and_evaluate_sha256": "9740f286bf0f499570fe11a63f9cb5076f09c6739f379979949e58b1abb47f8b",
+  "only_evaluator_adaptation": {
+    "old": "        result = d.descriptor(change[\"method_descriptor\"])\n        if change.get(\"instance_or_interface\") and sum(2 if x in (\"J\", \"D\") else 1 for x in result[0]) == 255:\n            return False, {\"descriptor_result\": result, \"receiver_budget_unchecked\": True}, \"Candidate descriptor() has no instance/interface context parameter or receiver-unit guard; frozen corpus declarations do not reach this boundary.\"\n        return control[\"expected\"] != \"reject\", result, note",
+    "new": "        context = change.get(\"instance_or_interface\")\n        receiver_units = 1 if context is True else 0 if context is False else None\n        result = d.descriptor(change[\"method_descriptor\"], receiver_units=receiver_units)\n        contextual = d.descriptor_context(change[\"method_descriptor\"], opcode=185 if context is True else 184 if context is False else None)\n        return control[\"expected\"] != \"reject\", {\"descriptor_result\": result, \"parameter_context\": contextual}, note",
+    "reason": "Pass original explicit instance_or_interface context into corrected receiver-unit API; preserve absent context as unresolved. Original control definitions/expected classifications unchanged."
+  },
+  "no_corpus_replay_code_copied": true
+}

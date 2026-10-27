@@ -1,0 +1,132 @@
+--- parent/audit-content.py
++++ current/audit-content.py
+@@ -14,8 +14,9 @@
+ 
+ HERE = Path(__file__).absolute().parent
+ CANONICAL = HERE / 'sources/verification/swift-cache-state-ci'
+-RUN_PREFIX = 'runs/ci-40441050306-1'
++RUN_PREFIX = 'runs/ci-40447941540-1'
+ DATA = {}
++SOURCE_AMENDMENT = {}
+ class ArchivePath:
+     def __init__(self,path=''): self.path = str(path).strip('/')
+     def __truediv__(self,other): return ArchivePath(self.path + '/' + str(other))
+@@ -26,8 +27,8 @@
+     def __str__(self): return self.path
+ RUN = ArchivePath(RUN_PREFIX)
+ EXPECTED_RUNNER = 'e531311facb7b38967d3b904b26e92ff3f6c4dc7444c856cd799b70a1d91373b'
+-EXPECTED_REVISION = 'da558f826e6ca5c753861b4c992414d531fae027'
+-EXPECTED_TREE = '9266a1db1fe6a3a8cb2fc6b561ebfcf0dd99e122'
++EXPECTED_REVISION = '606c42876855897c315ee279dcd38fabaeb561ad'
++EXPECTED_TREE = '6e7ef189ea796effb2099eff927436bd407a080b'
+ APPEND = b'\n#[cfg(test)]\n#[path = "../selected_controls.rs"]\nmod selected_scalar_controls;\n\n#[cfg(test)]\n#[path = "../scalar_cursor_independent.rs"]\nmod scalar_cursor_independent;\n'
+ 
+ def sha(path):
+@@ -44,14 +45,52 @@
+     return json.loads(data, object_pairs_hook=unique,
+                       parse_constant=lambda _: (_ for _ in ()).throw(ValueError('nonfinite JSON')))
+ 
++def validate_source_amendment(committed, selection):
++    global SOURCE_AMENDMENT
++    historical = (HERE / 'source-selection.stdout').read_bytes()
++    assert hashlib.sha256(historical).hexdigest() == '6d089a590c2b1d3a0332141ef53995c2c83b51b334ca6dba1285f91cd4b87adc'
++    original = {r['path']: r for r in selection['canonical_source_members']}
++    assert len(original) == len(selection['canonical_source_members']) == 90
++    path = 'verification/swift-cache-state-ci/test_runner.py'
++    assert original[path] == {'path':path,'bytes':16386,'sha256':'3ea419bc5d4a4440f2d6e14855d12213cd37bbbbd9a7b69966e4ab0eddf07ace'}
++    root_raw = (HERE / 'source-amendment-root.stdout').read_bytes()
++    assert hashlib.sha256(root_raw).hexdigest() == 'f2952ea37193d0717bc44298d00928ae527c7043064432bc66fec25d6e80fe1e'
++    root = strict(root_raw)
++    assert root['status'] == 'accepted-test-only-stage-readiness-correction' and not root['CI_pass_claimed']
++    assert root['canonical_test_source'] == {'path':path,'bytes':17857,'sha256':'c754ea8c8cb40d0090c676de61263939e6e58b140f9902e97901126a4287e9ab'}
++    assert root['production_runner'] == {'path':'verification/swift-cache-state-ci/check_cache_state.py','bytes':29248,'sha256':EXPECTED_RUNNER}
++    assert root['root_verified_independent_members'] == 31 and root['root_verified_independent_bytes'] == 278726
++    assert root['root_focused_passed'] == root['independent_focused_passed'] == 29 and root['independent_negative_cases_passed'] == 6
++    references = []
++    for role, key, expected, count in [
++        ('producer-seal','producer_seal','6e9f2ea669c9653e9ac5829243d95d5cf7216a922bd5672524dfcb8ed5b94849',384),
++        ('independent-packet','independent_packet','95538d31b8d3d88310cd9eb5271a1a549efd3cdf7407ad4b735f3d7fcf71ce40',31),
++        ('independent-decision','independent_decision','f9f60dcfd839766837e6b366fcd7b073b0a7abb069d86bec2cc20d88609c0c90',None)]:
++        raw = (HERE / ('source-amendment-' + role + '.stdout')).read_bytes()
++        ref = root[key]
++        assert len(raw) == ref['bytes'] and hashlib.sha256(raw).hexdigest() == ref['sha256'] == expected
++        value = strict(raw)
++        if count is not None:
++            assert len(value['members']) == value['member_count'] == count
++        else:
++            assert value['decision'] == 'accept-narrow-test-only-correction' and value['frozen'] and not value['actionable_findings']
++            assert value['candidate_test_sha256'] == root['canonical_test_source']['sha256'] and value['unchanged_runner_sha256'] == EXPECTED_RUNNER
++        references.append({'role':role,**ref,'manifest_or_decision_only':True})
++    effective = dict(original)
++    effective[path] = root['canonical_test_source']
++    assert all({k:committed[p][k] for k in ('path','bytes','sha256')} == row for p,row in effective.items())
++    assert sum(original[p] == effective[p] for p in original) == 89
++    assert set(committed) - set(effective) == {'verification/swift-cache-state-ci/README.md'}
++    SOURCE_AMENDMENT = {'historical_selection_sha256':hashlib.sha256(historical).hexdigest(),'historical_selection_members':90,'unchanged_historical_members':89,'explicit_root_amended_members':1,'additional_README_members':1,'committed_canonical_paths':91,'root_acceptance_sha256':hashlib.sha256(root_raw).hexdigest(),'old_test_source':original[path],'committed_test_source':effective[path],'references':references,'historical_selection_rewritten':False,'new_test_source_executed_by_audit':False}
++
+ def validate_archive():
+     archive = HERE / 'fixture-artifact.zip'
+     raw = archive.read_bytes()
+     metadata = strict((HERE / 'artifact-metadata.stdout').read_bytes())
+-    name = 'swift-cache-state-fixture-' + EXPECTED_REVISION + '-40441050306-1'
++    name = 'swift-cache-state-fixture-' + EXPECTED_REVISION + '-40447941540-1'
+     artifact, = [a for a in metadata['artifacts'] if a['name'] == name]
+     assert artifact['digest'] == 'sha256:' + hashlib.sha256(raw).hexdigest()
+-    assert artifact['workflow_run']['id'] == 40441050306 and artifact['workflow_run']['head_sha'] == EXPECTED_REVISION and not artifact['expired']
++    assert artifact['workflow_run']['id'] == 40447941540 and artifact['workflow_run']['head_sha'] == EXPECTED_REVISION and not artifact['expired']
+     member_rows = []
+     with zipfile.ZipFile(archive) as z:
+         for info in z.infolist():
+@@ -67,7 +106,7 @@
+     assert sum(r['bytes'] for r in member_rows) <= 128 * 1024 * 1024
+     (HERE / 'artifact-members.json').write_text(json.dumps(member_rows,indent=2)+'\n')
+     custody = strict((HERE / 'source-custody.json').read_bytes())
+-    assert custody['source_revision'] == EXPECTED_REVISION
++    assert custody['source_revision'] == EXPECTED_REVISION and custody['source_tree'] == EXPECTED_TREE
+     prefix = 'verification/swift-cache-state-ci/'
+     committed = {}
+     for row in custody['paths']:
+@@ -89,7 +128,7 @@
+     assert selection['canonical_runner_sha256'] == local['runner_sha256'] == EXPECTED_RUNNER
+     assert selection['pack_manifest_sha256'] == local['pack_manifest_sha256'] == sha(CANONICAL / 'pack/manifest.json')
+     assert selection['workflow_sha256'] == sha(HERE / 'source-workflow.stdout')
+-    assert all({k:committed[r['path']][k] for k in ('path','bytes','sha256')} == r for r in selection['canonical_source_members'])
++    validate_source_amendment(committed, selection)
+     assert local['corrected_host_component_accepted'] and not local['full_target_native_or_GA_qualified']
+     parsed = ast.parse((CANONICAL / 'check_cache_state.py').read_bytes())
+     assignments = {node.targets[0].id:ast.literal_eval(node.value) for node in parsed.body if isinstance(node,ast.Assign) and isinstance(node.targets[0],ast.Name) and node.targets[0].id in ('ACTIVE_SECONDS','CLEANUP_SECONDS','CHILD_SECONDS')}
+@@ -104,6 +143,8 @@
+     control_records = []
+     for phase in ('postflight','retention'):
+         record = strict(DATA['logs/deadline-' + phase + '-control.json'])
++        assert record['scope'] == 'Actual runner handler and registered real timer with test-only stage readiness and 50ms logical cleanup allowance; deliberately slow hook and missing compiler, zero child commands. Preceding postflight wall time is excluded from this injected-stage control.'
++        assert record['state']['stage_timer_started'] is True
+         receipt = record['receipt']
+         assert record['scratch_preserved_at_assertion'] and record['owned_test_directory_removed_by_tearDown']
+         assert receipt['status'] == 'failed' and not receipt['commands']
+@@ -114,7 +155,7 @@
+         assert record['state']['after_delay'] is False and record['state']['cleanup_entered'] is (phase == 'retention')
+         if phase == 'postflight': assert receipt['postflight'] == {} and record['state']['pack_calls'] == 3
+         assert receipt['cleanup_elapsed_seconds'] < .20
+-        control_records.append({'phase':phase,'zero_children':True,'terminal_cleanup_expiry_preserved':True,'cleanup_seconds':receipt['cleanup_elapsed_seconds'],'scratch_preservation_and_test_teardown':'Retained control receipt and passing exact test output; no remote filesystem inspection'})
++        control_records.append({'phase':phase,'zero_children':True,'terminal_cleanup_expiry_preserved':True,'cleanup_seconds':receipt['cleanup_elapsed_seconds'],'cleanup_seconds_clock':'Adjusted test logical cleanup time; preceding postflight wall time excluded','stage_timer_started':True,'whole_cleanup_wall_time_qualified':False,'scratch_preservation_and_test_teardown':'Retained control receipt and passing exact test output; no remote filesystem inspection'})
+     output = strict(DATA['logs/cache-state.stdout'])
+     assert output == {'status':'passed-host-fixture-check','receipt':str(Path('/Users/runner/work/mixer/mixer/verification/swift-cache-state-ci') / RUN_PREFIX / 'receipt.json'),'errors':[]}
+     assert DATA['logs/cache-state.stderr'] == DATA['logs/host.stderr'] == b''
+@@ -372,7 +413,7 @@
+     report = {'schema': 1, 'at': datetime.now(timezone.utc).isoformat(), 'argv': sys.argv,
+         'python': sys.version, 'script_sha256': sha(Path(__file__)), 'runner_sha256': EXPECTED_RUNNER,
+         'runner_receipt_sha256': sha(RUN / 'receipt.json'), 'artifact_sha256': archive_summary['sha256'], 'artifact': archive_summary, 'focused_controls': controls,
+-        'source_revision': EXPECTED_REVISION, 'source_tree': receipt['source_tree'],
++        'source_revision': EXPECTED_REVISION, 'source_tree': receipt['source_tree'], 'source_amendment':SOURCE_AMENDMENT,
+         'compiler': receipt['rustc'], 'commands': 103, 'active_elapsed_seconds': receipt['active_elapsed_seconds'],
+         'cleanup_elapsed_seconds': receipt['cleanup_elapsed_seconds'], 'elapsed_seconds': receipt['elapsed_seconds'],
+         'max_child_seconds': max(r['elapsed_seconds'] for r in commands), 'modes': mode_results,
+@@ -387,6 +428,7 @@
+             'Scratch/process-group/temporary-directory cleanup is retained receipt evidence; no remote filesystem or process inspection was performed',
+             'Historical full producer Debug60s timeout remains failed; no performance equivalence',
+             'Global workflow status is recorded at audit snapshot only; no global CI success claim',
++            'Deadline controls use stage-ready real timers with adjusted test logical cleanup time that excludes preceding postflight wall time; no whole-cleanup wall-time qualification',
+             'The isolated profile row adapter is absent from this canonical fixture and is not qualified by this CI artifact',
+             'No general public File admission, canonical runtime, target/native, signing/store, immutable package FieldLog, customer operations or GA qualification']}
+     validate_postflight(receipt, retention, mode_results)

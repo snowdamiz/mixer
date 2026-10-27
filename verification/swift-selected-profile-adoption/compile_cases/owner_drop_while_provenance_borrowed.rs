@@ -1,0 +1,1 @@
+use super::control::{RuntimeControl,AdoptedProof};use super::retained_profile_loader_v1::LoaderProvenanceV1;fn f(c:&mut RuntimeControl,p:AdoptedProof){let q=p.selected_provenance();let _=c.drop_proof(p);let _:Option<&LoaderProvenanceV1>=q;}

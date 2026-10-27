@@ -1,0 +1,27 @@
+error[E0603]: struct `SelectedLocalStructureV1` is private
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/compile_cases/guard-cache-sibling-external_selection_literal.rs:1:76
+   |
+ 1 | fn forbidden(budget:super::SwiftRunBudget,local:super::initial_profile_v1::SelectedLocalStructureV1) {
+   |                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^ private struct
+   |
+note: the struct `SelectedLocalStructureV1` is defined here
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/owned-work/debug-contract-guard-cache-sibling-external_selection_literal/src/experimental_swift_reactor/cache/initial_profile_v1.rs:51:1
+   |
+51 | struct SelectedLocalStructureV1 {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0603]: struct `SelectedInitialProfileV1` is private
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/compile_cases/guard-cache-sibling-external_selection_literal.rs:2:35
+   |
+ 2 |  let _=super::initial_profile_v1::SelectedInitialProfileV1 {budget,local};
+   |                                   ^^^^^^^^^^^^^^^^^^^^^^^^ private struct
+   |
+note: the struct `SelectedInitialProfileV1` is defined here
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/owned-work/debug-contract-guard-cache-sibling-external_selection_literal/src/experimental_swift_reactor/cache/initial_profile_v1.rs:62:1
+   |
+62 | struct SelectedInitialProfileV1 { budget:SwiftRunBudget, local:SelectedLocalStructureV1 }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0603`.

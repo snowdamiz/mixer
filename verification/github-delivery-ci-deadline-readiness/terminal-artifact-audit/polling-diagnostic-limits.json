@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "at": "2026-10-27T04:25:24.334458+00:00",
+  "status": "poll-evaluator-failure-retained-as-tooling-only-diagnostic",
+  "failed_poll_evaluators": 1,
+  "failed_evaluator": {
+    "path": "poll-1-evaluation.json",
+    "bytes": 1530,
+    "sha256": "ea038b2f141c1ef6cea91ed7aefa8f00dc362ad400e48b21b2dcf50eeb72be53",
+    "exit_code": 1,
+    "replayed": false
+  },
+  "successful_API_commands_from_failed_evaluator": [
+    {
+      "path": "poll-1-run.command.json",
+      "bytes": 1273,
+      "sha256": "7265f56b76eb501221391a9e27d771a13518d7d9ccc6c5d427cd3d6c4e7dce06",
+      "successful_API_command": true
+    },
+    {
+      "path": "poll-1-jobs.command.json",
+      "bytes": 1291,
+      "sha256": "1c3c69b54dd09f0806f2d3c443519acd8fd15474c9da3dde8f7503986535e088",
+      "successful_API_command": true
+    }
+  ],
+  "phase_executions_at_failure": 0,
+  "failure_is_CI_failure": false,
+  "CI_retry_or_mutation": false,
+  "qualification": "The two underlying API command records are successful data fetches. The first poll evaluator failed its premature final-step-count assertion while swift was still running; it does not provide accepted terminal readiness or phase provenance. No claim is made that every historical or tooling command passed. The corrected poll evaluator has a separate source/version; no completed wrapper is replayed. Final terminal acceptance depends on fresh exact-run terminal snapshots and the five reviewed successful phases.",
+  "freeze_record_scope": "commands_verified counts retained successful *.command.json API/CLI/phase records. The failed poll evaluator is explicitly recorded separately in poll-1-evaluation.json; its failure is not converted to a successful command record. Historical parent failed collector remains separately diagnostic with descendant reaping unverified."
+}

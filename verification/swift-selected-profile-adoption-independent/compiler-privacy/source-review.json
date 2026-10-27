@@ -1,0 +1,62 @@
+{
+  "actionable_defects": [],
+  "limitations": [
+    "No independent runtime admission/cache/accounting replay in this compiler subreview; parent owns those checks.",
+    "No claim of byte-identical legacy admission behavior from metadata compilation alone.",
+    "No OTA authorization, package authenticity, operational loader storage admission, canonical promotion, target/native runtime, FieldLog release, customer/store/operations or GA acceptance.",
+    "Private internal-module code remains trusted; this is Rust safe-API privacy/lifetime evidence, not a defense against source modification or arbitrary unsafe code."
+  ],
+  "observations": [
+    {
+      "finding": "SelectedValidatedProfileV1 owns actual proof plus full LoaderProvenanceV1. AdoptionBodyV1 owns actual proof plus inline Option<LoaderProvenanceV1>. Every owner and provenance field is private; no Clone/default/parts/extraction/deserializer or flag/digest-selected mint API exists.",
+      "lines": [
+        135,
+        185
+      ],
+      "source": "src/experimental_swift_reactor/retained_profile_loader_v1.rs"
+    },
+    {
+      "finding": "ordinary body sets selected=None. The sole selected adoption method consumes self, destructures the original proof/provenance owners, creates Some(provenance), and calls RuntimeControl::adopt_body. Borrow accessors return references tied by Rust lifetime elision to the borrowed owner.",
+      "lines": [
+        146,
+        174
+      ],
+      "source": "src/experimental_swift_reactor/retained_profile_loader_v1.rs"
+    },
+    {
+      "finding": "AdoptedProof retains opaque body with original source/metadata reservation tickets. selected_provenance returns immutable Option<&LoaderProvenanceV1> borrowed from that body.",
+      "lines": [
+        343,
+        355
+      ],
+      "source": "src/experimental_swift_reactor/control.rs"
+    },
+    {
+      "finding": "The existing ordinary adopt signature still accepts ValidatedSwiftReactor, SwiftRunBudget, Instant, Cancellation and returns Result<(Self,AdoptedProof),SwiftRunFailure>. It delegates immediately through ordinary(None) into the single adopt_body admission/cleanup implementation. Refusal drops body before proof-ticket refunds.",
+      "lines": [
+        590,
+        714
+      ],
+      "source": "src/experimental_swift_reactor/control.rs"
+    },
+    {
+      "finding": "Successful proof cleanup consumes the actual AdoptedProof, drops its opaque body, then attempts both source and metadata refunds.",
+      "lines": [
+        1243,
+        1260
+      ],
+      "source": "src/experimental_swift_reactor/control.rs"
+    },
+    {
+      "finding": "Loader module remains private; control remains crate-private. The selected carrier and opaque body have no public reexport.",
+      "lines": [
+        1,
+        30
+      ],
+      "source": "src/experimental_swift_reactor/mod.rs"
+    }
+  ],
+  "schema": 1,
+  "scope": "source review plus bounded independent Rust metadata compiler controls; trusted-launcher quiescent local host only",
+  "source_tree_sha256": "22b6e945a062b3465156bb9995bce610bd712fa9d3e283e176316d75104bb442"
+}

@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/evidence.py", line 203, in <module>
+    try:main()
+        ~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/evidence.py", line 190, in main
+    elif command=='selected':selected(mode,sys.argv[3:])
+                             ~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/evidence.py", line 104, in selected
+    if not fixture.exists():test(mode,PREFIX+'emit_genuine_validator_fixture',emit)
+                            ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/evidence.py", line 81, in test
+    return run(mode+'-'+method.split('::')[-1],[WORK/f'unit-{mode}','--exact',method,'--nocapture','--test-threads=1'],env,allow_failure=allow_failure)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/evidence.py", line 47, in run
+    if not passed and not allow_failure:raise AssertionError((label,stdout[-1000:],stderr[-3000:]))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('optimized-emit_genuine_validator_fixture', '\nrunning 1 test\ntest experimental_swift_reactor::retained_profile_loader_v1::tests::emit_genuine_validator_fixture ... FAILED\n\nfailures:\n\nfailures:\n    experimental_swift_reactor::retained_profile_loader_v1::tests::emit_genuine_validator_fixture\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 464 filtered out; finished in 0.00s\n\n', '\nthread \'experimental_swift_reactor::retained_profile_loader_v1::tests::emit_genuine_validator_fixture\' (74589463) panicked at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1_tests.rs:122:10:\ncalled `Result::unwrap()` on an `Err` value: Os { code: 17, kind: AlreadyExists, message: "File exists" }\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n')

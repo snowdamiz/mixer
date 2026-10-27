@@ -1,0 +1,30 @@
+--- accepted-loader/src/experimental_swift_reactor/cache/initial_profile_v1.rs
++++ selected-adoption/src/experimental_swift_reactor/cache/initial_profile_v1.rs
+@@ -56,7 +56,7 @@
+     cache_cleanup_bytes:u64, cache_header_bytes:u64,
+     cache_construction_bytes:u64, cache_operation_bytes:u64,
+     selected_slots_max:u64, selected_pins:u64, cache_fixed_at_selected_maxslots:u64,
+-    type_layout:[LocalTypeLayoutV1;165],
++    type_layout:[LocalTypeLayoutV1;201],
+ }
+ #[repr(C)]
+ struct SelectedInitialProfileV1 { budget:SwiftRunBudget, local:SelectedLocalStructureV1 }
+@@ -97,6 +97,18 @@
+     final_return:InitialProfileConstructionOutcomeV1,
+     caller_return:Option<InitialProfileConstructionOutcomeV1>,
+ }
++
++// Before prepare, all wrapper ingress and retained output/return places must
++// already have a foundation floor; a later cache phase cannot grant it back.
++pub(super) const WRAPPER_SOURCE_PLACES_V1: usize =
++    size_of::<WrapperArgumentsV1<'static>>() + size_of::<WrapperPhaseStorageV1<'static>>()
++    + size_of::<WrapperEmissionStorageV1<'static>>() + size_of::<WrapperCallerStorageV1>()
++    + size_of::<WrapperMoveStorageV1>();
++
++#[cfg(test)]
++pub(super) fn test_selected_initial_outcome_v1(
++    selected: super::super::retained_profile_loader_v1::SelectedValidatedProfileV1, case: &str,
++) { tests::selected_owner_outcome_v1(selected,case); }
+ 
+ mod header;
+ mod selected;

@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/evidence.py", line 169, in <module>
+    try:main()
+        ~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/evidence.py", line 159, in main
+    elif command=='initial':initial(mode,sys.argv[3:])
+                            ~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/evidence.py", line 122, in initial
+    test(mode,INITIAL+method,env);shutil.rmtree(directory)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/evidence.py", line 75, in test
+    return run(mode+'-'+method.split('::')[-1],[WORK/f'unit-{mode}','--exact',method,'--nocapture','--test-threads=1'],env,allow_failure=allow_failure)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/evidence.py", line 47, in run
+    if not passed and not allow_failure:raise AssertionError((label,stdout[-1000:],stderr[-3000:]))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('debug-all64_slot_pin_pairs_checked', '\nrunning 1 test\ntest experimental_swift_reactor::cache::initial_profile_v1::tests::all64_slot_pin_pairs_checked ... FAILED\n\nfailures:\n\nfailures:\n    experimental_swift_reactor::cache::initial_profile_v1::tests::all64_slot_pin_pairs_checked\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 464 filtered out; finished in 0.00s\n\n', "\nthread 'experimental_swift_reactor::cache::initial_profile_v1::tests::all64_slot_pin_pairs_checked' (74490110) panicked at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/source/vm/src/experimental_swift_reactor/cache/initial_profile_v1/tests.rs:819:4:\nassertion `left == right` failed\n  left: 111688\n right: 108664\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n")

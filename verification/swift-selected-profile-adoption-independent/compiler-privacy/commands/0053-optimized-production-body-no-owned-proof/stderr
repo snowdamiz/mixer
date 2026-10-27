@@ -1,0 +1,20 @@
+error[E0599]: no method named `into_proof` found for struct `AdoptionBodyV1` in the current scope
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/fixtures/body-no-owned-proof.rs:6:37
+    |
+  6 | fn f(p: AdoptionBodyV1) { let _ = p.into_proof(); }
+    |                                     ^^^^^^^^^^
+    |
+   ::: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/scratch/optimized-production-body-no-owned-proof/src/experimental_swift_reactor/retained_profile_loader_v1.rs:142:1
+    |
+142 | pub(super) struct AdoptionBodyV1 {
+    | -------------------------------- method `into_proof` not found for this struct
+    |
+help: there is a method `proof` with a similar name
+    |
+  6 - fn f(p: AdoptionBodyV1) { let _ = p.into_proof(); }
+  6 + fn f(p: AdoptionBodyV1) { let _ = p.proof(); }
+    |
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0599`.

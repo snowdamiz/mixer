@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/evidence.py", line 182, in <module>
+    try:main()
+        ~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/evidence.py", line 170, in main
+    elif command=='selected':selected(mode,sys.argv[3:])
+                             ~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/evidence.py", line 120, in selected
+    stdout,_,_=run(mode+'-'+scenario,argv,env);assert 'SELECTED_OUTCOME\t'+case in stdout
+               ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/evidence.py", line 47, in run
+    if not passed and not allow_failure:raise AssertionError((label,stdout[-1000:],stderr[-3000:]))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('debug-adopt-admission-source', '\nrunning 1 test\ntest experimental_swift_reactor::retained_profile_loader_v1::tests::actual_selected_loader_child ... FAILED\n\nfailures:\n\nfailures:\n    experimental_swift_reactor::retained_profile_loader_v1::tests::actual_selected_loader_child\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 464 filtered out; finished in 0.05s\n\n', "\nthread 'experimental_swift_reactor::retained_profile_loader_v1::tests::actual_selected_loader_child' (74557177) panicked at /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/source/vm/src/experimental_swift_reactor/cache/initial_profile_v1/tests.rs:65:3:\nassertion `left == right` failed\n  left: Adoption\n right: CategoryExhausted\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n")

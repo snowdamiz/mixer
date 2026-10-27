@@ -1,0 +1,1 @@
+use mixer_vm::{Cancellation};use mixer_vm::experimental::cache::{FunctionCache,FunctionPin};fn f(c:&mut FunctionCache,p:FunctionPin){let v=c.view(&p).unwrap();let _=c.pin(0,&Cancellation::default());let _=v.instructions.len();}

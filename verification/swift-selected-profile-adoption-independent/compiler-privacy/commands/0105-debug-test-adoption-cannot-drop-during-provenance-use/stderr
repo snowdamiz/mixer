@@ -1,0 +1,23 @@
+error[E0505]: cannot move out of `p` because it is borrowed
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/fixtures/adoption-cannot-drop-during-provenance-use.rs:6:103
+    |
+  6 | fn f(c: &mut RuntimeControl, p: AdoptedProof) { let q = p.selected_provenance(); let _ = c.drop_proof(p); std::hint::black_box(q); }
+    |                              -                          -                                             ^                        - borrow later used here
+    |                              |                          |                                             |
+    |                              |                          borrow of `p` occurs here                     move out of `p` occurs here
+    |                              binding `p` declared here
+    |
+note: if `control::AdoptedProof` implemented `Clone`, you could clone the value
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/scratch/debug-test-adoption-cannot-drop-during-provenance-use/src/experimental_swift_reactor/control.rs:345:1
+    |
+345 | pub(crate) struct AdoptedProof {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider implementing `Clone` for this type
+    |
+   ::: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/fixtures/adoption-cannot-drop-during-provenance-use.rs:6:57
+    |
+  6 | fn f(c: &mut RuntimeControl, p: AdoptedProof) { let q = p.selected_provenance(); let _ = c.drop_proof(p); std::hint::black_box(q); }
+    |                                                         - you could clone this value
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0505`.

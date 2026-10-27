@@ -1,0 +1,234 @@
+{
+  "context_and_receiver_obligations": [
+    "all-static-and-instance-invoke-opcodes-with-matching-access",
+    "invoke-opcode-and-access-contradiction-refused",
+    "unknown-opcode-refused",
+    "missing-invocation-and-access-context-refused",
+    "invalid-context-types-refused",
+    "grammar-default-does-not-silently-select-static",
+    "all-production-descriptor-calls-carry-observed-context",
+    "hook-exception-unresolved-receiver-retains-exception-and-normal-pending",
+    "normal-return-unresolved-receiver-remains-unresolved"
+  ],
+  "descriptor_cases": [
+    {
+      "context": "grammar-only",
+      "descriptor": "()Lfoo/(Bar;",
+      "expected": "accept-grammar-only",
+      "id": "class-name-valid-00"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()Lfoo/)Bar;",
+      "expected": "accept-grammar-only",
+      "id": "class-name-valid-01"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()Lfoo/(B)ar;",
+      "expected": "accept-grammar-only",
+      "id": "class-name-valid-02"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()Lfoo/ Bar;",
+      "expected": "accept-grammar-only",
+      "id": "class-name-valid-03"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()Lfoo/B ar;",
+      "expected": "accept-grammar-only",
+      "id": "class-name-valid-04"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()Lfoo/B\tar;",
+      "expected": "accept-grammar-only",
+      "id": "class-name-valid-05"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()Lfoo/B\nar;",
+      "expected": "accept-grammar-only",
+      "id": "class-name-valid-06"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()Lfoo/B\rar;",
+      "expected": "accept-grammar-only",
+      "id": "class-name-valid-07"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()Lfoo/B\far;",
+      "expected": "accept-grammar-only",
+      "id": "class-name-valid-08"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()Lfoo/\u96ea;",
+      "expected": "accept-grammar-only",
+      "id": "class-name-valid-09"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()Lfoo/<T>;",
+      "expected": "accept-grammar-only",
+      "id": "class-name-valid-10"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()L;",
+      "expected": "refuse",
+      "id": "class-name-invalid-00"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()L/foo;",
+      "expected": "refuse",
+      "id": "class-name-invalid-01"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()Lfoo/;",
+      "expected": "refuse",
+      "id": "class-name-invalid-02"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()Lfoo//Bar;",
+      "expected": "refuse",
+      "id": "class-name-invalid-03"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()Lfoo.Bar;",
+      "expected": "refuse",
+      "id": "class-name-invalid-04"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()Lfoo/[Bar;",
+      "expected": "refuse",
+      "id": "class-name-invalid-05"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "()Lfoo;Bar;",
+      "expected": "refuse",
+      "id": "class-name-invalid-06"
+    },
+    {
+      "context": "static",
+      "descriptor": "(IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII)V",
+      "expected": "accept",
+      "id": "static255"
+    },
+    {
+      "context": "static",
+      "descriptor": "(IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII)V",
+      "expected": "refuse",
+      "id": "static256"
+    },
+    {
+      "context": "instance",
+      "descriptor": "(IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII)V",
+      "expected": "accept",
+      "id": "instance254"
+    },
+    {
+      "context": "instance",
+      "descriptor": "(IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII)V",
+      "expected": "refuse",
+      "id": "instance255"
+    },
+    {
+      "context": "static",
+      "descriptor": "(JDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDIII)V",
+      "expected": "accept",
+      "id": "wide-static255"
+    },
+    {
+      "context": "static",
+      "descriptor": "(JDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJD)V",
+      "expected": "refuse",
+      "id": "wide-static256"
+    },
+    {
+      "context": "instance",
+      "descriptor": "(JDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDII)V",
+      "expected": "accept",
+      "id": "wide-instance254"
+    },
+    {
+      "context": "instance",
+      "descriptor": "(JDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDJDIII)V",
+      "expected": "refuse",
+      "id": "wide-instance255"
+    },
+    {
+      "context": "static",
+      "descriptor": "([J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J[J)V",
+      "expected": "accept",
+      "id": "arrays-static255"
+    },
+    {
+      "context": "instance",
+      "descriptor": "([[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D[[D)V",
+      "expected": "accept",
+      "id": "arrays-instance254"
+    },
+    {
+      "context": "instance",
+      "descriptor": "([D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D)V",
+      "expected": "refuse",
+      "id": "arrays-instance255"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "(IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII)V",
+      "expected": "accept-grammar-only",
+      "id": "grammar255"
+    },
+    {
+      "context": "grammar-only",
+      "descriptor": "(IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII)V",
+      "expected": "refuse",
+      "id": "grammar256"
+    }
+  ],
+  "excluded": [
+    "Java/native execution",
+    "UI/capture/process inventories",
+    "stopped v5/interpreter-startup",
+    "forbidden hosted harness",
+    "preexisting bytecode cache import or mutation",
+    "producer wrapper reruns",
+    "full Java225 replay",
+    "runtime or OTA/GA qualification"
+  ],
+  "one_compact_pass": {
+    "completions": 665,
+    "files": 214,
+    "hook_joined": 436,
+    "joined": 663,
+    "missing": 844,
+    "no_selected": 108,
+    "normal_joined": 227,
+    "rows": 1611,
+    "unresolved_known_inner_returns": 2
+  },
+  "preservation": {
+    "whole_history_bindings": 189,
+    "whole_required_cases": 2705,
+    "whole_subjects": 280
+  },
+  "retained_controls": {
+    "copied24": "only-selected-classname-expectation-migration",
+    "original119_definitions_sha256": "6f7564b12d62921d9a514297ab22a386b96895cb780fabab7fb7b2aa8e21b70e",
+    "unchanged24": "exactly-one-selected-stale-assertion-failure"
+  },
+  "schema": 1,
+  "status": "frozen-before-corrected-source-code-review-and-execution"
+}

@@ -1,0 +1,17 @@
+--- original24
++++ selected-migrated24
+@@ -64,10 +64,12 @@
+         self.assertEqual(self.joiner.assignable('android/view/inputmethod/ExtractedText', 'android/os/Handler')['status'], 'failed')
+ 
+     def test_full_descriptor_grammar(self):
+-        for text in ['()V', '(ZBCSIJFD)Ljava/lang/Object;', '([[I[Ljava/lang/String;)J', '(' + 'I' * 255 + ')V']:
++        # F2 migration: JVMS17 4.2.1/4.2.2 permits '(' in a ClassName segment.
++        # Exact original24 source remains unchanged in original_producer_tests.py.
++        for text in ['()V', '(ZBCSIJFD)Ljava/lang/Object;', '([[I[Ljava/lang/String;)J', '(' + 'I' * 255 + ')V', '()Lfoo/(Bar;']:
+             with self.subTest(valid=text[:40]):
+                 d.descriptor(text)
+-        for text in ['', 'I', '(V)I', '()Q', '()L;', '()Ljava.lang.String;', '()Lfoo//Bar;', '(I)Vx', '([V)V', '()Ljava/lang/Object', '(I))V', '(' + 'J' * 128 + ')V', '()[' + '[' * 255 + 'I', '()Lfoo/(Bar;']:
++        for text in ['', 'I', '(V)I', '()Q', '()L;', '()Ljava.lang.String;', '()Lfoo//Bar;', '(I)Vx', '([V)V', '()Ljava/lang/Object', '(I))V', '(' + 'J' * 128 + ')V', '()[' + '[' * 255 + 'I']:
+             with self.subTest(invalid=text[:40]):
+                 with self.assertRaises(d.Refusal):
+                     d.descriptor(text)

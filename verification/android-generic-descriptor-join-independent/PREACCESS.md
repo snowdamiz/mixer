@@ -1,0 +1,17 @@
+This preaccess package freezes independent test declarations and source/data facts before candidate inspection. It does not implement the candidate's descriptor checker. Candidate tests and actual review remain pending explicit root release of an exact frozen candidate.
+
+The preparation selectively screened paths and verified bytes against the released 3339-member archive seal. It executed only the Python helpers authored in this directory. It did not execute archived code, Java, the 225-file auditor, native runtimes, UI/capture tools, or process inventories.
+
+`public-family-source-map.json` manually transcribes the direct20 and query7 producer switches, then checks their exact method/descriptor pairs against the frozen 38-method interface and retained concrete class inheritance. Close is recorded separately. `focused351-source-observations.json` records a bounded direct/query/close data subset: 351 rows, 243 selected events, 244 recorded completions (168 normal and 76 hook exceptions), and 113 rows without completion. These counts do not replace the complete corpus's 665 typed observations or 844 rows with selected events and missing completion.
+
+`preaccess-controls.json` declares 119 controls and their expected outcomes. Later adaptation must preserve those outcomes, report any unexecuted controls, and keep grammar/type helpers separate from integrated exact-source admission. A mutation that passes a value-kind predicate can still fail the exact compiled-callee join. Coherent mutations change repeated raw/compact observations in private copies while retaining immutable source and class authority.
+
+The focused data contains public-null/native-snapshot query pairs, public-void close outcomes without normal native completion, and hook-exception sentinels. These are deliberately distinct observations. The original boundary162 rows 3 and 5 independently resolve NativeSwitch's BCI50 invokespecial through Switch to Button to TextView while the selected recorded normal return belongs to inner View. Their equal descriptors and boolean kinds do not establish outer TextView completion.
+
+The sole delegated exception is the accepted composing-region inner `(II)Z` and outer `(IILandroid/view/inputmethod/TextAttribute;)Z` pair. The only extra nominal rules are the released official Java SE17 String-to-CharSequence and String-to-Object edges, labelled separately from retained classfile paths. Unknown hierarchy and unsupported non-null array identity remain unresolved. Oracle JVMS grammar and integral-bound references are retained as URL/retrieval/content identities plus concise paraphrases.
+
+`whole-record-preservation.json` records the entire frozen ledger identity and canonical hashes for all 280 original subject records, all 2705 case obligations, and the full 189-binding historical list with seven observations each. Matching counts alone does not prove preservation. All semantic, helper/body, execution, native, canonical integration, OTA, operational and GA obligations remain pending beyond separately accepted finite facets.
+
+Seven helper/data tests passed. They exercise custody path refusal, truncated class failure, exact interface methods, an actual invocation and neighboring invocation, distinct public/native outcomes, unique source-backed declarations, and the inherited outer-versus-inner case. They are preparation tests; no candidate acceptance is claimed.
+
+Owned Python bytecode caches were removed after collection. No simulator or capture process was started, restarted, stopped, or inventoried.

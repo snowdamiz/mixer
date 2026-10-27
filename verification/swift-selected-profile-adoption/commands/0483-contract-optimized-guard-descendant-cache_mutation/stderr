@@ -1,0 +1,13 @@
+error[E0502]: cannot borrow `cache.pins` as mutable because it is also borrowed as immutable
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption/compile_cases/guard-descendant-cache_mutation.rs:3:2
+  |
+2 |  let initial=super::InitialProfileBorrowV1 {cache:&cache,control,wasi:None,scalars:super::InitialProfileScalarsV1 {source_extent:0,ty...
+  |                                                   ------ immutable borrow occurs here
+3 |  cache.pins.clear();
+  |  ^^^^^^^^^^^^^^^^^^ mutable borrow occurs here
+4 |  std::hint::black_box(initial.cache.next_nonce);
+  |                       ------------------------ immutable borrow later used here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0502`.

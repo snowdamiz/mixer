@@ -1,0 +1,12 @@
+error[E0515]: cannot return value referencing function parameter `p`
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/fixtures/provenance-cannot-outlive-owned-adoption.rs:6:64
+  |
+6 | fn f(p: AdoptedProof) -> Option<&'static LoaderProvenanceV1> { p.selected_provenance() }
+  |                                                                -^^^^^^^^^^^^^^^^^^^^^^
+  |                                                                |
+  |                                                                returns a value referencing data owned by the current function
+  |                                                                `p` is borrowed here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0515`.

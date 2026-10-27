@@ -1,0 +1,20 @@
+error[E0277]: the trait bound `AdoptionBodyV1: Clone` is not satisfied
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/fixtures/body-not-clone.rs:6:42
+    |
+  6 | fn bound<T: Clone>() {} fn f() { bound::<AdoptionBodyV1>(); }
+    |                                          ^^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `Clone` is not implemented for `AdoptionBodyV1`
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/scratch/optimized-production-body-not-clone/src/experimental_swift_reactor/retained_profile_loader_v1.rs:142:1
+    |
+142 | pub(super) struct AdoptionBodyV1 {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `independent_privacy_case::bound`
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/fixtures/body-not-clone.rs:6:13
+    |
+  6 | fn bound<T: Clone>() {} fn f() { bound::<AdoptionBodyV1>(); }
+    |             ^^^^^ required by this bound in `bound`
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0277`.

@@ -1,0 +1,89 @@
+[
+  {
+    "exact_lines": [
+      [
+        22,
+        " private static boolean operation(InputConnection c,String f){return switch(f){case \"performContextMenuAction\"->c.performContextMenuAction(0);case \"reportFullscreenMode\"->c.reportFullscreenMode(false);case \"requestCursorUpdates\"->c.requestCursorUpdates(0);case \"requestCursorUpdatesFiltered\"->c.requestCursorUpdates(0,0);case \"beginBatchEdit\"->c.beginBatchEdit();case \"endBatchEdit\"->c.endBatchEdit();case \"clearMetaKeyStates\"->c.clearMetaKeyStates(0);case \"commitText\"->c.commitText(\"z\",1);case \"commitTextWithAttributes\"->c.commitText(\"z\",1,new TextAttribute());case \"setComposingText\"->c.setComposingText(\"z\",1);case \"setComposingTextWithAttributes\"->c.setComposingText(\"z\",1,new TextAttribute());case \"setComposingRegion\"->c.setComposingRegion(0,1);case \"setComposingRegionWithAttributes\"->c.setComposingRegion(0,1,new TextAttribute());case \"finishComposingText\"->c.finishComposingText();case \"deleteSurroundingText\"->c.deleteSurroundingText(1,0);case \"deleteSurroundingTextInCodePoints\"->c.deleteSurroundingTextInCodePoints(1,0);case \"setSelection\"->c.setSelection(1,1);case \"performEditorAction\"->c.performEditorAction(EditorInfo.IME_ACTION_DONE);case \"setImeConsumesInput\"->c.setImeConsumesInput(false);case \"commitCompletion\"->c.commitCompletion(new CompletionInfo(1,0,\"z\"));default->throw new AssertionError(f);};}"
+      ],
+      [
+        38,
+        "   if(outcome.completion().equals(\"return\")){ArrayDeque<ConcreteHostProbe.Event> eligible=outcome.method().equals(\"BaseInputConnection.getHandler\")?entries:returns;boolean selectedOuter=outcome.method().equals(\"BaseInputConnection.setComposingRegion\")&&outcome.descriptor().equals(\"(IILandroid/view/inputmethod/TextAttribute;)Z\");if(eligible!=null&&eligible.size()==1&&!selectedOuter)selected=eligible.peekLast();else{"
+      ],
+      [
+        44,
+        "   int at=index(selected);for(ArrayDeque<ConcreteHostProbe.Event> queue:List.of(entries==null?new ArrayDeque<ConcreteHostProbe.Event>():entries,returns==null?new ArrayDeque<ConcreteHostProbe.Event>():returns))while(!queue.isEmpty()&&index(queue.peekFirst())<=at){consumed.put(queue.removeFirst(),true);}Map<String,Object> joined=new LinkedHashMap<>();joined.put(\"native_event_sequence_index\",at);joined.put(\"native_event_phase\",selected.phase);joined.put(\"native_outcome_association\",delegated?\"selected-original-delegated-overload-return\":\"original-own-hook-event\");if(delegated)joined.put(\"delegated_leaf_descriptor_pair\",List.of(\"(II)Z\",\"(IILandroid/view/inputmethod/TextAttribute;)Z\"));return joined;"
+      ]
+    ],
+    "member": "reference-tree/verification/android-editor-membership-compiled-boundary-qualification/state-qualification/full-candidate-v1/run-33/DirectBoundaryStates.java",
+    "sha256": "c46e57c3c190e85942def79a798d8c5e48da17bd90110f17279b415b704cef1e"
+  },
+  {
+    "exact_lines": [
+      [
+        7,
+        " private static Object operation(InputConnection c,String family){return switch(family){case \"getCursorCapsMode\"->c.getCursorCapsMode(3);case \"getSelectedText\"->c.getSelectedText(0);case \"getTextBeforeCursor\"->c.getTextBeforeCursor(2,0);case \"getTextAfterCursor\"->c.getTextAfterCursor(2,0);case \"getExtractedText\"->c.getExtractedText(new ExtractedTextRequest(),0);case \"getSurroundingText\"->c.getSurroundingText(2,2,0);case \"takeSnapshot\"->c.takeSnapshot();default->throw new AssertionError(family);};}"
+      ]
+    ],
+    "member": "reference-tree/verification/android-editor-membership-compiled-boundary-qualification/state-qualification/full-candidate-v1/run-33/QueryBoundaryStates.java",
+    "sha256": "2507169d1a235a27d96631cfc2c03cae8b94ad6bcf32045d7b044ce75d47dedd"
+  },
+  {
+    "exact_lines": [
+      [
+        9,
+        "  try{try{adapter.closeConnection();}catch(RuntimeException|Error failure){escaped=failure;}DirectBoundaryStates.require(fired[0],\"exact close target reached\");DirectBoundaryStates.require(target.closeCalls==1&&target.closed,\"original target close once completed body before return hook\");DirectBoundaryStates.require((boolean)DirectBoundaryStates.get(attempt,\"revoked\"),\"original attempt revoked\");DirectBoundaryStates.require(NativeBridge.prepareCalls==prepared&&NativeBridge.commitCalls==committed,\"close creates no feature transaction\");DirectBoundaryStates.require(!renderer.editorDisposalBusyV2(),\"finite close busy custody released\");if(state.equals(\"clean\"))DirectBoundaryStates.require(escaped==null&&String.valueOf(DirectBoundaryStates.get(attempt,\"close\")).equals(\"RETURNED\"),\"clean exact void/RETURNED disposition\");if(state.equals(\"fatal-throw-after-callback\"))DirectBoundaryStates.require(escaped==fatal&&renderer.cleanupLedger().firstFatal()==fatal,\"same first fatal and escaped identity\");if(state.equals(\"ordinary-throw-after-callback\"))DirectBoundaryStates.require(escaped==ordinary,\"same ordinary exception escapes\");if(escaped!=null)DirectBoundaryStates.require(escaped==DirectBoundaryStates.get(edit,\"firstFatal\")||escaped==DirectBoundaryStates.get(edit,\"primary\"),\"enclosing exception is original stored field identity\");row.put(\"actual_enclosing_outcome\",escaped==null?Map.of(\"kind\",\"void\"):Map.of(\"kind\",\"exception\",\"class\",escaped.getClass().getName(),\"identity\",DirectBoundaryStates.identity(escaped)));row.put(\"original_attempt_close\",String.valueOf(DirectBoundaryStates.get(attempt,\"close\")));row.put(\"post_operation_authority\",TraceRunner.authority(target));"
+      ]
+    ],
+    "member": "reference-tree/verification/android-editor-membership-compiled-boundary-qualification/state-qualification/full-candidate-v1/run-33/CloseBoundaryStates.java",
+    "sha256": "36ad685cfd67ef36669d3144470be1f169f94015d4d6f50cf92da78d2e910fc4"
+  },
+  {
+    "exact_lines": [
+      [
+        15,
+        " static Object actual(Object value){"
+      ]
+    ],
+    "member": "reference-tree/verification/android-editor-membership-compiled-boundary-qualification/state-qualification/full-candidate-v1/run-33/OutcomeCapture.java",
+    "sha256": "8e0b480d7d3359ecde61eb8c67f3b1b0f1b3743d6911d560bb60b0e94ecd4a29"
+  },
+  {
+    "exact_lines": [
+      [
+        24,
+        " static void hookException(ConcreteHostProbe.Event event,Throwable failure){emit(event.method,\"hook-exception\",event.receiver,\"exception\",null,failure);}"
+      ]
+    ],
+    "member": "reference-tree/verification/android-editor-membership-compiled-boundary-qualification/state-qualification/full-candidate-v1/run-33/NativeOutcomeProbe.java",
+    "sha256": "cb230d4f73b44e40dd2d305762b9289da9652f61fe0253353c0796d6b71d5c13"
+  },
+  {
+    "exact_lines": [
+      [
+        15,
+        "  List<Object> outcomes=new ArrayList<>();for(Object value:Json.array(row.get(\"actual_native_outcomes\"))){Map<String,Object> observed=Json.object(value);if(Objects.equals(observed.get(\"method\"),method)&&Objects.equals(observed.get(\"receiver_identity\"),receiver)&&completionEvents.contains(integer(observed.get(\"native_event_sequence_index\"))))outcomes.add(observed);}out.put(\"selected_actual_native_completions\",outcomes);out.put(\"completion_observation_scope\",\"Actual recorded completions joined to the selected immutable event/call pair. Missing native/helper/body-exception completion remains unobserved; clean alone supplies no completion credit.\");"
+      ]
+    ],
+    "member": "reference-tree/verification/android-editor-membership-compiled-boundary-qualification/state-qualification/full-candidate-v1/run-33/CompactEvidence.java",
+    "sha256": "4be6b307b0f1c75fc8bfdcf14d3463dc2aee8cab0e7c23a8f96360449c866606"
+  },
+  {
+    "exact_lines": [],
+    "member": "reference-tree/verification/android-editor-membership-compiled-boundary-qualification/state-qualification/full-candidate-v1/run-33/NativeEditorConnectionV2.java",
+    "sha256": "b0cf2beb17ed46c57466eadddfcef14c4bf56dd57b6060d9e1fe801a21726c97"
+  },
+  {
+    "exact_lines": [
+      [
+        13,
+        " @Override public boolean setComposingRegion(int start,int end){enter(\"setComposingRegion\");if(editor==null||closed)return dev.mixer.android.NativeOutcomeProbe.returned(\"BaseInputConnection.setComposingRegion\",\"(II)Z\",this,done(\"setComposingRegion\",false));removeComposingSpans(editor.getText());editor.getText().setSpan(COMPOSING,start,end,Spanned.SPAN_COMPOSING);return dev.mixer.android.NativeOutcomeProbe.returned(\"BaseInputConnection.setComposingRegion\",\"(II)Z\",this,done(\"setComposingRegion\",true));}"
+      ],
+      [
+        14,
+        " @Override public boolean setComposingRegion(int start,int end,TextAttribute attributes){return dev.mixer.android.NativeOutcomeProbe.returned(\"BaseInputConnection.setComposingRegion\",\"(IILandroid/view/inputmethod/TextAttribute;)Z\",this,setComposingRegion(start,end));}"
+      ]
+    ],
+    "member": "reference-tree/verification/android-editor-membership-compiled-boundary-qualification/state-qualification/full-candidate-v1/run-33/BaseInputConnection.java",
+    "sha256": "e603b0b384fa4dde778432abaa88c917ec73b25dc2eed5db6c5970d0f85e8a60"
+  }
+]

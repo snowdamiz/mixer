@@ -1,0 +1,90 @@
+--- accepted-loader/src/experimental_swift_reactor/retained_profile_loader_v1_tests.rs
++++ selected-adoption/src/experimental_swift_reactor/retained_profile_loader_v1_tests.rs
+@@ -411,13 +411,16 @@
+             assert!(matches!(
+                 scenario.as_str(),
+                 "success" | "narrowed" | "raw-environment" | "raw-cwd" | "raw-executable"
+-            ));
++            ) || scenario.starts_with("adopt-"));
+             assert_eq!(selected.source(), fixture());
+             assert_eq!(selected.provenance.validation_budget, budget);
+             assert_eq!(selected.provenance.source_extent, 1947);
+             assert_eq!(outcome.usage.source_equality_bytes, 1947);
+             assert_eq!(selected.proof.observations().validated_bodies, 64);
+             assert_eq!(selected.provenance.identities[0].dev, original[0].0);
++            if let Some(case)=scenario.strip_prefix("adopt-") {
++                super::super::cache::test_selected_initial_outcome_v1(selected,case);
++            }
+             println!(
+                 "SELECTED\t{}\t{}\t{}",
+                 scenario, outcome.usage.hash_bytes, outcome.usage.allocated_peak_requested
+@@ -533,6 +536,69 @@
+ }
+ 
+ #[test]
++fn complete_adoption_layout_inventory_v1() {
++    for (name,bytes,alignment) in &ADOPTION_LAYOUTS_V1 {
++        println!("ADOPTION_LAYOUT\t{}\t{}\t{}",name,bytes,alignment);
++    }
++    println!("ADOPTION_FLOOR\t{}\t{}\t{}\t{}",
++        ADOPTION_ENTRY_BYTES_V1,ADOPTION_MOVE_BYTES_V1,
++        super::super::control::ADOPTION_CLEANUP_BYTES_V1,
++        super::super::control::foundation_construction_bytes().unwrap());
++}
++
++#[test]
++fn ordinary_adoption_has_no_selected_provenance_v1() {
++    let proof=validate_swift_reactor(&fixture(),SwiftValidationBudget::default(),&Cancellation::default()).unwrap();
++    let (mut control,adopted)=RuntimeControl::adopt(proof,SwiftRunBudget::default(),Instant::now(),Cancellation::default()).unwrap();
++    assert!(adopted.selected_provenance().is_none());
++    assert_eq!(adopted.proof().source(),fixture());
++    control.drop_proof(adopted).unwrap();
++    let usage=control.finish_owned_cleanup(None);
++    assert_eq!(usage.reservations.combined.current,0);
++    assert_eq!(usage.reservations.live_tickets,0);
++    assert_eq!(usage.cleanup_invariant,None);
++}
++
++#[test]
++fn final_metadata_actual_safe_files_all_four_roles_v1() {
++    use std::io::Write;
++    let directory=std::path::PathBuf::from(std::env::var_os("MIXER_LOADER_HELPER_DIR").expect("owned helper directory"));
++    let paths=["final-source","final-build","final-session","final-executable"].map(|n|directory.join(n));
++    let mut owned=Vec::new();
++    for path in &paths {owned.push(std::fs::OpenOptions::new().read(true).write(true).create_new(true).open(path).unwrap());}
++    let mut values=owned.into_iter();
++    let mut files=ReturnedLoaderFilesV1 {source:values.next().unwrap(),build:values.next().unwrap(),session:values.next().unwrap(),executable:Some(values.next().unwrap())};
++    let roles=[Role::Source,Role::Build,Role::Session,Role::Executable];
++    for (index,role) in roles.into_iter().enumerate() {
++        let expected=[&files.source,&files.build,&files.session,files.executable.as_ref().unwrap()].map(|f|identity(f,Role::Source).unwrap());
++        assert!(final_metadata_recheck_v1(&files,&expected).is_ok());
++        let file=match index {0=>&mut files.source,1=>&mut files.build,2=>&mut files.session,_=>files.executable.as_mut().unwrap()};
++        file.write_all(&[index as u8]).unwrap();file.flush().unwrap();
++        let failure=final_metadata_recheck_v1(&files,&expected).err().unwrap();
++        assert_eq!((failure.kind,failure.role,failure.offset,failure.attempts),(Refusal::MetadataChanged,role,index as u64,0));
++        assert!(failure.original_io().is_none());
++        for file in [&files.source,&files.build,&files.session,files.executable.as_ref().unwrap()] {assert!(file.metadata().is_ok());}
++        println!("ACTUAL_FINAL_FILE_MISMATCH\t{:?}\t{}\tall_four_owners_retained",role,index);
++    }
++    drop(files); // No close-success inference.
++    for path in paths {std::fs::remove_file(path).unwrap();}
++}
++
++#[test]
++fn final_metadata_synthetic_helper_io_all_four_roles_v1() {
++    for (index,role) in [Role::Source,Role::Build,Role::Session,Role::Executable].into_iter().enumerate() {
++        let original=io::Error::from_raw_os_error(13);
++        let original_kind=original.kind();
++        let observed=Err(LoaderFailureV1::io(role,0,0,original));
++        let failure=check_final_identity_v1(role,index,FileIdentityV1::default(),observed).err().unwrap();
++        assert_eq!((failure.kind,failure.role,failure.offset,failure.attempts),(Refusal::Io,role,0,0));
++        let retained=failure.original_io().unwrap();
++        assert_eq!(retained.raw_os_error(),Some(13));assert_eq!(retained.kind(),original_kind);
++        println!("SYNTHETIC_HELPER_IO_ONLY\t{:?}\t{:?}\t13",role,original_kind);
++    }
++}
++
++#[test]
+ fn genuine_proof_source_substitution_is_not_length_equality() {
+     let first = fixture();
+     let mut second = first.clone();

@@ -1,0 +1,232 @@
+--- accepted-loader/src/experimental_swift_reactor/retained_profile_loader_v1.rs
++++ selected-adoption/src/experimental_swift_reactor/retained_profile_loader_v1.rs
+@@ -1,5 +1,5 @@
+ //! Private retained-source correlation under a trusted, quiescent macOS launcher.
+-//! No package authentication, runtime adoption, exporter or public route.
++//! No package authentication, exporter or public route. Private adoption retains full provenance.
+ #![allow(dead_code)]
+ #![allow(clippy::result_large_err)]
+ use super::{
+@@ -7,6 +7,8 @@
+     ValidatedSwiftReactor,
+ };
+ use crate::Cancellation;
++use super::control::{AdoptedProof, RuntimeControl, SwiftRunBudget, SwiftRunFailure};
++use std::time::Instant;
+ use std::fs::File;
+ use std::io::{self, Read, Seek};
+ 
+@@ -135,7 +137,35 @@
+     proof: ValidatedSwiftReactor,
+     provenance: LoaderProvenanceV1,
+ }
++/// Opaque actual proof owner. Only the consuming carrier method below can
++/// attach selected provenance. No fields, parts or owned extraction are exposed.
++pub(super) struct AdoptionBodyV1 {
++    proof: ValidatedSwiftReactor,
++    selected: Option<LoaderProvenanceV1>,
++}
++impl AdoptionBodyV1 {
++    pub(super) fn ordinary(proof: ValidatedSwiftReactor) -> Self {
++        Self { proof, selected: None }
++    }
++    pub(super) fn proof(&self) -> &ValidatedSwiftReactor { &self.proof }
++    pub(super) fn selected_provenance(&self) -> Option<&LoaderProvenanceV1> {
++        self.selected.as_ref()
++    }
++}
+ impl SelectedValidatedProfileV1 {
++    #[cfg(test)]
++    pub(super) fn test_provenance_v1(&self) -> &LoaderProvenanceV1 { &self.provenance }
++    pub(super) fn adopt(
++        self, budget: SwiftRunBudget, started: Instant, cancellation: Cancellation,
++    ) -> Result<(RuntimeControl, AdoptedProof), SwiftRunFailure> {
++        let Self { proof, provenance } = self;
++        // Sole selected body literal. The original non-Clone owners move here.
++        RuntimeControl::adopt_body(
++            AdoptionBodyV1 { proof, selected: Some(provenance) },
++            budget, started, cancellation,
++        )
++    }
++
+     pub(super) fn validation_budget(&self) -> SwiftValidationBudget {
+         self.provenance.validation_budget
+     }
+@@ -143,7 +173,7 @@
+         self.proof.source()
+     }
+ }
+-struct LoaderProvenanceV1 {
++pub(super) struct LoaderProvenanceV1 {
+     validation_budget: SwiftValidationBudget,
+     source_extent: u64,
+     source: [u8; 32],
+@@ -1094,24 +1124,7 @@
+         ));
+     }
+     usage.source_equality_bytes = input.len() as u64;
+-    for (i, file) in [
+-        &files.source,
+-        &files.build,
+-        &files.session,
+-        files.executable.as_ref().expect("opened owner"),
+-    ]
+-    .into_iter()
+-    .enumerate()
+-    {
+-        if identity(file, Role::Source)? != identities[i] {
+-            return Err(LoaderFailureV1::new(
+-                Refusal::MetadataChanged,
+-                Role::Source,
+-                i,
+-                0,
+-            ));
+-        }
+-    }
++    final_metadata_recheck_v1(files, &identities)?;
+     Ok(SelectedValidatedProfileV1 {
+         proof,
+         provenance: LoaderProvenanceV1 {
+@@ -1126,6 +1139,30 @@
+             identities,
+         },
+     })
++}
++// Metadata errors retain their original typed payload and exact role. Mismatch
++// offsets remain the original identity-array coordinate (0..3).
++fn check_final_identity_v1(
++    role: Role, index: usize, expected: FileIdentityV1,
++    observed: Result<FileIdentityV1, LoaderFailureV1>,
++) -> Result<(), LoaderFailureV1> {
++    if observed? != expected {
++        return Err(LoaderFailureV1::new(Refusal::MetadataChanged, role, index, 0));
++    }
++    Ok(())
++}
++#[cfg(target_os = "macos")]
++fn final_metadata_recheck_v1(
++    files: &ReturnedLoaderFilesV1, identities: &[FileIdentityV1; 4],
++) -> Result<(), LoaderFailureV1> {
++    for (index, (file, role)) in [
++        (&files.source, Role::Source), (&files.build, Role::Build),
++        (&files.session, Role::Session),
++        (files.executable.as_ref().expect("opened owner"), Role::Executable),
++    ].into_iter().enumerate() {
++        check_final_identity_v1(role, index, identities[index], identity(file, role))?;
++    }
++    Ok(())
+ }
+ fn record_validation_peak(
+     usage: &mut LoaderUsageV1,
+@@ -1239,7 +1276,111 @@
+     std::mem::size_of::<ObservationPlacesV1>()
+         + std::mem::size_of::<LoaderPlacesV1>()
+         + std::mem::size_of::<ReadHashPlacesV1>()
++        + std::mem::size_of::<FinalRecheckPlacesV1>()
+ }
+ #[cfg(test)]
+ #[path = "retained_profile_loader_v1_tests.rs"]
+ mod tests;
++
++// Conservative complete new ingress and transfer source places. Whole owners
++// are counted independently instead of borrowing containing padding.
++struct AdoptionEntryPlacesV1 {
++    ordinary_proof: ValidatedSwiftReactor,
++    ordinary_body_return: AdoptionBodyV1,
++    selected_carrier: SelectedValidatedProfileV1,
++    selected_proof_pattern: ValidatedSwiftReactor,
++    selected_provenance_pattern: LoaderProvenanceV1,
++    selected_some: Option<LoaderProvenanceV1>,
++    selected_body_literal: AdoptionBodyV1,
++    inner_body_argument: AdoptionBodyV1,
++    budgets: [SwiftRunBudget; 3],
++    started: [Instant; 3],
++    cancellations: [Cancellation; 3],
++    validation_return: SwiftValidationUsage,
++    proof_borrows: [&'static ValidatedSwiftReactor; 2],
++    body_borrow: &'static AdoptionBodyV1,
++    provenance_borrow: Option<&'static LoaderProvenanceV1>,
++}
++struct AdoptionMovePlacesV1 {
++    adopted_literal: AdoptedProof,
++    pair_literal: (RuntimeControl, AdoptedProof),
++    inner_return: Result<(RuntimeControl, AdoptedProof), SwiftRunFailure>,
++    ordinary_return: Result<(RuntimeControl, AdoptedProof), SwiftRunFailure>,
++    selected_return: Result<(RuntimeControl, AdoptedProof), SwiftRunFailure>,
++    caller_pair: (RuntimeControl, AdoptedProof),
++    caller_option: Option<(RuntimeControl, AdoptedProof)>,
++    caller_result: Result<(RuntimeControl, AdoptedProof), SwiftRunFailure>,
++}
++struct FinalRecheckPlacesV1 {
++    arguments: (&'static ReturnedLoaderFilesV1, &'static [FileIdentityV1;4]),
++    array: [(&'static File, Role);4],
++    iterator: std::iter::Enumerate<std::array::IntoIter<(&'static File,Role),4>>,
++    item: Option<(usize,(&'static File,Role))>,
++    pattern: (usize,(&'static File,Role)),
++    expected_argument: FileIdentityV1,
++    observed_result: Result<FileIdentityV1,LoaderFailureV1>,
++    helper_argument: Result<FileIdentityV1,LoaderFailureV1>,
++    observed_pattern: FileIdentityV1,
++    result_places: [Result<(),LoaderFailureV1>;3],
++    mismatch_literal: LoaderFailureV1,
++}
++pub(super) const ADOPTION_ENTRY_BYTES_V1: usize = std::mem::size_of::<AdoptionEntryPlacesV1>();
++pub(super) const ADOPTION_MOVE_BYTES_V1: usize = std::mem::size_of::<AdoptionMovePlacesV1>();
++pub(super) static ADOPTION_LAYOUTS_V1: [(&str,usize,usize); 36] = [
++    ("SelectedValidatedProfileV1",std::mem::size_of::<SelectedValidatedProfileV1>(),std::mem::align_of::<SelectedValidatedProfileV1>()),
++    ("LoaderProvenanceV1",std::mem::size_of::<LoaderProvenanceV1>(),std::mem::align_of::<LoaderProvenanceV1>()),
++    ("LoaderFailureV1",std::mem::size_of::<LoaderFailureV1>(),std::mem::align_of::<LoaderFailureV1>()),
++    ("LoaderOutcomeV1",std::mem::size_of::<LoaderOutcomeV1>(),std::mem::align_of::<LoaderOutcomeV1>()),
++    ("ReturnedLoaderFilesV1",std::mem::size_of::<ReturnedLoaderFilesV1>(),std::mem::align_of::<ReturnedLoaderFilesV1>()),
++    ("LoaderUsageV1",std::mem::size_of::<LoaderUsageV1>(),std::mem::align_of::<LoaderUsageV1>()),
++    ("FileIdentityV1",std::mem::size_of::<FileIdentityV1>(),std::mem::align_of::<FileIdentityV1>()),
++    ("BuildView",std::mem::size_of::<BuildView<'static>>(),std::mem::align_of::<BuildView<'static>>()),
++    ("SessionView",std::mem::size_of::<SessionView<'static>>(),std::mem::align_of::<SessionView<'static>>()),
++    ("ProcessObservationV1",std::mem::size_of::<ProcessObservationV1>(),std::mem::align_of::<ProcessObservationV1>()),
++    ("BytesProcess",std::mem::size_of::<Bytes<PROCESS_CAP>>(),std::mem::align_of::<Bytes<PROCESS_CAP>>()),
++    ("BytesPath",std::mem::size_of::<Bytes<STR_CAP>>(),std::mem::align_of::<Bytes<STR_CAP>>()),
++    ("EnvironmentEntries",std::mem::size_of::<[(usize,usize,usize);ENTRY_CAP]>(),std::mem::align_of::<[(usize,usize,usize);ENTRY_CAP]>()),
++    ("ResultSelected",std::mem::size_of::<Result<SelectedValidatedProfileV1,LoaderFailureV1>>(),std::mem::align_of::<Result<SelectedValidatedProfileV1,LoaderFailureV1>>()),
++    ("ValidationResult",std::mem::size_of::<Result<ValidatedSwiftReactor,SwiftValidationFailure>>(),std::mem::align_of::<Result<ValidatedSwiftReactor,SwiftValidationFailure>>()),
++    ("VecHeader",std::mem::size_of::<Vec<u8>>(),std::mem::align_of::<Vec<u8>>()),
++    ("File",std::mem::size_of::<File>(),std::mem::align_of::<File>()),
++    ("OptionFile",std::mem::size_of::<Option<File>>(),std::mem::align_of::<Option<File>>()),
++    ("ValidationBudget",std::mem::size_of::<SwiftValidationBudget>(),std::mem::align_of::<SwiftValidationBudget>()),
++    ("ValidationFailure",std::mem::size_of::<SwiftValidationFailure>(),std::mem::align_of::<SwiftValidationFailure>()),
++    ("ObservationPlaces",std::mem::size_of::<ObservationPlacesV1>(),std::mem::align_of::<ObservationPlacesV1>()),
++    ("LoaderPlaces",std::mem::size_of::<LoaderPlacesV1>(),std::mem::align_of::<LoaderPlacesV1>()),
++    ("ReadHashPlaces",std::mem::size_of::<ReadHashPlacesV1>(),std::mem::align_of::<ReadHashPlacesV1>()),
++    ("AdoptionBodyV1",std::mem::size_of::<AdoptionBodyV1>(),std::mem::align_of::<AdoptionBodyV1>()),
++    ("OptionalProvenance",std::mem::size_of::<Option<LoaderProvenanceV1>>(),std::mem::align_of::<Option<LoaderProvenanceV1>>()),
++    ("BorrowedProvenance",std::mem::size_of::<Option<&'static LoaderProvenanceV1>>(),std::mem::align_of::<Option<&'static LoaderProvenanceV1>>()),
++    ("AdoptionEntryPlacesV1",std::mem::size_of::<AdoptionEntryPlacesV1>(),std::mem::align_of::<AdoptionEntryPlacesV1>()),
++    ("AdoptionMovePlacesV1",std::mem::size_of::<AdoptionMovePlacesV1>(),std::mem::align_of::<AdoptionMovePlacesV1>()),
++    ("AdoptionPair",std::mem::size_of::<(RuntimeControl,AdoptedProof)>(),std::mem::align_of::<(RuntimeControl,AdoptedProof)>()),
++    ("AdoptionResult",std::mem::size_of::<Result<(RuntimeControl,AdoptedProof),SwiftRunFailure>>(),std::mem::align_of::<Result<(RuntimeControl,AdoptedProof),SwiftRunFailure>>()),
++    ("OptionalAdoptionPair",std::mem::size_of::<Option<(RuntimeControl,AdoptedProof)>>(),std::mem::align_of::<Option<(RuntimeControl,AdoptedProof)>>()),
++    ("BorrowedAdoptionBody",std::mem::size_of::<&'static AdoptionBodyV1>(),std::mem::align_of::<&'static AdoptionBodyV1>()),
++    ("BorrowedSelectedCarrier",std::mem::size_of::<&'static SelectedValidatedProfileV1>(),std::mem::align_of::<&'static SelectedValidatedProfileV1>()),
++    ("FinalRecheckPlacesV1",std::mem::size_of::<FinalRecheckPlacesV1>(),std::mem::align_of::<FinalRecheckPlacesV1>()),
++    ("AdoptionCleanupPlacesV1",super::control::ADOPTION_CLEANUP_BYTES_V1,super::control::ADOPTION_CLEANUP_ALIGNMENT_V1),
++    ("FullProvenanceEncoding",std::mem::size_of::<[u8;496]>(),std::mem::align_of::<[u8;496]>()),
++];
++
++// Test-only complete field encoding. This borrows real provenance and is never
++// parsed into authority, object memory, a proof, a body or a carrier.
++#[cfg(test)]
++pub(super) fn test_provenance_encoding_v1(p: &LoaderProvenanceV1) -> [u8;496] {
++    let mut bytes=[0u8;496];
++    let mut at=0;
++    for value in [p.validation_budget.source_bytes as u64,
++        p.validation_budget.metadata_bytes as u64,p.validation_budget.scratch_bytes as u64,
++        p.validation_budget.work_credits,p.validation_budget.deadline_ms,p.source_extent] {
++        bytes[at..at+8].copy_from_slice(&value.to_le_bytes());at+=8;
++    }
++    for digest in [&p.source,&p.manifest,&p.build,&p.session,&p.executable,&p.nonce] {
++        bytes[at..at+32].copy_from_slice(digest);at+=32;
++    }
++    for identity in p.identities {
++        bytes[at..at+64].copy_from_slice(&identity.encode());at+=64;
++    }
++    assert_eq!(at,bytes.len());bytes
++}

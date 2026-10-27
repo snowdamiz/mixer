@@ -1,0 +1,22 @@
+error[E0505]: cannot move out of `p` because it is borrowed
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/fixtures/body-cannot-drop-during-provenance-use.rs:6:65
+    |
+  6 | fn f(p: AdoptionBodyV1) { let q = p.selected_provenance(); drop(p); std::hint::black_box(q); }
+    |      -                            -                             ^                        - borrow later used here
+    |      |                            |                             |
+    |      binding `p` declared here    borrow of `p` occurs here     move out of `p` occurs here
+    |
+note: if `AdoptionBodyV1` implemented `Clone`, you could clone the value
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/scratch/debug-production-body-cannot-drop-during-provenance-use/src/experimental_swift_reactor/retained_profile_loader_v1.rs:142:1
+    |
+142 | pub(super) struct AdoptionBodyV1 {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider implementing `Clone` for this type
+    |
+   ::: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/fixtures/body-cannot-drop-during-provenance-use.rs:6:35
+    |
+  6 | fn f(p: AdoptionBodyV1) { let q = p.selected_provenance(); drop(p); std::hint::black_box(q); }
+    |                                   - you could clone this value
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0505`.

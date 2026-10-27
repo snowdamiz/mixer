@@ -1,0 +1,25 @@
+--- parent/collect.py
++++ current/collect.py
+@@ -5,9 +5,9 @@
+ import sys
+ from capture import capture, digest, ROOT, REPO
+ 
+-SHA = 'da558f826e6ca5c753861b4c992414d531fae027'
+-TREE = '9266a1db1fe6a3a8cb2fc6b561ebfcf0dd99e122'
+-RUN = 40441050306
++SHA = '606c42876855897c315ee279dcd38fabaeb561ad'
++TREE = '6e7ef189ea796effb2099eff927436bd407a080b'
++RUN = 40447941540
+ assert __debug__ and not (ROOT / 'source-custody.json').exists()
+ capture('gh-version', ['gh', '--version'])
+ capture('git-version', ['git', '--version'])
+@@ -34,6 +34,9 @@
+     rows.append({'path': path, 'captured_path': destination, **digest(data), 'command': 'source-member-' + str(i) + '.command.json'})
+ (ROOT / 'source-custody.json').write_text(json.dumps({'source_revision': SHA, 'source_tree': TREE, 'paths': rows}, indent=2) + '\n')
+ capture('source-selection', ['git', 'show', SHA + ':verification/swift-cache-state-ci-workflow-root-review/selection.json'])
++capture('source-amendment-root', ['git', 'show', SHA + ':verification/github-delivery-ci-deadline-readiness/root-acceptance.json'])
++for role, path in [('producer-seal', 'verification/swift-cache-state-ci-deadline-readiness/seal.json'), ('independent-packet', 'verification/swift-cache-state-ci-deadline-readiness-independent/packet-files.json'), ('independent-decision', 'verification/swift-cache-state-ci-deadline-readiness-independent/final-decision.json')]:
++    capture('source-amendment-' + role, ['git', 'show', SHA + ':' + path])
+ capture('source-workflow', ['git', 'show', SHA + ':.github/workflows/verify.yml'])
+ capture('comparison-final-decision', ['git', 'show', SHA + ':verification/swift-cache-state-ci-independent/corrected-review/final-decision.json'], 'comparison-final-decision.json')
+ capture('content-audit', [sys.executable, '-B', str(ROOT / 'audit-content.py')])

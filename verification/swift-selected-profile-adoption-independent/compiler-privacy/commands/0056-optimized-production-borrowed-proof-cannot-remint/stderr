@@ -1,0 +1,28 @@
+error[E0308]: mismatched types
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/fixtures/borrowed-proof-cannot-remint.rs:6:61
+    |
+  6 | fn f(p: &AdoptionBodyV1) { let _ = AdoptionBodyV1::ordinary(p.proof().clone()); }
+    |                                    ------------------------ ^^^^^^^^^^^^^^^^^ expected `ValidatedSwiftReactor`, found `&ValidatedSwiftReactor`
+    |                                    |
+    |                                    arguments to this function are incorrect
+    |
+note: `swift::ValidatedSwiftReactor` does not implement `Clone`, so `&swift::ValidatedSwiftReactor` was cloned instead
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/fixtures/borrowed-proof-cannot-remint.rs:6:61
+    |
+  6 | fn f(p: &AdoptionBodyV1) { let _ = AdoptionBodyV1::ordinary(p.proof().clone()); }
+    |                                                             ^^^^^^^^^
+note: associated function defined here
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/scratch/optimized-production-borrowed-proof-cannot-remint/src/experimental_swift_reactor/retained_profile_loader_v1.rs:147:19
+    |
+147 |     pub(super) fn ordinary(proof: ValidatedSwiftReactor) -> Self {
+    |                   ^^^^^^^^ ----------------------------
+help: consider annotating `swift::ValidatedSwiftReactor` with `#[derive(Clone)]`
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/scratch/optimized-production-borrowed-proof-cannot-remint/src/experimental/swift.rs:145:1
+    |
+145 + #[derive(Clone)]
+146 | pub struct ValidatedSwiftReactor {
+    |
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.

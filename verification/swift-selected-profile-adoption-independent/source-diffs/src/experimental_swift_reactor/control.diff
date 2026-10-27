@@ -1,0 +1,136 @@
+--- accepted-loader/src/experimental_swift_reactor/control.rs
++++ selected-adoption/src/experimental_swift_reactor/control.rs
+@@ -8,6 +8,7 @@
+ use crate::experimental_wasi::{WasiBudget, WasiFailure, WasiUsage};
+ use crate::Cancellation;
+ use std::mem::size_of;
++use super::retained_profile_loader_v1::{AdoptionBodyV1, LoaderProvenanceV1};
+ use std::sync::atomic::{AtomicU64, Ordering};
+ use std::time::{Duration, Instant};
+ 
+@@ -342,13 +343,16 @@
+ /// The actual proof moves with both adopted tickets. This does not modify the
+ /// sealed proof's layout or manufacture independently executable authority.
+ pub(crate) struct AdoptedProof {
+-    proof: ValidatedSwiftReactor,
++    body: AdoptionBodyV1,
+     source: ReservationTicket,
+     metadata: ReservationTicket,
+ }
+ impl AdoptedProof {
+     pub(crate) fn proof(&self) -> &ValidatedSwiftReactor {
+-        &self.proof
++        self.body.proof()
++    }
++    pub(super) fn selected_provenance(&self) -> Option<&LoaderProvenanceV1> {
++        self.body.selected_provenance()
+     }
+ }
+ #[derive(Clone, Copy, Debug)]
+@@ -365,6 +369,32 @@
+     Controls,
+     MemoryPages,
+ }
++
++// New source-authored destruction/refund places. Foundation retains this floor
++// until all authentic body/proof owners are destroyed. Not physical stack/RSS.
++#[allow(dead_code)]
++struct AdoptionCleanupPlacesV1 {
++    adopted_argument: AdoptedProof,
++    body_pattern: AdoptionBodyV1,
++    body_drop_argument: AdoptionBodyV1,
++    source_pattern: ReservationTicket,
++    metadata_pattern: ReservationTicket,
++    observation: Option<WasiUsage>,
++    source_result: Result<(), SwiftRunFailure>,
++    metadata_result: Result<(), SwiftRunFailure>,
++    combined_return: Result<(), SwiftRunFailure>,
++    refused_body_drop: AdoptionBodyV1,
++    refused_source: Option<ReservationTicket>,
++    refused_metadata: Option<ReservationTicket>,
++    refused_ticket_patterns: [ReservationTicket; 2],
++    refused_refund_results: [Result<(), SwiftRunFailure>; 2],
++    failure_pattern: SwiftRunFailure,
++    cleanup_return: SwiftRunUsage,
++    cleanup_some: Option<SwiftRunUsage>,
++    receiver_borrows: [&'static mut RuntimeControl; 5],
++}
++pub(super) const ADOPTION_CLEANUP_BYTES_V1: usize = size_of::<AdoptionCleanupPlacesV1>();
++pub(super) const ADOPTION_CLEANUP_ALIGNMENT_V1: usize = std::mem::align_of::<AdoptionCleanupPlacesV1>();
+ 
+ /// The sole runtime admission authority. All fields and tickets are inline.
+ /// WASI retains sole ownership of its existing active counters and budgets.
+@@ -520,7 +550,7 @@
+ // The public spelling remains a function that copies the precomputed Option.
+ // No runtime temporary array, IntoIter or try_fold is created by this formula.
+ const FOUNDATION_CONSTRUCTION_BYTES: Option<usize> = {
+-    let terms: [(usize, usize); 9] = [
++    let terms: [(usize, usize); 13] = [
+         (3, size_of::<ValidatedSwiftReactor>()),
+         (3, size_of::<RuntimeControl>()),
+         (3, size_of::<AdoptedProof>()),
+@@ -532,6 +562,12 @@
+         // Composed constructor inputs and provenance/admission borrows exist
+         // before its outer enlargement, so they belong in the initial floor.
+         (1, super::execution::CONSTRUCTION_BOOTSTRAP_BYTES),
++        // Source ingress/body/result moves precede dependent preparation, and
++        // body destruction/refund places survive through final cleanup.
++        (1, super::retained_profile_loader_v1::ADOPTION_ENTRY_BYTES_V1),
++        (1, super::retained_profile_loader_v1::ADOPTION_MOVE_BYTES_V1),
++        (1, ADOPTION_CLEANUP_BYTES_V1),
++        (1, super::cache::INITIAL_PROFILE_WRAPPER_SOURCE_PLACES_V1),
+     ];
+     let mut sum = Some(0usize);
+     let mut index = 0usize;
+@@ -562,7 +598,18 @@
+         started: Instant,
+         cancellation: Cancellation,
+     ) -> Result<(Self, AdoptedProof), SwiftRunFailure> {
+-        let validation = proof.usage();
++        Self::adopt_body(AdoptionBodyV1::ordinary(proof), budget, started, cancellation)
++    }
++
++    /// One shared original admission/cleanup implementation for both ingresses.
++    /// The opaque body cannot be made selected from arbitrary proof/digest parts.
++    pub(super) fn adopt_body(
++        body: AdoptionBodyV1,
++        budget: SwiftRunBudget,
++        started: Instant,
++        cancellation: Cancellation,
++    ) -> Result<(Self, AdoptedProof), SwiftRunFailure> {
++        let validation = body.proof().usage();
+         let mut control = Self {
+             owner: 0,
+             budget,
+@@ -647,7 +694,7 @@
+             // Actual storage destruction precedes every proof refund. Refunding
+             // control's own headers is possible only by consuming/dropping the
+             // entire closure below; no admission can follow that operation.
+-            drop(proof);
++            drop(body);
+             if let Some(ticket) = source {
+                 let _ = control.refund(ticket);
+             }
+@@ -660,7 +707,7 @@
+         Ok((
+             control,
+             AdoptedProof {
+-                proof,
++                body,
+                 source: source.expect("successful sealed adoption owns source ticket"),
+                 metadata: metadata.expect("successful sealed adoption owns metadata ticket"),
+             },
+@@ -1203,11 +1250,11 @@
+         wasi: Option<WasiUsage>,
+     ) -> Result<(), SwiftRunFailure> {
+         let AdoptedProof {
+-            proof,
++            body,
+             source,
+             metadata,
+         } = adopted;
+-        drop(proof);
++        drop(body);
+         let source_result = self.refund_with_wasi(source, wasi);
+         let metadata_result = self.refund_with_wasi(metadata, wasi);
+         source_result.and(metadata_result)

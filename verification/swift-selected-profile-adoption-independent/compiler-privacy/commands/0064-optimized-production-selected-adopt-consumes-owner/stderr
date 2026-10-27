@@ -1,0 +1,22 @@
+error[E0382]: use of moved value: `p`
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/fixtures/selected-adopt-consumes-owner.rs:6:132
+    |
+  6 | fn f(p: SelectedValidatedProfileV1) { let _ = p.adopt(SwiftRunBudget::default(), Instant::now(), Cancellation::default()); let _ = p.ad...
+    |      -                                        - value moved here                                                                   ^ value used here after move
+    |      |
+    |      move occurs because `p` has type `SelectedValidatedProfileV1`, which does not implement the `Copy` trait
+    |
+note: if `SelectedValidatedProfileV1` implemented `Clone`, you could clone the value
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/scratch/optimized-production-selected-adopt-consumes-owner/src/experimental_swift_reactor/retained_profile_loader_v1.rs:136:1
+    |
+136 | pub(super) struct SelectedValidatedProfileV1 {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider implementing `Clone` for this type
+    |
+   ::: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/fixtures/selected-adopt-consumes-owner.rs:6:47
+    |
+  6 | fn f(p: SelectedValidatedProfileV1) { let _ = p.adopt(SwiftRunBudget::default(), Instant::now(), Cancellation::default()); let _ = ...
+    |                                               - you could clone this value
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0382`.

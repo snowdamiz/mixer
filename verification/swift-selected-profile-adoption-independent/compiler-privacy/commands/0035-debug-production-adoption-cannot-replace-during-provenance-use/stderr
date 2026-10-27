@@ -1,0 +1,11 @@
+error[E0502]: cannot borrow `*p` as mutable because it is also borrowed as immutable
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-selected-profile-adoption-independent/compiler-privacy/fixtures/adoption-cannot-replace-during-provenance-use.rs:6:92
+  |
+6 | ...t q = p.selected_provenance(); let _ = std::mem::replace(p, other); std::hint::black_box(q); }
+  |          -                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^                       - immutable borrow later used here
+  |          |                                |
+  |          immutable borrow occurs here     mutable borrow occurs here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0502`.

@@ -1,0 +1,310 @@
+--- accepted-loader/src/experimental_swift_reactor/cache/initial_profile_v1/tests.rs
++++ selected-adoption/src/experimental_swift_reactor/cache/initial_profile_v1/tests.rs
+@@ -19,7 +19,7 @@
+  }
+ }
+ pub(super) fn phase_boundary(phase:&mut CacheConstructionPhase<'_>) {mark(1);if matches!(FAULT.with(Cell::get),4|45) {phase.constructed=true;}
+- #[cfg(test)] if matches!(FAULT.with(Cell::get),46|47) {let limit=phase.control.control.usage(None).reservations.combined.current+92128;let previous=phase.control.control.test_replace_combined_limit(limit);SAVED_LIMIT.with(|s|s.set(previous));}
++ #[cfg(test)] if matches!(FAULT.with(Cell::get),46|47) {let limit=phase.control.control.usage(None).reservations.combined.current+95152;let previous=phase.control.control.test_replace_combined_limit(limit);SAVED_LIMIT.with(|s|s.set(previous));}
+ }
+ pub(super) fn completion_boundary(_phase:&mut CacheConstructionPhase<'_>) {mark(2);#[cfg(test)] if matches!(FAULT.with(Cell::get),5|45|47) {SAVED.with(|s|*s.borrow_mut()=_phase.control.control.test_replace_construction(None));}}
+ fn reset(fault:u32) {FAULT.with(|f|f.set(fault));COUNTERS.with(|v|v.set([0;5]));assert!(SAVED.with(|s|s.borrow().is_none()));}
+@@ -42,6 +42,92 @@
+   assert_eq!(usage.reservations.combined.current,enlarged);assert_eq!(usage.reservations.construction.current,enlarged);assert_eq!(usage.reservations.live_tickets,1);assert!(usage.cleanup_invariant.is_some());println!("FAULT_QUARANTINE {:?}",usage);
+  } else {assert_eq!(usage.reservations.combined.current,0);assert_eq!(usage.reservations.live_tickets,0);}
+ 
++}
++
++#[cfg(test)]
++pub(super) fn selected_owner_outcome_v1(
++ selected: super::super::super::retained_profile_loader_v1::SelectedValidatedProfileV1, case:&str,
++) {
++ use super::super::super::retained_profile_loader_v1::test_provenance_encoding_v1;
++ let expected=test_provenance_encoding_v1(selected.test_provenance_v1());
++ if let Some(field)=case.strip_prefix("admission-") {
++  let mut budget=BUDGET_RECORDS[0].1;
++  let cancellation=Cancellation::default();
++  match field {"source"=>budget.source_bytes=0,"metadata"=>budget.metadata_bytes=0,
++   "combined"=>budget.combined_bytes=0,"deadline"=>budget.deadline_ms=0,
++   "cancelled"=>cancellation.cancel(),"invalid"=>budget.source_bytes+=1,_=>panic!("unknown selected refusal")};
++  let started=Instant::now();
++  let (result,allocations)=crate::experimental_swift_reactor::allocation_tests::measure(||selected.adopt(budget,started,cancellation));
++  let failure=match result {Err(f)=>f,Ok(_)=>panic!("selected admission unexpectedly accepted")};
++  let expected_kind=match field {"source"|"metadata"=>SwiftRunFailureKind::Adoption,
++   "combined"=>SwiftRunFailureKind::CombinedExhausted,"deadline"=>SwiftRunFailureKind::Deadline,
++   "cancelled"=>SwiftRunFailureKind::Cancelled,"invalid"=>SwiftRunFailureKind::InvalidBudget,_=>unreachable!()};
++  assert_eq!(failure.kind,expected_kind);assert_eq!(failure.stage,SwiftRunStage::Adoption);
++  assert_eq!(failure.at_failure.validation.source_bytes,1947);
++  let after=failure.after_cleanup.unwrap();assert_eq!(after.reservations.combined.current,0);
++  assert_eq!(after.reservations.live_tickets,0);assert_eq!(after.cleanup_invariant,None);
++  assert_eq!(allocations.allocations,0);assert!(allocations.deallocations>0);assert!(allocations.freed_bytes>=1947);
++  println!("SELECTED_OUTCOME\t{case}\t0\toriginal_refusal_actual_body_destruction\t{:?}\tfreed={}",failure.kind,allocations.freed_bytes);return;
++ }
++ let fault=match case {"preparation"=>1,"construction"=>4,"completion"=>5,"header"=>6,"owner"=>7,_=>0};
++ reset(fault);
++ let (mut control,adopted)=selected.adopt(BUDGET_RECORDS[0].1,Instant::now(),Cancellation::default()).unwrap();
++ assert_eq!(test_provenance_encoding_v1(adopted.selected_provenance().unwrap()),expected);
++ if case=="occupied" {
++  let (mut occupied_control,ordinary)=adopt(BUDGET_RECORDS[0].1);
++  let mut cache=None;let mut first=file("selected-occupied-first.rows");
++  let result=construct_with_initial_profile_v1(&mut cache,&mut occupied_control,None,ordinary,component_selection(),&claims(),&mut first);
++  assert!(matches!(&result,InitialProfileConstructionOutcomeV1::HeaderEncoded{rows:Ok(_),..}));
++  reset(0);let mut other=file("selected-occupied-other.rows");
++  let returned=construct_with_initial_profile_v1(&mut cache,&mut control,None,adopted,component_selection(),&claims(),&mut other);
++  match returned {InitialProfileConstructionOutcomeV1::SlotOccupied{adopted}=>{
++   assert_eq!(test_provenance_encoding_v1(adopted.selected_provenance().unwrap()),expected);control.drop_proof(adopted).unwrap();
++  },_=>panic!("selected occupied owner lost")};
++  assert_eq!(COUNTERS.with(Cell::get),[0;5]);assert_eq!(other.metadata().unwrap().len(),0);
++  assert_eq!(control.finish_owned_cleanup(None).reservations.combined.current,0);
++  cleanup(cache,occupied_control,result);println!("SELECTED_OUTCOME\toccupied\t1\tfull_provenance_retained");return;
++ }
++ if case=="foreign-control" {
++  let (mut foreign,ordinary)=adopt(BUDGET_RECORDS[0].1);let mut cache=None;let mut output=file("selected-foreign.rows");
++  let result=construct_with_initial_profile_v1(&mut cache,&mut foreign,None,adopted,component_selection(),&claims(),&mut output);
++  match result {InitialProfileConstructionOutcomeV1::PreparationFailed{failure,adopted}=>{
++   assert_eq!(failure.kind,SwiftRunFailureKind::Invariant);
++   assert_eq!(test_provenance_encoding_v1(adopted.selected_provenance().unwrap()),expected);control.drop_proof(adopted).unwrap();
++  },_=>panic!("selected foreign proof not returned")};
++  foreign.drop_proof(ordinary).unwrap();
++  assert_eq!(foreign.finish_owned_cleanup(None).reservations.combined.current,0);
++  assert_eq!(control.finish_owned_cleanup(None).reservations.combined.current,0);
++  println!("SELECTED_OUTCOME\tforeign-control\t3\tfull_provenance_retained");return;
++ }
++ let mut selection=alternative(BUDGET_RECORDS[0].1);
++ if case=="selection" {selection.local.entries-=1;}
++ let mut cache=None;let mut output=file(&format!("selected-{case}.rows"));
++ let result=construct_with_initial_profile_v1(&mut cache,&mut control,None,adopted,&selection,&claims(),&mut output);
++ let variant=match (&result,case) {
++  (InitialProfileConstructionOutcomeV1::SelectionRefused{adopted,..},"selection")=>{
++   assert_eq!(test_provenance_encoding_v1(adopted.selected_provenance().unwrap()),expected);2},
++  (InitialProfileConstructionOutcomeV1::PreparationFailed{failure,adopted},"preparation")=>{
++   assert_eq!(failure.kind,SwiftRunFailureKind::Cancelled);
++   assert_eq!(test_provenance_encoding_v1(adopted.selected_provenance().unwrap()),expected);3},
++  (InitialProfileConstructionOutcomeV1::ConstructionFailed{failure,completion},"construction")=>{
++   assert_eq!(failure.failure.code,"swift_cache_construct_once");assert!(completion.is_ok());
++   assert_eq!(test_provenance_encoding_v1(failure.rejected_adopted.as_ref().unwrap().selected_provenance().unwrap()),expected);4},
++  (InitialProfileConstructionOutcomeV1::PhaseCompletionFailed{failure},"completion")=>{assert_eq!(failure.code,"swift_run_missing_construction");5},
++  (InitialProfileConstructionOutcomeV1::HeaderRefused{error},"header")=>{assert_eq!(error.code,4);6},
++  (InitialProfileConstructionOutcomeV1::HeaderOwnerCheckFailed{failure},"owner")=>{assert_eq!(failure.code,"swift_cache_missing_header");7},
++  (InitialProfileConstructionOutcomeV1::HeaderEncoded{rows:Ok(_),..},"encoded")=>8,
++  _=>panic!("selected case outcome mismatch {case}"),
++ };
++ if let Some(actual)=cache.as_ref() {assert_eq!(test_provenance_encoding_v1(actual.adopted.selected_provenance().unwrap()),expected);}
++ let chronology=match case {"selection"=>[0;5],"preparation"=>[1,0,0,0,0],
++  "encoded"=>[1,1,1,1,1],_=>[1,1,1,0,0]};
++ assert_eq!(COUNTERS.with(Cell::get),chronology);
++ if case=="completion" {let ticket=SAVED.with(|s|s.borrow_mut().take());assert!(control.test_replace_construction(ticket).is_none());}
++ if case=="header" {cache.as_mut().unwrap().next_nonce=1;}
++ if case=="owner" {cache.as_mut().unwrap().header=SAVED.with(|s|s.borrow_mut().take());}
++ if case!="encoded" {assert_eq!(output.metadata().unwrap().len(),0);}
++ println!("SELECTED_OUTCOME\t{case}\t{variant}\tfull_provenance_retained");
++ cleanup(cache,control,result);
+ }
+ fn uint(mut n: u32, out: &mut Vec<u8>) {
+     loop {
+@@ -175,7 +261,7 @@
+  ("test-selected-zero-source",SwiftRunBudget {active_pins:64,cache_bytes:16777216,cache_entries:64,cache_entry_bytes:8388608,cache_work:64000000,combined_bytes:268435456,controls:4096,deadline_ms:30000,execution_work:1000000000,frames:64,host_calls:32768,instruction_fuel:100000000,memory_pages:768,metadata_bytes:16777216,source_bytes:0,state_bytes:134217728,values:16384}),
+ ];
+ 
+-#[cfg_attr(test,test)] pub(super) fn selected_layout_and_places() {
++pub(super) fn selected_layout_raw_v1() {
+  println!("VALUES cleanup={} header={} construction={} operation={} foundation={}",cache_cleanup_temporary_bytes().unwrap(),cache_header_bytes().unwrap(),cache_construction_bytes().unwrap(),cache_operation_bytes().unwrap(),foundation_construction_bytes().unwrap());
+  macro_rules! row {($id:literal,$ty:ty)=>{println!("TYPE\t{}\t{}\t{}\t{}",$id,stringify!($ty).replace('\n'," "),size_of::<$ty>(),std::mem::align_of::<$ty>());};}
+  row!(1,Result<Option<WasiUsage>, SwiftRunFailure>);
+@@ -343,6 +429,9 @@
+  row!(163,&'static mut File);
+  row!(164,u64);
+  row!(165,usize);
++ for (index,(name,bytes,alignment)) in super::super::super::retained_profile_loader_v1::ADOPTION_LAYOUTS_V1.iter().enumerate() {
++  println!("TYPE\t{}\t{}\t{}\t{}",166+index,name,bytes,alignment);
++ }
+  macro_rules! extra {($ty:ty)=>{println!("EXTRA\t{}\t{}\t{}",stringify!($ty).replace('\n'," "),size_of::<$ty>(),std::mem::align_of::<$ty>());};}
+  extra!(Result<InitialProfileScalarsV1,ProfileAdmissionFailureV1>);
+  extra!(Result<u64,ProfileAdmissionFailureV1>);
+@@ -368,6 +457,9 @@
+  extra!(Option<(usize,u64)>);
+  extra!(Option<&'static Option<ScanPlan>>);
+  extra!(Option<&'static u8>);
++}
++#[cfg_attr(test,test)] pub(super) fn selected_layout_and_places() {
++ selected_layout_raw_v1();
+  #[cfg(test)] assert!(matches!(compare_local_structure_v1(&selected_initial_profile_v1().local),Err(ProfileHeaderErrorV1 {code:6,..})));
+  #[cfg(not(test))] compare_local_structure_v1(&selected_initial_profile_v1().local).unwrap_or_else(|e|panic!("layout {}",e.code));
+ 
+@@ -377,7 +469,7 @@
+  let result=construct_with_initial_profile_v1(&mut cache,&mut control,None,adopted,component_selection(),&claims(),&mut output);
+  match &result {InitialProfileConstructionOutcomeV1::HeaderEncoded {header,rows}=>{
+   assert!(rows.is_ok(),"{:?}",rows);assert_eq!(&header.bytes[..8],b"MIXPRF01");
+-  for (offset,value) in [(8,1u64),(16,512),(24,32),(32,80000),(40,cache.as_ref().unwrap().proof().source().len() as u64),(48,37),(56,64),(64,64),(72,1),(80,118240),(88,16777216),(96,8388608)] {assert_eq!(u64::from_le_bytes(header.bytes[offset..offset+8].try_into().unwrap()),value);}
++  for (offset,value) in [(8,1u64),(16,512),(24,32),(32,80000),(40,cache.as_ref().unwrap().proof().source().len() as u64),(48,37),(56,64),(64,64),(72,1),(80,121264),(88,16777216),(96,8388608)] {assert_eq!(u64::from_le_bytes(header.bytes[offset..offset+8].try_into().unwrap()),value);}
+   assert_eq!(&header.bytes[104..128],&[0;24]);assert_eq!(&header.bytes[384..],&[0;128]);for i in 0..8 {assert_eq!(&header.bytes[128+i*32..160+i*32],&[i as u8+1;32]);}
+  },_=>panic!("unexpected fresh outcome")}
+  assert_eq!(COUNTERS.with(Cell::get),[1,1,1,1,1]);
+@@ -453,7 +545,7 @@
+  local:SelectedLocalStructureV1 {
+   digest_bytes:32,
+   digest_slots:8,
+-  entries:165,
++  entries:201,
+   header_bytes:512,
+   header_error_schema:1,
+   header_words:16,
+@@ -466,11 +558,11 @@
+   selected_slots_max:64,
+   trailing_zero_bytes:128,
+   word_bytes:8,
+-  cache_cleanup_bytes:62888,
+-  cache_header_bytes:92128,
+-  cache_construction_bytes:61880,
++  cache_cleanup_bytes:65408,
++  cache_header_bytes:95152,
++  cache_construction_bytes:69944,
+   cache_operation_bytes:92350,
+-  cache_fixed_at_selected_maxslots:118240,
++  cache_fixed_at_selected_maxslots:121264,
+   type_layout:[
+    LocalTypeLayoutV1 {id:1,reserved:0,bytes:1096,alignment:8},
+    LocalTypeLayoutV1 {id:2,reserved:0,bytes:1096,alignment:8},
+@@ -493,8 +585,8 @@
+    LocalTypeLayoutV1 {id:19,reserved:0,bytes:24,alignment:8},
+    LocalTypeLayoutV1 {id:20,reserved:0,bytes:96,alignment:8},
+    LocalTypeLayoutV1 {id:21,reserved:0,bytes:32,alignment:8},
+-   LocalTypeLayoutV1 {id:22,reserved:0,bytes:1040,alignment:8},
+-   LocalTypeLayoutV1 {id:23,reserved:0,bytes:1040,alignment:8},
++   LocalTypeLayoutV1 {id:22,reserved:0,bytes:1544,alignment:8},
++   LocalTypeLayoutV1 {id:23,reserved:0,bytes:1544,alignment:8},
+    LocalTypeLayoutV1 {id:24,reserved:0,bytes:1136,alignment:8},
+    LocalTypeLayoutV1 {id:25,reserved:0,bytes:1136,alignment:8},
+    LocalTypeLayoutV1 {id:26,reserved:0,bytes:1136,alignment:8},
+@@ -536,11 +628,11 @@
+    LocalTypeLayoutV1 {id:62,reserved:0,bytes:1096,alignment:8},
+    LocalTypeLayoutV1 {id:63,reserved:0,bytes:16,alignment:8},
+    LocalTypeLayoutV1 {id:64,reserved:0,bytes:64,alignment:8},
+-   LocalTypeLayoutV1 {id:65,reserved:0,bytes:928,alignment:8},
+-   LocalTypeLayoutV1 {id:66,reserved:0,bytes:1808,alignment:8},
+-   LocalTypeLayoutV1 {id:67,reserved:0,bytes:1808,alignment:8},
+-   LocalTypeLayoutV1 {id:68,reserved:0,bytes:1808,alignment:8},
+-   LocalTypeLayoutV1 {id:69,reserved:0,bytes:712,alignment:8},
++   LocalTypeLayoutV1 {id:65,reserved:0,bytes:1432,alignment:8},
++   LocalTypeLayoutV1 {id:66,reserved:0,bytes:2312,alignment:8},
++   LocalTypeLayoutV1 {id:67,reserved:0,bytes:2312,alignment:8},
++   LocalTypeLayoutV1 {id:68,reserved:0,bytes:2312,alignment:8},
++   LocalTypeLayoutV1 {id:69,reserved:0,bytes:1216,alignment:8},
+    LocalTypeLayoutV1 {id:70,reserved:0,bytes:1304,alignment:8},
+    LocalTypeLayoutV1 {id:71,reserved:0,bytes:1096,alignment:8},
+    LocalTypeLayoutV1 {id:72,reserved:0,bytes:760,alignment:8},
+@@ -594,7 +686,7 @@
+    LocalTypeLayoutV1 {id:120,reserved:0,bytes:32,alignment:8},
+    LocalTypeLayoutV1 {id:121,reserved:0,bytes:1720,alignment:8},
+    LocalTypeLayoutV1 {id:122,reserved:0,bytes:1496,alignment:8},
+-   LocalTypeLayoutV1 {id:123,reserved:0,bytes:712,alignment:8},
++   LocalTypeLayoutV1 {id:123,reserved:0,bytes:1216,alignment:8},
+    LocalTypeLayoutV1 {id:124,reserved:0,bytes:136,alignment:8},
+    LocalTypeLayoutV1 {id:125,reserved:0,bytes:48,alignment:8},
+    LocalTypeLayoutV1 {id:126,reserved:0,bytes:16,alignment:8},
+@@ -603,24 +695,24 @@
+    LocalTypeLayoutV1 {id:129,reserved:0,bytes:512,alignment:1},
+    LocalTypeLayoutV1 {id:130,reserved:0,bytes:88,alignment:8},
+    LocalTypeLayoutV1 {id:131,reserved:0,bytes:1104,alignment:8},
+-   LocalTypeLayoutV1 {id:132,reserved:0,bytes:2912,alignment:8},
++   LocalTypeLayoutV1 {id:132,reserved:0,bytes:3416,alignment:8},
+    LocalTypeLayoutV1 {id:133,reserved:0,bytes:72,alignment:8},
+    LocalTypeLayoutV1 {id:134,reserved:0,bytes:64,alignment:8},
+    LocalTypeLayoutV1 {id:135,reserved:0,bytes:32,alignment:8},
+    LocalTypeLayoutV1 {id:136,reserved:0,bytes:72,alignment:8},
+    LocalTypeLayoutV1 {id:137,reserved:0,bytes:520,alignment:8},
+    LocalTypeLayoutV1 {id:138,reserved:0,bytes:1104,alignment:8},
+-   LocalTypeLayoutV1 {id:139,reserved:0,bytes:2912,alignment:8},
++   LocalTypeLayoutV1 {id:139,reserved:0,bytes:3416,alignment:8},
+    LocalTypeLayoutV1 {id:140,reserved:0,bytes:1096,alignment:8},
+-   LocalTypeLayoutV1 {id:141,reserved:0,bytes:2904,alignment:8},
+-   LocalTypeLayoutV1 {id:142,reserved:0,bytes:1808,alignment:8},
+-   LocalTypeLayoutV1 {id:143,reserved:0,bytes:760,alignment:8},
+-   LocalTypeLayoutV1 {id:144,reserved:0,bytes:6912,alignment:8},
+-   LocalTypeLayoutV1 {id:145,reserved:0,bytes:4768,alignment:8},
+-   LocalTypeLayoutV1 {id:146,reserved:0,bytes:12360,alignment:8},
+-   LocalTypeLayoutV1 {id:147,reserved:0,bytes:14040,alignment:8},
+-   LocalTypeLayoutV1 {id:148,reserved:0,bytes:4216,alignment:8},
+-   LocalTypeLayoutV1 {id:149,reserved:0,bytes:4080,alignment:8},
++   LocalTypeLayoutV1 {id:141,reserved:0,bytes:3408,alignment:8},
++   LocalTypeLayoutV1 {id:142,reserved:0,bytes:2312,alignment:8},
++   LocalTypeLayoutV1 {id:143,reserved:0,bytes:1264,alignment:8},
++   LocalTypeLayoutV1 {id:144,reserved:0,bytes:8424,alignment:8},
++   LocalTypeLayoutV1 {id:145,reserved:0,bytes:5272,alignment:8},
++   LocalTypeLayoutV1 {id:146,reserved:0,bytes:14736,alignment:8},
++   LocalTypeLayoutV1 {id:147,reserved:0,bytes:18072,alignment:8},
++   LocalTypeLayoutV1 {id:148,reserved:0,bytes:5080,alignment:8},
++   LocalTypeLayoutV1 {id:149,reserved:0,bytes:4944,alignment:8},
+    LocalTypeLayoutV1 {id:150,reserved:0,bytes:24,alignment:8},
+    LocalTypeLayoutV1 {id:151,reserved:0,bytes:4,alignment:4},
+    LocalTypeLayoutV1 {id:152,reserved:0,bytes:144,alignment:8},
+@@ -637,6 +729,43 @@
+    LocalTypeLayoutV1 {id:163,reserved:0,bytes:8,alignment:8},
+    LocalTypeLayoutV1 {id:164,reserved:0,bytes:8,alignment:8},
+    LocalTypeLayoutV1 {id:165,reserved:0,bytes:8,alignment:8},
++   LocalTypeLayoutV1 {id:166,reserved:0,bytes:1160,alignment:8}, // appended: SelectedValidatedProfileV1
++   LocalTypeLayoutV1 {id:167,reserved:0,bytes:496,alignment:8}, // appended: LoaderProvenanceV1
++   LocalTypeLayoutV1 {id:168,reserved:0,bytes:160,alignment:8}, // appended: LoaderFailureV1
++   LocalTypeLayoutV1 {id:169,reserved:0,bytes:1264,alignment:8}, // appended: LoaderOutcomeV1
++   LocalTypeLayoutV1 {id:170,reserved:0,bytes:16,alignment:4}, // appended: ReturnedLoaderFilesV1
++   LocalTypeLayoutV1 {id:171,reserved:0,bytes:88,alignment:8}, // appended: LoaderUsageV1
++   LocalTypeLayoutV1 {id:172,reserved:0,bytes:64,alignment:8}, // appended: FileIdentityV1
++   LocalTypeLayoutV1 {id:173,reserved:0,bytes:168,alignment:8}, // appended: BuildView
++   LocalTypeLayoutV1 {id:174,reserved:0,bytes:240,alignment:8}, // appended: SessionView
++   LocalTypeLayoutV1 {id:175,reserved:0,bytes:41056,alignment:8}, // appended: ProcessObservationV1
++   LocalTypeLayoutV1 {id:176,reserved:0,bytes:16392,alignment:8}, // appended: BytesProcess
++   LocalTypeLayoutV1 {id:177,reserved:0,bytes:4104,alignment:8}, // appended: BytesPath
++   LocalTypeLayoutV1 {id:178,reserved:0,bytes:1536,alignment:8}, // appended: EnvironmentEntries
++   LocalTypeLayoutV1 {id:179,reserved:0,bytes:1160,alignment:8}, // appended: ResultSelected
++   LocalTypeLayoutV1 {id:180,reserved:0,bytes:664,alignment:8}, // appended: ValidationResult
++   LocalTypeLayoutV1 {id:181,reserved:0,bytes:24,alignment:8}, // appended: VecHeader
++   LocalTypeLayoutV1 {id:182,reserved:0,bytes:4,alignment:4}, // appended: File
++   LocalTypeLayoutV1 {id:183,reserved:0,bytes:4,alignment:4}, // appended: OptionFile
++   LocalTypeLayoutV1 {id:184,reserved:0,bytes:40,alignment:8}, // appended: ValidationBudget
++   LocalTypeLayoutV1 {id:185,reserved:0,bytes:136,alignment:8}, // appended: ValidationFailure
++   LocalTypeLayoutV1 {id:186,reserved:0,bytes:182360,alignment:8}, // appended: ObservationPlaces
++   LocalTypeLayoutV1 {id:187,reserved:0,bytes:14328,alignment:8}, // appended: LoaderPlaces
++   LocalTypeLayoutV1 {id:188,reserved:0,bytes:968,alignment:8}, // appended: ReadHashPlaces
++   LocalTypeLayoutV1 {id:189,reserved:0,bytes:1168,alignment:8}, // appended: AdoptionBodyV1
++   LocalTypeLayoutV1 {id:190,reserved:0,bytes:504,alignment:8}, // appended: OptionalProvenance
++   LocalTypeLayoutV1 {id:191,reserved:0,bytes:8,alignment:8}, // appended: BorrowedProvenance
++   LocalTypeLayoutV1 {id:192,reserved:0,bytes:7584,alignment:8}, // appended: AdoptionEntryPlacesV1
++   LocalTypeLayoutV1 {id:193,reserved:0,bytes:21768,alignment:8}, // appended: AdoptionMovePlacesV1
++   LocalTypeLayoutV1 {id:194,reserved:0,bytes:2936,alignment:8}, // appended: AdoptionPair
++   LocalTypeLayoutV1 {id:195,reserved:0,bytes:2936,alignment:8}, // appended: AdoptionResult
++   LocalTypeLayoutV1 {id:196,reserved:0,bytes:2936,alignment:8}, // appended: OptionalAdoptionPair
++   LocalTypeLayoutV1 {id:197,reserved:0,bytes:8,alignment:8}, // appended: BorrowedAdoptionBody
++   LocalTypeLayoutV1 {id:198,reserved:0,bytes:8,alignment:8}, // appended: BorrowedSelectedCarrier
++   LocalTypeLayoutV1 {id:199,reserved:0,bytes:1304,alignment:8}, // appended: FinalRecheckPlacesV1
++   LocalTypeLayoutV1 {id:200,reserved:0,bytes:12600,alignment:8}, // appended: AdoptionCleanupPlacesV1
++   LocalTypeLayoutV1 {id:201,reserved:0,bytes:496,alignment:1}, // appended: FullProvenanceEncoding
++
+   ],
+  },
+ };
+@@ -708,7 +837,7 @@
+   let result=construct_with_initial_profile_v1(&mut cache,&mut control,None,adopted,&selection,&claims(),&mut output);
+   match &result {InitialProfileConstructionOutcomeV1::HeaderEncoded{header,rows}=>{
+    assert!(rows.is_err());assert_eq!(u64::from_le_bytes(header.bytes[56..64].try_into().unwrap()),slots as u64);assert_eq!(u64::from_le_bytes(header.bytes[64..72].try_into().unwrap()),pins as u64);
+-   let expected=92128+slots*size_of::<SwiftSlot>()+pins*size_of::<PinRecord>()+512*size_of::<decode::Patch>();
++   let expected=95152+slots*size_of::<SwiftSlot>()+pins*size_of::<PinRecord>()+512*size_of::<decode::Patch>();
+    assert_eq!(u64::from_le_bytes(header.bytes[80..88].try_into().unwrap()),expected as u64);assert_eq!(control.usage(None).reservations.cache.current,expected);
+   },_=>panic!("pair refused {slots}/{pins}")};cleanup(cache,control,result);
+  }}
+@@ -817,6 +946,16 @@
+   let failure=match RuntimeControl::adopt(proof,budget,Instant::now(),Cancellation::default()) {Err(f)=>f,Ok(_)=>panic!("canonical ceiling accepted")};assert_eq!(failure.kind,SwiftRunFailureKind::InvalidBudget);assert_eq!(failure.stage,SwiftRunStage::Adoption);assert_eq!(failure.function,None);assert_eq!(failure.offset,None);println!("ORIGINAL_CEILING {:?}",failure);
+  }
+  reset(0);let budget=SwiftRunBudget {source_bytes:67108864,metadata_bytes:16777216,cache_bytes:16777216,cache_entry_bytes:8388608,cache_entries:64,active_pins:64,cache_work:64000000,frames:64,values:16384,controls:4096,memory_pages:768,state_bytes:134217728,combined_bytes:300000,instruction_fuel:100000000,execution_work:1000000000,host_calls:32768,deadline_ms:30000};
++ // The original300000 grant now honestly refuses the larger foundation at adoption.
++ let bytes=fixture(0,&[0,0x0b],64);let proof=validate_swift_reactor(&bytes,SwiftValidationBudget::default(),&Cancellation::default()).unwrap();
++ let refused=match RuntimeControl::adopt(proof,budget,Instant::now(),Cancellation::default()) {Err(f)=>f,Ok(_)=>panic!("old narrow foundation unexpectedly fit")};
++ assert_eq!(refused.stage,SwiftRunStage::Adoption);assert_eq!(refused.kind,SwiftRunFailureKind::CategoryExhausted);
++ assert_eq!(refused.resource,Some(SwiftRunResource::Reservation(SwiftReservationCategory::Construction)));
++ assert_eq!(refused.limit,300000);assert_eq!(refused.attempted,foundation_construction_bytes().unwrap() as u64);
++ let after=refused.after_cleanup.unwrap();assert_eq!(after.reservations.combined.current,0);assert_eq!(after.reservations.live_tickets,0);
++ assert_eq!(COUNTERS.with(Cell::get),[0;5]);println!("ORIGINAL_NARROWED_FOUNDATION_REFUSAL {:?}",refused);
++ // Separate explicit400000 grant admits the new foundation but still refuses preparation.
++ let budget=SwiftRunBudget {source_bytes:67108864,metadata_bytes:16777216,cache_bytes:16777216,cache_entry_bytes:8388608,cache_entries:64,active_pins:64,cache_work:64000000,frames:64,values:16384,controls:4096,memory_pages:768,state_bytes:134217728,combined_bytes:400000,instruction_fuel:100000000,execution_work:1000000000,host_calls:32768,deadline_ms:30000};
+  let (mut control,adopted)=adopt(budget);let selection=alternative(budget);let mut cache=None;let mut output=file("prepare-capacity.rows");let result=construct_with_initial_profile_v1(&mut cache,&mut control,None,adopted,&selection,&claims(),&mut output);
+  assert!(matches!(&result,InitialProfileConstructionOutcomeV1::PreparationFailed{failure:SwiftRunFailure{kind:SwiftRunFailureKind::CategoryExhausted,resource:Some(SwiftRunResource::Reservation(SwiftReservationCategory::Construction)),..},..}));assert_eq!(COUNTERS.with(Cell::get),[1,0,0,0,0]);cleanup(cache,control,result);
+ }

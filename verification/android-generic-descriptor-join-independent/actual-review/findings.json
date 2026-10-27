@@ -1,0 +1,40 @@
+{
+  "status": "changes-required-for-generic-contract; finite-frozen-data-reproduction-matches",
+  "findings": [
+    {
+      "id": "F1",
+      "priority": 2,
+      "file": "verification/android-editor-generic-descriptor-joins/check_descriptor_joins.py",
+      "start": 421,
+      "end": 425,
+      "title": "Keep hook callee join unresolved when receiver assignability is unresolved",
+      "evidence": "postaccess-unknown-invokespecial-hook-receiver.json",
+      "candidate_existing_corpus_affected": false,
+      "correction_scope": "Propagate unresolved receiver status while retaining exact observed exception and pending normal body outcome."
+    },
+    {
+      "id": "F2",
+      "priority": 2,
+      "file": "verification/android-editor-generic-descriptor-joins/check_descriptor_joins.py",
+      "start": 130,
+      "end": 130,
+      "title": "Accept all specification-valid internal class name segments",
+      "evidence": "postaccess-source-findings.json; jvms17-class-name-grammar-evidence.json",
+      "candidate_existing_corpus_affected": false,
+      "correction_scope": "Remove additional parentheses/ASCII-whitespace exclusions; retain actual JVMS name and complete descriptor grammar constraints."
+    },
+    {
+      "id": "F3",
+      "priority": 3,
+      "file": "verification/android-editor-generic-descriptor-joins/check_descriptor_joins.py",
+      "start": 147,
+      "end": 147,
+      "title": "Carry receiver context into parameter-unit validation",
+      "evidence": "original119-controls-results.json descriptor-parameter-units-255-True",
+      "candidate_existing_corpus_affected": false,
+      "correction_scope": "Keep static255 explicit units valid; enforce at most254 explicit units for instance/interface method contexts using retained access or invocation metadata."
+    }
+  ],
+  "candidate_source_changed": false,
+  "new_generic_delegation_rule_added": false
+}
