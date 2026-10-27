@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "disposition": "correction-required-before-local-interface-acceptance",
+  "numerical_whole_bound_disproven": false,
+  "findings": [
+    {
+      "id": "W1",
+      "kind": "missing-named-source-action",
+      "source": "source/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:450",
+      "definition_sha256": "0de141d7c07db571a576fc343c3d43841614937c9ac07fd4cb64512761373343",
+      "expression": "let actual=initial.cache.proof().snapshot_counts_v1();",
+      "producer_row": "writer_fixed_nonstop_nogetters.actual_proof_counts_binding",
+      "proposed": 56,
+      "independent_expansion": {"initial.cache_fetch": 1, "SwiftFunctionCache.proof": 9, "snapshot_counts": 46, "actual_binding": 1},
+      "expanded": 57,
+      "effect": "One missing fixed writer action. The producer's name includes binding, but 56 already equals 1+9+46."
+    },
+    {
+      "id": "W2",
+      "kind": "missing-named-source-actions",
+      "sources": ["source/vm/src/experimental_swift_reactor/cache.rs:4878", "source/vm/src/experimental_wasi/accounted.rs:441"],
+      "expression": "for ticket in &self.buffers { ... }",
+      "expansion": {"field_borrow_fetch": 1, "loop_setup_termination": 2, "iteration_advance_bind": 2, "ticket_as_ref": 1, "ok_or": 2, "eager_Layout": 1, "argument_question": 2, "snapshot_ticket_identity": 51, "call_question": 2},
+      "cache_loop": {"proposed": 185, "expanded": 186, "iterations": 3},
+      "wasi_loop": {"proposed": 246, "expanded": 247, "iterations": 4},
+      "effect": "The first identity loop in each function omits its array receiver borrow/fetch. The separate zip receiver/setup term belongs to the second loop. WASI pair666 becomes667; cache pair1928 becomes1930 because it includes the WASI pair. Finish812/1246 inherits one action, becoming813/1247 with other terms unchanged."
+    },
+    {
+      "id": "W3",
+      "kind": "missing-terminal-branch-actions",
+      "source": "source/vm/src/experimental_swift_reactor/control.rs:1975",
+      "expression": "return Err(SnapshotStopV1::Deadline(self.deadline_origin));",
+      "producer_row": "snapshot_observe_stop_v1_without_large_Copy",
+      "success_upper": 15,
+      "deadline_expansion": {"same_preceding_actions": 14, "deadline_origin_fetch": 1, "Deadline_tag": 1, "Err_carrier": 1},
+      "deadline_upper": 17,
+      "effect": "The common success15 includes Ok1 but lacks the late Deadline origin/tag/Err triple. A complete local accounting can preserve success15 and add two explicit once-only terminal actions per writer or admission invocation. An Existing302 allowance is mutually exclusive on a Deadline path, so this omission alone does not disprove the proposed whole inequality."
+    }
+  ],
+  "source_derived_repair_direction_only": {
+    "writer": "401 fixed non-stop/getter actions +12*15+2*3 +630 terminal tail =1217; then1217+4259B+122A<=1217+8163B",
+    "admission_current": "3431+2 pairing receiver actions+2 terminal Deadline actions=3435, with the remaining original decomposition unchanged",
+    "admission_future": "7926+2 pairing receiver actions+2 terminal Deadline actions=7930 plus the actual missing evaluator body, with the remaining original decomposition unchanged",
+    "finish": "813+132+302=1247 plus explicitly inherited bodies",
+    "status": "Repair targets, not an accepted corrected interface or complete operational formula. A correction packet must explicitly bind and reconcile them."
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "candidate_seal_sha256": "bf17889754e7ef436fababcf8b96f5109285f982bcc48258a0b9e204a95b1751",
+  "finding": "Both outer and inner selected constructors typecheck from ordinary raw owner parts without the selected owning scope",
+  "results": [
+    {
+      "compiler_receipt": {
+        "path": "verification/swift-guarded-snapshot-composition-independent/candidate-review/commands/undesired-parts-bypass-debug/receipt.json",
+        "sha256": "1060c4db70fa986e7bd36a3d09998ece036c0ac9af3b2e035d1ae60cf8983833"
+      },
+      "exact_witnesses": [
+        {
+          "kind": "append",
+          "path": "src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+          "text": "\n// A sibling module can select the Selected constructor from ordinary owner parts.\n// This compiler witness is never invoked and adds no actual writer execution.\nfn independent_snapshot_parts_bypass_v1(cache:&mut Option<super::cache::SwiftFunctionCache>,control:&mut RuntimeControl,adopted:super::control::AdoptedProof,claims:&super::cache::SnapshotClaimsV1,rows:&mut File,snapshot:&mut File){\n let _retained=super::cache::construct_snapshot_in_scope_v1(cache,control,None,adopted,claims,rows,snapshot);\n}\n"
+        },
+        {
+          "kind": "append",
+          "path": "src/experimental_swift_reactor/cache.rs",
+          "text": "\n// The parent cache module can select the inner Selected constructor directly.\nfn independent_snapshot_inner_parts_bypass_v1(cache:&mut Option<SwiftFunctionCache>,control:&mut RuntimeControl,adopted:AdoptedProof,claims:&SnapshotClaimsV1,rows:&mut std::fs::File,snapshot:&mut std::fs::File){\n let _retained=initial_profile_v1::construct_snapshot_owned_v1(cache,control,None,adopted,claims,rows,snapshot);\n}\n"
+        }
+      ],
+      "mode": "debug",
+      "source_preimage": {
+        "path": "verification/swift-guarded-snapshot-composition-independent/candidate-review/commands/undesired-parts-bypass-debug/source-preimage.json",
+        "sha256": "264a78756e627f8addb97f96ba6af4d79c6d00709e6b6d863139042c3a2cc46e"
+      },
+      "source_tree_sha256": "55a2057a87595425ab2d0877e1ada3ff7bf08565f84f905501edd400ba280d06"
+    },
+    {
+      "compiler_receipt": {
+        "path": "verification/swift-guarded-snapshot-composition-independent/candidate-review/commands/undesired-parts-bypass-optimized/receipt.json",
+        "sha256": "d23a4a9a720a7024f537a80fd2fdf501432ee2a02cf450e054c047f4ba4462f3"
+      },
+      "exact_witnesses": [
+        {
+          "kind": "append",
+          "path": "src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+          "text": "\n// A sibling module can select the Selected constructor from ordinary owner parts.\n// This compiler witness is never invoked and adds no actual writer execution.\nfn independent_snapshot_parts_bypass_v1(cache:&mut Option<super::cache::SwiftFunctionCache>,control:&mut RuntimeControl,adopted:super::control::AdoptedProof,claims:&super::cache::SnapshotClaimsV1,rows:&mut File,snapshot:&mut File){\n let _retained=super::cache::construct_snapshot_in_scope_v1(cache,control,None,adopted,claims,rows,snapshot);\n}\n"
+        },
+        {
+          "kind": "append",
+          "path": "src/experimental_swift_reactor/cache.rs",
+          "text": "\n// The parent cache module can select the inner Selected constructor directly.\nfn independent_snapshot_inner_parts_bypass_v1(cache:&mut Option<SwiftFunctionCache>,control:&mut RuntimeControl,adopted:AdoptedProof,claims:&SnapshotClaimsV1,rows:&mut std::fs::File,snapshot:&mut std::fs::File){\n let _retained=initial_profile_v1::construct_snapshot_owned_v1(cache,control,None,adopted,claims,rows,snapshot);\n}\n"
+        }
+      ],
+      "mode": "optimized",
+      "source_preimage": {
+        "path": "verification/swift-guarded-snapshot-composition-independent/candidate-review/commands/undesired-parts-bypass-optimized/source-preimage.json",
+        "sha256": "264a78756e627f8addb97f96ba6af4d79c6d00709e6b6d863139042c3a2cc46e"
+      },
+      "source_tree_sha256": "55a2057a87595425ab2d0877e1ada3ff7bf08565f84f905501edd400ba280d06"
+    }
+  ],
+  "schema": 1,
+  "scope": "Unexecuted compiler witnesses only; MissingSelectedProvenance still guards encoder bytes and WorkAuditPending blocks actual writer"
+}

@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "agreement": "Partition coordinated with /root/swift_snapshot_composition_independent before inventory work.",
+  "encoder_callee_charges": {
+    "id_prefix": "encoder::",
+    "return_key": "encoder::<source-qualified-function>::return-expression",
+    "parameter_key": "encoder::<source-qualified-function>::arg.<source-name>::_<MIR-local-number>",
+    "local_key": "encoder::<source-qualified-function>::local.<debug-name>::_<MIR-local-number>",
+    "temporary_key": "encoder::<source-qualified-function>::temporary._<MIR-local-number>::_<MIR-local-number>",
+    "rule": "Every materialized source-projected MIR slot has one unique role ID, exact source span and actual compiler type; movement/copy/use edges reference that ID instead of creating unenumerated copies. The callee return slot and by-value argument slot are included even when a caller also has its own distinct source slot."
+  },
+  "external_exclusions": [
+    {"key":"external::initial-guard-owner", "storage":"InitialProfileBorrowV1 pointee and sole actual cache/control/WASI guard owners", "reason":"borrow_snapshot arg.initial and bridge receiver references are charged, their owners are not copied by a reference"},
+    {"key":"external::validated-proof-owner", "storage":"ValidatedSwiftReactor pointee, its boxed source payload and metadata buffer payloads", "reason":"only actual reference/header/temporary slots are charged; no borrowed heap payload is copied"},
+    {"key":"external::provenance-owner", "storage":"LoaderProvenanceV1 pointee", "reason":"reference parameters/locals charged; FileIdentityV1::encode actual64-byte self copy is separately included as a callee parameter"},
+    {"key":"external::transfer-owner", "storage":"caller [u8;4096]", "reason":"next_block arg.transfer and slice/reborrow slots charged; the externally held4096-byte array is not an encoder-local array"},
+    {"key":"caller::borrow_snapshot_v2::call-result-and-pattern", "storage":"writer call-expression Result<SnapshotViewV2,Error>, caller success/error patterns, and caller-owned view local/Option/moves", "reason":"encoder::borrow_snapshot_v2::return-expression and its actual view literal are separate charged callee roles"},
+    {"key":"caller::into_cursor::call-result-and-pattern", "storage":"writer view call-argument move, Result<SnapshotCursorV2,Error>, cursor caller local/Option/moves", "reason":"encoder into_cursor arg.self, cursor literal and return-expression are separate charged callee roles"},
+    {"key":"caller::next_block::call-result-and-pattern", "storage":"writer Result<Option<SnapshotBlockV2>,Error>, caller block/Option/pattern/byte-view locals, write/error/moves", "reason":"encoder next_block return-expression, Option/block literal, and reference parameters are separate charged callee roles"},
+    {"key":"external::immutable-static-pointees", "storage":"shared string/byte literals, promoted immutable scalar/range constants and code", "reason":"product call-site references and any materialized literal-array temporary slots are charged; immutable static pointees are outside the local source-storage model"},
+    {"key":"external::standard-library-private-bodies", "storage":"private std/core helper body frames, allocator/unwind/ABI state and backend spills", "reason":"all product source call-site slots are included; this inventory makes no physical-stack or whole-process claim"}
+  ],
+  "replaces_inherited_aggregates": ["EncoderInitPlacesV2", "EncoderBlockPlacesV2", "EncoderCallerPlacesV2"],
+  "aggregate_rule": "Do not add these inherited identity/shape sizes or the52/58 type-identity sums to E. This occurrence inventory replaces their encoder-local coverage. Reconcile caller-owned fields against the caller lane rather than adding EncoderCallerPlacesV2.",
+  "nested_call_rule": "The bounded product-source call graph has no recursion. At most one invocation of each exact function source template is live. All64 function/closure source templates are conservatively retained in E; sibling calls and exclusive arms are summed, not assumed simultaneous. Internal callee argument/return slots and their caller's materialized temporary slots have distinct role IDs.",
+  "generic_rule": "Buffer<T>::len/get/snapshot_inventory_v2 each has one reused source template. T alternatives are Signature, Type, Import, Function, Global, Export and Segment; both data/elements use Segment. Every charged generic slot has the same measured size/alignment under all seven actual substitutions; the template is charged once. No heap Vec payload is copied.",
+  "loop_rule": "All range/iterator/Option/item/local slots are charged once per source declaration. Iterations, records, blocks, directory probes and byte counts do not multiply storage.",
+  "retained_lifetime_cuts": [
+    "borrow_snapshot: external guard/proof/provenance owners survive; local provenance Option/Result/pattern and view literal/return end at return; caller view result/pattern then belongs to caller partition",
+    "into_cursor: owned view plus header h, proof/metadata references, usage/observation copies and four option arrays survive across nested bridge/word/inventory/get/put/validation calls; bridge locals die before next sibling call; E conservatively sums them anyway",
+    "record_word: external cursor/view/proof remain borrowed; metadata/source/span and selected branch references/arrays survive nested get/span/type/result helpers; eight entry arms are mutually exclusive; entry closure and final result closure are sequential",
+    "next_block: cursor/transfer references, base/at/filled survive loop; directory/source/record branches reuse their own slots; nested record_word frames end before bytes are acknowledged; block literal/Option/Result return occurs after loop locals' last use; caller-held block/result belongs to caller partition",
+    "runtime/provenance: scalar/digest/identity loops reuse iterator/item slots; optional WASI branch is exclusive with absence; FileIdentity encode nested self/array/iterator/bytes are exact typed roles and reused for four identities"
+  ],
+  "operational_grant": false
+}

@@ -1,0 +1,1871 @@
+{
+  "schema": 1,
+  "status": "two-additive-ledger-corrections-required-no-numerical-total-underbound-demonstrated",
+  "release": {
+    "path": "verification/swift-semantic-adapter-root-review/guarded-snapshot-encoder-work-independent-release.json",
+    "bytes": 1476,
+    "sha256": "c89dadb70bd9cbc4f350b873ca6cb68eb189fe196e6afb881bd0e951bc6d025d"
+  },
+  "producer": {
+    "seal": {
+      "path": "verification/swift-guarded-snapshot-encoder-work-audit/seal.json",
+      "bytes": 5383,
+      "sha256": "ef906a8ec95d956898347bca67658ffac82a506be66b204d35893c23acfcfdd0"
+    },
+    "member_count": 30,
+    "member_bytes": 165965
+  },
+  "preaccess": {
+    "seal": {
+      "path": "verification/swift-guarded-snapshot-encoder-work-independent/preaccess/seal.json",
+      "bytes": 1252,
+      "sha256": "1ae47e24a54b8a08d9019b7498db336a189ec0f1ec0ec7e550ffe4f074774997"
+    },
+    "member_count": 6,
+    "member_bytes": 272324
+  },
+  "source_identities": [
+    {
+      "path": "verification/swift-guarded-snapshot-encoder-implementation/host/encoder.rs",
+      "bytes": 28750,
+      "sha256": "8e1eb4a6670ea4d6d408c4b527a777cd70ef821f625175ad6be037f890b9df27"
+    },
+    {
+      "path": "verification/swift-guarded-snapshot-encoder-implementation/source/vm/src/experimental/account.rs",
+      "bytes": 11449,
+      "sha256": "158ea9a7537e8ebf021b892fc2e271824bade9c384ce5aa70e819c824df56ffb"
+    },
+    {
+      "path": "verification/swift-guarded-snapshot-encoder-implementation/source/vm/src/experimental/swift.rs",
+      "bytes": 57293,
+      "sha256": "dedb226175ec45b9c724a6bec6c8a9b43ed02c7de72970ea3f0cb7c5bc0d208f"
+    },
+    {
+      "path": "verification/swift-guarded-snapshot-encoder-implementation/source/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "bytes": 16213,
+      "sha256": "a6b48551b8a79153dccd77b2a19b0b0e58285863a772bb5de069dda5b7d116e8"
+    },
+    {
+      "path": "verification/swift-guarded-snapshot-encoder-implementation/source/vm/src/experimental_swift_reactor/cache.rs",
+      "bytes": 175985,
+      "sha256": "08c83c8621acc69caeca274608d9615d3bf11f036f7ed24ed8703f2ffa41dce3"
+    },
+    {
+      "path": "verification/swift-guarded-snapshot-encoder-implementation/source/vm/src/experimental_swift_reactor/control.rs",
+      "bytes": 65112,
+      "sha256": "c1d71faf33efe1264d4267623d19fe356aafc5a98e9a7871024e22682139776f"
+    },
+    {
+      "path": "verification/swift-guarded-snapshot-encoder-implementation/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs",
+      "bytes": 49738,
+      "sha256": "341631981194818c762c0ca8e6d3f918e02bbc7ce38932a24012032da4e97402"
+    },
+    {
+      "path": "verification/swift-guarded-snapshot-encoder-implementation/source/vm/src/experimental_wasi/accounted.rs",
+      "bytes": 16263,
+      "sha256": "2b9faf849b330ec4764a5aff1e74a8211e6d2b0492efc3d3a6c68cc096f9d4e7"
+    },
+    {
+      "path": "verification/swift-guarded-snapshot-encoder-implementation/source/vm/src/experimental_wasi/mod.rs",
+      "bytes": 21708,
+      "sha256": "4b541ccee949bc0049b861579664dade03a631f034a012150805548855524762"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "kind": "omitted named-source ledger action",
+      "source": "host/encoder.rs:199-205",
+      "term": "provenance bridge, region conversion and error propagation",
+      "original": 2315,
+      "corrected": 2316,
+      "delta": 1,
+      "reason": "self.provenance receiver fetch required by convention",
+      "numerical_total_underbound_proven": false
+    },
+    {
+      "id": "F2",
+      "kind": "omitted named-source ledger actions",
+      "source": "host/encoder.rs:394",
+      "term": "runtime validation and two count conversions",
+      "original": 1464,
+      "corrected": 1466,
+      "delta": 2,
+      "reason": "outer validate_runtime(...)? inspect plus extraction/propagation",
+      "numerical_total_underbound_proven": false
+    }
+  ],
+  "original_fixed": 14221,
+  "proposed_corrected_fixed": 14224,
+  "block_formula_unchanged": "26+68I+39D+139W+Q",
+  "complete_work_formula_selected": false,
+  "operational_grant_selected": false,
+  "controls": [
+    {
+      "name": "F1 source receiver present",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "F2 outer propagation present",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "F1 additive receiver action",
+      "pass": true,
+      "detail": {
+        "receiver_fetch": 1,
+        "slice": 1,
+        "try_into_length": 1,
+        "try_into_result": 1,
+        "expect": 1,
+        "map_err": 3,
+        "outer_question": 2
+      }
+    },
+    {
+      "name": "F2 additive propagation actions",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "corrected named fixed ledger",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "omitted F1 mutation fails exact caller coverage",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "omitted F2 mutation fails exact caller coverage",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "record maximum retained",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "block coefficients retained",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 0",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 1",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 2",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 3",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 4",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 5",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 6",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 7",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 8",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 9",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 10",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 11",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 12",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 13",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 14",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 15",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 16",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 17",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 18",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 19",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 20",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 21",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 22",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 23",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 24",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 25",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 26",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 27",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 28",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 29",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 30",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 31",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 32",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 33",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 34",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 35",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 36",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 37",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 38",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 39",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 40",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 41",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 42",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 43",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 44",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 45",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 46",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 47",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 48",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 49",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 50",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 51",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 52",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 53",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 54",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 55",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 56",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 57",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 58",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 59",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 60",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 61",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 62",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 63",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 64",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 65",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 66",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 67",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 68",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 69",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 70",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 71",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 72",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 73",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 74",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 75",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 76",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 77",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 78",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 79",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 80",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 81",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 82",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 83",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 84",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 85",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 86",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 87",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 88",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 89",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 90",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 91",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 92",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 93",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 94",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 95",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 96",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 97",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 98",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 99",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 100",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 101",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 102",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 103",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 104",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 105",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 106",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 107",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 108",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 109",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 110",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 111",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 112",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 113",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 114",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 115",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 116",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 117",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 118",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 119",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 120",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 121",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 122",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 123",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 124",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 125",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 126",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 127",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 128",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 129",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 130",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 131",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 132",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 133",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 134",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 135",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 136",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 137",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 138",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 139",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 140",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 141",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 142",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 143",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 144",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 145",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 146",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 147",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 148",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 149",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 150",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 151",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 152",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 153",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 154",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 155",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 156",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 157",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 158",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 159",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 160",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 161",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 162",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 163",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 164",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 165",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 166",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 167",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 168",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 169",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 170",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 171",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 172",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 173",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 174",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 175",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 176",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 177",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 178",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 179",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 180",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 181",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 182",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 183",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 184",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 185",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 186",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 187",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 188",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 189",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 190",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 191",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 192",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 193",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 194",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 195",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 196",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 197",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 198",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 199",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 200",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 201",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 202",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 203",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 204",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 205",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 206",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 207",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 208",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 209",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 210",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 211",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 212",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 213",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 214",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 215",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 216",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 217",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 218",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 219",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 220",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 221",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 222",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 223",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 224",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 225",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 226",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 227",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 228",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 229",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 230",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 231",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 232",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 233",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 234",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 235",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 236",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 237",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 238",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 239",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 240",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 241",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 242",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 243",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 244",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 245",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 246",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 247",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 248",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 249",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 250",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 251",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 252",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 253",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 254",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 255",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 256",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 257",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 258",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 259",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 260",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 261",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 262",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 263",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 264",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 265",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 266",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 267",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 268",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 269",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 270",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 271",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 272",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 273",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 274",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 275",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 276",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 277",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 278",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 279",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 280",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 281",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 282",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 283",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 284",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 285",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 286",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 287",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 288",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 289",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 290",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 291",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 292",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 293",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 294",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 295",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 296",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 297",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 298",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 299",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 300",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 301",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 302",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 303",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 304",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 305",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 306",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 307",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 308",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 309",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 310",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 311",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 312",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 313",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 314",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 315",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 316",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 317",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 318",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 319",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 320",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 321",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 322",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 323",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 324",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 325",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 326",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 327",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 328",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 329",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 330",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "independent-candidate geometry 331",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "preaccess independent profile count",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "total compact geometry cross-check count",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "all retained independent controls passed",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "single read-only producer replay",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "candidate unchanged through review",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "preaccess unchanged through review",
+      "pass": true,
+      "detail": null
+    }
+  ],
+  "control_count": 347,
+  "retained_preaccess_controls": 305,
+  "independent_geometry_profiles_compared": 332,
+  "producer_replay": {
+    "block": "26+68I+39D+139W+Q",
+    "custody": "1256 packet members, 144 source members, before==after",
+    "finite_controls": {
+      "full_geometry_shapes": 4167,
+      "record_reference_cases": 37,
+      "source_end_alignments": 4096,
+      "span_boundary_states": 125,
+      "word_fragment_states": 32768
+    },
+    "fixed": 14221,
+    "per_call_ceiling": 291214,
+    "status": "source-audited-encoder-bound-no-runtime-authorization"
+  },
+  "pending": [
+    "root review of separate additive correction",
+    "caller/control/writer/stop/arithmetic/cleanup terms",
+    "operational work/storage admission",
+    "paused native and GA qualification"
+  ]
+}

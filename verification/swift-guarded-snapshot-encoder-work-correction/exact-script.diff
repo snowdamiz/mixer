@@ -1,0 +1,44 @@
+--- verification/swift-guarded-snapshot-encoder-work-audit/audit.py
++++ verification/swift-guarded-snapshot-encoder-work-correction/audit.py
+@@ -140,7 +140,7 @@
+         ("proof metadata bindings, usage/observations copies", "177-180", 4+21+41),
+         ("source conversion and binding", "181", 1+1+word+2+1),
+         ("eleven scalar header words", "182-198", 11+10+words(11)),
+-        ("provenance bridge, region conversion and error propagation", "199-205", provenance+9),
++        ("provenance bridge, region conversion and error propagation", "199-205", provenance+10),
+         ("five validation word copies", "206-209", 2+5*(2+2+get+1+2+put)),
+         ("duplicate source equations", "210", 2*get+2+1+require+2),
+         ("ten usage words", "211-226", 70+3+10+words(10)),
+@@ -157,12 +157,12 @@
+         ("nine inventories, directories, checked extents", "332-384", directories),
+         ("final charge and extent equations", "385-390", 10+1+(get+1)+1+2+require+2),
+         ("34 resolved enum encodings", "391-393", 3+34*(3+1+3+2+put)),
+-        ("runtime validation and two count conversions", "394", runtime_validation+20),
++        ("runtime validation and two count conversions", "394", runtime_validation+22),
+         ("extent word patch", "395", put),
+         ("cursor four slots and Result", "396-401", 5),
+     ]
+     fixed = sum(row[2] for row in init)
+-    assert fixed == 14221, fixed
++    assert fixed == 14224, fixed
+     common = 2+2+3+4+1+1+(3+3+2+8)
+     assert common == 29
+     record_arms = {
+@@ -296,7 +296,7 @@
+ 
+ 
+ def encoder_cost(c):
+-    return 14221 + 26*(c["B"]+1) + 68*c["I"] + 39*c["D"] + 139*c["W"] + c["Q"]
++    return 14224 + 26*(c["B"]+1) + 68*c["I"] + 39*c["D"] + 139*c["W"] + c["Q"]
+ 
+ 
+ def compare_old(c):
+@@ -492,7 +492,7 @@
+     save("results.json", result)
+     revision = subprocess.check_output(["git","rev-parse","HEAD"],cwd=REPO,text=True).strip()
+     receipt = {"schema":1,"at":datetime.datetime.now(datetime.timezone.utc).isoformat(),
+-               "command":"python3 verification/swift-guarded-snapshot-encoder-work-audit/audit.py",
++               "command":"python3 verification/swift-guarded-snapshot-encoder-work-correction/audit.py",
+                "python":platform.python_version(),"executable":sys.executable,"repository_head":revision,
+                "audit_script_sha256":sha(Path(__file__).read_bytes()),
+                "source_tree_sha256":EXPECTED_TREE,"source_member_count":144,

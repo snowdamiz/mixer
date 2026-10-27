@@ -1,0 +1,187 @@
+{
+  "schema": 1,
+  "tag": "candidate",
+  "results": [
+    {
+      "name": "ordinary-body-ingress",
+      "mode": "debug",
+      "relative_source": "src/experimental_swift_reactor/cache.rs",
+      "replacement_from": null,
+      "replacement_to": "\nfn negative_ordinary_body_snapshot_v1(body:super::retained_profile_loader_v1::AdoptionBodyV1,budget:SwiftRunBudget,started:std::time::Instant,cancellation:crate::Cancellation){\n let _=RuntimeControl::adopt_snapshot_body_v1(body,budget,started,cancellation);\n}\n",
+      "expected_diagnostics": [
+        "E0308"
+      ],
+      "actual_diagnostics": [
+        "E0308"
+      ],
+      "passed": true,
+      "scope": "compiler privacy/ownership test only"
+    },
+    {
+      "name": "forge-selected-capability",
+      "mode": "debug",
+      "relative_source": "src/experimental_swift_reactor/cache.rs",
+      "replacement_from": null,
+      "replacement_to": "\nfn negative_forge_selected_body_v1(body:super::retained_profile_loader_v1::AdoptionBodyV1){\n let _=super::retained_profile_loader_v1::SelectedSnapshotBodyV1(body);\n}\n",
+      "expected_diagnostics": [
+        "E0603"
+      ],
+      "actual_diagnostics": [
+        "E0603"
+      ],
+      "passed": true,
+      "scope": "compiler privacy/ownership test only"
+    },
+    {
+      "name": "extract-owned-control",
+      "mode": "debug",
+      "relative_source": "src/experimental_swift_reactor/cache.rs",
+      "replacement_from": null,
+      "replacement_to": "\nfn negative_extract_scope_control_v1(scope:super::control::SnapshotScopeV1){let _=scope.control;}\n",
+      "expected_diagnostics": [
+        "E0616"
+      ],
+      "actual_diagnostics": [
+        "E0616"
+      ],
+      "passed": true,
+      "scope": "compiler privacy/ownership test only"
+    },
+    {
+      "name": "direct-earlier-control",
+      "mode": "debug",
+      "relative_source": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "replacement_from": "control:access.shared_control()",
+      "replacement_to": "control",
+      "expected_diagnostics": [
+        "E0502"
+      ],
+      "actual_diagnostics": [
+        "E0502"
+      ],
+      "passed": true,
+      "scope": "compiler privacy/ownership test only"
+    },
+    {
+      "name": "mutate-through-guard",
+      "mode": "debug",
+      "relative_source": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "replacement_from": null,
+      "replacement_to": "\nfn negative_mutate_guard_v1(initial:&InitialProfileBorrowV1<'_>){let _=initial.control.snapshot_debit_v1(1);}\n",
+      "expected_diagnostics": [
+        "E0596"
+      ],
+      "actual_diagnostics": [
+        "E0596"
+      ],
+      "passed": true,
+      "scope": "compiler privacy/ownership test only"
+    },
+    {
+      "name": "extend-closed-branch",
+      "mode": "debug",
+      "relative_source": "src/experimental_swift_reactor/cache.rs",
+      "replacement_from": null,
+      "replacement_to": "\nstruct NegativeStrategyV1;\nimpl initial_profile_v1::branch_seal_v1::Closed for NegativeStrategyV1 {}\n",
+      "expected_diagnostics": [
+        "E0603"
+      ],
+      "actual_diagnostics": [
+        "E0603"
+      ],
+      "passed": true,
+      "scope": "compiler privacy/ownership test only"
+    },
+    {
+      "name": "ordinary-body-ingress",
+      "mode": "optimized",
+      "relative_source": "src/experimental_swift_reactor/cache.rs",
+      "replacement_from": null,
+      "replacement_to": "\nfn negative_ordinary_body_snapshot_v1(body:super::retained_profile_loader_v1::AdoptionBodyV1,budget:SwiftRunBudget,started:std::time::Instant,cancellation:crate::Cancellation){\n let _=RuntimeControl::adopt_snapshot_body_v1(body,budget,started,cancellation);\n}\n",
+      "expected_diagnostics": [
+        "E0308"
+      ],
+      "actual_diagnostics": [
+        "E0308"
+      ],
+      "passed": true,
+      "scope": "compiler privacy/ownership test only"
+    },
+    {
+      "name": "forge-selected-capability",
+      "mode": "optimized",
+      "relative_source": "src/experimental_swift_reactor/cache.rs",
+      "replacement_from": null,
+      "replacement_to": "\nfn negative_forge_selected_body_v1(body:super::retained_profile_loader_v1::AdoptionBodyV1){\n let _=super::retained_profile_loader_v1::SelectedSnapshotBodyV1(body);\n}\n",
+      "expected_diagnostics": [
+        "E0603"
+      ],
+      "actual_diagnostics": [
+        "E0603"
+      ],
+      "passed": true,
+      "scope": "compiler privacy/ownership test only"
+    },
+    {
+      "name": "extract-owned-control",
+      "mode": "optimized",
+      "relative_source": "src/experimental_swift_reactor/cache.rs",
+      "replacement_from": null,
+      "replacement_to": "\nfn negative_extract_scope_control_v1(scope:super::control::SnapshotScopeV1){let _=scope.control;}\n",
+      "expected_diagnostics": [
+        "E0616"
+      ],
+      "actual_diagnostics": [
+        "E0616"
+      ],
+      "passed": true,
+      "scope": "compiler privacy/ownership test only"
+    },
+    {
+      "name": "direct-earlier-control",
+      "mode": "optimized",
+      "relative_source": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "replacement_from": "control:access.shared_control()",
+      "replacement_to": "control",
+      "expected_diagnostics": [
+        "E0502"
+      ],
+      "actual_diagnostics": [
+        "E0502"
+      ],
+      "passed": true,
+      "scope": "compiler privacy/ownership test only"
+    },
+    {
+      "name": "mutate-through-guard",
+      "mode": "optimized",
+      "relative_source": "src/experimental_swift_reactor/cache/initial_profile_v1.rs",
+      "replacement_from": null,
+      "replacement_to": "\nfn negative_mutate_guard_v1(initial:&InitialProfileBorrowV1<'_>){let _=initial.control.snapshot_debit_v1(1);}\n",
+      "expected_diagnostics": [
+        "E0596"
+      ],
+      "actual_diagnostics": [
+        "E0596"
+      ],
+      "passed": true,
+      "scope": "compiler privacy/ownership test only"
+    },
+    {
+      "name": "extend-closed-branch",
+      "mode": "optimized",
+      "relative_source": "src/experimental_swift_reactor/cache.rs",
+      "replacement_from": null,
+      "replacement_to": "\nstruct NegativeStrategyV1;\nimpl initial_profile_v1::branch_seal_v1::Closed for NegativeStrategyV1 {}\n",
+      "expected_diagnostics": [
+        "E0603"
+      ],
+      "actual_diagnostics": [
+        "E0603"
+      ],
+      "passed": true,
+      "scope": "compiler privacy/ownership test only"
+    }
+  ],
+  "all_passed": true
+}

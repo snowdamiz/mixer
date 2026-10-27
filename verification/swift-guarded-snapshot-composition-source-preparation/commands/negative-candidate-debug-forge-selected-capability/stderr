@@ -1,0 +1,25 @@
+error[E0603]: tuple struct constructor `SelectedSnapshotBodyV1` is private
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-composition-source-preparation/owned-work/negative-candidate-debug-forge-selected-capability/vm/src/experimental_swift_reactor/cache.rs:4899:43
+     |
+4899 |  let _=super::retained_profile_loader_v1::SelectedSnapshotBodyV1(body);
+     |                                           ^^^^^^^^^^^^^^^^^^^^^^ private tuple struct constructor
+     |
+    ::: /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-composition-source-preparation/owned-work/negative-candidate-debug-forge-selected-capability/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:156:42
+     |
+ 156 | pub(super) struct SelectedSnapshotBodyV1(AdoptionBodyV1);
+     |                                          -------------- a constructor is private if any of the fields is private
+     |
+note: the tuple struct constructor `SelectedSnapshotBodyV1` is defined here
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-composition-source-preparation/owned-work/negative-candidate-debug-forge-selected-capability/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:156:1
+     |
+ 156 | pub(super) struct SelectedSnapshotBodyV1(AdoptionBodyV1);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: consider making the field publicly accessible
+    -->  /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-composition-source-preparation/owned-work/negative-candidate-debug-forge-selected-capability/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:156:42
+     |
+ 156 | pub(super) struct SelectedSnapshotBodyV1(pub AdoptionBodyV1);
+     |                                          +++
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0603`.

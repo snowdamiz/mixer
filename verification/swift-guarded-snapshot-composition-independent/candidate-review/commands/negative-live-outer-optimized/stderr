@@ -1,0 +1,24 @@
+error[E0505]: cannot move out of `run` because it is borrowed
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-composition-independent/candidate-review/owned-work/negative-live-outer-optimized/vm/src/experimental_swift_reactor/control.rs:2102:15
+     |
+2100 | fn independent_negative_live_outer_v1(run:SnapshotRunV1){
+     |                                       --- binding `run` declared here
+2101 |  let outer=run.outer_v1();
+     |            --- borrow of `run` occurs here
+2102 |  let finished=run.finish_v1();
+     |               ^^^ move out of `run` occurs here
+2103 |  let _=(outer,finished);
+     |         ----- borrow later used here
+     |
+note: if `SnapshotRunV1` implemented `Clone`, you could clone the value
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-composition-independent/candidate-review/owned-work/negative-live-outer-optimized/vm/src/experimental_swift_reactor/control.rs:1876:1
+     |
+1876 | pub(super) struct SnapshotRunV1 { scope:SnapshotScopeV1,outer:SnapshotOuterV1 }
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider implementing `Clone` for this type
+...
+2101 |  let outer=run.outer_v1();
+     |            --- you could clone this value
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0505`.

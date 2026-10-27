@@ -1,0 +1,15 @@
+{
+  "command": "python3 verification/swift-guarded-snapshot-encoder-work-audit/audit.py",
+  "python": "3.14.8",
+  "script_sha256": "dfffd53285b7d22f50313f117346b676f24f57748ce3bc1750309b158f0e890e",
+  "exit_code": 1,
+  "failure": "AssertionError at audit.py line92: assert provenance == 2294",
+  "diagnostic_command": "python3 -O import of own ledger solely to print arithmetic without selecting any debit",
+  "observed": {
+    "provenance": 2306,
+    "runtime_validation": 1444,
+    "directories": 3322,
+    "fixed": 14221
+  },
+  "correction": "Digest reference-array12 omitted from hand sum; runtime validation and directory hand totals each over-added100; structured summands unchanged. No immutable encoder or native/VM call executed."
+}

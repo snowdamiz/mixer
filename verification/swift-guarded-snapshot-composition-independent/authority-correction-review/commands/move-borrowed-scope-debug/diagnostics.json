@@ -1,0 +1,92 @@
+[
+  {
+    "code": "E0505",
+    "message": "cannot move out of `scope` because it is borrowed",
+    "spans": [
+      {
+        "byte_end": 83608,
+        "byte_start": 83603,
+        "column_end": 17,
+        "column_start": 12,
+        "expansion": null,
+        "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-composition-independent/authority-correction-review/owned-work/move-borrowed-scope-debug/vm/src/experimental_swift_reactor/control.rs",
+        "is_primary": true,
+        "label": "move out of `scope` occurs here",
+        "line_end": 2119,
+        "line_start": 2119,
+        "suggested_replacement": null,
+        "suggestion_applicability": null,
+        "text": [
+          {
+            "highlight_end": 17,
+            "highlight_start": 12,
+            "text": " let moved=scope;"
+          }
+        ]
+      },
+      {
+        "byte_end": 83529,
+        "byte_start": 83513,
+        "column_end": 57,
+        "column_start": 41,
+        "expansion": null,
+        "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-composition-independent/authority-correction-review/owned-work/move-borrowed-scope-debug/vm/src/experimental_swift_reactor/control.rs",
+        "is_primary": false,
+        "label": "borrow of `scope.cache` occurs here",
+        "line_end": 2118,
+        "line_start": 2118,
+        "suggested_replacement": null,
+        "suggestion_applicability": null,
+        "text": [
+          {
+            "highlight_end": 57,
+            "highlight_start": 41,
+            "text": " let owners=SnapshotScopeBorrowV1{cache:&mut scope.cache,control:&mut scope.control,wasi:scope.wasi.as_ref(),adopted};"
+          }
+        ]
+      },
+      {
+        "byte_end": 83396,
+        "byte_start": 83387,
+        "column_end": 39,
+        "column_start": 30,
+        "expansion": null,
+        "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-composition-independent/authority-correction-review/owned-work/move-borrowed-scope-debug/vm/src/experimental_swift_reactor/control.rs",
+        "is_primary": false,
+        "label": "binding `scope` declared here",
+        "line_end": 2116,
+        "line_start": 2116,
+        "suggested_replacement": null,
+        "suggestion_applicability": null,
+        "text": [
+          {
+            "highlight_end": 39,
+            "highlight_start": 30,
+            "text": "fn independent_move_scope_v1(mut scope:SnapshotScopeV1){"
+          }
+        ]
+      },
+      {
+        "byte_end": 83623,
+        "byte_start": 83617,
+        "column_end": 14,
+        "column_start": 8,
+        "expansion": null,
+        "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-composition-independent/authority-correction-review/owned-work/move-borrowed-scope-debug/vm/src/experimental_swift_reactor/control.rs",
+        "is_primary": false,
+        "label": "borrow later used here",
+        "line_end": 2120,
+        "line_start": 2120,
+        "suggested_replacement": null,
+        "suggestion_applicability": null,
+        "text": [
+          {
+            "highlight_end": 14,
+            "highlight_start": 8,
+            "text": " drop((owners,moved));"
+          }
+        ]
+      }
+    ]
+  }
+]

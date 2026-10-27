@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "base_seal_sha256": "bf17889754e7ef436fababcf8b96f5109285f982bcc48258a0b9e204a95b1751",
+  "base_source_tree_sha256": "140761754a158c72209120de9ac5f78f7a1d5c20c3cddd6deeb9fff7a2d1b395",
+  "bypass_evidence_sha256": "9d9a84a970e2c7c2417c9ac5c8a297e353074cfce8499c1fb211638a3d123608",
+  "exact_replacements": {
+    "src/experimental_swift_reactor/control.rs": [
+      {
+        "old": "pub(super) struct SnapshotRunV1 { scope:SnapshotScopeV1,outer:SnapshotOuterV1 }",
+        "new": "/// A single-use borrow of the actual selected scope's owners. Only this module\n/// can mint it; callers cannot substitute a different control or cache slot.\npub(super) struct SnapshotScopeBorrowV1<'a> {\n    cache:&'a mut Option<super::cache::SwiftFunctionCache>,\n    control:&'a mut RuntimeControl,\n    wasi:Option<&'a AccountedWasi>,\n    adopted:AdoptedProof,\n}\nimpl<'a> SnapshotScopeBorrowV1<'a> {\n    pub(super) fn into_parts(self)->(&'a mut Option<super::cache::SwiftFunctionCache>,&'a mut RuntimeControl,Option<&'a AccountedWasi>,AdoptedProof){\n        let Self {cache,control,wasi,adopted}=self;\n        (cache,control,wasi,adopted)\n    }\n}\npub(super) struct SnapshotRunV1 { scope:SnapshotScopeV1,outer:SnapshotOuterV1 }"
+      },
+      {
+        "old": "        let outer=super::cache::construct_snapshot_in_scope_v1(\n            &mut self.cache,&mut self.control,self.wasi.as_ref(),adopted,claims,rows,snapshot);",
+        "new": "        let owners=SnapshotScopeBorrowV1 {\n            cache:&mut self.cache,control:&mut self.control,wasi:self.wasi.as_ref(),adopted,\n        };\n        let outer=super::cache::construct_snapshot_in_scope_v1(owners,claims,rows,snapshot);"
+      }
+    ],
+    "src/experimental_swift_reactor/cache.rs": [
+      {
+        "old": "pub(super) fn construct_snapshot_in_scope_v1(cache:&mut Option<SwiftFunctionCache>,control:&mut RuntimeControl,wasi:Option<&AccountedWasi>,adopted:AdoptedProof,claims:&SnapshotClaimsV1,rows:&mut std::fs::File,snapshot:&mut std::fs::File)->SnapshotOuterV1{\n    initial_profile_v1::construct_snapshot_owned_v1(cache,control,wasi,adopted,claims,rows,snapshot)\n}",
+        "new": "pub(super) fn construct_snapshot_in_scope_v1(owners:super::control::SnapshotScopeBorrowV1<'_>,claims:&SnapshotClaimsV1,rows:&mut std::fs::File,snapshot:&mut std::fs::File)->SnapshotOuterV1{\n    initial_profile_v1::construct_snapshot_owned_v1(owners,claims,rows,snapshot)\n}"
+      }
+    ],
+    "src/experimental_swift_reactor/cache/initial_profile_v1.rs": [
+      {
+        "old": "pub(super) fn construct_snapshot_owned_v1(cache:&mut Option<SwiftFunctionCache>,control:&mut RuntimeControl,wasi:Option<&AccountedWasi>,adopted:AdoptedProof,claims:&UnverifiedProfileDigestBytesV1,rows:&mut File,snapshot:&mut File)->SnapshotOuterV1{\n    construct_profile_core_v1(cache,control,wasi,adopted,&selected_initial_profile_v1(),claims,rows,SnapshotBranchV1{output:snapshot})\n}",
+        "new": "pub(super) fn construct_snapshot_owned_v1(owners:super::super::control::SnapshotScopeBorrowV1<'_>,claims:&UnverifiedProfileDigestBytesV1,rows:&mut File,snapshot:&mut File)->SnapshotOuterV1{\n    let (cache,control,wasi,adopted)=owners.into_parts();\n    construct_profile_core_v1(cache,control,wasi,adopted,&selected_initial_profile_v1(),claims,rows,SnapshotBranchV1{output:snapshot})\n}"
+      }
+    ]
+  },
+  "source_members": 144,
+  "runtime_executed": false,
+  "storage_and_work_delta_pending": true
+}

@@ -1,0 +1,25 @@
+error[E0505]: cannot move out of `access` because it is borrowed
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-composition-independent/candidate-review/owned-work/negative-live-view-debug/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:653:17
+    |
+650 |  let (access,storage)=begin_snapshot_access_v1(cache,control,wasi);
+    |       ------ binding `access` declared here
+651 |  let initial=InitialProfileBorrowV1{cache,control:access.shared_control(),wasi,scalars};
+    |                                                   ------ borrow of `access` occurs here
+652 |  let view=borrow_snapshot_v2(&initial);
+653 |  let completion=access.complete(storage);
+    |                 ^^^^^^ move out of `access` occurs here
+654 |  drop((view,completion));
+    |        ---- borrow later used here
+    |
+note: if `SnapshotAccessV1<'_>` implemented `Clone`, you could clone the value
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-composition-independent/candidate-review/owned-work/negative-live-view-debug/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:344:1
+    |
+344 | enum SnapshotAccessV1<'c> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ consider implementing `Clone` for this type
+...
+651 |  let initial=InitialProfileBorrowV1{cache,control:access.shared_control(),wasi,scalars};
+    |                                                   ------ you could clone this value
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0505`.

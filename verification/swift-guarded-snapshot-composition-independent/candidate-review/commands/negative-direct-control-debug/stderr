@@ -1,0 +1,15 @@
+error[E0502]: cannot borrow `*control` as immutable because it is also borrowed as mutable
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-composition-independent/candidate-review/owned-work/negative-direct-control-debug/vm/src/experimental_swift_reactor/cache/initial_profile_v1.rs:173:52
+    |
+170 |     let (access,mut storage)=branch.begin(cache,control,wasi);
+    |                                                 ------- mutable borrow occurs here
+...
+173 |         let initial=InitialProfileBorrowV1 { cache,control,wasi,scalars };
+    |                                                    ^^^^^^^ immutable borrow occurs here
+...
+186 |     branch.finish(primary,attempt,access,storage)
+    |                                   ------ mutable borrow later used here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0502`.
