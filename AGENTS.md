@@ -10,8 +10,17 @@ it does not replace or narrow that scope. Keep `STATUS.md`, `work-graph.json`,
   generated source, tests, fixtures, or dependencies. Official specifications and
   platform tools are permitted. Record general-purpose dependencies in THIRD_PARTY.yml.
 - The plan explicitly requests parallel agents: use `gpt-6.1-sol`, `xhigh`, fresh
-  context with bounded ownership. The main controlling model is selected by the user;
-  do not claim to change it via a child agent.
+  context with bounded ownership for ordinary work. Escalate stalled blockers,
+  competing experiments and difficult review to fresh `gpt-6-astra`, `xhigh`
+  agents (Astra 6 Extra High), following product-plan sections 20.3 and 24.4.
+  The main controlling model is selected by the user; do not claim to change it
+  via a child agent.
+- Aggressively test competing blocker hypotheses within finite resource/run bounds.
+  Treat experimental numeric limits as hypotheses; preserve baseline failures,
+  validation/capability safeguards and all active native/process/custody holds.
+  After two failed approaches or two preparation-only cycles, launch the bounded
+  escalation campaign. Each prerequisite must unlock a named executable test or
+  integration; avoid endless accounting/review preparation without a decision.
 - Coordinate public contracts before dependent changes. Never edit another active
   lane's files without coordination. Do not undo user work.
 - Each meaningful slice needs executable tests and accurate limitations. A skipped

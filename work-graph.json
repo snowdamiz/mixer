@@ -2,6 +2,67 @@
   "schema": 1,
   "scope": "Full product plan; packages only verified after specified acceptance",
   "updated": "2026-10-28",
+  "executionPolicy": {
+    "reference": "mixer-product-plan.md#244-aggressive-blocker-experiments-and-integration-priority",
+    "budgetReference": "mixer-product-plan.md#203-calibrate-experimental-limits-against-real-workloads",
+    "decision": "docs/adrs/0002-empirical-budgets-and-blocker-experiments.md",
+    "adoptedOn": "2026-10-28",
+    "authorization": "Direct user instruction to revise the plan, experiment aggressively on stalled blockers, and use Astra 6 Extra High agents.",
+    "integrationPriority": "Complete public-SDK FieldLog native iOS/Android flows in parallel with VM experiments; preserve complete hosted and GA scope.",
+    "campaignRules": {
+      "competingHypothesesMinimum": 2,
+      "distinctFailedApproachesBeforeEscalation": 2,
+      "preparationOnlyCyclesBeforeEscalation": 2,
+      "cycle": "Substantive proposed correction or experiment, not a chat turn.",
+      "architectureReviewAfterNonAdvancingCampaigns": 2,
+      "decisionRequired": "Integrate a supported candidate, select a materially different hypothesis/profile, or identify a concrete external prerequisite.",
+      "evidence": "One compact source/profile-bound campaign record; reuse immutable artifacts by hash; each prerequisite unlocks a named executable command or integration.",
+      "promotion": "Separate diagnostic progress, host feasibility, measured optimization and full production qualification."
+    },
+    "initialVmCampaign": {
+      "id": "VM-CACHE-CALIBRATION-1",
+      "state": "planned",
+      "maxFullWorkloadAttempts": 5,
+      "variants": [
+        {
+          "name": "baseline",
+          "residents": 64,
+          "cacheWork": 64000000
+        },
+        {
+          "name": "work-only",
+          "residents": 64,
+          "cacheWork": 128000000
+        },
+        {
+          "name": "capacity-a",
+          "residents": 128,
+          "cacheWork": 64000000
+        },
+        {
+          "name": "capacity-b",
+          "residents": 256,
+          "cacheWork": 64000000
+        },
+        {
+          "name": "combined-if-justified",
+          "residents": "best observed capacity",
+          "cacheWork": 128000000
+        }
+      ],
+      "requiredBeforeRun": "Exact source/profile selection, accounted coupled structures/tickets and a permitted isolated host/CI path; current explicit holds remain effective.",
+      "completion": "Both original corpus calls on one initialized owner with correct observations, cumulative counters retained, no invariant failure and successful consuming cleanup.",
+      "qualification": "Plan only; no experiment executed and no production limit changed."
+    },
+    "retainedConstraints": [
+      "Independent engine ownership; no Patch/Skip implementation or production interpreter dependency.",
+      "Full validation, capabilities, signatures, cancellation, memory/deadline enforcement and cleanup.",
+      "Current native/UI/capture pause, disconnected phones, local custody and UnitA holds.",
+      "No retry or alternate harness bypass of explicit security denials.",
+      "All W01-W18, D0-D8 and G01-G38 requirements and evidence/reviewer rules."
+    ],
+    "receipt": "verification/blocker-experimentation-plan-2026-10-28/receipt.json"
+  },
   "packages": [
     {
       "id": "W01",
@@ -18014,6 +18075,20 @@
     "delegates": {
       "model": "gpt-6.1-sol",
       "reasoningEffort": "xhigh"
+    },
+    "escalation": {
+      "model": "gpt-6-astra",
+      "reasoningEffort": "xhigh",
+      "context": "fresh; fork_turns none",
+      "roles": [
+        "stalled-blocker diagnosis",
+        "competing experiment design/implementation",
+        "architecture challenge",
+        "difficult independent review"
+      ],
+      "trigger": "Immediate contradictory assumption or difficult ownership/security boundary; otherwise two distinct failed approaches, recurrence after correction, or two substantive preparation-only cycles.",
+      "controllerUnchanged": true,
+      "unavailableModelPolicy": "Report exact availability limitation; do not silently substitute."
     }
   },
   "fieldlogRepository": {

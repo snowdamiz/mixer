@@ -1,6 +1,6 @@
 # mixer — Swift-First Mobile Platform Product and Engineering Plan
 
-Version: 1.3 — updated October 24, 2026 (hosted stack and deployment decisions).
+Version: 1.4 — updated October 28, 2026 (empirical resource budgets, blocker experiments, and Astra escalation; hosted stack retained).
 
 Prepared: October 22, 2026  
 Status: Proposed implementation plan; no implementation or release evidence is claimed by this document.  
@@ -23,7 +23,7 @@ The user's decisions govern the plan:
 3. **Dogfood continuously.** Build and operate a real Swift application throughout development. Every major milestone requires evidence from that application on physical devices and, once distribution is ready, through real store builds.
 4. **Deliver both platforms.** iOS-only success does not satisfy a milestone whose scope includes Android, and Android emulator success does not establish physical-device qualification.
 5. **Make limitations explicit.** The service must explain which changes are OTA-compatible, which require a store release, and which APIs are platform-specific.
-6. **Use the specified agent models.** The user selects **Astra Extra High** as the main controlling agent when launching development. Astra directs and integrates the work, using **Sol 6.1 Extra High** subagents in parallel as much as practical. These model choices and reasoning levels are binding for development execution.
+6. **Use the specified agent models.** The user selects the main controlling agent when launching development. The coordinator directs and integrates the work, using **Sol 6.1 Extra High** for ordinary parallel tasks and fresh-context **Astra 6 Extra High** agents for stalled blockers, competing designs and difficult independent review. Section 25 defines the explicit model settings; spawning a child does not change the controller.
 
 ### 1.1 Meaning of “our own engine for everything”
 
@@ -389,6 +389,8 @@ The compiler and VM teams jointly produce a machine-readable opcode/import inven
 
 Validate every module before execution, even if the server previously validated it. Bound section sizes, nesting, function count, stack depth, table size, memory, decompression, host-call frequency, and execution time. Use instruction metering and cancellation checks to prevent a loop from monopolizing a device thread. Meter long native imports independently; instruction fuel cannot bound a blocking host call.
 
+Resource enforcement is mandatory; initial experimental numeric ceilings are revisable under Section 20.3. The coordinator may select bounded, nondefault host experiments within existing authorization without a new user approval for each variant. Preserve the failed baseline, account for changed storage/work structures and retain all active holds. Such selection does not alter public/installed production policy.
+
 Use Rust for the interpreter core, isolate necessary `unsafe` code, and audit every C ABI boundary. No Rust panic or Swift exception may unwind across that boundary. Check arithmetic, alignment, pointer lifetimes, and buffer sizes at each transfer. Host functions return structured failures and cannot bypass capability checks.
 
 The VM is a sandbox boundary, not a proof that a correctly signed app behaves well. A publisher can still write a destructive database operation or misuse an allowed API. Preserve application authorization, release review, and data-recovery controls outside the VM.
@@ -720,6 +722,16 @@ Benchmarks include a 1,000-row list with realistic cell content, typing/validati
 
 If a budget fails, optimize and remeasure. If a target is objectively incompatible with the chosen product contract, record a reviewed target revision and customer impact; never quietly relabel the failed measurement as a pass.
 
+### 20.3 Calibrate experimental limits against real workloads
+
+Separate product performance targets, security/compatibility invariants, and provisional implementation ceilings. A number inherited from an experimental fixture is a hypothesis to test. The Swift reactor's 64 resident decoded functions and 64,000,000 cumulative cache-work credits are experimental defaults, not established mobile requirements. Cache-work credits measure implementation-defined housekeeping, separately from guest instructions, elapsed time and memory. Preserve their original failed run as the baseline; do not make that exact pair an immutable completion target.
+
+Use isolated, explicitly versioned experimental profiles to compare limits and algorithms on the same full Swift artifact, inputs and output oracle. First distinguish an undersized cache, inefficient lookup/rebuild policy and an undersized work allowance. Vary one factor at a time before selecting a combined candidate. Larger entry counts require accounting for their tables, tickets, scans and lifetimes within the retained byte ceilings; adding entries can also increase linear-search work. Keep instruction, time, memory, cancellation, validation and capability safeguards effective. A profile experiment cannot change installed release authority or silently widen public/signed limits.
+
+Record completion/parity, elapsed and CPU time, peak RSS where observable, logical reservations separately, cache hit/miss/eviction/redecode counts, work categories and the next limiting resource. Report missing measurements explicitly. Preserve the native/reference comparison, exact source/tool/profile identities, failed attempts and cleanup. The initial bounded campaign is specified in [ADR 0002](docs/adrs/0002-empirical-budgets-and-blocker-experiments.md); the coordinator may select follow-up variants from its results without another planning-only gate.
+
+Choose production limits from representative FieldLog tasks, worst supported inputs and measured device behavior. Explicitly design the replenishment/yield policy for sustained application use: a cumulative diagnostic lifetime allowance is not automatically a whole-app lifetime policy, and resetting it per call without a scheduling/abuse model is not acceptable. Host experiments can establish feasibility while native runs are paused; mobile performance, energy, responsiveness and memory acceptance remain pending. A successful larger-budget experiment proves only its measured scope. A reviewed production profile change still needs regression, resource-exhaustion, adversarial and platform evidence.
+
 ## 21. The real dogfood application: FieldLog
 
 ### 21.1 Product purpose and real users
@@ -905,22 +917,37 @@ The decisive integration chain is supported Swift semantics → native/guest con
 
 Every failed gate produces a reproducible issue with an owning agent lane, affected contract, customer impact, required correction, and verification command. Repair the component and rerun the affected integration evidence. A narrower internal milestone can sequence work but cannot replace the complete product scope. Do not substitute competitor code or a third-party production interpreter to close a gate.
 
+### 24.4 Aggressive blocker experiments and integration priority
+
+Escalate immediately when a hardcoded assumption contradicts the observed workload, or when an ownership/security boundary needs stronger review. Otherwise escalate after two distinct failed solution attempts, recurrence of the same failure after an accepted correction, or two consecutive work cycles that produce only preparation/review artifacts without executing a decisive test or advancing the blocked behavior. A cycle is a substantive proposed correction or experiment, not a chat turn. Repeating the same approach with more documentation is not a new hypothesis. Record the trigger in the work graph and start a bounded experiment campaign in the next cycle.
+
+The coordinator assigns fresh-context Astra 6 Extra High agents to challenge assumptions, develop competing solutions and independently interpret results. Normally assign two bounded independent roles when slots permit; with fewer slots, run them sequentially and keep implementation/review ownership distinct. Each campaign identifies the user-visible milestone, known failures, baseline, at least two competing explanations, the smallest discriminating executable tests, finite resource/run bounds, stop conditions and the decision the results will make. Prefer actual unchanged-workload execution over another model when the former is permitted and informative. Run cheap probes first, then the strongest surviving candidate against the real workload. Never execute a rejected security action or bypass an active process/custody hold to gather evidence.
+
+At campaign close, choose and integrate a candidate, revise the hypothesis/profile with evidence, or name the concrete external condition preventing a useful experiment. A failed, dominated or uninformative candidate is retired; do not keep elaborating it because its review packet is large. A repeat needs a stated purpose and finite count: baseline comparability, independent reproduction, variance measurement or a concrete correction. Do not rerun an unchanged failure without such a purpose. If two campaigns fail to advance the milestone, require an Astra architecture review comparing an algorithm change, a resource-policy change and a different implementation approach. Preserve independent engine ownership and supported behavior in every alternative.
+
+Prioritize the first complete public-SDK FieldLog feature flow on native iOS and Android, then broaden shared UI/capabilities and complete interpreted/OTA parity. Native shared-app work can advance independently of VM execution; hosted workflow work should proceed in parallel without consuming every available lane. Keep a lane on the next executable application integration when its dependencies permit. Unavailable environments retain their pending status; the current native/UI pause still applies.
+
+Keep experimental verification proportional and decisive. Use one compact campaign record with source/profile identities, commands, outcomes, limitations and cleanup, reusing immutable artifacts by hash. Prepare only the accounting, contracts and reviews necessary to run the proposed bounded experiment safely. Every prerequisite states which command or integration it unlocks; after two prerequisite-only cycles, simplify the experiment or escalate the architecture. Diagnostic feasibility does not require production qualification, but production promotion retains its complete independent review and release gates. Do not report evidence-file counts, layout proofs or green CI as completed application behavior.
+
+Define required review and executable acceptance before implementation. Once they pass and the coordinator reconciles the result, integrate the scoped slice. Reopen it only for a concrete counterexample, changed source/contract/environment, missing mandatory evidence or an unresolved safety finding. A review of another review must address an identified evidence-validity defect; do not create a recursive acceptance chain by default.
+
 ## 25. AI-agent execution model
 
 ### Controlling model and subagent configuration
 
 | Responsibility | Required model | Model identifier | Reasoning effort |
 | --- | --- | --- | --- |
-| Main controlling agent | **Astra Extra High**, selected by the user before sending the development launch prompt | `gpt-6-astra` | `xhigh` |
-| Implementation, research, testing, and review subagents | **Sol 6.1 Extra High**, explicitly selected by Astra for delegated work | `gpt-6.1-sol` | `xhigh` |
+| Main controlling agent | **User-selected**; Astra 6 Extra High is the established recommended controller | User's actual selection; do not infer or change it from a child | User-selected |
+| Ordinary implementation, research, testing, and review subagents | **Sol 6.1 Extra High**, explicitly selected by the coordinator | `gpt-6.1-sol` | `xhigh` |
+| Stalled-blocker experiments, architecture challenge and difficult independent review | **Astra 6 Extra High**, explicitly selected by the coordinator | `gpt-6-astra` | `xhigh` |
 
-Astra owns the complete product objective, architecture decisions, dependency graph, task assignment, integration, verification status, and final acceptance. It also implements work on the critical path while subagents handle independent tasks. The main model is set by the user at launch; the development workflow uses that selection.
+The user-selected coordinator owns the complete product objective, architecture decisions, dependency graph, task assignment, integration, verification status, and final acceptance. It also implements work on the critical path while subagents handle independent tasks. The main model is set by the user at launch; the development workflow uses that selection.
 
-Every delegated task explicitly requests `gpt-6.1-sol` with `reasoning_effort: "xhigh"`; do not rely on inheriting Astra's model or a default reasoning level. When the agent tool requires a fresh context to override the child model, use `fork_turns: "none"` and include the complete bounded task contract, relevant file paths, decisions, interfaces, and verification requirements in the task message. Record the selected model and reasoning level with each task's completion evidence.
+Every delegated task explicitly selects its role's model and `reasoning_effort: "xhigh"`; do not rely on inherited models or default effort. Ordinary tasks use `gpt-6.1-sol`; Section 24.4 escalation tasks use `gpt-6-astra`. Use `fork_turns: "none"` and include the complete bounded task contract, relevant file paths, decisions, interfaces, known failed hypotheses and verification requirements. Record the actual model and reasoning level with each task's completion evidence. Use Astra escalation proactively when the trigger is met; do not wait for another user request to try a stronger agent.
 
 If the requested model or reasoning setting is unavailable, report the specific limitation and keep the affected task accurately marked. Do not silently substitute a different model or effort level. Continue independent work that remains executable within the specified configuration.
 
-**Parallel execution is the default.** Astra continuously identifies dependency-ready work and dispatches independent tasks to Sol 6.1 Extra High subagents up to the practical concurrency supported by the environment. Keep available capacity occupied when useful independent work exists. Practical limits are shared-file ownership, interface readiness, build/device contention, and verification dependencies. Do not force independent work into a serial sequence; do not create conflicting edits merely to increase agent count.
+**Parallel execution is the default.** The coordinator continuously identifies dependency-ready work and dispatches ordinary tasks to Sol 6.1 Extra High and escalation roles to Astra 6 Extra High, up to the practical concurrency supported by the environment. Keep available capacity occupied when useful independent work exists. Practical limits are shared-file ownership, interface readiness, build/device contention, and verification dependencies. Do not force independent work into a serial sequence; do not create conflicting edits merely to increase agent count.
 
 ### 25.1 Agent lanes and ownership
 
@@ -928,7 +955,8 @@ The lanes below describe responsibilities, not required headcount. Activate as m
 
 | Lane | Owns | Completion artifact |
 | --- | --- | --- |
-| Coordinator/integrator — Astra Extra High | Dependency graph, requirements, Sol 6.1 Extra High task allocation, integration branch, gate status | Current work graph, integrated release candidate, evidence index. |
+| Coordinator/integrator — user-selected main model | Dependency graph, requirements, Sol/Astra task allocation, integration branch, gate status | Current work graph, integrated release candidate, evidence index. |
+| Blocker experiment/architecture challenge — Astra 6 Extra High | Competing hypotheses, minimal decisive experiments, resource-policy calibration, integration decision | Bounded comparison results and a concrete next implementation or external blocker. |
 | Compiler/toolchain | Swift SDK locking, native/guest build, API validation, source maps | Reproducible compilation and original-source diagnostics. |
 | VM/runtime | Our parser, validator, interpreter, Swift runtime imports, limits | Conformance/fuzzing/differential receipts and real guest execution. |
 | Shared framework | Core state/effects, MixerUI semantics, capability schemas | Versioned contracts and cross-mode behavior tests. |
@@ -948,7 +976,7 @@ Every agent task receives a bounded specification containing:
 2. Files/modules owned by the task and interfaces it may change.
 3. Relevant architecture decisions, provenance restrictions, and supported toolchain versions.
 4. The real FieldLog flow that should consume or expose the change.
-5. Acceptance commands, required device/OS targets, and expected artifacts.
+5. Acceptance commands, required device/OS targets, expected artifacts, finite resource/run bounds and stop conditions. For blockers include the hypothesis, baseline, competing explanation and intended integration decision.
 6. Explicit forbidden shortcuts, including mocks counted as integration, silent native-only substitution, and competitor-code reuse.
 7. A completion report with commit/artifact IDs, changes, verification results, remaining failures, and contract changes.
 
@@ -956,8 +984,8 @@ Tasks must be concrete enough for another agent to reproduce their results. Do n
 
 ### 25.3 Parallel work and integration
 
-- Astra decomposes each ready work package into independent implementation, test, review, documentation, and dogfood tasks, then assigns useful parallel work to Sol 6.1 Extra High subagents.
-- As a subagent completes, Astra reviews its evidence, integrates or requests corrections, and assigns the next dependency-ready task. Keep the work graph current and proceed on independent work while other agents run.
+- The coordinator decomposes ready packages into implementation, test, review and dogfood tasks, using Sol 6.1 Extra High ordinarily and Astra 6 Extra High for Section 24.4 escalation. Prioritize completed vertical slices and discriminating experiments over additional disconnected preparation.
+- As a subagent completes, the coordinator reviews its evidence, integrates or requests corrections, and assigns the next dependency-ready task. Keep the work graph current and proceed on independent work while other agents run.
 - Give concurrent implementation tasks isolated branches/worktrees and non-overlapping ownership where possible.
 - Freeze versioned UI, capability, guest, and release schemas before dependent agents implement against them. Schema changes require updating all affected consumers and tests in the same integration unit.
 - Land small complete vertical slices with real app coverage. Avoid giant disconnected components that first meet at the end.
@@ -968,7 +996,7 @@ Tasks must be concrete enough for another agent to reproduce their results. Do n
 
 ### 25.4 Verification independent of implementation claims
 
-A Sol 6.1 Extra High implementation agent saying a task is complete is not acceptance evidence. A separate Sol 6.1 Extra High verifier reproduces the required behavior from the committed state, checks the actual outputs, and records failed or blocked environments. Astra reviews the evidence and remains responsible for integration and gate acceptance. Review assumptions, boundary conditions, unsafe code, data migrations, and recovery targets rather than merely rereading the implementation.
+An implementation agent saying a task is complete is not acceptance evidence. A separate verifier reproduces the required behavior from the committed state, checks actual outputs, and records failed or blocked environments. Ordinary verification uses Sol 6.1 Extra High; difficult, repeatedly stalled or architectural verification escalates to a fresh Astra 6 Extra High agent. The coordinator remains responsible for integration and gate acceptance. Review assumptions, boundary conditions, unsafe code, data migrations and recovery targets rather than merely rereading the implementation. Bounded diagnostic experiments retain honest feasibility evidence without claiming production acceptance.
 
 Use automated language/VM/bridge tests for broad coverage, native UI automation for interaction, and physical devices for hardware/lifecycle/performance. Keep signed builds, logs, source maps, recordings, and metric samples traceable to exact commits. A code change that passes unit tests but breaks FieldLog remains incomplete.
 
@@ -979,7 +1007,8 @@ Security-sensitive changes receive independent adversarial review. External stor
 Maintain these machine-readable and human-readable artifacts so agents can resume without reconstructing decisions from chat history:
 
 ```text
-PLAN.md                      # this product scope and architecture
+mixer-product-plan.md        # binding product scope and architecture
+PLAN.md                      # current execution index and next decisive work
 AGENTS.md                    # repository workflow, provenance and verification rules
 docs/adrs/                   # versioned decisions and consequences
 contracts/                   # schemas and compatibility rules
@@ -990,7 +1019,7 @@ verification/                # reproducible commands and environment manifests
 STATUS.md                    # current integrated state and concrete next blockers
 ```
 
-Task states are `ready`, `in_progress`, `review`, `verified`, and `blocked`. A blocked dependency identifies the exact missing input or external action. Progress is measured by integrated behavior and satisfied gates, with no calendar-based completion claim.
+Task states are `ready`, `in_progress`, `review`, `verified`, and `blocked`. A blocked dependency identifies the exact missing input or external action. Active blockers record the next discriminating command, owner/model, failed hypotheses, campaign bounds and promotion criteria. Progress reports name the application behavior gained, its actual environment and the remaining end-to-end milestone; separate implementation, integration, diagnostics, review and CI maintenance. Progress is measured by integrated behavior and satisfied gates, with no calendar-based completion claim.
 
 ### 25.6 Release and operational authority
 
@@ -1212,8 +1241,10 @@ Potential later expansions include richer tablet/desktop support, a wider plugin
 | Decision | Status | Rationale / resolution rule |
 | --- | --- | --- |
 | Project name: mixer | Fixed by user | CLI `mixer`, configuration `mixer.yml`/`mixer.lock`, owned modules `Mixer*`. |
-| Controlling agent: Astra Extra High | Fixed by user | User selects `gpt-6-astra` with `xhigh` before launching development; owns coordination, integration, and acceptance. |
-| Subagents: Sol 6.1 Extra High | Fixed by user | Explicit `gpt-6.1-sol` with `xhigh`; use parallel subagents as much as practical for independent work. |
+| Controlling agent: user-selected main model | User controls selection | Owns coordination, integration and acceptance; Astra 6 Extra High is the established recommendation, and a child agent cannot change the controller. |
+| Ordinary subagents: Sol 6.1 Extra High | Retained user selection | Explicit `gpt-6.1-sol` with `xhigh` and fresh bounded context; parallelize independent work. |
+| Blocker escalation: Astra 6 Extra High | Selected under October 28 user instruction | Explicit `gpt-6-astra` with `xhigh` and fresh context for competing experiments, architecture challenge and difficult review under Section 24.4. |
+| Experimental resource ceilings | Empirical hypotheses under Sections 20.3/24.4 | Preserve failed baselines and enforce finite safeguards; compare candidate profiles before selecting measured production budgets. |
 | Independent engine; no Patch/Skip implementation | Fixed by user | Applies to source, tests, generated output, and indirect dependencies. |
 | Swift as customer application language | Fixed | Engine adapters and cloud can use suitable other languages. |
 | Native Swift compilation for Android | Selected architecture | Avoid owning a separate Swift-to-Kotlin language translator; own runtime/UI/JNI integration. |
@@ -1363,4 +1394,4 @@ The user's October 23 verification instruction accepts iOS simulator and Android
 
 Verify each integrated FieldLog release on both platforms. Update the work graph, critical dependencies, customer evidence, and gate status after each integration. Record decision changes with reasons and evidence; do not silently remove requirements when they become difficult.
 
-The immediate deliverable is this detailed implementation plan. The platform and FieldLog application remain to be built, operated, and qualified against it. The completion target is the full independently owned commercial product described above.
+The immediate execution priority is working integrated FieldLog behavior through the public shared Swift SDK, with native iOS/Android work and bounded VM blocker experiments advancing in parallel where dependencies permit. Existing implementation and receipts retain their actual scope. Run the Section 24.4 escalation process when progress stalls; historical per-run freezes preserve old evidence and do not permanently prohibit a newly selected experiment. Current explicit user pauses, process/custody restrictions, automated security denials and release authority still apply. The completion target remains the full independently owned commercial product described above.

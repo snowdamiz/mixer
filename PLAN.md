@@ -9,6 +9,32 @@ This index does not narrow or replace that specification. Use
 is preserved byte for byte in [the prior index](PLAN.history-2026-10-25.md);
 its older pending/selected statements do not override the current state.
 
+## Execution priority and blocker escalation
+
+The October 28 user instruction adopts [ADR 0002](docs/adrs/0002-empirical-budgets-and-blocker-experiments.md)
+and product-plan sections 20.3/24.4. Advance complete public-SDK FieldLog native
+iOS/Android flows alongside VM work; preserve the full hosted and GA scope.
+Treat the 64-entry/64-million-cache-credit pair as an experimental baseline.
+Prepare the bounded baseline/work-only/capacity comparison and decide from actual
+results before extending the existing diagnostic/accounting chain. No experiment
+or limit change is claimed by this planning update.
+
+Escalate after two distinct failed approaches, recurrence after a correction, or
+two preparation-only cycles; contradicting assumptions and difficult ownership
+boundaries escalate immediately. Use fresh `gpt-6-astra`, `xhigh` challenge and
+experiment/review agents, with bounded ownership, competing hypotheses, stop
+conditions and a named integration decision. Ordinary work stays on Sol 6.1
+Extra High. The user-selected controller remains unchanged.
+
+The coordinator selects reversible bounded experiments within existing authority
+without another user approval for each variant. Do not turn diagnostic readiness
+into full production qualification or recursive review. Preserve failed baselines,
+independent promotion review, installed/signed policies and security invariants.
+The native/UI/capture pause, disconnected phones, local custody/UnitA holds and
+explicit security denials remain active. Each prerequisite names the permitted
+command it unlocks or the concrete hold-release condition; historical per-run
+freezes do not freeze all later experimental design.
+
 ## Resumed checkpoint
 
 Checkpoint `c450ed48` is pushed with 277 selected paths. Its isolated identity-network run passed container creation/start, then Docker refused the copy into a read-only root filesystem; exact container cleanup is verified and no bootstrap or product method ran. The reviewed transfer correction preserves isolation and passes 68 pure controls plus validation of the exact retained input archive. It is selected for fresh CI together with a checkout-only Phoenix change that retains all 194 required baseline files and omits historical outputs; actual checkout compatibility and timing remain pending. All six Engine jobs passed on preceding `756695fb9`; its Phoenix run was cancelled during foundation checks and is not a complete pass. Alternate compiler identities and local facts remain accepted only within their diagnostic scope. The current verifier grammar cannot represent every intermediate physical copy stage; that source gap is recorded, with no actual certificate or invocation. Capacity, admission, GA, local custody, UnitA and native runtime holds remain unchanged.

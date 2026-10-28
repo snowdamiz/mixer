@@ -1,5 +1,15 @@
 # Implementation status
 
+The October 28 planning update adopts empirical resource-budget calibration and
+aggressive bounded blocker experiments, with fresh Astra 6 Extra High escalation
+after repeated failed or preparation-only cycles. Native shared FieldLog flows
+remain an independent integration priority. [ADR 0002](docs/adrs/0002-empirical-budgets-and-blocker-experiments.md)
+defines the first cache-capacity/work-allowance comparison. This update changes
+execution policy only: no VM run, runtime limit, implementation acceptance or
+GA status changes. Native/UI/capture, physical-phone and local custody/UnitA
+restrictions retain their actual state. Validation is recorded in
+[the plan receipt](verification/blocker-experimentation-plan-2026-10-28/receipt.json).
+
 Checkpoint `c450ed48` is pushed with 277 selected paths. Its isolated identity-network run passed container creation/start, then Docker refused the copy into a read-only root filesystem; exact container cleanup is verified and no bootstrap or product method ran. The reviewed transfer correction preserves isolation and passes 68 pure controls plus validation of the exact retained input archive. It is selected for fresh CI together with a checkout-only Phoenix change that retains all 194 required baseline files and omits historical outputs; actual checkout compatibility and timing remain pending. All six Engine jobs passed on preceding `756695fb9`; its Phoenix run was cancelled during foundation checks and is not a complete pass. Alternate compiler identities and local facts remain accepted only within their diagnostic scope. The current verifier grammar cannot represent every intermediate physical copy stage; that source gap is recorded, with no actual certificate or invocation. Capacity, admission, GA, local custody, UnitA and native runtime holds remain unchanged.
 
 Checkpoint `41af4a3` passed all six Engine jobs/64 steps. Phoenix passed 696 of 697 tests with two existing skips: all five HTTP/2 methods/seven cleanup-complete wire cases passed, while KOL09 exposed a dead-supervisor callback and premature replacement before old TLS cleanup. Eight of nine lifecycle methods passed (seven existing plus two new in-flight cases); the exact failure and successful terminal cleanup are retained. The reviewed and formatted two-file correction awaits fresh CI. Local custody remains held. The separate offline physical-region verifier passed all 16 synthetic methods with independent terminal review and owned cleanup; actual compiler geometry capture remains pending.
