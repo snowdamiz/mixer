@@ -80,7 +80,9 @@ defmodule MixerHosted.Identity.TLSFixtureLifecycleControlTest do
   test "an accepted TCP client that aborts before handshake records exactly one peer EOF" do
     fixture = start_supervised!(TLSFixture)
     authority = GenServer.call(fixture, :authority)
-    assert {:ok, socket} = :gen_tcp.connect(authority.ip, authority.port, [:binary, active: false])
+
+    assert {:ok, socket} =
+             :gen_tcp.connect(authority.ip, authority.port, [:binary, active: false])
 
     try do
       eventually(fixture, &(&1.accepted == 1))

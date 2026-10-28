@@ -50,7 +50,7 @@ def tearDownModule():
 
 
 PRODUCT_DIGEST = "023df04c9a4599c3d5a6cdf2afb53a95e2faf37765d8b96ba2bcc0e1b007c92e"
-SELECTED_DIGEST = "ab8f8dbec5894ca96dd673db828a01afdc39a54ad008a2a2d4e598c1c62ce2f7"
+SELECTED_DIGEST = "8d0139c8c64e02f29f42a96384661f60dd7b724fa5fb4d5f54f6e7c1b7b78cd3"
 LOCK_DIGEST = "1eada39dcaf4863d02d39f51e218d2bad8908b36a0cba47ff2d16037b7bcf837"
 ELIXIR_REF = "hexpm/elixir@sha256:ed110657152803079f311913be4effe02874e2c714a1b5a38891873b7f2a16c5"
 ELIXIR_CONFIG = "sha256:857e84a618d1f76390220fbff2e7d54d588aea4f772ab1e60dacfe3fa02602cc"
@@ -329,13 +329,74 @@ def exact_fixture_metadata():
     return values
 
 
+def exact_format_metadata():
+    values = exact_fixture_metadata()
+    root = COLLECTOR_PATH.resolve().parents[2]
+    base = collector.FORMAT_BASE
+    packet = json.loads((root / base / "packet-manifest.json").read_bytes())
+    for path in ["packet-manifest.json", *packet["files"]]:
+        values[base + path] = (root / base / path).read_bytes()
+    return values
+
+
+class FormatAmendmentControls(unittest.TestCase):
+    def test_exact_format_only_source_and_helpers_pass(self):
+        values = exact_format_metadata()
+        result = collector.validate_format_metadata(values)
+        self.assertEqual(SELECTED_DIGEST, result["selected"]["source_digest_sha256"])
+        self.assertEqual(collector.FIXTURE_SOURCE_DIGEST, result["predecessor"]["source_digest_sha256"])
+        self.assertEqual(collector.literal_helper_rows(), result["literal_helpers"])
+        root = COLLECTOR_PATH.resolve().parents[2]
+        for path in ["hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs", "hosted/test/support/identity_tls_fixture.ex", "hosted/mix.lock", *["hosted/" + name for name in collector.TEST_ROOTS]]:
+            row = collector.FROZEN_MANIFEST[path]
+            body = (root / path).read_bytes()
+            self.assertEqual(row, {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()})
+        self.assertEqual(collector.FIXTURE_MANIFEST["hosted/test/support/identity_tls_fixture.ex"], collector.FROZEN_MANIFEST["hosted/test/support/identity_tls_fixture.ex"])
+
+    def test_every_missing_changed_or_extra_format_member_refused(self):
+        values = exact_format_metadata()
+        for path in [path for path in values if path.startswith(collector.FORMAT_BASE)]:
+            for action in ("missing", "changed"):
+                altered = dict(values)
+                if action == "missing": del altered[path]
+                else: altered[path] += b" "
+                with self.subTest(path=path, action=action), self.assertRaises(collector.CollectorError):
+                    collector.validate_format_metadata(altered)
+        altered = dict(values)
+        altered[collector.FORMAT_BASE + "override.json"] = b"{}"
+        with self.assertRaises(collector.CollectorError): collector.validate_format_metadata(altered)
+
+    def test_old_178_source_and_caller_recomputed_digest_are_refused(self):
+        with self.assertRaises(collector.CollectorError): collector.validate_source_manifest(collector.FIXTURE_MANIFEST)
+        with self.assertRaises(collector.CollectorError):
+            collector.validate_source_manifest(collector.FIXTURE_MANIFEST, expected_digest=collector.FIXTURE_SOURCE_DIGEST)
+        values = exact_format_metadata()
+        seal = collector.FORMAT_BASE + "packet-manifest.json"
+        packet = json.loads(values[seal])
+        packet["files"]["after.exs"]["sha256"] = "0" * 64
+        packet["tree_digest_sha256"] = canonical_digest(packet["files"])
+        values[seal] = json.dumps(packet).encode()
+        with self.assertRaises(collector.CollectorError): collector.validate_format_metadata(values)
+
+    def test_exact_format_bytes_and_accepted_review_retained_in_archive(self):
+        values = exact_format_metadata()
+        collector.validate_format_metadata(values)
+        with tarfile.open(fileobj=io.BytesIO(collector.source_tar(values)), mode="r:") as archive_value:
+            retained = {member.name: archive_value.extractfile(member).read() for member in collector.safe_members(archive_value)}
+        self.assertEqual(values, retained)
+        self.assertIn(collector.FIXTURE_BASE + "independent-review/review.json", retained)
+        self.assertIn(collector.FORMAT_BASE + "after.exs", retained)
+        root = COLLECTOR_PATH.resolve().parents[2]
+        self.assertEqual((root / "hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs").read_bytes(), retained[collector.FORMAT_BASE + "after.exs"])
+
+
 class FixtureAmendmentControls(unittest.TestCase):
     BASE = "verification/identity-network-fixture-amendment-v1/metadata/"
 
     def test_selected_source_passes_with_historical_contracts_unchanged(self):
         result = collector.validate_fixture_metadata(exact_fixture_metadata())
         self.assertEqual(178, result["selected"]["source_count"])
-        self.assertEqual(SELECTED_DIGEST, result["selected"]["source_digest_sha256"])
+        self.assertEqual(collector.FIXTURE_SOURCE_DIGEST, result["selected"]["source_digest_sha256"])
         self.assertEqual(PRODUCT_DIGEST, result["predecessor"]["source_digest_sha256"])
         self.assertEqual("510771949fe7e95d81cd64f7a8d65df722fa7aa79293b55c773a61bbce8e351b", collector.FIXTURE_SHA256)
         self.assertEqual("13a0b3d84a5140d8fd73d2d4468a5675f6fcaeb8467788bdbda469c18f3a1f4c", collector.FIXTURE_PACKET)
@@ -353,7 +414,7 @@ class FixtureAmendmentControls(unittest.TestCase):
         control = "hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs"
         expected = {
             fixture: {"bytes": 9533, "sha256": "d3b55796a8baac4f9ebd37cc9ee5e44bde01ca346ce2dd00a0a5dd884711ba55"},
-            control: {"bytes": 4387, "sha256": "417704f8e805196f9546a508a770d23a55d40ce9d6214be5225f131c4bd2c7c6"},
+            control: {'bytes': 4401, 'sha256': 'a76b33c4cefac67797fed2909fe7b0c2eb7f7bb99a40b7924adc68901a514fff'},
         }
         self.assertEqual(set(expected), set(result["exact_delta"]))
         old = collector.PREDECESSOR_MANIFEST
@@ -418,7 +479,7 @@ class FixtureAmendmentControls(unittest.TestCase):
     def test_helper_manifest_and_review_are_retained_in_exact_metadata_archive(self):
         values = exact_fixture_metadata()
         result = collector.validate_fixture_metadata(values)
-        helper = json.dumps(collector.FROZEN_MANIFEST, sort_keys=True, separators=(",", ":")).encode()
+        helper = json.dumps(collector.FIXTURE_MANIFEST, sort_keys=True, separators=(",", ":")).encode()
         self.assertEqual({"bytes": len(helper), "sha256": hashlib.sha256(helper).hexdigest()}, result["literal_helpers"]["frozen-manifest.json"])
         self.assertEqual(178, len(json.loads(helper)))
         with tarfile.open(fileobj=io.BytesIO(collector.source_tar(values)), mode="r:") as archive_value:
@@ -1768,7 +1829,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
 
     def test_collect_requires_actual_prepare_result_before_bootstrap(self):
         with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
-            subject, calls = self._amendment_preflight_subject(directory, exact_fixture_metadata())
+            subject, calls = self._amendment_preflight_subject(directory, exact_format_metadata())
             prepared = owned("prepare")
             inspected = {"Config": {"Env": [key + "=" + value for key, value in collector.BASE_ENV.items()]}}
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
@@ -1814,6 +1875,22 @@ class CollectorMethodWiringControls(unittest.TestCase):
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
                             mock.patch.object(collector, "validate_source_manifest", return_value=collector.FROZEN_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before fixture admission")) as create:
+                        with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
+                    self.assertFalse(create.called)
+                    self.assertFalse(any(argv[0] == "docker" for argv in calls))
+
+    def test_collect_requires_format_amendment_before_any_image_operation(self):
+        for path in ("packet-manifest.json", "source-amendment.json", "format-proof.json", "after.exs"):
+            for action in ("missing", "changed"):
+                metadata = exact_format_metadata()
+                if action == "missing": del metadata[collector.FORMAT_BASE + path]
+                else: metadata[collector.FORMAT_BASE + path] += b" "
+                with self.subTest(path=path, action=action), tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+                    subject, calls = self._amendment_preflight_subject(directory, metadata)
+                    with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
+                            mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
+                            mock.patch.object(collector, "validate_source_manifest", return_value=collector.FROZEN_MANIFEST), \
+                            mock.patch.object(subject, "create", side_effect=AssertionError("create before format admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
                     self.assertFalse(any(argv[0] == "docker" for argv in calls))

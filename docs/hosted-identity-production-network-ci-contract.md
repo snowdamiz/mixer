@@ -279,8 +279,9 @@ can prevent cleanup/upload; missing evidence never counts as a pass.
 `selected-contract-metadata.tar` preserves the historical three full namespaces: the
 original contract and Elixir/PostgreSQL metadata, the complete v1 image
 amendment/source review, and the complete v2 execution amendment/raw proof.
-The selected fixture amendment adds its fourth namespace and complete independent
-review. The workflow checks out all selected metadata packets and push/PR filters
+The historical fixture amendment adds its fourth namespace and complete independent
+review. The selected format-only amendment adds a fifth namespace while retaining
+the prior packet and review unchanged. The workflow checks out all selected metadata packets and push/PR filters
 include their parent paths.
 Implementation and pure-control receipts live outside the metadata self-seal.
 
@@ -303,7 +304,7 @@ compiled all 113 JOSE Erlang modules and passed K03 against the historical
 were unreached. All three exact containers were removed and observed absent.
 This failed result remains preserved and does not prove a product leak cleared.
 
-## Selected fixture source amendment
+## Historical fixture source amendment v1
 
 `verification/identity-network-fixture-amendment-v1/metadata/` is the explicit
 closed source amendment. Its contract SHA256 is
@@ -353,3 +354,45 @@ Source review and pure Python controls are not Elixir/TLS runtime evidence.
 All six named behavior results and actual compilation remain pending for the
 amended source until fresh CI evidence is reviewed. Native, customer, held local
 custody, UnitA and GA boundaries remain unchanged.
+
+
+## Selected format-only fixture source amendment v2
+
+`verification/identity-network-fixture-amendment-v2/metadata/` selects only the
+exact whitespace diff emitted by Phoenix run `40775131269` at source `86a96a4b`.
+The original long assertion becomes a blank line followed by a wrapped assertion
+and its indented TCP call. The formatted test is 4,401 bytes, SHA256
+`a76b33c4cefac67797fed2909fe7b0c2eb7f7bb99a40b7924adc68901a514fff`.
+Its four test bodies and assertions are unchanged after whitespace removal.
+The selected 178-source digest is
+`8d0139c8c64e02f29f42a96384661f60dd7b724fa5fb4d5f54f6e7c1b7b78cd3`.
+The 177-file baseline and v1 178/ab8f8d packet, semantic review, fixture bytes,
+both production network methods and argv remain immutable historical authorities.
+
+The v2 contract SHA256 is
+`45f0c33f8f521ff43ed58b13c34466dea593ecd1c9e8aab166b1e075da07ef84`,
+its seven-member tree is
+`46d75ed1393db3250b5b7df2611b82bdc5c49f5c1ca7ec64ff8f40e24f179760`,
+and packet bytes SHA256 is
+`b4c80bfbfbb95e2affe77de1d2a1fc2067baec9f9a7132b3989369cd4c968dee`.
+Before image work the collector validates the unchanged v1 review, then v2's
+exact replacement, before/after bodies, source manifests and helper identities.
+The selected frozen-manifest helper and delivered source remain bound through
+archive, preparation, restore, compilation and post-test comparisons. Missing,
+changed or extra packet members, an old source manifest and caller-recomputed
+identity are refused. Both packets remain in the selected metadata archive and
+workflow sparse checkout. All 141 pure controls pass with children and sockets
+denied; the first wiring-control failure and its correction are retained.
+
+Independent artifact review of network run `40775131359` verifies both exact
+methods passed with zero failure, skip or exclusion against v1 178/ab8f8d:
+135 complete commands, 123 metadata members, seven helpers, 1,233 prepared
+files, 955 compiled modules including all 113 JOSE Erlang modules, both semantic
+receipts, ten migrations, unchanged final inputs, empty key directories and
+three exact containers removed and observed absent. Its 136 collector controls
+passed. Phoenix `40775131269` stopped at formatting before compilation or the
+four ordinary controls. Fresh formatted-source compilation, ordinary controls
+and network execution remain pending. The sanitized source-bound summary is
+`verification/github-delivery-fixture-format/prior-reviewed-ci-summary.json`;
+large raw evidence remains local. No new local formatter, compiler or runtime
+ran. Native/UI/capture, process/custody, UnitA and GA boundaries remain unchanged.

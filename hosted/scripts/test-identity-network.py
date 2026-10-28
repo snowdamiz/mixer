@@ -25,7 +25,12 @@ import time
 import uuid
 
 FROZEN_PRODUCT_DIGEST = "023df04c9a4599c3d5a6cdf2afb53a95e2faf37765d8b96ba2bcc0e1b007c92e"
-SELECTED_SOURCE_DIGEST = "ab8f8dbec5894ca96dd673db828a01afdc39a54ad008a2a2d4e598c1c62ce2f7"
+FIXTURE_SOURCE_DIGEST = "ab8f8dbec5894ca96dd673db828a01afdc39a54ad008a2a2d4e598c1c62ce2f7"
+SELECTED_SOURCE_DIGEST = "8d0139c8c64e02f29f42a96384661f60dd7b724fa5fb4d5f54f6e7c1b7b78cd3"
+FORMAT_BASE = "verification/identity-network-fixture-amendment-v2/metadata/"
+FORMAT_SHA256 = "45f0c33f8f521ff43ed58b13c34466dea593ecd1c9e8aab166b1e075da07ef84"
+FORMAT_PACKET = "46d75ed1393db3250b5b7df2611b82bdc5c49f5c1ca7ec64ff8f40e24f179760"
+FORMAT_PACKET_SHA256 = "b4c80bfbfbb95e2affe77de1d2a1fc2067baec9f9a7132b3989369cd4c968dee"
 FIXTURE_BASE = "verification/identity-network-fixture-amendment-v1/metadata/"
 FIXTURE_SHA256 = "510771949fe7e95d81cd64f7a8d65df722fa7aa79293b55c773a61bbce8e351b"
 FIXTURE_PACKET = "13a0b3d84a5140d8fd73d2d4468a5675f6fcaeb8467788bdbda469c18f3a1f4c"
@@ -392,8 +397,8 @@ def validate_fixture_manifest(body):
     return files
 
 
-def literal_helper_rows():
-    helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(FROZEN_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+def literal_helper_rows(manifest=None):
+    helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(FROZEN_MANIFEST if manifest is None else manifest, sort_keys=True, separators=(",", ":")).encode()}
     return {path: _file_row(body) for path, body in helpers.items()}
 
 
@@ -414,9 +419,9 @@ def validate_fixture_metadata(metadata):
     selected_body = metadata[FIXTURE_BASE + "selected-source-manifest.json"]
     selected = json.loads(selected_body)
     _validate_source_manifest(predecessor, FROZEN_PRODUCT_DIGEST, 177)
-    validate_source_manifest(selected)
-    require(predecessor == PREDECESSOR_MANIFEST and selected == FROZEN_MANIFEST, "fixture source manifest binding mismatch")
-    require(value["selected"] == {"source_count": 178, "source_digest_sha256": SELECTED_SOURCE_DIGEST, "manifest": {"path": "selected-source-manifest.json", **_file_row(selected_body)}}, "fixture selected source mismatch")
+    _validate_source_manifest(selected, FIXTURE_SOURCE_DIGEST, 178)
+    require(predecessor == PREDECESSOR_MANIFEST and selected == FIXTURE_MANIFEST, "fixture source manifest binding mismatch")
+    require(value["selected"] == {"source_count": 178, "source_digest_sha256": FIXTURE_SOURCE_DIGEST, "manifest": {"path": "selected-source-manifest.json", **_file_row(selected_body)}}, "fixture selected source mismatch")
     fixture = "hosted/test/support/identity_tls_fixture.ex"
     control = "hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs"
     delta = {fixture: {"operation": "replace", "before": predecessor[fixture], "after": selected[fixture]}, control: {"operation": "add", "before": None, "after": selected[control]}}
@@ -431,13 +436,62 @@ def validate_fixture_metadata(metadata):
         require(_file_row(metadata[review_base + path]) == expected, "fixture independent review member mismatch")
     review = json.loads(metadata[review_base + "review.json"])
     candidate = review["selected_candidate"]
-    require(review["status"] == "source-qualified-accept-for-root-promotion-runtime-unrun" and review["source_blockers"] == [] and candidate["source_count"] == 178 and candidate["source_digest_sha256"] == SELECTED_SOURCE_DIGEST and candidate["fixture"] == {"path": fixture, **selected[fixture]} and candidate["control"] == {"path": control, **selected[control]}, "fixture review does not accept exact selected source")
+    require(review["status"] == "source-qualified-accept-for-root-promotion-runtime-unrun" and review["source_blockers"] == [] and candidate["source_count"] == 178 and candidate["source_digest_sha256"] == FIXTURE_SOURCE_DIGEST and candidate["fixture"] == {"path": fixture, **selected[fixture]} and candidate["control"] == {"path": control, **selected[control]}, "fixture review does not accept exact selected source")
     require(value["integration_patch"] == {"path": "integration-candidate.patch", **_file_row(metadata[FIXTURE_BASE + "integration-candidate.patch"])} and value["integration_patch"]["sha256"] == candidate["integration_patch_sha256"], "fixture integration patch mismatch")
     tests = {"hosted/" + path: selected["hosted/" + path] for path in TEST_ROOTS}
     preserved = {"lock_sha256": FROZEN_LOCK_SHA256, "original_test_files": tests, "test_roots": TEST_ROOTS, "expected_methods": EXPECTED_METHODS, "runtime": "all selected image/execution/namespace/resource/bootstrap/custody contracts unchanged"}
     require(canonical_digest(value["preserved"]) == canonical_digest(preserved) and all(predecessor[path] == row for path, row in tests.items()), "fixture amendment changed original method contracts")
-    require(value["literal_helpers"] == literal_helper_rows(), "fixture selected literal helper mismatch")
+    require(value["literal_helpers"] == literal_helper_rows(FIXTURE_MANIFEST), "fixture selected literal helper mismatch")
     require(value["remote_execution_only"] is True and value["runtime_or_GA_accepted"] is False and len(value["ordinary_phoenix_controls"]) == 4, "fixture execution boundary mismatch")
+    return value
+
+
+def validate_format_manifest(body):
+    require(isinstance(body, bytes) and hashlib.sha256(body).hexdigest() == FORMAT_PACKET_SHA256, "format amendment packet bytes mismatch")
+    packet = json.loads(body)
+    require(isinstance(packet, dict) and set(packet) == {"schema", "files", "tree_digest_sha256"} and type(packet["schema"]) is int and packet["schema"] == 1, "format amendment packet shape")
+    files = packet["files"]
+    require(isinstance(files, dict) and len(files) == 7 and packet["tree_digest_sha256"] == FORMAT_PACKET and canonical_digest(files) == FORMAT_PACKET, "format amendment packet seal mismatch")
+    for path, row in files.items():
+        name = PurePosixPath(path)
+        require(not name.is_absolute() and ".." not in name.parts and str(name) == path and "\\" not in path and path != "packet-manifest.json", "unsafe format metadata path")
+        require(isinstance(row, dict) and set(row) == {"bytes", "sha256"} and type(row["bytes"]) is int and 0 <= row["bytes"] <= MAX_COMMAND_BYTES and isinstance(row["sha256"], str) and bool(re.fullmatch("[0-9a-f]{64}", row["sha256"])), "format amendment row shape")
+    return files
+
+
+def validate_format_metadata(metadata):
+    """Bind the exact CI whitespace correction after the immutable semantic review."""
+    require(isinstance(metadata, dict) and FORMAT_BASE + "packet-manifest.json" in metadata, "missing format amendment seal")
+    files = validate_format_manifest(metadata[FORMAT_BASE + "packet-manifest.json"])
+    require({path for path in metadata if path.startswith(FORMAT_BASE)} == {FORMAT_BASE + "packet-manifest.json"} | {FORMAT_BASE + path for path in files}, "missing or extra format amendment metadata")
+    accepted = validate_fixture_metadata({path: body for path, body in metadata.items() if not path.startswith(FORMAT_BASE)})
+    for path, expected in files.items():
+        require(isinstance(metadata[FORMAT_BASE + path], bytes) and _file_row(metadata[FORMAT_BASE + path]) == expected, "format amendment metadata hash mismatch")
+    body = metadata[FORMAT_BASE + "source-amendment.json"]
+    require(hashlib.sha256(body).hexdigest() == FORMAT_SHA256, "selected format amendment drift")
+    value = json.loads(body)
+    require(set(value) == {"schema", "operation", "predecessor", "selected", "exact_delta", "format_proof", "integration_patch", "accepted_semantic_review", "preserved", "literal_helpers", "ordinary_phoenix_controls", "binding_scope", "remote_execution_only", "runtime_or_GA_accepted"} and type(value["schema"]) is int and value["schema"] == 1 and value["operation"] == "exact-ci-format-only-source-amendment", "format amendment shape")
+    require(value["predecessor"] == {"source_count": 178, "source_digest_sha256": FIXTURE_SOURCE_DIGEST, "amendment_sha256": FIXTURE_SHA256, "packet_manifest_sha256": FIXTURE_PACKET_SHA256, "packet_tree_digest_sha256": FIXTURE_PACKET}, "format predecessor mismatch")
+    predecessor = json.loads(metadata[FORMAT_BASE + "predecessor-source-manifest.json"])
+    selected_body = metadata[FORMAT_BASE + "selected-source-manifest.json"]
+    selected = json.loads(selected_body)
+    _validate_source_manifest(predecessor, FIXTURE_SOURCE_DIGEST, 178)
+    validate_source_manifest(selected)
+    require(predecessor == FIXTURE_MANIFEST and selected == FROZEN_MANIFEST, "format source binding mismatch")
+    require(value["selected"] == {"source_count": 178, "source_digest_sha256": SELECTED_SOURCE_DIGEST, "manifest": {"path": "selected-source-manifest.json", **_file_row(selected_body)}}, "format selected source mismatch")
+    control = "hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs"
+    require(set(selected) == set(predecessor) and {path for path in predecessor if predecessor[path] != selected[path]} == {control}, "format changed additional sources")
+    require(value["exact_delta"] == {control: {"operation": "replace", "before": predecessor[control], "after": selected[control]}}, "format delta mismatch")
+    before, after = metadata[FORMAT_BASE + "before.exs"], metadata[FORMAT_BASE + "after.exs"]
+    proof = json.loads(metadata[FORMAT_BASE + "format-proof.json"])
+    old = b'    authority = GenServer.call(fixture, :authority)\n    assert {:ok, socket} = :gen_tcp.connect(authority.ip, authority.port, [:binary, active: false])\n\n    try do\n'
+    new = b'    authority = GenServer.call(fixture, :authority)\n\n    assert {:ok, socket} =\n             :gen_tcp.connect(authority.ip, authority.port, [:binary, active: false])\n\n    try do\n'
+    require(_file_row(before) == predecessor[control] and _file_row(after) == selected[control] and before.count(old) == 1 and before.replace(old, new) == after, "not exact CI formatter replacement")
+    require(b"".join(before.split()) == b"".join(after.split()) and proof["exact_old_block"] == old.decode() and proof["exact_new_block"] == new.decode() and proof["ascii_whitespace_stripped_sha256"] == hashlib.sha256(b"".join(before.split())).hexdigest(), "format changed tokens")
+    require(value["format_proof"] == {"path": "format-proof.json", **_file_row(metadata[FORMAT_BASE + "format-proof.json"])} and value["integration_patch"] == {"path": "exact-format.patch", **_file_row(metadata[FORMAT_BASE + "exact-format.patch"])}, "format proof binding mismatch")
+    require(value["accepted_semantic_review"] == accepted["independent_review"] and value["preserved"] == accepted["preserved"] and value["ordinary_phoenix_controls"] == accepted["ordinary_phoenix_controls"], "format changed accepted contracts")
+    require(value["literal_helpers"] == literal_helper_rows() and value["binding_scope"] == ["delivered-git-blobs", "frozen-manifest-helper", "source-archive", "prepared-source", "restored-source", "compiled-source", "post-test-source"], "format helper or source comparisons drift")
+    require(value["remote_execution_only"] is True and value["runtime_or_GA_accepted"] is False, "format execution boundary mismatch")
     return value
 
 
@@ -1446,10 +1500,14 @@ class Collector:
         fixture_files = validate_fixture_manifest(fixture_manifest[FIXTURE_BASE + "packet-manifest.json"])
         metadata.update(fixture_manifest)
         metadata.update(self.git_blobs([FIXTURE_BASE + path for path in fixture_files]))
-        validate_fixture_metadata(metadata)
+        format_manifest = self.git_blobs([FORMAT_BASE + "packet-manifest.json"])
+        format_files = validate_format_manifest(format_manifest[FORMAT_BASE + "packet-manifest.json"])
+        metadata.update(format_manifest)
+        metadata.update(self.git_blobs([FORMAT_BASE + path for path in format_files]))
+        validate_format_metadata(metadata)
         self.prerequisites = amendment["prerequisites"]
         self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
-        self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET)
+        self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET, fixture_preformat_source_digest_sha256=FIXTURE_SOURCE_DIGEST, format_amendment_sha256=FORMAT_SHA256, format_amendment_packet_sha256=FORMAT_PACKET)
         self.persist()
         (self.output / "selected-contract-metadata.tar").write_bytes(source_tar(metadata))
         write_json(self.output / "host.json", {"uname": list(os.uname()), "python": sys.version, "netns": os.readlink("/proc/self/ns/net"), "runner": "ubuntu-24.04", "github_run_id": self.run_id, "attempt": self.attempt})
@@ -1953,10 +2011,16 @@ PREDECESSOR_MANIFEST = {'hosted/.formatter.exs': {'bytes': 74,
                                  'sha256': '71a75fc76dcf3c252b4d41c1f3a30adccfae5873028f7d40f174c8a25fd7c646'}}
 
 
-FROZEN_MANIFEST = {
+FIXTURE_MANIFEST = {
     **PREDECESSOR_MANIFEST,
     "hosted/test/support/identity_tls_fixture.ex": {"bytes": 9533, "sha256": "d3b55796a8baac4f9ebd37cc9ee5e44bde01ca346ce2dd00a0a5dd884711ba55"},
     "hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs": {"bytes": 4387, "sha256": "417704f8e805196f9546a508a770d23a55d40ce9d6214be5225f131c4bd2c7c6"},
+}
+
+
+FROZEN_MANIFEST = {
+    **FIXTURE_MANIFEST,
+    "hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs": {'bytes': 4401, 'sha256': 'a76b33c4cefac67797fed2909fe7b0c2eb7f7bb99a40b7924adc68901a514fff'},
 }
 
 

@@ -9,19 +9,25 @@ This index does not narrow or replace that specification. Use
 is preserved byte for byte in [the prior index](PLAN.history-2026-10-25.md);
 its older pending/selected statements do not override the current state.
 
-## Selected fixture source amendment
+## Selected fixture format-only source amendment
 
-The independently reviewed TLS fixture EOF correction is selected for fresh
-ordinary Phoenix and isolated network CI. The explicit source amendment preserves
-historical 177/023df04 contracts and selects exactly 178/ab8f8d sources: one fixture
-replacement and one canonical test with four ordinary controls. All 136 pure
-collector decisions pass with children/sockets denied. The existing K03 and
-IS04/IS05 test files, assertions and observer argv stay exact. Compile/format,
-all four new controls and both original methods remain pending for this source.
-Retain any new failure before another decision; no manual rerun is selected.
-[Selection](verification/github-delivery-fixture-eof/selection.json) binds the
-accepted candidate, complete review, source/helper manifests and sanitized prior
-CI summary. No native, local runtime/custody, UnitA or GA hold is released.
+Apply only the exact formatter diff from Phoenix `40775131269`, preserving the
+accepted fixture behavior and four control assertions. Immutable v2 selects
+178/8d0139c8 sources and binds the formatted test, effective helper, source archive,
+prepared/restored/compiled and final source. Historical 177/023df04 and v1
+178/ab8f8d packets and the accepted semantic review remain unchanged. All 141 pure
+controls pass with children/sockets denied; initial wiring failures are retained.
+The reviewed `86a96a4b` network run `40775131359` passed both exact methods with
+zero skips/exclusions, complete semantic/source evidence and three-container
+cleanup. Its ordinary Phoenix run stopped at formatting before compile or the
+four controls. Formatted-source runtime remains pending; no manual rerun is
+selected. [Selection](verification/github-delivery-fixture-format/selection.json)
+contains the exact binding and sanitized prior review. Frame128/pin128 remains a
+source candidate with 152+39 pure checks, independent review pending and zero
+compiler/full runs. FieldLog's executable filtered transport candidate remains
+undelivered and unrun after the prior 180-second fetch failure and ten remote
+cleanup groups. Native, local runtime/custody, UnitA and GA holds remain.
+
 
 ## Execution priority and blocker escalation
 
