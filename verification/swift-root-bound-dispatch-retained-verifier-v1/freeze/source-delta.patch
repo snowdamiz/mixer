@@ -1,0 +1,185 @@
+--- accepted-v2/source/region_certificate.py
++++ retained-verifier-v1/source/region_certificate.py
+@@ -1,4 +1,4 @@
+-"""Finite saved-artifact certificate mechanics, never a capacity or policy grant.
++"""Retained-config saved-artifact certificate mechanics; no capacity or policy grant.
+ 
+ This does not decode LLVM/assembly semantics. Actual local geometry requires a
+ trusted invocation digest of root's approval of the exact independently reviewed
+@@ -27,9 +27,15 @@
+     'features':['experimental-swift-reactor','experimental-swift-wasi','experimental-stream-validation','experimental-function-cache'],
+     'fixture_cfg':'mixer_bootstrap_one_fixture_v1','opt_level':0,'mir_opt_level':0,
+     'overflow_checks':True,'panic':'unwind','codegen_units':1,'debuginfo':2,
+-    'capture_plan_sha256':'bed9476b169810452ac0932605784125365f57c897d1e3bf74cd9eaa6ebb8184',
+-    'argv_sha256':'4022ae1057439fe5ae31d18675a884b2dc3e56f317a8ddced08bfb163a410aaa',
++    'link_dead_code':True,'alternate_diagnostic_configuration_only':True,
++    'capture_plan_sha256':'15413684daf6815fbc9773c7fecf669f035768116524e567a841bd571c3f31c8',
++    'argv_sha256':'799f61fd0bff3d5eba3849b784e7bc7b699a5ee84a2a814f298f407befb28e75',
+ }
++SCOPE={'link_dead_code':True,'alternate_diagnostic_configuration_only':True,
++    'original_capture_qualified':False,'runtime_admission_accepted':False}
++SCOPE_FIELDS='link_dead_code alternate_diagnostic_configuration_only original_capture_qualified runtime_admission_accepted'
++OBSERVATION_SCOPE={key:value for key,value in SCOPE.items() if key!='link_dead_code'}
++OBSERVATION_SCOPE_FIELDS='alternate_diagnostic_configuration_only original_capture_qualified runtime_admission_accepted'
+ FRONTIER_SHA='3a4138c82c8b370e8f844ddff10218e6465dd5ba006f3fe3c072e62c8c26f76a'
+ WARNINGS=(
+     ('unused_imports','unused import: `OwnedCorrelationOutcomeV1`'),
+@@ -74,6 +80,10 @@
+     need(type(value) is str and len(value)==64 and all(c in '0123456789abcdef' for c in value),'sha256');return value
+ def obj(value,fields):
+     need(type(value) is dict and set(value)==set(fields.split()),'closed object fields');return value
++def scoped_obj(value,fields):
++    obj(value,fields+' '+SCOPE_FIELDS)
++    need(all(type(value[key]) is bool and value[key] is expected for key,expected in SCOPE.items()),'alternate diagnostic scope')
++    return value
+ def sequence(value,maximum=128):need(type(value) is list and len(value)<=maximum,'list bound');return value
+ def checked_add(left,right,low=0,high=U64):return integer(left+right,low,high)
+ def unique(pairs):
+@@ -222,13 +232,13 @@
+         diagnostic_spans(record,blobs)
+     need(type(records[3]) is dict and records[3].get('message')=='3 warnings emitted' and records[3].get('code') is None and records[3].get('level')=='warning','exact successful warning summary')
+     output_pins=[pin(name,blobs[name]) for name in ('ir','asm','stdout','stderr')]
+-    observation=obj(strict(blobs['capture_observation']),'schema status binding compiler_exit outputs source_manifest_sha256 owned_groups_closed cleanup_complete bounds_met truncated capture_complete')
++    observation=obj(strict(blobs['capture_observation']),'schema status binding compiler_exit outputs source_manifest_sha256 owned_groups_closed cleanup_complete bounds_met truncated capture_complete '+OBSERVATION_SCOPE_FIELDS)
+     need(same(observation,{'schema':1,'status':'captured-artifacts-only','binding':binding,'compiler_exit':0,'outputs':output_pins,
+-        'source_manifest_sha256':digest(blobs['source_manifest']),'owned_groups_closed':True,'cleanup_complete':True,'bounds_met':True,'truncated':False,'capture_complete':True}),'accepted capture observation')
+-    acceptance=obj(strict(blobs['capture_acceptance']),'schema status observation_sha256 diagnostic_policy_sha256 source_manifest_sha256 binding_sha256 outputs local_geometry_only complete_capacity_accepted')
++        'source_manifest_sha256':digest(blobs['source_manifest']),'owned_groups_closed':True,'cleanup_complete':True,'bounds_met':True,'truncated':False,'capture_complete':True,**OBSERVATION_SCOPE}),'accepted capture observation')
++    acceptance=scoped_obj(strict(blobs['capture_acceptance']),'schema status observation_sha256 diagnostic_policy_sha256 source_manifest_sha256 binding_sha256 outputs local_geometry_only complete_capacity_accepted')
+     need(same(acceptance,{'schema':1,'status':'accepted-capture-custody-only','observation_sha256':digest(blobs['capture_observation']),
+         'diagnostic_policy_sha256':digest(blobs['diagnostic_policy']),'source_manifest_sha256':digest(blobs['source_manifest']),
+-        'binding_sha256':digest(canonical(binding)),'outputs':output_pins,'local_geometry_only':True,'complete_capacity_accepted':False}),'capture acceptance join')
++        'binding_sha256':digest(canonical(binding)),'outputs':output_pins,'local_geometry_only':True,'complete_capacity_accepted':False,**SCOPE}),'capture acceptance join')
+     need(len(blobs['ir'])+len(blobs['asm'])<=256*1024*1024,'generated artifact bound')
+ 
+ def approve(certificate,blobs,approval_raw,invocation):
+@@ -236,13 +246,13 @@
+         need(approval_raw is None,'untrusted approval supplied');return False
+     expected=sha(invocation.expected_approval_sha256)
+     need(type(approval_raw) is bytes and len(approval_raw)<=MAX_JSON and digest(approval_raw)==expected,'external root approval hash')
+-    approval=obj(strict(approval_raw),'schema status certificate_sha256 semantic_map_sha256 independent_seal_sha256 semantic_review_sha256 capture_acceptance_sha256 binding_sha256 inputs local_geometry_only complete_capacity_accepted')
++    approval=scoped_obj(strict(approval_raw),'schema status certificate_sha256 semantic_map_sha256 independent_seal_sha256 semantic_review_sha256 capture_acceptance_sha256 binding_sha256 inputs local_geometry_only complete_capacity_accepted')
+     need(same(approval,{'schema':1,'status':'root-approved-exact-local-region-map','certificate_sha256':digest(certificate),
+         'semantic_map_sha256':digest(canonical(strict(certificate)['semantic_map'])),'independent_seal_sha256':digest(blobs['independent_seal']),
+         'semantic_review_sha256':digest(blobs['semantic_review']),'capture_acceptance_sha256':digest(blobs['capture_acceptance']),
+         'binding_sha256':digest(canonical(strict(certificate)['binding'])),'inputs':pins(blobs),
+-        'local_geometry_only':True,'complete_capacity_accepted':False}),'root approval join')
+-    seal=obj(strict(blobs['independent_seal']),'schema status members tree_sha256')
++        'local_geometry_only':True,'complete_capacity_accepted':False,**SCOPE}),'root approval join')
++    seal=scoped_obj(strict(blobs['independent_seal']),'schema status members tree_sha256')
+     need(type(seal['schema']) is int and seal['schema']==1 and seal['status']=='frozen-independent-semantic-map-review','independent seal schema')
+     members=sequence(seal['members'],64);seen=set();bound_review=False
+     for member in members:
+@@ -251,11 +261,11 @@
+         if name=='semantic-review.json':
+             need(member['bytes']==len(blobs['semantic_review']) and member['sha256']==digest(blobs['semantic_review']),'independent sealed review bytes');bound_review=True
+     need(bound_review and sha(seal['tree_sha256'])==digest(canonical(members)),'independent seal review binding')
+-    review=obj(strict(blobs['semantic_review']),'schema status semantic_map_sha256 binding_sha256 capture_acceptance_sha256 targets whole_cfg_and_exits_checked outgoing_edges_exhaustive')
++    review=scoped_obj(strict(blobs['semantic_review']),'schema status semantic_map_sha256 binding_sha256 capture_acceptance_sha256 targets whole_cfg_and_exits_checked outgoing_edges_exhaustive')
+     need(same(review,{'schema':1,'status':'independently-reviewed-whole-function-region-map',
+         'semantic_map_sha256':approval['semantic_map_sha256'],'binding_sha256':approval['binding_sha256'],
+         'capture_acceptance_sha256':approval['capture_acceptance_sha256'],
+-        'targets':list(TARGETS),'whole_cfg_and_exits_checked':True,'outgoing_edges_exhaustive':True}),'independent semantic review join')
++        'targets':list(TARGETS),'whole_cfg_and_exits_checked':True,'outgoing_edges_exhaustive':True,**SCOPE}),'independent semantic review join')
+     return True
+ 
+ def union_width(spans):
+@@ -500,6 +510,14 @@
+     local_closed=not any(item['scope']=='local' for item in missing)
+     return phase_bytes if local_closed else None,missing
+ 
++def validate_binding(binding,synthetic):
++    """One exact retained build; synthetic fixtures may replace only source_tree."""
++    need(type(synthetic) is bool,'synthetic binding mode')
++    obj(binding,'source_tree compiler_commit target features fixture_cfg opt_level mir_opt_level overflow_checks panic codegen_units debuginfo link_dead_code alternate_diagnostic_configuration_only capture_plan_sha256 argv_sha256')
++    sha(binding['source_tree']);expected_binding=dict(CURRENT_BINDING)
++    if synthetic:expected_binding['source_tree']=binding['source_tree']
++    need(same(binding,expected_binding),'source/compiler/cfg/inspection binding')
++
+ def _verify(certificate_raw,blobs,approval_raw,invocation):
+     need(type(invocation) is Invocation and type(invocation.synthetic) is bool,'trusted invocation type')
+     need(type(blobs) is dict and len(blobs)<=MAX_FILES and REQUIRED_BLOBS<=set(blobs),'bundle members')
+@@ -507,22 +525,23 @@
+     for name,raw in blobs.items():
+         relative(name);need(type(raw) is bytes,'immutable input bytes');total=checked_add(total,len(raw),0,MAX_TOTAL)
+     blobs=ArtifactBytes(blobs)
+-    certificate=obj(strict(certificate_raw),'schema binding semantic_map')
++    certificate=scoped_obj(strict(certificate_raw),'schema binding semantic_map')
+     need(type(certificate['schema']) is int and certificate['schema']==1,'certificate schema')
+-    binding=certificate['binding'];obj(binding,'source_tree compiler_commit target features fixture_cfg opt_level mir_opt_level overflow_checks panic codegen_units debuginfo capture_plan_sha256 argv_sha256')
+-    sha(binding['source_tree']);expected_binding=dict(CURRENT_BINDING)
+-    if invocation.synthetic:expected_binding['source_tree']=binding['source_tree']
+-    need(same(binding,expected_binding),'source/compiler/cfg/inspection binding')
++    binding=certificate['binding'];validate_binding(binding,invocation.synthetic)
+     need(len(blobs['ir'])+len(blobs['asm'])<=256*1024*1024 and len(blobs['stdout'])<=1048576 and len(blobs['stderr'])<=2097152,'capture type/aggregate prehash bounds')
+     frontier=strict(blobs['frontier']);frontier_rows=source_binding(blobs,frontier,binding,invocation.synthetic)
+     capture_custody(blobs,binding)
++    # Scope is mandatory even when no external approval is supplied. Synthetic
++    # mode cannot turn malformed/unscoped review envelopes into numeric output.
++    scoped_obj(strict(blobs['semantic_review']),'schema status semantic_map_sha256 binding_sha256 capture_acceptance_sha256 targets whole_cfg_and_exits_checked outgoing_edges_exhaustive')
++    scoped_obj(strict(blobs['independent_seal']),'schema status members tree_sha256')
+     approved=approve(certificate_raw,blobs,approval_raw,invocation)
+     values,missing=geometry(certificate['semantic_map'],blobs,frontier_rows)
+     if not approved:missing.append({'scope':'approval','reason':'external trusted root approval absent'})
+     permitted=invocation.synthetic or approved
+     if not permitted:values=None
+     status='synthetic_local_geometry' if invocation.synthetic else ('reviewed_local_geometry_with_explicit_missing_facts' if approved else 'unreviewed_local_region_candidate')
+-    return {'status':status,'local_geometry_only':True,'complete_capacity_accepted':False,'synthetic':invocation.synthetic,
++    return {**SCOPE,'status':status,'local_geometry_only':True,'complete_capacity_accepted':False,'synthetic':invocation.synthetic,
+         'trusted_approval_matched':approved,'closed_local_phase_bytes':values,'local_peak_bytes':None if values is None else max(values),
+         'certificate_sha256':digest(certificate_raw),'semantic_map_sha256':digest(canonical(certificate['semantic_map'])),
+         'input_pin_set_sha256':digest(canonical(pins(blobs))),'expected_external_approval_sha256':invocation.expected_approval_sha256,
+@@ -533,6 +552,6 @@
+     """No file or process side effect. An absent external approval grants nothing."""
+     try:return _verify(certificate_raw,blobs,approval_raw,invocation or Invocation(None))
+     except (Refusal,KeyError,TypeError,ValueError,OverflowError,RecursionError) as error:
+-        return {'status':'incomplete_or_invalid','local_geometry_only':True,'complete_capacity_accepted':False,
++        return {**SCOPE,'status':'incomplete_or_invalid','local_geometry_only':True,'complete_capacity_accepted':False,
+             'synthetic':type(invocation) is Invocation and invocation.synthetic is True,'trusted_approval_matched':False,
+             'closed_local_phase_bytes':None,'local_peak_bytes':None,'missing':[{'scope':'invalid','reason':str(error)[:256]}]}
+--- accepted-v2/source/tests_region_certificate.py
++++ retained-verifier-v1/source/tests_region_certificate.py
+@@ -85,15 +85,15 @@
+         mapping['backings'].append({'key':key,'id':'B_'+key,'capacity_bytes':None,'destruction_complete':False,'conditional_source_obligation':True})
+     for key in r.CHILD_BACKINGS:
+         for a,b in [('Body','R'),('R','C')]:mapping['transfers'].append({'key':key,'backing_id':'B_'+key,'from_owner':a,'to_owner':b})
+-    return {'cert':{'schema':1,'binding':binding,'semantic_map':mapping},'blobs':blobs}
++    return {'cert':{'schema':1,'binding':binding,'semantic_map':mapping,**r.SCOPE},'blobs':blobs}
+ 
+ def refresh_capture(case):
+     blobs=case['blobs'];binding=case['cert']['binding'];outputs=[r.pin(name,blobs[name]) for name in ('ir','asm','stdout','stderr')]
+     blobs['capture_observation']=encoded({'schema':1,'status':'captured-artifacts-only','binding':binding,'compiler_exit':0,'outputs':outputs,
+-        'source_manifest_sha256':r.digest(blobs['source_manifest']),'owned_groups_closed':True,'cleanup_complete':True,'bounds_met':True,'truncated':False,'capture_complete':True})
++        'source_manifest_sha256':r.digest(blobs['source_manifest']),'owned_groups_closed':True,'cleanup_complete':True,'bounds_met':True,'truncated':False,'capture_complete':True,**r.OBSERVATION_SCOPE})
+     blobs['capture_acceptance']=encoded({'schema':1,'status':'accepted-capture-custody-only','observation_sha256':r.digest(blobs['capture_observation']),
+         'diagnostic_policy_sha256':r.digest(blobs['diagnostic_policy']),'source_manifest_sha256':r.digest(blobs['source_manifest']),
+-        'binding_sha256':r.digest(encoded(binding)),'outputs':outputs,'local_geometry_only':True,'complete_capacity_accepted':False})
++        'binding_sha256':r.digest(encoded(binding)),'outputs':outputs,'local_geometry_only':True,'complete_capacity_accepted':False,**r.SCOPE})
+ 
+ def authorize(case):
+     # This envelope is created by the synthetic test, outside the certificate.
+@@ -102,13 +102,13 @@
+     map_hash=r.digest(encoded(case['cert']['semantic_map']))
+     blobs['semantic_review']=encoded({'schema':1,'status':'independently-reviewed-whole-function-region-map','semantic_map_sha256':map_hash,
+         'binding_sha256':binding_hash,'capture_acceptance_sha256':r.digest(blobs['capture_acceptance']),
+-        'targets':list(r.TARGETS),'whole_cfg_and_exits_checked':True,'outgoing_edges_exhaustive':True})
++        'targets':list(r.TARGETS),'whole_cfg_and_exits_checked':True,'outgoing_edges_exhaustive':True,**r.SCOPE})
+     members=[{'path':'semantic-review.json','bytes':len(blobs['semantic_review']),'sha256':r.digest(blobs['semantic_review'])}]
+-    blobs['independent_seal']=encoded({'schema':1,'status':'frozen-independent-semantic-map-review','members':members,'tree_sha256':r.digest(encoded(members))})
++    blobs['independent_seal']=encoded({'schema':1,'status':'frozen-independent-semantic-map-review','members':members,'tree_sha256':r.digest(encoded(members)),**r.SCOPE})
+     approval=encoded({'schema':1,'status':'root-approved-exact-local-region-map','certificate_sha256':r.digest(certificate),'semantic_map_sha256':map_hash,
+         'independent_seal_sha256':r.digest(blobs['independent_seal']),'semantic_review_sha256':r.digest(blobs['semantic_review']),
+         'capture_acceptance_sha256':r.digest(blobs['capture_acceptance']),'binding_sha256':binding_hash,'inputs':r.pins(blobs),
+-        'local_geometry_only':True,'complete_capacity_accepted':False})
++        'local_geometry_only':True,'complete_capacity_accepted':False,**r.SCOPE})
+     return certificate,blobs,approval,r.Invocation(r.digest(approval),synthetic=True)
+ 
+ def evaluate(case,hook=None):
+@@ -132,6 +132,7 @@
+ class RegionCertificateControls(unittest.TestCase):
+     def scoped(self,result):
+         self.assertIs(result['local_geometry_only'],True);self.assertIs(result['complete_capacity_accepted'],False)
++        for key,expected in r.SCOPE.items():self.assertIs(result[key],expected)
+         return result
+     def closed(self,case):
+         result=self.scoped(evaluate(case));self.assertEqual(result['status'],'synthetic_local_geometry')

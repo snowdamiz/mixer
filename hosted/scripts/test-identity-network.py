@@ -186,7 +186,7 @@ def validate_container_inspect(role, inspected, owned, test_cid=None):
     require(role == owned.role and owned.state == "owned", "container role/state mismatch")
     validate_owned_identity(inspected, owned)
     config = inspected.get("HostConfig", {})
-    network = {"prepare": "default", "test": "none", "pg": "container:" + (test_cid or "")}[role]
+    network = {"prepare": "bridge", "test": "none", "pg": "container:" + (test_cid or "")}[role]
     require(config.get("NetworkMode") == network and (role != "pg" or bool(test_cid)), "container network mismatch")
     require(config.get("ReadonlyRootfs") is True and config.get("Privileged") is False, "root/privilege mismatch")
     require(_caps(config.get("CapDrop")) == {"ALL"} and _caps(config.get("CapAdd")) == CAPS[role], "capability mismatch")
@@ -769,7 +769,7 @@ class Collector:
         self.registry.reserve(name, role, image["config"], self.label)
         self.persist()  # Reservation precedes the possibly lost create response.
         memory, cpus, pids = RESOURCES[role]
-        argv = ["docker", "create", "--pull", "never", "--platform", "linux/amd64", "--name", name, "--label", "mixer.identity.run=" + self.label, "--label", "mixer.identity.role=" + role, "--network", "container:" + test_cid if role == "pg" else ("none" if role == "test" else "default"), "--read-only", "--cap-drop", "ALL", "--security-opt", "no-new-privileges:true", "--memory", str(memory), "--memory-swap", str(memory), "--cpus", str(cpus), "--pids-limit", str(pids), "--ulimit", "nofile=4096:4096"]
+        argv = ["docker", "create", "--pull", "never", "--platform", "linux/amd64", "--name", name, "--label", "mixer.identity.run=" + self.label, "--label", "mixer.identity.role=" + role, "--network", "container:" + test_cid if role == "pg" else ("none" if role == "test" else "bridge"), "--read-only", "--cap-drop", "ALL", "--security-opt", "no-new-privileges:true", "--memory", str(memory), "--memory-swap", str(memory), "--cpus", str(cpus), "--pids-limit", str(pids), "--ulimit", "nofile=4096:4096"]
         for cap in sorted(CAPS[role]):
             argv += ["--cap-add", cap]
         for path, options in TMPFS[role].items():

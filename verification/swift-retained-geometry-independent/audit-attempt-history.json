@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "all_work_offline_stdlib_text_only": true,
+  "compiler_native_model_tests_verifier_version_or_process_probes": 0,
+  "attempts": [
+    {
+      "kind": "exploratory_metadata_read",
+      "exit_code": 1,
+      "failure": "FileNotFoundError for verification/swift-retained-capture-terminal-mapping/input-pins-before.json; the first two explicitly named plan/receipt files were read successfully.",
+      "disposition": "No finding relies on the absent guessed metadata path. The geometry seals, raw spans, saved debug map, and exact source manifest are independently checked instead."
+    },
+    {
+      "kind": "expanded_independent_audit",
+      "command": "python3 -B verification/swift-retained-geometry-independent/audit_review.py",
+      "exit_code": 1,
+      "failure": "AssertionError at exact environment equality: capture_plan['environment'] == original_plan['environment'].",
+      "diagnosis": "The only environment difference is TMPDIR: original physical-plan/command/tmp versus alternate retained-capture-v1/command/tmp.",
+      "disposition": "Retain the failure. Replace the overstrict environment assertion with exact equality of every other environment field and explicit checks of both full TMPDIR values against their respective owned output directories. Preserve both exact environments in configuration-review.json. No geometry interpretation changed."
+    }
+  ]
+}

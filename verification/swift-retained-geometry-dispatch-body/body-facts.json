@@ -1,0 +1,2619 @@
+{
+  "GA_accepted": false,
+  "admitted_return": {
+    "backing_aliases": "Copied carriers retain original pointer/descriptor identities. Physical backing capacities and healthy final destruction are unknown.",
+    "bytes": 13624,
+    "coverage_semantics": "The required complete13624-byte representation is13616-byte payload capacity plus8-byte root. Setup initializes a discriminant and active refusal fields, then copies full payload capacity; no claim that inactive/padding bytes are initialized.",
+    "destination": "incoming x8, saved at finalSP+168, loaded for both normal-return copies",
+    "evidence": [
+      {
+        "artifact": "ir",
+        "begin": 26432534,
+        "end": 26455844,
+        "global_line_begin": 407747,
+        "global_line_end_inclusive": 408141,
+        "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+      },
+      {
+        "artifact": "asm",
+        "begin": 16389637,
+        "end": 16403037,
+        "global_line_begin": 667747,
+        "global_line_end_inclusive": 668381,
+        "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+      }
+    ],
+    "incoming_normal_constructions": [
+      "bb3 setup refusal",
+      "bb12 loaded"
+    ],
+    "known_physical_base_congruence": null,
+    "loaded_path": [
+      "callee run_fixture_once writes %complete(finalSP+21248),13616-byte sret",
+      "%complete -> %_58(+50192),13616 bytes",
+      "%_58 -> %_57(+36576),13616 bytes",
+      "%_57 -> sret[0,13616),13616 bytes",
+      "root pointer -> sret+13616,8 bytes",
+      "clear all drop flags; shared normal epilogue"
+    ],
+    "local_alloca_13624_exists": false,
+    "normal_return_sites_in_IR": 1,
+    "required_alignment": 8,
+    "setup_refused_path": [
+      "_13(finalSP+256) -> refused(+296),40 bytes",
+      "refused -> _29(+13952),40 bytes",
+      "_29 -> _28(+336)+8,40 bytes",
+      "i64 -1 -> _28+0",
+      "_28 -> sret[0,13616),13616-byte memcpy",
+      "root pointer -> sret+13616,8 bytes",
+      "branch to shared LBB4876_22 normal epilogue"
+    ],
+    "sret_address_stable": "The saved incoming pointer(finalSP+168) is not overwritten; each construction loads it; no sret PHI/cast/rebase appears."
+  },
+  "alternate_option": "-C link-dead-code=yes",
+  "cleanup_state_machine": {
+    "conditional_drop_order": [
+      "correlated if flag0",
+      "Cancellation if flag1",
+      "snapshot if flag2",
+      "rows if flag3",
+      "session if flag4",
+      "build if flag5",
+      "source if flag6",
+      "resume original exception"
+    ],
+    "counterfactual_branch": "Generated SetupOutcome recheck/drop branch bb22 is retained without claiming it is reachable in normal File execution.",
+    "evidence": [
+      {
+        "artifact": "ir",
+        "begin": 26432534,
+        "end": 26455844,
+        "global_line_begin": 407747,
+        "global_line_end_inclusive": 408141,
+        "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+      },
+      {
+        "artifact": "asm",
+        "begin": 16389637,
+        "end": 16403037,
+        "global_line_begin": 667747,
+        "global_line_end_inclusive": 668381,
+        "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+      },
+      {
+        "artifact": "asm",
+        "begin": 16403037,
+        "end": 16405140,
+        "sha256": "a24bb59fd5c56f189334949703527fbcae0c6a08469fcfa3cbc24d8d1f39f94b"
+      }
+    ],
+    "exception_record": {
+      "capacity_bytes": 16,
+      "note": "All four cleanup landingpads save x0 and low32 x1 here; final resume reloads exception pointer.",
+      "offset": "finalSP+63872",
+      "pointer_bytes": 8,
+      "selector_bytes": 4
+    },
+    "flagbase": "E_B-111 = finalSP+63809",
+    "flags_by_offset": {
+      "0": "correlated",
+      "1": "cancellation",
+      "2": "snapshot",
+      "3": "rows",
+      "4": "session",
+      "5": "build",
+      "6": "source"
+    },
+    "landingpads": {
+      "cleanup": "bb28 snapshot-first ownership checks",
+      "cleanup6": "bb26 cancellation then original File ownership checks",
+      "cleanup7": "bb14 Cancellation temp, bb15 snapshot temp, bb16 rows temp, then correlated/remaining ownership checks",
+      "cleanup8": "bb24 correlated flag then cancellation and original File flags",
+      "terminate": "panic_in_cleanup for a second unwind while cleanup drop runs"
+    },
+    "source_destruction_continuation": "initial_profile_v1.rs884..889 lies outside this function/frontier and remains unqualified."
+  },
+  "complete_capacity_accepted": false,
+  "entry_base": "E_B = BodyEntrySP",
+  "exception_table": {
+    "artifact": "asm",
+    "begin": 16403037,
+    "end": 16405140,
+    "sha256": "a24bb59fd5c56f189334949703527fbcae0c6a08469fcfa3cbc24d8d1f39f94b"
+  },
+  "frame": {
+    "all_sp_mutations": [
+      {
+        "evidence": {
+          "artifact": "asm",
+          "begin": 16389930,
+          "end": 16389957,
+          "excerpt_line_begin": 7,
+          "excerpt_line_end_inclusive": 7,
+          "global_line_begin": 667753,
+          "global_line_end_inclusive": 667753,
+          "sha256": "25b2828dbc1c83d80bbbf69d177c926a39230459f6062769fd54f0db454278d6"
+        },
+        "instruction": "stp\tx28, x27, [sp, #-32]!",
+        "line": 7
+      },
+      {
+        "evidence": {
+          "artifact": "asm",
+          "begin": 16390213,
+          "end": 16390238,
+          "excerpt_line_begin": 20,
+          "excerpt_line_end_inclusive": 20,
+          "global_line_begin": 667766,
+          "global_line_end_inclusive": 667766,
+          "sha256": "2fb47d46e2be7c495960db2db264c1b3b1133c3fe68b0e66e5668f0236fd44e4"
+        },
+        "instruction": "sub\tsp, sp, #1, lsl #12",
+        "line": 20
+      },
+      {
+        "evidence": {
+          "artifact": "asm",
+          "begin": 16390281,
+          "end": 16390300,
+          "excerpt_line_begin": 24,
+          "excerpt_line_end_inclusive": 24,
+          "global_line_begin": 667770,
+          "global_line_end_inclusive": 667770,
+          "sha256": "dbffc5c41b8a56d3460cbe8733b9f7a56670d4dc7a6993d20dcd35b11f986ada"
+        },
+        "instruction": "sub\tsp, sp, #2448",
+        "line": 24
+      },
+      {
+        "evidence": {
+          "artifact": "asm",
+          "begin": 16400141,
+          "end": 16400167,
+          "excerpt_line_begin": 505,
+          "excerpt_line_end_inclusive": 505,
+          "global_line_begin": 668251,
+          "global_line_end_inclusive": 668251,
+          "sha256": "341263017d894e93e2c10ede66f0a4f448d5402ba93a64b167549c40e7244fec"
+        },
+        "instruction": "add\tsp, sp, #15, lsl #12",
+        "line": 505
+      },
+      {
+        "evidence": {
+          "artifact": "asm",
+          "begin": 16400178,
+          "end": 16400197,
+          "excerpt_line_begin": 507,
+          "excerpt_line_end_inclusive": 507,
+          "global_line_begin": 668253,
+          "global_line_end_inclusive": 668253,
+          "sha256": "b53bfccbc8ac987b504b08020262ca386904394e8377b0e284d94c921866f834"
+        },
+        "instruction": "add\tsp, sp, #2448",
+        "line": 507
+      },
+      {
+        "evidence": {
+          "artifact": "asm",
+          "begin": 16400244,
+          "end": 16400269,
+          "excerpt_line_begin": 510,
+          "excerpt_line_end_inclusive": 510,
+          "global_line_begin": 668256,
+          "global_line_end_inclusive": 668256,
+          "sha256": "574a6782cf7ab38caa459fe9b086882245793fd4255628a574e9fd0659e6f811"
+        },
+        "instruction": "ldp\tx28, x27, [sp], #32",
+        "line": 510
+      }
+    ],
+    "allocation_sum_used_as_frame_evidence": false,
+    "cleanup_and_terminate_signed_sp_path_candidate": [
+      {
+        "after": -32,
+        "argument": "preindexed saved-state push",
+        "before": 0,
+        "delta": -32
+      },
+      {
+        "after": -4128,
+        "argument": "finite native probe loop iteration1",
+        "before": -32,
+        "delta": -4096
+      },
+      {
+        "after": -8224,
+        "argument": "finite native probe loop iteration2",
+        "before": -4128,
+        "delta": -4096
+      },
+      {
+        "after": -12320,
+        "argument": "finite native probe loop iteration3",
+        "before": -8224,
+        "delta": -4096
+      },
+      {
+        "after": -16416,
+        "argument": "finite native probe loop iteration4",
+        "before": -12320,
+        "delta": -4096
+      },
+      {
+        "after": -20512,
+        "argument": "finite native probe loop iteration5",
+        "before": -16416,
+        "delta": -4096
+      },
+      {
+        "after": -24608,
+        "argument": "finite native probe loop iteration6",
+        "before": -20512,
+        "delta": -4096
+      },
+      {
+        "after": -28704,
+        "argument": "finite native probe loop iteration7",
+        "before": -24608,
+        "delta": -4096
+      },
+      {
+        "after": -32800,
+        "argument": "finite native probe loop iteration8",
+        "before": -28704,
+        "delta": -4096
+      },
+      {
+        "after": -36896,
+        "argument": "finite native probe loop iteration9",
+        "before": -32800,
+        "delta": -4096
+      },
+      {
+        "after": -40992,
+        "argument": "finite native probe loop iteration10",
+        "before": -36896,
+        "delta": -4096
+      },
+      {
+        "after": -45088,
+        "argument": "finite native probe loop iteration11",
+        "before": -40992,
+        "delta": -4096
+      },
+      {
+        "after": -49184,
+        "argument": "finite native probe loop iteration12",
+        "before": -45088,
+        "delta": -4096
+      },
+      {
+        "after": -53280,
+        "argument": "finite native probe loop iteration13",
+        "before": -49184,
+        "delta": -4096
+      },
+      {
+        "after": -57376,
+        "argument": "finite native probe loop iteration14",
+        "before": -53280,
+        "delta": -4096
+      },
+      {
+        "after": -61472,
+        "argument": "finite native probe loop iteration15",
+        "before": -57376,
+        "delta": -4096
+      },
+      {
+        "after": -63920,
+        "argument": "native tail decrement",
+        "before": -61472,
+        "delta": -2448
+      }
+    ],
+    "cleanup_exit": "LBB4876_36 calls __Unwind_Resume while SP=E_B-63920; no local epilogue before it. CFI is retained, but no unwinder execution or restoration proof is supplied.",
+    "complete_native_all_exit_restoration_claimed": false,
+    "derivation": "32 saved-state bytes +15 actual iterations of4096-byte decrement/probe +2448-byte final decrement/probe.",
+    "exception_record_internal_padding_final_sp": [
+      63884,
+      63888
+    ],
+    "explicit_probe_offsets_entry_sp": [
+      -4128,
+      -8224,
+      -12320,
+      -16416,
+      -20512,
+      -24608,
+      -28704,
+      -32800,
+      -36896,
+      -40992,
+      -45088,
+      -49184,
+      -53280,
+      -57376,
+      -61472,
+      -63920
+    ],
+    "final_sp": "E_B-63920",
+    "frame_pointer": "E_B-16",
+    "native_reserved_bytes_candidate": 63920,
+    "native_slots": [
+      {
+        "capacity_bytes": 4,
+        "entry_sp_offset": -63704,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 216,
+        "llvm_or_native_name": "%source",
+        "llvm_required_alignment": 4,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 4,
+        "entry_sp_offset": -63700,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 220,
+        "llvm_or_native_name": "%build",
+        "llvm_required_alignment": 4,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 4,
+        "entry_sp_offset": -63696,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 224,
+        "llvm_or_native_name": "%session",
+        "llvm_required_alignment": 4,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 4,
+        "entry_sp_offset": -63692,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 228,
+        "llvm_or_native_name": "%rows",
+        "llvm_required_alignment": 4,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 4,
+        "entry_sp_offset": -63688,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 232,
+        "llvm_or_native_name": "%snapshot",
+        "llvm_required_alignment": 4,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 20,
+        "entry_sp_offset": -63684,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 236,
+        "llvm_or_native_name": "%_12",
+        "llvm_required_alignment": 4,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 40,
+        "entry_sp_offset": -63664,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 256,
+        "llvm_or_native_name": "%_13 SetupOutcomeV1",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 40,
+        "entry_sp_offset": -63624,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 296,
+        "llvm_or_native_name": "%refused",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 13616,
+        "entry_sp_offset": -63584,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 336,
+        "llvm_or_native_name": "%_28 setup return payload",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 40,
+        "entry_sp_offset": -49968,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 13952,
+        "llvm_or_native_name": "%_29",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -49928,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 13992,
+        "llvm_or_native_name": "%cancellation",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 1264,
+        "entry_sp_offset": -49920,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 14000,
+        "llvm_or_native_name": "%complete_original",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 40,
+        "entry_sp_offset": -48656,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 15264,
+        "llvm_or_native_name": "%_36 validation budget",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 1264,
+        "entry_sp_offset": -48616,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 15304,
+        "llvm_or_native_name": "%original_carrier",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 1264,
+        "entry_sp_offset": -47352,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 16568,
+        "llvm_or_native_name": "%_40 loader carrier argument",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 1288,
+        "entry_sp_offset": -46088,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 17832,
+        "llvm_or_native_name": "%correlated",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 32,
+        "entry_sp_offset": -44800,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 19120,
+        "llvm_or_native_name": "%_42 attempt argument",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 1264,
+        "entry_sp_offset": -44768,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 19152,
+        "llvm_or_native_name": "%_43 original carrier argument",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 424,
+        "entry_sp_offset": -43504,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 20416,
+        "llvm_or_native_name": "%args",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 4,
+        "entry_sp_offset": -43080,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 20840,
+        "llvm_or_native_name": "%_46 rows argument",
+        "llvm_required_alignment": 4,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 4,
+        "entry_sp_offset": -43076,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 20844,
+        "llvm_or_native_name": "%_47 snapshot argument",
+        "llvm_required_alignment": 4,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -43072,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 20848,
+        "llvm_or_native_name": "%_48 Cancellation argument",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 256,
+        "entry_sp_offset": -43064,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 20856,
+        "llvm_or_native_name": "%_49 copied claims",
+        "llvm_required_alignment": 1,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 136,
+        "entry_sp_offset": -42808,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 21112,
+        "llvm_or_native_name": "%_52 product budget",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 13616,
+        "entry_sp_offset": -42672,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 21248,
+        "llvm_or_native_name": "%complete leaf result",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 1288,
+        "entry_sp_offset": -29056,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 34864,
+        "llvm_or_native_name": "%_55 correlated argument",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 424,
+        "entry_sp_offset": -27768,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 36152,
+        "llvm_or_native_name": "%_56 leaf arguments",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 13616,
+        "entry_sp_offset": -27344,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 36576,
+        "llvm_or_native_name": "%_57 loaded payload temporary",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 13616,
+        "entry_sp_offset": -13728,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 50192,
+        "llvm_or_native_name": "%_58 complete move temporary",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 1,
+        "entry_sp_offset": -111,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63809,
+        "llvm_or_native_name": "%_60 correlated drop flag",
+        "llvm_required_alignment": 1,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 1,
+        "entry_sp_offset": -110,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63810,
+        "llvm_or_native_name": "%_61 cancellation drop flag",
+        "llvm_required_alignment": 1,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 1,
+        "entry_sp_offset": -109,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63811,
+        "llvm_or_native_name": "%_62 snapshot drop flag",
+        "llvm_required_alignment": 1,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 1,
+        "entry_sp_offset": -108,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63812,
+        "llvm_or_native_name": "%_63 rows drop flag",
+        "llvm_required_alignment": 1,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 1,
+        "entry_sp_offset": -107,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63813,
+        "llvm_or_native_name": "%_64 session drop flag",
+        "llvm_required_alignment": 1,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 1,
+        "entry_sp_offset": -106,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63814,
+        "llvm_or_native_name": "%_65 build drop flag",
+        "llvm_required_alignment": 1,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 1,
+        "entry_sp_offset": -105,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63815,
+        "llvm_or_native_name": "%_66 source drop flag",
+        "llvm_required_alignment": 1,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -104,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63816,
+        "llvm_or_native_name": "%fixture.dbg.spill",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -96,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63824,
+        "llvm_or_native_name": "%expected.dbg.spill",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -88,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63832,
+        "llvm_or_native_name": "%root.dbg.spill",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -80,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63840,
+        "llvm_or_native_name": "%binding.dbg.spill",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 4,
+        "entry_sp_offset": -68,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63852,
+        "llvm_or_native_name": "%source.dbg.spill",
+        "llvm_required_alignment": 4,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 4,
+        "entry_sp_offset": -64,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63856,
+        "llvm_or_native_name": "%build.dbg.spill",
+        "llvm_required_alignment": 4,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 4,
+        "entry_sp_offset": -60,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63860,
+        "llvm_or_native_name": "%session.dbg.spill",
+        "llvm_required_alignment": 4,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 4,
+        "entry_sp_offset": -56,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63864,
+        "llvm_or_native_name": "%rows.dbg.spill",
+        "llvm_required_alignment": 4,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 4,
+        "entry_sp_offset": -52,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63868,
+        "llvm_or_native_name": "%snapshot.dbg.spill",
+        "llvm_required_alignment": 4,
+        "physical_alignment_known": null,
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 16,
+        "entry_sp_offset": -48,
+        "evidence": [
+          {
+            "artifact": "ir",
+            "begin": 26432534,
+            "end": 26455844,
+            "global_line_begin": 407747,
+            "global_line_end_inclusive": 408141,
+            "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+          },
+          {
+            "artifact": "asm",
+            "begin": 16389637,
+            "end": 16403037,
+            "global_line_begin": 667747,
+            "global_line_end_inclusive": 668381,
+            "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+          }
+        ],
+        "final_sp_offset": 63872,
+        "llvm_or_native_name": "%0 exception record",
+        "llvm_required_alignment": 8,
+        "physical_alignment_known": null,
+        "reviewed": false
+      }
+    ],
+    "native_spills": [
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63920,
+        "final_sp_offset": 0,
+        "purpose": "%_58 address",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63912,
+        "final_sp_offset": 8,
+        "purpose": "%_57 address",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63904,
+        "final_sp_offset": 16,
+        "purpose": "memcpy length 13616",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63896,
+        "final_sp_offset": 24,
+        "purpose": "%args address",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63888,
+        "final_sp_offset": 32,
+        "purpose": "%_55 address",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63880,
+        "final_sp_offset": 40,
+        "purpose": "%_56 address",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63872,
+        "final_sp_offset": 48,
+        "purpose": "Instant return i64",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 4,
+        "entry_sp_offset": -63860,
+        "final_sp_offset": 60,
+        "purpose": "Instant return i32",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63856,
+        "final_sp_offset": 64,
+        "purpose": "%_42 address",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63848,
+        "final_sp_offset": 72,
+        "purpose": "%_43 address",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63840,
+        "final_sp_offset": 80,
+        "purpose": "%_40 address",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 4,
+        "entry_sp_offset": -63828,
+        "final_sp_offset": 92,
+        "purpose": "source outgoing register spill",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 4,
+        "entry_sp_offset": -63824,
+        "final_sp_offset": 96,
+        "purpose": "build outgoing register spill",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 4,
+        "entry_sp_offset": -63820,
+        "final_sp_offset": 100,
+        "purpose": "session outgoing register spill",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63816,
+        "final_sp_offset": 104,
+        "purpose": "%_36 address",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63808,
+        "final_sp_offset": 112,
+        "purpose": "%cancellation address",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63800,
+        "final_sp_offset": 120,
+        "purpose": "Cancellation default result",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63792,
+        "final_sp_offset": 128,
+        "purpose": "%refused address",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63784,
+        "final_sp_offset": 136,
+        "purpose": "%_29 address",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63776,
+        "final_sp_offset": 144,
+        "purpose": "memcpy length40",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63768,
+        "final_sp_offset": 152,
+        "purpose": "%_28 address",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63760,
+        "final_sp_offset": 160,
+        "purpose": "%_42 base alias used for local offsets",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63752,
+        "final_sp_offset": 168,
+        "purpose": "incoming x8 admitted outcome destination",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63744,
+        "final_sp_offset": 176,
+        "purpose": "%attempt",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63736,
+        "final_sp_offset": 184,
+        "purpose": "%expected",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63728,
+        "final_sp_offset": 192,
+        "purpose": "drop-flag base E_B-111",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63720,
+        "final_sp_offset": 200,
+        "purpose": "%fixture",
+        "reviewed": false
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -63712,
+        "final_sp_offset": 208,
+        "purpose": "%root",
+        "reviewed": false
+      }
+    ],
+    "normal_exit": "LBB4876_22 ret restores SP by61440 +2448 +32 =63920.",
+    "normal_exit_restores_entry_sp": true,
+    "normal_signed_sp_path_candidate": [
+      {
+        "after": -32,
+        "argument": "preindexed saved-state push",
+        "before": 0,
+        "delta": -32
+      },
+      {
+        "after": -4128,
+        "argument": "finite native probe loop iteration1",
+        "before": -32,
+        "delta": -4096
+      },
+      {
+        "after": -8224,
+        "argument": "finite native probe loop iteration2",
+        "before": -4128,
+        "delta": -4096
+      },
+      {
+        "after": -12320,
+        "argument": "finite native probe loop iteration3",
+        "before": -8224,
+        "delta": -4096
+      },
+      {
+        "after": -16416,
+        "argument": "finite native probe loop iteration4",
+        "before": -12320,
+        "delta": -4096
+      },
+      {
+        "after": -20512,
+        "argument": "finite native probe loop iteration5",
+        "before": -16416,
+        "delta": -4096
+      },
+      {
+        "after": -24608,
+        "argument": "finite native probe loop iteration6",
+        "before": -20512,
+        "delta": -4096
+      },
+      {
+        "after": -28704,
+        "argument": "finite native probe loop iteration7",
+        "before": -24608,
+        "delta": -4096
+      },
+      {
+        "after": -32800,
+        "argument": "finite native probe loop iteration8",
+        "before": -28704,
+        "delta": -4096
+      },
+      {
+        "after": -36896,
+        "argument": "finite native probe loop iteration9",
+        "before": -32800,
+        "delta": -4096
+      },
+      {
+        "after": -40992,
+        "argument": "finite native probe loop iteration10",
+        "before": -36896,
+        "delta": -4096
+      },
+      {
+        "after": -45088,
+        "argument": "finite native probe loop iteration11",
+        "before": -40992,
+        "delta": -4096
+      },
+      {
+        "after": -49184,
+        "argument": "finite native probe loop iteration12",
+        "before": -45088,
+        "delta": -4096
+      },
+      {
+        "after": -53280,
+        "argument": "finite native probe loop iteration13",
+        "before": -49184,
+        "delta": -4096
+      },
+      {
+        "after": -57376,
+        "argument": "finite native probe loop iteration14",
+        "before": -53280,
+        "delta": -4096
+      },
+      {
+        "after": -61472,
+        "argument": "finite native probe loop iteration15",
+        "before": -57376,
+        "delta": -4096
+      },
+      {
+        "after": -63920,
+        "argument": "native tail decrement",
+        "before": -61472,
+        "delta": -2448
+      },
+      {
+        "after": -2480,
+        "argument": "native epilogue page increment",
+        "before": -63920,
+        "delta": 61440
+      },
+      {
+        "after": -32,
+        "argument": "native epilogue tail increment",
+        "before": -2480,
+        "delta": 2448
+      },
+      {
+        "after": 0,
+        "argument": "postindexed saved-state restore",
+        "before": -32,
+        "delta": 32
+      }
+    ],
+    "outgoing_argument_note": "Direct callees use x0..x4 and x8 sret; all by-value argument/result storage listed as local native slots. No call-site SP adjustments or separate stack-passed parameters occur in the complete body. Callee/probe fault/unwind handling peaks remain unbounded.",
+    "outgoing_stack_parameter_slots_observed": [],
+    "prologue_evidence": {
+      "artifact": "asm",
+      "begin": 16389930,
+      "end": 16390333,
+      "excerpt_line_begin": 7,
+      "excerpt_line_end_inclusive": 26,
+      "global_line_begin": 667753,
+      "global_line_end_inclusive": 667772,
+      "sha256": "fe02f41ec320afbc8bc954d508fc3b244dadb4a272b1b9b621786f9b23f59d24"
+    },
+    "reservation_lifetime": "Same full local reservation on every internal normal/cleanup block after prologue; normal epilogue restores it. Cleanup/termination hands off externally with reservation active.",
+    "saved_state": [
+      {
+        "bytes": 8,
+        "entry_sp_offset": -32,
+        "register": "x28"
+      },
+      {
+        "bytes": 8,
+        "entry_sp_offset": -24,
+        "register": "x27"
+      },
+      {
+        "bytes": 8,
+        "entry_sp_offset": -16,
+        "register": "x29"
+      },
+      {
+        "bytes": 8,
+        "entry_sp_offset": -8,
+        "register": "x30"
+      }
+    ],
+    "terminate_exit": "LBB4876_23 calls panic_in_cleanup with SP=E_B-63920 and no local epilogue; noreturn outgoing/termination obligation remains.",
+    "unassigned_native_padding_intervals_final_sp": [
+      [
+        56,
+        60
+      ],
+      [
+        88,
+        92
+      ],
+      [
+        63808,
+        63809
+      ],
+      [
+        63848,
+        63852
+      ]
+    ]
+  },
+  "inherited_toolchain": "rustc 1.99.0 b940084d7eb6a299eb4bfeb8e34901bc051e7ac4; LLVM 23.1.1; aarch64-apple-darwin",
+  "llvm_allocas": [
+    {
+      "declaration": "%0 = alloca [16 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26432906,
+        "end": 26432939,
+        "excerpt_line_begin": 3,
+        "excerpt_line_end_inclusive": 3,
+        "global_line_begin": 407749,
+        "global_line_end_inclusive": 407749,
+        "sha256": "342605a1f51d69dce7be6c30285198edab9dbcf83057df2e737698bcb9c78953"
+      }
+    },
+    {
+      "declaration": "%snapshot.dbg.spill = alloca [4 x i8], align 4",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26432939,
+        "end": 26432988,
+        "excerpt_line_begin": 4,
+        "excerpt_line_end_inclusive": 4,
+        "global_line_begin": 407750,
+        "global_line_end_inclusive": 407750,
+        "sha256": "1b4d569235c2615eedac2bd104198d18c2807ff36b0a99c69e2f7c56f3b92bbb"
+      }
+    },
+    {
+      "declaration": "%rows.dbg.spill = alloca [4 x i8], align 4",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26432988,
+        "end": 26433033,
+        "excerpt_line_begin": 5,
+        "excerpt_line_end_inclusive": 5,
+        "global_line_begin": 407751,
+        "global_line_end_inclusive": 407751,
+        "sha256": "8ce44ec708853f277aeb0c9c85d9b0c0a33e82f8ee6611eff0a8854b90d80b72"
+      }
+    },
+    {
+      "declaration": "%session.dbg.spill = alloca [4 x i8], align 4",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433033,
+        "end": 26433081,
+        "excerpt_line_begin": 6,
+        "excerpt_line_end_inclusive": 6,
+        "global_line_begin": 407752,
+        "global_line_end_inclusive": 407752,
+        "sha256": "d0ed16b11fd73d4a951713cde648fd17e404bf24b4c51551602412d298755885"
+      }
+    },
+    {
+      "declaration": "%build.dbg.spill = alloca [4 x i8], align 4",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433081,
+        "end": 26433127,
+        "excerpt_line_begin": 7,
+        "excerpt_line_end_inclusive": 7,
+        "global_line_begin": 407753,
+        "global_line_end_inclusive": 407753,
+        "sha256": "8ba9c5a6569c49720f1b67539f0648f6b1874db20317e07adc582a35f2c10c88"
+      }
+    },
+    {
+      "declaration": "%source.dbg.spill = alloca [4 x i8], align 4",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433127,
+        "end": 26433174,
+        "excerpt_line_begin": 8,
+        "excerpt_line_end_inclusive": 8,
+        "global_line_begin": 407754,
+        "global_line_end_inclusive": 407754,
+        "sha256": "49e5237a9a56dc690ffb15c3e2a9b56f6d7c7486528086c2bd7bc4dca1252cdc"
+      }
+    },
+    {
+      "declaration": "%binding.dbg.spill = alloca [8 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433174,
+        "end": 26433222,
+        "excerpt_line_begin": 9,
+        "excerpt_line_end_inclusive": 9,
+        "global_line_begin": 407755,
+        "global_line_end_inclusive": 407755,
+        "sha256": "312ea701ce5a46e39254f2b4ea18b0f6f2b8674a7a1040fd81121dc3f5df529a"
+      }
+    },
+    {
+      "declaration": "%root.dbg.spill = alloca [8 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433222,
+        "end": 26433267,
+        "excerpt_line_begin": 10,
+        "excerpt_line_end_inclusive": 10,
+        "global_line_begin": 407756,
+        "global_line_end_inclusive": 407756,
+        "sha256": "feed18ef9ecd25f839bd2914718806c9b3adbf76bacfc887eb781ae84be7a57f"
+      }
+    },
+    {
+      "declaration": "%expected.dbg.spill = alloca [8 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433267,
+        "end": 26433316,
+        "excerpt_line_begin": 11,
+        "excerpt_line_end_inclusive": 11,
+        "global_line_begin": 407757,
+        "global_line_end_inclusive": 407757,
+        "sha256": "9bdf41b9ec9114c4ffa30c3f9e3f7580cc551290302917c19ebbb9545c685b6b"
+      }
+    },
+    {
+      "declaration": "%fixture.dbg.spill = alloca [8 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433316,
+        "end": 26433364,
+        "excerpt_line_begin": 12,
+        "excerpt_line_end_inclusive": 12,
+        "global_line_begin": 407758,
+        "global_line_end_inclusive": 407758,
+        "sha256": "02e53d5c251b9927ab6f197c41a50efe3e56b0b7c3778781fda2315e7a3e5089"
+      }
+    },
+    {
+      "declaration": "%_66 = alloca [1 x i8], align 1",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433364,
+        "end": 26433398,
+        "excerpt_line_begin": 13,
+        "excerpt_line_end_inclusive": 13,
+        "global_line_begin": 407759,
+        "global_line_end_inclusive": 407759,
+        "sha256": "8d06cff48a5db1b4783f5d66a43e4f93580dd110a627dbb8c8053155d6dfb400"
+      }
+    },
+    {
+      "declaration": "%_65 = alloca [1 x i8], align 1",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433398,
+        "end": 26433432,
+        "excerpt_line_begin": 14,
+        "excerpt_line_end_inclusive": 14,
+        "global_line_begin": 407760,
+        "global_line_end_inclusive": 407760,
+        "sha256": "053d1f771a37e4ecc406be25f2da2d51b9c87e67eef1ef15a8f4f289db1eef81"
+      }
+    },
+    {
+      "declaration": "%_64 = alloca [1 x i8], align 1",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433432,
+        "end": 26433466,
+        "excerpt_line_begin": 15,
+        "excerpt_line_end_inclusive": 15,
+        "global_line_begin": 407761,
+        "global_line_end_inclusive": 407761,
+        "sha256": "573eb69ef0d66b554aa5ca4f944f564e46604591ccf8f298aa791399339ac997"
+      }
+    },
+    {
+      "declaration": "%_63 = alloca [1 x i8], align 1",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433466,
+        "end": 26433500,
+        "excerpt_line_begin": 16,
+        "excerpt_line_end_inclusive": 16,
+        "global_line_begin": 407762,
+        "global_line_end_inclusive": 407762,
+        "sha256": "d816ed1ac967e688893e5c86d73fb3be8bf58bf4f65252dd85f8ab89391eb0c0"
+      }
+    },
+    {
+      "declaration": "%_62 = alloca [1 x i8], align 1",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433500,
+        "end": 26433534,
+        "excerpt_line_begin": 17,
+        "excerpt_line_end_inclusive": 17,
+        "global_line_begin": 407763,
+        "global_line_end_inclusive": 407763,
+        "sha256": "d0922d0c486238ecd28d0accca3f90cf511ede0c6ab2a06d62571ea951a6208f"
+      }
+    },
+    {
+      "declaration": "%_61 = alloca [1 x i8], align 1",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433534,
+        "end": 26433568,
+        "excerpt_line_begin": 18,
+        "excerpt_line_end_inclusive": 18,
+        "global_line_begin": 407764,
+        "global_line_end_inclusive": 407764,
+        "sha256": "7242d0fa5f809435bd3dc71474438166edd489076572573c4c51eea4ef48a6a4"
+      }
+    },
+    {
+      "declaration": "%_60 = alloca [1 x i8], align 1",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433568,
+        "end": 26433602,
+        "excerpt_line_begin": 19,
+        "excerpt_line_end_inclusive": 19,
+        "global_line_begin": 407765,
+        "global_line_end_inclusive": 407765,
+        "sha256": "b8f64ab6c8b2f02ebd5b6393d31386e9b2e94414e6976d6628320399135482fb"
+      }
+    },
+    {
+      "declaration": "%_58 = alloca [13616 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433602,
+        "end": 26433640,
+        "excerpt_line_begin": 20,
+        "excerpt_line_end_inclusive": 20,
+        "global_line_begin": 407766,
+        "global_line_end_inclusive": 407766,
+        "sha256": "cfce67a30f1d58b75584f66518fc7068cabb794bc98616db58c9ebaf9d6f4a9d"
+      }
+    },
+    {
+      "declaration": "%_57 = alloca [13616 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433640,
+        "end": 26433678,
+        "excerpt_line_begin": 21,
+        "excerpt_line_end_inclusive": 21,
+        "global_line_begin": 407767,
+        "global_line_end_inclusive": 407767,
+        "sha256": "9df47cb2e7248528fead18e18b69a7b789022e8207e437cd1ae3040b74bfd0b9"
+      }
+    },
+    {
+      "declaration": "%_56 = alloca [424 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433678,
+        "end": 26433714,
+        "excerpt_line_begin": 22,
+        "excerpt_line_end_inclusive": 22,
+        "global_line_begin": 407768,
+        "global_line_end_inclusive": 407768,
+        "sha256": "15ba5024e0cfba7e4c16eda067c880659613f6584ac67c0271758563757c6b3c"
+      }
+    },
+    {
+      "declaration": "%_55 = alloca [1288 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433714,
+        "end": 26433751,
+        "excerpt_line_begin": 23,
+        "excerpt_line_end_inclusive": 23,
+        "global_line_begin": 407769,
+        "global_line_end_inclusive": 407769,
+        "sha256": "859797266e0317e0eff3a8344a5a621a7dbf89dc6a1d8b3e8b865ef6e784a1c2"
+      }
+    },
+    {
+      "declaration": "%complete = alloca [13616 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433751,
+        "end": 26433794,
+        "excerpt_line_begin": 24,
+        "excerpt_line_end_inclusive": 24,
+        "global_line_begin": 407770,
+        "global_line_end_inclusive": 407770,
+        "sha256": "3c9209dd915d6a9dacc61225771a1d64f7b37b51da28c8e1fc5b8ef82311702e"
+      }
+    },
+    {
+      "declaration": "%_52 = alloca [136 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433794,
+        "end": 26433830,
+        "excerpt_line_begin": 25,
+        "excerpt_line_end_inclusive": 25,
+        "global_line_begin": 407771,
+        "global_line_end_inclusive": 407771,
+        "sha256": "6bb7123d603b030bfd43b43be02b5e71bb2fa52087f578b4719217c8a0e510f3"
+      }
+    },
+    {
+      "declaration": "%_49 = alloca [256 x i8], align 1",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433830,
+        "end": 26433866,
+        "excerpt_line_begin": 26,
+        "excerpt_line_end_inclusive": 26,
+        "global_line_begin": 407772,
+        "global_line_end_inclusive": 407772,
+        "sha256": "e955b4264c4293c0d8441d60a217585dfbc7a2e8f32813b3ad57c43538b0b039"
+      }
+    },
+    {
+      "declaration": "%_48 = alloca [8 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433866,
+        "end": 26433900,
+        "excerpt_line_begin": 27,
+        "excerpt_line_end_inclusive": 27,
+        "global_line_begin": 407773,
+        "global_line_end_inclusive": 407773,
+        "sha256": "e4dff817981698769514c8455fc03e5e2175c9bb6e2a0ad5c3af9cbfff96f2ca"
+      }
+    },
+    {
+      "declaration": "%_47 = alloca [4 x i8], align 4",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433900,
+        "end": 26433934,
+        "excerpt_line_begin": 28,
+        "excerpt_line_end_inclusive": 28,
+        "global_line_begin": 407774,
+        "global_line_end_inclusive": 407774,
+        "sha256": "09ae97d4241ed3ed566d6706118442d2add8e49d3fe8fa61a93309c100b8a2d2"
+      }
+    },
+    {
+      "declaration": "%_46 = alloca [4 x i8], align 4",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433934,
+        "end": 26433968,
+        "excerpt_line_begin": 29,
+        "excerpt_line_end_inclusive": 29,
+        "global_line_begin": 407775,
+        "global_line_end_inclusive": 407775,
+        "sha256": "de7d44882c7cc6146a51370bf1a7d7692e0021f7fa9c034a4161d4cd7088a8d5"
+      }
+    },
+    {
+      "declaration": "%args = alloca [424 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26433968,
+        "end": 26434005,
+        "excerpt_line_begin": 30,
+        "excerpt_line_end_inclusive": 30,
+        "global_line_begin": 407776,
+        "global_line_end_inclusive": 407776,
+        "sha256": "f730bd6d0a23c283f9c54fe56c9317dfab6d2bab6922a97185911eddfd32816c"
+      }
+    },
+    {
+      "declaration": "%_43 = alloca [1264 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434005,
+        "end": 26434042,
+        "excerpt_line_begin": 31,
+        "excerpt_line_end_inclusive": 31,
+        "global_line_begin": 407777,
+        "global_line_end_inclusive": 407777,
+        "sha256": "ee354591c041987b8848a6652df2f787d4d613579d9846ee0e653cf1e4f5c749"
+      }
+    },
+    {
+      "declaration": "%_42 = alloca [32 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434042,
+        "end": 26434077,
+        "excerpt_line_begin": 32,
+        "excerpt_line_end_inclusive": 32,
+        "global_line_begin": 407778,
+        "global_line_end_inclusive": 407778,
+        "sha256": "2345be66b17f4662c9060067b96ea64c94fd0fe470d3404b56ed95c4eda6b64a"
+      }
+    },
+    {
+      "declaration": "%correlated = alloca [1288 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434077,
+        "end": 26434121,
+        "excerpt_line_begin": 33,
+        "excerpt_line_end_inclusive": 33,
+        "global_line_begin": 407779,
+        "global_line_end_inclusive": 407779,
+        "sha256": "7c3e8dacd9a8c141f900237ac70f4a33dab0fea87423d2493436fdb8a0528acb"
+      }
+    },
+    {
+      "declaration": "%_40 = alloca [1264 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434121,
+        "end": 26434158,
+        "excerpt_line_begin": 34,
+        "excerpt_line_end_inclusive": 34,
+        "global_line_begin": 407780,
+        "global_line_end_inclusive": 407780,
+        "sha256": "621a06fda46b962dfbeae228817029c2d82f743530b5d6b2ec04221849a88c66"
+      }
+    },
+    {
+      "declaration": "%original_carrier = alloca [1264 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434158,
+        "end": 26434208,
+        "excerpt_line_begin": 35,
+        "excerpt_line_end_inclusive": 35,
+        "global_line_begin": 407781,
+        "global_line_end_inclusive": 407781,
+        "sha256": "8fded350867eded6e552fadd2a2ffb72404c8a8ccde448d0f87c38279aac086d"
+      }
+    },
+    {
+      "declaration": "%_36 = alloca [40 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434208,
+        "end": 26434243,
+        "excerpt_line_begin": 36,
+        "excerpt_line_end_inclusive": 36,
+        "global_line_begin": 407782,
+        "global_line_end_inclusive": 407782,
+        "sha256": "301cac5fd873b12cc065dad81a198e1154335c1805b000e6767b102848f00e61"
+      }
+    },
+    {
+      "declaration": "%complete_original = alloca [1264 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434243,
+        "end": 26434294,
+        "excerpt_line_begin": 37,
+        "excerpt_line_end_inclusive": 37,
+        "global_line_begin": 407783,
+        "global_line_end_inclusive": 407783,
+        "sha256": "105ad601a1a1c2ffc4a263a099346307fde3b141455c878e1f4186916c4fc6ed"
+      }
+    },
+    {
+      "declaration": "%cancellation = alloca [8 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434294,
+        "end": 26434337,
+        "excerpt_line_begin": 38,
+        "excerpt_line_end_inclusive": 38,
+        "global_line_begin": 407784,
+        "global_line_end_inclusive": 407784,
+        "sha256": "8a90688934ec50069a0f4999752ad5455f0b9583daffcd1ce78cba2114d8d824"
+      }
+    },
+    {
+      "declaration": "%_29 = alloca [40 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434337,
+        "end": 26434372,
+        "excerpt_line_begin": 39,
+        "excerpt_line_end_inclusive": 39,
+        "global_line_begin": 407785,
+        "global_line_end_inclusive": 407785,
+        "sha256": "4305c5220d052eba5c94321441d5ee4fe15b2dad401e0e82f9fae9eb441b1c06"
+      }
+    },
+    {
+      "declaration": "%_28 = alloca [13616 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434372,
+        "end": 26434410,
+        "excerpt_line_begin": 40,
+        "excerpt_line_end_inclusive": 40,
+        "global_line_begin": 407786,
+        "global_line_end_inclusive": 407786,
+        "sha256": "5541bec156e83990e2645baee5fba6aba1bf273509dead4b69c000e194988ca6"
+      }
+    },
+    {
+      "declaration": "%refused = alloca [40 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434410,
+        "end": 26434449,
+        "excerpt_line_begin": 41,
+        "excerpt_line_end_inclusive": 41,
+        "global_line_begin": 407787,
+        "global_line_end_inclusive": 407787,
+        "sha256": "e544c0450eb4d560f24c0085a5e1a8b5fad67e731335a9e6944144e3160e8c0a"
+      }
+    },
+    {
+      "declaration": "%_13 = alloca [40 x i8], align 8",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434449,
+        "end": 26434484,
+        "excerpt_line_begin": 42,
+        "excerpt_line_end_inclusive": 42,
+        "global_line_begin": 407788,
+        "global_line_end_inclusive": 407788,
+        "sha256": "3dc342c89927bc728073763644868bf1867b204c7a38d7001e450c0c2cb3556a"
+      }
+    },
+    {
+      "declaration": "%_12 = alloca [20 x i8], align 4",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434484,
+        "end": 26434519,
+        "excerpt_line_begin": 43,
+        "excerpt_line_end_inclusive": 43,
+        "global_line_begin": 407789,
+        "global_line_end_inclusive": 407789,
+        "sha256": "bd122325f87ac1e3959e7d4d3e9eafc55416e9d81e3509cb11ecd8c0df199d9b"
+      }
+    },
+    {
+      "declaration": "%snapshot = alloca [4 x i8], align 4",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434519,
+        "end": 26434558,
+        "excerpt_line_begin": 44,
+        "excerpt_line_end_inclusive": 44,
+        "global_line_begin": 407790,
+        "global_line_end_inclusive": 407790,
+        "sha256": "d7659da842c0dc6400ee76a8a4438ac318113e2f674501f9aa6430e7e1a26afc"
+      }
+    },
+    {
+      "declaration": "%rows = alloca [4 x i8], align 4",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434558,
+        "end": 26434593,
+        "excerpt_line_begin": 45,
+        "excerpt_line_end_inclusive": 45,
+        "global_line_begin": 407791,
+        "global_line_end_inclusive": 407791,
+        "sha256": "2ed8e9ce1d736f7a090b1a4e3f572b9ee9cdb1d1b6f15d1c5b5c573a51ad2431"
+      }
+    },
+    {
+      "declaration": "%session = alloca [4 x i8], align 4",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434593,
+        "end": 26434631,
+        "excerpt_line_begin": 46,
+        "excerpt_line_end_inclusive": 46,
+        "global_line_begin": 407792,
+        "global_line_end_inclusive": 407792,
+        "sha256": "649200868d5e46112c5d16b4206bd625459bcd511da6c8b63935d22bd9b65f07"
+      }
+    },
+    {
+      "declaration": "%build = alloca [4 x i8], align 4",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434631,
+        "end": 26434667,
+        "excerpt_line_begin": 47,
+        "excerpt_line_end_inclusive": 47,
+        "global_line_begin": 407793,
+        "global_line_end_inclusive": 407793,
+        "sha256": "cfe8bb7e03f6acb10a40c00bd96f509da89fb62059f9266ce296102c7644b688"
+      }
+    },
+    {
+      "declaration": "%source = alloca [4 x i8], align 4",
+      "evidence": {
+        "artifact": "ir",
+        "begin": 26434667,
+        "end": 26434704,
+        "excerpt_line_begin": 48,
+        "excerpt_line_end_inclusive": 48,
+        "global_line_begin": 407794,
+        "global_line_end_inclusive": 407794,
+        "sha256": "bfa313cb89867a9d1bb79fec0384ee37ff5b167d542180cd1bcdef34205f6114"
+      }
+    }
+  ],
+  "local_geometry_only": true,
+  "numeric_union": null,
+  "original_capture_qualified": false,
+  "prices": null,
+  "raw_pair_bytes": 111430754,
+  "reviewed": false,
+  "root_funding": null,
+  "runtime_admission": "WholeQuotePending",
+  "runtime_admission_accepted": false,
+  "source146_tree_sha256": "91bab68a8aef4a7cbe300af0fca8145462e08dcaaef2631f42a0d2d55748bd8f",
+  "status": "UNREVIEWED_FINITE_ALTERNATE_CONFIGURATION_GEOMETRY_FACTS",
+  "symbol": "_RNvNtNtNtNtCscBrn2zMo5wc_8mixer_vm26experimental_swift_reactor5cache18initial_profile_v135trusted_local_host_account_entry_v131run_prepaid_admitted_fixture_v1",
+  "target": "Body",
+  "tools_queried_for_versions": false,
+  "whole_capacity": null,
+  "whole_function_evidence": {
+    "Body": {
+      "asm": {
+        "artifact": "asm",
+        "begin": 16389637,
+        "end": 16403037,
+        "global_line_begin": 667747,
+        "global_line_end_inclusive": 668381,
+        "sha256": "4459dbea448c7fb623b2bc8c4c42a32e02f6707bd9ec3994ca298c3425fb0303"
+      },
+      "ir": {
+        "artifact": "ir",
+        "begin": 26432534,
+        "end": 26455844,
+        "global_line_begin": 407747,
+        "global_line_end_inclusive": 408141,
+        "sha256": "17335f141547af7c0ff617f6868bc958edd9749363ba13a3be700c984e11e4c5"
+      }
+    },
+    "Dispatch": {
+      "asm": {
+        "artifact": "asm",
+        "begin": 1367402,
+        "end": 1369396,
+        "global_line_begin": 55886,
+        "global_line_end_inclusive": 55974,
+        "sha256": "7e68f61a4fc4fdb36f6ef24371718af37d91e1bbfbc62f6b854dd5b6f8c38dab"
+      },
+      "ir": {
+        "artifact": "ir",
+        "begin": 3066181,
+        "end": 3068384,
+        "global_line_begin": 40179,
+        "global_line_end_inclusive": 40209,
+        "sha256": "ff5a5f5bc02bee63ce93b889e64e46cffc737fb0451fd00b8ce70bde4213ae0b"
+      }
+    }
+  }
+}

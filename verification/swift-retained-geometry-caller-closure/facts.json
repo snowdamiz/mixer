@@ -1,0 +1,504 @@
+{
+  "Caller": {
+    "child_C": {
+      "IR": "%_23",
+      "capacity_bytes": 13640,
+      "dispatch_sret": "x8=S_C+160",
+      "end_offset": -200,
+      "entry_sp_offset": -13840,
+      "lifetime": "Native reservation exists through all Caller paths. On the counterfactual success route, C is initialized by Dispatch and retained through the following memcpy; physical reservation persists until epilogue."
+    },
+    "closure_record": {
+      "IR": "%_25",
+      "capacity_bytes": 48,
+      "capture_fields": [
+        {
+          "bytes": 8,
+          "name": "fixture",
+          "offset": 0
+        },
+        {
+          "bytes": 32,
+          "name": "attempt",
+          "offset": 8
+        },
+        {
+          "bytes": 8,
+          "name": "expected",
+          "offset": 40
+        }
+      ],
+      "dispatch_argument": "x2=E_C-200",
+      "entry_sp_offset": -200,
+      "lifetime": "Constructed only on bb9 success route before Dispatch; fixed native reservation is not released early. Exact Dispatch capture-copy identity is delegated to its owned lane."
+    },
+    "entry_base": "E_C",
+    "entry_sp_interval": [
+      -14000,
+      0
+    ],
+    "explicit_numeric_rebase": 14000,
+    "fixed_reservation_bytes": 14000,
+    "frame_pointer": "x29=E_C-16",
+    "local_cleanup_or_resume_count": 0,
+    "local_reservation_components": {
+      "mapped_IR_allocated_slots": 13904,
+      "native_pointer_spills": 64,
+      "saved_state": 32
+    },
+    "native_outgoing_stack_argument_area": "No additional stack adjustment or stack-passed argument block is observed at any bl. Return/capture destinations above reside in the fixed reservation; every external callee peak remains pending.",
+    "normal_IR_paths": [
+      [
+        "start",
+        "bb5",
+        "bb13",
+        "bb14"
+      ],
+      [
+        "start",
+        "bb4",
+        "bb10",
+        "bb13",
+        "bb14"
+      ],
+      [
+        "start",
+        "bb4",
+        "bb9",
+        "bb14"
+      ]
+    ],
+    "normal_assembly_paths": [
+      [
+        "entry",
+        "LBB4875_1",
+        "LBB4875_6",
+        "LBB4875_5",
+        "ret"
+      ],
+      [
+        "entry",
+        "LBB4875_2",
+        "LBB4875_3",
+        "LBB4875_6",
+        "LBB4875_5",
+        "ret"
+      ],
+      [
+        "entry",
+        "LBB4875_2",
+        "LBB4875_4",
+        "LBB4875_5",
+        "ret"
+      ]
+    ],
+    "normal_ret_count": 1,
+    "outer_O": {
+      "IR": "%_0",
+      "concrete_arena": null,
+      "declared_sret_bytes": 13640,
+      "entry_rebase": null,
+      "operand_alignment_requirement": 8,
+      "physical_relation_to_C_or_frames": "unknown; no equality or disjointness certificate supplied",
+      "pointer_flow": "incoming x8 saved S_C+16; reloaded as x0 for refusal helpers or final memcpy destination",
+      "refusal_paths": "Two FromResidual call sites receive incoming %_0 directly; callee write-completeness and peaks are outside this lane.",
+      "success_copy": "llvm.memcpy %_0 <- %_23,13640; native _memcpy x0=O,x1=C,x2=13640"
+    },
+    "partition_limit": "These separately mapped intervals partition the observed native reservation; no LLVM-allocation sum was used to derive frame size, and no pointee/backing extent follows.",
+    "probe_limits": "Four in-function ldr xzr memory touches. No probe helper call or extra SP adjustment here; guard-page/OS effects and fault paths remain outside this packet.",
+    "probe_offsets_entry_sp": [
+      -4128,
+      -8224,
+      -12320,
+      -14000
+    ],
+    "slots": [
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -14000,
+        "evidence_group": "Caller_pointer_spills",
+        "id": "child_destination_pointer_spill",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "pointer to %_23, reused after Dispatch",
+        "sp_relative_offset": 0
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -13992,
+        "evidence_group": "Caller_pointer_spills",
+        "id": "reservation_result_pointer_spill",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "pointer to %_15",
+        "sp_relative_offset": 8
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -13984,
+        "evidence_group": "Caller_pointer_spills",
+        "id": "outer_sret_pointer_spill",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "incoming x8 / LLVM %_0; pointer is not the outer storage",
+        "sp_relative_offset": 16
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -13976,
+        "evidence_group": "Caller_pointer_spills",
+        "id": "account_argument_spill",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "incoming x0/account pointer",
+        "sp_relative_offset": 24
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -13968,
+        "evidence_group": "Caller_pointer_spills",
+        "id": "fixture_argument_spill",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "incoming x1/fixture pointer",
+        "sp_relative_offset": 32
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -13960,
+        "evidence_group": "Caller_pointer_spills",
+        "id": "attempt_argument_spill",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "incoming x2/attempt pointer",
+        "sp_relative_offset": 40
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -13952,
+        "evidence_group": "Caller_pointer_spills",
+        "id": "expected_argument_spill",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "incoming x3/expected pointer",
+        "sp_relative_offset": 48
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -13944,
+        "evidence_group": "Caller_pointer_spills",
+        "id": "quote_result_pointer_spill",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "pointer to %_7",
+        "sp_relative_offset": 56
+      },
+      {
+        "capacity_bytes": 24,
+        "entry_sp_offset": -13936,
+        "evidence_group": "Caller_local_slots",
+        "id": "_6",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "quote Try::branch destination",
+        "sp_relative_offset": 64
+      },
+      {
+        "capacity_bytes": 24,
+        "entry_sp_offset": -13912,
+        "evidence_group": "Caller_local_slots",
+        "id": "_7",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "selected_whole_quote_v1 destination",
+        "sp_relative_offset": 88
+      },
+      {
+        "capacity_bytes": 24,
+        "entry_sp_offset": -13888,
+        "evidence_group": "Caller_local_slots",
+        "id": "_14",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "reservation Try::branch destination",
+        "sp_relative_offset": 112
+      },
+      {
+        "capacity_bytes": 24,
+        "entry_sp_offset": -13864,
+        "evidence_group": "Caller_local_slots",
+        "id": "_15",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "reserve_whole_v1 destination",
+        "sp_relative_offset": 136
+      },
+      {
+        "capacity_bytes": 13640,
+        "entry_sp_offset": -13840,
+        "evidence_group": "Caller_child_and_capture",
+        "id": "_23",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "complete Dispatch child result destination C",
+        "sp_relative_offset": 160
+      },
+      {
+        "capacity_bytes": 48,
+        "entry_sp_offset": -200,
+        "evidence_group": "Caller_child_and_capture",
+        "id": "_25",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "closure capture record; fixture0, attempt8..40, expected40",
+        "sp_relative_offset": 13800
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -152,
+        "evidence_group": "Caller_frame_pointer",
+        "id": "account.dbg.spill",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "account debug spill, x29-136",
+        "sp_relative_offset": 13848
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -144,
+        "evidence_group": "Caller_frame_pointer",
+        "id": "fixture.dbg.spill",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "fixture debug spill, x29-128",
+        "sp_relative_offset": 13856
+      },
+      {
+        "capacity_bytes": 8,
+        "entry_sp_offset": -136,
+        "evidence_group": "Caller_frame_pointer",
+        "id": "expected.dbg.spill",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "expected debug spill, x29-120",
+        "sp_relative_offset": 13864
+      },
+      {
+        "capacity_bytes": 16,
+        "entry_sp_offset": -128,
+        "evidence_group": "Caller_frame_pointer",
+        "id": "val.dbg.spill",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "quote successful value, x29-112",
+        "sp_relative_offset": 13872
+      },
+      {
+        "capacity_bytes": 16,
+        "entry_sp_offset": -112,
+        "evidence_group": "Caller_frame_pointer",
+        "id": "quote.dbg.spill",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "quote binding, x29-96",
+        "sp_relative_offset": 13888
+      },
+      {
+        "capacity_bytes": 16,
+        "entry_sp_offset": -96,
+        "evidence_group": "Caller_frame_pointer",
+        "id": "val.dbg.spill3",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "reservation successful value, x29-80",
+        "sp_relative_offset": 13904
+      },
+      {
+        "capacity_bytes": 16,
+        "entry_sp_offset": -80,
+        "evidence_group": "Caller_frame_pointer",
+        "id": "reservation.dbg.spill",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "reservation binding, x29-64",
+        "sp_relative_offset": 13920
+      },
+      {
+        "capacity_bytes": 16,
+        "entry_sp_offset": -64,
+        "evidence_group": "Caller_frame_pointer",
+        "id": "residual.dbg.spill",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "reservation refusal, x29-48",
+        "sp_relative_offset": 13936
+      },
+      {
+        "capacity_bytes": 16,
+        "entry_sp_offset": -48,
+        "evidence_group": "Caller_frame_pointer",
+        "id": "residual.dbg.spill6",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "quote refusal, x29-32",
+        "sp_relative_offset": 13952
+      },
+      {
+        "capacity_bytes": 16,
+        "entry_sp_offset": -32,
+        "evidence_group": "Caller_SP_and_probe",
+        "id": "saved_x28_x27",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "saved state from preindexed push",
+        "sp_relative_offset": 13968
+      },
+      {
+        "capacity_bytes": 16,
+        "entry_sp_offset": -16,
+        "evidence_group": "Caller_frame_pointer",
+        "id": "saved_x29_x30",
+        "mapping_status": "candidate_semantic_mapping_requires_independent_review",
+        "role": "frame/link saved state",
+        "sp_relative_offset": 13984
+      }
+    ],
+    "sp_path": [
+      {
+        "after": -32,
+        "before": 0,
+        "delta": -32
+      },
+      {
+        "after": -4128,
+        "before": -32,
+        "delta": -4096
+      },
+      {
+        "after": -8224,
+        "before": -4128,
+        "delta": -4096
+      },
+      {
+        "after": -12320,
+        "before": -8224,
+        "delta": -4096
+      },
+      {
+        "after": -14000,
+        "before": -12320,
+        "delta": -1680
+      },
+      {
+        "after": -1712,
+        "before": -14000,
+        "delta": 12288
+      },
+      {
+        "after": -32,
+        "before": -1712,
+        "delta": 1680
+      },
+      {
+        "after": 0,
+        "before": -32,
+        "delta": 32
+      }
+    ],
+    "unreachable_IR_block": "bb3 has no predecessors; not a normal return path"
+  },
+  "Closure": {
+    "IR_basic_blocks": 1,
+    "R_forwarding": {
+      "IR": "Body called with exact Closure %_0 sret([13624 x i8]) align8; no GEP/cast/PHI for this pointer",
+      "assembly": "No explicit Closure instruction before the Body bl writes x8. Body receives the same incoming hidden return register; preservation across the callee execution is not claimed.",
+      "capacity_contract_bytes": 13624,
+      "capacity_or_initialization_proved_here": false,
+      "lifetime": "Closure local32 stays reserved through Body call and is reclaimed only after Body returns; no result buffer is allocated in Closure.",
+      "state": "candidate_resolved_same_pointer"
+    },
+    "entry_base": "E_L",
+    "entry_sp_interval": [
+      -48,
+      0
+    ],
+    "explicit_numeric_rebase": 48,
+    "fixed_reservation_bytes": 48,
+    "frame_pointer": "x29=E_L-16",
+    "incoming_capture_pointer": "%_1 / native x0 copied to x9; input record is owned/mapped by Dispatch lane",
+    "loads": [
+      {
+        "field": "fixture",
+        "native_destination": "x0",
+        "offset": 0
+      },
+      {
+        "bytes": 32,
+        "field": "attempt",
+        "native_destination": "[SP,SP+32), Body x1=SP",
+        "offset": 8
+      },
+      {
+        "field": "expected",
+        "native_destination": "x2",
+        "offset": 40
+      }
+    ],
+    "local_cleanup_or_resume_count": 0,
+    "native_outgoing_stack_argument_area": "No extra SP adjustment or stack-passed argument block; Body call uses borrowed record fields and local32, with transitive peak pending.",
+    "normal_ret_count": 1,
+    "slots": [
+      {
+        "capacity_bytes": 32,
+        "entry_sp_offset": -48,
+        "id": "%_3",
+        "role": "attempt argument copy from closure record+8; x1=SP passed to Body"
+      },
+      {
+        "capacity_bytes": 16,
+        "entry_sp_offset": -16,
+        "id": "saved_x29_x30",
+        "role": "saved state"
+      }
+    ],
+    "sp_path": [
+      {
+        "after": -48,
+        "before": 0,
+        "delta": -48
+      },
+      {
+        "after": 0,
+        "before": -48,
+        "delta": 48
+      }
+    ]
+  },
+  "alignment": {
+    "known_physical_base_congruences": [],
+    "missing": [
+      "Independently reviewed entry-SP congruence or applicable pinned ABI premise; actual outer-sret base alignment evidence; complete connected-base relation review."
+    ],
+    "numeric_local_union_allowed": false,
+    "physical_alignment_for_candidate_native_arenas": null,
+    "required_or_assumed_contracts": [
+      "LLVM alloca and sret/load/store operands shown with align8 constrain valid addresses; they are recorded as requirements, not new reviewed physical-base facts.",
+      "A Caller frame role aligned8 would require E_C congruent0 mod8 because -14000 is divisible8; a Closure frame role aligned8 would require E_L congruent0 mod8 because -48 is divisible8.",
+      "All SP deltas preserve a preexisting modulo16 congruence; preservation cannot establish that congruence.",
+      "A 16-byte q register access or CFI directive alone does not certify an actual base modulus16 congruence."
+    ]
+  },
+  "complete_capacity_accepted": false,
+  "coordinate_convention": "E_C/E_L are respective entry SP; intervals half-open; Caller S_C=E_C-14000; Closure S_L=E_L-48.",
+  "cross_function_base_relations": [
+    {
+      "kind": "candidate_same_base_coordinate_delta",
+      "left": "CallerEntrySP",
+      "right": "DispatchEntrySP",
+      "right_minus_left": -14000,
+      "source": "Caller SP unchanged at exact direct Dispatch bl; callee entry semantics still require independent review"
+    },
+    {
+      "kind": "candidate_same_base_coordinate_delta",
+      "left": "ClosureEntrySP",
+      "right": "BodyEntrySP",
+      "right_minus_left": -48,
+      "source": "Closure SP unchanged at exact direct Body bl; callee entry semantics still require independent review"
+    }
+  ],
+  "local_geometry_only": true,
+  "normal_exception_limits": [
+    "Fixed SP paths describe explicit normal returns only. No invoke/landingpad/resume, personality/LSDA or in-function cleanup edge is present in these complete two functions.",
+    "CFI records saved-state unwinding conventions but does not bound any external unwind runtime or destructor continuation.",
+    "Calls can unwind or fault; no cleanup/destruction peak or OS backing bound is supplied.",
+    "No llvm.lifetime.end or source StorageDead is treated as early physical stack release."
+  ],
+  "original_capture_qualified": false,
+  "pending_admission": "selected_whole_quote_v1 source returns WholeQuotePending at host_account_v1.rs:76. Native success-route emission does not establish runtime reachability.",
+  "runtime_admission_accepted": false,
+  "schema": 1,
+  "semantic_geometry_approved": false,
+  "source146_tree_sha256": "91bab68a8aef4a7cbe300af0fca8145462e08dcaaef2631f42a0d2d55748bd8f",
+  "status": "SOURCE_BOUND_ALTERNATE_CONFIGURATION_CANDIDATE_FACTS_ONLY",
+  "targets_owned": [
+    "Caller",
+    "Closure"
+  ],
+  "whole_capacity_prices_backings_root_funding_product_GA_accepted": false
+}

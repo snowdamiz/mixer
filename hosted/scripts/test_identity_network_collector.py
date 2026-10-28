@@ -138,7 +138,7 @@ def exact_container(role):
         "Image": POSTGRES_CONFIG if pg else ELIXIR_CONFIG,
         "Config": {"Labels": {"mixer.identity.run": RUN_LABEL, "mixer.identity.role": role}},
         "HostConfig": {
-            "NetworkMode": f"container:{CID_TEST}" if pg else ("none" if role == "test" else "default"),
+            "NetworkMode": f"container:{CID_TEST}" if pg else ("none" if role == "test" else "bridge"),
             "ReadonlyRootfs": True, "CapDrop": ["ALL"],
             "CapAdd": (["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETUID", "SETGID"] if pg else
                        ["NET_ADMIN", "NET_BIND_SERVICE"] if role == "test" else []),
@@ -692,6 +692,22 @@ class CollectorMethodWiringControls(unittest.TestCase):
         root.mkdir()
         with mock.patch.dict("os.environ", {"GITHUB_RUN_ID": "100", "GITHUB_RUN_ATTEMPT": "1"}):
             return (subject_class or collector.Collector)(root, Path(directory) / "evidence", "a" * 40, runner=runner)
+
+    def test_prepare_create_and_inspection_use_explicit_bridge(self):
+        # Docker's retained CI response resolves its default network to bridge.
+        fake = FakeDocker()
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            subject = self.make_collector(directory, fake)
+            record = subject.create("prepare")
+            create = next(argv for argv in fake.calls if argv[:2] == ["docker", "create"])
+            self.assertEqual("bridge", create[create.index("--network") + 1])
+            self.assertEqual("bridge", fake.documents[record.cid]["HostConfig"]["NetworkMode"])
+            document = copy.deepcopy(fake.documents[record.cid])
+            document["HostConfig"]["NetworkMode"] = "default"
+            with self.assertRaises(collector.CollectorError):
+                collector.validate_container_inspect("prepare", document, record)
+            self.assertTrue(subject.cleanup())
+            self.assertEqual({}, fake.documents)
 
     def test_lost_create_response_stays_unresolved_and_never_uses_name_cleanup(self):
         fake = FakeDocker()

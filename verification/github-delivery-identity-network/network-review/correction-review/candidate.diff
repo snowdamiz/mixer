@@ -1,0 +1,54 @@
+--- 756695fb9b0f6ec85d978202e2b3c586aa3db16f:hosted/scripts/test-identity-network.py
++++ candidate:hosted/scripts/test-identity-network.py
+@@ -186,7 +186,7 @@
+     require(role == owned.role and owned.state == "owned", "container role/state mismatch")
+     validate_owned_identity(inspected, owned)
+     config = inspected.get("HostConfig", {})
+-    network = {"prepare": "default", "test": "none", "pg": "container:" + (test_cid or "")}[role]
++    network = {"prepare": "bridge", "test": "none", "pg": "container:" + (test_cid or "")}[role]
+     require(config.get("NetworkMode") == network and (role != "pg" or bool(test_cid)), "container network mismatch")
+     require(config.get("ReadonlyRootfs") is True and config.get("Privileged") is False, "root/privilege mismatch")
+     require(_caps(config.get("CapDrop")) == {"ALL"} and _caps(config.get("CapAdd")) == CAPS[role], "capability mismatch")
+@@ -769,7 +769,7 @@
+         self.registry.reserve(name, role, image["config"], self.label)
+         self.persist()  # Reservation precedes the possibly lost create response.
+         memory, cpus, pids = RESOURCES[role]
+-        argv = ["docker", "create", "--pull", "never", "--platform", "linux/amd64", "--name", name, "--label", "mixer.identity.run=" + self.label, "--label", "mixer.identity.role=" + role, "--network", "container:" + test_cid if role == "pg" else ("none" if role == "test" else "default"), "--read-only", "--cap-drop", "ALL", "--security-opt", "no-new-privileges:true", "--memory", str(memory), "--memory-swap", str(memory), "--cpus", str(cpus), "--pids-limit", str(pids), "--ulimit", "nofile=4096:4096"]
++        argv = ["docker", "create", "--pull", "never", "--platform", "linux/amd64", "--name", name, "--label", "mixer.identity.run=" + self.label, "--label", "mixer.identity.role=" + role, "--network", "container:" + test_cid if role == "pg" else ("none" if role == "test" else "bridge"), "--read-only", "--cap-drop", "ALL", "--security-opt", "no-new-privileges:true", "--memory", str(memory), "--memory-swap", str(memory), "--cpus", str(cpus), "--pids-limit", str(pids), "--ulimit", "nofile=4096:4096"]
+         for cap in sorted(CAPS[role]):
+             argv += ["--cap-add", cap]
+         for path, options in TMPFS[role].items():
+--- 756695fb9b0f6ec85d978202e2b3c586aa3db16f:hosted/scripts/test_identity_network_collector.py
++++ candidate:hosted/scripts/test_identity_network_collector.py
+@@ -138,7 +138,7 @@
+         "Image": POSTGRES_CONFIG if pg else ELIXIR_CONFIG,
+         "Config": {"Labels": {"mixer.identity.run": RUN_LABEL, "mixer.identity.role": role}},
+         "HostConfig": {
+-            "NetworkMode": f"container:{CID_TEST}" if pg else ("none" if role == "test" else "default"),
++            "NetworkMode": f"container:{CID_TEST}" if pg else ("none" if role == "test" else "bridge"),
+             "ReadonlyRootfs": True, "CapDrop": ["ALL"],
+             "CapAdd": (["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETUID", "SETGID"] if pg else
+                        ["NET_ADMIN", "NET_BIND_SERVICE"] if role == "test" else []),
+@@ -693,6 +693,22 @@
+         with mock.patch.dict("os.environ", {"GITHUB_RUN_ID": "100", "GITHUB_RUN_ATTEMPT": "1"}):
+             return (subject_class or collector.Collector)(root, Path(directory) / "evidence", "a" * 40, runner=runner)
+ 
++    def test_prepare_create_and_inspection_use_explicit_bridge(self):
++        # Docker's retained CI response resolves its default network to bridge.
++        fake = FakeDocker()
++        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
++            subject = self.make_collector(directory, fake)
++            record = subject.create("prepare")
++            create = next(argv for argv in fake.calls if argv[:2] == ["docker", "create"])
++            self.assertEqual("bridge", create[create.index("--network") + 1])
++            self.assertEqual("bridge", fake.documents[record.cid]["HostConfig"]["NetworkMode"])
++            document = copy.deepcopy(fake.documents[record.cid])
++            document["HostConfig"]["NetworkMode"] = "default"
++            with self.assertRaises(collector.CollectorError):
++                collector.validate_container_inspect("prepare", document, record)
++            self.assertTrue(subject.cleanup())
++            self.assertEqual({}, fake.documents)
++
+     def test_lost_create_response_stays_unresolved_and_never_uses_name_cleanup(self):
+         fake = FakeDocker()
+         fake.fail_create = True
