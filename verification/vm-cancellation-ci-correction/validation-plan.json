@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "status": "proposed, unrun; root executes only after independent review",
+  "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+  "maximum_cumulative_command_seconds": 55,
+  "execution": "Run sequentially with the listed subprocess timeout; record command/version/source manifest/stdout/stderr/exit. A timeout is incomplete evidence, never a pass. Do not expand the budget without coordination.",
+  "commands": [
+    {
+      "name": "cargo-version",
+      "argv": [
+        "cargo",
+        "--version"
+      ],
+      "timeout_seconds": 1
+    },
+    {
+      "name": "rustc-version",
+      "argv": [
+        "rustc",
+        "--version"
+      ],
+      "timeout_seconds": 1
+    },
+    {
+      "name": "format",
+      "argv": [
+        "rustfmt",
+        "--check",
+        "--edition",
+        "2021",
+        "vm/tests/span_execution.rs"
+      ],
+      "timeout_seconds": 3
+    },
+    {
+      "name": "span-tests-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-span-execution",
+        "--test",
+        "span_execution",
+        "--",
+        "--nocapture"
+      ],
+      "timeout_seconds": 20
+    },
+    {
+      "name": "span-tests-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--release",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-span-execution",
+        "--test",
+        "span_execution",
+        "--",
+        "--nocapture"
+      ],
+      "timeout_seconds": 20
+    },
+    {
+      "name": "focused-lint",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-span-execution",
+        "--test",
+        "span_execution",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "timeout_seconds": 10
+    }
+  ],
+  "acceptance": [
+    "Both debug and optimized span_execution test binaries pass all 17 tests with default harness concurrency.",
+    "The new test retains strict Cancelled/code cancelled/no cache_failure assertions and proves exactly five guest instructions, committed earlier store, rollback of growth reservation, sticky failure and zero frames/values/controls/pins.",
+    "Formatting and focused test-target lint pass; any test failure prints the full ExecutionFailure at kind/code/cache/instruction checks.",
+    "Source hashes still match the frozen proposal; no product source or budgets changed."
+  ],
+  "external_validation": "Ordinary remote VM CI remains required after root integrates/pushes. This packet does not mark CI green or authorize an OTA/release.",
+  "pending_native_checks": "Physical phones, computer use, capture, simulator/emulator runtime remain paused; not attempted or passed."
+}

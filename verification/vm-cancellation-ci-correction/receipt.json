@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-10-28T04:36:08.444689+00:00",
+  "status": "source-only proposal frozen; independent review and executable checks pending",
+  "source_revision": "d87ce0a1b05a9ad42cd2118bbf2ccc5491499663",
+  "source_tree": "7d0cadb7da3bc7354b314aea2cc3176b9cd010cd",
+  "source_scope": "Selected source/contract/CI evidence listed in source-manifest.sha256; scoped working-tree manifest includes proposed test correction, not other lanes or the complete repository.",
+  "source_manifest_sha256": "a58807ebe960e5e64d75b8b2b3e5e79ca47ba9a7f4dfed0dd57a4a6d2dfb9478",
+  "test_before_sha256": "7fab95c65274feedee267fe58930ac6927f9c75703bcba4274190838d0cb8b54",
+  "test_after_sha256": "8412a9914c6d4698fd9e0d9f71506101aafe80d218e56c389d1a95047d377321",
+  "tools": {
+    "python": "3.14.8",
+    "git": "git version 2.56.0"
+  },
+  "ci_failure": {
+    "commit": "d87ce0a1b05a9ad42cd2118bbf2ccc5491499663",
+    "run_id": 40631875922,
+    "job_id": 122629888437,
+    "observed": "Top-level actual Cache, expected Cancelled; nested CacheFailure not printed.",
+    "underlying_failure_cause": "unproven; do not infer cancellation or exhaustion from the Cache wrapper alone."
+  },
+  "changed_product_sources": [],
+  "changed_test_sources": [
+    "vm/tests/span_execution.rs"
+  ],
+  "dependencies_added": [],
+  "commands": [
+    {
+      "label": "head",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "timeout_seconds": 5,
+      "exit_code": 0,
+      "stdout": "verification/vm-cancellation-ci-correction/head.stdout",
+      "stderr": "verification/vm-cancellation-ci-correction/head.stderr"
+    },
+    {
+      "label": "tree",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "timeout_seconds": 5,
+      "exit_code": 0,
+      "stdout": "verification/vm-cancellation-ci-correction/tree.stdout",
+      "stderr": "verification/vm-cancellation-ci-correction/tree.stderr"
+    },
+    {
+      "label": "git-version",
+      "argv": [
+        "git",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "timeout_seconds": 5,
+      "exit_code": 0,
+      "stdout": "verification/vm-cancellation-ci-correction/git-version.stdout",
+      "stderr": "verification/vm-cancellation-ci-correction/git-version.stderr"
+    },
+    {
+      "label": "source-diff-check",
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "vm/tests/span_execution.rs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "timeout_seconds": 5,
+      "exit_code": 0,
+      "stdout": "verification/vm-cancellation-ci-correction/source-diff-check.stdout",
+      "stderr": "verification/vm-cancellation-ci-correction/source-diff-check.stderr"
+    },
+    {
+      "label": "proposed-change",
+      "argv": [
+        "git",
+        "diff",
+        "--",
+        "vm/tests/span_execution.rs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "timeout_seconds": 5,
+      "exit_code": 0,
+      "stdout": "verification/vm-cancellation-ci-correction/proposed-change.stdout",
+      "stderr": "verification/vm-cancellation-ci-correction/proposed-change.stderr"
+    }
+  ],
+  "source_only_checks": {
+    "targeted_diff_check": "passed",
+    "canonical_engine_sources": "read-only; hashes recorded"
+  },
+  "runtime_tests": "not run by this lane; parent explicitly requested source-only preparation",
+  "native_runtime_or_capture_processes_started": false,
+  "process_inventory_attempted": false,
+  "git_mutations_performed": false,
+  "independent_review": "pending",
+  "validation_plan": "verification/vm-cancellation-ci-correction/validation-plan.json",
+  "ga_qualification": false
+}

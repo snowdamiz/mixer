@@ -4,6 +4,12 @@ mod common;
 use common::*;
 use mixer_vm::experimental::{cache::*, execution::*, validate_spans, ValidationBudget};
 use mixer_vm::{Cancellation, Instance, Limits, Module, Profile, Type, Value};
+#[path = "common/allocation_observer.rs"]
+#[allow(dead_code)] // Other observer facilities belong to separate allocation test binaries.
+mod allocation_observer;
+
+#[global_allocator]
+static ALLOCATOR: allocation_observer::Observed = allocation_observer::Observed;
 
 fn cache(bytes: &[u8], limits: Limits, budget: CacheBudget) -> FunctionCache {
     let cancel = Cancellation::default();
@@ -671,18 +677,46 @@ fn invocation_admission_is_terminal_and_cancellation_before_construct_or_dispatc
         ExecutionFailureKind::Cancelled
     );
     clean(&span);
-    // Cancellation arrives after a long-running invocation has begun.
-    let bytes = Spec::one(vec![], None, vec![0x03, 0x40, 0x0c, 0, 0x0b, 0x0b]).bytes();
-    let mut span = owned(&bytes, limits());
-    let token = span.cancellation();
-    let task = std::thread::spawn(move || {
-        let error = span.invoke("run", &[]).unwrap_err();
-        (span, error)
-    });
-    std::thread::sleep(std::time::Duration::from_millis(1));
-    token.cancel();
-    let (span, error) = task.join().unwrap();
-    assert_eq!(error.kind, ExecutionFailureKind::Cancelled);
+}
+#[test]
+fn cancellation_during_guest_memory_growth_is_terminal_and_cleans_frames() {
+    let _ownership = allocation_observer::Ownership::new();
+    let mut spec = Spec::one(
+        vec![],
+        None,
+        vec![0x41, 0, 0x41, 7, 0x36, 2, 0, 0x41, 1, 0x40, 0, 0x1a, 0x0b],
+    );
+    spec.memory = Some((1, 2));
+    let bytes = spec.bytes();
+    let token = Cancellation::default();
+    // Warm decoding before invocation so its first allocation is memory.grow,
+    // after the guest has already committed a store in an active pinned frame.
+    let mut functions = cache(&bytes, limits(), CacheBudget::default());
+    let pin = functions.pin(0, &token).unwrap();
+    functions.release(pin).unwrap();
+    let mut span = SpanInstance::new(functions, ExecutionBudget::default(), token.clone()).unwrap();
+    let initial_state = span.usage().state_reserved;
+    assert!(!token.is_cancelled());
+    // The TLS observer cancels synchronously at the real growth allocation;
+    // neither scheduler timing nor a competing finite loop budget selects it.
+    let operation = allocation_observer::begin(0, 1, &token);
+    let result = span.invoke("run", &[]);
+    operation.finish();
+    let error = result.unwrap_err();
+    assert_eq!(error.kind, ExecutionFailureKind::Cancelled, "{error:?}");
+    assert_eq!(error.code, "cancelled", "{error:?}");
+    assert_eq!(error.cache_failure, None, "{error:?}");
+    assert!(token.is_cancelled());
+    assert_eq!(error.usage.instructions, 5, "{error:?}");
+    assert_eq!(
+        allocation_observer::CALLS.load(std::sync::atomic::Ordering::SeqCst),
+        1
+    );
+    assert_eq!(&span.memory()[..4], &[7, 0, 0, 0]);
+    assert_eq!(span.memory().len(), 65536);
+    assert_eq!(error.usage.memory_pages, 1);
+    assert_eq!(error.usage.state_reserved, initial_state);
+    assert_eq!(span.invoke("run", &[]), Err(error));
     clean(&span);
 }
 #[test]

@@ -11,6 +11,8 @@ its older pending/selected statements do not override the current state.
 
 ## Resumed checkpoint
 
+Checkpoint `d87ce0a1` is pushed with 867 selected paths. Engine CI passed five jobs and failed a timer-based cancellation assertion; its replacement uses a deterministic guest-growth checkpoint with strict cancellation and cleanup checks. Phoenix stopped before tests because its relation manifests still pinned the old lock. Both narrow corrections are source-reviewed, the Rust formatter check passed, and fresh full remote CI is selected. The prior accepted host evidence remains intact.
+
 Checkpoint `a4f1d13f` is pushed with 197 selected paths. The test-only KeyOwnerTest supervision correction now has remote host acceptance: Phoenix passes all thirteen steps, 95-file zero-warning compilation, formatting and 690 tests, with two existing skips; all six previously failing teardown cases and K07g pass. PostgreSQL 16.15 and scratch cleanup complete, and the remote source hash matches the correction. Engine passes all six jobs and 64 steps on attempt one without skips. The closed Swift accounting join and dispatch/lifetime source contract are included. Unfinished local TLS harness and model implementation remain excluded; their separate failures and pending gates are preserved.
 
 Bandit 1.14.0 and JOSE 1.11.13 are applied with an officially generated and independently reviewed lock; all nineteen other complete lock entries are unchanged. The isolated five-command resolution passed and cleaned up its groups and scratch. Full remote CI on these pins is pending. Two actual HTTP/2 body batching/deadline checks and all operational/GA qualification remain pending.
