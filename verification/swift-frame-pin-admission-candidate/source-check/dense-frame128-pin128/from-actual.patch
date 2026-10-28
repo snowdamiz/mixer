@@ -1,0 +1,494 @@
+--- accepted/src/experimental_swift_reactor/cache.rs
++++ campaign/src/experimental_swift_reactor/cache.rs
+@@ -50,7 +50,7 @@
+     patches: &'a mut [decode::Patch],
+     index: &'a mut [u16],
+     plans: &'a mut [Option<ScanPlan>],
+-    free_pins: &'a mut u64,
++    free_pins: &'a mut [u64; 2],
+ }
+ // Original fixed hash. The key always remains the actual decoded slot value.
+ fn resident_bucket(function: u32) -> usize {
+@@ -104,15 +104,23 @@
+ }
+ struct DensePinInventory {
+     pins: &'static [PinRecord], scratch: &'static mut SwiftScratch<'static>,
+-    mask: u64, permitted: u64, slot: usize, len: usize, remaining: usize, active: usize,
++    mask: [u64; 2], permitted: [u64; 2], word: usize, slot: usize, len: usize, remaining: usize, active: usize,
+     record: &'static PinRecord, record_option: Option<&'static PinRecord>,
+-    free_bits: &'static mut u64, meter: &'static mut SwiftMeter<'static, 'static>,
++    free_bits: &'static mut [u64; 2], meter: &'static mut SwiftMeter<'static, 'static>,
+     diagnostic: &'static mut CacheControl<'static>, iter: std::slice::Iter<'static, PinRecord>,
+     slot_return: Result<usize, SwiftRunFailure>, check_return: Result<(), SwiftRunFailure>,
+     outcome: SwiftRunFailure,
+ }
+-fn dense_allowed_pins(len: usize) -> u64 {
+-    if len == 64 { u64::MAX } else if len == 0 { 0 } else { (1u64 << len) - 1 }
++// Two fixed words avoid new 16-byte alignment requirements. Every shift is
++// strictly below 64, including empty, 64-pin and 128-pin selections.
++fn dense_allowed_pins(len: usize) -> [u64; 2] {
++    if len <= 64 {
++        [if len == 64 { u64::MAX } else { (1u64 << len) - 1 }, 0]
++    } else if len <= 128 {
++        [u64::MAX, if len == 128 { u64::MAX } else { (1u64 << (len - 64)) - 1 }]
++    } else {
++        [0; 2] // Invalid layout is rejected by admission/release, never widened.
++    }
+ }
+ fn dense_audit(index: &[u16], slots: &[SwiftSlot], meter: &mut SwiftMeter<'_, '_>) -> Result<(), SwiftRunFailure> {
+     if index.len() != DENSE_FUNCTIONS || slots.len() > RESIDENT_LINKS {
+@@ -264,7 +272,7 @@
+     next_nonce: u64,
+     slots: Vec<SwiftSlot>,
+     pins: Vec<PinRecord>,
+-    free_pins: u64,
++    free_pins: [u64; 2],
+     patches: Vec<decode::Patch>,
+     index: Vec<u16>,
+     plans: Vec<Option<ScanPlan>>,
+@@ -305,7 +313,7 @@
+     adopted: Option<AdoptedProof>,
+     slots: Vec<SwiftSlot>,
+     pins: Vec<PinRecord>,
+-    free_pins: u64,
++    free_pins: [u64; 2],
+     patches: Vec<decode::Patch>,
+     index: Vec<u16>,
+     plans: Vec<Option<ScanPlan>>,
+@@ -318,7 +326,7 @@
+             adopted: Some(adopted),
+             slots: Vec::new(),
+             pins: Vec::new(),
+-            free_pins: 0,
++            free_pins: [0; 2],
+             patches: Vec::new(),
+             index: Vec::new(),
+             plans: Vec::new(),
+@@ -1872,7 +1880,7 @@
+         self.control.work(RESIDENT_INDEX_CELLS as u64)?;
+         partial.index.resize(RESIDENT_INDEX_CELLS, 0);
+         self.control.check()?;
+-        self.control.work(1)?;
++        self.control.work(2)?;
+         partial.free_pins = dense_allowed_pins(budget.active_pins);
+         // Header includes the complete payload before this allocation begins.
+         reserve(&mut partial.plans, PLAN_CAPACITY, &mut self.control)?;
+@@ -2133,35 +2141,45 @@
+         SwiftMeter { operation, usage }
+     }
+     fn available_pin(pins: &[PinRecord], scratch: &mut SwiftScratch<'_>, meter: &mut SwiftMeter<'_, '_>) -> Result<usize, SwiftRunFailure> {
+-        meter.work(3)?; // layout, availability word, live-count agreement
+-        if pins.len() > 64 || *scratch.free_pins & !dense_allowed_pins(pins.len()) != 0
+-            || (*scratch.free_pins).count_ones() as usize + meter.usage().active_pins != pins.len()
++        meter.work(6)?; // layout, two mask words, two popcounts, live agreement
++        let permitted = dense_allowed_pins(pins.len());
++        if pins.len() > 128
++            || scratch.free_pins[0] & !permitted[0] != 0
++            || scratch.free_pins[1] & !permitted[1] != 0
++            || (scratch.free_pins[0].count_ones() + scratch.free_pins[1].count_ones()) as usize + meter.usage().active_pins != pins.len()
+         { return Err(meter.error(CacheFailureKind::InvalidPin, "swift_dense_pin_mask")); }
+-        if *scratch.free_pins == 0 {
++        if *scratch.free_pins == [0; 2] {
+             for record in pins {
+                 meter.work(1)?;
+                 if record.nonce == 0 { return Err(meter.error(CacheFailureKind::InvalidPin, "swift_dense_pin_orphan")); }
+             }
+             return Err(meter.error(CacheFailureKind::PinExhausted, "pin_slots_exhausted"));
+         }
+-        let slot = (*scratch.free_pins).trailing_zeros() as usize;
+-        meter.work(2)?; // selected record and eventual single mask write
++        let word = usize::from(scratch.free_pins[0] == 0);
++        let slot = word * 64 + scratch.free_pins[word].trailing_zeros() as usize;
++        meter.work(4)?; // word choice, bit choice, actual record, eventual bit write
+         if pins.get(slot).is_none_or(|record| record.nonce != 0) { return Err(meter.error(CacheFailureKind::InvalidPin, "swift_dense_pin_occupied")); }
+         Ok(slot)
+     }
+     fn pin_published(scratch: &mut SwiftScratch<'_>, slot: usize) {
+-        // Exclusive borrow retains the preflight bit; record publication is adjacent.
+-        *scratch.free_pins &= !(1u64 << slot);
++        // The validated free slot and actual nonce record publish adjacently.
++        scratch.free_pins[slot / 64] &= !(1u64 << (slot % 64));
+     }
+     fn validate_pin_release(pins: &[PinRecord], scratch: &mut SwiftScratch<'_>, slot: usize, diagnostic: &mut impl PinDiagnostic<SwiftRunFailure>) -> Result<(), SwiftRunFailure> {
+-        // Original checked_record validated owner/nonce/entry. No stop polling
+-        // here: terminal-owner cleanup must still be able to release its pins.
+-        if pins.len() > 64 || slot >= pins.len() || *scratch.free_pins & !dense_allowed_pins(pins.len()) != 0 || *scratch.free_pins & (1u64 << slot) != 0 {
++        let permitted = dense_allowed_pins(pins.len());
++        // Original checked_record already validates owner, nonce and entry.
++        // No fuel/cancellation polling is added to terminal-owner cleanup.
++        if pins.len() > 128 || slot >= pins.len()
++            || scratch.free_pins[0] & !permitted[0] != 0
++            || scratch.free_pins[1] & !permitted[1] != 0
++            || scratch.free_pins[slot / 64] & (1u64 << (slot % 64)) != 0 {
+             return Err(diagnostic.invalid("swift_dense_release_mask"));
+         }
+         Ok(())
+     }
+-    fn pin_released(scratch: &mut SwiftScratch<'_>, slot: usize) { *scratch.free_pins |= 1u64 << slot; }
++    fn pin_released(scratch: &mut SwiftScratch<'_>, slot: usize) {
++        scratch.free_pins[slot / 64] |= 1u64 << (slot % 64);
++    }
+     fn resident_lookup(slots: &[SwiftSlot], scratch: &mut SwiftScratch<'_>, function: u32, meter: &mut SwiftMeter<'_, '_>) -> Result<Option<usize>, SwiftRunFailure> {
+         Ok(resident_find(scratch.index, slots, function, meter)?.map(|found| found.slot))
+     }
+@@ -2350,8 +2368,8 @@
+ pub(super) mod inspection {
+     use super::*;
+     // Test-only snapshots of the actual owner, never stored in production state.
+-    pub fn dense_pin_mask(cache: &SwiftFunctionCache) -> u64 { cache.free_pins }
+-    pub fn dense_set_pin_mask(cache: &mut SwiftFunctionCache, value: u64) { cache.free_pins = value; }
++    pub fn dense_pin_mask(cache: &SwiftFunctionCache) -> [u64; 2] { cache.free_pins }
++    pub fn dense_set_pin_mask(cache: &mut SwiftFunctionCache, value: [u64; 2]) { cache.free_pins = value; }
+     pub fn dense_pin_records(cache: &SwiftFunctionCache) -> Vec<(u64, usize)> { cache.pins.iter().map(|p| (p.nonce, p.entry)).collect() }
+     pub fn resident_index(cache: &SwiftFunctionCache) -> &[u16] {
+         &cache.index
+--- accepted/src/experimental_swift_reactor/cache_tests.rs
++++ campaign/src/experimental_swift_reactor/cache_tests.rs
+@@ -2991,9 +2991,9 @@
+         assert_eq!(seen[slot], actual[1] != u64::MAX);
+     }
+     let records = inspection::dense_pin_records(cache);
+-    let mut expected = 0u64;
++    let mut expected = [0u64; 2];
+     for (slot, (nonce, _)) in records.iter().enumerate() {
+-        if *nonce == 0 { expected |= 1u64 << slot; }
++        if *nonce == 0 { expected[slot / 64] |= 1u64 << (slot % 64); }
+     }
+     assert_eq!(inspection::dense_pin_mask(cache), expected);
+ }
+@@ -4203,7 +4203,7 @@
+     let n = SwiftRunBudget::default().cache_entries;
+     let bytes = fixture(0, &[0, 0x0b], n + 40);
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-    assert_eq!(SwiftRunBudget::default().active_pins, 64);
++    assert_eq!(SwiftRunBudget::default().active_pins, 128);
+     for _ in 0..2 {
+         for f in 34..34 + n as u32 {
+             let p = pin(&mut cache, &mut c, f, None).unwrap();
+@@ -4220,12 +4220,12 @@
+     cache.release(p, &mut c, None).map_err(|e| e.failure).unwrap();
+     assert_eq!(cache.usage().evictions, 1);
+     resident_assert_index(&cache);
+-    // A larger resident table must not create a 65th active pin.
++    // This copied profile must not create a 129th active pin.
+     let mut pins = Vec::new();
+-    for _ in 0..64 { pins.push(pin(&mut cache, &mut c, 35, None).unwrap()); }
++    for _ in 0..128 { pins.push(pin(&mut cache, &mut c, 35, None).unwrap()); }
+     let f = pin(&mut cache, &mut c, 35, None).unwrap_err();
+     assert_eq!(f.kind, SwiftRunFailureKind::PinLimit);
+-    assert_eq!(c.usage(None).live.active_pins.current, 64);
++    assert_eq!(c.usage(None).live.active_pins.current, 128);
+     for p in pins { cache.release(p, &mut c, None).map_err(|e| e.failure).unwrap(); }
+     println!("CAMPAIGN retention residents={n} decodes={} hits={} evictions={} fixed_bytes={} peak_tickets={}",
+         cache.usage().decodes, cache.usage().hits, cache.usage().evictions,
+@@ -4279,7 +4279,7 @@
+     let n = b.cache_entries;
+     assert!([64, 128, 256].contains(&n));
+     assert_eq!(b.cache_work, 768_000_000);
+-    assert_eq!((b.cache_bytes, b.cache_entry_bytes, b.active_pins), (16 << 20, 8 << 20, 64));
++    assert_eq!((b.cache_bytes, b.cache_entry_bytes, b.active_pins), (16 << 20, 8 << 20, 128));
+     assert_eq!((b.memory_pages, b.combined_bytes), (768, 256 << 20));
+     assert_eq!((b.instruction_fuel, b.execution_work, b.deadline_ms), (1_000_000_000, 8_000_000_000, 600_000));
+     assert_eq!(MAX_RESERVATION_TICKETS, n + 22);
+@@ -4317,7 +4317,7 @@
+     resident_assert_index(&cache);
+     assert_eq!(pin(&mut cache, &mut c, 0, None).unwrap_err().code, "not_defined_function");
+     finish(cache, c);
+-    println!("DENSE keys=34,79999 import_rejected=true payload_bytes=160000 free_pin_bytes=8");
++    println!("DENSE keys=34,79999 import_rejected=true payload_bytes=160000 free_pin_bytes=16");
+ }
+ 
+ #[test]
+@@ -4358,10 +4358,10 @@
+         let p = pin(&mut cache, &mut c, 34, None).unwrap();
+         let held = inspection::dense_pin_mask(&cache);
+         match case {
+-            0 => inspection::dense_set_pin_mask(&mut cache, held | (1u64 << 63)),
+-            1 => inspection::dense_set_pin_mask(&mut cache, held ^ 3), // occupied bit made free, popcount unchanged
+-            2 => inspection::dense_set_pin_mask(&mut cache, 0),
+-            _ => inspection::dense_set_pin_mask(&mut cache, held | 1),
++            0 => inspection::dense_set_pin_mask(&mut cache, [held[0], held[1] | (1u64 << 63)]),
++            1 => inspection::dense_set_pin_mask(&mut cache, [held[0] ^ 3, held[1]]), // occupied bit made free, popcount unchanged
++            2 => inspection::dense_set_pin_mask(&mut cache, [0; 2]),
++            _ => inspection::dense_set_pin_mask(&mut cache, [held[0] | 1, held[1]]),
+         }
+         if case == 3 {
+             let rejected = cache.release(p, &mut c, None).err().unwrap();
+@@ -4436,7 +4436,7 @@
+ #[test]
+ fn dense_campaign_full_geometry_and_conservative_envelope() {
+     let budget = SwiftRunBudget::default();
+-    assert_eq!((budget.cache_entries, budget.active_pins, budget.frames), (256, 64, 64));
++    assert_eq!((budget.cache_entries, budget.active_pins, budget.frames), (256, 128, 128));
+     assert_eq!((budget.cache_work, budget.instruction_fuel, budget.execution_work, budget.deadline_ms), (768_000_000, 1_000_000_000, 8_000_000_000, 600_000));
+     assert_eq!((budget.cache_bytes, budget.cache_entry_bytes, budget.combined_bytes), (16 << 20, 8 << 20, 256 << 20));
+     assert_eq!(MAX_RESERVATION_TICKETS, 278);
+@@ -4448,8 +4448,121 @@
+     assert_eq!(inspection::resident_index(&cache)[289], 256);
+     assert_eq!(inspection::resident_index(&cache).len() * size_of::<u16>(), 160_000);
+     assert_eq!(c.usage(None).live.cache_entries.current, 256);
+-    println!("DENSE geometry index_bytes=160000 pin_bitmap_bytes=8 header={} operation={} logical_peak={}", cache_header_bytes().unwrap(), cache_operation_bytes().unwrap(), c.usage(None).reservations.combined.peak);
++    println!("DENSE geometry index_bytes=160000 pin_bitmap_bytes=16 header={} operation={} logical_peak={}", cache_header_bytes().unwrap(), cache_operation_bytes().unwrap(), c.usage(None).reservations.combined.peak);
+     finish(cache, c);
+     plan_reuse_profile_envelopes_without_guest_execution();
+     crate::experimental::cache::architecture_frozen_controls();
+ }
++
++#[test]
++fn framepin_campaign_dense_two_word_corruption_and_release() {
++    for selected in [63, 64, 127] {
++        hooks(Hooks::default());
++        let bytes = fixture(0, &[0, 0x0b], 100);
++        let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
++        let mut pins: Vec<Option<SwiftFunctionPin>> = (0..128)
++            .map(|_| Some(pin(&mut cache, &mut c, 34, None).unwrap())).collect();
++        let held = inspection::dense_pin_mask(&cache);
++        assert_eq!(held, [0; 2]);
++        let mut corrupt = held;
++        corrupt[selected / 64] |= 1u64 << (selected % 64);
++        inspection::dense_set_pin_mask(&mut cache, corrupt);
++        let rejected = cache.release(pins[selected].take().unwrap(), &mut c, None).err().unwrap();
++        assert_eq!(rejected.failure.code, "swift_dense_release_mask");
++        let retained = rejected.into_pin();
++        assert_eq!(inspection::elision_pin_parts(&retained)[0], selected as u64);
++        inspection::dense_set_pin_mask(&mut cache, held);
++        cache.release(retained, &mut c, None).map_err(|e| e.failure).unwrap();
++        for p in pins.into_iter().flatten() { cache.release(p, &mut c, None).map_err(|e| e.failure).unwrap(); }
++        resident_assert_index(&cache);
++        finish(cache, c);
++    }
++    // Balanced cross-word corruption must not authorize an occupied slot.
++    hooks(Hooks::default());
++    let bytes = fixture(0, &[0, 0x0b], 100);
++    let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
++    let pins: Vec<_> = (0..65).map(|_| pin(&mut cache, &mut c, 34, None).unwrap()).collect();
++    let held = inspection::dense_pin_mask(&cache);
++    inspection::dense_set_pin_mask(&mut cache, [held[0] | (1u64 << 63), held[1] & !(1u64 << 63)]);
++    assert_eq!(pin(&mut cache, &mut c, 35, None).unwrap_err().code, "swift_dense_pin_occupied");
++    inspection::dense_set_pin_mask(&mut cache, held);
++    for p in pins { cache.release(p, &mut c, None).map_err(|e| e.failure).unwrap(); }
++    resident_assert_index(&cache);
++    finish(cache, c);
++    println!("FRAMEPIN dense_two_word_release_slots=63,64,127 balanced_cross_word_corruption_rejected=true cleanup_zero=true");
++}
++
++#[test]
++fn framepin_campaign_original_controls_and_geometry() {
++    dense_campaign_retention_churn_and_pin_bound();
++    dense_campaign_map_corruption_and_duplicate_prevention();
++    dense_campaign_pin_identity_mask_and_release();
++    dense_campaign_every_replacement_and_hit_failure_prefix();
++    dense_campaign_constructor_allocation_and_header_lifetimes();
++    dense_campaign_full_geometry_and_conservative_envelope();
++}
++
++// Real 128-record owners; no fabricated frame, token or accounting ledger.
++#[test]
++fn framepin_campaign_pin_boundaries_stale_reuse_and_foreign_release() {
++    for selected in [0, 63, 64, 127] {
++        hooks(Hooks::default());
++        let bytes = fixture(0, &[0, 0x0b], 100);
++        let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
++        let (mut other_c, other) = new(&bytes, SwiftRunBudget::default());
++        let mut pins: Vec<Option<SwiftFunctionPin>> = (0..128)
++            .map(|_| Some(pin(&mut cache, &mut c, 34, None).unwrap())).collect();
++        let p = pins[selected].take().unwrap();
++        assert_eq!(inspection::elision_pin_parts(&p)[0], selected as u64);
++        let stale = inspection::stale(&p);
++        // The original release path returns ownership after foreign control.
++        let rejected = cache.release(p, &mut other_c, None).err().unwrap();
++        assert_eq!(c.usage(None).live.active_pins.current, 128);
++        cache.release(rejected.into_pin(), &mut c, None).map_err(|e| e.failure).unwrap();
++        let replacement = pin(&mut cache, &mut c, 35, None).unwrap();
++        assert_eq!(inspection::elision_pin_parts(&replacement)[0], selected as u64);
++        assert_eq!(cache.release(stale, &mut c, None).err().unwrap().failure.code, "stale_pin");
++        // Release remains available after the first failure becomes sticky.
++        cache.release(replacement, &mut c, None).map_err(|e| e.failure).unwrap();
++        for p in pins.into_iter().flatten() { cache.release(p, &mut c, None).map_err(|e| e.failure).unwrap(); }
++        resident_assert_index(&cache);
++        finish(cache, c);
++        finish(other, other_c);
++    }
++    println!("FRAMEPIN pin_slots=0,63,64,127 recursive_records=128 foreign_stale_reuse_and_terminal_release=true");
++}
++
++#[test]
++fn framepin_campaign_constructor_pin_payload_and_work_delta() {
++    let bytes = fixture(0, &[0, 0x0b], 100);
++    let mut rows = Vec::new();
++    for pins in [0, 63, 64, 65, 127, 128] {
++        hooks(Hooks::default());
++        let (c, cache) = new(&bytes, SwiftRunBudget { active_pins: pins, ..SwiftRunBudget::default() });
++        let u = c.usage(None);
++        rows.push((pins, u.reservations.cache.current, u.cache_work));
++        finish(cache, c);
++    }
++    for pair in rows.windows(2) {
++        let added = pair[1].0 - pair[0].0;
++        assert_eq!(pair[1].1 - pair[0].1, added * size_of::<crate::experimental::cache::PinRecord>());
++        assert_eq!(pair[1].2 - pair[0].2, added as u64);
++    }
++    assert_eq!(size_of::<crate::experimental::cache::PinRecord>(), 16); // selected x86_64 CI target
++    println!("FRAMEPIN constructor_pin_payload_delta=1024 constructor_pin_work_delta=64 additional_allocations=0 additional_tickets=0");
++}
++
++#[test]
++fn framepin_campaign_upper_bounds_and_original_identity_controls() {
++    foreign_stale_nonce_and_control_ownership();
++    crate::experimental::cache::architecture_frozen_controls();
++    let bytes = fixture(0, &[0, 0x0b], 100);
++    for budget in [
++        SwiftRunBudget { active_pins: 129, ..SwiftRunBudget::default() },
++        SwiftRunBudget { frames: 129, ..SwiftRunBudget::default() },
++    ] {
++        let proof = validate_swift_reactor(&bytes, SwiftValidationBudget::default(), &Cancellation::default()).unwrap();
++        assert!(RuntimeControl::adopt(proof, budget, Instant::now(), Cancellation::default()).is_err());
++    }
++    println!("FRAMEPIN above128_rejected=true original_nonce_owner_exhaustion_controls=true");
++}
+--- accepted/src/experimental_swift_reactor/control.rs
++++ campaign/src/experimental_swift_reactor/control.rs
+@@ -45,9 +45,9 @@
+             cache_bytes: 16 * MIB,
+             cache_entry_bytes: 8 * MIB,
+             cache_entries: 256,
+-            active_pins: 64,
++            active_pins: 128,
+             cache_work: 768_000_000,
+-            frames: 64,
++            frames: 128,
+             values: 16_384,
+             controls: 4_096,
+             memory_pages: 768,
+--- accepted/src/experimental_swift_reactor/execution_tests.rs
++++ campaign/src/experimental_swift_reactor/execution_tests.rs
+@@ -1455,3 +1455,12 @@
+     assert_eq!(failure.code, "swift_run_construction_phase_bound");
+     construction_hooks(ConstructionHooks::default());
+ }
++
++#[test]
++fn framepin_campaign_integrated_constructor_failures() {
++    assert_eq!((SwiftRunBudget::default().frames, SwiftRunBudget::default().active_pins), (128, 128));
++    swift_construction_every_integrated_allocation_ordinal();
++    swift_construction_each_state_capacity_rejects_without_growth();
++    construction_hooks(ConstructionHooks::default());
++    println!("FRAMEPIN integrated_constructor_allocation_failures=15 state_capacity_failures=6 cleanup_zero=true");
++}
+--- accepted/src/experimental_swift_reactor/frame_operations.rs
++++ campaign/src/experimental_swift_reactor/frame_operations.rs
+@@ -434,7 +434,7 @@
+     }
+     #[allow(clippy::drop_non_drop)] // End the cleared move-only guard after publication.
+     fn enter_inner(&mut self, function: u32) -> Result<(), SwiftRunFailure> {
+-        let frame_limit = self.phase.operation.control.budget().frames.min(64);
++        let frame_limit = self.phase.operation.control.budget().frames.min(128);
+         if self.phase.parts.frames.len() >= frame_limit
+             || self.phase.parts.frames.len() == self.phase.parts.frames.capacity()
+         {
+--- accepted/src/experimental_swift_reactor/frame_operations_tests.rs
++++ campaign/src/experimental_swift_reactor/frame_operations_tests.rs
+@@ -2223,3 +2223,103 @@
+     println!("OBSERVER reset earlier_enabled_records=17 later_default_releases=130 no_recording=true");
+     retire(owner);
+ }
++
++#[test]
++fn framepin_campaign_recursive_frame_and_pin_boundaries() {
++    for cap in [63, 64, 65, 127, 128] {
++        let mut owner = owner_with(&Function::empty(), SwiftRunBudget { frames: cap, ..SwiftRunBudget::default() });
++        assert_eq!(owner.state.as_ref().unwrap().frames.capacity(), cap);
++        let mut preparation = Some(owner.prepare_frames(cursor()));
++        let mut phase = preparation.take().unwrap().unwrap();
++        for _ in 0..cap { phase.enter(34).unwrap(); }
++        let ids = pin_ids(&phase);
++        assert_eq!(ids.len(), cap);
++        for (slot, id) in ids.iter().enumerate() { assert_eq!(id.2, slot); }
++        assert!(ids.windows(2).all(|w| w[0].1 == w[1].1 && w[0].3 != w[1].3));
++        let failure = phase.enter(34).unwrap_err();
++        assert_eq!(failure.kind, SwiftRunFailureKind::FrameLimit);
++        assert_eq!((failure.attempted, failure.limit), ((cap + 1) as u64, cap as u64));
++        assert_eq!(pin_ids(&phase), ids);
++        let report = phase.drain();
++        assert_eq!(report.retained_frames, 0);
++        complete_ok(phase, preparation);
++        retire(owner);
++    }
++    for cap in [63, 64, 65, 127] {
++        let mut owner = owner_with(&Function::empty(), SwiftRunBudget { active_pins: cap, ..SwiftRunBudget::default() });
++        let mut preparation = Some(owner.prepare_frames(cursor()));
++        let mut phase = preparation.take().unwrap().unwrap();
++        for _ in 0..cap { phase.enter(34).unwrap(); }
++        let ids = pin_ids(&phase);
++        assert_eq!(phase.enter(34).unwrap_err().kind, SwiftRunFailureKind::PinLimit);
++        assert_eq!(pin_ids(&phase), ids);
++        phase.drain();
++        complete_ok(phase, preparation);
++        retire(owner);
++    }
++    println!("FRAMEPIN recursive_frame_caps=63,64,65,127,128 recursive_pin_caps=63,64,65,127 cleanup_zero=true");
++}
++
++#[test]
++fn framepin_campaign_deep_entry_rollback_preserves_callers() {
++    for depth in [63, 64, 127] {
++        let mut owner = owner();
++        let mut preparation = Some(owner.prepare_frames(cursor()));
++        let mut phase = preparation.take().unwrap().unwrap();
++        for _ in 0..depth { phase.enter(34).unwrap(); }
++        let ids = pin_ids(&phase);
++        hooks(Hooks { predebit_resource: Some(2), predebit_ordinal: 0, ..Hooks::default() });
++        assert!(phase.enter(34).is_err());
++        hooks(Hooks::default());
++        assert_eq!(pin_ids(&phase), ids);
++        assert_eq!(phase.phase.parts.cache.usage().active_pins, depth);
++        assert!(phase.cleanup.entry.is_none());
++        phase.drain();
++        complete_ok(phase, preparation);
++        retire(owner);
++    }
++    println!("FRAMEPIN deep_entry_rollback_depths=63,64,127 caller_pins_preserved=true cleanup_zero=true");
++}
++
++#[test]
++fn framepin_campaign_retained_128_frames_restore_and_consume() {
++    let mut foreign = owner();
++    let mut owner = owner();
++    let mut preparation = Some(owner.prepare_frames(cursor()));
++    let mut phase = preparation.take().unwrap().unwrap();
++    for _ in 0..128 { phase.enter(34).unwrap(); }
++    let ids = pin_ids(&phase);
++    for slot in [63, 64, 127] { assert_eq!(ids[slot].2, slot); }
++    let foreign_header = super::super::super::cache::inspection::replace_header(foreign.cache.as_mut().unwrap(), None);
++    let original = super::super::super::cache::inspection::replace_header(phase.phase.parts.cache, foreign_header);
++    let before = phase.phase.operation.control.usage(None).reservations;
++    let report = phase.drain();
++    assert_eq!(report.retained_frames, 128);
++    assert_eq!(pin_ids(&phase), ids);
++    assert_eq!((report.live.frames.current, report.live.active_pins.current), (128, 128));
++    assert_eq!(report.usage.reservations.state.current, before.state.current);
++    let foreign_header = super::super::super::cache::inspection::replace_header(phase.phase.parts.cache, original);
++    super::super::super::cache::inspection::replace_header(foreign.cache.as_mut().unwrap(), foreign_header);
++    assert!(matches!(complete(phase, preparation), FrameCompletion::Retained(_)));
++    drain_complete(&mut owner);
++    retire(owner);
++    retire(foreign);
++    println!("FRAMEPIN retained_actual_frames=128 release_slots=63,64,127 original_tickets_restored=true cleanup_zero=true");
++}
++
++#[test]
++fn framepin_campaign_frame_arena_geometry() {
++    let mut rows = Vec::new();
++    for frames in [64, 128] {
++        let owner = owner_with(&Function::empty(), SwiftRunBudget { frames, ..SwiftRunBudget::default() });
++        let u = usage(&owner);
++        assert_eq!(owner.state.as_ref().unwrap().frames.capacity(), frames);
++        rows.push((u.reservations.state.current, u.execution_work, u.reservations.live_tickets));
++        retire(owner);
++    }
++    assert_eq!(size_of::<SwiftFrame>(), 64); // selected x86_64 CI target
++    assert_eq!(rows[1].0 - rows[0].0, 64 * size_of::<SwiftFrame>());
++    assert_eq!(rows[1].1, rows[0].1); // uninitialized reserved frame storage
++    assert_eq!(rows[1].2, rows[0].2); // same arena ticket, no per-frame tickets
++    println!("FRAMEPIN frame_payload_delta=4096 frame_size=64 frame_construction_work_delta=0 additional_tickets=0");
++}

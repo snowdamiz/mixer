@@ -1,0 +1,259 @@
+--- accepted/src/experimental_swift_reactor/cache_tests.rs
++++ campaign/src/experimental_swift_reactor/cache_tests.rs
+@@ -4210,7 +4210,7 @@
+     let n = SwiftRunBudget::default().cache_entries;
+     let bytes = fixture(0, &[0, 0x0b], n + 40);
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-    assert_eq!(SwiftRunBudget::default().active_pins, 64);
++    assert_eq!(SwiftRunBudget::default().active_pins, 128);
+     for _ in 0..2 {
+         for f in 34..34 + n as u32 {
+             let p = pin(&mut cache, &mut c, f, None).unwrap();
+@@ -4227,12 +4227,12 @@
+     cache.release(p, &mut c, None).map_err(|e| e.failure).unwrap();
+     assert_eq!(cache.usage().evictions, 1);
+     resident_assert_index(&cache);
+-    // A larger resident table must not create a 65th active pin.
++    // This copied profile must not create a 129th active pin.
+     let mut pins = Vec::new();
+-    for _ in 0..64 { pins.push(pin(&mut cache, &mut c, 35, None).unwrap()); }
++    for _ in 0..128 { pins.push(pin(&mut cache, &mut c, 35, None).unwrap()); }
+     let f = pin(&mut cache, &mut c, 35, None).unwrap_err();
+     assert_eq!(f.kind, SwiftRunFailureKind::PinLimit);
+-    assert_eq!(c.usage(None).live.active_pins.current, 64);
++    assert_eq!(c.usage(None).live.active_pins.current, 128);
+     for p in pins { cache.release(p, &mut c, None).map_err(|e| e.failure).unwrap(); }
+     println!("CAMPAIGN retention residents={n} decodes={} hits={} evictions={} fixed_bytes={} peak_tickets={}",
+         cache.usage().decodes, cache.usage().hits, cache.usage().evictions,
+@@ -4286,7 +4286,7 @@
+     let n = b.cache_entries;
+     assert!([64, 128, 256].contains(&n));
+     assert_eq!(b.cache_work, 768_000_000);
+-    assert_eq!((b.cache_bytes, b.cache_entry_bytes, b.active_pins), (16 << 20, 8 << 20, 64));
++    assert_eq!((b.cache_bytes, b.cache_entry_bytes, b.active_pins), (16 << 20, 8 << 20, 128));
+     assert_eq!((b.memory_pages, b.combined_bytes), (768, 256 << 20));
+     assert_eq!((b.instruction_fuel, b.execution_work, b.deadline_ms), (1_000_000_000, 8_000_000_000, 600_000));
+     assert_eq!(MAX_RESERVATION_TICKETS, n + 22);
+@@ -4307,3 +4307,76 @@
+     plan_reuse_profile_envelopes_without_guest_execution();
+     crate::experimental::cache::architecture_frozen_controls();
+ }
++
++#[test]
++fn framepin_campaign_original_controls_and_geometry() {
++    campaign_retention_churn_and_pin_bound();
++    campaign_full_chain_cycle_and_high_link();
++    campaign_original_failure_atomicity_and_allocation_controls();
++    campaign_budget_geometry_and_reservations();
++}
++
++// Real 128-record owners; no fabricated frame, token or accounting ledger.
++#[test]
++fn framepin_campaign_pin_boundaries_stale_reuse_and_foreign_release() {
++    for selected in [0, 63, 64, 127] {
++        hooks(Hooks::default());
++        let bytes = fixture(0, &[0, 0x0b], 100);
++        let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
++        let (mut other_c, other) = new(&bytes, SwiftRunBudget::default());
++        let mut pins: Vec<Option<SwiftFunctionPin>> = (0..128)
++            .map(|_| Some(pin(&mut cache, &mut c, 34, None).unwrap())).collect();
++        let p = pins[selected].take().unwrap();
++        assert_eq!(inspection::elision_pin_parts(&p)[0], selected as u64);
++        let stale = inspection::stale(&p);
++        // The original release path returns ownership after foreign control.
++        let rejected = cache.release(p, &mut other_c, None).err().unwrap();
++        assert_eq!(c.usage(None).live.active_pins.current, 128);
++        cache.release(rejected.into_pin(), &mut c, None).map_err(|e| e.failure).unwrap();
++        let replacement = pin(&mut cache, &mut c, 35, None).unwrap();
++        assert_eq!(inspection::elision_pin_parts(&replacement)[0], selected as u64);
++        assert_eq!(cache.release(stale, &mut c, None).err().unwrap().failure.code, "stale_pin");
++        // Release remains available after the first failure becomes sticky.
++        cache.release(replacement, &mut c, None).map_err(|e| e.failure).unwrap();
++        for p in pins.into_iter().flatten() { cache.release(p, &mut c, None).map_err(|e| e.failure).unwrap(); }
++        resident_assert_index(&cache);
++        finish(cache, c);
++        finish(other, other_c);
++    }
++    println!("FRAMEPIN pin_slots=0,63,64,127 recursive_records=128 foreign_stale_reuse_and_terminal_release=true");
++}
++
++#[test]
++fn framepin_campaign_constructor_pin_payload_and_work_delta() {
++    let bytes = fixture(0, &[0, 0x0b], 100);
++    let mut rows = Vec::new();
++    for pins in [0, 63, 64, 65, 127, 128] {
++        hooks(Hooks::default());
++        let (c, cache) = new(&bytes, SwiftRunBudget { active_pins: pins, ..SwiftRunBudget::default() });
++        let u = c.usage(None);
++        rows.push((pins, u.reservations.cache.current, u.cache_work));
++        finish(cache, c);
++    }
++    for pair in rows.windows(2) {
++        let added = pair[1].0 - pair[0].0;
++        assert_eq!(pair[1].1 - pair[0].1, added * size_of::<crate::experimental::cache::PinRecord>());
++        assert_eq!(pair[1].2 - pair[0].2, added as u64);
++    }
++    assert_eq!(size_of::<crate::experimental::cache::PinRecord>(), 16); // selected x86_64 CI target
++    println!("FRAMEPIN constructor_pin_payload_delta=1024 constructor_pin_work_delta=64 additional_allocations=0 additional_tickets=0");
++}
++
++#[test]
++fn framepin_campaign_upper_bounds_and_original_identity_controls() {
++    foreign_stale_nonce_and_control_ownership();
++    crate::experimental::cache::architecture_frozen_controls();
++    let bytes = fixture(0, &[0, 0x0b], 100);
++    for budget in [
++        SwiftRunBudget { active_pins: 129, ..SwiftRunBudget::default() },
++        SwiftRunBudget { frames: 129, ..SwiftRunBudget::default() },
++    ] {
++        let proof = validate_swift_reactor(&bytes, SwiftValidationBudget::default(), &Cancellation::default()).unwrap();
++        assert!(RuntimeControl::adopt(proof, budget, Instant::now(), Cancellation::default()).is_err());
++    }
++    println!("FRAMEPIN above128_rejected=true original_nonce_owner_exhaustion_controls=true");
++}
+--- accepted/src/experimental_swift_reactor/control.rs
++++ campaign/src/experimental_swift_reactor/control.rs
+@@ -45,9 +45,9 @@
+             cache_bytes: 16 * MIB,
+             cache_entry_bytes: 8 * MIB,
+             cache_entries: 256,
+-            active_pins: 64,
++            active_pins: 128,
+             cache_work: 768_000_000,
+-            frames: 64,
++            frames: 128,
+             values: 16_384,
+             controls: 4_096,
+             memory_pages: 768,
+--- accepted/src/experimental_swift_reactor/execution_tests.rs
++++ campaign/src/experimental_swift_reactor/execution_tests.rs
+@@ -1455,3 +1455,12 @@
+     assert_eq!(failure.code, "swift_run_construction_phase_bound");
+     construction_hooks(ConstructionHooks::default());
+ }
++
++#[test]
++fn framepin_campaign_integrated_constructor_failures() {
++    assert_eq!((SwiftRunBudget::default().frames, SwiftRunBudget::default().active_pins), (128, 128));
++    swift_construction_every_integrated_allocation_ordinal();
++    swift_construction_each_state_capacity_rejects_without_growth();
++    construction_hooks(ConstructionHooks::default());
++    println!("FRAMEPIN integrated_constructor_allocation_failures=15 state_capacity_failures=6 cleanup_zero=true");
++}
+--- accepted/src/experimental_swift_reactor/frame_operations.rs
++++ campaign/src/experimental_swift_reactor/frame_operations.rs
+@@ -434,7 +434,7 @@
+     }
+     #[allow(clippy::drop_non_drop)] // End the cleared move-only guard after publication.
+     fn enter_inner(&mut self, function: u32) -> Result<(), SwiftRunFailure> {
+-        let frame_limit = self.phase.operation.control.budget().frames.min(64);
++        let frame_limit = self.phase.operation.control.budget().frames.min(128);
+         if self.phase.parts.frames.len() >= frame_limit
+             || self.phase.parts.frames.len() == self.phase.parts.frames.capacity()
+         {
+--- accepted/src/experimental_swift_reactor/frame_operations_tests.rs
++++ campaign/src/experimental_swift_reactor/frame_operations_tests.rs
+@@ -2223,3 +2223,103 @@
+     println!("OBSERVER reset earlier_enabled_records=17 later_default_releases=130 no_recording=true");
+     retire(owner);
+ }
++
++#[test]
++fn framepin_campaign_recursive_frame_and_pin_boundaries() {
++    for cap in [63, 64, 65, 127, 128] {
++        let mut owner = owner_with(&Function::empty(), SwiftRunBudget { frames: cap, ..SwiftRunBudget::default() });
++        assert_eq!(owner.state.as_ref().unwrap().frames.capacity(), cap);
++        let mut preparation = Some(owner.prepare_frames(cursor()));
++        let mut phase = preparation.take().unwrap().unwrap();
++        for _ in 0..cap { phase.enter(34).unwrap(); }
++        let ids = pin_ids(&phase);
++        assert_eq!(ids.len(), cap);
++        for (slot, id) in ids.iter().enumerate() { assert_eq!(id.2, slot); }
++        assert!(ids.windows(2).all(|w| w[0].1 == w[1].1 && w[0].3 != w[1].3));
++        let failure = phase.enter(34).unwrap_err();
++        assert_eq!(failure.kind, SwiftRunFailureKind::FrameLimit);
++        assert_eq!((failure.attempted, failure.limit), ((cap + 1) as u64, cap as u64));
++        assert_eq!(pin_ids(&phase), ids);
++        let report = phase.drain();
++        assert_eq!(report.retained_frames, 0);
++        complete_ok(phase, preparation);
++        retire(owner);
++    }
++    for cap in [63, 64, 65, 127] {
++        let mut owner = owner_with(&Function::empty(), SwiftRunBudget { active_pins: cap, ..SwiftRunBudget::default() });
++        let mut preparation = Some(owner.prepare_frames(cursor()));
++        let mut phase = preparation.take().unwrap().unwrap();
++        for _ in 0..cap { phase.enter(34).unwrap(); }
++        let ids = pin_ids(&phase);
++        assert_eq!(phase.enter(34).unwrap_err().kind, SwiftRunFailureKind::PinLimit);
++        assert_eq!(pin_ids(&phase), ids);
++        phase.drain();
++        complete_ok(phase, preparation);
++        retire(owner);
++    }
++    println!("FRAMEPIN recursive_frame_caps=63,64,65,127,128 recursive_pin_caps=63,64,65,127 cleanup_zero=true");
++}
++
++#[test]
++fn framepin_campaign_deep_entry_rollback_preserves_callers() {
++    for depth in [63, 64, 127] {
++        let mut owner = owner();
++        let mut preparation = Some(owner.prepare_frames(cursor()));
++        let mut phase = preparation.take().unwrap().unwrap();
++        for _ in 0..depth { phase.enter(34).unwrap(); }
++        let ids = pin_ids(&phase);
++        hooks(Hooks { predebit_resource: Some(2), predebit_ordinal: 0, ..Hooks::default() });
++        assert!(phase.enter(34).is_err());
++        hooks(Hooks::default());
++        assert_eq!(pin_ids(&phase), ids);
++        assert_eq!(phase.phase.parts.cache.usage().active_pins, depth);
++        assert!(phase.cleanup.entry.is_none());
++        phase.drain();
++        complete_ok(phase, preparation);
++        retire(owner);
++    }
++    println!("FRAMEPIN deep_entry_rollback_depths=63,64,127 caller_pins_preserved=true cleanup_zero=true");
++}
++
++#[test]
++fn framepin_campaign_retained_128_frames_restore_and_consume() {
++    let mut foreign = owner();
++    let mut owner = owner();
++    let mut preparation = Some(owner.prepare_frames(cursor()));
++    let mut phase = preparation.take().unwrap().unwrap();
++    for _ in 0..128 { phase.enter(34).unwrap(); }
++    let ids = pin_ids(&phase);
++    for slot in [63, 64, 127] { assert_eq!(ids[slot].2, slot); }
++    let foreign_header = super::super::super::cache::inspection::replace_header(foreign.cache.as_mut().unwrap(), None);
++    let original = super::super::super::cache::inspection::replace_header(phase.phase.parts.cache, foreign_header);
++    let before = phase.phase.operation.control.usage(None).reservations;
++    let report = phase.drain();
++    assert_eq!(report.retained_frames, 128);
++    assert_eq!(pin_ids(&phase), ids);
++    assert_eq!((report.live.frames.current, report.live.active_pins.current), (128, 128));
++    assert_eq!(report.usage.reservations.state.current, before.state.current);
++    let foreign_header = super::super::super::cache::inspection::replace_header(phase.phase.parts.cache, original);
++    super::super::super::cache::inspection::replace_header(foreign.cache.as_mut().unwrap(), foreign_header);
++    assert!(matches!(complete(phase, preparation), FrameCompletion::Retained(_)));
++    drain_complete(&mut owner);
++    retire(owner);
++    retire(foreign);
++    println!("FRAMEPIN retained_actual_frames=128 release_slots=63,64,127 original_tickets_restored=true cleanup_zero=true");
++}
++
++#[test]
++fn framepin_campaign_frame_arena_geometry() {
++    let mut rows = Vec::new();
++    for frames in [64, 128] {
++        let owner = owner_with(&Function::empty(), SwiftRunBudget { frames, ..SwiftRunBudget::default() });
++        let u = usage(&owner);
++        assert_eq!(owner.state.as_ref().unwrap().frames.capacity(), frames);
++        rows.push((u.reservations.state.current, u.execution_work, u.reservations.live_tickets));
++        retire(owner);
++    }
++    assert_eq!(size_of::<SwiftFrame>(), 64); // selected x86_64 CI target
++    assert_eq!(rows[1].0 - rows[0].0, 64 * size_of::<SwiftFrame>());
++    assert_eq!(rows[1].1, rows[0].1); // uninitialized reserved frame storage
++    assert_eq!(rows[1].2, rows[0].2); // same arena ticket, no per-frame tickets
++    println!("FRAMEPIN frame_payload_delta=4096 frame_size=64 frame_construction_work_delta=0 additional_tickets=0");
++}

@@ -9,7 +9,45 @@ This index does not narrow or replace that specification. Use
 is preserved byte for byte in [the prior index](PLAN.history-2026-10-25.md);
 its older pending/selected statements do not override the current state.
 
-## Selected fixture format-only source amendment
+## Selected bounded frame and pin comparison
+
+Current baseline `5efcb6a2` CI is independently reviewed: all six Engine jobs
+succeeded; ordinary Phoenix formatting/compilation and 701 methods pass, with
+two expected network skips (703 total), including all four new TLS controls.
+The isolated network lane passes 141 collector controls and both exact methods
+without skips, with 137 commands, 131 metadata members, final source bindings
+and all three exact container cleanups verified. Phoenix's 43 command hashes,
+PostgreSQL stop and scratch removal are verified. Only the
+[sanitized summary](verification/github-delivery-frame-pin-128/public-summary-candidate.json)
+is delivered; raw CI remains local. FieldLog `146f2a27` still has no observed
+host tests after its 180-second dependency fetch timeout; all ten remote groups
+closed. The new transport candidate passed 54 pure methods, but independent
+review found the `--[no-]` help-token parsing blocker; its narrow correction is
+pending and no new host run is selected by this delivery.
+
+Root selects `paired-128-v1` for one remote comparison after independent Astra
+source review: 152 producer structural/arithmetic checks, 39 pure runner methods,
+117 independent binding/workflow checks, 11,716 bitmap cases, 293 runner cases,
+three mutation witnesses and 39 replayed methods pass. The exact reviewed workflow
+is installed unchanged. Both Rust 1.99.0 optimized builds, nine/ten finite tests,
+compiled geometry, zero cleanup and original harness controls must pass before
+either full attempt. The cap is two full attempts, eleven commands and 2,700
+seconds. Both arms use 128 frames/pins, 256 residents, the unchanged 256 MiB
+combined envelope, 1B fuel, 8B execution credits, 768M cache credits and 600,000ms
+cumulative Runtime/WASI duration; dense uses two u64 bitmap words. Compilation
+and all new actual runtime behavior remain pending. No retry, resume, production
+default promotion or GA acceptance is selected.
+
+The previous comparison `40768719255` is closed: both arms failed at FrameLimit
+65/64 in Corpus 1, with no full original observation or Corpus 2. All eleven
+commands closed and final owner ledgers reached zero. Its matched-prefix dense
+elapsed reduction is one diagnostic sample, not a production winner. The failed
+baseline remains preserved. [Selection](verification/github-delivery-frame-pin-128/selection.json)
+binds both reviewed packets, source closures, finite admission and one-dispatch
+authority. Gates remain 8 running, 30 planned, 0 verified; all native/UI/capture,
+physical-phone, local custody and Unit A holds remain.
+
+## Historical selected fixture format-only source amendment
 
 Apply only the exact formatter diff from Phoenix `40775131269`, preserving the
 accepted fixture behavior and four control assertions. Immutable v2 selects
