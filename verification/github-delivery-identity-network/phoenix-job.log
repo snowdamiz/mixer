@@ -1,0 +1,571 @@
+﻿2026-10-28T16:09:52.8044406Z Current runner version: '2.338.0'
+2026-10-28T16:09:52.8080365Z ##[group]Runner Image Provisioner
+2026-10-28T16:09:52.8082004Z Hosted Compute Agent
+2026-10-28T16:09:52.8083193Z Version: 20261021.618
+2026-10-28T16:09:52.8084300Z Commit: 21505ad2541d5be6135ed84fc33697146cf75b8e
+2026-10-28T16:09:52.8085246Z Build Date: 2026-10-21T00:45:21Z
+2026-10-28T16:09:52.8085957Z Worker ID: {bca8ddcc-f7c5-4bc9-b542-425ef75913c2}
+2026-10-28T16:09:52.8087027Z Region: centralus
+2026-10-28T16:09:52.8087753Z Cloud: Azure
+2026-10-28T16:09:52.8088304Z ##[endgroup]
+2026-10-28T16:09:52.8089982Z ##[group]Operating System
+2026-10-28T16:09:52.8090649Z Ubuntu
+2026-10-28T16:09:52.8091156Z 24.04.5
+2026-10-28T16:09:52.8092158Z LTS
+2026-10-28T16:09:52.8092704Z ##[endgroup]
+2026-10-28T16:09:52.8093339Z ##[group]Runner Image
+2026-10-28T16:09:52.8093975Z Image: ubuntu-24.04
+2026-10-28T16:09:52.8094550Z Version: 20261025.353.1
+2026-10-28T16:09:52.8095845Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261025.353/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-28T16:09:52.8097934Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261025.353
+2026-10-28T16:09:52.8098955Z ##[endgroup]
+2026-10-28T16:09:52.8100123Z ##[group]GITHUB_TOKEN Permissions
+2026-10-28T16:09:52.8102251Z Contents: read
+2026-10-28T16:09:52.8102948Z Metadata: read
+2026-10-28T16:09:52.8103625Z ##[endgroup]
+2026-10-28T16:09:52.8105668Z Secret source: Actions
+2026-10-28T16:09:52.8106948Z Cache mode: write
+2026-10-28T16:09:52.8107984Z Prepare workflow directory
+2026-10-28T16:09:52.8481028Z Prepare all required actions
+2026-10-28T16:09:52.8554276Z Getting action download info
+2026-10-28T16:09:53.1556129Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-10-28T16:09:53.2723348Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-10-28T16:09:53.3659841Z Download action repository 'erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124' (SHA:54075bcc5e249e4758d363f27d099f55d843f124)
+2026-10-28T16:09:53.7134333Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-10-28T16:09:53.9311580Z Complete job name: phoenix
+2026-10-28T16:09:54.0195360Z ##[group]Run actions/checkout@v4
+2026-10-28T16:09:54.0196430Z with:
+2026-10-28T16:09:54.0196889Z   repository: snowdamiz/mixer
+2026-10-28T16:09:54.0200577Z   token: ***
+2026-10-28T16:09:54.0201010Z   ssh-strict: true
+2026-10-28T16:09:54.0201445Z   ssh-user: git
+2026-10-28T16:09:54.0201887Z   persist-credentials: true
+2026-10-28T16:09:54.0202365Z   clean: true
+2026-10-28T16:09:54.0202813Z   sparse-checkout-cone-mode: true
+2026-10-28T16:09:54.0203316Z   fetch-depth: 1
+2026-10-28T16:09:54.0204004Z   fetch-tags: false
+2026-10-28T16:09:54.0204564Z   show-progress: true
+2026-10-28T16:09:54.0205002Z   lfs: false
+2026-10-28T16:09:54.0205405Z   submodules: false
+2026-10-28T16:09:54.0205856Z   set-safe-directory: true
+2026-10-28T16:09:54.0206491Z   allow-unsafe-pr-checkout: false
+2026-10-28T16:09:54.0207337Z ##[endgroup]
+2026-10-28T16:09:54.3495890Z Syncing repository: snowdamiz/mixer
+2026-10-28T16:09:54.3498866Z ##[group]Getting Git version info
+2026-10-28T16:09:54.3500366Z Working directory is '/home/runner/work/mixer/mixer'
+2026-10-28T16:09:54.3502230Z [command]/usr/bin/git version
+2026-10-28T16:09:54.3613950Z git version 2.56.0
+2026-10-28T16:09:54.3638743Z ##[endgroup]
+2026-10-28T16:09:54.3660840Z Temporarily overriding HOME='/home/runner/work/_temp/80f59afa-7dc7-48a4-9cdf-c7786fc91fe0' before making global git config changes
+2026-10-28T16:09:54.3663626Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-28T16:09:54.3666043Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/mixer/mixer
+2026-10-28T16:09:54.3735330Z Deleting the contents of '/home/runner/work/mixer/mixer'
+2026-10-28T16:09:54.3737908Z ##[group]Initializing the repository
+2026-10-28T16:09:54.3739139Z [command]/usr/bin/git init /home/runner/work/mixer/mixer
+2026-10-28T16:09:54.3871654Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-28T16:09:54.3873652Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-28T16:09:54.3875110Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-28T16:09:54.3876552Z hint: call:
+2026-10-28T16:09:54.3877390Z hint:
+2026-10-28T16:09:54.3878075Z hint: 	git config --global init.defaultBranch <name>
+2026-10-28T16:09:54.3878859Z hint:
+2026-10-28T16:09:54.3879590Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-28T16:09:54.3880986Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-28T16:09:54.3882035Z hint:
+2026-10-28T16:09:54.3882556Z hint: 	git branch -m <name>
+2026-10-28T16:09:54.3883185Z hint:
+2026-10-28T16:09:54.3883973Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-28T16:09:54.3887693Z Initialized empty Git repository in /home/runner/work/mixer/mixer/.git/
+2026-10-28T16:09:54.3900772Z [command]/usr/bin/git remote add origin https://github.com/snowdamiz/mixer
+2026-10-28T16:09:54.3958157Z ##[endgroup]
+2026-10-28T16:09:54.3959125Z ##[group]Disabling automatic garbage collection
+2026-10-28T16:09:54.3963256Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-28T16:09:54.3997668Z ##[endgroup]
+2026-10-28T16:09:54.4006489Z ##[group]Setting up auth
+2026-10-28T16:09:54.4007572Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-28T16:09:54.4045747Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-28T16:09:54.4491403Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-28T16:09:54.4537643Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-28T16:09:54.4778498Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-28T16:09:54.4821669Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-28T16:09:54.5061484Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-28T16:09:54.5110451Z ##[endgroup]
+2026-10-28T16:09:54.5123953Z ##[group]Fetching the repository
+2026-10-28T16:09:54.5125586Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +756695fb9b0f6ec85d978202e2b3c586aa3db16f:refs/remotes/origin/main
+2026-10-28T16:20:10.8618018Z From https://github.com/snowdamiz/mixer
+2026-10-28T16:20:10.8618658Z  * [new ref]             756695fb9b0f6ec85d978202e2b3c586aa3db16f -> origin/main
+2026-10-28T16:20:10.8620691Z ##[endgroup]
+2026-10-28T16:20:10.8623659Z ##[group]Determining the checkout info
+2026-10-28T16:20:10.8624110Z ##[endgroup]
+2026-10-28T16:20:10.8630674Z [command]/usr/bin/git sparse-checkout disable
+2026-10-28T16:20:10.8697595Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-28T16:20:10.8742305Z ##[group]Checking out the ref
+2026-10-28T16:20:10.8747005Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-10-28T16:20:12.8071353Z Updating files:   1% (5557/338637)
+2026-10-28T16:20:13.1527709Z Updating files:   2% (6773/338637)
+2026-10-28T16:20:13.1595468Z Updating files:   3% (10160/338637)
+2026-10-28T16:20:13.5386648Z Updating files:   3% (10339/338637)
+2026-10-28T16:20:14.0553377Z Updating files:   4% (13546/338637)
+2026-10-28T16:20:14.1596317Z Updating files:   5% (16932/338637)
+2026-10-28T16:20:14.2125664Z Updating files:   5% (19414/338637)
+2026-10-28T16:20:14.6251397Z Updating files:   6% (20319/338637)
+2026-10-28T16:20:14.8010773Z Updating files:   7% (23705/338637)
+2026-10-28T16:20:15.0579215Z Updating files:   8% (27091/338637)
+2026-10-28T16:20:15.1597283Z Updating files:   9% (30478/338637)
+2026-10-28T16:20:15.2192894Z Updating files:   9% (32467/338637)
+2026-10-28T16:20:15.3638530Z Updating files:  10% (33864/338637)
+2026-10-28T16:20:15.5456510Z Updating files:  11% (37251/338637)
+2026-10-28T16:20:15.7102756Z Updating files:  12% (40637/338637)
+2026-10-28T16:20:16.1599364Z Updating files:  13% (44023/338637)
+2026-10-28T16:20:16.6698247Z Updating files:  13% (46437/338637)
+2026-10-28T16:20:17.1597154Z Updating files:  14% (47410/338637)
+2026-10-28T16:20:17.6729905Z Updating files:  14% (48845/338637)
+2026-10-28T16:20:17.8536126Z Updating files:  15% (50796/338637)
+2026-10-28T16:20:18.0504992Z Updating files:  16% (54182/338637)
+2026-10-28T16:20:18.1597455Z Updating files:  17% (57569/338637)
+2026-10-28T16:20:18.2025781Z Updating files:  17% (59990/338637)
+2026-10-28T16:20:18.3575050Z Updating files:  18% (60955/338637)
+2026-10-28T16:20:18.5223954Z Updating files:  19% (64342/338637)
+2026-10-28T16:20:18.6743951Z Updating files:  20% (67728/338637)
+2026-10-28T16:20:18.8594220Z Updating files:  21% (71114/338637)
+2026-10-28T16:20:19.0087867Z Updating files:  22% (74501/338637)
+2026-10-28T16:20:19.1596805Z Updating files:  23% (77887/338637)
+2026-10-28T16:20:19.1677475Z Updating files:  23% (81087/338637)
+2026-10-28T16:20:19.3281370Z Updating files:  24% (81273/338637)
+2026-10-28T16:20:19.4741924Z Updating files:  25% (84660/338637)
+2026-10-28T16:20:20.0121549Z Updating files:  26% (88046/338637)
+2026-10-28T16:20:20.1596816Z Updating files:  27% (91432/338637)
+2026-10-28T16:20:20.1689103Z Updating files:  27% (94583/338637)
+2026-10-28T16:20:20.4720302Z Updating files:  28% (94819/338637)
+2026-10-28T16:20:20.8122879Z Updating files:  29% (98205/338637)
+2026-10-28T16:20:21.1597970Z Updating files:  30% (101592/338637)
+2026-10-28T16:20:21.2201542Z Updating files:  30% (104300/338637)
+2026-10-28T16:20:21.3902634Z Updating files:  31% (104978/338637)
+2026-10-28T16:20:21.6513350Z Updating files:  32% (108364/338637)
+2026-10-28T16:20:22.1832456Z Updating files:  33% (111751/338637)
+2026-10-28T16:20:22.2942835Z Updating files:  33% (114180/338637)
+2026-10-28T16:20:23.1597560Z Updating files:  34% (115137/338637)
+2026-10-28T16:20:23.1616754Z Updating files:  34% (118477/338637)
+2026-10-28T16:20:23.4354946Z Updating files:  35% (118523/338637)
+2026-10-28T16:20:23.6839801Z Updating files:  36% (121910/338637)
+2026-10-28T16:20:23.8621937Z Updating files:  37% (125296/338637)
+2026-10-28T16:20:24.0531045Z Updating files:  38% (128683/338637)
+2026-10-28T16:20:24.1596651Z Updating files:  39% (132069/338637)
+2026-10-28T16:20:24.2331018Z Updating files:  39% (134184/338637)
+2026-10-28T16:20:24.4601596Z Updating files:  40% (135455/338637)
+2026-10-28T16:20:25.1380497Z Updating files:  41% (138842/338637)
+2026-10-28T16:20:25.1595474Z Updating files:  42% (142228/338637)
+2026-10-28T16:20:25.5369398Z Updating files:  42% (142457/338637)
+2026-10-28T16:20:25.8813078Z Updating files:  43% (145614/338637)
+2026-10-28T16:20:26.1784571Z Updating files:  44% (149001/338637)
+2026-10-28T16:20:26.2773054Z Updating files:  44% (151630/338637)
+2026-10-28T16:20:27.1750955Z Updating files:  45% (152387/338637)
+2026-10-28T16:20:27.4772395Z Updating files:  45% (155203/338637)
+2026-10-28T16:20:28.1569740Z Updating files:  46% (155774/338637)
+2026-10-28T16:20:28.1594715Z Updating files:  47% (159160/338637)
+2026-10-28T16:20:28.6812413Z Updating files:  47% (159183/338637)
+2026-10-28T16:20:29.0758357Z Updating files:  48% (162546/338637)
+2026-10-28T16:20:29.1597498Z Updating files:  49% (165933/338637)
+2026-10-28T16:20:29.3079729Z Updating files:  49% (167044/338637)
+2026-10-28T16:20:29.5790352Z Updating files:  50% (169319/338637)
+2026-10-28T16:20:29.9151738Z Updating files:  51% (172705/338637)
+2026-10-28T16:20:30.1747794Z Updating files:  52% (176092/338637)
+2026-10-28T16:20:30.6188902Z Updating files:  52% (177506/338637)
+2026-10-28T16:20:31.0078578Z Updating files:  53% (179478/338637)
+2026-10-28T16:20:31.1606682Z Updating files:  54% (182864/338637)
+2026-10-28T16:20:31.3517027Z Updating files:  54% (184114/338637)
+2026-10-28T16:20:31.6382236Z Updating files:  55% (186251/338637)
+2026-10-28T16:20:32.1597106Z Updating files:  56% (189637/338637)
+2026-10-28T16:20:32.2584327Z Updating files:  56% (192449/338637)
+2026-10-28T16:20:32.6000201Z Updating files:  57% (193024/338637)
+2026-10-28T16:20:32.7955855Z Updating files:  58% (196410/338637)
+2026-10-28T16:20:32.9618827Z Updating files:  59% (199796/338637)
+2026-10-28T16:20:33.1599091Z Updating files:  60% (203183/338637)
+2026-10-28T16:20:33.2055067Z Updating files:  60% (205741/338637)
+2026-10-28T16:20:33.4447353Z Updating files:  61% (206569/338637)
+2026-10-28T16:20:33.6804923Z Updating files:  62% (209955/338637)
+2026-10-28T16:20:33.8688936Z Updating files:  63% (213342/338637)
+2026-10-28T16:20:34.1846814Z Updating files:  64% (216728/338637)
+2026-10-28T16:20:34.2067997Z Updating files:  64% (219695/338637)
+2026-10-28T16:20:34.4614701Z Updating files:  65% (220115/338637)
+2026-10-28T16:20:34.8645218Z Updating files:  66% (223501/338637)
+2026-10-28T16:20:35.1905040Z Updating files:  67% (226887/338637)
+2026-10-28T16:20:36.1619780Z Updating files:  67% (228649/338637)
+2026-10-28T16:20:36.3219098Z Updating files:  67% (230116/338637)
+2026-10-28T16:20:37.1597914Z Updating files:  68% (230274/338637)
+2026-10-28T16:20:37.2635819Z Updating files:  68% (232920/338637)
+2026-10-28T16:20:37.5302925Z Updating files:  69% (233660/338637)
+2026-10-28T16:20:37.7656009Z Updating files:  70% (237046/338637)
+2026-10-28T16:20:38.0280857Z Updating files:  71% (240433/338637)
+2026-10-28T16:20:38.1596825Z Updating files:  72% (243819/338637)
+2026-10-28T16:20:38.6147381Z Updating files:  72% (245456/338637)
+2026-10-28T16:20:39.1709612Z Updating files:  73% (247206/338637)
+2026-10-28T16:20:39.2935237Z Updating files:  73% (250528/338637)
+2026-10-28T16:20:40.1648563Z Updating files:  74% (250592/338637)
+2026-10-28T16:20:40.8978740Z Updating files:  74% (252101/338637)
+2026-10-28T16:20:41.1883723Z Updating files:  75% (253978/338637)
+2026-10-28T16:20:42.1601500Z Updating files:  75% (254308/338637)
+2026-10-28T16:20:43.6074154Z Updating files:  75% (254675/338637)
+2026-10-28T16:20:44.1652473Z Updating files:  75% (254786/338637)
+2026-10-28T16:20:44.6379344Z Updating files:  75% (256231/338637)
+2026-10-28T16:20:45.1622882Z Updating files:  76% (257365/338637)
+2026-10-28T16:20:45.7773252Z Updating files:  76% (259634/338637)
+2026-10-28T16:20:46.1908233Z Updating files:  77% (260751/338637)
+2026-10-28T16:20:47.1810860Z Updating files:  77% (261620/338637)
+2026-10-28T16:20:48.1650127Z Updating files:  77% (261801/338637)
+2026-10-28T16:20:48.6493146Z Updating files:  77% (263592/338637)
+2026-10-28T16:20:49.1597982Z Updating files:  78% (264137/338637)
+2026-10-28T16:20:50.1625262Z Updating files:  78% (265289/338637)
+2026-10-28T16:20:51.1703785Z Updating files:  78% (265922/338637)
+2026-10-28T16:20:51.1966992Z Updating files:  78% (267381/338637)
+2026-10-28T16:20:52.1597751Z Updating files:  79% (267524/338637)
+2026-10-28T16:20:53.1864982Z Updating files:  79% (269233/338637)
+2026-10-28T16:20:53.7307916Z Updating files:  79% (269744/338637)
+2026-10-28T16:20:54.2429852Z Updating files:  80% (270910/338637)
+2026-10-28T16:20:55.2634629Z Updating files:  80% (271292/338637)
+2026-10-28T16:20:56.1187514Z Updating files:  80% (272810/338637)
+2026-10-28T16:20:56.1619572Z Updating files:  81% (274296/338637)
+2026-10-28T16:20:57.1986556Z Updating files:  81% (274332/338637)
+2026-10-28T16:20:57.7733680Z Updating files:  81% (276643/338637)
+2026-10-28T16:20:58.2995573Z Updating files:  82% (277683/338637)
+2026-10-28T16:20:58.7622857Z Updating files:  82% (278585/338637)
+2026-10-28T16:20:59.1597147Z Updating files:  83% (281069/338637)
+2026-10-28T16:20:59.1759827Z Updating files:  83% (284088/338637)
+2026-10-28T16:20:59.7285033Z Updating files:  84% (284456/338637)
+2026-10-28T16:21:00.2607813Z Updating files:  85% (287842/338637)
+2026-10-28T16:21:00.2918674Z Updating files:  85% (290607/338637)
+2026-10-28T16:21:00.8067543Z Updating files:  86% (291228/338637)
+2026-10-28T16:21:01.4128943Z Updating files:  87% (294615/338637)
+2026-10-28T16:21:01.5888223Z Updating files:  87% (297158/338637)
+2026-10-28T16:21:02.1597443Z Updating files:  88% (298001/338637)
+2026-10-28T16:21:02.7552292Z Updating files:  88% (300661/338637)
+2026-10-28T16:21:03.1891380Z Updating files:  89% (301387/338637)
+2026-10-28T16:21:04.1953608Z Updating files:  89% (301756/338637)
+2026-10-28T16:21:05.1597115Z Updating files:  89% (301783/338637)
+2026-10-28T16:21:05.8385864Z Updating files:  89% (302585/338637)
+2026-10-28T16:21:06.1367617Z Updating files:  90% (304774/338637)
+2026-10-28T16:21:06.1610701Z Updating files:  91% (308160/338637)
+2026-10-28T16:21:07.3140933Z Updating files:  91% (308186/338637)
+2026-10-28T16:21:07.4841920Z Updating files:  91% (310921/338637)
+2026-10-28T16:21:08.1596708Z Updating files:  92% (311547/338637)
+2026-10-28T16:21:08.4422600Z Updating files:  92% (314461/338637)
+2026-10-28T16:21:09.1600207Z Updating files:  93% (314933/338637)
+2026-10-28T16:21:10.1604973Z Updating files:  93% (316298/338637)
+2026-10-28T16:21:10.4040681Z Updating files:  93% (317384/338637)
+2026-10-28T16:21:11.1596511Z Updating files:  94% (318319/338637)
+2026-10-28T16:21:12.1628820Z Updating files:  94% (319282/338637)
+2026-10-28T16:21:12.6974159Z Updating files:  94% (321140/338637)
+2026-10-28T16:21:13.1711259Z Updating files:  95% (321706/338637)
+2026-10-28T16:21:13.2853963Z Updating files:  95% (324761/338637)
+2026-10-28T16:21:14.4531171Z Updating files:  96% (325092/338637)
+2026-10-28T16:21:15.6465768Z Updating files:  96% (327855/338637)
+2026-10-28T16:21:16.1596903Z Updating files:  96% (328047/338637)
+2026-10-28T16:21:16.1922275Z Updating files:  96% (328346/338637)
+2026-10-28T16:21:16.5717946Z Updating files:  97% (328478/338637)
+2026-10-28T16:21:16.9454432Z Updating files:  98% (331865/338637)
+2026-10-28T16:21:17.1611142Z Updating files:  99% (335251/338637)
+2026-10-28T16:21:17.3354382Z Updating files:  99% (337133/338637)
+2026-10-28T16:21:17.3354982Z Updating files: 100% (338637/338637)
+2026-10-28T16:21:17.3355343Z Updating files: 100% (338637/338637), done.
+2026-10-28T16:21:17.7598866Z Switched to a new branch 'main'
+2026-10-28T16:21:17.7601232Z branch 'main' set up to track 'origin/main'.
+2026-10-28T16:21:17.8519095Z ##[endgroup]
+2026-10-28T16:21:17.8575000Z [command]/usr/bin/git log -1 --format=%H
+2026-10-28T16:21:17.8617406Z 756695fb9b0f6ec85d978202e2b3c586aa3db16f
+2026-10-28T16:21:17.8981630Z ##[group]Run actions/setup-node@v4
+2026-10-28T16:21:17.8981917Z with:
+2026-10-28T16:21:17.8982130Z   node-version: 22.23.3
+2026-10-28T16:21:17.8982358Z   always-auth: false
+2026-10-28T16:21:17.8982579Z   check-latest: false
+2026-10-28T16:21:17.8984965Z   token: ***
+2026-10-28T16:21:17.8985167Z ##[endgroup]
+2026-10-28T16:21:18.0509207Z Attempting to download 22.23.3...
+2026-10-28T16:21:18.0715559Z (node:2576) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-28T16:21:18.0717365Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-28T16:21:18.9661689Z Acquiring 22.23.3 - x64 from https://github.com/actions/node-versions/releases/download/22.23.3-35947643734/node-22.23.3-linux-x64.tar.gz
+2026-10-28T16:21:19.5223727Z Extracting ...
+2026-10-28T16:21:19.5407528Z [command]/usr/bin/tar xz --strip 1 --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/4ec6a47e-06ce-4d62-b8cf-c748478e8834 -f /home/runner/work/_temp/a4de8fd8-ae38-4fca-8de9-5e977a0610ab
+2026-10-28T16:21:20.7624773Z Adding to the cache ...
+2026-10-28T16:21:22.6568598Z ##[group]Environment details
+2026-10-28T16:21:22.8968939Z node: v22.23.3
+2026-10-28T16:21:22.8969384Z npm: 10.9.9
+2026-10-28T16:21:22.8969728Z yarn: 1.22.22
+2026-10-28T16:21:22.8970559Z ##[endgroup]
+2026-10-28T16:21:22.9262320Z ##[group]Run erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124
+2026-10-28T16:21:22.9262722Z with:
+2026-10-28T16:21:22.9262945Z   version-file: hosted/.tool-versions
+2026-10-28T16:21:22.9263427Z   version-type: strict
+2026-10-28T16:21:22.9265859Z   github-token: ***
+2026-10-28T16:21:22.9266091Z   otp-architecture: 64
+2026-10-28T16:21:22.9266615Z   install-hex: true
+2026-10-28T16:21:22.9266827Z   install-rebar: true
+2026-10-28T16:21:22.9267056Z   disable_problem_matchers: false
+2026-10-28T16:21:22.9267339Z   hexpm-mirrors: https://builds.hex.pm
+
+2026-10-28T16:21:22.9267622Z ##[endgroup]
+2026-10-28T16:21:23.0021634Z ##[group]Parsing .tool-versions file at hosted/.tool-versions
+2026-10-28T16:21:23.0034093Z Consuming erlang at version 29.1.1
+2026-10-28T16:21:23.0034552Z Consuming elixir at version 1.20.4-otp-29
+2026-10-28T16:21:23.0034884Z ... done!
+2026-10-28T16:21:23.0035267Z ##[endgroup]
+2026-10-28T16:21:23.1617056Z ##[group]Installing Erlang/OTP OTP-29.1.1 - built on amd64/ubuntu-24.04
+2026-10-28T16:21:23.7222260Z [command]/usr/bin/tar zx --strip-components=1 --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/53e1116c-7925-4759-aee1-5e25fe3a74c9 -f /home/runner/work/_temp/1899e4de-d0a6-4c19-ae8b-51f9d66a7adf
+2026-10-28T16:21:26.2793357Z [command]/home/runner/work/_temp/.setup-beam/otp/Install -minimal /home/runner/work/_temp/.setup-beam/otp
+2026-10-28T16:21:26.4654474Z Installed Erlang/OTP version
+2026-10-28T16:21:26.4676806Z [command]/home/runner/work/_temp/.setup-beam/otp/bin/erl -version
+2026-10-28T16:21:26.5479076Z Erlang (SMP,ASYNC_THREADS) (BEAM) emulator version 17.1
+2026-10-28T16:21:26.5899633Z ##[endgroup]
+2026-10-28T16:21:26.5984954Z Using Elixir 1.20.4 (built for Erlang/OTP 29)
+2026-10-28T16:21:26.5985821Z ##[group]Installing Elixir v1.20.4-otp-29
+2026-10-28T16:21:26.7913908Z [command]/usr/bin/unzip -o -q /home/runner/work/_temp/db212ff7-7b7e-4b91-8caf-ff169e489926
+2026-10-28T16:21:28.7878121Z Installed Elixir version
+2026-10-28T16:21:28.7886426Z [command]/home/runner/work/_temp/.setup-beam/elixir/bin/elixir -v
+2026-10-28T16:21:29.0288606Z Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit:ns]
+2026-10-28T16:21:29.0290003Z 
+2026-10-28T16:21:29.0337765Z Elixir 1.20.4 (compiled with Erlang/OTP 29)
+2026-10-28T16:21:29.0405578Z ##[endgroup]
+2026-10-28T16:21:29.0406116Z ##[group]Running mix local.rebar,--force
+2026-10-28T16:21:29.0415558Z [command]/home/runner/work/_temp/.setup-beam/elixir/bin/mix local.rebar --force
+2026-10-28T16:21:29.7831404Z * creating /home/runner/.mix/elixir/1-20-otp-29/rebar3
+2026-10-28T16:21:29.7919337Z ##[endgroup]
+2026-10-28T16:21:29.7919781Z ##[group]Running mix local.hex,--force
+2026-10-28T16:21:29.7935565Z [command]/home/runner/work/_temp/.setup-beam/elixir/bin/mix local.hex --force
+2026-10-28T16:21:30.6038399Z * creating /home/runner/.mix/archives/hex-2.6.0
+2026-10-28T16:21:30.6125660Z ##[endgroup]
+2026-10-28T16:21:30.6355433Z ##[group]Run mix deps.get --check-locked
+2026-10-28T16:21:30.6355844Z [36;1mmix deps.get --check-locked[0m
+2026-10-28T16:21:30.7110222Z shell: /usr/bin/bash -e {0}
+2026-10-28T16:21:30.7110528Z env:
+2026-10-28T16:21:30.7110840Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-28T16:21:30.7111331Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-28T16:21:30.7111719Z ##[endgroup]
+2026-10-28T16:21:31.5739714Z Resolving Hex dependencies...
+2026-10-28T16:21:31.6125677Z Resolution completed in 0.036s
+2026-10-28T16:21:31.6157222Z Unchanged:
+2026-10-28T16:21:31.6157668Z   bandit 1.14.0 VULNERABLE!
+2026-10-28T16:21:31.6171715Z     EEF-CVE-2026-116078 (HIGH)
+2026-10-28T16:21:31.6172329Z     aka: CVE-2026-116078, GHSA-pxjf-g536-7r93
+2026-10-28T16:21:31.6173210Z     HTTP/2 request bodies made of 1-byte DATA frames amplify memory use in Bandit
+2026-10-28T16:21:31.6174068Z     https://osv.dev/vulnerability/EEF-CVE-2026-116078
+2026-10-28T16:21:31.6226543Z * Getting phoenix (Hex package)
+2026-10-28T16:21:31.8834006Z * Getting plug (Hex package)
+2026-10-28T16:21:31.8850081Z * Getting bandit (Hex package)
+2026-10-28T16:21:31.8869410Z * Getting ecto_sql (Hex package)
+2026-10-28T16:21:31.8889016Z * Getting postgrex (Hex package)
+2026-10-28T16:21:31.8907461Z * Getting oban (Hex package)
+2026-10-28T16:21:31.8927312Z * Getting jason (Hex package)
+2026-10-28T16:21:31.8939020Z * Getting jose (Hex package)
+2026-10-28T16:21:31.8956042Z * Getting mint (Hex package)
+2026-10-28T16:21:31.8969708Z * Getting hpax (Hex package)
+2026-10-28T16:21:31.8978946Z * Getting telemetry (Hex package)
+2026-10-28T16:21:31.9005802Z * Getting db_connection (Hex package)
+2026-10-28T16:21:31.9017455Z * Getting decimal (Hex package)
+2026-10-28T16:21:31.9026408Z * Getting ecto (Hex package)
+2026-10-28T16:21:31.9042633Z * Getting thousand_island (Hex package)
+2026-10-28T16:21:31.9053051Z * Getting websock (Hex package)
+2026-10-28T16:21:31.9060547Z * Getting mime (Hex package)
+2026-10-28T16:21:31.9068042Z * Getting plug_crypto (Hex package)
+2026-10-28T16:21:31.9075744Z * Getting phoenix_pubsub (Hex package)
+2026-10-28T16:21:31.9084186Z * Getting phoenix_template (Hex package)
+2026-10-28T16:21:31.9093486Z * Getting websock_adapter (Hex package)
+2026-10-28T16:21:31.9105530Z Found packages with security advisories, see above for details
+2026-10-28T16:21:31.9648663Z ##[group]Run mix deps.compile jason
+2026-10-28T16:21:31.9649023Z [36;1mmix deps.compile jason[0m
+2026-10-28T16:21:31.9649413Z [36;1mpython3 ../verification/hosted-browser-auth-protocol/run.py[0m
+2026-10-28T16:21:31.9670150Z shell: /usr/bin/bash -e {0}
+2026-10-28T16:21:31.9670402Z env:
+2026-10-28T16:21:31.9670676Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-28T16:21:31.9671113Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-28T16:21:31.9671466Z   MIX_ENV: test
+2026-10-28T16:21:31.9671674Z ##[endgroup]
+2026-10-28T16:21:32.5338722Z ==> jason
+2026-10-28T16:21:32.5350842Z Compiling 10 files (.ex)
+2026-10-28T16:21:32.5538191Z warning: cannot infer signatures from :decimal because it is not loaded
+2026-10-28T16:21:32.5539403Z 
+2026-10-28T16:21:33.8397404Z Generated jason app
+2026-10-28T16:21:36.4374337Z tool-versions: exit 0
+2026-10-28T16:21:36.4374787Z crypto-version: exit 0
+2026-10-28T16:21:36.4375279Z format: exit 0
+2026-10-28T16:21:36.4375739Z compile: exit 0
+2026-10-28T16:21:36.4376107Z tests: exit 0
+2026-10-28T16:21:36.4376896Z owned-source-whitespace: exit 0
+2026-10-28T16:21:36.4377455Z source-whitespace: exit 0
+2026-10-28T16:21:36.4378473Z receipt: verification/hosted-browser-auth-protocol/attempts/20261028T162133928919Z/receipt.json
+2026-10-28T16:21:36.4476107Z ##[group]Run node --version
+2026-10-28T16:21:36.4476792Z [36;1mnode --version[0m
+2026-10-28T16:21:36.4477034Z [36;1mnpm --version[0m
+2026-10-28T16:21:36.4477311Z [36;1mnpm ci --ignore-scripts --no-audit --no-fund[0m
+2026-10-28T16:21:36.4477676Z [36;1mnode node_modules/typescript/bin/tsc --version[0m
+2026-10-28T16:21:36.4478113Z [36;1mnode node_modules/typescript/bin/tsc src/api/workspace-client.ts \[0m
+2026-10-28T16:21:36.4478601Z [36;1m  --target ES2022 --module ES2022 --moduleResolution bundler \[0m
+2026-10-28T16:21:36.4479006Z [36;1m  --strict --skipLibCheck --lib ES2022,DOM \[0m
+2026-10-28T16:21:36.4479360Z [36;1m  --outDir "$RUNNER_TEMP/workspace-client"[0m
+2026-10-28T16:21:36.4479896Z [36;1mcp ../verification/hosted-customer-workspace-http-integration/node-client-driver.mjs \[0m
+2026-10-28T16:21:36.4480441Z [36;1m  "$RUNNER_TEMP/workspace-client/driver.mjs"[0m
+2026-10-28T16:21:36.4480945Z [36;1mprintf '%s\n' '{"type":"module"}' > "$RUNNER_TEMP/workspace-client/package.json"[0m
+2026-10-28T16:21:36.4481607Z [36;1mprintf 'MIXER_WORKSPACE_HTTP_NODE_DRIVER=%s/driver.mjs\n' "$RUNNER_TEMP/workspace-client" >> "$GITHUB_ENV"[0m
+2026-10-28T16:21:36.4502088Z shell: /usr/bin/bash -e {0}
+2026-10-28T16:21:36.4502345Z env:
+2026-10-28T16:21:36.4502624Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-28T16:21:36.4503071Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-28T16:21:36.4503439Z ##[endgroup]
+2026-10-28T16:21:36.4577604Z v22.23.3
+2026-10-28T16:21:36.5344170Z 10.9.9
+2026-10-28T16:21:38.7196278Z 
+2026-10-28T16:21:38.7197751Z added 78 packages in 2s
+2026-10-28T16:21:38.9112916Z Version 5.9.3
+2026-10-28T16:21:39.8031284Z ##[group]Run mix deps.compile
+2026-10-28T16:21:39.8031819Z [36;1mmix deps.compile[0m
+2026-10-28T16:21:39.8032441Z [36;1mpython3 test/mixer_hosted/browser_auth/run_storage_fixture.py \[0m
+2026-10-28T16:21:39.8033201Z [36;1m  --pg-bin /usr/lib/postgresql/16/bin[0m
+2026-10-28T16:21:39.8033968Z [36;1mpython3 test/mixer_hosted/browser_auth/run_migration_fixture.py \[0m
+2026-10-28T16:21:39.8034731Z [36;1m  --pg-bin /usr/lib/postgresql/16/bin \[0m
+2026-10-28T16:21:39.8035355Z [36;1m  --output "$RUNNER_TEMP/browser-migrations"[0m
+2026-10-28T16:21:39.8065498Z shell: /usr/bin/bash -e {0}
+2026-10-28T16:21:39.8065955Z env:
+2026-10-28T16:21:39.8066687Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-28T16:21:39.8067482Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-28T16:21:39.8068447Z   MIXER_WORKSPACE_HTTP_NODE_DRIVER: /home/runner/work/_temp/workspace-client/driver.mjs
+2026-10-28T16:21:39.8069249Z   MIX_ENV: test
+2026-10-28T16:21:39.8069662Z ##[endgroup]
+2026-10-28T16:21:40.3786465Z ==> mime
+2026-10-28T16:21:40.3798540Z Compiling 1 file (.ex)
+2026-10-28T16:21:40.4848542Z Generated mime app
+2026-10-28T16:21:40.5000433Z ==> plug_crypto
+2026-10-28T16:21:40.5000948Z Compiling 5 files (.ex)
+2026-10-28T16:21:40.6051825Z Generated plug_crypto app
+2026-10-28T16:21:40.6181582Z ==> hpax
+2026-10-28T16:21:40.6182392Z Compiling 4 files (.ex)
+2026-10-28T16:21:40.9849069Z Generated hpax app
+2026-10-28T16:21:41.0076752Z ==> mint
+2026-10-28T16:21:41.0077301Z Compiling 1 file (.erl)
+2026-10-28T16:21:41.0713238Z Compiling 21 files (.ex)
+2026-10-28T16:21:42.2848978Z Generated mint app
+2026-10-28T16:21:42.4458053Z ==> jose
+2026-10-28T16:21:42.4458946Z Compiling 113 files (.erl)
+2026-10-28T16:21:44.5534782Z Compiling 8 files (.ex)
+2026-10-28T16:21:44.8280552Z Generated jose app
+2026-10-28T16:21:44.8394376Z ==> decimal
+2026-10-28T16:21:44.8394912Z Compiling 4 files (.ex)
+2026-10-28T16:21:45.5852807Z Generated decimal app
+2026-10-28T16:21:45.6125041Z ==> phoenix_template
+2026-10-28T16:21:45.6125613Z Compiling 4 files (.ex)
+2026-10-28T16:21:45.6821911Z Generated phoenix_template app
+2026-10-28T16:21:46.0110531Z ==> mixer_hosted
+2026-10-28T16:21:46.0111791Z ===> Analyzing applications...
+2026-10-28T16:21:46.0486062Z ===> Compiling telemetry
+2026-10-28T16:21:46.2988424Z ==> db_connection
+2026-10-28T16:21:46.2988960Z Compiling 18 files (.ex)
+2026-10-28T16:21:46.9162492Z Generated db_connection app
+2026-10-28T16:21:46.9341933Z ==> ecto
+2026-10-28T16:21:46.9342637Z Compiling 56 files (.ex)
+2026-10-28T16:21:50.2677280Z Generated ecto app
+2026-10-28T16:21:50.2838103Z ==> thousand_island
+2026-10-28T16:21:50.2839321Z Compiling 18 files (.ex)
+2026-10-28T16:21:50.6108775Z Generated thousand_island app
+2026-10-28T16:21:50.6254285Z ==> phoenix_pubsub
+2026-10-28T16:21:50.6255028Z Compiling 13 files (.ex)
+2026-10-28T16:21:51.0482300Z Generated phoenix_pubsub app
+2026-10-28T16:21:51.0699805Z ==> plug
+2026-10-28T16:21:51.0700976Z Compiling 1 file (.erl)
+2026-10-28T16:21:51.1750994Z Compiling 42 files (.ex)
+2026-10-28T16:21:52.8348053Z Generated plug app
+2026-10-28T16:21:52.8477147Z warning: "xref: [exclude: ...]" in your mix.exs file is deprecated, instead use: "elixirc_options: [no_warn_undefined: ...]"
+2026-10-28T16:21:52.8503664Z ##[warning]  (mix 1.20.4) lib/mix/tasks/compile.elixir.ex:243: Mix.Tasks.Compile.Elixir.xref_exclude_opts/2
+2026-10-28T16:21:52.8514232Z   (mix 1.20.4) lib/mix/tasks/compile.elixir.ex:142: Mix.Tasks.Compile.Elixir.run/1
+2026-10-28T16:21:52.8515317Z   (mix 1.20.4) lib/mix/task.ex:502: anonymous fn/3 in Mix.Task.run_task/5
+2026-10-28T16:21:52.8516553Z   (mix 1.20.4) lib/mix/task.compiler.ex:299: Mix.Task.Compiler.run_compiler/2
+2026-10-28T16:21:52.8517506Z   (mix 1.20.4) lib/mix/task.compiler.ex:287: Mix.Task.Compiler.run/4
+2026-10-28T16:21:52.8518456Z   (mix 1.20.4) lib/mix/tasks/compile.all.ex:75: Mix.Tasks.Compile.All.do_run/2
+2026-10-28T16:21:52.8519018Z 
+2026-10-28T16:21:52.8531541Z ==> postgrex
+2026-10-28T16:21:52.8532555Z Compiling 70 files (.ex)
+2026-10-28T16:21:57.1168896Z Generated postgrex app
+2026-10-28T16:21:57.1547456Z ==> ecto_sql
+2026-10-28T16:21:57.1548148Z Compiling 25 files (.ex)
+2026-10-28T16:21:58.1122242Z Generated ecto_sql app
+2026-10-28T16:21:58.1363813Z ==> oban
+2026-10-28T16:21:58.1364366Z Compiling 70 files (.ex)
+2026-10-28T16:21:59.4073404Z Generated oban app
+2026-10-28T16:21:59.4193966Z ==> websock
+2026-10-28T16:21:59.4194876Z Compiling 1 file (.ex)
+2026-10-28T16:21:59.4295892Z Generated websock app
+2026-10-28T16:21:59.4461784Z ==> bandit
+2026-10-28T16:21:59.4462317Z Compiling 54 files (.ex)
+2026-10-28T16:22:00.8966723Z Generated bandit app
+2026-10-28T16:22:00.9089231Z ==> websock_adapter
+2026-10-28T16:22:00.9090169Z Compiling 4 files (.ex)
+2026-10-28T16:22:00.9413602Z Generated websock_adapter app
+2026-10-28T16:22:00.9766722Z ==> phoenix
+2026-10-28T16:22:00.9767553Z Compiling 75 files (.ex)
+2026-10-28T16:22:02.9900216Z Generated phoenix app
+2026-10-28T16:22:18.8810814Z verification/hosted-browser-session-storage/attempts/20261028T162203.052876Z-5dfe47f2
+2026-10-28T16:22:23.6227426Z {"receipt": "/home/runner/work/_temp/browser-migrations/20261028T162218.930279Z-75ee12af/receipt.json", "success": true, "failure": null, "cleanup": {"owned_postgres_stopped": true, "owned_scratch_removed": true, "owned_compile_products_removed": true}}
+2026-10-28T16:22:23.6347243Z ##[group]Run python3 scripts/test-local.py \
+2026-10-28T16:22:23.6347640Z [36;1mpython3 scripts/test-local.py \[0m
+2026-10-28T16:22:23.6347979Z [36;1m  --pg-bin /usr/lib/postgresql/16/bin \[0m
+2026-10-28T16:22:23.6348343Z [36;1m  --output "$RUNNER_TEMP/phoenix-foundation"[0m
+2026-10-28T16:22:23.6368688Z shell: /usr/bin/bash -e {0}
+2026-10-28T16:22:23.6368945Z env:
+2026-10-28T16:22:23.6369227Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-28T16:22:23.6369676Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-28T16:22:23.6370204Z   MIXER_WORKSPACE_HTTP_NODE_DRIVER: /home/runner/work/_temp/workspace-client/driver.mjs
+2026-10-28T16:22:23.6370841Z ##[endgroup]
+2026-10-28T16:25:05.8640197Z ##[error]The operation was canceled.
+2026-10-28T16:25:05.8707314Z ##[group]Run actions/upload-artifact@v4
+2026-10-28T16:25:05.8707618Z with:
+2026-10-28T16:25:05.8707929Z   name: phoenix-foundation-756695fb9b0f6ec85d978202e2b3c586aa3db16f
+2026-10-28T16:25:05.8708309Z   retention-days: 14
+2026-10-28T16:25:05.8708543Z   if-no-files-found: ignore
+2026-10-28T16:25:05.8709390Z   path: /home/runner/work/_temp/phoenix-foundation/
+verification/hosted-browser-auth-protocol/attempts/
+verification/hosted-browser-session-storage/attempts/
+/home/runner/work/_temp/browser-migrations/
+
+2026-10-28T16:25:05.8710266Z   compression-level: 6
+2026-10-28T16:25:05.8710490Z   overwrite: false
+2026-10-28T16:25:05.8710710Z   include-hidden-files: false
+2026-10-28T16:25:05.8710947Z env:
+2026-10-28T16:25:05.8711206Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-28T16:25:05.8711650Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-28T16:25:05.8712180Z   MIXER_WORKSPACE_HTTP_NODE_DRIVER: /home/runner/work/_temp/workspace-client/driver.mjs
+2026-10-28T16:25:05.8712605Z ##[endgroup]
+2026-10-28T16:25:06.0436989Z (node:4431) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-28T16:25:06.0438746Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-28T16:25:06.1082142Z Multiple search paths detected. Calculating the least common ancestor of all paths
+2026-10-28T16:25:06.1085405Z The least common ancestor is /home/runner/work. This will be the root directory of the artifact
+2026-10-28T16:25:06.1086900Z With the provided path, there will be 273 files uploaded
+2026-10-28T16:25:06.1092347Z Artifact name is valid!
+2026-10-28T16:25:06.1095057Z Root directory input is valid!
+2026-10-28T16:25:06.4154504Z Beginning upload of artifact content to blob storage
+2026-10-28T16:25:06.7175083Z (node:4431) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-28T16:25:07.0921227Z Uploaded bytes 1470518
+2026-10-28T16:25:07.1341609Z Finished uploading artifact content to blob storage!
+2026-10-28T16:25:07.1343006Z SHA256 digest of uploaded artifact zip is 23c747645e5b6523411710454d3edfcf149a0987440d5522ca692c1690c50b0a
+2026-10-28T16:25:07.1344872Z Finalizing artifact upload
+2026-10-28T16:25:07.5989048Z Artifact phoenix-foundation-756695fb9b0f6ec85d978202e2b3c586aa3db16f.zip successfully finalized. Artifact ID 12831598909
+2026-10-28T16:25:07.5991127Z Artifact phoenix-foundation-756695fb9b0f6ec85d978202e2b3c586aa3db16f has been successfully uploaded! Final size is 1470518 bytes. Artifact ID is 12831598909
+2026-10-28T16:25:07.5994695Z Artifact download URL: https://github.com/snowdamiz/mixer/actions/runs/40723227254/artifacts/12831598909
+2026-10-28T16:25:07.6229567Z Post job cleanup.
+2026-10-28T16:25:07.7143338Z [command]/usr/bin/git version
+2026-10-28T16:25:07.7220881Z git version 2.56.0
+2026-10-28T16:25:07.7262201Z Temporarily overriding HOME='/home/runner/work/_temp/33b93448-173b-4992-97a5-a4046ddce146' before making global git config changes
+2026-10-28T16:25:07.7264041Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-28T16:25:07.7269292Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/mixer/mixer
+2026-10-28T16:25:07.7310787Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-28T16:25:07.7356478Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-28T16:25:07.8332332Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-28T16:25:07.8387916Z http.https://github.com/.extraheader
+2026-10-28T16:25:07.8508492Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-28T16:25:07.8513454Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-28T16:25:07.9402068Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-28T16:25:07.9450775Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-28T16:25:08.0528072Z Cleaning up orphan processes
+2026-10-28T16:25:08.0822866Z Terminate orphan process: pid (3601) (python3)
+2026-10-28T16:25:08.0852189Z Terminate orphan process: pid (3910) (postgres)
+2026-10-28T16:25:08.0899363Z Terminate orphan process: pid (3979) (beam.smp)
+2026-10-28T16:25:08.0929018Z Terminate orphan process: pid (3995) (erl_child_setup)
+2026-10-28T16:25:08.0952608Z Terminate orphan process: pid (4020) (inet_gethost)
+2026-10-28T16:25:08.0978696Z Terminate orphan process: pid (4021) (inet_gethost)
+2026-10-28T16:25:08.1045171Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+

@@ -1,0 +1,3962 @@
+[
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 23,
+    "path": "hosted/lib/mixer_hosted/audit/customer_artifact_event.ex",
+    "text": "  @artifact_fields ~w(organization_id project_id application_id environment_id platform runtime_sha256 manifest_sha256 payload_sha256 envelope_sha256)a"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 270,
+    "path": "hosted/lib/mixer_hosted/audit/customer_artifact_event.ex",
+    "text": "      a.manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 277,
+    "path": "hosted/lib/mixer_hosted/audit/customer_artifact_event.ex",
+    "text": "  defp target?([org, project, app, env, platform, runtime, manifest, payload]),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 280,
+    "path": "hosted/lib/mixer_hosted/audit/customer_artifact_event.ex",
+    "text": "        platform in [\"ios\", \"android\"] and Enum.all?([runtime, manifest, payload], &digest?/1)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 409,
+    "path": "hosted/lib/mixer_hosted/audit/customer_artifact_event.ex",
+    "text": "         [org, project, _app, _env, _platform, _runtime, manifest, payload],"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 420,
+    "path": "hosted/lib/mixer_hosted/audit/customer_artifact_event.ex",
+    "text": "             manifest,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 186,
+    "path": "hosted/lib/mixer_hosted/audit/upload_event.ex",
+    "text": "    [to, tp, app, env, platform, runtime, manifest] = array!(d[\"target\"], 7)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 252,
+    "path": "hosted/lib/mixer_hosted/audit/upload_event.ex",
+    "text": "        b(hex!(manifest, 32))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 32,
+    "path": "hosted/lib/mixer_hosted/authorization.ex",
+    "text": "        manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 39,
+    "path": "hosted/lib/mixer_hosted/authorization.ex",
+    "text": "      manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 10,
+    "path": "hosted/lib/mixer_hosted/authorization/artifact_read.ex",
+    "text": "  @columns ~w(organization_id project_id application_id environment_id platform runtime_sha256 manifest_sha256 signed_manifest_bytes)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 59,
+    "path": "hosted/lib/mixer_hosted/authorization/artifact_read.ex",
+    "text": "              # signed manifest may supply the actual app/environment target."
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 155,
+    "path": "hosted/lib/mixer_hosted/authorization/artifact_read.ex",
+    "text": "         true <- ArtifactV3Policy.exact?(signed, ~w(manifest signature)),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 156,
+    "path": "hosted/lib/mixer_hosted/authorization/artifact_read.ex",
+    "text": "         manifest = signed[\"manifest\"],"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 157,
+    "path": "hosted/lib/mixer_hosted/authorization/artifact_read.ex",
+    "text": "         true <- ArtifactV3Policy.manifest?(manifest),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 160,
+    "path": "hosted/lib/mixer_hosted/authorization/artifact_read.ex",
+    "text": "           manifest[\"scope\"] == %{"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 166,
+    "path": "hosted/lib/mixer_hosted/authorization/artifact_read.ex",
+    "text": "           } and manifest[\"runtime\"] == runtime,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 167,
+    "path": "hosted/lib/mixer_hosted/authorization/artifact_read.ex",
+    "text": "         {:ok, cbor} <- ArtifactCBOR.encode(manifest),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 179,
+    "path": "hosted/lib/mixer_hosted/authorization/artifact_read.ex",
+    "text": "         manifest_sha256: digest,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 180,
+    "path": "hosted/lib/mixer_hosted/authorization/artifact_read.ex",
+    "text": "         signed_manifest_bytes: bytes,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 181,
+    "path": "hosted/lib/mixer_hosted/authorization/artifact_read.ex",
+    "text": "         canonical_manifest_cbor: cbor,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 182,
+    "path": "hosted/lib/mixer_hosted/authorization/artifact_read.ex",
+    "text": "         manifest: manifest"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 24,
+    "path": "hosted/lib/mixer_hosted/browser_auth/activation_preparation_schema.ex",
+    "text": "  @decoder_source Path.expand(\"activation_preparation.ex\", __DIR__)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 26,
+    "path": "hosted/lib/mixer_hosted/browser_auth/activation_preparation_schema.ex",
+    "text": "  @decoder_sha256 :crypto.hash(:sha256, File.read!(@decoder_source))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 40,
+    "path": "hosted/lib/mixer_hosted/browser_auth/activation_preparation_schema.ex",
+    "text": "  def catalog_manifest do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 51,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "  for manifest <- [@v1, @v2] do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 52,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "    unless map_size(manifest.functions) == manifest.function_count and"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 53,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "             map_size(manifest.composites) == manifest.composite_count and"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 54,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "             manifest.function_limit == manifest.function_count + 1 and"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 55,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "             manifest.escape_limit == manifest.function_count + 1 and"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 56,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "             manifest.function_acl_limit =="
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 57,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "               manifest.function_count +"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 58,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "                 Enum.count(manifest.functions, fn {_n, f} -> f.runtime_execute end) + 1 and"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 59,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "             manifest.composite_limit == manifest.composite_count + 1 and"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 60,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "             manifest.field_limit =="
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 61,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "               Enum.sum(Enum.map(manifest.composites, fn {_n, f} -> length(f) end)) + 1 and"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 62,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "             manifest.type_acl_limit == manifest.composite_count * 3 + 1 do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 74,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "      manifest = selected_manifest!(version)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 83,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "      functions!(context, expected_roles, manifest)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 84,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "      composites!(context, expected_roles, manifest)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 85,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "      escape_paths!(context, expected_roles, manifest)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 97,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "  defp selected_manifest!(version) when version === 1, do: @v1"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 98,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "  defp selected_manifest!(version) when version === 2, do: @v2"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 99,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "  defp selected_manifest!(_), do: raise(Unavailable)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 291,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "  defp functions!(context, roles, manifest) do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 324,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "        LIMIT #{manifest.function_limit}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 329,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "    require!(length(rows) == manifest.function_count)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 333,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "        MapSet.new(Map.keys(manifest.functions))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 365,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "      expected = Map.fetch!(manifest.functions, name)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 368,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "      require!(result == Map.fetch!(manifest.returns, name))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 381,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "      require!(argument_names == Map.fetch!(manifest.argument_names, name))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 397,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "      LIMIT #{manifest.function_acl_limit}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 401,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "      Enum.flat_map(manifest.functions, fn {name, expected} ->"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 411,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "  defp composites!(context, roles, manifest) do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 428,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "        LIMIT #{manifest.composite_limit}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 434,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "          Map.keys(manifest.composites)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 438,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "    require!(length(rows) == manifest.composite_count)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 441,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "      MapSet.new(Enum.map(rows, &Enum.at(&1, 1))) == MapSet.new(Map.keys(manifest.composites))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 467,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "        LIMIT #{manifest.field_limit}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 469,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "        [Map.keys(manifest.composites)]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 473,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "      for {type, fields} <- manifest.composites,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 505,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "        LIMIT #{manifest.type_acl_limit}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 507,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "        [Map.keys(manifest.composites)]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 511,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "      for type <- Map.keys(manifest.composites),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 518,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "  defp escape_paths!(context, roles, manifest) do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 533,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "        LIMIT #{manifest.escape_limit}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 538,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "    require!(length(rows) == manifest.function_count)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 542,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+    "text": "      expected = Map.fetch!(manifest.functions, name)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 6,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog_manifest.ex",
+    "text": "  @functions MixerHosted.BrowserAuth.StorageSchema.catalog_manifest().functions"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 7,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog_manifest_v2.ex",
+    "text": "  caller-supplied expectation can change this manifest."
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 13,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog_manifest_v2.ex",
+    "text": "    \"catalog_manifest.ex\" => \"3508c85922a1a716d39eb61ecb5daa699d6141b1aeb88a9565512c78465d1269\","
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 20,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog_manifest_v2.ex",
+    "text": "    source = Path.expand(name, __DIR__)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 22,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog_manifest_v2.ex",
+    "text": "    actual = :crypto.hash(:sha256, File.read!(source)) |> Base.encode16(case: :lower)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 26,
+    "path": "hosted/lib/mixer_hosted/browser_auth/catalog_manifest_v2.ex",
+    "text": "  @addition ActivationPreparationSchema.catalog_manifest()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 109,
+    "path": "hosted/lib/mixer_hosted/browser_auth/config.ex",
+    "text": "         entries when is_list(entries) <- Keyword.get(options, :manifest),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 110,
+    "path": "hosted/lib/mixer_hosted/browser_auth/config.ex",
+    "text": "         {:ok, manifest} <- Manifest.validate(entries),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 112,
+    "path": "hosted/lib/mixer_hosted/browser_auth/config.ex",
+    "text": "         %{profile: profile} <- Map.get(manifest, binding),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 34,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "      manifest = RelationManifest.for_major(context.major)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 37,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "      {columns, state} = columns!(state, ids, manifest)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 38,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "      {constraints, state} = constraints!(state, ids, columns, manifest)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 39,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "      {indexes, state} = indexes!(state, ids, columns, constraints, manifest, role_oids)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 40,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "      {_, state} = triggers!(state, ids, constraints, indexes, manifest, role_oids)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 41,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "      {_, state} = policies!(state, ids, manifest, role_oids)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 42,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "      {_, state} = privileges!(state, ids, columns, manifest, role_oids, context.major)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 315,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "  defp columns!(state, ids, manifest) do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 376,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "    each!(Map.to_list(manifest[\"structure\"][\"relations\"]), state, fn {rel, spec} ->"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 417,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "        mutable = c[\"name\"] in manifest[\"structure\"][\"writer_grants\"][rel][\"update_columns\"]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 433,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "  defp constraints!(state, ids, columns, manifest) do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 529,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "      for r <- manifest[\"check_keys\"], do: {r[\"relation\"], r[\"expression\"], r[\"columns\"]}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 542,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "      Enum.flat_map(manifest[\"structure\"][\"relations\"], fn {rel, spec} ->"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 549,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "      Enum.flat_map(manifest[\"structure\"][\"relations\"], fn {rel, spec} ->"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 556,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "          manifest[\"structure\"][\"incoming_foreign_keys\"],"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 592,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "  defp indexes!(state, ids, columns, constraints, manifest, roles) do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 718,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "        [expected] = manifest[\"expressions\"][\"predicates\"]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 736,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "  defp triggers!(state, ids, constraints, indexes, manifest, roles) do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 855,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "    expected = manifest[\"structure\"][\"user_triggers\"]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 869,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "            manifest[\"trigger_sources\"][String.replace_prefix(function, \"public.\", \"\")]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 911,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "  defp policies!(state, ids, manifest, roles) do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 935,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "      Enum.flat_map(manifest[\"structure\"][\"policies\"], fn {rel, ps} ->"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 939,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "              manifest[\"expressions\"][\"policies\"],"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 963,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "  defp privileges!(state, ids, columns, manifest, roles, major) do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 991,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "      Enum.flat_map(manifest[\"structure\"][\"writer_grants\"], fn {rel, g} ->"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1037,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "          grants = manifest[\"structure\"][\"writer_grants\"][r[\"relation\"]]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1079,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+    "text": "      g = manifest[\"structure\"][\"writer_grants\"][c[\"relation\"]]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 3,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex",
+    "text": "  @root Path.expand(\"../../..\", __DIR__)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 5,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex",
+    "text": "                 do: Path.join(@root, \"priv/browser_auth/relation_surface_v1_pg#{major}.json\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 12,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex",
+    "text": "  @manifests Map.new(Enum.zip([16, 17], @resources), fn {major, path} ->"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 13,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex",
+    "text": "               bytes = File.read!(path)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 17,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex",
+    "text": "                 do: raise(\"unreviewed relation manifest\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 21,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex",
+    "text": "  @bindings @manifests[16][\"source_bindings\"]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 22,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex",
+    "text": "  if @bindings != @manifests[17][\"source_bindings\"], do: raise(\"relation source binding mismatch\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 25,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex",
+    "text": "    path = Path.join(Path.dirname(@root), relative)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 27,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex",
+    "text": "    actual = :crypto.hash(:sha256, File.read!(path)) |> Base.encode16(case: :lower)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 31,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex",
+    "text": "  def for_major(major) when major in [16, 17], do: Map.fetch!(@manifests, major)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 32,
+    "path": "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex",
+    "text": "  def names, do: @manifests[16][\"structure\"][\"relations\"] |> Map.keys() |> Enum.sort()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 48,
+    "path": "hosted/lib/mixer_hosted/browser_auth/storage_schema.ex",
+    "text": "  @doc \"Exact source/configuration manifest for independent catalog admission.\""
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 49,
+    "path": "hosted/lib/mixer_hosted/browser_auth/storage_schema.ex",
+    "text": "  def catalog_manifest do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 28,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts.ex",
+    "text": "  @doc \"Uploads only when the signed manifest digest matches the route before any storage effect.\""
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 51,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts.ex",
+    "text": "         :ok <- matching_digest(expected, checked.manifest_sha256) do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 64,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts.ex",
+    "text": "  def read(identity, route_tenant, manifest_sha256, request_metadata) do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 68,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts.ex",
+    "text": "         :ok <- manifest_digest(manifest_sha256),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 74,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts.ex",
+    "text": "        manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 79,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts.ex",
+    "text": "               resolved.manifest_sha256 == manifest_sha256 do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 80,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts.ex",
+    "text": "            PostgresStorage.read(context, manifest_sha256, config)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 187,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts.ex",
+    "text": "  defp manifest_digest(value),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 191,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts.ex",
+    "text": "  defp expected_digest({:at, value}), do: manifest_digest(value)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 17,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "  @artifact_columns ~w(organization_id project_id application_id environment_id platform runtime_sha256 manifest_sha256 payload_sha256 envelope_sha256 envelope_bytes signed_manifest_bytes canonical_manifest_cbor signature payload creating_sequence)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 47,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "                     ~w(organization_id project_id application_id environment_id platform runtime_sha256 manifest_sha256 payload_sha256)a,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 56,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "                \"SELECT principal_id,action,application_id,environment_id,manifest_sha256,request_sha256,event_sequence,status,payload_sha256 FROM public.mixer_customer_idempotency WHERE organization_id=$1 AND project_id=$2 AND key=$3\","
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 75,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "                     env == target.environment_id and digest == checked.manifest_sha256 ->"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 130,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "               \"SELECT #{Enum.join(@artifact_columns, \",\")} FROM public.mixer_customer_artifacts WHERE organization_id=$1 AND project_id=$2 AND manifest_sha256=$3\","
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 151,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "                       \"SELECT #{Enum.join(@artifact_columns, \",\")} FROM public.mixer_customer_artifacts WHERE organization_id=$1 AND project_id=$2 AND manifest_sha256=$3\","
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 157,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "                   manifest_sha256: checked.manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 230,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "        \"SELECT #{Enum.join(@artifact_columns, \",\")} FROM public.mixer_customer_artifacts WHERE organization_id=$1 AND project_id=$2 AND manifest_sha256=$3\","
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 231,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "        tenant(target) ++ [checked.manifest_sha256]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 246,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "            retained[\"canonical_manifest_cbor\"] === checked.canonical_manifest_cbor and"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 287,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "                artifact.manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 291,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "                checked.signed_manifest_bytes,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 292,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "                checked.canonical_manifest_cbor,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 306,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "              ~w(organization_id project_id sequence manifest_sha256 audit_schema event_cbor event_sha256 previous_event_sha256 previous_state_sha256 current_state_sha256 display),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 310,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "                  checked.manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 326,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "              ~w(organization_id project_id key principal_id action application_id environment_id manifest_sha256 request_sha256 event_sequence status payload_sha256),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 334,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "                  checked.manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 355,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "                 result(status, checked.manifest_sha256, checked.payload_sha256, sequence + 1)}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 434,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "      manifest_sha256: c.manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 443,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "    do: %{status: status, manifest_sha256: m, payload_sha256: p, event_sequence: s}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 465,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "        r[\"signed_manifest_bytes\"] === c.signed_manifest_bytes and"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 466,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/postgres_storage.ex",
+    "text": "        r[\"canonical_manifest_cbor\"] === c.canonical_manifest_cbor and"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 26,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        manifest_sha256 text NOT NULL CHECK (manifest_sha256 ~ '^[0-9a-f]{64}$'),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 30,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        signed_manifest_bytes bytea NOT NULL CHECK (octet_length(signed_manifest_bytes) BETWEEN 1 AND 65536),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 31,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        canonical_manifest_cbor bytea NOT NULL CHECK (octet_length(canonical_manifest_cbor) BETWEEN 1 AND 65536),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 35,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        PRIMARY KEY (organization_id,project_id,manifest_sha256),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 45,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        manifest_sha256 text NOT NULL CHECK (manifest_sha256 ~ '^[0-9a-f]{64}$'),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 54,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        FOREIGN KEY (organization_id,project_id,manifest_sha256)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 55,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "          REFERENCES public.mixer_customer_artifacts(organization_id,project_id,manifest_sha256) DEFERRABLE INITIALLY DEFERRED"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 70,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        manifest_sha256 text NOT NULL CHECK (manifest_sha256 ~ '^[0-9a-f]{64}$'),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 79,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        FOREIGN KEY (organization_id,project_id,manifest_sha256)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 80,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "          REFERENCES public.mixer_customer_artifacts(organization_id,project_id,manifest_sha256) DEFERRABLE INITIALLY DEFERRED,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 154,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "         \"TABLE(organization_id text,project_id text,application_id text,environment_id text,platform text,runtime_sha256 text,manifest_sha256 text,signed_manifest_bytes bytea)\","
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 160,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "           RETURN QUERY SELECT a.organization_id,a.project_id,a.application_id,a.environment_id,a.platform,a.runtime_sha256,a.manifest_sha256,a.signed_manifest_bytes"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 161,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "             FROM public.mixer_customer_artifacts a WHERE a.manifest_sha256=digest"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 392,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "      SELECT * INTO STRICT a FROM public.mixer_customer_artifacts x WHERE x.organization_id=org AND x.project_id=proj AND x.manifest_sha256=e.manifest_sha256;"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 394,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        IF NEW.manifest_sha256<>e.manifest_sha256 THEN RAISE EXCEPTION 'creating event belongs to another artifact'; END IF;"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 408,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        OR e.display->'target'<>jsonb_build_array(org,proj,a.application_id,a.environment_id,a.platform,a.runtime_sha256,a.manifest_sha256,a.payload_sha256)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 410,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        OR d.action<>'artifact.upload' OR d.application_id<>a.application_id OR d.environment_id<>a.environment_id OR d.manifest_sha256<>a.manifest_sha256 OR d.payload_sha256<>a.payload_sha256"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 418,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        expected_state:=public.mixer_customer_hash('mixer.hosted.customer.state.v2',jsonb_build_array(2,org,proj,expected_state,n,a.manifest_sha256,e.display->>'envelope_sha256',a.payload_sha256));"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 425,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "      envelope:=convert_from(a.envelope_bytes,'UTF8')::json; document:=convert_from(a.signed_manifest_bytes,'UTF8')::jsonb;"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 426,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "      PERFORM public.mixer_customer_json_shape(convert_from(a.signed_manifest_bytes,'UTF8')::json,0,4096);"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 427,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "      IF (SELECT count(*) FROM json_object_keys(envelope))<>2 OR NOT envelope::jsonb ?& ARRAY['signed_manifest','payload']"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 428,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        OR convert_to((envelope->'signed_manifest')::text,'UTF8')<>a.signed_manifest_bytes"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 429,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        OR (SELECT count(*) FROM jsonb_object_keys(document))<>2 OR NOT document ?& ARRAY['manifest','signature']"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 432,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        OR public.mixer_customer_cbor(document->'manifest')<>a.canonical_manifest_cbor"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 433,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        OR encode(sha256(a.canonical_manifest_cbor),'hex')<>a.manifest_sha256 OR encode(sha256(a.payload),'hex')<>a.payload_sha256 OR encode(sha256(a.envelope_bytes),'hex')<>a.envelope_sha256"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 434,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        OR document->'manifest'->'scope'<>jsonb_build_object('organization',org,'project',proj,'app',a.application_id,'environment',a.environment_id,'platform',a.platform)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 435,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        OR document->'manifest'->>'runtime'<>a.runtime_sha256 OR document->'manifest'->>'payload_sha256'<>a.payload_sha256"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 436,
+    "path": "hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
+    "text": "        OR document->'manifest'->'compressed_bytes'<>to_jsonb(octet_length(a.payload))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 12,
+    "path": "hosted/lib/mixer_hosted/identity/key_owner.ex",
+    "text": "  @allowed ~w(name manifest generation binding ca_roots resolvers worker_supervisor)a"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 34,
+    "path": "hosted/lib/mixer_hosted/identity/key_owner.ex",
+    "text": "  def replace_manifest(owner, expected, candidate),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 54,
+    "path": "hosted/lib/mixer_hosted/identity/key_owner.ex",
+    "text": "         {:ok, entries} <- Manifest.validate(Keyword.get(options, :manifest)),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 278,
+    "path": "hosted/lib/mixer_hosted/identity/key_owner.ex",
+    "text": "      _ -> {:reply, {:error, :invalid_manifest}, s}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 11,
+    "path": "hosted/lib/mixer_hosted/identity/manifest.ex",
+    "text": "      _ -> {:error, :invalid_manifest}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 15,
+    "path": "hosted/lib/mixer_hosted/identity/manifest.ex",
+    "text": "  def validate(_), do: {:error, :invalid_manifest}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 39,
+    "path": "hosted/lib/mixer_hosted/identity/startup_config.ex",
+    "text": "         {:ok, manifest} <- Manifest.validate(entries),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 41,
+    "path": "hosted/lib/mixer_hosted/identity/startup_config.ex",
+    "text": "         true <- Map.has_key?(manifest, binding),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 50,
+    "path": "hosted/lib/mixer_hosted/identity/startup_config.ex",
+    "text": "          manifest: entries,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 17,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "      :signed_manifest_bytes,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 18,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "      :manifest,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 19,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "      :canonical_manifest_cbor,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 22,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "      :manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 34,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "         true <- ArtifactV3Policy.exact?(envelope, ~w(signed_manifest payload)),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 53,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "         true <- ArtifactV3Policy.exact?(signed, ~w(manifest signature)),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 54,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "         manifest = signed[\"manifest\"],"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 55,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "         true <- ArtifactV3Policy.manifest?(manifest),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 56,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "         true <- ArtifactV3Policy.compatible?(manifest, host),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 58,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "           ArtifactV3Policy.authority(roots, manifest[\"key_id\"], manifest[\"scope\"], now),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 60,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "         {:ok, cbor} <- ArtifactCBOR.encode(manifest),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 64,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "           byte_size(payload) == manifest[\"compressed_bytes\"] and"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 65,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "             payload_hash == manifest[\"payload_sha256\"] do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 70,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "         signed_manifest_bytes: signed_bytes,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 71,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "         manifest: manifest,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 72,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "         canonical_manifest_cbor: cbor,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 75,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "         manifest_sha256: digest,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 78,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "           Map.merge(manifest[\"scope\"], %{"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 79,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "             \"runtime\" => manifest[\"runtime\"],"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 80,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "             \"manifest_sha256\" => digest"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 104,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "        {:ok, \"signed_manifest\"} when size <= @signed_limit ->"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 107,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_admission.ex",
+    "text": "        {:ok, \"signed_manifest\"} ->"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 9,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_v3_policy.ex",
+    "text": "  @manifest ~w(schema scope release_id source_commit provenance_id runtime protocol guest_abi ui_schema capability_hashes capability_grants state_min state_max payload_sha256 compressed_bytes expanded_bytes compression asset_hashes source_map_sha256 limits key_id created_at_unix)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 42,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_v3_policy.ex",
+    "text": "  def manifest?(m) do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 43,
+    "path": "hosted/lib/mixer_hosted/protocol/artifact_v3_policy.ex",
+    "text": "    exact?(m, @manifest) and tuple?(m) and scope?(m[\"scope\"]) and"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 82,
+    "path": "hosted/lib/mixer_hosted_web/customer_artifact_controller.ex",
+    "text": "  defp respond(conn, :upload, digest, {:ok, %{status: status, manifest_sha256: digest}})"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 86,
+    "path": "hosted/lib/mixer_hosted_web/customer_artifact_controller.ex",
+    "text": "  defp respond(conn, :read, digest, {:ok, %{manifest_sha256: digest, envelope_bytes: bytes}})"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 96,
+    "path": "hosted/lib/mixer_hosted_web/plugs/customer_artifact_request.ex",
+    "text": "    digest = params[\"manifest_sha256\"]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 285,
+    "path": "hosted/lib/mixer_hosted_web/plugs/customer_artifact_request.ex",
+    "text": "        if is_map(value[\"signed_manifest\"]) and not is_struct(value[\"signed_manifest\"]) and"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 20,
+    "path": "hosted/lib/mixer_hosted_web/router.ex",
+    "text": "    put(\"/artifacts/:manifest_sha256\", MixerHostedWeb.CustomerArtifactController, :upload)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 21,
+    "path": "hosted/lib/mixer_hosted_web/router.ex",
+    "text": "    get(\"/artifacts/:manifest_sha256\", MixerHostedWeb.CustomerArtifactController, :read)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 3,
+    "path": "hosted/scripts/dependency-inventory.exs",
+    "text": "    {:ok, metadata} = :file.consult(String.to_charlist(\"deps/#{name}/hex_metadata.config\"))"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 23,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "import tarfile"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 54,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "RESOURCES = {\"prepare\": (2147483648, 2, 256), \"test\": (2147483648, 2, 256), \"pg\": (1073741824, 1, 128)}"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 93,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "def validate_source_manifest(manifest, expected_digest=FROZEN_PRODUCT_DIGEST, expected_count=177):"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 94,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    require(isinstance(manifest, dict) and len(manifest) == expected_count, \"source path count mismatch\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 95,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    for path, row in manifest.items():"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 101,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    if \"hosted/mix.lock\" in manifest:"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 102,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        require(manifest[\"hosted/mix.lock\"][\"sha256\"] == FROZEN_LOCK_SHA256, \"frozen lock mismatch\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 103,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    require(canonical_digest(manifest) == expected_digest, \"frozen product digest mismatch\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 104,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    return manifest"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 126,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    require(expected[\"ref\"].split(\"@\")[-1] in digests, \"image manifest mismatch\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 202,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    memory, cpus, pids = RESOURCES[role]"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 246,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "def validate_prepared_archive(data, manifest):"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 247,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    require(len(data) <= MAX_ARCHIVE_BYTES and set(manifest) == {\"source\", \"deps\", \"tools\", \"helpers\"}, \"prepared archive/manifest shape\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 248,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    validate_source_manifest(manifest[\"source\"])"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 250,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    for section, rows in manifest.items():"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 253,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "            require(path not in expected, \"duplicate prepared manifest path\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 260,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "                require(path in {\"collector-prerequisites.exs\", \"collector-bootstrap.exs\", \"collector-manifest.exs\", \"collector-netns.exs\", \"collector-observer.exs\", \"frozen-manifest.json\"}, \"helper injection path\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 262,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    with tarfile.open(fileobj=io.BytesIO(data), mode=\"r:\") as archive:"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 270,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    helper_bytes = {\"collector-prerequisites.exs\": PREREQUISITES_EXS.encode(), \"collector-bootstrap.exs\": BOOTSTRAP_EXS.encode(), \"collector-manifest.exs\": MANIFEST_EXS.encode(), \"collector-netns.exs\": NETNS_EXS.encode(), \"collector-observer.exs\": OBSERVER_EXS.encode(), \"frozen-manifest.json\": json.dumps(FROZEN_MANIFEST, sort_keys=True, separators=(\",\", \":\")).encode()}"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 271,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    require(manifest[\"helpers\"] == {path: {\"bytes\": len(body), \"sha256\": hashlib.sha256(body).hexdigest()} for path, body in helper_bytes.items()}, \"collector helper mutation\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 333,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "hash = fn path -> :crypto.hash(:sha256, File.read!(path)) |> Base.encode16(case: :lower) end"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 336,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "  %{type: :regular, mode: mode} = File.stat!(path)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 338,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "  {path, %{\"sha256\" => hash.(path), \"bytes\" => File.stat!(path).size}}"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 343,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "otp_path = Path.join([to_string(:code.root_dir()), \"releases\", \"29\", \"OTP_VERSION\"])"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 344,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "\"29.1.1\" = File.read!(otp_path) |> String.trim()"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 345,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "{mix, 0} = System.cmd(\"/usr/local/bin/mix\", [\"--version\"], stderr_to_stdout: true)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 347,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "{openssl, 0} = System.cmd(\"/usr/bin/openssl\", [\"version\", \"-a\"], stderr_to_stdout: true)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 348,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "{tar, 0} = System.cmd(\"/usr/bin/tar\", [\"--version\"], stderr_to_stdout: true)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 351,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "emit.(%{\"elixir\" => System.version(), \"otp_patch\" => File.read!(otp_path) |> String.trim(), \"mix\" => mix, \"openssl\" => openssl, \"crypto\" => inspect(:crypto.info_lib()), \"tools\" => rows, \"versions\" => versions})"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 357,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    case File.lstat!(path).type do"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 359,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "      :directory -> File.ls!(path) |> Enum.sort() |> Enum.flat_map(&files(Path.join(path, &1)))"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 364,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    bytes = File.read!(path)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 368,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    frozen = File.read!(\"/workspace/frozen-manifest.json\") |> :json.decode()"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 376,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    helpers = Map.new(Path.wildcard(\"/workspace/collector-*.exs\") ++ [\"/workspace/frozen-manifest.json\"], fn path -> {Path.relative_to(path, \"/workspace\"), entry(path)} end)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 394,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "interfaces = File.read!(\"/proc/net/dev\") |> String.split(\"\\n\") |> Enum.drop(2) |> Enum.filter(&String.contains?(&1, \":\")) |> Enum.map(&(String.split(&1, \":\") |> hd() |> String.trim())) |> Enum.sort()"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 395,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "routes = File.read!(\"/proc/net/route\") |> String.split(\"\\n\", trim: true) |> Enum.drop(1) |> Enum.map(&String.split/1)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 398,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "ipv6 = File.read!(\"/proc/net/ipv6_route\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 400,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "status = File.read!(\"/proc/self/status\") |> String.split(\"\\n\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 402,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "{:ok, netns} = File.read_link(\"/proc/self/ns/net\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 410,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    {:ok, output} = File.open(\"/workspace/evidence/events.jsonl\", [:write, :exclusive])"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 436,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "      hash = if File.regular?(path), do: Base.encode16(:crypto.hash(:sha256, File.read!(path)), case: :lower), else: nil"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 440,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    otp = Path.join([to_string(:code.root_dir()), \"releases\", to_string(:erlang.system_info(:otp_release)), \"OTP_VERSION\"])"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 441,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    identity = %{modules: Enum.sort_by(modules, & &1.module), applications: Enum.sort_by(apps, & &1.application), elixir: System.version(), otp_patch: File.read!(otp) |> String.trim(), vm: to_string(:erlang.system_info(:system_version)), architecture: to_string(:erlang.system_info(:system_architecture)), crypto: inspect(:crypto.info_lib())}"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 504,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "      {:ok, io} = File.open(path, [:write, :binary, :exclusive])"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 521,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    [] = File.ls!(\"/workspace/tooling/mix\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 522,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    false = File.exists?(\"/workspace/tooling/rebar3\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 525,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    {installed, 0} = System.cmd(\"/usr/local/bin/mix\", [\"archive.install\", \"/workspace/downloads/hex.ez\", \"--sha512\", \"HEX_SHA\", \"--force\"], stderr_to_stdout: true)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 530,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    {hex_version, 0} = System.cmd(\"/usr/local/bin/elixir\", [\"-pa\", \"/workspace/tooling/mix/archives/hex-2.5.1/hex-2.5.1/ebin\", \"-e\", \":ok = Application.load(:hex); IO.puts(Application.spec(:hex, :vsn))\"], stderr_to_stdout: true)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 532,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    {rebar_version, 0} = System.cmd(\"/workspace/tooling/rebar3\", [\"--version\"], stderr_to_stdout: true)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 560,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    with tarfile.open(fileobj=output, mode=\"w\", format=tarfile.USTAR_FORMAT) as archive:"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 562,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "            member = tarfile.TarInfo(name)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 744,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        recent = failure.encode().lower() + (path.read_bytes().lower() if path.is_file() else b\"\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 771,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        memory, cpus, pids = RESOURCES[role]"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 806,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        literal = \"path = \" + json.dumps(path) + \"; true = File.stat!(path).size <= \" + str(maximum) + \"; IO.binwrite(File.read!(path))\""
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 853,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        paths = [p for p in self.output.rglob(\"*\") if p.is_file() and p.name != \"artifact-manifest.json\"]"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 861,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "                    self.state.setdefault(\"omitted_oversize_archives\", []).append({\"path\": str(path.relative_to(self.output)), \"bytes\": path.stat().st_size, \"sha256\": hashlib.sha256(path.read_bytes()).hexdigest()})"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 864,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "            paths = [p for p in self.output.rglob(\"*\") if p.is_file() and p.name != \"artifact-manifest.json\"]"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 865,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        files = {str(p.relative_to(self.output)): {\"bytes\": p.stat().st_size, \"sha256\": hashlib.sha256(p.read_bytes()).hexdigest()} for p in paths}"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 866,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        write_json(self.output / \"artifact-manifest.json\", {\"schema\": 1, \"files\": files, \"tree_digest_sha256\": canonical_digest(files), \"scope\": self.state[\"execution_scope\"]})"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 897,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        validate_source_manifest(FROZEN_MANIFEST)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 900,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        validate_source_manifest(observed)  # All static product/lock checks precede create/pull."
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 902,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        write_json(self.output / \"product-source-manifest.json\", observed)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 906,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "            require((self.root / path).read_bytes() == body, \"dirty delivered collector/control/workflow: \" + path)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 910,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        packet_paths = [packet_base + \"contract.json\", packet_base + \"packet-manifest.json\"]"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 912,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "            packet_paths += [packet_base + \"inputs/registry/\" + image + suffix for suffix in (\"-index.json\", \"-amd64-manifest.json\", \"-amd64-config.json\")]"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 915,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        packet = json.loads(metadata[packet_base + \"packet-manifest.json\"])"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 918,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "            if path != packet_base + \"packet-manifest.json\":"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 924,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "            for suffix, digest in ((\"-amd64-manifest.json\", image[\"ref\"].split(\"@sha256:\")[1]), (\"-amd64-config.json\", image[\"config\"].removeprefix(\"sha256:\"))):"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 925,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "                require(hashlib.sha256(metadata[packet_base + \"inputs/registry/\" + label + suffix]).hexdigest() == digest, \"static manifest/config pin mismatch\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 938,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        helpers = {\"collector-prerequisites.exs\": PREREQUISITES_EXS.encode(), \"collector-bootstrap.exs\": BOOTSTRAP_EXS.encode(), \"collector-manifest.exs\": MANIFEST_EXS.encode(), \"collector-netns.exs\": NETNS_EXS.encode(), \"collector-observer.exs\": OBSERVER_EXS.encode(), \"frozen-manifest.json\": json.dumps(FROZEN_MANIFEST, sort_keys=True, separators=(\",\", \":\")).encode()}"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 955,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        manifest_output, _, _ = self.execute(prepare, [\"/usr/local/bin/elixir\", \"/workspace/collector-manifest.exs\", \"archive-list\"])"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 956,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        prepared_manifest = json_marker(manifest_output)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 957,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        require(prepared_manifest[\"source\"] == FROZEN_MANIFEST, \"prepare source changed\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 958,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        write_json(self.output / \"prepared-manifest.json\", prepared_manifest)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 961,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        validate_prepared_archive(prepared, prepared_manifest)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 973,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        restored_output, _, _ = self.execute(test, [\"/usr/local/bin/elixir\", \"/workspace/collector-manifest.exs\"])"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 975,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        validate_source_unchanged(prepared_manifest, restored)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 1012,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        before_output, _, _ = self.execute(test, [\"/usr/local/bin/elixir\", \"/workspace/collector-manifest.exs\"], min(15, offline_timeout()))"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 1014,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        validate_source_unchanged(prepared_manifest, before_tests)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 1015,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        write_json(self.output / \"before-tests-manifest.json\", before_tests)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 1016,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        compiled_output, _, _ = self.execute(test, [\"/usr/local/bin/elixir\", \"-e\", 'rows = Map.new(Path.wildcard(\"/workspace/hosted/_build/test/lib/*/ebin/*.beam\"), fn path -> {path, Base.encode16(:crypto.hash(:sha256, File.read!(path)), case: :lower)} end); true = map_size(rows) > 0; IO.puts(\"IDENTITY_JSON=\" <> IO.iodata_to_binary(:json.encode(rows)))'], min(15, offline_timeout()))"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 1042,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        after_output, _, _ = self.execute(test, [\"/usr/local/bin/elixir\", \"/workspace/collector-manifest.exs\"])"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 1045,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        write_json(self.output / \"after-tests-manifest.json\", after_tests)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 1046,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        keydirs, _, _ = self.execute(test, [\"/usr/local/bin/elixir\", \"-e\", 'dirs = Path.wildcard(\"/tmp/mixer-key-owner-tls-*\"); IO.puts(\"IDENTITY_JSON=\" <> IO.iodata_to_binary(:json.encode(%{\"remaining_key_directories\" => dirs})))'])"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 1114,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": " 'hosted/lib/mixer_hosted/browser_auth/catalog_manifest.ex': {'bytes': 3589,"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 1116,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": " 'hosted/lib/mixer_hosted/browser_auth/catalog_manifest_v2.ex': {'bytes': 4450,"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 1132,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": " 'hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex': {'bytes': 1463,"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 1202,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": " 'hosted/lib/mixer_hosted/identity/manifest.ex': {'bytes': 3157,"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 1364,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": " 'hosted/test/mixer_hosted/identity/manifest_endpoint_test.exs': {'bytes': 5208,"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 1428,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        files = {'finalizer.json': {'bytes': (output / 'finalizer.json').stat().st_size, 'sha256': hashlib.sha256((output / 'finalizer.json').read_bytes()).hexdigest()}}"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 1429,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "        write_json(output / 'artifact-manifest.json', {'schema': 1, 'files': files, 'tree_digest_sha256': canonical_digest(files), 'scope': 'collector not run; no test/cleanup qualification'})"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 1431,
+    "path": "hosted/scripts/test-identity-network.py",
+    "text": "    state = json.loads(state_path.read_bytes())"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 12,
+    "path": "hosted/scripts/test-local.py",
+    "text": "import tarfile"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 100,
+    "path": "hosted/scripts/test-local.py",
+    "text": "    return hashlib.sha256(path.read_bytes()).hexdigest()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 103,
+    "path": "hosted/scripts/test-local.py",
+    "text": "def manifest():"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 106,
+    "path": "hosted/scripts/test-local.py",
+    "text": "        for p in sorted(root.rglob(\"*\"))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 137,
+    "path": "hosted/scripts/test-local.py",
+    "text": "before = manifest()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 139,
+    "path": "hosted/scripts/test-local.py",
+    "text": "with tarfile.open(output / \"source.tar.gz\", \"w:gz\") as archive:"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 160,
+    "path": "hosted/scripts/test-local.py",
+    "text": "    rejection = (output / \"release-missing-config.log\").read_text()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 204,
+    "path": "hosted/scripts/test-local.py",
+    "text": "    if (output / \"postgres-timezone.log\").read_text().strip() != \"UTC\":"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 243,
+    "path": "hosted/scripts/test-local.py",
+    "text": "    if before != manifest():"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 17,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "import tarfile"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 160,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "    with tarfile.open(fileobj=memory, mode=\"w\") as out:"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 162,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "            info = tarfile.TarInfo(name)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 165,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "            info.size = len(payload) if kind == tarfile.REGTYPE else 0"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 166,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "            out.addfile(info, io.BytesIO(payload) if kind == tarfile.REGTYPE else None)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 168,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "    return tarfile.open(fileobj=memory, mode=\"r:\")"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 176,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "        collector.validate_source_manifest(copy.deepcopy(collector.FROZEN_MANIFEST))"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 192,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "                collector.validate_source_manifest(value)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 194,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "    def test_wrong_lock_cannot_be_authorized_by_a_new_manifest_digest(self):"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 198,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "            collector.validate_source_manifest(value, expected_digest=canonical_digest(value), expected_count=177)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 200,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "    def test_manifest_structure_cannot_be_authorized_by_its_own_digest(self):"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 206,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "                collector.validate_source_manifest(value, expected_digest=canonical_digest(value), expected_count=177)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 214,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "                collector.validate_source_manifest(value, expected_digest=canonical_digest(value), expected_count=177)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 232,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "    def test_right_manifest_does_not_excuse_wrong_config_or_platform(self):"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 271,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "        with archive([(\"hosted/lib/a.ex\", tarfile.REGTYPE, b\"a\", \"\"),"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 272,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "                      (\"tooling/rebar3\", tarfile.REGTYPE, b\"b\", \"\")]) as value:"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 278,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "            with self.subTest(name=name), archive([(name, tarfile.REGTYPE, b\"x\", \"\")]) as value, \\"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 283,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "        for kind in (tarfile.SYMTYPE, tarfile.LNKTYPE, tarfile.CHRTYPE, tarfile.BLKTYPE, tarfile.FIFOTYPE):"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 289,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "        with archive([(\"hosted/a.ex\", tarfile.REGTYPE, b\"x\", \"\"),"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 290,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "                      (\"hosted/a.ex\", tarfile.REGTYPE, b\"x\", \"\")]) as value, \\"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 295,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "        for entries in ([('hosted/a', tarfile.REGTYPE, b'abc', '')],"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 296,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "                        [('hosted/a', tarfile.REGTYPE, b'ab', ''), ('hosted/b', tarfile.REGTYPE, b'c', '')]):"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 315,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "            \"collector-manifest.exs\": b\"manifest fixture\","
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 321,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "        bodies[\"frozen-manifest.json\"] = json.dumps(source, sort_keys=True, separators=(\",\", \":\")).encode()"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 322,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "        manifest = {\"source\": {}, \"deps\": {}, \"tools\": {}, \"helpers\": {}}"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 325,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "            manifest[section][path] = {\"bytes\": len(body), \"sha256\": hashlib.sha256(body).hexdigest()}"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 326,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "        return bodies, manifest"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 328,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "    def run_fixture(self, bodies, manifest):"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 329,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "        with archive([(name, tarfile.REGTYPE, body, \"\") for name, body in bodies.items()]) as value:"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 333,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "        with mock.patch.object(collector, \"validate_source_manifest\") as source_gate, \\"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 334,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "                mock.patch.multiple(collector, FROZEN_MANIFEST=manifest[\"source\"], BOOTSTRAP=bootstrap,"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 336,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "                                    MANIFEST_EXS=\"manifest fixture\","
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 338,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "            result = collector.validate_prepared_archive(data, manifest)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 339,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "            source_gate.assert_called_once_with(manifest[\"source\"])"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 343,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "        bodies, manifest = self.fixture()"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 344,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "        self.assertEqual(set(bodies), set(self.run_fixture(bodies, manifest)))"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 348,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "            bodies, manifest = self.fixture()"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 356,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "                self.run_fixture(bodies, manifest)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 358,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "    def test_changed_helper_or_rebar_refused_even_with_recomputed_archive_manifest(self):"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 360,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "            bodies, manifest = self.fixture()"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 363,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "            manifest[section][path] = {\"bytes\": len(bodies[path]), \"sha256\": hashlib.sha256(bodies[path]).hexdigest()}"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 365,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "                self.run_fixture(bodies, manifest)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 374,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "            bodies, manifest = self.fixture()"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 376,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "            manifest[section][path] = {\"bytes\": 8, \"sha256\": hashlib.sha256(b\"injected\").hexdigest()}"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 378,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "                self.run_fixture(bodies, manifest)"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 809,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "                self.assertTrue((subject.output / \"artifact-manifest.json\").is_file())"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 828,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "                self.assertTrue((subject.output / \"artifact-manifest.json\").is_file())"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 843,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "            self.assertTrue((subject.output / \"artifact-manifest.json\").is_file())"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 858,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "                    row = json.loads((subject.output / \"logs/0001.json\").read_text())"
+  },
+  {
+    "execution_class": "manifest_and_tar_input_only",
+    "line": 867,
+    "path": "hosted/scripts/test_identity_network_collector.py",
+    "text": "                state = json.loads((subject.output / \"state.json\").read_text())"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 22,
+    "path": "hosted/test/mixer_hosted/audit/customer_artifact_event_test.exs",
+    "text": "  @packet Path.expand(\"../../../../verification/hosted-customer-artifact-event\", __DIR__)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 121,
+    "path": "hosted/test/mixer_hosted/audit/customer_artifact_event_test.exs",
+    "text": "      manifest_sha256: String.duplicate(\"b\", 64),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 180,
+    "path": "hosted/test/mixer_hosted/audit/customer_artifact_event_test.exs",
+    "text": "      |> Path.join(\"golden_event.hex\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 181,
+    "path": "hosted/test/mixer_hosted/audit/customer_artifact_event_test.exs",
+    "text": "      |> File.read!()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 187,
+    "path": "hosted/test/mixer_hosted/audit/customer_artifact_event_test.exs",
+    "text": "      |> Path.join(\"golden_hashes.txt\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 188,
+    "path": "hosted/test/mixer_hosted/audit/customer_artifact_event_test.exs",
+    "text": "      |> File.read!()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 381,
+    "path": "hosted/test/mixer_hosted/audit/customer_artifact_event_test.exs",
+    "text": "    for field <- [:runtime_sha256, :manifest_sha256, :payload_sha256, :envelope_sha256],"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 5,
+    "path": "hosted/test/mixer_hosted/audit/upload_event_test.exs",
+    "text": "  @fixture Path.expand(\"../../fixtures/audit/retained-chains.json\", __DIR__)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 11,
+    "path": "hosted/test/mixer_hosted/audit/upload_event_test.exs",
+    "text": "    |> File.read!()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 39,
+    "path": "hosted/test/mixer_hosted/audit/upload_event_test.exs",
+    "text": "      Path.expand(\"../../fixtures/audit/coherent-vectors.json\", __DIR__)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 40,
+    "path": "hosted/test/mixer_hosted/audit/upload_event_test.exs",
+    "text": "      |> File.read!()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 307,
+    "path": "hosted/test/mixer_hosted/audit/upload_event_test.exs",
+    "text": "      Path.expand(\"../../fixtures/audit/coherent-vectors.json\", __DIR__)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 308,
+    "path": "hosted/test/mixer_hosted/audit/upload_event_test.exs",
+    "text": "      |> File.read!()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 22,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "  @fixture Path.expand(\"../../../../services/protocol/testdata/signed-release-v3.json\", __DIR__)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 58,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "    original = @fixture |> File.read!() |> Jason.decode!()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 59,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "    signed = original[\"signed_manifest\"]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 69,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "    manifest = Map.put(signed[\"manifest\"], \"scope\", scope)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 70,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "    signed = Map.put(signed, \"manifest\", manifest)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 72,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "    {:ok, cbor} = ArtifactCBOR.encode(manifest)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 76,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "      \"{\\\"signed_manifest\\\":\" <>"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 80,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "      manifest: manifest,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 87,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "      row: [\"org\", \"project\", \"app\", environment, \"ios\", manifest[\"runtime\"], hash(cbor), bytes]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 162,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "        runtime_sha256,manifest_sha256,payload_sha256,envelope_sha256,envelope_bytes,signed_manifest_bytes,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 163,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "        canonical_manifest_cbor,signature,payload,creating_sequence)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 167,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "        d.manifest[\"scope\"][\"environment\"],"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 168,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "        d.manifest[\"runtime\"],"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 263,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "        do: Code.require_file(Path.expand(\"../../../priv/repo/migrations/\" <> file, __DIR__))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 385,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "                        ~w(organization_id project_id application_id environment_id platform runtime_sha256 manifest_sha256 signed_manifest_bytes)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 410,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "                          metadata.manifest_sha256 == F.document().digest"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 515,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "      ~w(organization_id project_id application_id environment_id platform runtime_sha256 manifest_sha256 signed_manifest_bytes)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 556,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "          Map.put(d.signed, \"manifest\", Map.put(d.manifest, \"extra\", true))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 717,
+    "path": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "text": "        \"CREATE OR REPLACE FUNCTION public.mixer_customer_artifact_metadata(digest text) RETURNS TABLE(organization_id text,project_id text,application_id text,environment_id text,platform text,runtime_sha256 text,manifest_sha256 text,signed_manifest_bytes bytea) LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=pg_catalog AS 'BEGIN RETURN; END'\""
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 266,
+    "path": "hosted/test/mixer_hosted/authorization/postgres_repository_test.exs",
+    "text": "      Code.require_file("
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 267,
+    "path": "hosted/test/mixer_hosted/authorization/postgres_repository_test.exs",
+    "text": "        Path.expand("
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 181,
+    "path": "hosted/test/mixer_hosted/authorization/transaction_test.exs",
+    "text": "        Code.require_file(Path.expand(\"../../../priv/repo/migrations/\" <> file, __DIR__))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 11,
+    "path": "hosted/test/mixer_hosted/billing/webhook_signature_test.exs",
+    "text": "           |> Path.join(\"../../fixtures/billing/webhook-signature.json\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 12,
+    "path": "hosted/test/mixer_hosted/billing/webhook_signature_test.exs",
+    "text": "           |> File.read!()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 34,
+    "path": "hosted/test/mixer_hosted/browser_auth/config_test.exs",
+    "text": "        manifest: ["
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 71,
+    "path": "hosted/test/mixer_hosted/browser_auth/config_test.exs",
+    "text": "    [entry] = original.owner_options[:manifest]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 84,
+    "path": "hosted/test/mixer_hosted/browser_auth/config_test.exs",
+    "text": "      |> Keyword.put(:manifest, [%{entry | profile: profile}])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 139,
+    "path": "hosted/test/mixer_hosted/browser_auth/config_test.exs",
+    "text": "      # A matching manifest therefore cannot explain the browser denial."
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 140,
+    "path": "hosted/test/mixer_hosted/browser_auth/config_test.exs",
+    "text": "      assert {:ok, _} = Manifest.validate(identity.owner_options[:manifest])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 171,
+    "path": "hosted/test/mixer_hosted/browser_auth/config_test.exs",
+    "text": "  test \"malformed UTF-8 metadata fails with a fixed error in JSON and trusted manifests\" do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 283,
+    "path": "hosted/test/mixer_hosted/browser_auth/config_test.exs",
+    "text": "    [entry] = original.owner_options[:manifest]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 290,
+    "path": "hosted/test/mixer_hosted/browser_auth/config_test.exs",
+    "text": "      options = Keyword.put(original.owner_options, :manifest, [%{entry | profile: profile}])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 298,
+    "path": "hosted/test/mixer_hosted/browser_auth/config_test.exs",
+    "text": "          Keyword.put(original.owner_options, :manifest, [entry, entry]),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 43,
+    "path": "hosted/test/mixer_hosted/browser_auth/migration_spec.exs",
+    "text": "    path = Path.expand(\"../../../priv/repo/migrations\", __DIR__)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 20,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py",
+    "text": "MIGRATIONS = [\"20261024000000_add_oban.exs\", \"20261025000000_add_build_journals.exs\","
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 40,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py",
+    "text": "sources += [\"hosted/priv/repo/migrations/\" + n for n in MIGRATIONS]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 45,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py",
+    "text": "    return hashlib.sha256(path.read_bytes()).hexdigest()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 48,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py",
+    "text": "def source_manifest():"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 53,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py",
+    "text": "           \"migration_filenames\": MIGRATIONS,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 92,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py",
+    "text": "    assert set(MIGRATIONS) == {p.name for p in (ROOT / \"hosted/priv/repo/migrations\").iterdir() if p.is_file()}, \"Unexpected migration directory entry\""
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 93,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py",
+    "text": "    before = source_manifest()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 102,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py",
+    "text": "                   dependency_manifest_sha256=digest(out / \"dependencies.json\"))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 111,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py",
+    "text": "    format_sources = MODULES + [BROWSER + \"activation_preparation.ex\", SPEC] + ASSERTIONS + [\"hosted/priv/repo/migrations/\" + n for n in MIGRATIONS]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 125,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py",
+    "text": "    entrypoint.write_text('ExUnit.start(autorun: false, seed: 0, trace: true)\\nCode.require_file(' + json.dumps(str(inputs / SPEC)) + ')\\nr=ExUnit.run()\\nFile.write!(' + json.dumps(str(result)) + ',Jason.encode!(r))\\nSystem.halt(if r.total==1 and r.failures==0 and r.skipped==0 and r.excluded==0 and Map.get(r,:invalid,0)==0, do: 0, else: 1)\\n')"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 127,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py",
+    "text": "    receipt[\"tests\"] = json.loads(result.read_text())"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 142,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py",
+    "text": "    receipt[\"source_unchanged\"] = bool(before) and before == source_manifest()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 36,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_storage_fixture.py",
+    "text": "source_paths = ["
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 59,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_storage_fixture.py",
+    "text": "    return hashlib.sha256(path.read_bytes()).hexdigest()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 61,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_storage_fixture.py",
+    "text": "def manifest():"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 62,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_storage_fixture.py",
+    "text": "    return {\"sources\": {str(p.relative_to(REPO)): digest(p) for p in source_paths},"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 65,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_storage_fixture.py",
+    "text": "before = manifest()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 66,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_storage_fixture.py",
+    "text": "(OUT / \"source-manifest.json\").write_text(json.dumps(before, indent=2) + \"\\n\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 122,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_storage_fixture.py",
+    "text": "    command += [\"-e\", 'ExUnit.start(seed: 0); Code.require_file(\"hosted/test/mixer_hosted/browser_auth/storage_spec.exs\")']"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 135,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_storage_fixture.py",
+    "text": "    after = manifest()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 137,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_storage_fixture.py",
+    "text": "    (OUT / \"source-manifest-after.json\").write_text(json.dumps(after, indent=2) + \"\\n\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 140,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_storage_fixture.py",
+    "text": "        \"head\": revision, \"source_manifest\": \"source-manifest.json\","
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 141,
+    "path": "hosted/test/mixer_hosted/browser_auth/run_storage_fixture.py",
+    "text": "        \"source_manifest_sha256\": digest(OUT / \"source-manifest.json\"),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 112,
+    "path": "hosted/test/mixer_hosted/browser_auth/runtime_config_test.exs",
+    "text": "    assert {:ok, _} = Manifest.validate(hosted.identity_startup.owner_options[:manifest])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 236,
+    "path": "hosted/test/mixer_hosted/browser_auth/runtime_config_test.exs",
+    "text": "    [entry] = startup.owner_options[:manifest]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 245,
+    "path": "hosted/test/mixer_hosted/browser_auth/runtime_config_test.exs",
+    "text": "      options = Keyword.put(startup.owner_options, :manifest, [%{entry | profile: profile}])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 29,
+    "path": "hosted/test/mixer_hosted/browser_auth/storage_fixture.exs",
+    "text": "        do: Code.require_file(Path.expand(\"../../../priv/repo/migrations/\" <> file, __DIR__))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1,
+    "path": "hosted/test/mixer_hosted/browser_auth/storage_spec.exs",
+    "text": "Code.require_file(\"storage_fixture.exs\", __DIR__)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1043,
+    "path": "hosted/test/mixer_hosted/browser_auth/storage_spec.exs",
+    "text": "  test \"catalog source manifest is exact and public execution is revoked\" do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1044,
+    "path": "hosted/test/mixer_hosted/browser_auth/storage_spec.exs",
+    "text": "    manifest = StorageSchema.catalog_manifest()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1046,
+    "path": "hosted/test/mixer_hosted/browser_auth/storage_spec.exs",
+    "text": "    for {name, expected} <- manifest.functions do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 60,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "      Path.expand(\"../../../../services/protocol/testdata/signed-release-v3.json\", __DIR__)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 61,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "      |> File.read!()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 65,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "    bytes = Jason.encode!(Map.take(f, ~w(signed_manifest payload)))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 136,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "        manifest_sha256: checked.manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 188,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "        artifact.manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 192,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "        checked.signed_manifest_bytes,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 193,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "        checked.canonical_manifest_cbor,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 203,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "          :wrong_canonical -> List.replace_at(values, 11, checked.canonical_manifest_cbor <> \"x\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 204,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "          :wrong_signed_bytes -> List.replace_at(values, 10, checked.signed_manifest_bytes <> \" \")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 206,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "          :wrong_manifest_hash -> List.replace_at(values, 6, String.duplicate(\"a\", 64))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 214,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "          ~w(organization_id project_id application_id environment_id platform runtime_sha256 manifest_sha256 payload_sha256 envelope_sha256 envelope_bytes signed_manifest_bytes canonical_manifest_cbor signature payload creating_sequence),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 222,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "          ~w(organization_id project_id sequence manifest_sha256 audit_schema event_cbor event_sha256 previous_event_sha256 previous_state_sha256 current_state_sha256 display),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 227,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "            artifact.manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 245,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "          ~w(organization_id project_id key principal_id action application_id environment_id manifest_sha256 request_sha256 event_sequence status payload_sha256),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 254,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "            artifact.manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 341,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "        do: Code.require_file(Path.expand(\"../../../priv/repo/migrations/\" <> file, __DIR__))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 436,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "               fn ctx -> PostgresStorage.read(ctx, c.manifest_sha256, config) end,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 504,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "      c.manifest,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 633,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "            \"UPDATE public.mixer_customer_artifacts SET signed_manifest_bytes=signed_manifest_bytes||decode('20','hex')\""
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 643,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "               fn ctx -> PostgresStorage.read(ctx, c.manifest_sha256, config) end,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 659,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "          ~w(artifact_only event_only dedup_only no_artifact no_event no_dedup no_head wrong_payload wrong_signature wrong_canonical wrong_signed_bytes wrong_envelope wrong_manifest_hash cross_tenant wrong_event_cbor broken_predecessor wrong_projection wrong_actor wrong_authorization sequence_gap string_schema)a do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 688,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "                   elem(F.data(), 0).manifest_sha256"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 693,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "                          ~w(organization_id project_id application_id environment_id platform runtime_sha256 manifest_sha256 signed_manifest_bytes)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 830,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "               fn ctx -> PostgresStorage.read(ctx, c.manifest_sha256, config) end,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 849,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "    signed = c.signed_manifest_bytes |> Jason.decode!() |> Jason.encode!(pretty: true)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 852,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "      \"{\\\"signed_manifest\\\":\" <>"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 912,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "                 \"INSERT INTO public.mixer_customer_artifacts (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,manifest_sha256,payload_sha256,envelope_sha256,envelope_bytes,signed_manifest_bytes,canonical_manifest_cbor,signature,payload,creating_sequence) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)\","
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 924,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "                   c.signed_manifest_bytes,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 925,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "                   c.canonical_manifest_cbor,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 969,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "                        c.manifest_sha256"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 996,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "    manifest ="
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 997,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "      c.manifest"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1002,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "    {:ok, cbor} = ArtifactCBOR.encode(manifest)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1007,
+    "path": "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+    "text": "        \"signed_manifest\" => %{\"manifest\" => manifest, \"signature\" => Base.encode64(signature)},"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 58,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "      Path.expand(\"../../../services/protocol/testdata/signed-release-v3.json\", __DIR__)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 59,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "      |> File.read!()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 63,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "    bytes = Jason.encode!(Map.take(f, ~w(signed_manifest payload)))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 146,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "        do: Code.require_file(Path.expand(\"../../priv/repo/migrations/\" <> file, __DIR__))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 198,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "    do: CustomerArtifacts.read(identity, route(), checked.manifest_sha256, metadata())"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 218,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "    refute wrong == checked.manifest_sha256"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 221,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "    assert {:ok, %{status: 201} = first} = put.(checked.manifest_sha256, \"route-key\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 222,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "    assert {:ok, ^first} = put.(checked.manifest_sha256, \"route-key\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 225,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "    assert {:ok, %{status: 200, event_sequence: 2}} = put.(checked.manifest_sha256, \"new-key\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 232,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "    for digest <- [nil, :any, \"\", String.duplicate(\"A\", 64), checked.manifest_sha256 <> \"0\"] do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 256,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "               checked.manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 266,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "               checked.manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 285,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "             manifest_sha256: checked.manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 293,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "    assert {:ok, %{envelope_bytes: bytes, manifest_sha256: digest, payload_sha256: payload}} ="
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 297,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "             {checked.envelope_bytes, checked.manifest_sha256, checked.payload_sha256}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 424,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "               CustomerArtifacts.read(F.identity(), bad, checked.manifest_sha256, metadata())"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 449,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "               CustomerArtifacts.read(F.identity(), route(), checked.manifest_sha256, bad)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 522,
+    "path": "hosted/test/mixer_hosted/customer_artifacts_test.exs",
+    "text": "             CustomerArtifacts.read(F.identity(), other, checked.manifest_sha256, metadata())"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 251,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_inflight_lifecycle_test.exs",
+    "text": "      manifest: [@entry],"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 559,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_inflight_lifecycle_test.exs",
+    "text": "      directory -> File.write!(Path.join(directory, name), Jason.encode!(value, pretty: true))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 47,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_lifecycle_test.exs",
+    "text": "          [{:Certificate, der, :not_encrypted}] = :public_key.pem_decode(File.read!(path))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 62,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_lifecycle_test.exs",
+    "text": "      manifest: [@entry],"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 73,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_lifecycle_test.exs",
+    "text": "      directory -> File.write!(Path.join(directory, name <> \".json\"), Jason.encode!(observation))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 358,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_lifecycle_test.exs",
+    "text": "          Keyword.put(options(name, root), :manifest, []),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 26,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_linux_network_test.exs",
+    "text": "      directory -> File.write!(Path.join(directory, name), bytes)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 65,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "      directory -> File.write!(Path.join(directory, name), bytes)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 81,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "      manifest: entries,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 134,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "  test \"K01 manifest limits and immutable identity transitions\", ctx do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 163,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:error, :invalid_manifest} ="
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 164,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "             KeyOwner.replace_manifest(owner, 1, [put_in(@entry.profile.client_id, \"different\")])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 167,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:ok, 2} = KeyOwner.replace_manifest(owner, 1, [put_in(@entry.profile.enabled, false)])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 172,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:error, :invalid_manifest} = KeyOwner.replace_manifest(owner, 2, [@entry])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 659,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:ok, 2} = KeyOwner.replace_manifest(owner, 1, [put_in(@entry.profile.enabled, false)])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 895,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "      manifest: entries,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1062,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:ok, 2} = KeyOwner.replace_manifest(owner, 1, entries)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1063,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:ok, 3} = KeyOwner.replace_manifest(owner, 2, [])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1065,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:ok, 4} = KeyOwner.replace_manifest(owner, 3, replacement)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1066,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:ok, 5} = KeyOwner.replace_manifest(owner, 4, [])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1069,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:error, :invalid_manifest} ="
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1070,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "             KeyOwner.replace_manifest(owner, 5, [put_in(@entry.profile.profile_id, \"overflow\")])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1077,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:error, :invalid_manifest} ="
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1078,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "             KeyOwner.replace_manifest(owner, 5, ["
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1086,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "             KeyOwner.replace_manifest(owner, 5, [put_in(@entry.profile.profile_version, 2)])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1088,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:error, :invalid_manifest} = KeyOwner.replace_manifest(owner, 6, [@entry])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1100,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:ok, 2} = KeyOwner.replace_manifest(owner, 1, [])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1102,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:error, :invalid_manifest} ="
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1103,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "             KeyOwner.replace_manifest(owner, 2, ["
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1108,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "             KeyOwner.replace_manifest(owner, 2, [put_in(@entry.profile.profile_version, 2)])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1119,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:ok, 2} = KeyOwner.replace_manifest(owner, 1, [])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1121,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:error, :invalid_manifest} = KeyOwner.replace_manifest(owner, 2, [@entry])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1134,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:error, :invalid_manifest} = KeyOwner.replace_manifest(owner, 2, [@entry])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1141,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "      assert {:error, :invalid_manifest} ="
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1142,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "               KeyOwner.replace_manifest(owner, 2, [put_in(candidate.profile.profile_version, 2)])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1146,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "             KeyOwner.replace_manifest(owner, 2, [put_in(@entry.profile.profile_version, 2)])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1148,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:ok, 4} = KeyOwner.replace_manifest(owner, 3, [])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1150,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:error, :invalid_manifest} = KeyOwner.replace_manifest(owner, 4, [@entry])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1152,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:error, :invalid_manifest} ="
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1153,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "             KeyOwner.replace_manifest(owner, 4, [put_in(@entry.profile.profile_version, 2)])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1156,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "             KeyOwner.replace_manifest(owner, 4, [put_in(@entry.profile.profile_version, 3)])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1186,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:ok, 2} = KeyOwner.replace_manifest(owner, 1, [put_in(@entry.profile.enabled, false)])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1188,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:ok, 3} = KeyOwner.replace_manifest(owner, 2, [])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1202,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "  test \"K10b clock faults retire leases without changing reviewed manifest generation\", ctx do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1224,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "    assert {:ok, 2} = KeyOwner.replace_manifest(owner, 1, [put_in(@entry.profile.enabled, false)])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 1235,
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "text": "      manifest: [@entry],"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 104,
+    "path": "hosted/test/mixer_hosted/identity/manifest_endpoint_test.exs",
+    "text": "      assert {:error, :invalid_manifest} = Manifest.validate([entry(host, \"/keys\")])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 110,
+    "path": "hosted/test/mixer_hosted/identity/manifest_endpoint_test.exs",
+    "text": "      assert {:error, :invalid_manifest} ="
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 152,
+    "path": "hosted/test/mixer_hosted/identity/manifest_endpoint_test.exs",
+    "text": "      assert [candidate] = settings.owner_options[:manifest]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 159,
+    "path": "hosted/test/mixer_hosted/identity/manifest_endpoint_test.exs",
+    "text": "      assert {:error, :invalid_manifest} = Manifest.validate([entry(host, path)])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 82,
+    "path": "hosted/test/mixer_hosted/identity/startup_config_test.exs",
+    "text": "      assert length(settings.owner_options[:manifest]) == count"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 84,
+    "path": "hosted/test/mixer_hosted/identity/startup_config_test.exs",
+    "text": "      assert hd(settings.owner_options[:manifest]).profile.identity_class =="
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 87,
+    "path": "hosted/test/mixer_hosted/identity/startup_config_test.exs",
+    "text": "      assert hd(settings.owner_options[:manifest]).profile.enabled == enabled"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 4,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "  @fixtures Path.expand(\"../../../../services/protocol/testdata\", __DIR__)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 5,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "  @fixture Path.join(@fixtures, \"signed-release-v3.json\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 6,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "  @corpus Path.join(@fixtures, \"release-v3-cases.json\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 10,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "    f = @fixture |> File.read!() |> Jason.decode!()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 18,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "    bytes = File.read!(@fixture)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 23,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "        Jason.decode!(binary_part(bytes, start, size)) == \"signed_manifest\""
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 31,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "      \"{\\\"signed_manifest\\\":\" <>"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 58,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "  defp sign(manifest, private, domain \\\\ @domain) do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 59,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "    {:ok, cbor} = ArtifactCBOR.encode(manifest)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 61,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "    Jason.encode!(%{\"manifest\" => manifest, \"signature\" => Base.encode64(signature)})"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 69,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "    assert checked.signed_manifest_bytes == signed_bytes()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 70,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "    assert Base.encode16(checked.canonical_manifest_cbor, case: :lower) == f[\"manifest_cbor_hex\"]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 72,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "    assert Base.encode16(@domain <> checked.canonical_manifest_cbor, case: :lower) =="
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 73,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "             f[\"manifest_message_hex\"]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 75,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "    assert checked.manifest_sha256 == f[\"artifact_sha256\"]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 80,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "               \"manifest_sha256\" => f[\"artifact_sha256\"]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 92,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "  test \"154 unchanged original signed manifest cases and 39 origin plus 14 namespace cases\" do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 94,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "    corpus = @corpus |> File.read!() |> Jason.decode!()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 101,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "      assert match?({:ok, _}, standalone(c[\"signed_manifest_json\"], f)) == c[\"accepted\"],"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 114,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "  test \"every closed manifest, scope, limits, descriptor and entry field rejects missing, extra, case and null\" do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 116,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "    manifest = f[\"signed_manifest\"][\"manifest\"]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 127,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "      value = if path == [], do: manifest, else: get_in(manifest, path)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 145,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "          changed = if path == [], do: replacement, else: put_in(manifest, path, replacement)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 146,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "          refute ArtifactV3Policy.manifest?(changed), inspect({path, key})"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 154,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "        refute ArtifactV3Policy.manifest?(Map.put(manifest, key, bad)), key"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 213,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "    assert data.signed_manifest_bytes == standalone_exact"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 223,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "    assert byte_size(checked.signed_manifest_bytes) == 65_536"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 238,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "      f[\"signed_manifest\"][\"manifest\"]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 298,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "                 \"{\\\"signed_manifest\\\":\" <>"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 304,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "    sm = f[\"signed_manifest\"]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 405,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "    m = ef[\"signed_manifest\"][\"manifest\"]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 437,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "    m = fixture()[\"signed_manifest\"][\"manifest\"]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 451,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "      refute ArtifactV3Policy.manifest?(Map.put(m, key, value)), key"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 461,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "      refute ArtifactV3Policy.manifest?("
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 467,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_admission_test.exs",
+    "text": "    assert ArtifactV3Policy.manifest?(Map.put(m, \"capability_grants\", empty))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 6,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_cbor_test.exs",
+    "text": "  @vector Path.expand(\"../../../../services/protocol/testdata/signed-release-v3.json\", __DIR__)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 78,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_cbor_test.exs",
+    "text": "    vector = @vector |> File.read!() |> Jason.decode!()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 82,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_cbor_test.exs",
+    "text": "          {\"manifest\", \"manifest\", \"mixer.artifact.v3\\0\", 0},"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 98,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_cbor_test.exs",
+    "text": "      if name == \"manifest\" do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 109,
+    "path": "hosted/test/mixer_hosted/protocol/artifact_cbor_test.exs",
+    "text": "             vector[\"signed_manifest\"][\"manifest\"][\"capability_grants\"][\"schema_sha256\"]"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 20,
+    "path": "hosted/test/mixer_hosted_web/bearer_identity_compile_test.exs",
+    "text": "      Path.join(System.tmp_dir!(), \"mixer-bearer-compile-#{System.unique_integer([:positive])}\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 33,
+    "path": "hosted/test/mixer_hosted_web/bearer_identity_compile_test.exs",
+    "text": "      verifier = Path.join(directory, \"verifier.ex\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 34,
+    "path": "hosted/test/mixer_hosted_web/bearer_identity_compile_test.exs",
+    "text": "      clock = Path.join(directory, \"clock.ex\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 35,
+    "path": "hosted/test/mixer_hosted_web/bearer_identity_compile_test.exs",
+    "text": "      pipeline = Path.join(directory, \"pipeline.ex\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 73,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "    manifest = %{"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 129,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "    {:ok, cbor} = ArtifactCBOR.encode(manifest)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 135,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "          \"signed_manifest\" => %{\"manifest\" => manifest, \"signature\" => Base.encode64(signature)},"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 146,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "      File.write!(Path.join(directory, \"requests.jsonl\"), Jason.encode!(value) <> \"\\n\", [:append])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 217,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "        do: Code.require_file(Path.expand(\"../../priv/repo/migrations/\" <> file, __DIR__))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 271,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "      manifest: [entry],"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 333,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "            Path.join(directory, \"http-cleanup.json\"),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 383,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "    do: \"/v3/orgs/org-a/projects/project-a/artifacts/\" <> ctx.checked.manifest_sha256"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 525,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "        Path.join(directory, \"identity-transport.json\"),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 547,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "             \"artifact_sha256\" => ctx.checked.manifest_sha256,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 656,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "      String.replace_suffix(path(ctx), ctx.checked.manifest_sha256, String.duplicate(\"0\", 64))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 805,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "           \"{\\\"signed_manifest\\\":{},\\\"payload\\\":\\\"x\\\",\\\"payload\\\":\\\"x\\\"}\", upload_headers(), 400,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 808,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "           \"{\\\"signed_manifest\\\":{},\\\"payload\\\":\\\"x\\\",\\\"extra\\\":true}\", upload_headers(), 400,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 811,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "           \"{\\\"signed_manifest\\\":{},\\\"payload\\\":\\\"eA==\\\"}\", upload_headers(), 422,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 840,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "    <<first, rest::binary>> = ctx.checked.manifest_sha256"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 847,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "       String.replace(path(ctx), ctx.checked.manifest_sha256, escaped_digest)}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 943,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "text": "        Path.join(directory, \"transaction-boundary.json\"),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 11,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "  @body \" {\\\"payload\\\":\\\"cGF5bG9hZA==\\\", \\\"signed_manifest\\\":{}}\\n\""
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 28,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "         %{status: 201, manifest_sha256: digest, payload_sha256: \"internal\", event_sequence: 99}}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 38,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "           manifest_sha256: digest,"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 130,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "        \"/artifacts/:manifest_sha256\","
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 136,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "        \"/artifacts/:manifest_sha256\","
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 198,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "          \"manifest_sha256\" => @digest"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 312,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "      Process.put(:artifact_transport_result, {:ok, %{status: status, manifest_sha256: @digest}})"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 439,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "      %{conn | path_params: Map.put(conn.path_params, \"manifest_sha256\", digest)}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 687,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "          ~s({\"signed_manifest\":[],\"payload\":\"x\"}),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 688,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "          ~s({\"signed_manifest\":{},\"payload\":[]}),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 689,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "          ~s({\"signed_manifest\":null,\"payload\":\"x\"}),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 690,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "          ~s({\"signed_manifest\":{},\"payload\":null}),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 691,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "          \"{\\\"signed_manifest\\\":{},\\\"payload\\\":\\\"x\\\",\\\"extra\\\":true}\","
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 692,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "          \"{\\\"signed_manifest\\\":{},\\\"payload\\\":\\\"x\\\",\\\"payload\\\":\\\"x\\\"}\","
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 693,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "          \"{\\\"signed_manifest\\\":{\\\"x\\\":1,\\\"x\\\":1},\\\"payload\\\":\\\"x\\\"}\","
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 694,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "          \"{\\\"signed_manifest\\\":{},\\\"payload\\\":\\\"\" <> <<255>> <> \"\\\"}\""
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 725,
+    "path": "hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs",
+    "text": "          {:ok, %{status: 201, manifest_sha256: String.duplicate(\"b\", 64)}}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 91,
+    "path": "hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs",
+    "text": "        File.write!(Path.join(directory, \"requests.jsonl\"), Jason.encode!(value) <> \"\\n\", ["
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 197,
+    "path": "hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs",
+    "text": "      manifest: ["
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 271,
+    "path": "hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs",
+    "text": "            Path.join(directory, \"http-cleanup.json\"),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 474,
+    "path": "hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs",
+    "text": "        Path.join(directory, \"identity-transport.json\"),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 851,
+    "path": "hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs",
+    "text": "        Path.join(directory, \"transaction-boundary.json\"),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 880,
+    "path": "hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs",
+    "text": "      System.cmd(\"node\", [driver, \"http://127.0.0.1:#{ctx.port}\"],"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 893,
+    "path": "hosted/test/mixer_hosted_web/customer_workspace_http_integration_test.exs",
+    "text": "          Path.join(directory, \"node-client-join.json\"),"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 121,
+    "path": "hosted/test/support/identity_startup_fixture.ex",
+    "text": "      dir -> File.write!(Path.join(dir, name), Jason.encode!(value, pretty: true))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 13,
+    "path": "hosted/test/support/identity_tls_fixture.ex",
+    "text": "      Path.join("
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 110,
+    "path": "hosted/test/support/identity_tls_fixture.ex",
+    "text": "        [{_, cert, _}] = :public_key.pem_decode(File.read!(dir <> \"/leaf.pem\"))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 121,
+    "path": "hosted/test/support/identity_tls_fixture.ex",
+    "text": "        [{kind, key, _}] = :public_key.pem_decode(File.read!(dir <> \"/leaf.key\"))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 122,
+    "path": "hosted/test/support/identity_tls_fixture.ex",
+    "text": "        [{_, ca, _}] = :public_key.pem_decode(File.read!(dir <> \"/ca.pem\"))"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 160,
+    "path": "hosted/test/support/identity_tls_fixture.ex",
+    "text": "       key_dir_removed: not File.exists?(dir)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 165,
+    "path": "hosted/test/support/identity_tls_fixture.ex",
+    "text": "    case System.cmd(\"openssl\", args, stderr_to_stdout: true) do"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 17,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "SOURCES = ["
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 20,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "    \"hosted/lib/mixer_hosted/identity/manifest.ex\","
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 25,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "TESTS = ["
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 29,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "EXTRA = ["
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 37,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "    return hashlib.sha256(path.read_bytes()).hexdigest()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 49,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "    files = SOURCES + TESTS + EXTRA"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 50,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "    manifest = {name: sha(ROOT / name) for name in files}"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 52,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "    digest = hashlib.sha256(json.dumps(manifest, sort_keys=True, separators=(\",\", \":\")).encode()).hexdigest()"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 54,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "    (attempt / \"source-inputs.json\").write_text(json.dumps({\"files\": manifest, \"tree_sha256\": digest, \"jason_beams\": dependencies}, indent=2) + \"\\n\")"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 75,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "        run(\"format\", [\"elixir\", \"-e\", 'Enum.each(System.argv(), fn p -> true = File.read!(p) == IO.iodata_to_binary(Code.format_string!(File.read!(p))) <> \"\\\\n\" end)'] + SOURCES[-2:] + TESTS)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 76,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "        run(\"compile\", [\"elixirc\", \"--warnings-as-errors\", \"-pa\", str(dependency), \"-o\", str(scratch)] + SOURCES)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 77,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "        test_code = 'ExUnit.start(autorun: false, seed: 0); Enum.each(System.argv(), &Code.require_file/1); result = ExUnit.run(); IO.puts(\"selected_host_result_json:\" <> Jason.encode!(result)); System.halt(if result.failures == 0, do: 0, else: 1)'"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 78,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "        run(\"tests\", [\"elixir\", \"-pa\", str(dependency), \"-pa\", str(scratch), \"-e\", test_code] + TESTS)"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 79,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "        whitespace_code = 'import pathlib,sys; bad=[f\"{name}:{n}\" for name in sys.argv[1:] for n,line in enumerate(pathlib.Path(name).read_text().splitlines(),1) if line != line.rstrip(\" \\\\t\")]; print(\"owned source trailing whitespace:\", bad); sys.exit(bool(bad))'"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 80,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "        run(\"owned-source-whitespace\", [\"python3\", \"-c\", whitespace_code] + SOURCES[-2:] + TESTS + [\"docs/hosted-browser-auth-protocol.md\", \"verification/hosted-browser-auth-protocol/run.py\"])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 81,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "        run(\"source-whitespace\", [\"git\", \"diff\", \"--check\", \"--\"] + SOURCES[-2:] + TESTS + [\"docs/hosted-browser-auth-protocol.md\", \"verification/hosted-browser-auth-protocol/run.py\"])"
+  },
+  {
+    "execution_class": "reviewed_source_read_or_output_site",
+    "line": 99,
+    "path": "verification/hosted-browser-auth-protocol/run.py",
+    "text": "            for line in tests_output.read_text().splitlines():"
+  }
+]

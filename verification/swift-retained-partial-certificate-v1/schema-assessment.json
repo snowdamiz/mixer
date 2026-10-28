@@ -1,0 +1,153 @@
+{
+  "actual_input_invocation_selected": false,
+  "alternate_diagnostic_configuration_only": true,
+  "certificate_emitted": false,
+  "changes_to_verifier_made": false,
+  "findings": [
+    {
+      "finding": "ROLES is the closed set R,C,O,FCaller,FClosure,FDispatch,FBody. The intermediate Dispatch13624 and Body13616 physical copy slots have no distinct role identities.",
+      "id": "S1",
+      "source": {
+        "line_begin": 47,
+        "line_end_inclusive": 57,
+        "path": "verification/swift-root-bound-dispatch-retained-verifier-v1/source/region_certificate.py",
+        "sha256_of_selected_lines": "c29e0ddebd31481bc5011b3c7a88735ae2ad6e91a769bc5dafbe48cdde34214f"
+      }
+    },
+    {
+      "finding": "semantic_map is a closed object without a storage-stage or copy-edge table. Adding structured stages to the input is rejected as closed object fields.",
+      "id": "S2",
+      "source": {
+        "line_begin": 288,
+        "line_end_inclusive": 293,
+        "path": "verification/swift-root-bound-dispatch-retained-verifier-v1/source/region_certificate.py",
+        "sha256_of_selected_lines": "e40fc99d43dfc65841e70cc1fb642325acaaa46c101d9eb065cd8b63546a386a"
+      }
+    },
+    {
+      "finding": "Region roles must be in ROLES and unique. Reusing R/C or a frame role for additional copy stages is rejected, and changing a role target changes its required meaning.",
+      "id": "S3",
+      "source": {
+        "line_begin": 336,
+        "line_end_inclusive": 342,
+        "path": "verification/swift-root-bound-dispatch-retained-verifier-v1/source/region_certificate.py",
+        "sha256_of_selected_lines": "c154dab2e0252b909bd715f6ce1c18748536b9519ab8f43d5ac077c3affed61a"
+      }
+    },
+    {
+      "finding": "return_chain permits exactly Body->Closure R, Closure->Dispatch R and Dispatch->Caller C; only a free-text argument can describe intermediate stages. This does not retain structured stage identities, intervals or lifetimes, and cannot substantiate a complete map.",
+      "id": "S4",
+      "source": {
+        "line_begin": 406,
+        "line_end_inclusive": 414,
+        "path": "verification/swift-root-bound-dispatch-retained-verifier-v1/source/region_certificate.py",
+        "sha256_of_selected_lines": "a632cfbc8d0d1027fcf112a7391d0fff3ca768f38cd588dd25caa2657d2d8fe7"
+      }
+    },
+    {
+      "finding": "Body normal paths can be recorded while frame.complete=false and nonlocal cleanup/terminate exits stay unresolved. No +63920 restoration step is supported for __Unwind_Resume or panic_in_cleanup.",
+      "id": "S5",
+      "source": {
+        "line_begin": 358,
+        "line_end_inclusive": 379,
+        "path": "verification/swift-root-bound-dispatch-retained-verifier-v1/source/region_certificate.py",
+        "sha256_of_selected_lines": "fd7fe4350c132c938019f26e0a1a6294c056cb303ec2b6eef8fc4c92d138fc84"
+      }
+    },
+    {
+      "finding": "A future explicitly incomplete projection may set affected return_chain.state=unknown; the verifier then records local unresolved sret/PHI/cast/copy. That projection would leave the unsupported copy-stage representation incomplete, and must say so.",
+      "id": "S6",
+      "source": {
+        "line_begin": 406,
+        "line_end_inclusive": 414,
+        "path": "verification/swift-root-bound-dispatch-retained-verifier-v1/source/region_certificate.py",
+        "sha256_of_selected_lines": "a632cfbc8d0d1027fcf112a7391d0fff3ca768f38cd588dd25caa2657d2d8fe7"
+      }
+    },
+    {
+      "finding": "Any missing scope=local suppresses all closed_local_phase_bytes; current unknown alignment and unknown O also remain blockers. No parser-accepted projection has been produced or executed by this packet.",
+      "id": "S7",
+      "source": {
+        "line_begin": 510,
+        "line_end_inclusive": 511,
+        "path": "verification/swift-root-bound-dispatch-retained-verifier-v1/source/region_certificate.py",
+        "sha256_of_selected_lines": "7a8894c9b4320d0094cabd948e8ea69ba9cd795f725c376bc9251aca0c94b954"
+      }
+    }
+  ],
+  "independent_semantic_review_claimed": false,
+  "link_dead_code": true,
+  "minimal_additive_proposal": "Add one closed storage_stages object containing expected stage inventory hash, stages with distinct ids, symbolic arenas/offsets/capacities, native reservation and initialized/value lifetime status, copy edges with bounded representation extent and preserved semantic backing ids, and reviewed_complete. reviewed_complete=false or any missing stage/copy/lifetime must emit local missing and suppress all affected numeric claims. Root independently reviews the exact source inventory; input labels cannot self-declare completeness.",
+  "original_capture_qualified": false,
+  "parent_frame_coverage_does_not_complete_copy_stage_representation": true,
+  "required_distinct_stage_examples": {
+    "Body_loaded": [
+      "%complete at finalSP+21248,13616",
+      "%_58 at finalSP+50192,13616",
+      "%_57 at finalSP+36576,13616",
+      "incoming R payload13616 then root8"
+    ],
+    "Body_setup": [
+      "%_13 at finalSP+256,40",
+      "%refused at finalSP+296,40",
+      "%_29 at finalSP+13952,40",
+      "%_28 at finalSP+336,13616",
+      "incoming R payload13616 then root8"
+    ],
+    "Dispatch": [
+      "R=%owned at E_D-40968,13624",
+      "%_7 at E_D-13672,13624",
+      "%_6 at E_D-27296,13624",
+      "C incoming destination at E_C-13840,13640"
+    ]
+  },
+  "root_accepted_verifier_source": {
+    "actual_geometry_inputs_executed": 0,
+    "actual_immutable_capture_binding_and_scope_levels_match": true,
+    "actual_input_execution_selected": false,
+    "at": "2026-10-28T16:28:18.106068+00:00",
+    "fresh_independent_results": 317,
+    "geometry_algorithm_and_original16test_bodies_unchanged": true,
+    "independent_methods_passed": 32,
+    "independent_review": {
+      "bytes": 3273,
+      "path": "verification/swift-root-bound-dispatch-retained-verifier-independent/seal.json",
+      "sha256": "57f374b75c686fbc62024fd31b2a7ea37e80e33c57016a15b2db99dd3f3b739f"
+    },
+    "next": "Prepare source-bound partial certificate retaining unknown congruences, unknown outer arena and unresolved unwind/callee/backing obligations; independent review before actual-input invocation.",
+    "original_capture_qualified": false,
+    "owned_scratch_removed": true,
+    "producer": {
+      "bytes": 3371,
+      "path": "verification/swift-root-bound-dispatch-retained-verifier-v1/freeze/seal.json",
+      "sha256": "8abb6802e73f98982bf863b16175617ca770a72e264364084aa8fa1c84226ee7"
+    },
+    "producer_methods_passed": 23,
+    "runtime_admission_accepted": false,
+    "schema": 1,
+    "status": "accepted-isolated-alternate-binding-verifier-source-and-synthetic-controls-only",
+    "strict_boolean_and_cross_build_laundering_controls_passed": true,
+    "whole_capacity_prices_root_funding_or_GA_accepted": false
+  },
+  "runtime_admission_accepted": false,
+  "schema": 1,
+  "scope_of_mismatch": "Representational completeness of actual physical copy stages, not retained capture identity or proof that existing partial/fail-closed branches are unsafe.",
+  "selected_geometry_independent_seal": {
+    "bytes": 1769,
+    "path": "verification/swift-retained-geometry-independent/seal.json",
+    "sha256": "e840f9929d49e1abeea6f9c454a60cf589e6fb2a72b211eda857fd64a5a6ef50"
+  },
+  "selected_verifier_independent_seal": {
+    "bytes": 3273,
+    "path": "verification/swift-root-bound-dispatch-retained-verifier-independent/seal.json",
+    "sha256": "57f374b75c686fbc62024fd31b2a7ea37e80e33c57016a15b2db99dd3f3b739f"
+  },
+  "status": "SCHEMA_MISMATCH_NO_COMPLETE_CERTIFICATE_OR_ACTUAL_INVOCATION",
+  "trusted_root_approval_emitted": false,
+  "verifier_import_or_invocation_count": 0,
+  "verifier_source": {
+    "bytes": 41092,
+    "path": "verification/swift-root-bound-dispatch-retained-verifier-v1/source/region_certificate.py",
+    "sha256": "639a154b47f57481c1b7c2900be1cb67e2d3a7e9fe824b19eac23b4a69f32672"
+  }
+}

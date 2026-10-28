@@ -1,0 +1,28 @@
+--- a/.github/workflows/hosted.yml
++++ b/.github/workflows/hosted.yml
+@@ -32,6 +32,25 @@
+     timeout-minutes: 15
+     steps:
+       - uses: actions/checkout@v4
++        with:
++          sparse-checkout-cone-mode: false
++          sparse-checkout: |
++            /hosted/
++            /AGENTS.md
++            /THIRD_PARTY.yml
++            /docs/hosted-browser-auth-protocol.md
++            /docs/hosted-browser-session-storage.md
++            /services/protocol/testdata/signed-release-v3.json
++            /services/protocol/testdata/release-v3-cases.json
++            /console/package.json
++            /console/package-lock.json
++            /console/src/api/workspace-client.ts
++            /console/src/api/workspace-transport.ts
++            /console/src/domain/workspace-directory.ts
++            /verification/hosted-browser-auth-protocol/run.py
++            /verification/hosted-customer-workspace-http-integration/node-client-driver.mjs
++            /verification/hosted-customer-artifact-event/golden_event.hex
++            /verification/hosted-customer-artifact-event/golden_hashes.txt
+       - uses: actions/setup-node@v4
+         with:
+           node-version: '22.23.3'

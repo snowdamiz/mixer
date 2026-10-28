@@ -243,6 +243,28 @@ def safe_members(archive, max_bytes=MAX_ARCHIVE_BYTES):
     return members
 
 
+def validate_transfer_archive(data):
+    """Validate the complete bounded stdin before any container operation."""
+    require(type(data) is bytes and 0 < len(data) <= MAX_ARCHIVE_BYTES, "transfer archive byte cap/type")
+    try:
+        with tarfile.open(fileobj=io.BytesIO(data), mode="r:") as archive:
+            members = safe_members(archive)
+            for member in members:
+                require(member.type in {tarfile.REGTYPE, tarfile.AREGTYPE} and member.sparse is None and member.offset_data == member.offset + 512, "transfer requires plain regular-file headers")
+                require(0 <= member.mode <= 0o777, "transfer special permissions refused")
+                body = archive.extractfile(member)
+                remaining = member.size
+                while remaining:
+                    chunk = body.read(min(65536, remaining))
+                    require(bool(chunk), "truncated transfer member")
+                    remaining -= len(chunk)
+            end = archive.offset
+        require(len(data) % 512 == 0 and len(data) >= end + 1024 and not any(data[end:]), "incomplete/trailing transfer archive")
+    except (tarfile.TarError, EOFError, OSError) as error:
+        raise CollectorError("malformed transfer archive: " + str(error)) from error
+    return data
+
+
 def validate_prepared_archive(data, manifest):
     require(len(data) <= MAX_ARCHIVE_BYTES and set(manifest) == {"source", "deps", "tools", "helpers"}, "prepared archive/manifest shape")
     validate_source_manifest(manifest["source"])
@@ -748,10 +770,13 @@ class Collector:
                 self.persist()
             raise CollectorError("Docker permission refused; exact CID state unknown; no retry")
 
-    def execute(self, owned, argv, timeout=15, *, environment=None, check=True, **options):
+    def execute(self, owned, argv, timeout=15, *, environment=None, check=True, workdir=None, **options):
+        require(workdir is None or (workdir == "/workspace" and owned.role in {"prepare", "test"}), "unreviewed exec workdir")
+        input_bytes = options.get("input_bytes")
+        require(input_bytes is None or (type(input_bytes) is bytes and len(input_bytes) <= MAX_ARCHIVE_BYTES), "exec stdin byte cap/type")
         self.inspect(owned)
         env = environment or BASE_ENV
-        args = ["docker", "exec", "--workdir", "/" if owned.role == "pg" else "/workspace/hosted"]
+        args = ["docker", "exec", *(["-i"] if input_bytes is not None else []), "--workdir", workdir or ("/" if owned.role == "pg" else "/workspace/hosted")]
         args += [part for key, value in sorted(env.items()) for part in ("--env", key + "=" + value)]
         args += [owned.cid, "/usr/bin/env", "-i", *[key + "=" + value for key, value in sorted(env.items())], *argv]
         try:
@@ -793,12 +818,12 @@ class Collector:
         return row
 
     def copy_in(self, owned, data):
-        self.inspect(owned)
-        try:
-            self.command(["docker", "cp", "-", owned.cid + ":/workspace"], 30, input_bytes=data)
-        except CollectorError as error:
-            self.refuse_if_permission_denied(owned, str(error))
-            raise
+        require(owned.role in {"prepare", "test"}, "unreviewed transfer role")
+        validate_transfer_archive(data)
+        # docker cp's daemon path refuses a read-only root even for this tmpfs.
+        # Both generated archives use uid/gid 0. Ignore stored ownership and
+        # special permission restoration; no CHOWN/FOWNER capability is needed.
+        self.execute(owned, ["/usr/bin/tar", "--extract", "--file", "-", "--directory", "/workspace", "--no-same-owner", "--no-same-permissions"], 30, input_bytes=data, workdir="/workspace")
 
     def copy_file_out(self, owned, path, maximum=MAX_COMMAND_BYTES):
         require(path in {"/workspace/prepared.tar", "/workspace/downloads/hex.ez", "/workspace/tooling/rebar3"} or path.startswith("/workspace/evidence/"), "unreviewed copy-out path")

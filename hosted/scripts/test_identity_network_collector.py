@@ -16,6 +16,7 @@ from pathlib import Path
 import sys
 import tarfile
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest import mock
 
@@ -26,7 +27,9 @@ collector = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = collector
 # Import is itself part of the control: an import must never launch work.
 with mock.patch("subprocess.Popen", side_effect=AssertionError("process action during import")), \
-        mock.patch("os.system", side_effect=AssertionError("shell action during import")):
+        mock.patch("os.system", side_effect=AssertionError("shell action during import")), \
+        mock.patch("socket.socket", side_effect=AssertionError("socket action during import")), \
+        mock.patch("socket.create_connection", side_effect=AssertionError("connection action during import")):
     spec.loader.exec_module(collector)
 
 _execution_guards = []
@@ -34,7 +37,7 @@ _execution_guards = []
 
 def setUpModule():
     # Even a producer regression cannot turn a pure control into a child launch.
-    for target in ("subprocess.Popen", "os.system"):
+    for target in ("subprocess.Popen", "os.system", "socket.socket", "socket.create_connection"):
         patcher = mock.patch(target, side_effect=AssertionError("external execution forbidden in pure controls"))
         patcher.start()
         _execution_guards.append(patcher)
@@ -646,13 +649,17 @@ class FakeDocker:
     """A strict transcript fake. Every unknown command is an assertion failure."""
     def __init__(self):
         self.calls = []
+        self.transcripts = []
         self.documents = {}
         self.fail_create = False
         self.deny_exec = False
+        self.exec_response = None
+        self.exec_error = None
         self.absence_error = None
 
     def __call__(self, argv, timeout, input_bytes):
         self.calls.append(list(argv))
+        self.transcripts.append((list(argv), timeout, input_bytes))
         if argv[:2] == ["docker", "create"]:
             if self.fail_create:
                 raise collector.CollectorError("lost create response")
@@ -673,7 +680,9 @@ class FakeDocker:
             cid = next((value for value in argv if value in self.documents), None)
             if cid is None:
                 raise AssertionError("exec did not use a known exact CID")
-            return (1, b"", b"permission denied") if self.deny_exec else (0, b"fixture output", b"")
+            if self.exec_error is not None:
+                raise self.exec_error
+            return self.exec_response or ((1, b"", b"permission denied") if self.deny_exec else (0, b"fixture output", b""))
         if argv[:4] == ["docker", "stop", "--time", "2"] and len(argv) == 5:
             self.documents[argv[4]]["State"]["Running"] = False
             return 0, argv[4].encode(), b""
@@ -708,6 +717,270 @@ class CollectorMethodWiringControls(unittest.TestCase):
                 collector.validate_container_inspect("prepare", document, record)
             self.assertTrue(subject.cleanup())
             self.assertEqual({}, fake.documents)
+
+    def test_copy_in_uses_exact_tar_stdin_cid_workdir_and_cleared_environment(self):
+        expected_env = {
+            "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+            "LANG": "C.UTF-8", "HOME": "/workspace/home", "MIX_ENV": "test",
+            "MIX_HOME": "/workspace/tooling/mix", "MIX_REBAR3": "/workspace/tooling/rebar3",
+            "HEX_HOME": "/workspace/tooling/hex", "XDG_CACHE_HOME": "/workspace/cache",
+            "ERL_CRASH_DUMP": "/workspace/evidence/erl_crash.dump", "ERL_CRASH_DUMP_SECONDS": "0",
+        }
+        data = collector.source_tar({"hosted/lib/a.ex": b"frozen transfer fixture"})
+        with tarfile.open(fileobj=io.BytesIO(data), mode="r:") as value:
+            member = value.getmembers()[0]
+            self.assertEqual((0, 0, 0o644, 0), (member.uid, member.gid, member.mode, member.mtime))
+        for role in ("prepare", "test"):
+            fake = FakeDocker()
+            with self.subTest(role=role), tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+                subject = self.make_collector(directory, fake)
+                record = subject.create(role)
+                before = copy.deepcopy(fake.documents[record.cid])
+                first = len(fake.calls)
+                subject.copy_in(record, data)
+                expected = ["docker", "exec", "-i", "--workdir", "/workspace"]
+                expected += [part for key, value in sorted(expected_env.items()) for part in ("--env", key + "=" + value)]
+                expected += [record.cid, "/usr/bin/env", "-i", *[key + "=" + value for key, value in sorted(expected_env.items())],
+                             "/usr/bin/tar", "--extract", "--file", "-", "--directory", "/workspace",
+                             "--no-same-owner", "--no-same-permissions"]
+                self.assertEqual([["docker", "container", "inspect", record.cid], expected], fake.calls[first:])
+                self.assertEqual(data, fake.transcripts[-1][2])
+                self.assertLessEqual(fake.transcripts[-1][1], 30)
+                self.assertEqual(before, fake.documents[record.cid])
+                self.assertFalse(any(argv[:2] == ["docker", "cp"] for argv in fake.calls))
+                log = json.loads((subject.output / "logs" / f"{subject.command_number:04d}.json").read_text())
+                self.assertEqual(str(subject.root), log["cwd"])
+                self.assertEqual((len(data), hashlib.sha256(data).hexdigest()), (log["stdin_bytes"], log["stdin_sha256"]))
+                self.assertTrue(subject.cleanup())
+
+    def test_copy_in_preserves_executable_bytes_without_owner_or_permission_restore(self):
+        memory = io.BytesIO()
+        with tarfile.open(fileobj=memory, mode="w", format=tarfile.USTAR_FORMAT) as value:
+            member = tarfile.TarInfo("tooling/rebar3")
+            member.size, member.mode, member.uid, member.gid = 7, 0o755, 0, 0
+            value.addfile(member, io.BytesIO(b"fixture"))
+        data = memory.getvalue()
+        fake = FakeDocker()
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            subject = self.make_collector(directory, fake)
+            record = subject.create("test")
+            subject.copy_in(record, data)
+            self.assertEqual(data, fake.transcripts[-1][2])
+            self.assertIn("--no-same-owner", fake.calls[-1])
+            self.assertIn("--no-same-permissions", fake.calls[-1])
+            self.assertTrue(subject.cleanup())
+
+    def test_exec_defaults_keep_original_workdirs_and_closed_override_refuses_before_inspect(self):
+        fake = FakeDocker()
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            subject = self.make_collector(directory, fake)
+            test = subject.create("test")
+            pg = subject.create("pg", test_cid=test.cid)
+            for record, directory_name in ((test, "/workspace/hosted"), (pg, "/")):
+                subject.execute(record, ["fixture-command"])
+                self.assertEqual(["docker", "exec", "--workdir", directory_name], fake.calls[-1][:4])
+                self.assertIsNone(fake.transcripts[-1][2])
+            for record, directory_name in ((test, "/tmp"), (test, "/workspace/../tmp"), (test, "/workspace/hosted"), (pg, "/workspace")):
+                first = len(fake.calls)
+                with self.subTest(role=record.role, directory=directory_name), self.assertRaises(collector.CollectorError):
+                    subject.execute(record, ["fixture-command"], workdir=directory_name)
+                self.assertEqual(first, len(fake.calls))
+                self.assertEqual("owned", record.state)
+            self.assertTrue(subject.cleanup())
+
+    def test_invalid_copy_in_archive_is_refused_before_any_container_command(self):
+        entries = [
+            [(name, tarfile.REGTYPE, b"x", "")] for name in
+            ("/outside", "../outside", "hosted/../outside", "hosted\\outside", "hosted//a", "./hosted/a")
+        ]
+        entries += [[("hosted/a", kind, b"", "hosted/b")] for kind in
+                    (tarfile.SYMTYPE, tarfile.LNKTYPE, tarfile.CHRTYPE, tarfile.BLKTYPE, tarfile.FIFOTYPE, tarfile.DIRTYPE)]
+        entries += [[("hosted/a", tarfile.REGTYPE, b"x", ""), ("hosted/a", tarfile.REGTYPE, b"x", "")]]
+        data = collector.source_tar({"hosted/a": b"body"})
+        invalid = [b"", b"not a tar", data[:515], data + b"trailing data", data[:1024]]
+        for rows in entries:
+            with archive(rows) as value:
+                invalid.append(value.fileobj.getvalue())
+        fake = FakeDocker()
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            subject = self.make_collector(directory, fake)
+            record = subject.create("prepare")
+            for index, value in enumerate(invalid):
+                first = len(fake.calls)
+                with self.subTest(index=index), self.assertRaises(collector.CollectorError):
+                    subject.copy_in(record, value)
+                self.assertEqual(first, len(fake.calls))
+                self.assertEqual("owned", record.state)
+            first = len(fake.calls)
+            with mock.patch.object(collector, "MAX_ARCHIVE_BYTES", len(data) - 1), self.assertRaises(collector.CollectorError):
+                subject.copy_in(record, data)
+            self.assertEqual(first, len(fake.calls))
+            self.assertTrue(subject.cleanup())
+
+    def test_copy_in_refuses_extended_metadata_special_modes_and_stdin_types(self):
+        invalid = [None, "not bytes", bytearray(b"not immutable")]
+        for mode, tar_format, headers, name in ((0o4755, tarfile.USTAR_FORMAT, {}, "hosted/a"),
+                                                (0o644, tarfile.PAX_FORMAT, {"comment": "unreviewed"}, "hosted/a"),
+                                                (0o644, tarfile.GNU_FORMAT, {}, "hosted/" + "a" * 150)):
+            memory = io.BytesIO()
+            with tarfile.open(fileobj=memory, mode="w", format=tar_format) as value:
+                member = tarfile.TarInfo(name)
+                member.size, member.mode, member.pax_headers = 1, mode, headers
+                value.addfile(member, io.BytesIO(b"x"))
+            invalid.append(memory.getvalue())
+        fake = FakeDocker()
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            subject = self.make_collector(directory, fake)
+            record = subject.create("prepare")
+            for index, value in enumerate(invalid):
+                first = len(fake.calls)
+                with self.subTest(index=index), self.assertRaises(collector.CollectorError):
+                    subject.copy_in(record, value)
+                self.assertEqual(first, len(fake.calls))
+            self.assertTrue(subject.cleanup())
+
+    def test_copy_in_permission_refusal_preserves_sticky_custody_and_no_cleanup_retry(self):
+        for stderr in (b"permission denied", b"operation not permitted", b"access denied"):
+            fake = FakeDocker()
+            fake.exec_response = (1, b"", stderr)
+            with self.subTest(stderr=stderr), tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+                subject = self.make_collector(directory, fake)
+                record = subject.create("prepare")
+                with self.assertRaises(collector.CollectorError):
+                    subject.copy_in(record, collector.source_tar({"hosted/a": b"x"}))
+                self.assertEqual("identity_lost", record.state)
+                first = len(fake.calls)
+                self.assertFalse(subject.cleanup())
+                self.assertEqual(first, len(fake.calls))
+                self.assertEqual("FAILED-unknown-or-incomplete", subject.state["cleanup"]["status"])
+
+    def test_copy_in_identity_loss_refuses_exec_and_never_retries_cleanup(self):
+        fake = FakeDocker()
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            subject = self.make_collector(directory, fake)
+            record = subject.create("prepare")
+            fake.documents[record.cid]["Name"] = "/foreign-container"
+            first = len(fake.calls)
+            with self.assertRaises(collector.CollectorError):
+                subject.copy_in(record, collector.source_tar({"hosted/a": b"x"}))
+            self.assertEqual([["docker", "container", "inspect", record.cid]], fake.calls[first:])
+            self.assertEqual("identity_lost", record.state)
+            first = len(fake.calls)
+            self.assertFalse(subject.cleanup())
+            with self.assertRaises(collector.CollectorError):
+                subject.copy_in(record, collector.source_tar({"hosted/a": b"x"}))
+            self.assertEqual(first, len(fake.calls))
+
+    def test_run_finally_freezes_tar_failure_before_exact_owned_cleanup(self):
+        fake = FakeDocker()
+        fake.exec_response = (2, b"", b"tar: fixture extraction failure")
+        testcase = self
+        class FaultingCollector(collector.Collector):
+            def collect(self):
+                record = self.create("prepare")
+                self.copy_in(record, collector.source_tar({"hosted/a": b"x"}))
+
+            def cleanup(self):
+                testcase.assertTrue(self.state["primary_outcome_frozen"])
+                testcase.assertEqual("FAILED-or-partial", self.state["status"])
+                return super().cleanup()
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            subject = self.make_collector(directory, fake, FaultingCollector)
+            self.assertEqual(1, subject.run())
+            self.assertEqual("FAILED-or-partial", subject.state["status"])
+            self.assertEqual("verified-exact-created-IDs-absent", subject.state["cleanup"]["status"])
+            self.assertEqual({}, fake.documents)
+            self.assertEqual(1, sum(argv[:2] == ["docker", "exec"] for argv in fake.calls))
+            self.assertTrue((subject.output / "artifact-manifest.json").is_file())
+            self.assertFalse((subject.output / ".scratch").exists())
+
+    def test_copy_in_timeout_and_output_overflow_fail_without_transfer_retry(self):
+        for failure in ("injected-timeout", "stdout-overflow"):
+            fake = FakeDocker()
+            if failure == "injected-timeout":
+                fake.exec_error = collector.CollectorError("command timeout/output incomplete")
+            else:
+                fake.exec_response = (0, b"x" * (collector.MAX_COMMAND_BYTES + 1), b"")
+            class FaultingCollector(collector.Collector):
+                def collect(self):
+                    record = self.create("prepare")
+                    self.copy_in(record, collector.source_tar({"hosted/a": b"x"}))
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+                subject = self.make_collector(directory, fake, FaultingCollector)
+                self.assertEqual(1, subject.run())
+                self.assertEqual("FAILED-or-partial", subject.state["status"])
+                self.assertTrue(subject.state["primary_outcome_frozen"])
+                self.assertEqual("verified-exact-created-IDs-absent", subject.state["cleanup"]["status"])
+                self.assertEqual({}, fake.documents)
+                self.assertEqual(1, sum(argv[:2] == ["docker", "exec"] for argv in fake.calls))
+                command_logs = [json.loads(path.read_text()) for path in (subject.output / "logs").glob("*.json")]
+                transfer = next(row for row in command_logs if row["argv"][:2] == ["docker", "exec"])
+                self.assertFalse(transfer["stdout_complete"])
+                self.assertFalse(transfer["stderr_complete"])
+                if failure == "stdout-overflow":
+                    self.assertTrue(transfer["overflow"])
+                self.assertFalse((subject.output / ".scratch").exists())
+
+    def test_bounded_command_stdin_closes_at_exact_input_eof_without_a_process(self):
+        class Pipe:
+            def __init__(self, number):
+                self.number, self.closed = number, False
+
+            def fileno(self):
+                return self.number
+
+            def close(self):
+                self.closed = True
+
+        process = SimpleNamespace(stdin=Pipe(101), stdout=Pipe(102), stderr=Pipe(103), returncode=0)
+        waited_after_eof = []
+        process.wait = lambda **options: waited_after_eof.append(process.stdin.closed)
+        process.poll = lambda: 0
+
+        class Selector:
+            def __init__(self):
+                self.registered = {}
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *error):
+                return False
+
+            def register(self, pipe, events, kind):
+                self.registered[pipe] = SimpleNamespace(fileobj=pipe, data=kind)
+
+            def unregister(self, pipe):
+                del self.registered[pipe]
+
+            def get_map(self):
+                return self.registered
+
+            def select(self, timeout):
+                return [(key, 0) for key in list(self.registered.values())]
+
+        data = collector.source_tar({"hosted/a": b"x" * 131073})
+        sent = bytearray()
+        def send(number, chunk):
+            self.assertEqual(101, number)
+            count = min(32768, len(chunk))
+            sent.extend(chunk[:count])
+            return count
+        fake = FakeDocker()
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            subject = self.make_collector(directory, fake)
+            subject.runner = None
+            with mock.patch.object(collector.subprocess, "Popen", return_value=process) as spawn, \
+                    mock.patch.object(collector.selectors, "DefaultSelector", Selector), \
+                    mock.patch.object(collector.os, "set_blocking"), \
+                    mock.patch.object(collector.os, "read", return_value=b""), \
+                    mock.patch.object(collector.os, "write", side_effect=send):
+                self.assertEqual((b"", b"", 0), subject.command(["fake-bounded-stdin"], 30, input_bytes=data))
+            self.assertEqual(data, bytes(sent))
+            self.assertEqual([True], waited_after_eof)
+            self.assertTrue(all(pipe.closed for pipe in (process.stdin, process.stdout, process.stderr)))
+            self.assertEqual(str(subject.root), str(spawn.call_args.kwargs["cwd"]))
+            self.assertEqual(collector.subprocess.PIPE, spawn.call_args.kwargs["stdin"])
 
     def test_lost_create_response_stays_unresolved_and_never_uses_name_cleanup(self):
         fake = FakeDocker()
