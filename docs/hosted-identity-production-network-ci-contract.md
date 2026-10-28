@@ -180,6 +180,55 @@ retain their previous scratch handling; no additional container path or
 private file retention is authorized. Source and pure control evidence is in
 `verification/identity-network-binary-export-correction/`.
 
+Run `40753111388` for `56ff14c925168284761c5aca4f0bd4129cf3c995`
+verified the corrected Hex export (1,133,941 bytes) and Rebar export (823,379
+bytes), locked dependency preparation, the 1,232-file prepared archive and
+exact restore, private PostgreSQL 16.15 scope/nonroot checks, offline dependency
+compilation and product compilation with warnings as errors. It then failed
+the source comparison after command 89. The only manifest difference was a
+new 895-byte file at
+`hosted/deps/telemetry/_build/prod/lib/.rebar3/rebar_compiler_erl/source.dag`,
+SHA256 `71360df95b056715d6215b91ba581e4dd91d850f4894c13720f142075a53d685`.
+Those raw DAG bytes and their file/ancestor metadata were not retained. No
+product method ran. All 107 command streams and all three exact container
+stop/remove/absence outcomes were independently verified in
+`verification/github-delivery-binary-export-and-ui/network-review/`.
+
+The sibling correction at `verification/identity-network-rebar-output-correction/`
+separates that exact compiler metadata path from immutable inputs only after
+offline compilation. The prepared archive still forbids every `_build`
+payload, and restored input equality stays exact. The locked telemetry
+`rebar.config`, `src/telemetry.erl` and `src/telemetry.app.src` must match their
+sealed prepared input hashes. Every other source, dependency, tool and helper
+entry must match the prepared manifest exactly; an adjacent file or any other
+build output fails. This is a single-path classification supported by the
+observed phase/difference, frozen lock and pinned Rebar's embedded compiler
+metadata literals. It does not establish the lost DAG's contents or semantic
+validity, and accepts no previously observed DAG hash as authority.
+
+The changed `collector-manifest.exs` literal checks the new file and each fixed
+ancestor with `lstat`. It requires a regular, single-link, root-owned `0644`
+file, root-owned `0755` directory ancestors and 1–65,536 bytes before reading.
+The compiled manifest retains size, SHA256 and these exact identity facts.
+A fixed `export-generated` helper operation exports only that path from the
+owned test container before test authorization. Its bounded bytes survive
+host equality/hash refusal under `compiler-generated/telemetry-source.dag`;
+the accompanying receipt joins the exact CID/path/phase, observed size/hash,
+manifest row and command completion/exit facts. Partial output stays partial,
+and repeat capture refuses overwrite. The generic file-export allowlist and
+total artifact cap remain unchanged. The raw bytes must match the compiled
+manifest before prepared-input equality and test authorization can pass.
+The collector treats this data as opaque. The post-test comparison requires
+exact full equality, including the DAG bytes and identity metadata.
+
+The old literal helper remains preserved in the frozen predecessor packets
+and the sibling's before snapshot. This helper-binding change adds only the
+fixed metadata/export operation described here; mounts, capabilities,
+downloads and compile operations remain pinned.
+The root-owned `0644`/`0755` metadata expectations and helper syntax still need
+fresh isolated Linux CI evidence; no local Elixir compiler or container was
+used to validate them.
+
 ## Evidence and bounds
 
 The existing Mix test alias remains unchanged. The collector selects exactly
@@ -226,10 +275,13 @@ native devices or GA. Production fixture exclusion is qualified by a separate
 ordinary Phoenix run for the delivered source, or explicitly reviewed reuse of
 unchanged-source evidence. Native runtime and computer-use pauses remain active.
 
-The binary-export correction covers source and pure Python controls only.
-The reviewed prior run qualifies actual preparation tool/crypto/CA and mount
-results, complete bootstrap/direct Rebar execution, and exact owned cleanup
-for that failed attempt. Corrected Hex and Rebar host exports, locked dependency
-resolution, prepared archive transfer/restore, compilation, the two product
-methods and all new-attempt isolation/cleanup remain pending independently
-reviewed runtime evidence.
+The Rebar-output correction covers source and pure Python controls only. The
+reviewed prior run establishes its listed preparation, export, restore,
+compilation and cleanup observations for that failed attempt. A fresh isolated
+`identity-production-network` CI attempt must establish the changed helper,
+bounded raw DAG capture and immutable-input comparison, then collect loaded
+module identities, authorize and pass both unchanged product methods, retain
+semantic receipts, verify the current ten migrations and post-test equality,
+and independently verify all fresh-attempt isolation and cleanup. These
+remain pending; the previous successful binary exports do not qualify a new
+attempt or establish a complete network-method pass.

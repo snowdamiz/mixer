@@ -122,6 +122,14 @@ MAX_COMMAND_BYTES = 8388608
 MAX_LOG_BYTES = 67108864
 MAX_ARCHIVE_BYTES = 536870912
 MAX_ARTIFACT_BYTES = 268435456
+GENERATED_DAG_PATH = "hosted/deps/telemetry/_build/prod/lib/.rebar3/rebar_compiler_erl/source.dag"
+MAX_GENERATED_DAG_BYTES = 65536
+GENERATED_DAG_PARENTS = ["/workspace", "/workspace/hosted", "/workspace/hosted/deps", "/workspace/hosted/deps/telemetry", "/workspace/hosted/deps/telemetry/_build", "/workspace/hosted/deps/telemetry/_build/prod", "/workspace/hosted/deps/telemetry/_build/prod/lib", "/workspace/hosted/deps/telemetry/_build/prod/lib/.rebar3", "/workspace/hosted/deps/telemetry/_build/prod/lib/.rebar3/rebar_compiler_erl"]
+TELEMETRY_INPUTS = {
+    "hosted/deps/telemetry/rebar.config": {"bytes": 943, "sha256": "2ac5ee04618133d912fcafe68859904ee88aa7bfac678c8165ce1dfb32cbc3b0"},
+    "hosted/deps/telemetry/src/telemetry.erl": {"bytes": 17044, "sha256": "8bb2a1fa116def38f63a5b36b65fdc9af98022e6e378e047f38d49b584564278"},
+    "hosted/deps/telemetry/src/telemetry.app.src": {"bytes": 533, "sha256": "29778243956492d0d255bf2289fe5e4f6b10f22d282ca5679015a478c1eb33d2"},
+}
 
 
 class CollectorError(ValueError):
@@ -359,6 +367,29 @@ def validate_source_manifest(manifest, expected_digest=FROZEN_PRODUCT_DIGEST, ex
 def validate_source_unchanged(before, after):
     require(isinstance(before, dict) and isinstance(after, dict) and canonical_digest(before) == canonical_digest(after), "source/dependency/tool mutation")
     return after
+
+
+def validate_generated_dag_row(row):
+    require(isinstance(row, dict) and set(row) == {"bytes", "sha256", "type", "links", "uid", "gid", "mode", "parents"}, "generated DAG row shape")
+    require(type(row["bytes"]) is int and 0 < row["bytes"] <= MAX_GENERATED_DAG_BYTES and isinstance(row["sha256"], str) and bool(re.fullmatch("[0-9a-f]{64}", row["sha256"])), "generated DAG byte/hash bound")
+    identity = {key: row[key] for key in ("type", "links", "uid", "gid", "mode")}
+    require(canonical_digest(identity) == canonical_digest({"type": "regular", "links": 1, "uid": 0, "gid": 0, "mode": 0o644}), "generated DAG file identity")
+    parents = {path: {"type": "directory", "uid": 0, "gid": 0, "mode": 0o755} for path in GENERATED_DAG_PARENTS}
+    require(canonical_digest(row["parents"]) == canonical_digest(parents), "generated DAG parent identity")
+    return row
+
+
+def validate_compiled_source_unchanged(prepared, compiled):
+    """Admit one fresh opaque compiler output; keep every prepared input exact."""
+    require(isinstance(prepared, dict) and isinstance(compiled, dict) and set(prepared) == set(compiled) == {"source", "deps", "tools", "helpers"}, "compiled manifest sections")
+    require(all(isinstance(value, dict) for value in [*prepared.values(), *compiled.values()]), "compiled manifest section shape")
+    validate_source_manifest(prepared["source"])
+    require(GENERATED_DAG_PATH not in prepared["deps"], "generated DAG present before compilation")
+    require(all(prepared["deps"].get(path) == row for path, row in TELEMETRY_INPUTS.items()), "locked telemetry compiler inputs missing or changed")
+    validate_generated_dag_row(compiled["deps"].get(GENERATED_DAG_PATH))
+    inputs = {**compiled, "deps": {path: row for path, row in compiled["deps"].items() if path != GENERATED_DAG_PATH}}
+    validate_source_unchanged(prepared, inputs)
+    return compiled
 
 
 def validate_environment(caller_env):
@@ -673,6 +704,8 @@ emit.(%{"elixir" => System.version(), "otp_patch" => File.read!(otp_path) |> Str
 
 MANIFEST_EXS = r'''
 defmodule MixerIdentityNetworkCollector.Manifest do
+  @generated "/workspace/hosted/deps/telemetry/_build/prod/lib/.rebar3/rebar_compiler_erl/source.dag"
+  @generated_parents ["/workspace", "/workspace/hosted", "/workspace/hosted/deps", "/workspace/hosted/deps/telemetry", "/workspace/hosted/deps/telemetry/_build", "/workspace/hosted/deps/telemetry/_build/prod", "/workspace/hosted/deps/telemetry/_build/prod/lib", "/workspace/hosted/deps/telemetry/_build/prod/lib/.rebar3", "/workspace/hosted/deps/telemetry/_build/prod/lib/.rebar3/rebar_compiler_erl"]
   def files(path) do
     case File.lstat!(path).type do
       :regular -> [path]
@@ -680,9 +713,31 @@ defmodule MixerIdentityNetworkCollector.Manifest do
       _ -> raise "non-regular source/dependency/tool input"
     end
   end
+  def generated_identity do
+    parents = Map.new(@generated_parents, fn path ->
+      %{type: :directory, uid: 0, gid: 0, mode: mode} = File.lstat!(path)
+      0o755 = Bitwise.band(mode, 0o7777)
+      {path, %{"type" => "directory", "uid" => 0, "gid" => 0, "mode" => 0o755}}
+    end)
+    %{type: :regular, links: 1, uid: 0, gid: 0, mode: mode, size: size} = File.lstat!(@generated)
+    0o644 = Bitwise.band(mode, 0o7777)
+    true = size > 0 and size <= 65536
+    %{"type" => "regular", "links" => 1, "uid" => 0, "gid" => 0, "mode" => 0o644, "parents" => parents}
+  end
   def entry(path) do
+    identity = if path == @generated, do: generated_identity(), else: %{}
     bytes = File.read!(path)
-    %{"bytes" => byte_size(bytes), "sha256" => Base.encode16(:crypto.hash(:sha256, bytes), case: :lower)}
+    if path == @generated do
+      true = byte_size(bytes) > 0 and byte_size(bytes) <= 65536
+    end
+    Map.merge(identity, %{"bytes" => byte_size(bytes), "sha256" => Base.encode16(:crypto.hash(:sha256, bytes), case: :lower)})
+  end
+  def export_generated do
+    generated_identity()
+    bytes = File.read!(@generated)
+    true = byte_size(bytes) > 0 and byte_size(bytes) <= 65536
+    :ok = :io.setopts(:standard_io, encoding: :latin1)
+    :ok = IO.binwrite(bytes)
   end
   def run do
     frozen = File.read!("/workspace/frozen-manifest.json") |> :json.decode()
@@ -703,7 +758,10 @@ defmodule MixerIdentityNetworkCollector.Manifest do
     IO.puts("IDENTITY_JSON=" <> IO.iodata_to_binary(:json.encode(value)))
   end
 end
-MixerIdentityNetworkCollector.Manifest.run()
+case System.argv() do
+  ["export-generated"] -> MixerIdentityNetworkCollector.Manifest.export_generated()
+  args when args in [[], ["archive-list"]] -> MixerIdentityNetworkCollector.Manifest.run()
+end
 '''
 
 NETNS_EXS = r'''
@@ -1174,6 +1232,25 @@ class Collector:
             destination.unlink()
         return result
 
+    def capture_generated_dag(self, owned, expected, timeout=15):
+        require(owned.role == "test" and owned.state == "owned", "generated DAG export requires owned test role")
+        require(type(timeout) in (int, float) and 0 < timeout <= 15, "generated DAG export time bound")
+        validate_generated_dag_row(expected)
+        destination = self.output / "compiler-generated" / "telemetry-source.dag"
+        destination.parent.mkdir(exist_ok=True)
+        require(not destination.exists(), "generated DAG capture already retained")
+        try:
+            body, _, _ = self.execute(owned, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs", "export-generated"], timeout, limit=MAX_GENERATED_DAG_BYTES, binary_path=destination)
+        finally:
+            if destination.is_file():
+                require(destination.stat().st_size <= MAX_GENERATED_DAG_BYTES, "retained generated DAG capture cap")
+                actual = destination.read_bytes()
+                log = self.output / "logs" / f"{self.command_number:04d}.json"
+                command = json.loads(log.read_bytes()) if log.is_file() else {}
+                write_json(destination.with_suffix(".json"), {"schema": 1, "classification": "opaque-postcompile-rebar-telemetry-metadata", "container_path": "/workspace/" + GENERATED_DAG_PATH, "owned_cid": owned.cid, "role": owned.role, "phase": "after-offline-compile-before-test-authorization", "command_number": self.command_number, "maximum_bytes": MAX_GENERATED_DAG_BYTES, "bytes": len(actual), "sha256": hashlib.sha256(actual).hexdigest(), "expected_manifest_row": expected, "stdout_complete": command.get("stdout_complete"), "stderr_complete": command.get("stderr_complete"), "command_exit_code": command.get("exit_code"), "qualification": "bounded-opaque-command-stdout-only-before-host-input-equality-validation"})
+        require({"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} == {key: expected[key] for key in ("bytes", "sha256")}, "generated DAG capture differs from compiled manifest")
+        return {"path": GENERATED_DAG_PATH, "bytes": len(body), "sha256": hashlib.sha256(body).hexdigest(), "classification": "opaque-postcompile-rebar-telemetry-metadata"}
+
     def stop_remove(self, owned):
         self.inspect(owned, cleanup=True)
         self.docker(owned, ["stop", "--time", "2"], cleanup=True)
@@ -1383,8 +1460,11 @@ class Collector:
         self.execute(test, ["/usr/local/bin/mix", "compile", "--warnings-as-errors"], offline_timeout())
         before_output, _, _ = self.execute(test, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs"], min(15, offline_timeout()))
         before_tests = json_marker(before_output)
-        validate_source_unchanged(prepared_manifest, before_tests)
         write_json(self.output / "before-tests-manifest.json", before_tests)
+        generated = self.capture_generated_dag(test, before_tests.get("deps", {}).get(GENERATED_DAG_PATH), min(15, offline_timeout()))
+        require(time.monotonic() <= offline_until, "offline phase deadline exceeded during generated DAG capture")
+        validate_compiled_source_unchanged(prepared_manifest, before_tests)
+        write_json(self.output / "compiled-input-validation.json", {"prepared_manifest_sha256": canonical_digest(prepared_manifest), "compiled_manifest_sha256": canonical_digest(before_tests), "prepared_inputs_unchanged": True, "generated_output": generated, "generated_output_was_absent_before_compile": True, "remaining_dependency_entries_unchanged": True, "artifact_contents_interpreted_or_executed": False})
         compiled_output, _, _ = self.execute(test, ["/usr/local/bin/elixir", "-e", 'rows = Map.new(Path.wildcard("/workspace/hosted/_build/test/lib/*/ebin/*.beam"), fn path -> {path, Base.encode16(:crypto.hash(:sha256, File.read!(path)), case: :lower)} end); true = map_size(rows) > 0; IO.puts("IDENTITY_JSON=" <> IO.iodata_to_binary(:json.encode(rows)))'], min(15, offline_timeout()))
         write_json(self.output / "compiled-modules-before-tests.json", json_marker(compiled_output))
         validate_container_environment("test", self.inspect(test))
@@ -1393,7 +1473,7 @@ class Collector:
         validate_namespace(json_marker(fresh_namespace), host_netns)
         # The flag is constructed here only, after actual source/tool/isolation checks.
         flag_env = {**TEST_ENV, "MIXER_ISOLATED_NETNS": "1"}
-        write_json(self.output / "test-authorization.json", {"allowed_environment": flag_env, "owned_test_cid": test.cid, "owned_pg_cid": pg.cid, "actual_namespace": namespace["netns"], "source_unchanged": True, "prerequisites_observed": True, "mount_policy_observed": True, "assertions_before_flag": True})
+        write_json(self.output / "test-authorization.json", {"allowed_environment": flag_env, "owned_test_cid": test.cid, "owned_pg_cid": pg.cid, "actual_namespace": namespace["netns"], "source_unchanged": True, "generated_output": generated, "prerequisites_observed": True, "mount_policy_observed": True, "assertions_before_flag": True})
         argv = ["/usr/local/bin/elixir", "-r", "/workspace/collector-observer.exs", "-S", "mix", "test", "--warnings-as-errors", "--seed", "0", "--trace", "--no-color", "--formatter", "ExUnit.CLIFormatter", "--formatter", "MixerIdentityNetworkCollector.Observer", *TEST_ROOTS]
         _, _, test_exit = self.execute(test, argv, offline_timeout(), environment=flag_env, check=False)
         require(time.monotonic() <= offline_until, "offline phase deadline exceeded")

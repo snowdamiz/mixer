@@ -1,0 +1,14 @@
+Initial audited-controls.py attempt stopped before test execution during the standard
+unittest.mock -> asyncio -> subprocess -> select import chain. The neighboring
+one-shot selection script was named select.py and shadowed the standard library.
+Its assert that selection.json did not already exist rejected the import before
+any mutations. No controls ran and no subprocess/socket/custody operation occurred.
+
+Observed terminal exception:
+  File "verification/android-sdk-axis-pair-correction/select.py", line 35, in <module>
+    assert not (OUT / 'selection.json').exists()
+AssertionError
+
+Correction: renamed that already-executed selection script to select-axis-pair.py.
+It was not replayed. The production source/profile selection remains unchanged.
+The independent in-process controls are executed separately after this filename fix.

@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "status": "proposed-to-root-before-download",
+  "purpose": "Source-only tar inventory of official immutable OCI layers; never execute, import, mount, or extract image binaries",
+  "repository": "hexpm/elixir",
+  "owned_destination": "verification/identity-network-image-prerequisite-review/inputs/layers/",
+  "candidate_manifest": "sha256:ed110657152803079f311913be4effe02874e2c714a1b5a38891873b7f2a16c5",
+  "layers": [
+    {"label": "selected-empty-install", "digest": "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1", "compressed_cap_bytes": 32},
+    {"label": "bookworm-base", "digest": "sha256:7fd1ebe418b5079d4aa36f416af9b143d127bc75b0155d71cb5fd559b5e04d39", "compressed_cap_bytes": 28249323},
+    {"label": "bookworm-runtime-packages", "digest": "sha256:2378364157c54e0386ef4aefd8e34271eb9e7fd0e30cc151af8a472f44ee28b8", "compressed_cap_bytes": 3575099},
+    {"label": "bookworm-otp", "digest": "sha256:a3bd1a023cf03828bfedb2c9a8cd4b05537ee31d98fc0b5b1885d1bc3b9aff1c", "compressed_cap_bytes": 47668739},
+    {"label": "bookworm-elixir", "digest": "sha256:99d04bb600131893739bd9986e8a676df28577c2c52d4be89ae4c1aef3cdfbf8", "compressed_cap_bytes": 6930116}
+  ],
+  "aggregate_compressed_cap_bytes": 86423309,
+  "each_http_absolute_deadline_seconds": 55,
+  "each_http_socket_timeout_seconds": 50,
+  "each_uncompressed_cap_bytes": 268435456,
+  "aggregate_uncompressed_cap_bytes": 536870912,
+  "each_layer_member_count_cap": 30000,
+  "analysis": "Hash compressed body against manifest, hash full decompressed tar against config diff_id, inventory all members/modes/links/whiteouts and regular file hashes without filesystem extraction. Retain only bounded selected text version/package/CA material and inventories. Resolve required paths through final overlay links.",
+  "retention": "Delete only these owned compressed blobs after successful digest-bound inventory to avoid a large Git payload; retain exact URLs/digests/sizes/inventories/selected text and cleanup record.",
+  "limitations": "Layer inspection proves source bytes and path metadata only. Actual exec permissions under Docker, shared-library closure, crypto/CA loading, exact tool commands, Hex/Rebar compatibility and both synthetic test results still require reviewed fresh remote execution."
+}

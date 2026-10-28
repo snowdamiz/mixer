@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/identity-network-rebar-output-correction/verify-source.py", line 17, in <module>
+    old,new=assignments(prior),assignments(current)
+            ~~~~~~~~~~~^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/identity-network-rebar-output-correction/verify-source.py", line 16, in assignments
+    def assignments(tree): return {n.targets[0].id:ast.literal_eval(n.value) for n in tree.body if isinstance(n,ast.Assign) and len(n.targets)==1 and isinstance(n.targets[0],ast.Name) and isinstance(n.value,(ast.Constant,ast.List,ast.Dict,ast.Tuple,ast.Set))}
+                                                   ~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ast.py", line 106, in literal_eval
+    return _convert(node_or_string)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ast.py", line 95, in _convert
+    return dict(zip(map(_convert, node.keys),
+                    map(_convert, node.values)))
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ast.py", line 105, in _convert
+    return _convert_signed_num(node)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ast.py", line 79, in _convert_signed_num
+    return _convert_num(node)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ast.py", line 70, in _convert_num
+    _raise_malformed_node(node)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ast.py", line 67, in _raise_malformed_node
+    raise ValueError(msg + f': {node!r}')
+ValueError: malformed node or string: None

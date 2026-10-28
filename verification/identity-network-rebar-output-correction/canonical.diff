@@ -1,0 +1,460 @@
+--- a/hosted/scripts/test-identity-network.py
++++ b/hosted/scripts/test-identity-network.py
+@@ -122,6 +122,14 @@
+ MAX_LOG_BYTES = 67108864
+ MAX_ARCHIVE_BYTES = 536870912
+ MAX_ARTIFACT_BYTES = 268435456
++GENERATED_DAG_PATH = "hosted/deps/telemetry/_build/prod/lib/.rebar3/rebar_compiler_erl/source.dag"
++MAX_GENERATED_DAG_BYTES = 65536
++GENERATED_DAG_PARENTS = ["/workspace", "/workspace/hosted", "/workspace/hosted/deps", "/workspace/hosted/deps/telemetry", "/workspace/hosted/deps/telemetry/_build", "/workspace/hosted/deps/telemetry/_build/prod", "/workspace/hosted/deps/telemetry/_build/prod/lib", "/workspace/hosted/deps/telemetry/_build/prod/lib/.rebar3", "/workspace/hosted/deps/telemetry/_build/prod/lib/.rebar3/rebar_compiler_erl"]
++TELEMETRY_INPUTS = {
++    "hosted/deps/telemetry/rebar.config": {"bytes": 943, "sha256": "2ac5ee04618133d912fcafe68859904ee88aa7bfac678c8165ce1dfb32cbc3b0"},
++    "hosted/deps/telemetry/src/telemetry.erl": {"bytes": 17044, "sha256": "8bb2a1fa116def38f63a5b36b65fdc9af98022e6e378e047f38d49b584564278"},
++    "hosted/deps/telemetry/src/telemetry.app.src": {"bytes": 533, "sha256": "29778243956492d0d255bf2289fe5e4f6b10f22d282ca5679015a478c1eb33d2"},
++}
+ 
+ 
+ class CollectorError(ValueError):
+@@ -361,6 +369,29 @@
+     return after
+ 
+ 
++def validate_generated_dag_row(row):
++    require(isinstance(row, dict) and set(row) == {"bytes", "sha256", "type", "links", "uid", "gid", "mode", "parents"}, "generated DAG row shape")
++    require(type(row["bytes"]) is int and 0 < row["bytes"] <= MAX_GENERATED_DAG_BYTES and isinstance(row["sha256"], str) and bool(re.fullmatch("[0-9a-f]{64}", row["sha256"])), "generated DAG byte/hash bound")
++    identity = {key: row[key] for key in ("type", "links", "uid", "gid", "mode")}
++    require(canonical_digest(identity) == canonical_digest({"type": "regular", "links": 1, "uid": 0, "gid": 0, "mode": 0o644}), "generated DAG file identity")
++    parents = {path: {"type": "directory", "uid": 0, "gid": 0, "mode": 0o755} for path in GENERATED_DAG_PARENTS}
++    require(canonical_digest(row["parents"]) == canonical_digest(parents), "generated DAG parent identity")
++    return row
++
++
++def validate_compiled_source_unchanged(prepared, compiled):
++    """Admit one fresh opaque compiler output; keep every prepared input exact."""
++    require(isinstance(prepared, dict) and isinstance(compiled, dict) and set(prepared) == set(compiled) == {"source", "deps", "tools", "helpers"}, "compiled manifest sections")
++    require(all(isinstance(value, dict) for value in [*prepared.values(), *compiled.values()]), "compiled manifest section shape")
++    validate_source_manifest(prepared["source"])
++    require(GENERATED_DAG_PATH not in prepared["deps"], "generated DAG present before compilation")
++    require(all(prepared["deps"].get(path) == row for path, row in TELEMETRY_INPUTS.items()), "locked telemetry compiler inputs missing or changed")
++    validate_generated_dag_row(compiled["deps"].get(GENERATED_DAG_PATH))
++    inputs = {**compiled, "deps": {path: row for path, row in compiled["deps"].items() if path != GENERATED_DAG_PATH}}
++    validate_source_unchanged(prepared, inputs)
++    return compiled
++
++
+ def validate_environment(caller_env):
+     forbidden = ("MIXER_", "ERL_", "ELIXIR_", "MIX_", "HEX_", "AWS_")
+     for key in caller_env:
+@@ -673,6 +704,8 @@
+ 
+ MANIFEST_EXS = r'''
+ defmodule MixerIdentityNetworkCollector.Manifest do
++  @generated "/workspace/hosted/deps/telemetry/_build/prod/lib/.rebar3/rebar_compiler_erl/source.dag"
++  @generated_parents ["/workspace", "/workspace/hosted", "/workspace/hosted/deps", "/workspace/hosted/deps/telemetry", "/workspace/hosted/deps/telemetry/_build", "/workspace/hosted/deps/telemetry/_build/prod", "/workspace/hosted/deps/telemetry/_build/prod/lib", "/workspace/hosted/deps/telemetry/_build/prod/lib/.rebar3", "/workspace/hosted/deps/telemetry/_build/prod/lib/.rebar3/rebar_compiler_erl"]
+   def files(path) do
+     case File.lstat!(path).type do
+       :regular -> [path]
+@@ -680,9 +713,31 @@
+       _ -> raise "non-regular source/dependency/tool input"
+     end
+   end
++  def generated_identity do
++    parents = Map.new(@generated_parents, fn path ->
++      %{type: :directory, uid: 0, gid: 0, mode: mode} = File.lstat!(path)
++      0o755 = Bitwise.band(mode, 0o7777)
++      {path, %{"type" => "directory", "uid" => 0, "gid" => 0, "mode" => 0o755}}
++    end)
++    %{type: :regular, links: 1, uid: 0, gid: 0, mode: mode, size: size} = File.lstat!(@generated)
++    0o644 = Bitwise.band(mode, 0o7777)
++    true = size > 0 and size <= 65536
++    %{"type" => "regular", "links" => 1, "uid" => 0, "gid" => 0, "mode" => 0o644, "parents" => parents}
++  end
+   def entry(path) do
++    identity = if path == @generated, do: generated_identity(), else: %{}
+     bytes = File.read!(path)
+-    %{"bytes" => byte_size(bytes), "sha256" => Base.encode16(:crypto.hash(:sha256, bytes), case: :lower)}
++    if path == @generated do
++      true = byte_size(bytes) > 0 and byte_size(bytes) <= 65536
++    end
++    Map.merge(identity, %{"bytes" => byte_size(bytes), "sha256" => Base.encode16(:crypto.hash(:sha256, bytes), case: :lower)})
++  end
++  def export_generated do
++    generated_identity()
++    bytes = File.read!(@generated)
++    true = byte_size(bytes) > 0 and byte_size(bytes) <= 65536
++    :ok = :io.setopts(:standard_io, encoding: :latin1)
++    :ok = IO.binwrite(bytes)
+   end
+   def run do
+     frozen = File.read!("/workspace/frozen-manifest.json") |> :json.decode()
+@@ -703,7 +758,10 @@
+     IO.puts("IDENTITY_JSON=" <> IO.iodata_to_binary(:json.encode(value)))
+   end
+ end
+-MixerIdentityNetworkCollector.Manifest.run()
++case System.argv() do
++  ["export-generated"] -> MixerIdentityNetworkCollector.Manifest.export_generated()
++  args when args in [[], ["archive-list"]] -> MixerIdentityNetworkCollector.Manifest.run()
++end
+ '''
+ 
+ NETNS_EXS = r'''
+@@ -1173,6 +1231,25 @@
+         if public_tool is None:
+             destination.unlink()
+         return result
++
++    def capture_generated_dag(self, owned, expected, timeout=15):
++        require(owned.role == "test" and owned.state == "owned", "generated DAG export requires owned test role")
++        require(type(timeout) in (int, float) and 0 < timeout <= 15, "generated DAG export time bound")
++        validate_generated_dag_row(expected)
++        destination = self.output / "compiler-generated" / "telemetry-source.dag"
++        destination.parent.mkdir(exist_ok=True)
++        require(not destination.exists(), "generated DAG capture already retained")
++        try:
++            body, _, _ = self.execute(owned, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs", "export-generated"], timeout, limit=MAX_GENERATED_DAG_BYTES, binary_path=destination)
++        finally:
++            if destination.is_file():
++                require(destination.stat().st_size <= MAX_GENERATED_DAG_BYTES, "retained generated DAG capture cap")
++                actual = destination.read_bytes()
++                log = self.output / "logs" / f"{self.command_number:04d}.json"
++                command = json.loads(log.read_bytes()) if log.is_file() else {}
++                write_json(destination.with_suffix(".json"), {"schema": 1, "classification": "opaque-postcompile-rebar-telemetry-metadata", "container_path": "/workspace/" + GENERATED_DAG_PATH, "owned_cid": owned.cid, "role": owned.role, "phase": "after-offline-compile-before-test-authorization", "command_number": self.command_number, "maximum_bytes": MAX_GENERATED_DAG_BYTES, "bytes": len(actual), "sha256": hashlib.sha256(actual).hexdigest(), "expected_manifest_row": expected, "stdout_complete": command.get("stdout_complete"), "stderr_complete": command.get("stderr_complete"), "command_exit_code": command.get("exit_code"), "qualification": "bounded-opaque-command-stdout-only-before-host-input-equality-validation"})
++        require({"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} == {key: expected[key] for key in ("bytes", "sha256")}, "generated DAG capture differs from compiled manifest")
++        return {"path": GENERATED_DAG_PATH, "bytes": len(body), "sha256": hashlib.sha256(body).hexdigest(), "classification": "opaque-postcompile-rebar-telemetry-metadata"}
+ 
+     def stop_remove(self, owned):
+         self.inspect(owned, cleanup=True)
+@@ -1383,8 +1460,11 @@
+         self.execute(test, ["/usr/local/bin/mix", "compile", "--warnings-as-errors"], offline_timeout())
+         before_output, _, _ = self.execute(test, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs"], min(15, offline_timeout()))
+         before_tests = json_marker(before_output)
+-        validate_source_unchanged(prepared_manifest, before_tests)
+         write_json(self.output / "before-tests-manifest.json", before_tests)
++        generated = self.capture_generated_dag(test, before_tests.get("deps", {}).get(GENERATED_DAG_PATH), min(15, offline_timeout()))
++        require(time.monotonic() <= offline_until, "offline phase deadline exceeded during generated DAG capture")
++        validate_compiled_source_unchanged(prepared_manifest, before_tests)
++        write_json(self.output / "compiled-input-validation.json", {"prepared_manifest_sha256": canonical_digest(prepared_manifest), "compiled_manifest_sha256": canonical_digest(before_tests), "prepared_inputs_unchanged": True, "generated_output": generated, "generated_output_was_absent_before_compile": True, "remaining_dependency_entries_unchanged": True, "artifact_contents_interpreted_or_executed": False})
+         compiled_output, _, _ = self.execute(test, ["/usr/local/bin/elixir", "-e", 'rows = Map.new(Path.wildcard("/workspace/hosted/_build/test/lib/*/ebin/*.beam"), fn path -> {path, Base.encode16(:crypto.hash(:sha256, File.read!(path)), case: :lower)} end); true = map_size(rows) > 0; IO.puts("IDENTITY_JSON=" <> IO.iodata_to_binary(:json.encode(rows)))'], min(15, offline_timeout()))
+         write_json(self.output / "compiled-modules-before-tests.json", json_marker(compiled_output))
+         validate_container_environment("test", self.inspect(test))
+@@ -1393,7 +1473,7 @@
+         validate_namespace(json_marker(fresh_namespace), host_netns)
+         # The flag is constructed here only, after actual source/tool/isolation checks.
+         flag_env = {**TEST_ENV, "MIXER_ISOLATED_NETNS": "1"}
+-        write_json(self.output / "test-authorization.json", {"allowed_environment": flag_env, "owned_test_cid": test.cid, "owned_pg_cid": pg.cid, "actual_namespace": namespace["netns"], "source_unchanged": True, "prerequisites_observed": True, "mount_policy_observed": True, "assertions_before_flag": True})
++        write_json(self.output / "test-authorization.json", {"allowed_environment": flag_env, "owned_test_cid": test.cid, "owned_pg_cid": pg.cid, "actual_namespace": namespace["netns"], "source_unchanged": True, "generated_output": generated, "prerequisites_observed": True, "mount_policy_observed": True, "assertions_before_flag": True})
+         argv = ["/usr/local/bin/elixir", "-r", "/workspace/collector-observer.exs", "-S", "mix", "test", "--warnings-as-errors", "--seed", "0", "--trace", "--no-color", "--formatter", "ExUnit.CLIFormatter", "--formatter", "MixerIdentityNetworkCollector.Observer", *TEST_ROOTS]
+         _, _, test_exit = self.execute(test, argv, offline_timeout(), environment=flag_env, check=False)
+         require(time.monotonic() <= offline_until, "offline phase deadline exceeded")
+--- a/hosted/scripts/test_identity_network_collector.py
++++ b/hosted/scripts/test_identity_network_collector.py
+@@ -1785,6 +1785,229 @@
+             self.assertEqual(0, subject.command_number)
+ 
+ 
++class GeneratedCompilerOutputControls(unittest.TestCase):
++    PATH = "hosted/deps/telemetry/_build/prod/lib/.rebar3/rebar_compiler_erl/source.dag"
++    PARENTS = ["/workspace", "/workspace/hosted", "/workspace/hosted/deps", "/workspace/hosted/deps/telemetry", "/workspace/hosted/deps/telemetry/_build", "/workspace/hosted/deps/telemetry/_build/prod", "/workspace/hosted/deps/telemetry/_build/prod/lib", "/workspace/hosted/deps/telemetry/_build/prod/lib/.rebar3", "/workspace/hosted/deps/telemetry/_build/prod/lib/.rebar3/rebar_compiler_erl"]
++
++    def row(self, body=b"opaque inert DAG fixture\x00\x80\xff"):
++        return {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest(),
++                "type": "regular", "links": 1, "uid": 0, "gid": 0, "mode": 0o644,
++                "parents": {path: {"type": "directory", "uid": 0, "gid": 0, "mode": 0o755} for path in self.PARENTS}}
++
++    def fixture(self, body=b"opaque inert DAG fixture\x00\x80\xff"):
++        # Input anchors are independently written from the locked sealed archive.
++        prepared = {"source": copy.deepcopy(collector.FROZEN_MANIFEST), "deps": {
++            "hosted/deps/telemetry/rebar.config": {"bytes": 943, "sha256": "2ac5ee04618133d912fcafe68859904ee88aa7bfac678c8165ce1dfb32cbc3b0"},
++            "hosted/deps/telemetry/src/telemetry.erl": {"bytes": 17044, "sha256": "8bb2a1fa116def38f63a5b36b65fdc9af98022e6e378e047f38d49b584564278"},
++            "hosted/deps/telemetry/src/telemetry.app.src": {"bytes": 533, "sha256": "29778243956492d0d255bf2289fe5e4f6b10f22d282ca5679015a478c1eb33d2"},
++            "hosted/deps/other/src/input.erl": {"bytes": 12, "sha256": "a" * 64}},
++            "tools": {"tooling/rebar3": {"bytes": 823379, "sha256": "b" * 64}},
++            "helpers": {"collector-manifest.exs": {"bytes": 100, "sha256": "c" * 64}}}
++        compiled = copy.deepcopy(prepared)
++        compiled["deps"][self.PATH] = self.row(body)
++        return prepared, compiled
++
++    def subject(self, directory, payload, code=0):
++        subject = CollectorMethodWiringControls.make_collector(self, directory, lambda argv, timeout, stdin: (code, payload, b""))
++        def execute(record, argv, timeout, **options):
++            self.assertEqual(owned("test"), record)
++            self.assertEqual(["/usr/local/bin/elixir", "/workspace/collector-manifest.exs", "export-generated"], argv)
++            self.assertGreater(timeout, 0)
++            self.assertLessEqual(timeout, 15)
++            self.assertEqual(65536, options["limit"])
++            return subject.command(argv, timeout, **options)
++        subject.execute = execute
++        return subject
++
++    def test_one_exact_fresh_output_passes_without_old_observed_hash_whitelist(self):
++        self.assertEqual(self.PATH, collector.GENERATED_DAG_PATH)
++        self.assertEqual(65536, collector.MAX_GENERATED_DAG_BYTES)
++        self.assertEqual(self.PARENTS, collector.GENERATED_DAG_PARENTS)
++        for body in (b"opaque fixture", bytes(range(256)), b"\x00" * 65536):
++            prepared, compiled = self.fixture(body)
++            unchanged = copy.deepcopy(prepared)
++            self.assertEqual(compiled, collector.validate_compiled_source_unchanged(prepared, compiled))
++            self.assertEqual(unchanged, prepared)
++            with self.assertRaises(collector.CollectorError):
++                collector.validate_source_unchanged(prepared, compiled)
++
++    def test_output_absent_or_preexisting_during_prepare_or_restore_is_refused(self):
++        prepared, compiled = self.fixture()
++        for before, after in ((compiled, compiled), (prepared, prepared)):
++            with self.subTest(before_has_dag=self.PATH in before["deps"]), self.assertRaises(collector.CollectorError):
++                collector.validate_compiled_source_unchanged(before, after)
++        with self.assertRaises(collector.CollectorError):
++            collector.validate_source_unchanged(prepared, compiled)
++
++    def test_neighbor_alias_and_other_build_outputs_are_never_ignored(self):
++        for path in (self.PATH + ".other", self.PATH.replace("source.dag", "source.erl"),
++                     self.PATH.replace("telemetry/", "other/"), self.PATH.replace("/prod/", "/test/"),
++                     self.PATH.replace("/source.dag", "//source.dag"), self.PATH.replace("/source.dag", "/../source.dag"),
++                     "hosted/deps/telemetry/_build/prod/lib/other.beam", "hosted/_build/test/injected.ex"):
++            prepared, compiled = self.fixture()
++            compiled["deps"][path] = self.row()
++            with self.subTest(path=path), self.assertRaises(collector.CollectorError):
++                collector.validate_compiled_source_unchanged(prepared, compiled)
++
++    def test_every_prepared_section_rejects_changed_missing_and_added_inputs(self):
++        for section in ("source", "deps", "tools", "helpers"):
++            for action in ("changed", "missing", "extra"):
++                prepared, compiled = self.fixture()
++                target = next(path for path in prepared[section] if path != self.PATH)
++                if action == "changed": compiled[section][target]["sha256"] = "0" * 64
++                elif action == "missing": del compiled[section][target]
++                else: compiled[section][target + ".extra"] = {"bytes": 1, "sha256": "d" * 64}
++                with self.subTest(section=section, action=action), self.assertRaises(collector.CollectorError):
++                    collector.validate_compiled_source_unchanged(prepared, compiled)
++
++    def test_locked_telemetry_anchors_and_frozen_lock_stay_required(self):
++        for target in ("hosted/deps/telemetry/rebar.config", "hosted/deps/telemetry/src/telemetry.erl", "hosted/deps/telemetry/src/telemetry.app.src"):
++            for action in ("missing", "changed"):
++                prepared, compiled = self.fixture()
++                for manifest in (prepared, compiled):
++                    if action == "missing": del manifest["deps"][target]
++                    else: manifest["deps"][target]["sha256"] = "0" * 64
++                with self.subTest(target=target, action=action), self.assertRaises(collector.CollectorError):
++                    collector.validate_compiled_source_unchanged(prepared, compiled)
++        prepared, compiled = self.fixture()
++        for manifest in (prepared, compiled): manifest["source"]["hosted/mix.lock"]["sha256"] = "0" * 64
++        with self.assertRaises(collector.CollectorError): collector.validate_compiled_source_unchanged(prepared, compiled)
++
++    def test_generated_file_type_link_owner_mode_size_and_hash_fail_closed(self):
++        for field, value in (("type", "symlink"), ("type", "directory"), ("links", 2), ("links", True),
++                             ("uid", 1), ("uid", False), ("gid", 1), ("mode", 0o755), ("mode", 0o600),
++                             ("mode", 0o4644), ("bytes", 0), ("bytes", -1), ("bytes", True),
++                             ("bytes", 65537), ("sha256", "g" * 64), ("sha256", "a" * 63)):
++            row = self.row(); row[field] = value
++            with self.subTest(field=field, value=value), self.assertRaises(collector.CollectorError): collector.validate_generated_dag_row(row)
++        for field in self.row():
++            row = self.row(); del row[field]
++            with self.subTest(missing=field), self.assertRaises(collector.CollectorError): collector.validate_generated_dag_row(row)
++        row = self.row(); row["extra"] = 1
++        with self.assertRaises(collector.CollectorError): collector.validate_generated_dag_row(row)
++
++    def test_each_parent_requires_exact_path_directory_owner_and_mode(self):
++        for path in self.PARENTS:
++            for field, value in (("type", "symlink"), ("type", "regular"), ("uid", 1), ("gid", 1), ("mode", 0o777)):
++                row = self.row(); row["parents"][path][field] = value
++                with self.subTest(path=path, field=field), self.assertRaises(collector.CollectorError): collector.validate_generated_dag_row(row)
++            row = self.row(); del row["parents"][path]
++            with self.subTest(missing=path), self.assertRaises(collector.CollectorError): collector.validate_generated_dag_row(row)
++        row = self.row(); row["parents"][self.PARENTS[-1] + "/../alias"] = row["parents"].pop(self.PARENTS[-1])
++        with self.assertRaises(collector.CollectorError): collector.validate_generated_dag_row(row)
++
++    def test_manifest_section_injection_and_type_substitution_fail_closed(self):
++        for section in ("source", "deps", "tools", "helpers"):
++            for value in (None, [], "invalid"):
++                prepared, compiled = self.fixture(); compiled[section] = value
++                with self.subTest(section=section, value=value), self.assertRaises(collector.CollectorError): collector.validate_compiled_source_unchanged(prepared, compiled)
++        prepared, compiled = self.fixture(); compiled["generated"] = {self.PATH: self.row()}
++        with self.assertRaises(collector.CollectorError): collector.validate_compiled_source_unchanged(prepared, compiled)
++
++    def test_final_comparison_freezes_generated_bytes_and_identity_with_all_inputs(self):
++        _, compiled = self.fixture()
++        collector.validate_source_unchanged(compiled, copy.deepcopy(compiled))
++        for field, value in (("sha256", "0" * 64), ("bytes", 1), ("mode", 0o600), ("uid", 1), ("links", 2)):
++            after = copy.deepcopy(compiled); after["deps"][self.PATH][field] = value
++            with self.subTest(field=field), self.assertRaises(collector.CollectorError): collector.validate_source_unchanged(compiled, after)
++        after = copy.deepcopy(compiled); del after["deps"][self.PATH]
++        with self.assertRaises(collector.CollectorError): collector.validate_source_unchanged(compiled, after)
++
++    def test_prepared_archive_build_ban_remains_even_for_the_new_exact_output(self):
++        helper = PreparedArchiveControls()
++        bodies, manifest = helper.fixture(); bodies[self.PATH] = b"premature output"
++        manifest["deps"][self.PATH] = {"bytes": len(bodies[self.PATH]), "sha256": hashlib.sha256(bodies[self.PATH]).hexdigest()}
++        with self.assertRaises(collector.CollectorError): helper.run_fixture(bodies, manifest)
++
++    def test_exact_owned_test_export_retains_opaque_bytes_and_hash_join(self):
++        body = bytes(range(256)); expected = self.row(body)
++        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
++            subject = self.subject(directory, body)
++            result = subject.capture_generated_dag(owned("test"), expected, .25)
++            self.assertEqual({"path": self.PATH, "bytes": len(body), "sha256": hashlib.sha256(body).hexdigest(), "classification": "opaque-postcompile-rebar-telemetry-metadata"}, result)
++            raw = subject.output / "compiler-generated/telemetry-source.dag"
++            self.assertEqual(body, raw.read_bytes())
++            receipt = json.loads(raw.with_suffix(".json").read_bytes())
++            self.assertEqual(expected, receipt["expected_manifest_row"])
++            self.assertEqual(CID_TEST, receipt["owned_cid"])
++            self.assertEqual("/workspace/" + self.PATH, receipt["container_path"])
++            self.assertEqual(65536, receipt["maximum_bytes"])
++            self.assertIs(True, receipt["stdout_complete"])
++            self.assertEqual(0, receipt["command_exit_code"])
++            subject.seal()
++            manifest = json.loads((subject.output / "artifact-manifest.json").read_bytes())
++            self.assertEqual({"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}, manifest["files"]["compiler-generated/telemetry-source.dag"])
++
++    def test_capture_refuses_other_roles_states_paths_and_overwrite(self):
++        for timeout in (0, -1, 16, True, float("inf"), float("nan")):
++            with self.subTest(timeout=timeout), tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
++                subject = self.subject(directory, b"fixture")
++                with self.assertRaises(collector.CollectorError): subject.capture_generated_dag(owned("test"), self.row(b"fixture"), timeout)
++                self.assertEqual(0, subject.command_number)
++        for role in ("prepare", "pg"):
++            with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
++                subject = self.subject(directory, b"fixture")
++                with self.assertRaises(collector.CollectorError): subject.capture_generated_dag(owned(role), self.row(b"fixture"))
++                self.assertEqual(0, subject.command_number)
++        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
++            subject = self.subject(directory, b"fixture"); record = owned("test"); record.state = "identity_lost"
++            with self.assertRaises(collector.CollectorError): subject.capture_generated_dag(record, self.row(b"fixture"))
++            with self.assertRaises(collector.CollectorError): subject.copy_file_out(owned("test"), "/workspace/" + self.PATH, 65536)
++            self.assertEqual(0, subject.command_number)
++            subject.capture_generated_dag(owned("test"), self.row(b"fixture"))
++            with self.assertRaises(collector.CollectorError): subject.capture_generated_dag(owned("test"), self.row(b"fixture"))
++            self.assertEqual(1, subject.command_number)
++
++    def test_capture_hash_or_size_mismatch_preserves_actual_failure_bytes(self):
++        for field, value in (("sha256", "a" * 64), ("bytes", 255)):
++            with self.subTest(field=field), tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
++                body = bytes(range(256)); expected = self.row(body); expected[field] = value
++                subject = self.subject(directory, body)
++                with self.assertRaises(collector.CollectorError): subject.capture_generated_dag(owned("test"), expected)
++                raw = subject.output / "compiler-generated/telemetry-source.dag"
++                self.assertEqual(body, raw.read_bytes())
++                receipt = json.loads(raw.with_suffix(".json").read_bytes())
++                self.assertEqual(hashlib.sha256(body).hexdigest(), receipt["sha256"])
++                self.assertEqual(expected, receipt["expected_manifest_row"])
++                self.assertIs(True, receipt["stdout_complete"])
++
++    def test_overflow_and_failed_export_preserve_bounded_partial_facts(self):
++        for body, code in ((bytes(range(256)) * 257, 0), (b"failed fixture", 1)):
++            with self.subTest(code=code), tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
++                subject = self.subject(directory, body, code)
++                with self.assertRaises(collector.CollectorError): subject.capture_generated_dag(owned("test"), self.row(b"expected fixture"))
++                raw = subject.output / "compiler-generated/telemetry-source.dag"
++                self.assertEqual(body[:65536], raw.read_bytes())
++                receipt = json.loads(raw.with_suffix(".json").read_bytes())
++                self.assertEqual(code, receipt["command_exit_code"])
++                self.assertIs(False, receipt["stdout_complete"])
++                self.assertLessEqual(receipt["bytes"], 65536)
++
++    def test_literal_helper_and_authorization_wiring_are_source_bound_only(self):
++        # This is static wiring evidence, deliberately not an Elixir syntax/runtime pass.
++        helper = collector.MANIFEST_EXS
++        self.assertIn('@generated "/workspace/' + self.PATH + '"', helper)
++        self.assertIn('File.lstat!(@generated)', helper)
++        self.assertIn('type: :regular, links: 1, uid: 0, gid: 0', helper)
++        self.assertIn('0o644 = Bitwise.band(mode, 0o7777)', helper)
++        self.assertIn('0o755 = Bitwise.band(mode, 0o7777)', helper)
++        self.assertIn('size > 0 and size <= 65536', helper)
++        self.assertIn('["export-generated"] -> MixerIdentityNetworkCollector.Manifest.export_generated()', helper)
++        export = helper.split('  def export_generated do\n', 1)[1].split('\n  end', 1)[0]
++        self.assertLess(export.index('generated_identity()'), export.index('File.read!(@generated)'))
++        self.assertLess(export.index(':io.setopts(:standard_io, encoding: :latin1)'), export.index('IO.binwrite(bytes)'))
++        source = COLLECTOR_PATH.read_text()
++        compile_call = source.index('self.execute(test, ["/usr/local/bin/mix", "compile", "--warnings-as-errors"]')
++        capture_call = source.index('generated = self.capture_generated_dag(test,', compile_call)
++        validate_call = source.index('validate_compiled_source_unchanged(prepared_manifest, before_tests)', capture_call)
++        authorize = source.index('flag_env = {**TEST_ENV, "MIXER_ISOLATED_NETNS": "1"}', validate_call)
++        self.assertLess(compile_call, capture_call)
++        self.assertLess(capture_call, validate_call)
++        self.assertLess(validate_call, authorize)
++        self.assertIn('validate_source_unchanged(prepared_manifest, restored)', source[:compile_call])
++        self.assertIn('validate_source_unchanged(before_tests, after_tests)', source[authorize:])
++
++
+ class BudgetAndCommandControls(unittest.TestCase):
+     def test_phase_deadline_leaves_cleanup_reserve_and_never_extends_requested_bound(self):
+         now = [620.0]
+--- a/docs/hosted-identity-production-network-ci-contract.md
++++ b/docs/hosted-identity-production-network-ci-contract.md
+@@ -180,6 +180,55 @@
+ private file retention is authorized. Source and pure control evidence is in
+ `verification/identity-network-binary-export-correction/`.
+ 
++Run `40753111388` for `56ff14c925168284761c5aca4f0bd4129cf3c995`
++verified the corrected Hex export (1,133,941 bytes) and Rebar export (823,379
++bytes), locked dependency preparation, the 1,232-file prepared archive and
++exact restore, private PostgreSQL 16.15 scope/nonroot checks, offline dependency
++compilation and product compilation with warnings as errors. It then failed
++the source comparison after command 89. The only manifest difference was a
++new 895-byte file at
++`hosted/deps/telemetry/_build/prod/lib/.rebar3/rebar_compiler_erl/source.dag`,
++SHA256 `71360df95b056715d6215b91ba581e4dd91d850f4894c13720f142075a53d685`.
++Those raw DAG bytes and their file/ancestor metadata were not retained. No
++product method ran. All 107 command streams and all three exact container
++stop/remove/absence outcomes were independently verified in
++`verification/github-delivery-binary-export-and-ui/network-review/`.
++
++The sibling correction at `verification/identity-network-rebar-output-correction/`
++separates that exact compiler metadata path from immutable inputs only after
++offline compilation. The prepared archive still forbids every `_build`
++payload, and restored input equality stays exact. The locked telemetry
++`rebar.config`, `src/telemetry.erl` and `src/telemetry.app.src` must match their
++sealed prepared input hashes. Every other source, dependency, tool and helper
++entry must match the prepared manifest exactly; an adjacent file or any other
++build output fails. This is a single-path classification supported by the
++observed phase/difference, frozen lock and pinned Rebar's embedded compiler
++metadata literals. It does not establish the lost DAG's contents or semantic
++validity, and accepts no previously observed DAG hash as authority.
++
++The changed `collector-manifest.exs` literal checks the new file and each fixed
++ancestor with `lstat`. It requires a regular, single-link, root-owned `0644`
++file, root-owned `0755` directory ancestors and 1–65,536 bytes before reading.
++The compiled manifest retains size, SHA256 and these exact identity facts.
++A fixed `export-generated` helper operation exports only that path from the
++owned test container before test authorization. Its bounded bytes survive
++host equality/hash refusal under `compiler-generated/telemetry-source.dag`;
++the accompanying receipt joins the exact CID/path/phase, observed size/hash,
++manifest row and command completion/exit facts. Partial output stays partial,
++and repeat capture refuses overwrite. The generic file-export allowlist and
++total artifact cap remain unchanged. The raw bytes must match the compiled
++manifest before prepared-input equality and test authorization can pass.
++The collector treats this data as opaque. The post-test comparison requires
++exact full equality, including the DAG bytes and identity metadata.
++
++The old literal helper remains preserved in the frozen predecessor packets
++and the sibling's before snapshot. This helper-binding change adds only the
++fixed metadata/export operation described here; mounts, capabilities,
++downloads and compile operations remain pinned.
++The root-owned `0644`/`0755` metadata expectations and helper syntax still need
++fresh isolated Linux CI evidence; no local Elixir compiler or container was
++used to validate them.
++
+ ## Evidence and bounds
+ 
+ The existing Mix test alias remains unchanged. The collector selects exactly
+@@ -226,10 +275,13 @@
+ ordinary Phoenix run for the delivered source, or explicitly reviewed reuse of
+ unchanged-source evidence. Native runtime and computer-use pauses remain active.
+ 
+-The binary-export correction covers source and pure Python controls only.
+-The reviewed prior run qualifies actual preparation tool/crypto/CA and mount
+-results, complete bootstrap/direct Rebar execution, and exact owned cleanup
+-for that failed attempt. Corrected Hex and Rebar host exports, locked dependency
+-resolution, prepared archive transfer/restore, compilation, the two product
+-methods and all new-attempt isolation/cleanup remain pending independently
+-reviewed runtime evidence.
++The Rebar-output correction covers source and pure Python controls only. The
++reviewed prior run establishes its listed preparation, export, restore,
++compilation and cleanup observations for that failed attempt. A fresh isolated
++`identity-production-network` CI attempt must establish the changed helper,
++bounded raw DAG capture and immutable-input comparison, then collect loaded
++module identities, authorize and pass both unchanged product methods, retain
++semantic receipts, verify the current ten migrations and post-test equality,
++and independently verify all fresh-attempt isolation and cleanup. These
++remain pending; the previous successful binary exports do not qualify a new
++attempt or establish a complete network-method pass.
