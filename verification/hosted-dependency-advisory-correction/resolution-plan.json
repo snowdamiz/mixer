@@ -1,0 +1,114 @@
+{
+  "schema": "mixer.hosted-dependency-resolution-plan.v1",
+  "state": "proposed_only_pending_root_runtime_lane_release",
+  "operation": "Generate a two-pin lock update in a private scratch project using installed tools; no product compilation, tests or application start.",
+  "tools": {
+    "elixir": "/opt/homebrew/Cellar/elixir/1.20.4/bin/elixir",
+    "mix": "/opt/homebrew/Cellar/elixir/1.20.4/bin/mix",
+    "otp_bin": "/opt/homebrew/Cellar/erlang/29.1.1_2/bin",
+    "otp_manifest_version": "29.1.1",
+    "hex_archive_source": "/Users/andreyyurlov/.mix/archives/hex-2.5.1",
+    "hex_manifest_version": "2.5.1",
+    "ci_hex_historical_version": "2.6.0",
+    "selection_note": "Root must select this explicitly recorded local Hex 2.5.1 operation before release. No Hex installation or toolchain change is proposed; remote CI keeps its existing configuration. Static identities are bound in preparation-receipt.json and runtime version output remains pending."
+  },
+  "scratch": {
+    "creation": "After root release, create a new mode-0700 directory with a generated operation suffix under this packet's runtime-scratch directory; fail if it already exists. Record its exact absolute path and owner marker before child launch.",
+    "symbol": "${OPERATION_SCRATCH}",
+    "project_inputs": [
+      "copy proposal/mix.exs to ${OPERATION_SCRATCH}/project/mix.exs",
+      "copy inputs/mix.lock to ${OPERATION_SCRATCH}/project/mix.lock"
+    ],
+    "tool_copy": "Copy the exact hash-bound installed hex-2.5.1 archive into ${OPERATION_SCRATCH}/mix-home/archives/hex-2.5.1, checking each copied member hash. Do not copy global Mix/Hex configs, caches, credentials or netrc.",
+    "other_directories": ["tmp", "mix-home", "hex-home", "project/deps", "project/_build"],
+    "excluded_inputs": "No config/, lib/, test/, priv/, browser authority/provider/DB material, shared hosted/deps or hosted/_build, or frozen identity dependency directory is copied or used.",
+    "aggregate_size_guard_bytes": 268435456,
+    "size_guard_scope": "Controller checks only the owned scratch tree; crossing the guard fails and terminates the owned command group. This is a filesystem guard, not a claimed VM memory bound."
+  },
+  "environment": {
+    "construction": "Replace inherited environment with exactly this allowlist, substituting the recorded absolute OPERATION_SCRATCH path. HOME retains the user's existing home path; all tool state and temporary paths are isolated explicitly. stdin is DEVNULL.",
+    "allowlist": {
+      "PATH": "/opt/homebrew/Cellar/elixir/1.20.4/bin:/opt/homebrew/Cellar/erlang/29.1.1_2/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+      "HOME": "/Users/andreyyurlov",
+      "LANG": "en_US.UTF-8",
+      "LC_ALL": "en_US.UTF-8",
+      "TMPDIR": "${OPERATION_SCRATCH}/tmp",
+      "MIX_ENV": "prod",
+      "MIX_TARGET": "host",
+      "MIX_HOME": "${OPERATION_SCRATCH}/mix-home",
+      "MIX_ARCHIVES": "${OPERATION_SCRATCH}/mix-home/archives",
+      "MIX_DEPS_PATH": "${OPERATION_SCRATCH}/project/deps",
+      "MIX_BUILD_ROOT": "${OPERATION_SCRATCH}/project/_build",
+      "HEX_HOME": "${OPERATION_SCRATCH}/hex-home",
+      "HEX_HTTP_CONCURRENCY": "2",
+      "HEX_HTTP_TIMEOUT": "20",
+      "HEX_UNSAFE_HTTPS": "0",
+      "HEX_UNSAFE_REGISTRY": "0",
+      "HEX_NO_VERIFY_REPO_ORIGIN": "0",
+      "HEX_OFFLINE": "0",
+      "NETRC": "${OPERATION_SCRATCH}/no-such-netrc",
+      "ERL_FLAGS": "+S 2:2 +SDcpu 1 +SDio 1 +A 2",
+      "ERL_CRASH_DUMP": "${OPERATION_SCRATCH}/erl_crash.dump",
+      "ERL_CRASH_DUMP_SECONDS": "0",
+      "CI": "true",
+      "NO_COLOR": "1"
+    },
+    "excluded": "No inherited credentials, proxy/mirror/API overrides, registry-policy exceptions, advisory ignores, Erlang startup arguments, injected code paths or automatic installation variables. Do not print the caller environment. Keep HTTPS, signed registry and origin checks enabled."
+  },
+  "commands": [
+    {
+      "name": "elixir-tool-version",
+      "argv": ["/opt/homebrew/Cellar/elixir/1.20.4/bin/elixir", "--version"],
+      "cwd": "${OPERATION_SCRATCH}/project",
+      "timeout_seconds": 10
+    },
+    {
+      "name": "mix-tool-version",
+      "argv": ["/opt/homebrew/Cellar/elixir/1.20.4/bin/mix", "--version"],
+      "cwd": "${OPERATION_SCRATCH}/project",
+      "timeout_seconds": 10
+    },
+    {
+      "name": "unlock-two-roots",
+      "argv": ["/opt/homebrew/Cellar/elixir/1.20.4/bin/mix", "deps.unlock", "bandit", "jose"],
+      "cwd": "${OPERATION_SCRATCH}/project",
+      "timeout_seconds": 15,
+      "postcondition": "Only the bandit and jose entries were removed from the copied lock; all other lock entry bytes remain identical."
+    },
+    {
+      "name": "resolve-and-fetch-private-dependencies",
+      "argv": ["/opt/homebrew/Cellar/elixir/1.20.4/bin/mix", "deps.get", "--only", "prod"],
+      "cwd": "${OPERATION_SCRATCH}/project",
+      "timeout_seconds": 180,
+      "postcondition": "Actual Mix/Hex writes bandit 1.14.0 and jose 1.11.13 lock records with verified registry/tarball checksums. Any other package change is returned to root with the resolver reason; do not accept it automatically."
+    },
+    {
+      "name": "offline-locked-recheck",
+      "argv": ["/opt/homebrew/Cellar/elixir/1.20.4/bin/mix", "deps.get", "--only", "prod", "--check-locked"],
+      "cwd": "${OPERATION_SCRATCH}/project",
+      "environment_override": {"HEX_OFFLINE": "1"},
+      "timeout_seconds": 45,
+      "postcondition": "Lock bytes remain unchanged and all needed dependencies are available in this operation's private cache/deps; no second online fetch."
+    }
+  ],
+  "controller_bounds": {
+    "root_operation_wall_seconds": 300,
+    "stdout_bytes_per_command": 262144,
+    "stderr_bytes_per_command": 262144,
+    "output_overflow": "Drain through bounded controller readers; terminate and fail when either cap is exceeded. Retain the bounded output and an overflow marker. Do not silently truncate a pass.",
+    "parallelism": "Five commands sequentially, one owned command process group at a time; root must release the single runtime lane first.",
+    "process_custody": "Controller launches each argv directly, without a shell, using start_new_session=True. Record PID, PGID and SID immediately from the child, command start/end monotonic times, argv, sanitized environment and output hashes. PGID must equal child PID before use.",
+    "completion_and_cleanup": "Reap each direct child and check only its recorded process group for absence before starting the next command. On timeout, overflow, cancellation or remaining group, TERM only that still-owned group, wait at most 3 seconds, KILL if still present, wait/reap at most 3 seconds, then verify absence. Record errors and stop on uncertain custody; never target unrelated/reused groups or perform a global process inventory."
+  },
+  "retained_outputs_after_success": [
+    "root-generated runtime operation receipt and bounded per-command stdout/stderr",
+    "actual Mix-generated proposed mix.lock plus its SHA-256",
+    "before/after lock inventory showing exactly two changed entries and nineteen identical entries",
+    "dependencies.json with actual generated lock versions/checksums, tool identities, private source provenance and scope",
+    "canonical dependency/protected-source hashes and old advisory packet seal checked unchanged",
+    "owned group absence and private scratch cleanup receipt"
+  ],
+  "cleanup": "Retain evidence and generated lock under this correction packet, then remove only the newly created marked scratch tree after every owned process group is confirmed absent. Record its exact path, removed flag, bounded bytes/files and any failure. No existing dependency/cache/build tree is cleaned or mutated.",
+  "not_in_operation": ["mix local.hex", "mix deps.update", "mix deps.compile", "mix compile", "mix test", "mix run", "application start", "DB", "provider", "OpenSSL CLI", "callback or authority harness", "native runtime", "UI automation", "capture", "canonical source mutation", "commit or push"],
+  "independence_limit": "Dependency tasks evaluate mix.exs and may load fetched dependency project metadata inside Mix; they are trusted resolution inputs, not an OS sandbox. No product config/source is present and no product compilation/start task is selected."
+}

@@ -1,0 +1,48 @@
+{
+  "initial_collector_attempt": {
+    "command": [
+      "python3",
+      "-B",
+      "verification/hosted-dependency-advisory-review/collect.py"
+    ],
+    "exit_code": 1,
+    "url": "https://api.github.com/advisories/GHSA-c3g7-2pg5-qvwh",
+    "error": "urllib.error.HTTPError: HTTP Error 404: Not Found",
+    "scope": "Public global advisory route; corrected to repository API."
+  },
+  "successful_repository_probe": {
+    "command": [
+      "curl",
+      "-L",
+      "--fail",
+      "--silent",
+      "--show-error",
+      "-D",
+      "verification/hosted-dependency-advisory-review/github-api-attempt.headers",
+      "https://api.github.com/repos/mtrudel/bandit/security-advisories/GHSA-c3g7-2pg5-qvwh",
+      "-o",
+      "verification/hosted-dependency-advisory-review/github-api-attempt.json"
+    ],
+    "exit_code": 0,
+    "response_sha256": "a5b75f3877cbea9358c868f4e7ddd5cd71a1d3e563b6244d21f6509686d1e806",
+    "ghsa_id": "GHSA-c3g7-2pg5-qvwh",
+    "html_url": "https://github.com/mtrudel/bandit/security/advisories/GHSA-c3g7-2pg5-qvwh"
+  },
+  "collector_success": {
+    "command": [
+      "python3",
+      "-B",
+      "verification/hosted-dependency-advisory-review/collect.py"
+    ],
+    "exit_code": 0,
+    "stdout": "collection.stdout",
+    "stderr": "collection.stderr"
+  },
+  "display_attempt": {
+    "command_kind": "python3 -c metadata display only",
+    "exit_code": 1,
+    "error": "SyntaxError: unexpected character after line continuation character",
+    "correction": "A Python heredoc displayed the collected metadata successfully; no refetch or canonical-source mutation."
+  },
+  "curl_version": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0"
+}

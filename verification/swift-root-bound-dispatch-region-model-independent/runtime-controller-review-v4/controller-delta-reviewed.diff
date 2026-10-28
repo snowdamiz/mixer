@@ -1,0 +1,138 @@
+--- run-dispatch-region-model-v3.py
++++ run-dispatch-region-model-v4.py
+@@ -12,11 +12,13 @@
+ import signal
+ import subprocess
+ import sys
++import traceback
+ 
+ ROOT = Path(__file__).resolve().parents[2]
+ LANE = ROOT / "verification/swift-root-bound-dispatch-region-model-v2"
+-OUT = Path(__file__).with_name("dispatch-region-model-v2-runtime")
+-PLAN_SHA = "5a2950e97e714e3628546d9b73aa2918c72f23f1221c64806823f978dc2c32e8"
++OUT = Path(__file__).with_name("dispatch-region-model-v4-runtime")
++PLAN_SHA = "4e2959b148ec1ef4a48e708076ac28be2951b633ef5400c4d1be65cd7f8bec8a"
++PLAN_PATH = Path(__file__).with_name("dispatch-region-model-v4-host-plan.json")
+ SIGNALS = (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)
+ SEEN = []
+ OWNED = []
+@@ -86,21 +88,57 @@
+     except ProcessLookupError:
+         return True
+ 
++def call(record, operation, function):
++    record["active_syscall"] = operation
++    try:
++        return function()
++    except OSError as error:
++        record.setdefault("syscall_errors", []).append({"operation": operation,
++            "errno": error.errno, "message": str(error), "stack": traceback.format_exc(limit=6)})
++        if error.errno == 1:
++            record["permission_refusal"] = True
++        raise
++
+ def exited(child):
+-    return os.waitid(os.P_PID, child.pid, os.WEXITED | os.WNOHANG | os.WNOWAIT) is not None
++    record = next(r for r in OWNED if r["child"] is child)
++    result = call(record, "waitid(WEXITED|WNOHANG|WNOWAIT)",
++                  lambda: os.waitid(os.P_PID, child.pid, os.WEXITED | os.WNOHANG | os.WNOWAIT))
++    if result is not None:
++        record["completion_observation"] = {"pid": result.si_pid, "code": result.si_code,
++            "status": result.si_status, "signal": result.si_signo}
++    return result is not None
++
++def reap_completed(record):
++    child = record["child"]
++    call(record, "Popen.wait completed child", lambda: child.wait(timeout=0))
++    record.update(reaped=True, returncode=child.returncode)
++    # Observation only after reap. A surviving/reappearing numeric group is not
++    # authority to signal; no normal-completion or post-reap active signal exists.
++    while not call(record, "killpg(group,0) absence observation", lambda: absent(child.pid)):
++        deadline(49)
++        time.sleep(0.005)
++    record["group_absent"] = True
++    return True
+ 
+ def close(record):
+     child = record["child"]
++    if record.get("permission_refusal"):
++        return False
+     if record.get("reaped"):
+-        record["group_absent"] = absent(child.pid)
++        record["group_absent"] = call(record, "killpg(group,0) absence observation", lambda: absent(child.pid))
+         return record["group_absent"]
+     if not record.get("custody"):
+         return False
+-    # Keep the original leader unreaped until every group signal is finished.
++    if exited(child):
++        record["cleanup_path"] = "completed-child-no-signals"
++        return reap_completed(record)
++    record["cleanup_path"] = "still-running-owned-child"
+     for sig, grace in [(signal.SIGTERM, 0.1), (signal.SIGKILL, 0.0)]:
+         deadline(49)
++        if exited(child):
++            return reap_completed(record)
+         try:
+-            os.killpg(child.pid, sig)
++            call(record, "killpg " + sig.name, lambda: os.killpg(child.pid, sig))
+             record.setdefault("signals", []).append(sig.name)
+         except ProcessLookupError:
+             pass
+@@ -110,13 +148,7 @@
+     while not exited(child):
+         deadline(49)
+         time.sleep(0.005)
+-    child.wait(timeout=0)
+-    record.update(reaped=True, returncode=child.returncode)
+-    while not absent(child.pid):
+-        deadline(49)
+-        time.sleep(0.005)
+-    record["group_absent"] = True
+-    return True
++    return reap_completed(record)
+ 
+ def command(spec, environment, offset):
+     deadline(offset)
+@@ -174,7 +206,7 @@
+     for sig in SIGNALS:
+         signal.signal(sig, lambda number, _frame: SEEN.append(number))
+     signal.signal(signal.SIGCHLD, signal.SIG_DFL)
+-    plan = control(LANE / "host-test-plan.json", PLAN_SHA)
++    plan = control(PLAN_PATH, PLAN_SHA)
+     seal = control(LANE / "seal.json", "53ab4e6ef041346dadadbbba69b7e5f5a7c35df004d9f1da753845be15779861")
+     sealed = {item["path"]: item for item in seal["members"]}
+     manifest = control(LANE / "input-manifest.json", sealed["input-manifest.json"]["sha256"])
+@@ -188,6 +220,7 @@
+     build = Path(plan["owned_outputs"]["directory"])
+     assert not build.exists()
+     pins = {str(ROOT / item["path"]): item for item in manifest["inputs"] + plan["source_files"]}
++    pins[str(PLAN_PATH)] = {"bytes": PLAN_PATH.stat().st_size, "sha256": PLAN_SHA}
+     pins[str(LANE / "seal.json")] = {"bytes": (LANE / "seal.json").stat().st_size, "sha256": "53ab4e6ef041346dadadbbba69b7e5f5a7c35df004d9f1da753845be15779861"}
+     for item in seal["members"]:
+         pins[str(LANE / item["path"])] = item
+@@ -226,14 +259,14 @@
+         assert "test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out;" in output
+         outcome["tests_passed"] = 24
+     except BaseException as error:
+-        ERRORS.append(type(error).__name__ + ": " + str(error))
++        ERRORS.append(type(error).__name__ + ": " + str(error) + "\n" + traceback.format_exc(limit=8))
+     finally:
+         for record in OWNED:
+             try:
+                 if not close(record):
+                     ERRORS.append("unknown owned group closure")
+             except BaseException as error:
+-                ERRORS.append("cleanup: " + repr(error))
++                ERRORS.append("cleanup: " + repr(error) + "\n" + traceback.format_exc(limit=8))
+         closed = all(r.get("reaped") and r.get("group_absent") for r in OWNED)
+         try:
+             deadline(49)
+@@ -246,7 +279,7 @@
+             verify(53.5)
+             outcome["all_pins_rechecked"] = True
+         except BaseException as error:
+-            ERRORS.append("post: " + repr(error))
++            ERRORS.append("post: " + repr(error) + "\n" + traceback.format_exc(limit=8))
+         outcome.update(commands=[{k: v for k, v in r.items() if k != "child"} for r in OWNED],
+                        errors=ERRORS, owned_groups_closed=closed)
+         save("observations.json", outcome)

@@ -1,0 +1,195 @@
+--- immutable-v1/source/model.rs
++++ v2/source/model.rs
+@@ -19,7 +19,7 @@
+ 
+ #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+ pub enum ValueId { Ledger, AcquisitionOwner, Parent, ScopePair, Expected, Attempt, Fixture, Closure,
+-    Body, Leaf, Child, View, PrimaryView, DestroyWrapper, DestroyPayload, Token, Forgotten, UnwindRetained }
++    Body, Leaf, AdmittedReturn, Child, View, PrimaryView, DestroyWrapper, DestroyPayload, Token, Forgotten, UnwindRetained }
+ #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+ pub enum BackingKey { AcquisitionInputs, AcquisitionPaths, ParentBinding, File(u8), Executable, Proof, Error, Cancellation, Claims }
+ #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+@@ -149,13 +149,13 @@
+             }
+             (P::Setup { next, mask }, E::SetupRefused { stage, retained_mask }) => {
+                 if stage != next || stage >= 5 || mask != retained_mask || mask != (1u8 << stage) - 1 { return Err(TransitionRefusal::BadSetupPrefix); }
+-                self.own(BackingKey::Error, ValueId::Body); self.phase = P::BodyReturned(Payload::SetupRefused(stage));
++                self.own(BackingKey::Error, ValueId::Body); self.return_admitted(Payload::SetupRefused(stage));
+             }
+             (P::Setup { mask, .. }, E::SetupInvariantRefused { retained_mask }) => {
+                 if mask != retained_mask || mask == 31 { return Err(TransitionRefusal::BadSetupPrefix); }
+                 // Conservative observation of the typed fallback, not proof that
+                 // normal File operations can reach an inconsistent slot array.
+-                self.phase = P::BodyReturned(Payload::InvariantRefused(mask));
++                self.return_admitted(Payload::InvariantRefused(mask));
+             }
+             (P::Setup { next: 5, mask: 31 }, E::SetupReady) => self.phase = P::SetupReady,
+             (P::SetupReady, E::LoaderBegin) => { self.own(BackingKey::Cancellation, ValueId::Body); self.phase = P::Loading; }
+@@ -188,8 +188,10 @@
+                 self.destroyed(ValueId::Leaf); if failures_retained { self.own(BackingKey::Error, ValueId::Body); }
+                 self.phase = P::LeafReturned(Payload::Finished { failures_retained });
+             }
+-            (P::RawRefusal(payload) | P::LeafReturned(payload), E::BoundReturn) if self.arguments_prepared => self.phase = P::BodyReturned(payload),
+-            (P::BodyReturned(payload), E::ChildWrap) => { self.transfer(ValueId::Body, ValueId::Child); self.phase = P::Returned(payload); }
++            (P::RawRefusal(payload) | P::LeafReturned(payload), E::BoundReturn) if self.arguments_prepared => self.return_admitted(payload),
++            (P::BodyReturned(payload), E::ChildWrap) => {
++                self.transfer(ValueId::AdmittedReturn, ValueId::Child); self.destroyed(ValueId::Body); self.phase = P::Returned(payload);
++            }
+             (P::Returned(payload), E::ObserveBegin) if !self.observed => {
+                 self.values.insert(ValueId::View);
+                 if !matches!(payload, Payload::SetupRefused(_) | Payload::InvariantRefused(_)) { self.values.insert(ValueId::PrimaryView); }
+@@ -239,6 +241,14 @@
+         }
+         Ok(())
+     }
++    fn return_admitted(&mut self, payload: Payload) {
++        // Complete AdmittedFixtureOutcome exists before PrepaidOwned wrapping.
++        // The callee activation/frame remains a separate unknown-size obligation.
++        // Moving ownership establishes neither a return-slot alias nor disjointness.
++        self.transfer(ValueId::Body, ValueId::AdmittedReturn);
++        self.values.insert(ValueId::Body);
++        self.phase = Phase::BodyReturned(payload);
++    }
+     fn move_payload_out(&mut self) {
+         self.values.insert(ValueId::DestroyPayload);
+         for owners in self.backings.values_mut() { if owners.remove(&ValueId::DestroyWrapper) { owners.insert(ValueId::DestroyPayload); } }
+@@ -262,7 +272,7 @@
+         Self::AdmittedPayload => Some(Bytes(13616)), Self::SharedView => Some(Bytes(8)), Self::PrimaryView => Some(Bytes(16)), Self::UnobservedFrame(_) => None } }
+     fn for_owner(owner: ValueId) -> Self { match owner { ValueId::ScopePair => Self::ScopePair, ValueId::Expected => Self::Correspondence, ValueId::Attempt => Self::Attempt,
+         ValueId::Closure => Self::DispatchClosure, ValueId::Child | ValueId::Forgotten | ValueId::DestroyWrapper => Self::ReturnedChild,
+-        ValueId::DestroyPayload => Self::AdmittedOutcome, ValueId::View => Self::SharedView, ValueId::PrimaryView => Self::PrimaryView,
++        ValueId::AdmittedReturn | ValueId::DestroyPayload => Self::AdmittedOutcome, ValueId::View => Self::SharedView, ValueId::PrimaryView => Self::PrimaryView,
+         other => Self::UnobservedFrame(other) } }
+ }
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum End { At(u16), Retained }
+--- immutable-v1/source/tests.rs
++++ v2/source/tests.rs
+@@ -338,3 +338,128 @@
+     let mut d = declarations(&trace); d.backing.iter_mut().find(|b| b.key == BackingKey::Cancellation).unwrap().completion = EvidenceOrigin::Missing;
+     assert_eq!(rejected(&trace, &d), incomplete(MissingFact::FinalDestruction(BackingKey::Cancellation)));
+ }
++
++// R01 cases use actual semantic intervals, unlike the retained full-horizon
++// fixtures. All physical identities/capacities below remain synthetic hypotheses.
++fn setup_prewrap(stage: u8) -> TraceState {
++    let mut trace = setup();
++    for opened in 0..stage { drive(&mut trace, &[Event::SetupOpened(opened)]); }
++    drive(&mut trace, &[Event::SetupRefused { stage, retained_mask: (1u8 << stage) - 1 }]); trace
++}
++fn loaded_prewrap_paths() -> Vec<TraceState> {
++    let mut paths = Vec::new();
++    for (selection, outcome) in [(Selection::Failure, Correlation::LoaderRefused), (Selection::Proof, Correlation::Refused)] {
++        let mut trace = correlated(selection, outcome); drive(&mut trace, &[Event::BoundReturn]); paths.push(trace);
++    }
++    let mut trace = correlated(Selection::Proof, Correlation::Correlated);
++    drive(&mut trace, &[Event::LeafStart, Event::LeafScopeRefused, Event::BoundReturn]); paths.push(trace);
++    for failures_retained in [false, true] {
++        let mut trace = correlated(Selection::Proof, Correlation::Correlated);
++        drive(&mut trace, &[Event::LeafStart, Event::LeafScopeReady, Event::LeafConstruct, Event::LeafOuterBorrow,
++            Event::LeafFinish { failures_retained }, Event::BoundReturn]); paths.push(trace);
++    }
++    paths
++}
++fn all_prewrap_paths() -> Vec<TraceState> {
++    let mut paths = (0..5).map(setup_prewrap).collect::<Vec<_>>();
++    // Counterfactual conservative fallback, not a File reachability receipt.
++    let mut fallback = setup(); drive(&mut fallback, &[Event::SetupOpened(0), Event::SetupOpened(1),
++        Event::SetupInvariantRefused { retained_mask: 3 }]); paths.push(fallback);
++    paths.extend(loaded_prewrap_paths()); paths
++}
++fn complete_prewrap(mut trace: TraceState) -> TraceState {
++    assert!(matches!(trace.phase(), Phase::BodyReturned(_)));
++    let snapshot = trace.history.last().unwrap();
++    assert!(snapshot.values.contains(&ValueId::Body));
++    assert!(snapshot.values.contains(&ValueId::AdmittedReturn));
++    for owners in snapshot.backings.values() { assert!(!owners.contains(&ValueId::Body)); }
++    drive(&mut trace, &[Event::ChildWrap]); wrapper_gone(&mut trace);
++    drive(&mut trace, &[Event::TokenReturnSome, Event::ReleaseChild(ChildId(7)), Event::RetireAcquisition]); trace
++}
++fn narrow_declarations(trace: &TraceState) -> Declarations {
++    let mut d = declarations(trace);
++    for region in &mut d.inline {
++        let first = trace.history.iter().position(|s| s.values.contains(&region.owner)).unwrap();
++        let last = trace.history.iter().rposition(|s| s.values.contains(&region.owner)).unwrap();
++        region.live = Interval { begin: first as u16, end: End::At((last + 1) as u16) };
++    }
++    let carrier = d.inline.iter().find(|r| r.owner == ValueId::AdmittedReturn).unwrap();
++    let child = d.inline.iter().find(|r| r.owner == ValueId::Child).unwrap();
++    assert_eq!(carrier.shape, CurrentShape::AdmittedOutcome);
++    assert_eq!(carrier.capacity.bound, Bytes(13624));
++    assert_eq!(carrier.live.end, End::At(child.live.begin));
++    assert_eq!(child.live.end_at(trace.history.len()), usize::from(child.live.begin) + 1);
++    d
++}
++#[test]
++fn t21_setup_return_missing_carrier_refuses_with_narrow_child_extent() {
++    for stage in 0..5 {
++        let trace = complete_prewrap(setup_prewrap(stage)); let mut d = narrow_declarations(&trace);
++        assert_eq!(d.inline.iter().find(|r| r.owner == ValueId::Body).unwrap().capacity.bound, Bytes(8));
++        assert!(peak(&trace, &d) >= 13624);
++        d.inline.retain(|r| r.owner != ValueId::AdmittedReturn);
++        assert_eq!(rejected(&trace, &d), incomplete(MissingFact::OwnerRegion(ValueId::AdmittedReturn)));
++    }
++}
++#[test]
++fn t22_bound_return_missing_carrier_refuses_on_every_loaded_branch() {
++    for path in loaded_prewrap_paths() {
++        let trace = complete_prewrap(path); let mut d = narrow_declarations(&trace);
++        assert!(peak(&trace, &d) >= 13624);
++        d.inline.retain(|r| r.owner != ValueId::AdmittedReturn);
++        assert_eq!(rejected(&trace, &d), incomplete(MissingFact::OwnerRegion(ValueId::AdmittedReturn)));
++    }
++}
++#[test]
++fn t23_return_carrier_size_shape_interval_and_evidence_are_independent_guards() {
++    for path in all_prewrap_paths() {
++        let trace = complete_prewrap(path); let baseline = narrow_declarations(&trace);
++        let index = baseline.inline.iter().position(|r| r.owner == ValueId::AdmittedReturn).unwrap();
++        let mut d = baseline.clone(); d.inline[index].capacity.bound = Bytes(8);
++        d.inline[index].capacity.origin = reviewed(d.inline[index].capacity.origin);
++        assert_eq!(rejected(&trace, &d), AssessmentOutcome::InvalidTrace("undersized accepted shape"));
++        let mut d = baseline.clone(); d.inline[index].shape = CurrentShape::UnobservedFrame(ValueId::AdmittedReturn);
++        assert_eq!(rejected(&trace, &d), AssessmentOutcome::InvalidTrace("wrong current shape for owner"));
++        let mut d = baseline.clone(); let returned_at = d.inline[index].live.begin;
++        assert!(returned_at > 0); d.inline[index].live = Interval { begin: returned_at - 1, end: End::At(returned_at) };
++        assert_eq!(rejected(&trace, &d), incomplete(MissingFact::OwnerRegion(ValueId::AdmittedReturn)));
++        let mut d = baseline.clone(); d.inline[index].capacity.origin = EvidenceOrigin::Missing;
++        assert_eq!(rejected(&trace, &d), incomplete(MissingFact::Evidence));
++    }
++}
++#[test]
++fn t24_complete_return_slot_overlap_requires_evidence_and_separate_frame() {
++    for path in all_prewrap_paths() {
++        let trace = complete_prewrap(path); let separate = narrow_declarations(&trace);
++        assert!(peak(&trace, &separate) >= 13624); // Complete separate return/frame/child extents.
++        let mut d = separate.clone();
++        let carrier_index = d.inline.iter().position(|r| r.owner == ValueId::AdmittedReturn).unwrap();
++        let child = d.inline.iter().find(|r| r.owner == ValueId::Child).unwrap().clone();
++        let old_arena = d.inline[carrier_index].arena;
++        // Explicit hypothetical same-arena declaration and its identity witness,
++        // not an inference from a source move. Retain physical return storage
++        // into the first ChildWrap segment so the checked union must handle it.
++        d.inline[carrier_index].arena = child.arena;
++        d.inline[carrier_index].live.end = End::At(child.live.begin + 1);
++        d.arenas.retain(|a| a.id != old_arena);
++        d.disjoint.retain(|r| r.left != old_arena && r.right != old_arena);
++        let carrier = d.inline[carrier_index].clone();
++        assert_eq!(carrier.funding, child.funding);
++        assert_eq!(union_width(vec![(0, carrier.capacity.bound.0), (0, child.capacity.bound.0)]), Ok(13640));
++        let frame = d.inline.iter().find(|r| r.owner == ValueId::Body).unwrap().clone();
++        assert_ne!(frame.arena, child.arena); assert!(frame.live.covers(usize::from(carrier.live.begin), trace.history.len()));
++        assert!(peak(&trace, &d) >= 13640); // Still only model_only through peak().
++        let complete = d.clone();
++        d.arenas.iter_mut().find(|a| a.id == child.arena).unwrap().identity.origin = EvidenceOrigin::Missing;
++        assert_eq!(rejected(&trace, &d), incomplete(MissingFact::Evidence));
++        let mut d = complete.clone();
++        d.disjoint.retain(|r| !((r.left == frame.arena && r.right == child.arena) || (r.left == child.arena && r.right == frame.arena)));
++        assert_eq!(rejected(&trace, &d), incomplete(MissingFact::Disjointness));
++        let mut d = complete.clone();
++        d.inline.iter_mut().find(|r| r.owner == ValueId::Body).unwrap().live.end = End::At(carrier.live.begin);
++        assert_eq!(rejected(&trace, &d), incomplete(MissingFact::OwnerRegion(ValueId::Body)));
++        let mut d = complete;
++        d.inline[carrier_index].funding = Funding::P0;
++        assert_eq!(rejected(&trace, &d), AssessmentOutcome::InvalidTrace("incompatible inline funding"));
++    }
++}

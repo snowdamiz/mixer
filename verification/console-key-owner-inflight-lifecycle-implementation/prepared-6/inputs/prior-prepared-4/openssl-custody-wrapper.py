@@ -1,0 +1,196 @@
+#!/usr/bin/env python3
+"""Pinned wrapper: native work requires a durable root custody ACK."""
+from pathlib import Path
+import os
+import selectors
+import signal
+import subprocess
+import sys
+import time
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import custody
+
+
+def append(path, value):
+    data = custody.encoded(value)
+    if len(data) > 131072:
+        raise ValueError("native audit record cap")
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+    try:
+        os.write(fd, data)
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+def main():
+    received = []
+    for number in custody.SIGNALS:
+        signal.signal(number, lambda value, _frame: received.append(value))
+    config = custody.read(os.environ["MIXER_CUSTODY_CONFIG"], 16384)
+    directory = Path(config["directory"])
+    if config["mode"] == "controls" and config.get("fail_before_publish", False):
+        return 90
+    started = time.monotonic_ns()
+    request = None
+    ack = None
+    request_sha = ""
+    ack_sha = ""
+    child = None
+    output = bytearray()
+    errors = []
+    child_group = 0
+    rapid_exit = False
+    child_reaped = False
+    exit_code = 125
+    exceeded = False
+    try:
+        until = min(config["work_deadline_ns"], started + 1_000_000_000)
+        offer = None
+        while time.monotonic_ns() < until and not received:
+            for path in sorted(directory.glob("*.offer.json"), reverse=True):
+                candidate = custody.read(path, 4096)
+                if not (directory / f"{candidate['ordinal']:02d}.request.json").exists():
+                    offer = candidate
+                    break
+            if offer is not None:
+                break
+            time.sleep(0.005)
+        if offer is None or received:
+            raise TimeoutError("no current offer or local cancellation before publication")
+        if set(offer) != {"run_nonce", "phase", "ordinal", "recipe_id"} or offer["run_nonce"] != config["run_nonce"] or offer["phase"] != "test":
+            raise ValueError("offer binding differs")
+        if type(offer["ordinal"]) is not int or not 0 <= offer["ordinal"] < 7 or offer["recipe_id"] != custody.RECIPES[offer["ordinal"]]:
+            raise ValueError("offer ordinal/recipe differs")
+        request = {**offer, "invocation_nonce": custody.secrets.token_hex(16),
+                   "wrapper_pid": os.getpid(), "wrapper_pgid": os.getpgrp(), "wrapper_sid": os.getsid(0),
+                   "argv": sys.argv[1:], "published_ns": time.monotonic_ns()}
+        for role in ["wrapper", "interpreter", "native"]:
+            path = Path(config[role + "_path"])
+            if custody.sha(path.read_bytes()) != config[role + "_sha256"]:
+                raise ValueError("wrapper local pinned identity differs")
+            request[role + "_path"] = str(path)
+            request[role + "_sha256"] = config[role + "_sha256"]
+        request_sha = custody.publish(directory / f"{offer['ordinal']:02d}.request.json", request, 4096)
+        ack_path = directory / f"{offer['ordinal']:02d}.ack.json"
+        until = min(config["work_deadline_ns"], time.monotonic_ns() + 1_000_000_000)
+        while not ack_path.exists() and time.monotonic_ns() < until and not received:
+            time.sleep(0.005)
+        if not ack_path.exists() or received:
+            raise TimeoutError("ACK absent or local launch path closed")
+        ack = custody.read(ack_path, 4096)
+        custody.validate_ack(ack, request, config, request_sha)
+        ack_sha = custody.sha(ack_path.read_bytes())
+        if config["mode"] == "controls":
+            pause = config.get("pause_before_spawn_ms", 0)
+            if type(pause) is not int or not 0 <= pause <= 250:
+                raise ValueError("control pause out of bounds")
+            time.sleep(pause / 1000)
+        # Already issued ACKs can race runner cancellation. Local observed signals
+        # stay closed; blocking delivery makes the local check/spawn boundary clear.
+        mask = signal.pthread_sigmask(signal.SIG_BLOCK, custody.SIGNALS)
+        try:
+            if received or any(x in custody.SIGNALS for x in signal.sigpending()) or time.monotonic_ns() >= ack["ack_deadline_ns"]:
+                raise TimeoutError("local cancellation or expired ACK")
+            if not custody.identity_live(os.getpid(), request["wrapper_pgid"], request["wrapper_sid"]):
+                raise ValueError("wrapper group identity changed")
+            child = subprocess.Popen([config["native_path"], *request["argv"]], stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                     start_new_session=False,
+                                     preexec_fn=lambda: signal.pthread_sigmask(signal.SIG_SETMASK, mask))
+        finally:
+            signal.pthread_sigmask(signal.SIG_SETMASK, mask)
+        try:
+            child_group = os.getpgid(child.pid)
+        except ProcessLookupError:
+            rapid_exit = True
+        if config["mode"] == "controls" and config.get("fail_after_spawn", False):
+            raise OSError("selected post-Popen/pre-child-publication control")
+        common = {**custody.binding(request), "registration_sha256": request_sha, "ack_sha256": ack_sha}
+        custody.publish(directory / f"{offer['ordinal']:02d}.child.json", {**common, "child_pid": child.pid,
+                        "child_group": child_group, "rapid_exit": rapid_exit}, 4096)
+        launch = {"executable": config["native_path"], "args": request["argv"], "wrapper_pid": os.getpid(),
+                  "child_pid": child.pid, "parent_pid": os.getppid(), "process_group": os.getpgrp(), "started_ns": started,
+                  **{key: request[key] for key in ["run_nonce", "phase", "ordinal", "recipe_id", "invocation_nonce"]},
+                  "registration_sha256": request_sha, "ack_sha256": ack_sha, "child_group": child_group}
+        append(os.environ["MIXER_OPENSSL_STARTED"], launch)
+        if child_group not in [0, request["wrapper_pgid"]]:
+            raise ValueError("native group differs from acknowledged group")
+        os.set_blocking(child.stdout.fileno(), False)
+        selector = selectors.DefaultSelector()
+        try:
+            selector.register(child.stdout, selectors.EVENT_READ)
+            eof = False
+            while not eof:
+                if received or time.monotonic_ns() >= ack["native_work_deadline_ns"]:
+                    raise TimeoutError("native work timeout/local cancellation")
+                for key, _ in selector.select(0.005):
+                    chunk = os.read(key.fileobj.fileno(), 4096)
+                    if not chunk:
+                        eof = True
+                        break
+                    if len(output) + len(chunk) > 65536:
+                        exceeded = True
+                        raise ValueError("native output cap")
+                    output.extend(chunk)
+        finally:
+            selector.close()
+        exit_code = child.wait(timeout=max(0.001, (ack["native_work_deadline_ns"] - time.monotonic_ns()) / 1e9))
+        child_reaped = True
+    except BaseException as exc:
+        errors.append(type(exc).__name__ + ": " + str(exc))
+    finally:
+        if child is not None and not child_reaped:
+            try:
+                if child.poll() is None:
+                    child.terminate()
+                try:
+                    exit_code = child.wait(timeout=0.2)
+                except subprocess.TimeoutExpired:
+                    child.kill()
+                    exit_code = child.wait(timeout=max(0.001, (config["cleanup_deadline_ns"] - time.monotonic_ns()) / 1e9))
+                child_reaped = True
+            except BaseException as exc:
+                errors.append("child cleanup: " + repr(exc))
+        if child is not None and child.stdout is not None:
+            child.stdout.close()
+        if request is not None and request_sha:
+            common = {**custody.binding(request), "registration_sha256": request_sha, "ack_sha256": ack_sha}
+            completion = {**common, "native_started": child is not None, "child_pid": child.pid if child else 0,
+                          "child_reaped": child_reaped or child is None, "exit_code": exit_code,
+                          "finished_ns": time.monotonic_ns(), "errors": errors}
+            try:
+                completion_sha = custody.publish(directory / f"{request['ordinal']:02d}.completion.json", completion, 16384)
+                if child is not None and 'launch' in locals():
+                    append(os.environ["MIXER_OPENSSL_AUDIT"], {**launch, "exit_code": exit_code,
+                           "finished_ns": time.monotonic_ns(), "output": output.decode("utf-8", errors="replace"), "output_cap_exceeded": exceeded})
+                exit_path = directory / f"{request['ordinal']:02d}.exit.json"
+                while time.monotonic_ns() < config["cleanup_deadline_ns"]:
+                    if exit_path.exists():
+                        grant = custody.read(exit_path, 4096)
+                        if grant != {**custody.binding(request), "completion_sha256": completion_sha}:
+                            raise ValueError("exit grant differs")
+                        break
+                    time.sleep(0.005)
+                else:
+                    raise TimeoutError("root exit grant absent")
+            except BaseException as exc:
+                errors.append("completion/exit grant: " + repr(exc))
+        # Bounded nonblocking forwarding; native wait/completion is already durable.
+        try:
+            os.set_blocking(sys.stdout.fileno(), False)
+            offset = 0
+            while offset < len(output) and time.monotonic_ns() < config["cleanup_deadline_ns"]:
+                try:
+                    offset += os.write(sys.stdout.fileno(), output[offset:])
+                except BlockingIOError:
+                    time.sleep(0.005)
+            if offset != len(output):
+                errors.append("stdout forwarding deadline")
+        except OSError:
+            errors.append("stdout forwarding pipe closed")
+    return exit_code if not errors else 125
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

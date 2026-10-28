@@ -1,0 +1,90 @@
+{
+  "at": "2026-10-28T03:23:30.259196+00:00",
+  "before_after_controller_and_plan_bytes_equal": true,
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "verification/swift-root-bound-dispatch-region-model-independent/runtime-controller-review/review_source.py"
+  ],
+  "compiler_model_test_runtime_version_process_inventory_native_actions": 0,
+  "controller": {
+    "bytes": 10258,
+    "path": "verification/swift-semantic-adapter-root-review/run-dispatch-region-model-v2.py",
+    "sha256": "e7bf73dc8f7816a651c0b987f0efd5b2db59e0e3fff9be92c59a56f469717433"
+  },
+  "controller_imported_or_executed": false,
+  "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+  "elapsed_seconds": 0.0014476249925792217,
+  "findings": [
+    {
+      "id": "C01",
+      "issue": "Generated-tree bounds and symlink/type inventory run only after the host binary has executed. Before launch the controller only hashes binary; that follows symlinks and applies no32MiB/64-member check. The later inventory hashes a file before testing its declared total size and eagerly sorts an unbounded traversal.",
+      "minimum_fix": "After compiler closure and before binary launch, perform a bounded no-symlink generated-tree inventory. Count members and accumulate regular-file sizes before hashing;refuse over limit or unexpected types immediately. Validate/hash the regular binary from that bounded inventory,then launch it. Retain a bounded post-run/cleanup inventory and preserve artifacts on ambiguity.",
+      "priority": 1,
+      "source_lines": [
+        167,
+        168,
+        169,
+        170,
+        193,
+        197,
+        198,
+        199
+      ]
+    },
+    {
+      "id": "C02",
+      "issue": "The cutoff timestamp is assigned after sigpending is sampled. A blocked signal arriving after the snapshot but before cutoff is a pre-cutoff signal absent from observed;installing SIG_IGN can discard it and allow passed. No explicit post-cutoff observation scope is retained,and observations hashing occurs after cutoff.",
+      "minimum_fix": "Use the reviewed one-way finite-cutoff protocol:finish command/cleanup/source/binary/generated hashes and observations digest first;assign cutoff before the protected signal snapshot,or use explicit record-only pre/post-cutoff handlers with an equivalent no-gap boundary. Pre-cutoff observations reject;later signals are expressly outside the completed observation. No compiler/hash/parse follows cutoff;receipt publication alone follows.",
+      "priority": 1,
+      "source_lines": [
+        210,
+        211,
+        212,
+        213,
+        214,
+        215,
+        216,
+        218
+      ]
+    },
+    {
+      "id": "C03",
+      "issue": "Control bytes used for execution and roster selection are not all pinned. Plan bytes are parsed before a separate path rehash;input-manifest and test-family-map are parsed without their sealed expected digests,and neither is added to before/after pins. Thus all_pins_rechecked does not establish custody of the actual control data used.",
+      "minimum_fix": "Anchor the exact frozen v2 seal/member roster in the root release/controller. Bounded-read control bytes,verify those same bytes against sealed lengths/digests before parsing/using them,and retain plan,manifest,test roster and other preparation/control-file pins in pre/post custody. Derive the24 distinct expected names from the verified roster;reject duplicate JSON keys or member/path collisions.",
+      "priority": 1,
+      "source_lines": [
+        137,
+        138,
+        147,
+        148,
+        152,
+        155,
+        159,
+        160,
+        161,
+        162,
+        173
+      ]
+    }
+  ],
+  "host_plan_sha256": "5a2950e97e714e3628546d9b73aa2918c72f23f1221c64806823f978dc2c32e8",
+  "nonblocking_source_observations": [
+    "Two command calls are serial and the second follows successful expected compile exit;absolute offsets share START.",
+    "stdout/stderr retained buffers are capped,and output-cap failures propagate through ERRORS.",
+    "The child is retained before custody checks;WNOWAIT observation precedes all group signaling;leader is reaped only after signals finish.",
+    "Unknown closure,cleanup failure and posthash failure append ERRORS,which gates passed;source review does not establish runtime availability or success."
+  ],
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "python_tool": {
+    "reported_path": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "resolved_path": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+    "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+  },
+  "review_script_sha256": "eb364ad2578ed146f6a11e79ea907f48f7a8fabd1e1fd8b419f4b6365a6c9753",
+  "root_execution_release_recommended": false,
+  "schema": 1,
+  "scope": "Three concrete controller blockers only;no new model-source change requested. No runtime,compiler,test,producer replay,canonical metadata,commit or push.",
+  "source_binding": "91bab68a8aef4a7cbe300af0fca8145462e08dcaaef2631f42a0d2d55748bd8f",
+  "status": "FROZEN_INDEPENDENT_ROOT_CONTROLLER_SOURCE_REVIEW_CORRECTION_REQUIRED"
+}

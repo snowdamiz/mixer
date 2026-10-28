@@ -1,0 +1,11 @@
+--- before/hosted/test/mixer_hosted/identity/key_owner_inflight_lifecycle_test.exs
++++ after/hosted/test/mixer_hosted/identity/key_owner_inflight_lifecycle_test.exs
+@@ -309,7 +309,7 @@
+     value(recorder, :server_socket, socket_resources(recorder, :server_socket, server_socket))
+     assert [%{request: request, tls: tls}] = server.requests
+     assert String.starts_with?(request, "GET /keys HTTP/1.1\r\n")
+-    assert tls[:sni_hostname] in ['jwks.fixture.invalid', "jwks.fixture.invalid"]
++    assert tls[:sni_hostname] in [~c"jwks.fixture.invalid", "jwks.fixture.invalid"]
+     assert tls[:protocol] in [:"tlsv1.2", :"tlsv1.3"]
+     value(recorder, :tls_protocol, Atom.to_string(tls[:protocol]))
+ 

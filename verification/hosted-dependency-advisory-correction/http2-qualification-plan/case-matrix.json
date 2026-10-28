@@ -1,0 +1,143 @@
+{
+  "schema": "mixer.http2-wire-qualification.plan.v1",
+  "state": "source_design_only_pending_root_selection",
+  "proposed_new_files": [
+    "hosted/test/support/http2_wire_fixture.ex",
+    "hosted/test/mixer_hosted/billing/raw_webhook_capture_http2_test.exs"
+  ],
+  "canonical_edits_now": [],
+  "named_test_methods": 5,
+  "finite_subcases": 7,
+  "cases": [
+    {
+      "id": "B1",
+      "layer": "Mixer over actual Bandit",
+      "input_body_bytes": 40001,
+      "barrier": "preload before read; PING/ACK fence; trusted release",
+      "assertions": [
+        "actual HTTP/2 and underlying Bandit adapter",
+        "measured read return exceeds its requested length",
+        "exact captured bytes/signature; positive success within admission deadline"
+      ],
+      "missing_witness": "uncovered qualification; do not omit over-target assertion"
+    },
+    {
+      "id": "B2",
+      "layer": "Mixer over actual Bandit",
+      "input_body_bytes": 1048576,
+      "framing": "no Content-Length; legal receive-credit pump; END_STREAM on last payload DATA frame",
+      "assertions": [
+        "inclusive cap success",
+        "exact bytes",
+        "read count <= 64"
+      ]
+    },
+    {
+      "id": "B3",
+      "layer": "Mixer over actual Bandit",
+      "input_body_bytes": 1048577,
+      "framing": "no Content-Length; legal receive-credit pump",
+      "assertions": [
+        ":too_large and halted",
+        "no captured-success event",
+        "owned disposal"
+      ],
+      "actual_sent_bytes_required": 1048577,
+      "final_write": "reserve credit; send final full DATA and final one-byte END_STREAM DATA in one bounded TCP write",
+      "branch_limit": "early refusal at the nonterminal cap is allowed; not proof the greater-than-cap comparison consumed the extra byte"
+    },
+    {
+      "id": "D1",
+      "layer": "package read via public Plug call",
+      "variants": [
+        "SETTINGS-empty",
+        "stream1-WINDOW_UPDATE1"
+      ],
+      "input_body_bytes": 0,
+      "end_stream": false,
+      "read_timeout_ms": 1000,
+      "observation_bounds_ms": [
+        900,
+        1600
+      ],
+      "control_interval_ms": 200,
+      "control_frame_cap": 8,
+      "assertions": [
+        "at least 3 processed controls",
+        "no protocol-refusal false positive",
+        "incomplete read by fixed bound despite nonprogress frames"
+      ],
+      "expected_shape_pending_target_source_confirmation": "{:more,<<>>,conn}"
+    },
+    {
+      "id": "D2",
+      "layer": "Mixer capture admission",
+      "variants": [
+        "SETTINGS-empty",
+        "stream1-WINDOW_UPDATE1"
+      ],
+      "input_body_bytes": 0,
+      "end_stream": false,
+      "read_timeout_ms": 1000,
+      "observation_bounds_ms": [
+        900,
+        1600
+      ],
+      "control_interval_ms": 200,
+      "control_frame_cap": 8,
+      "assertions": [
+        "actual production capture/1 and monotonic clock",
+        "confirmed empty-more maps to :no_progress",
+        "halted/no success; owned disposal"
+      ],
+      "not_claimed": "five-second hard transport cancellation"
+    }
+  ],
+  "bounds": {
+    "active_listeners": 1,
+    "connections": 1,
+    "streams": 1,
+    "case_ms": 3000,
+    "cleanup_ms": 500,
+    "module_ms": 25000,
+    "suite_body_bytes": 3145728,
+    "data_frame_payload_bytes": 16384,
+    "headers_bytes": 1024,
+    "body_case_frame_events": 256,
+    "deadline_case_frame_events": 64,
+    "read_observer_events_per_case": 64,
+    "other_correlated_messages_per_case": 8,
+    "structured_receipt_bytes_per_case": 2048
+  },
+  "server_profile": {
+    "bind": [
+      127,
+      0,
+      0,
+      1
+    ],
+    "port": 0,
+    "http1_enabled": false,
+    "http2_enabled": true,
+    "acceptors": 1,
+    "connection_slots": 1,
+    "accept_retry": 0,
+    "transport_idle_ms": 5000,
+    "max_concurrent_streams": 1,
+    "decoded_headers_bytes": 1024,
+    "max_requests": "unchanged default; client opens exactly one request"
+  },
+  "root_selection_before_implementation": "Bind actual 1.14.0 source for timeout return and prequeued batching witness; local shared dependency source remains 1.13.1. Canonical target bytes now match the accepted integration proposal. No download or runtime in this design.",
+  "validation_path": "Ordinary remote Phoenix CI discovery and retained test log; no wrapper, workflow, DB or provider change.",
+  "qualification_boundaries": [
+    "public wire/reader behavior for specified finite inputs only",
+    "not full upstream advisory coverage or exploit/DoS proof",
+    "not memory/backpressure bound",
+    "not private WebhookTransport lifecycle qualification",
+    "not provider/production/native/device/GA acceptance"
+  ],
+  "pending_qualification_ids": [
+    "HTTP2_BATCHING_APPLICATION_BYTE_CAPS",
+    "HTTP2_NONPROGRESS_PUBLIC_READ_DEADLINE"
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T03:56:58.643098+00:00",
+  "status": "recommend-root-one-exact-prepared6-controls-run-real-runtime-remains-conditional",
+  "source_contract": {
+    "path": "verification/console-key-owner-inflight-lifecycle-independent/custody-implementation-review-6/source-contract.json",
+    "bytes": 3797,
+    "sha256": "3283ed125205fecb6881c090f1fe9884d42a6c1df829ce8dc70e7dbc3b5b821f"
+  },
+  "producer_freeze_sha256": "b80c8f9857bdd5245904219075156cecc7ece85941ebcd8ef210a4c974179751",
+  "blocking_findings": [],
+  "checks": [
+    {
+      "id": "CIR5-01",
+      "status": "source correction adequate",
+      "evidence": "Control invocation requires selected combined_artifact_bytes exactly1048576; the artifact walk enforces the plan cap, and the terminal report canonical encoded bytes are added before publish. If even a failed report does not fit, source raises and retains evidence/scratch rather than exceeding cap. Per-file131072 cap is stricter than selected artifact_bytes.",
+      "refs": [
+        "custody-controls.py:38-40",
+        "custody-controls.py:361-390"
+      ]
+    },
+    {
+      "id": "CIR5-02",
+      "status": "source correction adequate; actual helper checks still unrun",
+      "evidence": "Shared RetainedChild tracks direct wait/poll completion as sticky, preventing future active signals. cleanup selects completed-observe when already completed. Running retirement requires retained exclusive session leader, current PID/PGID/SID plus rechecked poll before each signal; completion prevents escalation even if numeric group remains. Unproven/lost identity has observe-only failure path. Real runner uses this shared helper and requires no uncertainty before clean cleanup.",
+      "refs": [
+        "vm_cleanup.py:9-25,42-102,110-163",
+        "runner.py:133-141,226-254,260-282"
+      ]
+    },
+    {
+      "id": "EPERM-refusal",
+      "status": "source policy adequate; no permission-failure probe performed",
+      "evidence": "EPERM sets permission_denied/identity_lost/uncertain permanently. It closes active authority and further group probes without alternate PID/API kill. Diagnostics retain call label, errno/name, strerror, exception/traceback, exact PID/PGID/SID and time. This records the actual failing call if one occurs; it does not diagnose the separate Swift attempt.",
+      "refs": [
+        "vm_cleanup.py:27-57,59-102,117-148"
+      ]
+    },
+    {
+      "id": "completed-helper-control",
+      "status": "prospective executable check adequate",
+      "evidence": "happy starts the selected bounded fake child in its own session, retains through the actual shared helper, waits for completion, then demands completed-observe, zero signals, reaped child, group absence and no uncertainty. Full cleanup observation and exact command are included in the typed control report/artifacts.",
+      "refs": [
+        "custody-controls.py:75-114",
+        "control-artifact-schema.json:vm_cleanup_subchecks"
+      ]
+    },
+    {
+      "id": "running-helper-control",
+      "status": "prospective executable check adequate",
+      "evidence": "native-timeout adds a separate bounded helper, waits for its exact marker, observes real wait timeout, then demands running-retirement, retained identity, exactly TERM, reaped child, group absence and no permission/cleanup uncertainty. Helper is also retained for outer finally. No process probe or helper ran in this review.",
+      "refs": [
+        "custody-controls.py:75-114,307-315",
+        "control-artifact-schema.json:vm_cleanup_subchecks"
+      ]
+    },
+    {
+      "id": "scope-and-limits",
+      "status": "adequate for separate controls-first release",
+      "evidence": "18 named cases and two required ordered helper subchecks remain under40/46/52/55seconds. Source enforces <=10ACKs, <=8custody fake launches and <=10total fake launches. Custody/wrapper/real schemas and23hosted inputs are byte-identical to prepared5; prior controls and unclaimed INT/HUP/output/missing/late paths retain their scope. Control and real releases have different exact hashes and fresh fixed output slots.",
+      "refs": [
+        "control-plan.json",
+        "custody-controls.py:366-390",
+        "execution-plan.json"
+      ]
+    }
+  ],
+  "recommended_control_plan_sha256": "5de0dcfc2d99129c3d238cd59ec9536e64a1ac8633cb6e6853b09a5b32505ac9",
+  "control_invocation": [
+    "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+    "-B",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/console-key-owner-inflight-lifecycle-implementation/prepared-6/custody-controls.py",
+    "--release",
+    "ABSOLUTE_EXACT_ROOT_CONTROL_RELEASE"
+  ],
+  "exact_control_output": "executions/custody-controls-3",
+  "required_release": {
+    "status": "root-released-exact-plan",
+    "single_execution": true,
+    "execution_plan_sha256": "5de0dcfc2d99129c3d238cd59ec9536e64a1ac8633cb6e6853b09a5b32505ac9"
+  },
+  "control_terminal_review_requirements": [
+    "All18 ordered named cases and two ordered actual-helper subchecks pass with their expected failure/uncertainty semantics.",
+    "completed-no-signal must show completed-observe and signals=[]; running-timeout must show real timeout, retained identity, TERM-only, exact wait and group absence.",
+    "Actual I/O fault counts/byte counts, fsync errors, completion-before-exit ordering, journal reconciliation/truncation rejection, real wrapper TERM and malformed/replayed ACK rejection need retained evidence.",
+    "All known exact child/group cleanup and preserved-scratch records must be assessed; deliberate uncertainty remains failed real-run state, not a clean lifecycle pass.",
+    "Actual total <=10fake launches/10ACKs,18cases,1MiB artifacts including report and40/46/52/55cutoffs; source/tool pins and exact output scope remain bound."
+  ],
+  "real_runtime_condition": {
+    "plan_sha256": "88c2aec08cae87c4d3e690ef2f8df3f9cb2c58c151a8b26401446bac8bc3e6b9",
+    "selected_or_released_by_this_review": false,
+    "condition": "Only after root selects/runs the separate exact controls and independently reviews actual terminal receipts may root consider one separately exact real runtime release. Source-only review does not establish helper/syscall/native/TLS outcomes or nine lifecycle methods."
+  },
+  "limitations": [
+    "No control/child/compiler/formatter/native/OpenSSL/TLS/process probe or producer import/replay occurred.",
+    "No exact syscall diagnosis is inferred from the separate root-reported Swift attempt.",
+    "Permission failures and lost/unproven identity intentionally fail/preserve scratch; no unconditional OS cleanup guarantee.",
+    "Physical/native UI/capture pause and broader provider/application/operations/FieldLog/GA boundaries remain pending."
+  ],
+  "execution_granted": false,
+  "GA_acceptance": false
+}

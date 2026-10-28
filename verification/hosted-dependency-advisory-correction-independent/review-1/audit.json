@@ -1,0 +1,152 @@
+{
+  "schema": 1,
+  "status": "source-custody-passed-cancel-and-resolver-corrections-required-before-release",
+  "created_at": "2026-10-28T03:20:56.164458+00:00",
+  "command": "python3 -B verification/hosted-dependency-advisory-correction-independent/review-1/audit_sources.py",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "review_script_sha256": "3dc73628ef5d7cbf46b783f55c02107e34ccd4ec0faf2b016c58966945af3faf",
+  "controller_sha256": "f4369b8fa608521da8e95a301c85966aae34fa5303f122a2edc1eccae83cc556",
+  "plan_sha256": "c0cd50892185a8e0614486c1e3f478c997ba7a8c7405935dcdf361d72e71df1c",
+  "source_revision": "a4f1d13fe83415377e84b3fc33869e667da30fae",
+  "verified": {
+    "successor_seal_members": 5,
+    "original_seal_members": 16,
+    "original_packet_inputs": 17,
+    "canonical_source_pins": 13,
+    "selected_tool_files": 13,
+    "copied_Hex_archive_source_files": 133,
+    "prior_advisory_entries": 15,
+    "exact_sequential_commands": 5,
+    "original_lock_entries": 21,
+    "proposal_only_two_exact_mix_pins": true,
+    "controller_AST_parse_only": true
+  },
+  "primary_local_OTP_sources": [
+    {
+      "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/kernel-11.0.4/src/inet_config.erl",
+      "sha256": "311af8e9e0bf9aa4ade861507cd0a2403d7b80e2f710d66b75b94f81dcbac515",
+      "bytes": 14574,
+      "ranges": [
+        [
+          35,
+          84
+        ],
+        [
+          184,
+          197
+        ],
+        [
+          432,
+          456
+        ]
+      ],
+      "excerpts": [
+        {
+          "first": 35,
+          "last": 84,
+          "text": "\n-export([do_load_resolv/2]).\n\n%%\n%% Must be called after inet_db:start\n%%\n%% Order in which to load inet_db data:\n%% 1. Hostname  (possibly derive domain and search)\n%% 2. OS default  /etc/resolv.conf,  Windows registry etc\n%%    a) Hosts database\n%%    b) Resolver options \n%% 3. Config (kernel app)\n%% 4. Root   (otp root)\n%% 5. Home   (user inetrc)\n%%\n%%\n-spec init() -> 'ok'.\ninit() ->\n    set_hostname(),\n\n    %% Note: In shortnames (or non-distributed) mode we don't need to know\n    %% our own domain name. In longnames mode we do and we can't rely on \n    %% the user to provide it (by means of inetrc), so we need to look \n    %% for it ourselves.\n\n    OsType = os:type(),\n    do_load_resolv(OsType, erl_dist_mode()),\n\n    %% Read inetrc file, if it exists.\n    {RcFile,CfgFiles,CfgList} = read_rc(),\n\n    %% Possibly read config files or system registry\n    lists:foreach(fun({file,hosts,File}) ->\n\t\t\t  load_hosts(File, unix);\n\t\t     ({file,Func,File}) ->\n\t\t\t  load_resolv(File, Func);\n\t\t     ({registry,win32}) ->\n\t\t\t  case OsType of\n\t\t\t      {win32,WinType} ->\n\t\t\t\t  win32_load_from_registry(WinType);\n\t\t\t      _ ->\n\t\t\t\t  error(\"cannot read win32 system registry~n\", [])\n\t\t\t  end\n\t\t  end, CfgFiles),\n\n    %% Add inetrc config entries\n    case inet_db:add_rc_list(CfgList) of\n\tok -> ok;\n\t_  -> error(\"syntax error in ~ts~n\", [RcFile])\n    end,"
+        },
+        {
+          "first": 184,
+          "last": 197,
+          "text": "\t\t    load_resolv(filename:join(Etc,\"nsswitch.conf\"), \n\t\t\t\tnsswitch_conf)\n\t    end;\n\t_ ->\n\t    ok\n    end,\n    inet_db:set_lookup([native]);\n\ndo_load_resolv({win32,Type}, longnames) ->\t\n    win32_load_from_registry(Type),\n    inet_db:set_lookup([native]);\n\ndo_load_resolv(_, _) ->\n    inet_db:set_lookup([native])."
+        },
+        {
+          "first": 432,
+          "last": 456,
+          "text": "read_inetrc() ->\n    File = case application:get_env(inetrc) of\n               {ok, Value} when is_list(Value) -> Value;\n               {ok, Value} when is_atom(Value) -> atom_to_list(Value);\n               undefined -> os:getenv(\"ERL_INETRC\")\n           end,\n    case is_list(File) of\n        true -> try_get_rc(File);\n        false -> {nofile,[]}\n    end.\n\ntry_get_rc(File) ->\n    case get_rc(File) of\n\terror -> {nofile,[]};\n\tLs ->    {File,Ls}\n    end.    \n\nget_rc(File) ->\n    case get_file(File) of\n\t{ok,Bin} ->\n\t    case parse_inetrc(Bin) of\n\t\t{ok,Ls} -> \n\t\t    Ls;\n\t\t_Error -> \n\t\t    error(\"parse error in ~ts~n\", [File]),"
+        }
+      ]
+    },
+    {
+      "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/kernel-11.0.4/src/inet.erl",
+      "sha256": "a8b5c3ab91129e8dbb17fea669beae90a518c574a4f3aed19f7f53c0396c0bdd",
+      "bytes": 164780,
+      "ranges": [
+        [
+          2588,
+          2604
+        ],
+        [
+          3757,
+          3815
+        ]
+      ],
+      "excerpts": [
+        {
+          "first": 2588,
+          "last": 2604,
+          "text": "-doc false.\ngethostbyname_tm(Name, Family, Timer) ->\n    %% ?DBG([{name, Name}, {family, Family}, {timer, Timer}]),\n    Opts0 = inet_db:res_option(lookup),\n    %% ?DBG([{opts0, Opts0}]),\n    Opts =\n\tcase (lists:member(native, Opts0) orelse\n\t      lists:member(string, Opts0) orelse\n\t      lists:member(nostring, Opts0)) of\n\t    true ->\n\t\tOpts0;\n\t    false ->\n\t\t[string|Opts0]\n\tend,\n    %% ?DBG([{opts, Opts}]),\n    gethostbyname_tm(Name, Family, Timer, Opts).\n"
+        },
+        {
+          "first": 3757,
+          "last": 3815,
+          "text": "gethostbyname_tm(Name, Type, Timer, [string|_]=Opts) ->\n    %% ?DBG([string, {name, Name}, {type, Type}, {timer, Timer}]),\n    Result = gethostbyname_string(Name, Type),\n    gethostbyname_tm(Name, Type, Timer, Opts, Result);\ngethostbyname_tm(Name, Type, Timer, [dns|_]=Opts) ->\n    %% ?DBG([dns, {name, Name}, {type, Type}, {timer, Timer}]),\n    Result = inet_res:gethostbyname_tm(Name, Type, Timer),\n    %% ?DBG([{result, Result}]),\n    gethostbyname_tm(Name, Type, Timer, Opts, Result);\ngethostbyname_tm(Name, Type, Timer, [file|_]=Opts) ->\n    %% ?DBG([file, {name, Name}, {type, Type}, {timer, Timer}]),\n    Result = inet_hosts:gethostbyname(Name, Type),\n    %% ?DBG([{result, Result}]),\n    gethostbyname_tm(Name, Type, Timer, Opts, Result);\ngethostbyname_tm(Name, Type, Timer, [yp|_]=Opts) ->\n    %% ?DBG([yp, {name, Name}, {type, Type}, {timer, Timer}]),\n    gethostbyname_tm_native(Name, Type, Timer, Opts);\ngethostbyname_tm(Name, Type, Timer, [nis|_]=Opts) ->\n    %% ?DBG([nis, {name, Name}, {type, Type}, {timer, Timer}]),\n    gethostbyname_tm_native(Name, Type, Timer, Opts);\ngethostbyname_tm(Name, Type, Timer, [nisplus|_]=Opts) ->\n    %% ?DBG([niplus, {name, Name}, {type, Type}, {timer, Timer}]),\n    gethostbyname_tm_native(Name, Type, Timer, Opts);\ngethostbyname_tm(Name, Type, Timer, [wins|_]=Opts) ->\n    %% ?DBG([wins, {name, Name}, {type, Type}, {timer, Timer}]),\n    gethostbyname_tm_native(Name, Type, Timer, Opts);\ngethostbyname_tm(Name, Type, Timer, [native|_]=Opts) ->\n    %% ?DBG([native, {name, Name}, {type, Type}, {timer, Timer}]),\n    gethostbyname_tm_native(Name, Type, Timer, Opts);\ngethostbyname_tm(Name, Type, Timer, [_|Opts]) ->\n    %% ?DBG([{name, Name}, {type, Type}, {timer, Timer}]),\n    gethostbyname_tm(Name, Type, Timer, Opts);\n%% Make sure we always can look up our own hostname.\ngethostbyname_tm(Name, Type, Timer, []) ->\n    %% ?DBG([{name, Name}, {type, Type}, {timer, Timer}]),\n    Result = gethostbyname_self(Name, Type),\n    %% ?DBG([{result, Result}]),\n    gethostbyname_tm(Name, Type, Timer, [], Result).\n\ngethostbyname_tm(Name, Type, Timer, Opts, Result) ->\n    %% ?DBG([string, {name, Name}, {type, Type}, {timer, Timer},\n    %% \t  {opts, Opts}, {result, Result}]),\n    case Result of\n\t{ok,_} ->\n\t    Result;\n\t{error,formerr} ->\n\t    {error,einval};\n\t{error,_} when Opts =:= [] ->\n\t    {error,nxdomain};\n\t{error,_} ->\n\t    gethostbyname_tm(Name, Type, Timer, tl(Opts))\n    end.\n\ngethostbyname_tm_native(Name, Type, Timer, Opts) ->\n    %% ?DBG([{name, Name}, {type, Type}, {timer, Timer}, {opts, Opts}]),\n    %% Fixme: add (global) timeout to gethost_native\n    Result = inet_gethost_native:gethostbyname(Name, Type),\n    %% ?DBG([{result, Result}]),\n    gethostbyname_tm(Name, Type, Timer, Opts, Result)."
+        }
+      ]
+    },
+    {
+      "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/kernel-11.0.4/src/inet_gethost_native.erl",
+      "sha256": "bd606be87a22f5b13a12084f09997050394acf2192f967fbdaf1fc8cefa967b4",
+      "bytes": 21929,
+      "ranges": [
+        [
+          412,
+          429
+        ]
+      ],
+      "excerpts": [
+        {
+          "first": 412,
+          "last": 429,
+          "text": "do_open_port(Poolsize, ExtraArgs) ->\n    Args = [integer_to_list(Poolsize)] ++ ExtraArgs,\n    %% open_executable/2 below assumes overlapped_io is at the head\n    Opts = [overlapped_io, {args, Args}, {packet,4}, eof, binary],\n    {ok,[BinDir]} = init:get_argument(bindir),\n    Prog = filename:join(BinDir, ?PORT_PROGRAM),\n    open_executable(Prog, Opts).\n\nopen_executable(Prog, Opts) ->\n    try open_port({spawn_executable, Prog}, Opts)\n    catch\n        error : badarg when hd(Opts) =:= overlapped_io ->\n            open_executable(Prog, tl(Opts));\n        error : Reason ->\n            erlang:halt(\n              \"Can not execute \"++Prog++\" : \"++term2string(Reason))\n    end.\n"
+        }
+      ]
+    },
+    {
+      "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/kernel-11.0.4/src/inet_res.erl",
+      "sha256": "dadb5140fd8cdf3d301fd56eb501a04bcaa119f66ebe3d6620a42ce723668f44",
+      "bytes": 59371,
+      "ranges": [
+        [
+          28,
+          40
+        ],
+        [
+          1092,
+          1124
+        ]
+      ],
+      "excerpts": [
+        {
+          "first": 28,
+          "last": 40,
+          "text": "\nThis module performs DNS name resolving towards recursive name servers.\n\nSee also [ERTS User's Guide: Inet Configuration](`e:erts:inet_cfg.md`)\nor more information about how to configure an Erlang runtime system for IP\ncommunication, and how to enable this DNS client by defining `'dns'`\nas a lookup method. The DNS client then acts as a backend for\nthe resolving functions in `m:inet`.\n\nThis DNS client can resolve DNS records even if it is not used\nfor normal name resolving in the node.\n\n> #### Warning {: .warning }"
+        },
+        {
+          "first": 1092,
+          "last": 1124,
+          "text": "%%\n-record(sock, {inet=undefined, inet6=undefined}).\n\nudp_open(undefined, _IP, Verbose) when is_boolean(Verbose) ->\n    {ok, undefined};\nudp_open(#sock{inet6=I}=S, {A,B,C,D,E,F,G,H} = IP, Verbose)\n  when ?ip6(A,B,C,D,E,F,G,H), is_boolean(Verbose) ->\n    case I of\n\tundefined ->\n\t    case gen_udp:open(0, [{active,false},binary,inet6]) of\n\t\t{ok,J} ->\n\t\t    {ok,S#sock{inet6=J}};\n\t\tError ->\n                    ?verbose(Verbose, \"UDP open failed ~p ~p~n\", [IP, Error]),\n\t\t    Error\n\t    end;\n\t_ ->\n\t    {ok,S}\n    end;\nudp_open(#sock{inet=I}=S, {A,B,C,D} = IP, Verbose)\n  when ?ip(A,B,C,D), is_boolean(Verbose) ->\n    case I of\n\tundefined ->\n\t    case gen_udp:open(0, [{active,false},binary,inet]) of\n\t\t{ok,J} ->\n\t\t    {ok,S#sock{inet=J}};\n\t\tError ->\n                    ?verbose(Verbose, \"UDP open failed ~p ~p~n\", [IP, Error]),\n\t\t    Error\n\t    end;\n\t_ ->\n\t    {ok,S}\n    end."
+        }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "R01",
+      "priority": "P2",
+      "issue": "late cancellation can coexist with successful resolved status"
+    },
+    {
+      "id": "R02",
+      "priority": "P2",
+      "issue": "default native name resolution may launch unaccounted inet_gethost port helper; pin private built-in DNS/file inetrc"
+    }
+  ],
+  "HOME_scope": "Unchanged shell HOME is root-selected; private Mix/Hex/cache/project paths are verified. Use explicit scratch BEAM -home if needed instead of changing shell HOME.",
+  "recommend_runtime_release": false,
+  "controller_imported_or_executed": false,
+  "Mix_compiler_product_DNS_process_probe_native_or_provider_invocations": 0,
+  "elapsed_seconds": 0.034093,
+  "scope": "Source-only resolution controller and primary OTP review; no generated lock, dependency upgrade or behavior pass."
+}

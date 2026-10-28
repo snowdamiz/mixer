@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "status": "independent-resolution-v2-source-review-complete-two-narrow-corrections-required",
+  "created_at": "2026-10-28T03:21:50.057593+00:00",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "command": "python3 -B inline dependency-controller review seal builder; no subprocess",
+  "controller_sha256": "f4369b8fa608521da8e95a301c85966aae34fa5303f122a2edc1eccae83cc556",
+  "plan_sha256": "c0cd50892185a8e0614486c1e3f478c997ba7a8c7405935dcdf361d72e71df1c",
+  "files": [
+    {
+      "path": "REVIEW.md",
+      "bytes": 5115,
+      "sha256": "725b50461e25ed6f2844ad0657c52085a284019817e39b50e62c3f8f6fcd738a"
+    },
+    {
+      "path": "audit.json",
+      "bytes": 12143,
+      "sha256": "7d6cb7de25a81e0c211c5b6398247a5df636a2bb85041ac5659f98baf5e5336d"
+    },
+    {
+      "path": "audit_sources.py",
+      "bytes": 7127,
+      "sha256": "3dc73628ef5d7cbf46b783f55c02107e34ccd4ec0faf2b016c58966945af3faf"
+    }
+  ],
+  "tree_sha256": "ce730a1c9ff92bcbae908dafadaa7df932c47762aa2b984b3847e9a05f02d1ea",
+  "sole_excluded_relative_path": "review-seal.json",
+  "findings": [
+    {
+      "id": "R01",
+      "priority": "P2",
+      "required_before_release": true,
+      "correction": "finite cancellation/signal cutoff; cancellation through cutoff prevents resolved status"
+    },
+    {
+      "id": "R02",
+      "priority": "P2",
+      "required_before_release": true,
+      "correction": "pinned private ERL_INETRC selects builtin dns/file before all five commands; no native fallback"
+    }
+  ],
+  "shell_HOME": "Unchanged per explicit root instruction; narrower private Mix/Hex/cache state only",
+  "recommend_resolution_v2_runtime_release": false,
+  "controller_imported_or_executed": false,
+  "runtime_or_process_DNS_probe_invocations": 0,
+  "source_only_completeness_is_not_runtime_proof": true,
+  "scope": "Minimal two-pin lock resolution controller only; product compilation/tests, remote CI, HTTP2 wires, deployment and GA pending."
+}

@@ -32,12 +32,12 @@ defmodule MixerHosted.MixProject do
     [
       {:phoenix, "== 1.8.16"},
       {:plug, "== 1.20.3"},
-      {:bandit, "== 1.13.1"},
+      {:bandit, "== 1.14.0"},
       {:ecto_sql, "== 3.14.0"},
       {:postgrex, "== 0.22.4"},
       {:oban, "== 2.24.2"},
       {:jason, "== 1.4.5"},
-      {:jose, "== 1.11.12"},
+      {:jose, "== 1.11.13"},
       {:mint, "== 1.11.0"}
     ]
   end

@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "status": "focused-source-review-passed-recommend-exact-v4-root-operation",
+  "created_at": "2026-10-28T03:46:56.409634+00:00",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "command": "python3 -B verification/hosted-dependency-advisory-correction-independent/review-3/audit_sources.py",
+  "script_sha256": "5456a4a6365ad0d9488ba93c47bca67ee253283343ec81e229877eed61bd2d25",
+  "controller_sha256": "e04b71aaab35d748acc6aa87f933699262fe33a24c4400006c64c22a9da3e411",
+  "plan_sha256": "150cee180b4cfe30a7dc293b9f041308cd0c06ec4cb69b65a200f77a1bf300c4",
+  "producer_seal_sha256": "fae9e276517ea6c197d6be35ed4b0a87c7ef7c1df4d1fb6ce3af04ffb1bfbe0d",
+  "source_revision": "a4f1d13fe83415377e84b3fc33869e667da30fae",
+  "source_tree": "81c4387b0b259d15417f2a04e4aa75ef74436eb0",
+  "verified_counts": {
+    "v4_members": 6,
+    "v3_members": 6,
+    "v2_members": 5,
+    "original_members": 16,
+    "packet_pins": 31,
+    "additional_pins": 8,
+    "canonical_pins": 13,
+    "tool_pins": 13,
+    "Hex_archive_pins": 133,
+    "prior_advisory_pins": 15
+  },
+  "preserved_independent_reviews": [
+    {
+      "path": "review-1",
+      "seal_sha256": "b290cd851911a81ffe6f61c2fb2a825863875d2ed78f1f3cd6a83dfda72aaf0c",
+      "members": 3
+    },
+    {
+      "path": "review-2",
+      "seal_sha256": "55b1dc88c4c140b3a4eb388182444c0ebffeac800019ca402cd89493f458c432",
+      "members": 3
+    }
+  ],
+  "changed_plan_keys": [
+    "controller_sha256",
+    "entrypoint",
+    "failure_evidence",
+    "packet_inputs",
+    "process_custody",
+    "schema",
+    "state",
+    "supersedes"
+  ],
+  "changed_existing_functions": [
+    "child_exited",
+    "close_child",
+    "group_absent",
+    "main",
+    "run_command"
+  ],
+  "new_functions": [
+    "error_evidence",
+    "observe_reaped_group",
+    "reap_exited_without_signals",
+    "syscall"
+  ],
+  "unchanged_function_ASTs": [
+    "disk_guard",
+    "drain",
+    "guard",
+    "interrupt",
+    "lock_inventory",
+    "pinned_bytes",
+    "remove_owned_tree",
+    "sha",
+    "signal_cutoff",
+    "verify_packet",
+    "verify_sources",
+    "write_json"
+  ],
+  "findings": [],
+  "normal_exit_rule": "WNOWAIT witness -> wait(timeout=0) without TERM/KILL -> observe group absence only",
+  "forced_rule": "confirmed custody, unreaped and last observed running; controller cancellation/timeout; exit recheck before every signal; no nonzero signal after reap",
+  "EPERM_rule": "latch refusal; preserve uncertainty and scratch; no cleanup retry or alternative kill method",
+  "error_evidence": "exact Python process-control API labels/arguments and errno; 32-call ring; traceback retained to 8192 bytes with truncation flag",
+  "scope_note": "Source correction motivated by root-reported separate Swift failure; exact failing syscall/cause was not established or independently audited here.",
+  "supersedes_review2_readiness": true,
+  "root_release_argv": [
+    "python3",
+    "-B",
+    "verification/hosted-dependency-advisory-correction/resolution-v4/controller.py",
+    "--root-release",
+    "--plan-sha256",
+    "150cee180b4cfe30a7dc293b9f041308cd0c06ec4cb69b65a200f77a1bf300c4"
+  ],
+  "recommend_exact_root_five_command_55s_operation": true,
+  "controller_imported_or_executed": false,
+  "Mix_compiler_native_network_DNS_process_probe_invocations": 0,
+  "source_only_completeness_is_not_runtime_proof": true,
+  "qualification": "Actual lock, operation timing/closure and upgrade functional/CI/HTTP2 acceptance remain pending.",
+  "elapsed_seconds": 0.057674
+}
