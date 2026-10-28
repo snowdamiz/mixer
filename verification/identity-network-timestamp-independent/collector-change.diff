@@ -1,0 +1,29 @@
+--- 8888/hosted/scripts/test-identity-network.py
++++ candidate/hosted/scripts/test-identity-network.py
+@@ -122,6 +122,9 @@
+ MAX_LOG_BYTES = 67108864
+ MAX_ARCHIVE_BYTES = 536870912
+ MAX_ARTIFACT_BYTES = 268435456
++# Mix 1.20.4 treats missing BEAMs as mtime 0 and requires source mtime > 0.
++# Keep deterministic archive timestamps strictly above that missing-file sentinel.
++PREPARED_MTIME = 1
+ GENERATED_DAG_PATH = "hosted/deps/telemetry/_build/prod/lib/.rebar3/rebar_compiler_erl/source.dag"
+ MAX_GENERATED_DAG_BYTES = 65536
+ GENERATED_DAG_PARENTS = ["/workspace", "/workspace/hosted", "/workspace/hosted/deps", "/workspace/hosted/deps/telemetry", "/workspace/hosted/deps/telemetry/_build", "/workspace/hosted/deps/telemetry/_build/prod", "/workspace/hosted/deps/telemetry/_build/prod/lib", "/workspace/hosted/deps/telemetry/_build/prod/lib/.rebar3", "/workspace/hosted/deps/telemetry/_build/prod/lib/.rebar3/rebar_compiler_erl"]
+@@ -568,6 +571,7 @@
+         members = safe_members(archive)
+         require({m.name for m in members} == set(expected), "prepared archive path mismatch")
+         for member in members:
++            require(type(member.mtime) is int and member.mtime == PREPARED_MTIME, "prepared archive timestamp mismatch")
+             body = archive.extractfile(member).read()
+             require(expected[member.name] == {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}, "prepared archive hash mismatch")
+             if member.name == "tooling/rebar3":
+@@ -1404,7 +1408,7 @@
+         prepared_manifest = json_marker(manifest_output)
+         require(prepared_manifest["source"] == FROZEN_MANIFEST, "prepare source changed")
+         write_json(self.output / "prepared-manifest.json", prepared_manifest)
+-        self.execute(prepare, ["/usr/bin/tar", "--format=ustar", "--sort=name", "--mtime=@0", "--owner=0", "--group=0", "--numeric-owner", "--no-recursion", "-cf", "/workspace/prepared.tar", "-C", "/workspace", "-T", "/workspace/archive-files.txt"], 30)
++        self.execute(prepare, ["/usr/bin/tar", "--format=ustar", "--sort=name", f"--mtime=@{PREPARED_MTIME}", "--owner=0", "--group=0", "--numeric-owner", "--no-recursion", "-cf", "/workspace/prepared.tar", "-C", "/workspace", "-T", "/workspace/archive-files.txt"], 30)
+         prepared = self.copy_file_out(prepare, "/workspace/prepared.tar", MAX_ARCHIVE_BYTES)
+         validate_prepared_archive(prepared, prepared_manifest)
+         (self.output / "prepared-source-dependencies-tools.tar").write_bytes(prepared)

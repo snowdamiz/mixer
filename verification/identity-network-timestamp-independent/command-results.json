@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "scope": "Independent pure Python review only; no child/socket actions within the verifier.",
+  "commands": [
+    {
+      "command": "python3 -B verification/identity-network-timestamp-independent/verify.py",
+      "attempt": 1,
+      "exit_code": 1,
+      "tool_wall_time_seconds": 0.714118875,
+      "complete_unittest_output": "attempt-1-audit-output.txt",
+      "result": "Review harness assumptions failed; no canonical edits. Corrected checksum exclusion, malformed-field width, JOSE source spelling and historical archive/current checkout distinction."
+    },
+    {
+      "command": "python3 -B verification/identity-network-timestamp-independent/verify.py",
+      "attempt": 2,
+      "exit_code": 0,
+      "tool_wall_time_seconds": 0.768544042,
+      "complete_unittest_output": "attempt-2-audit-output.txt",
+      "stdout": "{\"decision\": \"accept-minimal-timestamp-correction-for-isolated-CI\", \"tests_passed\": 6, \"elapsed_seconds\": 0.8227326669730246, \"denied_child_socket_attempts\": [], \"runtime_acceptance\": \"pending fresh isolated CI compilation and independent evidence for both unchanged methods\"}\n"
+    },
+    {
+      "command": "python3 -B verification/identity-network-timestamp-independent/verify.py",
+      "attempt": 3,
+      "exit_code": 0,
+      "tool_wall_time_seconds": 0.718455625,
+      "complete_unittest_output": "audit-output.txt",
+      "purpose": "Use exact receipt field name excluding changed mtime and checksum metadata.",
+      "stdout": "{\"decision\": \"accept-minimal-timestamp-correction-for-isolated-CI\", \"tests_passed\": 6, \"elapsed_seconds\": 0.7826885830145329, \"denied_child_socket_attempts\": [], \"runtime_acceptance\": \"pending fresh isolated CI compilation and independent evidence for both unchanged methods\"}\n"
+    },
+    {
+      "command": "git diff --check -- hosted/scripts/test-identity-network.py hosted/scripts/test_identity_network_collector.py docs/hosted-identity-production-network-ci-contract.md verification/identity-network-timestamp-independent",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": "git rev-parse HEAD HEAD^{tree}",
+      "exit_code": 0,
+      "output_before_and_after": "dfd0e3196543cc1749c9cc924cc7accf28c9dc25\n3cc58d6744649fdd138b9d3963b436db62480ecf\n"
+    }
+  ]
+}

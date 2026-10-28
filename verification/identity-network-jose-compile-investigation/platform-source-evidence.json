@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "acquisition": "Connected GitHub fetch_file read-only, exact v1.20.4 tag, 2026-10-28",
+  "scope": "Official platform source excerpts only; no local Elixir execution.",
+  "files": [
+    {
+      "repository": "elixir-lang/elixir",
+      "ref": "v1.20.4",
+      "path": "lib/mix/lib/mix/dep.ex",
+      "url": "https://github.com/elixir-lang/elixir/blob/v1.20.4/lib/mix/lib/mix/dep.ex",
+      "git_blob_sha": "151c7efe81907749b0a88f6ea60ffea6c361b111",
+      "excerpts": [
+        {
+          "start_line": 274,
+          "end_line": 283,
+          "text": "    env = opts[:env] || :prod\n    old_env = Mix.env()\n\n    try do\n      Mix.env(env)\n      Mix.Project.in_project(app, opts[:dest], config, fun)\n    after\n      Mix.env(old_env)\n    end\n  end"
+        }
+      ]
+    },
+    {
+      "repository": "elixir-lang/elixir",
+      "ref": "v1.20.4",
+      "path": "lib/mix/lib/mix/tasks/compile.erlang.ex",
+      "url": "https://github.com/elixir-lang/elixir/blob/v1.20.4/lib/mix/lib/mix/tasks/compile.erlang.ex",
+      "git_blob_sha": "94194ff3f1c62a63753dcfc3fdc28ede19b8f99d",
+      "excerpts": [
+        {
+          "start_line": 240,
+          "end_line": 252,
+          "text": "  defp maybe_stale(erl, compile_path, force) do\n    beam = Path.join(compile_path, \"#{erl.module}.beam\")\n\n    if force || Mix.Utils.stale?([erl.file | erl.includes], [beam]) do\n      %{erl | status: :stale}\n    else\n      erl\n    end\n  end\n\n  defp module_from_artifact(artifact) do\n    artifact |> Path.basename() |> Path.rootname() |> String.to_atom()\n  end"
+        }
+      ]
+    },
+    {
+      "repository": "elixir-lang/elixir",
+      "ref": "v1.20.4",
+      "path": "lib/mix/lib/mix/compilers/erlang.ex",
+      "url": "https://github.com/elixir-lang/elixir/blob/v1.20.4/lib/mix/lib/mix/compilers/erlang.ex",
+      "git_blob_sha": "c88857a8fe6a8116bfbf3953267558cbd1510c69",
+      "excerpts": [
+        {
+          "start_line": 107,
+          "end_line": 115,
+          "text": "  def compile_entries(manifest, mappings, src_ext, dest_ext, opts, callback) do\n    stale = for {:stale, src, dest} <- mappings, do: {src, dest}\n\n    # Get the previous entries from the manifest\n    timestamp = System.os_time(:second)\n    old_entries = entries = read_manifest(manifest)\n\n    # Files to remove are the ones in the manifest but they no longer have a source\n    removed ="
+        },
+        {
+          "start_line": 130,
+          "end_line": 137,
+          "text": "    if stale == [] and removed == [] do\n      {:noop, manifest_warnings(entries)}\n    else\n      Mix.Utils.compiling_n(length(stale), src_ext)\n      Mix.Project.ensure_structure()\n\n      # Let's prepend the newly created path so compiled files\n      # can be accessed still during compilation (for behaviours"
+        },
+        {
+          "start_line": 181,
+          "end_line": 190,
+          "text": "      case status do\n        :ok ->\n          {:ok, warnings}\n\n        :error ->\n          errors = to_diagnostics(errors, :error)\n          {:error, warnings ++ errors}\n      end\n    end\n  end"
+        }
+      ]
+    },
+    {
+      "repository": "elixir-lang/elixir",
+      "ref": "v1.20.4",
+      "path": "lib/mix/lib/mix/utils.ex",
+      "url": "https://github.com/elixir-lang/elixir/blob/v1.20.4/lib/mix/lib/mix/utils.ex",
+      "git_blob_sha": "65b3f6d5db649557822afe11487c54abb51bfd00",
+      "excerpts": [
+        {
+          "start_line": 293,
+          "end_line": 300,
+          "text": "  defp stale_stream(sources, targets) do\n    modified_target = targets |> Enum.map(&last_modified/1) |> Enum.min()\n\n    Stream.filter(sources, fn source ->\n      last_modified(source) > modified_target\n    end)\n  end\n"
+        },
+        {
+          "start_line": 313,
+          "end_line": 316,
+          "text": "  def last_modified(path) do\n    {mtime, _size} = last_modified_and_size(path)\n    mtime\n  end"
+        },
+        {
+          "start_line": 325,
+          "end_line": 345,
+          "text": "  def last_modified_and_size(path) do\n    now = System.os_time(:second)\n\n    case :elixir_utils.read_posix_mtime_and_size(path) do\n      {:ok, mtime, size} when mtime > now ->\n        message =\n          \"warning: mtime (modified time) for #{inspect(path)} was set to the future, resetting to now\"\n\n        Mix.shell().error(message)\n        File.touch(path, now)\n        {mtime, size}\n\n      {:ok, mtime, size} ->\n        {mtime, size}\n\n      {:error, _} ->\n        {0, -1}\n    end\n  end\n\n  @doc \"\"\""
+        }
+      ]
+    },
+    {
+      "repository": "elixir-lang/elixir",
+      "ref": "v1.20.4",
+      "path": "lib/mix/lib/mix/tasks/deps.compile.ex",
+      "url": "https://github.com/elixir-lang/elixir/blob/v1.20.4/lib/mix/lib/mix/tasks/deps.compile.ex",
+      "git_blob_sha": "2b621eecde90b550a6ee8b11c1ff7179015381f4",
+      "excerpts": [
+        {
+          "start_line": 122,
+          "end_line": 133,
+          "text": "  def compile_single(%Mix.Dep{} = dep, force?, config) do\n    %{app: app, status: status, opts: opts, scm: scm} = dep\n    check_unavailable!(app, scm, status)\n\n    # If a dependency was marked as fetched or with an out of date lock\n    # or missing the app file, we always compile it from scratch.\n    if force? or clean_before_compile?(dep) do\n      File.rm_rf!(Path.join([Mix.Project.build_path(), \"lib\", Atom.to_string(dep.app)]))\n    end\n\n    compiled? =\n      cond do"
+        },
+        {
+          "start_line": 211,
+          "end_line": 238,
+          "text": "  defp do_mix(dep, _config) do\n    Mix.Dep.Loader.with_system_env(dep, fn ->\n      Mix.Dep.in_dependency(dep, fn _ ->\n        config = Mix.Project.config()\n\n        if req = old_elixir_req(config) do\n          Mix.shell().error(\n            \"warning: the dependency #{inspect(dep.app)} requires Elixir #{inspect(req)} \" <>\n              \"but you are running on v#{System.version()}\"\n          )\n        end\n\n        try do\n          options = [\n            \"--from-mix-deps-compile\",\n            \"--no-warnings-as-errors\",\n            \"--no-code-path-pruning\"\n          ]\n\n          res = Mix.Task.run(\"compile\", options)\n          match?({:ok, _}, res)\n        catch\n          kind, reason ->\n            app = dep.app\n\n            Mix.shell().error(\n              \"could not compile dependency #{inspect(app)}, \\\"mix compile\\\" failed. \" <>\n                deps_compile_feedback(app)"
+        }
+      ]
+    }
+  ]
+}

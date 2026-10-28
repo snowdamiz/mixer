@@ -1,0 +1,72 @@
+test_01_actual_archive_only_header_time_and_checksum_change (__main__.TimestampIndependentTests.test_01_actual_archive_only_header_time_and_checksum_change) ... FAIL
+test_02_one_invalid_timestamp_per_actual_section_rejected (__main__.TimestampIndependentTests.test_02_one_invalid_timestamp_per_actual_section_rejected) ... ok
+test_03_fractional_pax_and_malformed_octal_rejected (__main__.TimestampIndependentTests.test_03_fractional_pax_and_malformed_octal_rejected) ... FAIL
+test_04_payload_manifest_membership_and_budget_controls_remain (__main__.TimestampIndependentTests.test_04_payload_manifest_membership_and_budget_controls_remain) ... ok
+test_05_collector_only_expected_three_ast_changes (__main__.TimestampIndependentTests.test_05_collector_only_expected_three_ast_changes) ... FAIL
+test_06_official_exact_version_causal_chain_and_observed_closure (__main__.TimestampIndependentTests.test_06_official_exact_version_causal_chain_and_observed_closure) ... ERROR
+
+======================================================================
+ERROR: test_06_official_exact_version_causal_chain_and_observed_closure (__main__.TimestampIndependentTests.test_06_official_exact_version_causal_chain_and_observed_closure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/identity-network-timestamp-independent/verify.py", line 304, in test_06_official_exact_version_causal_chain_and_observed_closure
+    self.assertNotIn(b"warnings_as_errors", bodies["hosted/deps/jose/mix.exs"].split(b"defp erlc_options(:prod)")[1].split(b"end", 1)[0])
+                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+IndexError: list index out of range
+
+======================================================================
+FAIL: test_01_actual_archive_only_header_time_and_checksum_change (__main__.TimestampIndependentTests.test_01_actual_archive_only_header_time_and_checksum_change)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/identity-network-timestamp-independent/verify.py", line 168, in test_01_actual_archive_only_header_time_and_checksum_change
+    self.assertEqual({k: v for k, v in old.get_info().items() if k != "mtime"},
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     {k: v for k, v in new.get_info().items() if k != "mtime"})
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'nam[85 chars]': 6109, 'type': b'0', 'linkname': '', 'uname'[43 chars]': 0} != {'nam[85 chars]': 6110, 'type': b'0', 'linkname': '', 'uname'[43 chars]': 0}
+- {'chksum': 6109,
+?               -
+
++ {'chksum': 6110,
+?              +
+
+   'devmajor': 0,
+   'devminor': 0,
+   'gid': 0,
+   'gname': '',
+   'linkname': '',
+   'mode': 420,
+   'name': 'collector-bootstrap.exs',
+   'size': 7352,
+   'type': b'0',
+   'uid': 0,
+   'uname': ''}
+
+======================================================================
+FAIL: test_03_fractional_pax_and_malformed_octal_rejected (__main__.TimestampIndependentTests.test_03_fractional_pax_and_malformed_octal_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/identity-network-timestamp-independent/verify.py", line 207, in test_03_fractional_pax_and_malformed_octal_rejected
+    bad = reheader(candidate, {path: b"not-octal!!!\0"})
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/identity-network-timestamp-independent/verify.py", line 132, in reheader
+    assert len(header) == 512
+           ^^^^^^^^^^^^^^^^^^
+AssertionError
+
+======================================================================
+FAIL: test_05_collector_only_expected_three_ast_changes (__main__.TimestampIndependentTests.test_05_collector_only_expected_three_ast_changes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/identity-network-timestamp-independent/verify.py", line 270, in test_05_collector_only_expected_three_ast_changes
+    self.assertEqual(binding(read(ROOT / name)), row)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'bytes': 31414, 'sha256': '8c314b1d3ce288a6dc61725[38 chars]299'} != {'bytes': 20860, 'sha256': '6c02fff8454790449b3ebe7[38 chars]e43'}
+- {'bytes': 31414,
+-  'sha256': '8c314b1d3ce288a6dc617251233796bd0a9d8894247ccb15b101e1292e513299'}
++ {'bytes': 20860,
++  'sha256': '6c02fff8454790449b3ebe70695fc3adfd537d899b24411ee6585171578c8e43'}
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.677s
+
+FAILED (failures=3, errors=1)

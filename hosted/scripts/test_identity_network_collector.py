@@ -159,7 +159,7 @@ def exact_container(role):
     }
 
 
-def archive(entries):
+def archive(entries, *, mtimes=None):
     """Build headers in memory only; entries are (name,type,payload,linkname)."""
     memory = io.BytesIO()
     with tarfile.open(fileobj=memory, mode="w") as out:
@@ -168,6 +168,7 @@ def archive(entries):
             info.type = kind
             info.linkname = linkname
             info.size = len(payload) if kind == tarfile.REGTYPE else 0
+            info.mtime = (mtimes or {}).get(name, 0)
             out.addfile(info, io.BytesIO(payload) if kind == tarfile.REGTYPE else None)
     memory.seek(0)
     return tarfile.open(fileobj=memory, mode="r:")
@@ -773,8 +774,10 @@ class PreparedArchiveControls(unittest.TestCase):
             manifest[section][path] = {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}
         return bodies, manifest
 
-    def run_fixture(self, bodies, manifest):
-        with archive([(name, tarfile.REGTYPE, body, "") for name, body in bodies.items()]) as value:
+    def run_fixture(self, bodies, manifest, *, mtimes=None):
+        timestamps = {name: 1 for name in bodies}
+        timestamps.update(mtimes or {})
+        with archive([(name, tarfile.REGTYPE, body, "") for name, body in bodies.items()], mtimes=timestamps) as value:
             data = value.fileobj.getvalue()
         bootstrap = copy.deepcopy(collector.BOOTSTRAP)
         bootstrap["rebar"]["sha512"] = hashlib.sha512(b"checked bootstrap fixture").hexdigest()
@@ -790,6 +793,25 @@ class PreparedArchiveControls(unittest.TestCase):
     def test_exact_section_membership_and_hashes_pass_after_source_admission(self):
         bodies, manifest = self.fixture()
         self.assertEqual(set(bodies), set(self.run_fixture(bodies, manifest)))
+
+    def test_epoch_zero_archive_is_refused_even_with_exact_payload_hashes(self):
+        bodies, manifest = self.fixture()
+        with self.assertRaisesRegex(collector.CollectorError, "prepared archive timestamp mismatch"):
+            self.run_fixture(bodies, manifest, mtimes={name: 0 for name in bodies})
+
+    def test_one_wrong_timestamp_in_any_prepared_section_is_refused(self):
+        bodies, manifest = self.fixture()
+        for name in bodies:
+            for timestamp in (0, 2, 4294967295):
+                with self.subTest(name=name, timestamp=timestamp), \
+                        self.assertRaisesRegex(collector.CollectorError, "prepared archive timestamp mismatch"):
+                    self.run_fixture(bodies, manifest, mtimes={name: timestamp})
+
+    def test_negative_and_fractional_prepared_timestamps_are_refused(self):
+        bodies, manifest = self.fixture()
+        for timestamp in (-1, 1.5):
+            with self.subTest(timestamp=timestamp), self.assertRaises(collector.CollectorError):
+                self.run_fixture(bodies, manifest, mtimes={"hosted/deps/dependency/lib/fixture.ex": timestamp})
 
     def test_unlisted_added_missing_and_mutated_payloads_refused(self):
         for operation in ("extra", "missing", "changed"):

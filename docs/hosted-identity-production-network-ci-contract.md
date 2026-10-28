@@ -133,6 +133,11 @@ authorization. No package install,
 alternate image, host cache or fallback is permitted. The Rebar executable is
 installed at `/workspace/tooling/rebar3`, the exact `MIX_REBAR3` path. Preparation
 exports bounded regular-file archives and is removed before tests start.
+Every entry in the prepared source/dependency/tool/helper archive has the fixed
+integer POSIX modification time `1`; host admission rejects any other timestamp
+before the test container is created. The initial source-only transfer retains
+time `0`, then the preparation export normalizes every entry to `1`. File bytes,
+membership, modes, digest pins and the ban on prepared build outputs are unchanged.
 
 One test container uses `--network none`, a read-only root, bounded tmpfs mounts
 and only `NET_ADMIN`/`NET_BIND_SERVICE`. Inside its own namespace, the collector
@@ -225,9 +230,24 @@ The old literal helper remains preserved in the frozen predecessor packets
 and the sibling's before snapshot. This helper-binding change adds only the
 fixed metadata/export operation described here; mounts, capabilities,
 downloads and compile operations remain pinned.
-The root-owned `0644`/`0755` metadata expectations and helper syntax still need
-fresh isolated Linux CI evidence; no local Elixir compiler or container was
-used to validate them.
+Run `40766689512` at `8888d8e2c8431ee311c68e94a1abbb280f84802a`
+subsequently passed those metadata checks, retained the 895-byte opaque DAG,
+and authorized both unchanged methods. Both failed at `JOSE.JWK.generate_key/1`
+because `:jose_jwk` was absent: **zero product methods passed**. The failed run
+and its epoch-zero archive remain preserved in
+`verification/github-delivery-source-pair-and-rebar/ci-review/`.
+
+The causal investigation in `verification/identity-network-jose-compile-investigation/`
+joins that archive and compiled-module map to official Mix 1.20.4 source.
+Its Erlang compiler compares source/header modification time strictly greater
+than the target time, while missing targets have time zero. All 1,232 prepared
+entries had time zero; only 16 of JOSE 1.11.13's 113 Erlang source modules were
+compiled, exactly those reaching an OTP header outside the archive. The other
+97 included `jose_jwk`, `jose_jwt` and `jose_jwe`. Dependency compilation suppresses
+warnings-as-errors and can therefore exit zero with those modules absent.
+The fixed positive prepared timestamp corrects that missing-target comparison
+without changing dependency or product bytes. Pure controls do not establish
+successful compilation or a product-method pass for the correction.
 
 ## Evidence and bounds
 
@@ -275,13 +295,9 @@ native devices or GA. Production fixture exclusion is qualified by a separate
 ordinary Phoenix run for the delivered source, or explicitly reviewed reuse of
 unchanged-source evidence. Native runtime and computer-use pauses remain active.
 
-The Rebar-output correction covers source and pure Python controls only. The
-reviewed prior run establishes its listed preparation, export, restore,
-compilation and cleanup observations for that failed attempt. A fresh isolated
-`identity-production-network` CI attempt must establish the changed helper,
-bounded raw DAG capture and immutable-input comparison, then collect loaded
-module identities, authorize and pass both unchanged product methods, retain
-semantic receipts, verify the current ten migrations and post-test equality,
-and independently verify all fresh-attempt isolation and cleanup. These
-remain pending; the previous successful binary exports do not qualify a new
-attempt or establish a complete network-method pass.
+The prepared-timestamp correction has source and pure Python evidence only.
+A fresh isolated `identity-production-network` CI attempt must establish complete
+dependency compilation, then pass both unchanged product methods, retain semantic
+receipts, verify the current ten migrations and post-test equality, and independently
+verify all fresh-attempt isolation, DAG capture and cleanup. Those results remain
+pending; the prior attempt reached both methods and failed both.
