@@ -1,0 +1,121 @@
+--- accepted/src/experimental_swift_reactor/cache_tests.rs
++++ campaign/src/experimental_swift_reactor/cache_tests.rs
+@@ -4278,10 +4278,10 @@
+     let b = SwiftRunBudget::default();
+     let n = b.cache_entries;
+     assert!([64, 128, 256].contains(&n));
+-    assert_eq!(b.cache_work, 768_000_000);
++    assert_eq!(b.cache_work, 4_000_000_000);
+     assert_eq!((b.cache_bytes, b.cache_entry_bytes, b.active_pins), (16 << 20, 8 << 20, 128));
+     assert_eq!((b.memory_pages, b.combined_bytes), (768, 256 << 20));
+-    assert_eq!((b.instruction_fuel, b.execution_work, b.deadline_ms), (1_000_000_000, 8_000_000_000, 600_000));
++    assert_eq!((b.instruction_fuel, b.execution_work, b.deadline_ms), (2_000_000_000, 16_000_000_000, 600_000));
+     assert_eq!(MAX_RESERVATION_TICKETS, n + 22);
+     let bytes = fixture(0, &[0, 0x0b], n + 40);
+     let (mut c, mut cache) = new(&bytes, b);
+@@ -4437,7 +4437,7 @@
+ fn dense_campaign_full_geometry_and_conservative_envelope() {
+     let budget = SwiftRunBudget::default();
+     assert_eq!((budget.cache_entries, budget.active_pins, budget.frames), (256, 128, 128));
+-    assert_eq!((budget.cache_work, budget.instruction_fuel, budget.execution_work, budget.deadline_ms), (768_000_000, 1_000_000_000, 8_000_000_000, 600_000));
++    assert_eq!((budget.cache_work, budget.instruction_fuel, budget.execution_work, budget.deadline_ms), (4_000_000_000, 2_000_000_000, 16_000_000_000, 600_000));
+     assert_eq!((budget.cache_bytes, budget.cache_entry_bytes, budget.combined_bytes), (16 << 20, 8 << 20, 256 << 20));
+     assert_eq!(MAX_RESERVATION_TICKETS, 278);
+     hooks(Hooks::default());
+@@ -4566,3 +4566,26 @@
+     }
+     println!("FRAMEPIN above128_rejected=true original_nonce_owner_exhaustion_controls=true");
+ }
++
++#[test]
++fn framepin_campaign_resident_boundary_geometry_and_rejection() {
++    let budget = SwiftRunBudget::default();
++    let n = budget.cache_entries;
++    assert!([256, 512].contains(&n));
++    assert_eq!(MAX_RESERVATION_TICKETS, n + 22);
++    let bytes = fixture(0, &[0, 0x0b], n + 40);
++    hooks(Hooks::default());
++    let (mut c, mut cache) = new(&bytes, budget);
++    for function in 34..34 + n as u32 { plan_reuse_release(&mut cache, &mut c, function); }
++    assert_eq!(c.usage(None).live.cache_entries.current, n);
++    assert_eq!(inspection::resident_index(&cache)[33 + n], n as u16);
++    resident_assert_index(&cache);
++    assert_eq!(cache.usage().decodes, n as u64);
++    // Above-capacity cell is rejected against the actual selected slot arena.
++    inspection::corrupt_index(&mut cache, 34, (n + 1) as u16);
++    assert_eq!(pin(&mut cache, &mut c, 34, None).unwrap_err().kind, SwiftRunFailureKind::DecoderMismatch);
++    finish(cache, c);
++    let proof = validate_swift_reactor(&bytes, SwiftValidationBudget::default(), &Cancellation::default()).unwrap();
++    assert!(RuntimeControl::adopt(proof, SwiftRunBudget { cache_entries: n + 1, ..budget }, Instant::now(), Cancellation::default()).is_err());
++    println!("CACHEWINDOW capacity residents={n} highest_encoded={n} tickets={} dense_index_bytes=160000 pin_bitmap_bytes=16 above_capacity_rejected=true cleanup_zero=true", n + 22);
++}
+--- accepted/src/experimental_swift_reactor/control.rs
++++ campaign/src/experimental_swift_reactor/control.rs
+@@ -46,15 +46,15 @@
+             cache_entry_bytes: 8 * MIB,
+             cache_entries: 256,
+             active_pins: 128,
+-            cache_work: 768_000_000,
++            cache_work: 4_000_000_000,
+             frames: 128,
+             values: 16_384,
+             controls: 4_096,
+             memory_pages: 768,
+             state_bytes: 128 * MIB,
+             combined_bytes: 256 * MIB,
+-            instruction_fuel: 1_000_000_000,
+-            execution_work: 8_000_000_000,
++            instruction_fuel: 2_000_000_000,
++            execution_work: 16_000_000_000,
+             host_calls: 32_768,
+             deadline_ms: 600_000,
+         }
+@@ -1455,7 +1455,7 @@
+         // Identical bounded external observation in both experiment arms.
+         // Charged original instruction count, before dispatch effect. Not an oracle.
+         #[cfg(test)]
+-        if matches!(self.instructions, 25_000_000 | 50_000_000 | 100_000_000) {
++        if matches!(self.instructions, 25_000_000 | 50_000_000 | 100_000_000 | 250_000_000 | 500_000_000 | 750_000_000 | 1_000_000_000 | 1_250_000_000 | 1_500_000_000 | 1_750_000_000) {
+             let observed = self.usage(wasi);
+             eprintln!("MIXER_PREFIX {{\"threshold\":{},\"instructions\":{},\"instruction_fuel\":{},\"cache_work\":{},\"execution_work\":{},\"host_calls\":{},\"elapsed_micros\":{},\"function\":{},\"offset\":{}}}",
+                 self.instructions, self.instructions, self.instruction_fuel, self.cache_work,
+--- accepted/src/experimental_swift_reactor/control_tests.rs
++++ campaign/src/experimental_swift_reactor/control_tests.rs
+@@ -1820,3 +1820,37 @@
+         assert_empty(clean(control,adopted));
+     }
+ }
++
++// Actual owner controls. Charges are O(1), not synthetic guest completion.
++#[test]
++fn framepin_campaign_observation_window_guards_remain_finite_and_cumulative() {
++    all_seventeen_dimensions_reject_widening_without_allocation_and_drop_real_proof();
++    zero_is_real_in_every_budget_dimension();
++    init_and_repeated_call_counters_accumulate_and_cannot_refill();
++    work_fuel_host_and_live_overflow_fail_closed_without_counter_commit();
++    for (component, limit, resource) in [
++        (Work::Cache, 4_000_000_000, SwiftRunResource::CacheWork),
++        (Work::Execution, 16_000_000_000, SwiftRunResource::ExecutionWork),
++    ] {
++        let (mut control, adopted) = adopt(SwiftRunBudget::default());
++        control.work(component, limit - 1, cursor(SwiftRunStage::Initialization)).unwrap();
++        control.work(component, 1, cursor(SwiftRunStage::Invocation)).unwrap();
++        let before = control.usage(None);
++        let failure = control.work(component, 1, cursor(SwiftRunStage::Invocation)).unwrap_err();
++        assert_eq!(failure.resource, Some(resource));
++        assert_eq!((failure.attempted, failure.limit), (limit + 1, limit));
++        assert_eq!(control.usage(None).cache_work, before.cache_work);
++        assert_eq!(control.usage(None).execution_work, before.execution_work);
++        assert_eq!(control.work(component, 0, cursor(SwiftRunStage::Invocation)).unwrap_err(), failure);
++        assert_empty(clean(control, adopted));
++    }
++    let (mut control, adopted) = adopt(SwiftRunBudget::default());
++    control.charge_fuel(1_999_999_999, cursor(SwiftRunStage::Initialization)).unwrap();
++    control.charge_fuel(1, cursor(SwiftRunStage::Invocation)).unwrap();
++    let failure = control.charge_fuel(1, cursor(SwiftRunStage::Invocation)).unwrap_err();
++    assert_eq!(failure.resource, Some(SwiftRunResource::InstructionFuel));
++    assert_eq!((failure.attempted, failure.limit), (2_000_000_001, 2_000_000_000));
++    assert_eq!(control.usage(None).instruction_fuel, 2_000_000_000);
++    assert_empty(clean(control, adopted));
++    println!("CACHEWINDOW scalar_limits=4000000000,2000000000,16000000000 cumulative=true above_max_rejected=true overflow_rejected=true cleanup_zero=true");
++}

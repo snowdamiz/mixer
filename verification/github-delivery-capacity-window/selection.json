@@ -1,0 +1,155 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T23:30:18.532Z",
+  "selector": "/root",
+  "decision": "Select exact independently reviewed capacity-window-v1 for one manual campaign",
+  "base": "295f3f18a53459449f22253687bd2d0b2c09a0ed",
+  "baseTree": "294faafd3be568208a366ea66f85c5538a376ffa",
+  "producerSealSHA256": "dce182dba6c4e4bf38738b486276596c7b0cbc17c798e8780ebd19287bced0d0",
+  "independentSealSHA256": "2b657ff19b7218fd20a2371b8dd587bb4ac8a672569361b103317684e8cf3384",
+  "workflow": {
+    "source": "verification/swift-cachework-128-experiment/workflow.yml",
+    "destination": ".github/workflows/swift-cache-observation-window.yml",
+    "sha256": "370b57185345a18670e315e74e823cb5596a1543c86dae64fea6763f9e694e99",
+    "dispatchInput": {
+      "profile": "capacity-window-v1"
+    },
+    "dispatchLimit": 1
+  },
+  "profiles": [
+    {
+      "bounds": {
+        "run_budget": {
+          "active_pins": 128,
+          "cache_bytes": 16777216,
+          "cache_entries": 256,
+          "cache_entry_bytes": 8388608,
+          "cache_work": 4000000000,
+          "combined_bytes": 268435456,
+          "controls": 4096,
+          "deadline_ms": 600000,
+          "execution_work": 16000000000,
+          "frames": 128,
+          "host_calls": 32768,
+          "instruction_fuel": 2000000000,
+          "memory_pages": 768,
+          "metadata_bytes": 16777216,
+          "source_bytes": 67108864,
+          "state_bytes": 134217728,
+          "values": 16384
+        },
+        "validation_budget": {
+          "deadline_ms": 120000,
+          "metadata_bytes": 16777216,
+          "scratch_bytes": 1048576,
+          "source_bytes": 67108864,
+          "work_credits": 512000000
+        },
+        "wasi_budget": {
+          "calls": 32768,
+          "deadline_ms": 600000,
+          "iovecs": 64,
+          "log_bytes": 65536,
+          "one_transfer_bytes": 65536,
+          "transfer_bytes": 4194304,
+          "work": 32000000
+        },
+        "wasi_grants": {
+          "monotonic": true,
+          "realtime": true,
+          "secure_random": true,
+          "stderr": true,
+          "stdout": true
+        }
+      },
+      "capacity512": false,
+      "finiteCount": 12,
+      "finiteFilter": "::framepin_campaign_",
+      "name": "dense-256-window",
+      "sourceSHA256": "8a3759c514cc342c37d89df8ced0525f4c3619f774f9cbbb9a7d3bdf856a331d"
+    },
+    {
+      "bounds": {
+        "run_budget": {
+          "active_pins": 128,
+          "cache_bytes": 16777216,
+          "cache_entries": 512,
+          "cache_entry_bytes": 8388608,
+          "cache_work": 4000000000,
+          "combined_bytes": 268435456,
+          "controls": 4096,
+          "deadline_ms": 600000,
+          "execution_work": 16000000000,
+          "frames": 128,
+          "host_calls": 32768,
+          "instruction_fuel": 2000000000,
+          "memory_pages": 768,
+          "metadata_bytes": 16777216,
+          "source_bytes": 67108864,
+          "state_bytes": 134217728,
+          "values": 16384
+        },
+        "validation_budget": {
+          "deadline_ms": 120000,
+          "metadata_bytes": 16777216,
+          "scratch_bytes": 1048576,
+          "source_bytes": 67108864,
+          "work_credits": 512000000
+        },
+        "wasi_budget": {
+          "calls": 32768,
+          "deadline_ms": 600000,
+          "iovecs": 64,
+          "log_bytes": 65536,
+          "one_transfer_bytes": 65536,
+          "transfer_bytes": 4194304,
+          "work": 32000000
+        },
+        "wasi_grants": {
+          "monotonic": true,
+          "realtime": true,
+          "secure_random": true,
+          "stderr": true,
+          "stdout": true
+        }
+      },
+      "capacity512": true,
+      "finiteCount": 12,
+      "finiteFilter": "::framepin_campaign_",
+      "name": "dense-512-window",
+      "sourceSHA256": "09ac825f108574f626838e0fc54628adb5ed70fa8d8871b527bc1bba4922c0ee"
+    }
+  ],
+  "runtimePolicy": {
+    "activePins": 128,
+    "bothFinitePreparationsBeforeAnyFull": true,
+    "cacheWork": 4000000000,
+    "capacityIsOnlyBetweenArmFactor": true,
+    "combinedBytes": 268435456,
+    "driverSeconds": 2700,
+    "executionWork": 16000000000,
+    "finiteMethodsEach": 12,
+    "frames": 128,
+    "harnessMethodsEach": 1,
+    "instructionFuel": 2000000000,
+    "maxCommands": 11,
+    "maxFullAttempts": 2,
+    "runtimeDeadlineMilliseconds": 600000,
+    "sameDenseImplementation": true,
+    "wasiDeadlineMilliseconds": 600000
+  },
+  "pureEvidence": {
+    "producerSourceChecks": 26,
+    "producerRunnerMethods": 43,
+    "independentAdditionalMethods": 13,
+    "independentTotalMethods": 56
+  },
+  "conditions": "Both compiled geometry <=256MiB,12finite+1harness each, exactsource and allcustody controls before eitherfull; no single-armfallback; max2full/11commands/2700s",
+  "nextRuntimeOrProductionAccepted": false,
+  "noRetry": true,
+  "smallFieldlogSummary": {
+    "path": "verification/github-delivery-capacity-window/fieldlog-promisor-v2-result.json",
+    "sha256": "82692cfb422ce511491eee01eaeff6b01078b0639cd1bf070ae85067dea675d0"
+  },
+  "rawCIPublication": false
+}

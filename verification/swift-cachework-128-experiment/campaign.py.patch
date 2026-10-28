@@ -1,0 +1,236 @@
+--- closed-128/campaign.py
++++ cachewindow/campaign.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""Proposed paired 128-frame/128-pin copies of the control and dense policies.
++"""Proposed dense 256/512 retention comparison inside one unchanged 600s window.
+ 
+ check is pure source/data work. run requires first-attempt GitHub-hosted Linux.
+ Resource exhaustion is diagnostic evidence, never campaign or product success.
+@@ -25,6 +25,10 @@
+ V1_CONTROLS_SHA = "41f3e465706101b9f8c50bf0246296bc0b88ad3a3d2202a74580d4a5dc64896e"
+ REVIEW_SEAL_SHA = "c6bde1201697149bfa84d2f31b112d14d8c1e35ac005fc908a16433941f23df8"
+ CORRECTION_BASIS = {
++    "verification/swift-frame-pin-admission-candidate/seal.json":
++        "c5d0e8b29625e09bc5bc6ef73094edc4aebdc03ee5d4e27cafa34b5eda05bd6a",
++    "verification/swift-cachework-128-experiment/baseline-summary.json":
++        "49daa97d05b25a1d74496ea97d0f9d1e14f75501545b7d4d1083808e13a58d8d",
+     "verification/swift-execution-architecture-correction/seal.json":
+         "4efa21ab9e7bf43cec647c760bdacf6c3e5b2be944976240ec186c738370a6d2",
+     "verification/github-delivery-architecture-comparison/ci-review/seal.json":
+@@ -41,14 +45,15 @@
+ spec.loader.exec_module(base)
+ require, save, sha = base.require, base.save, base.sha
+ 
+-PROFILES = (("control-frame128-pin128", False, "::framepin_campaign_", 9),
+-            ("dense-frame128-pin128", True, "::framepin_campaign_", 10))
+-CANDIDATE_FILES = ("candidate.py", "dense-pins.rs", "cache-tests.rs", "dense-tests.rs", "frame-tests.rs", "construction-tests.rs")
++PROFILES = (("dense-256-window", False, "::framepin_campaign_", 12),
++            ("dense-512-window", True, "::framepin_campaign_", 12))
++CANDIDATE_FILES = ("candidate.py", "scalar-guards.rs", "capacity-controls.rs", "baseline-summary.json")
+ CAMPAIGN_SECONDS = 2_700
+ BUILD_SECONDS, FINITE_SECONDS, HARNESS_SECONDS, FULL_SECONDS = 180, 90, 90, 750
+ MAX_FULL_ATTEMPTS = 2
+ MAX_COMMANDS = 11
+-PREFIX_THRESHOLDS = (25_000_000, 50_000_000, 100_000_000)
++PREFIX_THRESHOLDS = (25_000_000, 50_000_000, 100_000_000, 250_000_000, 500_000_000,
++    750_000_000, 1_000_000_000, 1_250_000_000, 1_500_000_000, 1_750_000_000)
+ PREFIX_MAX_BYTES = 8_192
+ PREFIX_FIELDS = frozenset(("threshold", "instructions", "instruction_fuel", "cache_work", "execution_work",
+     "host_calls", "elapsed_micros", "function", "offset"))
+@@ -136,11 +141,14 @@
+         {"exitCode": 101, "timedOut": False, "processGroupEmpty": True})
+ 
+ 
+-def expected_bounds():
++def expected_bounds(capacity512=False):
++    # capacity512 selects only resident capacity here. Both use the executed dense policy.
++    require(type(capacity512) is bool, "capacity selection must be boolean")
+     old = historical()
+     bounds = {n: event(old, n) for n in ("validation_budget", "run_budget", "wasi_budget", "wasi_grants")}
+-    bounds["run_budget"] |= {"cache_entries": 256, "cache_work": 768_000_000, "frames": 128, "active_pins": 128,
+-        "instruction_fuel": 1_000_000_000, "execution_work": 8_000_000_000, "deadline_ms": 600_000}
++    bounds["run_budget"] |= {"cache_entries": 512 if capacity512 else 256, "cache_work": 4_000_000_000,
++        "frames": 128, "active_pins": 128, "instruction_fuel": 2_000_000_000,
++        "execution_work": 16_000_000_000, "deadline_ms": 600_000}
+     bounds["wasi_budget"]["deadline_ms"] = 600_000
+     return bounds
+ 
+@@ -156,11 +164,11 @@
+         "original full target/harness inclusion changed")
+ 
+ 
+-def prepare_source(original, algorithm):
+-    require(type(algorithm) is bool, "algorithm must be selected explicitly")
++def prepare_source(original, capacity512):
++    require(type(capacity512) is bool, "capacity512 must be selected explicitly")
+     module = candidate_module()
+-    require(typed_equal(module.expected_bounds(), expected_bounds()), "candidate selected bounds differ from complete profile")
+-    source = module.parameterize(original, algorithm)
++    require(typed_equal(module.expected_bounds(capacity512), expected_bounds(capacity512)), "candidate selected bounds differ from complete profile")
++    source = module.parameterize(original, capacity512)
+     validate_source(original, source)
+     return source
+ 
+@@ -189,8 +197,8 @@
+     return True
+ 
+ 
+-def validate_result(result, full):
+-    expected = expected_bounds()
++def validate_result(result, full, capacity512=False):
++    expected = expected_bounds(capacity512)
+     actual = {name: event(result, name) for name in expected}
+     require(typed_equal(actual, expected), "actual budgets/grants differ from selected complete bounds")
+     result["actualBounds"] = actual
+@@ -303,13 +311,13 @@
+ def check(output):
+     original, artifact, bindings = inputs()
+     rows = []
+-    for name, algorithm, finite_filter, count in PROFILES:
+-        source = prepare_source(original, algorithm)
++    for name, capacity512, finite_filter, count in PROFILES:
++        source = prepare_source(original, capacity512)
+         record, delta = base.source_record(original, source)
+         save(output / name / "source.json", record)
+         (output / name / "changes.patch").write_text(delta)
+-        rows.append({"name": name, "algorithm": algorithm, "sourceSHA256": record["sha256"],
+-            "finiteFilter": finite_filter, "finiteCount": count, "bounds": expected_bounds()})
++        rows.append({"name": name, "capacity512": capacity512, "sourceSHA256": record["sha256"],
++            "finiteFilter": finite_filter, "finiteCount": count, "bounds": expected_bounds(capacity512)})
+     result = {"schema": 3, "profiles": rows, "inputBindings": bindings, "priorReviewSealSHA256": REVIEW_SEAL_SHA,
+         "correctionBasis": CORRECTION_BASIS,
+         "candidateGeneratorSHA256": sha((HERE / "candidate.py").read_bytes()),
+@@ -336,7 +344,7 @@
+     save(output / "campaign.json", campaign)  # Persist before spawn; no refund/retry.
+ 
+ 
+-def geometry_record(path, algorithm):
++def geometry_record(path, capacity512):
+     text = path.read_text()
+     def one(marker, fields, selector=None):
+         lines = [line[line.find(marker) + len(marker):] for line in text.splitlines() if (selector or marker) in line]
+@@ -362,27 +370,27 @@
+     plan = one("PLAN_PROFILE ", plan_fields, "PLAN_PROFILE floor=")
+     cleanup = "PLAN_PROFILE cleanup_zero=true guest_instructions=0 initializes=0 invokes=0"
+     require(sum(cleanup in line for line in text.splitlines()) == 1, "missing or duplicate finite zero-resource cleanup marker")
+-    bounds = expected_bounds()["run_budget"]
++    bounds = expected_bounds(capacity512)["run_budget"]
+     require(plan["combined_limit"] == bounds["combined_bytes"] == 268_435_456
+         and 0 < plan["conservative_combined"] <= bounds["combined_bytes"], "conservative geometry exceeds unchanged combined envelope")
+     require(plan["category_ceiling_sum"] == sum(bounds[key] for key in ("source_bytes", "metadata_bytes", "cache_bytes", "state_bytes")),
+         "geometry category ceilings differ from selected complete profile")
+-    require(plan["execution_header"] <= bounds["state_bytes"] and 0 <= plan["tickets"][0] <= plan["tickets"][1] <= 278,
++    require(plan["execution_header"] <= bounds["state_bytes"] and 0 <= plan["tickets"][0] <= plan["tickets"][1] <= bounds["cache_entries"] + 22,
+         "geometry header/tickets exceed selected bounds")
+     require(all(plan[key] <= bounds["combined_bytes"] for key in
+         ("constructed_current", "constructed_peak", "resident_current", "resident_peak", "frame_peak")), "geometry logical reservation peak exceeds combined bound")
+-    if algorithm:
+-        cache = one("DENSE geometry ", ("index_bytes", "pin_bitmap_bytes", "header", "operation", "logical_peak"))
+-        require(cache["index_bytes"] == 160_000 and cache["pin_bitmap_bytes"] == 16,
+-            "dense index/pin geometry does not match admitted representation")
+-        require(cache["logical_peak"] <= bounds["combined_bytes"], "dense geometry logical peak exceeds combined bound")
+-        operation = cache["operation"]
+-    else:
+-        cache = one("CAMPAIGN geometry ", ("residents", "index_cells", "index_bytes", "cycle_bytes", "plan_bytes", "tickets",
+-            "cache_fixed", "operation_bound", "combined_peak"))
+-        require((cache["residents"], cache["index_cells"], cache["index_bytes"], cache["plan_bytes"], cache["tickets"]) == (256, 384, 768, 256, 278),
+-            "control geometry differs from original 256-entry representation")
+-        operation = cache["operation_bound"]
++    cache = one("DENSE geometry ", ("index_bytes", "pin_bitmap_bytes", "header", "operation", "logical_peak"))
++    require(cache["index_bytes"] == 160_000 and cache["pin_bitmap_bytes"] == 16,
++        "dense index/pin geometry does not match admitted representation")
++    require(cache["logical_peak"] <= bounds["combined_bytes"], "dense geometry exceeds combined bound")
++    n = bounds["cache_entries"]
++    require(sum("CACHEWINDOW capacity " in line for line in text.splitlines()) == 1, "missing or duplicate capacity marker")
++    require(sum("CACHEWINDOW scalar_limits=" in line for line in text.splitlines()) == 1, "missing or duplicate scalar marker")
++    capacity_marker = f"CACHEWINDOW capacity residents={n} highest_encoded={n} tickets={n + 22} dense_index_bytes=160000 pin_bitmap_bytes=16 above_capacity_rejected=true cleanup_zero=true"
++    require(sum(capacity_marker in line for line in text.splitlines()) == 1, "missing exact capacity geometry/control marker")
++    scalar_marker = "CACHEWINDOW scalar_limits=4000000000,2000000000,16000000000 cumulative=true above_max_rejected=true overflow_rejected=true cleanup_zero=true"
++    require(sum(scalar_marker in line for line in text.splitlines()) == 1, "missing exact scalar guard marker")
++    operation = cache["operation"]
+     recomputed = plan["category_ceiling_sum"] + plan["wasi_max"] + plan["shared"] + plan["floor"] + max(
+         plan["execution_construction"], plan["frame_operation"] + operation)
+     require(recomputed == plan["conservative_combined"], "finite conservative geometry formula mismatch")
+@@ -405,18 +413,18 @@
+         "prepared finite geometry output changed")
+ 
+ 
+-def prepare_profile(name, algorithm, finite_filter, count, original, target_input, scratch, env, output, campaign, custody):
++def prepare_profile(name, capacity512, finite_filter, count, original, target_input, scratch, env, output, campaign, custody):
+     require(campaign["fullAttempts"] == 0, "both finite preparations must precede every full attempt")
+     phase = output / name
+     phase.mkdir()
+     require(typed_equal(candidate_bindings(), campaign["candidateSourceBindings"]), "candidate inputs changed after preflight")
+-    source = prepare_source(original, algorithm)
++    source = prepare_source(original, capacity512)
+     record, diff = base.source_record(original, source)
+     selected = json.loads((output / "preflight" / name / "source.json").read_text())
+     require(typed_equal(record, selected), "source differs from preflight selection")
+     save(phase / "source.json", record)
+     (phase / "changes.patch").write_text(diff)
+-    save(phase / "selected-bounds.json", expected_bounds())
++    save(phase / "selected-bounds.json", expected_bounds(capacity512))
+     crate = scratch / name / "vm"
+     base.materialize(source, crate)
+     child_env = env | {"CARGO_TARGET_DIR": str(scratch / name / "target")}
+@@ -438,14 +446,14 @@
+         require(control["exitCode"] == 0 and control["timedOut"] is False, "finite control failed: " + label)
+         require(f"test result: ok. {expected_count} passed; 0 failed; 0 ignored" in (phase / label / "stdout").read_text(),
+             "missing selected finite/harness controls")
+-    geometry = geometry_record(phase / "finite/stdout", algorithm)
++    geometry = geometry_record(phase / "finite/stdout", capacity512)
+     save(phase / "geometry.json", geometry)
+-    prepared = {"name": name, "algorithm": algorithm, "source": source, "record": record, "crate": crate,
++    prepared = {"name": name, "capacity512": capacity512, "source": source, "record": record, "crate": crate,
+         "childEnv": child_env, "phase": phase, "binary": binary, "executable": executable,
+         "geometry": geometry,
+         "geometrySHA256": sha((phase / "geometry.json").read_bytes())}
+     verify_prepared(prepared, target_input, output, campaign)
+-    campaign["preparedProfiles"].append({"name": name, "algorithm": algorithm, "sourceSHA256": record["sha256"],
++    campaign["preparedProfiles"].append({"name": name, "capacity512": capacity512, "sourceSHA256": record["sha256"],
+         "binary": executable, "geometry": str((phase / "geometry.json").relative_to(output)),
+         "geometrySHA256": prepared["geometrySHA256"], "finiteCount": count, "harnessCount": 1, "fullAttemptsAtPreparation": 0})
+     save(output / "campaign.json", campaign)
+@@ -457,7 +465,7 @@
+         and [row["name"] for row in campaign["preparedProfiles"]] == [p[0] for p in PROFILES],
+         "both compiled finite geometry preparations required before full admission")
+     verify_prepared(prepared, target_input, output, campaign)
+-    name, algorithm, source, record = (prepared[key] for key in ("name", "algorithm", "source", "record"))
++    name, capacity512, source, record = (prepared[key] for key in ("name", "capacity512", "source", "record"))
+     phase, crate, child_env, binary, executable = (prepared[key] for key in ("phase", "crate", "childEnv", "binary", "executable"))
+     reserve_full_attempt(campaign, output)
+     full = guarded_command(custody, [str(binary), base.PREFIX + "exact_reactor_target_once", "--exact", "--nocapture", "--test-threads=1"],
+@@ -468,10 +476,10 @@
+     save(phase / "prefix.json", prefix)
+     (phase / "prefix.records").write_bytes(raw)
+     require(unchanged(crate, source, target_input), "source/input changed during experiment")
+-    validate_result(result, full)
++    validate_result(result, full, capacity512)
+     validate_prefix(result, prefix)
+     save(phase / "result.json", result)
+-    campaign["profiles"].append({"name": name, "algorithm": algorithm, "sourceSHA256": record["sha256"],
++    campaign["profiles"].append({"name": name, "capacity512": capacity512, "sourceSHA256": record["sha256"],
+         "binary": executable, "actualBounds": result["actualBounds"], "result": str((phase / "result.json").relative_to(output)),
+         "prefix": str((phase / "prefix.json").relative_to(output)), "outcome": result["outcome"],
+         "hostFeasibility": result["hostFeasibility"], "consumingCleanup": result["consumingCleanup"],
+@@ -488,8 +496,8 @@
+     require(os.environ.get("GITHUB_ACTIONS") == "true" and os.environ.get("RUNNER_ENVIRONMENT") == "github-hosted"
+         and os.environ.get("GITHUB_RUN_ATTEMPT") == "1" and platform.system() == "Linux",
+         "requires first-attempt GitHub-hosted Linux CI; local execution and rerun remain held")
+-    require(os.environ.get("MIXER_FRAME_PIN_SELECTION") == "paired-128-v1",
+-        "root must explicitly select reviewed paired-128-v1 bounds before remote execution")
++    require(os.environ.get("MIXER_CACHE_WINDOW_SELECTION") == "capacity-window-v1",
++        "root must explicitly select reviewed capacity-window-v1 bounds before remote execution")
+     require(not output.exists(), "fresh campaign output required; no retries/resume")
+     base.COMMAND_DEADLINE = time.monotonic() + CAMPAIGN_SECONDS
+     base.CANCEL_REQUESTED = None
+@@ -502,6 +510,8 @@
+         "environment": " ".join(os.uname()), "profiles": [], "preparedProfiles": [], "maxFullAttempts": MAX_FULL_ATTEMPTS, "fullAttempts": 0,
+         "maxCommands": MAX_COMMANDS,
+         "aggregateDeadlineSeconds": CAMPAIGN_SECONDS, "priorReviewSealSHA256": REVIEW_SEAL_SHA,
++        "actualBaselineRun": 40779075333, "closedBaselineFullAttempts": 2,
++        "candidateKind": "same dense implementation with 256 versus 512 resident capacity; shared 600s observation profile",
+         "correctionBasis": CORRECTION_BASIS,
+         "milestone": "Both corpus calls on one initialized owner match all 11 original native fields, followed by consuming zero-resource cleanup.",
+         "scope": "diagnostic host feasibility; native/public/signed OTA/FieldLog publication/GA pending", "rssLimitation": RSS_LIMITATION}

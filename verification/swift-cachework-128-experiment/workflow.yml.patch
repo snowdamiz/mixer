@@ -1,0 +1,60 @@
+--- closed-128/workflow.yml
++++ cachewindow/workflow.yml
+@@ -1,13 +1,13 @@
+ # Proposal only. Root owns review, selection, integration and dispatch.
+-name: Swift frame and pin admission candidate
++name: Swift cache observation window candidate
+ on:
+   workflow_dispatch:
+     inputs:
+       profile:
+-        description: Root-selected reviewed frame and pin proposal
++        description: Root-selected reviewed cache capacity and observation window proposal
+         type: choice
+         required: true
+-        options: [paired-128-v1]
++        options: [capacity-window-v1]
+ permissions:
+   contents: read
+ concurrency:
+@@ -26,6 +26,7 @@
+             /verification/swift-cache-capacity-campaign-v1/
+             /verification/swift-execution-architecture-correction/
+             /verification/swift-frame-pin-admission-candidate/
++            /verification/swift-cachework-128-experiment/
+             /verification/github-delivery-architecture-comparison/ci-review/seal.json
+             /verification/swift-execution-architecture-comparison/seal.json
+             /verification/swift-execution-architecture-independent/seal.json
+@@ -34,25 +35,25 @@
+             /verification/github-delivery-binary-export-and-ui/cache-deadline-review/REVIEW.md
+       - name: Pure source and decision controls
+         timeout-minutes: 1
+-        run: python3 -B verification/swift-frame-pin-admission-candidate/test_campaign.py
++        run: python3 -B verification/swift-cachework-128-experiment/test_campaign.py
+       - name: Install the same pinned compiler
+         timeout-minutes: 2
+         run: rustup toolchain install 1.99.0 --profile minimal
+       - name: Prepare both finite geometry arms then run exactly two full attempts
+         timeout-minutes: 46
+         env:
+-          MIXER_FRAME_PIN_SELECTION: ${{ inputs.profile }}
++          MIXER_CACHE_WINDOW_SELECTION: ${{ inputs.profile }}
+         run: >-
+-          python3 -B verification/swift-frame-pin-admission-candidate/campaign.py run
+-          --output "$RUNNER_TEMP/swift-frame-pin-admission-candidate"
++          python3 -B verification/swift-cachework-128-experiment/campaign.py run
++          --output "$RUNNER_TEMP/swift-cachework-128-experiment"
+       - name: Preserve failures, original observations and separate prefix diagnostics
+         timeout-minutes: 2
+         if: always()
+         uses: actions/upload-artifact@v4
+         with:
+-          name: swift-frame-pin-admission-candidate-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
++          name: swift-cachework-128-experiment-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+           path: |
+-            ${{ runner.temp }}/swift-frame-pin-admission-candidate/
+-            !${{ runner.temp }}/swift-frame-pin-admission-candidate/scratch/
++            ${{ runner.temp }}/swift-cachework-128-experiment/
++            !${{ runner.temp }}/swift-cachework-128-experiment/scratch/
+           if-no-files-found: error
+           retention-days: 30

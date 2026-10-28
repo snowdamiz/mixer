@@ -9,7 +9,62 @@ This index does not narrow or replace that specification. Use
 is preserved byte for byte in [the prior index](PLAN.history-2026-10-25.md);
 its older pending/selected statements do not override the current state.
 
-## Selected bounded frame and pin comparison
+## Selected capacity and observation window
+
+Root selects the independently reviewed `capacity-window-v1` for one manual
+remote campaign. Dense 256 and 512 residents share 4B cache work, 2B instruction
+fuel and 16B execution work. Frames/pins remain 128, Runtime/WASI remain 600
+seconds, and all category ceilings and the 256 MiB combined envelope remain.
+Both compiled geometries, twelve finite methods and one original harness per
+arm must pass before either full attempt. The campaign permits two full
+attempts, eleven owned commands and 2,700 seconds; no retry or single-arm
+fallback is selected. Source evidence passes 26 producer checks, 43 producer
+pure methods and 13 additional independent methods. Actual compilation,
+geometry and execution remain pending. [Exact root selection and source
+seals](verification/github-delivery-capacity-window/selection.json) bind this
+delivery; runtime, production defaults and GA remain unaccepted.
+
+FieldLog's subsequent public `44190fef` run hydrated the exact 73 selected SDK
+blobs with matching body hashes. SwiftPM then requested app
+`describe --exact-match --tags`, which the app-role allowlist rejected before
+compilation and all 38 authored tests. All twelve remote outer groups, 29 inner
+children and 40 local commands closed. A source-backed app-read correction is
+under preparation; no further FieldLog run is selected here. The
+[small latest result](verification/github-delivery-capacity-window/fieldlog-promisor-v2-result.json)
+supersedes the older hydration frontier while preserving that failed evidence.
+Mixer `295f3f18` remains the six-job green ordinary Engine baseline. Gates stay
+**8 running, 30 planned, 0 verified**; all native/UI/capture, phone, local
+compiler/custody, Unit A and broad hosted holds remain.
+
+## Closed public host campaigns
+
+Mixer `295f3f18` passes all six ordinary Engine jobs. The explicit 128-frame /
+128-pin comparison also completed its diagnostic workflow: both variants passed
+compilation, nine/ten finite controls, their original harness and the unchanged
+256 MiB envelope. Both reached 67 frames/pins, then exhausted the 768M cache-work
+budget in Corpus 1 at about 790M instructions. Neither completed the original
+11-field corpus observation or started Corpus 2. All eleven command groups
+closed, scratch was removed and final owner ledgers/tickets were zero. The two
+full attempts are spent; no retry or production/default promotion is selected.
+
+FieldLog is public at `de09821b`. The reviewed four-file transport candidate
+passed 106 pure controls and was delivered with one host dispatch. Git 2.55
+fetched the exact pinned SDK's filtered metadata in a small owned store
+(1 commit, 27,424 trees, zero blobs; 6,573,259 bytes), then its explicit 73-blob
+request failed with “bad revision” and missing necessary objects. The run did
+not reach SwiftPM resolution, compilation or any of the 38 authored tests.
+All nine remote outer groups, 21 inner children and 49 local delivery commands
+closed. This establishes the observed hydration failure, not a server-policy
+refusal. The immutable SDK pin and all prior failed evidence remain preserved.
+
+[Small sealed summaries](verification/public-host-campaigns-2026-10-28/checkpoint.json) bind both actual results;
+raw CI remains local. Fresh bounded source experiments now address the Git
+hydration command and VM cache work/capacity. A separate review covers a fixture
+setup optimization; the existing fixture CI currently passes. No further run is
+selected by this checkpoint. Gates remain **8 running, 30 planned, 0 verified**;
+native/UI/capture, physical-phone, local compiler/custody and Unit A holds remain.
+
+## Historical frame and pin selection
 
 Current baseline `5efcb6a2` CI is independently reviewed: all six Engine jobs
 succeeded; ordinary Phoenix formatting/compilation and 701 methods pass, with

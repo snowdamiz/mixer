@@ -1,0 +1,283 @@
+--- closed-128/test_campaign.py
++++ cachewindow/test_campaign.py
+@@ -12,17 +12,17 @@
+ spec = importlib.util.spec_from_file_location("architecture_campaign", HERE / "campaign.py")
+ campaign = importlib.util.module_from_spec(spec)
+ spec.loader.exec_module(campaign)
+-REMOTE_ENV = {"GITHUB_ACTIONS": "true", "RUNNER_ENVIRONMENT": "github-hosted", "GITHUB_RUN_ATTEMPT": "1", "MIXER_FRAME_PIN_SELECTION": "paired-128-v1"}
++REMOTE_ENV = {"GITHUB_ACTIONS": "true", "RUNNER_ENVIRONMENT": "github-hosted", "GITHUB_RUN_ATTEMPT": "1", "MIXER_CACHE_WINDOW_SELECTION": "capacity-window-v1"}
+ 
+ 
+ class CampaignTests(unittest.TestCase):
+     def test_missing_or_changed_root_profile_selection_stops_before_any_output(self):
+-        for selection in (None, "paired-64-v1", "paired-128-v1-extra"):
++        for selection in (None, "paired-64-v1", "capacity-window-v1-extra"):
+             environment = dict(REMOTE_ENV)
+             if selection is None:
+-                environment.pop("MIXER_FRAME_PIN_SELECTION")
++                environment.pop("MIXER_CACHE_WINDOW_SELECTION")
+             else:
+-                environment["MIXER_FRAME_PIN_SELECTION"] = selection
++                environment["MIXER_CACHE_WINDOW_SELECTION"] = selection
+             with tempfile.TemporaryDirectory() as tmp, patch.dict(campaign.os.environ, environment, clear=True), \
+                     patch.object(campaign.platform, "system", return_value="Linux"):
+                 output = Path(tmp) / "absent"
+@@ -84,33 +84,34 @@
+                 b"MIXER_PREFIX " + json.dumps(r).encode() + b"\n" for r in rows))
+             return campaign.prefix_records(p)
+ 
+-    def geometry_fixture(self, algorithm):
++    def geometry_fixture(self, capacity512):
+         plan = {"floor": 1000, "execution_header": 512, "execution_construction": 2000, "frame_operation": 3000,
+             "category_ceiling_sum": sum(campaign.expected_bounds()["run_budget"][k] for k in
+                 ("source_bytes", "metadata_bytes", "cache_bytes", "state_bytes")),
+             "wasi_max": 264456, "shared": 1744, "combined_limit": 268435456, "constructed_current": 10000,
+-            "constructed_peak": 20000, "resident_current": 30000, "resident_peak": 40000, "frame_peak": 50000, "tickets": "277/278"}
+-        operation = 5000 if algorithm else 4000
++            "constructed_peak": 20000, "resident_current": 30000, "resident_peak": 40000, "frame_peak": 50000, "tickets": "533/534" if capacity512 else "277/278"}
++        operation = 5000
+         plan["conservative_combined"] = plan["category_ceiling_sum"] + plan["wasi_max"] + plan["shared"] + plan["floor"] + max(
+             plan["execution_construction"], plan["frame_operation"] + operation)
+-        cache = ("DENSE geometry index_bytes=160000 pin_bitmap_bytes=16 header=512 operation=5000 logical_peak=50000" if algorithm else
+-            "CAMPAIGN geometry residents=256 index_cells=384 index_bytes=768 cycle_bytes=32 plan_bytes=256 tickets=278 cache_fixed=1000 operation_bound=4000 combined_peak=50000")
+-        # Deliberately synthetic numeric data, only for pure parser negatives.
++        cache = "DENSE geometry index_bytes=160000 pin_bitmap_bytes=16 header=512 operation=5000 logical_peak=50000"
++        n = 512 if capacity512 else 256
+         return "PLAN_PROFILE " + " ".join(f"{k}={v}" for k, v in plan.items()) + "\n" + cache + "\n" + \
+-            "PLAN_PROFILE cleanup_zero=true guest_instructions=0 initializes=0 invokes=0\n"
+-
+-    def parse_geometry(self, text, algorithm):
++            "PLAN_PROFILE cleanup_zero=true guest_instructions=0 initializes=0 invokes=0\n" + \
++            f"CACHEWINDOW capacity residents={n} highest_encoded={n} tickets={n + 22} dense_index_bytes=160000 pin_bitmap_bytes=16 above_capacity_rejected=true cleanup_zero=true\n" + \
++            "CACHEWINDOW scalar_limits=4000000000,2000000000,16000000000 cumulative=true above_max_rejected=true overflow_rejected=true cleanup_zero=true\n"
++
++    def parse_geometry(self, text, capacity512):
+         with tempfile.TemporaryDirectory() as tmp:
+             path = Path(tmp) / "stdout"
+             path.write_text(text)
+-            return campaign.geometry_record(path, algorithm)
++            return campaign.geometry_record(path, capacity512)
+ 
+     def remote_run(self, output, profile, prepare=None):
+-        def default_prepare(name, algorithm, finite_filter, count, original, target, scratch, env, output, record, custody):
++        def default_prepare(name, capacity512, finite_filter, count, original, target, scratch, env, output, record, custody):
+             self.assertEqual(record["fullAttempts"], 0)
+             record["preparedProfiles"].append({"name": name})
+             custody["provenClosedCommands"] += 3  # Mocked build, finite and harness closures.
+-            return {"profile": (name, algorithm, finite_filter, count)}
++            return {"profile": (name, capacity512, finite_filter, count)}
+         def execute(prepared, target, scratch, output, record, custody):
+             self.assertEqual(len(record["preparedProfiles"]), 2)
+             return profile(*prepared["profile"], {}, target, scratch, {}, output, record, custody)
+@@ -127,8 +128,8 @@
+         self.assertEqual((len(self.artifact), campaign.sha(self.artifact)), (53_777_114, campaign.base.ARTIFACT_HASH))
+         self.assertFalse((HERE / "inputs").exists())
+         self.assertEqual(len(json.loads((campaign.base.INPUTS / "native-observation.json").read_text())), 11)
+-        for _, algorithm, _, _ in campaign.PROFILES:
+-            source = campaign.prepare_source(self.original, algorithm)
++        for _, capacity512, _, _ in campaign.PROFILES:
++            source = campaign.prepare_source(self.original, capacity512)
+             self.assertEqual(source["src/experimental_swift_reactor/campaign_harness.rs"], (campaign.base.INPUTS / "harness.rs").read_bytes())
+         self.assertEqual(campaign.sha((campaign.REVIEW / "seal.json").read_bytes()), campaign.REVIEW_SEAL_SHA)
+         for path, digest in campaign.CORRECTION_BASIS.items():
+@@ -138,13 +139,13 @@
+         control = campaign.prepare_source(self.original, False)
+         dense = campaign.prepare_source(self.original, True)
+         self.assertEqual({name for name in control if control[name] != dense[name]}, {
+-            "src/experimental/cache/borrowed.rs", "src/experimental_swift_reactor/cache.rs", "src/experimental_swift_reactor/cache_tests.rs"})
+-        for name in ("control.rs", "campaign_harness.rs", "lifecycle_tests.rs"):
++            "src/experimental/cache/mod.rs", "src/experimental_swift_reactor/control.rs", "src/experimental_swift_reactor/cache.rs", "src/experimental_swift_reactor/cache_tests.rs"})
++        for name in ("control_tests.rs", "campaign_harness.rs", "lifecycle_tests.rs", "frame_operations.rs", "frame_operations_tests.rs", "execution_tests.rs"):
+             path = "src/experimental_swift_reactor/" + name
+             self.assertEqual(control[path], dense[path])
+         source = control["src/experimental_swift_reactor/control.rs"]
+         self.assertEqual(source.count(b"MIXER_PREFIX "), 1)
+-        self.assertEqual(source.count(b"matches!(self.instructions, 25_000_000 | 50_000_000 | 100_000_000)"), 1)
++        self.assertEqual(source.count(("matches!(self.instructions, " + " | ".join(f"{n:_}" for n in campaign.PREFIX_THRESHOLDS) + ")").encode()), 1)
+ 
+     def test_complete_bounds_preserve_every_other_ceiling_and_grant(self):
+         bounds = campaign.expected_bounds()
+@@ -156,7 +157,7 @@
+         self.assertEqual(normalized, {n: campaign.event(old, n) for n in normalized})
+         self.assertEqual(bounds["validation_budget"]["deadline_ms"], 120_000)
+         self.assertEqual(bounds["run_budget"]["memory_pages"] * 65536, 48 * 1024 * 1024)
+-        self.assertEqual(bounds["run_budget"]["cache_work"], 768_000_000)
++        self.assertEqual(bounds["run_budget"]["cache_work"], 4_000_000_000)
+         self.assertTrue(campaign.typed_equal(campaign.candidate_module().expected_bounds(), bounds))
+ 
+     def test_check_generates_two_source_identities_without_execution(self):
+@@ -172,7 +173,7 @@
+             for row in result["profiles"]:
+                 saved = json.loads((output / row["name"] / "source.json").read_text())
+                 self.assertEqual(saved["sha256"], row["sourceSHA256"])
+-                self.assertEqual(row["bounds"], campaign.expected_bounds())
++                self.assertEqual(row["bounds"], campaign.expected_bounds(row["capacity512"]))
+ 
+     def test_source_and_candidate_contract_fail_closed(self):
+         source = campaign.prepare_source(self.original, False)
+@@ -184,7 +185,7 @@
+                 campaign.validate_source(self.original, changed)
+         with self.assertRaisesRegex(RuntimeError, "selected explicitly"):
+             campaign.prepare_source(self.original, 1)
+-        module = Mock(expected_bounds=lambda: {}, parameterize=lambda *args: source)
++        module = Mock(expected_bounds=lambda *args: {}, parameterize=lambda *args: source)
+         with patch.object(campaign, "candidate_module", return_value=module), self.assertRaisesRegex(RuntimeError, "selected bounds"):
+             campaign.prepare_source(self.original, False)
+ 
+@@ -306,13 +307,13 @@
+         execute_profile = campaign.execute_profile
+         failure = {"kind": "Allocation", "code": "swift_run_unexpected_capacity", "resource": "ExactCapacity",
+             "attempted": 160000, "limit": 160000, "observed_capacity": 160002}
+-        def profile(name, algorithm, finite_filter, count, original, target, scratch, env, output, record, custody):
++        def profile(name, capacity512, finite_filter, count, original, target, scratch, env, output, record, custody):
+             invoked.append(name)
+             phase = output / name
+             (phase / "full").mkdir(parents=True)
+             self.write_failure_log(phase / "full/stdout", failure)
+             (phase / "full/stderr").write_bytes(b"")
+-            prepared = {"name": name, "algorithm": algorithm, "source": {}, "record": {}, "phase": phase,
++            prepared = {"name": name, "capacity512": capacity512, "source": {}, "record": {}, "phase": phase,
+                 "crate": scratch / name, "childEnv": {}, "binary": scratch / "mock-binary", "executable": {}}
+             full = {"pid": 123, "exitCode": 101, "timedOut": False, "cancelled": None, "processGroupEmpty": True}
+             with patch.object(campaign, "verify_prepared"), patch.object(campaign, "unchanged", return_value=True), \
+@@ -370,7 +371,7 @@
+     def test_prefix_schema_order_cursor_budget_and_output_negatives(self):
+         row = self.prefix(25_000_000)
+         for changed in (row | {"threshold": 50_000_000}, row | {"instructions": 25_000_001}, row | {"function": (1 << 64) - 1},
+-                row | {"offset": (1 << 64) - 1}, row | {"cache_work": 768_000_001}, row | {"elapsed_micros": False},
++                row | {"offset": (1 << 64) - 1}, row | {"cache_work": 4_000_000_001}, row | {"elapsed_micros": False},
+                 row | {"elapsed_micros": -1}, row | {"elapsed_micros": 1.1}, row | {"extra": 0},
+                 {k: v for k, v in row.items() if k != "offset"}):
+             with self.subTest(row=changed), self.assertRaises((RuntimeError, ValueError)):
+@@ -443,13 +444,13 @@
+         campaign.validate_prefix(result, parsed)
+ 
+     def test_geometry_receipt_requires_bounded_actual_envelope_and_dense_storage(self):
+-        for algorithm in (False, True):
+-            parsed = self.parse_geometry(self.geometry_fixture(algorithm), algorithm)
++        for capacity512 in (False, True):
++            parsed = self.parse_geometry(self.geometry_fixture(capacity512), capacity512)
+             self.assertEqual(parsed["plan"]["conservative_combined"], parsed["recomputedConservativeCombined"])
+             self.assertLessEqual(parsed["recomputedConservativeCombined"], 268435456)
+             self.assertIs(parsed["cleanupZero"], True)
+             self.assertEqual(parsed["guestInstructions"], 0)
+-            if algorithm:
++            if capacity512:
+                 self.assertEqual((parsed["cache"]["index_bytes"], parsed["cache"]["pin_bitmap_bytes"]), (160000, 16))
+         text = self.geometry_fixture(True)
+         first = text.splitlines()[0] + "\n"
+@@ -457,7 +458,7 @@
+             text + "PLAN_PROFILE cleanup_zero=true guest_instructions=0 initializes=0 invokes=0\n",
+             text.replace("combined_limit=268435456", "combined_limit=268435457"), text.replace("floor=1000", "floor=1001"),
+             text.replace("floor=1000", "floor=false"), text.replace("floor=1000", "floor=1000 extra=1"),
+-            text.replace("tickets=277/278", "tickets=277/279"), text.replace("index_bytes=160000", "index_bytes=159999"),
++            text.replace("tickets=533/534", "tickets=533/535"), text.replace("index_bytes=160000", "index_bytes=159999"),
+             text.replace("pin_bitmap_bytes=16", "pin_bitmap_bytes=7"))
+         for changed in negatives:
+             with self.subTest(change=changed), self.assertRaises(RuntimeError):
+@@ -466,6 +467,48 @@
+         for value in (conservative + 1, 268435457):
+             with self.assertRaises(RuntimeError):
+                 self.parse_geometry(text.replace(f"conservative_combined={conservative}", f"conservative_combined={value}"), True)
++
++    def test_each_arm_requires_its_exact_resident_budget(self):
++        result, row = self.failure_fixture()
++        with self.assertRaisesRegex(RuntimeError, "actual budgets"):
++            campaign.validate_result(result, row, True)
++        for event in result["events"]:
++            if event["event"] == "run_budget":
++                event["payload"]["cache_entries"] = 512
++        campaign.validate_result(result, row, True)
++        with self.assertRaisesRegex(RuntimeError, "actual budgets"):
++            campaign.validate_result(result, row, False)
++
++    def test_capacity_geometry_cannot_be_reused_for_other_arm(self):
++        for selected in (False, True):
++            text = self.geometry_fixture(selected)
++            with self.assertRaises(RuntimeError):
++                self.parse_geometry(text, not selected)
++            for marker in ("CACHEWINDOW capacity ", "CACHEWINDOW scalar_limits="):
++                row = next(line for line in text.splitlines() if marker in line)
++                for bad in (text.replace(row + "\n", ""), text + row + "\n", text.replace(row, row.replace("true", "false"))):
++                    with self.assertRaises(RuntimeError):
++                        self.parse_geometry(bad, selected)
++
++    def test_capacity_choice_requires_boolean_and_two_profiles(self):
++        for value in (0, 1, None, "512", [], {}):
++            with self.assertRaises((RuntimeError, ValueError)):
++                campaign.expected_bounds(value)
++            with self.assertRaises((RuntimeError, ValueError)):
++                campaign.candidate_module().residents(value)
++        self.assertEqual([campaign.expected_bounds(p[1])["run_budget"]["cache_entries"] for p in campaign.PROFILES], [256, 512])
++        self.assertEqual([p[3] for p in campaign.PROFILES], [12, 12])
++
++    def test_same_dense_engine_and_original_safeguards_between_arms(self):
++        small = campaign.prepare_source(self.original, False)
++        large = campaign.prepare_source(self.original, True)
++        cache = "src/experimental_swift_reactor/cache.rs"
++        shared = "src/experimental/cache/mod.rs"
++        self.assertEqual(large[cache].replace(b"RESIDENT_LINKS: usize = 512;", b"RESIDENT_LINKS: usize = 256;"), small[cache])
++        self.assertEqual(large[shared].replace(b"MAX_ENTRIES: usize = 512;", b"MAX_ENTRIES: usize = 256;"), small[shared])
++        for name in small:
++            if any(part in name for part in ("validation", "wasi", "capabil", "lifecycle", "borrowed")):
++                self.assertEqual(small[name], large[name])
+ 
+     def test_prepared_binary_geometry_manifest_and_input_rechecked_before_full_admission(self):
+         with tempfile.TemporaryDirectory() as tmp:
+@@ -540,8 +583,8 @@
+ 
+     def test_two_arms_selected_even_when_each_is_an_ordinary_clean_limit(self):
+         invoked = []
+-        def profile(name, algorithm, finite_filter, count, original, target, scratch, env, output, record, custody):
+-            invoked.append((name, algorithm, finite_filter, count))
++        def profile(name, capacity512, finite_filter, count, original, target, scratch, env, output, record, custody):
++            invoked.append((name, capacity512, finite_filter, count))
+             record["fullAttempts"] += 1
+             record["profiles"].append({"name": name, "hostFeasibility": False, "outcome": "resource-limit-diagnostic"})
+             custody["provenClosedCommands"] += 1  # Mocked full-command closure after both prepared arms.
+@@ -558,14 +601,14 @@
+ 
+     def test_candidate_finite_failure_leaves_full_attempts_zero(self):
+         invoked = []
+-        def prepare(name, algorithm, finite_filter, count, original, target, scratch, env, output, record, custody):
++        def prepare(name, capacity512, finite_filter, count, original, target, scratch, env, output, record, custody):
+             invoked.append(name)
+             self.assertEqual(record["fullAttempts"], 0)
+-            if algorithm:
++            if capacity512:
+                 raise RuntimeError("candidate finite geometry failed")
+             record["preparedProfiles"].append({"name": name})
+             custody["provenClosedCommands"] += 3
+-            return {"profile": (name, algorithm, finite_filter, count)}
++            return {"profile": (name, capacity512, finite_filter, count)}
+         with tempfile.TemporaryDirectory() as tmp:
+             output = Path(tmp) / "output"
+             with self.assertRaisesRegex(RuntimeError, "candidate finite geometry failed"):
+@@ -579,13 +622,13 @@
+ 
+     def test_both_preparations_close_before_first_full_attempt(self):
+         order = []
+-        def prepare(name, algorithm, finite_filter, count, original, target, scratch, env, output, record, custody):
++        def prepare(name, capacity512, finite_filter, count, original, target, scratch, env, output, record, custody):
+             order.append(("prepare", name))
+             self.assertEqual(record["fullAttempts"], 0)
+             record["preparedProfiles"].append({"name": name})
+             custody["provenClosedCommands"] += 3
+-            return {"profile": (name, algorithm, finite_filter, count)}
+-        def execute(name, algorithm, finite_filter, count, original, target, scratch, env, output, record, custody):
++            return {"profile": (name, capacity512, finite_filter, count)}
++        def execute(name, capacity512, finite_filter, count, original, target, scratch, env, output, record, custody):
+             order.append(("full", name))
+             self.assertEqual(record["preparationGate"]["closedPreparationCommands"], 9)
+             self.assertEqual(len(record["preparedProfiles"]), 2)
+@@ -754,8 +797,8 @@
+         self.assertIn("timeout-minutes: 46", workflow)
+         self.assertIn("cancel-in-progress: false", workflow)
+         self.assertIn("group: swift-execution-architecture-comparison", workflow)
+-        self.assertIn("python3 -B verification/swift-frame-pin-admission-candidate/test_campaign.py", workflow)
+-        self.assertIn("python3 -B verification/swift-frame-pin-admission-candidate/campaign.py run", workflow)
++        self.assertIn("python3 -B verification/swift-cachework-128-experiment/test_campaign.py", workflow)
++        self.assertIn("python3 -B verification/swift-cachework-128-experiment/campaign.py run", workflow)
+         self.assertNotIn("swift-execution-architecture-comparison/campaign.py", workflow)
+         self.assertNotIn("swift-execution-architecture-comparison/test_campaign.py", workflow)
+ 

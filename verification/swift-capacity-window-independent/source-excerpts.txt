@@ -1,0 +1,269 @@
+src/experimental_swift_reactor/cache.rs
+42:     init: std::ops::Range<usize>,
+43: }
+44: const RESIDENT_BUCKETS: usize = 128;
+45: const RESIDENT_LINKS: usize = 512;
+46: const RESIDENT_INDEX_CELLS: usize = DENSE_FUNCTIONS;
+47: const RESIDENT_INDEX_BYTES: usize = RESIDENT_INDEX_CELLS * size_of::<u16>();
+48: 
+49: pub(crate) struct SwiftScratch<'a> {
+50:     patches: &'a mut [decode::Patch],
+51:     index: &'a mut [u16],
+70:     node: u16,
+71:     slot: usize,
+72:     next: u16,
+73:     seen: [u64; RESIDENT_LINKS / 64],
+74:     bit: u64,
+75:     visited: std::ops::Range<usize>,
+76:     hit: Option<ResidentMatch>,
+77:     found: ResidentMatch,
+78:     index: &'static [u16],
+79:     mutable_index: &'static mut [u16],
+123:     }
+124: }
+125: fn dense_audit(index: &[u16], slots: &[SwiftSlot], meter: &mut SwiftMeter<'_, '_>) -> Result<(), SwiftRunFailure> {
+126:     if index.len() != DENSE_FUNCTIONS || slots.len() > RESIDENT_LINKS {
+127:         return Err(meter.error(CacheFailureKind::DecoderMismatch, "swift_dense_layout"));
+128:     }
+129:     for (slot, actual) in slots.iter().enumerate() {
+130:         meter.work(1)?; // actual occupied-slot probe
+131:         if let Some(entry) = actual.entry() {
+132:             meter.work(3)?; // actual key, key bounds, reverse cell
+138:     Ok(())
+139: }
+140: fn resident_find(index: &[u16], slots: &[SwiftSlot], function: u32, meter: &mut SwiftMeter<'_, '_>) -> Result<Option<ResidentMatch>, SwiftRunFailure> {
+141:     if index.len() != DENSE_FUNCTIONS || slots.len() > RESIDENT_LINKS {
+142:         return Err(meter.error(CacheFailureKind::DecoderMismatch, "swift_dense_layout"));
+143:     }
+144:     meter.work(2)?; // requested key bound and direct cell
+145:     let encoded = *index.get(function as usize).ok_or_else(|| meter.error(CacheFailureKind::DecoderMismatch, "swift_dense_key"))?;
+146:     if encoded == 0 {
+147:         // Missing map cells cannot turn actual residents into duplicate decodes.
+1297:         (2, size_of::<decode::PassParts<'static>>()),
+1298:         (4, size_of::<decode::Counts>()),
+1299:         (2, size_of::<SwiftPolicy<'static>>()),
+1300:         (1, size_of::<[bool; RESIDENT_LINKS]>()),
+1301:         (3, size_of::<DecodedFunction>()),
+1302:         (3, size_of::<SwiftResident>()),
+1303:         (3, size_of::<Result<SwiftResident, SwiftRunFailure>>()),
+1304:         (3, size_of::<Result<DecodedFunction, SwiftRunFailure>>()),
+1305:         (3, size_of::<Result<SwiftFunctionPin, SwiftRunFailure>>()),
+1306:         (2, size_of::<OperationReturnSlot>()),
+1332:     CACHE_CLEANUP_TEMPORARY_BYTES
+1333: }
+1334: const CACHE_HEADER_BYTES: Option<usize> = compute_cache_header_bytes();
+1335: pub(crate) fn cache_header_bytes() -> Option<usize> {
+1336:     CACHE_HEADER_BYTES
+1337: }
+1338: const CACHE_CONSTRUCTION_BYTES: Option<usize> = compute_cache_construction_bytes();
+1339: pub(crate) fn cache_construction_bytes() -> Option<usize> {
+1340:     CACHE_CONSTRUCTION_BYTES
+1341: }
+1342: const CACHE_OPERATION_BYTES: Option<usize> = compute_cache_operation_bytes();
+1343: pub(crate) fn cache_operation_bytes() -> Option<usize> {
+1344:     CACHE_OPERATION_BYTES
+1345: }
+1346: fn pairing(
+1347:     control: &mut RuntimeControl,
+1348:     wasi: Option<&AccountedWasi>,
+1349:     cursor: Cursor,
+2798:         row!(decode::PassParts<'static>);
+2799:         row!(decode::Counts);
+2800:         row!(SwiftPolicy<'static>);
+2801:         row!([bool; RESIDENT_LINKS]);
+2802:         row!(Result<SwiftResident, SwiftRunFailure>);
+2803:         row!(Result<DecodedFunction, SwiftRunFailure>);
+2804:         row!(Result<SwiftFunctionPin, SwiftRunFailure>);
+2805:         row!(OperationReturnSlot);
+2806:         row!(FunctionSpanView<'static>);
+2807:         row!(RootLeafInventory);
+
+src/experimental/cache/mod.rs
+17: use crate::{Cancellation, Profile, Type, Value};
+18: use std::sync::atomic::{AtomicU64, Ordering};
+19: 
+20: const MAX_ENTRIES: usize = 512;
+21: const MAX_PINS: usize = 64;
+22: static NEXT_OWNER: AtomicU64 = AtomicU64::new(1);
+23: 
+24: /// Auxiliary cache ceilings. They can only narrow these defaults.
+25: #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+26: pub struct CacheBudget {
+35:         Self {
+36:             capacity_bytes: 16 * 1024 * 1024,
+37:             entry_bytes: 8 * 1024 * 1024,
+38:             max_entries: MAX_ENTRIES,
+39:             max_pins: MAX_PINS,
+40:             work_credits: 64_000_000,
+41:         }
+42:     }
+43: }
+44: #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+317:     // plan, two readers, meter, bounded failures and scalar temporaries are extra.
+318:     2 * std::mem::size_of::<decode::PassState>()
+319:         + 2 * std::mem::size_of::<decode::Reader<'static>>()
+320:         + std::mem::size_of::<[bool; MAX_ENTRIES]>()
+321:         + std::mem::size_of::<Meter<'static>>()
+322:         + 3 * std::mem::size_of::<CacheFailure>()
+323:         + 256
+324: }
+325: fn update_peak(usage: &mut CacheUsage, budget: CacheBudget) -> Result<(), CacheFailure> {
+326:     let bytes = usage
+
+src/experimental_swift_reactor/cache_tests.rs
+1147:         let (mut c, mut cache) = new(
+1148:             &bytes,
+1149:             SwiftRunBudget {
+1150:                 deadline_ms: 20,
+1151:                 ..SwiftRunBudget::default()
+1152:             },
+1153:         );
+1154:         hooks(Hooks {
+1155:             pause: Some(step),
+1156:             ..Hooks::default()
+1180:                 WasiBudget {
+1181:                     one_transfer_bytes: 64,
+1182:                     log_bytes: 64,
+1183:                     deadline_ms: 20,
+1184:                     ..WasiBudget::default()
+1185:                 },
+1186:                 Instant::now(),
+1187:                 cache_cursor(),
+1188:             )
+1189:             .unwrap();
+2161:     finish(cache, c);
+2162:     for case in ["deadline", "work", "terminal"] {
+2163:         let budget = SwiftRunBudget {
+2164:             deadline_ms: if case == "deadline" { 1_000 } else { 30_000 },
+2165:             cache_work: if case == "work" {
+2166:                 exact_work
+2167:             } else {
+2168:                 64_000_000
+2169:             },
+2170:             ..SwiftRunBudget::default()
+2928:                     &bytes,
+2929:                     SwiftRunBudget {
+2930:                         cache_work: credits,
+2931:                         deadline_ms: if expired {
+2932:                             20
+2933:                         } else {
+2934:                             SwiftRunBudget::default().deadline_ms
+2935:                         },
+2936:                         ..SwiftRunBudget::default()
+2937:                     },
+2938:                 );
+2939:                 hooks(Hooks {
+2940:                     cancel: cancelled.then_some(ordinal),
+3765:                 &bytes,
+3766:                 SwiftRunBudget {
+3767:                     cache_entries: 1,
+3768:                     deadline_ms: 20,
+3769:                     ..SwiftRunBudget::default()
+3770:                 },
+3771:             );
+3772:             hooks(Hooks {
+3773:                 pause: Some(step),
+3774:                 cancel_pause: cancel,
+3825:     let shared=constructed.reservations.shared.current;
+3826:     let phase_peak=floor+construction.max(frame_bytes+cache_operation_bytes().unwrap());
+3827:     let maximum_envelope=categories+wasi+shared+phase_peak;
+3828:     println!("PLAN_PROFILE floor={floor} execution_header={execution_header} execution_construction={construction} frame_operation={frame_bytes} category_ceiling_sum={categories} wasi_max={wasi} shared={shared} conservative_combined={maximum_envelope} combined_limit={} constructed_current={} constructed_peak={} resident_current={} resident_peak={} frame_peak={} tickets={}/{}",max.combined_bytes,constructed.reservations.combined.current,constructed.reservations.combined.peak,resident.reservations.combined.current,resident.reservations.combined.peak,report.usage.reservations.combined.peak,report.usage.reservations.live_tickets,report.usage.reservations.peak_tickets);
+3829:     assert!(maximum_envelope<=max.combined_bytes);
+3830:     assert!(execution_header<=max.state_bytes);assert!(report.usage.reservations.peak_tickets<=MAX_RESERVATION_TICKETS);
+3831:     assert_eq!(owner.control.as_ref().unwrap().budget(),max);
+3832:     let mut owned=Some(owner);let mut cleanup=Some(SwiftReactorInstance::cleanup_owned(&mut owned));
+3833:     let tail=cleanup.take().unwrap().unwrap();let mut failure=None;let mut usage=None;
+3834:     tail.complete((owned,cleanup),&mut failure,&mut usage);
+4281:     assert_eq!(b.cache_work, 4_000_000_000);
+4282:     assert_eq!((b.cache_bytes, b.cache_entry_bytes, b.active_pins), (16 << 20, 8 << 20, 128));
+4283:     assert_eq!((b.memory_pages, b.combined_bytes), (768, 256 << 20));
+4284:     assert_eq!((b.instruction_fuel, b.execution_work, b.deadline_ms), (2_000_000_000, 16_000_000_000, 600_000));
+4285:     assert_eq!(MAX_RESERVATION_TICKETS, n + 22);
+4286:     let bytes = fixture(0, &[0, 0x0b], n + 40);
+4287:     let (mut c, mut cache) = new(&bytes, b);
+4288:     for f in 34..34 + n as u32 {
+4289:         let p = pin(&mut cache, &mut c, f, None).unwrap();
+4290:         cache.release(p, &mut c, None).map_err(|e| e.failure).unwrap();
+4437: fn dense_campaign_full_geometry_and_conservative_envelope() {
+4438:     let budget = SwiftRunBudget::default();
+4439:     assert_eq!((budget.cache_entries, budget.active_pins, budget.frames), (512, 128, 128));
+4440:     assert_eq!((budget.cache_work, budget.instruction_fuel, budget.execution_work, budget.deadline_ms), (4_000_000_000, 2_000_000_000, 16_000_000_000, 600_000));
+4441:     assert_eq!((budget.cache_bytes, budget.cache_entry_bytes, budget.combined_bytes), (16 << 20, 8 << 20, 256 << 20));
+4442:     assert_eq!(MAX_RESERVATION_TICKETS, 534);
+4443:     hooks(Hooks::default());
+4444:     let bytes = fixture(0, &[0, 0x0b], 552);
+4445:     let (mut c, mut cache) = new(&bytes, budget);
+4446:     for function in 34..546 { plan_reuse_release(&mut cache, &mut c, function); }
+
+src/experimental_swift_reactor/control.rs
+35:     pub instruction_fuel: u64,
+36:     pub execution_work: u64,
+37:     pub host_calls: u64,
+38:     pub deadline_ms: u64,
+39: }
+40: impl Default for SwiftRunBudget {
+41:     fn default() -> Self {
+42:         Self {
+43:             source_bytes: 64 * MIB,
+44:             metadata_bytes: 16 * MIB,
+56:             instruction_fuel: 2_000_000_000,
+57:             execution_work: 16_000_000_000,
+58:             host_calls: 32_768,
+59:             deadline_ms: 600_000,
+60:         }
+61:     }
+62: }
+63: 
+64: #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+65: pub enum SwiftReservationCategory {
+202:     /// Independent cleanup observation; never replaces the first terminal cause.
+203:     pub cleanup_invariant: Option<SwiftCleanupInvariant>,
+204:     pub elapsed_micros: u64,
+205:     pub deadline_ms: u64,
+206:     pub deadline_origin: SwiftDeadlineOrigin,
+207:     pub deadline_overshoot_micros: u64,
+208:     /// Historical validation observations, never added to runtime admission.
+209:     pub validation: SwiftValidationUsage,
+210:     /// Copied observation only. None means no context observation was supplied;
+211:     /// no field in this snapshot is consulted for admission by RuntimeControl.
+590:         let result = (|| {
+591:             control.check_budget(cursor)?;
+592:             control.deadline = started
+593:                 .checked_add(Duration::from_millis(budget.deadline_ms))
+594:                 .ok_or_else(|| {
+595:                     control.fail(
+596:                         cursor,
+597:                         Fault::new(
+598:                             SwiftRunFailureKind::InvalidBudget,
+599:                             "swift_run_deadline_overflow",
+752:             ),
+753:             (
+754:                 SwiftRunResource::Deadline,
+755:                 self.budget.deadline_ms,
+756:                 max.deadline_ms,
+757:             ),
+758:         ];
+759:         for (resource, attempted, limit) in fields {
+760:             if attempted > limit {
+761:                 return Err(self.fail(
+762:                     cursor,
+800:             return Err(self.fail(cursor, fault, None));
+801:         }
+802:         let deadline = started
+803:             .checked_add(Duration::from_millis(budget.deadline_ms))
+804:             .ok_or_else(|| {
+805:                 self.fail(
+806:                     cursor,
+807:                     Fault::new(
+808:                         SwiftRunFailureKind::InvalidBudget,
+809:                         "swift_run_wasi_deadline_overflow",
+831:             host_calls: self.host_calls,
+832:             cleanup_invariant: self.cleanup_invariant,
+833:             elapsed_micros: micros(now.saturating_duration_since(self.started)),
+834:             deadline_ms: self.budget.deadline_ms,
+835:             deadline_origin: self.deadline_origin,
+836:             deadline_overshoot_micros: micros(now.saturating_duration_since(self.deadline)),
+837:             validation: self.validation,
+838:             wasi,
+839:         }
+840:     }
