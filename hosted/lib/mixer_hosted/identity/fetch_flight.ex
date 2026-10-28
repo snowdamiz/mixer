@@ -155,10 +155,15 @@ defmodule MixerHosted.Identity.FetchFlight do
       ),
       do: {:noreply, %{s | connection_down: true}}
 
-  def terminate(_, s) do
+  def terminate(reason, s) do
     Process.cancel_timer(s.timer)
     Process.exit(s.worker, :kill)
     close_raw(s.raw_socket)
+
+    # Forceful supervisor death cannot rely on the registered TLS controller
+    # processing transport closure. Graceful shutdown retains its existing wait.
+    if reason == :killed and is_pid(s.connection), do: Process.exit(s.connection, :kill)
+
     close(s.socket)
     await_raw_closed(s)
     await_connection_down(s)

@@ -1,0 +1,146 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T05:45:24.016970+00:00",
+  "decision": "exact-source-correction-accepted-for-ordinary-remote-CI; behavior-acceptance-pending",
+  "reviewer": "independent bounded source-review agent",
+  "head": "41af4a3bc14f62e477c66c9553fd4ff559d19590",
+  "packet": {
+    "path": "verification/console-key-owner-dead-supervisor-correction/packet-manifest.json",
+    "bytes": 6663,
+    "sha256": "08598168a371c8e635136f25c1e493c5a6b14be67e8cbb64a0bc18a015af4e18",
+    "members_verified": 35,
+    "tree_digest_sha256": "417ba3eb32cbacaff13dfd0ab73c97edd38c98e354208a27ce766959b52f4178"
+  },
+  "audit": {
+    "path": "verification/console-key-owner-dead-supervisor-correction-independent/audit.json",
+    "bytes": 10418,
+    "sha256": "f2d4175b92b1027458f019142cda4b12397dcebbac7c939a9d99b5435d8d2821"
+  },
+  "review_input_tree_digest_sha256": "04e92179e322898cdc4f49dd4b84134984e5a71c044af40d6af1b974932407c0",
+  "candidate_sources": [
+    {
+      "path": "hosted/lib/mixer_hosted/identity/fetch_flight.ex",
+      "bytes": 6097,
+      "sha256": "ca91467ac1d9011f26ff59382c996ee6186ea8daa789e64ead926a2392a60cf4"
+    },
+    {
+      "path": "hosted/lib/mixer_hosted/identity/key_owner.ex",
+      "bytes": 15903,
+      "sha256": "d5d98bec506ad418c37fc36097d2cf714261c3f644875bf2bf93b4360adefe5d"
+    }
+  ],
+  "blocking_source_findings": [],
+  "source_reasoning": [
+    {
+      "claim": "Catch scope is restricted to the observed noproc GenServer.call envelope, the same worker-supervisor identifier, same tracked flight PID and infinity timeout; every other exit/error remains visible.",
+      "source": "hosted/lib/mixer_hosted/identity/key_owner.ex:498-507"
+    },
+    {
+      "claim": "Admission.close and explicit waiter denial precede child drain. Every normal terminate_child return or exact caught noproc is followed by the original matching monitor-ref and flight-PID DOWN barrier, without a timeout or early-restart fallback. Consumed DOWN removes the flight before future termination state is possible; queued DOWN remains receivable.",
+      "source": "hosted/lib/mixer_hosted/identity/key_owner.ex:346-377,492-517"
+    },
+    {
+      "claim": "Unchanged one_for_all parent and infinity child shutdown keep replacement publication behind owner termination. The killed worker supervisor cannot release that owner barrier by itself.",
+      "source": "hosted/lib/mixer_hosted/identity/key_owner_supervisor.ex:15-29; key_owner.ex:16-17,498-517"
+    },
+    {
+      "claim": "The force-killed controller is the exact stored monitored PID, registered only after worker/raw-port identity and current raw-port ownership checks. No global PID search, unrelated process signaling, SSL-record parsing or controller substitution is added. Raw close precedes that signal, and all existing resource DOWN waits remain.",
+      "source": "hosted/lib/mixer_hosted/identity/bounded_tcp.ex:104-124; fetch_flight.ex:105-117,158-175,183-198"
+    },
+    {
+      "claim": "Forced controller exit applies only to terminate reason killed. Normal worker-DOWN, graceful shutdown, deadline and cancellation code retains its previous behavior, including held-controller barriers; tests and assertion order are unchanged.",
+      "source": "hosted/lib/mixer_hosted/identity/fetch_flight.ex:128-175; packet source-freeze.json unchanged_inputs"
+    },
+    {
+      "claim": "Old result publication, generation/epoch/entry fences, exact admission ownership, old permit and lease rejection remain unchanged.",
+      "source": "hosted/lib/mixer_hosted/identity/key_owner.ex:346-377,428-467; admission.ex:73-82"
+    }
+  ],
+  "relation_manifest_integration": {
+    "PG16_PG17_equal_binding_sets": true,
+    "binding_count_each": 29,
+    "all_bound_hashes_match": true,
+    "changed_identity_sources_bound": false,
+    "relation_or_pin_edit_required_for_this_correction": false,
+    "held_UnitA_limitation": "Current untracked collector rejects the current and HEAD RelationManifest source hash before any selected methods. The current dirty workflow invokes it before Phoenix. Root identifies both as a separately HELD UnitA lane and excludes them from this correction and committed ordinary CI. No callback replay is selected; this does not block the two-file correction. No held-lane edit is authorized by this review.",
+    "held_callback_pin_observations": [
+      {
+        "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+        "collector_expected_sha256": "f71d79b92065d2137363f10de89c137b95ce5758b0e4c21b88faaeb8a779fcfc",
+        "current_and_HEAD_sha256": "f71d79b92065d2137363f10de89c137b95ce5758b0e4c21b88faaeb8a779fcfc",
+        "matches": true
+      },
+      {
+        "path": "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex",
+        "collector_expected_sha256": "3f83abc969225d07f0569ea0317a80a11371f0068519208d5cf110a6c430d33d",
+        "current_and_HEAD_sha256": "6e6fd520d4b3e37af2d4c3c5cd4c40caf7a1cadc473baed6246db05a49df35da",
+        "matches": false
+      }
+    ],
+    "selected_workflow": {
+      "path": "verification/console-key-owner-dead-supervisor-correction-independent/inputs/committed-workflow-hosted.yml",
+      "bytes": 3879,
+      "sha256": "5b242f70831c135d8b18845b992c78e8c85797ec45565e9b9e64cdd19d2edbf9",
+      "git_object": "41af4a3bc14f62e477c66c9553fd4ff559d19590:.github/workflows/hosted.yml",
+      "selected_callback_collector_invocation": false,
+      "ordinary_full_Phoenix_collector_invocation": true,
+      "differs_from_protected_dirty_workflow": true
+    },
+    "root_coordination": "Root explicitly identifies dirty hosted.yml and untracked callback collector as separately HELD UnitA; exclude both from this correction and ordinary committed CI."
+  },
+  "original_failure_retained": {
+    "terminal_decision": {
+      "path": "verification/console-key-owner-inflight-lifecycle-independent/remote-ci-terminal-review-1/decision.json",
+      "bytes": 11066,
+      "sha256": "93038ad2e558da7f88e8debfad5187a03c2ffd0174c8dce07506526147d70ad7"
+    },
+    "actual_result": "696/697 passed, 2 existing skips, sole failure KOL09; lifecycle 8/9 passed (7 existing socket-free methods plus 2 new in-flight methods).",
+    "first_failed_assertion": "old_resources_down_before_replacement",
+    "later_callback_clean_assertion": "unreached; previously computed callback_clean=false is a recorded fact, not a separately executed failed assertion",
+    "eventual_cleanup": "does not repair original failed ordering or callback failure"
+  },
+  "required_next_evidence": [
+    "Root may apply formatting only, retain exact before/after bytes and rebind any resulting successor source hashes. This decision names the current exact bytes; no logic amendment is preaccepted.",
+    "Commit and push only coherent owned source/evidence, preserving held UnitA workflow/collector/store files. Use committed ordinary workflow and full existing Phoenix collector without narrowing methods or weakening assertions.",
+    "Retain exact pushed revision/source archive, actual format and warnings-as-errors compilation, production fixture exclusion, full ordinary CI commands/logs/artifact integrity and cleanup.",
+    "KOL09 must observe clean owner shutdown, exact old flight/worker/controller/raw-port retirement before replacement publication while original held-controller sequence remains unchanged, explicit queued denial before deadline, fresh empty replacement, stale lease/old permit rejection and complete cleanup.",
+    "KOL08 graceful, K07f/g/h held-controller barriers, seven socket-free lifecycle methods, five HTTP2 methods/seven receipts, and the rest of the full ordinary suite must retain their actual outcomes; keep two existing skipped production-network cases explicit."
+  ],
+  "limits": [
+    "Source review only: corrected format, compiler and runtime behavior have no new passing receipt.",
+    "The source barrier covers the observed tracked registered-controller path. Existing synchronous waits are unbounded. A normal worker-DOWN callback already waiting for controller DOWN cannot dispatch parent exit until that callback finishes; the owner wait still prevents replacement, with availability withheld.",
+    "No universal recovery claim for registration-in-progress, untrappable direct owner/flight kill, arbitrary call-exit envelopes or VM death.",
+    "Local custody remains held. Native devices/UI/simulators/emulators/capture remain paused; no operational, provider, FieldLog published-package, production or GA qualification follows."
+  ],
+  "activity": {
+    "product_source_edits": 0,
+    "test_collector_workflow_global_metadata_edits": 0,
+    "compile_formatter_tests_TLS_process_probes": 0,
+    "native_UI_simulator_capture": 0,
+    "commit_push_remote_queries": 0,
+    "writes_only_owned_new_review_directory": true
+  },
+  "static_audit_attempts": [
+    {
+      "ordinal": 1,
+      "exit_code": 0,
+      "scope": "initial offline integrity audit; no product execution"
+    },
+    {
+      "ordinal": 2,
+      "exit_code": 1,
+      "scope": "audit refinement incorrectly assumed pending callback collector existed at HEAD; Git show correctly reported missing object path; corrected to untracked held-lane attribution",
+      "child_git_show_exit_code": 128
+    },
+    {
+      "ordinal": 3,
+      "exit_code": 0,
+      "scope": "corrected offline audit records held callback lane"
+    },
+    {
+      "ordinal": 4,
+      "exit_code": 0,
+      "scope": "final offline audit also binds committed workflow snapshot"
+    }
+  ]
+}

@@ -1,0 +1,152 @@
+--- immutable-v1/source/region_certificate.py
++++ v2/source/region_certificate.py
+@@ -267,6 +267,14 @@
+         else:total=checked_add(total,current[1]-current[0]);current=(begin,end)
+     return checked_add(total,0 if current is None else current[1]-current[0])
+ 
++def merge_congruence(current,modulus,residue):
++    # All moduli are powers of two, so compatibility is equality modulo the
++    # smaller modulus. Required region alignment is a constraint, not evidence.
++    if current is None:return (modulus,residue)
++    old_modulus,old_residue=current
++    need((residue-old_residue)%min(modulus,old_modulus)==0,'contradictory physical alignment')
++    return (modulus,residue) if modulus>old_modulus else current
++
+ def geometry(mapping,blobs,frontier_rows):
+     obj(mapping,'claims targets phases arenas regions relations coverage return_chain edges backings transfers retained_partitions')
+     need(same(mapping['claims'],{'unit':'bytes','local_geometry_only':True,'complete_capacity_accepted':False,'padding_writes_required':False}),'geometry scope/units')
+@@ -299,13 +307,22 @@
+         if name not in targets:unknown('local','missing/DCE target '+name)
+     arenas={}
+     for value in sequence(mapping['arenas'],16):
+-        obj(value,'id base entry_min entry_max rebase reviewed_rebase evidence')
++        obj(value,'id base entry_min entry_max rebase reviewed_rebase evidence physical_alignment')
+         name=text(value['id'],64);need(name not in arenas,'duplicate arena')
+         need(value['base'] in ('CallerEntrySP','ClosureEntrySP','DispatchEntrySP','BodyEntrySP','ReturnDestination'),'arena base')
+         low=integer(value['entry_min'],I64_MIN,0);high=integer(value['entry_max'],low,I64_MAX)
+         need(integer(value['rebase'])==-low,'explicit signed SP rebase');checked_add(high,-low)
+         if not boolean(value['reviewed_rebase']):unknown('local','unreviewed rebase '+name)
+-        anchors(value['evidence'],blobs);arenas[name]=value
++        anchors(value['evidence'],blobs)
++        physical=value['physical_alignment']
++        if physical is not None:
++            obj(physical,'modulus residue reviewed evidence')
++            modulus=integer(physical['modulus'],1,U64);need(modulus&(modulus-1)==0,'physical alignment modulus')
++            integer(physical['residue'],0,modulus-1)
++            if boolean(physical['reviewed']):anchors(physical['evidence'],blobs)
++            else:
++                for proof in sequence(physical['evidence'],64):anchor(proof,blobs)
++        arenas[name]=value
+     regions={};by_role={}
+     for value in sequence(mapping['regions'],32):
+         obj(value,'id role target arena offset capacity alignment begin end evidence frame')
+@@ -326,7 +343,7 @@
+             if minimum is not None:need(capacity>=minimum,'undersized complete carrier/child')
+             if arena is not None:
+                 a=arenas[arena];normalized=checked_add(offset,a['rebase']);finish=checked_add(normalized,capacity)
+-                need(offset>=a['entry_min'] and finish<=a['entry_max']+a['rebase'] and normalized%align==0,'out-of-arena or misaligned extent')
++                need(offset>=a['entry_min'] and finish<=a['entry_max']+a['rebase'],'out-of-arena extent')
+         if role.startswith('F'):
+             frame=value['frame']
+             if frame is None:unknown('local','unknown native frame '+role)
+@@ -439,6 +456,27 @@
+                 if right in component:need(component[right]==root and origin[right]==proposed,'contradictory same-base relation')
+                 else:component[right]=root;origin[right]=proposed;pending.append(right)
+     for left,right in disjoint:need(component[left]!=component[right],'contradictory physical relation')
++    # Congruences refer to actual symbolic entry bases. Numerical entry_min /
++    # rebase changes coordinates only; it supplies no physical alignment fact.
++    known={};required={};starts={}
++    for name,a in arenas.items():
++        fact=a['physical_alignment']
++        if fact is not None and fact['reviewed']:
++            modulus=fact['modulus'];residue=(fact['residue']-origin[name]%modulus)%modulus
++            group=component[name];known[group]=merge_congruence(known.get(group),modulus,residue)
++    for identity,value in regions.items():
++        if value['arena'] is None:continue
++        name=value['arena'];group=component[name]
++        start=checked_add(origin[name],value['offset'],I64_MIN,I64_MAX);starts[identity]=start
++        modulus=value['alignment'];residue=(-start)%modulus
++        required[group]=merge_congruence(required.get(group),modulus,residue)
++    for group,(modulus,residue) in required.items():
++        if group in known:merge_congruence(known[group],modulus,residue)
++    for identity,value in regions.items():
++        if value['arena'] is None:continue
++        proof=known.get(component[value['arena']]);modulus=value['alignment'];residue=(-starts[identity])%modulus
++        if proof is None or proof[0]<modulus:unknown('local','unsupported physical alignment '+identity)
++        else:need(proof[1]%modulus==residue,'contradictory physical alignment')
+     phase_bytes=[]
+     for phase in range(5):
+         live=[value for value in regions.values() if value['begin']<=phase<value['end']]
+@@ -450,7 +488,7 @@
+         groups={}
+         for value in live:
+             if value['arena'] is None or value['capacity'] is None:continue
+-            arena=value['arena'];start=checked_add(origin[arena],value['offset'],I64_MIN,I64_MAX)
++            arena=value['arena'];start=starts[value['id']]
+             finish=checked_add(start,value['capacity'],I64_MIN,I64_MAX)
+             groups.setdefault(component[arena],[]).append((start,finish))
+         total=0
+--- immutable-v1/source/tests_region_certificate.py
++++ v2/source/tests_region_certificate.py
+@@ -14,6 +14,9 @@
+ def discard_arena(case,identity):
+     m=case['cert']['semantic_map'];m['arenas']=[v for v in m['arenas'] if v['id']!=identity]
+     m['relations']=[v for v in m['relations'] if identity not in (v['left'],v['right'])]
++def same_base(case,left,right,delta):
++    relation=next(v for v in case['cert']['semantic_map']['relations'] if {v['left'],v['right']}=={left,right})
++    relation.update(left=left,right=right,kind='same_base',right_minus_left=delta,reviewed=True)
+ 
+ def fixture():
+     # No compiler output is embedded or read. Symbols and instructions are
+@@ -56,7 +59,8 @@
+         capacity=minimum if minimum is not None else frames[role]
+         identity='A_'+role;proof=span(blobs,'asm',assemblies[target]);frame=None
+         mapping['arenas'].append({'id':identity,'base':target+'EntrySP' if role.startswith('F') else 'ReturnDestination',
+-            'entry_min':-capacity,'entry_max':0,'rebase':capacity,'reviewed_rebase':True,'evidence':[proof]})
++            'entry_min':-capacity,'entry_max':0,'rebase':capacity,'reviewed_rebase':True,'evidence':[proof],
++            'physical_alignment':{'modulus':8,'residue':0,'reviewed':True,'evidence':[proof]}})
+         if role.startswith('F'):
+             frame={'kind':'assembly_all_paths','complete':True,'components':['saved_state','padding','spills','outgoing'],
+                 'paths':[{'exit':span(blobs,'asm',('ret_'+target).encode()),'steps':[
+@@ -225,6 +229,22 @@
+         case=fixture();arena(case,'A_R')['reviewed_rebase']=False;self.incomplete(case)
+         small=r.ArtifactBytes({'ir':b'ab','asm':b''});small.span_bytes_remaining=1
+         with self.assertRaises(r.Refusal):r.anchor(span(small,'ir',b'ab'),small)
++        # Rebased zero is not evidence of a stronger physical alignment.
++        case=fixture();region(case,'R')['alignment']=16;self.incomplete(case)
++        for change in [lambda a:a.update(physical_alignment=None),
++            lambda a:a['physical_alignment'].update(reviewed=False,evidence=[]),
++            lambda a:a['physical_alignment'].update(modulus=1,residue=0)]:
++            case=fixture();change(arena(case,'A_R'));self.incomplete(case)
++        for change in [lambda a:a['physical_alignment'].update(modulus=3),
++            lambda a:a['physical_alignment'].update(residue=8),
++            lambda a:a['physical_alignment'].update(residue=True),
++            lambda a:a['physical_alignment'].update(residue=1)]:
++            case=fixture();change(arena(case,'A_R'));self.invalid(case)
++        case=fixture();region(case,'R')['alignment']=16;arena(case,'A_R')['physical_alignment'].update(modulus=16,residue=0);self.invalid(case)
++        case=fixture();region(case,'R')['alignment']=16;arena(case,'A_R')['physical_alignment'].update(modulus=16,residue=8);self.closed(case)
++        # Moving a numerical origin by one does not move the actual base/start.
++        # The normalized start is now1, yet its evidenced physical start is8-aligned.
++        case=fixture();arena(case,'A_R').update(entry_min=-13625,rebase=13625);self.closed(case)
+         self.closed(fixture()) # Explicit negative entry-relative offsets and rebases.
+ 
+     def test_p10_partial_contained_and_disjoint_unions(self):
+@@ -239,6 +259,18 @@
+         self.assertEqual(separate_bytes-contained_bytes,13624)
+         partial=copy.deepcopy(contained);region(partial,'R')['offset']=-13608;arena(partial,'A_C')['entry_max']=16
+         self.assertEqual(self.closed(partial)['closed_local_phase_bytes'][3],contained_bytes+16)
++        # R01: both normalized starts are0, but +/-1 physical-base deltas make
++        # two claimed8-aligned starts contradictory. No union may be returned.
++        for delta in (-1,1):
++            case=fixture();region(case,'R')['end']=4;same_base(case,'A_R','A_C',delta);self.invalid(case)
++            # Required alignment constraints contradict even without base facts;
++            # requirements never create the absent supporting evidence.
++            arena(case,'A_R')['physical_alignment']=None;arena(case,'A_C')['physical_alignment']=None;self.invalid(case)
++        for delta in (0,8):
++            case=fixture();region(case,'R')['end']=4;same_base(case,'A_R','A_C',delta);self.closed(case)
++            # Known R-base congruence propagates through the reviewed delta.
++            arena(case,'A_C')['physical_alignment']=None;self.closed(case)
++            arena(case,'A_R')['physical_alignment']=None;self.incomplete(case)
+         contradictory=fixture();pairs={tuple(sorted((v['left'],v['right']))):v for v in contradictory['cert']['semantic_map']['relations']}
+         for a,b,delta in [('A_C','A_O',0),('A_O','A_R',0),('A_C','A_R',8)]:pairs[tuple(sorted((a,b)))].update(kind='same_base',right_minus_left=delta)
+         self.invalid(contradictory)

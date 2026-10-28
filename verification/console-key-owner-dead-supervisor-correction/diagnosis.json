@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "status": "source-candidate; independent review and runtime acceptance pending",
+  "actual_failure_head": "41af4a3bc14f62e477c66c9553fd4ff559d19590",
+  "prior_full_ci_green_parent": "c51f67c5",
+  "actual_artifact_zip_sha256": "1f5bea95779fc4e2d59376b0dc98508d92a602515faa0208c090390e064bebcb",
+  "actual_phoenix_result": "696/697 passed, 2 existing skipped, 1 failure",
+  "lifecycle_method_counts": {
+    "existing_socket_free": 7,
+    "new_inflight": 2,
+    "total": 9,
+    "all_nine_additional": false
+  },
+  "http2_method_count": 5,
+  "http2_receipt_count": 7,
+  "actual_fault_reason": "{:noproc, {GenServer, :call, [MixerHosted.Identity.KeyOwnerInflightLifecycleTest.WorkerDeathOwner.FetchSupervisor, {:terminate_child, #PID<0.3842.0>}, :infinity]}}",
+  "actual_failed_observations": {
+    "callback_clean": false,
+    "old_resources_down_before_replacement": false
+  },
+  "actual_passed_observations": {
+    "raw_explicit_reply": true,
+    "public_denial": true,
+    "old_permit_rejected": true,
+    "stale_lease_rejected": true,
+    "replacement_observed": true,
+    "replacement_empty": true
+  },
+  "actual_terminal_cleanup": {
+    "resume_result": ":already_stopped",
+    "component_stop_result": ":already_stopped",
+    "fixture_stop_result": ":already_stopped",
+    "barrier_released": true,
+    "all_resources_down": true,
+    "current_admission_absent": true,
+    "owner_absent": true,
+    "workers_absent": true,
+    "old_table_gone": true,
+    "key_directory_removed": true,
+    "fixture_peer_closed": true,
+    "recorder_stopped": true
+  },
+  "actual_cleanup_errors": [],
+  "causal_source_path": [
+    "KeyOwner terminate closes exact admission and explicitly replies identity_unavailable before child cleanup.",
+    "Already-dead named DynamicSupervisor causes the observed exact noproc GenServer call exit, aborting KeyOwner terminate.",
+    "Parent one_for_all can start replacement after old owner DOWN although old FetchFlight is still in controller cleanup.",
+    "FetchFlight terminate(:killed, state) kills the worker and closes raw/socket resources, but currently waits for suspended controller DOWN.",
+    "Existing KOL09 observes replacement with old controller held and requires old resources down before replacement; existing KOL08 requires graceful stop remain blocked while controller held."
+  ],
+  "correction": [
+    "Catch only the exact observed noproc GenServer call envelope pinned to same worker-supervisor identifier and same tracked flight PID; other exits/errors remain visible.",
+    "After every terminate_child return or exact caught noproc, retain owner until the same flight monitor reference reports DOWN for same PID. No wait timeout or early restart fallback.",
+    "On FetchFlight terminate reason :killed only, after raw close, kill the exact previously registered controller PID; retain existing raw/controller/worker DOWN waits and socket close.",
+    "Normal, shutdown, worker-DOWN, deadline and cancellation paths remain unchanged. No supervisor strategy, deadline, test assertion, transport policy or dependency changes."
+  ],
+  "controller_ownership_binding": [
+    "BoundedTCP.controlling_process transfers this fetch raw port and reports worker PID, exact raw port and controller PID to the flight before acknowledging the transfer.",
+    "FetchFlight register_connection clause matches its existing worker and raw port, requires PID, checks Port.info(raw, :connected) equals that controller, and creates Process.monitor(controller).",
+    "Correction uses only state.connection; it performs no name lookup, SSL record inspection, global scan, additional process creation or controller substitution.",
+    "Existing await_connection_down consumes the exact state.connection_monitor and same state.connection PID. Existing await_raw_closed and worker monitor waits are preserved."
+  ],
+  "limits": [
+    "No compiler, formatter, runtime, TLS, native, UI, capture or process probe was run for this candidate.",
+    "Exact observed already-dead-supervisor noproc is selected. Other supervisor call failure envelopes remain unhandled and require separately observed evidence before policy extension.",
+    "Graceful shutdown still has infinite synchronous resource waits and no latency guarantee.",
+    "Untrappable direct kill of the flight/owner or VM death cannot promise a terminate callback or cleanup.",
+    "Full production DNS/network startup, real providers, native devices, operational acceptance and GA remain pending."
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "scope": "file-only source diagnosis, snapshots, two coordinated edits and integrity checks; no executable product behavior checks",
+  "source_head": "41af4a3bc14f62e477c66c9553fd4ff559d19590",
+  "source_input_tree_digest_sha256": "9727262fbf374627e1a90329d87474d2baed1d9d2e439093d91d71cd1cd58cb0",
+  "versions": {
+    "git": "git version 2.56.0",
+    "python": "Python 3.14.8",
+    "compiler": "not invoked",
+    "formatter": "not invoked"
+  },
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "output": "41af4a3bc14f62e477c66c9553fd4ff559d19590"
+    },
+    {
+      "argv": [
+        "git",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "output": "git version 2.56.0"
+    },
+    {
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "output": "Python 3.14.8"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "hosted/lib/mixer_hosted/identity/key_owner.ex",
+        "hosted/lib/mixer_hosted/identity/fetch_flight.ex"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--numstat",
+        "--",
+        "hosted/lib/mixer_hosted/identity/key_owner.ex",
+        "hosted/lib/mixer_hosted/identity/fetch_flight.ex"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "output": "6\t1\thosted/lib/mixer_hosted/identity/fetch_flight.ex\n16\t1\thosted/lib/mixer_hosted/identity/key_owner.ex\n"
+    },
+    {
+      "argv": [
+        "shasum",
+        "-a",
+        "256",
+        "hosted/lib/mixer_hosted/identity/key_owner.ex",
+        "hosted/lib/mixer_hosted/identity/fetch_flight.ex",
+        ".github/workflows/hosted.yml",
+        "hosted/lib/mixer_hosted/browser_auth/store.ex"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "output": "d5d98bec506ad418c37fc36097d2cf714261c3f644875bf2bf93b4360adefe5d  hosted/lib/mixer_hosted/identity/key_owner.ex\nca91467ac1d9011f26ff59382c996ee6186ea8daa789e64ead926a2392a60cf4  hosted/lib/mixer_hosted/identity/fetch_flight.ex\nfafd2560cc385a4113ea140bf2d4445d456e1f7f396539dfe2c3e7d6302e8b57  .github/workflows/hosted.yml\n8c314b1d3ce288a6dc617251233796bd0a9d8894247ccb15b101e1292e513299  hosted/lib/mixer_hosted/browser_auth/store.ex\n"
+    },
+    {
+      "argv": [
+        "cat",
+        "hosted/.tool-versions"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "output": "erlang 29.1.1\nelixir 1.20.4-otp-29\n",
+      "classification": "read configured pins only; no runtime invocation"
+    }
+  ],
+  "file_operations": [
+    {
+      "tool": "functions.exec / tools.exec_command / Python standard-library file operations",
+      "effect": "Copy exact immutable pre-edit inputs; hash bytes; write beforeimage/source manifests; retain observed failure facts."
+    },
+    {
+      "tool": "functions.exec / tools.apply_patch",
+      "effect": "Edit only canonical key_owner.ex and fetch_flight.ex as exact source-correction.diff."
+    },
+    {
+      "tool": "functions.exec / tools.exec_command / Python standard-library file operations",
+      "effect": "Copy exact candidate source; compare all unowned inputs byte hashes; write bounded diagnosis, proposal, source freeze and packet manifest."
+    }
+  ],
+  "unknown_process_groups_queried_or_signaled": [],
+  "compiler_formatter_test_tls_process_probe_invocations": 0,
+  "cleanup": "No runtime resources were started; no process/simulator/device cleanup was attempted."
+}

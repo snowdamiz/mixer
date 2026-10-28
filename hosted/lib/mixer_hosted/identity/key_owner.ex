@@ -494,6 +494,21 @@ defmodule MixerHosted.Identity.KeyOwner do
 
     Enum.each(s.waiters, fn {_, w} -> GenServer.reply(w.from, {:error, :identity_unavailable}) end)
 
-    Enum.each(s.flights, fn {pid, _} -> DynamicSupervisor.terminate_child(s.workers, pid) end)
+    workers = s.workers
+
+    Enum.each(s.flights, fn {pid, f} ->
+      try do
+        DynamicSupervisor.terminate_child(workers, pid)
+      catch
+        :exit, {:noproc, {GenServer, :call, [^workers, {:terminate_child, ^pid}, :infinity]}} ->
+          :ok
+      end
+
+      # A dead worker supervisor cannot acknowledge cleanup. The exact flight's
+      # existing monitor still gates owner exit and one_for_all replacement.
+      receive do
+        {:DOWN, ref, :process, ^pid, _} when ref == f.monitor -> :ok
+      end
+    end)
   end
 end

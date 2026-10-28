@@ -1,0 +1,11 @@
+# Dead worker-supervisor lifecycle correction
+
+Source-only candidate at `41af4a3bc14f62e477c66c9553fd4ff559d19590`. Independent review and ordinary CI acceptance remain pending. No compiler, formatter, tests, TLS or process probes were run.
+
+The immutable ordinary-CI KOL09 failure closes admission and returns explicit denial, then the owner callback exits on `DynamicSupervisor.terminate_child` against its already-dead supervisor. Replacement starts while the old flight/controller remains alive. Eventual cleanup does not repair this ordering failure. The prior result is 696/697 passed, two existing skipped and one failure. Seven prior lifecycle methods plus two in-flight methods are nine total. The five HTTP/2 methods and seven receipts passed.
+
+The two-file correction catches only that exact pinned `noproc` call and retains the owner's existing exact flight-monitor barrier. Forceful worker-supervisor death already calls FetchFlight termination with reason `:killed`; that branch now kills its own registered TLS controller after raw closure, and still waits for existing raw/controller/worker DOWN observations. The controller was registered only after matching the same worker/raw port and verifying that the raw port belonged to that PID, then monitored. No process lookup or global scan is added. Graceful termination keeps its prior wait-for-controller behavior, including suspended-controller barriers.
+
+`diagnosis.json` records the source path, actual failure facts, controller binding and limits. `root-verification-proposal.json` records unchanged remote verification requirements. `source-inputs-before.json` binds immutable inputs and `beforeimages.json` the two editable source beforeimages. `source-correction.diff` and `candidate/` hold the exact correction; `source-freeze.json` binds final hashes and all unchanged tests/collectors/supervision/dependencies/protected dirty sources. `commands.json` records source-only inspection and integrity commands. `packet-manifest.json` seals packet members other than itself.
+
+Local custody remains held. Native devices, UI automation, simulators/emulators and capture remain paused. Root alone coordinates independent review, commits, pushes and ordinary CI. No product, operational or GA pass follows from this source freeze.

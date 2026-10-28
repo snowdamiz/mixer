@@ -1,0 +1,74 @@
+{
+  "at": "2026-10-28T05:53:20.773475+00:00",
+  "status": "passed",
+  "argv": [
+    "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+    "--erl",
+    "+S 2:2 +A 2 -home /Users/andreyyurlov/Documents/dev/mixer/verification/key-owner-dead-supervisor-format-root-1/scratch",
+    "-e",
+    "IO.puts(\"ELIXIR \" <> System.version())\nIO.puts(\"OTP \" <> to_string(:erlang.system_info(:system_version)))\nnormalize = fn ast -> Macro.prewalk(ast, fn {head, meta, args} when is_list(meta) -> {head, [], args}; value -> value end) end\nfor [input, output] <- Enum.chunk_every(System.argv(), 2) do\n  original = File.read!(input)\n  formatted = IO.iodata_to_binary(Code.format_string!(original)) <> \"\\n\"\n  true = normalize.(Code.string_to_quoted!(original)) == normalize.(Code.string_to_quoted!(formatted))\n  File.write!(output, formatted)\n  IO.puts(\"AST_EQUAL \" <> Path.basename(input))\nend\n",
+    "--",
+    "/Users/andreyyurlov/Documents/dev/mixer/hosted/lib/mixer_hosted/identity/key_owner.ex",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/key-owner-dead-supervisor-format-root-1/key_owner.ex",
+    "/Users/andreyyurlov/Documents/dev/mixer/hosted/lib/mixer_hosted/identity/fetch_flight.ex",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/key-owner-dead-supervisor-format-root-1/fetch_flight.ex"
+  ],
+  "environment": {
+    "PATH": "/opt/homebrew/Cellar/erlang/29.1.1_2/bin:/usr/bin:/bin",
+    "LANG": "en_US.UTF-8",
+    "LC_ALL": "en_US.UTF-8",
+    "ERL_INETRC": "/Users/andreyyurlov/Documents/dev/mixer/verification/key-owner-dead-supervisor-format-root-1/scratch/inetrc",
+    "ERL_CRASH_DUMP": "/dev/null",
+    "ERL_CRASH_DUMP_SECONDS": "0"
+  },
+  "tool": {
+    "path": "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+    "bytes": 6658,
+    "sha256": "5cb23d89a78f75589b06fade3097e217b77e63416d61c1800f674579748c4307"
+  },
+  "canonical_before": [
+    {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/hosted/lib/mixer_hosted/identity/key_owner.ex",
+      "bytes": 15903,
+      "sha256": "d5d98bec506ad418c37fc36097d2cf714261c3f644875bf2bf93b4360adefe5d"
+    },
+    {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/hosted/lib/mixer_hosted/identity/fetch_flight.ex",
+      "bytes": 6097,
+      "sha256": "ca91467ac1d9011f26ff59382c996ee6186ea8daa789e64ead926a2392a60cf4"
+    }
+  ],
+  "formatted_outputs": [
+    {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/key-owner-dead-supervisor-format-root-1/key_owner.ex",
+      "bytes": 15903,
+      "sha256": "d5d98bec506ad418c37fc36097d2cf714261c3f644875bf2bf93b4360adefe5d"
+    },
+    {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/key-owner-dead-supervisor-format-root-1/fetch_flight.ex",
+      "bytes": 6097,
+      "sha256": "ca91467ac1d9011f26ff59382c996ee6186ea8daa789e64ead926a2392a60cf4"
+    }
+  ],
+  "canonical_changed": false,
+  "AST_equivalent": true,
+  "format_already_matches": true,
+  "pid": 45983,
+  "completion_WNOWAIT": "posix.waitid_result(si_pid=45983, si_uid=0, si_signo=20, si_status=0, si_code=1)",
+  "reaped": true,
+  "owned_group_absent": true,
+  "scratch_removed": true,
+  "elapsed_seconds": 0.25790237495675683,
+  "stdout": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/key-owner-dead-supervisor-format-root-1/stdout",
+    "bytes": 167,
+    "sha256": "3ed5f9067300883beabe7c346fcda353858845bdaac9399accb783dceb32de17"
+  },
+  "stderr": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/key-owner-dead-supervisor-format-root-1/stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "error": null,
+  "tests_listeners_or_native_OpenSSL_run": false
+}

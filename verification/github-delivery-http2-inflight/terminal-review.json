@@ -1,0 +1,311 @@
+{
+  "schema": 1,
+  "commit": "41af4a3bc14f62e477c66c9553fd4ff559d19590",
+  "status": "failed-one-observed-lifecycle-ordering-test",
+  "Engine": {
+    "jobs_passed": 6,
+    "steps_passed": 64,
+    "receipt": {
+      "path": "verification/github-delivery-http2-inflight/ci-jobs-2.stdout",
+      "bytes": 12890,
+      "sha256": "014d93f40cd63cd020e95456d0623f6fd942345ff0fe4a08877a2decd28fa384"
+    }
+  },
+  "Phoenix": {
+    "tests_passed": 696,
+    "tests_failed": 1,
+    "existing_tests_skipped": 2,
+    "receipt": {
+      "path": "verification/github-delivery-http2-inflight/phoenix-remote-artifact/receipt.json",
+      "bytes": 56916,
+      "sha256": "b59e904d51f53ca07c1f70ea7dd0b1974a901130aa8994cd11331f0ee9d77e8f"
+    },
+    "tests": {
+      "path": "verification/github-delivery-http2-inflight/phoenix-remote-artifact/tests.log",
+      "bytes": 186085,
+      "sha256": "90878c4fade9b92ab420a85885fd94727201781e6654e43938f7f76fcaeaaf74"
+    },
+    "cleanup": {
+      "postgres_stopped": true,
+      "scratch_removed": true
+    }
+  },
+  "lifecycle": {
+    "total_methods": 9,
+    "existing_socket_free_methods": 7,
+    "new_inflight_methods": 2,
+    "passed": 8,
+    "failed": "KOL09-KILL",
+    "first_failed_assertion": "old_resources_down_before_replacement",
+    "recorded_additional_adverse_fact": "owner callback exited noproc calling terminate_child via dead worker supervisor; later callback assertion not reached",
+    "terminal_review": {
+      "path": "verification/console-key-owner-inflight-lifecycle-independent/remote-ci-terminal-review-1/decision.json",
+      "bytes": 11066,
+      "sha256": "93038ad2e558da7f88e8debfad5187a03c2ffd0174c8dce07506526147d70ad7"
+    }
+  },
+  "HTTP2": {
+    "methods_passed": 5,
+    "case_receipts": [
+      {
+        "mode": "capture",
+        "protocol": "HTTP/2",
+        "case": "B1-batching",
+        "result": {
+          "tag": "ok",
+          "kind": "capture",
+          "halted": false,
+          "elapsed": 1
+        },
+        "cleanup": {
+          "complete": true,
+          "cleanup_ms": 0,
+          "connections_down": true,
+          "listener_down": true,
+          "listener_stopped": true,
+          "queries_down": true,
+          "socket_closed": true,
+          "stream_down": true
+        },
+        "bandit": "1.14.0",
+        "passed": true,
+        "reads": 2,
+        "bytes_sent": 40001,
+        "elapsed_ms": 21,
+        "captured_sha256": "fe3193cf52fe01810fa28c9fabf6046cf2af21c7fa1e41e8bcf50f9f273f4bc9",
+        "frames_in": 7,
+        "frames_out": 40,
+        "controls_sent": 0,
+        "controls_processed": 0,
+        "captured_bytes": 40001,
+        "controls_processed_before_return": 0,
+        "maximum_returned_read": 40001,
+        "module_elapsed_ms": 21,
+        "module_input_bytes": 40001
+      },
+      {
+        "mode": "capture",
+        "protocol": "HTTP/2",
+        "case": "B2-exact-cap",
+        "result": {
+          "tag": "ok",
+          "kind": "capture",
+          "halted": false,
+          "elapsed": 330
+        },
+        "cleanup": {
+          "complete": true,
+          "cleanup_ms": 1,
+          "connections_down": true,
+          "listener_down": true,
+          "listener_stopped": true,
+          "queries_down": true,
+          "socket_closed": true,
+          "stream_down": true
+        },
+        "bandit": "1.14.0",
+        "passed": true,
+        "reads": 32,
+        "bytes_sent": 1048576,
+        "elapsed_ms": 343,
+        "captured_sha256": "b59f7f51cbe8de1316490dfa4e952522a46394a35f273af8c07d867d00c3d242",
+        "frames_in": 7,
+        "frames_out": 68,
+        "controls_sent": 0,
+        "controls_processed": 0,
+        "captured_bytes": 1048576,
+        "controls_processed_before_return": 0,
+        "maximum_returned_read": 32768,
+        "module_elapsed_ms": 364,
+        "module_input_bytes": 1088577
+      },
+      {
+        "mode": "capture",
+        "protocol": "HTTP/2",
+        "case": "B3-cap-plus-one",
+        "result": {
+          "reason": "too_large",
+          "tag": "error",
+          "kind": "capture",
+          "halted": true,
+          "elapsed": 330
+        },
+        "cleanup": {
+          "complete": true,
+          "cleanup_ms": 0,
+          "connections_down": true,
+          "listener_down": true,
+          "listener_stopped": true,
+          "queries_down": true,
+          "socket_closed": true,
+          "stream_down": true
+        },
+        "bandit": "1.14.0",
+        "passed": true,
+        "reads": 32,
+        "bytes_sent": 1048577,
+        "elapsed_ms": 352,
+        "captured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frames_in": 6,
+        "frames_out": 69,
+        "controls_sent": 0,
+        "controls_processed": 0,
+        "captured_bytes": 0,
+        "controls_processed_before_return": 0,
+        "maximum_returned_read": 32768,
+        "module_elapsed_ms": 716,
+        "module_input_bytes": 2137154
+      },
+      {
+        "mode": "package_read",
+        "protocol": "HTTP/2",
+        "case": "D1-settings",
+        "result": {
+          "tag": "more",
+          "bytes": 0,
+          "kind": "package_read",
+          "halted": false,
+          "elapsed": 1001
+        },
+        "cleanup": {
+          "complete": true,
+          "cleanup_ms": 0,
+          "connections_down": true,
+          "listener_down": true,
+          "listener_stopped": true,
+          "queries_down": true,
+          "socket_closed": true,
+          "stream_down": true
+        },
+        "bandit": "1.14.0",
+        "passed": true,
+        "reads": 1,
+        "bytes_sent": 0,
+        "elapsed_ms": 1012,
+        "captured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frames_in": 7,
+        "frames_out": 8,
+        "controls_sent": 4,
+        "controls_processed": 4,
+        "captured_bytes": 0,
+        "controls_processed_before_return": 4,
+        "maximum_returned_read": 0,
+        "module_elapsed_ms": 1728,
+        "module_input_bytes": 2137154
+      },
+      {
+        "mode": "package_read",
+        "protocol": "HTTP/2",
+        "case": "D1-window_update",
+        "result": {
+          "tag": "more",
+          "bytes": 0,
+          "kind": "package_read",
+          "halted": false,
+          "elapsed": 1001
+        },
+        "cleanup": {
+          "complete": true,
+          "cleanup_ms": 0,
+          "connections_down": true,
+          "listener_down": true,
+          "listener_stopped": true,
+          "queries_down": true,
+          "socket_closed": true,
+          "stream_down": true
+        },
+        "bandit": "1.14.0",
+        "passed": true,
+        "reads": 1,
+        "bytes_sent": 0,
+        "elapsed_ms": 1012,
+        "captured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frames_in": 7,
+        "frames_out": 12,
+        "controls_sent": 4,
+        "controls_processed": 4,
+        "captured_bytes": 0,
+        "controls_processed_before_return": 4,
+        "maximum_returned_read": 0,
+        "module_elapsed_ms": 2740,
+        "module_input_bytes": 2137154
+      },
+      {
+        "mode": "capture",
+        "protocol": "HTTP/2",
+        "case": "D2-settings",
+        "result": {
+          "reason": "no_progress",
+          "tag": "error",
+          "kind": "capture",
+          "halted": true,
+          "elapsed": 1001
+        },
+        "cleanup": {
+          "complete": true,
+          "cleanup_ms": 0,
+          "connections_down": true,
+          "listener_down": true,
+          "listener_stopped": true,
+          "queries_down": true,
+          "socket_closed": true,
+          "stream_down": true
+        },
+        "bandit": "1.14.0",
+        "passed": true,
+        "reads": 1,
+        "bytes_sent": 0,
+        "elapsed_ms": 1012,
+        "captured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frames_in": 7,
+        "frames_out": 8,
+        "controls_sent": 4,
+        "controls_processed": 4,
+        "captured_bytes": 0,
+        "controls_processed_before_return": 4,
+        "maximum_returned_read": 0,
+        "module_elapsed_ms": 3752,
+        "module_input_bytes": 2137154
+      },
+      {
+        "mode": "capture",
+        "protocol": "HTTP/2",
+        "case": "D2-window_update",
+        "result": {
+          "reason": "no_progress",
+          "tag": "error",
+          "kind": "capture",
+          "halted": true,
+          "elapsed": 1001
+        },
+        "cleanup": {
+          "complete": true,
+          "cleanup_ms": 0,
+          "connections_down": true,
+          "listener_down": true,
+          "listener_stopped": true,
+          "queries_down": true,
+          "socket_closed": true,
+          "stream_down": true
+        },
+        "bandit": "1.14.0",
+        "passed": true,
+        "reads": 1,
+        "bytes_sent": 0,
+        "elapsed_ms": 1012,
+        "captured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frames_in": 7,
+        "frames_out": 12,
+        "controls_sent": 4,
+        "controls_processed": 4,
+        "captured_bytes": 0,
+        "controls_processed_before_return": 4,
+        "maximum_returned_read": 0,
+        "module_elapsed_ms": 4764,
+        "module_input_bytes": 2137154
+      }
+    ],
+    "overall_acceptance_pending_green_enclosing_CI": true
+  },
+  "local_custody_GA_or_whole_checkpoint_accepted": false
+}
