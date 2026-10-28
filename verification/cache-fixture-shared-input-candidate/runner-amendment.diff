@@ -1,0 +1,105 @@
+--- verification/swift-cache-state-ci/check_cache_state.py
++++ verification/cache-fixture-shared-input-candidate/check_cache_state.py
+@@ -1,14 +1,18 @@
+ #!/usr/bin/env python3
+ """Closed exact-source fixture host check; no release or semantic authority."""
+ import argparse
++import resource
++import materialize_pack as overlay
+ from datetime import datetime,timezone
+ import gzip,hashlib,json,os,platform,re,selectors,shutil,signal,stat,subprocess,sys,time,uuid
+ from pathlib import Path,PurePosixPath
+ HERE=Path(__file__).resolve().parent
+ ROOT=HERE.parents[1]
+-PACK=HERE/'pack'
++PACK=HERE/'materialized'/'pack'
+ RUNS=HERE/'runs'
+-MANIFEST_SHA256='d1caf2069e17ac1beff6707d6e084ea49d18382bc959d73d5184ec49cb7886b9'
++MANIFEST_SHA256='86c104696aca726a47715cde9e6beedfd0522f5f9ec7f3e68d4fed4de1368d07'
++EXPECTED_COMPILER_HOST='aarch64-apple-darwin'
++EXPECTED_COMPILER_RELEASE='1.98.1'
+ SOURCE_SHA256='f98f7801925bc280e0e2a9c08ec2b4841b7ffc2942d2fedf6c4d3b4c1796bf1b'
+ ACTIVE_SECONDS=600
+ CLEANUP_SECONDS=60
+@@ -83,6 +87,27 @@
+  env={k:v for k,v in os.environ.items()if k not in blocked and not k.startswith('RUST_')and not k.startswith('RUSTC_')and not k.startswith('MIXER_')and k not in {'REVIEW_SCRATCH'}}
+  env.update(overrides);env['RUSTUP_AUTO_INSTALL']='0';return env
+ 
++def context_phase_progress(stderr):
++ rows=[]
++ pattern=r'^context_progress completed=(\d+)/1003 elapsed_ms=(\d+) prepare_ms=(\d+) analyze_ms=(\d+) report_assert_ms=(\d+) cleanup_ms=(\d+)$'
++ for match in re.finditer(pattern,stderr,re.M):
++  completed,elapsed,prepare,analyze,report_assert,cleanup=map(int,match.groups())
++  rows.append({'completed':completed,'total':1003,'elapsed_ms':elapsed,'prepare_ms':prepare,'analyze_ms':analyze,'report_assert_ms':report_assert,'cleanup_ms':cleanup,'unattributed_elapsed_remainder_ms':elapsed-prepare-analyze-report_assert-cleanup,'progress_is_not_completion':True,'scope':'prepare excludes caller context cloning and shared setup/validation; elapsed includes them; integer milliseconds are rounded down'})
++ return rows
++
++def child_usage():
++ usage=resource.getrusage(resource.RUSAGE_CHILDREN)
++ return {name:getattr(usage,name)for name in ['ru_utime','ru_stime','ru_minflt','ru_majflt']}
++def child_accounting(before,after,terminal):
++ # Sequential trusted runner: these are aggregate reaped-child counters, never
++ # process-isolated measurements. A hold/reap failure suppresses all deltas.
++ result={'scope':'reaped-child aggregate in a sequential trusted runner; not isolated process accounting','before':before,'after':after,'terminal_facts_verified':terminal,'aggregate_delta':None}
++ if terminal:
++  need(before is not None and after is not None and set(before)==set(after),'Missing child resource snapshots')
++  delta={k:after[k]-before[k]for k in before};need(all(v>=0 for v in delta.values()),'Child aggregate counters regressed');result['aggregate_delta']=delta
++ else:result['unavailable_reason']='spawn absent, child reap failure or owned-group custody hold; aggregate delta withheld'
++ return result
++
+ class Commands:
+  def __init__(self,out,receipt,deadline):
+   self.out,self.receipt,self.deadline=out,receipt,deadline;self.active=None;self.scratch=None;(out/'commands').mkdir()
+@@ -112,10 +137,11 @@
+   start=time.monotonic();budget=min(CHILD_SECONDS,self.deadline-start);need(budget>0,'Active deadline exhausted');env=self.child_environment(env)
+   row={'name':name,'argv':list(map(str,argv)),'cwd':str(cwd),'started_utc':now(),'per_child_limit_seconds':CHILD_SECONDS,'effective_timeout_seconds':budget,'per_stream_cap_bytes':OUTPUT_CAP,'environment_overrides':env or {},'exit':None,'timed_out':False,'output_capped':False,'child_returned':False,'owned_group_gone':False,'errors':[]}
+   self.receipt['commands'].append(row);self.save();paths=[self.out/'commands'/(name+'.'+suffix)for suffix in ['stdout','stderr']]
+-  selector=selectors.DefaultSelector();failure=None;primary=None;cleanup_errors=[]
++  selector=selectors.DefaultSelector();failure=None;primary=None;cleanup_errors=[];usage_before=None
+   def cleanup_error(phase,error):
+    cleanup_errors.append(error);row['errors'].append({'phase':phase,**exception_details(error)})
+   try:
++   usage_before=child_usage()
+    self.active=subprocess.Popen(row['argv'],cwd=cwd,env=environment(env or {}),stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
+    proc=self.active;row.update(pid=proc.pid,pgid=proc.pid,new_session=True)
+    for pipe,path in zip([proc.stdout,proc.stderr],paths):selector.register(pipe,selectors.EVENT_READ,{'file':path.open('xb'),'count':0})
+@@ -146,11 +172,15 @@
+     # Keep custody if stop did not positively establish both terminal facts.
+     if row['child_returned']and row['owned_group_gone']:self.active=None
+    row['custody_hold']=self.active is not None
++   try:row['child_resource_usage']=child_accounting(usage_before,child_usage(),row['child_returned']and row['owned_group_gone']and not row['custody_hold'])
++   except BaseException as e:cleanup_error('child-resource-accounting',e)
+    for p in paths:
+     try:
+      if not p.exists():p.write_bytes(b'')
+      row[p.suffix[1:]+'_sha256']=sha(p)
+     except BaseException as e:cleanup_error('retain-'+p.suffix[1:],e)
++   try:row['context_phase_progress']=context_phase_progress(paths[1].read_text())
++   except BaseException as e:cleanup_error('parse-context-progress',e)
+    row.update(elapsed_seconds=round(time.monotonic()-start,6),finished_utc=now())
+    try:self.save()
+    except BaseException as e:cleanup_error('save-receipt',e)
+@@ -169,7 +199,7 @@
+  need(set(d)=={'binary','commit-hash','commit-date','host','release','LLVM version'},'Incomplete compiler fields')
+  release,commit,date=m.groups();datetime.strptime(date,'%Y-%m-%d')
+  need(d['binary']=='rustc'and d['release']==release and re.fullmatch('[0-9a-f]{40}',d['commit-hash'])and d['commit-hash'].startswith(commit)and d['commit-date']==date,'Incoherent compiler identity')
+- need((d['host'],release)in {('aarch64-apple-darwin','1.99.0'),('aarch64-apple-darwin','1.98.1')},'Actual compiler host/release not selected')
++ need((d['host'],release)==(EXPECTED_COMPILER_HOST,EXPECTED_COMPILER_RELEASE),'Actual compiler host/release not selected')
+  need(re.fullmatch(r'\d+\.\d+\.\d+',d['LLVM version']),'Invalid LLVM version');return d
+ 
+ def verify_methods(text,expected,executed=False,filtered=0):
+@@ -269,6 +299,7 @@
+  signal.signal(signal.SIGALRM,alarm);signal.signal(signal.SIGINT,interrupt);signal.signal(signal.SIGTERM,interrupt);signal.setitimer(signal.ITIMER_REAL,ACTIVE_SECONDS)
+  try:
+   shutil.copyfile(runner,out/'executed-runner.py');receipt['output_ownership']={'identity':identity(out),'marker':json_data((out/'ownership.json').read_bytes())}
++  receipt['shared_input_overlay']=overlay.verify_materialized()
+   manifest=verify_pack(PACK);receipt['pack_manifest_sha256']=MANIFEST_SHA256;receipt['pack_tree_sha256']=manifest['tree_sha256']
+   snapshot=out/'pack';shutil.copytree(PACK,snapshot);verify_pack(snapshot)
+   scratch=out/'scratch';scratch.mkdir();scratch_id=identity(scratch);marker={'purpose':'mixer-cache-state-fixture-ci-scratch','token':uuid.uuid4().hex};save(scratch/'ownership.json',marker);c.bind_scratch(scratch)
+@@ -335,6 +366,7 @@
+     except BaseException as e:post[name]={'passed':False,'error':str(e)};receipt['errors'].append({'phase':'postflight-'+name,'type':type(e).__name__,'message':str(e)})
+    def same(p,h):need(sha(regular(p))==h,'Identity changed');return h
+    check('pack',lambda:verify_pack(PACK)['tree_sha256'])
++   check('shared-input-overlay',overlay.verify_materialized)
+    if (out/'pack').exists():check('snapshot',lambda:verify_pack(out/'pack')['tree_sha256'])
+    check('runner',lambda:same(runner,receipt['runner']['sha256']))
+    if (out/'executed-runner.py').exists():check('runner-snapshot',lambda:same(out/'executed-runner.py',receipt['runner']['sha256']))

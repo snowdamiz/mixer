@@ -1,0 +1,49 @@
+--- verification/swift-cache-state-ci/test_runner.py
++++ verification/cache-fixture-shared-input-candidate/test_runner.py
+@@ -83,7 +83,7 @@
+   self.assertEqual(len(r.verify_derived(derived,r.PACK)),19);p.write_bytes(p.read_bytes()+b'\n');self.bad(r.verify_derived,derived,r.PACK)
+  def test_selected_compiler_identity_only(self):
+   text='rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1\n'
+-  self.assertEqual(r.rust_identity(text)['release'],'1.99.0');self.assertEqual(r.rust_identity(text.replace('1.99.0','1.98.1'))['release'],'1.98.1')
++  self.bad(r.rust_identity,text);self.assertEqual(r.rust_identity(text.replace('1.99.0','1.98.1'))['release'],'1.98.1')
+   for changed in [text.replace('1.99.0','1.99.1'),text.replace('aarch64-apple-darwin','x86_64-apple-darwin'),text.replace('release: 1.99.0','release: 1.98.1'),text.replace('1.99.0','1.99.0-nightly'),text+'host: aarch64-apple-darwin\n',text.replace('2026-09-28','2026-02-30')]:self.bad(r.rust_identity,changed)
+  def test_missing_and_failed_commands_keep_raw_receipts(self):
+   c=self.commands();self.bad(c.run,'missing',[self.base/'missing'],self.base);self.assertIn('spawn_error',c.receipt['commands'][-1]);self.bad(c.run,'failed',[sys.executable,'-c','print("partial");raise SystemExit(7)'],self.base);self.assertEqual((c.out/'commands/failed.stdout').read_text(),'partial\n');self.assertTrue(c.receipt['commands'][-1]['owned_group_gone'])
+@@ -197,11 +197,36 @@
+    state['cleanup_entered']=True
+    if stage=='retention':delay()
+    return original_cleanup(*args)
+-  with mock.patch.object(r,'RUNS',runs),mock.patch.object(r,'CLEANUP_SECONDS',.05),mock.patch.object(r,'time',types.SimpleNamespace(monotonic=monotonic)),mock.patch.object(r,'signal',test_signal),mock.patch.object(r,'verify_pack',verify),mock.patch.object(r,'cleanup',clean):
++  with mock.patch.object(r,'RUNS',runs),mock.patch.object(r,'CLEANUP_SECONDS',.05),mock.patch.object(r,'time',types.SimpleNamespace(monotonic=monotonic)),mock.patch.object(r,'signal',test_signal),mock.patch.object(r,'verify_pack',verify),mock.patch.object(r.overlay,'verify_materialized',return_value={'control':'overlay pre/postflight isolated'}),mock.patch.object(r,'cleanup',clean):
+    out=r.fresh_output(runs/'deadline');status=r.execute(out,'mixer-no-such-official-compiler-control')
+   receipt=json.loads((out/'receipt.json').read_bytes());self.assertEqual(status,1);self.assertTrue(receipt['cleanup']['deadline_expired']);self.assertFalse(receipt['cleanup']['removed']);self.assertTrue((out/'scratch/ownership.json').is_file());self.assertEqual(receipt['commands'],[]);self.assertFalse(state['after_delay']);self.assertTrue(state['stage_timer_started']);self.assertEqual(state['cleanup_entered'],stage=='retention');self.assertLess(receipt['cleanup_elapsed_seconds'],.20)
+   if stage=='postflight':self.assertEqual(state['pack_calls'],3);self.assertEqual(receipt['postflight'],{})
+   r.save(HERE/'logs'/('deadline-'+stage+'-control.json'),{'scope':'Actual runner handler and registered real timer with test-only stage readiness and 50ms logical cleanup allowance; deliberately slow hook and missing compiler, zero child commands. Preceding postflight wall time is excluded from this injected-stage control.','state':state,'receipt':receipt,'scratch_preserved_at_assertion':True,'owned_test_directory_removed_by_tearDown':True})
+  def test_postflight_deadline_is_terminal_and_preserves_scratch(self):self.deadline_control('postflight')
+  def test_retention_deadline_is_terminal_and_preserves_scratch(self):self.deadline_control('retention')
++ def accounting_row(self,name,exit_code=0,timed_out=False,custody_hold=False):
++  c,process,selector=self.mocked_command();process.returncode=exit_code
++  before=types.SimpleNamespace(ru_utime=1.0,ru_stime=2.0,ru_minflt=3,ru_majflt=4)
++  after=types.SimpleNamespace(ru_utime=1.5,ru_stime=2.25,ru_minflt=8,ru_majflt=6)
++  def stop(proc,row):
++   if custody_hold:raise OSError(5,'synthetic child reap failure')
++   row['child_returned']=True;row['owned_group_gone']=True
++  clock=types.SimpleNamespace(monotonic=mock.Mock(return_value=100.0))
++  if timed_out:clock.monotonic.side_effect=[100.0,101.0,101.0]
++  with mock.patch.object(r.subprocess,'Popen',return_value=process),mock.patch.object(r.selectors,'DefaultSelector',return_value=selector),mock.patch.object(r.os,'read',return_value=b''),mock.patch.object(c,'gone',return_value=True),mock.patch.object(c,'stop',side_effect=stop),mock.patch.object(r.resource,'getrusage',side_effect=[before,after])as snapshots,mock.patch.object(r,'time',clock),mock.patch.object(r,'CHILD_SECONDS',.5):
++   if exit_code or timed_out or custody_hold:self.bad(c.run,name,['synthetic-command'],self.base)
++   else:c.run(name,['synthetic-command'],self.base)
++  row=c.receipt['commands'][-1];self.assertEqual(snapshots.call_args_list,[mock.call(r.resource.RUSAGE_CHILDREN)]*2)
++  self.assertEqual(row['child_resource_usage']['before'],vars(before));self.assertEqual(row['child_resource_usage']['after'],vars(after));self.assertIn('reaped-child aggregate',row['child_resource_usage']['scope'])
++  self.assertEqual(json.loads((c.out/'commands'/(name+'.json')).read_bytes()),row)
++  return row
++ def test_mocked_cpu_success_has_raw_snapshots_and_aggregate_delta(self):
++  row=self.accounting_row('cpu-success');self.assertTrue(row['child_resource_usage']['terminal_facts_verified']);self.assertEqual(row['child_resource_usage']['aggregate_delta'],{'ru_utime':.5,'ru_stime':.25,'ru_minflt':5,'ru_majflt':2})
++  phase=r.context_phase_progress('context_progress completed=1003/1003 elapsed_ms=120 prepare_ms=5 analyze_ms=80 report_assert_ms=3 cleanup_ms=2\n')[0];self.assertEqual(phase['unattributed_elapsed_remainder_ms'],30);self.assertTrue(phase['progress_is_not_completion'])
++ def test_mocked_cpu_failure_retains_aggregate_after_terminal_facts(self):
++  row=self.accounting_row('cpu-failure',exit_code=7);self.assertEqual(row['exit'],7);self.assertTrue(row['child_resource_usage']['terminal_facts_verified']);self.assertIsNotNone(row['child_resource_usage']['aggregate_delta'])
++ def test_mocked_cpu_timeout_retains_failure_and_aggregate(self):
++  row=self.accounting_row('cpu-timeout',timed_out=True);self.assertTrue(row['timed_out']);self.assertTrue(row['owned_group_gone']);self.assertIsNotNone(row['child_resource_usage']['aggregate_delta'])
++ def test_mocked_cpu_custody_hold_withholds_delta(self):
++  row=self.accounting_row('cpu-hold',custody_hold=True);self.assertTrue(row['custody_hold']);self.assertFalse(row['child_resource_usage']['terminal_facts_verified']);self.assertIsNone(row['child_resource_usage']['aggregate_delta']);self.assertIn('reap failure',row['child_resource_usage']['unavailable_reason'])
+ if __name__=='__main__':unittest.main(verbosity=2)

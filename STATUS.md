@@ -1,31 +1,37 @@
 # Implementation status
 
-## Selected capacity and observation window
+## Selected shared-input fixture diagnostic
 
-Root selects the independently reviewed `capacity-window-v1` for one manual
-remote campaign. Dense 256 and 512 residents share 4B cache work, 2B instruction
-fuel and 16B execution work. Frames/pins remain 128, Runtime/WASI remain 600
-seconds, and all category ceilings and the 256 MiB combined envelope remain.
-Both compiled geometries, twelve finite methods and one original harness per
-arm must pass before either full attempt. The campaign permits two full
-attempts, eleven owned commands and 2,700 seconds; no retry or single-arm
-fallback is selected. Source evidence passes 26 producer checks, 43 producer
-pure methods and 13 additional independent methods. Actual compilation,
-geometry and execution remain pending. [Exact root selection and source
-seals](verification/github-delivery-capacity-window/selection.json) bind this
-delivery; runtime, production defaults and GA remain unaccepted.
+Root selects the exact independently reviewed shared-input fixture harness for one
+manual diagnostic. The thin overlay borrows 83 unchanged frozen members into the
+complete 86-member pack. It preserves all 1,003 original vectors, assertions and
+fresh arenas. Offline evidence passes 28 runner controls, nine materializer groups
+and six additional independent integration controls; eight real-child/signal
+controls remain unrun locally. Remote CI must pass all 36 runner controls before
+one complete 103-command fixture, with 60 seconds per child, 600 active seconds
+and 60 cleanup seconds on exact Rust `1.98.1-aarch64-apple-darwin`. Compiler
+unavailability is a failure; no retry, compiler fallback or default-pack promotion
+is selected. [Selection and immutable seals](verification/github-delivery-shared-input-fixture/selection.json)
+bind the source-only acceptance. Current ordinary fixture CI is green; no
+regression or speedup is claimed. Actual compiler availability and fixture results
+remain pending.
 
-FieldLog's subsequent public `44190fef` run hydrated the exact 73 selected SDK
-blobs with matching body hashes. SwiftPM then requested app
-`describe --exact-match --tags`, which the app-role allowlist rejected before
-compilation and all 38 authored tests. All twelve remote outer groups, 29 inner
-children and 40 local commands closed. A source-backed app-read correction is
-under preparation; no further FieldLog run is selected here. The
-[small latest result](verification/github-delivery-capacity-window/fieldlog-promisor-v2-result.json)
-supersedes the older hydration frontier while preserving that failed evidence.
-Mixer `295f3f18` remains the six-job green ordinary Engine baseline. Gates stay
-**8 running, 30 planned, 0 verified**; all native/UI/capture, phone, local
-compiler/custody, Unit A and broad hosted holds remain.
+The separate capacity-window run [40788458735](https://github.com/snowdamiz/mixer/actions/runs/40788458735)
+at exact Mixer `e5670519` remains in progress at the latest read-only observation.
+Its limits and spent prior campaigns remain unchanged.
+
+FieldLog public `496399f8` run [40788707965](https://github.com/snowdamiz/fieldlog/actions/runs/40788707965)
+passes exact public 73-blob hydration and the requested app-read allowlist, then
+fails the Executor process-group inheritance guard before the inner Git child.
+SwiftPM resolve fails; build and all 38 tests are unreached. Cleanup evidence
+covers 12 recorded outer groups and 29 acquisition children. The rejected
+adapter's actual process group was not recorded, so absence of unrecorded detached
+descendants is unproven; eight initial local bounded reads had no separate group
+custody receipt. A fresh Astra ownership candidate is under preparation; no
+further FieldLog run is selected. The [small latest result](verification/github-delivery-shared-input-fixture/fieldlog-app-read-result.json)
+preserves these limitations. Gates stay **8 running, 30 planned, 0 verified**;
+all native/UI/capture, phone, local compiler/custody, Unit A and broad hosted
+holds remain.
 
 ## Closed public host campaigns
 
