@@ -9,6 +9,20 @@ This index does not narrow or replace that specification. Use
 is preserved byte for byte in [the prior index](PLAN.history-2026-10-25.md);
 its older pending/selected statements do not override the current state.
 
+## Selected fixture source amendment
+
+The independently reviewed TLS fixture EOF correction is selected for fresh
+ordinary Phoenix and isolated network CI. The explicit source amendment preserves
+historical 177/023df04 contracts and selects exactly 178/ab8f8d sources: one fixture
+replacement and one canonical test with four ordinary controls. All 136 pure
+collector decisions pass with children/sockets denied. The existing K03 and
+IS04/IS05 test files, assertions and observer argv stay exact. Compile/format,
+all four new controls and both original methods remain pending for this source.
+Retain any new failure before another decision; no manual rerun is selected.
+[Selection](verification/github-delivery-fixture-eof/selection.json) binds the
+accepted candidate, complete review, source/helper manifests and sanitized prior
+CI summary. No native, local runtime/custody, UnitA or GA hold is released.
+
 ## Execution priority and blocker escalation
 
 The October 28 user instruction adopts [ADR 0002](docs/adrs/0002-empirical-budgets-and-blocker-experiments.md)

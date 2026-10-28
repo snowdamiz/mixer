@@ -25,6 +25,13 @@ import time
 import uuid
 
 FROZEN_PRODUCT_DIGEST = "023df04c9a4599c3d5a6cdf2afb53a95e2faf37765d8b96ba2bcc0e1b007c92e"
+SELECTED_SOURCE_DIGEST = "ab8f8dbec5894ca96dd673db828a01afdc39a54ad008a2a2d4e598c1c62ce2f7"
+FIXTURE_BASE = "verification/identity-network-fixture-amendment-v1/metadata/"
+FIXTURE_SHA256 = "510771949fe7e95d81cd64f7a8d65df722fa7aa79293b55c773a61bbce8e351b"
+FIXTURE_PACKET = "13a0b3d84a5140d8fd73d2d4468a5675f6fcaeb8467788bdbda469c18f3a1f4c"
+FIXTURE_PACKET_SHA256 = "def35da9e8f01115a78356b836203fb6ef42a2eef76c058a8fbbafcc6f01be66"
+FIXTURE_REVIEW_SHA256 = "613876f8c91fb07e08100ba8cf02906cf61b67ae8573703ecced44073c84fa5e"
+FIXTURE_REVIEW_PACKET = "f8d04d5f4f118f940f7183f16b217ca401b34fcda5558dd7929ce2d5657d446d"
 FROZEN_LOCK_SHA256 = "1eada39dcaf4863d02d39f51e218d2bad8908b36a0cba47ff2d16037b7bcf837"
 CONTRACT_SHA256 = "695a165d41e9d4eac5fdc582b835a60f5c3bbdd6f0fb3131c0ad27ffbbe135bc"
 CONTRACT_PACKET = "a3a806d83e285213df4c0e951282686dcfcfa81701e8005040d5172b3300050d"
@@ -353,7 +360,7 @@ def validate_prerequisites(observed, expected):
     return observed
 
 
-def validate_source_manifest(manifest, expected_digest=FROZEN_PRODUCT_DIGEST, expected_count=177):
+def _validate_source_manifest(manifest, expected_digest, expected_count):
     require(isinstance(manifest, dict) and len(manifest) == expected_count, "source path count mismatch")
     for path, row in manifest.items():
         p = PurePosixPath(path)
@@ -365,6 +372,73 @@ def validate_source_manifest(manifest, expected_digest=FROZEN_PRODUCT_DIGEST, ex
         require(manifest["hosted/mix.lock"]["sha256"] == FROZEN_LOCK_SHA256, "frozen lock mismatch")
     require(canonical_digest(manifest) == expected_digest, "frozen product digest mismatch")
     return manifest
+
+
+def validate_source_manifest(manifest, expected_digest=SELECTED_SOURCE_DIGEST, expected_count=178):
+    require(expected_digest == SELECTED_SOURCE_DIGEST and type(expected_count) is int and expected_count == 178, "caller cannot replace selected source authority")
+    return _validate_source_manifest(manifest, SELECTED_SOURCE_DIGEST, 178)
+
+
+def validate_fixture_manifest(body):
+    require(isinstance(body, bytes) and hashlib.sha256(body).hexdigest() == FIXTURE_PACKET_SHA256, "fixture amendment packet bytes mismatch")
+    packet = json.loads(body)
+    require(isinstance(packet, dict) and set(packet) == {"schema", "files", "tree_digest_sha256"} and type(packet["schema"]) is int and packet["schema"] == 1, "fixture amendment packet shape")
+    files = packet["files"]
+    require(isinstance(files, dict) and len(files) == 18 and packet["tree_digest_sha256"] == FIXTURE_PACKET and canonical_digest(files) == FIXTURE_PACKET, "fixture amendment packet seal mismatch")
+    for path, row in files.items():
+        name = PurePosixPath(path)
+        require(not name.is_absolute() and ".." not in name.parts and str(name) == path and "\\" not in path and path != "packet-manifest.json", "unsafe fixture metadata path")
+        require(isinstance(row, dict) and set(row) == {"bytes", "sha256"} and type(row["bytes"]) is int and 0 <= row["bytes"] <= MAX_COMMAND_BYTES and isinstance(row["sha256"], str) and bool(re.fullmatch("[0-9a-f]{64}", row["sha256"])), "fixture amendment row shape")
+    return files
+
+
+def literal_helper_rows():
+    helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(FROZEN_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+    return {path: _file_row(body) for path, body in helpers.items()}
+
+
+def validate_fixture_metadata(metadata):
+    """Preserve historical 177-source contracts; admit exactly the reviewed 178."""
+    require(isinstance(metadata, dict) and FIXTURE_BASE + "packet-manifest.json" in metadata, "missing fixture amendment seal")
+    files = validate_fixture_manifest(metadata[FIXTURE_BASE + "packet-manifest.json"])
+    require({path for path in metadata if path.startswith(FIXTURE_BASE)} == {FIXTURE_BASE + "packet-manifest.json"} | {FIXTURE_BASE + path for path in files}, "missing or extra fixture amendment metadata")
+    validate_execution_metadata({path: body for path, body in metadata.items() if not path.startswith(FIXTURE_BASE)})
+    for path, expected in files.items():
+        require(isinstance(metadata[FIXTURE_BASE + path], bytes) and _file_row(metadata[FIXTURE_BASE + path]) == expected, "fixture amendment metadata hash mismatch")
+    body = metadata[FIXTURE_BASE + "source-amendment.json"]
+    require(hashlib.sha256(body).hexdigest() == FIXTURE_SHA256, "selected fixture amendment drift")
+    value = json.loads(body)
+    require(set(value) == {"schema", "operation", "predecessor", "selected", "exact_delta", "independent_review", "integration_patch", "preserved", "literal_helpers", "ordinary_phoenix_controls", "remote_execution_only", "runtime_or_GA_accepted"} and type(value["schema"]) is int and value["schema"] == 1 and value["operation"] == "replace-exact-test-fixture-and-add-executable-regression-test", "fixture amendment shape")
+    require(value["predecessor"] == {"product_commit": PRODUCT_COMMIT, "source_count": 177, "source_digest_sha256": FROZEN_PRODUCT_DIGEST, "contract_sha256": CONTRACT_SHA256, "image_amendment_sha256": AMENDMENT_SHA256, "execution_amendment_sha256": EXECUTION_SHA256}, "fixture amendment predecessor mismatch")
+    predecessor = json.loads(metadata[FIXTURE_BASE + "predecessor-source-manifest.json"])
+    selected_body = metadata[FIXTURE_BASE + "selected-source-manifest.json"]
+    selected = json.loads(selected_body)
+    _validate_source_manifest(predecessor, FROZEN_PRODUCT_DIGEST, 177)
+    validate_source_manifest(selected)
+    require(predecessor == PREDECESSOR_MANIFEST and selected == FROZEN_MANIFEST, "fixture source manifest binding mismatch")
+    require(value["selected"] == {"source_count": 178, "source_digest_sha256": SELECTED_SOURCE_DIGEST, "manifest": {"path": "selected-source-manifest.json", **_file_row(selected_body)}}, "fixture selected source mismatch")
+    fixture = "hosted/test/support/identity_tls_fixture.ex"
+    control = "hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs"
+    delta = {fixture: {"operation": "replace", "before": predecessor[fixture], "after": selected[fixture]}, control: {"operation": "add", "before": None, "after": selected[control]}}
+    require(value["exact_delta"] == delta and set(selected) == set(predecessor) | {control} and {path for path in predecessor if predecessor[path] != selected[path]} == {fixture}, "fixture amendment is not the exact two-row delta")
+    review_base = FIXTURE_BASE + "independent-review/"
+    review_body = metadata[review_base + "packet-manifest.json"]
+    require(value["independent_review"] == {"namespace": "independent-review/", "packet_manifest_sha256": FIXTURE_REVIEW_SHA256, "packet_tree_digest_sha256": FIXTURE_REVIEW_PACKET} and hashlib.sha256(review_body).hexdigest() == FIXTURE_REVIEW_SHA256, "fixture independent review pin mismatch")
+    review_packet = json.loads(review_body)
+    require(review_packet["tree_digest_sha256"] == FIXTURE_REVIEW_PACKET and canonical_digest(review_packet["files"]) == FIXTURE_REVIEW_PACKET, "fixture independent review seal mismatch")
+    require({path.removeprefix(review_base) for path in metadata if path.startswith(review_base)} == set(review_packet["files"]) | {"packet-manifest.json"}, "fixture independent review membership mismatch")
+    for path, expected in review_packet["files"].items():
+        require(_file_row(metadata[review_base + path]) == expected, "fixture independent review member mismatch")
+    review = json.loads(metadata[review_base + "review.json"])
+    candidate = review["selected_candidate"]
+    require(review["status"] == "source-qualified-accept-for-root-promotion-runtime-unrun" and review["source_blockers"] == [] and candidate["source_count"] == 178 and candidate["source_digest_sha256"] == SELECTED_SOURCE_DIGEST and candidate["fixture"] == {"path": fixture, **selected[fixture]} and candidate["control"] == {"path": control, **selected[control]}, "fixture review does not accept exact selected source")
+    require(value["integration_patch"] == {"path": "integration-candidate.patch", **_file_row(metadata[FIXTURE_BASE + "integration-candidate.patch"])} and value["integration_patch"]["sha256"] == candidate["integration_patch_sha256"], "fixture integration patch mismatch")
+    tests = {"hosted/" + path: selected["hosted/" + path] for path in TEST_ROOTS}
+    preserved = {"lock_sha256": FROZEN_LOCK_SHA256, "original_test_files": tests, "test_roots": TEST_ROOTS, "expected_methods": EXPECTED_METHODS, "runtime": "all selected image/execution/namespace/resource/bootstrap/custody contracts unchanged"}
+    require(canonical_digest(value["preserved"]) == canonical_digest(preserved) and all(predecessor[path] == row for path, row in tests.items()), "fixture amendment changed original method contracts")
+    require(value["literal_helpers"] == literal_helper_rows(), "fixture selected literal helper mismatch")
+    require(value["remote_execution_only"] is True and value["runtime_or_GA_accepted"] is False and len(value["ordinary_phoenix_controls"]) == 4, "fixture execution boundary mismatch")
+    return value
 
 
 def validate_source_unchanged(before, after):
@@ -1368,8 +1442,14 @@ class Collector:
         metadata.update(execution_manifest)
         metadata.update(self.git_blobs([EXECUTION_BASE + path for path in execution_files]))
         validate_execution_metadata(metadata)
+        fixture_manifest = self.git_blobs([FIXTURE_BASE + "packet-manifest.json"])
+        fixture_files = validate_fixture_manifest(fixture_manifest[FIXTURE_BASE + "packet-manifest.json"])
+        metadata.update(fixture_manifest)
+        metadata.update(self.git_blobs([FIXTURE_BASE + path for path in fixture_files]))
+        validate_fixture_metadata(metadata)
         self.prerequisites = amendment["prerequisites"]
         self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
+        self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET)
         self.persist()
         (self.output / "selected-contract-metadata.tar").write_bytes(source_tar(metadata))
         write_json(self.output / "host.json", {"uname": list(os.uname()), "python": sys.version, "netns": os.readlink("/proc/self/ns/net"), "runner": "ubuntu-24.04", "github_run_id": self.run_id, "attempt": self.attempt})
@@ -1517,7 +1597,7 @@ class Collector:
 
 
 # Frozen ordinary product blobs; collector/control source is separately bound.
-FROZEN_MANIFEST = {'hosted/.formatter.exs': {'bytes': 74,
+PREDECESSOR_MANIFEST = {'hosted/.formatter.exs': {'bytes': 74,
                            'sha256': '0d5f1f1bc0a4d678629084c6f15f96e000b4882594bc829f2adf5eacc9ff42b5'},
  'hosted/.gitignore': {'bytes': 40,
                        'sha256': '363721e50c7313c16377d1d426ffbef80e6a0ff5943fb500c4a6f96917f336e5'},
@@ -1871,6 +1951,13 @@ FROZEN_MANIFEST = {'hosted/.formatter.exs': {'bytes': 74,
                                          'sha256': '1caebaa5ea30e06a114650b67d577c4e31125d2b76e59c1de6900ff2989dfb33'},
  'hosted/test/test_helper.exs': {'bytes': 251,
                                  'sha256': '71a75fc76dcf3c252b4d41c1f3a30adccfae5873028f7d40f174c8a25fd7c646'}}
+
+
+FROZEN_MANIFEST = {
+    **PREDECESSOR_MANIFEST,
+    "hosted/test/support/identity_tls_fixture.ex": {"bytes": 9533, "sha256": "d3b55796a8baac4f9ebd37cc9ee5e44bde01ca346ce2dd00a0a5dd884711ba55"},
+    "hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs": {"bytes": 4387, "sha256": "417704f8e805196f9546a508a770d23a55d40ce9d6214be5225f131c4bd2c7c6"},
+}
 
 
 def finalize(root, output):

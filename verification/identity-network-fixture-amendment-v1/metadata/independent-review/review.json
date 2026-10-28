@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "status": "source-qualified-accept-for-root-promotion-runtime-unrun",
+  "source_blockers": [],
+  "review_role": "fresh independent difficult fixture and source-binding review; launch metadata is authoritative for actual model identity",
+  "selected_candidate": {
+    "producer": "verification/identity-startup-socket-close-investigation/",
+    "integration_patch_sha256": "24477b79356bfcdf32287c70ee8c39596b93e506ac64be9ba50ec3e6fdd875a1",
+    "fixture": {
+      "path": "hosted/test/support/identity_tls_fixture.ex",
+      "bytes": 9533,
+      "sha256": "d3b55796a8baac4f9ebd37cc9ee5e44bde01ca346ce2dd00a0a5dd884711ba55"
+    },
+    "control": {
+      "path": "hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs",
+      "bytes": 4387,
+      "sha256": "417704f8e805196f9546a508a770d23a55d40ce9d6214be5225f131c4bd2c7c6"
+    },
+    "source_count": 178,
+    "source_digest_sha256": "ab8f8dbec5894ca96dd673db828a01afdc39a54ad008a2a2d4e598c1c62ce2f7",
+    "predecessor_source_count": 177,
+    "predecessor_source_digest_sha256": "023df04c9a4599c3d5a6cdf2afb53a95e2faf37765d8b96ba2bcc0e1b007c92e"
+  },
+  "baseline": {
+    "revision": "e9fc0e7d984c79bf2d3493f5d5d16a0b167b3af7",
+    "run_id": 40770270255,
+    "observed": "K03 passed; IS04/IS05 failed startup_linux_network_test.exs:97. Retained raw output says Result: 1/2 passed.",
+    "reinterpretation": "none; source review does not clear a product leak or replace the failed run"
+  },
+  "findings": [
+    {
+      "id": "R1",
+      "decision": "accept-source-semantics",
+      "detail": "The stalled fixture emits no response and observes the peer immediately using the existing 3000ms receive timeout. The result is captured before fixture-local ssl.close in the after block. Only an actual returned error closed is credited; local timeout, data and other errors cannot increment closed. The production 250 by 10ms eventual assertion and closed == 3 are byte-identical. This removes a source-proven blind delay without weakening the production clock or crediting local closure.",
+      "source": "candidate fixture lines 196-225, 258, 292-305; retained startup lines 16-27, 89-98"
+    },
+    {
+      "id": "R2",
+      "decision": "accept-source-ordering",
+      "detail": "controlling_process precedes synchronous accepted registration, and the handler cannot serve until :go after that call replies. Therefore a fast handshake/request EOF cannot reach finished accounting before its map insertion. The internal handler sends one finished event and removes its entry. Exceptional handler death before finished leaves accounting incomplete rather than manufacturing peer EOF; the linked fixture teardown still owns cleanup. General abnormal-process recovery is not newly qualified.",
+      "source": "candidate fixture lines 172-211, 281-310, 329-335"
+    },
+    {
+      "id": "R3",
+      "decision": "accept-bounded-diagnostics",
+      "detail": "New terminal diagnostics retain only three internally selected fields and at most 16 results. Termination emits counts and those categorical results, not request bytes, socket terms, key/certificate material or unexpected application data. The existing request history is unchanged and is not included in the printed summary. Integer counts can grow, but retained terminal-list cardinality is bounded.",
+      "source": "candidate fixture lines 214-225, 297-305, 312-327"
+    },
+    {
+      "id": "R4",
+      "decision": "accept-control-design-execution-pending",
+      "detail": "Exactly four ordinary ExUnit controls have no skip tags: silent stall then peer EOF within 250 by 10ms polls; accepted pre-handshake TCP abort; fixture timeout with closed zero; unexpected data with closed zero and no payload in terminal diagnostics. Only the timeout-negative control uses 400 polls to observe the unchanged three-second fixture timeout. Client sockets have after cleanup and fixture children are supervised. Tests are discoverable at the proposed canonical path, and the ordinary host runner uses trace output, formatting and warnings-as-errors compilation. No Elixir parse, format, compile, OTP handshake or scheduling behavior was executed by this review.",
+      "source": "new test lines 1-143; hosted/mix.exs; hosted/.formatter.exs; hosted/scripts/test-local.py lines 150-152, 237-242"
+    },
+    {
+      "id": "R5",
+      "decision": "accept-exact-scope",
+      "detail": "Independent in-memory unified-patch application reconstructs the selected bytes from the retained execution archive. All 177 predecessor source entries match archive bytes; the selected inventory contains precisely those paths plus the new test, changes only the fixture among old entries, and preserves mix.lock plus both original network-test files. The superseded 177-file proposal is not selected.",
+      "source": "source-controls.json and readset.json"
+    }
+  ],
+  "binding_proposal_assessment": {
+    "requirements_list": "sufficient in principle",
+    "execution_authority": false,
+    "current_gap": "The inspected canonical collector still selects 177 files and digest 023df04. The proposal itself does not implement or authorize a new source selection.",
+    "required_before_remote_execution": [
+      "Root must select a new immutable source amendment binding the exact predecessor digest/count, selected digest/count, exact two-row delta, selected manifest bytes and this independent review identity. Preserve old image, execution and source packets unchanged.",
+      "Separate the historical predecessor digest used by validate_selected_metadata/preserved image and execution contracts from the effective 178-source execution digest. A global digest replacement would invalidate or reinterpret historical contracts.",
+      "Bind the source-amendment packet and every member to delivered Git blobs, validate its pinned seal and exact membership before image/container operations, retain it in selected-contract-metadata, and record its identity in run state.",
+      "Update effective FROZEN_MANIFEST, selected source validators, prepared/compiled/archive checks, generated frozen-manifest.json helper and literal helper hashes consistently to exactly 178 selected paths. Reject old fixture, missing new test, changed original tests/lock, extra paths and caller self-recomputed digest substitutions.",
+      "Add the new amendment namespace to identity-network workflow push/pull filters and sparse checkout. Bind the delivered collector, controls, documentation and workflow as currently done. Do not edit the protected unrelated hosted workflow or browser-auth store for this fixture slice.",
+      "Extend executable pure collector controls with a valid selected-source case and each refusal above, including missing/wrong review or amendment pins. Historical metadata must still validate against 177/023df04 while executed source validates against 178/ab8f8d.",
+      "Promote the new test at the canonical hosted/test path. Ordinary Phoenix CI must actually execute and pass all four named controls, including format and warnings-as-errors compile gates; mere source membership is not execution evidence.",
+      "Keep EXPECTED_METHODS, TEST_ROOTS and original observer argv unchanged for the production network job. Obtain fresh output and both semantic receipts for the original K03 and IS04/IS05 methods against the selected 178-source manifest. The new lifecycle controls remain separately identified ordinary Phoenix results."
+    ]
+  },
+  "validation": {
+    "independent_source_byte_model_checks": "9 passed",
+    "source_rejection_cases": 16,
+    "accounting_model_cases": 15,
+    "control_log": "source-controls.log",
+    "readset": "readset.json",
+    "runtime": "unrun; no source-only result is TLS, process termination, release or GA evidence",
+    "no_additional_review_loop_required": "Once root implements the exact bindings and the finite controls pass, proceed to the named remote execution; no unrelated hardening campaign is requested."
+  },
+  "stop_conditions": [
+    "Any lifecycle control failure: retain its exact output and categorical terminal state; diagnose that counterexample before another attempt.",
+    "Original startup failure persists: retain failed semantics and fixture summary; do not infer leak clearance or reinterpret the old run.",
+    "All four lifecycle controls and both production methods pass: accept only scoped fixture/network behavior for the selected delivered source. Native, customer, hosted GA, custody and local runtime holds remain unchanged."
+  ],
+  "execution_and_ownership": {
+    "writes": "verification/identity-tls-fixture-independent/ only",
+    "runtime_resources_created": 0,
+    "local_elixir_compiler_runtime_docker_postgres_native_ui_capture": "not invoked",
+    "process_inventory_signals_waits_held_groups": "not invoked",
+    "canonical_edits_git_writes_push_dispatch": "none",
+    "cleanup": "No runtime resources created; source-review artifacts retained."
+  }
+}

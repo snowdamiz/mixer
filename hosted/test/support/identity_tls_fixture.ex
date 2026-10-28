@@ -155,6 +155,7 @@ defmodule MixerHosted.Identity.TLSFixture do
        requests: [],
        accepted: 0,
        closed: 0,
+       terminal_results: [],
        max_active: 0,
        response: {:body, "{}"},
        key_dir_removed: not File.exists?(dir)
@@ -179,7 +180,8 @@ defmodule MixerHosted.Identity.TLSFixture do
           end)
 
         :ok = :ssl.controlling_process(socket, pid)
-        send(owner, {:accepted, pid, socket})
+        # Record ownership before this handler can report an early EOF.
+        :ok = GenServer.call(owner, {:accepted, pid, socket})
         send(pid, :go)
         accept(listener, owner)
 
@@ -192,19 +194,34 @@ defmodule MixerHosted.Identity.TLSFixture do
   end
 
   defp serve(socket, owner) do
-    try do
-      with {:ok, socket} <- :ssl.handshake(socket, 3_000),
-           {:ok, request} <- request(socket, "") do
-        {:ok, info} = :ssl.connection_information(socket, [:sni_hostname, :protocol])
-        response = GenServer.call(owner, {:request, request, info})
-        respond(socket, response)
-        # Observe client close even for keepalive/stall responses.
-        :ssl.recv(socket, 0, 3_000)
+    result =
+      try do
+        with {:handshake, {:ok, socket}} <- {:handshake, :ssl.handshake(socket, 3_000)},
+             {:request, {:ok, request}} <- {:request, request(socket, "")} do
+          {:ok, info} = :ssl.connection_information(socket, [:sni_hostname, :protocol])
+          response = GenServer.call(owner, {:request, request, info})
+          respond(socket, response)
+          # Withhold a stall response while still observing client EOF immediately.
+          {:peer_close, :ssl.recv(socket, 0, 3_000)}
+        end
+      after
+        :ssl.close(socket)
       end
-    after
-      :ssl.close(socket)
-      send(owner, {:closed, self()})
-    end
+
+    send(owner, {:finished, self(), terminal_result(result)})
+  end
+
+  defp terminal_result({stage, result}) do
+    {outcome, bytes} =
+      case result do
+        {:error, :closed} -> {:peer_closed, 0}
+        {:error, :timeout} -> {:timeout, 0}
+        {:ok, data} when is_binary(data) -> {:unexpected_data, byte_size(data)}
+        {:error, _} -> {:transport_error, 0}
+        _ -> {:unexpected_result, 0}
+      end
+
+    %{stage: stage, outcome: outcome, unexpected_bytes: bytes}
   end
 
   defp request(socket, acc) do
@@ -238,7 +255,7 @@ defmodule MixerHosted.Identity.TLSFixture do
     end
   end
 
-  defp respond(_, :stall), do: Process.sleep(3_000)
+  defp respond(_, :stall), do: :ok
 
   def response(body, extra \\ []) do
     date = :httpd_util.rfc1123_date() |> List.to_string()
@@ -262,9 +279,9 @@ defmodule MixerHosted.Identity.TLSFixture do
   def handle_call({:request, request, tls}, _, s),
     do: {:reply, s.response, %{s | requests: [%{request: request, tls: tls} | s.requests]}}
 
-  def handle_info({:accepted, pid, socket}, s),
+  def handle_call({:accepted, pid, socket}, _, s),
     do:
-      {:noreply,
+      {:reply, :ok,
        %{
          s
          | sockets: Map.put(s.sockets, pid, socket),
@@ -272,12 +289,39 @@ defmodule MixerHosted.Identity.TLSFixture do
            max_active: max(s.max_active, map_size(s.sockets) + 1)
        }}
 
-  def handle_info({:closed, pid}, s),
-    do: {:noreply, %{s | sockets: Map.delete(s.sockets, pid), closed: s.closed + 1}}
+  def handle_info({:finished, pid, terminal}, s) do
+    # Handler cleanup is not proof of peer closure: local timeouts must not pass
+    # shutdown assertions. EOF may also arrive before TLS or HTTP completes.
+    peer_closed = terminal.outcome == :peer_closed
+
+    {:noreply,
+     %{
+       s
+       | sockets: Map.delete(s.sockets, pid),
+         closed: s.closed + if(peer_closed, do: 1, else: 0),
+         terminal_results: Enum.take([terminal | s.terminal_results], 16)
+     }}
+  end
 
   def handle_info({:EXIT, _, _}, s), do: {:noreply, s}
 
   def terminate(_, s) do
+    # Preserve bounded failure diagnostics before cleanup; never print requests,
+    # certificates, key material, sockets, or unexpected application data.
+    summary = %{
+      accepted: s.accepted,
+      peer_closed: s.closed,
+      active: map_size(s.sockets),
+      requests: length(s.requests),
+      terminal_results: s.terminal_results
+    }
+
+    try do
+      IO.puts("TLSFixture lifecycle: #{inspect(summary, limit: 200, printable_limit: 256)}")
+    catch
+      _, _ -> :ok
+    end
+
     :ssl.close(s.listener)
     Process.exit(s.acceptor, :kill)
 

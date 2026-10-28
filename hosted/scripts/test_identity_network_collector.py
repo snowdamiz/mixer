@@ -50,6 +50,7 @@ def tearDownModule():
 
 
 PRODUCT_DIGEST = "023df04c9a4599c3d5a6cdf2afb53a95e2faf37765d8b96ba2bcc0e1b007c92e"
+SELECTED_DIGEST = "ab8f8dbec5894ca96dd673db828a01afdc39a54ad008a2a2d4e598c1c62ce2f7"
 LOCK_DIGEST = "1eada39dcaf4863d02d39f51e218d2bad8908b36a0cba47ff2d16037b7bcf837"
 ELIXIR_REF = "hexpm/elixir@sha256:ed110657152803079f311913be4effe02874e2c714a1b5a38891873b7f2a16c5"
 ELIXIR_CONFIG = "sha256:857e84a618d1f76390220fbff2e7d54d588aea4f772ab1e60dacfe3fa02602cc"
@@ -176,8 +177,10 @@ def archive(entries, *, mtimes=None):
 
 class SourceControls(unittest.TestCase):
     def test_frozen_source_has_independent_contract_root_and_lock(self):
-        self.assertEqual(177, len(collector.FROZEN_MANIFEST))
-        self.assertEqual(PRODUCT_DIGEST, canonical_digest(collector.FROZEN_MANIFEST))
+        self.assertEqual(178, len(collector.FROZEN_MANIFEST))
+        self.assertEqual(SELECTED_DIGEST, canonical_digest(collector.FROZEN_MANIFEST))
+        self.assertEqual(177, len(collector.PREDECESSOR_MANIFEST))
+        self.assertEqual(PRODUCT_DIGEST, canonical_digest(collector.PREDECESSOR_MANIFEST))
         self.assertEqual(LOCK_DIGEST, collector.FROZEN_MANIFEST["hosted/mix.lock"]["sha256"])
         collector.validate_source_manifest(copy.deepcopy(collector.FROZEN_MANIFEST))
 
@@ -201,7 +204,7 @@ class SourceControls(unittest.TestCase):
         value = copy.deepcopy(collector.FROZEN_MANIFEST)
         value["hosted/mix.lock"]["sha256"] = "0" * 64
         with self.assertRaises(collector.CollectorError):
-            collector.validate_source_manifest(value, expected_digest=canonical_digest(value), expected_count=177)
+            collector.validate_source_manifest(value, expected_digest=canonical_digest(value), expected_count=178)
 
     def test_manifest_structure_cannot_be_authorized_by_its_own_digest(self):
         for path in ("/hosted/escape.ex", "hosted/../escape.ex", "hosted\\escape.ex", "hosted//alias.ex", "outside.ex"):
@@ -209,7 +212,7 @@ class SourceControls(unittest.TestCase):
             metadata = value.pop("hosted/.formatter.exs")
             value[path] = metadata
             with self.subTest(path=path), self.assertRaises(collector.CollectorError):
-                collector.validate_source_manifest(value, expected_digest=canonical_digest(value), expected_count=177)
+                collector.validate_source_manifest(value, expected_digest=canonical_digest(value), expected_count=178)
         for metadata in ({"bytes": -1, "sha256": "a" * 64},
                          {"bytes": True, "sha256": "a" * 64},
                          {"bytes": 1, "sha256": "g" * 64},
@@ -217,7 +220,7 @@ class SourceControls(unittest.TestCase):
             value = copy.deepcopy(collector.FROZEN_MANIFEST)
             value["hosted/.formatter.exs"] = metadata
             with self.subTest(metadata=metadata), self.assertRaises(collector.CollectorError):
-                collector.validate_source_manifest(value, expected_digest=canonical_digest(value), expected_count=177)
+                collector.validate_source_manifest(value, expected_digest=canonical_digest(value), expected_count=178)
 
     def test_source_mutation_added_deleted_and_changed_are_all_refused(self):
         before = {"hosted/mix.lock": {"bytes": 2, "sha256": "a" * 64},
@@ -314,6 +317,120 @@ def exact_execution_contract():
     contract = json.loads((root / "verification/identity-network-image-amendment-v2/metadata/execution-amendment.json").read_bytes())
     image = json.loads((root / "verification/identity-network-image-amendment-v1/metadata/image-amendment.json").read_bytes())
     return contract, image
+
+
+def exact_fixture_metadata():
+    values = exact_execution_metadata()
+    root = COLLECTOR_PATH.resolve().parents[2]
+    base = "verification/identity-network-fixture-amendment-v1/metadata/"
+    packet = json.loads((root / base / "packet-manifest.json").read_bytes())
+    for path in ["packet-manifest.json", *packet["files"]]:
+        values[base + path] = (root / base / path).read_bytes()
+    return values
+
+
+class FixtureAmendmentControls(unittest.TestCase):
+    BASE = "verification/identity-network-fixture-amendment-v1/metadata/"
+
+    def test_selected_source_passes_with_historical_contracts_unchanged(self):
+        result = collector.validate_fixture_metadata(exact_fixture_metadata())
+        self.assertEqual(178, result["selected"]["source_count"])
+        self.assertEqual(SELECTED_DIGEST, result["selected"]["source_digest_sha256"])
+        self.assertEqual(PRODUCT_DIGEST, result["predecessor"]["source_digest_sha256"])
+        self.assertEqual("510771949fe7e95d81cd64f7a8d65df722fa7aa79293b55c773a61bbce8e351b", collector.FIXTURE_SHA256)
+        self.assertEqual("13a0b3d84a5140d8fd73d2d4468a5675f6fcaeb8467788bdbda469c18f3a1f4c", collector.FIXTURE_PACKET)
+        self.assertEqual("613876f8c91fb07e08100ba8cf02906cf61b67ae8573703ecced44073c84fa5e", collector.FIXTURE_REVIEW_SHA256)
+        self.assertEqual("f8d04d5f4f118f940f7183f16b217ca401b34fcda5558dd7929ce2d5657d446d", collector.FIXTURE_REVIEW_PACKET)
+        old = collector.validate_selected_metadata(exact_metadata())
+        self.assertEqual(177, old["preserved"]["product_files"])
+        self.assertEqual(PRODUCT_DIGEST, old["preserved"]["product_digest"])
+        execution = collector.validate_execution_metadata(exact_execution_metadata())
+        self.assertEqual(old["preserved"], execution["preserved"]["product_pg_bootstrap_contract"])
+
+    def test_exact_delta_is_one_replacement_and_one_added_canonical_test(self):
+        result = collector.validate_fixture_metadata(exact_fixture_metadata())
+        fixture = "hosted/test/support/identity_tls_fixture.ex"
+        control = "hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs"
+        expected = {
+            fixture: {"bytes": 9533, "sha256": "d3b55796a8baac4f9ebd37cc9ee5e44bde01ca346ce2dd00a0a5dd884711ba55"},
+            control: {"bytes": 4387, "sha256": "417704f8e805196f9546a508a770d23a55d40ce9d6214be5225f131c4bd2c7c6"},
+        }
+        self.assertEqual(set(expected), set(result["exact_delta"]))
+        old = collector.PREDECESSOR_MANIFEST
+        selected = collector.FROZEN_MANIFEST
+        self.assertEqual(set(old) | {control}, set(selected))
+        self.assertEqual([fixture], [path for path in old if old[path] != selected[path]])
+        root = COLLECTOR_PATH.resolve().parents[2]
+        for path, row in expected.items():
+            body = (root / path).read_bytes()
+            self.assertEqual(row, {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()})
+            self.assertEqual(row, selected[path])
+        self.assertEqual([KEY_METHOD, STARTUP_METHOD], list(collector.EXPECTED_METHODS))
+        self.assertEqual(["test/mixer_hosted/identity/key_owner_linux_network_test.exs", "test/mixer_hosted/identity/startup_linux_network_test.exs"], collector.TEST_ROOTS)
+
+    def test_old_fixture_missing_test_changed_tests_lock_extra_and_self_digest_refused(self):
+        base = collector.FROZEN_MANIFEST
+        paths = ["hosted/test/support/identity_tls_fixture.ex", "hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs",
+                 "hosted/test/mixer_hosted/identity/key_owner_linux_network_test.exs", "hosted/test/mixer_hosted/identity/startup_linux_network_test.exs", "hosted/mix.lock"]
+        cases = [copy.deepcopy(collector.PREDECESSOR_MANIFEST)]
+        changed = copy.deepcopy(base)
+        changed[paths[0]] = copy.deepcopy(collector.PREDECESSOR_MANIFEST[paths[0]])
+        cases.append(changed)
+        for path in paths:
+            changed = copy.deepcopy(base)
+            del changed[path]
+            cases.append(changed)
+            changed = copy.deepcopy(base)
+            changed[path]["sha256"] = "0" * 64
+            cases.append(changed)
+        changed = copy.deepcopy(base)
+        changed["hosted/test/unselected_test.exs"] = {"bytes": 0, "sha256": "0" * 64}
+        cases.append(changed)
+        for manifest in cases:
+            for override in ({}, {"expected_digest": canonical_digest(manifest), "expected_count": len(manifest)}):
+                with self.subTest(paths=len(manifest), override=bool(override)), self.assertRaises(collector.CollectorError):
+                    collector.validate_source_manifest(manifest, **override)
+
+    def test_every_missing_or_changed_fixture_or_review_member_refused(self):
+        base = exact_fixture_metadata()
+        for path in [path for path in base if path.startswith(self.BASE)]:
+            for action in ("missing", "changed"):
+                value = dict(base)
+                if action == "missing": del value[path]
+                else: value[path] += b" "
+                with self.subTest(path=path, action=action), self.assertRaises(collector.CollectorError):
+                    collector.validate_fixture_metadata(value)
+
+    def test_old_self_recomputed_and_extra_amendment_metadata_refused(self):
+        base = exact_fixture_metadata()
+        seal = self.BASE + "packet-manifest.json"
+        packet = json.loads(base[seal])
+        packet["files"]["source-amendment.json"]["sha256"] = "0" * 64
+        packet["tree_digest_sha256"] = canonical_digest(packet["files"])
+        for replacement in (json.dumps(packet).encode(), base["verification/identity-network-image-amendment-v2/metadata/packet-manifest.json"]):
+            value = dict(base)
+            value[seal] = replacement
+            with self.assertRaises(collector.CollectorError): collector.validate_fixture_metadata(value)
+        value = dict(base)
+        value[self.BASE + "override.json"] = b"{}"
+        with self.assertRaises(collector.CollectorError): collector.validate_fixture_metadata(value)
+
+    def test_helper_manifest_and_review_are_retained_in_exact_metadata_archive(self):
+        values = exact_fixture_metadata()
+        result = collector.validate_fixture_metadata(values)
+        helper = json.dumps(collector.FROZEN_MANIFEST, sort_keys=True, separators=(",", ":")).encode()
+        self.assertEqual({"bytes": len(helper), "sha256": hashlib.sha256(helper).hexdigest()}, result["literal_helpers"]["frozen-manifest.json"])
+        self.assertEqual(178, len(json.loads(helper)))
+        with tarfile.open(fileobj=io.BytesIO(collector.source_tar(values)), mode="r:") as archive_value:
+            retained = {member.name: archive_value.extractfile(member).read() for member in collector.safe_members(archive_value)}
+        self.assertEqual(values, retained)
+        self.assertIn(self.BASE + "independent-review/review.json", retained)
+        self.assertIn(self.BASE + "selected-source-manifest.json", retained)
+        for name in ("source-amendment.json", "selected-source-manifest.json", "independent-review/review.json", "independent-review/packet-manifest.json"):
+            value = dict(values)
+            value[self.BASE + name] = b"{}"
+            with self.subTest(name=name), self.assertRaises(collector.CollectorError):
+                collector.validate_fixture_metadata(value)
 
 
 def exact_mounts(role):
@@ -749,7 +866,7 @@ class ArchiveControls(unittest.TestCase):
 class PreparedArchiveControls(unittest.TestCase):
     """Composition tests; immutable source admission is covered separately above.
 
-    A tiny in-memory source gate substitutes only the 177-file hash preimage. It
+    A tiny in-memory source gate substitutes only the 178-file hash preimage. It
     verifies delegation to that gate while exercising real archive membership,
     hash, section and contamination decisions without reading product code.
     """
@@ -1611,7 +1728,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
     def _amendment_preflight_subject(self, directory, metadata):
         repository = COLLECTOR_PATH.resolve().parents[2]
         # These boundary controls stub source admission below. The independent
-        # SourceControls keep the complete 177-source decision unchanged; a
+        # SourceControls keep the complete selected source decision pinned; a
         # protected dirty store in the development tree is not a Git fixture.
         subject = self.make_collector(directory, lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("real command forbidden")))
         controls = ["hosted/scripts/test-identity-network.py", "hosted/scripts/test_identity_network_collector.py", "docs/hosted-identity-production-network-ci-contract.md", ".github/workflows/identity-network.yml"]
@@ -1651,7 +1768,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
 
     def test_collect_requires_actual_prepare_result_before_bootstrap(self):
         with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
-            subject, calls = self._amendment_preflight_subject(directory, exact_execution_metadata())
+            subject, calls = self._amendment_preflight_subject(directory, exact_fixture_metadata())
             prepared = owned("prepare")
             inspected = {"Config": {"Env": [key + "=" + value for key, value in collector.BASE_ENV.items()]}}
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
@@ -1683,6 +1800,23 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject.collect()
             self.assertFalse(create.called)
             self.assertFalse(any(argv[0] == "docker" for argv in calls))
+
+    def test_collect_requires_fixture_amendment_and_review_before_any_image_operation(self):
+        base = "verification/identity-network-fixture-amendment-v1/metadata/"
+        for path in ("packet-manifest.json", "source-amendment.json", "independent-review/packet-manifest.json", "independent-review/review.json"):
+            for action in ("missing", "changed"):
+                metadata = exact_fixture_metadata()
+                if action == "missing": del metadata[base + path]
+                else: metadata[base + path] += b" "
+                with self.subTest(path=path, action=action), tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+                    subject, calls = self._amendment_preflight_subject(directory, metadata)
+                    with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
+                            mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
+                            mock.patch.object(collector, "validate_source_manifest", return_value=collector.FROZEN_MANIFEST), \
+                            mock.patch.object(subject, "create", side_effect=AssertionError("create before fixture admission")) as create:
+                        with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
+                    self.assertFalse(create.called)
+                    self.assertFalse(any(argv[0] == "docker" for argv in calls))
 
     def test_mount_observation_uses_exact_owned_helper_with_small_timeout_and_output_bound(self):
         for role in ("prepare", "test"):

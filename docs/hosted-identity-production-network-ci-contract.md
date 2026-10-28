@@ -3,8 +3,8 @@
 This lane runs the two existing Linux networking methods that ordinary Phoenix
 CI skips. K03 exercises production DNS classification, TLS peer verification and
 rebinding refusal. IS04/IS05 exercises actual configured application startup,
-cold token admission, restart and in-flight shutdown. The tests and production
-modules remain unchanged.
+cold token admission, restart and in-flight shutdown. Both selected network test
+files and production modules remain unchanged.
 
 The collector is `hosted/scripts/test-identity-network.py`. Its source contract
 and official image/bootstrap metadata are retained in
@@ -13,8 +13,8 @@ review is in `verification/identity-production-network-contract-independent/`.
 The contract is a finite qualification of 177 frozen product blobs from
 `9e860ea12074ca31bef4087ce34177a03f295dd8`, with product digest
 `023df04c9a4599c3d5a6cdf2afb53a95e2faf37765d8b96ba2bcc0e1b007c92e`.
-The delivered commit must contain exactly those bytes at the selected paths.
-Changing product inputs requires a reviewed refresh; a stale freeze fails.
+That historical inventory remains immutable. The fixture source amendment below
+selects the exact 178-file execution inventory; a stale freeze fails.
 
 The historical contract remains sealed and unchanged. The selected image-only
 amendment is `verification/identity-network-image-amendment-v1/metadata/`.
@@ -276,11 +276,12 @@ is recorded separately from graceful application shutdown. The finalizer uses
 the original attempt identity and deadline. Hard cancellation or runner loss
 can prevent cleanup/upload; missing evidence never counts as a pass.
 
-`selected-contract-metadata.tar` preserves all three full path namespaces: the
+`selected-contract-metadata.tar` preserves the historical three full namespaces: the
 original contract and Elixir/PostgreSQL metadata, the complete v1 image
 amendment/source review, and the complete v2 execution amendment/raw proof.
-The workflow checks out both sealed amendment metadata packets and both
-push/PR filters include their parent paths.
+The selected fixture amendment adds its fourth namespace and complete independent
+review. The workflow checks out all selected metadata packets and push/PR filters
+include their parent paths.
 Implementation and pure-control receipts live outside the metadata self-seal.
 
 The artifact retains command logs, input/tool/module manifests, bounded safe
@@ -295,9 +296,60 @@ native devices or GA. Production fixture exclusion is qualified by a separate
 ordinary Phoenix run for the delivered source, or explicitly reviewed reuse of
 unchanged-source evidence. Native runtime and computer-use pauses remain active.
 
-The prepared-timestamp correction has source and pure Python evidence only.
-A fresh isolated `identity-production-network` CI attempt must establish complete
-dependency compilation, then pass both unchanged product methods, retain semantic
-receipts, verify the current ten migrations and post-test equality, and independently
-verify all fresh-attempt isolation, DAG capture and cleanup. Those results remain
-pending; the prior attempt reached both methods and failed both.
+Run `40770270255` at `e9fc0e7d984c79bf2d3493f5d5d16a0b167b3af7`
+compiled all 113 JOSE Erlang modules and passed K03 against the historical
+177-file source. IS04/IS05 failed the third-connection closure assertion at
+`startup_linux_network_test.exs:97`; its semantic receipt and later comparisons
+were unreached. All three exact containers were removed and observed absent.
+This failed result remains preserved and does not prove a product leak cleared.
+
+## Selected fixture source amendment
+
+`verification/identity-network-fixture-amendment-v1/metadata/` is the explicit
+closed source amendment. Its contract SHA256 is
+`510771949fe7e95d81cd64f7a8d65df722fa7aa79293b55c773a61bbce8e351b`,
+its packet tree is `13a0b3d84a5140d8fd73d2d4468a5675f6fcaeb8467788bdbda469c18f3a1f4c`,
+and its packet bytes have SHA256
+`def35da9e8f01115a78356b836203fb6ef42a2eef76c058a8fbbafcc6f01be66`.
+It preserves the historical 177-file digest and both image/execution amendments.
+The selected 178-file source digest is
+`ab8f8dbec5894ca96dd673db828a01afdc39a54ad008a2a2d4e598c1c62ce2f7`.
+Among historical paths only `hosted/test/support/identity_tls_fixture.ex` changes
+(9,533 bytes, SHA256 `d3b55796a8baac4f9ebd37cc9ee5e44bde01ca346ce2dd00a0a5dd884711ba55`).
+The sole added source is
+`hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs`
+(4,387 bytes, SHA256 `417704f8e805196f9546a508a770d23a55d40ce9d6214be5225f131c4bd2c7c6`).
+The lock, both original network test files, `EXPECTED_METHODS`, `TEST_ROOTS`,
+observer argv, images, namespace, resources and cleanup contract stay exact.
+
+The fixture removes a blind three-second sleep that exceeded the unchanged
+250-by-10ms production assertion window. A stalled connection sends no response
+and immediately observes the existing three-second receive. Only observed peer
+EOF, including pre-handshake EOF, increments `closed`; local close, timeout,
+unexpected data and other errors do not. Synchronous accepted registration
+precedes handler work. At most sixteen categorical terminal results are retained,
+with no payload, keys or socket terms in the printed summary.
+
+The complete independent review is retained under amendment
+`independent-review/`: packet bytes SHA256
+`613876f8c91fb07e08100ba8cf02906cf61b67ae8573703ecced44073c84fa5e`,
+tree `f8d04d5f4f118f940f7183f16b217ca401b34fcda5558dd7929ce2d5657d446d`.
+The collector validates delivered Git blobs, exact amendment/review membership
+and pins before any image operation. It retains all four namespaces in
+`selected-contract-metadata.tar`, records source and review identities in run
+state, and binds the selected frozen-manifest helper through preparation,
+archive, restore, compiled and post-test comparisons. Caller-recomputed digests,
+old fixture, missing test, changed original tests/lock and extra sources fail.
+Workflow push/PR filters and sparse checkout include this amendment namespace.
+
+Four ordinary Phoenix controls must actually pass with formatting and
+warnings-as-errors compilation: silent stalled-response peer EOF within the
+original wait, accepted TCP handshake abort, timeout without EOF credit, and
+unexpected data without EOF credit or payload diagnostics. These controls are
+separate from the isolated collector's unchanged two-method execution. Fresh
+network output must pass both K03 and IS04/IS05, retain both semantic receipts,
+verify ten migrations and exact post-test inputs, and verify owned cleanup.
+Source review and pure Python controls are not Elixir/TLS runtime evidence.
+All six named behavior results and actual compilation remain pending for the
+amended source until fresh CI evidence is reviewed. Native, customer, held local
+custody, UnitA and GA boundaries remain unchanged.
