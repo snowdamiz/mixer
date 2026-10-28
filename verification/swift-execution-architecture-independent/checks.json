@@ -1,0 +1,103 @@
+{
+  "candidateCompiled": false,
+  "checks": [
+    "producer seal identity",
+    "exact producer sealed inventory",
+    "producer binding: DECISION.md",
+    "producer binding: SOURCE-REVIEW.md",
+    "producer binding: analysis-check.stderr",
+    "producer binding: analysis-check.stdout",
+    "producer binding: analyze.py",
+    "producer binding: campaign.py",
+    "producer binding: candidate.py",
+    "producer binding: dense-assert.rs",
+    "producer binding: dense-controls.rs",
+    "producer binding: dense-index.rs",
+    "producer binding: dense-mode.rs",
+    "producer binding: findings.json",
+    "producer binding: inspection-cleanup.json",
+    "producer binding: offline-check.json",
+    "producer binding: pin-hooks.rs",
+    "producer binding: pure-check.stderr",
+    "producer binding: pure-check.stdout",
+    "producer binding: source-check.stderr",
+    "producer binding: source-check.stdout",
+    "producer binding: source-check/candidate-dense/changes.patch",
+    "producer binding: source-check/candidate-dense/source.json",
+    "producer binding: source-check/check.json",
+    "producer binding: source-check/control-original256/changes.patch",
+    "producer binding: source-check/control-original256/source.json",
+    "producer binding: test_campaign.py",
+    "producer binding: workflow.yml",
+    "producer count and bytes",
+    "exact original wasm bytes and hash",
+    "generated source identity: False",
+    "generated source identity: True",
+    "only three algorithm files differ",
+    "original harness identical in both arms",
+    "frozen generic test bodies unchanged except visibility",
+    "literal exact-capacity defect source present",
+    "instruction charge precedes increment",
+    "supplied 32 pure controls",
+    "reproduction: unexpected capacity accepted",
+    "reject terminal kind Invariant",
+    "reject terminal kind DecoderMismatch",
+    "reject terminal kind Cancelled",
+    "reject terminal kind Wasi",
+    "reject terminal kind GuestTrap",
+    "reject terminal kind InvalidBudget",
+    "reproduction: impossible prefix fuel accepted",
+    "reproduction: 25M additional instructions with no additional fuel accepted",
+    "retain unresolved custody {'pid': 0, 'exitCode': 0, 'processGroupEmpty': True}",
+    "retain unresolved custody {'pid': 123, 'exitCode': -999, 'processGroupEmpty': True}",
+    "retain unresolved custody {'pid': 123, 'exitCode': 0, 'processGroupEmpty': False}",
+    "owned inspection and synthetic scratch removed"
+  ],
+  "checksPassed": 51,
+  "cleanup": {
+    "compilerGuestNativeCaptureProcessesStarted": false,
+    "heldActorsProbed": false,
+    "ownedScratchRemoved": true
+  },
+  "decision": "changes-required-before-dispatch",
+  "defaultPromotionAuthorized": false,
+  "findings": [
+    {
+      "blocking": true,
+      "evidence": "unexpected-capacity-reproduction.json",
+      "file": "campaign.py",
+      "id": "R1",
+      "lines": [
+        205,
+        209
+      ],
+      "priority": 1,
+      "title": "Unexpected exact allocation capacity is admitted as an ordinary resource stop"
+    },
+    {
+      "blocking": true,
+      "evidence": "impossible-prefix-reproduction.json",
+      "file": "campaign.py",
+      "id": "R2",
+      "lines": [
+        229,
+        251
+      ],
+      "priority": 2,
+      "title": "Prefix validation admits impossible instruction and fuel accounting"
+    }
+  ],
+  "hostFeasibilityAccepted": false,
+  "pythonVersion": "3.14.8",
+  "recordedUTC": "2026-10-28T20:33:12.847087+00:00",
+  "reviewedSealSHA256": "b20440be09778e3209de5c1e6dae941e0580b8737fe28ed35be53777e3292f70",
+  "runtimeAttempts": 0,
+  "schema": 1,
+  "scope": "independent source inspection and pure data/mocked orchestration; no compiler, guest, native, CI, custody probe",
+  "sourceRevisionObserved": "56ff14c925168284761c5aca4f0bd4129cf3c995",
+  "sourceSHA256": {
+    "candidate-dense": "3db26064abc07200219b62c9637850f50868f470bb2d0ca7598223131c2033d4",
+    "control-original256": "af58b29a605384f3ac3ac2d3a3b513533e0da4f140f0e5d2c22807eb78bcb2f7"
+  },
+  "suppliedTestsPassed": 32
+}

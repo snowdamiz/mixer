@@ -1,0 +1,337 @@
+--- verification/swift-execution-architecture-comparison/campaign.py
++++ verification/swift-execution-architecture-correction/campaign.py
+@@ -24,6 +24,12 @@
+ V1_BINDINGS_SHA = "e445894e7eb0971846635026e7219614965018c5339e146b97895bc45eb53827"
+ V1_CONTROLS_SHA = "41f3e465706101b9f8c50bf0246296bc0b88ad3a3d2202a74580d4a5dc64896e"
+ REVIEW_SEAL_SHA = "c6bde1201697149bfa84d2f31b112d14d8c1e35ac005fc908a16433941f23df8"
++CORRECTION_BASIS = {
++    "verification/swift-execution-architecture-comparison/seal.json":
++        "b20440be09778e3209de5c1e6dae941e0580b8737fe28ed35be53777e3292f70",
++    "verification/swift-execution-architecture-independent/seal.json":
++        "c1ecb422803c2e43dc69206b28e6f51e2b023b9b8fab13054e20ecc7976a7486",
++}
+ if hashlib.sha256((V1 / "campaign.py").read_bytes()).hexdigest() != V1_DRIVER_SHA:
+     raise RuntimeError("frozen v1 helper changed")
+ spec = importlib.util.spec_from_file_location("architecture_capacity_v1", V1 / "campaign.py")
+@@ -45,6 +51,8 @@
+ RESOURCE_FAILURE_KINDS = frozenset(("Deadline", "Allocation", "CategoryExhausted", "CombinedExhausted",
+     "ResourceExhausted", "FuelExhausted", "WorkExhausted", "HostCallLimit", "PinLimit", "FrameLimit",
+     "ValueLimit", "ControlLimit"))
++STRUCTURAL_FAILURE_RESOURCES = frozenset(("TicketInventory", "OwnerIdentity"))
++STRUCTURAL_FAILURE_CODES = frozenset(("swift_run_ticket_inventory", "swift_run_owner_exhausted"))
+ RSS_LIMITATION = "Raw wait4 value retained; prior campaign showed a launcher high-water floor. VM-attributable RSS unavailable; no per-arm RSS comparison."
+ 
+ 
+@@ -92,6 +100,8 @@
+ 
+ 
+ def inputs():
++    for path, expected in CORRECTION_BASIS.items():
++        require(sha((ROOT / path).read_bytes()) == expected, "architecture correction basis changed: " + path)
+     require(sha((base.INPUTS / "bindings.json").read_bytes()) == V1_BINDINGS_SHA, "frozen v1 input bindings changed")
+     require(sha((V1 / "campaign-controls.rs").read_bytes()) == V1_CONTROLS_SHA, "frozen v1 finite controls changed")
+     require(sha((REVIEW / "seal.json").read_bytes()) == REVIEW_SEAL_SHA, "prior review seal changed")
+@@ -203,10 +213,36 @@
+             and all(typed_equal(o.get("observation"), oracle) for o in result["completeGuestObservations"]),
+             "complete original 11-field oracle mismatch")
+     else:
++        failure = first.get("payload")
++        require(type(failure) is dict, "invalid first failure; stop comparison")
++        # Allocation is also the producer's kind for an exact-capacity defect.
++        # Any one of its identifying fields stops comparison, even if another
++        # field has been lost or misclassified. Cleanup is still checked above.
++        require(failure.get("code") != "swift_run_unexpected_capacity"
++            and failure.get("resource") != "ExactCapacity"
++            and failure.get("observed_capacity") is None,
++            "unexpected allocation capacity; stop comparison")
++        # Ticket/identity inventory failures concern structural accounting,
++        # not one of the selected experimental resource ceilings.
++        require(failure.get("resource") not in STRUCTURAL_FAILURE_RESOURCES
++            and failure.get("code") not in STRUCTURAL_FAILURE_CODES,
++            "structural ticket/identity failure; stop comparison")
+         require(result["hostFeasibility"] is False and result["complete"] is False
+-            and type(first.get("payload")) is dict and first["payload"].get("kind") in RESOURCE_FAILURE_KINDS,
++            and failure.get("kind") in RESOURCE_FAILURE_KINDS,
+             "unexpected invariant, unsupported behavior or non-resource failure; stop comparison")
+     result["outcome"] = "host-feasibility-observed" if result["hostFeasibility"] else "resource-limit-diagnostic"
++
++
++def validate_instruction_fuel(previous, current):
++    """One fuel precedes each original instruction; bulk fuel is nonnegative."""
++    require(all(type(current.get(key)) is int and 0 <= current[key] < (1 << 64)
++        for key in ("instructions", "instruction_fuel")), "invalid instruction/fuel counter")
++    instructions, fuel = current["instructions"], current["instruction_fuel"]
++    require(fuel >= instructions, "instruction fuel below cumulative original instructions")
++    require(instructions >= previous["instructions"] and fuel >= previous["instruction_fuel"],
++        "instruction/fuel cumulative counter regression")
++    require(fuel - previous["instruction_fuel"] >= instructions - previous["instructions"],
++        "instruction fuel below interval original instructions")
+ 
+ 
+ def prefix_records(path):
+@@ -236,6 +272,7 @@
+         if rows:
+             require(all(row[key] >= rows[-1][key] for key in PREFIX_FIELDS - {"function", "offset"}),
+                 "prefix cumulative counter regression")
++        validate_instruction_fuel(rows[-1] if rows else {"instructions": 0, "instruction_fuel": 0}, row)
+         rows.append(row)
+     return {"schema": 1, "records": rows, "outputBytes": len(encoded), "maximumBytes": PREFIX_MAX_BYTES,
+         "maximumRecords": len(PREFIX_THRESHOLDS), "authority": "read-only diagnostic observations; no success or completion inference"}, bytes(encoded)
+@@ -250,6 +287,13 @@
+         require(all(prefix["records"][-1][key] <= final[key]
+             for key in ("instructions", "instruction_fuel", "cache_work", "execution_work", "host_calls", "elapsed_micros")),
+             "prefix counters exceed final owner usage")
++    # Recheck every interval here as well: callers cannot bypass the parser's
++    # fuel contract with a preconstructed prefix object. Include the final join
++    # and the empty-prefix case, both measured from the original owner start.
++    previous = {"instructions": 0, "instruction_fuel": 0}
++    for current in [*prefix["records"], final]:
++        validate_instruction_fuel(previous, current)
++        previous = current
+ 
+ 
+ def check(output):
+@@ -263,6 +307,7 @@
+         rows.append({"name": name, "algorithm": algorithm, "sourceSHA256": record["sha256"],
+             "finiteFilter": finite_filter, "finiteCount": count, "bounds": expected_bounds()})
+     result = {"schema": 3, "profiles": rows, "inputBindings": bindings, "priorReviewSealSHA256": REVIEW_SEAL_SHA,
++        "correctionBasis": CORRECTION_BASIS,
+         "candidateGeneratorSHA256": sha((HERE / "candidate.py").read_bytes()),
+         "candidateSourceBindings": candidate_bindings(),
+         "artifact": {"bytes": len(artifact), "sha256": sha(artifact)}, "maxFullAttempts": MAX_FULL_ATTEMPTS,
+@@ -451,6 +496,7 @@
+         "environment": " ".join(os.uname()), "profiles": [], "preparedProfiles": [], "maxFullAttempts": MAX_FULL_ATTEMPTS, "fullAttempts": 0,
+         "maxCommands": MAX_COMMANDS,
+         "aggregateDeadlineSeconds": CAMPAIGN_SECONDS, "priorReviewSealSHA256": REVIEW_SEAL_SHA,
++        "correctionBasis": CORRECTION_BASIS,
+         "milestone": "Both corpus calls on one initialized owner match all 11 original native fields, followed by consuming zero-resource cleanup.",
+         "scope": "diagnostic host feasibility; native/public/signed OTA/FieldLog publication/GA pending", "rssLimitation": RSS_LIMITATION}
+     custody = {"recordPath": str(output / "custody.json"), "pendingCommand": None, "provenClosedCommands": 0}
+--- verification/swift-execution-architecture-comparison/test_campaign.py
++++ verification/swift-execution-architecture-correction/test_campaign.py
+@@ -36,6 +36,27 @@
+         row = {"pid": 123, "exitCode": 101, "timedOut": False, "processGroupEmpty": True, "cancelled": None}
+         campaign.validate_result(result, row)
+         return result, row
++
++    def write_failure_log(self, path, failure):
++        """Synthetic historical-log mutation, parsed by the real classifier."""
++        bounds, rows = campaign.expected_bounds(), []
++        for line in (campaign.base.INPUTS / "historical-attribution.stdout").read_text().splitlines():
++            marker = ("MIXER_EXACT " if "MIXER_EXACT " in line else
++                "MIXER_ATTRIBUTION " if "MIXER_ATTRIBUTION " in line else None)
++            if marker is None:
++                rows.append(line)
++                continue
++            before, value = line.split(marker, 1)
++            row = json.loads(value)
++            if marker == "MIXER_EXACT ":
++                if row["event"] in bounds:
++                    row["payload"] = bounds[row["event"]]
++                if row["event"] in ("runtime_failure", "final_failure"):
++                    row["payload"].update(failure)
++            elif row.get("payload"):
++                row["payload"]["first_rejection"] = None
++            rows.append(before + marker + json.dumps(row, separators=(",", ":")))
++        path.write_text("\n".join(rows) + "\n")
+ 
+     def prefix(self, threshold):
+         return {"threshold": threshold, "instructions": threshold, "instruction_fuel": threshold,
+@@ -96,6 +117,8 @@
+             source = campaign.prepare_source(self.original, algorithm)
+             self.assertEqual(source["src/experimental_swift_reactor/campaign_harness.rs"], (campaign.base.INPUTS / "harness.rs").read_bytes())
+         self.assertEqual(campaign.sha((campaign.REVIEW / "seal.json").read_bytes()), campaign.REVIEW_SEAL_SHA)
++        for path, digest in campaign.CORRECTION_BASIS.items():
++            self.assertEqual(campaign.sha((campaign.ROOT / path).read_bytes()), digest)
+ 
+     def test_both_arms_share_exact_control_harness_and_three_threshold_observer(self):
+         control = campaign.prepare_source(self.original, False)
+@@ -227,6 +250,79 @@
+             self.assertEqual(changed["outcome"], "resource-limit-diagnostic")
+             self.assertFalse(changed["hostFeasibility"])
+ 
++    def test_capacity_defect_each_identity_stops_after_real_classifier(self):
++        ordinary = {"kind": "Allocation", "code": "swift_execution_allocation", "resource": None,
++            "attempted": 160000, "limit": 0, "observed_capacity": None}
++        variants = [ordinary | {"code": "swift_run_unexpected_capacity", "resource": "ExactCapacity",
++            "limit": 160000, "observed_capacity": 160002},
++            ordinary | {"code": "swift_run_unexpected_capacity"},
++            ordinary | {"resource": "ExactCapacity"}, ordinary | {"observed_capacity": 160002}]
++        row = {"pid": 123, "exitCode": 101, "timedOut": False, "cancelled": None, "processGroupEmpty": True}
++        with tempfile.TemporaryDirectory() as tmp:
++            path = Path(tmp) / "synthetic.stdout"
++            self.write_failure_log(path, ordinary)
++            result = campaign.base.classify(path, row)
++            campaign.validate_result(result, row)
++            self.assertEqual(result["outcome"], "resource-limit-diagnostic")
++            for failure in variants:
++                self.write_failure_log(path, failure)
++                result = campaign.base.classify(path, row)
++                self.assertEqual(result["telemetry"]["status"], "valid")
++                with self.subTest(failure=failure), self.assertRaisesRegex(RuntimeError, "unexpected allocation capacity"):
++                    campaign.validate_result(result, row)
++                self.assertTrue(result["originalFinalFailurePreserved"])
++                self.assertTrue(result["consumingCleanup"])
++                self.assertTrue(campaign.zero_resources(result))
++                self.assertNotIn("outcome", result)
++
++    def test_structural_ticket_and_owner_failure_identities_stop(self):
++        result, row = self.failure_fixture()
++        for fields in ({"kind": "ResourceExhausted", "resource": "TicketInventory"},
++                {"kind": "ResourceExhausted", "code": "swift_run_ticket_inventory"},
++                {"kind": "ResourceExhausted", "resource": "OwnerIdentity"},
++                {"kind": "ResourceExhausted", "code": "swift_run_owner_exhausted"}):
++            changed = copy.deepcopy(result)
++            changed["firstFailure"]["payload"].update(fields)
++            campaign.event(changed, "final_failure").update(fields)
++            with self.subTest(fields=fields), self.assertRaisesRegex(RuntimeError, "structural ticket/identity failure"):
++                campaign.validate_result(changed, row)
++
++    def test_unexpected_capacity_real_execute_stops_run_before_second_attempt(self):
++        invoked = []
++        execute_profile = campaign.execute_profile
++        failure = {"kind": "Allocation", "code": "swift_run_unexpected_capacity", "resource": "ExactCapacity",
++            "attempted": 160000, "limit": 160000, "observed_capacity": 160002}
++        def profile(name, algorithm, finite_filter, count, original, target, scratch, env, output, record, custody):
++            invoked.append(name)
++            phase = output / name
++            (phase / "full").mkdir(parents=True)
++            self.write_failure_log(phase / "full/stdout", failure)
++            (phase / "full/stderr").write_bytes(b"")
++            prepared = {"name": name, "algorithm": algorithm, "source": {}, "record": {}, "phase": phase,
++                "crate": scratch / name, "childEnv": {}, "binary": scratch / "mock-binary", "executable": {}}
++            full = {"pid": 123, "exitCode": 101, "timedOut": False, "cancelled": None, "processGroupEmpty": True}
++            with patch.object(campaign, "verify_prepared"), patch.object(campaign, "unchanged", return_value=True), \
++                    patch.object(campaign.base, "command", return_value=full):
++                execute_profile(prepared, target, scratch, output, record, custody)
++        with tempfile.TemporaryDirectory() as tmp:
++            output = Path(tmp) / "output"
++            with self.assertRaisesRegex(RuntimeError, "unexpected allocation capacity"):
++                self.remote_run(output, profile)
++            saved = json.loads((output / "campaign.json").read_text())
++            persisted = json.loads((output / campaign.PROFILES[0][0] / "result.json").read_text())
++            self.assertEqual(invoked, [campaign.PROFILES[0][0]])
++            self.assertEqual(saved["fullAttempts"], 1)
++            self.assertEqual(saved["profiles"], [])
++            self.assertEqual(saved["status"], "stopped")
++            self.assertEqual(saved["cleanup"]["commandCustody"]["provenClosedCommands"], 10)
++            self.assertFalse(saved["cleanup"]["commandCustodyUnresolved"])
++            self.assertTrue(saved["cleanup"]["ownedScratchRemoved"])
++            self.assertEqual(persisted["firstFailure"]["payload"]["code"], "swift_run_unexpected_capacity")
++            self.assertEqual(campaign.event(persisted, "final_failure") | {"after_cleanup": None},
++                persisted["firstFailure"]["payload"])
++            self.assertTrue(persisted["consumingCleanup"])
++            self.assertTrue(campaign.zero_resources(persisted))
++
+     def test_external_timeout_cancellation_invalid_exit_and_group_proof_stop(self):
+         result, row = self.failure_fixture()
+         for key, value in (("timedOut", True), ("timedOut", 0), ("cancelled", "SIGTERM"),
+@@ -288,6 +384,49 @@
+         final["host_calls"] = 0
+         with self.assertRaisesRegex(RuntimeError, "exceed final owner"):
+             campaign.validate_prefix(result, parsed)
++
++    def test_prefix_rejects_absolute_and_interval_fuel_defects_at_both_entrypoints(self):
++        cases = ([self.prefix(25_000_000) | {"instruction_fuel": 0}],
++            [self.prefix(25_000_000) | {"instruction_fuel": 100_000_000},
++             self.prefix(50_000_000) | {"instruction_fuel": 100_000_000}])
++        for rows in cases:
++            with self.subTest(rows=rows), self.assertRaisesRegex(RuntimeError, "instruction fuel below"):
++                self.parse_prefix(rows)
++            result, _ = self.failure_fixture()
++            campaign.event(result, "final_cleanup_usage").update(rows[-1])
++            with self.subTest(direct=rows), self.assertRaisesRegex(RuntimeError, "instruction fuel below"):
++                campaign.validate_prefix(result, {"records": rows})
++
++    def test_prefix_final_join_checks_fuel_even_without_reached_threshold(self):
++        result, _ = self.failure_fixture()
++        final = campaign.event(result, "final_cleanup_usage")
++        for fuel in (0, False, -1, 1 << 64):
++            final.update(instructions=1, instruction_fuel=fuel)
++            with self.subTest(fuel=fuel), self.assertRaisesRegex(RuntimeError, "instruction.fuel|instruction fuel"):
++                campaign.validate_prefix(result, {"records": []})
++        rows = [self.prefix(25_000_000) | {"instruction_fuel": 100_000_000}]
++        parsed, _ = self.parse_prefix(rows)
++        final.update(rows[-1])
++        final.update(instructions=30_000_000, instruction_fuel=100_000_000)
++        with self.assertRaisesRegex(RuntimeError, "below interval original instructions"):
++            campaign.validate_prefix(result, parsed)
++        final.update(instructions=25_000_000, instruction_fuel=24_999_999)
++        with self.assertRaisesRegex(RuntimeError, "exceed final owner|below cumulative original instructions"):
++            campaign.validate_prefix(result, parsed)
++
++    def test_prefix_accepts_nondecreasing_bulk_fuel_and_exact_final_interval(self):
++        rows = [self.prefix(25_000_000) | {"instruction_fuel": 40_000_000},
++            self.prefix(50_000_000) | {"instruction_fuel": 70_000_000}]
++        parsed, _ = self.parse_prefix(rows)
++        result, _ = self.failure_fixture()
++        final = campaign.event(result, "final_cleanup_usage")
++        final.update(rows[-1])
++        final.update(instructions=55_000_000, instruction_fuel=75_000_000)
++        campaign.validate_prefix(result, parsed)
++        # A charged instruction may fail before incrementing its count, and
++        # nonnegative bulk charging can increase fuel with no new instruction.
++        final.update(instructions=50_000_000, instruction_fuel=70_000_001)
++        campaign.validate_prefix(result, parsed)
+ 
+     def test_geometry_receipt_requires_bounded_actual_envelope_and_dense_storage(self):
+         for algorithm in (False, True):
+@@ -600,6 +739,11 @@
+         self.assertIn("timeout-minutes: 55", workflow)
+         self.assertIn("timeout-minutes: 46", workflow)
+         self.assertIn("cancel-in-progress: false", workflow)
++        self.assertIn("group: swift-execution-architecture-comparison", workflow)
++        self.assertIn("python3 -B verification/swift-execution-architecture-correction/test_campaign.py", workflow)
++        self.assertIn("python3 -B verification/swift-execution-architecture-correction/campaign.py run", workflow)
++        self.assertNotIn("swift-execution-architecture-comparison/campaign.py", workflow)
++        self.assertNotIn("swift-execution-architecture-comparison/test_campaign.py", workflow)
+ 
+ 
+ if __name__ == "__main__":
+--- verification/swift-execution-architecture-comparison/workflow.yml
++++ verification/swift-execution-architecture-correction/workflow.yml
+@@ -1,4 +1,4 @@
+-name: Swift execution architecture comparison
++name: Swift execution architecture correction
+ on:
+   workflow_dispatch:
+ permissions:
+@@ -17,29 +17,31 @@
+           sparse-checkout-cone-mode: false
+           sparse-checkout: |
+             /verification/swift-cache-capacity-campaign-v1/
+-            /verification/swift-execution-architecture-comparison/
++            /verification/swift-execution-architecture-correction/
++            /verification/swift-execution-architecture-comparison/seal.json
++            /verification/swift-execution-architecture-independent/seal.json
+             /verification/github-delivery-binary-export-and-ui/cache-deadline-review/seal.json
+             /verification/github-delivery-binary-export-and-ui/cache-deadline-review/receipt.json
+             /verification/github-delivery-binary-export-and-ui/cache-deadline-review/REVIEW.md
+       - name: Pure source and decision controls
+         timeout-minutes: 1
+-        run: python3 -B verification/swift-execution-architecture-comparison/test_campaign.py
++        run: python3 -B verification/swift-execution-architecture-correction/test_campaign.py
+       - name: Install the same pinned compiler
+         timeout-minutes: 2
+         run: rustup toolchain install 1.99.0 --profile minimal
+       - name: Prepare both finite geometry arms then run exactly two full attempts
+         timeout-minutes: 46
+         run: >-
+-          python3 -B verification/swift-execution-architecture-comparison/campaign.py run
+-          --output "$RUNNER_TEMP/swift-execution-architecture-comparison"
++          python3 -B verification/swift-execution-architecture-correction/campaign.py run
++          --output "$RUNNER_TEMP/swift-execution-architecture-correction"
+       - name: Preserve failures, original observations and separate prefix diagnostics
+         timeout-minutes: 2
+         if: always()
+         uses: actions/upload-artifact@v4
+         with:
+-          name: swift-execution-architecture-comparison-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
++          name: swift-execution-architecture-correction-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+           path: |
+-            ${{ runner.temp }}/swift-execution-architecture-comparison/
+-            !${{ runner.temp }}/swift-execution-architecture-comparison/scratch/
++            ${{ runner.temp }}/swift-execution-architecture-correction/
++            !${{ runner.temp }}/swift-execution-architecture-correction/scratch/
+           if-no-files-found: error
+           retention-days: 30

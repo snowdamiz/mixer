@@ -788,3 +788,6 @@ work graph. `ready` means available work, not completed acceptance.
 | W16 | Security and reliability | in_progress |
 | W17 | FieldLog delivery | in_progress |
 | W18 | External qualification and launch | ready |
+
+
+2026-10-28 architecture selection: the corrected two-arm execution comparison passed independent source review (38 supplied pure tests, 412 independent checks, 11 mocked campaigns and 21 prefix cases). Root selected its unchanged finite limits and installed the manual workflow. Both optimized builds, finite/harness checks, actual geometry and cleanup must pass before either full run; at most two full attempts and eleven commands, no retries. Compilation, runtime results, feasibility and production-default promotion remain pending. The previous two-attempt cache campaign stays closed. The new network run at 8888d8e2 reaches both product methods and validates the exact 895-byte Rebar DAG capture, but both methods fail because :jose_jwk is unavailable; prepared archive timestamp correction is under source investigation. The 38-test FieldLog public host run remains pending. Native, device, UI/capture and held-process restrictions remain in force; gates stay 8 running, 30 planned, 0 verified.
