@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "source": "focused root review before dispatch",
+  "frozenV2SealSHA256": "62185c492c71edec34605aa365c7c095d851e276b79274e60e41c0c7ef04d65b",
+  "frozenV2DriverSHA256": "48e5c9a5d87edcf1379a54e48252d3de7793616c9608ac96c581ea6290edcb92",
+  "inheritedV1DriverSHA256": "5266e70df6e79054ffdc1abfc64b300d9f6252f11e55eb340716ab346bc4c556",
+  "finding": "Inherited base.command has no encompassing finally. An exception after Popen, including its post-spawn receipt save or wait4/group observation, can leave custody unresolved. Frozen v2 uses only an exception-message substring to decide scratch removal.",
+  "correction": "Record pending before every inherited command call. Clear only after typed terminal child-reap and exact owned-group-absence proof. Every unproven exception or malformed return retains scratch, stops further commands/attempts and records unresolved command custody independently of exception text.",
+  "scope": "small source-only exception-path preservation; no VM, telemetry or general runner rewrite",
+  "runtimeEffect": "None executed. Prior ordinary-exit v1 results remain valid. No old primary rerun or native/local-custody probe is selected."
+}

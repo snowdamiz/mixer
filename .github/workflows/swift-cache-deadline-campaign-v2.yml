@@ -1,0 +1,46 @@
+name: Swift cache deadline campaign v2
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: swift-cache-deadline-campaign-v2
+  cancel-in-progress: false
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        timeout-minutes: 1
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /verification/swift-cache-capacity-campaign-v1/
+            /verification/swift-cache-deadline-campaign-v2/
+            /verification/swift-cache-deadline-campaign-v2-correction/
+            /verification/github-delivery-blocker-campaign/cache-campaign-review/seal.json
+            /verification/github-delivery-blocker-campaign/cache-campaign-review/verified-results.json
+            /verification/github-delivery-blocker-campaign/cache-campaign-review/REVIEW.md
+      - name: Install the same pinned compiler
+        timeout-minutes: 2
+        run: rustup toolchain install 1.99.0 --profile minimal
+      - name: Pure source and decision controls
+        timeout-minutes: 1
+        run: python3 -B verification/swift-cache-deadline-campaign-v2-correction/test_campaign.py
+      - name: One deadline trial and at most one conditional CacheWork trial
+        timeout-minutes: 10
+        run: >-
+          python3 -B verification/swift-cache-deadline-campaign-v2-correction/campaign.py run
+          --output "$RUNNER_TEMP/swift-cache-deadline-campaign-v2"
+      - name: Preserve original failures and complete observations
+        timeout-minutes: 1
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-cache-deadline-campaign-v2-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/swift-cache-deadline-campaign-v2/
+            !${{ runner.temp }}/swift-cache-deadline-campaign-v2/scratch/
+          if-no-files-found: error
+          retention-days: 30

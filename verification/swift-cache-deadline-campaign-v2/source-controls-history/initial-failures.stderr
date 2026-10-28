@@ -1,0 +1,66 @@
+F........F.
+======================================================================
+FAIL: test_actual_bound_changes_and_failure_replacement_rejected (__main__.CampaignTests.test_actual_bound_changes_and_failure_replacement_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-deadline-campaign-v2/test_campaign.py", line 98, in test_actual_bound_changes_and_failure_replacement_rejected
+    with self.assertRaisesRegex(RuntimeError, "actual budgets/grants"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RuntimeError not raised
+
+======================================================================
+FAIL: test_orchestration_attempts_once_or_twice_without_primary_replay (__main__.CampaignTests.test_orchestration_attempts_once_or_twice_without_primary_replay)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-deadline-campaign-v2/test_campaign.py", line 154, in test_orchestration_attempts_once_or_twice_without_primary_replay
+    campaign.run(out)
+    ~~~~~~~~~~~~^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-deadline-campaign-v2/campaign.py", line 202, in run
+    "githubRunAttempt": os.environ.get("GITHUB_RUN_ATTEMPT"), "environment": platform.platform(),
+                                                                             ~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/platform.py", line 1354, in platform
+    system, node, release, version, machine, processor = uname()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/platform.py", line 959, in __iter__
+    (self.processor,)
+     ^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/functools.py", line 1126, in __get__
+    val = self.func(instance)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/platform.py", line 954, in processor
+    return _unknown_as_blank(_Processor.get())
+                             ~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/platform.py", line 886, in get
+    return func() or ''
+           ~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/platform.py", line 922, in from_subprocess
+    return subprocess.check_output(
+           ~~~~~~~~~~~~~~~~~~~~~~~^
+        ['uname', '-p'],
+        ^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        encoding="utf8",
+        ^^^^^^^^^^^^^^^^
+    ).strip()
+    ^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 473, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+               **kwargs).stdout
+               ^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 555, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 1176, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 1180, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 1241, in _execute_mock_call
+    raise effect
+AssertionError: no child permitted
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.430s
+
+FAILED (failures=2)

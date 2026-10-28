@@ -1,0 +1,182 @@
+{
+  "THIRD_PARTY_changed": false,
+  "actual_local_runtime_actions": false,
+  "at": "2026-10-28T18:20:22.204508+00:00",
+  "cleanup": "Only owned temporary pure-control directories removed. No new runtime processes or containers.",
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "verification/identity-network-image-amendment-v2/implementation/freeze-metadata.py"
+      ],
+      "each_http_max_bytes": 262144,
+      "each_http_timeout_seconds": 25,
+      "exit_code": 0,
+      "http_requests": 3,
+      "scope": "initial draft/source snapshots; no runtime"
+    },
+    {
+      "alarm_seconds": 50,
+      "argv": [
+        "python3",
+        "-B",
+        "hosted/scripts/test_identity_network_collector.py"
+      ],
+      "exit_code": 1,
+      "stderr": "implementation/controls-first.stderr",
+      "stdout": "implementation/controls-first.stdout",
+      "tests": 99
+    },
+    {
+      "alarm_seconds": 50,
+      "argv": [
+        "python3",
+        "-B",
+        "hosted/scripts/test_identity_network_collector.py"
+      ],
+      "exit_code": 0,
+      "stderr": "implementation/controls-second.stderr",
+      "stdout": "implementation/controls-second.stdout",
+      "tests": 99
+    },
+    {
+      "alarm_seconds": 50,
+      "argv": [
+        "python3",
+        "-B",
+        "hosted/scripts/test_identity_network_collector.py"
+      ],
+      "exit_code": 0,
+      "stderr": "implementation/controls-transfer.stderr",
+      "stdout": "implementation/controls-transfer.stdout",
+      "tests": 103
+    },
+    {
+      "alarm_seconds": 50,
+      "argv": [
+        "python3",
+        "-B",
+        "hosted/scripts/test_identity_network_collector.py"
+      ],
+      "exit_code": 0,
+      "stderr": "implementation/controls-final.stderr",
+      "stdout": "implementation/controls-final.stdout",
+      "tests": 103
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "verification/identity-network-image-amendment-v2/implementation/verify-source.py"
+      ],
+      "exit_code": 0,
+      "readonly_git_child_timeouts_seconds": [
+        5,
+        10
+      ],
+      "stdout": "implementation/source-checks.stdout"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        ".github/workflows/identity-network.yml",
+        "docs/hosted-identity-production-network-ci-contract.md",
+        "hosted/scripts/test-identity-network.py",
+        "hosted/scripts/test_identity_network_collector.py"
+      ],
+      "exit_code": 0,
+      "stderr": "implementation/diff-check.stderr",
+      "stdout": "implementation/diff-check.stdout"
+    }
+  ],
+  "commit_push_or_index_write": false,
+  "historical_runtime_evidence": {
+    "actual_prior_prerequisites": "reviewed seven tools/VM/OpenSSL/CA150 passed for prior preparation only",
+    "artifact_id": 12837649788,
+    "complete_bootstrap": false,
+    "failed_command": 22,
+    "noexec_cause": "source-supported inference only",
+    "prior_mountinfo_observed": false,
+    "run_id": 40740023326,
+    "stderr_bytes": 434,
+    "stderr_complete": false,
+    "stdout_complete": false
+  },
+  "metadata": {
+    "exact_packet_bytes_sha256": "dcac91f5cae0a2495f79448a76098975edc18db0ce96a1e769106244a0cf8061",
+    "execution_amendment_sha256": "b447fe5919c4e73d86aee4da707570127de2c35ecdae5a7b90b0163eb9bc436c",
+    "files": 16,
+    "packet_tree_digest_sha256": "0e35cd6dcc1685b16745def4fe0217fc60e5d703c95a5cddbfd2409381c63b6d"
+  },
+  "necessary_contract_consequence": "Selected nested tmpfs makes prior rename cross filesystems. Root selected exclusive bounded complete-close/SHA512-verified copy at unchanged source/final paths; final v2 bootstrap_transfer field binds it. Earlier draft preserved without runtime authority.",
+  "pending": [
+    "fresh independent source review",
+    "actual selected container mount policy and sizes",
+    "complete Rebar exclusive transfer and direct execution",
+    "complete Hex/Rebar bootstrap and locked dependency resolution",
+    "offline compilation",
+    "two unchanged production-path network methods",
+    "actual new-attempt isolation/resources/cleanup",
+    "independent artifact acceptance",
+    "all active native/UI/process/custody/customer/provider/GA holds"
+  ],
+  "protected_files_changed": false,
+  "retained_failure": "First99-run packet-byte drift control failed on whitespace-only packet edit; exact v2 seal bytes compiled afterward. Full failed log retained.",
+  "schema": 1,
+  "scope": "closed-bounded-executable-tooling-tmpfs-and-required-cross-filesystem-transfer-only",
+  "source": {
+    "HEAD": "cc350d3303ca71c5d57e87846f6a61304b658fa7",
+    "changed_canonical_source_tree_digest_sha256": "65b12100be7470e42761042bfe572ce799952bd04c3d40dba3042d1224fbdb5c",
+    "frozen_product_files": 177,
+    "frozen_product_tree_digest_sha256": "023df04c9a4599c3d5a6cdf2afb53a95e2faf37765d8b96ba2bcc0e1b007c92e",
+    "git_tree": "07f2b0e23e58dd445e2731930fc66b00ed49ec2e",
+    "immutable_packets": {
+      "identity-network-image-amendment-v1": {
+        "all_files_rehashed": true,
+        "files": 110,
+        "tree_digest_sha256": "c6116eb09de8bdd75ac3f3036c469efed7e11f6beef4210e9577ff9b72cd392c"
+      },
+      "identity-network-image-prerequisite-review": {
+        "all_files_rehashed": true,
+        "files": 71,
+        "tree_digest_sha256": "261023b77cb55255f666959f367330783a354174252ed23b71145566f87ba597"
+      },
+      "identity-production-network-contract": {
+        "all_files_rehashed": true,
+        "files": 46,
+        "tree_digest_sha256": "a3a806d83e285213df4c0e951282686dcfcfa81701e8005040d5172b3300050d"
+      }
+    },
+    "new_tests": 19,
+    "original_68_test_bodies_unchanged": true,
+    "prior_tests": 84,
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "runtime_qualification": false,
+    "scope": "source and Python pure controls only; no runtime acceptance",
+    "total_tests": 103,
+    "unchanged_protected_and_inventory": {
+      ".github/workflows/hosted.yml": {
+        "bytes": 5231,
+        "sha256": "fafd2560cc385a4113ea140bf2d4445d456e1f7f396539dfe2c3e7d6302e8b57"
+      },
+      "THIRD_PARTY.yml": {
+        "bytes": 29952,
+        "sha256": "27b3d9becb46e9207903119f00c634276033fa595709f65c87276acab5ff7085"
+      },
+      "hosted/lib/mixer_hosted/browser_auth/store.ex": {
+        "bytes": 31414,
+        "sha256": "8c314b1d3ce288a6dc617251233796bd0a9d8894247ccb15b101e1292e513299"
+      }
+    },
+    "v1_test_adaptation_scope": "Represent new prior mount gate and v2 metadata while keeping old prerequisite-refusal assertion and no-bootstrap checks.",
+    "v1_test_body_adaptations": [
+      "CollectorMethodWiringControls.test_collect_requires_actual_prepare_result_before_bootstrap"
+    ],
+    "workflow_both_filters_and_sparse_path": true
+  },
+  "status": "source-and-pure-controls-complete-awaiting-fresh-independent-review"
+}

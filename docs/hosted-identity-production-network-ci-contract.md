@@ -44,6 +44,60 @@ objects. Source inspection establishes no executable runtime pass.
 | Linux AMD64 manifest | `sha256:ed110657152803079f311913be4effe02874e2c714a1b5a38891873b7f2a16c5` |
 | Config | `sha256:857e84a618d1f76390220fbff2e7d54d588aea4f772ab1e60dacfe3fa02602cc` |
 
+The selected execution amendment is
+`verification/identity-network-image-amendment-v2/metadata/`. Its contract SHA256
+is `b447fe5919c4e73d86aee4da707570127de2c35ecdae5a7b90b0163eb9bc436c`,
+its packet tree is `0e35cd6dcc1685b16745def4fe0217fc60e5d703c95a5cddbfd2409381c63b6d`,
+and its exact packet bytes have SHA256
+`dcac91f5cae0a2495f79448a76098975edc18db0ce96a1e769106244a0cf8061`.
+It preserves the
+original contract, v1 image amendment and their source-review packets. V2 is a
+closed carve of the existing 1 GiB workspace allowance into these mounts in
+both preparation and test containers:
+
+| Path | Bytes | Execution policy | Other required flags/mode |
+| --- | --- | --- | --- |
+| `/workspace` | 1,006,632,960 | explicit `noexec` | `rw,nosuid,nodev,mode=0755` |
+| `/workspace/tooling` | 67,108,864 | explicit `exec` | `rw,nosuid,nodev,mode=0755` |
+| `/tmp` | 67,108,864 | explicit `noexec` | `rw,nosuid,nodev,mode=1777` |
+
+The workspace and tooling capacities sum to the previous 1,073,741,824 bytes.
+The test `/run` declaration, PG mounts, memory/CPU/PID limits and capabilities
+remain unchanged. Test `/run` must actually be `noexec`. Only the exact selected
+nested tooling mount may appear beneath the selected paths; additional
+submounts fail. No broader workspace execution is authorized.
+
+Run `40740023326` for `cc350d3303ca71c5d57e87846f6a61304b658fa7` supplied actual
+preparation evidence for all seven required tools, CA150, VM and OpenSSL
+identities, then failed command 22 with EACCES spawning
+`/workspace/tooling/rebar3 --version`. Its retained incomplete-stream flags
+remain false. Docker 28.0.4's pinned source supplies a default `noexec` flag;
+the missing override and EACCES support that cause as an inference. The prior
+run retained no actual mountinfo and provides no complete bootstrap result.
+The exact Mix 1.20.4 Unix path also invokes Rebar directly, so merely changing
+the bootstrap invocation would leave dependency compilation affected.
+
+The nested tooling mount makes the existing download and final Rebar paths
+separate filesystems. Bootstrap therefore copies the already checksum-verified
+bounded source at `/workspace/downloads/rebar3` into an absent, exclusively
+created `/workspace/tooling/rebar3`. It requires a complete write and close,
+exact target size and SHA512 before chmod or direct execution, then removes
+only the owned download. A structured transfer receipt must join the verified
+download bytes, final bytes, checksum, exclusive create, close and removal
+facts. Short copy, existing target or hash mismatch fails; there is no rename
+fallback or alternate staging path.
+
+V2 binds that raw failed-run proof and the unchanged actual prerequisite
+invariants. Every fresh attempt still executes its own prerequisites. After
+copy-in, a fixed helper reads at most 64 KiB from `/proc/self/mountinfo` inside
+the exact owned preparation or test container. It retains only the selected
+paths and any descendant contradictions, plus their actual modes and a hash
+of the bounded read. Independent consumer checks require tmpfs, `rw`, `nosuid`,
+`nodev`, exact capacities, workspace/tmp/run `noexec`, tooling executable and
+tooling's parent mount matching the workspace mount. This actual evidence and
+the existing Docker inspection guards must both pass before bootstrap or test
+authorization. The helper starts no child process or mount operation.
+
 ## Runtime boundary
 
 GitHub's Ubuntu 24.04 AMD64 runner uses immutable HexPM Elixir 1.20.4/OTP
@@ -122,10 +176,11 @@ is recorded separately from graceful application shutdown. The finalizer uses
 the original attempt identity and deadline. Hard cancellation or runner loss
 can prevent cleanup/upload; missing evidence never counts as a pass.
 
-`selected-contract-metadata.tar` preserves both full path namespaces: the old
-contract and its original Elixir/PostgreSQL metadata, plus the complete selected
-amendment and source-review metadata. The workflow checks out the sealed
-amendment metadata and both push/PR filters include its parent path.
+`selected-contract-metadata.tar` preserves all three full path namespaces: the
+original contract and Elixir/PostgreSQL metadata, the complete v1 image
+amendment/source review, and the complete v2 execution amendment/raw proof.
+The workflow checks out both sealed amendment metadata packets and both
+push/PR filters include their parent paths.
 Implementation and pure-control receipts live outside the metadata self-seal.
 
 The artifact retains command logs, input/tool/module manifests, bounded safe
@@ -140,7 +195,8 @@ native devices or GA. Production fixture exclusion is qualified by a separate
 ordinary Phoenix run for the delivered source, or explicitly reviewed reuse of
 unchanged-source evidence. Native runtime and computer-use pauses remain active.
 
-The image amendment's authoring receipt covers source and pure Python controls
-only. Fresh remote tool/crypto/CA execution, TLS downloads, Hex/Rebar execution,
-dependency resolution, compilation, the two product methods, isolation and
-cleanup remain pending until independently reviewed runtime evidence exists.
+V2 authoring covers source and pure Python controls only. The reviewed prior
+run qualifies actual preparation tool/crypto/CA results and exact owned cleanup
+for that failed attempt. Fresh actual mount policy, complete bootstrap,
+dependency resolution, compilation, the two product methods and all new
+attempt isolation/cleanup remain pending independently reviewed runtime evidence.

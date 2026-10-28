@@ -1,0 +1,5 @@
+ExUnit.start(autorun: false, seed: 0, trace: true)
+Code.require_file("/home/runner/work/_temp/browser-migrations/20261028T175457.902032Z-04fb445d/inputs/hosted/test/mixer_hosted/browser_auth/migration_spec.exs")
+r=ExUnit.run()
+File.write!("/home/runner/work/_temp/browser-migrations/20261028T175457.902032Z-04fb445d/result.json",Jason.encode!(r))
+System.halt(if r.total==1 and r.failures==0 and r.skipped==0 and r.excluded==0 and Map.get(r,:invalid,0)==0, do: 0, else: 1)

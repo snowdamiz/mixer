@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/moby/moby/v28.0.4/daemon/oci_linux.go",
+      "basis": "Exact recorded Docker 28.0.4 release source, lines 489-502 (one based 490-503)",
+      "excerpt": "options := []string{\"noexec\", \"nosuid\", \"nodev\", string(parser.DefaultPropagationMode())}",
+      "finding": "tmpfs processing begins with noexec,nosuid,nodev and appends supplied options before MergeTmpfsOptions. Recorded workspace options contain no exec override.",
+      "limit": "Source-supported explanation consistent with EACCES, not a retained mountinfo measurement or dynamic source attestation."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/elixir-lang/elixir/v1.20.4/lib/mix/lib/mix/rebar.ex",
+      "basis": "Exact recorded Elixir 1.20.4 source, rebar_args/2 and env_rebar_path/1",
+      "finding": "On Unix, Mix uses the configured MIX_REBAR3 path directly with arguments. Only Windows selects escript.exe. A bootstrap-only interpreter invocation would leave the next Unix dependency compilation path affected.",
+      "limit": "No Mix runtime or dependency build performed locally."
+    },
+    {
+      "url": "https://docs.docker.com/engine/storage/tmpfs/",
+      "basis": "Official tmpfs mount-option documentation",
+      "finding": "exec/noexec explicitly control binary execution. A newly selected executable-tool mount is a contract change that must remain bounded and independently checked."
+    }
+  ],
+  "external_access": "Read-only official web source; no executable/layer download, local runtime, CI rerun or image mutation."
+}

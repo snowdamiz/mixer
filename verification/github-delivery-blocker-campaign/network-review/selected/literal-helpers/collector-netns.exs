@@ -1,0 +1,15 @@
+
+{:ok, socket} = :socket.open(:inet, :dgram, :udp)
+:ok = :socket.ioctl(socket, :sifaddr, ~c"lo:1", %{family: :inet, addr: {8, 8, 8, 8}, port: 0})
+{:ok, %{addr: {8, 8, 8, 8}}} = :socket.ioctl(socket, :gifaddr, ~c"lo:1")
+:ok = :socket.close(socket)
+interfaces = File.read!("/proc/net/dev") |> String.split("\n") |> Enum.drop(2) |> Enum.filter(&String.contains?(&1, ":")) |> Enum.map(&(String.split(&1, ":") |> hd() |> String.trim())) |> Enum.sort()
+routes = File.read!("/proc/net/route") |> String.split("\n", trim: true) |> Enum.drop(1) |> Enum.map(&String.split/1)
+defaults = Enum.filter(routes, &(Enum.at(&1, 1) == "00000000"))
+true = Enum.all?(routes, &(hd(&1) == "lo"))
+ipv6 = File.read!("/proc/net/ipv6_route")
+true = Enum.all?(String.split(ipv6, "\n", trim: true), &(String.split(&1) |> List.last() == "lo"))
+status = File.read!("/proc/self/status") |> String.split("\n")
+cap = fn key -> Enum.find_value(status, fn line -> case String.split(line, ":", parts: 2) do [^key, value] -> String.trim(value); _ -> nil end end) end
+{:ok, netns} = File.read_link("/proc/self/ns/net")
+IO.puts("IDENTITY_JSON=" <> IO.iodata_to_binary(:json.encode(%{"interfaces" => interfaces, "default_routes" => defaults, "routes" => routes, "ipv6_routes" => ipv6, "netns" => netns, "public_address" => "8.8.8.8", "setup_socket_closed" => true, "open_setup_sockets" => 0, "cap_eff" => cap.("CapEff"), "cap_prm" => cap.("CapPrm"), "cap_bnd" => cap.("CapBnd")})))

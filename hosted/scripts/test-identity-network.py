@@ -34,6 +34,10 @@ AMENDMENT_BASE = "verification/identity-network-image-amendment-v1/metadata/"
 AMENDMENT_SHA256 = "6a2ec88721d89a28e40961f834b856598ba0f6f14d88708906cf3931e0e33afa"
 AMENDMENT_PACKET = "9ddc12c8277b120dcd8ef7577dd9da03d245b8502802db85399a6f1104bcbdc8"
 SOURCE_REVIEW_PACKET = "261023b77cb55255f666959f367330783a354174252ed23b71145566f87ba597"
+EXECUTION_BASE = "verification/identity-network-image-amendment-v2/metadata/"
+EXECUTION_SHA256 = "b447fe5919c4e73d86aee4da707570127de2c35ecdae5a7b90b0163eb9bc436c"
+EXECUTION_PACKET = "0e35cd6dcc1685b16745def4fe0217fc60e5d703c95a5cddbfd2409381c63b6d"
+EXECUTION_PACKET_SHA256 = "dcac91f5cae0a2495f79448a76098975edc18db0ce96a1e769106244a0cf8061"
 OLD_TEST_IMAGE = {
     "ref": "hexpm/elixir@sha256:3571d320ec0656c38c76b4c362a8e0c0fd6f9b58cec6448a08e43a82940d4e43",
     "index": "sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
@@ -64,11 +68,42 @@ BOOTSTRAP = {
     },
 }
 RESOURCES = {"prepare": (2147483648, 2, 256), "test": (2147483648, 2, 256), "pg": (1073741824, 1, 128)}
-TMPFS = {
-    "prepare": {"/workspace": "rw,nosuid,nodev,size=1073741824,mode=0755", "/tmp": "rw,nosuid,nodev,size=67108864,mode=1777"},
-    "test": {"/workspace": "rw,nosuid,nodev,size=1073741824,mode=0755", "/tmp": "rw,nosuid,nodev,size=67108864,mode=1777", "/run": "rw,nosuid,nodev,size=16777216,mode=0755"},
-    "pg": {"/var/lib/postgresql/data": "rw,nosuid,nodev,size=536870912,mode=0700", "/var/run/postgresql": "rw,nosuid,nodev,size=16777216,mode=0775", "/tmp": "rw,nosuid,nodev,size=67108864,mode=1777"},
-}
+OLD_TMPFS = {'pg': {'/tmp': 'rw,nosuid,nodev,size=67108864,mode=1777',
+        '/var/lib/postgresql/data': 'rw,nosuid,nodev,size=536870912,mode=0700',
+        '/var/run/postgresql': 'rw,nosuid,nodev,size=16777216,mode=0775'},
+ 'prepare': {'/tmp': 'rw,nosuid,nodev,size=67108864,mode=1777',
+             '/workspace': 'rw,nosuid,nodev,size=1073741824,mode=0755'},
+ 'test': {'/run': 'rw,nosuid,nodev,size=16777216,mode=0755',
+          '/tmp': 'rw,nosuid,nodev,size=67108864,mode=1777',
+          '/workspace': 'rw,nosuid,nodev,size=1073741824,mode=0755'}}
+TMPFS = {'pg': {'/tmp': 'rw,nosuid,nodev,size=67108864,mode=1777',
+        '/var/lib/postgresql/data': 'rw,nosuid,nodev,size=536870912,mode=0700',
+        '/var/run/postgresql': 'rw,nosuid,nodev,size=16777216,mode=0775'},
+ 'prepare': {'/tmp': 'rw,nosuid,nodev,noexec,size=67108864,mode=1777',
+             '/workspace': 'rw,nosuid,nodev,noexec,size=1006632960,mode=0755',
+             '/workspace/tooling': 'rw,nosuid,nodev,exec,size=67108864,mode=0755'},
+ 'test': {'/run': 'rw,nosuid,nodev,size=16777216,mode=0755',
+          '/tmp': 'rw,nosuid,nodev,noexec,size=67108864,mode=1777',
+          '/workspace': 'rw,nosuid,nodev,noexec,size=1006632960,mode=0755',
+          '/workspace/tooling': 'rw,nosuid,nodev,exec,size=67108864,mode=0755'}}
+MOUNT_POLICY = {'descendants': 'only-exact-selected-tooling-child-mount-is-permitted',
+ 'max_bytes': 65536,
+ 'max_selected_line_bytes': 4096,
+ 'modes': {'/run': 493,
+           '/tmp': 1023,
+           '/workspace': 493,
+           '/workspace/tooling': 493},
+ 'required': 'tmpfs-rw-nosuid-nodev-exact-size-noexec-except-tooling',
+ 'roles': {'prepare': ['/workspace', '/workspace/tooling', '/tmp'],
+           'test': ['/workspace', '/workspace/tooling', '/tmp', '/run']},
+ 'source': '/proc/self/mountinfo',
+ 'tooling_mount_parent': 'workspace-mount-id'}
+REBAR_TRANSFER = {'copy': 'exclusive-target-complete-close-sha512-before-chmod-direct-execution',
+ 'destination': '/workspace/tooling/rebar3',
+ 'max_bytes': 16777216,
+ 'remove': 'only-owned-source-after-complete-target-verification',
+ 'sha512': 'b51946058fbe4aa823185bfe27204be59be439982ac3a3e1dbd9f8260b9af046fcfdfbd9066283c3fbba5a2a45dc3570550c12a9a548daf223b80cac222a6d0f',
+ 'source': '/workspace/downloads/rebar3'}
 CAPS = {"prepare": set(), "test": {"NET_ADMIN", "NET_BIND_SERVICE"}, "pg": {"CHOWN", "DAC_OVERRIDE", "FOWNER", "SETUID", "SETGID"}}
 BASE_ENV = {
     "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
@@ -176,6 +211,105 @@ def validate_selected_metadata(metadata):
     ca = amendment["prerequisites"]["ca"]
     require({key: ca[key] for key in ("path", "bytes", "sha256")} == {key: capabilities["ca_bundle"][key] for key in ("path", "bytes", "sha256")} and ca["der_sha256"] == sorted(row["der_sha256"] for row in capabilities["ca_bundle"]["certificates"]), "prerequisite CA source binding mismatch")
     return amendment
+
+
+def validate_execution_manifest(body):
+    require(isinstance(body, bytes) and hashlib.sha256(body).hexdigest() == EXECUTION_PACKET_SHA256, "execution amendment packet bytes mismatch")
+    packet = json.loads(body)
+    require(isinstance(packet, dict) and set(packet) == {"schema", "files", "tree_digest_sha256"} and type(packet["schema"]) is int and packet["schema"] == 1, "execution amendment packet shape")
+    files = packet["files"]
+    require(isinstance(files, dict) and len(files) == 16 and packet["tree_digest_sha256"] == EXECUTION_PACKET and canonical_digest(files) == EXECUTION_PACKET, "execution amendment packet seal mismatch")
+    for path, row in files.items():
+        name = PurePosixPath(path)
+        require(not name.is_absolute() and ".." not in name.parts and str(name) == path and "\\" not in path and path != "packet-manifest.json", "unsafe execution amendment path")
+        require(isinstance(row, dict) and set(row) == {"bytes", "sha256"} and type(row["bytes"]) is int and 0 <= row["bytes"] <= MAX_COMMAND_BYTES and bool(re.fullmatch("[0-9a-f]{64}", row["sha256"])), "execution amendment row shape")
+    return files
+
+
+def validate_execution_contract(value, image_amendment):
+    require(isinstance(value, dict) and set(value) == {"schema", "operation", "base_contract", "prior_amendment", "old_tmpfs", "new_tmpfs", "workspace_partition", "preserved", "mount_observation", "bootstrap_transfer", "runtime_basis", "proof_files"} and type(value["schema"]) is int and value["schema"] == 1 and value["operation"] == "carve-bounded-executable-tooling-tmpfs", "execution amendment is not the closed tooling carve")
+    require(value["base_contract"] == image_amendment["predecessor"] and value["prior_amendment"] == {"path": AMENDMENT_BASE, "amendment_sha256": AMENDMENT_SHA256, "packet_tree_digest_sha256": AMENDMENT_PACKET}, "execution amendment predecessor mismatch")
+    require(canonical_digest(value["old_tmpfs"]) == canonical_digest(OLD_TMPFS) and canonical_digest(value["new_tmpfs"]) == canonical_digest(TMPFS), "execution amendment tmpfs table mismatch")
+    partition = {"total_bytes": 1073741824, "workspace_bytes": 1006632960, "tooling_bytes": 67108864, "roles": ["prepare", "test"], "tooling_path": "/workspace/tooling"}
+    require(canonical_digest(value["workspace_partition"]) == canonical_digest(partition) and partition["workspace_bytes"] + partition["tooling_bytes"] == partition["total_bytes"], "execution amendment workspace carve mismatch")
+    preserved = {"test_image": image_amendment["test_image"], "prerequisites": image_amendment["prerequisites"], "product_pg_bootstrap_contract": image_amendment["preserved"], "resources": RESOURCES, "capabilities": {role: sorted(caps) for role, caps in CAPS.items()}}
+    require(canonical_digest(value["preserved"]) == canonical_digest(preserved), "execution amendment changed an invariant")
+    require(canonical_digest(value["mount_observation"]) == canonical_digest(MOUNT_POLICY), "execution amendment mount observation policy mismatch")
+    require(canonical_digest(value["bootstrap_transfer"]) == canonical_digest(REBAR_TRANSFER) and REBAR_TRANSFER["sha512"] == BOOTSTRAP["rebar"]["sha512"], "execution amendment bootstrap transfer mismatch")
+    basis = value["runtime_basis"]
+    require(basis["run_id"] == 40740023326 and basis["artifact_id"] == 12837649788 and basis["delivery_revision"] == "cc350d3303ca71c5d57e87846f6a61304b658fa7" and basis["artifact_tree_digest_sha256"] == "616274ea3bccd45a7b506a0b71de1016b004cbe55e9ca5f3da9fb2cfb9d394bf" and basis["artifact_zip_sha256"] == "932f877ed0fc8cf8ad9457e0ba1b4888ff7bd5a58762b86975f6e887f9673231" and basis["failed_command"] == 22 and basis["source_supported_noexec_inference"] is True and basis["actual_prior_mountinfo"] is False, "execution amendment prior runtime basis mismatch")
+    return value
+
+
+def validate_execution_metadata(metadata):
+    require(isinstance(metadata, dict) and EXECUTION_BASE + "packet-manifest.json" in metadata, "missing execution amendment seal")
+    files = validate_execution_manifest(metadata[EXECUTION_BASE + "packet-manifest.json"])
+    selected_paths = {EXECUTION_BASE + path for path in files} | {EXECUTION_BASE + "packet-manifest.json"}
+    require({path for path in metadata if path.startswith(EXECUTION_BASE)} == selected_paths, "missing or extra execution amendment metadata")
+    image_amendment = validate_selected_metadata({path: body for path, body in metadata.items() if not path.startswith(EXECUTION_BASE)})
+    for path, expected in files.items():
+        require(isinstance(metadata[EXECUTION_BASE + path], bytes) and expected == _file_row(metadata[EXECUTION_BASE + path]), "execution amendment metadata hash mismatch")
+    body = metadata[EXECUTION_BASE + "execution-amendment.json"]
+    require(hashlib.sha256(body).hexdigest() == EXECUTION_SHA256, "selected execution amendment drift")
+    value = validate_execution_contract(json.loads(body), image_amendment)
+    require(value["proof_files"] == {path: row for path, row in files.items() if path != "execution-amendment.json"}, "execution amendment proof membership mismatch")
+    for name in ("image-amendment.json", "packet-manifest.json"):
+        require(metadata[EXECUTION_BASE + "proof/prior-v1/" + name] == metadata[AMENDMENT_BASE + name], "execution amendment prior raw proof mismatch")
+    proof = EXECUTION_BASE + "proof/runtime/selected/artifact/"
+    artifact = json.loads(metadata[proof + "artifact-manifest.json"])
+    require(artifact["tree_digest_sha256"] == value["runtime_basis"]["artifact_tree_digest_sha256"] and canonical_digest(artifact["files"]) == artifact["tree_digest_sha256"], "prior failed artifact seal mismatch")
+    for name in ("prepare-prerequisites.json", "logs/0022.json", "logs/0022.stderr", "bootstrap-plan.json"):
+        require(artifact["files"][name] == _file_row(metadata[proof + name]), "prior failed artifact proof drift")
+    reference = value["runtime_basis"]["prerequisite_receipt_reference"]
+    require(reference == {"original_path": "verification/github-delivery-blocker-campaign/network-review/selected/artifact/prepare-prerequisites.json", "packet_path": "proof/runtime/selected/artifact/prepare-prerequisites.json", **_file_row(metadata[proof + "prepare-prerequisites.json"])}, "prior actual prerequisite reference mismatch")
+    validate_prerequisites(json.loads(metadata[proof + "prepare-prerequisites.json"]), image_amendment["prerequisites"])
+    failure = json.loads(metadata[proof + "logs/0022.json"])
+    require(failure["exit_code"] == 1 and failure["stdout_complete"] is False and failure["stderr_complete"] is False and failure["timed_out"] is False and b":eacces" in metadata[proof + "logs/0022.stderr"], "prior failed command facts changed")
+    return value
+
+
+def validate_rebar_transfer(observed, download):
+    require(isinstance(observed, dict) and set(observed) == {"source", "destination", "download_bytes", "copied_bytes", "target_bytes", "sha512", "exclusive_create", "closed_before_hash", "owned_download_removed"}, "actual Rebar transfer result missing")
+    require(observed["source"] == REBAR_TRANSFER["source"] and observed["destination"] == REBAR_TRANSFER["destination"], "actual Rebar transfer paths mismatch")
+    for key in ("download_bytes", "copied_bytes", "target_bytes"):
+        require(type(observed[key]) is int and 0 < observed[key] <= REBAR_TRANSFER["max_bytes"], "actual Rebar transfer byte bound")
+    require(observed["download_bytes"] == observed["copied_bytes"] == observed["target_bytes"] and observed["sha512"] == BOOTSTRAP["rebar"]["sha512"], "actual Rebar transfer short copy or checksum mismatch")
+    require(all(observed[key] is True for key in ("exclusive_create", "closed_before_hash", "owned_download_removed")), "actual Rebar transfer incomplete or not exclusive")
+    require(isinstance(download, dict) and type(download.get("bytes")) is int and download["bytes"] == observed["download_bytes"] and download.get("sha512") == observed["sha512"] and download.get("url") == BOOTSTRAP["rebar"]["url"], "actual Rebar transfer not joined to verified download")
+    return observed
+
+
+def validate_mount_observation(role, observed):
+    require(role in {"prepare", "test"} and isinstance(observed, dict) and set(observed) == {"role", "source", "read_bytes", "read_sha256", "selected_lines", "path_modes"}, "actual mount observation missing or malformed")
+    require(observed["role"] == role and observed["source"] == MOUNT_POLICY["source"] and type(observed["read_bytes"]) is int and 0 < observed["read_bytes"] <= MOUNT_POLICY["max_bytes"] and isinstance(observed["read_sha256"], str) and bool(re.fullmatch("[0-9a-f]{64}", observed["read_sha256"])), "actual mount observation source/bound mismatch")
+    paths = MOUNT_POLICY["roles"][role]
+    lines = observed["selected_lines"]
+    require(isinstance(lines, list) and len(lines) == len(paths), "actual selected mounts missing or extra descendants")
+    require(canonical_digest(observed["path_modes"]) == canonical_digest({path: MOUNT_POLICY["modes"][path] for path in paths}), "actual selected mount mode mismatch")
+    entries = {}
+    for line in lines:
+        require(isinstance(line, str) and 0 < len(line.encode()) <= MOUNT_POLICY["max_selected_line_bytes"] and not any(char in line for char in "\n\r\t") and line.count(" - ") == 1, "actual mountinfo line malformed")
+        left, right = line.split(" - ")
+        fields, filesystem = left.split(), right.split()
+        require(len(fields) >= 6 and len(filesystem) == 3 and all(re.fullmatch("[0-9]+", fields[index]) and int(fields[index]) > 0 for index in (0, 1)) and bool(re.fullmatch("[0-9]+:[0-9]+", fields[2])) and fields[3] == "/", "actual mountinfo identity malformed")
+        path = fields[4]
+        require(path in paths and path not in entries and filesystem[:2] == ["tmpfs", "tmpfs"], "actual mountpoint absent, duplicate, descendant or non-tmpfs")
+        flags, super_flags = fields[5].split(","), filesystem[2].split(",")
+        require(len(set(flags)) == len(flags) and len(set(super_flags)) == len(super_flags) and all(flags) and all(super_flags), "duplicate or empty actual mount options")
+        combined = set(flags) | set(super_flags)
+        require({"rw", "nosuid", "nodev"} <= set(flags) and not ({"ro", "suid", "dev"} & combined) and "rw" in super_flags, "actual mount security flags mismatch")
+        require(("noexec" not in combined) if path == "/workspace/tooling" else ("noexec" in flags and "exec" not in combined), "actual mount execution policy mismatch")
+        sizes = [option.removeprefix("size=") for option in super_flags if option.startswith("size=")]
+        require(len(sizes) == 1 and bool(re.fullmatch(r"[0-9]+[kKmMgG]?", sizes[0])), "actual tmpfs size missing or ambiguous")
+        text = sizes[0]
+        scale = {"k": 1024, "m": 1048576, "g": 1073741824}
+        size = int(text[:-1]) * scale[text[-1].lower()] if text[-1].isalpha() else int(text)
+        expected = next(option.removeprefix("size=") for option in TMPFS[role][path].split(",") if option.startswith("size="))
+        require(size == int(expected), "actual tmpfs size mismatch")
+        entries[path] = {"id": fields[0], "parent": fields[1]}
+    require(set(entries) == set(paths) and entries["/workspace/tooling"]["parent"] == entries["/workspace"]["id"] and len({entry["id"] for entry in entries.values()}) == len(entries), "actual selected mount hierarchy mismatch")
+    require(observed["read_bytes"] >= sum(len(line.encode()) + 1 for line in lines), "actual mount observation byte count inconsistent")
+    return observed
 
 
 def validate_prerequisites(observed, expected):
@@ -390,7 +524,7 @@ def validate_prepared_archive(data, manifest):
             if section == "tools":
                 require(path == "tooling/rebar3" or path.startswith("tooling/mix/archives/hex-2.5.1/"), "bootstrap injection path")
             if section == "helpers":
-                require(path in {"collector-prerequisites.exs", "collector-bootstrap.exs", "collector-manifest.exs", "collector-netns.exs", "collector-observer.exs", "frozen-manifest.json"}, "helper injection path")
+                require(path in {"collector-prerequisites.exs", "collector-bootstrap.exs", "collector-manifest.exs", "collector-netns.exs", "collector-observer.exs", "collector-mounts.exs", "frozen-manifest.json"}, "helper injection path")
             expected[path] = row
     with tarfile.open(fileobj=io.BytesIO(data), mode="r:") as archive:
         members = safe_members(archive)
@@ -400,7 +534,7 @@ def validate_prepared_archive(data, manifest):
             require(expected[member.name] == {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}, "prepared archive hash mismatch")
             if member.name == "tooling/rebar3":
                 require(hashlib.sha512(body).hexdigest() == BOOTSTRAP["rebar"]["sha512"], "installed Rebar artifact pin mismatch")
-    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "frozen-manifest.json": json.dumps(FROZEN_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(FROZEN_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
     require(manifest["helpers"] == {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helper_bytes.items()}, "collector helper mutation")
     return expected
 
@@ -459,6 +593,37 @@ class Budget:
         remaining = self.start + self.total - self.clock() - (0 if cleanup else self.reserve)
         require(type(timeout) in {int, float} and 0 < timeout <= 180 and remaining > 0, "aggregate deadline/cleanup reserve reached")
         return min(timeout, remaining)
+
+
+MOUNTS_EXS = r'''
+[role] = System.argv()
+paths = case role do
+  "prepare" -> ["/workspace", "/workspace/tooling", "/tmp"]
+  "test" -> ["/workspace", "/workspace/tooling", "/tmp", "/run"]
+end
+source = "/proc/self/mountinfo"
+{:ok, io} = File.open(source, [:read, :binary])
+bytes = try do
+  data = IO.binread(io, 65_537)
+  true = is_binary(data) and byte_size(data) > 0 and byte_size(data) <= 65_536
+  data
+after
+  :ok = File.close(io)
+end
+lines = String.split(bytes, "\n", trim: true)
+true = length(lines) <= 1024
+selected = Enum.filter(lines, fn line ->
+  [_id, _parent, _device, _root, path, _flags | _] = String.split(line)
+  Enum.any?(paths, fn selected_path -> path == selected_path or String.starts_with?(path, selected_path <> "/") end)
+end)
+true = length(selected) <= 32 and Enum.all?(selected, &(byte_size(&1) <= 4096))
+modes = Map.new(paths, fn path ->
+  %{type: :directory, mode: mode} = File.stat!(path)
+  {path, Bitwise.band(mode, 0o7777)}
+end)
+result = %{"role" => role, "source" => source, "read_bytes" => byte_size(bytes), "read_sha256" => Base.encode16(:crypto.hash(:sha256, bytes), case: :lower), "selected_lines" => selected, "path_modes" => modes}
+IO.puts("IDENTITY_JSON=" <> IO.iodata_to_binary(:json.encode(result)))
+'''
 
 
 PREREQUISITES_EXS = r'''
@@ -678,13 +843,32 @@ defmodule MixerIdentityNetworkCollector.Bootstrap do
     {installed, 0} = System.cmd("/usr/local/bin/mix", ["archive.install", "/workspace/downloads/hex.ez", "--sha512", "HEX_SHA", "--force"], stderr_to_stdout: true)
     true = byte_size(installed) < 1_048_576
     "/workspace/tooling/rebar3" = System.fetch_env!("MIX_REBAR3")
-    File.rename!("/workspace/downloads/rebar3", "/workspace/tooling/rebar3")
+    source = "/workspace/downloads/rebar3"
+    target = "/workspace/tooling/rebar3"
+    %{type: :regular, size: source_bytes} = File.stat!(source)
+    true = source_bytes > 0 and source_bytes <= 16_777_216
+    rebar_bytes = File.read!(source)
+    ^source_bytes = byte_size(rebar_bytes)
+    "REBAR_SHA" = Base.encode16(:crypto.hash(:sha512, rebar_bytes), case: :lower)
+    false = File.exists?(target)
+    {:ok, target_io} = File.open(target, [:write, :binary, :exclusive])
+    try do
+      :ok = IO.binwrite(target_io, rebar_bytes)
+    after
+      :ok = File.close(target_io)
+    end
+    %{type: :regular, size: ^source_bytes} = File.stat!(target)
+    target_sha = Base.encode16(:crypto.hash(:sha512, File.read!(target)), case: :lower)
+    "REBAR_SHA" = target_sha
+    :ok = File.rm(source)
+    false = File.exists?(source)
+    transfer = %{"source" => source, "destination" => target, "download_bytes" => source_bytes, "copied_bytes" => byte_size(rebar_bytes), "target_bytes" => File.stat!(target).size, "sha512" => target_sha, "exclusive_create" => true, "closed_before_hash" => true, "owned_download_removed" => true}
     File.chmod!("/workspace/tooling/rebar3", 0o755)
     {hex_version, 0} = System.cmd("/usr/local/bin/elixir", ["-pa", "/workspace/tooling/mix/archives/hex-2.5.1/hex-2.5.1/ebin", "-e", ":ok = Application.load(:hex); IO.puts(Application.spec(:hex, :vsn))"], stderr_to_stdout: true)
     "2.5.1" = String.trim(hex_version)
     {rebar_version, 0} = System.cmd("/workspace/tooling/rebar3", ["--version"], stderr_to_stdout: true)
     true = byte_size(rebar_version) < 65_536 and String.contains?(rebar_version, "rebar 3.28.0")
-    IO.puts("IDENTITY_JSON=" <> IO.iodata_to_binary(:json.encode(%{"hex" => hex, "rebar" => rebar, "hex_version" => String.trim(hex_version), "rebar_version" => rebar_version, "archive_install_output" => installed, "exact_rebar_path" => System.fetch_env!("MIX_REBAR3")})))
+    IO.puts("IDENTITY_JSON=" <> IO.iodata_to_binary(:json.encode(%{"hex" => hex, "rebar" => rebar, "hex_version" => String.trim(hex_version), "rebar_version" => rebar_version, "archive_install_output" => installed, "exact_rebar_path" => System.fetch_env!("MIX_REBAR3"), "rebar_transfer" => transfer})))
   end
 end
 MixerIdentityNetworkCollector.Bootstrap.run()
@@ -1043,6 +1227,13 @@ class Collector:
             self.seal()
         return 0 if not self.cancelled and self.state["status"] == "two-methods-passed-pending-owned-cleanup-and-independent-acceptance" else 1
 
+    def observe_mounts(self, owned):
+        require(owned.role in {"prepare", "test"}, "mount observation role refused")
+        output, _, _ = self.execute(owned, ["/usr/local/bin/elixir", "/workspace/collector-mounts.exs", owned.role], 15, limit=65536)
+        observed = validate_mount_observation(owned.role, json_marker(output))
+        write_json(self.output / (owned.role + "-mount-policy.json"), observed)
+        return observed
+
     def collect(self):
         require(os.environ.get("GITHUB_ACTIONS") == "true" and os.environ.get("RUNNER_OS") == "Linux" and os.environ.get("RUNNER_ARCH") == "X64", "only selected GitHub Linux AMD64 runner is supported")
         require(os.uname().sysname == "Linux" and os.uname().machine == "x86_64", "actual host platform mismatch")
@@ -1066,8 +1257,13 @@ class Collector:
         amendment_files = validate_amendment_manifest(amendment_manifest[AMENDMENT_BASE + "packet-manifest.json"])
         metadata = {**amendment_manifest, **self.git_blobs(predecessor_metadata_paths() + [AMENDMENT_BASE + path for path in amendment_files])}
         amendment = validate_selected_metadata(metadata)
+        execution_manifest = self.git_blobs([EXECUTION_BASE + "packet-manifest.json"])
+        execution_files = validate_execution_manifest(execution_manifest[EXECUTION_BASE + "packet-manifest.json"])
+        metadata.update(execution_manifest)
+        metadata.update(self.git_blobs([EXECUTION_BASE + path for path in execution_files]))
+        validate_execution_metadata(metadata)
         self.prerequisites = amendment["prerequisites"]
-        self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET)
+        self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
         self.persist()
         (self.output / "selected-contract-metadata.tar").write_bytes(source_tar(metadata))
         write_json(self.output / "host.json", {"uname": list(os.uname()), "python": sys.version, "netns": os.readlink("/proc/self/ns/net"), "runner": "ubuntu-24.04", "github_run_id": self.run_id, "attempt": self.attempt})
@@ -1082,18 +1278,21 @@ class Collector:
             require(len(rows) == 1, "image inspect count")
             validate_image_inspect(role, rows[0])
             write_json(self.output / (role + "-image.json"), rows[0])
-        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "frozen-manifest.json": json.dumps(FROZEN_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(FROZEN_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
         write_json(self.output / "literal-helper-bindings.json", {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helpers.items()})
         (self.output / "literal-helpers.tar").write_bytes(source_tar(helpers))
         prepare = self.create("prepare")
         validate_container_environment("prepare", self.inspect(prepare))
         self.docker(prepare, ["start"])
         self.copy_in(prepare, source_tar({**product, **helpers}))
+        self.observe_mounts(prepare)
         prerequisite_output, _, _ = self.execute(prepare, ["/usr/local/bin/elixir", "/workspace/collector-prerequisites.exs"])
         write_json(self.output / "prepare-prerequisites.json", validate_prerequisites(json_marker(prerequisite_output), self.prerequisites))
         write_json(self.output / "bootstrap-plan.json", {"argv": ["/usr/local/bin/elixir", "/workspace/collector-bootstrap.exs"], "tool_destination": BASE_ENV["MIX_REBAR3"], "helper_sha256": hashlib.sha256(BOOTSTRAP_EXS.encode()).hexdigest(), "download_bytes_each": 16777216, "download_seconds_each": 25, "no_package_install_or_fallback": True})
         bootstrap, _, _ = self.execute(prepare, ["/usr/local/bin/elixir", "/workspace/collector-bootstrap.exs"], 60)
-        write_json(self.output / "bootstrap-observed.json", json_marker(bootstrap))
+        bootstrap_result = json_marker(bootstrap)
+        validate_rebar_transfer(bootstrap_result.get("rebar_transfer"), bootstrap_result.get("rebar"))
+        write_json(self.output / "bootstrap-observed.json", bootstrap_result)
         for tool, path, filename in (("hex", "/workspace/downloads/hex.ez", "bootstrap-hex-2.5.1.ez"), ("rebar", "/workspace/tooling/rebar3", "bootstrap-rebar-3.28.0")):
             artifact = self.copy_file_out(prepare, path, 16777216)
             require(hashlib.sha512(artifact).hexdigest() == BOOTSTRAP[tool]["sha512"], "observed bootstrap artifact digest mismatch")
@@ -1114,6 +1313,7 @@ class Collector:
         validate_container_environment("test", self.inspect(test))
         self.docker(test, ["start"])
         self.copy_in(test, prepared)
+        self.observe_mounts(test)
         self.execute(test, ["/usr/local/bin/elixir", "-e", 'for path <- ["/workspace/home", "/workspace/tooling/hex", "/workspace/cache", "/workspace/evidence", "/workspace/evidence/identity"], do: File.mkdir!(path)'])
         actual_prerequisites, _, _ = self.execute(test, ["/usr/local/bin/elixir", "/workspace/collector-prerequisites.exs"])
         write_json(self.output / "test-prerequisites.json", validate_prerequisites(json_marker(actual_prerequisites), self.prerequisites))
@@ -1168,7 +1368,7 @@ class Collector:
         validate_namespace(json_marker(fresh_namespace), host_netns)
         # The flag is constructed here only, after actual source/tool/isolation checks.
         flag_env = {**TEST_ENV, "MIXER_ISOLATED_NETNS": "1"}
-        write_json(self.output / "test-authorization.json", {"allowed_environment": flag_env, "owned_test_cid": test.cid, "owned_pg_cid": pg.cid, "actual_namespace": namespace["netns"], "source_unchanged": True, "prerequisites_observed": True, "assertions_before_flag": True})
+        write_json(self.output / "test-authorization.json", {"allowed_environment": flag_env, "owned_test_cid": test.cid, "owned_pg_cid": pg.cid, "actual_namespace": namespace["netns"], "source_unchanged": True, "prerequisites_observed": True, "mount_policy_observed": True, "assertions_before_flag": True})
         argv = ["/usr/local/bin/elixir", "-r", "/workspace/collector-observer.exs", "-S", "mix", "test", "--warnings-as-errors", "--seed", "0", "--trace", "--no-color", "--formatter", "ExUnit.CLIFormatter", "--formatter", "MixerIdentityNetworkCollector.Observer", *TEST_ROOTS]
         _, _, test_exit = self.execute(test, argv, offline_timeout(), environment=flag_env, check=False)
         require(time.monotonic() <= offline_until, "offline phase deadline exceeded")

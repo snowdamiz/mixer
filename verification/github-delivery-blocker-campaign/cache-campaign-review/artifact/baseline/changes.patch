@@ -1,0 +1,824 @@
+--- accepted/src/experimental_swift_reactor/cache.rs
++++ campaign/src/experimental_swift_reactor/cache.rs
+@@ -43,11 +43,12 @@
+ }
+ const RESIDENT_BUCKETS: usize = 128;
+ const RESIDENT_LINKS: usize = 64;
+-const RESIDENT_INDEX_BYTES: usize = RESIDENT_BUCKETS + RESIDENT_LINKS;
++const RESIDENT_INDEX_CELLS: usize = RESIDENT_BUCKETS + RESIDENT_LINKS;
++const RESIDENT_INDEX_BYTES: usize = RESIDENT_INDEX_CELLS * size_of::<u16>();
+ 
+ pub(crate) struct SwiftScratch<'a> {
+     patches: &'a mut [decode::Patch],
+-    index: &'a mut [u8],
++    index: &'a mut [u16],
+     plans: &'a mut [Option<ScanPlan>],
+ }
+ // Original fixed hash. The key always remains the actual decoded slot value.
+@@ -57,7 +58,7 @@
+ struct ResidentMatch {
+     slot: usize,
+     link_cell: usize,
+-    next: u8,
++    next: u16,
+ }
+ // Every named scalar/borrow in the bounded helper chain has disjoint modeled
+ // storage, in addition to the actual owner and generic caller inventories.
+@@ -65,16 +66,16 @@
+     function: u32,
+     bucket: usize,
+     link_cell: usize,
+-    node: u8,
++    node: u16,
+     slot: usize,
+-    next: u8,
+-    seen: u64,
++    next: u16,
++    seen: [u64; RESIDENT_LINKS / 64],
+     bit: u64,
+     visited: std::ops::Range<usize>,
+     hit: Option<ResidentMatch>,
+     found: ResidentMatch,
+-    index: &'static [u8],
+-    mutable_index: &'static mut [u8],
++    index: &'static [u16],
++    mutable_index: &'static mut [u16],
+     slots: &'static [SwiftSlot],
+     entry: &'static DecodedFunction,
+     scratch: &'static mut SwiftScratch<'static>,
+@@ -82,17 +83,17 @@
+     lookup_return: Result<Option<ResidentMatch>, SwiftRunFailure>,
+     insert_remove_return: Result<(), SwiftRunFailure>,
+     match_option: Option<ResidentMatch>,
+-    index_reborrow: &'static mut [u8],
++    index_reborrow: &'static mut [u16],
+     slots_reborrow: &'static [SwiftSlot],
+     meter_reborrow: &'static mut SwiftMeter<'static, 'static>,
+ }
+ fn resident_find(
+-    index: &[u8],
++    index: &[u16],
+     slots: &[SwiftSlot],
+     function: u32,
+     meter: &mut SwiftMeter<'_, '_>,
+ ) -> Result<Option<ResidentMatch>, SwiftRunFailure> {
+-    if index.len() != RESIDENT_INDEX_BYTES || slots.len() > RESIDENT_LINKS {
++    if index.len() != RESIDENT_INDEX_CELLS || slots.len() > RESIDENT_LINKS {
+         return Err(meter.error(
+             CacheFailureKind::DecoderMismatch,
+             "swift_cache_index_layout",
+@@ -103,7 +104,7 @@
+     meter.work(1)?; // head read
+     let mut link_cell = bucket;
+     let mut node = index[link_cell];
+-    let mut seen = 0u64;
++    let mut seen = [0u64; RESIDENT_LINKS / 64];
+     let mut hit = None;
+     for _ in 0..RESIDENT_LINKS {
+         if node == 0 {
+@@ -114,11 +115,11 @@
+         if slot >= slots.len() {
+             return Err(meter.error(CacheFailureKind::DecoderMismatch, "swift_cache_index_slot"));
+         }
+-        let bit = 1u64 << slot;
+-        if seen & bit != 0 {
++        let bit = 1u64 << (slot % 64);
++        if seen[slot / 64] & bit != 0 {
+             return Err(meter.error(CacheFailureKind::DecoderMismatch, "swift_cache_index_cycle"));
+         }
+-        seen |= bit;
++        seen[slot / 64] |= bit;
+         meter.work(1)?; // actual resident-key probe
+         let entry = slots[slot].entry().ok_or_else(|| {
+             meter.error(CacheFailureKind::DecoderMismatch, "swift_cache_index_empty")
+@@ -148,7 +149,7 @@
+         link_cell = RESIDENT_BUCKETS + slot;
+         node = next;
+     }
+-    // An exactly64-node chain ending here is valid; any further link fails.
++    // An exactly-capacity-node chain ending here is valid; any further link fails.
+     if node == 0 {
+         Ok(hit)
+     } else {
+@@ -273,7 +274,7 @@
+     slots: Vec<SwiftSlot>,
+     pins: Vec<PinRecord>,
+     patches: Vec<decode::Patch>,
+-    index: Vec<u8>,
++    index: Vec<u16>,
+     plans: Vec<Option<ScanPlan>>,
+     buffers: [Option<ReservationTicket>; 3],
+     header: Option<ReservationTicket>,
+@@ -313,7 +314,7 @@
+     slots: Vec<SwiftSlot>,
+     pins: Vec<PinRecord>,
+     patches: Vec<decode::Patch>,
+-    index: Vec<u8>,
++    index: Vec<u16>,
+     plans: Vec<Option<ScanPlan>>,
+     buffers: [Option<ReservationTicket>; 3],
+     header: Option<ReservationTicket>,
+@@ -435,8 +436,8 @@
+     patches_range: std::ops::Range<usize>,
+     buffers_range: std::ops::Range<usize>,
+     index_range: std::ops::Range<usize>,
+-    index: &'static mut Vec<u8>,
+-    reserve_index_values: &'static mut Vec<u8>,
++    index: &'static mut Vec<u16>,
++    reserve_index_values: &'static mut Vec<u16>,
+     reserve_index_control: &'static mut CacheControl<'static>,
+     control: &'static mut RuntimeControl,
+     wasi: Option<&'static AccountedWasi>,
+@@ -652,8 +653,8 @@
+     slots_iter: std::slice::IterMut<'static, SwiftSlot>,
+     buffers_range: std::ops::Range<usize>,
+     index_range: std::ops::Range<usize>,
+-    index: &'static mut Vec<u8>,
+-    reserve_index_values: &'static mut Vec<u8>,
++    index: &'static mut Vec<u16>,
++    reserve_index_values: &'static mut Vec<u16>,
+     reserve_index_control: &'static mut CacheControl<'static>,
+     buffer_index: usize,
+     bytes: usize,
+@@ -1096,7 +1097,7 @@
+         (4, size_of::<Vec<SwiftSlot>>()),
+         (4, size_of::<Vec<PinRecord>>()),
+         (4, size_of::<Vec<decode::Patch>>()),
+-        (4, size_of::<Vec<u8>>()),
++        (4, size_of::<Vec<u16>>()),
+         (4, size_of::<Vec<Option<ScanPlan>>>()),
+         (3, size_of::<SwiftScratch<'static>>()),
+         (6, size_of::<Option<ReservationTicket>>()),
+@@ -1184,7 +1185,7 @@
+         (3, size_of::<Vec<SwiftSlot>>()),
+         (3, size_of::<Vec<PinRecord>>()),
+         (3, size_of::<Vec<decode::Patch>>()),
+-        (3, size_of::<Vec<u8>>()),
++        (3, size_of::<Vec<u16>>()),
+         (3, size_of::<Vec<Option<ScanPlan>>>()),
+         (3, size_of::<PlanInventory>()),
+         (4, size_of::<Option<ReservationTicket>>()),
+@@ -1288,7 +1289,7 @@
+         (2, size_of::<decode::PassParts<'static>>()),
+         (4, size_of::<decode::Counts>()),
+         (2, size_of::<SwiftPolicy<'static>>()),
+-        (1, size_of::<[bool; 64]>()),
++        (1, size_of::<[bool; RESIDENT_LINKS]>()),
+         (3, size_of::<DecodedFunction>()),
+         (3, size_of::<SwiftResident>()),
+         (3, size_of::<Result<SwiftResident, SwiftRunFailure>>()),
+@@ -1865,8 +1866,8 @@
+             self.control.work(1)?;
+             partial.patches.push(decode::EMPTY_PATCH);
+         }
+-        reserve(&mut partial.index, RESIDENT_INDEX_BYTES, &mut self.control)?;
+-        for _ in 0..RESIDENT_INDEX_BYTES {
++        reserve(&mut partial.index, RESIDENT_INDEX_CELLS, &mut self.control)?;
++        for _ in 0..RESIDENT_INDEX_CELLS {
+             self.control.work(1)?;
+             partial.index.push(0);
+         }
+@@ -2195,7 +2196,7 @@
+         let next = scratch.index[bucket];
+         meter.work(2)?; // admit both link writes before infallible publication
+         scratch.index[RESIDENT_BUCKETS + slot] = next;
+-        scratch.index[bucket] = (slot + 1) as u8;
++        scratch.index[bucket] = (slot + 1) as u16;
+         Ok(())
+     }
+     fn scan(
+@@ -2365,10 +2366,10 @@
+ pub(super) mod inspection {
+     use super::*;
+     // Test-only snapshots of the actual owner, never stored in production state.
+-    pub fn resident_index(cache: &SwiftFunctionCache) -> &[u8] {
++    pub fn resident_index(cache: &SwiftFunctionCache) -> &[u16] {
+         &cache.index
+     }
+-    pub fn corrupt_index(cache: &mut SwiftFunctionCache, cell: usize, value: u8) {
++    pub fn corrupt_index(cache: &mut SwiftFunctionCache, cell: usize, value: u16) {
+         cache.index[cell] = value;
+     }
+     pub fn elision_pin_parts(pin: &SwiftFunctionPin) -> [u64; 2] {
+@@ -2683,7 +2684,7 @@
+         row!(ResidentIndexInventory);
+         row!(ResidentMatch);
+         row!(SwiftScratch<'static>);
+-        row!(Vec<u8>);
++        row!(Vec<u16>);
+         row!(PermanentScalarInventory);
+         row!(PermanentBorrowChainInventory);
+         row!(Option<PinRecord>);
+@@ -2790,7 +2791,7 @@
+         row!(decode::PassParts<'static>);
+         row!(decode::Counts);
+         row!(SwiftPolicy<'static>);
+-        row!([bool; 64]);
++        row!([bool; RESIDENT_LINKS]);
+         row!(Result<SwiftResident, SwiftRunFailure>);
+         row!(Result<DecodedFunction, SwiftRunFailure>);
+         row!(Result<SwiftFunctionPin, SwiftRunFailure>);
+--- accepted/src/experimental_swift_reactor/cache_tests.rs
++++ campaign/src/experimental_swift_reactor/cache_tests.rs
+@@ -3804,7 +3804,7 @@
+     use super::execution::{self,SwiftReactorInstance};
+     use super::execution::frame_operations::{FrameOperationStorage,FrameCompletion};
+     use crate::experimental_wasi::accounted::accounted_header_bytes;
+-    let bytes=fixture(0,&[0,0x0b],100);
++    let bytes=fixture(0,&[0,0x0b],104);
+     let max=SwiftRunBudget::default();
+     let mut pair=Some(adopt(&bytes,max));
+     let mut returned=Some(SwiftReactorInstance::construct(&mut pair,WasiGrants::default(),WasiBudget::default(),Instant::now(),cache_cursor()));
+@@ -3834,7 +3834,7 @@
+     let maximum_envelope=categories+wasi+shared+phase_peak;
+     println!("PLAN_PROFILE floor={floor} execution_header={execution_header} execution_construction={construction} frame_operation={frame_bytes} category_ceiling_sum={categories} wasi_max={wasi} shared={shared} conservative_combined={maximum_envelope} combined_limit={} constructed_current={} constructed_peak={} resident_current={} resident_peak={} frame_peak={} tickets={}/{}",max.combined_bytes,constructed.reservations.combined.current,constructed.reservations.combined.peak,resident.reservations.combined.current,resident.reservations.combined.peak,report.usage.reservations.combined.peak,report.usage.reservations.live_tickets,report.usage.reservations.peak_tickets);
+     assert!(maximum_envelope<=max.combined_bytes);
+-    assert!(execution_header<=max.state_bytes);assert!(report.usage.reservations.peak_tickets<=86);
++    assert!(execution_header<=max.state_bytes);assert!(report.usage.reservations.peak_tickets<=MAX_RESERVATION_TICKETS);
+     assert_eq!(owner.control.as_ref().unwrap().budget(),max);
+     let mut owned=Some(owner);let mut cleanup=Some(SwiftReactorInstance::cleanup_owned(&mut owned));
+     let tail=cleanup.take().unwrap().unwrap();let mut failure=None;let mut usage=None;
+@@ -4119,3 +4119,190 @@
+     x=CurrentAttribution::default();x.site(255);x.event(255);assert_eq!(x.invalid,ATTR_CONTEXT);
+     println!("ATTR_LAYOUT {{\"observer_bytes\":{},\"observer_alignment\":{},\"bitmap_bytes\":{},\"totals_bytes\":{},\"rejection_option_bytes\":{},\"formatter_bytes\":{},\"output_capacity\":{},\"ordinary_snapshot_bytes\":{ordinary_len},\"max_snapshot_bytes\":{max_len},\"output_overflow_invalidates\":true,\"external_test_only\":true}}",size_of::<CurrentAttribution>(),std::mem::align_of::<CurrentAttribution>(),size_of::<[u64;ATTR_WORDS]>(),size_of::<AttributionTotals>(),size_of::<Option<AttributionRejection>>(),size_of::<AttributionText>(),ATTR_OUTPUT);
+ }
++
++// Test-only bridge appended after the accepted observer, never production code.
++// No cache operation runs with an observer/adapter RefCell borrow retained.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub(super) enum FullAttributionPhase { Constructed, Initialize, Corpus1, Corpus2, BeforeCleanup, FinalCleanup }
++impl FullAttributionPhase {
++    fn rank(self) -> u8 { match self { Self::Constructed=>0,Self::Initialize=>1,Self::Corpus1=>2,Self::Corpus2=>3,Self::BeforeCleanup=>4,Self::FinalCleanup=>5 } }
++    fn label(self) -> &'static str { match self { Self::Constructed=>"constructed",Self::Initialize=>"initialize",Self::Corpus1=>"corpus_1",Self::Corpus2=>"corpus_2",Self::BeforeCleanup=>"before_cleanup",Self::FinalCleanup=>"final_cleanup" } }
++}
++const FULL_ENVELOPE: usize = 4_608;
++const FULL_LIFETIME_OUTPUT: usize = 6 * FULL_ENVELOPE;
++#[derive(Default)]
++struct FullAttributionLifetime { active:bool, reset_count:u8, seen:u8, last:Option<u8>, emissions:u8, invalid:u32, write_failed:bool }
++thread_local! { static FULL_ATTRIBUTION_LIFETIME: RefCell<FullAttributionLifetime> = RefCell::new(FullAttributionLifetime::default()); }
++pub(super) fn full_attribution_begin() {
++    let begin=FULL_ATTRIBUTION_LIFETIME.with(|s| {
++        let Ok(mut m)=s.try_borrow_mut() else { return false; };
++        if m.active {m.invalid|=4;return false;}
++        *m=FullAttributionLifetime{active:true,reset_count:1,..FullAttributionLifetime::default()};true
++    });
++    if begin {attr_reset();}
++}
++struct FullCapture { text:AttributionText, formatted:bool, invalid:u32, invariant_mask:u32 }
++fn full_capture(work:u64,decodes:u64,limit:usize)->Option<FullCapture> {
++    CURRENT_ATTRIBUTION.with(|s| {
++        let Ok(mut x)=s.try_borrow_mut() else {return None;};
++        let t=x.totals;let sum=|v:&[u64]|v.iter().map(|v|u128::from(*v)).sum::<u128>();
++        let mut mask=0;
++        if sum(&t.credits)!=u128::from(work) {mask|=1;}
++        if sum(&t.scan_credits)!=u128::from(t.credits[6]) || sum(&t.scan_calls)!=u128::from(t.calls[6]) {mask|=2;}
++        if sum(&t.build_credits)!=u128::from(t.credits[13]) || sum(&t.build_calls)!=u128::from(t.calls[13]) {mask|=4;}
++        if sum(&t.scan_published)!=u128::from(t.plans[3]) {mask|=8;}
++        if u128::from(t.distinct)+u128::from(t.repeated)!=u128::from(t.completed) || t.completed!=decodes {mask|=16;}
++        if x.seen.iter().map(|w|u64::from(w.count_ones())).sum::<u64>()!=t.distinct {mask|=32;}
++        let mut text=AttributionText::new(limit);
++        let formatted=attr_format(&mut x,&mut text);
++        if !formatted {text.bytes.fill(0);text.len=0;} // Discard ALL partial bytes, including stale invalid=0.
++        Some(FullCapture{text,formatted,invalid:x.invalid,invariant_mask:mask})
++    })
++}
++struct FullEnvelope {bytes:[u8;FULL_ENVELOPE],len:usize}
++impl FullEnvelope {fn new()->Self {Self{bytes:[0;FULL_ENVELOPE],len:0}}}
++impl std::fmt::Write for FullEnvelope {
++    fn write_str(&mut self,s:&str)->std::fmt::Result {
++        let Some(end)=self.len.checked_add(s.len()).filter(|n|*n<=FULL_ENVELOPE) else {return Err(std::fmt::Error);};
++        self.bytes[self.len..end].copy_from_slice(s.as_bytes());self.len=end;Ok(())
++    }
++}
++fn full_snapshot_to<W:std::io::Write>(phase:FullAttributionPhase,work:u64,decodes:u64,preconsumption:bool,limit:usize,sink:&mut W)->bool {
++    let metadata=FULL_ATTRIBUTION_LIFETIME.with(|s| {
++        let Ok(mut m)=s.try_borrow_mut() else {return None;};
++        if m.emissions>=6 {m.invalid|=32;return None;}
++        let rank=phase.rank();let bit=1u8<<rank;
++        if !m.active {m.invalid|=8;}
++        if m.seen & bit != 0 {m.invalid|=1;}
++        if m.last.is_some_and(|last|rank<=last) {m.invalid|=2;}
++        if phase==FullAttributionPhase::FinalCleanup && !preconsumption {m.invalid|=16;}
++        m.seen|=bit;m.last=Some(rank);m.emissions+=1;
++        if phase==FullAttributionPhase::FinalCleanup {m.active=false;}
++        Some((m.reset_count,m.emissions,m.invalid,m.write_failed))
++    });
++    let Some((resets,sequence,adapter_invalid,write_failed))=metadata else {return false;};
++    let capture=full_capture(work,decodes,limit);
++    let (formatted,invalid,invariants,payload)=match &capture {
++        Some(c)=>{
++            let text=if c.formatted && c.invalid==0 && c.invariant_mask==0 {std::str::from_utf8(&c.text.bytes[..c.text.len]).ok()}else{None};
++            (c.formatted,c.invalid,c.invariant_mask,text)
++        }
++        None=>(false,0,64,None),
++    };
++    let valid=formatted && invalid==0 && invariants==0 && adapter_invalid==0 && !write_failed && payload.is_some();
++    let payload=if valid {payload.unwrap_or("null")}else{"null"}; // Option fallback only; no Result replacement/panic.
++    let mut envelope=FullEnvelope::new();
++    let result=write!(&mut envelope,"MIXER_ATTRIBUTION {{\"lifecycle\":\"{}\",\"sequence\":{},\"reset_count\":{},\"formatted\":{},\"observer_invalid\":{},\"invariant_mask\":{},\"adapter_invalid\":{},\"prior_write_failed\":{},\"valid\":{},\"cache_work\":{},\"cache_decodes\":{},\"decodes_bound_before_consumption\":{},\"payload\":{}}}\n",phase.label(),sequence,resets,formatted,invalid,invariants,adapter_invalid,write_failed,valid,work,decodes,preconsumption,payload);
++    let wrote=result.is_ok() && sink.write_all(&envelope.bytes[..envelope.len]).is_ok() && sink.flush().is_ok();
++    if !wrote {FULL_ATTRIBUTION_LIFETIME.with(|s|{if let Ok(mut m)=s.try_borrow_mut(){m.write_failed=true;}});}
++    wrote
++}
++pub(super) fn full_attribution_snapshot(phase:FullAttributionPhase,work:u64,decodes:u64,preconsumption:bool) {
++    let stdout=std::io::stdout();let mut sink=stdout.lock();
++    let _=full_snapshot_to(phase,work,decodes,preconsumption,ATTR_OUTPUT,&mut sink);
++}
++
++// Isolated campaign controls appended to the original cache_tests module.
++// These actual-cache tests execute no guest instructions.
++#[test]
++fn campaign_retention_churn_and_pin_bound() {
++    hooks(Hooks::default());
++    let n = SwiftRunBudget::default().cache_entries;
++    let bytes = fixture(0, &[0, 0x0b], n + 40);
++    let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
++    assert_eq!(SwiftRunBudget::default().active_pins, 64);
++    for _ in 0..2 {
++        for f in 34..34 + n as u32 {
++            let p = pin(&mut cache, &mut c, f, None).unwrap();
++            assert_eq!(cache.view(&p, &mut c, None).unwrap().function, f);
++            cache.release(p, &mut c, None).map_err(|e| e.failure).unwrap();
++        }
++    }
++    assert_eq!(cache.usage().decodes, n as u64);
++    assert_eq!(cache.usage().hits, n as u64);
++    assert_eq!(cache.usage().evictions, 0);
++    assert_eq!(c.usage(None).live.cache_entries.current, n);
++    resident_assert_index(&cache);
++    let p = pin(&mut cache, &mut c, 34 + n as u32, None).unwrap();
++    cache.release(p, &mut c, None).map_err(|e| e.failure).unwrap();
++    assert_eq!(cache.usage().evictions, 1);
++    resident_assert_index(&cache);
++    // A larger resident table must not create a 65th active pin.
++    let mut pins = Vec::new();
++    for _ in 0..64 { pins.push(pin(&mut cache, &mut c, 35, None).unwrap()); }
++    let f = pin(&mut cache, &mut c, 35, None).unwrap_err();
++    assert_eq!(f.kind, SwiftRunFailureKind::PinLimit);
++    assert_eq!(c.usage(None).live.active_pins.current, 64);
++    for p in pins { cache.release(p, &mut c, None).map_err(|e| e.failure).unwrap(); }
++    println!("CAMPAIGN retention residents={n} decodes={} hits={} evictions={} fixed_bytes={} peak_tickets={}",
++        cache.usage().decodes, cache.usage().hits, cache.usage().evictions,
++        cache.usage().fixed_reserved, c.usage(None).reservations.peak_tickets);
++    finish(cache, c);
++}
++
++#[test]
++fn campaign_full_chain_cycle_and_high_link() {
++    hooks(Hooks::default());
++    let n = SwiftRunBudget::default().cache_entries;
++    let bucket = |f: u32| (f.wrapping_mul(0x9e37_79b9) >> 25) as usize;
++    let functions: Vec<u32> = (34..40_034).filter(|f| bucket(*f) == bucket(34)).take(n).collect();
++    assert_eq!(functions.len(), n);
++    let bytes = fixture(0, &[0, 0x0b], 40_000);
++    let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
++    for f in &functions {
++        let p = pin(&mut cache, &mut c, *f, None).unwrap();
++        cache.release(p, &mut c, None).map_err(|e| e.failure).unwrap();
++    }
++    resident_assert_index(&cache);
++    assert_eq!(inspection::resident_index(&cache)[bucket(34)], n as u16);
++    let before = c.usage(None).cache_work;
++    let p = pin(&mut cache, &mut c, functions[0], None).unwrap();
++    assert_eq!(c.usage(None).cache_work - before, 4 + 4 * n as u64);
++    cache.release(p, &mut c, None).map_err(|e| e.failure).unwrap();
++    let head = inspection::resident_index(&cache)[bucket(34)];
++    inspection::corrupt_index(&mut cache, 128, head);
++    assert_eq!(pin(&mut cache, &mut c, functions[0], None).unwrap_err().code, "swift_cache_index_cycle");
++    finish(cache, c);
++    hooks(Hooks::default());
++    let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
++    inspection::corrupt_index(&mut cache, bucket(34), (n + 1) as u16);
++    assert_eq!(pin(&mut cache, &mut c, 34, None).unwrap_err().code, "swift_cache_index_slot");
++    finish(cache, c);
++    println!("CAMPAIGN full_chain={n} high_link={n} cycle_and_invalid_link_fail_closed=true");
++}
++
++#[test]
++fn campaign_original_failure_atomicity_and_allocation_controls() {
++    // Existing controls enumerate each work prefix and cancellation checkpoint
++    // in a three-resident replacement, and every constructor allocation.
++    resident_index_every_collision_replacement_work_and_cancel_boundary();
++    plan_reuse_constructor_all_boundaries();
++    plan_reuse_header_lifetime_and_narrow_admission();
++}
++
++#[test]
++fn campaign_budget_geometry_and_reservations() {
++    let b = SwiftRunBudget::default();
++    let n = b.cache_entries;
++    assert!([64, 128, 256].contains(&n));
++    assert!([64_000_000, 128_000_000].contains(&b.cache_work));
++    assert_eq!((b.cache_bytes, b.cache_entry_bytes, b.active_pins), (16 << 20, 8 << 20, 64));
++    assert_eq!((b.memory_pages, b.combined_bytes), (768, 256 << 20));
++    assert_eq!((b.instruction_fuel, b.execution_work, b.deadline_ms), (100_000_000, 1_000_000_000, 30_000));
++    assert_eq!(MAX_RESERVATION_TICKETS, n + 22);
++    let bytes = fixture(0, &[0, 0x0b], n + 40);
++    let (mut c, mut cache) = new(&bytes, b);
++    for f in 34..34 + n as u32 {
++        let p = pin(&mut cache, &mut c, f, None).unwrap();
++        cache.release(p, &mut c, None).map_err(|e| e.failure).unwrap();
++    }
++    let u = c.usage(None);
++    assert!(u.reservations.cache.peak <= b.cache_bytes);
++    assert!(u.reservations.combined.peak <= b.combined_bytes);
++    assert!(u.reservations.peak_tickets <= MAX_RESERVATION_TICKETS);
++    println!("CAMPAIGN geometry residents={n} index_cells={} index_bytes={} cycle_bytes={} plan_bytes={n} tickets={} cache_fixed={} operation_bound={} combined_peak={}",
++        128+n, (128+n)*2, n/8, MAX_RESERVATION_TICKETS,
++        cache.usage().fixed_reserved, cache_operation_bytes().unwrap(), u.reservations.combined.peak);
++    finish(cache, c);
++    plan_reuse_profile_envelopes_without_guest_execution();
++}
+--- accepted/src/experimental_swift_reactor/campaign_harness.rs
++++ campaign/src/experimental_swift_reactor/campaign_harness.rs
+@@ -0,0 +1,371 @@
++// Isolated test-only caller. Included after the unchanged lifecycle_tests.rs.
++// This observer has no production accounting or caller-stack acceptance claim.
++mod exact_diagnostic {
++    use super::*;
++    use crate::experimental_swift_reactor::{
++        SwiftReactorObservations, SwiftValidationFailure, SwiftValidationUsage,
++    };
++    use crate::experimental_wasi::{WasiReservations, WasiUsage};
++    use std::io::Write;
++    use crate::experimental_swift_reactor::cache_tests::{full_attribution_begin, full_attribution_snapshot, FullAttributionPhase};
++
++    trait Json { fn json(&self) -> String; }
++    fn quote(s: &str) -> String {
++        let mut out = String::from("\"");
++        for c in s.chars() {
++            match c {
++                '"' => out.push_str("\\\""),
++                '\\' => out.push_str("\\\\"),
++                '\n' => out.push_str("\\n"),
++                '\r' => out.push_str("\\r"),
++                '\t' => out.push_str("\\t"),
++                c if (c as u32) < 32 => out.push_str(&format!("\\u{:04x}", c as u32)),
++                c => out.push(c),
++            }
++        }
++        out.push('"');
++        out
++    }
++    impl Json for str { fn json(&self) -> String { quote(self) } }
++    impl Json for &str { fn json(&self) -> String { quote(self) } }
++    impl<T: Json> Json for Option<T> {
++        fn json(&self) -> String { self.as_ref().map(Json::json).unwrap_or_else(|| "null".into()) }
++    }
++    macro_rules! numbers { ($($t:ty),*) => { $(impl Json for $t { fn json(&self)->String {self.to_string()} })* }; }
++    numbers!(u32, u64, usize, i32, bool);
++    macro_rules! enums { ($($t:ty),*) => { $(impl Json for $t { fn json(&self)->String { quote(&format!("{:?}", self)) } })* }; }
++    enums!(SwiftRunStage, SwiftRunResource, SwiftRunFailureKind, SwiftCleanupInvariant,
++        SwiftDeadlineOrigin, crate::experimental_wasi::WasiFailure,
++        crate::experimental_swift_reactor::SwiftValidationFailureKind,
++        crate::experimental_swift_reactor::SwiftValidationResource);
++    macro_rules! object { ($t:ty; $($field:ident),+ $(,)?) => {
++        impl Json for $t { fn json(&self) -> String {
++            let fields = [$(format!("{}:{}", quote(stringify!($field)), self.$field.json())),+];
++            format!("{{{}}}", fields.join(","))
++        }}
++    }; }
++    object!(SwiftValidationBudget; source_bytes, metadata_bytes, scratch_bytes, work_credits, deadline_ms);
++    object!(SwiftValidationUsage; input_visible_bytes, source_bytes, metadata_reserved,
++        scratch_reserved, metadata_peak_reserved, scratch_peak_reserved, total_peak_reserved,
++        work_used, elapsed_micros, deadline_ms);
++    object!(SwiftValidationFailure; kind, code, function, offset, resource, attempted, limit, usage);
++    object!(SwiftReactorObservations; types, type_parameters, imported_functions, defined_functions,
++        validated_bodies, instructions, globals, exports, data_segments, element_segments,
++        max_parameters_plus_locals, max_operand_values, max_control_depth, memory_minimum,
++        memory_declared_maximum, memory_host_maximum, table_minimum, table_declared_maximum);
++    object!(SwiftRunBudget; source_bytes, metadata_bytes, cache_bytes, cache_entry_bytes,
++        cache_entries, active_pins, cache_work, frames, values, controls, memory_pages,
++        state_bytes, combined_bytes, instruction_fuel, execution_work, host_calls, deadline_ms);
++    object!(SwiftReservationUsage; current, peak);
++    object!(SwiftReservations; retained_source, retained_metadata, cache, state, wasi, shared,
++        construction, combined, live_tickets, peak_tickets);
++    object!(SwiftLiveUsage; cache_entries, active_pins, frames, values, controls, memory_pages);
++    object!(WasiBudget; calls, transfer_bytes, work, one_transfer_bytes, iovecs, log_bytes, deadline_ms);
++    object!(WasiGrants; secure_random, realtime, monotonic, stdout, stderr);
++    object!(WasiReservations; fixed_state_bytes, staging_bytes, rollback_bytes, stdout_bytes,
++        stderr_bytes, current_bytes, peak_bytes);
++    object!(WasiUsage; calls, work, transfer_bytes, random_bytes, log_bytes, failures, reservations);
++    object!(SwiftRunUsage; reservations, live, cache_work, execution_work, instruction_fuel,
++        instructions, host_calls, cleanup_invariant, elapsed_micros, deadline_ms, deadline_origin,
++        deadline_overshoot_micros, validation, wasi);
++    object!(SwiftRunFailure; stage, kind, code, function, offset, resource, attempted, limit,
++        observed_capacity, deadline_origin, wasi_failure, guest_exit, at_failure, after_cleanup);
++    object!(crate::experimental_swift_reactor::cache::SwiftCacheUsage; fixed_reserved,
++        resident_bytes, pinned_bytes, construction_bytes, peak_resident_bytes,
++        peak_pinned_bytes, peak_construction_bytes, active_pins, hits, misses, decodes, evictions);
++
++    // A bounded, flat JSON observation decoder for this diagnostic only. It is
++    // independent of the VM validator and never supplies execution authority.
++    struct Observation<'a> { bytes: &'a [u8], at: usize }
++    impl Observation<'_> {
++        fn space(&mut self) { while self.at < self.bytes.len() && matches!(self.bytes[self.at], b' ' | b'\t' | b'\r' | b'\n') { self.at += 1; } }
++        fn take(&mut self, b: u8) -> bool {
++            self.space();
++            if self.bytes.get(self.at) == Some(&b) { self.at += 1; true } else { false }
++        }
++        fn string(&mut self) -> Option<String> {
++            if !self.take(b'"') { return None; }
++            let mut value = String::new();
++            loop {
++                let next = *self.bytes.get(self.at)?;
++                self.at += 1;
++                match next {
++                    b'"' => return Some(value),
++                    b'\\' => {
++                        let escaped = *self.bytes.get(self.at)?;
++                        self.at += 1;
++                        let c = match escaped {
++                            b'"'=> '"', b'\\'=>'\\', b'/'=>'/', b'b'=>'\u{8}', b'f'=>'\u{c}',
++                            b'n'=>'\n', b'r'=>'\r', b't'=>'\t',
++                            b'u'=> {
++                                let digits = self.bytes.get(self.at..self.at + 4)?;
++                                let code = u32::from_str_radix(std::str::from_utf8(digits).ok()?, 16).ok()?;
++                                self.at += 4;
++                                char::from_u32(code)?
++                            }
++                            _ => return None,
++                        };
++                        value.push(c);
++                    }
++                    0..=31 => return None,
++                    32..=126 => value.push(next as char),
++                    _ => return None, // All exact expected keys/values are ASCII.
++                }
++            }
++        }
++    }
++    fn native_equal(bytes: &[u8]) -> bool {
++        if bytes.len() > 65_536 { return false; }
++        let fields = [
++            ("codableRoundTrip", "true"), ("committedEntries", "1"),
++            ("completionBasisPoints", "5000"), ("emptyTitleRejected", "true"),
++            ("pendingChanges", "1503"), ("reordered", "true"),
++            ("repeatedCommitRejected", "true"), ("reportIncludesEntry", "true"),
++            ("status", "passed"), ("taskCount", "1000"), ("unicodePreserved", "true"),
++        ];
++        let mut parser = Observation { bytes, at: 0 };
++        let mut seen = [false; 11];
++        if !parser.take(b'{') { return false; }
++        for n in 0..11 {
++            if n > 0 && !parser.take(b',') { return false; }
++            let Some(key) = parser.string() else { return false; };
++            let Some(index) = fields.iter().position(|(name, _)| *name == key) else { return false; };
++            if seen[index] || !parser.take(b':') { return false; }
++            seen[index] = true;
++            if key == "status" {
++                if parser.string().as_deref() != Some(fields[index].1) { return false; }
++            } else {
++                parser.space();
++                let literal = fields[index].1.as_bytes();
++                if parser.bytes.get(parser.at..parser.at + literal.len()) != Some(literal) { return false; }
++                parser.at += literal.len();
++            }
++        }
++        if !parser.take(b'}') { return false; }
++        parser.space();
++        parser.at == bytes.len() && seen.into_iter().all(|value| value)
++    }
++    fn hex(bytes: &[u8]) -> String {
++        let mut output = String::with_capacity(bytes.len() * 2);
++        for byte in bytes { use std::fmt::Write; write!(&mut output, "{byte:02x}").unwrap(); }
++        output
++    }
++
++    fn emit(event: &str, payload: String) {
++        // Every event is a complete standalone JSON object. Flush before continuing.
++        println!("MIXER_EXACT {{\"event\":{},\"payload\":{}}}", quote(event), payload);
++        std::io::stdout().flush().expect("flush diagnostic evidence");
++    }
++    fn snapshot(event: &str, owner: &SwiftReactorInstance) {
++        let state = owner.state.as_ref().expect("actual state");
++        let wasi = owner.wasi.as_ref().expect("actual WASI");
++        emit(event, format!("{{\"usage\":{},\"lifecycle\":{},\"memory_bytes\":{},\"stdout\":{},\"stderr\":{},\"stdout_hex\":{},\"stderr_hex\":{},\"cache\":{}}}",
++            observed(owner).json(),
++            quote(match owner.lifecycle { Lifecycle::Uninitialized=>"Uninitialized", Lifecycle::Ready=>"Ready", Lifecycle::Terminal=>"Terminal" }),
++            state.memory.len(), std::str::from_utf8(wasi.stdout()).ok().json(),
++            std::str::from_utf8(wasi.stderr()).ok().json(), quote(&hex(wasi.stdout())),
++            quote(&hex(wasi.stderr())), owner.cache.as_ref().unwrap().usage().json()));
++        let label=match event {
++            "constructed"=>FullAttributionPhase::Constructed,"initialize"=>FullAttributionPhase::Initialize,
++            "corpus_1"=>FullAttributionPhase::Corpus1,"corpus_2"=>FullAttributionPhase::Corpus2,
++            "before_cleanup"=>FullAttributionPhase::BeforeCleanup,_=>return,
++        };
++        if let (Some(control),Some(cache))=(owner.control.as_ref(),owner.cache.as_ref()) {
++            full_attribution_snapshot(label,control.usage(None).cache_work,cache.usage().decodes,false);
++        }
++    }
++    fn completion(completed: GrowthCompletion<'_>) -> bool {
++        match completed {
++            GrowthCompletion::Completed(FrameCompletion::Completed) => true,
++            GrowthCompletion::Completed(FrameCompletion::Retained(report) | FrameCompletion::RestoreRejected(report)) => {
++                emit("frame_cleanup_retained", quote(&format!("{:?}", report)));
++                false
++            }
++            GrowthCompletion::Retained { mut phase, mut context, mut growth, mut storage, preparation } => {
++                emit("growth_cleanup_retained", "true".into());
++                // Only the actual original retaining route; no changed hook, budget or owner.
++                let released = release_growth_pending(&mut phase, &mut context, &mut growth);
++                if let Err(failure) = released { emit("growth_cleanup_failure", failure.json()); }
++                storage.drained = Some(phase.drain());
++                match complete_growth(phase, context, growth, storage, preparation) {
++                    GrowthCompletion::Completed(FrameCompletion::Completed) => false,
++                    GrowthCompletion::Completed(other) => {
++                        emit("growth_cleanup_retry_incomplete", quote(&format!("{:?}", other)));
++                        false
++                    }
++                    GrowthCompletion::Retained { .. } => {
++                        // A retained authority is never reported cleaned. This unexpected
++                        // branch is a diagnostic failure with OS process cleanup only.
++                        emit("growth_cleanup_unresolved", "true".into());
++                        panic!("original retained growth authority did not complete");
++                    }
++                }
++            }
++        }
++    }
++    fn phase(owner: &mut SwiftReactorInstance, selected: Request, name: &str, compare_native: bool) -> bool {
++        emit("phase_begin", quote(name));
++        let before_stdout = owner.wasi.as_ref().unwrap().stdout().len();
++        let ok = match request(owner, selected) {
++            Completion::Completed(reply) => {
++                emit("phase_reply", quote(&format!("{:?}", reply)));
++                matches!((selected, reply), (Request::Initialize, Reply::Initialized) | (Request::Corpus, Reply::Corpus(0)))
++            }
++            Completion::PreparationFailed(failure) => { emit("runtime_failure", failure.json()); false }
++            Completion::Failed { failure, cleanup } => {
++                emit("runtime_failure", failure.json());
++                let _ = completion(cleanup);
++                false
++            }
++            Completion::Rejected(rejection) => { emit("unexpected_rejection", quote(&format!("{:?}", rejection))); false }
++            Completion::BlockedTerminal => { emit("unexpected_terminal", "true".into()); false }
++        };
++        snapshot(name, owner);
++        if ok && compare_native && matches!(selected, Request::Corpus) {
++            let suffix = &owner.wasi.as_ref().unwrap().stdout()[before_stdout..];
++            let equal = native_equal(suffix);
++            emit(if equal { "guest_output_native_equal" } else { "guest_output_failure" }, quote(name));
++            return equal;
++        }
++        if !ok { emit("phase_failed", quote(name)); }
++        ok
++    }
++    fn cleanup(mut owner: SwiftReactorInstance) -> bool {
++        snapshot("before_cleanup", &owner);
++        let full_final_decodes=owner.cache.as_ref().map(|cache|cache.usage().decodes);
++        if owner.state.as_ref().unwrap().frame_cleanup.bound.is_some() {
++            emit("resume_original_frame_cleanup", "true".into());
++            let mut returned = Some(owner.resume_frame_cleanup());
++            let mut phase = match returned.take().unwrap() {
++                Ok(phase) => phase,
++                Err(failure) => { emit("resume_cleanup_failure", failure.json()); return false; }
++            };
++            let report = phase.drain();
++            emit("drain_report", quote(&format!("{:?}", report)));
++            let done = phase.complete(FrameOperationStorage { preparation: returned, entry: None, returned: None, drained: Some(report), controlled: None });
++            emit("resume_frame_completion", quote(&format!("{:?}", done)));
++        }
++        let mut owned = Some(owner);
++        let mut returned = Some(SwiftReactorInstance::cleanup_owned(&mut owned));
++        let tail = match returned.take().unwrap() {
++            Ok(tail) => tail,
++            Err(failure) => { emit("owned_cleanup_failure", failure.json()); return false; }
++        };
++        let mut failure = None;
++        let mut usage = None;
++        tail.complete((owned, returned), &mut failure, &mut usage);
++        emit("final_failure", failure.json());
++        emit("final_cleanup_usage", usage.json());
++        if let (Some(u),Some(decodes))=(usage,full_final_decodes) {
++            full_attribution_snapshot(FullAttributionPhase::FinalCleanup,u.cache_work,decodes,true);
++        }
++        let u = usage.expect("consuming cleanup observation");
++        let reservations = u.reservations;
++        let empty_reservations = [reservations.retained_source.current,
++            reservations.retained_metadata.current, reservations.cache.current,
++            reservations.state.current, reservations.wasi.current, reservations.shared.current,
++            reservations.construction.current, reservations.combined.current,
++            reservations.live_tickets].into_iter().all(|current| current == 0);
++        let empty_live = [u.live.cache_entries.current, u.live.values.current,
++            u.live.controls.current, u.live.frames.current, u.live.active_pins.current,
++            u.live.memory_pages.current].into_iter().all(|current| current == 0);
++        emit("cleanup_reservations_and_live_empty", (empty_reservations && empty_live).json());
++        let clean = empty_reservations && empty_live && failure.is_none() && u.cleanup_invariant.is_none();
++        emit("cleanup_empty", clean.json());
++        clean
++    }
++    fn diagnostic(input: Vec<u8>, compare_native: bool) -> bool {
++        let validation_budget = SwiftValidationBudget::default();
++        let run_budget = SwiftRunBudget::default();
++        let wasi_budget = WasiBudget::default();
++        let grants = WasiGrants { secure_random: true, realtime: true, monotonic: true, stdout: true, stderr: true };
++        emit("validation_budget", validation_budget.json());
++        emit("run_budget", run_budget.json());
++        emit("wasi_budget", wasi_budget.json());
++        emit("wasi_grants", grants.json());
++        let input_capacity = input.capacity();
++        emit("input", format!("{{\"visible_bytes\":{},\"external_capacity_bytes\":{},\"external_allocation_not_in_runtime_ledger\":true}}", input.len(), input_capacity));
++        emit("phase_begin", quote("validation"));
++        let proof = match validate_swift_reactor(&input, validation_budget, &Cancellation::default()) {
++            Ok(proof) => proof,
++            Err(failure) => {
++                emit("validation_failure", failure.json());
++                emit("input_overlap", format!("{{\"external_input_capacity\":{},\"internal_peak_reserved\":{},\"sum_excludes_allocator_overhead_and_RSS\":{}}}", input_capacity, failure.usage.total_peak_reserved, input_capacity + failure.usage.total_peak_reserved));
++                drop(input);
++                emit("external_input_dropped", "true".into());
++                return false;
++            }
++        };
++        emit("validation_usage", proof.usage().json());
++        emit("validation_observations", proof.observations().json());
++        emit("input_overlap", format!("{{\"external_input_capacity\":{},\"internal_peak_reserved\":{},\"sum_excludes_allocator_overhead_and_RSS\":{}}}", input_capacity, proof.usage().total_peak_reserved, input_capacity + proof.usage().total_peak_reserved));
++        drop(input);
++        emit("external_input_dropped", "true".into());
++        let started = Instant::now();
++        let mut pair = match RuntimeControl::adopt(proof, run_budget, started, Cancellation::default()) {
++            Ok(pair) => Some(pair),
++            Err(failure) => { emit("adoption_failure", failure.json()); return false; }
++        };
++        emit("adopted_usage", pair.as_ref().unwrap().0.usage(None).json());
++        full_attribution_begin(); // Exactly once, before this original cache/control construction.
++        let mut returned = Some(SwiftReactorInstance::construct(&mut pair, grants, wasi_budget, started, Cursor { stage: SwiftRunStage::Initialization, function: Some(35), offset: None }));
++        let mut owner = match returned.take().unwrap() {
++            Ok(owner) => owner,
++            Err(crate::experimental_swift_reactor::execution::ConstructionFailure::Rejected(failure)) => {
++                emit("construction_failure", failure.json());
++                let (mut control, proof) = pair.take().expect("rejected constructor retains original pair");
++                let dropped = control.drop_proof(proof);
++                if let Err(failure) = dropped { emit("drop_proof_failure", failure.json()); }
++                drop((pair, returned));
++                let full_final_usage=control.finish_owned_cleanup(None);
++                emit("final_cleanup_usage", full_final_usage.json());
++                full_attribution_snapshot(FullAttributionPhase::FinalCleanup,full_final_usage.cache_work,0,true);
++                return false;
++            }
++            Err(crate::experimental_swift_reactor::execution::ConstructionFailure::Cleanup(tail)) => {
++                let mut failure = None;
++                let mut usage = None;
++                tail.complete((pair, returned), &mut failure, &mut usage);
++                emit("construction_failure", failure.json());
++                emit("final_cleanup_usage", usage.json());
++                if let Some(u)=usage {full_attribution_snapshot(FullAttributionPhase::FinalCleanup,u.cache_work,0,true);}
++                return false;
++            }
++        };
++        drop((pair, returned));
++        snapshot("constructed", &owner);
++        let success = phase(&mut owner, Request::Initialize, "initialize", compare_native)
++            && phase(&mut owner, Request::Corpus, "corpus_1", compare_native)
++            && phase(&mut owner, Request::Corpus, "corpus_2", compare_native);
++        // Short circuit preserves the first failure and skips all dependent phases.
++        let clean = cleanup(owner);
++        emit("diagnostic_execution_complete", (success && clean).json());
++        success && clean
++    }
++
++    #[test]
++    fn exact_reactor_harness_control() {
++        let native = b"{\"codableRoundTrip\":true,\"committedEntries\":1,\"completionBasisPoints\":5000,\"emptyTitleRejected\":true,\"pendingChanges\":1503,\"reordered\":true,\"repeatedCommitRejected\":true,\"reportIncludesEntry\":true,\"status\":\"passed\",\"taskCount\":1000,\"unicodePreserved\":true}\n";
++        assert!(native_equal(native));
++        assert!(!native_equal(b"{}"));
++        assert!(!native_equal(&[native.as_slice(), b"{}"].concat()));
++        let duplicate = String::from_utf8(native.to_vec()).unwrap().replace("\"committedEntries\":1", "\"codableRoundTrip\":true");
++        assert!(!native_equal(duplicate.as_bytes()));
++        let wrong_type = String::from_utf8(native.to_vec()).unwrap().replace("\"taskCount\":1000", "\"taskCount\":\"1000\"");
++        assert!(!native_equal(wrong_type.as_bytes()));
++        assert!(!native_equal(&[native.as_slice(), &[0xff]].concat()));
++        // Existing independent synthetic construction proves only wiring/cleanup.
++        let (bytes, _) = module(&[], &[]);
++        assert!(diagnostic(bytes, false));
++    }
++
++    #[test]
++    fn exact_reactor_target_once() {
++        let path = std::env::var("MIXER_EXACT_REACTOR_INPUT").expect("external binding required");
++        let metadata = std::fs::metadata(&path).expect("bound target file");
++        assert_eq!(metadata.len(), 53_777_114, "exact target byte length");
++        let input = std::fs::read(&path).expect("bound immutable target bytes");
++        assert_eq!(input.len(), 53_777_114);
++        assert!(diagnostic(input, true), "exact bounded target did not complete; preserve first diagnostic");
++    }
++}
+--- accepted/src/experimental_swift_reactor/control.rs
++++ campaign/src/experimental_swift_reactor/control.rs
+@@ -46,7 +46,7 @@
+             cache_entry_bytes: 8 * MIB,
+             cache_entries: 64,
+             active_pins: 64,
+-            cache_work: 64_000_000,
++            cache_work: 64000000,
+             frames: 64,
+             values: 16_384,
+             controls: 4_096,
+--- accepted/src/experimental_swift_reactor/lifecycle_tests.rs
++++ campaign/src/experimental_swift_reactor/lifecycle_tests.rs
+@@ -2399,3 +2399,5 @@
+     );
+     retire(o);
+ }
++
++include!("campaign_harness.rs");

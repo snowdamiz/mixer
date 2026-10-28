@@ -1,0 +1,119 @@
+--- frozen-v2/campaign.py
++++ corrected-v2/campaign.py
+@@ -35,6 +35,23 @@
+ MAX_FULL_ATTEMPTS = 2
+ RSS_LIMITATION = "Raw wait4 value retained; prior campaign showed a common launcher high-water floor. VM-attributable RSS unavailable; no per-profile RSS comparison."
+ NEXT_ARCHITECTURE = "If both-corpus-plus-cleanup milestone remains unmet, require Astra architecture comparison of algorithm change, resource-policy change and a different implementation; no further accounting-only preparation chain."
++
++
++def guarded_command(custody, argv, cwd, env, directory, seconds):
++    require(custody["pendingCommand"] is None, "previous command custody unresolved; no further command")
++    custody["pendingCommand"] = {"argv": argv, "directory": str(directory), "timeoutSeconds": seconds}
++    save(Path(custody["recordPath"]), custody)
++    # The inherited helper can raise after Popen and before its terminal receipt.
++    # Do not infer closure from any exception message, including pre-spawn errors.
++    row = base.command(argv, cwd, env, directory, seconds)
++    require(type(row) is dict and type(row.get("pid")) is int and row["pid"] > 0
++        and type(row.get("exitCode")) is int and -signal.NSIG < row["exitCode"] <= 255
++        and row.get("processGroupEmpty") is True,
++        "terminal child-reap/group-absence proof missing; custody unresolved")
++    custody["pendingCommand"] = None
++    custody["provenClosedCommands"] += 1
++    save(Path(custody["recordPath"]), custody)
++    return row
+ 
+ 
+ def inputs():
+@@ -140,7 +157,7 @@
+     return result
+ 
+ 
+-def run_profile(name, work, original, target_input, scratch, env, output, campaign):
++def run_profile(name, work, original, target_input, scratch, env, output, campaign, custody):
+     phase = output / name
+     phase.mkdir()
+     source = parameterize(original, work)
+@@ -151,7 +168,7 @@
+     crate = scratch / name / "vm"
+     base.materialize(source, crate)
+     child_env = env | {"CARGO_TARGET_DIR": str(scratch / name / "target")}
+-    build = base.command(["cargo", "test", "--lib", "--no-run", "--release", "--locked", "--offline",
++    build = guarded_command(custody, ["cargo", "test", "--lib", "--no-run", "--release", "--locked", "--offline",
+         "--no-default-features", "--features", "experimental-swift-reactor", "--message-format=json"],
+         crate, child_env, phase / "build", 180)
+     require(build["exitCode"] == 0 and not build["timedOut"], "compile failed: " + name)
+@@ -162,7 +179,7 @@
+     executable = {"path": str(binary), "bytes": binary.stat().st_size, "sha256": sha(binary.read_bytes())}
+     save(phase / "binary.json", executable)
+     for label, test in (("finite", "::campaign_"), ("harness-control", base.PREFIX + "exact_reactor_harness_control")):
+-        control = base.command([str(binary), test, "--nocapture", "--test-threads=1"], crate, child_env, phase / label, 90)
++        control = guarded_command(custody, [str(binary), test, "--nocapture", "--test-threads=1"], crate, child_env, phase / label, 90)
+         require(control["exitCode"] == 0 and not control["timedOut"], "finite control failed: " + label)
+         require(("test result: ok. 4 passed; 0 failed; 0 ignored" if label == "finite" else
+                  "test result: ok. 1 passed; 0 failed; 0 ignored") in (phase / label / "stdout").read_text(), "missing selected controls")
+@@ -170,7 +187,7 @@
+     base.ensure_command_budget(FULL_SECONDS)
+     campaign["fullAttempts"] += 1
+     save(output / "campaign.json", campaign)  # Count before spawning; no refund/retry.
+-    full = base.command([str(binary), base.PREFIX + "exact_reactor_target_once", "--exact", "--nocapture", "--test-threads=1"],
++    full = guarded_command(custody, [str(binary), base.PREFIX + "exact_reactor_target_once", "--exact", "--nocapture", "--test-threads=1"],
+                         crate, child_env, phase / "full", FULL_SECONDS)
+     result = base.classify(phase / "full/stdout", full)
+     save(phase / "result.json", result)  # Preserve first failure even when further checks reject it.
+@@ -186,7 +203,8 @@
+     campaign["profiles"].append(row)
+     save(output / "campaign.json", campaign)
+     require(unchanged, "source/input changed during experiment")
+-    shutil.rmtree(scratch / name)  # base.command has already required every owned group absent.
++    require(custody["pendingCommand"] is None, "command custody unresolved; retain profile scratch")
++    shutil.rmtree(scratch / name)
+     return result, full, unchanged
+ 
+ 
+@@ -209,7 +227,7 @@
+         "milestone": "Both full corpus calls on one initialized owner match all 11 original native fields, followed by consuming zero-resource cleanup.",
+         "scope": "diagnostic host/profile feasibility; native/public/signed OTA/FieldLog publication/GA pending",
+         "rssLimitation": RSS_LIMITATION, "nextArchitectureIfMilestoneUnmet": NEXT_ARCHITECTURE}
+-    safe_to_remove = True
++    custody = {"recordPath": str(output / "custody.json"), "pendingCommand": None, "provenClosedCommands": 0}
+     try:
+         original, artifact, bindings = inputs()
+         campaign["inputBindings"] = bindings
+@@ -222,27 +240,31 @@
+         env.update(CARGO_INCREMENTAL="0", CARGO_NET_OFFLINE="true", CARGO_BUILD_JOBS="2", RUSTUP_TOOLCHAIN="1.99.0",
+                    MIXER_EXACT_REACTOR_INPUT=str(target_input), TMPDIR=str(scratch))
+         for tool, argv in (("rustc", ["rustc", "-vV"]), ("cargo", ["cargo", "-V"]), ("python", [sys.executable, "--version"])):
+-            row = base.command(argv, HERE, env, output / "tools" / tool, 15)
++            row = guarded_command(custody, argv, HERE, env, output / "tools" / tool, 15)
+             require(row["exitCode"] == 0 and not row["timedOut"], "tool identity failed")
+-        result, full, unchanged = run_profile(*PROFILES[0], original, target_input, scratch, env, output, campaign)
++        result, full, unchanged = run_profile(*PROFILES[0], original, target_input, scratch, env, output, campaign, custody)
+         selected = conditional_second(result, full, unchanged)
+         campaign["conditionalSecondSelected"] = selected
+         campaign["conditionalSecondReason"] = ("verified CacheWork exhaustion with original cause and complete cleanup" if selected else
+             "first attempt completed or hit another limit; conditional work increase not authorized")
+         save(output / "campaign.json", campaign)
+         if selected:
+-            result, full, unchanged = run_profile(*PROFILES[1], original, target_input, scratch, env, output, campaign)
++            result, full, unchanged = run_profile(*PROFILES[1], original, target_input, scratch, env, output, campaign, custody)
+         campaign["status"] = "host-feasibility-observed" if result["hostFeasibility"] else "milestone-unmet-campaign-closed"
+         campaign["nextDecision"] = ("root reviews the completed host/profile result and selects concrete integration; no production default promotion" if result["hostFeasibility"] else NEXT_ARCHITECTURE)
+     except Exception as error:
+         campaign["status"] = "stopped"
+         campaign["error"] = str(error)
+-        safe_to_remove = "process group unresolved" not in str(error)
+         raise
+     finally:
+-        if safe_to_remove and scratch.exists():
++        unresolved = custody["pendingCommand"] is not None
++        if not unresolved and scratch.exists():
+             shutil.rmtree(scratch)
+-        campaign["cleanup"] = {"ownedScratchRemoved": not scratch.exists(), "nativeOrLocalCustodyProcessesStarted": False}
++        campaign["cleanup"] = {"ownedScratchRemoved": not scratch.exists(), "nativeOrLocalCustodyProcessesStarted": False,
++            "commandCustodyUnresolved": unresolved, "commandCustody": custody}
++        if unresolved:
++            campaign["status"] = "stopped-unresolved-command-custody"
++            campaign["nextDecision"] = "retain owned scratch; no further commands or attempts; unresolved remote custody requires root disposition"
+         save(output / "campaign.json", campaign)
+ 
+ 
