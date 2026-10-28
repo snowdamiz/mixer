@@ -1,0 +1,829 @@
+diff --git a/hosted/test/support/http2_wire_fixture.ex b/hosted/test/support/http2_wire_fixture.ex
+new file mode 100644
+--- /dev/null
++++ b/hosted/test/support/http2_wire_fixture.ex
+@@ -0,0 +1,679 @@
++defmodule MixerHosted.HTTP2WireFixture.ReadObserver do
++  @moduledoc false
++  # This is a two-call observer, not a complete Plug.Conn.Adapter implementation.
++  def get_http_protocol(s), do: s.module.get_http_protocol(s.adapter)
++
++  def read_req_body(s, opts) do
++    index = s.index + 1
++    if index > 64, do: raise("HTTP/2 fixture read-event limit")
++    started = System.monotonic_time(:millisecond)
++    if index == 1, do: send(s.owner, {s.ref, :reading, started})
++
++    case s.module.read_req_body(s.adapter, opts) do
++      {tag, bytes, adapter} when tag in [:ok, :more] and is_binary(bytes) ->
++        event = %{
++          index: index,
++          tag: tag,
++          bytes: byte_size(bytes),
++          started: started,
++          finished: System.monotonic_time(:millisecond),
++          length: Keyword.get(opts, :length),
++          read_length: Keyword.get(opts, :read_length),
++          read_timeout: Keyword.get(opts, :read_timeout)
++        }
++
++        send(s.owner, {s.ref, :read, event})
++
++        {tag, bytes, %{s | adapter: adapter, index: index}}
++
++      other ->
++        # Preserve unexpected public results and exceptions for framework handling.
++        other
++    end
++  end
++end
++
++defmodule MixerHosted.HTTP2WireFixture.ProbePlug do
++  @moduledoc false
++  @behaviour Plug
++  alias MixerHosted.HTTP2WireFixture.ReadObserver
++
++  def init(opts), do: opts
++
++  def call(conn, opts) do
++    owner = Keyword.fetch!(opts, :owner)
++    ref = Keyword.fetch!(opts, :ref)
++    deadline = Keyword.fetch!(opts, :deadline)
++    {module, adapter} = conn.adapter
++    protocol = Plug.Conn.get_http_protocol(conn)
++    content_lengths = Plug.Conn.get_req_header(conn, "content-length")
++    send(owner, {ref, :entered, self(), protocol, module, content_lengths})
++    gate(ref, deadline, :release)
++    observed = %{module: module, adapter: adapter, owner: owner, ref: ref, index: 0}
++    conn = %{conn | adapter: {ReadObserver, observed}}
++    started = System.monotonic_time(:millisecond)
++
++    case Keyword.fetch!(opts, :mode) do
++      :capture ->
++        case MixerHosted.Billing.RawWebhookCapture.capture(conn) do
++          {:ok, captured, latest} ->
++            result = %{
++              kind: :capture,
++              tag: :ok,
++              body: captured.raw_body,
++              signatures: captured.signature_header_values,
++              halted: latest.halted,
++              elapsed: System.monotonic_time(:millisecond) - started
++            }
++
++            {ReadObserver, observed} = latest.adapter
++            latest = %{latest | adapter: {observed.module, observed.adapter}}
++
++            latest =
++              latest
++              |> Plug.Conn.put_resp_header("date", "Wed, 28 Oct 2026 00:00:00 GMT")
++              |> Plug.Conn.send_resp(204, "")
++
++            send(owner, {ref, :result, result})
++            latest
++
++          {:error, reason, latest} ->
++            result = %{
++              kind: :capture,
++              tag: :error,
++              reason: reason,
++              halted: latest.halted,
++              elapsed: System.monotonic_time(:millisecond) - started
++            }
++
++            send(owner, {ref, :result, result})
++            gate(ref, deadline, :dispose)
++        end
++
++      :package_read ->
++        {tag, bytes, latest} = Plug.Conn.read_body(conn, length: 32_768, read_timeout: 1_000)
++
++        result = %{
++          kind: :package_read,
++          tag: tag,
++          bytes: byte_size(bytes),
++          halted: latest.halted,
++          elapsed: System.monotonic_time(:millisecond) - started
++        }
++
++        send(owner, {ref, :result, result})
++        gate(ref, deadline, :dispose)
++    end
++  end
++
++  defp gate(ref, deadline, expected) do
++    receive do
++      {^ref, ^expected} when expected == :release ->
++        :ok
++
++      {^ref, :dispose} ->
++        exit(:normal)
++    after
++      max(deadline - System.monotonic_time(:millisecond), 0) ->
++        raise("HTTP/2 fixture gate deadline")
++    end
++  end
++end
++
++defmodule MixerHosted.HTTP2WireFixture do
++  @moduledoc false
++  alias MixerHosted.HTTP2WireFixture.ProbePlug
++  @state_key {__MODULE__, :owned_case}
++  @preface "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
++  @max_body 1_048_577
++  @signature "t=1,v1=literal-wire-signature"
++
++  # The shared atomics are module deadline, total input bytes, and cleanup poison.
++  def budget do
++    b = :atomics.new(3, signed: true)
++    :atomics.put(b, 1, now() + 25_000)
++    b
++  end
++
++  def run(budget, name, mode, fun) do
++    check(:atomics.get(budget, 3) == 0, "a prior HTTP/2 fixture cleanup failed")
++    check(Process.get(@state_key) == nil, "overlapping HTTP/2 fixtures")
++    started = now()
++    deadline = min(started + 3_000, :atomics.get(budget, 1) - 500)
++    check(deadline > started, "HTTP/2 module budget exhausted")
++    check(Application.spec(:bandit, :vsn) == ~c"1.14.0", "actual Bandit must be 1.14.0")
++
++    case_state = %{
++      budget: budget,
++      name: name,
++      mode: mode,
++      started: started,
++      deadline: deadline,
++      ref: make_ref(),
++      listener: nil,
++      listener_monitor: nil,
++      startup_pending: false,
++      socket: nil,
++      stream: nil,
++      connections: [],
++      queries: [],
++      frame_limit:
++        if(mode == :package_read or String.starts_with?(name, "D2"), do: 64, else: 256),
++      frames_in: 0,
++      frames_out: 0,
++      bytes_sent: 0,
++      conn_credit: 65_535,
++      stream_credit: 65_535,
++      initial_window: 65_535,
++      settings_seen: false,
++      settings_acks: 0,
++      ping_acks: MapSet.new(),
++      ping_serial: 0,
++      reads: [],
++      other_messages: 0,
++      reading: nil,
++      entered: nil,
++      result: nil,
++      controls_sent: 0,
++      controls_processed: 0,
++      control_witnesses: [],
++      controls_before_return: 0,
++      captured_sha256: nil,
++      passed: false
++    }
++
++    Process.put(@state_key, case_state)
++
++    try do
++      start()
++      answer = fun.()
++      remaining()
++      captured = Map.get(state().result || %{}, :body, <<>>)
++      digest = Base.encode16(:crypto.hash(:sha256, captured), case: :lower)
++      remaining()
++      update(&%{&1 | passed: true, captured_sha256: digest})
++      answer
++    after
++      finish()
++    end
++  end
++
++  def signature, do: @signature
++  def reads, do: state().reads
++  def bytes_sent, do: state().bytes_sent
++
++  def release do
++    s = state()
++    send(elem(s.stream, 0), {s.ref, :release})
++    await(fn -> state().reading != nil end)
++  end
++
++  def send_data(chunks) do
++    total =
++      Enum.reduce(chunks, 0, fn {bytes, _last}, n ->
++        check(is_binary(bytes) and byte_size(bytes) in 1..16_384, "illegal DATA payload")
++        n + byte_size(bytes)
++      end)
++
++    check(state().bytes_sent + total <= @max_body, "HTTP/2 case input cap")
++    await(fn -> state().conn_credit >= total and state().stream_credit >= total end)
++    all_bytes = :atomics.add_get(state().budget, 2, total)
++    check(all_bytes <= 3 * 1_048_576, "HTTP/2 module input cap")
++    frames =
++      Enum.map(chunks, fn {bytes, last} -> frame(0, if(last, do: 1, else: 0), 1, bytes) end)
++    # In B3 the last 32,769 bytes and END_STREAM are one TCP send, before refusal is observed.
++    send_frames(frames)
++
++    update(fn s ->
++      %{
++        s
++        | bytes_sent: s.bytes_sent + total,
++          conn_credit: s.conn_credit - total,
++          stream_credit: s.stream_credit - total
++      }
++    end)
++  end
++
++  def wait_reads(count) do
++    await(fn -> length(state().reads) >= count end)
++    check(length(reads()) == count, "unexpected read completion count")
++    List.last(reads())
++  end
++
++  def result do
++    await(fn -> state().result != nil end)
++    state().result
++  end
++
++  def fence do
++    serial = state().ping_serial + 1
++    update(&%{&1 | ping_serial: serial})
++    payload = <<serial::64>>
++    send_frames([frame(6, 0, 0, payload)])
++    await(fn -> MapSet.member?(state().ping_acks, payload) end)
++    # All earlier peer frames, including a refusal, precede this matching ACK.
++    :ok
++  end
++
++  def nonprogress(profile) when profile in [:settings, :window_update] do
++    release()
++    started = state().reading
++    controls(profile, started, 1)
++    r = result()
++    [read] = reads()
++    before_return = Enum.count(state().control_witnesses, &(&1 <= read.finished))
++    update(&%{&1 | controls_before_return: before_return})
++    check(before_return >= 3, "nonprogress processing witness before return missing")
++    check(state().controls_sent <= 8, "nonprogress frame cap")
++    check(read.finished - read.started in 900..1_600, "public adapter read interval")
++    check(r.elapsed in 900..1_600, "public read outside 900..1600 ms interval")
++    fence()
++    r
++  end
++
++  defp controls(profile, started, index) do
++    wait_until(min(started + index * 200, started + 1_600))
++
++    cond do
++      state().result != nil ->
++        :ok
++
++      index > 8 ->
++        check(false, "read did not finish during finite nonprogress train")
++
++      true ->
++        case profile do
++          :settings ->
++            expected = state().settings_acks + 1
++            send_frames([frame(4, 0, 0, <<>>)])
++            update(&%{&1 | controls_sent: &1.controls_sent + 1})
++            await(fn -> state().settings_acks >= expected end)
++
++          :window_update ->
++            send_frames([frame(8, 0, 1, <<1::32>>)])
++            update(&%{&1 | controls_sent: &1.controls_sent + 1})
++            fence()
++        end
++
++        update(fn s ->
++          %{
++            s
++            | controls_processed: s.controls_processed + 1,
++              control_witnesses: [now() | s.control_witnesses]
++          }
++        end)
++        controls(profile, started, index + 1)
++    end
++  end
++
++  defp start do
++    s = state()
++
++    spec =
++      Bandit.child_spec(
++        plug: {ProbePlug, owner: self(), ref: s.ref, mode: s.mode, deadline: s.deadline},
++        scheme: :http,
++        ip: {127, 0, 0, 1},
++        port: 0,
++        startup_log: false,
++        http_options: [
++          log_exceptions_with_status_codes: [],
++          log_protocol_errors: false,
++          log_client_closures: false
++        ],
++        http_1_options: [enabled: false],
++        http_2_options: [
++          enabled: true,
++          max_header_block_size: 1_024,
++          default_local_settings: [max_concurrent_streams: 1, max_header_list_size: 1_024]
++        ],
++        thousand_island_options: [
++          num_acceptors: 1,
++          num_connections: 1,
++          max_connections_retry_count: 0,
++          read_timeout: 5_000,
++          shutdown_timeout: 100
++        ]
++      )
++      |> Map.put(:restart, :temporary)
++      |> Map.put(:shutdown, 400)
++
++    update(&%{&1 | startup_pending: true})
++    listener = ExUnit.Callbacks.start_supervised!(spec)
++
++    update(fn s ->
++      %{
++        s
++        | listener: listener,
++          listener_monitor: Process.monitor(listener),
++          startup_pending: false
++      }
++    end)
++
++    remaining()
++    {:ok, {{127, 0, 0, 1}, port}} = local_query(fn -> ThousandIsland.listener_info(listener) end)
++
++    {:ok, socket} =
++      :gen_tcp.connect(
++        {127, 0, 0, 1},
++        port,
++        [:binary, active: false, nodelay: true, send_timeout_close: true],
++        remaining()
++      )
++
++    update(&%{&1 | socket: socket})
++    send_wire([@preface, frame(4, 0, 0, <<>>)], 1)
++    await(fn -> state().settings_seen and state().settings_acks == 1 end)
++    headers = [
++      {":method", "POST"},
++      {":scheme", "http"},
++      {":authority", "127.0.0.1"},
++      {":path", "/api/v1/webhooks/stripe"},
++      {"content-type", "application/json"},
++      {"stripe-signature", @signature}
++    ]
++
++    decoded = Enum.reduce(headers, 0, fn {k, v}, n -> n + byte_size(k) + byte_size(v) + 32 end)
++    check(decoded <= 1_024, "decoded request header cap")
++    {encoded, _table} = HPAX.encode(:never_store, headers, HPAX.new(0))
++    encoded = IO.iodata_to_binary(encoded)
++    check(byte_size(encoded) <= 1_024, "compressed request header cap")
++    send_frames([frame(1, 4, 1, encoded)])
++    await(fn -> state().entered != nil end)
++    check(
++      state().entered == {:"HTTP/2", Bandit.Adapter, []},
++      "real HTTP/2 adapter/framing required"
++    )
++
++    {:ok, connections} = local_query(fn -> ThousandIsland.connection_pids(listener) end)
++    check(length(connections) == 1, "exactly one owned connection required")
++    monitored = Enum.map(connections, fn pid -> {pid, Process.monitor(pid)} end)
++    update(&%{&1 | connections: monitored})
++  end
++
++  # Bound public read-only supervisor queries without inspecting private Bandit state.
++  defp local_query(fun) do
++    owner = self()
++    ref = make_ref()
++    {pid, monitor} = spawn_monitor(fn -> send(owner, {ref, fun.()}) end)
++    query = {pid, monitor}
++    update(&%{&1 | queries: [query | &1.queries]})
++
++    try do
++      receive do
++        {^ref, value} ->
++          receive do
++            {:DOWN, ^monitor, :process, ^pid, :normal} ->
++              update(&%{&1 | queries: List.delete(&1.queries, query)})
++              value
++          after
++            remaining() -> check(false, "owned metadata query exit deadline")
++          end
++
++        {:DOWN, ^monitor, :process, ^pid, _} ->
++          update(&%{&1 | queries: List.delete(&1.queries, query)})
++          check(false, "owned metadata query failed")
++      after
++        remaining() -> check(false, "owned metadata query deadline")
++      end
++    after
++      if query in state().queries, do: Process.exit(pid, :kill)
++    end
++  end
++
++  defp await(predicate) do
++    drain_messages()
++
++    if predicate.() do
++      :ok
++    else
++      pump()
++      await(predicate)
++    end
++  end
++
++  defp wait_until(target) do
++    drain_messages()
++
++    if state().result == nil and now() < target do
++      pump(min(target - now(), 10))
++      wait_until(target)
++    end
++  end
++
++  defp drain_messages do
++    ref = state().ref
++
++    receive do
++      {^ref, :entered, pid, protocol, module, content_lengths} ->
++        check(state().entered == nil, "duplicate fixture stream")
++        other_message()
++
++        update(fn s ->
++          %{s | entered: {protocol, module, content_lengths}, stream: {pid, Process.monitor(pid)}}
++        end)
++
++        drain_messages()
++
++      {^ref, :reading, time} ->
++        check(state().reading == nil, "duplicate first-read witness")
++        other_message()
++        update(&%{&1 | reading: time})
++        drain_messages()
++
++      {^ref, :read, event} ->
++        check(
++          length(state().reads) < 64 and event.index == length(state().reads) + 1,
++          "read-event count/order"
++        )
++
++        update(&%{&1 | reads: &1.reads ++ [event]})
++        drain_messages()
++
++      {^ref, :result, result} ->
++        check(state().result == nil, "duplicate capture/public-read result")
++        other_message()
++        update(&%{&1 | result: result})
++        drain_messages()
++    after
++      0 -> :ok
++    end
++  end
++
++  defp other_message do
++    check(state().other_messages < 8, "correlated fixture message cap")
++    update(&%{&1 | other_messages: &1.other_messages + 1})
++  end
++
++  defp pump(poll_ms \\ 10) do
++    s = state()
++
++    case :gen_tcp.recv(s.socket, 9, min(max(poll_ms, 1), remaining())) do
++      {:error, :timeout} ->
++        :ok
++
++      {:ok, <<length::24, type, flags, _reserved::1, stream::31>>} ->
++        check(length <= 16_384, "peer frame payload cap")
++        payload = if length == 0, do: <<>>, else: recv_payload(length)
++        update(&%{&1 | frames_in: &1.frames_in + 1})
++        frame_bound()
++        handle_frame(type, flags, stream, payload)
++
++      _ ->
++        check(false, "HTTP/2 peer closed or malformed frame")
++    end
++  end
++
++  defp recv_payload(length) do
++    case :gen_tcp.recv(state().socket, length, remaining()) do
++      {:ok, bytes} -> bytes
++      _ -> check(false, "HTTP/2 frame payload unavailable")
++    end
++  end
++
++  defp handle_frame(4, 0, 0, payload) do
++    check(rem(byte_size(payload), 6) == 0, "malformed SETTINGS")
++    for <<id::16, value::32 <- payload>>, do: setting(id, value)
++    update(&%{&1 | settings_seen: true})
++    send_frames([frame(4, 1, 0, <<>>)])
++  end
++
++  defp handle_frame(4, 1, 0, <<>>),
++    do: update(&%{&1 | settings_acks: &1.settings_acks + 1})
++
++  defp handle_frame(8, 0, stream, <<_::1, increment::31>>) when stream in [0, 1] do
++    check(increment > 0, "zero WINDOW_UPDATE")
++    key = if stream == 0, do: :conn_credit, else: :stream_credit
++    check(Map.fetch!(state(), key) + increment <= 2_147_483_647, "send credit overflow")
++    update(&Map.update!(&1, key, fn n -> n + increment end))
++  end
++
++  defp handle_frame(6, 1, 0, <<_::64>> = payload),
++    do: update(&%{&1 | ping_acks: MapSet.put(&1.ping_acks, payload)})
++
++  defp handle_frame(6, 0, 0, <<_::64>> = payload),
++    do: send_frames([frame(6, 1, 0, payload)])
++
++  defp handle_frame(1, flags, 1, payload) when flags in [4, 5],
++    do: check(byte_size(payload) <= 1_024, "compressed response header cap")
++
++  defp handle_frame(0, flags, 1, <<>>) when flags in [0, 1], do: :ok
++
++  defp handle_frame(type, _flags, _stream, _payload) when type in [3, 7],
++    do: check(false, "HTTP/2 RST_STREAM/GOAWAY refusal before disposal")
++
++  defp handle_frame(_type, _flags, _stream, _payload),
++    do: check(false, "unexpected HTTP/2 peer frame")
++
++  defp setting(4, value) do
++    check(value <= 2_147_483_647, "illegal initial stream window")
++
++    update(fn s ->
++      %{s | stream_credit: s.stream_credit + value - s.initial_window, initial_window: value}
++    end)
++  end
++
++  defp setting(5, value), do: check(value in 16_384..16_777_215, "illegal peer frame setting")
++  defp setting(_id, _value), do: :ok
++
++  defp frame(type, flags, stream, payload) do
++    <<byte_size(payload)::24, type, flags, 0::1, stream::31, payload::binary>>
++  end
++
++  defp send_frames(frames), do: send_wire(frames, length(frames))
++
++  defp send_wire(iodata, frames) do
++    check(
++      state().frames_in + state().frames_out + frames <= state().frame_limit,
++      "HTTP/2 frame-event cap"
++    )
++
++    :ok = :inet.setopts(state().socket, send_timeout: remaining())
++    check(:gen_tcp.send(state().socket, iodata) == :ok, "bounded HTTP/2 send failed")
++    update(&%{&1 | frames_out: &1.frames_out + frames})
++  end
++
++  defp frame_bound do
++    check(state().frames_in + state().frames_out <= state().frame_limit, "HTTP/2 frame-event cap")
++  end
++
++  defp finish do
++    s = state()
++    cleanup_started = now()
++    deadline = min(cleanup_started + 500, :atomics.get(s.budget, 1))
++    if s.stream != nil, do: send(elem(s.stream, 0), {s.ref, :dispose})
++    socket_closed = s.socket == nil or :gen_tcp.close(s.socket) == :ok
++    stopped = stop_listener(s.listener, deadline)
++    stream_down = down(s.stream, deadline)
++    connections_down = Enum.all?(s.connections, &down(&1, deadline))
++    queries_down = Enum.all?(s.queries, &down(&1, deadline))
++    listener = if s.listener == nil, do: nil, else: {s.listener, s.listener_monitor}
++    listener_down = down(listener, deadline)
++
++    clean =
++      not s.startup_pending and socket_closed and stopped and stream_down and
++        connections_down and queries_down and listener_down and now() <= deadline
++
++    if not clean, do: :atomics.put(s.budget, 3, 1)
++
++    emit_receipt(s, %{
++      socket_closed: socket_closed,
++      listener_stopped: stopped,
++      stream_down: stream_down,
++      connections_down: connections_down,
++      queries_down: queries_down,
++      listener_down: listener_down,
++      cleanup_ms: now() - cleanup_started,
++      complete: clean
++    })
++
++    Process.delete(@state_key)
++    check(clean, "owned HTTP/2 cleanup did not close within 500 ms/module budget")
++    check(now() <= deadline, "HTTP/2 receipt exceeded cleanup/module deadline")
++  end
++
++  defp stop_listener(nil, _deadline), do: true
++
++  defp stop_listener(pid, deadline) do
++    try do
++      if Process.alive?(pid), do: Supervisor.stop(pid, :normal, max(deadline - now(), 1))
++      true
++    catch
++      :exit, _ -> false
++    end
++  end
++
++  defp down(nil, _deadline), do: true
++
++  defp down({pid, monitor}, deadline) do
++    receive do
++      {:DOWN, ^monitor, :process, ^pid, _reason} -> true
++    after
++      max(deadline - now(), 0) -> false
++    end
++  end
++
++  defp emit_receipt(s, cleanup) do
++    result = s.result || %{}
++    body = Map.get(result, :body, <<>>)
++
++    receipt = %{
++      case: s.name,
++      mode: s.mode,
++      bandit: "1.14.0",
++      protocol: "HTTP/2",
++      passed: s.passed and cleanup.complete,
++      bytes_sent: s.bytes_sent,
++      captured_bytes: byte_size(body),
++      captured_sha256: s.captured_sha256,
++      reads: length(s.reads),
++      maximum_returned_read: Enum.reduce(s.reads, 0, &max(&1.bytes, &2)),
++      frames_in: s.frames_in,
++      frames_out: s.frames_out,
++      controls_sent: s.controls_sent,
++      controls_processed: s.controls_processed,
++      controls_processed_before_return: s.controls_before_return,
++      result: Map.take(result, [:kind, :tag, :reason, :halted, :elapsed, :bytes]),
++      elapsed_ms: now() - s.started,
++      module_elapsed_ms: now() - (:atomics.get(s.budget, 1) - 25_000),
++      module_input_bytes: :atomics.get(s.budget, 2),
++      cleanup: cleanup
++    }
++
++    line = Jason.encode!(receipt)
++    check(byte_size(line) <= 2_048, "HTTP/2 receipt byte cap")
++    IO.puts("HTTP2_WIRE_RECEIPT " <> line)
++  end
++
++  defp remaining do
++    left = min(state().deadline, :atomics.get(state().budget, 1) - 500) - now()
++    check(left > 0, "HTTP/2 case/module work deadline")
++    left
++  end
++
++  defp state, do: Process.get(@state_key)
++  defp update(fun), do: Process.put(@state_key, fun.(state()))
++  defp now, do: System.monotonic_time(:millisecond)
++  defp check(true, _message), do: :ok
++  defp check(false, message), do: raise(ExUnit.AssertionError, message: message)
++end
+diff --git a/hosted/test/mixer_hosted/billing/raw_webhook_capture_http2_test.exs b/hosted/test/mixer_hosted/billing/raw_webhook_capture_http2_test.exs
+new file mode 100644
+--- /dev/null
++++ b/hosted/test/mixer_hosted/billing/raw_webhook_capture_http2_test.exs
+@@ -0,0 +1,140 @@
++defmodule MixerHosted.Billing.RawWebhookCaptureHTTP2Test do
++  use ExUnit.Case, async: false
++  alias MixerHosted.HTTP2WireFixture, as: F
++  @moduletag timeout: 26_000
++  @cap 1_048_576
++
++  setup_all do
++    # One shared deadline covers all five methods/seven subcases, including teardown.
++    %{http2_budget: F.budget()}
++  end
++
++  test "B1 actual HTTP/2 batching can return more than the requested 32 KiB", context do
++    F.run(context.http2_budget, "B1-batching", :capture, fn ->
++      body = body(40_001)
++      prefix = for n <- 0..31, do: {binary_part(body, n, 1), false}
++
++      tail = [
++        {binary_part(body, 32, 16_384), false},
++        {binary_part(body, 16_416, 16_384), false},
++        {binary_part(body, 32_800, 7_201), true}
++      ]
++
++      F.send_data(prefix ++ tail)
++      F.fence()
++      F.release()
++      result = F.result()
++      assert_capture(result, body)
++      oversized = Enum.any?(F.reads(), &(&1.bytes > 32_768))
++      assert oversized, "the mandatory real over-target batching witness was not observed"
++      assert_reads(32_768)
++      assert F.bytes_sent() == 40_001
++      F.fence()
++    end)
++  end
++
++  test "B2 paced no-length HTTP/2 input admits exactly the application byte cap", context do
++    F.run(context.http2_budget, "B2-exact-cap", :capture, fn ->
++      body = body(@cap)
++      F.release()
++      paced(body, 32, true)
++      result = F.result()
++      assert_capture(result, body)
++      assert F.bytes_sent() == @cap
++      assert length(F.reads()) == 32
++      assert Enum.all?(F.reads(), &(&1.bytes == 32_768))
++      assert List.last(F.reads()).tag == :ok
++      assert_reads(32_768)
++      F.fence()
++    end)
++  end
++
++  test "B3 a sent cap-plus-one input is refused and its halted stream is disposed", context do
++    F.run(context.http2_budget, "B3-cap-plus-one", :capture, fn ->
++      body = body(@cap + 1)
++      F.release()
++      paced(body, 31, false)
++      offset = 31 * 32_768
++
++      F.send_data([
++        {binary_part(body, offset, 16_384), false},
++        {binary_part(body, offset + 16_384, 16_384), false},
++        {binary_part(body, @cap, 1), true}
++      ])
++
++      result = F.result()
++      assert result.kind == :capture and result.tag == :error
++      assert result.reason == :too_large and result.halted
++      refute Map.has_key?(result, :body)
++      assert F.bytes_sent() == @cap + 1
++      assert_reads(32_768)
++      # This can refuse at a nonterminal cap; it need not consume the final extra byte.
++      F.fence()
++    end)
++  end
++
++  test "D1 nonprogress controls preserve the package public read deadline", context do
++    for profile <- [:settings, :window_update] do
++      F.run(context.http2_budget, "D1-#{profile}", :package_read, fn ->
++        result = F.nonprogress(profile)
++        assert result.kind == :package_read and result.tag == :more
++        assert result.bytes == 0
++        refute result.halted
++        assert [%{tag: :more, bytes: 0, length: 32_768, read_timeout: 1_000}] = F.reads()
++      end)
++    end
++  end
++
++  test "D2 Mixer refuses the timed public empty-more result as no_progress", context do
++    for profile <- [:settings, :window_update] do
++      F.run(context.http2_budget, "D2-#{profile}", :capture, fn ->
++        result = F.nonprogress(profile)
++        assert result.kind == :capture and result.tag == :error
++        assert result.reason == :no_progress and result.halted
++        refute Map.has_key?(result, :body)
++        assert [%{tag: :more, bytes: 0, length: 32_768, read_timeout: 1_000}] = F.reads()
++        # The one-second public read and Mixer's five-second admission deadline differ.
++      end)
++    end
++  end
++
++  defp paced(body, count, end_last) do
++    for index <- 1..count do
++      offset = (index - 1) * 32_768
++
++      F.send_data([
++        {binary_part(body, offset, 16_384), false},
++        {binary_part(body, offset + 16_384, 16_384), end_last and index == count}
++      ])
++
++      read = F.wait_reads(index)
++      assert read.bytes == 32_768
++      assert read.tag == if(end_last and index == count, do: :ok, else: :more)
++    end
++  end
++
++  defp assert_capture(result, expected) do
++    assert result.kind == :capture and result.tag == :ok
++    refute result.halted
++    assert result.elapsed < 5_000
++    # Bounded diagnostics: never let ExUnit pretty-print either large body.
++    identical = result.body == expected
++    assert identical, "captured body bytes differ"
++    assert result.signatures == [F.signature()]
++  end
++
++  defp assert_reads(target) do
++    reads = F.reads()
++    assert length(reads) in 1..64
++
++    assert Enum.all?(reads, fn read ->
++             read.length == target and read.read_length == target and
++               read.read_timeout in 1..1_000 and read.finished >= read.started
++           end)
++  end
++
++  defp body(size) do
++    seed = <<0, 255, 13, 10, 195, 169, 92, 34, 123, 125, 120, 121, 122, 49, 50, 51>>
++    binary_part(:binary.copy(seed, div(size + 15, 16)), 0, size)
++  end
++end

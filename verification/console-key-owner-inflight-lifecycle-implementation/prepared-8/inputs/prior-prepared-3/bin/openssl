@@ -1,0 +1,61 @@
+#!/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14 -B
+"""Owned runtime wrapper: exactly recorded native OpenSSL children, no new group."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+
+def append(path, record):
+    encoded = (json.dumps(record, allow_nan=False) + "\n").encode()
+    if len(encoded) > 131072:
+        raise ValueError("OpenSSL invocation receipt exceeds cap")
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+    try:
+        os.write(fd, encoded)
+    finally:
+        os.close(fd)
+
+
+def main():
+    config = json.loads((Path(__file__).resolve().parent.parent / "openssl-config.json").read_bytes())
+    args = sys.argv[1:]
+    if not args or args[0] not in ["version", "req", "x509"] or len(args) > 32:
+        raise ValueError("unselected OpenSSL invocation")
+    started = time.monotonic_ns()
+    child = subprocess.Popen([config["executable"], *args], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    launch = {"executable": config["executable"], "args": args, "wrapper_pid": os.getpid(),
+              "child_pid": child.pid, "parent_pid": os.getppid(), "process_group": os.getpgrp(), "started_ns": started}
+    append(os.environ["MIXER_OPENSSL_STARTED"], launch)
+    output = bytearray()
+    exceeded = False
+    try:
+        while True:
+            chunk = child.stdout.read(4096)
+            if not chunk:
+                break
+            if len(output) + len(chunk) > 65536:
+                exceeded = True
+                child.kill()
+                break
+            output.extend(chunk)
+    finally:
+        child.stdout.close()
+    code = child.wait()
+    record = {
+        "executable": config["executable"], "args": args,
+        "wrapper_pid": os.getpid(), "child_pid": child.pid, "parent_pid": os.getppid(),
+        "process_group": os.getpgrp(), "exit_code": code,
+        "started_ns": started, "finished_ns": time.monotonic_ns(),
+        "output": output.decode("utf-8", errors="replace"), "output_cap_exceeded": exceeded,
+    }
+    append(os.environ["MIXER_OPENSSL_AUDIT"], record)
+    sys.stdout.buffer.write(output)
+    sys.stdout.buffer.flush()
+    return 125 if exceeded else code
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

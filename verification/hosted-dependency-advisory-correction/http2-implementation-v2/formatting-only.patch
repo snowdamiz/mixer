@@ -1,0 +1,47 @@
+diff --git a/hosted/test/support/http2_wire_fixture.ex b/hosted/test/support/http2_wire_fixture.ex
+--- a/hosted/test/support/http2_wire_fixture.ex
++++ b/hosted/test/support/http2_wire_fixture.ex
+@@ -219,8 +219,10 @@
+     await(fn -> state().conn_credit >= total and state().stream_credit >= total end)
+     all_bytes = :atomics.add_get(state().budget, 2, total)
+     check(all_bytes <= 3 * 1_048_576, "HTTP/2 module input cap")
++
+     frames =
+       Enum.map(chunks, fn {bytes, last} -> frame(0, if(last, do: 1, else: 0), 1, bytes) end)
++
+     # In B3 the last 32,769 bytes and END_STREAM are one TCP send, before refusal is observed.
+     send_frames(frames)
+ 
+@@ -265,7 +267,7 @@
+     update(&%{&1 | controls_before_return: before_return})
+     check(before_return >= 3, "nonprogress processing witness before return missing")
+     check(state().controls_sent <= 8, "nonprogress frame cap")
+-    check(read.finished - read.started in 900..1_600, "public adapter read interval")
++    check((read.finished - read.started) in 900..1_600, "public adapter read interval")
+     check(r.elapsed in 900..1_600, "public read outside 900..1600 ms interval")
+     fence()
+     r
+@@ -302,6 +304,7 @@
+               control_witnesses: [now() | s.control_witnesses]
+           }
+         end)
++
+         controls(profile, started, index + 1)
+     end
+   end
+@@ -364,6 +367,7 @@
+     update(&%{&1 | socket: socket})
+     send_wire([@preface, frame(4, 0, 0, <<>>)], 1)
+     await(fn -> state().settings_seen and state().settings_acks == 1 end)
++
+     headers = [
+       {":method", "POST"},
+       {":scheme", "http"},
+@@ -380,6 +384,7 @@
+     check(byte_size(encoded) <= 1_024, "compressed request header cap")
+     send_frames([frame(1, 4, 1, encoded)])
+     await(fn -> state().entered != nil end)
++
+     check(
+       state().entered == {:"HTTP/2", Bandit.Adapter, []},
+       "real HTTP/2 adapter/framing required"

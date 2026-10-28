@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "status": "prospective-ordinary-remote-CI-collector-review-required-unexecuted",
+  "source_revision_at_beforeimage": "c51f67c5c51b4172d8cae03b966b43f891bddb2d",
+  "canonical_change": [
+    "hosted/scripts/test-local.py"
+  ],
+  "collector_before": {
+    "path": "hosted/scripts/test-local.py",
+    "bytes": 20244,
+    "sha256": "25d0a888c692732572d3e015c4563406385e2bb7fbb8af04ce4f444d28d54e3c"
+  },
+  "collector_after": {
+    "path": "hosted/scripts/test-local.py",
+    "bytes": 21455,
+    "sha256": "78292dbf027bff4fae67d638fec9504c042cbeac39b6bca40e38321178bb5951"
+  },
+  "guarded_unchanged_inputs": [
+    {
+      "path": "hosted/lib/mixer_hosted/identity/key_owner_supervisor.ex",
+      "bytes": 1072,
+      "sha256": "cdb7b901a8e521361e1578bf0b47ea521a31c61c681c27d1f164925081238ba2"
+    },
+    {
+      "path": "hosted/test/mixer_hosted/identity/key_owner_lifecycle_test.exs",
+      "bytes": 14688,
+      "sha256": "b87a38126edc9a96c3721677684007f1870d99736b88e63e15e8ed329d0e215d"
+    },
+    {
+      "path": "hosted/test/mixer_hosted/identity/key_owner_inflight_lifecycle_test.exs",
+      "bytes": 24827,
+      "sha256": "712dac61a33dbe7805a1e5f41c1f648c5b9ba482ac23952e9bc1ef0136a6cea6"
+    },
+    {
+      "path": "hosted/test/support/identity_tls_fixture.ex",
+      "bytes": 8003,
+      "sha256": "1ebb466459c4cf07e23bad66dcabc080b3f3348c5c12d974b28ef88ded1de1e2"
+    },
+    {
+      "path": ".github/workflows/hosted.yml",
+      "bytes": 5231,
+      "sha256": "fafd2560cc385a4113ea140bf2d4445d456e1f7f396539dfe2c3e7d6302e8b57"
+    },
+    {
+      "path": "hosted/.tool-versions",
+      "bytes": 35,
+      "sha256": "6286da51456f864e5f1d8f2280e6de86d6fb1ee4517c40819760ec54d203c846"
+    },
+    {
+      "path": "hosted/mix.exs",
+      "bytes": 1270,
+      "sha256": "bf32132975d04d66315974a6a5ef0bc9d9718b6392824d92bbc8e9d764062f0d"
+    },
+    {
+      "path": "hosted/mix.lock",
+      "bytes": 7964,
+      "sha256": "1eada39dcaf4863d02d39f51e218d2bad8908b36a0cba47ff2d16037b7bcf837"
+    },
+    {
+      "path": "THIRD_PARTY.yml",
+      "bytes": 21989,
+      "sha256": "cf69c9f95dc06632897d64d9389ea20ee9affa75fc1c8a5a5fa6706106cbb997"
+    }
+  ],
+  "root_selection": "Ordinary remote Phoenix route selected after remote-ci-assessment-1; no further local custody execution",
+  "remote_route": {
+    "workflow": ".github/workflows/hosted.yml",
+    "job": "phoenix",
+    "runner": "ubuntu-24.04",
+    "job_timeout_minutes": 15,
+    "existing_host_command": [
+      "python3",
+      "scripts/test-local.py",
+      "--pg-bin",
+      "/usr/lib/postgresql/16/bin",
+      "--output",
+      "$RUNNER_TEMP/phoenix-foundation"
+    ],
+    "command_timeout_seconds": 300,
+    "workflow_edits": false,
+    "fresh_dependency_resolution": "mix deps.get --check-locked then deps.compile; current canonical JOSE1.11.13; no shared local dependency work"
+  },
+  "root_review_then_validation": [
+    "Independently review exact before/after bytes, two diff hunks and extracted literal production exclusion prefix. Python AST/source checks here are not Elixir compilation or runtime proof.",
+    "Root alone may include this collector correction in the next coherent authorized push and inspect the resulting ordinary Phoenix CI. The currently running c51f67c5 CI predates this collector correction and cannot validate it.",
+    "Require release-test-exclusion command0. production_test_export_exclusion must retain prior false flags and include fixture_supervisor:false. New production_key_owner_supervisor_fixture_init_exclusion must report fixture_init_rejected/owner_absent/workers_absent/admission_absent alltrue.",
+    "Require tests.log to show actual execution/outcomes of KOL01-07, KOL08-GRACEFUL and KOL09-KILL; no skip, missing method or cleanup failure counts as pass. Full suite status and these nine scoped outcomes must be reported separately.",
+    "Inspect identity-lifecycle JSON files, including exact KOL09 fault_reason, old-resource ordering, explicit raw reply and cleanup. Preserve adverse failures and do not weaken assertions to obtain green.",
+    "Inspect full remote receipt/commands, selected commit/lock and fresh dependency resolution evidence; preserve actual tool/environment identity. Do not call a directly observed loaded version when only lock/resolution evidence exists.",
+    "Existing artifact upload includes phoenix-foundation recursively even on failure. If earlier compile/release/setup fails before tests, report nine methods unrun and missing lifecycle evidence rather than acceptance."
+  ],
+  "lifecycle_artifacts": {
+    "directory": "$RUNNER_TEMP/phoenix-foundation/identity-lifecycle",
+    "environment": "MIXER_KEY_OWNER_LIFECYCLE_EVIDENCE",
+    "expected_if_all_nine_finish": [
+      "Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL01Owner-cleanup.json",
+      "Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL02Owner-cleanup.json",
+      "Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL03Owner-cleanup.json",
+      "Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL05Owner-cleanup.json",
+      "Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL07Owner-cleanup.json",
+      "KOL04-cleanup.json",
+      "KOL06-cleanup.json",
+      "KOL08-GRACEFUL-observation.json",
+      "KOL09-KILL-observation.json"
+    ],
+    "expected_JSON_count": 9,
+    "failure_semantics": "Missing/partial records preserve actual failure; JSON cleanup alone does not replace method assertions or full trace."
+  },
+  "limitations": [
+    "Ordinary remote CI has broader application/DB scope and different bounds from the local standalone contract. It does not qualify the local custody protocol or its eighteen typed artifacts.",
+    "Prepared8 controls were reported failed by root after35.852s with seven Custodian group closures unknown following exactly tagged os.killpg(group,0) EPERM. This packet does not retry, probe, replace, repair or accept that local controller; its evidence remains preserved by root.",
+    "No lifecycle product method, adverse KOL09 assertion, supervisor or TLS fixture was edited. No local compile/format/test/DB/TLS/native/process probe/controller/workflow execution occurred. Native/UI/capture/devices remain paused.",
+    "No CI or lifecycle runtime acceptance is claimed by this source packet; root approval/execution and actual artifact review remain pending."
+  ],
+  "local_executions": {
+    "Python_source_AST_hash_diff_only": true,
+    "collector_module_import_or_execution": 0,
+    "Elixir_compile_or_test": 0,
+    "DB_TLS_native_or_process_probe": 0,
+    "workflow_launch": 0,
+    "new_local_controller": 0
+  },
+  "scope": "Only the two root-selected collector evidence/exclusion changes; no central metadata, commit or push"
+}

@@ -1,0 +1,840 @@
+{
+  "type": "object",
+  "fields": {
+    "schema": {
+      "type": "integer",
+      "min": 0,
+      "max": 9223372036854775807,
+      "value": 1
+    },
+    "status": {
+      "type": "string",
+      "max": 4096,
+      "enum": [
+        "passed",
+        "failed"
+      ]
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "fields": {
+          "case_id": {
+            "type": "string",
+            "max": 4096,
+            "enum": [
+              "happy",
+              "no-ack",
+              "journal-failure",
+              "cancel-after-ack",
+              "native-timeout",
+              "immutable-and-bindings",
+              "out-of-order",
+              "prepublication",
+              "post-spawn-prepublication",
+              "journal-short-write",
+              "journal-zero-write",
+              "journal-fsync-failure",
+              "journal-truncation",
+              "completion-acceptance-short-write",
+              "exit-grant-intent-fsync-failure",
+              "wrapper-term",
+              "malformed-ack",
+              "replayed-ack"
+            ]
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "native_started": {
+            "type": "boolean"
+          },
+          "groups_absent": {
+            "type": "boolean"
+          },
+          "wrapper_reaped": {
+            "type": "boolean"
+          },
+          "uncertain": {
+            "type": "boolean"
+          },
+          "scratch_preserved": {
+            "type": "boolean"
+          },
+          "journal_reconciled": {
+            "type": "boolean"
+          },
+          "signal_delivered": {
+            "type": "boolean"
+          },
+          "completion_before_exit": {
+            "type": "boolean"
+          },
+          "fault_observed": {
+            "type": "boolean"
+          },
+          "grants": {
+            "type": "integer",
+            "min": 0,
+            "max": 1
+          },
+          "fault_operation": {
+            "type": "string",
+            "max": 4096,
+            "enum": [
+              "",
+              "helper",
+              "write-short",
+              "write-zero",
+              "fsync-error",
+              "truncate",
+              "ack-malformed",
+              "ack-replay"
+            ]
+          },
+          "fault_event": {
+            "type": "string",
+            "max": 32
+          },
+          "fault_bytes_requested": {
+            "type": "integer",
+            "min": 0,
+            "max": 131072
+          },
+          "fault_bytes_written": {
+            "type": "integer",
+            "min": 0,
+            "max": 131072
+          }
+        }
+      },
+      "min": 0,
+      "max": 18
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "max": 131072
+      },
+      "min": 0,
+      "max": 64
+    },
+    "preserved_scratch": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "max": 4096
+      },
+      "min": 0,
+      "max": 18
+    },
+    "elapsed_ms": {
+      "type": "integer",
+      "min": 0,
+      "max": 55000
+    },
+    "vm_cleanup_subchecks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "fields": {
+          "case_id": {
+            "type": "string",
+            "max": 4096,
+            "enum": [
+              "happy",
+              "native-timeout"
+            ]
+          },
+          "check": {
+            "type": "string",
+            "max": 4096,
+            "enum": [
+              "completed-no-signal",
+              "running-timeout"
+            ]
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "timeout_observed": {
+            "type": "boolean"
+          },
+          "cleanup": {
+            "type": "object",
+            "fields": {
+              "pid": {
+                "type": "integer",
+                "min": 2,
+                "max": 9223372036854775807
+              },
+              "pgid": {
+                "type": "integer",
+                "min": 2,
+                "max": 9223372036854775807
+              },
+              "sid": {
+                "type": "integer",
+                "min": 2,
+                "max": 9223372036854775807
+              },
+              "identity_retained": {
+                "type": "boolean"
+              },
+              "identity_lost": {
+                "type": "boolean"
+              },
+              "permission_denied": {
+                "type": "boolean"
+              },
+              "completed_observed": {
+                "type": "boolean"
+              },
+              "direct_child_reaped": {
+                "type": "boolean"
+              },
+              "group_absent": {
+                "type": "boolean"
+              },
+              "uncertain": {
+                "type": "boolean"
+              },
+              "returncode_known": {
+                "type": "boolean"
+              },
+              "mode": {
+                "type": "string",
+                "max": 4096,
+                "enum": [
+                  "completed-observe",
+                  "running-retirement",
+                  "unproven-observe"
+                ]
+              },
+              "signals": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "min": 1,
+                  "max": 31
+                },
+                "min": 0,
+                "max": 2
+              },
+              "returncode": {
+                "type": "integer",
+                "min": -2147483648,
+                "max": 2147483647
+              },
+              "diagnostics": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "fields": {
+                    "call": {
+                      "type": "string",
+                      "max": 4096
+                    },
+                    "errno": {
+                      "type": "integer",
+                      "min": 0,
+                      "max": 2147483647
+                    },
+                    "errno_name": {
+                      "type": "string",
+                      "max": 128
+                    },
+                    "strerror": {
+                      "type": "string",
+                      "max": 4096
+                    },
+                    "exception_type": {
+                      "type": "string",
+                      "max": 128
+                    },
+                    "message": {
+                      "type": "string",
+                      "max": 4096
+                    },
+                    "traceback": {
+                      "type": "string",
+                      "max": 65536
+                    },
+                    "pid": {
+                      "type": "integer",
+                      "min": 2,
+                      "max": 9223372036854775807
+                    },
+                    "pgid": {
+                      "type": "integer",
+                      "min": 2,
+                      "max": 9223372036854775807
+                    },
+                    "sid": {
+                      "type": "integer",
+                      "min": 2,
+                      "max": 9223372036854775807
+                    },
+                    "at_ns": {
+                      "type": "integer",
+                      "min": 0,
+                      "max": 9223372036854775807
+                    }
+                  }
+                },
+                "min": 0,
+                "max": 32
+              }
+            }
+          }
+        }
+      },
+      "min": 0,
+      "max": 2
+    },
+    "permission_subchecks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "fields": {
+          "check": {
+            "type": "string",
+            "max": 4096,
+            "enum": [
+              "custodian-probe-EPERM",
+              "custodian-TERM-EPERM",
+              "wrapper-getpgid-EPERM",
+              "wrapper-terminate-EPERM",
+              "released-observe-only",
+              "wrapper-exceptional-tail"
+            ]
+          },
+          "injected": {
+            "type": "boolean",
+            "value": true
+          },
+          "processes_started": {
+            "type": "integer",
+            "min": 0,
+            "max": 9223372036854775807,
+            "value": 0
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "fixture_cleanup": {
+            "type": "string",
+            "max": 4096,
+            "enum": [
+              "synthetic-no-OS-child"
+            ]
+          },
+          "custody_state": {
+            "type": "string",
+            "max": 4096,
+            "enum": [
+              "unresolved-refused",
+              "unresolved-observe"
+            ]
+          },
+          "operations_before_refusal": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "max": 128
+            },
+            "min": 0,
+            "max": 32
+          },
+          "operations_after_refusal": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "max": 128
+            },
+            "min": 0,
+            "max": 32
+          },
+          "process": {
+            "type": "object",
+            "fields": {
+              "permission_refused": {
+                "type": "boolean"
+              },
+              "operations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "fields": {
+                    "operation": {
+                      "type": "string",
+                      "max": 128
+                    },
+                    "attempts": {
+                      "type": "integer",
+                      "min": 1,
+                      "max": 9223372036854775807
+                    }
+                  }
+                },
+                "min": 0,
+                "max": 16
+              },
+              "diagnostics": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "fields": {
+                    "source": {
+                      "type": "string",
+                      "max": 4096,
+                      "enum": [
+                        "custodian",
+                        "wrapper"
+                      ]
+                    },
+                    "run_nonce": {
+                      "type": "string",
+                      "max": 128
+                    },
+                    "phase": {
+                      "type": "string",
+                      "max": 4096,
+                      "enum": [
+                        "test"
+                      ]
+                    },
+                    "ordinal": {
+                      "type": "integer",
+                      "min": -1,
+                      "max": 15
+                    },
+                    "recipe_id": {
+                      "type": "string",
+                      "max": 128
+                    },
+                    "invocation_nonce": {
+                      "type": "string",
+                      "max": 128
+                    },
+                    "wrapper_pid": {
+                      "type": "integer",
+                      "min": 0,
+                      "max": 9223372036854775807
+                    },
+                    "wrapper_pgid": {
+                      "type": "integer",
+                      "min": 0,
+                      "max": 9223372036854775807
+                    },
+                    "wrapper_sid": {
+                      "type": "integer",
+                      "min": 0,
+                      "max": 9223372036854775807
+                    },
+                    "native_pid": {
+                      "type": "integer",
+                      "min": 0,
+                      "max": 9223372036854775807
+                    },
+                    "operation": {
+                      "type": "string",
+                      "max": 128
+                    },
+                    "errno": {
+                      "type": "integer",
+                      "min": 0,
+                      "max": 9223372036854775807
+                    },
+                    "errno_name": {
+                      "type": "string",
+                      "max": 128
+                    },
+                    "strerror": {
+                      "type": "string",
+                      "max": 4096
+                    },
+                    "exception_type": {
+                      "type": "string",
+                      "max": 128
+                    },
+                    "message": {
+                      "type": "string",
+                      "max": 4096
+                    },
+                    "traceback": {
+                      "type": "string",
+                      "max": 65536
+                    },
+                    "at_ns": {
+                      "type": "integer",
+                      "min": 0,
+                      "max": 9223372036854775807
+                    },
+                    "permission_refused": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "min": 0,
+                "max": 8
+              }
+            }
+          },
+          "custody_record": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "fields": {
+                "run_nonce": {
+                  "type": "string",
+                  "max": 128
+                },
+                "phase": {
+                  "type": "string",
+                  "max": 4096,
+                  "enum": [
+                    "test"
+                  ]
+                },
+                "ordinal": {
+                  "type": "integer",
+                  "min": 0,
+                  "max": 15
+                },
+                "recipe_id": {
+                  "type": "string",
+                  "max": 4096,
+                  "enum": [
+                    "version",
+                    "fixture-1-ca",
+                    "fixture-1-leaf",
+                    "fixture-1-sign",
+                    "fixture-2-ca",
+                    "fixture-2-leaf",
+                    "fixture-2-sign"
+                  ]
+                },
+                "invocation_nonce": {
+                  "type": "string",
+                  "max": 128
+                },
+                "wrapper_pid": {
+                  "type": "integer",
+                  "min": 2,
+                  "max": 9223372036854775807
+                },
+                "wrapper_pgid": {
+                  "type": "integer",
+                  "min": 2,
+                  "max": 9223372036854775807
+                },
+                "wrapper_sid": {
+                  "type": "integer",
+                  "min": 2,
+                  "max": 9223372036854775807
+                },
+                "request_sha256": {
+                  "type": "string",
+                  "max": 64
+                },
+                "ack_sha256": {
+                  "type": "string",
+                  "max": 64
+                },
+                "completion_sha256": {
+                  "type": "string",
+                  "max": 64
+                },
+                "ack_issued": {
+                  "type": "boolean"
+                },
+                "native_started": {
+                  "type": "boolean"
+                },
+                "child_reaped": {
+                  "type": "boolean"
+                },
+                "released": {
+                  "type": "boolean"
+                },
+                "group_absent": {
+                  "type": "boolean"
+                },
+                "identity_lost": {
+                  "type": "boolean"
+                },
+                "permission_denied": {
+                  "type": "boolean"
+                },
+                "authority_closed": {
+                  "type": "boolean"
+                },
+                "identity_retained": {
+                  "type": "boolean"
+                },
+                "wrapper_exit_observed": {
+                  "type": "boolean"
+                },
+                "child_pid": {
+                  "type": "integer",
+                  "min": 0,
+                  "max": 9223372036854775807
+                },
+                "refusal_completion_sha256": {
+                  "type": "string",
+                  "max": 64
+                },
+                "process": {
+                  "type": "object",
+                  "fields": {
+                    "permission_refused": {
+                      "type": "boolean"
+                    },
+                    "operations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "fields": {
+                          "operation": {
+                            "type": "string",
+                            "max": 128
+                          },
+                          "attempts": {
+                            "type": "integer",
+                            "min": 1,
+                            "max": 9223372036854775807
+                          }
+                        }
+                      },
+                      "min": 0,
+                      "max": 16
+                    },
+                    "diagnostics": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "fields": {
+                          "source": {
+                            "type": "string",
+                            "max": 4096,
+                            "enum": [
+                              "custodian",
+                              "wrapper"
+                            ]
+                          },
+                          "run_nonce": {
+                            "type": "string",
+                            "max": 128
+                          },
+                          "phase": {
+                            "type": "string",
+                            "max": 4096,
+                            "enum": [
+                              "test"
+                            ]
+                          },
+                          "ordinal": {
+                            "type": "integer",
+                            "min": -1,
+                            "max": 15
+                          },
+                          "recipe_id": {
+                            "type": "string",
+                            "max": 128
+                          },
+                          "invocation_nonce": {
+                            "type": "string",
+                            "max": 128
+                          },
+                          "wrapper_pid": {
+                            "type": "integer",
+                            "min": 0,
+                            "max": 9223372036854775807
+                          },
+                          "wrapper_pgid": {
+                            "type": "integer",
+                            "min": 0,
+                            "max": 9223372036854775807
+                          },
+                          "wrapper_sid": {
+                            "type": "integer",
+                            "min": 0,
+                            "max": 9223372036854775807
+                          },
+                          "native_pid": {
+                            "type": "integer",
+                            "min": 0,
+                            "max": 9223372036854775807
+                          },
+                          "operation": {
+                            "type": "string",
+                            "max": 128
+                          },
+                          "errno": {
+                            "type": "integer",
+                            "min": 0,
+                            "max": 9223372036854775807
+                          },
+                          "errno_name": {
+                            "type": "string",
+                            "max": 128
+                          },
+                          "strerror": {
+                            "type": "string",
+                            "max": 4096
+                          },
+                          "exception_type": {
+                            "type": "string",
+                            "max": 128
+                          },
+                          "message": {
+                            "type": "string",
+                            "max": 4096
+                          },
+                          "traceback": {
+                            "type": "string",
+                            "max": 65536
+                          },
+                          "at_ns": {
+                            "type": "integer",
+                            "min": 0,
+                            "max": 9223372036854775807
+                          },
+                          "permission_refused": {
+                            "type": "boolean"
+                          }
+                        }
+                      },
+                      "min": 0,
+                      "max": 8
+                    }
+                  }
+                },
+                "closure": {
+                  "type": "string",
+                  "max": 4096,
+                  "enum": [
+                    "active",
+                    "released-observe",
+                    "exited-observe",
+                    "lost-observe",
+                    "permission-refused",
+                    "group-absent"
+                  ]
+                }
+              }
+            },
+            "min": 0,
+            "max": 1
+          },
+          "native_wait_known": {
+            "type": "boolean",
+            "value": false
+          },
+          "clean_custody": {
+            "type": "boolean",
+            "value": false
+          },
+          "exit_boundary_checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "fields": {
+                "operation": {
+                  "type": "string",
+                  "max": 4096,
+                  "enum": [
+                    "child.stdout.close",
+                    "stderr.diagnostic-write"
+                  ]
+                },
+                "self_exit_selected": {
+                  "type": "boolean"
+                },
+                "exit_code": {
+                  "type": "integer",
+                  "min": -1,
+                  "max": 255
+                },
+                "ordinary_finalization_ran": {
+                  "type": "boolean"
+                },
+                "process_callback_attempts": {
+                  "type": "integer",
+                  "min": 0,
+                  "max": 4
+                },
+                "child_retained": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "min": 0,
+            "max": 2
+          }
+        }
+      },
+      "min": 0,
+      "max": 6
+    },
+    "fixture_observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "fields": {
+          "case_id": {
+            "type": "string",
+            "max": 4096,
+            "enum": [
+              "happy",
+              "no-ack",
+              "journal-failure",
+              "cancel-after-ack",
+              "native-timeout",
+              "immutable-and-bindings",
+              "out-of-order",
+              "prepublication",
+              "post-spawn-prepublication",
+              "journal-short-write",
+              "journal-zero-write",
+              "journal-fsync-failure",
+              "journal-truncation",
+              "completion-acceptance-short-write",
+              "exit-grant-intent-fsync-failure",
+              "wrapper-term",
+              "malformed-ack",
+              "replayed-ack"
+            ]
+          },
+          "wrapper_pid": {
+            "type": "integer",
+            "min": 2,
+            "max": 9223372036854775807
+          },
+          "direct_reaped": {
+            "type": "boolean"
+          },
+          "custody_permission_refused": {
+            "type": "boolean"
+          },
+          "custody_resolution": {
+            "type": "string",
+            "max": 4096,
+            "enum": [
+              "unresolved-refused",
+              "observed"
+            ]
+          },
+          "fixture_group_probe_performed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "min": 0,
+      "max": 17
+    }
+  }
+}

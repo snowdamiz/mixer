@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "status": "prospective-only-independent-review-before-root-delivery",
+  "source_revision_observed": "d87ce0a1b05a9ad42cd2118bbf2ccc5491499663",
+  "canonical_change_scope": [
+    "hosted/test/support/http2_wire_fixture.ex",
+    "hosted/test/mixer_hosted/billing/raw_webhook_capture_http2_test.exs"
+  ],
+  "methods": 5,
+  "finite_subcases": 7,
+  "existing_workflow": ".github/workflows/hosted.yml",
+  "existing_remote_runner": "hosted/scripts/test-local.py",
+  "existing_remote_checks": [
+    "mix deps.get --check-locked",
+    "mix format --check-formatted",
+    "mix compile --warnings-as-errors",
+    "mix test --warnings-as-errors --seed 0 --trace"
+  ],
+  "workflow_or_runner_change": false,
+  "new_local_runtime_command_proposed": false,
+  "tests_or_formatters_executed_by_this_lane": 0,
+  "runtime_released": false,
+  "source_review_required_before_root_delivery": true,
+  "receipt_prefix": "HTTP2_WIRE_RECEIPT ",
+  "expected_receipt_cases": [
+    "B1-batching",
+    "B2-exact-cap",
+    "B3-cap-plus-one",
+    "D1-settings",
+    "D1-window_update",
+    "D2-settings",
+    "D2-window_update"
+  ],
+  "receipt_acceptance": [
+    "Exactly seven case receipts on the delivered source revision, with green format/compile/test checks and accountable independent review",
+    "Actual Bandit version assertion is 1.14.0; HTTP/2 and real Bandit.Adapter at Plug entry; no Content-Length",
+    "Each passed case has complete recorded owned cleanup, module_elapsed_ms <= 25000, frame/read/input bounds and no protocol refusal before disposal",
+    "B1 captured 40001 identical bytes with original signature and maximum_returned_read > 32768",
+    "B2 sent/captured 1048576 identical bytes with 32 completed 32768-byte reads and terminal ok",
+    "B3 actually submitted 1048577 bytes and returns halted too_large with no capture success; extra-byte consumption is not inferred",
+    "Each D1/D2 profile records at least three controls processed before return, read duration 900..1600 ms, and the public empty more result",
+    "D2 separately returns halted no_progress; it does not claim the five-second admission deadline is hard cancellation"
+  ],
+  "pending_qualification_ids": [
+    "HTTP2_BATCHING_APPLICATION_BYTE_CAPS",
+    "HTTP2_NONPROGRESS_PUBLIC_READ_DEADLINE"
+  ],
+  "qualification_state": "pending-no-wire-execution",
+  "scope_limit": "Selected package read behavior and Mixer admission for finite synthetic loopback inputs only; no blanket advisory, exploit, DoS, memory/backpressure, provider, production, native/device or GA acceptance."
+}

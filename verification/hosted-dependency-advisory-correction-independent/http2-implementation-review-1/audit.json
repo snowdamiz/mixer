@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "status": "independent-source-review-passed-for-ordinary-remote-format-compile-test",
+  "created_at": "2026-10-28T04:55:26.389100+00:00",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "command": "python3 -B verification/hosted-dependency-advisory-correction-independent/http2-implementation-review-1/audit_sources.py",
+  "script_sha256": "b01a364fdee7cc45aef7b87e73d525cee8067560ebc5e2829a6fe675df79ff38",
+  "implementation_seal_sha256": "c95f5695d426be95cd9fa8ac65e545dc8265cfdb4f2d952d14c56da30bd1f327",
+  "source_revision_observed_by_producer": "d87ce0a1b05a9ad42cd2118bbf2ccc5491499663",
+  "verified_counts": {
+    "producer_members": 8,
+    "new_canonical_files": 2,
+    "original_local_pins": 24,
+    "official_Bandit_blobs": 8,
+    "protected_pins": 5,
+    "prior_review_members": 14
+  },
+  "canonical_files": [
+    {
+      "path": "hosted/test/support/http2_wire_fixture.ex",
+      "bytes": 21437,
+      "sha256": "965c38f6dac459de2baaf3fee98c66ee663a013ccc9401d14d233fbab27794af"
+    },
+    {
+      "path": "hosted/test/mixer_hosted/billing/raw_webhook_capture_http2_test.exs",
+      "bytes": 4874,
+      "sha256": "4656e1f05e20ddfe8767be837a38d8323313efd7ef77efa7176a748c518c8ce8"
+    }
+  ],
+  "method_names_textual_inventory_only": [
+    "B1 actual HTTP/2 batching can return more than the requested 32 KiB",
+    "B2 paced no-length HTTP/2 input admits exactly the application byte cap",
+    "B3 a sent cap-plus-one input is refused and its halted stream is disposed",
+    "D1 nonprogress controls preserve the package public read deadline",
+    "D2 Mixer refuses the timed public empty-more result as no_progress"
+  ],
+  "finite_subcases": 7,
+  "closed_design_refinements": [
+    "H2R01",
+    "H2R02",
+    "H2R03",
+    "H2R04"
+  ],
+  "manual_review": {
+    "adapter": "same stream owner, real Bandit.Adapter, faithful two-method observer and newest-state unwrap before response",
+    "B1": "32 tiny prefix frames plus legal bounded tail, correlated PING fence and mandatory measured return above requested length",
+    "B2": "32 paced exact-target reads, terminal payload END_STREAM, exact bytes/signature and finite admission",
+    "B3": "31 paced tranches plus reserved-credit single final 32769-byte send; rejects too_large without extra-byte-consumption claim",
+    "D1_D2": "separate SETTINGS/WINDOW_UPDATE processing witnesses before fixed empty-more return; Mixer no_progress checked separately",
+    "frame_flow": "passive fixed-header/payload parser, strict selected frames/refusals, both credits updated and all frame/input/read/event bounds retained",
+    "cleanup": "temporary owned ExUnit listener, public shutdown100ms/child400ms, correlated disposal and recorded socket/stream/connection/query/listener closure; failure poisons next admission",
+    "CI": "normal test/support compilation and *_test.exs discovery, no workflow change; official Mix source explains .app metadata load under --no-start"
+  },
+  "deadline_scope": "25s shared monotonic admission/cooperative waits; listener startup and OS calls are not hard preempted. 26s ExUnit guard is per-test failure containment, not hard cumulative module wall time.",
+  "findings": [],
+  "recommend_root_deliver_for_ordinary_remote_CI": true,
+  "formatting_compilation_runtime_execution_proven": false,
+  "HTTP2_wire_qualifications_passed": false,
+  "relation_binding_canonical_three_files_preserved": true,
+  "network_source_reads": "7 official Elixir1.20.4 GitHub file GETs solely to resolve --no-start app loading; no runtime/network probe",
+  "formatter_Mix_compiler_test_listener_native_process_or_DNS_probe_invocations": 0,
+  "receipt_acceptance": "Require delivered source/version, successful format/compile/full test outcome and exactly seven passing case receipts with cleanup; never accept a receipt alone if the enclosing test or suite fails.",
+  "scope": "Finite package read/batching and Mixer capture admission only; no hard arbitrary read cancellation, exhaustive advisory/memory/backpressure/provider/production/native/device/GA acceptance.",
+  "elapsed_seconds": 0.011156
+}

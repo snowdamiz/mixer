@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "status": "source-only-ordinary-remote-Phoenix-compatibility-assessed-no-execution",
+  "source_revision": "d87ce0a1b05a9ad42cd2118bbf2ccc5491499663",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "source_inputs": [
+    {
+      "path": ".github/workflows/hosted.yml",
+      "bytes": 5231,
+      "sha256": "fafd2560cc385a4113ea140bf2d4445d456e1f7f396539dfe2c3e7d6302e8b57"
+    },
+    {
+      "path": "hosted/scripts/test-local.py",
+      "bytes": 20244,
+      "sha256": "25d0a888c692732572d3e015c4563406385e2bb7fbb8af04ce4f444d28d54e3c"
+    },
+    {
+      "path": "hosted/.tool-versions",
+      "bytes": 35,
+      "sha256": "6286da51456f864e5f1d8f2280e6de86d6fb1ee4517c40819760ec54d203c846"
+    },
+    {
+      "path": "hosted/mix.exs",
+      "bytes": 1270,
+      "sha256": "bf32132975d04d66315974a6a5ef0bc9d9718b6392824d92bbc8e9d764062f0d"
+    },
+    {
+      "path": "hosted/mix.lock",
+      "bytes": 7964,
+      "sha256": "1eada39dcaf4863d02d39f51e218d2bad8908b36a0cba47ff2d16037b7bcf837"
+    },
+    {
+      "path": "THIRD_PARTY.yml",
+      "bytes": 21989,
+      "sha256": "cf69c9f95dc06632897d64d9389ea20ee9affa75fc1c8a5a5fa6706106cbb997"
+    },
+    {
+      "path": "hosted/.formatter.exs",
+      "bytes": 74,
+      "sha256": "0d5f1f1bc0a4d678629084c6f15f96e000b4882594bc829f2adf5eacc9ff42b5"
+    },
+    {
+      "path": "hosted/test/test_helper.exs",
+      "bytes": 251,
+      "sha256": "71a75fc76dcf3c252b4d41c1f3a30adccfae5873028f7d40f174c8a25fd7c646"
+    },
+    {
+      "path": "hosted/config/config.exs",
+      "bytes": 431,
+      "sha256": "6510b5e0f5eecb2ced799250d7bdcef91b8f8278e19e2c886c60dd624443005c"
+    },
+    {
+      "path": "hosted/config/runtime.exs",
+      "bytes": 549,
+      "sha256": "73cd8edac21bb64c3fba3cd81bb461f2cee651b9f799bd42bfac3e5ffeca6e9f"
+    },
+    {
+      "path": "hosted/lib/mixer_hosted/identity/key_owner_supervisor.ex",
+      "bytes": 1072,
+      "sha256": "cdb7b901a8e521361e1578bf0b47ea521a31c61c681c27d1f164925081238ba2"
+    },
+    {
+      "path": "hosted/test/mixer_hosted/identity/key_owner_lifecycle_test.exs",
+      "bytes": 14688,
+      "sha256": "b87a38126edc9a96c3721677684007f1870d99736b88e63e15e8ed329d0e215d"
+    },
+    {
+      "path": "hosted/test/mixer_hosted/identity/key_owner_inflight_lifecycle_test.exs",
+      "bytes": 24827,
+      "sha256": "712dac61a33dbe7805a1e5f41c1f648c5b9ba482ac23952e9bc1ef0136a6cea6"
+    },
+    {
+      "path": "hosted/test/support/identity_tls_fixture.ex",
+      "bytes": 8003,
+      "sha256": "1ebb466459c4cf07e23bad66dcabc080b3f3348c5c12d974b28ef88ded1de1e2"
+    }
+  ],
+  "prepared_7_freeze_sha256": "a023f5b655b0b1b62850a1b09136000aaba467caa58947e682cd625904b01cd3",
+  "product_methods": 9,
+  "ordinary_methods": 7,
+  "inflight_methods": 2,
+  "test_code_changes_required_for_discovery_or_execution": [],
+  "source_compatibility": [
+    "Both canonical files use test suffix and are absent from Mix test_ignore_filters; ordinary mix test discovers all9. Both modules async:false; their distinct owner names avoid shared registrations.",
+    "test Mix build includes test/support. KeyOwnerSupervisor.start_fixture/1 is test-only, same child topology, and ordinary CI runs MIX_ENV=test with --no-start test alias.",
+    "CI fresh checkout resolves mix deps.get --check-locked without a dependency cache, then mix deps.compile; current mix.exs and lock select JOSE1.11.13 rather than the stale shared local1.11.12 closure.",
+    "CI pins Erlang29.1.1 and Elixir1.20.4-otp-29. Inflight socket assertions target OTP29 sslsocket tuple; real Linux execution remains pending.",
+    "Existing TLSFixture invokes openssl from PATH with standard req/x509 commands, binds private loopback port0 and removes temporary key files. It is already test support. No hard-coded macOS path exists in these nine methods.",
+    "Lifecycle evidence and root PEM env are optional. Absent PEM override uses system CA certs for disabled ordinary manifest. Inflight methods obtain CA from their TLS fixture."
+  ],
+  "concrete_collection_changes_if_root_selects_qualification": [
+    {
+      "path": "hosted/scripts/test-local.py",
+      "change": "Create output/identity-lifecycle before mix test and set env[\"MIXER_KEY_OWNER_LIFECYCLE_EVIDENCE\"] to that directory. Existing workflow artifact path already includes entire phoenix-foundation output.",
+      "reason": "Current MIXER_TEST_IDENTITY_EVIDENCE does not trigger either lifecycle writer; all nine execute but no lifecycle JSON/resource ordering/callback reason is retained."
+    },
+    {
+      "path": "hosted/scripts/test-local.py",
+      "change": "Extend existing production release-test-exclusion to load KeyOwnerSupervisor, assert start_fixture/1 absent and assert fixture init tuple fails closed without starting children.",
+      "reason": "Current exclusion checks KeyOwner and JWKSTransport fixtures, not the newly added supervisor export/init seam. Production exclusion was checked only in earlier local scoped compile evidence."
+    }
+  ],
+  "pending_actual_requirements": [
+    "Actual remote nine-method results, cleanup and KOL09 callback/resource-order witness; keep adverse assertions unchanged and preserve failure evidence.",
+    "Record actual resolved dependency versions and OpenSSL/tool identity for the remote receipt; source setup alone is not runtime loaded-module evidence.",
+    "The ordinary full CI includes disposable PostgreSQL and broad host suite under15-minute job/300-second command bounds. It is a distinct receipt from the55-second no-application/no-DB standalone plan.",
+    "Ordinary CI does not use custom local custody wrapper and does not qualify its permission-refusal protocol, seven OpenSSL custody grants or18 typed standalone artifacts.",
+    "No new tests, controls, probes, native/compiler/formatter/TLS process or local replacement dependency build was run for this assessment."
+  ],
+  "shared_dependencies_changed": false,
+  "remote_workflow_started": false,
+  "canonical_product_sources_changed": false,
+  "commands_scope": "Source reads with rg/cat/sed and this bounded Python -B hashing/snapshot command; git rev-parse HEAD is metadata only."
+}

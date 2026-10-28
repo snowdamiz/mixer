@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T05:18:53.214604+00:00",
+  "status": "source-reviewed-three-file-integration-selected-for-ordinary-remote-CI",
+  "canonical_sources": [
+    {
+      "path": "hosted/scripts/test-local.py",
+      "bytes": 21455,
+      "sha256": "78292dbf027bff4fae67d638fec9504c042cbeac39b6bca40e38321178bb5951"
+    },
+    {
+      "path": "hosted/lib/mixer_hosted/identity/key_owner_supervisor.ex",
+      "bytes": 1072,
+      "sha256": "cdb7b901a8e521361e1578bf0b47ea521a31c61c681c27d1f164925081238ba2"
+    },
+    {
+      "path": "hosted/test/mixer_hosted/identity/key_owner_inflight_lifecycle_test.exs",
+      "bytes": 24827,
+      "sha256": "712dac61a33dbe7805a1e5f41c1f648c5b9ba482ac23952e9bc1ef0136a6cea6"
+    }
+  ],
+  "collector_review": {
+    "path": "verification/console-key-owner-inflight-lifecycle-independent/remote-ci-collector-review-1/decision.json",
+    "bytes": 8065,
+    "sha256": "0ce0be7ff2783b1726855d1c39747ff0c2823bd791570b9a7251f8a1ea781cb8"
+  },
+  "required_actual_acceptance": {
+    "commit_and_inputs": "Bind the delivered commit, collector SHA, full source manifest/archive, canonical lock, command receipt and actual tool/environment identity. Keep dependency resolution evidence distinct from direct loaded-version observations.",
+    "production_exclusion": {
+      "command": "release-test-exclusion",
+      "required_exit_code": 0,
+      "production_test_export_exclusion": {
+        "fixture_owner": false,
+        "fixture_supervisor": false,
+        "fixture_transport": false,
+        "startup_fixture": false,
+        "startup_dns_fixture": false
+      },
+      "production_key_owner_supervisor_fixture_init_exclusion": {
+        "fixture_init_rejected": true,
+        "owner_absent": true,
+        "workers_absent": true,
+        "admission_absent": true
+      }
+    },
+    "methods": "Require actual trace/outcome for each of KOL01,KOL02,KOL03,KOL04,KOL05,KOL06,KOL07,KOL08-GRACEFUL,KOL09-KILL; no skip, missing method, setup error or cleanup failure counts as pass. Report full ordinary-suite status separately from these nine outcomes.",
+    "artifacts": {
+      "directory": "$RUNNER_TEMP/phoenix-foundation/identity-lifecycle",
+      "environment": "MIXER_KEY_OWNER_LIFECYCLE_EVIDENCE",
+      "expected_if_all_nine_finish": [
+        "Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL01Owner-cleanup.json",
+        "Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL02Owner-cleanup.json",
+        "Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL03Owner-cleanup.json",
+        "Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL05Owner-cleanup.json",
+        "Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL07Owner-cleanup.json",
+        "KOL04-cleanup.json",
+        "KOL06-cleanup.json",
+        "KOL08-GRACEFUL-observation.json",
+        "KOL09-KILL-observation.json"
+      ],
+      "expected_JSON_count": 9,
+      "failure_semantics": "Missing/partial records preserve actual failure; JSON cleanup alone does not replace method assertions or full trace."
+    },
+    "KOL09": "Retain exact fault_reason, explicit raw reply distinct from public denial, pointer/resource timing, old-resource ordering and cleanup. If an assertion fails, preserve its actual record and failure; do not remove or weaken assertions to obtain green. JSON cleanup alone does not prove test-body success.",
+    "earlier_failures": "If format/compile/release/fixture setup prevents tests, report unrun or partial methods and missing artifacts. Existing upload if-no-files-found:ignore is retention behavior, not qualification.",
+    "actual_runtime_or_GA_qualified_by_this_review": false
+  },
+  "local_custody_released": false,
+  "actual_nine_lifecycle_methods_passed": false,
+  "GA_accepted": false
+}

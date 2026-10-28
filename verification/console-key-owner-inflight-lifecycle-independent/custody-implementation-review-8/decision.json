@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T04:54:50.326449+00:00",
+  "status": "adequate-narrow-source-correction-recommend-exact-controls-only",
+  "source_contract": {
+    "path": "verification/console-key-owner-inflight-lifecycle-independent/custody-implementation-review-8/source-contract.json",
+    "bytes": 5726,
+    "sha256": "54203b35a02ba4ee5fa3570b4a7191f092479a8be9d04436bef55d1df23ff9eb"
+  },
+  "packet": {
+    "freeze_sha256": "e4bbed3545d273280b04fb9d6a6f0eac4ad15016e05d19656be8cd9e3f2c7dc8",
+    "control_plan_sha256": "9c8dd33df0f76fca08212b3b7a5925442b66aeb1032692b1ffb68edcc2b35633",
+    "real_plan_sha256": "4da86782b040bbb5c2868fd00c502452ea957df36e897467589e3639d5d1c6db"
+  },
+  "findings": [],
+  "CCT7_01": {
+    "status": "corrected-in-source; injected control remains unexecuted",
+    "source_refs": [
+      "process_authority.py:98-110",
+      "openssl-custody-wrapper.py:15-18,85-86,145-150,254-259",
+      "openssl-custody-wrapper.py:38-56,248-250",
+      "permission_controls.py:132-179"
+    ],
+    "assessment": [
+      "The actual wrapper entrypoint invokes the shared refusal_exit_boundary. A result defaults to125 and is replaced only after main returns an integer; outer finally selects self_exit when refusal is present on normal return, invalid result or an exception. No diagnostic I/O precedes that final self-exit selection.",
+      "The predicate checks both the explicit refusal flag and globally retained active Authority, so an exception before the old flag assignment still observes sticky refusal. The actual Popen is held globally immediately after creation, before signal-unmask and later evidence handling.",
+      "Therefore a later stdout.close or diagnostic-write exception cannot bypass this boundary and fall through to ordinary interpreter finalization when sticky refusal is set. Permission refusal remains unresolved; this is not a new clean-custody claim.",
+      "The new sixth no-process check calls the actual shared boundary with retained synthetic child and refused authority. Both close and diagnostic exceptional-tail variants require exit125 selection, child retention, no ordinary-finalization/process callback and unresolved custody. The injected self-exit callback raises its own sentinel; it executes no os._exit or native child.",
+      "Final diagnostic delivery encodes at most65536 output bytes, uses a nonblocking descriptor and a50ms deadline further capped by cleanup_deadline_ns. Write/close failures may still interrupt evidence handling, but the outer refusal boundary now covers them; absent or failed evidence cannot qualify a clean result."
+    ],
+    "limits": "No proof against arbitrary OS/interpreter failure of os._exit, no real Popen destruction test, and no claim that historical EPERM syscall is diagnosed."
+  },
+  "unchanged_boundaries": {
+    "CCT_01_CCT_02_core": "Custodian, sticky operation refusal, refusal completion handling and released/observed-exit observe-only closure are byte-identical to the prior independently reviewed packet. Shared VM cleanup and all18 real artifact schemas are unchanged.",
+    "canonical_inputs": 25,
+    "product_methods": 9,
+    "canonical_inputs_product_roster_and_dependency_closure_unchanged": true,
+    "historical_controls": "Original prepared6 eighteen cases and two VM helper checks remain scoped PASS on their execution bytes; historical generic EPERM strings remain undiagnosed. No earlier packet/result was edited.",
+    "remote_CI": "Separate ordinary remote CI assessment was not altered or re-reviewed."
+  },
+  "recommendation": {
+    "root_may_select_single_exact_controls_run": true,
+    "exact_control_plan_sha256": "9c8dd33df0f76fca08212b3b7a5925442b66aeb1032692b1ffb68edcc2b35633",
+    "prospective_output": "verification/console-key-owner-inflight-lifecycle-implementation/executions/custody-controls-5",
+    "root_release_granted_by_this_review": false,
+    "real_runtime_recommended_or_released": false,
+    "next_gate": "Root exact single-execution controls release, then retain and independently review terminal evidence. Unexpected permission operations, unresolved identities or evidence failures stay material even if selected failure-case predicates pass.",
+    "limits": {
+      "named_cases": 18,
+      "actual_VM_helper_checks": 2,
+      "injected_no_process_checks": 6,
+      "injected_additional_processes": 0,
+      "ACKs": 10,
+      "custody_fake_native_children": 8,
+      "all_fake_children": 10,
+      "combined_artifact_bytes_including_terminal_report": 1048576,
+      "work_cleanup_post_terminal_seconds": [
+        40,
+        46,
+        52,
+        55
+      ]
+    }
+  },
+  "local_real_runtime_boundary": {
+    "compatible": false,
+    "actual_frozen_JOSE": "1.11.12",
+    "canonical_lock_JOSE": "1.11.13",
+    "runner_refusal": "runner.py108-109 rejects incompatible closure before output/scratch or child creation",
+    "pending": "Compatible separately selected dependency closure or separately selected remote CI path; this review authorizes neither. No OpenSSL/TLS/product runtime pass exists from this source review."
+  },
+  "review_execution": {
+    "source_read_hash_strict_JSON_only": true,
+    "producer_imports_or_replay": 0,
+    "controls_native_compiler_formatter_TLS_execution": 0,
+    "process_probes_or_inventory": 0,
+    "central_metadata_commits_pushes_remote_CI_changes": 0,
+    "only_owned_new_review_directory_written": true,
+    "UI_capture_devices_emulators": "paused and untouched"
+  }
+}

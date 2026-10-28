@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "purpose": "Confirm ordinary Mix --no-start compile/app-load behavior without depending on another test starting Bandit; read-only official source retrieval, no Mix execution",
+  "source": "GitHub connector fetch_file",
+  "files": [
+    {
+      "url": "https://github.com/elixir-lang/elixir/blob/v1.20.4/lib/mix/lib/mix/tasks/test.ex",
+      "provider_git_blob_sha": "e3aaed5afb4e40f84791c29d1e91e2138ca08dd2",
+      "ref": "v1.20.4",
+      "retrieved_at": "2026-10-28T04:55:26.279Z",
+      "ranges": [
+        {
+          "first": 620,
+          "last": 633,
+          "text": "    # Start the app and configure ExUnit with command line options\n    # before requiring test_helper.exs so that the configuration is\n    # available in test_helper.exs\n    Mix.shell().print_app()\n\n    app_start_args =\n      if opts[:slowest] || opts[:slowest_modules] do\n        [\"--preload-modules\" | args]\n      else\n        args\n      end\n\n    Mix.Task.run(\"app.start\", app_start_args)\n"
+        }
+      ]
+    },
+    {
+      "url": "https://github.com/elixir-lang/elixir/blob/v1.20.4/lib/mix/lib/mix/tasks/app.config.ex",
+      "provider_git_blob_sha": "cc402258710196a5505cc13d0cf9bb624671a35e",
+      "ref": "v1.20.4",
+      "retrieved_at": "2026-10-28T04:55:26.279Z",
+      "ranges": [
+        {
+          "first": 31,
+          "last": 43,
+          "text": "  @impl true\n  def run(args) do\n    Mix.Project.get!()\n    Mix.Task.run(\"compile\", args)\n    {opts, _, _} = OptionParser.parse(args, switches: @switches)\n\n    config = Mix.Project.config()\n    runtime = config[:config_path] |> Path.dirname() |> Path.join(\"runtime.exs\")\n\n    if File.exists?(runtime) do\n      Mix.Tasks.Loadconfig.load_runtime(runtime)\n    end\n"
+        }
+      ]
+    },
+    {
+      "url": "https://github.com/elixir-lang/elixir/blob/v1.20.4/lib/mix/lib/mix/tasks/app.start.ex",
+      "provider_git_blob_sha": "a1cc44606356982504456540b22db3d4a0a1fd02",
+      "ref": "v1.20.4",
+      "retrieved_at": "2026-10-28T04:55:26.279Z",
+      "ranges": [
+        {
+          "first": 39,
+          "last": 62,
+          "text": "    * `--no-start` - does not actually start applications, only compiles and loads code\n\n  \"\"\"\n\n  @compile {:no_warn_undefined, Logger.App}\n\n  @switches [\n    permanent: :boolean,\n    temporary: :boolean\n  ]\n\n  @impl true\n  def run(args) do\n    Mix.Project.get!()\n    Mix.Task.run(\"app.config\", args)\n    {opts, _, _} = OptionParser.parse(args, switches: @switches)\n\n    if \"--no-start\" in args do\n      Mix.Task.reenable(\"app.start\")\n    else\n      # Stop Logger when starting the application as it is up to the\n      # application to decide if it should be restarted or not.\n      #\n      # Mix should not depend directly on Logger so check that it's loaded."
+        }
+      ]
+    },
+    {
+      "url": "https://github.com/elixir-lang/elixir/blob/v1.20.4/lib/mix/lib/mix/tasks/compile.all.ex",
+      "provider_git_blob_sha": "6ab622b39299c6e97d826b45931ff747bf071826",
+      "ref": "v1.20.4",
+      "retrieved_at": "2026-10-28T04:55:26.279Z",
+      "ranges": [
+        {
+          "first": 27,
+          "last": 48,
+          "text": "  defp do_run(config, args) do\n    # Compute the app cache if it is stale and we are\n    # not compiling from a dependency.\n    app_cache =\n      if \"--from-mix-deps-compile\" not in args do\n        Mix.AppLoader.stale_cache(config)\n      end\n\n    # Make sure Mix.Dep is cached to avoid loading dependencies\n    # during compilation. This is also important because we prune\n    # the load paths before compiling, which means any SCM coming\n    # from archives will be removed from the code path.\n    deps = Mix.Dep.cached()\n    apps = compile_apps(config, args)\n\n    {loaded_paths, loaded_modules} =\n      Mix.AppLoader.load_apps(apps, deps, config, {[], []}, fn {app, path}, {paths, mods} ->\n        paths = if path, do: [path | paths], else: paths\n        mods = if app_cache, do: [{app, Application.spec(app, :modules) || []} | mods], else: mods\n        {paths, mods}\n      end)\n"
+        },
+        {
+          "first": 103,
+          "last": 129,
+          "text": "  def compile_apps(config, args) do\n    project = Mix.Project.get!()\n\n    properties =\n      if function_exported?(project, :application, 0), do: project.application(), else: []\n\n    extra =\n      Keyword.get(properties, :included_applications, []) ++\n        Keyword.get(properties, :extra_applications, [])\n\n    {all, optional} =\n      Mix.Utils.project_apps(properties, config, extra, fn apps_opts ->\n        for {app, opts} <- apps_opts do\n          {app, if(Keyword.get(opts, :optional, false), do: :optional, else: :required)}\n        end\n      end)\n\n    if \"--no-optional-deps\" in args do\n      all -- optional\n    else\n      all\n    end\n  end\nend\n"
+        }
+      ]
+    },
+    {
+      "url": "https://github.com/elixir-lang/elixir/blob/v1.20.4/lib/mix/lib/mix/app_loader.ex",
+      "provider_git_blob_sha": "c3543059452e514d01bc594319205f7fc5d3ff23",
+      "ref": "v1.20.4",
+      "retrieved_at": "2026-10-28T04:55:26.279Z",
+      "ranges": [
+        {
+          "first": 79,
+          "last": 103,
+          "text": "\n  @doc \"\"\"\n  Loads the given app from path in an optimized format and returns its contents.\n  \"\"\"\n  def load_app(app, app_path) do\n    with {:ok, properties} <- read_app(app, app_path) do\n      case :application.load({:application, app, properties}) do\n        :ok -> {:ok, properties}\n        {:error, {:already_loaded, _}} -> {:ok, properties}\n        {:error, _} -> :invalid\n      end\n    end\n  end\n\n  @doc \"\"\"\n  Loads the given applications.\n  \"\"\"\n  def load_apps(apps, deps, config, acc, fun) do\n    lib_path = to_charlist(Path.join(Mix.Project.build_path(config), \"lib\"))\n    deps_children = for dep <- deps, into: %{}, do: {dep.app, Enum.map(dep.deps, & &1.app)}\n    builtin_paths = Mix.State.builtin_apps()\n\n    (extra_apps(config) ++ apps)\n    |> traverse_apps(%{}, deps_children, builtin_paths, lib_path)\n    |> Enum.reduce(acc, fun)"
+        },
+        {
+          "first": 114,
+          "last": 146,
+          "text": "  defp traverse_apps([app | apps], seen, deps_children, builtin_paths, lib_path)\n       when is_map_key(seen, app) do\n    traverse_apps(apps, seen, deps_children, builtin_paths, lib_path)\n  end\n\n  # We haven't processed this app, emit it.\n  defp traverse_apps([app | apps], seen, deps_children, builtin_paths, lib_path) do\n    {ebin_path, dep_children} =\n      case deps_children do\n        %{^app => dep_children} -> {app_join(lib_path, app, ~c\"/ebin\"), dep_children}\n        _ -> {builtin_paths[app], []}\n      end\n\n    app_children =\n      if Application.spec(app, :vsn) do\n        app_children(app)\n      else\n        with true <- ebin_path != nil,\n             {:ok, _} <- load_app(app, app_join(ebin_path, app, ~c\".app\")) do\n          app_children(app)\n        else\n          # Optional applications won't be available\n          _ -> []\n        end\n      end\n\n    children = (dep_children -- app_children) ++ app_children\n    seen = Map.put(seen, app, true)\n    apps = children ++ apps\n    [{app, ebin_path} | traverse_apps(apps, seen, deps_children, builtin_paths, lib_path)]\n  end\n\n  # We have processed all apps."
+        }
+      ]
+    }
+  ],
+  "supplementary_reads": [
+    {
+      "url": "https://github.com/elixir-lang/elixir/blob/v1.20.4/lib/mix/lib/mix/tasks/compile.ex",
+      "provider_git_blob_sha": "62d91a53cb1989e75aec1e016bad442565cceccd",
+      "ref": "v1.20.4",
+      "role": "Supplementary source read; CI load conclusion relies on test -> app.start -> app.config -> compile.all -> AppLoader above"
+    },
+    {
+      "url": "https://github.com/elixir-lang/elixir/blob/v1.20.4/lib/mix/lib/mix/tasks/compile.app.ex",
+      "provider_git_blob_sha": "8a4b99d617dce142041bc0216015b17c06410193",
+      "ref": "v1.20.4",
+      "role": "Supplementary source read; CI load conclusion relies on test -> app.start -> app.config -> compile.all -> AppLoader above"
+    }
+  ],
+  "conclusion": "Mix test still calls app.start; --no-start app.start calls app.config; compile.all traverses required project/dependency applications and AppLoader loads their .app metadata. Application.spec(:bandit,:vsn) does not require starting its supervisor."
+}

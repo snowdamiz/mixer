@@ -1,0 +1,178 @@
+{
+  "type": "object",
+  "fields": {
+    "schema": {
+      "type": "integer",
+      "min": 0,
+      "max": 9223372036854775807,
+      "value": 1
+    },
+    "run_nonce": {
+      "type": "string",
+      "max": 128
+    },
+    "phase": {
+      "type": "string",
+      "max": 4096,
+      "enum": [
+        "test"
+      ]
+    },
+    "grants": {
+      "type": "integer",
+      "min": 0,
+      "max": 7
+    },
+    "launch_latch_open": {
+      "type": "boolean"
+    },
+    "uncertain": {
+      "type": "boolean"
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "max": 4096
+      },
+      "min": 0,
+      "max": 32
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "fields": {
+          "run_nonce": {
+            "type": "string",
+            "max": 128
+          },
+          "phase": {
+            "type": "string",
+            "max": 4096,
+            "enum": [
+              "test"
+            ]
+          },
+          "ordinal": {
+            "type": "integer",
+            "min": 0,
+            "max": 15
+          },
+          "recipe_id": {
+            "type": "string",
+            "max": 4096,
+            "enum": [
+              "version",
+              "fixture-1-ca",
+              "fixture-1-leaf",
+              "fixture-1-sign",
+              "fixture-2-ca",
+              "fixture-2-leaf",
+              "fixture-2-sign"
+            ]
+          },
+          "invocation_nonce": {
+            "type": "string",
+            "max": 128
+          },
+          "wrapper_pid": {
+            "type": "integer",
+            "min": 2,
+            "max": 9223372036854775807
+          },
+          "wrapper_pgid": {
+            "type": "integer",
+            "min": 2,
+            "max": 9223372036854775807
+          },
+          "wrapper_sid": {
+            "type": "integer",
+            "min": 2,
+            "max": 9223372036854775807
+          },
+          "request_sha256": {
+            "type": "string",
+            "max": 64
+          },
+          "ack_sha256": {
+            "type": "string",
+            "max": 64
+          },
+          "completion_sha256": {
+            "type": "string",
+            "max": 64
+          },
+          "ack_issued": {
+            "type": "boolean"
+          },
+          "native_started": {
+            "type": "boolean"
+          },
+          "child_reaped": {
+            "type": "boolean"
+          },
+          "released": {
+            "type": "boolean"
+          },
+          "group_absent": {
+            "type": "boolean"
+          },
+          "identity_lost": {
+            "type": "boolean"
+          },
+          "child_pid": {
+            "type": "integer",
+            "min": 0,
+            "max": 9223372036854775807
+          }
+        }
+      },
+      "min": 0,
+      "max": 16
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "fields": {
+          "sequence": {
+            "type": "integer",
+            "min": 0,
+            "max": 127
+          },
+          "event": {
+            "type": "string",
+            "max": 4096,
+            "enum": [
+              "registered",
+              "ack-intent",
+              "exit-grant-intent",
+              "child",
+              "completion",
+              "group-absent",
+              "identity-lost",
+              "signal"
+            ]
+          },
+          "ordinal": {
+            "type": "integer",
+            "min": -1,
+            "max": 15
+          },
+          "at_ns": {
+            "type": "integer",
+            "min": 0,
+            "max": 9223372036854775807
+          },
+          "detail": {
+            "type": "string",
+            "max": 4096
+          }
+        }
+      },
+      "min": 0,
+      "max": 128
+    }
+  }
+}

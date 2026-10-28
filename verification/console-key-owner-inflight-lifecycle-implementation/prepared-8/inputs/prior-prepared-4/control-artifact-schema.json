@@ -1,0 +1,90 @@
+{
+  "type": "object",
+  "fields": {
+    "schema": {
+      "type": "integer",
+      "min": 0,
+      "max": 9223372036854775807,
+      "value": 1
+    },
+    "status": {
+      "type": "string",
+      "max": 4096,
+      "enum": [
+        "passed",
+        "failed"
+      ]
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "fields": {
+          "case_id": {
+            "type": "string",
+            "max": 4096,
+            "enum": [
+              "happy",
+              "no-ack",
+              "journal-failure",
+              "cancel-after-ack",
+              "native-timeout",
+              "immutable-and-bindings",
+              "out-of-order",
+              "prepublication",
+              "post-spawn-prepublication"
+            ]
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "native_started": {
+            "type": "boolean"
+          },
+          "groups_absent": {
+            "type": "boolean"
+          },
+          "wrapper_reaped": {
+            "type": "boolean"
+          },
+          "uncertain": {
+            "type": "boolean"
+          },
+          "scratch_preserved": {
+            "type": "boolean"
+          },
+          "grants": {
+            "type": "integer",
+            "min": 0,
+            "max": 1
+          }
+        }
+      },
+      "min": 0,
+      "max": 9
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "max": 4096
+      },
+      "min": 0,
+      "max": 64
+    },
+    "preserved_scratch": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "max": 4096
+      },
+      "min": 0,
+      "max": 9
+    },
+    "elapsed_ms": {
+      "type": "integer",
+      "min": 0,
+      "max": 55000
+    }
+  }
+}

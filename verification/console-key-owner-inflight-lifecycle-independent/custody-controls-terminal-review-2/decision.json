@@ -1,0 +1,200 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T05:02:42.151125+00:00",
+  "status": "FAILED-preserved-actual-group-observation-EPERM-remains-unresolved-local-execution-held",
+  "source_contract": {
+    "path": "verification/console-key-owner-inflight-lifecycle-independent/custody-controls-terminal-review-2/source-contract.json",
+    "bytes": 149015,
+    "sha256": "676d75fc5fc23a662c29d0d61c2fea9e6e344880dd8d3cd578cf943fa2ac9059"
+  },
+  "scratch_provenance": {
+    "path": "verification/console-key-owner-inflight-lifecycle-independent/custody-controls-terminal-review-2/scratch-provenance.json",
+    "bytes": 16410,
+    "sha256": "14e188ddc1e47dcf334e79b49afe27655561db537d4ee87ca89498b2e764efa2"
+  },
+  "report": {
+    "path": "verification/console-key-owner-inflight-lifecycle-implementation/executions/custody-controls-5/control-results.json",
+    "bytes": 26157,
+    "sha256": "2794c9a52be293a60146a3a6255c3fb37e64b6aa32fd0bc94c01418783af57c4"
+  },
+  "root_release": {
+    "path": "verification/console-session-and-checkout-root-review/inflight-custody-controls-candidate-8-release.json",
+    "bytes": 1031,
+    "sha256": "35e44c77dccdcb188fd414f946b3b974ffeb5a72fdd2755a8f0c1418bfcedc37"
+  },
+  "terminal_verdict": {
+    "status": "failed",
+    "elapsed_ms": 35852,
+    "top_level_errors": [],
+    "named_cases": 18,
+    "passed_cases": 11,
+    "failed_cases": [
+      "no-ack",
+      "out-of-order",
+      "post-spawn-prepublication",
+      "journal-fsync-failure",
+      "journal-truncation",
+      "completion-acceptance-short-write",
+      "exit-grant-intent-fsync-failure"
+    ],
+    "actual_VM_helper_checks_passed": 2,
+    "injected_no_process_checks_passed": 6,
+    "ACKs": 10,
+    "custody_fake_children": 8,
+    "helper_fake_children": 2,
+    "total_fake_launches": 10,
+    "execution_artifact_files": 168,
+    "execution_artifact_bytes_including_report": 295420,
+    "selected_cap": 1048576,
+    "scope": "An empty top-level errors list does not override the seven false case predicates. The frozen all_absent requirement remains unmet; do not reinterpret this execution as PASS."
+  },
+  "material_observation": {
+    "operation": "os.killpg(wrapper_pgid,0)",
+    "errno": 1,
+    "errno_name": "EPERM",
+    "exception_type": "PermissionError",
+    "source": "Custodian actual process authority",
+    "cases_and_wrapper_groups": [
+      {
+        "case_id": "no-ack",
+        "pid": 20745,
+        "pgid": 20745
+      },
+      {
+        "case_id": "out-of-order",
+        "pid": 20770,
+        "pgid": 20770
+      },
+      {
+        "case_id": "post-spawn-prepublication",
+        "pid": 20780,
+        "pgid": 20780
+      },
+      {
+        "case_id": "journal-fsync-failure",
+        "pid": 20817,
+        "pgid": 20817
+      },
+      {
+        "case_id": "journal-truncation",
+        "pid": 20842,
+        "pgid": 20842
+      },
+      {
+        "case_id": "completion-acceptance-short-write",
+        "pid": 20851,
+        "pgid": 20851
+      },
+      {
+        "case_id": "exit-grant-intent-fsync-failure",
+        "pid": 20866,
+        "pgid": 20866
+      }
+    ],
+    "meaning": "This run identifies the denied group-observation operation, with exact context, timestamp and traceback. EPERM is a refusal to establish absence, not an absence result. The environment cause is undetermined. No earlier generic permission string is retroactively attributed to this syscall."
+  },
+  "authority_and_fixture_assessment": {
+    "sticky_refusal": "All seven records keep permission_denied, authority_closed and identity_lost true; group_absent false, uncertainty true and journal_reconciled false. A later fixture reap never clears these flags. No clean custody claim is made.",
+    "signals": "Three incomplete-acceptance cases contain TERM then KILL before the recorded EPERM: post-spawn-prepublication, completion-acceptance-short-write, exit-grant-intent-fsync-failure. No signal journal event follows a permission diagnostic. Released/refused normal cases have no active-signal events.",
+    "after_refusal_evidence_limit": "Injected checks have exact empty post-refusal callback traces. Actual terminal records have one tagged refusal diagnostic each; frozen Authority.call refuses all later record operations before invoking callbacks, and inspect returns early for denied records. The recorded operation counters aggregate attempts and do not independently timestamp every successful syscall. Consequently this is evidence consistent with no later Custodian probe/signal, not a complete OS syscall trace.",
+    "fixture_observations": "Seventeen direct wrapper Popen waits/polls report reaped. For the seven refused cases, fixture_group_probe_performed is false and custody_resolution is unresolved-refused. Those retained-child wait observations are distinct from retrying denied group observation/control and cannot substitute for group-absence evidence. No new wait, probe or signal was attempted by this reviewer.",
+    "wrapper_boundary": "All actual wrapper completion process snapshots have permission_refused false. The six synthetic checks pass their exact callback predicates, including both exceptional-tail self-exit125 variants, but do not demonstrate a real refused native Popen/os._exit event.",
+    "known_cleanup": {
+      "fixture_wrapper_direct_children_reported_reaped": 17,
+      "actual_registered_groups_reported_absent": [
+        {
+          "case_id": "happy",
+          "pid": 20743,
+          "pgid": 20743
+        },
+        {
+          "case_id": "journal-failure",
+          "pid": 20752,
+          "pgid": 20752
+        },
+        {
+          "case_id": "cancel-after-ack",
+          "pid": 20759,
+          "pgid": 20759
+        },
+        {
+          "case_id": "native-timeout",
+          "pid": 20765,
+          "pgid": 20765
+        },
+        {
+          "case_id": "journal-short-write",
+          "pid": 20798,
+          "pgid": 20798
+        },
+        {
+          "case_id": "journal-zero-write",
+          "pid": 20811,
+          "pgid": 20811
+        },
+        {
+          "case_id": "wrapper-term",
+          "pid": 20898,
+          "pgid": 20898
+        },
+        {
+          "case_id": "malformed-ack",
+          "pid": 20900,
+          "pgid": 20900
+        },
+        {
+          "case_id": "replayed-ack",
+          "pid": 20903,
+          "pgid": 20903
+        }
+      ],
+      "VM_helper_groups_reported_absent": [
+        20742,
+        20764
+      ],
+      "raw_native_children_reported_reaped": 8,
+      "raw_completions_with_child_reaped_true": 16,
+      "custody_raw_evidence_distinction": "post-spawn-prepublication has a waited raw native child not accepted as native_started by Custodian; completion-acceptance-short-write has raw child_reaped true but custody acceptance failed before setting that memory flag. Preserve both views.",
+      "unresolved_group_ids": [
+        20745,
+        20770,
+        20780,
+        20817,
+        20842,
+        20851,
+        20866
+      ],
+      "all_owned_groups_absent": false
+    }
+  },
+  "scratch_decision": {
+    "archive": "verification/console-key-owner-inflight-lifecycle-independent/custody-controls-terminal-review-2/retained-control-scratch",
+    "archive_complete_files": 31,
+    "archive_bytes": 81253,
+    "archive_hash_verified": true,
+    "original": "/private/tmp/mixer-custody-controls-0gbxleue",
+    "original_deleted_by_reviewer": false,
+    "root_storage_cleanup_eligible": true,
+    "conditions": "Immediately recheck exact ordinary-file/directory membership, bytes and SHA256 against scratch-provenance.json; preserve the original if anything differs or an unknown member appears. Keep the full verified archive, provenance and immutable execution artifacts. Remove only this exact owned scratch tree, with a storage-cleanup receipt.",
+    "basis": "All selected direct wrappers and eight fake native children have retained reap/wait evidence; copied contents are fake-control configs, pinned sources, synthetic journals/offers and PID markers, without product state or TLS keys. Full evidence retention can move to the archive without asserting group absence.",
+    "qualification": "This is storage-only removal eligibility. The seven refused group identities and failed protocol custody remain unresolved in the retained record; removal is never a cleanup PASS or authority for any process-control retry through another actor."
+  },
+  "residual_local_work": {
+    "execution_hold": true,
+    "new_local_packet_or_run_prepared": false,
+    "pending": [
+      "Resolve the local protocol/environment ability to establish selected group closure under permission refusal through a separately selected source/design path; EPERM cannot be treated as ESRCH, cleared by Popen reap, or bypassed with another actor/API. No fresh probe, retry or signal is requested here.",
+      "Keep the current control predicates and FAILED result. Future source changes would require their own frozen contract/review and explicit root selection; this review does not propose another control run.",
+      "Real wrapper-native permission refusal and teardown remain synthetic branch coverage only. Output overflow, missing completion, late/partial registration and INT/HUP remain unqualified, as already declared by the packet.",
+      "Local real runtime remains unreleased with frozen JOSE1.11.12 incompatible with canonical1.11.13. This fake-control execution contains no OpenSSL/TLS/Elixir/product methods."
+    ],
+    "separate_product_route": "Root may pursue its separately assessed ordinary remote lifecycle CI route. That route needs its own exact runtime/source evidence and cannot turn these failed local controls into a pass. This review does not alter or assess that CI work."
+  },
+  "review_boundary": {
+    "producer_imports_replay_or_new_runtime": 0,
+    "new_process_probe_inventory_or_signal": 0,
+    "native_UI_capture_device_or_emulator_use": 0,
+    "central_metadata_remote_CI_commits_pushes": 0,
+    "only_owned_new_review_directory_written": true
+  }
+}

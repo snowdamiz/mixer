@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T04:45:52.805987+00:00",
+  "status": "source-correction-incomplete-exceptional-wrapper-tail-blocks-controls-release",
+  "source_contract": {
+    "path": "verification/console-key-owner-inflight-lifecycle-independent/custody-implementation-review-7/source-contract.json",
+    "bytes": 10948,
+    "sha256": "f0bdd1c20d333fd31633426275e228055e09d4d8c46578b7b007b1d81c14f74f"
+  },
+  "packet": {
+    "freeze_sha256": "a023f5b655b0b1b62850a1b09136000aaba467caa58947e682cd625904b01cd3",
+    "control_plan_sha256": "d0543e1aaed4dcebb00dfa5c0172a77bfee7361d4b78163b5c5b992884d1f9ea",
+    "real_plan_sha256": "e2fd11b2eb07bba1f88aaa3615b845db65f0c82e7b653986ebc84e556c2f781a"
+  },
+  "recommendation": {
+    "prepared_7_controls": false,
+    "prepared_7_real_runtime": false,
+    "root_release_granted_by_this_review": false,
+    "next_step": "Narrow source-only successor fixing CCT7-01 and adding a no-process exceptional-tail assertion, then independent source review before any exact controls release. No local real runtime; dependency closure remains explicitly incompatible."
+  },
+  "findings": [
+    {
+      "id": "CCT7-01",
+      "priority": 1,
+      "title": "Make refused-wrapper self-exit unavoidable when evidence handling raises",
+      "source_refs": [
+        "openssl-custody-wrapper.py:176-184",
+        "openssl-custody-wrapper.py:222-230",
+        "permission_controls.py:98-142",
+        "pinned Python subprocess.py:1132-1145",
+        "pinned Python subprocess.py:2005-2035"
+      ],
+      "trigger": "An Authority has already recorded native process permission refusal, the Popen still has unknown returncode, and a later wrapper cleanup/evidence operation raises, for example child.stdout.close() or stderr diagnostic print/flush.",
+      "issue": "The wrapper stores the refused Popen in _REFUSED_CHILDREN and sets _PERMISSION_REFUSED_EXIT, but the only os._exit call is after result = main(). The pipe close and final diagnostic print remain outside a handler that guarantees that epilogue. If either raises, main does not return and the self-exit branch is skipped. Ordinary interpreter teardown can release the retained Popen; its pinned __del__ explicitly invokes _internal_poll, which can call waitpid. Thus the new no-post-refusal-process-operation claim still has an unguarded exception path. This is a source-permitted route, not an observation that a call happened in this unexecuted packet.",
+      "required_correction": "Put the refused-state self-exit in an outer try/finally (or equivalent unavoidable boundary) that runs when main returns or raises, with failure exit code 125 when the main result is unavailable. Retain the Popen through that boundary. Bound any best-effort last diagnostics and let failed evidence remain explicit uncertainty/scratch preservation; do not let diagnostic delivery determine whether ordinary interpreter finalization occurs.",
+      "verification_required": "Use an injected no-process seam around the actual exit boundary: after a synthetic refusal and retained synthetic child, make the evidence/close tail raise and assert the self-exit callback is still selected with failure status, no ordinary finalization/process callback runs, and authority remains unresolved. This can extend the existing wrapper synthetic assertions without a new native child, case, ACK or launch. The present two wrapper checks exercise native_group/retire_native only and do not execute this main/epilogue boundary.",
+      "scope": "No producer code execution or runtime probe was used to identify this path."
+    }
+  ],
+  "correction_assessment": [
+    {
+      "id": "CCT-01",
+      "status": "core operation routing corrected; exceptional exit boundary still blocked by CCT7-01",
+      "evidence": [
+        "Authority.call checks sticky permission_refused before counting/calling a callback; PermissionError or EPERM/EACCES permanently refuses it. Exact operation, errno/name/strerror, traceback/time and invocation context are retained.",
+        "Custodian.process permanently sets permission_denied, authority_closed and identity_lost on refusal. inspect returns before any later OS probe; drain routes signals through the same authority. Repeated service errors are deduplicated.",
+        "A bound wrapper completion carrying permission_refused closes Custodian authority before child-transition consistency and identity probing, so incomplete child publication cannot enable alternate group signaling. Reconcile and real artifact gates reject unresolved authority.",
+        "Wrapper native group lookup, Popen start, poll, wait, terminate and kill route through the authority. retire_native immediately refuses later attempts. The retained-child/self-exit intent is correct but its exceptional tail is not guarded."
+      ]
+    },
+    {
+      "id": "CCT-02",
+      "status": "adequate source correction for selected scope",
+      "evidence": [
+        "A durable accepted completion plus matching published exit grant permanently marks released and authority_closed. inspect only samples group absence afterwards and returns before PID/SID proof or TERM/KILL eligibility.",
+        "A retained Popen exit witness marks wrapper_exit_observed and closes active authority. This is separate from the native child_reaped field. A pre-release held leader remains actively retireable only with current retained PID/PGID/SID and no sticky refusal.",
+        "The synthetic released-observe-only case supplies a still-present group, exercises service/inspect/drain/finalize, requires only signal-zero observations, preserves unresolved custody and makes no clean claim.",
+        "The shared vm_cleanup.py is byte-identical to prepared6; completed direct-VM closure remains observe-only and the two selected real helper checks remain unchanged."
+      ]
+    }
+  ],
+  "selected_control_scope": {
+    "named_cases": 18,
+    "shared_VM_helper_checks": 2,
+    "injected_no_process_checks": 5,
+    "additional_synthetic_processes": 0,
+    "ACK_cap": 10,
+    "custody_fake_native_cap": 8,
+    "all_fake_child_cap": 10,
+    "combined_artifact_cap_bytes": 1048576,
+    "terminal_report_included_in_cap": true,
+    "cutoffs_seconds": [
+      40,
+      46,
+      52,
+      55
+    ],
+    "prospective_OpenSSL_TLS_Elixir_product_execution": 0,
+    "output": "verification/console-key-owner-inflight-lifecycle-implementation/executions/custody-controls-4",
+    "existing_injected_checks": [
+      "custodian-probe-EPERM",
+      "custodian-TERM-EPERM",
+      "wrapper-getpgid-EPERM",
+      "wrapper-terminate-EPERM",
+      "released-observe-only"
+    ],
+    "coverage_limit": "Injected callbacks prove the selected branch predicates only. They do not diagnose the historical EPERM or test actual OS permission failure, Popen destruction, output overflow, missing/late/partial publication or INT/HUP."
+  },
+  "dependency_boundary": {
+    "current_canonical_rows_rechecked": 25,
+    "changed_since_prepared6": [
+      "hosted/mix.lock",
+      "THIRD_PARTY.yml"
+    ],
+    "other_23_canonical_rows_unchanged": true,
+    "loaded_dependencies_unchanged": true,
+    "JOSE_actual_frozen_local": "1.11.12",
+    "JOSE_canonical_lock": "1.11.13",
+    "real_plan_compatible": false,
+    "real_runner_refuses_before_output_creation_or_any_launch": "runner.py:108-109; output creation starts at110-111; Popen later228",
+    "scope": "No shared dependency build or change was performed. Ordinary remote CI assessment is outside this review and was not altered."
+  },
+  "historical_evidence": {
+    "prepared6_control_report_sha256": "4e71c5623dc753e4f7b29163d4d7b3c2a10f1622536c7a039824ce18d8f449f6",
+    "retained_boundary": "The eighteen original cases and two helper checks remain scoped PASS against their historical frozen bytes. Their generic permission strings still do not establish the failed syscall. Current source correction does not rewrite or retroactively invalidate that result.",
+    "scratch": "Parent reports exact original 25-file scratch removal after archive/hash receipt. The independent retained copy and provenance remain immutable; no scratch deletion or probe was performed in this review."
+  },
+  "execution_and_mutation_boundary": {
+    "offline_read_hash_only": true,
+    "producer_imports_or_replay": 0,
+    "controls_native_compiler_formatter_TLS_or_product_execution": 0,
+    "process_inventory_or_identity_probe": 0,
+    "central_metadata_changes": 0,
+    "remote_CI_changes": 0,
+    "commit_or_push": 0,
+    "only_owned_review_directory_written": true,
+    "UI_capture_devices_emulators": "paused and untouched"
+  }
+}

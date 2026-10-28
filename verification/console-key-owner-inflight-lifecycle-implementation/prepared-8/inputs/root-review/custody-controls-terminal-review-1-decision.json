@@ -1,0 +1,174 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T04:09:21.532786+00:00",
+  "status": "control-predicates-pass-scoped-evidence-only-unexpected-permission-observations-block-real-release",
+  "source_contract": {
+    "path": "verification/console-key-owner-inflight-lifecycle-independent/custody-controls-terminal-review-1/source-contract.json",
+    "bytes": 55956,
+    "sha256": "8c3f959282c5320e3984252ae7316cfd91b5b281eb9eb3b04d67f83b70fc2c81"
+  },
+  "scratch_provenance": {
+    "path": "verification/console-key-owner-inflight-lifecycle-independent/custody-controls-terminal-review-1/scratch-provenance.json",
+    "bytes": 4967,
+    "sha256": "a33fc522514cf270d80a9edfb37ff272046eb9af4c3aa7ca5ec52019a33ca8e5"
+  },
+  "control_report": {
+    "path": "verification/console-key-owner-inflight-lifecycle-implementation/executions/custody-controls-3/control-results.json",
+    "bytes": 8602,
+    "sha256": "4e71c5623dc753e4f7b29163d4d7b3c2a10f1622536c7a039824ce18d8f449f6"
+  },
+  "root_release": {
+    "path": "verification/console-session-and-checkout-root-review/inflight-custody-controls-candidate-6-release.json",
+    "bytes": 991,
+    "sha256": "a07f32c937193f937dcd0b41eff5cf7a94b36daa6f07218c5e4e7744b54b1c4a"
+  },
+  "scoped_control_results": {
+    "report_status": "passed",
+    "elapsed_ms": 26475,
+    "ordered_named_cases_passed": 18,
+    "actual_shared_helper_subchecks_passed": 2,
+    "ACKs": 10,
+    "custody_fake_children": 8,
+    "helper_fake_children": 2,
+    "total_fake_launches": 10,
+    "artifact_files": 167,
+    "artifact_bytes_including_report": 166639,
+    "selected_artifact_cap": 1048576,
+    "all_case_reported_wrapper_reaped_and_groups_absent": true,
+    "registered_wrapper_groups_reported_absent": [
+      3152,
+      3154,
+      3164,
+      3172,
+      3175,
+      3184,
+      3220,
+      3249,
+      3266,
+      3272,
+      3281,
+      3284,
+      3332,
+      3363,
+      3365,
+      3366
+    ],
+    "all_raw_native_completions_exact_wait_true": true,
+    "completed_helper": {
+      "pid": 3151,
+      "mode": "completed-observe",
+      "signals": [],
+      "reaped": true,
+      "group_absent": true
+    },
+    "running_helper": {
+      "pid": 3174,
+      "mode": "running-retirement",
+      "signals": [
+        15
+      ],
+      "real_timeout": true,
+      "reaped": true,
+      "group_absent": true
+    }
+  },
+  "findings": [
+    {
+      "id": "CCT-01",
+      "priority": 1,
+      "status": "blocks real prepared6 release; successor required",
+      "title": "Make process-operation EPERM a sticky record-level authority refusal",
+      "source_files": [
+        {
+          "path": "verification/console-key-owner-inflight-lifecycle-implementation/prepared-6/custody.py",
+          "bytes": 30033,
+          "sha256": "c5fcc852ea5026f9c6cc5aec75300c75148938367600d6d1821ff4539ed4d829"
+        },
+        {
+          "path": "verification/console-key-owner-inflight-lifecycle-implementation/prepared-6/openssl-custody-wrapper.py",
+          "bytes": 10303,
+          "sha256": "b31d7d1f6325d98095ef3482dc158cd551a70d3b3417475a98288dd61b758c4d"
+        }
+      ],
+      "source_refs": [
+        "custody.py:99-111,255-259,269-285,386-413",
+        "openssl-custody-wrapper.py:109-111,145-159"
+      ],
+      "observed_evidence": "Six deliberate failure snapshots contain PermissionError errno1 strings. no-ack/journal-failure/out-of-order have one each; post-spawn-prepublication/completion-acceptance-short-write/exit-grant-intent-fsync-failure have31 each and saturate32-entry error arrays. Exact syscall/call site is absent, so their source operation is not diagnosed.",
+      "source_conclusion": "Custodian absent()/identity_live() can raise EPERM into service generic catch. fail() closes grants and marks uncertainty but sets no per-record permission-denied/identity-lost terminal authority state. Later service calls retry process probes; drain can later signal if numeric identity checks succeed. In the wrapper, EPERM from child os.getpgid goes through generic catch then may poll/terminate/wait retained child. If terminate itself throws EPERM, that particular cleanup branch does not proceed to kill; do not conflate the paths.",
+      "required_correction": "Wrap exact process operations with call-tagged diagnostics (errno/name/strerror/traceback, phase/ordinal/nonces/PID/PGID/SID and time). A process-control EPERM permanently closes active authority for that record, no retry through saved numeric group or alternate kill API. Continue only durable evidence handling explicitly allowed by the closed state; incomplete wait/group accounting stays uncertain and preserves scratch. Avoid repeated string-only errors saturating evidence. Add focused bounded synthetic permission-denial controls that assert no later operation/alternate signal and no clean custody claim; do not pretend those identify the actual historical syscall."
+    },
+    {
+      "id": "CCT-02",
+      "priority": 1,
+      "status": "blocks real prepared6 release; successor required",
+      "title": "Registered-wrapper normal exit needs an observe-only terminal closure",
+      "source_files": [
+        {
+          "path": "verification/console-key-owner-inflight-lifecycle-implementation/prepared-6/custody.py",
+          "bytes": 30033,
+          "sha256": "c5fcc852ea5026f9c6cc5aec75300c75148938367600d6d1821ff4539ed4d829"
+        }
+      ],
+      "source_refs": [
+        "custody.py:269-285,369-380,389-413"
+      ],
+      "observed_evidence": "Clean happy/cancel cases and completed shared-helper checks show no normal-completion termination signal. TERM/KILL signal events were retained in the three incomplete/failed acceptance cases; that does not prove the same signal occurred on a clean completion.",
+      "source_conclusion": "drain() can signal any inspect()-authorized record without checking released/normal-exit state. After a full completion and exit grant, a still-present numeric leader may match PID/PGID/SID, including a completed process not yet reaped. There is no observe-only gate for that state. For an already-reaped leader with absent PID, identity_live returnsFalse and inspect refuses; no claim is made that an absent reaped PID is directly signaled.",
+      "required_correction": "After durable completion acceptance plus matching exit grant, normal leader closure must be observe-only and sticky; no TERM/KILL solely because a saved group remains. Track any proven wrapper exit/completion as terminal and refuse re-arming. Before exit grant a protocol-held leader is a distinct state and may be retired only with still-valid live authority and no prior permission refusal. Preserve unresolved state/scratch on uncertainty. Reuse or mirror the shared VM helper policy without treating native child_reaped alone as proof the wrapper leader is reaped. Extend happy/no-ACK and selected failure controls to assert signal ordering and authority closure."
+    }
+  ],
+  "interpretation": "The18 case predicates and two helper checks passed exactly as frozen. They establish the scoped failure/no-launch/wait/group/scratch assertions, not absence of unexpected process-control errors or readiness for real native work. Retained uncertain cases remain failed real-run states. No OpenSSL/TLS/compiler/product lifecycle method ran.",
+  "retained_permission_observations": {
+    "no-ack": {
+      "count": 1,
+      "message": "PermissionError: [Errno 1] Operation not permitted",
+      "error_array_saturated": false
+    },
+    "journal-failure": {
+      "count": 1,
+      "message": "PermissionError: [Errno 1] Operation not permitted",
+      "error_array_saturated": false
+    },
+    "out-of-order": {
+      "count": 1,
+      "message": "PermissionError: [Errno 1] Operation not permitted",
+      "error_array_saturated": false
+    },
+    "post-spawn-prepublication": {
+      "count": 31,
+      "message": "PermissionError: [Errno 1] Operation not permitted",
+      "error_array_saturated": true
+    },
+    "completion-acceptance-short-write": {
+      "count": 31,
+      "message": "PermissionError: [Errno 1] Operation not permitted",
+      "error_array_saturated": true
+    },
+    "exit-grant-intent-fsync-failure": {
+      "count": 31,
+      "message": "PermissionError: [Errno 1] Operation not permitted",
+      "error_array_saturated": true
+    }
+  },
+  "diagnosis_limit": "No new probe/replay occurred and no exact PermissionError syscall is inferred from string-only snapshots or from the separate Swift attempt. The retry/normal-exit findings above are source-derived reachable paths.",
+  "real_plan_recommendation": {
+    "plan_sha256": "88c2aec08cae87c4d3e690ef2f8df3f9cb2c58c151a8b26401446bac8bc3e6b9",
+    "recommend_release": false,
+    "reason": "CCT-01/CCT-02 require narrow successor custody/wrapper/evidence correction and independent review; preserve prepared6 and successful scoped control results."
+  },
+  "dependency_coordination": "Root may now apply held THIRD_PARTY.yml/mix.lock updates. A successor source/tool/canonical freeze and exact new control/real plans must bind the changed pins; do not execute the old real plan after those pins drift.",
+  "scratch_disposition": {
+    "original_root": "/private/tmp/mixer-custody-controls-bpfaf3kb",
+    "retained_copy_root": "/Users/andreyyurlov/Documents/dev/mixer/verification/console-key-owner-inflight-lifecycle-independent/custody-controls-terminal-review-1/retained-control-scratch",
+    "copied_files": 25,
+    "copied_bytes": 61828,
+    "byte_hash_copy_verified": true,
+    "eligible_for_root_removal": true,
+    "conditions": "Retain this exact copied tree plus provenance and immutable execution artifacts. Immediately recheck original filesystem membership/hashes against scratch-provenance.json; if unchanged, root may remove only /private/tmp/mixer-custody-controls-bpfaf3kb. If changed, preserve unknown delta. No deletion performed by this review.",
+    "reason": "Full bounded config/marker/script bytes are archived; fake native completion waits and reported wrapper/helper groups are terminal in existing receipts. These are completed fake-controls files, not production signing keys, product state or future real-run scratch. Logical uncertainty remains preserved in immutable artifacts regardless of original path removal."
+  },
+  "no_execution_grant": true,
+  "no_probe_replay_or_delete": true,
+  "GA_acceptance": false
+}

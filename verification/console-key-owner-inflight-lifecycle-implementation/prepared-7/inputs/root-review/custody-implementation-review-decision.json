@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T03:27:06.644235+00:00",
+  "status": "do-not-release-current-prepared4-control-or-real-plans-source-corrections-required",
+  "source_contract": {
+    "path": "verification/console-key-owner-inflight-lifecycle-independent/custody-implementation-review/source-contract.json",
+    "bytes": 6094,
+    "sha256": "3f47da3aa8081113e497affb0fd9b91816db2f27a61591db19954393a30be0df"
+  },
+  "prepared_freeze_sha256": "28a6f8ccfc7be0c14adc9e6bbe66dafbd20a9574750e7c2ec1ca7fe9d4cb6891",
+  "control_plan_sha256": "7df903f802a4bf5084c0f38d847b9c3801dee5b70dd9c30cdc421d1d5f17e749",
+  "real_plan_sha256": "49f5d71af30f66ae568ff6737779db26adea85ebfdfb8e3a1f5f9e7be35f5d06",
+  "findings": [
+    {
+      "id": "CIR-01",
+      "priority": 1,
+      "status": "blocking exact current control and real releases",
+      "title": "Check complete journal writes before treating custody as durable",
+      "file": "/Users/andreyyurlov/Documents/dev/mixer/verification/console-key-owner-inflight-lifecycle-implementation/prepared-4/custody.py",
+      "lines": [
+        195,
+        211
+      ],
+      "trigger": "os.write(fd,data) returns a positive count smaller than len(data), for example an ordinary partial write, while fsync succeeds.",
+      "finding": "event() ignores the returned byte count and still returns success. service() can then publish ACK after a truncated registered/ack-intent journal record. events in memory remain complete, and final real validation checks snapshot plus journal file membership/size but never parses/reconciles the authoritative journal, so it can report clean custody despite violating durable-before-ACK. This is a concrete partial-write case, not an arbitrary OS-stall requirement.",
+      "related_sources": [
+        "custody.py:265-294",
+        "runner.py:343-387"
+      ],
+      "requested_change": "Use a full-write loop or checked buffered write with fsync; retain cleanup ownership and close grants on zero/short/unrecoverable write. Validate journal records and sequence/identity against accepted transitions before a clean receipt. Apply checked writes to native raw audit append as needed for complete retained evidence. Add a focused short-write/truncated-journal control that cannot obtain an ACK or pass clean custody."
+    },
+    {
+      "id": "CIR-02",
+      "priority": 2,
+      "status": "resolve source-contract record definition before real release",
+      "title": "Persist completion acceptance before publishing the leader exit grant",
+      "file": "/Users/andreyyurlov/Documents/dev/mixer/verification/console-key-owner-inflight-lifecycle-implementation/prepared-4/custody.py",
+      "lines": [
+        323,
+        335
+      ],
+      "trigger": "Root processes a validated completion and publishes exit.json, then fails or is interrupted before event(suffix,...).",
+      "finding": "The completion SHA/child wait are updated in memory, exit-grant-intent is journaled without completion detail, exit grant is published, and the full completion journal event is written afterwards. This reverses the selected contract journal/acceptance order. The exit grant itself already binds completion_sha256 and the wrapper completion file is durable, so this is narrower than a launch-without-custody flaw.",
+      "requested_change": "Prefer fsyncing the validated full completion/hash acceptance event before publishing exit grant. Alternatively root must explicitly select the immutable grant file as the durable acceptance record and terminal validation must verify that record/completion binding rather than imply a prior completion journal event. Test failure at the acceptance/exit-grant boundary and do not release based only on in-memory state."
+    },
+    {
+      "id": "CIR-03",
+      "priority": 2,
+      "status": "material coverage gap before real-runtime qualification",
+      "title": "Distinguish nine proposed controls from untested signal and I/O fault paths",
+      "file": "/Users/andreyyurlov/Documents/dev/mixer/verification/console-key-owner-inflight-lifecycle-implementation/prepared-4/custody-controls.py",
+      "lines": [
+        84,
+        178
+      ],
+      "finding": "cancel-after-ack flips a manager cancellation list and never delivers INT/TERM/HUP to wrapper; journal-failure replaces event() with a throw before the actual write; immutable-and-bindings directly checks helpers and sticky state rather than exercising malformed ACK/replay through the wrapper. None of the nine cases injects a short write, asserts durable acceptance/grant order, or drives the wrapper signal-mask/native-wait path. Output-overflow, missing completion and late/partial registration are likewise not runtime controls in this plan.",
+      "requested_change": "Add narrowly bounded fake-child controls for the journal durability/order fixes and an actual selected wrapper signal during acknowledged native work (or keep that path explicitly pending and prohibit real-runtime acceptance until separately checked). Retain no-ACK zero-launch, cancellation-racing ownership, exact child wait/group absence and scratch-preservation assertions. Do not describe helper-only tests or timeout as evidence for actual signal delivery behavior. No such control is run by this review."
+    }
+  ],
+  "implemented_contract_controls": [
+    "OCR-A1 is explicit: only future ACKs close; already-issued capability can race cancellation and remains owned. Root and wrapper use nonraising signal flags with final signal-mask/pending checks around grant/spawn; child pre-exec restores prior signal mask.",
+    "OCR-A2 final message publication uses exclusive temp + fsynced data + hard link refusing an existing final destination + directory fsync; final paths are not overwritten.",
+    "OCR-A3 request/ACK/child/completion/exit binding contains run nonce, phase, ordinal, recipe ID, invocation nonce, wrapper PID/PGID, request and ACK hashes. Real recipes constrain exact ordered argv and private fixture key directories.",
+    "Proven group is stored before the fallible registration journal/ACK operations. Sticky terminal/lost identity prevents re-arming a numeric PGID; lost/live-group and bootstrap uncertainty fail/preserve scratch instead of guessed signaling.",
+    "Wrapper native work begins only after matching ACK, exact identity/deadline checks; output is nonblocking/capped, native child is retained, terminated/waited on failure, and leader waits for hash-bound exit grant. Outer drains known groups before allowed scratch deletion.",
+    "Real runner keeps seven-grant/seven-record/completion/wait/release/group-absence requirements and18 exact nested JSON schemas; product source and all nine methods are unchanged from prepared3. No new product/security behavior selected."
+  ],
+  "prospective_control_coverage": [
+    {
+      "case": "happy",
+      "actual_source_coverage": "One direct wrapper session, ACK, fake native, child/completion/exit handling and group absence. Does not assert disk journal full writes/order or replay it."
+    },
+    {
+      "case": "no-ack",
+      "actual_source_coverage": "Manager latch closed before request; no fake-native marker/grants and uncertainty expected. Wrapper bounded ACK timeout and eventual cleanup exercised if separately released."
+    },
+    {
+      "case": "journal-failure",
+      "actual_source_coverage": "Monkeypatched event throws at registered event before disk write. Checks retained group/no ACK/no native and uncertainty; does not exercise partial write/fsync/truncated journal."
+    },
+    {
+      "case": "cancel-after-ack",
+      "actual_source_coverage": "Manager cancellation boolean after durable ACK, wrapper 200ms pre-spawn delay; permits an already-owned racing launch and requires group absence. No OS signal is delivered."
+    },
+    {
+      "case": "native-timeout",
+      "actual_source_coverage": "Fake child sleeps2seconds while native deadline is1second; requires failed/uncertain owned launch and group absence. Does not simulate INT/TERM/HUP delivered from outside."
+    },
+    {
+      "case": "immutable-and-bindings",
+      "actual_source_coverage": "Hard-link final-path duplicate refusal, direct wrong-phase/cross-run request validator checks, and source-level sticky terminal/lost identity helper behavior. No wrapper/native launched."
+    },
+    {
+      "case": "out-of-order",
+      "actual_source_coverage": "Manager expected ordinal is changed to1 while wrapper offers0; no ACK/native marker, retained group and uncertainty expected."
+    },
+    {
+      "case": "prepublication",
+      "actual_source_coverage": "Control-only wrapper early return90 before registration; direct control launcher still owns its Popen handle. Correctly records uncertainty/preserves scratch and does not claim the real OTP unknown-bootstrap gap is contained."
+    },
+    {
+      "case": "post-spawn-prepublication",
+      "actual_source_coverage": "Wrapper raises after Popen before child record; completion retains native PID/wait, manager rejects incomplete transition, acknowledges existing group custody and expected uncertainty. Cleanup/control result requires exact group absence."
+    }
+  ],
+  "root_next_step": "Coordinate a minimal successor source fix for checked/full journal writes and verifiable durable transition ordering, plus targeted control coverage; preserve prepared4 and this review. Freeze a new exact packet. Independently review/release its fake controls first and inspect their actual terminal evidence. Only then consider a separately exact real-runtime plan; no lifecycle/GA/native acceptance follows from this source review.",
+  "limitations": [
+    "No producer code, control, fake/native child, compiler, formatter, OpenSSL, TLS or probe was executed.",
+    "All findings are source-derived conditions, not new observed failures.",
+    "No arbitrary OS-stall impossibility proof or global process inventory requested.",
+    "Earlier failed run, later group-absence sample, contract and review packets remain immutable."
+  ],
+  "implementation_authorized_by_review": false,
+  "control_execution_recommended_for_current_plan": false,
+  "real_execution_recommended_for_current_plan": false,
+  "GA_acceptance": false
+}

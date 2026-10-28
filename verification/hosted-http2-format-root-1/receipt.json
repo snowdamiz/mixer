@@ -1,0 +1,73 @@
+{
+  "at": "2026-10-28T05:04:39.895752+00:00",
+  "status": "passed",
+  "argv": [
+    "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+    "--erl",
+    "+S 2:2 +A 2 -home /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-http2-format-root-1/scratch",
+    "-e",
+    "IO.puts(\"ELIXIR \" <> System.version())\nIO.puts(\"OTP \" <> to_string(:erlang.system_info(:system_version)))\nnormalize = fn ast -> Macro.prewalk(ast, fn {head, meta, args} when is_list(meta) -> {head, [], args}; value -> value end) end\nfor [input, output] <- Enum.chunk_every(System.argv(), 2) do\n  original = File.read!(input)\n  formatted = IO.iodata_to_binary(Code.format_string!(original)) <> \"\\n\"\n  true = normalize.(Code.string_to_quoted!(original)) == normalize.(Code.string_to_quoted!(formatted))\n  File.write!(output, formatted)\n  IO.puts(\"AST_EQUAL \" <> Path.basename(input))\nend\n",
+    "--",
+    "/Users/andreyyurlov/Documents/dev/mixer/hosted/test/support/http2_wire_fixture.ex",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-http2-format-root-1/http2_wire_fixture.ex",
+    "/Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/billing/raw_webhook_capture_http2_test.exs",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-http2-format-root-1/raw_webhook_capture_http2_test.exs"
+  ],
+  "environment": {
+    "PATH": "/opt/homebrew/Cellar/erlang/29.1.1_2/bin:/usr/bin:/bin",
+    "LANG": "en_US.UTF-8",
+    "LC_ALL": "en_US.UTF-8",
+    "ERL_INETRC": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-http2-format-root-1/scratch/inetrc",
+    "ERL_CRASH_DUMP": "/dev/null",
+    "ERL_CRASH_DUMP_SECONDS": "0"
+  },
+  "tool": {
+    "path": "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+    "bytes": 6658,
+    "sha256": "5cb23d89a78f75589b06fade3097e217b77e63416d61c1800f674579748c4307"
+  },
+  "canonical_before": [
+    {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/hosted/test/support/http2_wire_fixture.ex",
+      "bytes": 21437,
+      "sha256": "965c38f6dac459de2baaf3fee98c66ee663a013ccc9401d14d233fbab27794af"
+    },
+    {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/billing/raw_webhook_capture_http2_test.exs",
+      "bytes": 4874,
+      "sha256": "4656e1f05e20ddfe8767be837a38d8323313efd7ef77efa7176a748c518c8ce8"
+    }
+  ],
+  "formatted_outputs": [
+    {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-http2-format-root-1/http2_wire_fixture.ex",
+      "bytes": 21444,
+      "sha256": "c0ba4561576060c525e586414fcfeacc88cfa19b14607d4f13dffaca32da7f4e"
+    },
+    {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-http2-format-root-1/raw_webhook_capture_http2_test.exs",
+      "bytes": 4874,
+      "sha256": "4656e1f05e20ddfe8767be837a38d8323313efd7ef77efa7176a748c518c8ce8"
+    }
+  ],
+  "canonical_changed": false,
+  "AST_equivalent": true,
+  "pid": 23609,
+  "pgid": 23609,
+  "exit": 0,
+  "reaped": true,
+  "owned_group_absent": true,
+  "scratch_removed": true,
+  "elapsed_seconds": 0.22870133398100734,
+  "stdout": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-http2-format-root-1/stdout",
+    "bytes": 195,
+    "sha256": "92af92c3d07bbcf5dee253334b0c925f5f4da99b86896c457bff16faa0c9e0c0"
+  },
+  "stderr": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-http2-format-root-1/stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "compiler_tests_listeners_or_native_OpenSSL_run": false
+}
