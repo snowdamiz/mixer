@@ -1,0 +1,217 @@
+{
+  "schema": 1,
+  "status": "PROPOSED_EXACT_CLOSED_STORAGE_STAGE_CONTRACT_NO_IMPLEMENTATION",
+  "authority": "Root-approved design direction only; exact contract review pending.",
+  "base_verifier_source_sha256": "639a154b47f57481c1b7c2900be1cb67e2d3a7e9fe824b19eac23b4a69f32672",
+  "scope": {
+    "link_dead_code": true,
+    "alternate_diagnostic_configuration_only": true,
+    "original_capture_qualified": false,
+    "runtime_admission_accepted": false,
+    "local_geometry_only": true,
+    "complete_capacity_accepted": false
+  },
+  "notation": {
+    "closed": "Every object has exactly its listed fields; tagged alternatives have exactly their alternative's fields.",
+    "required": "All fields are mandatory, including explicit null unknowns. No implicit default, coercion or additional properties.",
+    "id": "Existing nonempty text guard, at most 64 characters, exact case-sensitive equality.",
+    "evidence": "Existing nonempty unique anchor list, at most 64 entries; existing artifact/span/hash/target-containment and aggregate budgets.",
+    "nullable_evidence": "Unique anchor list of 0..64 entries only on unknown/partial facts; known facts require nonempty evidence.",
+    "knowledge": "known is exhaustive; partial has nonempty established entries and nonempty evidence; unknown has no entries. Partial/unknown adds local missing.",
+    "order": "All temporal comparisons use the exact independently sealed path/cut order. No inferred order across different paths.",
+    "integer": "type(value) is int; bool, float, numeric string and nonfinite values are rejected.",
+    "boolean": "type(value) is bool; integer/string substitutes are rejected.",
+    "sha256": "Existing exact lowercase 64-character SHA-256 guard. Raw artifact hashes and canonical JSON hashes retain their separate meanings."
+  },
+  "unchanged": [
+    "CURRENT_BINDING except the already permitted synthetic source_tree substitution",
+    "SCOPE and every retained build/config/capture guard",
+    "ROLES, REQUIREMENTS, PHASES, PARTITIONS, BACKINGS and CHILD_BACKINGS",
+    "artifact regular-file/symlink/race/aggregate/pin/span guards",
+    "duplicate-key/nonfinite/closed-object/strict-boolean/strict-integer guards",
+    "capture observation and capture acceptance schema 1",
+    "source frontier and source/MIR bindings",
+    "independent seal schema 1 and canonical member-tree digest",
+    "all existing semantic-map fields and frame/all-exit rules",
+    "union_width, merge_congruence and existing five-phase numeric union",
+    "all-or-null closed_local_phase_bytes and local_peak_bytes output",
+    "external Invocation expected_approval_sha256 and synthetic boolean authority"
+  ],
+  "bounds": {
+    "MAX_FILES": 192,
+    "MAX_TOTAL_BYTES": 335544320,
+    "MAX_JSON_BYTES_PER_ARTIFACT": 2097152,
+    "MAX_ANCHOR_BYTES": 16777216,
+    "MAX_AGGREGATE_ANCHOR_HASH_BYTES": 536870912,
+    "MAX_PATHS": 64,
+    "MAX_CUTS_PER_PATH": 128,
+    "MAX_TOTAL_CUTS": 4096,
+    "MAX_OBJECTS": 256,
+    "MAX_STAGES": 512,
+    "MAX_COPIES": 1024,
+    "MAX_LIFETIME_ENTRIES_PER_TABLE": 128,
+    "MAX_TOTAL_LIFETIME_ENTRIES": 4096,
+    "MAX_TOTAL_ALIAS_REFERENCES": 4096,
+    "MAX_SOURCE_NAMES_PER_REQUIREMENT": 32,
+    "MAX_LITERAL_BYTES": 32,
+    "I64_MIN": -9223372036854775808,
+    "I64_MAX": 9223372036854775807,
+    "U64_MAX": 18446744073709551615,
+    "NEW_BUDGET_ACCOUNTING": "Object/stage/copy limits count distinct inventory IDs; matching map tables have the same per-table bounds. Cuts, lifetimes and alias-reference totals count all appearances across inventory plus map, not once per nested table. Existing aggregate artifact/hash budgets also apply. No old limit is raised."
+  },
+  "enums": {
+    "target": ["Caller", "Closure", "Dispatch", "Body"],
+    "owner_frame": ["FCaller", "FClosure", "FDispatch", "FBody", null],
+    "region_ref": ["R", "C", "O", null],
+    "knowledge": ["known", "partial", "unknown"],
+    "termination": ["normal_return", "local_cleanup", "nonlocal_unwind", "terminate", "unknown"],
+    "cut_kind": ["entry", "reservation", "before_operation", "after_operation", "invalidation", "destruction", "local_exit", "external_continuation", "unknown"],
+    "operation": ["memcpy", "memmove", "store", "external_sret", "unknown"],
+    "source_kind": ["stage", "literal", "external", "unknown"],
+    "inventory_status": ["independently-reviewed-complete-storage-stage-inventory", "independently-reviewed-partial-storage-stage-inventory"],
+    "semantic_review_status": ["independently-reviewed-whole-function-region-map", "independently-reviewed-partial-region-map"],
+    "root_approval_status": ["root-approved-exact-local-region-map", "root-approved-exact-partial-region-map"]
+  },
+  "envelope_changes": {
+    "certificate": {
+      "schema": 2,
+      "closed_fields": ["schema", "binding", "semantic_map", "link_dead_code", "alternate_diagnostic_configuration_only", "original_capture_qualified", "runtime_admission_accepted"],
+      "semantic_map_addition": "storage_stages",
+      "required_blob_addition": "storage_inventory"
+    },
+    "semantic_review": {
+      "schema": 2,
+      "old_closed_fields_preserved": ["schema", "status", "semantic_map_sha256", "binding_sha256", "capture_acceptance_sha256", "targets", "whole_cfg_and_exits_checked", "outgoing_edges_exhaustive", "link_dead_code", "alternate_diagnostic_configuration_only", "original_capture_qualified", "runtime_admission_accepted"],
+      "added_closed_fields": ["storage_inventory_sha256", "storage_inventory_complete", "storage_stage_facts_complete"],
+      "complete_status_requires": "Old whole_cfg_and_exits_checked and outgoing_edges_exhaustive are true; storage_inventory_complete and storage_stage_facts_complete are true; inventory.inventory_complete and storage_stages.reviewed_complete are true; all these strict booleans agree. Otherwise require the partial status and retain missing facts."
+    },
+    "root_approval": {
+      "schema": 2,
+      "old_closed_fields_preserved": ["schema", "status", "certificate_sha256", "semantic_map_sha256", "independent_seal_sha256", "semantic_review_sha256", "capture_acceptance_sha256", "binding_sha256", "inputs", "local_geometry_only", "complete_capacity_accepted", "link_dead_code", "alternate_diagnostic_configuration_only", "original_capture_qualified", "runtime_admission_accepted"],
+      "added_closed_fields": ["storage_inventory_sha256", "storage_inventory_complete", "storage_stage_facts_complete"],
+      "complete_status_requires": "The exact semantic review has complete status and all storage-completion joins are true. Otherwise require the partial status. Approval alone never removes explicit missing facts."
+    },
+    "independent_seal": {
+      "schema": 1,
+      "new_required_member": "storage-inventory.json",
+      "existing_required_member": "semantic-review.json",
+      "join": "Both member sizes and raw digests equal the storage_inventory and semantic_review blobs. Preserve exact closed member rows, uniqueness and canonical members tree digest."
+    }
+  },
+  "closed_types": {
+    "storage_inventory": {
+      "fields": ["schema", "status", "binding_sha256", "capture_acceptance_sha256", "frontier_sha256", "targets", "inventory_complete", "paths", "objects", "stages", "copies", "link_dead_code", "alternate_diagnostic_configuration_only", "original_capture_qualified", "runtime_admission_accepted"],
+      "types": {"schema": "integer literal 1", "status": "inventory_status", "binding_sha256": "sha256 canonical binding", "capture_acceptance_sha256": "sha256 raw capture_acceptance", "frontier_sha256": "sha256 raw frontier", "targets": "four inventory_target rows, exact TARGETS order", "inventory_complete": "boolean", "paths": "1..MAX_PATHS inventory_path rows", "objects": "1..MAX_OBJECTS object_requirement rows", "stages": "1..MAX_STAGES stage_requirement rows", "copies": "1..MAX_COPIES copy_requirement rows", "link_dead_code": "boolean literal true", "alternate_diagnostic_configuration_only": "boolean literal true", "original_capture_qualified": "boolean literal false", "runtime_admission_accepted": "boolean literal false"}
+    },
+    "inventory_target": {
+      "fields": ["id", "frontier_sha256", "symbol", "ir_function", "asm_function", "whole_function_inventory_reviewed"],
+      "types": {"id": "target", "frontier_sha256": "sha256 canonical corresponding frontier row", "symbol": "exact map symbol", "ir_function": "exact map ir_function anchor", "asm_function": "exact map asm_function anchor", "whole_function_inventory_reviewed": "boolean"}
+    },
+    "inventory_path": {
+      "fields": ["id", "termination", "closed", "cuts", "evidence"],
+      "types": {"id": "id globally unique among paths", "termination": "termination", "closed": "boolean", "cuts": "2..MAX_CUTS_PER_PATH inventory_cut rows in independently reviewed order", "evidence": "evidence"}
+    },
+    "inventory_cut": {
+      "fields": ["id", "target", "phase", "kind", "evidence"],
+      "types": {"id": "id unique within containing path", "target": "target", "phase": "integer 0..5 or null unknown", "kind": "cut_kind", "evidence": "evidence"}
+    },
+    "object_requirement": {
+      "fields": ["id", "owner_frame", "region_ref", "paths", "source_names", "evidence"],
+      "types": {"id": "id", "owner_frame": "owner_frame", "region_ref": "region_ref", "paths": "1..MAX_PATHS unique existing path ids", "source_names": "1..32 unique nonempty text names of at most 256 characters", "evidence": "evidence"}
+    },
+    "stage_requirement": {
+      "fields": ["id", "object_id", "paths", "source_names", "required_backing_keys", "required_initialized_ranges", "required_value_ranges", "evidence"],
+      "types": {"id": "id", "object_id": "existing object_requirement id", "paths": "1..MAX_PATHS unique existing path ids, subset of object's paths", "source_names": "1..32 unique nonempty text names of at most 256 characters", "required_backing_keys": "unique subset of existing BACKINGS, at most 13", "required_initialized_ranges": "0..128 required_byte_range rows", "required_value_ranges": "0..128 required_byte_range rows", "evidence": "evidence"}
+    },
+    "required_byte_range": {
+      "fields": ["path", "begin", "end", "offset", "bytes"],
+      "types": {"path": "stage-applicable path id", "begin": "cut id", "end": "later cut id on same path", "offset": "integer 0..U64 or null unknown", "bytes": "integer 1..U64 or null unknown"}
+    },
+    "copy_requirement": {
+      "fields": ["id", "operation", "source_identity", "destination_stage", "path", "before", "after", "required_backing_keys", "evidence"],
+      "types": {"id": "id", "operation": "operation", "source_identity": "source_identity tagged alternative", "destination_stage": "existing stage_requirement id", "path": "existing path id applicable to destination and any source stage", "before": "before_operation cut id on path", "after": "later after_operation cut id on path", "required_backing_keys": "unique subset of existing BACKINGS, at most 13", "evidence": "evidence"}
+    },
+    "source_identity.stage": {"fields": ["kind", "stage"], "types": {"kind": "literal stage", "stage": "existing stage_requirement id"}},
+    "source_identity.literal": {"fields": ["kind"], "types": {"kind": "literal literal"}},
+    "source_identity.external": {"fields": ["kind", "edge"], "types": {"kind": "literal external", "edge": "existing map outgoing edge id"}},
+    "source_identity.unknown": {"fields": ["kind"], "types": {"kind": "literal unknown"}},
+    "storage_stages": {
+      "fields": ["schema", "inventory_sha256", "reviewed_complete", "objects", "stages", "copies"],
+      "types": {"schema": "integer literal 1", "inventory_sha256": "sha256 raw storage_inventory", "reviewed_complete": "boolean", "objects": "bijection with inventory.objects; at most MAX_OBJECTS", "stages": "bijection with inventory.stages; at most MAX_STAGES", "copies": "bijection with inventory.copies; at most MAX_COPIES"}
+    },
+    "storage_object": {
+      "fields": ["id", "owner_frame", "region_ref", "interval", "reservation_lifetime", "evidence"],
+      "types": {"id": "matching object_requirement id", "owner_frame": "exact matching owner_frame", "region_ref": "exact matching region_ref", "interval": "symbolic_interval", "reservation_lifetime": "reservation_lifetime", "evidence": "evidence"}
+    },
+    "symbolic_interval": {
+      "fields": ["arena", "offset", "bytes", "alignment"],
+      "types": {"arena": "existing arena id or null unknown", "offset": "integer I64_MIN..I64_MAX or null unknown", "bytes": "integer 1..U64 or null unknown", "alignment": "power-of-two integer 1..U64 or null unknown"}
+    },
+    "reservation_lifetime": {
+      "fields": ["state", "intervals", "evidence"],
+      "types": {"state": "knowledge", "intervals": "0..128 cut_interval rows; known requires nonempty; unknown requires empty", "evidence": "nullable_evidence; known requires evidence"}
+    },
+    "cut_interval": {
+      "fields": ["path", "begin", "end"],
+      "types": {"path": "object-applicable path id", "begin": "cut id", "end": "later cut id on same path"}
+    },
+    "storage_stage": {
+      "fields": ["id", "object_id", "view_offset", "view_bytes", "alignment", "initialized_lifetimes", "value_lifetimes", "backing_aliases", "evidence"],
+      "types": {"id": "matching stage_requirement id", "object_id": "exact matching object_id", "view_offset": "integer 0..U64 or null unknown", "view_bytes": "integer 1..U64 or null unknown", "alignment": "power-of-two integer 1..U64 or null unknown", "initialized_lifetimes": "byte_lifetimes", "value_lifetimes": "byte_lifetimes", "backing_aliases": "backing_aliases", "evidence": "evidence"}
+    },
+    "byte_lifetimes": {
+      "fields": ["state", "segments", "evidence"],
+      "types": {"state": "knowledge", "segments": "0..128 required_byte_range rows with known offsets/extents only; unknown state requires empty", "evidence": "nullable_evidence; known requires evidence"}
+    },
+    "backing_aliases": {
+      "fields": ["state", "aliases", "evidence"],
+      "types": {"state": "knowledge", "aliases": "0..13 unique backing_alias rows; known keys exactly match inventory requirement, partial keys are a supported subset; unknown state requires empty", "evidence": "nullable_evidence; known requires evidence"}
+    },
+    "backing_alias": {
+      "fields": ["key", "backing_id"],
+      "types": {"key": "existing BACKINGS key", "backing_id": "exact existing backings[key].id"}
+    },
+    "storage_copy": {
+      "fields": ["id", "operation", "source", "destination_stage", "destination_offset", "bytes", "path", "before", "after", "backing_aliases", "evidence"],
+      "types": {"id": "matching copy_requirement id", "operation": "exact matching operation", "source": "copy_source tagged alternative with matching source_identity", "destination_stage": "exact matching stage id", "destination_offset": "integer 0..U64 or null unknown", "bytes": "integer 1..U64 or null unknown", "path": "exact matching path id", "before": "exact matching before cut", "after": "exact matching after cut", "backing_aliases": "backing_aliases", "evidence": "evidence"}
+    },
+    "copy_source.stage": {"fields": ["kind", "stage", "offset"], "types": {"kind": "literal stage", "stage": "exact required stage id", "offset": "integer 0..U64 or null unknown"}},
+    "copy_source.literal": {"fields": ["kind", "bytes_hex"], "types": {"kind": "literal literal", "bytes_hex": "nonempty lowercase hexadecimal encoding of 1..32 exact bytes, length equals twice storage_copy.bytes"}},
+    "copy_source.external": {"fields": ["kind", "edge"], "types": {"kind": "literal external", "edge": "exact inventory-required existing outgoing edge id"}},
+    "copy_source.unknown": {"fields": ["kind"], "types": {"kind": "literal unknown"}}
+  },
+  "cross_field_rules": [
+    "All ID tables are unique; every referenced row exists; inventories and maps match bijectively. owner_frame and region_ref denote existing roles, not arbitrary region IDs. Exactly one physical object binds each R/C/O role; payload/root/SSA aliases use views of that object.",
+    "All new anchors lie within some bound whole-function span. Cut anchors are within cut.target; a copy's before/after cuts share one target and copy anchors lie there. Known native-owned object evidence includes an owner-target anchor. Additional cross-target use-site evidence remains inside bound targets.",
+    "A complete inventory status is equivalent to inventory_complete=true and all four whole_function_inventory_reviewed flags true. Partial factual review cannot set these without full enumeration review.",
+    "Map/review/approval storage inventory raw digests and strict completeness booleans agree. Semantic map and all root pin-set joins remain exact.",
+    "Path/cut facts unknown or unclosed are local missing. Known cut phases are nondecreasing; before/after order is strict. Unknown cut kind is local missing.",
+    "Independently reviewed paths are exhaustive mutually exclusive alternatives. Shared prefix/suffix operations are repeated explicitly with path-specific copy IDs and may share source anchors; physical object/stage identity remains shared. No cross-path temporal comparison/containment or transitive inferred order is permitted; cross-path references are invalid.",
+    "Known simultaneous overlapping physical objects on one path are invalid and must become reviewed views of one object. Unknown overlap or temporal reuse is local missing. Reuse requires disjoint reservation intervals on every applicable path, never source lifetime or phase-label inference.",
+    "Every object's known interval is in an existing arena; owner frame containment uses existing checked coordinate relations and native frame lifetime. region_ref interval/alignment exactly matches its existing carrier region; reservation lifetime may extend beyond that carrier's value-phase lifetime but not its physical owner frame.",
+    "Every applicable inventory path must be represented by a reservation interval for a known reservation; a known reservation omitting a required path is invalid. Known byte-lifetime sets cover every inventory-required byte/time range by union on that same reviewed path; a known set failing coverage is invalid. Partial sets may preserve a supported subset and create local missing. Unknown required ranges create local missing.",
+    "View and byte-subrange offsets/extents use checked arithmetic, fit object/view capacity, and have ordered temporal containment in reservation/frame intervals on exactly the same reviewed path. Frame phase containment is frame.begin<=begin.phase<frame.end and end.phase<=frame.end, with ordered cuts permitted inside the same phase. Unknown required containment is local missing; known contradiction is invalid.",
+    "Object/stage alignments add constraints on the existing physical arena congruences; alignment requirement and numeric rebase never become evidence. Unknown required alignment or missing physical proof creates local missing.",
+    "For known sources memcpy/memmove require stage sources; store permits stage or literal sources; external_sret requires external source. Unknown operation/source is local missing. Known operation/source mismatches are invalid. Literal length is checked when copy extent is known; null extent remains missing, never inferred.",
+    "Known source/destination copy extents fit both views. memcpy known overlap is invalid, unknown nonoverlap is local missing; memmove may overlap. Both reservations cover before through after; unknown write-completeness never becomes initialized/value proof.",
+    "Alias state known has exactly the independently required backing keys and identities. Partial alias state may preserve a subset; unknown must be empty. Copy aliases are supported by relevant source/destination semantic fields; literal aliases are empty. No alias mints backing IDs, capacities or destruction.",
+    "Partial/unknown knowledge, absent inventory completeness, and reviewed_complete=false add local missing. reviewed_complete=true with any new local gap is false completeness and invalid.",
+    "No object or stage extent is appended to numeric union inputs. Existing union counts only existing region reservations with exact original algorithm. A new uncovered object is missing/invalid, not silently counted or covered by prose.",
+    "Any local missing suppresses all phase numeric output and local peak. No new partial numeric field. Transitive/backing obligations retain original suppression; they additionally become local if a required stage/local-effect lifetime depends on them.",
+    "Unknown O/congruence/external Body unwind facts remain unknown. No +63920 restoration is invented for outgoing Body unwind/termination. Every result remains alternate diagnostic only with original/runtime qualification false."
+  ],
+  "required_observed_examples_not_exhaustive_inventory": {
+    "Dispatch_distinct_objects": ["owned/R at E_D-40968,13624", "_7 at E_D-13672,13624", "_6 at E_D-27296,13624", "incoming C at E_C-13840,13640"],
+    "Body_setup_distinct_objects_or_views": ["_13 at finalSP+256,40", "refused at finalSP+296,40", "_29 at finalSP+13952,40", "_28 at finalSP+336,13616", "incoming R payload13616 and root8 views share R object"],
+    "Body_loaded_distinct_objects_or_views": ["complete at finalSP+21248,13616", "_58 at finalSP+50192,13616", "_57 at finalSP+36576,13616", "incoming R payload13616 and root8 views share R object"],
+    "other_required_inventory": "Independent review must also enumerate relevant captured values, spills, scalar/root/reservation writes, refusal/error moves, outgoing and exceptional paths across all four functions. These examples and accepted counts do not declare exhaustive inventory."
+  },
+  "execution": {
+    "implementation_authorized": false,
+    "actual_input_invocation_selected": false,
+    "actual_certificate_emitted": false,
+    "actual_inventory_or_semantic_or_root_approval_emitted": false,
+    "compiler_native_UI_network_Docker_database_or_process_probe_allowed": false,
+    "source_only_stdlib_validation_wall_seconds_max": 55
+  }
+}

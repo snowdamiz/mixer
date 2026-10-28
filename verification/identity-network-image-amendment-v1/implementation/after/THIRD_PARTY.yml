@@ -1,0 +1,599 @@
+schema: 1
+policy: independently-owned-product-engine
+dependencies:
+  - name: Android AOSP framework source reference oracle
+    origin: https://android.googlesource.com/platform/frameworks/base/
+    version: exact-Android-9-through-16-tags-recorded-in-reference-inventories
+    license: Apache-2.0
+    purpose: official-interface-source-review-and-extracted-InputConnection-dispatch-verification
+    distribution: verification-only-platform-reference-source-not-linked-into-product
+    owner: android-verification
+    inventory_receipts:
+      - verification/android-editor-api-boundary-proposal/official-inputs.json
+      - verification/android-inputconnection-authority-audit/collection.json
+      - verification/android-editor-cleanup-contract/official/collection.json
+    qualification: original-platform-notices-retained-API36-wrapper-compiled-only-as-reference-oracle-no-product-runtime-or-release-qualification
+  - name: OpenJDK compiler and Java standard library
+    origin: https://openjdk.org/
+    version: Java-17-host-contract-local-and-CI-version-recorded-per-receipt
+    license: GPL-2.0-with-Classpath-Exception
+    purpose: independently-authored-Android-owner-observer-and-renderer-host-tests
+    distribution: external-verification-toolchain-not-linked-into-product
+    owner: android-verification
+  - name: Mint
+    origin: https://github.com/elixir-mint/mint
+    version: 1.11.0
+    license: Apache-2.0
+    purpose: bounded-hosted-JWKS-HTTPS-transport-with-explicit-peer-hostname-and-socket-ownership
+    distribution: hosted-BEAM-release
+    owner: hosted-identity
+    inventory_receipt: verification/hosted-key-owner-root-review/selection.json
+    qualification: dependency-selection-and-synthetic-TLS-feasibility-only-full-owner-transport-resource-and-provider-qualification-pending
+  - name: Swift compiler and standard libraries
+    origin: https://github.com/swiftlang/swift
+    version: 6.3.3-cross-target-and-Xcode-6.4-Apple
+    license: Apache-2.0-with-Runtime-Library-Exception
+    purpose: official-language-compilation-runtime-and-FoundationNetworking-native-HTTP-TLS
+    distribution: toolchain-external-runtime-linked-in-apps
+    owner: compiler
+  - name: Rust compiler and standard library
+    origin: https://www.rust-lang.org
+    version: 1.99.0-local-candidate
+    license: MIT-OR-Apache-2.0
+    purpose: owned-interpreter-compilation
+    distribution: toolchain-external-standard-library-linked
+    owner: runtime
+  - name: Go compiler and standard library
+    origin: https://go.dev
+    version: 1.26.4
+    license: BSD-3-Clause
+    purpose: services-standard-cryptography-http-and-durability
+    distribution: service-binaries
+    owner: cloud
+  - name: Apple SDKs, CryptoKit, CommonCrypto and Darwin system APIs
+    origin: https://developer.apple.com
+    version: Xcode-27.1
+    license: Apple-SDK-agreements
+    purpose: native-UI-established-cryptography-and-URLSession-system-HTTP-TLS
+    distribution: system-frameworks-not-vendored
+    owner: apple
+    selected_host_use: isolated-retained-profile-loader-SHA256-and-bounded-raw-process-observations
+    inventory_receipt: verification/swift-semantic-adapter-root-review/real-loader-first-implementation-selection.json
+    qualification: isolated-loader-host-correlation-accepted-with-R1-no-operational-storage-runtime-adoption-or-authenticated-package-acceptance
+  - name: Android SDK and NDK
+    origin: https://developer.android.com
+    version: installed-SDK-with-NDK-r27d-qualification-candidate
+    license: Android-SDK-terms-and-component-notices
+    purpose: native-Android-toolchain-and-libcxx
+    distribution: tooling-external-libcxx-shared-library-in-app
+    owner: android
+  - name: Official Swift Android SDK networking components
+    origin: https://www.swift.org/install/android/
+    version: Swift-6.3.3-Android-SDK-SBOM
+    license: SDK-component-declarations-and-upstream-notices-review-pending
+    purpose: FoundationNetworking-native-HTTP-and-TLS-backend
+    distribution: official-libFoundationNetworking-and-its-runtime-dependencies-when-linked
+    owner: android-networking
+    inventory_receipt: verification/android-networking-inventory-2026-10-22.json
+    reported_components: curl-8.9.1-and-BoringSSL-fips-20220613
+    qualification: local-binary-and-SDK-SBOM-inventory-only-not-redistribution-or-security-approval
+  - name: Node.js V8 and WASI
+    origin: https://nodejs.org
+    version: local-development-runtime
+    license: Node-MIT-and-bundled-notices
+    purpose: development-only-Wasm-differential-oracle-and-static-marketing-site-build-tests-preview
+    distribution: never-linked-into-product
+    owner: verification
+  - name: Swift Crypto
+    origin: https://github.com/apple/swift-crypto
+    version: 5.0.3-c2cbadd7263439d8015189668f96ff5b5be565ce
+    license: Apache-2.0-and-vendored-BoringSSL-notices
+    purpose: standard-Ed25519-and-SHA256-for-native-update-verification
+    distribution: CryptoKit-on-Apple-BoringSSL-linked-on-supported-other-hosts
+    owner: update-security
+  - name: Swift ASN.1
+    origin: https://github.com/apple/swift-asn1
+    version: 1.7.3-3b6410f7dee09eb33cdd26260c5fd47fda19b0e2
+    license: Apache-2.0
+    purpose: transitive-Swift-Crypto-dependency
+    distribution: Swift-package-graph
+    owner: update-security
+  - name: pgx PostgreSQL driver
+    origin: https://github.com/jackc/pgx
+    version: 5.11.0
+    license: MIT
+    purpose: maintained-general-purpose-PostgreSQL-protocol-driver
+    distribution: Go-service-binary
+    owner: cloud
+  - name: pgpassfile
+    origin: https://github.com/jackc/pgpassfile
+    version: 1.0.0
+    license: MIT
+    purpose: pgx-transitive-local-PostgreSQL-credential-file-parser
+    distribution: Go-service-binary
+    owner: cloud
+  - name: pgservicefile
+    origin: https://github.com/jackc/pgservicefile
+    version: 0.0.0-20240606120523-5a60cdf6a761
+    license: MIT
+    purpose: pgx-transitive-PostgreSQL-service-file-parser
+    distribution: Go-service-binary
+    owner: cloud
+  - name: puddle
+    origin: https://github.com/jackc/puddle
+    version: 2.2.2
+    license: MIT
+    purpose: pgx-transitive-bounded-connection-pool
+    distribution: Go-service-binary
+    owner: cloud
+  - name: Go x/sync
+    origin: https://go.googlesource.com/sync
+    version: 0.17.0
+    license: BSD-3-Clause
+    purpose: pgx-pool-transitive-concurrency-primitives
+    distribution: Go-service-binary
+    owner: cloud
+  - name: Go x/text
+    origin: https://go.googlesource.com/text
+    version: 0.29.0
+    license: BSD-3-Clause
+    purpose: pgx-transitive-text-and-protocol-encoding
+    distribution: Go-service-binary
+    owner: cloud
+  - name: sharp and libvips
+    origin: https://github.com/lovell/sharp
+    version: sharp-0.35.5
+    license: Apache-2.0-with-libvips-LGPL-2.1-or-later-and-bundled-notices
+    purpose: development-only-raster-brand-asset-export-and-social-card-rendering
+    distribution: tooling-only-not-served-with-static-website-or-linked-into-engine
+    owner: website
+  - name: Pillow
+    origin: https://github.com/python-pillow/Pillow
+    version: 12.3.0
+    license: MIT-CMU
+    purpose: development-only-native-screenshot-PNG-decoding-and-pixel-assertions
+    distribution: verification-tooling-only-never-linked-into-product
+    owner: verification
+    provenance: Codex-workspace-dependency-bundle-26.1022.11436-Python-3.12.14
+    inventory_receipt: verification/apple-native-appearance-v2/candidate-6/post-capture-tools.json
+    qualification: installed-package-metadata-inventory-only
+  - name: Docker container tooling
+    origin: https://www.docker.com/
+    version: "29.8.2"
+    license: installed-distribution-and-component-notices-review-pending
+    purpose: isolated-development-only-Linux-tool-and-resource-verification
+    distribution: external-verification-tooling-never-linked-into-product
+    owner: verification
+    inventory_receipt: verification/stripe-resource-linux-tool-payload-v3/receipt.json
+    qualification: observed-local-tool-only-no-production-platform-or-redistribution-approval
+  - name: Hex Elixir Ubuntu Noble verification image
+    origin: https://hub.docker.com/r/hexpm/elixir
+    version: "1.20.4-erlang-29.1.1-ubuntu-noble-20260911"
+    license: image-component-notices-review-pending
+    purpose: pinned-arm64-Linux-runtime-and-package-metadata-verification
+    distribution: external-private-verification-image-not-a-product-release
+    owner: verification
+    parent_digest: sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde
+    platform_digest: sha256:c2d3bab1f8a854f5ca3bb220e5463f4fe39036caa2ce22dfd7614a30404279de
+    platform: linux-arm64
+    inventory_receipt: verification/stripe-resource-linux-tool-payload-v3/observed-tools.json
+    qualification: runtime-tool-inventory-only-compiler-resource-and-ELF-closure-qualification-pending
+  - name: Hex Elixir Ubuntu Noble AMD64 identity verification image
+    origin: https://hub.docker.com/r/hexpm/elixir
+    version: "1.20.4-erlang-29.1.1-ubuntu-noble-20260911"
+    license: image-component-notices-review-pending
+    purpose: isolated-remote-production-DNS-and-TLS-fixture-verification
+    distribution: external-verification-tooling-never-linked-into-product
+    owner: cloud-verification
+    parent_digest: sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde
+    platform_digest: sha256:3571d320ec0656c38c76b4c362a8e0c0fd6f9b58cec6448a08e43a82940d4e43
+    config_digest: sha256:6631543fddfe053ddbd30435318916667d5da87b5f5ec0644893d146a539370e
+    platform: linux-amd64
+    inventory_receipt: verification/identity-production-network-contract/contract.json
+    qualification: official-metadata-only-runtime-and-tool-capabilities-pending
+  - name: PostgreSQL AMD64 identity verification image
+    origin: https://hub.docker.com/_/postgres
+    version: "16.15-bookworm"
+    license: PostgreSQL-and-image-component-notices-review-pending
+    purpose: disposable-startup-fixture-database-in-isolated-network-namespace
+    distribution: external-verification-tooling-never-linked-into-product
+    owner: cloud-verification
+    parent_digest: sha256:cb20a02549a06de2f9b115b934f44ba43593e11663163e1f18d13facb4750de4
+    platform_digest: sha256:cf5d353f55240ecc2f811827a15c7d1f2d562f08019b49dca12b5a59f4ab5962
+    config_digest: sha256:6a35283e53fbe883da6a6ffbce8d3999dc66076cc5c4e2f1d21bdbd9e26bf86f
+    platform: linux-amd64
+    inventory_receipt: verification/identity-production-network-contract/contract.json
+    qualification: official-metadata-only-isolated-PG16-runtime-pending
+  - name: Hex bootstrap archive for identity verification
+    origin: https://github.com/hexpm/hex
+    version: "2.5.1"
+    license: Apache-2.0
+    purpose: checksum-pinned-dependency-source-preparation-in-owned-remote-container
+    distribution: verification-tooling-only-never-linked-into-product
+    owner: cloud-verification
+    artifact: https://builds.hex.pm/installs/1.20.0/hex-2.5.1-otp-29.ez
+    sha512: 6629f4b4bb2e040326151ebb853aad065e342c65ad3a0f2a2674dcf7164eb4328d6c929513d7230309ad75042024e72bef0e0a51ebff373b4173d2746b1772b7
+    inventory_receipt: verification/identity-production-network-contract/inputs/primary/bootstrap-selection.json
+    qualification: official-checksum-row-only-artifact-and-runtime-pending
+  - name: Rebar bootstrap executable for identity verification
+    origin: https://github.com/erlang/rebar3
+    version: "3.28.0"
+    license: Apache-2.0
+    purpose: checksum-pinned-OTP-dependency-compilation-in-owned-remote-container
+    distribution: verification-tooling-only-never-linked-into-product
+    owner: cloud-verification
+    artifact: https://builds.hex.pm/installs/1.18.4/rebar3-3.28.0-otp-29
+    sha512: b51946058fbe4aa823185bfe27204be59be439982ac3a3e1dbd9f8260b9af046fcfdfbd9066283c3fbba5a2a45dc3570550c12a9a548daf223b80cac222a6d0f
+    inventory_receipt: verification/identity-production-network-contract/inputs/primary/bootstrap-selection.json
+    qualification: official-checksum-row-only-artifact-and-runtime-pending
+  - name: Ubuntu Noble compiler and system-header verification packages
+    origin: https://ports.ubuntu.com/ubuntu-ports/
+    version: exact-36-package-lock-4db8b41afffdf796acaec18bcc3b5574be593af0c11c4cb860b39da5d64a36b4
+    license: per-package-copyright-and-source-notices-inspection-pending
+    purpose: private-offline-Linux-helper-and-NIF-compilation-prerequisite
+    distribution: verification-only-local-official-archives-not-product-or-Git-payloads
+    owner: cloud-verification
+    inventory_receipt: verification/stripe-resource-linux-compiler-metadata-v3/package-lock.json
+    notices_inventory: verification/stripe-resource-linux-compiler-assembly/inspection/notice-inventory.json
+    assembly_receipt: verification/stripe-webhook-resource-ingress-root-review/linux-compiler-assembly-review/receipt.json
+    compiler_receipt: verification/stripe-webhook-resource-ingress-root-review/linux-compiler-qualification-v4-review/runtime-acceptance.json
+    qualification: isolated-native-compiler-and-export-verified-controller-and-resource-runtime-pending
+  - name: Ubuntu APT metadata tools
+    origin: https://launchpad.net/ubuntu/+source/apt
+    version: "2.8.3"
+    license: packaged-component-notices-review-pending
+    purpose: development-only-offline-compiler-package-dependency-resolution
+    distribution: tooling-in-pinned-private-verification-image
+    owner: verification
+    inventory_receipt: verification/stripe-resource-linux-compiler-metadata/C1/receipt.json
+    qualification: exact-tool-hashes-and-version-observed-no-package-installation
+  - name: Ubuntu dpkg metadata tools
+    origin: https://launchpad.net/ubuntu/+source/dpkg
+    version: "1.22.6ubuntu6.6"
+    license: GPL-2.0-or-later-with-component-notices-review-pending
+    purpose: development-only-base-package-inventory-and-offline-resolution
+    distribution: tooling-in-pinned-private-verification-image
+    owner: verification
+    inventory_receipt: verification/stripe-resource-linux-compiler-metadata/C1/receipt.json
+    qualification: exact-tool-hashes-and-version-observed-no-package-installation
+  - name: Ubuntu GnuPG signature verifier
+    origin: https://launchpad.net/ubuntu/+source/gnupg2
+    version: "2.4.4-2ubuntu17.6"
+    license: GPL-3.0-or-later-with-component-notices-review-pending
+    purpose: verify-official-Ubuntu-package-index-signatures-for-private-compiler-tooling
+    distribution: tooling-in-pinned-private-verification-image
+    owner: verification
+    inventory_receipt: verification/stripe-resource-linux-compiler-metadata/C2/receipt.json
+    qualification: signed-metadata-verification-only-no-product-signing-or-release-authority
+  - name: Elixir
+    origin: https://elixir-lang.org/
+    version: "1.20.4"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-runtime
+    distribution: hosted-service-runtime
+    owner: cloud
+  - name: Erlang OTP
+    origin: https://www.erlang.org/
+    version: "29.1.1"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-runtime
+    distribution: hosted-service-runtime
+    owner: cloud
+  - name: Hex bandit
+    origin: https://hex.pm/packages/bandit
+    version: "1.14.0"
+    license: MIT
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/hosted-dependency-advisory-correction/integration-v1/dependencies.json
+  - name: Hex db_connection
+    origin: https://hex.pm/packages/db_connection
+    version: "2.10.2"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex decimal
+    origin: https://hex.pm/packages/decimal
+    version: "3.2.0"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex ecto
+    origin: https://hex.pm/packages/ecto
+    version: "3.14.2"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex ecto_sql
+    origin: https://hex.pm/packages/ecto_sql
+    version: "3.14.0"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex hpax
+    origin: https://hex.pm/packages/hpax
+    version: "1.1.0"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex jason
+    origin: https://hex.pm/packages/jason
+    version: "1.4.5"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex jose
+    origin: https://hex.pm/packages/jose
+    version: "1.11.13"
+    license: MIT
+    purpose: standard-RS256-JWS-verification-for-hosted-access-tokens
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/hosted-dependency-advisory-correction/integration-v1/dependencies.json
+  - name: Hex mime
+    origin: https://hex.pm/packages/mime
+    version: "2.0.7"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex oban
+    origin: https://hex.pm/packages/oban
+    version: "2.24.2"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex phoenix
+    origin: https://hex.pm/packages/phoenix
+    version: "1.8.16"
+    license: MIT
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex phoenix_pubsub
+    origin: https://hex.pm/packages/phoenix_pubsub
+    version: "2.4.1"
+    license: MIT
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex phoenix_template
+    origin: https://hex.pm/packages/phoenix_template
+    version: "1.1.0"
+    license: MIT
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex plug
+    origin: https://hex.pm/packages/plug
+    version: "1.20.3"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex plug_crypto
+    origin: https://hex.pm/packages/plug_crypto
+    version: "2.2.1"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex postgrex
+    origin: https://hex.pm/packages/postgrex
+    version: "0.22.4"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex telemetry
+    origin: https://hex.pm/packages/telemetry
+    version: "1.4.2"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex thousand_island
+    origin: https://hex.pm/packages/thousand_island
+    version: "1.6.0"
+    license: MIT
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex websock
+    origin: https://hex.pm/packages/websock
+    version: "0.5.3"
+    license: MIT
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex websock_adapter
+    origin: https://hex.pm/packages/websock_adapter
+    version: "0.6.0"
+    license: MIT
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: PostgreSQL host verification fixture
+    origin: https://www.postgresql.org/
+    version: "17.11-local-and-16-CI-patch-recorded-per-run"
+    license: PostgreSQL
+    purpose: isolated-Phoenix-transaction-and-job-host-tests
+    distribution: verification-only-external-service
+    owner: cloud-verification
+  - name: Hex Elixir Debian Bookworm AMD64 identity verification image
+    origin: https://hub.docker.com/r/hexpm/elixir
+    version: "1.20.4-erlang-29.1.1-debian-bookworm-20261005-slim"
+    license: image-component-license-and-notices-review-pending
+    purpose: isolated-remote-production-DNS-and-TLS-fixture-verification
+    distribution: external-verification-tooling-never-linked-into-product
+    owner: cloud-verification
+    parent_digest: sha256:1ae099301985ddf8a723ad50cc25e37dd854497aec12cebf984c195570b0d83e
+    platform_digest: sha256:ed110657152803079f311913be4effe02874e2c714a1b5a38891873b7f2a16c5
+    config_digest: sha256:857e84a618d1f76390220fbff2e7d54d588aea4f772ab1e60dacfe3fa02602cc
+    platform: linux-amd64
+    inventory_receipt: verification/identity-network-image-amendment-v1/metadata/image-amendment.json
+    source_inventory: verification/identity-network-image-amendment-v1/metadata/source-review/analysis/capabilities.json
+    historical_predecessor: Noble-AMD64-entry-retained-run-40730443928-failed-required-openssl-stat-after-successful-tar-transfer
+    historical_failure_receipt: verification/github-delivery-identity-network-transfer/network-review/selected/artifact/logs/0019.stderr
+    qualification: all-four-layer-digests-and-source-object-inventory-verified-actual-runtime-tool-CA-TLS-and-tests-pending
+  - name: Debian image-supplied OpenSSL and libssl3 identity verification tools
+    origin: https://packages.debian.org/bookworm/openssl
+    version: "3.0.22-1~deb12u1"
+    license: source-license-and-component-notices-review-pending
+    purpose: fixture-certificate-generation-and-OTP-crypto-TLS-runtime
+    distribution: external-verification-image-only-never-product-linked
+    owner: cloud-verification
+    inventory_receipt: verification/identity-network-image-amendment-v1/metadata/source-review/analysis/capabilities.json
+    qualification: source-package-status-executable-and-library-hashes-only-actual-load-and-version-commands-pending
+  - name: Debian image-supplied CA certificates identity verification bundle
+    origin: https://packages.debian.org/bookworm/ca-certificates
+    version: "20250419~deb12u1"
+    license: source-license-and-individual-certificate-notices-review-pending
+    purpose: selected-OS-trust-bundle-for-peer-and-hostname-verified-bootstrap
+    distribution: external-verification-image-only-never-product-linked
+    owner: cloud-verification
+    path: /etc/ssl/certs/ca-certificates.crt
+    bytes: 224449
+    sha256: 714d457d580922dbf1d0be8bd35ba236a842b50b0072ae791582a19adef772a5
+    inventory_receipt: verification/identity-network-image-amendment-v1/metadata/source-review/analysis/capabilities.json
+    qualification: source-bytes-and-150-DER-hashes-only-actual-OTP-loading-and-HTTPS-chain-verification-pending
+  - name: Debian image-supplied GNU tar identity verification tool
+    origin: https://packages.debian.org/bookworm/tar
+    version: "1.34+dfsg-1.2+deb12u1"
+    license: source-license-and-component-notices-review-pending
+    purpose: bounded-archive-transfer-in-readonly-owned-verification-containers
+    distribution: external-verification-image-only-never-product-linked
+    owner: cloud-verification
+    inventory_receipt: verification/identity-network-image-amendment-v1/metadata/source-review/analysis/capabilities.json
+    qualification: immutable-source-object-hash-and-package-status-only-actual-command-pending
+  - name: Debian image-supplied GNU coreutils identity verification tools
+    origin: https://packages.debian.org/bookworm/coreutils
+    version: "9.1-1"
+    license: source-license-and-component-notices-review-pending
+    purpose: exact-env-entrypoint-for-container-environment-allowlist
+    distribution: external-verification-image-only-never-product-linked
+    owner: cloud-verification
+    inventory_receipt: verification/identity-network-image-amendment-v1/metadata/source-review/analysis/capabilities.json
+    qualification: immutable-env-source-object-hash-and-package-status-only-actual-command-pending
+  - name: Debian image-supplied identity verification runtime libraries
+    origin: https://www.debian.org/distrib/packages
+    version: "libc6-2.36-9+deb12u14_libodbc1-and-libodbc2-2.3.11-2+deb12u1_libsctp1-1.0.19+dfsg-2_libstdc++6-12.2.0-14+deb12u1"
+    license: per-source-package-license-and-component-notices-review-pending
+    purpose: image-supplied-OTP-OpenSSL-and-system-tool-runtime-prerequisites
+    distribution: external-verification-image-only-never-product-linked
+    owner: cloud-verification
+    inventory_receipt: verification/identity-network-image-amendment-v1/metadata/source-review/analysis/capabilities.json
+    qualification: source-package-status-and20-static-ELF-object-closure-only-dynamic-symbol-loading-and-runtime-pending
+# Selected by the October 24 hosted-stack plan. The Phoenix foundation is
+# pinned above; console pins/notices are recorded in console/THIRD_PARTY.yml.
+# Remaining hosted libraries still require their own qualification.
+# No hosted deployment is qualified by this inventory.
+planned_hosted_stack:
+  status: Phoenix-foundation-pinned-remaining-implementation-and-license-review-pending
+  plan: mixer-product-plan.md#134-hosted-stack-and-deployment-placement
+  inventory_receipt: verification/hosted-stack-plan-update-2026-10-24/receipt.json
+  packages:
+    - name: Elixir and Erlang/OTP
+      origin: https://elixir-lang.org/
+      purpose: supervised-hosted-control-plane-and-job-runtime
+    - name: Phoenix
+      origin: https://www.phoenixframework.org/
+      purpose: hosted-REST-API-framework
+    - name: Plug and Bandit
+      origin: https://bandit.hexdocs.pm/
+      purpose: HTTP-request-pipeline-and-Phoenix-server
+    - name: Ecto and Postgrex
+      origin: https://ecto.hexdocs.pm/
+      purpose: PostgreSQL-transactions-migrations-and-verified-TLS-connections
+    - name: Oban
+      origin: https://oban.hexdocs.pm/
+      purpose: open-source-durable-jobs-in-the-domain-PostgreSQL-transaction
+    - name: SolidJS and Solid Router
+      origin: https://docs.solidjs.com/
+      purpose: hosted-console-UI-and-routing
+    - name: TypeScript and Vite
+      origin: https://vite.dev/
+      purpose: typed-console-and-edge-code-build-tooling
+  managed_services:
+    - name: Neon PostgreSQL
+      origin: https://neon.com/docs/
+      purpose: production-relational-state-and-Oban-jobs
+    - name: Cloudflare Containers Workers R2 and CDN
+      origin: https://developers.cloudflare.com/
+      purpose: qualified-Linux-compute-console-edge-and-artifact-delivery
+    - name: Stripe Billing Checkout and Customer Portal
+      origin: https://docs.stripe.com/
+      purpose: hosted-commercial-billing-and-payment-flows
+  remaining: exact-package-runtime-versions-license-notices-provider-configuration-and-deployment-qualification
+review:
+  status: implementation-inventory-not-legal-release-approval
+  remaining: redistribution-notices-and-independent-license-review-before-distribution
+
+console_frontend:
+  inventory: console/THIRD_PARTY.yml
+  lockfile: console/package-lock.json
+  transitive_inventory: verification/console-release-check-view/dependency-inventory.json
+  runtime_notices: console/public/third-party-notices.txt
+  selected_versions:
+    solid-js: 1.9.17
+    solid-router: 1.0.0
+    vite: 8.3.5
+    vite-plugin-solid: 2.11.14
+    typescript: 5.9.3
+  install_scripts: disabled
+  scope: local-console-build-and-browser-development-only-no-hosted-deployment
+
+hosted_worker_controller:
+  inventory: hosted-worker-controller/THIRD_PARTY.yml
+  lockfile: hosted-worker-controller/package-lock.json
+  selection_receipt: verification/hosted-worker-controller-root-selection/dependencies.json
+  selected_development_dependencies:
+    miniflare:
+      version: 4.20260730.0
+      license: MIT
+      purpose: local-Workers-and-SQLite-Durable-Object-verification
+    cloudflare-workers-types:
+      package: '@cloudflare/workers-types'
+      version: 5.20260730.1
+      license: 'MIT OR Apache-2.0'
+      purpose: pinned-Workers-and-Durable-Object-type-declarations
+    typescript:
+      version: 5.9.3
+      license: Apache-2.0
+      purpose: controller-source-typechecking-and-compilation
+  pinned_test_runtime:
+    package: workerd
+    version: 1.20260730.1
+    license: Apache-2.0
+  compatibility_date: '2026-07-30'
+  install_scripts: disabled
+  locked_development_packages: 58
+  inventory_binding: verification/hosted-worker-controller-root-review/dependency-binding.json
+  status: locked-development-inventory-verified-controller-v2-local-integration-tested
+  scope: local-controller-implementation-and-workerd-storage-tests-no-provider-or-cloud-deployment

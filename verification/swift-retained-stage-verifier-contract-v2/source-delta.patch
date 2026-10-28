@@ -1,0 +1,123 @@
+--- verification/swift-retained-stage-verifier-contract-v1/README.md
++++ verification/swift-retained-stage-verifier-contract-v2/README.md
+@@ -11,6 +11,13 @@
+ controls for later implementation and independent review. This document fixes
+ their semantics. All three are normative; a disagreement is an unresolved
+ contract error, not permission to choose a weaker interpretation.
++
++This v2 sibling applies only F1, F2 and F3 from the independent review sealed
++`df43d958b53785f7928e826d2f7e72c8151ffafb74252f2cdb2a26b03668b5b4` to v1 contract seal
++`19532e82c9ea9fac5a5edd5dccc5d081d05f2c5fdec2da1689029de0b0b18837`.
++Both predecessor packets remain immutable. `change-scope-receipt.json` and
++`source-delta.patch` bind the exact amendment scope. This sibling awaits root
++review of the delta before any dependent implementation is selected.
+ 
+ ## Scope and versioning
+ 
+@@ -84,8 +91,9 @@
+ raw digest, binding, capture acceptance, all four targets and strict completion
+ flags. Its complete status is permitted only when both old whole-CFG/exits and
+ outgoing-edge flags, inventory completeness, and storage-fact completeness are
+-true. Otherwise its partial status is required. A partial status never grants
+-complete inventory or complete semantic approval.
++true. Otherwise its partial status is required. Partial semantic-review status
++alone grants neither enumeration completeness nor complete semantic approval.
++It may bind a separately complete inventory while storage facts remain partial.
+ 
+ External root approval independently joins the exact certificate bytes, map,
+ review, independent seal, inventory, accepted capture, binding and complete input
+@@ -156,8 +164,14 @@
+ ## Paths, cuts and lifetimes
+ 
+ Path/cut identities and their order live only in the independently reviewed
+-inventory. Each path is a source-reviewed mutually exclusive symbolic
+-alternative through the local frontier, not a runtime-reachability claim. Shared
++inventory. Every listed path is a source-reviewed symbolic alternative through
++the local frontier, not a runtime-reachability claim. Listed alternatives must
++be mutually exclusive. `inventory_complete=true` additionally requires the
++independently reviewed alternatives to be exhaustive across the required local
++frontier. With `inventory_complete=false`, a supported subset of alternatives
++may be retained; omitted or unreviewed alternatives create local missing and
++never become evidence of exhaustiveness. No fictitious placeholder path is
++required for an unenumerated alternative. Shared
+ prefix/suffix operations are repeated as cut rows on each applicable alternative.
+ Their path-specific copy IDs may share source anchors; object/stage identities
+ stay shared where storage is shared. A cut belongs to a target and a coarse phase
+@@ -213,7 +227,10 @@
+ silently coerced into a supported source. Stage sources carry a stage ID and
+ view-relative source offset. Literal sources
+ carry exact lowercase hex bytes, at most 32 bytes, and are permitted only for
+-`store`. External-sret sources carry the corresponding existing outgoing edge
++`store`. When `storage_copy.bytes` is non-null, the hex length equals twice
++that byte extent. When it is null, retain the null and emit local missing
++without inferring extent from the literal; the independent 32-byte literal
++bound still applies. External-sret sources carry the corresponding existing outgoing edge
+ ID and are permitted only for `external_sret`. Unknown sources are explicit and
+ create local missing. An external write or callee sret does not prove write
+ completeness, initialized bytes, valid values or final destruction; those
+@@ -224,7 +241,12 @@
+ arithmetic. `memcpy` requires independently reviewed nonoverlap on the physical
+ coordinate graph at the site; known overlap is invalid and unknown overlap is
+ local missing. `memmove` permits overlap but supplies no new alias or value fact.
+-Source/destination reservation must cover the whole before/after interval.
++For each stage endpoint, prove reservation coverage of the entire half-open
++operation interval `[before,after)` on the exact path. If the exhaustive known
++reservation intervals demonstrably fail to cover it, the claim is invalid.
++If an interval, phase, path projection or reservation state is unavailable or
++partial so that coverage cannot be decided, emit local missing. A supported
++known contradiction remains invalid even when some unrelated fact is unknown.
+ Initialized/value segments describe exactly what is known before and after;
+ the verifier must not propagate full-byte initialization automatically.
+ 
+--- verification/swift-retained-stage-verifier-contract-v1/contract.json
++++ verification/swift-retained-stage-verifier-contract-v2/contract.json
+@@ -176,7 +176,7 @@
+       "types": {"id": "matching copy_requirement id", "operation": "exact matching operation", "source": "copy_source tagged alternative with matching source_identity", "destination_stage": "exact matching stage id", "destination_offset": "integer 0..U64 or null unknown", "bytes": "integer 1..U64 or null unknown", "path": "exact matching path id", "before": "exact matching before cut", "after": "exact matching after cut", "backing_aliases": "backing_aliases", "evidence": "evidence"}
+     },
+     "copy_source.stage": {"fields": ["kind", "stage", "offset"], "types": {"kind": "literal stage", "stage": "exact required stage id", "offset": "integer 0..U64 or null unknown"}},
+-    "copy_source.literal": {"fields": ["kind", "bytes_hex"], "types": {"kind": "literal literal", "bytes_hex": "nonempty lowercase hexadecimal encoding of 1..32 exact bytes, length equals twice storage_copy.bytes"}},
++    "copy_source.literal": {"fields": ["kind", "bytes_hex"], "types": {"kind": "literal literal", "bytes_hex": "nonempty lowercase hexadecimal encoding of 1..32 exact bytes; when storage_copy.bytes is non-null its length equals twice storage_copy.bytes; when storage_copy.bytes is null, retain that null and emit local missing without inferring extent from the literal"}},
+     "copy_source.external": {"fields": ["kind", "edge"], "types": {"kind": "literal external", "edge": "exact inventory-required existing outgoing edge id"}},
+     "copy_source.unknown": {"fields": ["kind"], "types": {"kind": "literal unknown"}}
+   },
+@@ -186,14 +186,14 @@
+     "A complete inventory status is equivalent to inventory_complete=true and all four whole_function_inventory_reviewed flags true. Partial factual review cannot set these without full enumeration review.",
+     "Map/review/approval storage inventory raw digests and strict completeness booleans agree. Semantic map and all root pin-set joins remain exact.",
+     "Path/cut facts unknown or unclosed are local missing. Known cut phases are nondecreasing; before/after order is strict. Unknown cut kind is local missing.",
+-    "Independently reviewed paths are exhaustive mutually exclusive alternatives. Shared prefix/suffix operations are repeated explicitly with path-specific copy IDs and may share source anchors; physical object/stage identity remains shared. No cross-path temporal comparison/containment or transitive inferred order is permitted; cross-path references are invalid.",
++    "Every listed path is a source-reviewed symbolic alternative. Listed alternatives must be mutually exclusive. inventory_complete=true additionally requires the independently reviewed alternatives to be exhaustive across the required local frontier. With inventory_complete=false, a supported subset of alternatives may be retained; omitted or unreviewed alternatives create local missing and never become evidence of exhaustiveness. No fictitious placeholder path is required for an unenumerated alternative. Shared prefix/suffix operations are repeated explicitly with path-specific copy IDs and may share source anchors; physical object/stage identity remains shared. No cross-path temporal comparison/containment or transitive inferred order is permitted; cross-path references are invalid.",
+     "Known simultaneous overlapping physical objects on one path are invalid and must become reviewed views of one object. Unknown overlap or temporal reuse is local missing. Reuse requires disjoint reservation intervals on every applicable path, never source lifetime or phase-label inference.",
+     "Every object's known interval is in an existing arena; owner frame containment uses existing checked coordinate relations and native frame lifetime. region_ref interval/alignment exactly matches its existing carrier region; reservation lifetime may extend beyond that carrier's value-phase lifetime but not its physical owner frame.",
+     "Every applicable inventory path must be represented by a reservation interval for a known reservation; a known reservation omitting a required path is invalid. Known byte-lifetime sets cover every inventory-required byte/time range by union on that same reviewed path; a known set failing coverage is invalid. Partial sets may preserve a supported subset and create local missing. Unknown required ranges create local missing.",
+     "View and byte-subrange offsets/extents use checked arithmetic, fit object/view capacity, and have ordered temporal containment in reservation/frame intervals on exactly the same reviewed path. Frame phase containment is frame.begin<=begin.phase<frame.end and end.phase<=frame.end, with ordered cuts permitted inside the same phase. Unknown required containment is local missing; known contradiction is invalid.",
+     "Object/stage alignments add constraints on the existing physical arena congruences; alignment requirement and numeric rebase never become evidence. Unknown required alignment or missing physical proof creates local missing.",
+     "For known sources memcpy/memmove require stage sources; store permits stage or literal sources; external_sret requires external source. Unknown operation/source is local missing. Known operation/source mismatches are invalid. Literal length is checked when copy extent is known; null extent remains missing, never inferred.",
+-    "Known source/destination copy extents fit both views. memcpy known overlap is invalid, unknown nonoverlap is local missing; memmove may overlap. Both reservations cover before through after; unknown write-completeness never becomes initialized/value proof.",
++    "Known source/destination copy extents fit both views. memcpy known overlap is invalid, unknown nonoverlap is local missing; memmove may overlap. For each stage endpoint, prove reservation coverage of the entire half-open operation interval [before,after) on the exact path. If the exhaustive known reservation intervals demonstrably fail to cover it, the claim is invalid. If an interval, phase, path projection or reservation state is unavailable or partial so that coverage cannot be decided, emit local missing. A supported known contradiction remains invalid even when some unrelated fact is unknown; unknown write-completeness never becomes initialized/value proof.",
+     "Alias state known has exactly the independently required backing keys and identities. Partial alias state may preserve a subset; unknown must be empty. Copy aliases are supported by relevant source/destination semantic fields; literal aliases are empty. No alias mints backing IDs, capacities or destruction.",
+     "Partial/unknown knowledge, absent inventory completeness, and reviewed_complete=false add local missing. reviewed_complete=true with any new local gap is false completeness and invalid.",
+     "No object or stage extent is appended to numeric union inputs. Existing union counts only existing region reservations with exact original algorithm. A new uncovered object is missing/invalid, not silently counted or covered by prose.",
+--- verification/swift-retained-stage-verifier-contract-v1/failure-matrix.json
++++ verification/swift-retained-stage-verifier-contract-v2/failure-matrix.json
+@@ -19,6 +19,8 @@
+     {"id": "T08", "mutation": "Invent an input-owned inventory hash/count/prose string while no exact independently sealed/reviewed/root-approved inventory joins.", "expect": "invalid"},
+     {"id": "T09", "mutation": "Partial inventory or a false whole_function_inventory_reviewed target flag carries complete inventory status.", "expect": "invalid"},
+     {"id": "T10", "mutation": "Correct partial inventory status/completeness with map.reviewed_complete=false and exact partial semantic/root approval status.", "expect": "local_missing"},
++    {"id": "T10a", "mutation": "Correctly bound partial inventory retains a supported subset of mutually exclusive paths; inventory/map/review/root completion joins are false as applicable.", "expect": "local_missing", "invariant": "Omitted/unreviewed alternatives never establish exhaustiveness or produce numbers; no placeholder path required."},
++    {"id": "T10b", "mutation": "The same supported path subset claims inventory_complete=true while the exact independent review establishes an omitted required alternative.", "expect": "invalid"},
+     {"id": "T11", "mutation": "Partial semantic facts claim complete semantic/root status or disagree among inventory/map/review/root completion flags.", "expect": "invalid"},
+     {"id": "T12", "mutation": "Drop, add, duplicate, substitute or leave unmapped an object, stage or copy ID; recompute input-controlled hashes.", "expect": "invalid"},
+     {"id": "T13", "mutation": "Omit Dispatch _7/_6, Body _28/complete/_58/_57 or intermediate refusal moves and point their requirements at the containing frame/R instead.", "expect": "invalid"},
+@@ -40,7 +42,11 @@
+     {"id": "T27b", "mutation": "Set reviewed_complete=true while claiming memcpy automatically proves full padding/inactive initialization or value/destruction lifetime completeness.", "expect": "invalid"},
+     {"id": "T28", "mutation": "Copy byte extent/source offset/destination offset is unknown with reviewed_complete=false; or source is unknown.", "expect": "local_missing"},
+     {"id": "T29", "mutation": "Known copy extent escapes either view, memcpy overlaps, operation/source kind mismatches, literal byte length mismatches, or literal exceeds32 bytes.", "expect": "invalid"},
+-    {"id": "T30", "mutation": "memcpy nonoverlap is unknown, source/destination reservation does not close over operation, or external-sret write completeness is unproved.", "expect": "local_missing"},
++    {"id": "T28a", "mutation": "Literal store has valid1..32 exact literal bytes but storage_copy.bytes is null and completeness remains partial.", "expect": "local_missing", "invariant": "Retain null extent; never infer extent, initialization or value lifetime from literal length."},
++    {"id": "T29a", "mutation": "Literal store has known byte extent whose doubled value disagrees with the valid hex length.", "expect": "invalid"},
++    {"id": "T29b", "mutation": "Literal store has known matching extent and valid bounded lowercase hex bytes, with all other reviewed facts unchanged.", "expect": "scope_only", "invariant": "Otherwise unchanged; no initialization or value lifetime inferred."},
++    {"id": "T30", "mutation": "memcpy nonoverlap is unknown, source/destination reservation coverage cannot be decided because an interval, phase, exact-path projection or reservation state is unavailable or partial, or external-sret write completeness is unproved.", "expect": "local_missing"},
++    {"id": "T30b", "mutation": "Known exhaustive source or destination reservation intervals demonstrably exclude any portion of the required [before,after) operation interval, including when an unrelated fact is unknown.", "expect": "invalid"},
+     {"id": "T31", "mutation": "Known memmove between reviewed overlapping views with valid reservation/lifetime/alias facts.", "expect": "scope_only", "invariant": "Overlap is permitted; initialized bytes and valid values are never inferred."},
+     {"id": "T32", "mutation": "Mint backing ID, replace R-to-C backing identity, omit an inventory-required alias, add unsupported alias to literal, or copy an alias unsupported by endpoints.", "expect": "invalid"},
+     {"id": "T33", "mutation": "Partial/unknown alias knowledge, or external backing/final-destruction/unwind gap prevents required stage/local-effect lifetime closure.", "expect": "local_missing", "invariant": "Whole-capacity/backing/unwind claims suppressed and local numbers null."},

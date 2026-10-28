@@ -23,6 +23,10 @@ class CleanupDeadlineExpired(TimeoutError):
 def need(value,message):
  if not value:raise RuntimeError(message)
 def now():return datetime.now(timezone.utc).isoformat()
+def exception_details(error):
+ result={'type':type(error).__name__,'message':str(error)}
+ if isinstance(error,OSError):result['errno']=error.errno
+ return result
 def sha(path):
  h=hashlib.sha256()
  with path.open('rb')as f:
@@ -106,9 +110,11 @@ class Commands:
  def run(self,name,argv,cwd,env=None,negative=False):
   need(self.active is None,'One child group only');need(re.fullmatch('[A-Za-z0-9_-]+',name),'Command name')
   start=time.monotonic();budget=min(CHILD_SECONDS,self.deadline-start);need(budget>0,'Active deadline exhausted');env=self.child_environment(env)
-  row={'name':name,'argv':list(map(str,argv)),'cwd':str(cwd),'started_utc':now(),'per_child_limit_seconds':CHILD_SECONDS,'effective_timeout_seconds':budget,'per_stream_cap_bytes':OUTPUT_CAP,'environment_overrides':env or {},'exit':None,'timed_out':False,'output_capped':False,'child_returned':False}
+  row={'name':name,'argv':list(map(str,argv)),'cwd':str(cwd),'started_utc':now(),'per_child_limit_seconds':CHILD_SECONDS,'effective_timeout_seconds':budget,'per_stream_cap_bytes':OUTPUT_CAP,'environment_overrides':env or {},'exit':None,'timed_out':False,'output_capped':False,'child_returned':False,'owned_group_gone':False,'errors':[]}
   self.receipt['commands'].append(row);self.save();paths=[self.out/'commands'/(name+'.'+suffix)for suffix in ['stdout','stderr']]
-  selector=selectors.DefaultSelector();failure=None
+  selector=selectors.DefaultSelector();failure=None;primary=None;cleanup_errors=[]
+  def cleanup_error(phase,error):
+   cleanup_errors.append(error);row['errors'].append({'phase':phase,**exception_details(error)})
   try:
    self.active=subprocess.Popen(row['argv'],cwd=cwd,env=environment(env or {}),stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
    proc=self.active;row.update(pid=proc.pid,pgid=proc.pid,new_session=True)
@@ -123,15 +129,35 @@ class Commands:
      if len(b)>space:row['output_capped']=True;failure='output-cap'
    proc.wait(timeout=5);row['child_returned']=True;row['exit']=proc.returncode
    if not self.gone(proc.pid):row['descendants_outlived_child']=True
-  except OSError as e:row['spawn_error']=str(e)
+  except BaseException as e:
+   primary=e;row['errors'].append({'phase':'spawn'if self.active is None else'active',**exception_details(e)})
+   if isinstance(e,OSError)and self.active is None:row['spawn_error']=str(e)
   finally:
-   for key in list(selector.get_map().values()):key.data['file'].close();key.fileobj.close()
-   selector.close()
-   if self.active is not None:self.stop(self.active,row);row['exit']=self.active.returncode
-   self.active=None
+   for key in list(selector.get_map().values()):
+    for stream in [key.data['file'],key.fileobj]:
+     try:stream.close()
+     except BaseException as e:cleanup_error('close-stream',e)
+   try:selector.close()
+   except BaseException as e:cleanup_error('close-selector',e)
+   if self.active is not None:
+    try:self.stop(self.active,row);row['exit']=self.active.returncode
+    except BaseException as e:
+     cleanup_error('stop-owned-group',e);row['owned_group_gone_before_cleanup_error']=row['owned_group_gone'];row['owned_group_gone']=False
+    # Keep custody if stop did not positively establish both terminal facts.
+    if row['child_returned']and row['owned_group_gone']:self.active=None
+   row['custody_hold']=self.active is not None
    for p in paths:
-    if not p.exists():p.write_bytes(b'')
-   row.update(elapsed_seconds=round(time.monotonic()-start,6),finished_utc=now(),stdout_sha256=sha(paths[0]),stderr_sha256=sha(paths[1]));self.save();save(self.out/'commands'/(name+'.json'),row)
+    try:
+     if not p.exists():p.write_bytes(b'')
+     row[p.suffix[1:]+'_sha256']=sha(p)
+    except BaseException as e:cleanup_error('retain-'+p.suffix[1:],e)
+   row.update(elapsed_seconds=round(time.monotonic()-start,6),finished_utc=now())
+   try:self.save()
+   except BaseException as e:cleanup_error('save-receipt',e)
+   try:save(self.out/'commands'/(name+'.json'),row)
+   except BaseException as e:cleanup_error('save-command-receipt',e)
+  if primary is not None:raise primary
+  if cleanup_errors:raise cleanup_errors[0]
   need(row['child_returned']and row.get('owned_group_gone')and not row.get('descendants_outlived_child')and not row['timed_out']and not row['output_capped']and row['exit']==(1 if negative else 0),'Command failed; retained receipt: '+name)
   return paths[0].read_text(),paths[1].read_text(),row
 

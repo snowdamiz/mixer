@@ -1,0 +1,624 @@
+{
+  "K07_f_g_h_completed": [
+    {
+      "line": 1992,
+      "message": "* test K07f delayed TLS handler cleanup holds all four slots until connection DOWN (25.3ms) [L#805]",
+      "module": "MixerHosted.Identity.KeyOwnerTest"
+    },
+    {
+      "line": 1994,
+      "message": "* test K07g owner shutdown waits for suspended TLS controller cleanup (75.3ms) [L#853]",
+      "module": "MixerHosted.Identity.KeyOwnerTest"
+    },
+    {
+      "line": 1996,
+      "message": "* test K07h supervised owner crash cannot restart component before old controllers DOWN (86.4ms) [L#887]",
+      "module": "MixerHosted.Identity.KeyOwnerTest"
+    }
+  ],
+  "crash_restart_cleanup_observation": {
+    "admissionDeniedDuringCleanup": true,
+    "connections": 4,
+    "oldControllersDownBeforeRestart": true,
+    "oldRawPortsDownBeforeRestart": true,
+    "oldWorkersDownBeforeRestart": true
+  },
+  "handshake_cleanup_observation": {
+    "accepted": 5,
+    "closed": 5,
+    "closedBeforeReuse": 4,
+    "last_close_mono": -576460621475,
+    "localPortsClosedBeforeReuse": true,
+    "max_active": 4,
+    "port": 37291,
+    "scope": "actual TCP sink stalled TLS handshake, server-observed EOF before fifth admission"
+  },
+  "http2_completed_methods": [
+    {
+      "line": 630,
+      "message": "* test B1 actual HTTP/2 batching can return more than the requested 32 KiB (28.5ms) [L#12]",
+      "module": "MixerHosted.Billing.RawWebhookCaptureHTTP2Test"
+    },
+    {
+      "line": 633,
+      "message": "* test B2 paced no-length HTTP/2 input admits exactly the application byte cap (344.5ms) [L#36]",
+      "module": "MixerHosted.Billing.RawWebhookCaptureHTTP2Test"
+    },
+    {
+      "line": 636,
+      "message": "* test B3 a sent cap-plus-one input is refused and its halted stream is disposed (354.1ms) [L#52]",
+      "module": "MixerHosted.Billing.RawWebhookCaptureHTTP2Test"
+    },
+    {
+      "line": 640,
+      "message": "* test D1 nonprogress controls preserve the package public read deadline (2025.9ms) [L#76]",
+      "module": "MixerHosted.Billing.RawWebhookCaptureHTTP2Test"
+    },
+    {
+      "line": 644,
+      "message": "* test D2 Mixer refuses the timed public empty-more result as no_progress (2025.8ms) [L#88]",
+      "module": "MixerHosted.Billing.RawWebhookCaptureHTTP2Test"
+    }
+  ],
+  "http2_wire_cases": [
+    {
+      "bandit": "1.14.0",
+      "bytes_sent": 40001,
+      "captured_bytes": 40001,
+      "captured_sha256": "fe3193cf52fe01810fa28c9fabf6046cf2af21c7fa1e41e8bcf50f9f273f4bc9",
+      "case": "B1-batching",
+      "cleanup": {
+        "cleanup_ms": 0,
+        "complete": true,
+        "connections_down": true,
+        "listener_down": true,
+        "listener_stopped": true,
+        "queries_down": true,
+        "socket_closed": true,
+        "stream_down": true
+      },
+      "controls_processed": 0,
+      "controls_processed_before_return": 0,
+      "controls_sent": 0,
+      "elapsed_ms": 28,
+      "frames_in": 7,
+      "frames_out": 40,
+      "line": 628,
+      "maximum_returned_read": 40001,
+      "mode": "capture",
+      "module_elapsed_ms": 28,
+      "module_input_bytes": 40001,
+      "passed": true,
+      "protocol": "HTTP/2",
+      "reads": 2,
+      "result": {
+        "elapsed": 1,
+        "halted": false,
+        "kind": "capture",
+        "tag": "ok"
+      }
+    },
+    {
+      "bandit": "1.14.0",
+      "bytes_sent": 1048576,
+      "captured_bytes": 1048576,
+      "captured_sha256": "b59f7f51cbe8de1316490dfa4e952522a46394a35f273af8c07d867d00c3d242",
+      "case": "B2-exact-cap",
+      "cleanup": {
+        "cleanup_ms": 0,
+        "complete": true,
+        "connections_down": true,
+        "listener_down": true,
+        "listener_stopped": true,
+        "queries_down": true,
+        "socket_closed": true,
+        "stream_down": true
+      },
+      "controls_processed": 0,
+      "controls_processed_before_return": 0,
+      "controls_sent": 0,
+      "elapsed_ms": 345,
+      "frames_in": 7,
+      "frames_out": 68,
+      "line": 631,
+      "maximum_returned_read": 32768,
+      "mode": "capture",
+      "module_elapsed_ms": 373,
+      "module_input_bytes": 1088577,
+      "passed": true,
+      "protocol": "HTTP/2",
+      "reads": 32,
+      "result": {
+        "elapsed": 330,
+        "halted": false,
+        "kind": "capture",
+        "tag": "ok"
+      }
+    },
+    {
+      "bandit": "1.14.0",
+      "bytes_sent": 1048577,
+      "captured_bytes": 0,
+      "captured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "case": "B3-cap-plus-one",
+      "cleanup": {
+        "cleanup_ms": 0,
+        "complete": true,
+        "connections_down": true,
+        "listener_down": true,
+        "listener_stopped": true,
+        "queries_down": true,
+        "socket_closed": true,
+        "stream_down": true
+      },
+      "controls_processed": 0,
+      "controls_processed_before_return": 0,
+      "controls_sent": 0,
+      "elapsed_ms": 354,
+      "frames_in": 6,
+      "frames_out": 69,
+      "line": 634,
+      "maximum_returned_read": 32768,
+      "mode": "capture",
+      "module_elapsed_ms": 727,
+      "module_input_bytes": 2137154,
+      "passed": true,
+      "protocol": "HTTP/2",
+      "reads": 32,
+      "result": {
+        "elapsed": 330,
+        "halted": true,
+        "kind": "capture",
+        "reason": "too_large",
+        "tag": "error"
+      }
+    },
+    {
+      "bandit": "1.14.0",
+      "bytes_sent": 0,
+      "captured_bytes": 0,
+      "captured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "case": "D1-settings",
+      "cleanup": {
+        "cleanup_ms": 0,
+        "complete": true,
+        "connections_down": true,
+        "listener_down": true,
+        "listener_stopped": true,
+        "queries_down": true,
+        "socket_closed": true,
+        "stream_down": true
+      },
+      "controls_processed": 4,
+      "controls_processed_before_return": 4,
+      "controls_sent": 4,
+      "elapsed_ms": 1013,
+      "frames_in": 7,
+      "frames_out": 8,
+      "line": 637,
+      "maximum_returned_read": 0,
+      "mode": "package_read",
+      "module_elapsed_ms": 1740,
+      "module_input_bytes": 2137154,
+      "passed": true,
+      "protocol": "HTTP/2",
+      "reads": 1,
+      "result": {
+        "bytes": 0,
+        "elapsed": 1001,
+        "halted": false,
+        "kind": "package_read",
+        "tag": "more"
+      }
+    },
+    {
+      "bandit": "1.14.0",
+      "bytes_sent": 0,
+      "captured_bytes": 0,
+      "captured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "case": "D1-window_update",
+      "cleanup": {
+        "cleanup_ms": 0,
+        "complete": true,
+        "connections_down": true,
+        "listener_down": true,
+        "listener_stopped": true,
+        "queries_down": true,
+        "socket_closed": true,
+        "stream_down": true
+      },
+      "controls_processed": 4,
+      "controls_processed_before_return": 4,
+      "controls_sent": 4,
+      "elapsed_ms": 1013,
+      "frames_in": 7,
+      "frames_out": 12,
+      "line": 638,
+      "maximum_returned_read": 0,
+      "mode": "package_read",
+      "module_elapsed_ms": 2753,
+      "module_input_bytes": 2137154,
+      "passed": true,
+      "protocol": "HTTP/2",
+      "reads": 1,
+      "result": {
+        "bytes": 0,
+        "elapsed": 1001,
+        "halted": false,
+        "kind": "package_read",
+        "tag": "more"
+      }
+    },
+    {
+      "bandit": "1.14.0",
+      "bytes_sent": 0,
+      "captured_bytes": 0,
+      "captured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "case": "D2-settings",
+      "cleanup": {
+        "cleanup_ms": 0,
+        "complete": true,
+        "connections_down": true,
+        "listener_down": true,
+        "listener_stopped": true,
+        "queries_down": true,
+        "socket_closed": true,
+        "stream_down": true
+      },
+      "controls_processed": 4,
+      "controls_processed_before_return": 4,
+      "controls_sent": 4,
+      "elapsed_ms": 1013,
+      "frames_in": 7,
+      "frames_out": 8,
+      "line": 641,
+      "maximum_returned_read": 0,
+      "mode": "capture",
+      "module_elapsed_ms": 3766,
+      "module_input_bytes": 2137154,
+      "passed": true,
+      "protocol": "HTTP/2",
+      "reads": 1,
+      "result": {
+        "elapsed": 1001,
+        "halted": true,
+        "kind": "capture",
+        "reason": "no_progress",
+        "tag": "error"
+      }
+    },
+    {
+      "bandit": "1.14.0",
+      "bytes_sent": 0,
+      "captured_bytes": 0,
+      "captured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "case": "D2-window_update",
+      "cleanup": {
+        "cleanup_ms": 0,
+        "complete": true,
+        "connections_down": true,
+        "listener_down": true,
+        "listener_stopped": true,
+        "queries_down": true,
+        "socket_closed": true,
+        "stream_down": true
+      },
+      "controls_processed": 4,
+      "controls_processed_before_return": 4,
+      "controls_sent": 4,
+      "elapsed_ms": 1013,
+      "frames_in": 7,
+      "frames_out": 12,
+      "line": 642,
+      "maximum_returned_read": 0,
+      "mode": "capture",
+      "module_elapsed_ms": 4779,
+      "module_input_bytes": 2137154,
+      "passed": true,
+      "protocol": "HTTP/2",
+      "reads": 1,
+      "result": {
+        "elapsed": 1001,
+        "halted": true,
+        "kind": "capture",
+        "reason": "no_progress",
+        "tag": "error"
+      }
+    }
+  ],
+  "lifecycle_completed_methods": [
+    {
+      "line": 1624,
+      "message": "* test KOL01 ordinary parent shutdown clears its exact admission (8.2ms) [L#183]",
+      "module": "MixerHosted.Identity.KeyOwnerLifecycleTest"
+    },
+    {
+      "line": 1626,
+      "message": "* test KOL02 explicit child termination and restart reject old permits (1.4ms) [L#200]",
+      "module": "MixerHosted.Identity.KeyOwnerLifecycleTest"
+    },
+    {
+      "line": 1628,
+      "message": "* test KOL03 forced death fails closed across the suspended restart barrier (10.7ms) [L#229]",
+      "module": "MixerHosted.Identity.KeyOwnerLifecycleTest"
+    },
+    {
+      "line": 1630,
+      "message": "* test KOL04 close requires the current table and its creator (2.2ms) [L#275]",
+      "module": "MixerHosted.Identity.KeyOwnerLifecycleTest"
+    },
+    {
+      "line": 1632,
+      "message": "* test KOL05 duplicate registered start preserves the first table (0.9ms) [L#322]",
+      "module": "MixerHosted.Identity.KeyOwnerLifecycleTest"
+    },
+    {
+      "line": 1634,
+      "message": "* test KOL06 invalid ordinary startup never publishes admission (0.6ms) [L#339]",
+      "module": "MixerHosted.Identity.KeyOwnerLifecycleTest"
+    },
+    {
+      "line": 1636,
+      "message": "* test KOL07 worker supervisor death restarts both empty children (11.2ms) [L#393]",
+      "module": "MixerHosted.Identity.KeyOwnerLifecycleTest"
+    },
+    {
+      "line": 1640,
+      "message": "* test KOL08-GRACEFUL ordinary parent shutdown drains a pending real TLS response (1002.3ms) [L#563]",
+      "module": "MixerHosted.Identity.KeyOwnerInflightLifecycleTest"
+    },
+    {
+      "line": 1646,
+      "message": "* test KOL09-KILL records the active-flight worker-supervisor death resource gate (698.8ms) [L#639]",
+      "module": "MixerHosted.Identity.KeyOwnerInflightLifecycleTest"
+    }
+  ],
+  "lifecycle_limit": "Nine passing methods and named resource observations. Branch-specific observation booleans include false values; do not treat every field as a universal assertion or qualify deployed operation.",
+  "lifecycle_observations": [
+    {
+      "case_id": null,
+      "cleanup": {
+        "admission_absent": true,
+        "component_stopped": true,
+        "observed_exact_children_stopped": true,
+        "owner_absent": true,
+        "resume_result": ":already_stopped",
+        "stop_result": ":already_stopped",
+        "workers_absent": true
+      },
+      "cleanup_errors": null,
+      "observations": null,
+      "path": "_temp/phoenix-foundation/identity-lifecycle/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL01Owner-cleanup.json",
+      "sha256": "0fbcaeb58840835682adf9003751388d2a4745eaba8a0981c1b74e2bde598d9f"
+    },
+    {
+      "case_id": null,
+      "cleanup": {
+        "admission_absent": true,
+        "component_stopped": true,
+        "observed_exact_children_stopped": true,
+        "owner_absent": true,
+        "resume_result": ":already_stopped",
+        "stop_result": ":already_stopped",
+        "workers_absent": true
+      },
+      "cleanup_errors": null,
+      "observations": null,
+      "path": "_temp/phoenix-foundation/identity-lifecycle/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL02Owner-cleanup.json",
+      "sha256": "0fbcaeb58840835682adf9003751388d2a4745eaba8a0981c1b74e2bde598d9f"
+    },
+    {
+      "case_id": null,
+      "cleanup": {
+        "admission_absent": true,
+        "component_stopped": true,
+        "observed_exact_children_stopped": true,
+        "owner_absent": true,
+        "resume_result": ":already_stopped",
+        "stop_result": ":already_stopped",
+        "workers_absent": true
+      },
+      "cleanup_errors": null,
+      "observations": null,
+      "path": "_temp/phoenix-foundation/identity-lifecycle/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL03Owner-cleanup.json",
+      "sha256": "0fbcaeb58840835682adf9003751388d2a4745eaba8a0981c1b74e2bde598d9f"
+    },
+    {
+      "case_id": null,
+      "cleanup": {
+        "admission_absent": true,
+        "component_stopped": true,
+        "observed_exact_children_stopped": true,
+        "owner_absent": true,
+        "resume_result": ":already_stopped",
+        "stop_result": ":already_stopped",
+        "workers_absent": true
+      },
+      "cleanup_errors": null,
+      "observations": null,
+      "path": "_temp/phoenix-foundation/identity-lifecycle/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL05Owner-cleanup.json",
+      "sha256": "0fbcaeb58840835682adf9003751388d2a4745eaba8a0981c1b74e2bde598d9f"
+    },
+    {
+      "case_id": null,
+      "cleanup": {
+        "admission_absent": true,
+        "component_stopped": true,
+        "observed_exact_children_stopped": true,
+        "owner_absent": true,
+        "resume_result": ":already_stopped",
+        "stop_result": ":already_stopped",
+        "workers_absent": true
+      },
+      "cleanup_errors": null,
+      "observations": null,
+      "path": "_temp/phoenix-foundation/identity-lifecycle/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL07Owner-cleanup.json",
+      "sha256": "0fbcaeb58840835682adf9003751388d2a4745eaba8a0981c1b74e2bde598d9f"
+    },
+    {
+      "case_id": null,
+      "cleanup": {
+        "admission_absent": true,
+        "exact_tables_deleted": true
+      },
+      "cleanup_errors": null,
+      "observations": null,
+      "path": "_temp/phoenix-foundation/identity-lifecycle/KOL04-cleanup.json",
+      "sha256": "bae2b653cac5d51c104f2b9a9686a5a0b70a7dd1dd8d5022a02711a6d46668c8"
+    },
+    {
+      "case_id": null,
+      "cleanup": {
+        "admission_absent": true,
+        "owner_absent": true,
+        "workers_absent": true
+      },
+      "cleanup_errors": null,
+      "observations": null,
+      "path": "_temp/phoenix-foundation/identity-lifecycle/KOL06-cleanup.json",
+      "sha256": "f89d34e6736018af86c3e950311c33bb09d48fe56e961763d5e5ae4a4e63a143"
+    },
+    {
+      "case_id": "KOL08-GRACEFUL",
+      "cleanup": {
+        "all_resources_down": true,
+        "barrier_released": true,
+        "component_stop_result": ":already_stopped",
+        "current_admission_absent": true,
+        "fixture_peer_closed": true,
+        "fixture_stop_result": ":already_stopped",
+        "key_directory_removed": true,
+        "old_table_gone": true,
+        "owner_absent": true,
+        "recorder_stopped": true,
+        "resume_result": ":already_stopped",
+        "workers_absent": true
+      },
+      "cleanup_errors": [],
+      "observations": {
+        "callback_clean": false,
+        "fresh_denial": true,
+        "old_permit_rejected": false,
+        "old_resources_down_at_stop": true,
+        "old_resources_down_before_replacement": false,
+        "owner_alive_at_raw_reply": true,
+        "parent_stop_pending": true,
+        "pointer_absent_at_raw_reply": true,
+        "public_denial": true,
+        "raw_explicit_reply": true,
+        "raw_port_closed_while_held": true,
+        "replacement_empty": false,
+        "replacement_observed": false,
+        "stale_lease_rejected": false,
+        "table_alive_at_raw_reply": true,
+        "tls_preconditions": true
+      },
+      "path": "_temp/phoenix-foundation/identity-lifecycle/KOL08-GRACEFUL-observation.json",
+      "sha256": "b0f4ffef58da17a90abd78fec71857bb6631de120f8d7cd101c6e5bcb720705f"
+    },
+    {
+      "case_id": "KOL09-KILL",
+      "cleanup": {
+        "all_resources_down": true,
+        "barrier_released": true,
+        "component_stop_result": ":already_stopped",
+        "current_admission_absent": true,
+        "fixture_peer_closed": true,
+        "fixture_stop_result": ":already_stopped",
+        "key_directory_removed": true,
+        "old_table_gone": true,
+        "owner_absent": true,
+        "recorder_stopped": true,
+        "resume_result": ":already_stopped",
+        "workers_absent": true
+      },
+      "cleanup_errors": [],
+      "observations": {
+        "callback_clean": true,
+        "fresh_denial": false,
+        "old_permit_rejected": true,
+        "old_resources_down_at_stop": false,
+        "old_resources_down_before_replacement": true,
+        "owner_alive_at_raw_reply": true,
+        "parent_stop_pending": false,
+        "pointer_absent_at_raw_reply": true,
+        "public_denial": true,
+        "raw_explicit_reply": true,
+        "raw_port_closed_while_held": false,
+        "replacement_empty": true,
+        "replacement_observed": true,
+        "stale_lease_rejected": true,
+        "table_alive_at_raw_reply": true,
+        "tls_preconditions": true
+      },
+      "path": "_temp/phoenix-foundation/identity-lifecycle/KOL09-KILL-observation.json",
+      "sha256": "f28246767060655ce4bf1628267066ae32183b28678cac4cc9ec32ac8b500fdf"
+    }
+  ],
+  "production_policy_markers": [
+    {
+      "line": 1,
+      "message": "production_test_export_exclusion: %{"
+    },
+    {
+      "line": 8,
+      "message": "production_key_owner_supervisor_fixture_init_exclusion: %{"
+    },
+    {
+      "line": 14,
+      "message": "production_raw_capture_policy: %{"
+    },
+    {
+      "line": 19,
+      "message": "production_transport_policy: %{"
+    },
+    {
+      "line": 217,
+      "message": "production_transport_policy: passed; 4 production modules; test helpers absent; role inactive"
+    },
+    {
+      "line": 218,
+      "message": "production_build_intent_test_workers: absent"
+    },
+    {
+      "line": 219,
+      "message": "production_build_coordinator: present; modeled dispatch helpers: absent"
+    },
+    {
+      "line": 220,
+      "message": "production_build_coordinator_processor_review: absent"
+    }
+  ],
+  "skipped_methods": [
+    {
+      "line": 1565,
+      "message": "* test K03 production resolver/classifier pins public peer despite rebinding; private sink remains untouched (skipped) [L#32]",
+      "module": "MixerHosted.Identity.KeyOwnerLinuxNetworkTest"
+    },
+    {
+      "line": 1734,
+      "message": "* test IS04 IS05 actual configured startup cold production DNS TLS admission and lifecycle (skipped) [L#29]",
+      "module": "MixerHosted.Identity.StartupLinuxNetworkTest"
+    }
+  ],
+  "suite_result": {
+    "passed": 697,
+    "reported_failures": 0,
+    "skipped": 2,
+    "total_methods_in_result": 699
+  },
+  "suite_summary": [
+    {
+      "line": 1,
+      "message": "Running ExUnit with seed: 0, max_cases: 1"
+    },
+    {
+      "line": 2060,
+      "message": "Finished in 131.6 seconds (8.5s async, 123.1s sync)"
+    },
+    {
+      "line": 2062,
+      "message": "Result: 697 passed, 2 skipped"
+    }
+  ]
+}

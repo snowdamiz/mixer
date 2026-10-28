@@ -1,0 +1,72 @@
+{
+  "all_native_runtime_UI_Docker_Postgres_hosted_and_local_custody_holds_preserved": true,
+  "artifact_id": 12834358283,
+  "at": "2026-10-28T17:18:28.431145+00:00",
+  "cleanup": {
+    "current_failed_CI_descendant_cleanup_verified": false,
+    "reason": "Current failing control uses TemporaryDirectory; per-command receipt is not uploaded and tearDown does not establish group custody.",
+    "reviewer_ran_held_tests_or_process_group_probes": false,
+    "reviewer_started_native_or_test_processes": false
+  },
+  "commit": "0b99469dfbeb06ac53ad0223bd070a35f2a6a700",
+  "current_failure": {
+    "actual_fixture_compiler_step": "skipped",
+    "command": "python3 -B verification/swift-cache-state-ci/test_runner.py -v",
+    "elapsed_seconds_from_current_stderr": 2.264,
+    "exception": "KeyError: 'owned_group_gone'",
+    "method": "RunnerControls.test_owned_descendant_group_is_stopped",
+    "reported_errors": 1,
+    "reported_ok": 28,
+    "source_line": 85,
+    "tests_run": 29
+  },
+  "current_negative_deadline_controls": {
+    "both_methods_report_ok": true,
+    "cause_of_current_suite_failure": false,
+    "child_commands_each": 0,
+    "expected_failed_receipts": true,
+    "members": [
+      "logs/deadline-postflight-control.json",
+      "logs/deadline-retention-control.json"
+    ]
+  },
+  "decision": "failure-confirmed-primary-cleanup-exception-not-retained-no-pass",
+  "historical_run": {
+    "artifact_prefix": "runs/host-resource-ci-repair-root-1/",
+    "commands": 103,
+    "current_run_evidence": false,
+    "source_revision": "c4d04e56d0175f4c036c878db5ccb7bd9c7b30f0",
+    "source_tree": "8bffd8c0547675732f18c731e54951b235c56e05",
+    "started_utc": "2026-10-27T13:30:24.925341+00:00",
+    "status": "passed-host-fixture-check"
+  },
+  "job_id": 122964999431,
+  "minimal_safe_correction_proposal": [
+    "First preserve the original unexpected exception and full descendant control row in a current logs/descendant-control.json before assertions/temporary-directory cleanup. Preserve failure if cleanup is unknown.",
+    "Make command finalization record cleanup exception type/message/errno, child-return and group-disposition uncertainty, and retain/hash command output even if stop fails. Do not assign owned_group_gone=true without its existing positive observation.",
+    "Keep the same timeout, signal, group identity, output cap and success predicates. Avoid replacing the missing-key access with a silent false/default as the entire correction.",
+    "If owned child/group cleanup remains unresolved, preserve scratch and a custody hold; do not erase recovery evidence or clear an active group merely because an exception was captured."
+  ],
+  "review_execution": {
+    "allowed_mutation_scope": "/Users/andreyyurlov/Documents/dev/mixer/verification/github-delivery-identity-network-transfer/cache-controls-review",
+    "command": "python3 -B /Users/andreyyurlov/Documents/dev/mixer/verification/github-delivery-identity-network-transfer/cache-controls-review/review.py",
+    "elapsed_seconds": 0.097439,
+    "git": "git version 2.56.0",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "runner_imported_or_executed": false
+  },
+  "run_id": 40730444182,
+  "schema": 1,
+  "source_cause": [
+    "RunnerControls.bad accepts RuntimeError/OSError/ValueError and discards the caught exception.",
+    "Commands.run initial row omits owned_group_gone; Commands.stop assigns it only after group signal/wait/probe operations.",
+    "Commands.run finally can exit from stream closure or stop before terminal row hashing/save. Any accepted exception there can be swallowed by bad, followed by the observed missing-key error.",
+    "The preceding timed_out assertion completed, but the actual primary exception/syscall and descendant cleanup outcome are not in retained current output. They must not be invented."
+  ],
+  "testing_proposal_not_executed": [
+    "Root chooses a bounded mock-only control with fake owned process and injected signal/probe/wait error. It must execute no real child, killpg or process inventory and prove original error plus conservative cleanup fields survive terminal receipt/output retention.",
+    "A separate mock-only happy cleanup control must retain existing success behavior; timeout and output-cap controls must still fail closed.",
+    "After review, root may authorize a fresh CI job for exact-source real descendant cleanup. No local custody replay, alternate equivalent test or compiler run is authorized by this review."
+  ],
+  "tree": "1ec7b776bd1a910ad07a6f141acd6433b26799fa"
+}

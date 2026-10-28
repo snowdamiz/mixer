@@ -1,0 +1,39 @@
+name: Swift cache capacity campaign v1
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: swift-cache-capacity-campaign-v1
+  cancel-in-progress: false
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        timeout-minutes: 1
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: /verification/swift-cache-capacity-campaign-v1/
+      - name: Install the single campaign compiler
+        timeout-minutes: 3
+        run: rustup toolchain install 1.99.0 --profile minimal
+      - name: Pure source and retained-result controls
+        timeout-minutes: 1
+        run: python3 -B verification/swift-cache-capacity-campaign-v1/test_campaign.py
+      - name: Four serial bounded unchanged-workload comparisons
+        run: >-
+          python3 -B verification/swift-cache-capacity-campaign-v1/campaign.py run
+          --output "$RUNNER_TEMP/swift-cache-capacity-campaign-v1"
+      - name: Preserve failures and complete observations
+        timeout-minutes: 2
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-cache-capacity-campaign-v1-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/swift-cache-capacity-campaign-v1/
+            !${{ runner.temp }}/swift-cache-capacity-campaign-v1/scratch/
+          if-no-files-found: error
+          retention-days: 30

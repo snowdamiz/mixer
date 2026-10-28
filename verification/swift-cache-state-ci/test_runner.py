@@ -4,13 +4,27 @@ import copy,importlib.util,json,os,pathlib,signal,subprocess,sys,tempfile,time,t
 from unittest import mock
 HERE=pathlib.Path(__file__).resolve().parent
 spec=importlib.util.spec_from_file_location('cache_runner',HERE/'check_cache_state.py');r=importlib.util.module_from_spec(spec);spec.loader.exec_module(r)
+def retain_command_control(name,commands,error):
+ destination=HERE/'logs'/(name+'-control');destination.mkdir(parents=True,exist_ok=True);outputs=[]
+ for row in commands.receipt['commands']:
+  for suffix in ['json','stdout','stderr']:
+   source=commands.out/'commands'/(row['name']+'.'+suffix)
+   if source.is_file():
+    target=destination/source.name;r.shutil.copyfile(source,target);outputs.append({'path':target.name,'bytes':target.stat().st_size,'sha256':r.sha(target)})
+ evidence={'scope':'Focused runner command control; original exception and current command output retained before assertions/teardown. No cleanup success inferred.','exception':r.exception_details(error)if error is not None else None,'receipt':commands.receipt,'custody_hold':commands.active is not None,'scratch':str(commands.scratch),'outputs':outputs}
+ r.save(destination/'control.json',evidence);return evidence
 class RunnerControls(unittest.TestCase):
- def setUp(self):self.temp=tempfile.TemporaryDirectory(prefix='mixer-cache-runner-controls-');self.base=pathlib.Path(self.temp.name).resolve()
- def tearDown(self):self.temp.cleanup()
+ def setUp(self):self.base=pathlib.Path(tempfile.mkdtemp(prefix='mixer-cache-runner-controls-')).resolve();self.owned_commands=[]
+ def tearDown(self):
+  pending=[c for c in self.owned_commands if c.active is not None or any('pid'in row and not row.get('owned_group_gone')for row in c.receipt['commands'])]
+  if pending:
+   destination=HERE/'logs';destination.mkdir(parents=True,exist_ok=True);r.save(destination/('custody-hold-'+self._testMethodName+'.json'),{'scratch_preserved':str(self.base),'cleanup_verified':False,'receipts':[c.receipt for c in pending]})
+  else:r.shutil.rmtree(self.base)
  def bad(self,fn,*a,**kw):
-  with self.assertRaises((RuntimeError,OSError,ValueError)):fn(*a,**kw)
+  with self.assertRaises((RuntimeError,OSError,ValueError))as observed:fn(*a,**kw)
+  return observed.exception
  def commands(self):
-  out=self.base/'out';out.mkdir();c=r.Commands(out,{'commands':[]},time.monotonic()+20);scratch=out/'scratch';scratch.mkdir();c.bind_scratch(scratch);return c
+  out=self.base/'out';out.mkdir();c=r.Commands(out,{'commands':[]},time.monotonic()+20);scratch=out/'scratch';scratch.mkdir();c.bind_scratch(scratch);self.owned_commands.append(c);return c
  def pack(self):p=self.base/'pack';r.shutil.copytree(r.PACK,p);return p
  def diagnostic(self):
   source=self.base/'api.rs';source.write_text('fn main(){let _=Missing;}\n');start=source.read_bytes().index(b'Missing');probe={'source':'api.rs','bytes':source.stat().st_size,'sha256':r.sha(source),'code':'E0425','message_contains':['Missing','scope'],'primary_spans':[{'byte_start':start,'byte_end':start+7,'text':'Missing'}]}
@@ -80,9 +94,44 @@ class RunnerControls(unittest.TestCase):
   with mock.patch.object(r,'OUTPUT_CAP',32):self.bad(c.run,'cap',[sys.executable,'-c','print("x"*2000)'],self.base)
   self.assertTrue(c.receipt['commands'][-1]['output_capped']);self.assertEqual((c.out/'commands/cap.stdout').stat().st_size,32)
  def test_owned_descendant_group_is_stopped(self):
-  c=self.commands();code='import subprocess,sys,time;subprocess.Popen([sys.executable,"-c","import time;time.sleep(20)"]);print("descendant-ready",flush=True);time.sleep(20)'
-  with mock.patch.object(r,'CHILD_SECONDS',.7):self.bad(c.run,'descendant',[sys.executable,'-c',code],self.base)
-  row=c.receipt['commands'][-1];self.assertTrue(row['timed_out']);self.assertTrue(row['owned_group_gone']);self.assertTrue(row['child_returned']);self.assertIn('descendant-ready',(c.out/'commands/descendant.stdout').read_text())
+  c=self.commands();error=None;code='import subprocess,sys,time;subprocess.Popen([sys.executable,"-c","import time;time.sleep(20)"]);print("descendant-ready",flush=True);time.sleep(20)'
+  try:
+   with mock.patch.object(r,'CHILD_SECONDS',.7):error=self.bad(c.run,'descendant',[sys.executable,'-c',code],self.base)
+  except BaseException as observed:error=observed;raise
+  finally:evidence=retain_command_control('descendant',c,error)
+  row=c.receipt['commands'][-1];diagnostic=json.dumps(evidence,sort_keys=True);self.assertTrue(row['timed_out'],diagnostic);self.assertTrue(row['owned_group_gone'],diagnostic);self.assertTrue(row['child_returned'],diagnostic);self.assertIn('descendant-ready',(c.out/'commands/descendant.stdout').read_text(),diagnostic)
+ def mocked_command(self):
+  # Synthetic process objects only; these controls never enter commands()'s
+  # real-child custody registry. The selected-control driver denies syscalls.
+  out=self.base/'mock-out';out.mkdir();c=r.Commands(out,{'commands':[]},time.monotonic()+20);scratch=out/'scratch';scratch.mkdir();c.bind_scratch(scratch)
+  class Pipe:
+   def fileno(self):return 987654
+   def close(self):pass
+  process=types.SimpleNamespace(pid=987654,stdout=Pipe(),stderr=Pipe(),returncode=0,poll=mock.Mock(return_value=0),wait=mock.Mock(return_value=0))
+  keys={}
+  def register(pipe,event,data):keys[pipe]=types.SimpleNamespace(fileobj=pipe,data=data)
+  selector=types.SimpleNamespace(register=register,get_map=lambda:keys,select=mock.Mock(side_effect=lambda seconds:[(key,None)for key in list(keys.values())]),unregister=lambda pipe:keys.pop(pipe),close=mock.Mock())
+  return c,process,selector
+ def test_mocked_primary_and_stop_exceptions_retain_terminal_receipt(self):
+  c,process,selector=self.mocked_command();primary=OSError(5,'injected active read failure');cleanup_error=OSError(1,'injected wait failure');selector.select.side_effect=primary;process.wait.side_effect=cleanup_error
+  with mock.patch.object(r.subprocess,'Popen',return_value=process),mock.patch.object(r.selectors,'DefaultSelector',return_value=selector),mock.patch.object(r.os,'killpg')as killpg,mock.patch.object(r.os,'read',return_value=b''):
+   with self.assertRaises(OSError)as observed:c.run('mock-errors',['synthetic-command'],self.base)
+  self.assertIs(observed.exception,primary);self.assertIs(c.active,process);row=c.receipt['commands'][-1];self.assertFalse(row['owned_group_gone']);self.assertTrue(row['custody_hold']);self.assertEqual(row['errors'],[{'phase':'active','type':'OSError','message':str(primary),'errno':5},{'phase':'stop-owned-group','type':'PermissionError','message':str(cleanup_error),'errno':1}]);self.assertEqual(killpg.call_args_list,[mock.call(process.pid,0),mock.call(process.pid,signal.SIGKILL)])
+  for path in [c.out/'receipt.json',c.out/'commands/mock-errors.json']:
+   retained=json.loads(path.read_bytes());self.assertEqual(retained['commands'][-1]if'commands'in retained else retained,row)
+  self.assertEqual(row['stdout_sha256'],r.hashlib.sha256(b'').hexdigest());self.assertEqual(row['stderr_sha256'],r.hashlib.sha256(b'').hexdigest());self.assertIn('finished_utc',row);self.bad(r.cleanup,c.out,c.scratch,r.identity(c.scratch),{},set(),c)
+ def test_mocked_cleanup_only_exception_is_reported_and_held(self):
+  c,process,selector=self.mocked_command();cleanup_error=OSError(5,'injected final stop failure')
+  with mock.patch.object(r.subprocess,'Popen',return_value=process),mock.patch.object(r.selectors,'DefaultSelector',return_value=selector),mock.patch.object(r.os,'killpg',side_effect=ProcessLookupError),mock.patch.object(r.os,'read',return_value=b''),mock.patch.object(c,'stop',side_effect=cleanup_error):
+   with self.assertRaises(OSError)as observed:c.run('mock-cleanup',['synthetic-command'],self.base)
+  self.assertIs(observed.exception,cleanup_error);row=json.loads((c.out/'commands/mock-cleanup.json').read_bytes());self.assertTrue(row['child_returned']);self.assertFalse(row['owned_group_gone']);self.assertTrue(row['custody_hold']);self.assertEqual(row['errors'][0]['phase'],'stop-owned-group');self.assertEqual(row['errors'][0]['message'],str(cleanup_error));self.assertIs(c.active,process)
+  with mock.patch.dict(globals(),{'HERE':self.base/'current-evidence'}):evidence=retain_command_control('mocked-descendant',c,observed.exception)
+  destination=self.base/'current-evidence/logs/mocked-descendant-control';retained=json.loads((destination/'control.json').read_bytes());self.assertEqual(retained,evidence);self.assertEqual(retained['exception']['message'],str(cleanup_error));self.assertTrue(retained['custody_hold']);self.assertEqual({item['path']for item in retained['outputs']},{'mock-cleanup.json','mock-cleanup.stdout','mock-cleanup.stderr'})
+ def test_mocked_success_still_requires_positive_group_disappearance(self):
+  c,process,selector=self.mocked_command()
+  with mock.patch.object(r.subprocess,'Popen',return_value=process),mock.patch.object(r.selectors,'DefaultSelector',return_value=selector),mock.patch.object(r.os,'killpg',side_effect=ProcessLookupError)as killpg,mock.patch.object(r.os,'read',return_value=b''):
+   _,_,row=c.run('mock-success',['synthetic-command'],self.base)
+  self.assertTrue(row['child_returned']);self.assertTrue(row['owned_group_gone']);self.assertFalse(row['custody_hold']);self.assertEqual(row['errors'],[]);self.assertIsNone(c.active);self.assertTrue(killpg.call_args_list);self.assertTrue(all(call.args==(process.pid,0)for call in killpg.call_args_list))
  def test_expired_global_deadline_starts_no_child(self):
   c=self.commands();c.deadline=time.monotonic()-1;self.bad(c.run,'expired',[sys.executable,'-c','pass'],self.base);self.assertEqual(c.receipt['commands'],[])
  def test_cleanup_hashes_and_retains_before_delete(self):

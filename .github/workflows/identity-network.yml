@@ -7,12 +7,14 @@ on:
       - '.github/workflows/identity-network.yml'
       - 'docs/hosted-identity-production-network-ci-contract.md'
       - 'verification/identity-production-network-contract/**'
+      - 'verification/identity-network-image-amendment-v1/**'
   pull_request:
     paths:
       - 'hosted/**'
       - '.github/workflows/identity-network.yml'
       - 'docs/hosted-identity-production-network-ci-contract.md'
       - 'verification/identity-production-network-contract/**'
+      - 'verification/identity-network-image-amendment-v1/**'
 
 permissions:
   contents: read
@@ -37,6 +39,7 @@ jobs:
             /.github/workflows/identity-network.yml
             /docs/hosted-identity-production-network-ci-contract.md
             /verification/identity-production-network-contract/**
+            /verification/identity-network-image-amendment-v1/metadata/**
       - name: Check collector fault decisions without Docker
         run: python3 -B hosted/scripts/test_identity_network_collector.py
       - name: Run the two production-path network methods

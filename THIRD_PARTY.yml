@@ -446,6 +446,70 @@ dependencies:
     purpose: isolated-Phoenix-transaction-and-job-host-tests
     distribution: verification-only-external-service
     owner: cloud-verification
+  - name: Hex Elixir Debian Bookworm AMD64 identity verification image
+    origin: https://hub.docker.com/r/hexpm/elixir
+    version: "1.20.4-erlang-29.1.1-debian-bookworm-20261005-slim"
+    license: image-component-license-and-notices-review-pending
+    purpose: isolated-remote-production-DNS-and-TLS-fixture-verification
+    distribution: external-verification-tooling-never-linked-into-product
+    owner: cloud-verification
+    parent_digest: sha256:1ae099301985ddf8a723ad50cc25e37dd854497aec12cebf984c195570b0d83e
+    platform_digest: sha256:ed110657152803079f311913be4effe02874e2c714a1b5a38891873b7f2a16c5
+    config_digest: sha256:857e84a618d1f76390220fbff2e7d54d588aea4f772ab1e60dacfe3fa02602cc
+    platform: linux-amd64
+    inventory_receipt: verification/identity-network-image-amendment-v1/metadata/image-amendment.json
+    source_inventory: verification/identity-network-image-amendment-v1/metadata/source-review/analysis/capabilities.json
+    historical_predecessor: Noble-AMD64-entry-retained-run-40730443928-failed-required-openssl-stat-after-successful-tar-transfer
+    historical_failure_receipt: verification/github-delivery-identity-network-transfer/network-review/selected/artifact/logs/0019.stderr
+    qualification: all-four-layer-digests-and-source-object-inventory-verified-actual-runtime-tool-CA-TLS-and-tests-pending
+  - name: Debian image-supplied OpenSSL and libssl3 identity verification tools
+    origin: https://packages.debian.org/bookworm/openssl
+    version: "3.0.22-1~deb12u1"
+    license: source-license-and-component-notices-review-pending
+    purpose: fixture-certificate-generation-and-OTP-crypto-TLS-runtime
+    distribution: external-verification-image-only-never-product-linked
+    owner: cloud-verification
+    inventory_receipt: verification/identity-network-image-amendment-v1/metadata/source-review/analysis/capabilities.json
+    qualification: source-package-status-executable-and-library-hashes-only-actual-load-and-version-commands-pending
+  - name: Debian image-supplied CA certificates identity verification bundle
+    origin: https://packages.debian.org/bookworm/ca-certificates
+    version: "20250419~deb12u1"
+    license: source-license-and-individual-certificate-notices-review-pending
+    purpose: selected-OS-trust-bundle-for-peer-and-hostname-verified-bootstrap
+    distribution: external-verification-image-only-never-product-linked
+    owner: cloud-verification
+    path: /etc/ssl/certs/ca-certificates.crt
+    bytes: 224449
+    sha256: 714d457d580922dbf1d0be8bd35ba236a842b50b0072ae791582a19adef772a5
+    inventory_receipt: verification/identity-network-image-amendment-v1/metadata/source-review/analysis/capabilities.json
+    qualification: source-bytes-and-150-DER-hashes-only-actual-OTP-loading-and-HTTPS-chain-verification-pending
+  - name: Debian image-supplied GNU tar identity verification tool
+    origin: https://packages.debian.org/bookworm/tar
+    version: "1.34+dfsg-1.2+deb12u1"
+    license: source-license-and-component-notices-review-pending
+    purpose: bounded-archive-transfer-in-readonly-owned-verification-containers
+    distribution: external-verification-image-only-never-product-linked
+    owner: cloud-verification
+    inventory_receipt: verification/identity-network-image-amendment-v1/metadata/source-review/analysis/capabilities.json
+    qualification: immutable-source-object-hash-and-package-status-only-actual-command-pending
+  - name: Debian image-supplied GNU coreutils identity verification tools
+    origin: https://packages.debian.org/bookworm/coreutils
+    version: "9.1-1"
+    license: source-license-and-component-notices-review-pending
+    purpose: exact-env-entrypoint-for-container-environment-allowlist
+    distribution: external-verification-image-only-never-product-linked
+    owner: cloud-verification
+    inventory_receipt: verification/identity-network-image-amendment-v1/metadata/source-review/analysis/capabilities.json
+    qualification: immutable-env-source-object-hash-and-package-status-only-actual-command-pending
+  - name: Debian image-supplied identity verification runtime libraries
+    origin: https://www.debian.org/distrib/packages
+    version: "libc6-2.36-9+deb12u14_libodbc1-and-libodbc2-2.3.11-2+deb12u1_libsctp1-1.0.19+dfsg-2_libstdc++6-12.2.0-14+deb12u1"
+    license: per-source-package-license-and-component-notices-review-pending
+    purpose: image-supplied-OTP-OpenSSL-and-system-tool-runtime-prerequisites
+    distribution: external-verification-image-only-never-product-linked
+    owner: cloud-verification
+    inventory_receipt: verification/identity-network-image-amendment-v1/metadata/source-review/analysis/capabilities.json
+    qualification: source-package-status-and20-static-ELF-object-closure-only-dynamic-symbol-loading-and-runtime-pending
 # Selected by the October 24 hosted-stack plan. The Phoenix foundation is
 # pinned above; console pins/notices are recorded in console/THIRD_PARTY.yml.
 # Remaining hosted libraries still require their own qualification.

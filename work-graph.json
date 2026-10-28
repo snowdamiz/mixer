@@ -12384,7 +12384,62 @@
           "actual_input_or_approval_emitted": false,
           "actual_verifier_invocation_selected": false,
           "capacity_or_runtime_or_GA_accepted": false
+        },
+        "stage_contract_source_acceptance": {
+          "schema": 1,
+          "at": "2026-10-28T17:38:00.049500+00:00",
+          "status": "corrected source contract accepted; implementation deferred to named need",
+          "contract": {
+            "path": "verification/swift-retained-stage-verifier-contract-v2/seal.json",
+            "bytes": 2067,
+            "sha256": "f5abac1ca96ee8741e16a9882411c17e9fe9342ab7b0ac76ebfc2c512d5fde82"
+          },
+          "independent_delta_review": {
+            "path": "verification/swift-retained-stage-contract-v2-independent/seal.json",
+            "bytes": 1138,
+            "sha256": "74a9516d112905eba8a768cf8d4bbbf0f9cf6bbf599e32d5357003a62411d9cc"
+          },
+          "resolved_findings": [
+            "F1 conditional path exhaustiveness",
+            "F2 literal null extent preserves unknown",
+            "F3 known reservation contradiction versus unknown coverage"
+          ],
+          "described_controls": 52,
+          "controls_executed": 0,
+          "verifier_implementation_selected": false,
+          "actual_input_or_invocation_selected": false,
+          "capacity_or_runtime_or_GA_accepted": false,
+          "priority": "Proceed with bounded cache-capacity workload experiments; do not create another preparatory verifier cycle without a named integration need."
         }
+      },
+      "empiricalCacheCapacityCampaign": {
+        "schema": 1,
+        "policy_revision": "b6410e917fab899731dece2678fe2ade2e854464",
+        "trigger": "Exact CacheWork64,000,001/64M failure and repeated prerequisite-only geometry/accounting cycles",
+        "lead": {
+          "agent": "astra_cache_capacity_campaign",
+          "model": "gpt-6-astra",
+          "reasoning_effort": "xhigh"
+        },
+        "independent_review": {
+          "agent": "astra_cache_campaign_review",
+          "model": "gpt-6-astra",
+          "reasoning_effort": "xhigh"
+        },
+        "scope": "Four primary isolated host profiles:64/64M,64/128M,128/64M,256/64M; unchanged full Swift artifact/two calls/oracle/cleanup and resource safeguards",
+        "next_command": "python3 -B verification/swift-cache-capacity-campaign-v1/campaign.py run --output \"$RUNNER_TEMP/swift-cache-capacity-campaign-v1\"",
+        "remote_CI_integration_pending_focused_review": false,
+        "full_workload_attempts_run": 0,
+        "maximum_full_workload_attempts": 5,
+        "fifth_attempt_implemented_or_selected": false,
+        "holds_unchanged": true,
+        "production_or_GA_accepted": false,
+        "root_selection": {
+          "path": "verification/swift-semantic-adapter-root-review/cache-capacity-campaign-selection.json",
+          "bytes": 2555,
+          "sha256": "7065ba2b310e2edae3931d10fbc370729eadbc9ca03c3529cb5b562bdf397d4f"
+        },
+        "remote_CI_selected": true
       }
     },
     {
@@ -16400,7 +16455,7 @@
       "identityProductionNetworkCI": {
         "schema": 1,
         "at": "2026-10-28T15:29:25.468705+00:00",
-        "status": "transfer correction with68pure controls and reviewed sparse Phoenix checkout selected for freshCI; c450networkfailed before bootstrap",
+        "status": "ordinary Phoenix sparse checkout runtime accepted; network transfer passed then pinned image prerequisite failed; immutable image amendment implementation selected",
         "contract": {
           "path": "verification/identity-production-network-contract/contract.json",
           "bytes": 28748,
@@ -16495,14 +16550,14 @@
           "native_UI_device_local_custody_UnitA_and_GA_holds_unchanged": true
         },
         "delivery": {
-          "commit": "c450ed48d14df1f2cf1140dd3f8807890a8fe9d0",
-          "tree": "36e12990047d05be7c29ef63b7867a324486a896",
-          "changed_paths": 277,
+          "commit": "0b99469dfbeb06ac53ad0223bd070a35f2a6a700",
+          "tree": "1ec7b776bd1a910ad07a6f141acd6433b26799fa",
+          "changed_paths": 319,
           "pushed": true,
           "receipt": {
-            "path": "verification/github-delivery-identity-network-bridge/receipt.json",
-            "bytes": 1013,
-            "sha256": "52421c462489d6f717589ac8095c7770968ccfd0863dd2871404ba76e19d103e"
+            "path": "verification/github-delivery-identity-network-transfer/receipt.json",
+            "bytes": 1041,
+            "sha256": "3e720f1783d6dbb3dce119ae53672192d0e715417cb43af3f5eb76293aacc7ca"
           }
         },
         "first_remote_attempt": {
@@ -16673,18 +16728,43 @@
           "scope": "Bounded validated tar stdin through exact-CID exec in writable /workspace; readonly root and existing resource, identity, environment, cleanup and source guards retained.",
           "remote_execution_selected": true,
           "real_transfer_or_product_runtime_accepted": false,
-          "GA_accepted": false
+          "GA_accepted": false,
+          "remote_result": {
+            "run_id": 40730443928,
+            "status": "failed at selected OpenSSL path prerequisite; transfer and exact CID cleanup passed",
+            "decision": {
+              "path": "verification/github-delivery-identity-network-transfer/network-review/decision.json",
+              "bytes": 8760,
+              "sha256": "414d695565845b5cde270c6d681ef261fefac4b8f92794485bcb60f460ca22e1"
+            },
+            "product_methods_ran": 0
+          }
         },
         "current_canonical_files": [
           {
+            "path": ".github/workflows/identity-network.yml",
+            "bytes": 2265,
+            "sha256": "1cbdcdccdefd3ea562c45c42c900c1177a6b429e10183b2817b8f9081ce5b947"
+          },
+          {
+            "path": "THIRD_PARTY.yml",
+            "bytes": 29952,
+            "sha256": "27b3d9becb46e9207903119f00c634276033fa595709f65c87276acab5ff7085"
+          },
+          {
+            "path": "docs/hosted-identity-production-network-ci-contract.md",
+            "bytes": 9242,
+            "sha256": "305ac42c9c2bfaa69747157379a1021f5142730db8999c526fc2f6f7e9858ed4"
+          },
+          {
             "path": "hosted/scripts/test-identity-network.py",
-            "bytes": 115499,
-            "sha256": "0dd09afab430ff2478c8dfe800465dec8cd154ca78f5f80f4049433e92bd540d"
+            "bytes": 127551,
+            "sha256": "7ea70a4802f8053e448566da41f3f72a8a0dad4f3152c13471ec2b8e498a6a7d"
           },
           {
             "path": "hosted/scripts/test_identity_network_collector.py",
-            "bytes": 67242,
-            "sha256": "0b617486a69a693da79bcb8c4364658fac81013004296f6e05e6368f9e70e683"
+            "bytes": 83166,
+            "sha256": "a5f3ebfd7dea80e5892e448a1a85c28affe6b3e695f6a579b96ecdd65f625727"
           }
         ],
         "phoenix_checkout_selection": {
@@ -16737,6 +16817,211 @@
             "bytes": 2684,
             "sha256": "175b2fc5b23445e1a23f3994322f7f6a3840854bdaaef4a968034a205bb49374"
           }
+        },
+        "phoenix_checkout_runtime_acceptance": {
+          "schema": 1,
+          "at": "2026-10-28T17:16:01.804111+00:00",
+          "status": "ordinary Phoenix exact-commit evidence accepted within stated host scope",
+          "revision": "0b99469dfbeb06ac53ad0223bd070a35f2a6a700",
+          "independent_review": {
+            "path": "verification/github-delivery-identity-network-transfer/phoenix-review/review.json",
+            "bytes": 5919,
+            "sha256": "7b72934a42274b89c3e4bd2b5a052da4ffcb1eb0d4f6628f5a26fd6b5a1e9376"
+          },
+          "manifest": {
+            "path": "verification/github-delivery-identity-network-transfer/phoenix-review/packet-manifest.json",
+            "bytes": 37394,
+            "sha256": "72c34231bcc49d66fb086e43a1977a0fe207a4faf49e758d9d323ecc93979460"
+          },
+          "packet_members_rehashed": 172,
+          "suite_result": {
+            "passed": 697,
+            "reported_failures": 0,
+            "skipped": 2
+          },
+          "all181_archived_sources_and194_sparse_readset_bound": true,
+          "historical_receipts_present": false,
+          "cleanup": {
+            "foundation": {
+              "postgres_stopped": true,
+              "scratch_removed": true
+            },
+            "limit": "Exact collector/fixture resource receipts; no blanket inventory or guarantee that every possible runner resource was absent.",
+            "migration": {
+              "owned_compile_products_removed": true,
+              "owned_postgres_stopped": true,
+              "owned_scratch_removed": true
+            },
+            "nine_lifecycle_resource_cleanup_observations": true,
+            "protocol": {
+              "owned_scratch_path": "/tmp/mixer-browser-auth-protocol-858r2vs7",
+              "owned_scratch_removed": true,
+              "started_browser_capture_native_or_phone_processes": false,
+              "started_provider_network_or_database": false
+            },
+            "runner_orphan_termination_events_logged": [],
+            "seven_http2_wire_cases_cleanup_complete": true,
+            "storage": {
+              "owned_postgres_stopped": true,
+              "owned_scratch_removed": true
+            }
+          },
+          "timing": {
+            "checkout_action_start": {
+              "line": 36,
+              "message": "##[group]Run actions/checkout@v4",
+              "timestamp": "2026-10-28T16:53:53.9281705Z"
+            },
+            "checkout_action_upper_bound_seconds": 3.41676,
+            "configured_job_timeout_minutes": 15,
+            "fetch_new_ref": {
+              "line": 113,
+              "message": " * [new ref]           0b99469dfbeb06ac53ad0223bd070a35f2a6a700 -> origin/main",
+              "timestamp": "2026-10-28T16:53:55.3497466Z"
+            },
+            "fetch_observed_seconds": 0.863347,
+            "fetch_start": {
+              "line": 110,
+              "message": "##[group]Fetching the repository",
+              "timestamp": "2026-10-28T16:53:54.4863997Z"
+            },
+            "foundation_receipt_emitted": {
+              "line": 368,
+              "message": "{\"status\": \"passed\", \"receipt\": \"/home/runner/work/_temp/phoenix-foundation/receipt.json\", \"cleanup\": {\"postgres_stopped\": true, \"scratch_removed\": true}}",
+              "timestamp": "2026-10-28T16:57:56.7621350Z"
+            },
+            "foundation_step_observed_seconds": 174.972721,
+            "foundation_step_start": {
+              "line": 358,
+              "message": "##[group]Run python3 scripts/test-local.py \\",
+              "timestamp": "2026-10-28T16:55:01.7894145Z"
+            },
+            "next_action_start": {
+              "line": 129,
+              "message": "##[group]Run actions/setup-node@v4",
+              "timestamp": "2026-10-28T16:53:57.3449304Z"
+            },
+            "scope": "Single hosted Ubuntu runner observation. API lifecycle and individual action/setup times include scheduler/platform behavior; no future timing, cost, network transfer byte or latency guarantee.",
+            "worktree_checkout_observed_seconds": 1.926994,
+            "worktree_checkout_start": {
+              "line": 122,
+              "message": "##[group]Checking out the ref",
+              "timestamp": "2026-10-28T16:53:55.3700794Z"
+            },
+            "worktree_switched_branch": {
+              "line": 124,
+              "message": "Switched to a new branch 'main'",
+              "timestamp": "2026-10-28T16:53:57.2970737Z"
+            }
+          },
+          "held_UnitA_public_network_methods_native_customer_and_GA_accepted": false
+        },
+        "image_amendment_selection": {
+          "schema": 1,
+          "at": "2026-10-28T17:16:01.804530+00:00",
+          "status": "source image amendment implementation selected; runtime unqualified",
+          "source_packet": {
+            "path": "verification/identity-network-image-prerequisite-review/packet-manifest.json",
+            "bytes": 12911,
+            "sha256": "23a059c90208a6bdd7c555c617c3e153651eccf8077530b79cf8d94cf993a549"
+          },
+          "source_tree_sha256": "261023b77cb55255f666959f367330783a354174252ed23b71145566f87ba597",
+          "packet_members_rehashed": 71,
+          "proposal": {
+            "path": "verification/identity-network-image-prerequisite-review/analysis/amendment-candidate.json",
+            "bytes": 14229,
+            "sha256": "0a8c67831d1cefd6786c7af8534b010d056001a25ff203ca08a437030dd31827"
+          },
+          "new_test_image": {
+            "ref": "hexpm/elixir@sha256:ed110657152803079f311913be4effe02874e2c714a1b5a38891873b7f2a16c5",
+            "config": "sha256:857e84a618d1f76390220fbff2e7d54d588aea4f772ab1e60dacfe3fa02602cc"
+          },
+          "old_contract_preserved": true,
+          "immutable_closed_amendment_and_both_metadata_seals_required": true,
+          "same177_product_PG_bootstrap_isolation_bounds_required": true,
+          "actual_CA_bundle_and_loaded_roots_prerequisite_required": true,
+          "source_and_pure_controls_only_selected": true,
+          "remote_execution_selected": false,
+          "product_runtime_or_GA_accepted": false
+        },
+        "current_Engine_CI": {
+          "run_id": 40730444182,
+          "passed_jobs": 5,
+          "failed_jobs": 1,
+          "failed_scope": "swift-cache-state-fixture runner controls; actual fixture skipped; artifact review active",
+          "job_evidence": {
+            "path": "verification/github-delivery-identity-network-transfer/engine-jobs-1.json",
+            "bytes": 13011,
+            "sha256": "d0580f1e961ea53af1df059863d94cd0935bb55ffeebeeb497d60e08502c1f01"
+          },
+          "diagnostic_source_selection": {
+            "path": "verification/console-session-and-checkout-root-review/cache-controls-diagnostic-selection.json",
+            "bytes": 1158,
+            "sha256": "8f38260ab6c88837c97fb5ce0690b6fe0993bcba2032893be18014a38e5584ce"
+          }
+        },
+        "image_amendment_source_acceptance": {
+          "schema": 1,
+          "at": "2026-10-28T17:38:00.048049+00:00",
+          "status": "reviewed immutable image amendment selected for fresh remote CI",
+          "baseline": "b6410e917fab899731dece2678fe2ade2e854464",
+          "canonical_sources": [
+            {
+              "path": ".github/workflows/identity-network.yml",
+              "bytes": 2265,
+              "sha256": "1cbdcdccdefd3ea562c45c42c900c1177a6b429e10183b2817b8f9081ce5b947"
+            },
+            {
+              "path": "THIRD_PARTY.yml",
+              "bytes": 29952,
+              "sha256": "27b3d9becb46e9207903119f00c634276033fa595709f65c87276acab5ff7085"
+            },
+            {
+              "path": "docs/hosted-identity-production-network-ci-contract.md",
+              "bytes": 9242,
+              "sha256": "305ac42c9c2bfaa69747157379a1021f5142730db8999c526fc2f6f7e9858ed4"
+            },
+            {
+              "path": "hosted/scripts/test-identity-network.py",
+              "bytes": 127551,
+              "sha256": "7ea70a4802f8053e448566da41f3f72a8a0dad4f3152c13471ec2b8e498a6a7d"
+            },
+            {
+              "path": "hosted/scripts/test_identity_network_collector.py",
+              "bytes": 83166,
+              "sha256": "a5f3ebfd7dea80e5892e448a1a85c28affe6b3e695f6a579b96ecdd65f625727"
+            }
+          ],
+          "independent_review": {
+            "path": "verification/identity-network-image-amendment-independent/receipt.json",
+            "bytes": 7775,
+            "sha256": "4ab9aefcd1595ac3e2eebd39ad9a0483309337ab6ef0bc8bed9abbb7ebe0c6ec"
+          },
+          "reviewer": {
+            "context": "fresh",
+            "model": "gpt-6-astra",
+            "reasoning_effort": "xhigh",
+            "role": "independent difficult blocker review",
+            "selection_evidence": "coordinator dispatch under AGENTS and product-plan sections20.3/24.4/25"
+          },
+          "pure_controls": 84,
+          "additional_independent_rejections": 14,
+          "additional_independent_positives": 2,
+          "original_control_bodies_unchanged": 68,
+          "sealed_metadata": {
+            "files": 78,
+            "manifest": {
+              "bytes": 14689,
+              "sha256": "d11bbf2bee0e10918a39e2e731b253ede431ee07e2306639a96f0dd45ef355d3"
+            },
+            "outside_seal_not_admitted": [],
+            "tree_digest_sha256": "9ddc12c8277b120dcd8ef7577dd9da03d245b8502802db85399a6f1104bcbdc8"
+          },
+          "source_and_OCI_CA_joins_accepted": true,
+          "remote_execution_selected": true,
+          "named_unlock": "Run the unchanged K03 and IS04/IS05 public DNS/TLS methods after actual tool/CA/bootstrap qualification.",
+          "actual_runtime_or_GA_accepted": false,
+          "old_failed_attempts_remain_failed": true
         }
       }
     },
@@ -18054,7 +18339,35 @@
         "verification/ios26-baseline/candidate-1/receipt.json",
         "verification/android-native-appearance-v2/candidate-16-root-review/acceptance.json"
       ],
-      "remaining": "Separate native FieldLog offline iOS workflow passes isolated physical iPhone tests, including exact draft restoration and native report preview. Auth/backend/real users, photo/permission/accessibility/device/performance matrices, broader public MixerUI/guest/plugin adoption, Android app, store readiness and D0-D8 remain open. Initial public MixerCore task-feature adoption passes 17 host tests and unchanged simulator UI workflow; Android/Wasm shared source cross-compiles but is not executed there. Hosted35a9a36 passed GCC fixture/bridge48 per mode/activation113, then found SwiftUI teardown reentrant publication. Scoped repair passes13 presentation tests per Debug/Release plus12 TSan,2 independent probes and mobile module compilation; pinned hosted/current-repair native visible qualification remain pending. Exact reactor diagnostic covers79832 defined bodies with six current control-limit rejects; max control depth379 including function, parameters+locals181 and scalar-arity operand-height67. All150 current bindings audited; reference execution is not owned execution or release qualification. Cache-backed frozen-profile execution and standalone exact34 WASI adapter pass combined244 plus9 explicit reference checks per mode,4 executor and6 WASI independent probes. Constructor diagnostic accounting repaired; new-feature hosted CI passes at92e93b2 and e299f1a. Full Swift policy/proof and execution integration remain open. Pinned teardown CI5a5b395 and fresh current-source Mac native save/health/storage/close flow now pass; caaa005 remains a failed CI run; independent noise reproduces unsound observer accounting, repaired test-only observers preserve exact assertions and measurements in Debug/Release with and without noise. The exact CI allocation origin is unattributed. Hosted92e93b2 and e299f1a now pass all three jobs. Android bounded C transport has26 owner plus9 independent cases per host mode and API30link proof. Fence-progress wake, prebind counted reservation and actual Swift/JNI/Looper integration remain open. Nondefault fixed-policy full reactor validation now passes all79832 bodies and147 independent adversarial cases with exact legacy budget/observation parity; root audits1071 bindings. Combined263+9 tests per mode and old feature matrices pass. Hosted8296296 all three jobs pass. Full Swift runtime/WASI composition, size budget and specified external acceptance remain open; validation creates no execution/release authority. Presentation obligation prerequisite now passes scoped Debug/Release/TSan and complete-module reservation checks; root audits410 bindings. Corrected Android staged binding contract accepted, implementation remains incomplete. Common lifetime/setup, C facade/UI-entry/progress, Swift binding/JNI and exact display/health remain next. No physical/platform/GA qualification inferred. Hostedf19cf9f/401e16c VM/services pass but Swiftfailed respectively HTTPcleanupassertion and wasm32dependencyfalsepositive. Scopedtest-onlyclockrepair and guardrepair pass locally with source-bound evidence; exacthostedHTTPorderingunattributed and pinnedCIrecheckpending. No gatechanged. Private C facade/entry/progress stage passes248 owner and292 independent host cases across four modes, API30arm64 compile/link checks,301 root evidence bindings and146 portable host checks. New Linux CI pending. Actual Swift/JNI consumer joins, view cleanup, Android display/health and physical qualification remain open; no signed UI mode or GA acceptance enabled. Private Swift runtime-control foundation accepted after24 owner and7 independent probes per mode,287 combined+9 reference tests per Debug/Release and563 root evidence bindings. No cache/executor/WASI composition or target execution. Hosted22d048c confirms HTTP/guard repairs but fails later cold-start ordering fixture; d6505ac VM fails another process-wide allocation observer with+4calls/+900bytes, exact origin unknown; Android host step skipped. Repairs underway, no gate changed. Common presentation lifetime/setup integration reviewed with actual Task joins and final view retirement; root audits1163 bindings. Test-only cold-start race repair passes15 expected deterministic outcomes; exact hosted ordering unproven. Hosted020f909 prior foundation all3jobs pass including Android host C regression. New presentation hosted, Android binding/display, devices and specified GA acceptance remain open. Remaining3 allocation observers repaired without product changes; all69assertions/17measurements exact. Independent43checks across4runs and exact5test CI noiseD/R commands pass; root audits546bindings. Hostedcauseunattributed; newhosted/device/GA qualification remains pending. Updated product-plan section8.3 requires shared-theme design parity: same layout, hierarchy, content, colors, typography scale, iconography, spacing and component appearance on iOS/Android. Current platform-default controls do not satisfy it. Shared appearance schema and both adapters require coordinated implementation, explicit opt-in for platform-specific app appearance, and side-by-side physical reference-screen review. Native accessibility/navigation/text input and system-owned surfaces remain native. Legitimate text-shaping/rasterization/density/safe-area differences are permitted. Physical design-parity evidence remains pending while phones are disconnected; prior interaction receipts do not qualify this requirement. Apple reference measurement accepted within simulator scope:24captures/12D-Rprofiles,385rootbindings; independentImageIO reproduces all24decodedpixelhashes,16historical+12D-Rexactcomparisons. Per-role accessibility/font and component recipe refinement/native consumption/physical parity remain pending. Hosted5988e4a all3jobs pass. Java appearance resolution now accepted as pure data with 183 root bindings; twelve native type profiles/contextual font candidates accepted with 571 bindings and eighteen byte-identical PNGs. Android preference mapping, measured geometry recipe and native consumption remain pending. Hosted7c2baeb all three jobs pass; c687e69 TSan fault-leave timeout remains recorded and test-precondition repair is under qualification. Shape-reference integrity accepted260bindings/12byte-identicalPNGcases; authoredcurve residuals explicit. Sharedtextprofile API accepted65bindings:89SDKhosttests/profile,72publicmetrics againstrawnative reference and3502selection outcomes/profile,publiciOS/Androidmodulecompilation. Versioned measuredrecipe contract inpreparation; no native consumption/physicalparitypass. Current October24 API37 candidate16 now qualifies the private Android consumer Section/baseline repairs:570 main+120 first+120 last+14 inset native assertions and5 rejection installations;9 current capture scenes, exactsource/build binding, owned emulator stopped. Ordinary engine/JNI/native join, cross-platform appearance/full resources/OS support, physical and GA remain pending."
+      "remaining": "Separate native FieldLog offline iOS workflow passes isolated physical iPhone tests, including exact draft restoration and native report preview. Auth/backend/real users, photo/permission/accessibility/device/performance matrices, broader public MixerUI/guest/plugin adoption, Android app, store readiness and D0-D8 remain open. Initial public MixerCore task-feature adoption passes 17 host tests and unchanged simulator UI workflow; Android/Wasm shared source cross-compiles but is not executed there. Hosted35a9a36 passed GCC fixture/bridge48 per mode/activation113, then found SwiftUI teardown reentrant publication. Scoped repair passes13 presentation tests per Debug/Release plus12 TSan,2 independent probes and mobile module compilation; pinned hosted/current-repair native visible qualification remain pending. Exact reactor diagnostic covers79832 defined bodies with six current control-limit rejects; max control depth379 including function, parameters+locals181 and scalar-arity operand-height67. All150 current bindings audited; reference execution is not owned execution or release qualification. Cache-backed frozen-profile execution and standalone exact34 WASI adapter pass combined244 plus9 explicit reference checks per mode,4 executor and6 WASI independent probes. Constructor diagnostic accounting repaired; new-feature hosted CI passes at92e93b2 and e299f1a. Full Swift policy/proof and execution integration remain open. Pinned teardown CI5a5b395 and fresh current-source Mac native save/health/storage/close flow now pass; caaa005 remains a failed CI run; independent noise reproduces unsound observer accounting, repaired test-only observers preserve exact assertions and measurements in Debug/Release with and without noise. The exact CI allocation origin is unattributed. Hosted92e93b2 and e299f1a now pass all three jobs. Android bounded C transport has26 owner plus9 independent cases per host mode and API30link proof. Fence-progress wake, prebind counted reservation and actual Swift/JNI/Looper integration remain open. Nondefault fixed-policy full reactor validation now passes all79832 bodies and147 independent adversarial cases with exact legacy budget/observation parity; root audits1071 bindings. Combined263+9 tests per mode and old feature matrices pass. Hosted8296296 all three jobs pass. Full Swift runtime/WASI composition, size budget and specified external acceptance remain open; validation creates no execution/release authority. Presentation obligation prerequisite now passes scoped Debug/Release/TSan and complete-module reservation checks; root audits410 bindings. Corrected Android staged binding contract accepted, implementation remains incomplete. Common lifetime/setup, C facade/UI-entry/progress, Swift binding/JNI and exact display/health remain next. No physical/platform/GA qualification inferred. Hostedf19cf9f/401e16c VM/services pass but Swiftfailed respectively HTTPcleanupassertion and wasm32dependencyfalsepositive. Scopedtest-onlyclockrepair and guardrepair pass locally with source-bound evidence; exacthostedHTTPorderingunattributed and pinnedCIrecheckpending. No gatechanged. Private C facade/entry/progress stage passes248 owner and292 independent host cases across four modes, API30arm64 compile/link checks,301 root evidence bindings and146 portable host checks. New Linux CI pending. Actual Swift/JNI consumer joins, view cleanup, Android display/health and physical qualification remain open; no signed UI mode or GA acceptance enabled. Private Swift runtime-control foundation accepted after24 owner and7 independent probes per mode,287 combined+9 reference tests per Debug/Release and563 root evidence bindings. No cache/executor/WASI composition or target execution. Hosted22d048c confirms HTTP/guard repairs but fails later cold-start ordering fixture; d6505ac VM fails another process-wide allocation observer with+4calls/+900bytes, exact origin unknown; Android host step skipped. Repairs underway, no gate changed. Common presentation lifetime/setup integration reviewed with actual Task joins and final view retirement; root audits1163 bindings. Test-only cold-start race repair passes15 expected deterministic outcomes; exact hosted ordering unproven. Hosted020f909 prior foundation all3jobs pass including Android host C regression. New presentation hosted, Android binding/display, devices and specified GA acceptance remain open. Remaining3 allocation observers repaired without product changes; all69assertions/17measurements exact. Independent43checks across4runs and exact5test CI noiseD/R commands pass; root audits546bindings. Hostedcauseunattributed; newhosted/device/GA qualification remains pending. Updated product-plan section8.3 requires shared-theme design parity: same layout, hierarchy, content, colors, typography scale, iconography, spacing and component appearance on iOS/Android. Current platform-default controls do not satisfy it. Shared appearance schema and both adapters require coordinated implementation, explicit opt-in for platform-specific app appearance, and side-by-side physical reference-screen review. Native accessibility/navigation/text input and system-owned surfaces remain native. Legitimate text-shaping/rasterization/density/safe-area differences are permitted. Physical design-parity evidence remains pending while phones are disconnected; prior interaction receipts do not qualify this requirement. Apple reference measurement accepted within simulator scope:24captures/12D-Rprofiles,385rootbindings; independentImageIO reproduces all24decodedpixelhashes,16historical+12D-Rexactcomparisons. Per-role accessibility/font and component recipe refinement/native consumption/physical parity remain pending. Hosted5988e4a all3jobs pass. Java appearance resolution now accepted as pure data with 183 root bindings; twelve native type profiles/contextual font candidates accepted with 571 bindings and eighteen byte-identical PNGs. Android preference mapping, measured geometry recipe and native consumption remain pending. Hosted7c2baeb all three jobs pass; c687e69 TSan fault-leave timeout remains recorded and test-precondition repair is under qualification. Shape-reference integrity accepted260bindings/12byte-identicalPNGcases; authoredcurve residuals explicit. Sharedtextprofile API accepted65bindings:89SDKhosttests/profile,72publicmetrics againstrawnative reference and3502selection outcomes/profile,publiciOS/Androidmodulecompilation. Versioned measuredrecipe contract inpreparation; no native consumption/physicalparitypass. Current October24 API37 candidate16 now qualifies the private Android consumer Section/baseline repairs:570 main+120 first+120 last+14 inset native assertions and5 rejection installations;9 current capture scenes, exactsource/build binding, owned emulator stopped. Ordinary engine/JNI/native join, cross-platform appearance/full resources/OS support, physical and GA remain pending.",
+      "activePublicSDKFlow": {
+        "agent": "fieldlog_public_sdk_flow",
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "xhigh",
+        "selection": {
+          "path": "verification/fieldlog-public-sdk-root-review/next-flow-selection.json",
+          "bytes": 4117,
+          "sha256": "5bae06897e9d6fb8502e6652beb1daf29c509800bb3ac4ae52c92db9c0207fdb"
+        },
+        "scope": "Shared TaskEditor document/event/routing owner consumed by existing native iOS form, preserve multiline/durable behavior and immutable SDK pin",
+        "host_test_selected": true,
+        "host_test_run": true,
+        "native_UI_runtime_selected": false,
+        "Android_async_persistence_and_shared_renderer_pending": true,
+        "GA_accepted": false,
+        "host_test_state": {
+          "status": "dependency-fetch-timeout; no test pass; cleanup unverified",
+          "command_receipt": "verification/fieldlog-public-sdk-root-review/host-attempt-1-command.json",
+          "output": "verification/fieldlog-public-sdk-root-review/host-attempt-1.log",
+          "executed_wrapper_preserved": "verification/fieldlog-public-sdk-root-review/host-wrapper-attempt-1.py",
+          "observed_frontier": "Fetching published Mixer repository; no compiler or test result",
+          "elapsed_seconds": 570.083,
+          "exact_child_PID_retained": false,
+          "owned_group_absence_verified": false,
+          "next_local_compiler_selected": false,
+          "no_alternate_actor_or_process_inventory_selected": true
+        }
+      }
     },
     {
       "id": "W18",

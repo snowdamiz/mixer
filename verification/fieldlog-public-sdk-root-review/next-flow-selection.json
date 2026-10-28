@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T17:46:57.000516+00:00",
+  "source_selection_snapshot": {
+    "schema": 1,
+    "at": "2026-10-28T17:31:56.749745+00:00",
+    "agent": {
+      "model": "gpt-6.1-sol",
+      "reasoningEffort": "xhigh",
+      "freshContext": true
+    },
+    "status": "implementation-selected-awaiting-coordinator-file-ownership-and-host-compiler-slot",
+    "fieldlogRepository": "/Users/andreyyurlov/Documents/dev/fieldlog",
+    "fieldlogRevision": "82192341e6dd8c7ac2435dcf7cc4541f0af71e1f",
+    "fieldlogInitialStatus": "",
+    "baselineSources": [
+      {
+        "path": "AGENTS.md",
+        "sha256": "9b5ae48fb638ba82aa08e95f5ae88b9c0125629de1b08d8d3e5115f72645da97"
+      },
+      {
+        "path": "Package.swift",
+        "sha256": "1973991a7d948bf04287fee7b6f3bd27a641797cb209794b3374de9bb08e8fd9"
+      },
+      {
+        "path": "Package.resolved",
+        "sha256": "42ad8be64335daf00cef4aa4c5a204cb7f54981af6260a15cca1cc9bb8f947e2"
+      },
+      {
+        "path": "Sources/FieldLogFeatures/TaskEditor.swift",
+        "sha256": "ef5321a92467868227007b856aca5c7ed142e5337d8dbb20a07e0e3394335310"
+      },
+      {
+        "path": "ios/FieldLog/ProjectDetail.swift",
+        "sha256": "7323edc388887af50c332f7e196177787b6eac313cb4b91f650797a88ca6975d"
+      },
+      {
+        "path": "ios/FieldLog.xcodeproj/project.pbxproj",
+        "sha256": "8d4509087be0c53925e49eab63d53c3105aad0147d17d90822c3f71a63ae459f"
+      },
+      {
+        "path": "README.md",
+        "sha256": "406fc8c95c60fdad3f01f9edb6a50a33631150b9dedc5ed60e6f1e651010f003"
+      }
+    ],
+    "selectedBehavior": "Public MixerUI task editor document/event ownership with validation, exact input retention, one durable save, cancel and terminal owner closure; continue actual iOS app integration without waiting for VM",
+    "publicDependency": {
+      "url": "https://github.com/snowdamiz/mixer.git",
+      "revision": "d8c6965a277ca21e685f3ef9e0f68a7d59b46156",
+      "localOverride": false
+    },
+    "integrationGaps": [
+      "Existing iOS NewTaskView uses MixerCore through TaskEditor but constructs all input and navigation with native SwiftUI rather than MixerUI.",
+      "Published MixerApple TextField lacks vertical title growth present in FieldLog. No silent behavior reduction is selected.",
+      "Current public MixerApple renders platform-default controls, so a public MixerUI slice cannot claim section8.3 shared-theme parity.",
+      "AndroidDocumentSession documented reducer is synchronous under non-reentrant lock and forbids I/O, async work and shared mutable references; FieldLog asynchronous fsync repository cannot be inserted into that reducer. A public asynchronous effect/persistence host seam is needed for real Android durable app adoption."
+    ],
+    "proposedHostCommand": [
+      "swift",
+      "test",
+      "--package-path",
+      "/Users/andreyyurlov/Documents/dev/fieldlog",
+      "--scratch-path",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/local/fieldlog-public-sdk-next-flow-host",
+      "--jobs",
+      "2"
+    ],
+    "forbiddenActionsPreserved": [
+      "No runtime, simulator/emulator, physical-device, UI automation or capture runs",
+      "No Android stopped v5 review or equivalent experiment",
+      "No private engine imports or V2 staging bypass",
+      "No UnitA/local PostgreSQL/test-local/broad hosted harness",
+      "No local-custody or unknown process/PID/global inventory actions",
+      "No Git/index or parent planning/gate edits"
+    ],
+    "limitations": [
+      "No D0-D8 or GA gate acceptance",
+      "No shared-theme or physical design parity acceptance",
+      "No immutable release package/store or customer qualification",
+      "Host or object/module build evidence remains scoped separately from native behavior"
+    ]
+  },
+  "scope": "Root selected actual public document/event ownership in existing native form, preserving multiline rendering and immutable pin. Host test in progress; no acceptance.",
+  "compiler_run_selected": true,
+  "native_runtime_selected": false,
+  "active_source_packet_excluded_from_Mixer_delivery": true
+}
