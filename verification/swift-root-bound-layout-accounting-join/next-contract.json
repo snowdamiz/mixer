@@ -1,0 +1,64 @@
+{
+  "aliasing_rules": [
+    "Nested field extents are contained in their complete aggregate, not added as new allocations.",
+    "Same owned payload moved between places does not prove physical slot overlap or new allocation.",
+    "Alternative enum arms are not summed; call/return and cleanup overlaps require evidence.",
+    "Shared backing is charged once to its complete live ownership set through final destruction; borrowed views retain distinct representation only.",
+    "Unknown backing capacities or live regions refuse admission, never default to zero."
+  ],
+  "arithmetic": "Use checked finite integer byte arithmetic; account for full selected storage-region capacity/alignment/padding. Work units/prices remain independently selected later.",
+  "events": [
+    "scope pair produced and original acquisition charge sticky",
+    "attempt/fixture move into actual closure; expected remains borrowed",
+    "dispatch call and complete admitted child return",
+    "shared inspection while complete child remains live",
+    "complete child destruction/cleanup and child-only token returned to separately provisioned P0",
+    "child-only release; original acquisition charge remains retained"
+  ],
+  "next_slice": "Bind the dispatch closure, complete returned child and destruction boundary to explicit physical storage regions and normal/refusal/unwind live intervals; retain all unobserved callee/parent/token and carried backing inputs. This is a representation/lifetime contract before a charge selection.",
+  "not_qualified": [
+    "physical stack/peak",
+    "allocator or File/OS backing capacities",
+    "durable forgotten-root funding",
+    "dynamic work/drop/std-library prices",
+    "useful joint retirement/root shutdown",
+    "native/runtime/FieldLog/OTA/GA"
+  ],
+  "numeric_leaves": [
+    {
+      "align_bytes": 8,
+      "layout": "L29",
+      "size_bytes": 48,
+      "use": "single actual dispatch closure representation only"
+    },
+    {
+      "align_bytes": 8,
+      "layout": "L25",
+      "size_bytes": 13640,
+      "use": "single complete returned child owner representation only"
+    },
+    {
+      "align_bytes": 8,
+      "layout": "L20",
+      "size_bytes": 56,
+      "use": "single complete scope pair representation only"
+    },
+    {
+      "align_bytes": 8,
+      "layout": "L19",
+      "size_bytes": 16,
+      "use": "single primary shared-view representation only"
+    },
+    {
+      "align_bytes": 8,
+      "layout": "L28",
+      "size_bytes": 8,
+      "use": "single Option<&admitted> shared-view representation only"
+    }
+  ],
+  "schema": 1,
+  "select_storage_grant": false,
+  "select_work_prices": false,
+  "status": "SOURCE_ONLY_MINIMUM_INCREMENTAL_CONTRACT_PROPOSAL",
+  "storage_expression": "B_peak >= max_t(bytes(union of proven live physical inline regions at t) + unique separately retained backing capacities at t + independently provisioned parent/token regions). No numeric bound until every term and overlap is established."
+}

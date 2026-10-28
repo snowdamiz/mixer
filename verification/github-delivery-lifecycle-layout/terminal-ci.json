@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T02:01:24.810599+00:00",
+  "terminal": {
+    "status": "Engine-passed-Phoenix-failed-six-existing-fixture-teardowns",
+    "commit": "fd92138ac0b8c4ecd0d872a9050204da5ceb5d2f",
+    "Engine": {
+      "run": 40616510859,
+      "url": "https://github.com/snowdamiz/mixer/actions/runs/40616510859",
+      "attempt": 1,
+      "jobs_passed": 6,
+      "steps_passed": 64,
+      "steps_skipped": 0,
+      "observation": {
+        "path": "verification/github-delivery-lifecycle-layout/ci-jobs-6.stdout",
+        "bytes": 12890,
+        "sha256": "c6eeed48fce6586e22f53ec6d3217188337b8f71b1a192c661993375c75c4010"
+      }
+    },
+    "Phoenix": {
+      "status": "Phoenix-failed-six-existing-fixture-teardown-races-Engine-pending",
+      "workflow": {
+        "databaseId": 40616510786,
+        "headSha": "fd92138ac0b8c4ecd0d872a9050204da5ceb5d2f",
+        "status": "completed",
+        "conclusion": "failure",
+        "attempt": 1,
+        "url": "https://github.com/snowdamiz/mixer/actions/runs/40616510786"
+      },
+      "workflow_steps": 13,
+      "job_observation": {
+        "path": "verification/github-delivery-lifecycle-layout/ci-jobs-3.stdout",
+        "bytes": 2690,
+        "sha256": "167d524e3566e000592d53be0590a961adcd2bcf67fb23e459de282a6b6d1b8d"
+      },
+      "artifact_selection": {
+        "path": "verification/github-delivery-lifecycle-layout/artifact-selection.json",
+        "bytes": 1563,
+        "sha256": "4530b9f8378f2590f9c40a2b76d27a953b9785918c5034d1c6be4d71bbce9f81"
+      },
+      "remote_receipt": {
+        "path": "verification/github-delivery-lifecycle-layout/phoenix-remote-artifact/receipt.json",
+        "bytes": 55463,
+        "sha256": "089f8f7a1ed250bbceb00464444d932b3458be106d96caa8d44c96e9492e678a"
+      },
+      "remote_test_log": {
+        "path": "verification/github-delivery-lifecycle-layout/phoenix-remote-artifact/tests.log",
+        "bytes": 181773,
+        "sha256": "7862767965b6263a5dcc8e2b3c4b119c398eda37e7961897e151aada2ee398f2"
+      },
+      "source_hashes_match": [
+        "hosted/lib/mixer_hosted/identity/admission.ex",
+        "hosted/lib/mixer_hosted/identity/key_owner.ex",
+        "hosted/test/mixer_hosted/identity/key_owner_lifecycle_test.exs"
+      ],
+      "passed": 684,
+      "failed": 6,
+      "existing_skipped": 2,
+      "failure_cases": [
+        "K01 manifest limits and immutable identity transitions",
+        "K08 cold storm single flight, admission and FIFO negative cache",
+        "K08b eight configured profiles cannot open a fifth owned flight",
+        "K09 actual HTTPS rotation and invalid-candidate retention",
+        "K01b all-or-nothing versioned replacement and bounded churn tombstones",
+        "K01 lifetime identity history survives expired cooldown tombstones"
+      ],
+      "all_seven_new_lifecycle_cases_passed": true,
+      "format_and_compile_passed": true,
+      "cleanup": {
+        "postgres_stopped": true,
+        "scratch_removed": true
+      },
+      "correction_lane": "verification/console-key-owner-fixture-cleanup-ci-correction",
+      "diagnosis": "Existing direct-linked fixture owner races its test-parent shutdown against on_exit GenServer.stop after trap_exit is enabled. Explicit test-supervisor ownership is selected for correction; no production behavior is relaxed.",
+      "local_broad_harness_replay_authorized": false,
+      "GA_accepted": false
+    },
+    "all_workflows_passed": false,
+    "GA_accepted": false
+  },
+  "GA_verified": 0,
+  "metadata": [
+    {
+      "path": "PLAN.md",
+      "bytes": 129006,
+      "sha256": "b03e7c4ac368ae1d427a204d220e9bc545c7f69270139fecec6121700e3caa50"
+    },
+    {
+      "path": "STATUS.md",
+      "bytes": 148138,
+      "sha256": "d9848fb6b80a1f970090509d0cbd3a0e599f8c495ae58709ef8ae6a24ddcda4c"
+    },
+    {
+      "path": "work-graph.json",
+      "bytes": 1224670,
+      "sha256": "ae640bd7d613f956c8204d8610f35cd017e8be6fc6809036ce85a3fb733d0e03"
+    },
+    {
+      "path": "gates/ga.json",
+      "bytes": 1137886,
+      "sha256": "e8ea0cb3cfd27fdcd00ff6f2a51109360dc7a74a6d99a39fe1aba6c24f6cea83"
+    }
+  ]
+}

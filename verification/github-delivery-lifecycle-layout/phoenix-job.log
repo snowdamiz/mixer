@@ -1,0 +1,855 @@
+﻿2026-10-28T01:41:13.4105059Z Current runner version: '2.338.0'
+2026-10-28T01:41:13.4128636Z ##[group]Runner Image Provisioner
+2026-10-28T01:41:13.4129385Z Hosted Compute Agent
+2026-10-28T01:41:13.4129962Z Version: 20261021.618
+2026-10-28T01:41:13.4130492Z Commit: 21505ad2541d5be6135ed84fc33697146cf75b8e
+2026-10-28T01:41:13.4131248Z Build Date: 2026-10-21T00:45:21Z
+2026-10-28T01:41:13.4131838Z Worker ID: {9c5bb432-1cda-4e26-9beb-394878b613ee}
+2026-10-28T01:41:13.4132426Z Region: eastus
+2026-10-28T01:41:13.4132931Z Cloud: Azure
+2026-10-28T01:41:13.4133380Z ##[endgroup]
+2026-10-28T01:41:13.4134511Z ##[group]Operating System
+2026-10-28T01:41:13.4135360Z Ubuntu
+2026-10-28T01:41:13.4135796Z 24.04.5
+2026-10-28T01:41:13.4136200Z LTS
+2026-10-28T01:41:13.4136668Z ##[endgroup]
+2026-10-28T01:41:13.4137148Z ##[group]Runner Image
+2026-10-28T01:41:13.4137650Z Image: ubuntu-24.04
+2026-10-28T01:41:13.4138127Z Version: 20261012.334.1
+2026-10-28T01:41:13.4139185Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-28T01:41:13.4140413Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+2026-10-28T01:41:13.4141333Z ##[endgroup]
+2026-10-28T01:41:13.4142252Z ##[group]GITHUB_TOKEN Permissions
+2026-10-28T01:41:13.4144066Z Contents: read
+2026-10-28T01:41:13.4144626Z Metadata: read
+2026-10-28T01:41:13.4145068Z ##[endgroup]
+2026-10-28T01:41:13.4146918Z Secret source: Actions
+2026-10-28T01:41:13.4147671Z Cache mode: write
+2026-10-28T01:41:13.4148524Z Prepare workflow directory
+2026-10-28T01:41:13.4414385Z Prepare all required actions
+2026-10-28T01:41:13.4454622Z Getting action download info
+2026-10-28T01:41:13.6623623Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-10-28T01:41:14.3689592Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-10-28T01:41:14.4969866Z Download action repository 'erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124' (SHA:54075bcc5e249e4758d363f27d099f55d843f124)
+2026-10-28T01:41:14.6616593Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-10-28T01:41:14.9029305Z Complete job name: phoenix
+2026-10-28T01:41:14.9798362Z ##[group]Run actions/checkout@v4
+2026-10-28T01:41:14.9799111Z with:
+2026-10-28T01:41:14.9799497Z   repository: snowdamiz/mixer
+2026-10-28T01:41:14.9803280Z   token: ***
+2026-10-28T01:41:14.9803666Z   ssh-strict: true
+2026-10-28T01:41:14.9804047Z   ssh-user: git
+2026-10-28T01:41:14.9804438Z   persist-credentials: true
+2026-10-28T01:41:14.9804866Z   clean: true
+2026-10-28T01:41:14.9805253Z   sparse-checkout-cone-mode: true
+2026-10-28T01:41:14.9805701Z   fetch-depth: 1
+2026-10-28T01:41:14.9806079Z   fetch-tags: false
+2026-10-28T01:41:14.9806475Z   show-progress: true
+2026-10-28T01:41:14.9806880Z   lfs: false
+2026-10-28T01:41:14.9807233Z   submodules: false
+2026-10-28T01:41:14.9807623Z   set-safe-directory: true
+2026-10-28T01:41:14.9808054Z   allow-unsafe-pr-checkout: false
+2026-10-28T01:41:14.9808741Z ##[endgroup]
+2026-10-28T01:41:15.6103415Z Syncing repository: snowdamiz/mixer
+2026-10-28T01:41:15.6106424Z ##[group]Getting Git version info
+2026-10-28T01:41:15.6107912Z Working directory is '/home/runner/work/mixer/mixer'
+2026-10-28T01:41:15.6110101Z [command]/usr/bin/git version
+2026-10-28T01:41:15.6154383Z git version 2.55.0
+2026-10-28T01:41:15.6171969Z ##[endgroup]
+2026-10-28T01:41:15.6185825Z Temporarily overriding HOME='/home/runner/work/_temp/53b297ea-0632-4991-8ba1-65d31a6660e0' before making global git config changes
+2026-10-28T01:41:15.6189681Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-28T01:41:15.6193097Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/mixer/mixer
+2026-10-28T01:41:15.6243686Z Deleting the contents of '/home/runner/work/mixer/mixer'
+2026-10-28T01:41:15.6249787Z ##[group]Initializing the repository
+2026-10-28T01:41:15.6257301Z [command]/usr/bin/git init /home/runner/work/mixer/mixer
+2026-10-28T01:41:15.7408377Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-28T01:41:15.7411380Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-28T01:41:15.7413795Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-28T01:41:15.7415715Z hint: call:
+2026-10-28T01:41:15.7416993Z hint:
+2026-10-28T01:41:15.7419455Z hint: 	git config --global init.defaultBranch <name>
+2026-10-28T01:41:15.7421224Z hint:
+2026-10-28T01:41:15.7422969Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-28T01:41:15.7425525Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-28T01:41:15.7427424Z hint:
+2026-10-28T01:41:15.7428705Z hint: 	git branch -m <name>
+2026-10-28T01:41:15.7430072Z hint:
+2026-10-28T01:41:15.7431996Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-28T01:41:15.7434537Z Initialized empty Git repository in /home/runner/work/mixer/mixer/.git/
+2026-10-28T01:41:15.7438866Z [command]/usr/bin/git remote add origin https://github.com/snowdamiz/mixer
+2026-10-28T01:41:15.7464827Z ##[endgroup]
+2026-10-28T01:41:15.7466222Z ##[group]Disabling automatic garbage collection
+2026-10-28T01:41:15.7467603Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-28T01:41:15.7499980Z ##[endgroup]
+2026-10-28T01:41:15.7501456Z ##[group]Setting up auth
+2026-10-28T01:41:15.7505749Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-28T01:41:15.7536357Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-28T01:41:15.8664837Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-28T01:41:15.8701386Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-28T01:41:15.8910058Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-28T01:41:15.8945686Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-28T01:41:15.9143199Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-28T01:41:15.9252092Z ##[endgroup]
+2026-10-28T01:41:15.9253483Z ##[group]Fetching the repository
+2026-10-28T01:41:15.9263126Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +fd92138ac0b8c4ecd0d872a9050204da5ceb5d2f:refs/remotes/origin/main
+2026-10-28T01:42:24.3312910Z From https://github.com/snowdamiz/mixer
+2026-10-28T01:42:24.3313571Z  * [new ref]             fd92138ac0b8c4ecd0d872a9050204da5ceb5d2f -> origin/main
+2026-10-28T01:42:24.3322648Z ##[endgroup]
+2026-10-28T01:42:24.3323197Z ##[group]Determining the checkout info
+2026-10-28T01:42:24.3323725Z ##[endgroup]
+2026-10-28T01:42:24.3324058Z [command]/usr/bin/git sparse-checkout disable
+2026-10-28T01:42:24.3369834Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-28T01:42:24.3409141Z ##[group]Checking out the ref
+2026-10-28T01:42:24.3414390Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-10-28T01:42:25.8425477Z Updating files:   1% (5550/335699)
+2026-10-28T01:42:26.1055797Z Updating files:   2% (6714/335699)
+2026-10-28T01:42:26.3840036Z Updating files:   3% (10071/335699)
+2026-10-28T01:42:26.5719633Z Updating files:   4% (13428/335699)
+2026-10-28T01:42:26.7582127Z Updating files:   5% (16785/335699)
+2026-10-28T01:42:26.8802887Z Updating files:   5% (16873/335699)
+2026-10-28T01:42:27.2884432Z Updating files:   6% (20142/335699)
+2026-10-28T01:42:27.4464024Z Updating files:   7% (23499/335699)
+2026-10-28T01:42:27.5971011Z Updating files:   8% (26856/335699)
+2026-10-28T01:42:27.6297005Z Updating files:   8% (30182/335699)
+2026-10-28T01:42:27.7600665Z Updating files:   9% (30213/335699)
+2026-10-28T01:42:27.8727145Z Updating files:  10% (33570/335699)
+2026-10-28T01:42:28.0168532Z Updating files:  11% (36927/335699)
+2026-10-28T01:42:28.1610099Z Updating files:  12% (40284/335699)
+2026-10-28T01:42:28.5841243Z Updating files:  13% (43641/335699)
+2026-10-28T01:42:29.1292651Z Updating files:  13% (46255/335699)
+2026-10-28T01:42:29.5845631Z Updating files:  14% (46998/335699)
+2026-10-28T01:42:29.9664656Z Updating files:  14% (48871/335699)
+2026-10-28T01:42:30.0958064Z Updating files:  15% (50355/335699)
+2026-10-28T01:42:30.2533333Z Updating files:  16% (53712/335699)
+2026-10-28T01:42:30.3701208Z Updating files:  17% (57069/335699)
+2026-10-28T01:42:30.4904662Z Updating files:  18% (60426/335699)
+2026-10-28T01:42:30.9107696Z Updating files:  19% (63783/335699)
+2026-10-28T01:42:31.0173736Z Updating files:  19% (64299/335699)
+2026-10-28T01:42:31.1397663Z Updating files:  20% (67140/335699)
+2026-10-28T01:42:31.2593837Z Updating files:  21% (70497/335699)
+2026-10-28T01:42:31.3828672Z Updating files:  22% (73854/335699)
+2026-10-28T01:42:31.5025579Z Updating files:  23% (77211/335699)
+2026-10-28T01:42:31.5830454Z Updating files:  24% (80568/335699)
+2026-10-28T01:42:32.3158029Z Updating files:  24% (82557/335699)
+2026-10-28T01:42:32.4299960Z Updating files:  25% (83925/335699)
+2026-10-28T01:42:32.5897248Z Updating files:  26% (87282/335699)
+2026-10-28T01:42:32.7541718Z Updating files:  26% (89162/335699)
+2026-10-28T01:42:32.8775343Z Updating files:  27% (90639/335699)
+2026-10-28T01:42:33.1492897Z Updating files:  28% (93996/335699)
+2026-10-28T01:42:33.3305523Z Updating files:  29% (97353/335699)
+2026-10-28T01:42:33.6335849Z Updating files:  30% (100710/335699)
+2026-10-28T01:42:33.6446034Z Updating files:  30% (104060/335699)
+2026-10-28T01:42:33.8289176Z Updating files:  31% (104067/335699)
+2026-10-28T01:42:33.9705339Z Updating files:  32% (107424/335699)
+2026-10-28T01:42:34.2706825Z Updating files:  33% (110781/335699)
+2026-10-28T01:42:34.5830164Z Updating files:  34% (114138/335699)
+2026-10-28T01:42:35.1044843Z Updating files:  34% (114998/335699)
+2026-10-28T01:42:35.4002231Z Updating files:  35% (117495/335699)
+2026-10-28T01:42:35.5948359Z Updating files:  36% (120852/335699)
+2026-10-28T01:42:35.8821422Z Updating files:  36% (122672/335699)
+2026-10-28T01:42:36.2571044Z Updating files:  37% (124209/335699)
+2026-10-28T01:42:36.4366914Z Updating files:  38% (127566/335699)
+2026-10-28T01:42:36.5830029Z Updating files:  39% (130923/335699)
+2026-10-28T01:42:36.6973034Z Updating files:  39% (132650/335699)
+2026-10-28T01:42:37.8918063Z Updating files:  40% (134280/335699)
+2026-10-28T01:42:37.9613203Z Updating files:  40% (136527/335699)
+2026-10-28T01:42:38.7737510Z Updating files:  41% (137637/335699)
+2026-10-28T01:42:39.0258099Z Updating files:  41% (140907/335699)
+2026-10-28T01:42:39.8275286Z Updating files:  42% (140994/335699)
+2026-10-28T01:42:40.5673416Z Updating files:  42% (141458/335699)
+2026-10-28T01:42:40.5828916Z Updating files:  43% (144351/335699)
+2026-10-28T01:42:41.3416919Z Updating files:  43% (144701/335699)
+2026-10-28T01:42:41.5831421Z Updating files:  44% (147708/335699)
+2026-10-28T01:42:41.9719222Z Updating files:  44% (148644/335699)
+2026-10-28T01:42:42.9799975Z Updating files:  45% (151065/335699)
+2026-10-28T01:42:43.5947318Z Updating files:  45% (151826/335699)
+2026-10-28T01:42:43.6317334Z Updating files:  45% (153617/335699)
+2026-10-28T01:42:44.5844773Z Updating files:  46% (154422/335699)
+2026-10-28T01:42:45.5988019Z Updating files:  46% (155018/335699)
+2026-10-28T01:42:46.6310618Z Updating files:  46% (155378/335699)
+2026-10-28T01:42:47.5831155Z Updating files:  46% (155990/335699)
+2026-10-28T01:42:47.6832998Z Updating files:  46% (157558/335699)
+2026-10-28T01:42:48.6456271Z Updating files:  47% (157779/335699)
+2026-10-28T01:42:49.2254622Z Updating files:  47% (160126/335699)
+2026-10-28T01:42:49.5865343Z Updating files:  48% (161136/335699)
+2026-10-28T01:42:50.0751331Z Updating files:  48% (163424/335699)
+2026-10-28T01:42:50.6184270Z Updating files:  49% (164493/335699)
+2026-10-28T01:42:50.8829593Z Updating files:  49% (165413/335699)
+2026-10-28T01:42:51.2837039Z Updating files:  50% (167850/335699)
+2026-10-28T01:42:51.5855957Z Updating files:  51% (171207/335699)
+2026-10-28T01:42:51.9911815Z Updating files:  51% (172998/335699)
+2026-10-28T01:42:52.7367616Z Updating files:  52% (174564/335699)
+2026-10-28T01:42:53.5479459Z Updating files:  52% (175884/335699)
+2026-10-28T01:42:53.5830621Z Updating files:  53% (177921/335699)
+2026-10-28T01:42:54.5830256Z Updating files:  53% (178025/335699)
+2026-10-28T01:42:54.6711640Z Updating files:  53% (181050/335699)
+2026-10-28T01:42:55.5969042Z Updating files:  54% (181278/335699)
+2026-10-28T01:42:56.0128519Z Updating files:  54% (183433/335699)
+2026-10-28T01:42:56.5894417Z Updating files:  55% (184635/335699)
+2026-10-28T01:42:56.8715124Z Updating files:  55% (186809/335699)
+2026-10-28T01:42:57.6515384Z Updating files:  56% (187992/335699)
+2026-10-28T01:42:58.6627731Z Updating files:  56% (189420/335699)
+2026-10-28T01:42:59.5864477Z Updating files:  56% (189580/335699)
+2026-10-28T01:42:59.7090887Z Updating files:  56% (191071/335699)
+2026-10-28T01:43:00.5977961Z Updating files:  57% (191349/335699)
+2026-10-28T01:43:00.7563493Z Updating files:  57% (193836/335699)
+2026-10-28T01:43:01.1077866Z Updating files:  58% (194706/335699)
+2026-10-28T01:43:01.3759826Z Updating files:  59% (198063/335699)
+2026-10-28T01:43:01.5833872Z Updating files:  60% (201420/335699)
+2026-10-28T01:43:01.9349061Z Updating files:  60% (202857/335699)
+2026-10-28T01:43:02.4202499Z Updating files:  61% (204777/335699)
+2026-10-28T01:43:02.6043679Z Updating files:  62% (208134/335699)
+2026-10-28T01:43:02.7499043Z Updating files:  62% (208292/335699)
+2026-10-28T01:43:03.1145897Z Updating files:  63% (211491/335699)
+2026-10-28T01:43:03.5149814Z Updating files:  64% (214848/335699)
+2026-10-28T01:43:03.5830971Z Updating files:  65% (218205/335699)
+2026-10-28T01:43:04.3416075Z Updating files:  65% (219332/335699)
+2026-10-28T01:43:04.5877276Z Updating files:  66% (221562/335699)
+2026-10-28T01:43:05.1761494Z Updating files:  66% (222636/335699)
+2026-10-28T01:43:05.5833454Z Updating files:  67% (224919/335699)
+2026-10-28T01:43:06.6224869Z Updating files:  67% (225588/335699)
+2026-10-28T01:43:07.6126126Z Updating files:  67% (226213/335699)
+2026-10-28T01:43:08.5851960Z Updating files:  67% (226684/335699)
+2026-10-28T01:43:09.6462174Z Updating files:  67% (227207/335699)
+2026-10-28T01:43:10.0743854Z Updating files:  67% (228115/335699)
+2026-10-28T01:43:10.5897888Z Updating files:  68% (228276/335699)
+2026-10-28T01:43:11.5928313Z Updating files:  68% (229211/335699)
+2026-10-28T01:43:11.6020531Z Updating files:  68% (231358/335699)
+2026-10-28T01:43:12.5865025Z Updating files:  69% (231633/335699)
+2026-10-28T01:43:12.8327187Z Updating files:  69% (234327/335699)
+2026-10-28T01:43:13.5174448Z Updating files:  70% (234990/335699)
+2026-10-28T01:43:13.5830322Z Updating files:  71% (238347/335699)
+2026-10-28T01:43:14.4198516Z Updating files:  71% (239498/335699)
+2026-10-28T01:43:14.5848652Z Updating files:  72% (241704/335699)
+2026-10-28T01:43:15.5857960Z Updating files:  72% (242557/335699)
+2026-10-28T01:43:16.5974932Z Updating files:  72% (243521/335699)
+2026-10-28T01:43:17.4874697Z Updating files:  72% (243756/335699)
+2026-10-28T01:43:17.5958787Z Updating files:  73% (245061/335699)
+2026-10-28T01:43:18.6034675Z Updating files:  73% (245109/335699)
+2026-10-28T01:43:19.5935119Z Updating files:  73% (247633/335699)
+2026-10-28T01:43:19.6666725Z Updating files:  73% (248342/335699)
+2026-10-28T01:43:20.5924634Z Updating files:  74% (248418/335699)
+2026-10-28T01:43:21.6121031Z Updating files:  74% (249206/335699)
+2026-10-28T01:43:22.5940090Z Updating files:  74% (249703/335699)
+2026-10-28T01:43:23.7220249Z Updating files:  74% (249828/335699)
+2026-10-28T01:43:24.6209398Z Updating files:  74% (249877/335699)
+2026-10-28T01:43:25.6099858Z Updating files:  74% (250000/335699)
+2026-10-28T01:43:26.6187463Z Updating files:  74% (250390/335699)
+2026-10-28T01:43:27.6369119Z Updating files:  74% (251215/335699)
+2026-10-28T01:43:28.9293453Z Updating files:  74% (251368/335699)
+2026-10-28T01:43:28.9595435Z Updating files:  74% (251625/335699)
+2026-10-28T01:43:29.9332629Z Updating files:  75% (251775/335699)
+2026-10-28T01:43:30.7879368Z Updating files:  75% (252143/335699)
+2026-10-28T01:43:31.5830874Z Updating files:  75% (252354/335699)
+2026-10-28T01:43:32.5853686Z Updating files:  75% (253098/335699)
+2026-10-28T01:43:33.4377998Z Updating files:  75% (254243/335699)
+2026-10-28T01:43:33.6193732Z Updating files:  76% (255132/335699)
+2026-10-28T01:43:34.6663034Z Updating files:  76% (255546/335699)
+2026-10-28T01:43:35.6077128Z Updating files:  76% (256920/335699)
+2026-10-28T01:43:36.8590636Z Updating files:  76% (257501/335699)
+2026-10-28T01:43:37.6978310Z Updating files:  76% (258011/335699)
+2026-10-28T01:43:38.1297800Z Updating files:  76% (258244/335699)
+2026-10-28T01:43:38.7644349Z Updating files:  77% (258489/335699)
+2026-10-28T01:43:39.6219841Z Updating files:  77% (259223/335699)
+2026-10-28T01:43:40.6290363Z Updating files:  77% (259280/335699)
+2026-10-28T01:43:41.5898462Z Updating files:  77% (259324/335699)
+2026-10-28T01:43:42.6798990Z Updating files:  77% (259368/335699)
+2026-10-28T01:43:43.4073534Z Updating files:  77% (260967/335699)
+2026-10-28T01:43:43.6418172Z Updating files:  78% (261846/335699)
+2026-10-28T01:43:44.6061005Z Updating files:  78% (262027/335699)
+2026-10-28T01:43:45.6091247Z Updating files:  78% (263026/335699)
+2026-10-28T01:43:46.6369140Z Updating files:  78% (264057/335699)
+2026-10-28T01:43:47.5835250Z Updating files:  78% (264440/335699)
+2026-10-28T01:43:47.6196392Z Updating files:  78% (265137/335699)
+2026-10-28T01:43:48.6415980Z Updating files:  79% (265203/335699)
+2026-10-28T01:43:49.4361501Z Updating files:  79% (266679/335699)
+2026-10-28T01:43:49.6295133Z Updating files:  80% (268560/335699)
+2026-10-28T01:43:50.5836477Z Updating files:  80% (268815/335699)
+2026-10-28T01:43:51.6439058Z Updating files:  80% (269414/335699)
+2026-10-28T01:43:52.6545009Z Updating files:  80% (269822/335699)
+2026-10-28T01:43:53.6593523Z Updating files:  80% (270335/335699)
+2026-10-28T01:43:54.9503824Z Updating files:  80% (271675/335699)
+2026-10-28T01:43:55.8446125Z Updating files:  80% (271710/335699)
+2026-10-28T01:43:56.4769418Z Updating files:  80% (271755/335699)
+2026-10-28T01:43:56.6961051Z Updating files:  81% (271917/335699)
+2026-10-28T01:43:57.5954372Z Updating files:  81% (272012/335699)
+2026-10-28T01:43:58.8679998Z Updating files:  81% (272236/335699)
+2026-10-28T01:43:59.6128733Z Updating files:  81% (272956/335699)
+2026-10-28T01:44:01.2377762Z Updating files:  81% (273789/335699)
+2026-10-28T01:44:01.5988831Z Updating files:  81% (274166/335699)
+2026-10-28T01:44:02.6252522Z Updating files:  81% (274881/335699)
+2026-10-28T01:44:03.5951965Z Updating files:  81% (274919/335699)
+2026-10-28T01:44:04.5831523Z Updating files:  81% (274985/335699)
+2026-10-28T01:44:04.6079276Z Updating files:  81% (275126/335699)
+2026-10-28T01:44:05.4626514Z Updating files:  82% (275274/335699)
+2026-10-28T01:44:05.5831097Z Updating files:  83% (278631/335699)
+2026-10-28T01:44:05.7206945Z Updating files:  83% (279523/335699)
+2026-10-28T01:44:06.3171229Z Updating files:  84% (281988/335699)
+2026-10-28T01:44:06.5830566Z Updating files:  85% (285345/335699)
+2026-10-28T01:44:06.7028083Z Updating files:  85% (287162/335699)
+2026-10-28T01:44:07.5956634Z Updating files:  86% (288702/335699)
+2026-10-28T01:44:07.7603558Z Updating files:  86% (291801/335699)
+2026-10-28T01:44:08.5831032Z Updating files:  87% (292059/335699)
+2026-10-28T01:44:09.0564642Z Updating files:  87% (294513/335699)
+2026-10-28T01:44:09.5955546Z Updating files:  88% (295416/335699)
+2026-10-28T01:44:10.5334897Z Updating files:  88% (297023/335699)
+2026-10-28T01:44:10.7347118Z Updating files:  89% (298773/335699)
+2026-10-28T01:44:11.5939946Z Updating files:  89% (298777/335699)
+2026-10-28T01:44:12.7342357Z Updating files:  89% (299304/335699)
+2026-10-28T01:44:13.7662887Z Updating files:  89% (299677/335699)
+2026-10-28T01:44:14.6582545Z Updating files:  89% (299856/335699)
+2026-10-28T01:44:15.6303286Z Updating files:  89% (299959/335699)
+2026-10-28T01:44:16.6502722Z Updating files:  89% (300005/335699)
+2026-10-28T01:44:17.6025916Z Updating files:  89% (300058/335699)
+2026-10-28T01:44:17.9191707Z Updating files:  89% (301516/335699)
+2026-10-28T01:44:18.1753624Z Updating files:  90% (302130/335699)
+2026-10-28T01:44:18.6014817Z Updating files:  91% (305487/335699)
+2026-10-28T01:44:19.6500459Z Updating files:  91% (307365/335699)
+2026-10-28T01:44:20.6090119Z Updating files:  91% (307831/335699)
+2026-10-28T01:44:21.6246866Z Updating files:  91% (307934/335699)
+2026-10-28T01:44:22.2183003Z Updating files:  91% (308444/335699)
+2026-10-28T01:44:22.6116914Z Updating files:  92% (308844/335699)
+2026-10-28T01:44:23.7116847Z Updating files:  92% (308950/335699)
+2026-10-28T01:44:24.6280145Z Updating files:  92% (310349/335699)
+2026-10-28T01:44:25.2293236Z Updating files:  92% (310862/335699)
+2026-10-28T01:44:25.6055883Z Updating files:  93% (312201/335699)
+2026-10-28T01:44:26.6712395Z Updating files:  93% (313701/335699)
+2026-10-28T01:44:27.6679947Z Updating files:  93% (314876/335699)
+2026-10-28T01:44:27.7468813Z Updating files:  93% (315430/335699)
+2026-10-28T01:44:28.5833069Z Updating files:  94% (315558/335699)
+2026-10-28T01:44:29.7283460Z Updating files:  94% (316046/335699)
+2026-10-28T01:44:30.6022592Z Updating files:  94% (316098/335699)
+2026-10-28T01:44:31.5835772Z Updating files:  94% (316141/335699)
+2026-10-28T01:44:32.5094103Z Updating files:  94% (317654/335699)
+2026-10-28T01:44:32.5952603Z Updating files:  95% (318915/335699)
+2026-10-28T01:44:33.5903961Z Updating files:  95% (318942/335699)
+2026-10-28T01:44:33.7073589Z Updating files:  95% (321437/335699)
+2026-10-28T01:44:34.3773911Z Updating files:  96% (322272/335699)
+2026-10-28T01:44:34.5831389Z Updating files:  97% (325629/335699)
+2026-10-28T01:44:34.7318212Z Updating files:  97% (327665/335699)
+2026-10-28T01:44:35.0859435Z Updating files:  98% (328986/335699)
+2026-10-28T01:44:35.5830729Z Updating files:  99% (332343/335699)
+2026-10-28T01:44:35.8945622Z Updating files:  99% (334455/335699)
+2026-10-28T01:44:35.8947482Z Updating files: 100% (335699/335699)
+2026-10-28T01:44:35.8948051Z Updating files: 100% (335699/335699), done.
+2026-10-28T01:44:36.3807614Z Switched to a new branch 'main'
+2026-10-28T01:44:36.3808636Z branch 'main' set up to track 'origin/main'.
+2026-10-28T01:44:36.4217989Z ##[endgroup]
+2026-10-28T01:44:36.4271944Z [command]/usr/bin/git log -1 --format=%H
+2026-10-28T01:44:36.4293802Z fd92138ac0b8c4ecd0d872a9050204da5ceb5d2f
+2026-10-28T01:44:36.5210057Z ##[group]Run actions/setup-node@v4
+2026-10-28T01:44:36.5210277Z with:
+2026-10-28T01:44:36.5210454Z   node-version: 22.23.3
+2026-10-28T01:44:36.5210637Z   always-auth: false
+2026-10-28T01:44:36.5210992Z   check-latest: false
+2026-10-28T01:44:36.5213060Z   token: ***
+2026-10-28T01:44:36.5213230Z ##[endgroup]
+2026-10-28T01:44:36.7096991Z Found in cache @ /opt/hostedtoolcache/node/22.23.3/x64
+2026-10-28T01:44:36.7100665Z (node:2105) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-28T01:44:36.7105055Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-28T01:44:36.7105829Z ##[group]Environment details
+2026-10-28T01:44:37.0966375Z node: v22.23.3
+2026-10-28T01:44:37.0966914Z npm: 10.9.9
+2026-10-28T01:44:37.0967493Z yarn: 1.22.22
+2026-10-28T01:44:37.0968338Z ##[endgroup]
+2026-10-28T01:44:37.3007224Z ##[group]Run erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124
+2026-10-28T01:44:37.3007551Z with:
+2026-10-28T01:44:37.3007732Z   version-file: hosted/.tool-versions
+2026-10-28T01:44:37.3007946Z   version-type: strict
+2026-10-28T01:44:37.3010123Z   github-token: ***
+2026-10-28T01:44:37.3010315Z   otp-architecture: 64
+2026-10-28T01:44:37.3010495Z   install-hex: true
+2026-10-28T01:44:37.3010660Z   install-rebar: true
+2026-10-28T01:44:37.3011133Z   disable_problem_matchers: false
+2026-10-28T01:44:37.3011359Z   hexpm-mirrors: https://builds.hex.pm
+
+2026-10-28T01:44:37.3011582Z ##[endgroup]
+2026-10-28T01:44:37.3752588Z ##[group]Parsing .tool-versions file at hosted/.tool-versions
+2026-10-28T01:44:37.3810507Z Consuming erlang at version 29.1.1
+2026-10-28T01:44:37.3811135Z Consuming elixir at version 1.20.4-otp-29
+2026-10-28T01:44:37.3811513Z ... done!
+2026-10-28T01:44:37.3811991Z ##[endgroup]
+2026-10-28T01:44:37.8323343Z ##[group]Installing Erlang/OTP OTP-29.1.1 - built on amd64/ubuntu-24.04
+2026-10-28T01:44:39.6051645Z [command]/usr/bin/tar zx --strip-components=1 --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/4aeb992c-f823-4375-8e42-6259d2ad9507 -f /home/runner/work/_temp/9f03f6af-6f42-4dc6-a85f-968a760ce6b9
+2026-10-28T01:44:43.2547666Z [command]/home/runner/work/_temp/.setup-beam/otp/Install -minimal /home/runner/work/_temp/.setup-beam/otp
+2026-10-28T01:44:43.3267724Z Installed Erlang/OTP version
+2026-10-28T01:44:43.3283236Z [command]/home/runner/work/_temp/.setup-beam/otp/bin/erl -version
+2026-10-28T01:44:43.3385033Z Erlang (SMP,ASYNC_THREADS) (BEAM) emulator version 17.1
+2026-10-28T01:44:43.3412785Z ##[endgroup]
+2026-10-28T01:44:43.6368528Z Using Elixir 1.20.4 (built for Erlang/OTP 29)
+2026-10-28T01:44:43.6369383Z ##[group]Installing Elixir v1.20.4-otp-29
+2026-10-28T01:44:43.9713647Z [command]/usr/bin/unzip -o -q /home/runner/work/_temp/7fce754f-3f9b-4c8a-855e-7d5d0fd359a5
+2026-10-28T01:44:45.5537796Z Installed Elixir version
+2026-10-28T01:44:45.5552952Z [command]/home/runner/work/_temp/.setup-beam/elixir/bin/elixir -v
+2026-10-28T01:44:45.7259405Z Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit:ns]
+2026-10-28T01:44:45.7259879Z 
+2026-10-28T01:44:45.7297343Z Elixir 1.20.4 (compiled with Erlang/OTP 29)
+2026-10-28T01:44:45.7347282Z ##[endgroup]
+2026-10-28T01:44:45.7347722Z ##[group]Running mix local.rebar,--force
+2026-10-28T01:44:45.7365022Z [command]/home/runner/work/_temp/.setup-beam/elixir/bin/mix local.rebar --force
+2026-10-28T01:44:47.0363612Z * creating /home/runner/.mix/elixir/1-20-otp-29/rebar3
+2026-10-28T01:44:47.0418008Z ##[endgroup]
+2026-10-28T01:44:47.0418478Z ##[group]Running mix local.hex,--force
+2026-10-28T01:44:47.0427954Z [command]/home/runner/work/_temp/.setup-beam/elixir/bin/mix local.hex --force
+2026-10-28T01:44:48.7362112Z * creating /home/runner/.mix/archives/hex-2.6.0
+2026-10-28T01:44:48.7428529Z ##[endgroup]
+2026-10-28T01:44:48.7594568Z ##[group]Run mix deps.get --check-locked
+2026-10-28T01:44:48.7595097Z [36;1mmix deps.get --check-locked[0m
+2026-10-28T01:44:48.8479763Z shell: /usr/bin/bash -e {0}
+2026-10-28T01:44:48.8479987Z env:
+2026-10-28T01:44:48.8480219Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-28T01:44:48.8480566Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-28T01:44:48.8481057Z ##[endgroup]
+2026-10-28T01:44:49.6457638Z Resolving Hex dependencies...
+2026-10-28T01:44:49.6674615Z Resolution completed in 0.02s
+2026-10-28T01:44:49.6699709Z Unchanged:
+2026-10-28T01:44:49.6700656Z   bandit 1.13.1 VULNERABLE!
+2026-10-28T01:44:49.6709165Z     EEF-CVE-2026-108525 (HIGH)
+2026-10-28T01:44:49.6710008Z     aka: CVE-2026-108525, GHSA-c3g7-2pg5-qvwh
+2026-10-28T01:44:49.6711211Z     HTTP/2 inbound flow control is not enforced, letting a client queue unbounded DATA in stream processes in Bandit
+2026-10-28T01:44:49.6712707Z     https://osv.dev/vulnerability/EEF-CVE-2026-108525
+2026-10-28T01:44:49.6713255Z 
+2026-10-28T01:44:49.6713634Z     EEF-CVE-2026-109584 (HIGH)
+2026-10-28T01:44:49.6714275Z     aka: CVE-2026-109584, GHSA-7gfj-7gvq-3xqj
+2026-10-28T01:44:49.6715172Z     HTTP/2 cookie crumb join expands a small HPACK header block into an unbounded allocation in Bandit
+2026-10-28T01:44:49.6716141Z     https://osv.dev/vulnerability/EEF-CVE-2026-109584
+2026-10-28T01:44:49.6716654Z 
+2026-10-28T01:44:49.6717037Z     EEF-CVE-2026-108529 (HIGH)
+2026-10-28T01:44:49.6717630Z     aka: CVE-2026-108529, GHSA-j363-h72p-296m
+2026-10-28T01:44:49.6719011Z     SETTINGS and stream-0 WINDOW_UPDATE frames trigger quadratic work over blocked streams in Bandit
+2026-10-28T01:44:49.6720030Z     https://osv.dev/vulnerability/EEF-CVE-2026-108529
+2026-10-28T01:44:49.6720596Z 
+2026-10-28T01:44:49.6721129Z     EEF-CVE-2026-110314 (MEDIUM)
+2026-10-28T01:44:49.6721755Z     aka: CVE-2026-110314, GHSA-2v5v-8f9v-xh85
+2026-10-28T01:44:49.6722622Z     WebSocket frames keep reaching the WebSock after a server-initiated close in Bandit
+2026-10-28T01:44:49.6723473Z     https://osv.dev/vulnerability/EEF-CVE-2026-110314
+2026-10-28T01:44:49.6723970Z 
+2026-10-28T01:44:49.6724370Z     EEF-CVE-2026-110499 (HIGH)
+2026-10-28T01:44:49.6725353Z     aka: CVE-2026-110499, GHSA-47x4-3fxf-82fr
+2026-10-28T01:44:49.6726481Z     Client-chosen HPACK encoder table size is applied uncapped, growing per-connection state with every response in Bandit
+2026-10-28T01:44:49.6727538Z     https://osv.dev/vulnerability/EEF-CVE-2026-110499
+2026-10-28T01:44:49.6728055Z 
+2026-10-28T01:44:49.6728449Z     EEF-CVE-2026-111101 (HIGH)
+2026-10-28T01:44:49.6729048Z     aka: CVE-2026-111101, GHSA-jwh3-j29h-qfmw
+2026-10-28T01:44:49.6729883Z     HTTP/1.1 chunked request bodies made of 1-byte chunks amplify memory use in Bandit
+2026-10-28T01:44:49.6730928Z     https://osv.dev/vulnerability/EEF-CVE-2026-111101
+2026-10-28T01:44:49.6731395Z 
+2026-10-28T01:44:49.6731742Z     EEF-CVE-2026-111103 (HIGH)
+2026-10-28T01:44:49.6732293Z     aka: CVE-2026-111103, GHSA-2238-pgfc-w82m
+2026-10-28T01:44:49.6733170Z     HTTP/2 StreamError recovery rolls back connection state and bypasses per-connection limits in Bandit
+2026-10-28T01:44:49.6734138Z     https://osv.dev/vulnerability/EEF-CVE-2026-111103
+2026-10-28T01:44:49.6734660Z 
+2026-10-28T01:44:49.6735021Z     EEF-CVE-2026-113436 (HIGH)
+2026-10-28T01:44:49.6735740Z     aka: CVE-2026-113436, GHSA-29cr-8477-rg6r
+2026-10-28T01:44:49.6736520Z     Quadratic bignum parsing of Content-Length and Host port values in Bandit
+2026-10-28T01:44:49.6737304Z     https://osv.dev/vulnerability/EEF-CVE-2026-113436
+2026-10-28T01:44:49.6737790Z 
+2026-10-28T01:44:49.6738152Z     EEF-CVE-2026-114213 (HIGH)
+2026-10-28T01:44:49.6738714Z     aka: CVE-2026-114213, GHSA-cpx7-qf6w-jc63
+2026-10-28T01:44:49.6739507Z     WebSocket 1-byte continuation frames bypass `max_fragmented_message_size` in Bandit
+2026-10-28T01:44:49.6740319Z     https://osv.dev/vulnerability/EEF-CVE-2026-114213
+2026-10-28T01:44:49.6740936Z 
+2026-10-28T01:44:49.6741601Z     EEF-CVE-2026-114216 (MEDIUM)
+2026-10-28T01:44:49.6742209Z     aka: CVE-2026-114216, GHSA-w5wc-g2hc-g7m2
+2026-10-28T01:44:49.6742966Z     Chunk extensions accept bare LF and CR, enabling request smuggling in Bandit
+2026-10-28T01:44:49.6743750Z     https://osv.dev/vulnerability/EEF-CVE-2026-114216
+2026-10-28T01:44:49.6744263Z 
+2026-10-28T01:44:49.6744631Z     EEF-CVE-2026-115269 (HIGH)
+2026-10-28T01:44:49.6745222Z     aka: CVE-2026-115269, GHSA-p2qv-vx88-385x
+2026-10-28T01:44:49.6746069Z     HTTP/2 WINDOW_UPDATE and SETTINGS frames reset the request body read timeout in Bandit
+2026-10-28T01:44:49.6746930Z     https://osv.dev/vulnerability/EEF-CVE-2026-115269
+2026-10-28T01:44:49.6747668Z   jose 1.11.12 VULNERABLE!
+2026-10-28T01:44:49.6748218Z     EEF-CVE-2026-65625 (MEDIUM)
+2026-10-28T01:44:49.6748870Z     aka: CVE-2026-65625, GHSA-6gxw-6f7r-cjr6
+2026-10-28T01:44:49.6749687Z     Attacker-controlled AES-GCM authentication tag length allows tag forgery in jose
+2026-10-28T01:44:49.6750526Z     https://osv.dev/vulnerability/EEF-CVE-2026-65625
+2026-10-28T01:44:49.6751168Z 
+2026-10-28T01:44:49.6751542Z     EEF-CVE-2026-65626 (MEDIUM)
+2026-10-28T01:44:49.6752137Z     aka: CVE-2026-65626, GHSA-vwvr-f994-6j9j
+2026-10-28T01:44:49.6752910Z     Bleichenbacher padding oracle in RSAES-PKCS1-v1_5 decryption in jose
+2026-10-28T01:44:49.6753678Z     https://osv.dev/vulnerability/EEF-CVE-2026-65626
+2026-10-28T01:44:49.6754163Z 
+2026-10-28T01:44:49.6754557Z     EEF-CVE-2026-65627 (MEDIUM)
+2026-10-28T01:44:49.6755121Z     aka: CVE-2026-65627, GHSA-wfpv-qxp8-x5gm
+2026-10-28T01:44:49.6756304Z     Decompression bomb via unbounded zlib:inflate in jose_jwe_zip:uncompress/2
+2026-10-28T01:44:49.6757180Z     https://osv.dev/vulnerability/EEF-CVE-2026-65627
+2026-10-28T01:44:49.6757699Z 
+2026-10-28T01:44:49.6758157Z     EEF-CVE-2026-65628 (MEDIUM)
+2026-10-28T01:44:49.6758769Z     aka: CVE-2026-65628, GHSA-fpj2-9h59-32pp
+2026-10-28T01:44:49.6759670Z     Infinite recursion (CPU denial-of-service) in JOSE.JWK.shared_secret/2 on mismatched key types
+2026-10-28T01:44:49.6760615Z     https://osv.dev/vulnerability/EEF-CVE-2026-65628
+2026-10-28T01:44:49.6761315Z 
+2026-10-28T01:44:49.6761679Z     EEF-CVE-2026-65629 (HIGH)
+2026-10-28T01:44:49.6762282Z     aka: CVE-2026-65629, GHSA-h4gx-8jq2-mfhc
+2026-10-28T01:44:49.6763140Z     Weak PBKDF2 parameters for password-encrypted private-key export in jose
+2026-10-28T01:44:49.6763975Z     https://osv.dev/vulnerability/EEF-CVE-2026-65629
+2026-10-28T01:44:49.6764483Z 
+2026-10-28T01:44:49.6764855Z     EEF-CVE-2026-65630 (MEDIUM)
+2026-10-28T01:44:49.6765560Z     aka: CVE-2026-65630, GHSA-xvr2-gggj-h2pp
+2026-10-28T01:44:49.6766544Z     Timing side-channel in pure-Erlang X25519 scalar multiplication leaks the private key in jose
+2026-10-28T01:44:49.6767443Z     https://osv.dev/vulnerability/EEF-CVE-2026-65630
+2026-10-28T01:44:49.6767948Z 
+2026-10-28T01:44:49.6768320Z     EEF-CVE-2026-65631 (MEDIUM)
+2026-10-28T01:44:49.6768898Z     aka: CVE-2026-65631, GHSA-3m45-vrpj-xmrq
+2026-10-28T01:44:49.6769916Z     erlang-jose RSA JWK parsing attempts to factor an attacker-controlled modulus, enabling CPU-exhaustion denial of service
+2026-10-28T01:44:49.6771038Z     https://osv.dev/vulnerability/EEF-CVE-2026-65631
+2026-10-28T01:44:49.6771783Z 
+2026-10-28T01:44:49.6772127Z     EEF-CVE-2026-65632 (MEDIUM)
+2026-10-28T01:44:49.6772572Z     aka: CVE-2026-65632, GHSA-44hw-rpw9-mwg4
+2026-10-28T01:44:49.6773209Z     ECDSA signature length is not validated in jose, allowing signature malleability
+2026-10-28T01:44:49.6794321Z     https://osv.dev/vulnerability/EEF-CVE-2026-65632
+2026-10-28T01:44:49.6795230Z * Getting phoenix (Hex package)
+2026-10-28T01:44:49.8838656Z * Getting plug (Hex package)
+2026-10-28T01:44:49.8855100Z * Getting bandit (Hex package)
+2026-10-28T01:44:49.8876004Z * Getting ecto_sql (Hex package)
+2026-10-28T01:44:49.8898682Z * Getting postgrex (Hex package)
+2026-10-28T01:44:49.8915222Z * Getting oban (Hex package)
+2026-10-28T01:44:49.8948388Z * Getting jason (Hex package)
+2026-10-28T01:44:49.8965196Z * Getting jose (Hex package)
+2026-10-28T01:44:49.9065475Z * Getting mint (Hex package)
+2026-10-28T01:44:49.9075329Z * Getting hpax (Hex package)
+2026-10-28T01:44:49.9081865Z * Getting telemetry (Hex package)
+2026-10-28T01:44:49.9103234Z * Getting db_connection (Hex package)
+2026-10-28T01:44:49.9112168Z * Getting decimal (Hex package)
+2026-10-28T01:44:49.9121105Z * Getting ecto (Hex package)
+2026-10-28T01:44:49.9134175Z * Getting thousand_island (Hex package)
+2026-10-28T01:44:49.9142547Z * Getting websock (Hex package)
+2026-10-28T01:44:49.9148669Z * Getting mime (Hex package)
+2026-10-28T01:44:49.9154530Z * Getting plug_crypto (Hex package)
+2026-10-28T01:44:49.9160440Z * Getting phoenix_pubsub (Hex package)
+2026-10-28T01:44:49.9167732Z * Getting phoenix_template (Hex package)
+2026-10-28T01:44:49.9174773Z * Getting websock_adapter (Hex package)
+2026-10-28T01:44:49.9184277Z Found packages with security advisories, see above for details
+2026-10-28T01:44:49.9903779Z ##[group]Run mix deps.compile jason
+2026-10-28T01:44:49.9904056Z [36;1mmix deps.compile jason[0m
+2026-10-28T01:44:49.9904355Z [36;1mpython3 ../verification/hosted-browser-auth-protocol/run.py[0m
+2026-10-28T01:44:49.9963084Z shell: /usr/bin/bash -e {0}
+2026-10-28T01:44:49.9963292Z env:
+2026-10-28T01:44:49.9963508Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-28T01:44:49.9963887Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-28T01:44:49.9964172Z   MIX_ENV: test
+2026-10-28T01:44:49.9964338Z ##[endgroup]
+2026-10-28T01:44:50.4542430Z ==> jason
+2026-10-28T01:44:50.4556102Z Compiling 10 files (.ex)
+2026-10-28T01:44:50.4752804Z warning: cannot infer signatures from :decimal because it is not loaded
+2026-10-28T01:44:50.4764684Z 
+2026-10-28T01:44:51.5018861Z Generated jason app
+2026-10-28T01:44:53.5830654Z tool-versions: exit 0
+2026-10-28T01:44:53.5831224Z crypto-version: exit 0
+2026-10-28T01:44:53.5831505Z format: exit 0
+2026-10-28T01:44:53.5831836Z compile: exit 0
+2026-10-28T01:44:53.5832072Z tests: exit 0
+2026-10-28T01:44:53.5832423Z owned-source-whitespace: exit 0
+2026-10-28T01:44:53.5832786Z source-whitespace: exit 0
+2026-10-28T01:44:53.5833470Z receipt: verification/hosted-browser-auth-protocol/attempts/20261028T014451640738Z/receipt.json
+2026-10-28T01:44:53.6014932Z ##[group]Run node --version
+2026-10-28T01:44:53.6015236Z [36;1mnode --version[0m
+2026-10-28T01:44:53.6015499Z [36;1mnpm --version[0m
+2026-10-28T01:44:53.6015742Z [36;1mnpm ci --ignore-scripts --no-audit --no-fund[0m
+2026-10-28T01:44:53.6016043Z [36;1mnode node_modules/typescript/bin/tsc --version[0m
+2026-10-28T01:44:53.6016405Z [36;1mnode node_modules/typescript/bin/tsc src/api/workspace-client.ts \[0m
+2026-10-28T01:44:53.6016780Z [36;1m  --target ES2022 --module ES2022 --moduleResolution bundler \[0m
+2026-10-28T01:44:53.6017088Z [36;1m  --strict --skipLibCheck --lib ES2022,DOM \[0m
+2026-10-28T01:44:53.6017350Z [36;1m  --outDir "$RUNNER_TEMP/workspace-client"[0m
+2026-10-28T01:44:53.6017746Z [36;1mcp ../verification/hosted-customer-workspace-http-integration/node-client-driver.mjs \[0m
+2026-10-28T01:44:53.6018156Z [36;1m  "$RUNNER_TEMP/workspace-client/driver.mjs"[0m
+2026-10-28T01:44:53.6018622Z [36;1mprintf '%s\n' '{"type":"module"}' > "$RUNNER_TEMP/workspace-client/package.json"[0m
+2026-10-28T01:44:53.6019421Z [36;1mprintf 'MIXER_WORKSPACE_HTTP_NODE_DRIVER=%s/driver.mjs\n' "$RUNNER_TEMP/workspace-client" >> "$GITHUB_ENV"[0m
+2026-10-28T01:44:53.6079720Z shell: /usr/bin/bash -e {0}
+2026-10-28T01:44:53.6079932Z env:
+2026-10-28T01:44:53.6080157Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-28T01:44:53.6080505Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-28T01:44:53.6080897Z ##[endgroup]
+2026-10-28T01:44:53.6539883Z v22.23.3
+2026-10-28T01:44:53.7124436Z 10.9.9
+2026-10-28T01:44:55.8906546Z 
+2026-10-28T01:44:55.8907241Z added 78 packages in 2s
+2026-10-28T01:44:56.0400255Z Version 5.9.3
+2026-10-28T01:44:56.8029713Z ##[group]Run mix deps.compile
+2026-10-28T01:44:56.8030007Z [36;1mmix deps.compile[0m
+2026-10-28T01:44:56.8030283Z [36;1mpython3 test/mixer_hosted/browser_auth/run_storage_fixture.py \[0m
+2026-10-28T01:44:56.8030612Z [36;1m  --pg-bin /usr/lib/postgresql/16/bin[0m
+2026-10-28T01:44:56.8031257Z [36;1mpython3 test/mixer_hosted/browser_auth/run_migration_fixture.py \[0m
+2026-10-28T01:44:56.8031574Z [36;1m  --pg-bin /usr/lib/postgresql/16/bin \[0m
+2026-10-28T01:44:56.8031855Z [36;1m  --output "$RUNNER_TEMP/browser-migrations"[0m
+2026-10-28T01:44:56.8088635Z shell: /usr/bin/bash -e {0}
+2026-10-28T01:44:56.8088849Z env:
+2026-10-28T01:44:56.8089097Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-28T01:44:56.8089444Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-28T01:44:56.8089849Z   MIXER_WORKSPACE_HTTP_NODE_DRIVER: /home/runner/work/_temp/workspace-client/driver.mjs
+2026-10-28T01:44:56.8090165Z   MIX_ENV: test
+2026-10-28T01:44:56.8090356Z ##[endgroup]
+2026-10-28T01:44:57.2656114Z ==> mime
+2026-10-28T01:44:57.2666725Z Compiling 1 file (.ex)
+2026-10-28T01:44:57.3508895Z Generated mime app
+2026-10-28T01:44:57.4726576Z ==> plug_crypto
+2026-10-28T01:44:57.4727156Z Compiling 5 files (.ex)
+2026-10-28T01:44:57.5663690Z Generated plug_crypto app
+2026-10-28T01:44:57.5769906Z ==> hpax
+2026-10-28T01:44:57.5770275Z Compiling 4 files (.ex)
+2026-10-28T01:44:57.8766704Z Generated hpax app
+2026-10-28T01:44:57.8975721Z ==> mint
+2026-10-28T01:44:57.8976118Z Compiling 1 file (.erl)
+2026-10-28T01:44:57.9509787Z Compiling 21 files (.ex)
+2026-10-28T01:44:58.9415787Z Generated mint app
+2026-10-28T01:44:59.1059589Z ==> jose
+2026-10-28T01:44:59.1059981Z Compiling 113 files (.erl)
+2026-10-28T01:44:59.9258120Z ##[warning]src/jose_server.erl:137:7: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:44:59.9283943Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:44:59.9311371Z warnings in selected modules.
+2026-10-28T01:44:59.9326166Z %  137| 		_ = catch jose_jwa:unsecured_signing(UnsecuredSigning),
+2026-10-28T01:44:59.9350443Z %     | 		    ^
+2026-10-28T01:44:59.9366800Z 
+2026-10-28T01:44:59.9392825Z ##[warning]src/jose_server.erl:797:7: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:44:59.9421566Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:44:59.9439634Z warnings in selected modules.
+2026-10-28T01:44:59.9461997Z %  797| 	case catch jose_crypto_compat:crypto_one_time(Cipher, Key, PlainText, true) of
+2026-10-28T01:44:59.9489096Z %     | 	     ^
+2026-10-28T01:44:59.9510263Z 
+2026-10-28T01:44:59.9532259Z ##[warning]src/jose_server.erl:799:9: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:44:59.9561638Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:44:59.9596052Z warnings in selected modules.
+2026-10-28T01:44:59.9631697Z %  799| 			case catch jose_crypto_compat:crypto_one_time(Cipher, Key, CipherText, false) of
+2026-10-28T01:44:59.9640992Z %     | 			     ^
+2026-10-28T01:44:59.9664890Z 
+2026-10-28T01:44:59.9682255Z ##[warning]src/jose_server.erl:809:7: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:44:59.9711589Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:44:59.9732639Z warnings in selected modules.
+2026-10-28T01:44:59.9755760Z %  809| 	case catch jose_crypto_compat:crypto_one_time(Cipher, Key, IV, PlainText, true) of
+2026-10-28T01:44:59.9779066Z %     | 	     ^
+2026-10-28T01:44:59.9800535Z 
+2026-10-28T01:44:59.9826640Z ##[warning]src/jose_server.erl:811:9: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:44:59.9841146Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:44:59.9871615Z warnings in selected modules.
+2026-10-28T01:44:59.9891976Z %  811| 			case catch jose_crypto_compat:crypto_one_time(Cipher, Key, IV, CipherText, false) of
+2026-10-28T01:44:59.9914951Z %     | 			     ^
+2026-10-28T01:44:59.9931227Z 
+2026-10-28T01:44:59.9962403Z ##[warning]src/jose_server.erl:821:7: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:44:59.9991558Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.0021409Z warnings in selected modules.
+2026-10-28T01:45:00.0031900Z %  821| 	case catch jose_crypto_compat:crypto_one_time(Cipher, Key, IV, {AAD, PlainText}, true) of
+2026-10-28T01:45:00.0061332Z %     | 	     ^
+2026-10-28T01:45:00.0121028Z 
+2026-10-28T01:45:00.0142363Z ##[warning]src/jose_server.erl:823:9: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:45:00.0181468Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.0231810Z warnings in selected modules.
+2026-10-28T01:45:00.0262208Z %  823| 			case catch jose_crypto_compat:crypto_one_time(Cipher, Key, IV, {AAD, CipherText, CipherTag}, false) of
+2026-10-28T01:45:00.0262916Z %     | 			     ^
+2026-10-28T01:45:00.0263083Z 
+2026-10-28T01:45:00.0264287Z ##[warning]src/jose_server.erl:837:7: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:45:00.0266166Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.0266688Z warnings in selected modules.
+2026-10-28T01:45:00.0267315Z %  837| 	case catch public_key:encrypt_public(PlainText, PublicKey, FutureOptions) of
+2026-10-28T01:45:00.0267830Z %     | 	     ^
+2026-10-28T01:45:00.0267987Z 
+2026-10-28T01:45:00.0295529Z ##[warning]src/jose_server.erl:840:9: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:45:00.0297359Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.0297873Z warnings in selected modules.
+2026-10-28T01:45:00.0298532Z %  840| 			case catch public_key:decrypt_private(CipherText, PrivateKey, FutureOptions) of
+2026-10-28T01:45:00.0299070Z %     | 			     ^
+2026-10-28T01:45:00.0299222Z 
+2026-10-28T01:45:00.0299906Z ##[warning]src/jose_server.erl:842:11: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:45:00.0301397Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.0301796Z warnings in selected modules.
+2026-10-28T01:45:00.0302252Z %  842| 					case catch public_key:decrypt_private(rsa_ciphertext(Algorithm), PrivateKey, FutureOptions) of
+2026-10-28T01:45:00.0302630Z %     | 					     ^
+2026-10-28T01:45:00.0302789Z 
+2026-10-28T01:45:00.0303482Z ##[warning]src/jose_server.erl:859:7: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:45:00.0304865Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.0305400Z warnings in selected modules.
+2026-10-28T01:45:00.0306059Z %  859| 	case catch public_key:encrypt_public(PlainText, PublicKey, LegacyOptions) of
+2026-10-28T01:45:00.0306603Z %     | 	     ^
+2026-10-28T01:45:00.0306753Z 
+2026-10-28T01:45:00.0307455Z ##[warning]src/jose_server.erl:862:9: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:45:00.0308865Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.0309402Z warnings in selected modules.
+2026-10-28T01:45:00.0310059Z %  862| 			case catch public_key:decrypt_private(CipherText, PrivateKey, LegacyOptions) of
+2026-10-28T01:45:00.0310620Z %     | 			     ^
+2026-10-28T01:45:00.0310922Z 
+2026-10-28T01:45:00.0311617Z ##[warning]src/jose_server.erl:864:11: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:45:00.0313038Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.0313569Z warnings in selected modules.
+2026-10-28T01:45:00.0314596Z %  864| 					case catch public_key:decrypt_private(rsa_ciphertext(Algorithm), PrivateKey, LegacyOptions) of
+2026-10-28T01:45:00.0315242Z %     | 					     ^
+2026-10-28T01:45:00.0315404Z 
+2026-10-28T01:45:00.0316096Z ##[warning]src/jose_server.erl:882:7: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:45:00.0317542Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.0318072Z warnings in selected modules.
+2026-10-28T01:45:00.0318676Z %  882| 	case catch public_key:sign(Message, DigestType, PrivateKey, Options) of
+2026-10-28T01:45:00.0319184Z %     | 	     ^
+2026-10-28T01:45:00.0319332Z 
+2026-10-28T01:45:00.0320016Z ##[warning]src/jose_server.erl:885:9: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:45:00.0351787Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.0352358Z warnings in selected modules.
+2026-10-28T01:45:00.0353062Z %  885| 			case catch public_key:verify(Message, DigestType, Signature, PublicKey, Options) of
+2026-10-28T01:45:00.0353668Z %     | 			     ^
+2026-10-28T01:45:00.0353834Z 
+2026-10-28T01:45:00.0354610Z ##[warning]src/jose_server.erl:897:7: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:45:00.0356005Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.0356501Z warnings in selected modules.
+2026-10-28T01:45:00.0357020Z %  897| 	case catch public_key:sign(Message, DigestType, PrivateKey) of
+2026-10-28T01:45:00.0357451Z %     | 	     ^
+2026-10-28T01:45:00.0357597Z 
+2026-10-28T01:45:00.0358288Z ##[warning]src/jose_server.erl:900:9: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:45:00.0359904Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.0360388Z warnings in selected modules.
+2026-10-28T01:45:00.0361138Z %  900| 			case catch public_key:verify(Message, DigestType, Signature, PublicKey) of
+2026-10-28T01:45:00.0361668Z %     | 			     ^
+2026-10-28T01:45:00.0361829Z 
+2026-10-28T01:45:00.4558833Z ##[warning]src/jwa/jose_jwa.erl:230:7: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:45:00.4561361Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.4562426Z warnings in selected modules.
+2026-10-28T01:45:00.4563227Z %  230| 	case catch block_cipher(Cipher) of
+2026-10-28T01:45:00.4564170Z %     | 	     ^
+2026-10-28T01:45:00.4564690Z 
+2026-10-28T01:45:00.4565822Z ##[warning]src/jwa/jose_jwa.erl:238:7: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:45:00.4567636Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.4568563Z warnings in selected modules.
+2026-10-28T01:45:00.4569626Z %  238| 	case catch ?MAYBE_START_JOSE(ets:lookup_element(?TAB, chacha20_poly1305_module, 2)) of
+2026-10-28T01:45:00.4575815Z %     | 	     ^
+2026-10-28T01:45:00.4576495Z 
+2026-10-28T01:45:00.4577654Z ##[warning]src/jwa/jose_jwa.erl:246:7: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:45:00.4579554Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.4580512Z warnings in selected modules.
+2026-10-28T01:45:00.4581501Z %  246| 	case catch rsa_crypt(Padding) of
+2026-10-28T01:45:00.4582212Z %     | 	     ^
+2026-10-28T01:45:00.4582721Z 
+2026-10-28T01:45:00.4583815Z ##[warning]src/jwa/jose_jwa.erl:254:7: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:45:00.4586236Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.4587155Z warnings in selected modules.
+2026-10-28T01:45:00.4587996Z %  254| 	case catch rsa_sign(Padding) of
+2026-10-28T01:45:00.4590349Z %     | 	     ^
+2026-10-28T01:45:00.4590997Z 
+2026-10-28T01:45:00.4592082Z ##[warning]src/jwa/jose_jwa.erl:262:7: Warning: 'catch ...' is deprecated; please use 'try ... catch ... end' instead.
+2026-10-28T01:45:00.4594157Z Compile directive 'nowarn_deprecated_catch' can be used to suppress
+2026-10-28T01:45:00.4595068Z warnings in selected modules.
+2026-10-28T01:45:00.4596109Z %  262| 	case catch ?MAYBE_START_JOSE(ets:lookup_element(?TAB, xchacha20_poly1305_module, 2)) of
+2026-10-28T01:45:00.4597052Z %     | 	     ^
+2026-10-28T01:45:00.4597566Z 
+2026-10-28T01:45:00.8775248Z Compiling 8 files (.ex)
+2026-10-28T01:45:01.1048293Z Generated jose app
+2026-10-28T01:45:01.1146780Z ==> decimal
+2026-10-28T01:45:01.1147133Z Compiling 4 files (.ex)
+2026-10-28T01:45:01.6874056Z Generated decimal app
+2026-10-28T01:45:01.7090568Z ==> phoenix_template
+2026-10-28T01:45:01.7091187Z Compiling 4 files (.ex)
+2026-10-28T01:45:01.7666982Z Generated phoenix_template app
+2026-10-28T01:45:02.0161623Z ==> mixer_hosted
+2026-10-28T01:45:02.0162481Z ===> Analyzing applications...
+2026-10-28T01:45:02.0498364Z ===> Compiling telemetry
+2026-10-28T01:45:02.2346927Z ==> db_connection
+2026-10-28T01:45:02.2347574Z Compiling 18 files (.ex)
+2026-10-28T01:45:02.7192780Z Generated db_connection app
+2026-10-28T01:45:02.7348798Z ==> ecto
+2026-10-28T01:45:02.7349149Z Compiling 56 files (.ex)
+2026-10-28T01:45:05.1533860Z Generated ecto app
+2026-10-28T01:45:05.1662110Z ==> thousand_island
+2026-10-28T01:45:05.1662818Z Compiling 18 files (.ex)
+2026-10-28T01:45:05.3780376Z Generated thousand_island app
+2026-10-28T01:45:05.3889178Z ==> phoenix_pubsub
+2026-10-28T01:45:05.3889740Z Compiling 13 files (.ex)
+2026-10-28T01:45:05.6832857Z Generated phoenix_pubsub app
+2026-10-28T01:45:05.6984224Z ==> plug
+2026-10-28T01:45:05.6984575Z Compiling 1 file (.erl)
+2026-10-28T01:45:05.7864835Z Compiling 42 files (.ex)
+2026-10-28T01:45:07.0754215Z Generated plug app
+2026-10-28T01:45:07.0848267Z warning: "xref: [exclude: ...]" in your mix.exs file is deprecated, instead use: "elixirc_options: [no_warn_undefined: ...]"
+2026-10-28T01:45:07.0850434Z ##[warning]  (mix 1.20.4) lib/mix/tasks/compile.elixir.ex:243: Mix.Tasks.Compile.Elixir.xref_exclude_opts/2
+2026-10-28T01:45:07.0852616Z   (mix 1.20.4) lib/mix/tasks/compile.elixir.ex:142: Mix.Tasks.Compile.Elixir.run/1
+2026-10-28T01:45:07.0853612Z   (mix 1.20.4) lib/mix/task.ex:502: anonymous fn/3 in Mix.Task.run_task/5
+2026-10-28T01:45:07.0854551Z   (mix 1.20.4) lib/mix/task.compiler.ex:299: Mix.Task.Compiler.run_compiler/2
+2026-10-28T01:45:07.0855404Z   (mix 1.20.4) lib/mix/task.compiler.ex:287: Mix.Task.Compiler.run/4
+2026-10-28T01:45:07.0856361Z   (mix 1.20.4) lib/mix/tasks/compile.all.ex:75: Mix.Tasks.Compile.All.do_run/2
+2026-10-28T01:45:07.0856955Z 
+2026-10-28T01:45:07.0894284Z ==> postgrex
+2026-10-28T01:45:07.0894624Z Compiling 70 files (.ex)
+2026-10-28T01:45:10.4677606Z Generated postgrex app
+2026-10-28T01:45:10.4924919Z ==> ecto_sql
+2026-10-28T01:45:10.4925318Z Compiling 25 files (.ex)
+2026-10-28T01:45:11.1956898Z Generated ecto_sql app
+2026-10-28T01:45:11.2164080Z ==> oban
+2026-10-28T01:45:11.2164476Z Compiling 70 files (.ex)
+2026-10-28T01:45:12.1863099Z Generated oban app
+2026-10-28T01:45:12.1958359Z ==> websock
+2026-10-28T01:45:12.1959005Z Compiling 1 file (.ex)
+2026-10-28T01:45:12.2049635Z Generated websock app
+2026-10-28T01:45:12.2191219Z ==> bandit
+2026-10-28T01:45:12.2191668Z Compiling 54 files (.ex)
+2026-10-28T01:45:13.1693953Z Generated bandit app
+2026-10-28T01:45:13.1802549Z ==> websock_adapter
+2026-10-28T01:45:13.1803002Z Compiling 4 files (.ex)
+2026-10-28T01:45:13.2043200Z Generated websock_adapter app
+2026-10-28T01:45:13.2332888Z ==> phoenix
+2026-10-28T01:45:13.2333465Z Compiling 75 files (.ex)
+2026-10-28T01:45:14.8012625Z Generated phoenix app
+2026-10-28T01:45:30.8496234Z verification/hosted-browser-session-storage/attempts/20261028T014514.918865Z-2460f231
+2026-10-28T01:45:35.8275941Z {"receipt": "/home/runner/work/_temp/browser-migrations/20261028T014530.890217Z-7540b10c/receipt.json", "success": true, "failure": null, "cleanup": {"owned_postgres_stopped": true, "owned_scratch_removed": true, "owned_compile_products_removed": true}}
+2026-10-28T01:45:35.8384715Z ##[group]Run python3 scripts/test-local.py \
+2026-10-28T01:45:35.8385013Z [36;1mpython3 scripts/test-local.py \[0m
+2026-10-28T01:45:35.8385258Z [36;1m  --pg-bin /usr/lib/postgresql/16/bin \[0m
+2026-10-28T01:45:35.8385525Z [36;1m  --output "$RUNNER_TEMP/phoenix-foundation"[0m
+2026-10-28T01:45:35.8441558Z shell: /usr/bin/bash -e {0}
+2026-10-28T01:45:35.8441766Z env:
+2026-10-28T01:45:35.8441992Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-28T01:45:35.8442328Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-28T01:45:35.8442733Z   MIXER_WORKSPACE_HTTP_NODE_DRIVER: /home/runner/work/_temp/workspace-client/driver.mjs
+2026-10-28T01:45:35.8443050Z ##[endgroup]
+2026-10-28T01:48:24.3985195Z {"status": "failed", "receipt": "/home/runner/work/_temp/phoenix-foundation/receipt.json", "cleanup": {"postgres_stopped": true, "scratch_removed": true}}
+2026-10-28T01:48:24.5299402Z Traceback (most recent call last):
+2026-10-28T01:48:24.5303606Z   File "/home/runner/work/mixer/mixer/hosted/scripts/test-local.py", line 217, in <module>
+2026-10-28T01:48:24.5304329Z     run("tests", test_argv, env)
+2026-10-28T01:48:24.5304904Z   File "/home/runner/work/mixer/mixer/hosted/scripts/test-local.py", line 133, in run
+2026-10-28T01:48:24.5311534Z     raise RuntimeError(f"{label} failed ({exit_code}); see {log}")
+2026-10-28T01:48:24.5341925Z RuntimeError: tests failed (2); see /home/runner/work/_temp/phoenix-foundation/tests.log
+2026-10-28T01:48:24.5467102Z ##[error]Process completed with exit code 1.
+2026-10-28T01:48:24.5530608Z ##[group]Run actions/upload-artifact@v4
+2026-10-28T01:48:24.5531061Z with:
+2026-10-28T01:48:24.5531347Z   name: phoenix-foundation-fd92138ac0b8c4ecd0d872a9050204da5ceb5d2f
+2026-10-28T01:48:24.5531803Z   retention-days: 14
+2026-10-28T01:48:24.5531984Z   if-no-files-found: ignore
+2026-10-28T01:48:24.5532630Z   path: /home/runner/work/_temp/phoenix-foundation/
+verification/hosted-browser-auth-protocol/attempts/
+verification/hosted-browser-session-storage/attempts/
+/home/runner/work/_temp/browser-migrations/
+
+2026-10-28T01:48:24.5533284Z   compression-level: 6
+2026-10-28T01:48:24.5533464Z   overwrite: false
+2026-10-28T01:48:24.5533635Z   include-hidden-files: false
+2026-10-28T01:48:24.5533818Z env:
+2026-10-28T01:48:24.5534030Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-28T01:48:24.5534362Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-28T01:48:24.5534774Z   MIXER_WORKSPACE_HTTP_NODE_DRIVER: /home/runner/work/_temp/workspace-client/driver.mjs
+2026-10-28T01:48:24.5535108Z ##[endgroup]
+2026-10-28T01:48:24.7263498Z (node:4025) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-28T01:48:24.7264610Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-28T01:48:24.7708542Z Multiple search paths detected. Calculating the least common ancestor of all paths
+2026-10-28T01:48:24.7711113Z The least common ancestor is /home/runner/work. This will be the root directory of the artifact
+2026-10-28T01:48:24.7711868Z With the provided path, there will be 269 files uploaded
+2026-10-28T01:48:24.7716636Z Artifact name is valid!
+2026-10-28T01:48:24.7717178Z Root directory input is valid!
+2026-10-28T01:48:24.9984634Z Beginning upload of artifact content to blob storage
+2026-10-28T01:48:25.2778757Z (node:4025) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-28T01:48:25.3408106Z Uploaded bytes 1422970
+2026-10-28T01:48:25.3561957Z Finished uploading artifact content to blob storage!
+2026-10-28T01:48:25.3562983Z SHA256 digest of uploaded artifact zip is 28479a3e74db20329671fa3b1395cce177deaaceaf9288710d5c9360951174fc
+2026-10-28T01:48:25.3564048Z Finalizing artifact upload
+2026-10-28T01:48:25.7407704Z Artifact phoenix-foundation-fd92138ac0b8c4ecd0d872a9050204da5ceb5d2f.zip successfully finalized. Artifact ID 12785273244
+2026-10-28T01:48:25.7408696Z Artifact phoenix-foundation-fd92138ac0b8c4ecd0d872a9050204da5ceb5d2f has been successfully uploaded! Final size is 1422970 bytes. Artifact ID is 12785273244
+2026-10-28T01:48:25.7414447Z Artifact download URL: https://github.com/snowdamiz/mixer/actions/runs/40616510786/artifacts/12785273244
+2026-10-28T01:48:25.7621307Z Post job cleanup.
+2026-10-28T01:48:25.8822710Z [command]/usr/bin/git version
+2026-10-28T01:48:25.8857159Z git version 2.55.0
+2026-10-28T01:48:25.8888014Z Temporarily overriding HOME='/home/runner/work/_temp/5df07913-0eec-4209-8113-bd30299e6b22' before making global git config changes
+2026-10-28T01:48:25.8889192Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-28T01:48:25.8892050Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/mixer/mixer
+2026-10-28T01:48:25.8924702Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-28T01:48:25.8953968Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-28T01:48:25.9952126Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-28T01:48:25.9979319Z http.https://github.com/.extraheader
+2026-10-28T01:48:25.9988613Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-28T01:48:26.0019807Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-28T01:48:26.0502984Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-28T01:48:26.0536677Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-28T01:48:26.1125571Z Cleaning up orphan processes
+2026-10-28T01:48:26.2058693Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+

@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T02:39:23.895994+00:00",
+  "status": "source-reviewed-test-correction-awaiting-full-remote-CI",
+  "canonical_source": {
+    "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+    "bytes": 46346,
+    "sha256": "0378933f07f780fd4f2616df409b39bbff3a58e0849ca7ff202060d49a9ee483"
+  },
+  "base": "fd92138ac0b8c4ecd0d872a9050204da5ceb5d2f",
+  "problem": "Six existing fixture on_exit callbacks race the new correct linked-owner shutdown.",
+  "change": "ExUnit supervises the temporary fixture owner after its worker supervisor; reverse child teardown drains the owner first. on_exit only asserts owner/worker/name/table/admission cleanup. K07g verifies the intentionally stopped temporary owner stays absent.",
+  "reviewer": "root independently reviewed the canonical helper and exact two-hunk diff; prior independent fixture reviews remain preserved",
+  "local_compile": {
+    "product_modules": 19,
+    "support_modules": 4,
+    "test_modules": 1,
+    "warnings": 0
+  },
+  "local_tests_run": 0,
+  "local_formatting_result": "not reached",
+  "local_harness": "Two successive pre-test failures (missing support module, premature ExUnit tag assertion) remain preserved. Prepared-4 filter correction is unexecuted; local TLS execution is deferred while native process custody is corrected in the separate in-flight lane.",
+  "runtime_validation": "Full ordinary remote Phoenix CI is required before accepting this correction.",
+  "canonical_product_changed": false,
+  "GA_accepted": false
+}

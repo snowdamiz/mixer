@@ -1,0 +1,217 @@
+{
+  "current_production_dispatch_reachable": false,
+  "events": [
+    {
+      "effect": "IR01 A.work/A.cleanup/A.storage already separate; no new child authority.",
+      "event": "AcquisitionAlreadyReserved",
+      "evidence": "source-only dependency",
+      "id": "E00",
+      "precondition": "Existing original ledger/owner"
+    },
+    {
+      "effect": "Set retirement barrier before attempt-taken check; success creates correspondence/attempt under exact original root. Reissue refuses and does not clear barrier.",
+      "event": "ScopeIssue",
+      "evidence": "source+accepted MIR",
+      "id": "E01",
+      "precondition": "A owner accessible"
+    },
+    {
+      "effect": "Current selector refuses RootPolicyPending. Conditional ready state requires separately provisioned P0/account; refusal creates no child.",
+      "event": "ParentReadyOrRefused",
+      "evidence": "source-only selector; outer MIR call context",
+      "id": "E02",
+      "precondition": "Scope issued"
+    },
+    {
+      "effect": "Current selector refuses WholeQuotePending; conditional quote must cover all six positive work/storage terms. No closure or File on refusal.",
+      "event": "QuoteReadyOrRefused",
+      "evidence": "source+entry MIR call order",
+      "id": "E03",
+      "precondition": "Conditional parent ready"
+    },
+    {
+      "effect": "Checked work/storage additions and limits before one usage commit; refusal leaves usage/peak unchanged. Success commits work/current/peak and one reservation.",
+      "event": "ChildReserveOrRefused",
+      "evidence": "source+entry MIR call order",
+      "id": "E04",
+      "precondition": "Conditional complete quote"
+    },
+    {
+      "effect": "Fixture/attempt move by value; expected is shared. Actual48-byte closure called once by consumed reservation. No second attempt.",
+      "event": "ClosureConstructAndConsume",
+      "evidence": "source+accepted MIR+accepted layout",
+      "id": "E05",
+      "precondition": "One successful child reservation"
+    },
+    {
+      "effect": "Copy attempt.original_root before setup. Output uses this root even for foreign expected comparison. Reference does not own root backing.",
+      "event": "RootCapture",
+      "evidence": "source+accepted MIR",
+      "id": "E06",
+      "precondition": "Entered prepaid body"
+    },
+    {
+      "effect": "Retain k File owners plus original io::Error and slot array; return admitted setup-refused payload. No loader/cancellation/leaf follows.",
+      "event": "SetupRefused(k)",
+      "evidence": "source setup; retained caller MIR",
+      "id": "E07",
+      "precondition": "k in0..4; exact successful prefix"
+    },
+    {
+      "effect": "Ready owns source/build/session/rows/snapshot. Fallback preserves actual Option<File> array; no fabricated Ready.",
+      "event": "SetupReadyOrInvariantRefused",
+      "evidence": "source setup; retained caller MIR",
+      "id": "E08",
+      "precondition": "Five setup stages completed"
+    },
+    {
+      "effect": "Retain complete selected proof or loader failure, source/build/session/optional executable and usage; rows/snapshot remain owned. Cancellation default and claims backing remain separate.",
+      "event": "LoaderReturn",
+      "evidence": "source+accepted MIR; backing capacities pending",
+      "id": "E09",
+      "precondition": "Ready setup only"
+    },
+    {
+      "effect": "Live/association/root/provenance branches preserve complete selected/failure carrier and consumed attempt root; no File/proof extraction loses custody.",
+      "event": "Correlate",
+      "evidence": "source+accepted MIR",
+      "id": "E10",
+      "precondition": "Complete carrier plus consumed attempt and borrowed expected"
+    },
+    {
+      "effect": "LoaderRefused or CorrelationRefused bypass leaf. Correlated invokes existing scope/construct/outer/finish sequence once; both prescope failure and complete finish result retained.",
+      "event": "FixedFramePrimary",
+      "evidence": "source+accepted MIR",
+      "id": "E11",
+      "precondition": "Correlated raw outcome and all FixtureLeafArguments"
+    },
+    {
+      "effect": "Inner bound result plus outer admitted root enclosed; dispatch wraps T and reservation in Options, then returns complete13640-byte child. Physical call/return overlap unresolved.",
+      "event": "BoundReturnAndChildWrap",
+      "evidence": "source+accepted MIR+accepted layout",
+      "id": "E12",
+      "precondition": "Prepaid body returned whole admitted outcome"
+    },
+    {
+      "effect": "Option<&admitted> and primary borrow view end before consuming child; scalar observation contains no extracted owned payload.",
+      "event": "ObserveBeginEnd",
+      "evidence": "source+accepted MIR",
+      "id": "E13",
+      "precondition": "Complete live child"
+    },
+    {
+      "effect": "Option<T>::take, drop complete T, then take reservation. Interrupted payload drop cannot pass token creation.",
+      "event": "DestroyBegin",
+      "evidence": "source+accepted MIR",
+      "id": "E14",
+      "precondition": "Complete child consumed; no live shared view"
+    },
+    {
+      "effect": "drop emptied self; only after return construct child-only DestroyedStorage token.",
+      "event": "WrapperDropComplete",
+      "evidence": "source+accepted MIR",
+      "id": "E15",
+      "precondition": "Payload drop returned; reservation taken"
+    },
+    {
+      "effect": "Some contains child reservation only; None grants no release. Parent return/token storage already provisioned in P0.",
+      "event": "TokenReturnSomeOrNone",
+      "evidence": "source+accepted MIR",
+      "id": "E16",
+      "precondition": "Destroy frame returned"
+    },
+    {
+      "effect": "Checked subtract child reserved storage once; work/peak unchanged. Underflow retains charge. Never subtract original acquisition.",
+      "event": "P0ChildRelease",
+      "evidence": "source+accepted MIR",
+      "id": "E17",
+      "precondition": "One normal Some token in P0"
+    },
+    {
+      "effect": "Take/drop payload; no release call. Implicit reservation field drop refunds nothing.",
+      "event": "OrdinaryChildDrop",
+      "evidence": "source+accepted MIR",
+      "id": "E18",
+      "precondition": "Returned child not explicitly destroyed"
+    },
+    {
+      "effect": "Existing cleanup edges may destroy owned prefixes/temporaries; no token on incomplete destroy, no work/storage refund. stdlib/drop-glue completion and double-panic abort not qualified.",
+      "event": "Unwind(site)",
+      "evidence": "source+accepted MIR edges; runtime completion pending",
+      "id": "E19",
+      "precondition": "Finite site set in prospective-tests"
+    },
+    {
+      "effect": "No payload/wrapper Drop or token; retain child/backing obligation. Does not prove durable root custody after root ledger ends.",
+      "event": "ForgetChild",
+      "evidence": "Rust ownership contract/source boundary; no runtime evidence",
+      "id": "E20",
+      "precondition": "Returned complete child"
+    },
+    {
+      "effect": "Sticky IR01 check returns Retained before cleanup. Outer drops retained original owner; original storage charge is not refunded. Physical cleanup/healthy close and durable funding are separate.",
+      "event": "RootRetireRetained",
+      "evidence": "source-only root-retirement body; accepted IR01 dependency",
+      "id": "E21",
+      "precondition": "Any scope issue, including refusal/drop/forget"
+    }
+  ],
+  "forbidden_events": [
+    "retry setup/dispatch",
+    "token on payload-drop unwind",
+    "ordinary Drop refund",
+    "forget refund",
+    "child token refunds acquisition",
+    "root Complete after scope",
+    "selected production grant from model evidence"
+  ],
+  "leaf_invocations_per_fixed_frame": "0 on loader/correlation refusal;1 on correlated path, with prescope failure or complete finish result; not dynamic work price",
+  "schema": 1,
+  "setup_prefixes": [
+    {
+      "attempted_role": "source",
+      "owned_file_indices": [],
+      "owned_mask": 0,
+      "stage": 0
+    },
+    {
+      "attempted_role": "build",
+      "owned_file_indices": [
+        0
+      ],
+      "owned_mask": 1,
+      "stage": 1
+    },
+    {
+      "attempted_role": "session",
+      "owned_file_indices": [
+        0,
+        1
+      ],
+      "owned_mask": 3,
+      "stage": 2
+    },
+    {
+      "attempted_role": "rows",
+      "owned_file_indices": [
+        0,
+        1,
+        2
+      ],
+      "owned_mask": 7,
+      "stage": 3
+    },
+    {
+      "attempted_role": "snapshot",
+      "owned_file_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "owned_mask": 15,
+      "stage": 4
+    }
+  ],
+  "status": "CONDITIONAL_SOURCE_CONTRACT_NOT_EXECUTED"
+}

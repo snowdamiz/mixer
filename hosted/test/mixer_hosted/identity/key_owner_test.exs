@@ -87,8 +87,27 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
       fixture: Map.take(ctx, [:ip, :port])
     ]
 
-    {:ok, pid} = KeyOwner.start_fixture(opts)
-    on_exit(fn -> if Process.alive?(pid), do: GenServer.stop(pid) end)
+    pid =
+      start_supervised!(%{
+        id: name,
+        start: {KeyOwner, :start_fixture, [opts]},
+        restart: :temporary,
+        shutdown: :infinity
+      })
+
+    workers_pid = Process.whereis(workers)
+    table = :sys.get_state(pid).table
+
+    # ExUnit stops supervised children before on_exit callbacks, in reverse order.
+    on_exit(fn ->
+      refute Process.alive?(pid)
+      refute Process.alive?(workers_pid)
+      assert Process.whereis(name) == nil
+      assert Process.whereis(workers) == nil
+      assert :ets.info(table) == :undefined
+      assert :persistent_term.get({Admission, name}, :absent) == :absent
+    end)
+
     {name, pid}
   end
 
@@ -858,6 +877,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
 
     assert :ok = Task.await(stopped, 2_500)
     assert {:error, :identity_unavailable} = Task.await(task, 2_500)
+    refute Process.alive?(pid)
+    assert Process.whereis(owner) == nil
     refute Process.alive?(f.connection)
     refute Process.alive?(f.worker)
     assert Port.info(f.raw_socket) == nil
