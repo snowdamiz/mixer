@@ -1,0 +1,54 @@
+{
+  "at": "2026-10-28T06:50:49.528882+00:00",
+  "command": "python3 verification/swift-physical-map-caller-closure/inspect_saved.py",
+  "input_bounds": {
+    "maximum_derived_bytes_each_partition": 8388608,
+    "maximum_each_command_seconds": 55,
+    "maximum_total_raw_artifact_bytes": 67108864
+  },
+  "interpretation_limits": [
+    "mapping only",
+    "no physical geometry, alias, stack peak, capacity, backing, destruction, price, root funding, semantic approval, device, or GA acceptance"
+  ],
+  "method": [
+    "Read only the selected exact LLVM and assembly artifacts, validate size and whole SHA-256 before interpreting them.",
+    "Index every LLVM define header to its standalone closing brace, rejecting unclosed or nested definitions. Match Caller/Closure by linkage and DISubprogram identity; mere mentions do not count.",
+    "Index every LLVM debug metadata node and preserve the selected function debug/source/scope chain.",
+    "Locate each selected assembly label with Mach-O leading underscore adjustment, then preserve complete .cfi_startproc through .cfi_endproc boundaries and whole hashes. Fail incomplete if any boundary or match is absent or ambiguous.",
+    "Record every direct call/invoke operand and all assembly bl/blr instructions in each selected whole function, with exact original line/byte provenance.",
+    "Hash pinned original source and MIR files and verify exact target spans, retaining bounded excerpts without silently truncating function evidence.",
+    "Represent whole function evidence by exact spans and SHA-256 over retained original artifacts; optional excerpts explicitly state coverage and any omission.",
+    "Rehash raw artifacts and pinned source/MIR after inspection and record equality. Preserve raw inputs.",
+    "Do not invoke a compiler, native runtime, tests, model, geometry verifier, external version tool, or modify product/global metadata."
+  ],
+  "no_silent_truncation": true,
+  "owned_directory": "verification/swift-physical-map-caller-closure",
+  "owned_targets": [
+    "Caller",
+    "Closure"
+  ],
+  "schema": 1,
+  "script": {
+    "bytes": 6676,
+    "device": 16777233,
+    "inode": 159572072,
+    "mtime_ns": 1793170249489461428,
+    "path": "verification/swift-physical-map-caller-closure/inspect_saved.py",
+    "sha256": "2fa64514fa71c762874597377f76fcec3d3dcab9c71bc10516e59957321b4621"
+  },
+  "selection": {
+    "bytes": 2363,
+    "device": 16777233,
+    "inode": 159571385,
+    "mtime_ns": 1793170102701105778,
+    "path": "verification/swift-semantic-adapter-root-review/dispatch-physical-mapping-selection.json",
+    "sha256": "bad62b51344efcc72640c0eaad4f25e721901e4b2e6c35b6887ffaba035c8aa1"
+  },
+  "source_revision": "9e860ea12074ca31bef4087ce34177a03f295dd8",
+  "status": "frozen-before-raw-artifact-access",
+  "tool": {
+    "python_implementation": "CPython",
+    "python_version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "version_provenance": "running stdlib inspection process; no compiler/version subprocess"
+  }
+}

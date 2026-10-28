@@ -1,0 +1,231 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T06:12:34.533492+00:00",
+  "status": "validated-ordinary-remote-Phoenix-host-scope-pass",
+  "source_bindings": {
+    "path": "verification/github-delivery-owner-drain/phoenix-review/source-bindings.json",
+    "bytes": 80902,
+    "sha256": "384646abf1632820278fea0943622a90355943a1b7a8a1eb395bb5517e62949a"
+  },
+  "remote_metadata": {
+    "path": "verification/github-delivery-owner-drain/phoenix-review/remote-metadata.json",
+    "bytes": 3777,
+    "sha256": "2447b1706fb9eea9c4443853647f0b276dca67622982bf682cf21f85c52e8e90"
+  },
+  "artifact_selection": {
+    "path": "verification/github-delivery-owner-drain/phoenix-review/artifact-selection.json",
+    "bytes": 9817,
+    "sha256": "4b8a4ae41ec5f20e569b41b723f4ee578fdb925ecc4cfdbdbe6e09d8f7a3ae5c"
+  },
+  "identity": {
+    "commit": "9e860ea12074ca31bef4087ce34177a03f295dd8",
+    "tree": "89ece6e95e4b12978a9c33c85e07ec448fd717b4",
+    "run_id": 40641203895,
+    "job_id": 122659536370,
+    "attempt": 1,
+    "run_url": "https://github.com/snowdamiz/mixer/actions/runs/40641203895",
+    "job_url": "https://github.com/snowdamiz/mixer/actions/runs/40641203895/job/122659536370",
+    "run_and_job_conclusion": "success",
+    "artifact_id": 12796092050,
+    "artifact_bytes": 1434892,
+    "artifact_sha256": "31afdf5e9ab6c20be3f48170cdfd622fbac094ff48604dd75577a747921999bf"
+  },
+  "independent_checks": {
+    "ZIP_matches_GitHub_digest_and_size_before_extraction": true,
+    "safe_unique_ZIP_members": 278,
+    "selected_logs_and_lifecycle_files": 20,
+    "source_archive_members_matching_receipt_inputs": 179,
+    "source_tree_digest_recomputed": true,
+    "all_command_log_hashes_matching_receipt": true,
+    "actual_method_traces_matched_to_delivered_source": 14,
+    "production_exclusion_and_cleanup_checked": true,
+    "live_changing_product_source_used": false
+  },
+  "suite": {
+    "collector_receipt": "passed",
+    "mix_test_exit_code": 0,
+    "actual_summary": "Result: 697 passed, 2 skipped",
+    "failures": 0,
+    "two_existing_skips": [
+      "* test K03 production resolver/classifier pins public peer despite rebinding; private sink remains untouched (skipped) [L#32]",
+      "* test IS04 IS05 actual configured startup cold production DNS TLS admission and lifecycle (skipped) [L#29]"
+    ],
+    "format_exit_code": 0,
+    "warnings_as_errors_compile_exit_code": 0,
+    "release_build_exit_code": 0,
+    "missing_runtime_configuration_rejection_exit_code": 1,
+    "missing_configuration_exit1_is_expected": true
+  },
+  "lifecycle": {
+    "actual_methods_passed": [
+      "KOL01",
+      "KOL02",
+      "KOL03",
+      "KOL04",
+      "KOL05",
+      "KOL06",
+      "KOL07",
+      "KOL08-GRACEFUL",
+      "KOL09-KILL"
+    ],
+    "attribution": "Seven existing socket-free methods plus two new in-flight methods;9total. Distinct lifecycle and inflight modules, with source/test lines bound in source-bindings.json. No skipped lifecycle method or weakened test assertion.",
+    "canonical_test_SHA": "712dac61a33dbe7805a1e5f41c1f648c5b9ba482ac23952e9bc1ef0136a6cea6",
+    "KOL08": {
+      "stage": "graceful-gate-passed",
+      "TLS": "tlsv1.3",
+      "asserted_graceful_facts_all_true": true,
+      "raw_explicit_predeadline_reply": true,
+      "public_denial": true,
+      "cleanup_complete": true,
+      "cleanup_errors": []
+    },
+    "KOL09": {
+      "stage": "worker-death-resource-gate-passed",
+      "TLS": "tlsv1.3",
+      "fault_reason": ":shutdown",
+      "callback_clean": true,
+      "old_resources_down_before_replacement": true,
+      "replacement_observed_and_empty": true,
+      "raw_explicit_predeadline_reply": true,
+      "public_denial": true,
+      "old_permit_rejected": true,
+      "stale_lease_rejected": true,
+      "held_controller_recorded_down_with_reason": ":killed",
+      "all_original_KOL09_loop_assertions_reached_and_passed": true,
+      "cleanup_complete": true,
+      "cleanup_errors": []
+    },
+    "default_field_limit": "Only the branch-applicable assertion lists are qualified. KOL08 replacement/callback fields and KOL09 graceful-only fields retain common-report defaults; those defaults are not failures.",
+    "additional_controller_regressions": [
+      {
+        "method": "K07f delayed TLS handler cleanup holds all four slots until connection DOWN",
+        "elapsed_ms": 24.1,
+        "source_line": 805,
+        "tests_log_line": 1992,
+        "outcome": "passed"
+      },
+      {
+        "method": "K07g owner shutdown waits for suspended TLS controller cleanup",
+        "elapsed_ms": 74.8,
+        "source_line": 853,
+        "tests_log_line": 1994,
+        "outcome": "passed"
+      },
+      {
+        "method": "K07h supervised owner crash cannot restart component before old controllers DOWN",
+        "elapsed_ms": 86.7,
+        "source_line": 887,
+        "tests_log_line": 1996,
+        "outcome": "passed"
+      }
+    ],
+    "prior_failed_41af4a3": "Preserved unchanged. Its ordering failure/noproc callback observation is not reclassified by this successful successor."
+  },
+  "HTTP2": {
+    "actual_methods_passed": [
+      "B1",
+      "B2",
+      "B3",
+      "D1",
+      "D2"
+    ],
+    "receipts_passed": [
+      "B1-batching",
+      "B2-exact-cap",
+      "B3-cap-plus-one",
+      "D1-settings",
+      "D1-window_update",
+      "D2-settings",
+      "D2-window_update"
+    ],
+    "receipts_independently_parsed_and_saved": 7,
+    "actual_Bandit_version_guard": "1.14.0; fixture executes Application.spec(:bandit,:vsn) guard and each receipt records that version",
+    "B1": {
+      "bytes_sent_and_captured": 40001,
+      "maximum_returned_read": 40001,
+      "over_32768_witness": true,
+      "body_SHA_verified_from_exact_delivered_seed": true
+    },
+    "B2": {
+      "bytes_sent_and_captured": 1048576,
+      "reads": 32,
+      "maximum_returned_read": 32768,
+      "body_SHA_verified_from_exact_delivered_seed": true
+    },
+    "B3": {
+      "bytes_sent": 1048577,
+      "result": "too_large",
+      "halted": true,
+      "captured_bytes": 0
+    },
+    "D1": {
+      "profiles": [
+        "settings",
+        "window_update"
+      ],
+      "result": "package_read more/0 bytes, not halted",
+      "controls_processed_before_return_each": 4,
+      "elapsed_ms_each": 1001
+    },
+    "D2": {
+      "profiles": [
+        "settings",
+        "window_update"
+      ],
+      "result": "capture error/no_progress, halted",
+      "controls_processed_before_return_each": 4,
+      "elapsed_ms_each": 1001
+    },
+    "bounds_and_cleanup": "Each public nonprogress read is within900..1600ms, >=3controls processed before return; all seven receipts pass cleanup, <=500ms cleanup and25s module budget, read/frame caps and3MiB aggregate input cap. Receipt byte caps and exact predicate/result/body-size/SHA witnesses were checked."
+  },
+  "production_exclusion": {
+    "exit_code": 0,
+    "fixture_export_flags": {
+      "fixture_owner": false,
+      "fixture_supervisor": false,
+      "fixture_transport": false,
+      "startup_fixture": false,
+      "startup_dns_fixture": false
+    },
+    "fixture_init_flags": {
+      "fixture_init_rejected": true,
+      "owner_absent": true,
+      "workers_absent": true,
+      "admission_absent": true
+    },
+    "log": {
+      "path": "verification/github-delivery-owner-drain/phoenix-review/selected/release-test-exclusion.log",
+      "bytes": 11988,
+      "sha256": "e00b822129ae34347860920e5503b6b07b5818437dd18a426ac8baf3e6a21372"
+    }
+  },
+  "source_correction": {
+    "key_owner_sha256": "d5d98bec506ad418c37fc36097d2cf714261c3f644875bf2bf93b4360adefe5d",
+    "fetch_flight_sha256": "ca91467ac1d9011f26ff59382c996ee6186ea8daa789e64ead926a2392a60cf4",
+    "independent_source_review_sha256": "ed2aa7da2bcdef71eefdacdeb9792c9553daefad72b18d2ed65a582685c6df9e",
+    "collector_sha256": "78292dbf027bff4fae67d638fec9504c042cbeac39b6bca40e38321178bb5951",
+    "committed_workflow_sha256": "5b242f70831c135d8b18845b992c78e8c85797ec45565e9b9e64cdd19d2edbf9",
+    "workflow_boundary": "Exact committed ordinary workflow excludes separately held dirty UnitA callback collector/workflow. No UnitA acceptance follows."
+  },
+  "cleanup": {
+    "remote_PostgreSQL_stopped": true,
+    "remote_collector_scratch_removed": true,
+    "lifecycle_owned_resource_cleanup_complete": true,
+    "seven_HTTP2_cleanup_receipts_complete": true
+  },
+  "qualification_limits": [
+    "This is the exact ordinary remote Linux host/DB/TLS suite and the named lifecycle/HTTP2 assertions. The two skipped production-network cases remain unqualified.",
+    "Synchronous source shutdown barriers remain an availability limitation. No universal recovery claim for registration-in-progress, direct untrappable owner/flight kill, arbitrary exit envelope or VM death follows from these selected methods.",
+    "Local custody controls5 remains failed/held and its seven group identities unresolved; no local custody, alternate-actor retry or standalone18-artifact qualification is granted.",
+    "Held UnitA, native/UI/capture/simulator/emulator/device, physical provider/operations/FieldLog published-package/production and GA gates are not released. Engine assessment remains with root.",
+    "Delivered lock pins JOSE1.11.13, but this collector does not directly expose loaded JOSE or OpenSSL version. Keep these limits despite the host-suite pass."
+  ],
+  "activity": {
+    "read_only_GitHub_and_bounded_stdlib_artifact_review": true,
+    "local_compile_test_TLS_DB_or_custody_probe": 0,
+    "workflow_dispatch_or_rerun": 0,
+    "git_or_global_metadata_changes": 0,
+    "only_owned_new_review_directory_written": true,
+    "temporary_URL_handling": "One file-reference URL was inadvertently shown in tool output during structure inspection; it was not saved to retained evidence or repeated. Persisted download bytes were bounded and verified against provider size/SHA."
+  }
+}

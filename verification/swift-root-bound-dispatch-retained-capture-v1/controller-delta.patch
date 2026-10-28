@@ -1,0 +1,57 @@
+--- proven-capture-v1/run-capture.py
++++ retained-capture-v1/run-capture.py
+@@ -1,4 +1,4 @@
+-"""One root-released unchanged-source IR/assembly capture; never a host run."""
++"""One root-released alternate diagnostic retained IR/assembly capture; never a host run."""
+ import time
+ START = time.monotonic()
+ from pathlib import Path
+@@ -16,17 +16,17 @@
+ import traceback
+ 
+ ROOT = Path("/Users/andreyyurlov/Documents/dev/mixer")
+-LANE = ROOT / "verification/swift-root-bound-dispatch-physical-capture-v1"
++LANE = ROOT / "verification/swift-root-bound-dispatch-retained-capture-v1"
+ SCRIPT = LANE / "run-capture.py"
+ OUT = LANE / "runtime"
+-BASE_PLAN = ROOT / "verification/swift-root-bound-dispatch-physical-plan/capture-plan.json"
+-BASE_PLAN_SHA = "bed9476b169810452ac0932605784125365f57c897d1e3bf74cd9eaa6ebb8184"
+-BASE_ARGV_SHA = "4022ae1057439fe5ae31d18675a884b2dc3e56f317a8ddced08bfb163a410aaa"
++BASE_PLAN = LANE / "base-capture-plan.json"
++BASE_PLAN_SHA = "15413684daf6815fbc9773c7fecf669f035768116524e567a841bd571c3f31c8"
++BASE_ARGV_SHA = "799f61fd0bff3d5eba3849b784e7bc7b699a5ee84a2a814f298f407befb28e75"
+ PLAN = LANE / "plan.json"
+-PLAN_SHA = "3534a9d4bc5428335b3dec4cc295f0b55b1a8ea1c778e265fabdcb9fefb6743e"
+-RELEASE = ROOT / "verification/swift-semantic-adapter-root-review/dispatch-physical-capture-release.json"
++PLAN_SHA = "1a7eb62837ade6b2f8256f64111bb11bc57fb216308b0131785a3990d744a601"
++RELEASE = ROOT / "verification/swift-semantic-adapter-root-review/dispatch-retained-physical-capture-release.json"
+ PYTHON = "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14"
+-BUILD = ROOT / "verification/swift-root-bound-dispatch-physical-plan/command"
++BUILD = LANE / "command"
+ TMP = BUILD / "tmp"
+ SIGNALS = (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)
+ SEEN = []
+@@ -486,6 +486,7 @@
+                "packet_seal_sha256": release["capture_packet_seal_sha256"], "controller_environment": dict(os.environ),
+                "packet_tree_sha256": packet["tree_sha256"], "independent_source_review": release["independent_source_review"],
+                "all_results_local_geometry_only": True, "complete_capacity_accepted": False,
++               "alternate_diagnostic_configuration_only": True, "original_capture_qualified": False, "runtime_admission_accepted": False,
+                "physical_capacity_prices_backings_root_funding_product_GA_accepted": False,
+                "source_tree_sha256": plan["source_tree_sha256"], "python_version": sys.version,
+                "python_tool": plan["python_tool"], "controller_sha256": release["controller_sha256"],
+@@ -561,6 +562,7 @@
+                 row = OWNED[0][name]
+                 output_rows.append({"name": name, "bytes": row["bytes"], "sha256": row["sha256"]})
+         capture_observation = {"schema": 1, "status": "captured-artifacts-only", "binding": plan["verifier_binding"],
++            "alternate_diagnostic_configuration_only": True, "original_capture_qualified": False, "runtime_admission_accepted": False,
+             "compiler_exit": OWNED[0].get("returncode") if OWNED else None, "outputs": output_rows,
+             "source_manifest_sha256": plan["source_manifest"]["sha256"], "owned_groups_closed": closed,
+             "cleanup_complete": outcome.get("generated_directory_removed") is True, "bounds_met": raw_complete,
+@@ -595,6 +597,7 @@
+             "finalization_errors": finalization_errors,
+             "signal_scope": "Observed/pending through the one-way cutoff after all hashing; later signals outside this receipt.",
+             "all_results_local_geometry_only": True, "complete_capacity_accepted": False,
++            "alternate_diagnostic_configuration_only": True, "original_capture_qualified": False, "runtime_admission_accepted": False,
+             "physical_capacity_prices_backings_root_funding_product_GA_accepted": False})
+         print(json.dumps({"status": "captured-artifacts-only" if passed else "failed", "compiler_invocations": len(OWNED),
+                           "elapsed_seconds": time.monotonic() - START, "receipt": str(OUT / "receipt.json")}))

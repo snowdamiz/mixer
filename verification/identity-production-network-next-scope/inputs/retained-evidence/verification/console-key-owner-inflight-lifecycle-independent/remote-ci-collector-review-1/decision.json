@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T05:10:19.046558+00:00",
+  "status": "adequate-source-only-ordinary-CI-collector-integration-runtime-unqualified",
+  "source_contract": {
+    "path": "verification/console-key-owner-inflight-lifecycle-independent/remote-ci-collector-review-1/source-contract.json",
+    "bytes": 9810,
+    "sha256": "bab9a03fc571a14ae733099cdef687a86a55b34f0ec2bc4cef5e56b57e2a926b"
+  },
+  "packet_freeze_sha256": "a662d2adfe17eaddbf5f48ad8dbbc6a5df4ef782d4b9617a7ad1da8e38d41f8c",
+  "validation_plan_sha256": "504f2daa1b8a456c6703415a94747597862cec232dba30e8e2a3dc3717758f9a",
+  "canonical_collector_sha256": "78292dbf027bff4fae67d638fec9504c042cbeac39b6bca40e38321178bb5951",
+  "findings": [],
+  "source_assessment": [
+    {
+      "topic": "Lifecycle evidence plumbing",
+      "source_refs": [
+        "hosted/scripts/test-local.py:210-215",
+        "hosted/scripts/test-local.py:237-242",
+        ".github/workflows/hosted.yml:100-108",
+        "hosted/test/mixer_hosted/identity/key_owner_lifecycle_test.exs:70-74",
+        "hosted/test/mixer_hosted/identity/key_owner_inflight_lifecycle_test.exs:203-229,556-560"
+      ],
+      "conclusion": "The new output/identity-lifecycle directory is created before mix test and the exact environment variable is passed in its environment. Both existing writers consume it. The existing always-upload step retains the entire output tree on success or failure. Ordinary on_exit writes preserve available adverse observations; missing/partial output remains missing evidence."
+    },
+    {
+      "topic": "Production fixture seam exclusion",
+      "source_refs": [
+        "hosted/scripts/test-local.py:153-192",
+        "hosted/lib/mixer_hosted/identity/key_owner_supervisor.ex:7-12",
+        "remote-ci-collector-1/proposed-production-exclusion-prefix.exs"
+      ],
+      "conclusion": "The production-only command loads KeyOwnerSupervisor, requires its start_fixture/1 export false alongside all prior false flags, and calls init with an explicit fixture tuple. It requires FunctionClauseError rejection plus exact probe owner/workers registrations and Admission pointer absent before/after. This invokes the init callback directly and requests no child start. Prior production policy suffixes are unchanged. Actual prod compilation/evaluation remains required; Python AST/literal review is not that proof."
+    },
+    {
+      "topic": "Nine method discovery and adverse assertions",
+      "source_refs": [
+        "hosted/mix.exs:12-20,28-29",
+        "hosted/test/mixer_hosted/identity/key_owner_lifecycle_test.exs:1-2",
+        "hosted/test/mixer_hosted/identity/key_owner_inflight_lifecycle_test.exs:639-751"
+      ],
+      "conclusion": "Both canonical *_test.exs files remain unchanged, use async:false and are absent from test_ignore_filters. The default suite retains seven ordinary and two pending-TLS methods. KOL09 still requires an explicit raw reply, replacement/empty-state observations, old resources down before replacement, callback reason :shutdown, stale permit/lease rejection and public denial. Neither its adverse assertions nor the supervisor or TLS fixture was weakened."
+    },
+    {
+      "topic": "Ordinary CI dependency and scope boundary",
+      "source_refs": [
+        ".github/workflows/hosted.yml:36-108",
+        "hosted/.tool-versions",
+        "hosted/mix.exs",
+        "hosted/mix.lock",
+        "hosted/test/test_helper.exs"
+      ],
+      "conclusion": "The unchanged Ubuntu24.04 job selects OTP29.1.1/Elixir1.20.4-otp-29, resolves the current exact lock with JOSE1.11.13 and compiles dependencies in its checkout. PostgreSQL16 and the broad ordinary suite remain its own scope under15-minute job/300-second command bounds. Lock/resolution is source evidence, not observed loaded-module/tool identity. The custom local custody wrapper is absent from this path."
+    }
+  ],
+  "recommendation": {
+    "source_integration_adequate_for_root_delivery_selection": true,
+    "selected_canonical_change": [
+      "hosted/scripts/test-local.py"
+    ],
+    "root_only": "Root may include these exact reviewed bytes in a coherent authorized delivery and inspect its ensuing ordinary Phoenix CI. This independent review does not push, launch a workflow or claim success.",
+    "new_local_custody_execution_recommended": false,
+    "current_c51_CI": "Separate. It predates the collector correction and cannot validate the new evidence/exclusion integration; this review does not assess its current outcome."
+  },
+  "required_actual_acceptance": {
+    "commit_and_inputs": "Bind the delivered commit, collector SHA, full source manifest/archive, canonical lock, command receipt and actual tool/environment identity. Keep dependency resolution evidence distinct from direct loaded-version observations.",
+    "production_exclusion": {
+      "command": "release-test-exclusion",
+      "required_exit_code": 0,
+      "production_test_export_exclusion": {
+        "fixture_owner": false,
+        "fixture_supervisor": false,
+        "fixture_transport": false,
+        "startup_fixture": false,
+        "startup_dns_fixture": false
+      },
+      "production_key_owner_supervisor_fixture_init_exclusion": {
+        "fixture_init_rejected": true,
+        "owner_absent": true,
+        "workers_absent": true,
+        "admission_absent": true
+      }
+    },
+    "methods": "Require actual trace/outcome for each of KOL01,KOL02,KOL03,KOL04,KOL05,KOL06,KOL07,KOL08-GRACEFUL,KOL09-KILL; no skip, missing method, setup error or cleanup failure counts as pass. Report full ordinary-suite status separately from these nine outcomes.",
+    "artifacts": {
+      "directory": "$RUNNER_TEMP/phoenix-foundation/identity-lifecycle",
+      "environment": "MIXER_KEY_OWNER_LIFECYCLE_EVIDENCE",
+      "expected_if_all_nine_finish": [
+        "Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL01Owner-cleanup.json",
+        "Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL02Owner-cleanup.json",
+        "Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL03Owner-cleanup.json",
+        "Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL05Owner-cleanup.json",
+        "Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL07Owner-cleanup.json",
+        "KOL04-cleanup.json",
+        "KOL06-cleanup.json",
+        "KOL08-GRACEFUL-observation.json",
+        "KOL09-KILL-observation.json"
+      ],
+      "expected_JSON_count": 9,
+      "failure_semantics": "Missing/partial records preserve actual failure; JSON cleanup alone does not replace method assertions or full trace."
+    },
+    "KOL09": "Retain exact fault_reason, explicit raw reply distinct from public denial, pointer/resource timing, old-resource ordering and cleanup. If an assertion fails, preserve its actual record and failure; do not remove or weaken assertions to obtain green. JSON cleanup alone does not prove test-body success.",
+    "earlier_failures": "If format/compile/release/fixture setup prevents tests, report unrun or partial methods and missing artifacts. Existing upload if-no-files-found:ignore is retention behavior, not qualification.",
+    "actual_runtime_or_GA_qualified_by_this_review": false
+  },
+  "local_custody_boundary": {
+    "controls5_status": "FAILED",
+    "review": "verification/console-key-owner-inflight-lifecycle-independent/custody-controls-terminal-review-2/decision.json",
+    "actual_denied_operation": "os.killpg(wrapper_pgid,0)",
+    "seven_group_closures": "unresolved after sticky EPERM; no alternative actor/API retry",
+    "meaning": "Ordinary remote product lifecycle evidence never accepts the failed local custody protocol or replaces its eighteen typed standalone artifacts. No local replacement build/controller/run is requested."
+  },
+  "review_activity": {
+    "producer_collector_import_execution": 0,
+    "local_compile_test_DB_TLS_listeners_process_probes": 0,
+    "workflow_or_product_edits": 0,
+    "workflow_launch_commit_push": 0,
+    "only_new_owned_review_subdirectory_written": true,
+    "native_UI_capture_devices_emulators": "paused and untouched"
+  }
+}

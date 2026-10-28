@@ -1,0 +1,163 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T06:28:55.160483+00:00",
+  "status": "source-only-next-step-assessed; no-new-runtime-or-CI-qualification",
+  "source": {
+    "commit": "9e860ea12074ca31bef4087ce34177a03f295dd8",
+    "tree": "89ece6e95e4b12978a9c33c85e07ec448fd717b4",
+    "committed_hosted_files": 177,
+    "committed_hosted_tree_digest_sha256": "023df04c9a4599c3d5a6cdf2afb53a95e2faf37765d8b96ba2bcc0e1b007c92e",
+    "workflow": "HEAD:.github/workflows/hosted.yml; live workflow has protected unrelated additions and was not used as the CI contract",
+    "source_snapshot": "inputs/input-manifest.json"
+  },
+  "observed_checkpoint": {
+    "receipt": "verification/github-delivery-owner-drain/terminal-acceptance.json",
+    "remote_run_id": 40641203895,
+    "engine_jobs_passed": 6,
+    "engine_steps_passed": 64,
+    "phoenix_passed": 697,
+    "phoenix_existing_skips": 2,
+    "lifecycle_methods_passed": 9,
+    "HTTP2_methods_passed": 5,
+    "HTTP2_wire_cases_passed": 7,
+    "evidence_kind": "retained terminal evidence inspected offline; no remote API refresh or runtime execution in this assessment"
+  },
+  "actual_skip_causes": [
+    {
+      "module": "MixerHosted.Identity.KeyOwnerLinuxNetworkTest",
+      "file": "hosted/test/mixer_hosted/identity/key_owner_linux_network_test.exs",
+      "line": 4,
+      "method": "K03 production resolver/classifier pins public peer despite rebinding; private sink remains untouched",
+      "predicate": "skip unless :os.type() == {:unix,:linux} AND MIXER_ISOLATED_NETNS == 1",
+      "ordinary_CI_cause": "Ubuntu meets OS predicate but committed workflow/collector never creates an isolated namespace or sets MIXER_ISOLATED_NETNS.",
+      "required_scope": "Production DNSResolver/JWKSTransport.fetch/4, synthetic public-classified peer 8.8.8.8:443 with hostname/CA verification, rebound loopback sink receives zero connections, later private answer rejects before connect. DNS stub for this method uses an ephemeral loopback port."
+    },
+    {
+      "module": "MixerHosted.Identity.StartupLinuxNetworkTest",
+      "file": "hosted/test/mixer_hosted/identity/startup_linux_network_test.exs",
+      "line": 4,
+      "method": "IS04 IS05 actual configured startup cold production DNS TLS admission and lifecycle",
+      "predicate": "same Linux AND MIXER_ISOLATED_NETNS gate",
+      "ordinary_CI_cause": "Same missing isolated-namespace setup/flag; not a demonstrated failure of configured startup.",
+      "required_scope": "Actual Application/Endpoint/Repo, production StartupConfig, configured resolver127.0.0.1:53, synthetic public peer8.8.8.8:443, ConfiguredVerifier.authenticate/2 signed-token cold admission, empty restart/old lease rejection, active fetch shutdown and3closed connections."
+    }
+  ],
+  "already_qualified_separate_cases": {
+    "normal_K03_DNS_matrix": "hosted/test/mixer_hosted/identity/key_owner_test.exs:246 remains in ordinary suite; mixed/special/CNAME/overflow/truncation/delay coverage does not prove production public-peer rebinding case.",
+    "startup_disabled_and_supervision": "hosted/test/mixer_hosted/identity/startup_lifecycle_test.exs:143,158 ordinary cases remain distinct from cold production-network admission.",
+    "KOL08_KOL09": "The nine lifecycle methods accepted at9e860ea do not remove the two network skips."
+  },
+  "historical_network_evidence": {
+    "date": "2026-10-24",
+    "producer_receipt": "verification/hosted-identity-startup-correction/linux-1-receipt.json",
+    "producer_passed": 95,
+    "producer_skips": 0,
+    "earlier_independent_Linux_passed": 87,
+    "review": "docs/hosted-identity-startup-correction-review.md",
+    "namespace": "Docker --network none with scoped NET_ADMIN; PostgreSQL joins that owned namespace; lo:1 owns8.8.8.8; no host route change",
+    "runtime": "Linux ARM64; Elixir1.20.4/OTP29.1.1; OpenSSL3.0.13; PostgreSQL15.19 image metadata",
+    "historical_image_refs": [
+      "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+      "postgres@sha256:c961aa287d8698297cb26cdfadfbe9fd2cbaf77e53cfffe9636e8d8a1e4d842c"
+    ],
+    "limitations": [
+      "The image-inspect source identifies ARM64 and PG_MAJOR15; these are not AMD64/PG16 receipts.",
+      "Historical collector requires state.json plus a deleted local scratch and Home Hex/rebar inputs, copies historical deps, and runs a broad old suite. Do not execute/import/copy it as a ready current collector.",
+      "Historical production/source/dependency bytes predate current Bandit1.14.0/JOSE1.11.13 and supervisor-death correction. Old network evidence cannot qualify current product bytes.",
+      "No real provider, provider rotation semantics, Neon TLS, Cloudflare operation, HTTP/browser login, published FieldLog, native/device or GA acceptance."
+    ]
+  },
+  "ordinary_remote_CI_feasibility": {
+    "answer": "Yes, conditionally: an independently selected targeted remote isolated Linux lane can execute these exact current cases without reopening any held local harness. Unchanged ordinary Phoenix CI alone cannot qualify them.",
+    "current_source_candidate_available": true,
+    "current_runtime_ready": false,
+    "reason_not_ready": "No committed targeted collector or target-architecture immutable image closure is selected; workflow availability/capabilities have not been probed.",
+    "not_a_local_hold_bypass": "New remote product evidence neither imports the held custom custody protocol nor certifies it, probes its groups, or replaces its failed18control artifacts."
+  },
+  "smallest_next_source_step": {
+    "step": "Freeze and review the following narrow remote-only collector contract/source candidate; keep workflow activation and runtime execution unselected until root reviews exact bytes, target images, isolation and cleanup.",
+    "product_changes_required": [],
+    "new_files": [
+      "docs/hosted-identity-production-network-ci-contract.md",
+      "hosted/scripts/test-identity-network.py",
+      "hosted/scripts/test_identity_network_collector.py",
+      ".github/workflows/identity-network.yml"
+    ],
+    "implementation_shape": [
+      "Keep namespace setup as one fixed audited Elixir expression inside the new Python collector, equivalent to the existing5-line ioctl fixture setup; no additional general-purpose namespace helper.",
+      "New standalone workflow avoids protected dirty hosted.yml. Its sole new job selects the narrow collector; retain existing Phoenix job and test-local.py unchanged.",
+      "Prepare locked dependencies in an owned remote image/workspace before runtime isolation, using mix deps.get --check-locked. Freeze actual digests and loaded versions. No deps resolution/download occurs in the network-none test namespace.",
+      "Use a fresh isolated container namespace with no published ports/network and only scoped NET_ADMIN plus required low-port binding; synthetic PostgreSQL16 shares that namespace and listens only on loopback. Do not modify host networking or use host network.",
+      "Materialize only the delivered Git commit plus exact lock and required current migrations; reject dirty/untracked substitution. The two existing tests/support fixtures and product source remain unchanged.",
+      "Run exactly the two selected test files, async:false, seed0, warnings-as-errors, through existing mix test --no-start alias. Do not invoke test-local.py, the historical run_linux.py or any broad held local/PG16/UnitA runner.",
+      "Add independently meaningful collector controls for refusing missing/false namespace identity, mismatched image architecture/version/source, absence of a required test/receipt or a skipped method, and failed fixture cleanup. Controls model orchestration only and cannot certify actual isolation or teardown."
+    ]
+  },
+  "exact_future_test_argv": [
+    "mix",
+    "test",
+    "--warnings-as-errors",
+    "--seed",
+    "0",
+    "--trace",
+    "test/mixer_hosted/identity/key_owner_linux_network_test.exs",
+    "test/mixer_hosted/identity/startup_linux_network_test.exs"
+  ],
+  "source_contract_prerequisites": [
+    "Root selects exact candidate/frozen commit tree, four-file patch, bounded test roots, tool/runtime identities and limits before activation. This assessment is not that selection.",
+    "Resolve and freeze official Linux AMD64 image manifest digests for Elixir1.20.4/OTP29.1.1 and PostgreSQL16, or explicitly select a different actual architecture/database scope. Historical ARM64/PG15 image refs are not substitutes; no such resolution or image probe is performed here.",
+    "Remote job must have owned Docker namespace creation/NET_ADMIN/low-port privileges; do not assume availability from ubuntu24.04 label. Record actual allowed capabilities and fail before tests if absent.",
+    "Bind current hosted177-file Git subtree and any newly selected collector/workflow source, complete lock/dependency closure, all10current migrations, actual loaded Mint/JOSE/Bandit/Elixir/OTP/OpenSSL/PostgreSQL versions and source digest. Dependency declaration/lock alone is not loaded-version evidence.",
+    "Synthetic database: only mixer_startup_test with mixer_fixture and a disposable namespace-local PostgreSQL16. StartupFixture.prepare_database performs all current migrations; no customer roles/databases, browser callback storage or migration runner is required.",
+    "Sanitize inherited MIXER_* and credential-bearing environment; set only MIX_ENV=test, MIXER_ISOLATED_NETNS=1, MIXER_TEST_DATABASE_PORT, MIXER_TEST_IDENTITY_EVIDENCE inside the verified owned namespace. Flag alone never proves isolation.",
+    "Fix command bounds and aggregate workflow/artifact caps in reviewed source; no timeout extension, weakened product assertions, fixture bypass or network fallback to turn failure into pass.",
+    "Cleanup is part of qualification: retain exact known container IDs; bounded stop/remove of only those owned resources; preserve cleanup failure/unknown state and fail. Never search/retry/signal local held groups, reuse held controllers or infer absence from a successful direct-child wait."
+  ],
+  "required_acceptance": {
+    "test_methods": 2,
+    "expected_skips": 0,
+    "required_files": [
+      "production-DNS-rebinding.json",
+      "startup-production-network.json"
+    ],
+    "must_match": [
+      "Exact delivered source/dependency/image/runtime identities and unchanged before/after input manifest",
+      "Actual2test execution with exit0 and no setup failure/skip, plus existing semantic assertions",
+      "Public peer8.8.8.8:443; exactly2initial DNS queries; publicConnections1; forbiddenSinkConnections0; later private answer rejected before connect",
+      "Cold configured public adapter admission, initially0fetches, restart empty/new epoch/old lease rejected,3accepted/closed connections and no fixture sockets/workers/endpoint after shutdown",
+      "Synthetic CA private key dirs removed; owned PostgreSQL/containers/scratch removed even on test failure",
+      "Upload logs/receipt/raw assertions/failure partial artifacts on every terminal path, then independent root acceptance. Upload success alone is not evidence."
+    ],
+    "production_exclusion": "Existing same-commit ordinary Phoenix packaged-release/test-export exclusion stays a separate required companion receipt; targeted namespace tests compile test support and cannot establish production BEAM exclusion by themselves.",
+    "no_gate_automatic_pass": true
+  },
+  "held_and_paused_boundaries": {
+    "local_custody": "FAILED11/18passed;7unknown processgroup observations after EPERM. Do not probe/retry/signal/delegate groups20745,20770,20780,20817,20842,20851,20866.",
+    "held_lanes": [
+      "callback UnitA",
+      "broad PostgreSQL16 replay",
+      "hosted catalog inspector",
+      "authority driver",
+      "outbound Worker transport V2",
+      "broad local hosted harness",
+      "custom local custody/native TLS collector"
+    ],
+    "native": "Computer use, screen capture, physical devices and native simulator/emulator runtime tests remain paused.",
+    "production": "No publication, customer messages, destructive migration, credential or global metadata/workflow mutation is authorized by this assessment."
+  },
+  "W14_G22": {
+    "W14_state": "in_progress",
+    "W14_acceptance": "New organization completes full workflow through public UX/API; Stripe duplicate/out-of-order/test-mode and usage reconciliation cases pass.",
+    "G22_status": "planned",
+    "G22_reviewer": null,
+    "meaning": "Two network tests can refresh a narrow synthetic identity development qualification only; they do not satisfy end-to-end onboarding/teams/permissions/SSO/audit/customer keys/dedicated runners or close W14/G22/GA."
+  },
+  "assessment_activity": {
+    "executed_tests_compilers_native_TLS_namespace_helpers_or_process_probes": 0,
+    "installs": 0,
+    "dispatched_or_rerun_CI": 0,
+    "canonical_workflow_product_tracker_credential_changes": 0,
+    "written_only": "verification/identity-production-network-next-scope/",
+    "independent_progress": "Source contract/collector/control authoring and source review can proceed within a newly bounded lane; runtime qualification cannot proceed from unchanged ordinaryCI or historical pins, and no new runtime is selected here."
+  }
+}

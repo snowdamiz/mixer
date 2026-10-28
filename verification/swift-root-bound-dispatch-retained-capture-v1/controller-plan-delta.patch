@@ -1,0 +1,175 @@
+--- original/plan.json
++++ retained-capture-v1/plan.json
+@@ -5,7 +5,8 @@
+     "sha256": "b6c34e671db0033f8fc357df5ccf8f7bbbbd7f2f9cbe68649e28230dd15f9dba"
+   },
+   "all_results_local_geometry_only": true,
+-  "approach": "exact-toolchain-physical-region-evidence",
++  "alternate_diagnostic_configuration_only": true,
++  "approach": "alternate-diagnostic-retained-physical-region-evidence",
+   "argv": [
+     "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+     "--crate-name",
+@@ -38,13 +39,15 @@
+     "rlib",
+     "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm/src/lib.rs",
+     "--error-format=json",
+-    "--emit=llvm-ir=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-root-bound-dispatch-physical-plan/command/dispatch.ll,asm=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-root-bound-dispatch-physical-plan/command/dispatch.s"
+-  ],
+-  "argv_sha256_canonical_JSON": "4022ae1057439fe5ae31d18675a884b2dc3e56f317a8ddced08bfb163a410aaa",
++    "-C",
++    "link-dead-code=yes",
++    "--emit=llvm-ir=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-root-bound-dispatch-retained-capture-v1/command/dispatch.ll,asm=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-root-bound-dispatch-retained-capture-v1/command/dispatch.s"
++  ],
++  "argv_sha256_canonical_JSON": "799f61fd0bff3d5eba3849b784e7bc7b699a5ee84a2a814f298f407befb28e75",
+   "base_capture_plan": {
+-    "bytes": 5480,
+-    "path": "verification/swift-root-bound-dispatch-physical-plan/capture-plan.json",
+-    "sha256": "bed9476b169810452ac0932605784125365f57c897d1e3bf74cd9eaa6ebb8184"
++    "bytes": 6448,
++    "path": "verification/swift-root-bound-dispatch-retained-capture-v1/base-capture-plan.json",
++    "sha256": "15413684daf6815fbc9773c7fecf669f035768116524e567a841bd571c3f31c8"
+   },
+   "bounds": {
+     "automatic_retries": 0,
+@@ -69,7 +72,7 @@
+   "controller_argv": [
+     "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+     "-B",
+-    "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-root-bound-dispatch-physical-capture-v1/run-capture.py"
++    "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-root-bound-dispatch-retained-capture-v1/run-capture.py"
+   ],
+   "controller_environment": {
+     "LANG": "C",
+@@ -77,7 +80,7 @@
+     "PATH": "/usr/bin:/bin",
+     "PYTHONDONTWRITEBYTECODE": "1",
+     "PYTHONHASHSEED": "0",
+-    "TMPDIR": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-root-bound-dispatch-physical-plan/command/tmp",
++    "TMPDIR": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-root-bound-dispatch-retained-capture-v1/command/tmp",
+     "TZ": "UTC",
+     "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+   },
+@@ -93,9 +96,10 @@
+       "bytes": 1726,
+       "path": "verification/swift-semantic-adapter-root-review/dispatch-physical-verifier-v2-host-attempt-1.json",
+       "sha256": "cece6495235658701f4626461b90e91dd3a87def28e9f9fbf5119aaa47a5a17d"
+-    }
+-  },
+-  "controller_path": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-root-bound-dispatch-physical-capture-v1/run-capture.py",
++    },
++    "separate_TMPDIR_only": true
++  },
++  "controller_path": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-root-bound-dispatch-retained-capture-v1/run-capture.py",
+   "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+   "emit_only": [
+     "LLVM IR",
+@@ -108,7 +112,7 @@
+     "PATH": "/usr/bin:/bin",
+     "RUSTC_BOOTSTRAP": "1",
+     "SDKROOT": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+-    "TMPDIR": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-root-bound-dispatch-physical-plan/command/tmp",
++    "TMPDIR": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-root-bound-dispatch-retained-capture-v1/command/tmp",
+     "TZ": "UTC"
+   },
+   "frontier": {
+@@ -120,14 +124,28 @@
+   "host_binary_invocations": 0,
+   "inspection_only_settings": [
+     "codegen-units=1",
+-    "debuginfo=2"
++    "debuginfo=2",
++    "link-dead-code=yes (alternate diagnostic configuration only)"
+   ],
+   "layout_query_invocations": 0,
++  "link_dead_code": true,
+   "linker_invocations": 0,
+   "model_test_invocations": 0,
+   "no_existing_source_or_build_directory_mutation": true,
+-  "owned_output_directory": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-root-bound-dispatch-physical-plan/command",
+-  "ownership_selection": "Root direct selection of the original predeclared command/TMPDIR reservation;new lane owns controller and retained evidence only.",
++  "original_argv_sha256": "4022ae1057439fe5ae31d18675a884b2dc3e56f317a8ddced08bfb163a410aaa",
++  "original_capture_plan": {
++    "bytes": 5480,
++    "path": "verification/swift-root-bound-dispatch-physical-plan/capture-plan.json",
++    "sha256": "bed9476b169810452ac0932605784125365f57c897d1e3bf74cd9eaa6ebb8184"
++  },
++  "original_capture_qualified": false,
++  "original_controller_plan": {
++    "bytes": 9340,
++    "path": "verification/swift-root-bound-dispatch-physical-capture-v1/plan.json",
++    "sha256": "3534a9d4bc5428335b3dec4cc295f0b55b1a8ea1c778e265fabdcb9fefb6743e"
++  },
++  "owned_output_directory": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-root-bound-dispatch-retained-capture-v1/command",
++  "ownership_selection": "New owned lane command/TMPDIR and runtime outputs; original capture outputs and frozen packets unchanged.",
+   "prelaunch_directory_absent": true,
+   "python_tool": {
+     "bytes": 34640,
+@@ -139,9 +157,9 @@
+   "raw_capture_accepts_no_region_fact_or_capacity": true,
+   "raw_capture_only": true,
+   "reference_controller": {
+-    "bytes": 25959,
+-    "path": "verification/swift-physical-verifier-host-runner-2/run-synthetic16.py",
+-    "sha256": "57f839f5b7a1c92c889db7738463090286f89766a968a9994b15189adfd71f1a"
++    "bytes": 32307,
++    "path": "verification/swift-root-bound-dispatch-physical-capture-v1/run-capture.py",
++    "sha256": "1c8036e0dcd5e173c2e379ee6e711c06644638f6fb2caad312c4d41f29ddd98f"
+   },
+   "required_before_release": [
+     "Root-selected independently reviewed controller delta and exact source pins",
+@@ -163,10 +181,11 @@
+     "compiler_invocations": 1,
+     "compiler_lane_released": true,
+     "exact_base_capture_plan_controller_plan_packet_controller_and_independent_review_pins": true,
+-    "path": "verification/swift-semantic-adapter-root-review/dispatch-physical-capture-release.json",
++    "path": "verification/swift-semantic-adapter-root-review/dispatch-retained-physical-capture-release.json",
+     "reserved_output_authorized": true,
+     "semantic_map_approved": false
+   },
++  "runtime_admission_accepted": false,
+   "schema": 1,
+   "source_directory": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-root-result-lifetime-implementation/source/vm",
+   "source_edits": 0,
+@@ -175,8 +194,13 @@
+     "path": "verification/swift-guarded-snapshot-root-result-lifetime-implementation/source-manifest.json",
+     "sha256": "5f20215aef11436b0a3cde511c0820450f37a613de20e74d810728bd5efa8249"
+   },
++  "source_reachability_assessment": {
++    "bytes": 35647,
++    "path": "verification/swift-physical-source-reachability/inspection.json",
++    "sha256": "1e00d6dd45569a7bdb568028293c23442043bb27d4177a0e7a9ca1334198bf72"
++  },
+   "source_tree_sha256": "91bab68a8aef4a7cbe300af0fca8145462e08dcaaef2631f42a0d2d55748bd8f",
+-  "status": "FROZEN_CONTROLLER_SOURCE_PROPOSAL_AWAITING_INDEPENDENT_REVIEW_AND_ROOT_RELEASE",
++  "status": "FROZEN_ALT_DIAGNOSTIC_CONTROLLER_SOURCE_AWAITING_INDEPENDENT_REVIEW_AND_ROOT_RELEASE",
+   "stop_without_fallback": [
+     "missing/ambiguous actual function or monomorphization",
+     "unclassified diagnostic",
+@@ -184,14 +208,16 @@
+     "owned custody or cleanup ambiguity",
+     "changed input/artifact bytes"
+   ],
++  "target_mapping_may_still_fail": true,
+   "toolchain_manifest": {
+     "bytes": 14006,
+     "path": "verification/swift-root-bound-work-storage-layout-probe/toolchain-manifest.json",
+     "sha256": "ad3b7673b288c007c066fd22780292308cebeef3012e1cbd7f76341616a271e9"
+   },
+   "verifier_binding": {
+-    "argv_sha256": "4022ae1057439fe5ae31d18675a884b2dc3e56f317a8ddced08bfb163a410aaa",
+-    "capture_plan_sha256": "bed9476b169810452ac0932605784125365f57c897d1e3bf74cd9eaa6ebb8184",
++    "alternate_diagnostic_configuration_only": true,
++    "argv_sha256": "799f61fd0bff3d5eba3849b784e7bc7b699a5ee84a2a814f298f407befb28e75",
++    "capture_plan_sha256": "15413684daf6815fbc9773c7fecf669f035768116524e567a841bd571c3f31c8",
+     "codegen_units": 1,
+     "compiler_commit": "b940084d7eb6a299eb4bfeb8e34901bc051e7ac4",
+     "debuginfo": 2,
+@@ -202,6 +228,7 @@
+       "experimental-function-cache"
+     ],
+     "fixture_cfg": "mixer_bootstrap_one_fixture_v1",
++    "link_dead_code": true,
+     "mir_opt_level": 0,
+     "opt_level": 0,
+     "overflow_checks": true,
