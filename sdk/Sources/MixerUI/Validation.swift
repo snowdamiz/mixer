@@ -31,6 +31,7 @@ public enum UIValidationError: Error, Equatable, Sendable {
     case invalidIdentifier(String)
     case duplicateIdentity(String)
     case unsupportedNode(NodeKind)
+    case unsupportedTextFieldAxis(TextFieldAxis)
     case unsupportedField(String)
     case invalidProperty(node: String, key: String)
     case invalidChildren(String)
@@ -47,9 +48,15 @@ public struct ValidatedUIDocument: Sendable {
 public struct UIValidator: Sendable {
     public let limits: UIValidationLimits
     public let supportedKinds: Set<NodeKind>
+    /// The portable default admits only the existing single-line field contract.
+    /// An adapter must opt in before a vertical field can reach reconciliation.
+    public let supportedTextFieldAxes: Set<TextFieldAxis>
 
-    public init(limits: UIValidationLimits = .standard, supportedKinds: Set<NodeKind> = Set(NodeKind.allCases)) {
+    public init(limits: UIValidationLimits = .standard,
+                supportedKinds: Set<NodeKind> = Set(NodeKind.allCases),
+                supportedTextFieldAxes: Set<TextFieldAxis> = [.horizontal]) {
         self.limits = limits; self.supportedKinds = supportedKinds
+        self.supportedTextFieldAxes = supportedTextFieldAxes
     }
 
     public func validate(_ document: UIDocument) throws -> ValidatedUIDocument {
@@ -149,8 +156,18 @@ public struct UIValidator: Sendable {
             try requireString("label")
             try optionalString("role", values: ["normal", "destructive", "cancel"])
         case .textField:
-            allowed.formUnion(["label", "value"])
+            allowed.formUnion(["label", "value", "axis"])
             try requireString("label"); try requireString("value")
+            let axis: TextFieldAxis
+            if let value = node.properties["axis"] {
+                guard let string = value.string, let requested = TextFieldAxis(rawValue: string) else {
+                    throw UIValidationError.invalidProperty(node: node.id, key: "axis")
+                }
+                axis = requested
+            } else { axis = .horizontal }
+            guard supportedTextFieldAxes.contains(axis) else {
+                throw UIValidationError.unsupportedTextFieldAxis(axis)
+            }
         case .toggle:
             allowed.formUnion(["label", "value"])
             try requireString("label")

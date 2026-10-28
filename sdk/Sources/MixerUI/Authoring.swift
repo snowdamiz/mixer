@@ -54,13 +54,20 @@ public struct Button: MixerView {
     }
 }
 
+public enum TextFieldAxis: String, CaseIterable, Hashable, Sendable { case horizontal, vertical }
+
 /// Bindings are explicit values plus action IDs; they never serialize a Swift closure.
+/// Vertical fields require an adapter that explicitly admits that axis.
 public struct TextField: MixerView {
     public let uiNode: UINode
-    public init(_ id: String, _ label: String, value: String, action: String, onSubmit: String? = nil) {
+    public init(_ id: String, _ label: String, value: String, action: String,
+                onSubmit: String? = nil, axis: TextFieldAxis = .horizontal) {
         var actions = [UIActionBinding(id: action, event: .textChange)]
         if let onSubmit { actions.append(UIActionBinding(id: onSubmit, event: .submit)) }
-        uiNode = UINode(id: id, kind: .textField, properties: ["label": .string(label), "value": .string(value)], actions: actions)
+        var properties: [String: UIValue] = ["label": .string(label), "value": .string(value)]
+        // Preserve the existing schema-1 wire shape for the default field.
+        if axis != .horizontal { properties["axis"] = .string(axis.rawValue) }
+        uiNode = UINode(id: id, kind: .textField, properties: properties, actions: actions)
     }
 }
 

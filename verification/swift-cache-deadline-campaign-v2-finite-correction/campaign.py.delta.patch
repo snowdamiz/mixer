@@ -1,0 +1,13 @@
+--- frozen-correction/campaign.py
++++ finite-correction/campaign.py
+@@ -77,6 +77,10 @@
+     # harness. No per-call reset, changed clock origin, or new profile loader.
+     for name in DEADLINE_FILES:
+         source[name] = base.replace(source[name].decode(), "deadline_ms: 30_000,", "deadline_ms: 60_000,").encode()
++    name = "src/experimental_swift_reactor/cache_tests.rs"
++    source[name] = base.replace(source[name].decode(),
++        "assert_eq!((b.instruction_fuel, b.execution_work, b.deadline_ms), (100_000_000, 1_000_000_000, 30_000));",
++        "assert_eq!((b.instruction_fuel, b.execution_work, b.deadline_ms), (100_000_000, 1_000_000_000, 60_000));").encode()
+     return source
+ 
+ 

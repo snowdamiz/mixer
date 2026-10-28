@@ -1,0 +1,67 @@
+--- frozen-correction/test_campaign.py
++++ finite-correction/test_campaign.py
+@@ -37,14 +37,60 @@
+         record, _ = campaign.base.source_record(self.original, campaign.base.parameterize(self.original, 256, 64_000_000))
+         self.assertEqual(record["sha256"], "204c62d871b05b4b50a6fb7e55ed4251f3c5b664299f7bd410fbdee05e32f05c")
+ 
+-    def test_only_two_deadlines_differ_from_same_v1_capacity_work_profile(self):
++    def assert_exact_profile_delta(self, v1, v2):
++        name = "src/experimental_swift_reactor/cache_tests.rs"
++        before = b"assert_eq!((b.instruction_fuel, b.execution_work, b.deadline_ms), (100_000_000, 1_000_000_000, 30_000));"
++        after = b"assert_eq!((b.instruction_fuel, b.execution_work, b.deadline_ms), (100_000_000, 1_000_000_000, 60_000));"
++        self.assertEqual(set(v1), set(v2))
++        self.assertEqual({n for n in v2 if v2[n] != v1[n]}, set(campaign.DEADLINE_FILES) | {name})
++        normalized = dict(v2)
++        for n in campaign.DEADLINE_FILES:
++            self.assertEqual(v2[n].count(b"deadline_ms: 60_000,"), 1)
++            normalized[n] = v2[n].replace(b"deadline_ms: 60_000,", b"deadline_ms: 30_000,")
++        self.assertEqual(v1[name].count(before), 1)
++        self.assertEqual(v2[name].count(after), 1)
++        self.assertNotIn(before, v2[name])
++        normalized[name] = v2[name].replace(after, before)
++        self.assertTrue(normalized == v1, "unexpected source or finite-test change after exact normalization")
++
++    def test_only_two_deadlines_and_one_literal_finite_expectation_differ(self):
+         for _, work in campaign.PROFILES:
+             v1 = campaign.base.parameterize(self.original, 256, work)
+             v2 = campaign.parameterize(self.original, work)
+-            self.assertEqual({n for n in v2 if v2[n] != v1[n]}, set(campaign.DEADLINE_FILES))
+-            for n in campaign.DEADLINE_FILES:
+-                self.assertEqual(v2[n].replace(b"deadline_ms: 60_000,", b"deadline_ms: 30_000,"), v1[n])
++            self.assert_exact_profile_delta(v1, v2)
+             self.assertEqual(v2["src/experimental_swift_reactor/campaign_harness.rs"], (campaign.base.INPUTS / "harness.rs").read_bytes())
++
++    def test_exact_delta_rejects_other_bound_and_test_changes(self):
++        v1 = campaign.base.parameterize(self.original, 256, 64_000_000)
++        v2 = campaign.parameterize(self.original, 64_000_000)
++        control = "src/experimental_swift_reactor/control.rs"
++        tests = "src/experimental_swift_reactor/cache_tests.rs"
++        for name, old, new in (
++            (control, b"instruction_fuel: 100_000_000", b"instruction_fuel: 200_000_000"),
++            (control, b"execution_work: 1_000_000_000", b"execution_work: 2_000_000_000"),
++            (tests, b"(100_000_000, 1_000_000_000, 60_000)", b"(100_000_000, 1_000_000_000, b.deadline_ms)"),
++            (tests, b"(100_000_000, 1_000_000_000, 60_000)", b"(100_000_000, 1_000_000_000, 30_000)"),
++            (tests, b"assert_eq!(MAX_RESERVATION_TICKETS, n + 22);", b"assert!(MAX_RESERVATION_TICKETS >= n + 22);"),
++            (tests, b"assert_eq!((b.instruction_fuel, b.execution_work, b.deadline_ms), (100_000_000, 1_000_000_000, 60_000));",
++             b"assert!([30_000, 60_000].contains(&b.deadline_ms));")):
++            changed = dict(v2)
++            self.assertIn(old, changed[name])
++            changed[name] = changed[name].replace(old, new)
++            with self.subTest(change=(name, new)), self.assertRaises(AssertionError):
++                self.assert_exact_profile_delta(v1, changed)
++
++    def test_finite_expectation_anchor_must_remain_exact_and_unique(self):
++        original_parameterize = campaign.base.parameterize
++        tests = "src/experimental_swift_reactor/cache_tests.rs"
++        anchor = b"assert_eq!((b.instruction_fuel, b.execution_work, b.deadline_ms), (100_000_000, 1_000_000_000, 30_000));"
++        for replacement in (b"changed assertion", anchor + b"\n" + anchor):
++            def altered(*args):
++                result = original_parameterize(*args)
++                result[tests] = result[tests].replace(anchor, replacement)
++                return result
++            with patch.object(campaign.base, "parameterize", side_effect=altered):
++                with self.assertRaisesRegex(RuntimeError, "changed source anchor"):
++                    campaign.parameterize(self.original, 64_000_000)
+ 
+     def test_complete_bounds_preserve_all_other_limits_and_grants(self):
+         historical = campaign.historical()

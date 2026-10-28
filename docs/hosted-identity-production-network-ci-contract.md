@@ -149,6 +149,37 @@ before the collector supplies `MIXER_ISOLATED_NETNS=1` to the test command.
 An inherited flag never grants isolation. After preparation is removed, the
 collector performs no downloads; compilation and both tests run offline.
 
+The shared file exporter explicitly requires
+`:ok = :io.setopts(:standard_io, encoding: :latin1)` before checked
+`IO.binwrite`. This preserves stored bytes for both public bootstrap tools,
+the prepared tar archive, events, semantic receipts and runtime identity.
+Elixir's standard IO defaults to Unicode; its exact 1.20.4 IO source warns
+that binary writes through a Unicode device alter bytes.
+
+Run `40746908101` for `fb7c7f20f8a308424ef4b7092d19d3d4de2c7627` passed actual
+preparation mount policy, prerequisites, exclusive Rebar transfer, direct
+Rebar version and bootstrap. It then failed host validation of the Hex export
+after command 28. The command returned exit zero with complete streams, but
+its output was 1,693,010 bytes instead of the 1,133,941 downloaded bytes.
+A fresh exact pinned Hex download transformed from Latin-1 to UTF-8 matches
+the recorded export length and SHA256. The failed raw export was deleted by
+the old scratch cleanup, so that explanation is a source- and hash-supported
+inference; those original failed bytes are unavailable. The sealed review is
+`verification/github-delivery-runtime-followup/network-review/`.
+
+Only the fixed public paths `/workspace/downloads/hex.ez` and
+`/workspace/tooling/rebar3` now retain bounded actual command stdout under
+`bootstrap-exports/{hex,rebar}-actual.bin`, before any host length or SHA512
+rejection. Each capture has an actual byte count, SHA256/SHA512 and exact
+command completion/exit facts; partial output stays partial. Each is at most
+16 MiB and the existing total artifact cap still applies. Repeat capture
+cannot overwrite retained failure evidence. Host acceptance requires the
+exact downloaded length and unchanged pinned SHA512. Verified bootstrap
+filenames are written only after those checks. Other allowed export paths
+retain their previous scratch handling; no additional container path or
+private file retention is authorized. Source and pure control evidence is in
+`verification/identity-network-binary-export-correction/`.
+
 ## Evidence and bounds
 
 The existing Mix test alias remains unchanged. The collector selects exactly
@@ -195,8 +226,10 @@ native devices or GA. Production fixture exclusion is qualified by a separate
 ordinary Phoenix run for the delivered source, or explicitly reviewed reuse of
 unchanged-source evidence. Native runtime and computer-use pauses remain active.
 
-V2 authoring covers source and pure Python controls only. The reviewed prior
-run qualifies actual preparation tool/crypto/CA results and exact owned cleanup
-for that failed attempt. Fresh actual mount policy, complete bootstrap,
-dependency resolution, compilation, the two product methods and all new
-attempt isolation/cleanup remain pending independently reviewed runtime evidence.
+The binary-export correction covers source and pure Python controls only.
+The reviewed prior run qualifies actual preparation tool/crypto/CA and mount
+results, complete bootstrap/direct Rebar execution, and exact owned cleanup
+for that failed attempt. Corrected Hex and Rebar host exports, locked dependency
+resolution, prepared archive transfer/restore, compilation, the two product
+methods and all new-attempt isolation/cleanup remain pending independently
+reviewed runtime evidence.

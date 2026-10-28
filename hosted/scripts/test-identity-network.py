@@ -268,6 +268,13 @@ def validate_execution_metadata(metadata):
     return value
 
 
+def validate_bootstrap_export(tool, data, expected_bytes):
+    require(tool in BOOTSTRAP and type(data) is bytes and type(expected_bytes) is int and 0 < expected_bytes <= 16777216, "bootstrap export input shape/bound")
+    require(len(data) == expected_bytes, "observed bootstrap artifact byte-count mismatch")
+    require(hashlib.sha512(data).hexdigest() == BOOTSTRAP[tool]["sha512"], "observed bootstrap artifact digest mismatch")
+    return data
+
+
 def validate_rebar_transfer(observed, download):
     require(isinstance(observed, dict) and set(observed) == {"source", "destination", "download_bytes", "copied_bytes", "target_bytes", "sha512", "exclusive_create", "closed_before_hash", "owned_download_removed"}, "actual Rebar transfer result missing")
     require(observed["source"] == REBAR_TRANSFER["source"] and observed["destination"] == REBAR_TRANSFER["destination"], "actual Rebar transfer paths mismatch")
@@ -1143,10 +1150,28 @@ class Collector:
     def copy_file_out(self, owned, path, maximum=MAX_COMMAND_BYTES):
         require(path in {"/workspace/prepared.tar", "/workspace/downloads/hex.ez", "/workspace/tooling/rebar3"} or path.startswith("/workspace/evidence/"), "unreviewed copy-out path")
         require(0 < maximum <= MAX_ARCHIVE_BYTES, "copy-out cap")
-        literal = "path = " + json.dumps(path) + "; true = File.stat!(path).size <= " + str(maximum) + "; IO.binwrite(File.read!(path))"
-        scratch = self.output / ".scratch" / "copy.bin"
-        result, _, _ = self.execute(owned, ["/usr/local/bin/elixir", "-e", literal], 30, limit=maximum, binary_path=scratch)
-        scratch.unlink()
+        literal = "path = " + json.dumps(path) + "; true = File.stat!(path).size <= " + str(maximum) + "; :ok = :io.setopts(:standard_io, encoding: :latin1); :ok = IO.binwrite(File.read!(path))"
+        public_tool = {"/workspace/downloads/hex.ez": "hex", "/workspace/tooling/rebar3": "rebar"}.get(path)
+        if public_tool is not None:
+            require(maximum <= 16777216, "public bootstrap export cap")
+            destination = self.output / "bootstrap-exports" / (public_tool + "-actual.bin")
+            destination.parent.mkdir(exist_ok=True)
+            require(not destination.exists(), "public bootstrap export already retained")
+        else:
+            destination = self.output / ".scratch" / "copy.bin"
+        try:
+            result, _, _ = self.execute(owned, ["/usr/local/bin/elixir", "-e", literal], 30, limit=maximum, binary_path=destination)
+        finally:
+            # Only these two fixed public artifacts survive a failed host check.
+            # Partial command captures remain partial; they cannot be a tool pass.
+            if public_tool is not None and destination.is_file():
+                require(destination.stat().st_size <= maximum, "retained public bootstrap capture cap")
+                body = destination.read_bytes()
+                log = self.output / "logs" / f"{self.command_number:04d}.json"
+                command = json.loads(log.read_bytes()) if log.is_file() else {}
+                write_json(destination.with_suffix(".json"), {"schema": 1, "tool": public_tool, "container_path": path, "owned_cid": owned.cid, "role": owned.role, "command_number": self.command_number, "maximum_bytes": maximum, "bytes": len(body), "sha256": hashlib.sha256(body).hexdigest(), "sha512": hashlib.sha512(body).hexdigest(), "expected_sha512": BOOTSTRAP[public_tool]["sha512"], "stdout_complete": command.get("stdout_complete"), "stderr_complete": command.get("stderr_complete"), "command_exit_code": command.get("exit_code"), "qualification": "bounded-public-command-stdout-only-before-host-size-and-digest-validation"})
+        if public_tool is None:
+            destination.unlink()
         return result
 
     def stop_remove(self, owned):
@@ -1295,7 +1320,7 @@ class Collector:
         write_json(self.output / "bootstrap-observed.json", bootstrap_result)
         for tool, path, filename in (("hex", "/workspace/downloads/hex.ez", "bootstrap-hex-2.5.1.ez"), ("rebar", "/workspace/tooling/rebar3", "bootstrap-rebar-3.28.0")):
             artifact = self.copy_file_out(prepare, path, 16777216)
-            require(hashlib.sha512(artifact).hexdigest() == BOOTSTRAP[tool]["sha512"], "observed bootstrap artifact digest mismatch")
+            validate_bootstrap_export(tool, artifact, bootstrap_result[tool]["bytes"])
             (self.output / filename).write_bytes(artifact)
         self.execute(prepare, ["/usr/local/bin/mix", "deps.get", "--check-locked"], 120)
         manifest_output, _, _ = self.execute(prepare, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs", "archive-list"])

@@ -9,7 +9,8 @@ public final class MixerUIHost: ObservableObject {
     @Published public private(set) var snapshot: UIRenderSnapshot
     private var reconciler: UIReconciler
 
-    public init(document: MixerUI.UIDocument, validator: UIValidator = UIValidator()) throws {
+    public init(document: MixerUI.UIDocument,
+                validator: UIValidator = UIValidator(supportedTextFieldAxes: [.horizontal, .vertical])) throws {
         var reconciler = UIReconciler(validator: validator)
         try reconciler.apply(document)
         snapshot = try reconciler.currentSnapshot()
@@ -86,7 +87,8 @@ private struct NativeNode: SwiftUI.View {
             return AnyView(SwiftUI.Button(node.properties["label"]!.string!, role: buttonRole) { emit(.activate) })
         case .textField:
             let binding = Binding<String>(get: { node.properties["value"]!.string! }, set: { emit(.textChange, value: .string($0)) })
-            return AnyView(SwiftUI.TextField(node.properties["label"]!.string!, text: binding).onSubmit { emit(.submit) })
+            let axis: SwiftUI.Axis = node.properties["axis"]?.string == TextFieldAxis.vertical.rawValue ? .vertical : .horizontal
+            return AnyView(SwiftUI.TextField(node.properties["label"]!.string!, text: binding, axis: axis).onSubmit { emit(.submit) })
         case .toggle:
             let binding = Binding<Bool>(get: { node.properties["value"]!.bool! }, set: { emit(.valueChange, value: .bool($0)) })
             return AnyView(SwiftUI.Toggle(node.properties["label"]!.string!, isOn: binding))

@@ -1,0 +1,29 @@
+{
+  "corrected_runtime_test_executed": false,
+  "data_model": "exact pinned Hex bytes decoded as latin1 then encoded utf8 match recorded output bytes and sha256",
+  "elixir": {
+    "binding": {
+      "bytes": 26683,
+      "sha256": "a8a60b2bdd77f122411bdee774dab7ea60f88807c68b232502315fa4baafa67f"
+    },
+    "file": "official/elixir-v1.20.4-io.ex",
+    "finding": "binwrite delegates to file.write; exact-version docs warn that default Unicode stdio changes binary output",
+    "lines": [
+      288,
+      310
+    ],
+    "url": "https://raw.githubusercontent.com/elixir-lang/elixir/v1.20.4/lib/elixir/lib/io.ex"
+  },
+  "erlang": {
+    "finding": "encoding latin1 controls physical standard-output bytes; Unicode converts bytes 128-255 to UTF-8; setopts supports this change",
+    "lines": [
+      1233,
+      1243
+    ],
+    "not_exact_runtime_patch": true,
+    "observed_doc_version": "OTP 29.1.2 / stdlib 8.1.1",
+    "url": "https://www.erlang.org/doc/apps/stdlib/io.html#setopts/2"
+  },
+  "raw_failed_export_retained": false,
+  "schema": 1
+}

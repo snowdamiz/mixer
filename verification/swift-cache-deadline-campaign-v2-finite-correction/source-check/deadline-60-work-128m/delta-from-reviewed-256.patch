@@ -1,0 +1,42 @@
+--- accepted/src/experimental_swift_reactor/cache_tests.rs
++++ campaign/src/experimental_swift_reactor/cache_tests.rs
+@@ -4288,7 +4288,7 @@
+     assert!([64_000_000, 128_000_000].contains(&b.cache_work));
+     assert_eq!((b.cache_bytes, b.cache_entry_bytes, b.active_pins), (16 << 20, 8 << 20, 64));
+     assert_eq!((b.memory_pages, b.combined_bytes), (768, 256 << 20));
+-    assert_eq!((b.instruction_fuel, b.execution_work, b.deadline_ms), (100_000_000, 1_000_000_000, 30_000));
++    assert_eq!((b.instruction_fuel, b.execution_work, b.deadline_ms), (100_000_000, 1_000_000_000, 60_000));
+     assert_eq!(MAX_RESERVATION_TICKETS, n + 22);
+     let bytes = fixture(0, &[0, 0x0b], n + 40);
+     let (mut c, mut cache) = new(&bytes, b);
+--- accepted/src/experimental_swift_reactor/control.rs
++++ campaign/src/experimental_swift_reactor/control.rs
+@@ -46,7 +46,7 @@
+             cache_entry_bytes: 8 * MIB,
+             cache_entries: 256,
+             active_pins: 64,
+-            cache_work: 64000000,
++            cache_work: 128000000,
+             frames: 64,
+             values: 16_384,
+             controls: 4_096,
+@@ -56,7 +56,7 @@
+             instruction_fuel: 100_000_000,
+             execution_work: 1_000_000_000,
+             host_calls: 32_768,
+-            deadline_ms: 30_000,
++            deadline_ms: 60_000,
+         }
+     }
+ }
+--- accepted/src/experimental_wasi/mod.rs
++++ campaign/src/experimental_wasi/mod.rs
+@@ -58,7 +58,7 @@
+             one_transfer_bytes: 65_536,
+             iovecs: 64,
+             log_bytes: 65_536,
+-            deadline_ms: 30_000,
++            deadline_ms: 60_000,
+         }
+     }
+ }

@@ -1,0 +1,27 @@
+--- frozen-correction/workflow.yml
++++ finite-correction/workflow.yml
+@@ -19,6 +19,10 @@
+             /verification/swift-cache-capacity-campaign-v1/
+             /verification/swift-cache-deadline-campaign-v2/
+             /verification/swift-cache-deadline-campaign-v2-correction/
++            /verification/swift-cache-deadline-campaign-v2-finite-correction/
++            /verification/github-delivery-runtime-followup/cache-deadline-review/seal.json
++            /verification/github-delivery-runtime-followup/cache-deadline-review/receipt.json
++            /verification/github-delivery-runtime-followup/cache-deadline-review/REVIEW.md
+             /verification/github-delivery-blocker-campaign/cache-campaign-review/seal.json
+             /verification/github-delivery-blocker-campaign/cache-campaign-review/verified-results.json
+             /verification/github-delivery-blocker-campaign/cache-campaign-review/REVIEW.md
+@@ -27,11 +31,11 @@
+         run: rustup toolchain install 1.99.0 --profile minimal
+       - name: Pure source and decision controls
+         timeout-minutes: 1
+-        run: python3 -B verification/swift-cache-deadline-campaign-v2-correction/test_campaign.py
++        run: python3 -B verification/swift-cache-deadline-campaign-v2-finite-correction/test_campaign.py
+       - name: One deadline trial and at most one conditional CacheWork trial
+         timeout-minutes: 10
+         run: >-
+-          python3 -B verification/swift-cache-deadline-campaign-v2-correction/campaign.py run
++          python3 -B verification/swift-cache-deadline-campaign-v2-finite-correction/campaign.py run
+           --output "$RUNNER_TEMP/swift-cache-deadline-campaign-v2"
+       - name: Preserve original failures and complete observations
+         timeout-minutes: 1
