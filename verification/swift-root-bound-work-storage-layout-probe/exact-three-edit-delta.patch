@@ -1,0 +1,101 @@
+--- original/src/experimental_swift_reactor/retained_profile_loader_v1.rs
++++ diagnostic/src/experimental_swift_reactor/retained_profile_loader_v1.rs
+@@ -2773,6 +2773,43 @@
+     // API. Their exact bytes and cfg/environment are in the separate roster.
+     #[cfg(mixer_ir02_probe_owner_v1)]
+     include!(env!("MIXER_IR02_PROBE_PATH_V1"));
++// PROPOSAL ONLY. Never inserted or compiled by this lane.
++// Append inside prepaid_input_owner_v1 in an isolated diagnostic-only copy.
++// 'static is a type parameter for compile-only layout; no root value is made.
++mod root_bound_named_layout_proposal_v1 {
++    use super::*;
++    fn query_v1() {
++        macro_rules! pair {
++            ($type:ty) => {{
++                let _: [u8; 0] = [0u8; std::mem::size_of::<$type>()];
++                let _: [u8; 0] = [0u8; std::mem::align_of::<$type>()];
++            }};
++        }
++        pair!(AdmittedLoaderCorrespondenceV1<'static, 'static>);
++        pair!(PrepaidCorrelationAttemptV1<'static, 'static>);
++        pair!(RootBoundV1<'static, LoaderCarrierCoreV1<File>>);
++        pair!(RootBoundV1<'static, (OriginalCorrelationRefusalV1, LoaderCarrierCoreV1<File>)>);
++        pair!(RootBoundV1<'static, Result<LoaderCarrierCoreV1<File>, (OriginalCorrelationRefusalV1, LoaderCarrierCoreV1<File>)>>);
++        pair!(Result<RootBoundV1<'static, LoaderCarrierCoreV1<File>>, RootBoundV1<'static, (OriginalCorrelationRefusalV1, LoaderCarrierCoreV1<File>)>>);
++        pair!(RawSelectedBundleV1);
++        pair!(RootBoundV1<'static, RawSelectedBundleV1>);
++        pair!(CorrelatedSelectedProfileV1<'static>);
++        pair!(RootBoundSelectedProfileV1<'static>);
++        pair!(RawCorrelationOutcomeV1);
++        pair!(RootBoundV1<'static, RawCorrelationOutcomeV1>);
++        pair!(OwnedCorrelationOutcomeV1<'static>);
++        pair!(FixtureLeafArgumentsV1);
++        pair!(RawFixturePrimaryV1);
++        pair!(RawFixtureResultV1);
++        pair!(RootBoundV1<'static, RawFixtureResultV1>);
++        pair!(RootBoundFixtureOutcomeV1<'static>);
++        pair!(RootBoundPrimaryBorrowV1<'static>);
++        pair!((AdmittedLoaderCorrespondenceV1<'static, 'static>, PrepaidCorrelationAttemptV1<'static, 'static>));
++        pair!(Result<(AdmittedLoaderCorrespondenceV1<'static, 'static>, PrepaidCorrelationAttemptV1<'static, 'static>), BootstrapFailureV1>);
++        pair!((RawFixturePrimaryV1, ReturnedLoaderFilesV1, LoaderUsageV1, &'static BootstrapLedgerV1));
++    }
++}
++
+     // OWNER_PROBE_INSERTION
+ }
+ pub(super) use prepaid_input_owner_v1::{
+--- original/src/experimental_swift_reactor/cache/initial_profile_v1.rs
++++ diagnostic/src/experimental_swift_reactor/cache/initial_profile_v1.rs
+@@ -858,7 +858,24 @@
+     {
+         let quote = host_account_v1::selected_whole_quote_v1()?;
+         let reservation = account.reserve_whole_v1(quote)?;
+-        Ok(reservation.dispatch_v1(|| run_prepaid_admitted_fixture_v1(fixture, attempt, expected)))
++// PROPOSAL ONLY. Replace exactly the original inline dispatch expression in a
++// diagnostic scratch copy. The closure body/capture expression stays exact.
++// Deliberate E0512 source-size diagnostics; no code can run or metadata qualify.
++        let action = || run_prepaid_admitted_fixture_v1(fixture, attempt, expected);
++        #[repr(C)]
++        struct ClosureAlignmentProbeV1<T> { leading: u8, actual: T }
++        fn uninitialized_shape_v1<T>(_: &T) -> std::mem::MaybeUninit<T> {
++            std::mem::MaybeUninit::uninit()
++        }
++        let _size_diagnostic: [u8; 0] = unsafe {
++            std::mem::transmute(uninitialized_shape_v1(&action))
++        };
++        let _alignment_diagnostic: [u8; 0] = unsafe {
++            std::mem::transmute(ClosureAlignmentProbeV1 {
++                leading: 0u8, actual: uninitialized_shape_v1(&action),
++            })
++        };
++        Ok(reservation.dispatch_v1(action))
+     }
+     fn run_prepaid_admitted_fixture_v1<'owner, 'root: 'owner, 'expected_root: 'owner>(
+         fixture: FrozenFixtureV1<'_>, attempt: PrepaidCorrelationAttemptV1<'owner, 'root>,
+@@ -915,6 +932,26 @@
+         run_one_loaded_fixture_v1(selected, budget, started, cancellation, claims, rows, snapshot)
+     }
+ 
++
++// PROPOSAL ONLY. Never inserted or compiled by this lane.
++// Append inside trusted_local_host_account_entry_v1 in the same isolated copy.
++mod root_bound_child_layout_proposal_v1 {
++    use super::*;
++    fn query_v1() {
++        macro_rules! pair {
++            ($type:ty) => {{
++                let _: [u8; 0] = [0u8; std::mem::size_of::<$type>()];
++                let _: [u8; 0] = [0u8; std::mem::align_of::<$type>()];
++            }};
++        }
++        pair!(AdmittedFixtureOutcomeV1<'static>);
++        pair!(AdmittedFixturePayloadV1<'static>);
++        pair!(PrepaidOwnedV1<'static, AdmittedFixtureOutcomeV1<'static>>);
++        pair!(Result<PrepaidOwnedV1<'static, AdmittedFixtureOutcomeV1<'static>>, RefusalV1>);
++        pair!(Option<AdmittedFixtureOutcomeV1<'static>>);
++        pair!(Option<&'static AdmittedFixtureOutcomeV1<'static>>);
++    }
++}
+ 
+     // Private outer caller candidate; all prior bodies remain exact.
+ // Source candidate only. Included inside trusted_local_host_account_entry_v1.

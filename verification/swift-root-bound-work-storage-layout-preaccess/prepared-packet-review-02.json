@@ -1,0 +1,34 @@
+{
+  "R01_duplicate_keys_closed": true,
+  "R02_launch_and_cleanup_entry_closed": true,
+  "actual_diagnostic_strategy_qualified": false,
+  "all_actual_layout_prices_backing_peak_funding_ownership_GA_pending": true,
+  "at": "2026-10-27T20:27:02.340415+00:00",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "verification/swift-root-bound-work-storage-layout-preaccess/review_v2_packet.py"
+  ],
+  "compiler_or_runtime_invocations": 0,
+  "complete_code_delta_reconstructed": true,
+  "elapsed_seconds": 0.04512708308175206,
+  "original_173_members_and_seal_membership_unchanged": true,
+  "preaccess_oracle_and_all_stage_members_unchanged": true,
+  "producer_controls_replayed": false,
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "release_recommended": false,
+  "remaining_finding": {
+    "control_gap": "Synthetic receipt-finalization injection occurs before record_interruption_failure, so it does not cover injection during write_once.",
+    "detail": "The one pending-signal failure guard and launch receipt snapshot precede both receipt/observation writes. Record-only handlers remain active until after those writes. A signal during publication can be appended after the acceptance decision and omitted from written evidence.",
+    "file": "run.py",
+    "id": "R02-publication",
+    "required": "An explicit finite publication fence/commit boundary that prevents acceptance after observed precommit interruption, with a pure synthetic interruption during publication control."
+  },
+  "retained_producer_controls_read": 42,
+  "schema": 1,
+  "source146_queries_argv_env_toolchain_bounds_unchanged": true,
+  "status": "V2_CUSTODY_AND_R01_LAUNCH_CLEANUP_CORRECTIONS_VERIFIED_FINAL_PUBLICATION_GAP_REMAINS",
+  "v2_members_verified": 16,
+  "v2_plan_sha256": "ac581da773865faf19b72eef8f2b12d3693b6e691ca910130f4e01f97e241c3d",
+  "v2_seal_sha256": "76fda3e073db9bb7408275cf5d8eb494cf491e5a9cd0a894ba8cca35171127f8"
+}

@@ -70,5 +70,14 @@ defmodule MixerHosted.Identity.Admission do
         do: :ets.delete_object(table, {k, pid, nonce})
   end
 
-  def close(owner), do: :persistent_term.erase({__MODULE__, owner})
+  # Publication and close are serialized by the registered owner's lifecycle.
+  # This ownership check is not an atomic compare-and-erase operation.
+  def close(owner, table) do
+    if :ets.info(table, :owner) == self() and
+         :persistent_term.get({__MODULE__, owner}, nil) == table,
+       do: :persistent_term.erase({__MODULE__, owner}),
+       else: false
+  rescue
+    ArgumentError -> false
+  end
 end

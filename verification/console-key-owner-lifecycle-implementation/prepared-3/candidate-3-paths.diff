@@ -1,0 +1,20 @@
+--- prepared-2/runner.py
++++ prepared-3/runner.py
+@@ -130,7 +130,7 @@
+     args = parser.parse_args()
+     prepared = Path(__file__).resolve().parent
+     lane = prepared.parent
+-    if prepared.name != 'prepared-2' or lane.name != 'console-key-owner-lifecycle-implementation':
++    if prepared.name != 'prepared-3' or lane.name != 'console-key-owner-lifecycle-implementation':
+         raise ValueError('runner must execute from its exact frozen lane')
+     plan_path = prepared / 'execution-plan.json'
+     plan = read_json(plan_path)
+@@ -140,7 +140,7 @@
+             release.get('execution_plan_sha256') != plan_sha256 or
+             release.get('single_execution') is not True):
+         raise ValueError('exact single-execution root release missing or mismatched')
+-    output = lane / 'executions' / 'candidate-2'
++    output = lane / 'executions' / 'candidate-3'
+     output.mkdir(parents=True, exist_ok=False)
+     scratch = None
+     children = []

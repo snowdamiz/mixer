@@ -1,0 +1,65 @@
+--- before/hosted/lib/mixer_hosted/identity/admission.ex
++++ formatted/hosted/lib/mixer_hosted/identity/admission.ex
+@@ -75,8 +75,8 @@
+   def close(owner, table) do
+     if :ets.info(table, :owner) == self() and
+          :persistent_term.get({__MODULE__, owner}, nil) == table,
+-      do: :persistent_term.erase({__MODULE__, owner}),
+-      else: false
++       do: :persistent_term.erase({__MODULE__, owner}),
++       else: false
+   rescue
+     ArgumentError -> false
+   end
+--- before/hosted/test/mixer_hosted/identity/key_owner_lifecycle_test.exs
++++ formatted/hosted/test/mixer_hosted/identity/key_owner_lifecycle_test.exs
+@@ -107,7 +107,10 @@
+     # Register exact-PID recovery before any test assertion or suspension.
+     on_exit(fn ->
+       resumed = resume_owned(pid)
+-      owned_children = Enum.filter([Process.whereis(name), Process.whereis(workers(name))], &is_pid/1)
++
++      owned_children =
++        Enum.filter([Process.whereis(name), Process.whereis(workers(name))], &is_pid/1)
++
+       stopped = stop_owned(pid)
+ 
+       observation = %{
+@@ -252,6 +255,7 @@
+ 
+     wait_until(fn ->
+       replacement = Process.whereis(name)
++
+       is_pid(replacement) and replacement != owner and
+         Process.whereis(old.workers) != old_workers
+     end)
+@@ -303,6 +307,7 @@
+       # These are exact test-created tables; no unconditional registry erasure.
+       Admission.close(name, current)
+       for table <- [old, current], :ets.info(table, :owner) == self(), do: :ets.delete(table)
++
+       observation = %{
+         admission_absent: pointer(name) == :absent,
+         exact_tables_deleted: Enum.all?([old, current], &(:ets.info(&1) == :undefined))
+@@ -319,7 +324,9 @@
+     {component, owner, state} = component(name, root)
+ 
+     assert {:error, {:already_started, ^owner}} =
+-             KeyOwner.start_link(Keyword.put(options(name, root), :worker_supervisor, state.workers))
++             KeyOwner.start_link(
++               Keyword.put(options(name, root), :worker_supervisor, state.workers)
++             )
+ 
+     assert Process.whereis(name) == owner
+     assert pointer(name) == state.table
+@@ -342,7 +349,9 @@
+       }
+ 
+       evidence("KOL06-cleanup", observation)
+-      assert observation.owner_absent and observation.workers_absent and observation.admission_absent
++
++      assert observation.owner_absent and observation.workers_absent and
++               observation.admission_absent
+     end)
+ 
+     for invalid <- [

@@ -48,6 +48,8 @@ defmodule MixerHosted.Identity.KeyOwner do
   def init(options), do: initialize(options, nil)
 
   defp initialize(options, fixture) do
+    Process.flag(:trap_exit, true)
+
     with true <- Keyword.keyword?(options) and Enum.all?(Keyword.keys(options), &(&1 in @allowed)),
          {:ok, entries} <- Manifest.validate(Keyword.get(options, :manifest)),
          binding when is_binary(binding) <- Keyword.get(options, :binding),
@@ -488,7 +490,7 @@ defmodule MixerHosted.Identity.KeyOwner do
   defp clock, do: {System.system_time(:millisecond), System.monotonic_time(:millisecond)}
 
   def terminate(_, s) do
-    Admission.close(s.name)
+    Admission.close(s.name, s.table)
 
     Enum.each(s.waiters, fn {_, w} -> GenServer.reply(w.from, {:error, :identity_unavailable}) end)
 

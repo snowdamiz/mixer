@@ -1,0 +1,59 @@
+{
+  "at": "2026-10-27T20:10:37.441327+00:00",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "verification/swift-root-bound-work-storage-layout-preaccess/correct_multiline_coordinate.py"
+  ],
+  "compiler_or_runtime_executed": false,
+  "corrected_bindings": {
+    "bytes": 333615,
+    "path": "diagnostic-bindings-corrected.json",
+    "sha256": "403dadd0646fe1d30cc0eba6dd7bf16568ea2b0de7788619e8339af9b18daf8c"
+  },
+  "correction": {
+    "new": 15,
+    "old": 144,
+    "path": [
+      "closure_queries",
+      1,
+      "expression",
+      "column_end"
+    ],
+    "reason": "Multiline span end column is the last line length plus one, not start column plus complete token length."
+  },
+  "diagnostic_strategy_qualified": false,
+  "failure_artifacts": [
+    {
+      "bytes": 0,
+      "path": "parser-controls.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1718,
+      "path": "parser-controls.stderr",
+      "sha256": "4a0064ce48ef634771bf44a60a8a0b2fbcc2698d7ec80bdee96f5ba8ae4d92f7"
+    }
+  ],
+  "failure_attribution": "Reviewer coordinate helper defect caught by positive synthetic parser control before new producer access; not a producer finding.",
+  "new_producer_lane_accessed": false,
+  "original_bindings": {
+    "bytes": 333616,
+    "path": "diagnostic-bindings.json",
+    "sha256": "847be681212bd02fa74bbe8fc290a4875aad960d1b3c14540f3d02a11742f30d"
+  },
+  "original_oracle": {
+    "bytes": 7246,
+    "path": "preaccess-oracle.json",
+    "sha256": "8e1b8b65d1d7ac62438c0d9f8b7e32f9dbd4be2deccba427a12594b7f580220e"
+  },
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "schema": 1,
+  "script": {
+    "bytes": 2498,
+    "path": "correct_multiline_coordinate.py",
+    "sha256": "55337b3e48da20ffc099d96ed5ea369ee10e49e47d92dfbc70072f7da357f9b0"
+  },
+  "source_bytes_tree_identity_or_query_strategy_changed": false,
+  "status": "FROZEN_PREACCESS_COORDINATE_CORRECTION"
+}

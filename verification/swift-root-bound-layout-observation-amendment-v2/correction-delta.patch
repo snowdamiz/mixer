@@ -1,0 +1,274 @@
+--- amendment/check.py
++++ amendment-v2/check.py
+@@ -11,6 +11,7 @@
+ V3=R/'verification/swift-root-bound-work-storage-layout-probe-v3'
+ P=R/'verification/swift-root-bound-work-storage-layout-preaccess'
+ W=R/'verification/swift-root-bound-layout-warning-classification'
++A=R/'verification/swift-root-bound-layout-observation-amendment'
+ 
+ def sha(raw):return hashlib.sha256(raw).hexdigest()
+ def hashed(path,deadline=None):
+@@ -44,10 +45,14 @@
+     deadline=time.monotonic()+20 if deadline is None else deadline
+     raw=(D/'plan.json').read_bytes();plan=decode(raw)
+     if plan_sha is not None:need(sha(raw)==plan_sha,'root-selected-amendment-plan')
+-    need(plan['status']=='FROZEN_PREPARATION_AWAITING_ROOT_OFFLINE_SAVED_RAW_RELEASE','plan-state')
++    need(plan['status']=='FROZEN_V2_PREPARATION_AWAITING_ROOT_OFFLINE_SAVED_RAW_RELEASE','plan-state')
+     for row in plan['scripts']:pin(row,D,deadline)
+     for row in plan['inputs']:pin(row,R,deadline)
+     pin(plan['policy'],D,deadline)
++    sealed(A,'seal.json','298d2f3e9ac0f5ef0abacdeb24996d3a8d1031de02c91cb2cba82a62236a8723',22,deadline,[])
++    sealed(P,'amendment-review-01-seal.json','c0daaec0379bc1b51aa89669ccf617fa0eb78bba222b88e15365fa33c1331186',5,deadline)
++    need((D/'policy.json').read_bytes()==(A/'policy.json').read_bytes(),'unchanged-literal-policy')
++    need(plan['required_source_span_count']==346,'required-346-span-policy')
+     names=['plan.json','plan.json.staged','owned-process.json','owned-process.json.staged','receipt.json','receipt.json.staged','stderr','stdout']
+     sealed(O,'seal.json','c0e4da5b92f9fc076db21cb59700876bda60efaa7dc4b3c191124b707436fad9',173,deadline,[])
+     sealed(V2,'seal.json','76fda3e073db9bb7408275cf5d8eb494cf491e5a9cd0a894ba8cca35171127f8',16,deadline,[])
+--- amendment/parser.py
++++ amendment-v2/parser.py
+@@ -159,6 +159,7 @@
+     need(set(warnings)=={0,1,2},'warning-cardinality')
+     need(set(named)=={r['id'] for r in BINDINGS['named_queries']} and len(named)==56,'named-cardinality')
+     need(set(closure)=={'size','alignment'} and len(summaries)==3,'closure-summary-cardinality')
++    need(span_count==346,'complete-346-source-span-cardinality')
+     layouts=[]
+     for index in range(0,56,2):
+         row=BINDINGS['named_queries'][index];size,align=named[index],named[index+1]
+--- amendment/controls.py
++++ amendment-v2/controls.py
+@@ -2,8 +2,11 @@
+ import copy
+ import json
+ import time
++import io
+ from pathlib import Path
+ import parser as P
++from input_bytes import read_pinned_bytes
++from check import sha
+ 
+ D=Path(__file__).resolve().parent
+ 
+@@ -20,7 +23,12 @@
+     for row in P.BINDINGS['named_queries']:
+         value=((row['id']//2)+1)*8 if row['operation']=='size' else 8
+         expansion={'macro_decl_name':'pair!','span':span(row['file'],row['invocation']), 'def_site_span':span(row['file'],row['macro_definition'])}
+-        rows.append(diagnostic('E0308','mismatched types',[span(row['file'],row['query_rhs'],'expected an array with a size of 0, found one with a size of '+str(value),expansion)]))
++        primary=span(row['file'],row['query_rhs'],'expected an array with a size of 0, found one with a size of '+str(value),expansion)
++        # Three additional finite source geometries per named error exercise
++        # secondary spans. No actual error record or numerical layout is read.
++        secondary=[span(row['file'],row[key]) for key in ['query_rhs','invocation','macro_definition']]
++        for item in secondary:item['is_primary']=False
++        rows.append(diagnostic('E0308','mismatched types',[primary]+secondary))
+     for row in P.symbol_bindings():
+         shape='MaybeUninit<'+P.closure_spelling()+'>';bits=192
+         if row['operation']=='alignment':shape='ClosureAlignmentProbeV1<'+shape+'>';bits=256
+@@ -35,10 +43,42 @@
+ def named(rows,n=0):return [r for r in rows if (r.get('code') or {}).get('code')=='E0308'][n]
+ def closure(rows,n=0):return [r for r in rows if (r.get('code') or {}).get('code')=='E0512'][n]
+ 
++def memory_controls(controls):
++    expected={'bytes':292318,'sha256':'05c526210b4c07779c09c33f1944ffaa06d8012c57a57e3ad05f68ee34106635'}
++    # The separately observed pathname is deliberately always exact: the test
++    # varies only the bytes returned by the fake reader. No actual raw is read.
++    path_observation=dict(expected)
++    for label,payload in [('wrong',b'x'*expected['bytes']),('short',b'x'*(expected['bytes']-1)),('overlong',b'x'*(expected['bytes']+8))]:
++        reads=[];calls=0
++        class Reader(io.BytesIO):
++            def read(self,limit):reads.append(limit);return super().read(limit)
++        def opener(mode):assert mode=='rb';return Reader(payload)
++        assert path_observation==expected
++        try:
++            loaded=read_pinned_bytes(D/'never-read-actual',expected,time.monotonic()+1,opener=opener)
++            calls+=1
++            raise AssertionError('wrong memory would reach parser')
++        except P.Refusal as error:
++            assert calls==0 and reads==[expected['bytes']+1]
++            controls.append({'name':'synthetic-'+label+'-memory-rejected-despite-correct-path-hash-zero-parser-calls','rejected':True,'reason':str(error),'parser_calls':0,'read_limit':reads[0]})
++    payload=b'arbitrary synthetic memory fixture';expected={'bytes':len(payload),'sha256':sha(payload)};reads=[]
++    class Reader(io.BytesIO):
++        def read(self,limit):reads.append(limit);return super().read(limit)
++    loaded=read_pinned_bytes(D/'never-read-actual',expected,time.monotonic()+1,opener=lambda mode:Reader(payload))
++    assert loaded==payload and sha(loaded)==expected['sha256'] and reads==[len(payload)+1]
++    controls.append({'name':'synthetic-exact-memory-returned-with-finite-read','passed':True})
++    loaded=read_pinned_bytes(D/'never-read-actual',{'bytes':0,'sha256':sha(b'')},time.monotonic()+1,opener=lambda mode:io.BytesIO(b''))
++    assert loaded==b''
++    controls.append({'name':'synthetic-empty-stdout-memory-pinned','passed':True})
++    try:read_pinned_bytes(D/'never-read-actual',expected,time.monotonic()-1,opener=lambda mode:(_ for _ in ()).throw(AssertionError('expired read must not open')))
++    except P.Refusal:controls.append({'name':'synthetic-expired-memory-read-refuses-before-open','rejected':True})
++    else:raise AssertionError('expired memory read accepted')
++
+ def main():
+     start=time.monotonic();rows=synthetic();raw=encode(rows);controls=[]
+     result=P.parse_diagnostics(raw,deadline=start+15)
+     assert len(result['named_layout_candidates'])==28 and result['actual_closure_candidate']=={'size':24,'align':8,'source_bits':192,'wrapper_bits':256}
++    assert result['source_spans_verified']==346
+     assert result['layouts_accepted'] is False and result['original_contract_accepted'] is False
+     def reject(name,mutate=None,**overrides):
+         test=copy.deepcopy(rows)
+@@ -122,13 +162,20 @@
+     reject('nonempty-stdout',stdout=b'unexpected')
+     reject('wrong-exit',exit_code=0)
+     reject('expired-parser-deadline',deadline=time.monotonic()-1)
++    reject('missing-valid-secondary-span-345-refused',lambda r:named(r)['spans'].pop())
++    reject('extra-valid-secondary-span-347-refused',lambda r:named(r)['spans'].append(copy.deepcopy(named(r)['spans'][1])))
++    reject('secondary-span-wrong-source',lambda r:named(r)['spans'][1].update(file_name='/proxy.rs'))
++    reject('secondary-span-wrong-byte',lambda r:named(r)['spans'][1].update(byte_start=named(r)['spans'][1]['byte_start']+1))
++    reject('secondary-span-wrong-highlight',lambda r:named(r)['spans'][1]['text'][0].update(highlight_start=1))
++    reject('secondary-span-wrong-excerpt',lambda r:named(r)['spans'][1]['text'][0].update(text='proxy source'))
+     for source,wrapper in [(0,8),(192,192),(192,184),(192,216),(192,193),(200,264),(2**70,2**70+64)]:
+         try:P.alignment(source,wrapper)
+         except P.Refusal as error:controls.append({'name':'invalid-concrete-arithmetic-'+str(source)+'-'+str(wrapper),'rejected':True,'reason':str(error)})
+         else:raise AssertionError('adverse arithmetic accepted')
+-    report={'schema':1,'status':'SYNTHETIC_CONTROLS_ONLY_PASSED','positive_synthetic_streams':1,'adverse_controls':controls,'adverse_controls_passed':len(controls),
++    memory_controls(controls)
++    report={'schema':2,'status':'V2_SYNTHETIC_CONTROLS_ONLY_PASSED','positive_synthetic_streams':1,'positive_synthetic_span_count':346,'adverse_controls':[item for item in controls if item.get('rejected') is True],'positive_memory_controls':[item for item in controls if item.get('passed') is True],'adverse_controls_passed':sum(item.get('rejected') is True for item in controls),'total_controls':len(controls),
+         'actual_saved_raw_parser_calls':0,'synthetic_sizes_are_not_product_observations':True,'layouts_accepted':False,'compiler_invocations':0,'child_workloads':0,'elapsed_seconds':time.monotonic()-start}
+     with (D/'controls-result.json').open('x') as handle:json.dump(report,handle,indent=2,sort_keys=True);handle.write('\n')
+-    print(json.dumps({'status':report['status'],'adverse_controls':len(controls),'actual_saved_raw_parser_calls':0}))
++    print(json.dumps({'status':report['status'],'adverse_controls':report['adverse_controls_passed'],'total_controls':report['total_controls'],'actual_saved_raw_parser_calls':0}))
+     return report
+ if __name__=='__main__':main()
+--- amendment/run.py
++++ amendment-v2/run.py
+@@ -8,6 +8,7 @@
+ import time
+ from check import check,hashed,sha,R,V3
+ from parser import parse_diagnostics,decode,need
++from input_bytes import read_pinned_bytes
+ 
+ D=Path(__file__).resolve().parent
+ def put(path,obj,deadline):
+@@ -28,8 +29,11 @@
+     try:
+         # Only this point, after exact separately reviewed release, supplies the
+         # 58 saved actual error records to the amended whole-stream parser.
+-        stderr=(V3/'command/stderr').read_bytes();stdout=(V3/'command/stdout').read_bytes()
+         need(hashed(V3/'command/stderr',deadline)==plan['saved_stderr'],'saved-raw-preparse-pin')
++        stderr=read_pinned_bytes(V3/'command/stderr',plan['saved_stderr'],deadline)
++        stdout=read_pinned_bytes(V3/'command/stdout',{'bytes':0,'sha256':sha(b'')},deadline)
++        # Both in-memory values are bounded and pinned before the invocation
++        # counter advances. Path restoration cannot authorize different bytes.
+         calls+=1;candidate=parse_diagnostics(stderr,stdout,1,deadline=start+45)
+         check(args.plan_sha256,start+51)
+         candidate.update({'plan_sha256':args.plan_sha256,'root_release_sha256':args.root_release_sha256,
+@@ -41,6 +45,7 @@
+         'command':[plan['python']['tool']['path'],'-B',str(Path(__file__).resolve()),'--plan-sha256',args.plan_sha256,'--root-release-sha256',args.root_release_sha256],
+         'python':plan['python']['version'],'plan_sha256':args.plan_sha256,'root_release_sha256':args.root_release_sha256,
+         'saved_stderr':plan['saved_stderr'],'actual_saved_raw_parser_calls':calls,'candidate_emitted':error is None,
++        'bounded_input_memory_sha256_verified_before_parser':calls==1,
+         'original_v3_contract_accepted':False,'layouts_accepted':False,'retrospective_policy':True,'error':error,
+         'elapsed_seconds':time.monotonic()-start,'compiler_invocations':0,'child_workloads':0,
+         'prices_backing_peak_funding_full_ownership_native_FieldLog_OTA_GA_accepted':False}
+--- amendment/prepare.py
++++ amendment-v2/prepare.py
+@@ -4,7 +4,7 @@
+ import datetime
+ import json
+ import sys
+-from check import hashed,sha,R,O,V2,V3,P,W
++from check import hashed,sha,R,O,V2,V3,P,W,A
+ from parser import decode,canonical,symbol_bindings
+ 
+ D=Path(__file__).resolve().parent
+@@ -16,13 +16,18 @@
+     vp=decode((V3/'plan.json').read_bytes());rootrelease=decode((R/vp['root_release_required']['path']).read_bytes())
+     paths=[O/'seal.json',V2/'seal.json',V3/'seal.json',V3/'plan.json',P/'preaccess-seal.json',P/'diagnostic-bindings-corrected.json',
+         P/'independent_diagnostic_parser.py',P/'terminal-v3-review-seal.json',P/'terminal-v3-review.json',W/'seal.json',
+-        W/'warning-classification-proposal.json',W/'warning-source-bindings.json',W/'FINDINGS.md',R/vp['root_release_required']['path']]
+-    plan={'schema':1,'status':'FROZEN_PREPARATION_AWAITING_ROOT_OFFLINE_SAVED_RAW_RELEASE',
++        W/'warning-classification-proposal.json',W/'warning-source-bindings.json',W/'FINDINGS.md',R/vp['root_release_required']['path'],
++        A/'seal.json',A/'plan.json',P/'amendment-review-01-seal.json',P/'AMENDMENT-REVIEW-01.md']
++    plan={'schema':2,'status':'FROZEN_V2_PREPARATION_AWAITING_ROOT_OFFLINE_SAVED_RAW_RELEASE',
+         'prepared_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'source_revision_from_pinned_historical_root_release':rootrelease['source_revision'],
+-        'scripts':[row(D/n,D) for n in ['prepare.py','check.py','parser.py','controls.py','run.py','verify_and_seal.py']],
++        'scripts':[row(D/n,D) for n in ['prepare.py','check.py','parser.py','controls.py','run.py','input_bytes.py','verify_and_seal.py']],
+         'policy':row(D/'policy.json',D),'inputs':[row(path) for path in paths],
+         'python':vp['python'],'source146_tree':vp['original_source']['tree_sha256'],'diagnostic146_tree':vp['diagnostic_source']['tree_sha256'],
+         'saved_stderr':{'bytes':292318,'sha256':'05c526210b4c07779c09c33f1944ffaa06d8012c57a57e3ad05f68ee34106635'},
++        'prior_amendment':{'seal':row(A/'seal.json'),'plan':row(A/'plan.json'),'members':22,'all_members_and_seal_immutable':True,'actual_saved_raw_parser_calls':0},
++        'bounded_input_memory_policy':'Before calls++/parse, read at most pinned length+1 and require exact actual memory length292318 and SHA25605c526210b4c07779c09c33f1944ffaa06d8012c57a57e3ad05f68ee34106635. Pin empty stdout memory too. Preserve pathname precheck and complete posthash custody recheck.',
++        'required_source_span_count':346,
++        'v2_scope':'Only actual input-memory identity and explicit346 source-span guard, with richer synthetic secondary-span/read-race controls. Exact warning/symbol/summary policy and all existing guards unchanged. Prior amendment not executed.',
+         'saved_command_directory':str(V3/'command'),'saved_query_plan_sha256':'95e3ebb57acc3c5ea9e7baac1f657c05ae36ffc957d86b77b38231f4480f958e',
+         'saved_command_scope':'Exactly one historical compiler-only command, exit 1, all eight saved members, complete capture, original release/source/toolchain/Python/SDK and successful cleanup joined. Original runner and oracle refused; their bytes remain immutable.',
+         'warning_baseline_justification':'Three preexisting source/toolchain warnings also emitted by accepted baseline production-MIR and positive metadata builds. Warning objects remain visible and counted; no warning-free or suppressed-warning claim.',
+@@ -32,15 +37,21 @@
+         'unchanged_refusals':['all56 E0308 exact type/operation/macro/source/expansion bindings','two actual closure identities and zero targets','concrete byte/usize/power-of-two/arithmetic guards','allsource span geometry/highlights/excerpts','unexpected diagnostic/message/child ambiguity/cardinality refusal','strict UTF8/JSON duplicate-key/nonfinite rejection','empty stdout and compiler exit1'],
+         'retrospective_policy':True,'original_contract_accepted':False,'candidate_layouts_require_complete_amended_stream_and_later_review':True,
+         'execution':{'actual_saved_raw_parser_calls':0,'compiler_invocations':0,'child_workloads':0,'native_UI_capture_process_inventory':False},
+-        'preparation_decoding_scope':'Only three independently reviewed warning records and three independently reviewed summary/note records decoded to specify literals. All synthetic error values are arbitrary; no actual complete stream has been supplied to the amended parser.',
++        'preparation_decoding_scope':'Literal policy copied byte-for-byte from the immutable first amendment. No actual raw record decoded in v2 preparation; all synthetic error values are arbitrary and no actual complete stream has been supplied to the amended parser.',
+         'root_release_required':{'path':'verification/swift-semantic-adapter-root-review/root-bound-layout-observation-amendment-release.json',
+             'required_fields':{'plan_sha256':'exact digest of this new plan','offline_saved_raw_parser_released':True,'actual_saved_raw_parser_calls':1,'compiler_invocations':0}},
+         'proposed_argv':[vp['python']['tool']['path'],'-B',str(D/'run.py'),'--plan-sha256','EXACT_NEW_PLAN_SHA256','--root-release-sha256','EXACT_NEW_ROOT_OFFLINE_RELEASE_SHA256'],
+         'bounds':{'wall_seconds':55,'preflight_seconds':20,'parse_deadline_seconds':45,'posthash_deadline_seconds':51,'actual_saved_raw_parser_calls':1,'compiler_invocations':0,'child_workloads':0,'automatic_retries':0},
+         'layouts_prices_backing_peak_funding_full_ownership_native_FieldLog_OTA_GA_accepted':False}
+     put(D/'plan.json',plan)
+-    put(D/'preparation-receipt.json',{'schema':1,'command':[str(Path(sys.executable).resolve()),'-B',str(D/'prepare.py')],
++    patch=''
++    import difflib
++    for name in ['check.py','parser.py','controls.py','run.py','prepare.py','verify_and_seal.py']:
++        patch+=''.join(difflib.unified_diff((A/name).read_text().splitlines(True),(D/name).read_text().splitlines(True),fromfile='amendment/'+name,tofile='amendment-v2/'+name))
++    patch+=''.join(difflib.unified_diff([],(D/'input_bytes.py').read_text().splitlines(True),fromfile='/dev/null',tofile='amendment-v2/input_bytes.py'))
++    (D/'correction-delta.patch').write_text(patch)
++    put(D/'preparation-receipt.json',{'schema':2,'command':[str(Path(sys.executable).resolve()),'-B',str(D/'prepare.py')],
+         'python':sys.version,'python_tool':row(Path(sys.executable).resolve()),'plan_sha256':sha((D/'plan.json').read_bytes()),
+         'actual_saved_raw_parser_calls':0,'compiler_invocations':0,'child_workloads':0,'layouts_accepted':False})
+-    print(json.dumps({'status':'prepared-offline-amendment-no-actual-parser-call','plan_sha256':sha((D/'plan.json').read_bytes())}))
++    print(json.dumps({'status':'prepared-v2-offline-amendment-no-actual-parser-call','plan_sha256':sha((D/'plan.json').read_bytes())}))
+ if __name__=='__main__':main()
+--- amendment/verify_and_seal.py
++++ amendment-v2/verify_and_seal.py
+@@ -16,7 +16,7 @@
+     with path.open('x') as handle:json.dump(obj,handle,indent=2,sort_keys=True);handle.write('\n')
+ def main():
+     start=time.monotonic();assert not (D/'seal.json').exists() and not (D/'actual').exists()
+-    output=D/'commands/final-offline-2';output.mkdir(parents=True);transcript=io.StringIO();error=None;report=None
++    output=D/'commands/final-offline';output.mkdir(parents=True);transcript=io.StringIO();error=None;report=None
+     try:
+         with contextlib.redirect_stdout(transcript):
+             plan=check.check(deadline=start+20)
+@@ -27,19 +27,21 @@
+     except BaseException as failure:error={'type':type(failure).__name__,'message':str(failure)}
+     raw=transcript.getvalue().encode();assert len(raw)<=65536
+     (output/'stdout').write_bytes(raw);(output/'stderr').write_bytes(b'')
+-    receipt={'schema':1,'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':[str(Path(sys.executable).resolve()),'-B',str(D/'verify_and_seal.py')],
++    receipt={'schema':2,'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':[str(Path(sys.executable).resolve()),'-B',str(D/'verify_and_seal.py')],
+         'cwd':str(check.R),'python':sys.version,'python_tool':{'path':str(Path(sys.executable).resolve()),**check.hashed(Path(sys.executable).resolve())},
+         'script':row(Path(__file__).resolve()),'plan_sha256':check.sha((D/'plan.json').read_bytes()),'elapsed_seconds':time.monotonic()-start,
+         'exit':int(error is not None),'error':error,'outputs':[row(output/'stdout'),row(output/'stderr')],
+         'actual_saved_raw_parser_calls':0,'compiler_invocations':0,'child_workloads':0,'all_prior_source_raw_runtime_and_error_receipts_preserved':True,'layouts_accepted':False}
+     put(output/'receipt.json',receipt)
+     if error is not None:raise SystemExit(json.dumps(error))
+-    assert report['actual_saved_raw_parser_calls']==0 and report['adverse_controls_passed']>=100
++    assert report['actual_saved_raw_parser_calls']==0 and report['adverse_controls_passed']==126 and report['total_controls']==128
+     members=[row(p) for p in sorted(D.rglob('*')) if p.is_file() and p.name!='seal.json']
+-    seal={'schema':1,'status':'FROZEN_OFFLINE_AMENDMENT_PREPARATION_AWAITING_ROOT_REVIEW_AND_SAVED_RAW_RELEASE',
++    seal={'schema':2,'status':'FROZEN_V2_OFFLINE_AMENDMENT_PREPARATION_AWAITING_ROOT_REVIEW_AND_SAVED_RAW_RELEASE',
+         'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'member_count':len(members),'members':members,
+         'tree_sha256':check.sha(check.canonical(members)),'member_bytes':sum(r['bytes'] for r in members),
+         'plan_sha256':check.sha((D/'plan.json').read_bytes()),'synthetic_adverse_controls':report['adverse_controls_passed'],
++        'total_controls':report['total_controls'],'positive_synthetic_span_count':346,
++        'prior_amendment_seal_sha256':'298d2f3e9ac0f5ef0abacdeb24996d3a8d1031de02c91cb2cba82a62236a8723','prior22_members_immutable':True,
+         'actual_saved_raw_parser_calls':0,'compiler_invocations':0,'child_workloads':0,'retrospective_policy':True,
+         'original_contract_accepted':False,'layouts_prices_backing_peak_funding_full_ownership_native_FieldLog_OTA_GA_accepted':False}
+     put(D/'seal.json',seal)
+--- /dev/null
++++ amendment-v2/input_bytes.py
+@@ -0,0 +1,16 @@
++"""Bind the exact bounded in-memory bytes before any actual parser call."""
++import time
++from parser import need
++from check import sha
++
++def read_pinned_bytes(path,expected,deadline,*,opener=None):
++    need(time.monotonic()<deadline,'saved-memory-read-deadline')
++    # A regular reader receives one finite read budget, including one byte to
++    # distinguish the exact expected length from an overlong input.
++    open_input=path.open if opener is None else opener
++    with open_input('rb') as handle:raw=handle.read(expected['bytes']+1)
++    need(time.monotonic()<deadline,'saved-memory-read-completion-deadline')
++    need(type(raw) is bytes,'saved-memory-not-bytes')
++    need(len(raw)==expected['bytes'],'saved-memory-length')
++    need(sha(raw)==expected['sha256'],'saved-memory-sha256')
++    return raw

@@ -1,0 +1,48 @@
+{
+  "actual_closure_token_identity_verified": true,
+  "actual_diagnostic_strategy_qualified": false,
+  "all_layout_prices_backing_peak_funding_ownership_GA_pending": true,
+  "argv_environment_compiler_and_bounds_match": true,
+  "at": "2026-10-27T20:16:47.929844+00:00",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "verification/swift-root-bound-work-storage-layout-preaccess/review_prepared_packet.py"
+  ],
+  "compiler_or_runtime_invocations": 0,
+  "diagnostic_source146_tree": "2ec0d8555d6a18d7c8222984faaec3a1543c1a1b800f4b90381f70571215516e",
+  "diagnostic_source_members_verified": 146,
+  "elapsed_seconds": 0.4309842081274837,
+  "exact_three_source_edits_match_preaccess": true,
+  "findings": [
+    {
+      "correction": "Reject duplicate object keys during JSON decoding and retain a fresh synthetic duplicate-key control. Independent terminal parser also stays strict.",
+      "file": "diagnostics.py",
+      "finding": "JSON object duplicate keys are silently last-wins, so conflicting code/span/label keys can be accepted contrary to frozen ambiguous-output refusal policy.",
+      "id": "R01"
+    },
+    {
+      "correction": "Block handled asynchronous signals across child launch and process assignment, restore the mask after the handle is retained, and retain a synthetic pending-signal/ownership control. Do not start any real child to test this.",
+      "file": "run.py",
+      "finding": "Raising signal handlers remain active during Popen and before assignment to process. A handled signal after launch but before assignment can reach finally with process=None although an owned child exists.",
+      "id": "R02"
+    }
+  ],
+  "independent_synthetic_controls_passed": 34,
+  "named_source_and_expansion_bindings_verified": 56,
+  "original_source146_tree": "91bab68a8aef4a7cbe300af0fca8145462e08dcaaef2631f42a0d2d55748bd8f",
+  "original_source_members_verified": 146,
+  "packet_member_bytes": 20187371,
+  "packet_members_verified": 173,
+  "preaccess_stage_verified": true,
+  "producer_offline_controls_read": 28,
+  "producer_plan_sha256": "b76ab36cf7bc1137842ec3bc63d64eb30594e53dfb76c93abdc06e15cb1ae04b",
+  "producer_seal_sha256": "c0e4da5b92f9fc076db21cb59700876bda60efaa7dc4b3c191124b707436fad9",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "release_recommended": false,
+  "schema": 1,
+  "sdk_settings_verified": 2,
+  "status": "EXACT_PREPARATION_CUSTODY_VERIFIED_CORRECTIONS_REQUIRED_BEFORE_RELEASE",
+  "toolchain_bytes_verified": 534868223,
+  "toolchain_members_verified": 67
+}

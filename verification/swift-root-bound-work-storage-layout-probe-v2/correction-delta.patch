@@ -1,0 +1,521 @@
+--- v1/check.py
++++ v2/check.py
+@@ -5,9 +5,11 @@
+ import json
+ import sys
+ import time
++from strict_json import loads
+ 
+ D = Path(__file__).resolve().parent
+ R = D.parents[1]
++O = R / 'verification/swift-root-bound-work-storage-layout-probe'
+ 
+ 
+ def sha(raw): return hashlib.sha256(raw).hexdigest()
+@@ -37,32 +39,48 @@
+         if path.is_file(): actual.append(str(path.relative_to(base)))
+     require(set(actual) == {row['path'] for row in members} and len(actual) == 146, 'source146 membership changed')
+     for row in members: pinned(row, base, deadline)
+-def check(plan_sha=None, deadline=None):
++def check(plan_sha=None, deadline=None, transient_build_allowed=False):
+     raw = (D / 'plan.json').read_bytes()
+     if plan_sha is not None: require(sha(raw) == plan_sha, 'root-selected plan changed')
+-    plan = json.loads(raw)
+-    require(plan['status'] == 'PREPARED_FROZEN_AWAITING_ROOT_INTERNAL_COMPILER_RELEASE', 'wrong preparation state')
++    plan = loads(raw)
++    require(plan['status'] == 'PREPARED_V2_FROZEN_AWAITING_ROOT_INTERNAL_COMPILER_RELEASE', 'wrong preparation state')
++    pinned(plan['original_packet']['seal'], R, deadline)
++    original_seal = loads((O / 'seal.json').read_text())
++    require(len(original_seal['members']) == 173, 'original sealed membership changed')
++    for item in original_seal['members']: pinned(item, O, deadline)
++    expected_members = {row['path'] for row in original_seal['members']} | {'seal.json'}
++    actual_members = set()
++    for path in O.rglob('*'):
++        if deadline is not None: require(time.monotonic() < deadline, 'original membership deadline')
++        relative = path.relative_to(O)
++        if relative.parts[0] == 'build' and transient_build_allowed:
++            continue
++        require(not path.is_symlink(), 'original packet symlink')
++        if path.is_file(): actual_members.add(str(relative))
++    require(actual_members == expected_members, 'original frozen membership changed outside released transient build destination')
++    if not transient_build_allowed: require(not (O/'build').exists(), 'original transient build destination must be absent')
+     require(plan['execution'] == {'compiler_started': False, 'runtime_started': False, 'version_commands_started': 0}, 'preparation invents execution')
+     for item in plan['scripts']: pinned(item, D, deadline)
+     for item in plan['inputs']: pinned(item, R, deadline)
+-    for key in ['toolchain_manifest', 'sdk_path_settings', 'delta']: pinned(plan[key], D, deadline)
+-    toolmanifest = json.loads((D / 'toolchain-manifest.json').read_text())
++    for key in ['toolchain_manifest', 'sdk_path_settings', 'delta']: pinned(plan[key], O, deadline)
++    toolmanifest = loads((O / 'toolchain-manifest.json').read_text())
+     require(sha(canonical(toolmanifest['members'])) == toolmanifest['tree_sha256'], 'toolchain manifest tree')
+     for item in toolmanifest['members']: pinned(item, Path(toolmanifest['root']), deadline)
+     pinned(plan['compiler'], R, deadline)
+     pinned(plan['python']['tool'], R, deadline)
+     require(sys.version == plan['python']['version'], 'Python version drift')
+-    sdk = json.loads((D / 'sdk-path-settings.json').read_text())
++    sdk = loads((O / 'sdk-path-settings.json').read_text())
+     require(str(Path(sdk['requested']).resolve()) == sdk['resolved'], 'SDK resolution changed')
+     for item in sdk['settings']: pinned(item, R, deadline)
+     original = plan['original_source']
+-    pinned(original['manifest'], D, deadline)
++    pinned(original['manifest'], O, deadline)
+     require(sha(canonical(original['members'])) == original['tree_sha256'] == '91bab68a8aef4a7cbe300af0fca8145462e08dcaaef2631f42a0d2d55748bd8f', 'original tree')
+     tree(Path(original['directory']), original['members'], deadline)
+     diagnostic = plan['diagnostic_source']
+     require(sha(canonical(diagnostic['members'])) == diagnostic['tree_sha256'], 'diagnostic tree')
+-    tree(D / 'source/vm', diagnostic['members'], deadline)
+-    require(json.loads((D / 'diagnostic-source-manifest.json').read_text()) == diagnostic, 'diagnostic manifest mismatch')
++    require(Path(plan['diagnostic_source_directory']) == O/'source/vm', 'diagnostic source directory differs')
++    tree(O / 'source/vm', diagnostic['members'], deadline)
++    require(loads((O / 'diagnostic-source-manifest.json').read_text()) == diagnostic, 'diagnostic manifest mismatch')
+     old = {row['path']: row for row in original['members']}; new = {row['path']: row for row in diagnostic['members']}
+     names = sorted(name for name in old if old[name] != new[name])
+     require(names == ['src/experimental_swift_reactor/cache/initial_profile_v1.rs', 'src/experimental_swift_reactor/retained_profile_loader_v1.rs'], 'unexpected changed source file')
+@@ -72,13 +90,17 @@
+     for name, fragment, marker in [(loader, 'proposed-owner-layout-queries.inc.rs', b'    // OWNER_PROBE_INSERTION'),
+                                     (cache, 'proposed-cache-layout-queries.inc.rs', b'    // Private outer caller candidate; all prior bodies remain exact.')]:
+         require(after[name].count(marker) == 1, 'insertion anchor not unique')
+-        after[name] = after[name].replace(marker, (D / fragment).read_bytes() + b'\n' + marker)
++        after[name] = after[name].replace(marker, (O / fragment).read_bytes() + b'\n' + marker)
+     needle = b'        Ok(reservation.dispatch_v1(|| run_prepaid_admitted_fixture_v1(fixture, attempt, expected)))'
+     require(after[cache].count(needle) == 1, 'closure replacement anchor not unique')
+-    after[cache] = after[cache].replace(needle, (D / 'proposed-actual-closure-layout-fragment.rs').read_bytes().rstrip(b'\n'))
+-    require(all(after[name] == (D / 'source/vm' / name).read_bytes() for name in names), 'not exact three-edit replay')
+-    proposal = json.loads((R / 'verification/swift-root-bound-work-storage-delta/layout-probe-proposal.json').read_text())
++    after[cache] = after[cache].replace(needle, (O / 'proposed-actual-closure-layout-fragment.rs').read_bytes().rstrip(b'\n'))
++    require(all(after[name] == (O / 'source/vm' / name).read_bytes() for name in names), 'not exact three-edit replay')
++    proposal = loads((R / 'verification/swift-root-bound-work-storage-delta/layout-probe-proposal.json').read_text())
+     require(plan['argv'] == proposal['argv'] and plan['cwd'] == proposal['cwd'] and plan['environment'] == proposal['environment'], 'argv/environment differs from accepted proposal')
++    original_plan = loads((O/'plan.json').read_text())
++    for field in ['argv','cwd','environment','original_source','diagnostic_source','diagnostics','bounds','compiler','python']:
++        require(plan[field] == original_plan[field], 'v2 changed frozen source/query/tool/command/bounds field: ' + field)
++    require(plan['execution_build_directory'] == str(O/'build'), 'v2 changed execution-owned exact build destination')
+     require(len(plan['diagnostics']['named_queries']) == 28 and plan['diagnostics']['expected_primary_errors'] == {'E0308': 56, 'E0512': 2}, 'query cardinality')
+     require(not plan['all_price_layout_backing_peak_funding_ownership_GA_authority'], 'invented authority')
+     return plan
+--- v1/controls.py
++++ v2/controls.py
+@@ -10,6 +10,8 @@
+ 
+ from diagnostics import Rejected, parse, point, source_map
+ from run import stop_owned
++from launch import TrackedLaunch, Stopped, observed_unblocked_mask
++from strict_json import loads, DuplicateKey
+ 
+ D = Path(__file__).resolve().parent
+ 
+@@ -51,10 +53,26 @@
+ 
+ 
+ def main():
+-    start = time.monotonic(); plan = json.loads((D / 'plan.json').read_text()); sources = source_map(plan, D)
++    start = time.monotonic(); plan = loads((D / 'plan.json').read_text()); sources = source_map(plan, D)
+     objects = fixture(plan, sources); baseline = parse(encoded(objects), plan, sources)
+     assert len(baseline['named']) == 28 and baseline['actual_closure']['alignment'] == 8
+     controls = []
++    try: parse(encoded(objects), plan, sources, deadline=time.monotonic()-1)
++    except Rejected: controls.append({'name': 'synthetic-expired-parser-deadline-rejected', 'rejected': True})
++    else: raise AssertionError('expired parser deadline accepted')
++    original_raw = encoded(objects)
++    for label, conflicting in [
++        ('raw-conflicting-top-level-key', original_raw.replace(b'"level": "error"', b'"level": "warning", "level": "error"', 1)),
++        ('raw-conflicting-nested-code-key', original_raw.replace(b'"code": {"code": "E0308"}', b'"code": {"code": "E0000", "code": "E0308"}', 1)),
++        ('raw-conflicting-nested-span-key', original_raw.replace(b'"file_name":', b'"file_name": "/unfrozen/proxy.rs", "file_name":', 1)),
++    ]:
++        assert conflicting != original_raw
++        try: parse(conflicting, plan, sources)
++        except DuplicateKey: controls.append({'name': label, 'rejected': True})
++        else: raise AssertionError('duplicate JSON object key accepted: ' + label)
++    try: loads(b'{"outer":{"inner":{"same":1,"same":1}}}')
++    except DuplicateKey: controls.append({'name': 'raw-identical-duplicate-at-third-object-depth', 'rejected': True})
++    else: raise AssertionError('identical nested duplicate accepted')
+     def reject(name, mutate):
+         data = copy.deepcopy(objects); mutate(data)
+         try: parse(encoded(data), plan, sources)
+@@ -115,8 +133,76 @@
+     result = stop_owned(FakeProcess(), time.monotonic()+1, failures, actions, killpg=denied, kill=gone)
+     assert result['exact_group_absent'] is None and failures
+     controls.append({'name': 'synthetic-absence-ambiguity-preserved', 'passed': True})
++    for number in [signal.SIGALRM, signal.SIGINT, signal.SIGTERM, signal.SIGHUP]:
++        launch = TrackedLaunch(); fake = FakeProcess(); calls = []; handler_returned = []
++        def constructing():
++            assert launch.in_progress and launch.process is None
++            launch.handle_signal(number, 'spawn')
++            handler_returned.append(True)
++            # This is precisely the old dangerous interval: a child exists in
++            # the constructor but the caller has not yet received its handle.
++            assert launch.in_progress and launch.process is None
++            return fake
++        try: launch.start(constructing)
++        except Stopped:
++            assert handler_returned == [True] and launch.process is fake and not launch.in_progress
++            assert launch.constructor_returned and len(launch.pending) == 1
++            failures = []; actions = []
++            def exact_group(pid, action):
++                assert pid == fake.pid
++                calls.append(('group', pid, int(action)))
++                if action == 0: raise ProcessLookupError()
++            def exact_pid(pid, action):
++                assert pid == fake.pid and action == 0
++                calls.append(('pid', pid, int(action))); raise ProcessLookupError()
++            result = stop_owned(launch.process, time.monotonic()+1, failures, actions, killpg=exact_group, kill=exact_pid)
++            assert result['child_reaped'] and result['exact_pid_absent'] and result['exact_group_absent'] and not failures
++            assert calls and all(call[1] == fake.pid for call in calls)
++            assert ('group', fake.pid, int(signal.SIGKILL)) in calls
++        else: raise AssertionError('pending interruption did not route through owned cleanup')
++        controls.append({'name': 'synthetic-signal-' + str(int(number)) + '-during-constructor-deferred-handle-retained-cleaned', 'passed': True})
++    launch = TrackedLaunch()
++    def construction_failure():
++        assert launch.in_progress
++        launch.handle_signal(signal.SIGTERM, 'spawn')
++        raise ValueError('synthetic constructor failed without returned child')
++    try: launch.start(construction_failure)
++    except ValueError:
++        assert not launch.in_progress and launch.process is None and launch.constructor_failed
++        failures = []; actions = []
++        result = stop_owned(launch.process, 1, failures, actions, killpg=lambda p,s: (_ for _ in ()).throw(AssertionError('must not signal')))
++        assert not result['child_started'] and actions == ['no-child-started'] and not failures
++    else: raise AssertionError('constructor failure swallowed')
++    controls.append({'name': 'synthetic-constructor-failure-clears-launch-flag-no-child-no-signal', 'passed': True})
++    launch = TrackedLaunch(); fake = FakeProcess(); assert launch.start(lambda: fake) is fake
++    launch.handle_signal(signal.SIGINT, 'after-launch-return-before-caller-assignment')
++    try: launch.raise_pending()
++    except Stopped: assert launch.process is fake and not launch.in_progress
++    else: raise AssertionError('post-retention interruption not raised')
++    controls.append({'name': 'synthetic-post-retention-before-caller-assignment-gap-keeps-handle', 'passed': True})
++    for phase in ['owned-process-cleanup-entry-before-handler-disposition-change', 'receipt-finalization']:
++        launch = TrackedLaunch(); fake = FakeProcess(); assert launch.start(lambda: fake) is fake
++        launch.handle_signal(signal.SIGALRM, phase)
++        launch.handle_signal(signal.SIGTERM, phase)
++        # No protected work checkpoint is called during cleanup/finalization.
++        # Handler calls must return, preserving the retained child and allowing
++        # unconditional exact-PID/group cleanup and receipt construction.
++        assert launch.process is fake and not launch.in_progress and len(launch.pending) == 2
++        failures = []; actions = []
++        result = stop_owned(launch.process, time.monotonic()+1, failures, actions, killpg=gone, kill=gone)
++        assert result['child_reaped'] and result['exact_pid_absent'] and result['exact_group_absent'] and not failures
++        assert len(launch.receipt()['deferred_signals']) == 2
++        launch.record_interruption_failure(failures)
++        assert failures[0]['classification'] == 'handled-signal-requested-interruption'
++        assert len(failures[0]['detail']) == 2
++        controls.append({'name': 'synthetic-record-only-signal-during-' + phase + '-cannot-skip-cleanup-or-receipt', 'passed': True})
++    mask = observed_unblocked_mask()
++    assert mask == {'blocked_signals': [], 'query': 'pthread_sigmask(SIG_BLOCK, empty set)', 'mask_changed': False}
++    controls.append({'name': 'offline-parent-signal-mask-observed-empty-without-mask-change', 'passed': True})
+     report = {'schema': 1, 'status': 'synthetic-offline-controls-passed', 'controls': controls,
+               'synthetic_sizes_are_not_product_observations': True, 'actual_layout_strategy_qualified': False,
++              'correction_scope': ['strict duplicate-key JSON rejection', 'deferred asynchronous launch interruption until handle retention'],
++              'original_source_argv_environment_preserved': True,
+               'compiler_runtime_or_child_processes_started': 0, 'elapsed_seconds': time.monotonic()-start}
+     with (D / 'controls-result.json').open('x') as handle: json.dump(report, handle, indent=2); handle.write('\n')
+     print(json.dumps({'status': report['status'], 'controls': len(controls), 'compiler_or_child_processes': 0}))
+--- v1/diagnostics.py
++++ v2/diagnostics.py
+@@ -1,7 +1,9 @@
+ """Fail-closed parser for the frozen diagnostic scratch. No compiler/runtime calls."""
+ import json
+ import re
++import time
+ from pathlib import Path
++from strict_json import loads
+ 
+ 
+ class Rejected(ValueError):
+@@ -41,16 +43,20 @@
+ 
+ 
+ def source_map(plan, directory):
+-    return {str(directory / 'source/vm' / row['path']): (directory / 'source/vm' / row['path']).read_bytes()
++    base = Path(plan['diagnostic_source_directory'])
++    return {str(base / row['path']): (base / row['path']).read_bytes()
+             for row in plan['diagnostic_source']['members']}
+ 
+ 
+-def parse(raw, plan, sources):
++def parse(raw, plan, sources, deadline=None):
++    def bounded(): require(deadline is None or time.monotonic() < deadline, 'diagnostic parser deadline')
++    bounded()
+     require(len(raw) <= plan['bounds']['maximum_stderr_bytes'], 'stderr cap exceeded')
+     messages = []
+     for line in raw.decode('utf-8', errors='strict').splitlines():
++        bounded()
+         require(bool(line), 'blank diagnostic line')
+-        obj = json.loads(line)
++        obj = loads(line)
+         require(isinstance(obj, dict) and obj.get('$message_type') == 'diagnostic', 'non-diagnostic JSON output')
+         messages.append(obj)
+     expected = plan['diagnostics']
+@@ -59,6 +65,7 @@
+     summaries = []
+     all_primary = []
+     for obj in messages:
++        bounded()
+         code = (obj.get('code') or {}).get('code')
+         level = obj.get('level')
+         if code is None:
+@@ -149,6 +156,7 @@
+     require(size_bits > 0 and size_bits % 8 == 0 and wrapper_bits % 8 == 0, 'nonpositive or non-byte closure size')
+     size, alignment = size_bits // 8, (wrapper_bits - size_bits) // 8
+     require(alignment > 0 and alignment & (alignment - 1) == 0 and size % alignment == 0, 'invalid actual closure inferred alignment')
++    bounded()
+     return {'named': rows, 'actual_closure': {'size': size, 'alignment': alignment, 'diagnostics': closure},
+             'primary_E0308': 56, 'primary_E0512': 2, 'summaries': summaries,
+             'scope': 'Only concrete diagnostic source representations; no work/storage pricing, backing, peak, funding, runtime, ownership or GA authority.'}
+--- v1/run.py
++++ v2/run.py
+@@ -14,13 +14,20 @@
+ 
+ from check import check, hash_file, pinned, require, sha
+ from diagnostics import parse, source_map
++from strict_json import loads
++from launch import TrackedLaunch, Stopped, observed_unblocked_mask
+ 
+ D = Path(__file__).resolve().parent
+ R = D.parents[1]
+-
+-
+-def write_once(path, obj):
+-    with path.open('x') as handle: json.dump(obj, handle, indent=2, sort_keys=True); handle.write('\n')
++SCRATCH = R / 'verification/swift-root-bound-work-storage-layout-probe'
++
++
++def write_once(path, obj, deadline=None):
++    require(deadline is None or time.monotonic() < deadline, 'runtime evidence deadline')
++    raw = (json.dumps(obj, indent=2, sort_keys=True) + '\n').encode()
++    require(len(raw) <= 262144, 'runtime evidence JSON byte cap')
++    require(deadline is None or time.monotonic() < deadline, 'runtime evidence serialization deadline')
++    with path.open('xb') as handle: handle.write(raw)
+ 
+ 
+ def absent(operation, pid):
+@@ -121,14 +128,14 @@
+     args = parser.parse_args()
+     start = time.monotonic(); work_deadline = start + 44; cleanup_deadline = start + 49; post_deadline = start + 53.5
+     out = D / 'command'; out.mkdir(exist_ok=False)
++    launch = TrackedLaunch()
+     process = None; selector = None; files = {}; streams = {}; plan = None
+     observed = {'stdout': 0, 'stderr': 0}; captured = dict(observed); failures = []; actions = []
+     phase = 'preflight'; ownership = {}; outputs = {}; posthashes = False; build_report = {}; parsed = None
+-    sources = None; code = None; exception = None
++    sources = None; code = None; exception = None; inherited_signal_mask = None
+     def fail(reason, error=None):
+         failures.append({'classification': reason, 'detail': None if error is None else str(error)})
+-    class Stopped(BaseException): pass
+-    def stop_signal(number, frame): raise Stopped('signal ' + str(number) + ' in ' + phase)
++    def stop_signal(number, frame): return launch.handle_signal(number, phase)
+     saved = {sig: signal.getsignal(sig) for sig in [signal.SIGINT, signal.SIGTERM, signal.SIGHUP, signal.SIGALRM]}
+     for sig in saved: signal.signal(sig, stop_signal)
+     signal.setitimer(signal.ITIMER_REAL, max(.001, work_deadline-time.monotonic()))
+@@ -149,32 +156,44 @@
+         return bool(events)
+     try:
+         try:
++            launch.raise_pending()
+             plan = check(args.plan_sha256, work_deadline)
++            launch.raise_pending()
+             release_path = R / plan['root_release_required']['path']
+             require(hash_file(release_path, work_deadline)['sha256'] == args.root_release_sha256, 'root release hash mismatch')
+-            release = json.loads(release_path.read_text())
++            release = loads(release_path.read_text())
+             require(release.get('plan_sha256') == args.plan_sha256 and release.get('compiler_lane_released') is True and release.get('compiler_invocations') == 1, 'root has not released exact plan/compiler slot')
+-            require(not (D / 'build').exists(), 'pre-existing build directory must be reviewed')
++            launch.raise_pending()
++            require(not (SCRATCH / 'build').exists(), 'pre-existing original build destination must be reviewed')
+             sources = source_map(plan, D)
+             write_once(out / 'plan.json', {'plan_sha256': args.plan_sha256, 'root_release_sha256': args.root_release_sha256,
+                 'argv': plan['argv'], 'environment': plan['environment'], 'cwd': plan['cwd'], 'toolchain_version': plan['toolchain_version'],
+                 'bounds': plan['bounds'], 'parent_pid': os.getpid(), 'parent_pgid': os.getpgrp(),
+                 'compiler_exit_1_is_intentional_diagnostics_only': True})
+-            (D / 'build').mkdir()
++            # This one exact original argv destination becomes execution-owned
++            # only after the exact root release has passed. Sealed source stays
++            # untouched, and all command/receipt files belong to the v2 packet.
++            (SCRATCH / 'build').mkdir()
+             for name in observed: files[name] = (out / name).open('xb')
+             selector = selectors.DefaultSelector()
+             phase = 'spawn'
+             require(time.monotonic() < work_deadline, 'work deadline before spawn')
+-            # Assignment tracks Popen immediately, before any evidence/pipe operation.
+-            process = subprocess.Popen(plan['argv'], cwd=plan['cwd'], env=plan['environment'],
+-                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
++            inherited_signal_mask = observed_unblocked_mask()
++            # The helper's handler defers SIGALRM/INT/TERM/HUP from immediately
++            # before Popen until its returned handle is retained. The outer
++            # finally reads launch.process even if this assignment never runs.
++            process = launch.start(lambda: subprocess.Popen(plan['argv'], cwd=plan['cwd'], env=plan['environment'],
++                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True))
++            launch.raise_pending()
+             write_once(out / 'owned-process.json', {'pid': process.pid, 'pgid': process.pid, 'new_session': True, 'global_inventory': False})
+             for name in observed:
+                 stream = getattr(process, name); streams[name] = stream
+                 os.set_blocking(stream.fileno(), False); selector.register(stream, selectors.EVENT_READ, name)
+             phase = 'capture'
+             while time.monotonic() < work_deadline:
++                launch.raise_pending()
+                 capture(min(.05, max(0, work_deadline-time.monotonic())))
++                launch.raise_pending()
+                 if failures: break
+                 code = process.poll()
+                 if code is not None: break
+@@ -184,8 +203,11 @@
+             fail('work-exception', exception)
+         finally:
+             phase = 'owned-process-cleanup'
++            process = launch.process
+             signal.setitimer(signal.ITIMER_REAL, 0)
+-            for sig in [signal.SIGINT, signal.SIGTERM, signal.SIGHUP]: signal.signal(sig, signal.SIG_IGN)
++            # Keep record-only handlers active. Cleanup/finalization signals
++            # remain evidence and prevent acceptance; none can raise out of
++            # this unconditional owned cleanup block.
+             try: ownership = stop_owned(process, cleanup_deadline, failures, actions)
+             except BaseException as error:
+                 fail('cleanup-exception', type(error).__name__ + ': ' + str(error))
+@@ -209,10 +231,10 @@
+         signal.setitimer(signal.ITIMER_REAL, max(.001, post_deadline-time.monotonic()))
+         if plan is not None:
+             try:
+-                check(args.plan_sha256, post_deadline); posthashes = True
++                check(args.plan_sha256, post_deadline, transient_build_allowed=True); posthashes = True
+             except BaseException as error: fail('posthash-exception', error)
+             try:
+-                build_report = cleanup_build(D / 'build', ownership, post_deadline, plan)
++                build_report = cleanup_build(SCRATCH / 'build', ownership, post_deadline, plan)
+                 if build_report.get('build_existed') and not build_report.get('removed'): fail('build-preserved-ambiguous', build_report.get('preserved_reason'))
+             except BaseException as error:
+                 build_report = {'removed': False, 'preserved_reason': type(error).__name__ + ': ' + str(error)}
+@@ -224,27 +246,33 @@
+             require(not any(item['path'].endswith('.rmeta') for item in build_report.get('inventory', [])), 'failed query produced metadata')
+             if not failures:
+                 phase = 'parse-diagnostics'
+-                parsed = parse((out / 'stderr').read_bytes(), plan, sources)
++                require(time.monotonic() < post_deadline, 'parser preflight deadline')
++                parsed = parse((out / 'stderr').read_bytes(), plan, sources, deadline=post_deadline)
++                require(time.monotonic() < post_deadline, 'parser completion deadline')
+         except BaseException as error: fail('diagnostic-or-output-rejection', type(error).__name__ + ': ' + str(error))
+     except BaseException as error:
+         fail('outer-finalization-exception', type(error).__name__ + ': ' + str(error))
+     finally:
+         signal.setitimer(signal.ITIMER_REAL, 0)
+-        for sig, handler in saved.items(): signal.signal(sig, handler)
+         elapsed = time.monotonic()-start
+         if elapsed >= 55: fail('total-55-second-ceiling-exceeded', elapsed)
++        launch.record_interruption_failure(failures)
+         receipt = {'schema': 1, 'at': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'plan_sha256': args.plan_sha256,
+             'root_release_sha256': args.root_release_sha256, 'compiler_invocations': int(process is not None),
+             'compiler_exit_code': code, 'intentional_exit_1_diagnostic_evidence_only': code == 1,
+             'successful_product_compile_or_runtime': False, 'accepted_diagnostic_observation': not failures and parsed is not None,
+             'elapsed_seconds_including_cleanup_posthashes': elapsed, 'failures': failures, 'exception': exception,
+             'ownership': ownership, 'cleanup_actions': actions, 'build_cleanup': build_report, 'frozen_source_scratch_preserved': True,
++            'launch': launch.receipt(), 'inherited_signal_mask_before_launch': inherited_signal_mask,
+             'observed_output_bytes': observed, 'captured_output_bytes': captured, 'outputs': outputs,
+             'posthashes_verified': posthashes, 'global_process_inventory': False,
+             'native_UI_capture_network_phone_host_VM_execution': False,
+             'work_storage_prices_backing_peak_funding_full_ownership_GA_accepted': False}
+-        write_once(out / 'receipt.json', receipt)
+-        if parsed is not None and not failures: write_once(out / 'diagnostic-observation.json', parsed)
++        try:
++            write_once(out / 'receipt.json', receipt, deadline=start+55)
++            if parsed is not None and not failures: write_once(out / 'diagnostic-observation.json', parsed, deadline=start+55)
++        finally:
++            for sig, handler in saved.items(): signal.signal(sig, handler)
+     print(json.dumps({'accepted_diagnostic_observation': receipt['accepted_diagnostic_observation'], 'compiler_exit_code': code,
+                       'elapsed_seconds': receipt['elapsed_seconds_including_cleanup_posthashes'], 'failures': failures}))
+     return 0 if receipt['accepted_diagnostic_observation'] else 1
+--- /dev/null
++++ v2/strict_json.py
+@@ -0,0 +1,23 @@
++"""Strict JSON custody: duplicate object keys and non-finite constants reject."""
++import json
++
++
++class DuplicateKey(ValueError):
++    pass
++
++
++def unique_object(pairs):
++    result = {}
++    for key, value in pairs:
++        if key in result:
++            raise DuplicateKey('duplicate JSON object key: ' + repr(key))
++        result[key] = value
++    return result
++
++
++def reject_constant(value):
++    raise ValueError('non-finite JSON constant: ' + value)
++
++
++def loads(raw):
++    return json.loads(raw, object_pairs_hook=unique_object, parse_constant=reject_constant)
+--- /dev/null
++++ v2/launch.py
+@@ -0,0 +1,70 @@
++"""Retain Popen handle before acting on catchable asynchronous launch interruption."""
++import signal
++import time
++
++
++class Stopped(BaseException):
++    pass
++
++
++class TrackedLaunch:
++    def __init__(self, clock=time.monotonic):
++        self.process = None
++        self.in_progress = False
++        self.pending = []
++        self.constructor_returned = False
++        self.constructor_failed = False
++        self.clock = clock
++
++    def handle_signal(self, number, phase):
++        """Record only: a handler must never skip launch retention or cleanup."""
++        self.pending.append({'signal': int(number), 'phase': phase, 'at_monotonic': self.clock(),
++                             'during_launch': self.in_progress,
++                             'action': 'deferred-to-explicit-protected-work-checkpoint'})
++
++    def raise_pending(self):
++        if self.in_progress:
++            raise RuntimeError('interruption checkpoint forbidden before launch handle retention')
++        if self.pending:
++            raise Stopped('deferred interruption at protected work checkpoint: ' +
++                          ','.join(str(item['signal']) for item in self.pending))
++
++    def start(self, constructor):
++        if self.in_progress or self.process is not None or self.constructor_returned or self.constructor_failed:
++            raise RuntimeError('owned launch may be attempted only once')
++        self.raise_pending()
++        # This flag remains true across the constructor call and the assignment.
++        # No pthread mask mutation and no preexec_fn are used. The catchable
++        # signal handler returns during this interval rather than raising inside
++        # Popen before its handle can reach our unconditional cleanup path.
++        self.in_progress = True
++        try:
++            self.process = constructor()
++            self.constructor_returned = True
++        except BaseException:
++            self.constructor_failed = True
++            raise
++        finally:
++            self.in_progress = False
++        self.raise_pending()
++        return self.process
++
++    def receipt(self):
++        return {'launch_in_progress': self.in_progress, 'constructor_returned': self.constructor_returned,
++                'constructor_failed': self.constructor_failed, 'deferred_signals': list(self.pending),
++                'handle_retained': self.process is not None,
++                'retained_pid': None if self.process is None else self.process.pid,
++                'signal_mask_modified': False, 'preexec_fn_used': False}
++
++    def record_interruption_failure(self, failures):
++        if self.pending:
++            failures.append({'classification': 'handled-signal-requested-interruption',
++                             'detail': list(self.pending)})
++
++
++def observed_unblocked_mask():
++    # An empty SIG_BLOCK set is a read of the caller's mask; it blocks nothing.
++    blocked = signal.pthread_sigmask(signal.SIG_BLOCK, set())
++    if blocked:
++        raise RuntimeError('refusing to launch child with inherited blocked signals: ' + str(sorted(int(x) for x in blocked)))
++    return {'blocked_signals': [], 'query': 'pthread_sigmask(SIG_BLOCK, empty set)', 'mask_changed': False}

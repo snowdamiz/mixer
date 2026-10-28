@@ -1,0 +1,38 @@
+--- accepted-original/hosted/lib/mixer_hosted/identity/admission.ex
++++ released-candidate/hosted/lib/mixer_hosted/identity/admission.ex
+@@ -70,5 +70,14 @@
+         do: :ets.delete_object(table, {k, pid, nonce})
+   end
+ 
+-  def close(owner), do: :persistent_term.erase({__MODULE__, owner})
++  # Publication and close are serialized by the registered owner's lifecycle.
++  # This ownership check is not an atomic compare-and-erase operation.
++  def close(owner, table) do
++    if :ets.info(table, :owner) == self() and
++         :persistent_term.get({__MODULE__, owner}, nil) == table,
++      do: :persistent_term.erase({__MODULE__, owner}),
++      else: false
++  rescue
++    ArgumentError -> false
++  end
+ end
+--- accepted-original/hosted/lib/mixer_hosted/identity/key_owner.ex
++++ released-candidate/hosted/lib/mixer_hosted/identity/key_owner.ex
+@@ -48,6 +48,8 @@
+   def init(options), do: initialize(options, nil)
+ 
+   defp initialize(options, fixture) do
++    Process.flag(:trap_exit, true)
++
+     with true <- Keyword.keyword?(options) and Enum.all?(Keyword.keys(options), &(&1 in @allowed)),
+          {:ok, entries} <- Manifest.validate(Keyword.get(options, :manifest)),
+          binding when is_binary(binding) <- Keyword.get(options, :binding),
+@@ -488,7 +490,7 @@
+   defp clock, do: {System.system_time(:millisecond), System.monotonic_time(:millisecond)}
+ 
+   def terminate(_, s) do
+-    Admission.close(s.name)
++    Admission.close(s.name, s.table)
+ 
+     Enum.each(s.waiters, fn {_, w} -> GenServer.reply(w.from, {:error, :identity_unavailable}) end)
+ 

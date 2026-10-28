@@ -1,0 +1,118 @@
+--- prepared-1/runner.py
++++ prepared-2/runner.py
+@@ -72,6 +72,46 @@
+         stream.write(encoded)
+         stream.flush()
+         os.fsync(stream.fileno())
++
++
++def expand_artifact_schemas(packet):
++    if type(packet) is not dict or type(packet.get('required_artifacts')) is not int or packet['required_artifacts'] != 13:
++        raise ValueError('required artifact schema count must be integer 13')
++    schemas = dict(packet['schemas'])
++    for name, paths in packet['shared_schema_bindings'].items():
++        for path in paths:
++            if path in schemas:
++                raise ValueError('duplicate artifact schema binding: ' + path)
++            schemas[path] = packet['shared_schemas'][name]
++    if len(schemas) != 13:
++        raise ValueError('exact thirteen artifact schemas required')
++    return schemas
++
++
++def validate_terminal_artifacts(artifacts, packet):
++    schemas = expand_artifact_schemas(packet)
++    if type(artifacts) is not dict or set(artifacts) != set(schemas):
++        raise ValueError('exact required artifact path membership differs')
++    for path, schema in schemas.items():
++        value = artifacts[path]
++        if type(value) is not dict or set(value) != set(schema):
++            raise ValueError('exact artifact field membership differs: ' + path)
++        for key, rule in schema.items():
++            field = value[key]
++            kind = rule['type']
++            if kind == 'boolean':
++                matches = type(rule.get('value')) is bool and field is rule['value']
++            elif kind == 'integer':
++                matches = type(rule.get('value')) is int and type(field) is int and field == rule['value']
++            elif kind == 'string':
++                if 'enum' in rule:
++                    matches = type(field) is str and field in rule['enum']
++                else:
++                    matches = type(field) is str and field == rule['value']
++            else:
++                raise ValueError('unsupported artifact schema field type: ' + kind)
++            if not matches:
++                raise ValueError('artifact field type/value differs: ' + path + ':' + key)
+ 
+ 
+ def main():
+@@ -90,7 +130,7 @@
+     args = parser.parse_args()
+     prepared = Path(__file__).resolve().parent
+     lane = prepared.parent
+-    if prepared.name != 'prepared-1' or lane.name != 'console-key-owner-lifecycle-implementation':
++    if prepared.name != 'prepared-2' or lane.name != 'console-key-owner-lifecycle-implementation':
+         raise ValueError('runner must execute from its exact frozen lane')
+     plan_path = prepared / 'execution-plan.json'
+     plan = read_json(plan_path)
+@@ -100,7 +140,7 @@
+             release.get('execution_plan_sha256') != plan_sha256 or
+             release.get('single_execution') is not True):
+         raise ValueError('exact single-execution root release missing or mismatched')
+-    output = lane / 'executions' / 'candidate-1'
++    output = lane / 'executions' / 'candidate-2'
+     output.mkdir(parents=True, exist_ok=False)
+     scratch = None
+     children = []
+@@ -265,22 +305,8 @@
+                     path = phase_output / name
+                     value = read_json(path, 16384)
+                     artifact_observations[phase['id'] + '/' + name] = value
+-            original = artifact_observations['original/original-regression.json']
+-            original_cleanup = artifact_observations['original/original-cleanup.json']
+-            if not original or not all(value is True for value in original.values()):
+-                errors.append('original defect reproduction predicate failed')
+-            if not original_cleanup or not all(value is True for value in original_cleanup.values()):
+-                errors.append('original exact-child cleanup predicate failed')
+-            result = artifact_observations['corrected/exunit-result.json']
+-            if any(result.get(k) != v for k, v in {'total': 7, 'failures': 0, 'skipped': 0, 'excluded': 0}.items()):
+-                errors.append('terminal ExUnit count predicate failed')
+-            post = artifact_observations['corrected/postconditions.json']
+-            if post.get('cleanup_receipts') != 7 or any(value is not True for k, value in post.items() if k != 'cleanup_receipts'):
+-                errors.append('terminal component cleanup predicate failed')
+-            for key, value in artifact_observations.items():
+-                if key.startswith('corrected/') and key.endswith('-cleanup.json'):
+-                    if any(v is not True for k, v in value.items() if not k.endswith('_result')):
+-                        errors.append('per-case exact cleanup predicate failed: ' + key)
++            schema_packet = read_json(prepared / plan['artifact_schemas'], 16384)
++            validate_terminal_artifacts(artifact_observations, schema_packet)
+         except BaseException as exc:
+             errors.append('finalization: ' + repr(exc))
+         observation = {
+--- prepared-1/bootstrap.exs
++++ prepared-2/bootstrap.exs
+@@ -39,6 +39,23 @@
+ GenServer.stop(mix_state)
+ IO.puts("RESULT " <> Jason.encode!(result))
+ 
++# Read-only formatting qualification for the three authored canonical files.
++# hosted/.formatter.exs contains only inputs, so these are its default options.
++for relative <- [
++      "hosted/lib/mixer_hosted/identity/admission.ex",
++      "hosted/lib/mixer_hosted/identity/key_owner.ex",
++      "hosted/test/mixer_hosted/identity/key_owner_lifecycle_test.exs"
++    ] do
++  path = Path.join(__DIR__, "inputs/" <> relative)
++  original = File.read!(path)
++  formatted = Code.format_string!(original, file: path) |> IO.iodata_to_binary()
++
++  if original != formatted <> "\n",
++    do: raise("read-only formatting equality failed: " <> relative)
++end
++
++IO.puts("FORMAT CHECK 3 authored canonical files; unchanged=3")
++
+ passed =
+   result.total == 7 and result.failures == 0 and result.skipped == 0 and result.excluded == 0 and
+     observations.cleanup_receipts == 7 and

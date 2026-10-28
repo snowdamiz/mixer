@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "status": "independent-preaccess-expectations-unexecuted-product",
+  "basis": "Accepted lifecycle contract and preserved original source only",
+  "cases": [
+    {"id": "I01", "case": "same owner name with stale expected table", "expected": "false, current live pointer and ETS unchanged", "guards": ["expected pointer equality"]},
+    {"id": "I02", "case": "foreign caller supplies exact current live table", "expected": "false, current live pointer and ETS unchanged", "guards": ["ETS creator equals self"]},
+    {"id": "I03", "case": "expected current table has died", "expected": "false, dead reference may remain, public denial, no exception", "guards": ["ETS alive"]},
+    {"id": "I04", "case": "absent pointer including nil expected value", "expected": "false, absent remains absent, no invalid ETS operation escapes", "guards": ["table alive", "ETS creator equals self"]},
+    {"id": "I05", "case": "current creator closes once then again", "expected": "true then false, exact key absent, unrelated key unchanged, live table not deleted", "guards": ["exact key scope", "boolean result"]},
+    {"id": "I06", "case": "kill old owner behind suspended restart supervisor", "expected": "old table undefined and old pointer retained, acquire and authenticate identity_unavailable, unconditional resume", "guards": ["forced kill fails closed", "owned cleanup"]},
+    {"id": "I07", "case": "ordinary parent stop with trap_exit", "expected": "terminate invoked, pointer absent, old children and ETS gone without direct owner stop or key erasure", "guards": ["OTP parent semantics", "shared initializer"]},
+    {"id": "I08", "case": "old permit and synthetic old lease against replacement", "expected": "early identity_unavailable, stale release leaves fresh replacement permit valid", "guards": ["table identity before ETS lookup", "epoch fencing", "nonce-specific delete"]},
+    {"id": "I09", "case": "late old flight result message to new owner", "expected": "ignored because old PID not tracked, empty snapshots remain", "guards": ["tracked PID membership"]},
+    {"id": "I10", "case": "duplicate ordinary same-name start", "expected": "already_started original PID; no initialize publication; original epoch/table/ETS owner unchanged", "guards": ["ordinary local registration"]},
+    {"id": "I11", "case": "invalid manifest, missing binding, invalid CA root", "expected": "existing configuration failure, no published table, failed-start worker retired, exact registrations absent", "guards": ["validate before publication"]},
+    {"id": "I12", "case": "worker-supervisor killed without flights", "expected": "old owner follows supervisor shutdown; new empty children; no callback exception; final pointer absent", "guards": ["parent exit not swallowed", "one_for_all"]},
+    {"id": "I13", "case": "tracked flight when worker supervisor already dead", "expected": "retain any terminate_child exit; require distinct active-flight cleanup gate before acceptance", "guards": ["no broad rescue", "KOL09 pending"]},
+    {"id": "I14", "case": "suspended owned supervisor and assertion failure", "expected": "after resumes it; cleanup targets exact owned resources; retained test failure cannot be erased", "guards": ["failure-path cleanup"]},
+    {"id": "I15", "case": "normal process stop substituted for supervisor stop", "expected": "reject as KOL01 proof even if cleanup passes", "guards": ["meaningful trigger"]},
+    {"id": "I16", "case": "original-before-image experiment fails compilation or unrelated setup", "expected": "reject as regression proof; need relevant pointer/lifecycle assertion failure in separate fresh VM", "guards": ["meaningful counterfactual"]},
+    {"id": "I17", "case": "live disabled profile tested without sockets", "expected": "real Admission permit reaches real owner and checkout unauthenticated; no flight created", "guards": ["production path", "network absent"]},
+    {"id": "I18", "case": "runner reports green after key erase or suppresses output", "expected": "reject evidence; terminal count, complete warnings/faults and pre-cleanup pointer state required", "guards": ["honest terminal evidence"]}
+  ],
+  "claims_excluded": ["atomic compare and erase", "arbitrary concurrent Admission.new", "real authenticated lease", "TLS/resource drain", "application integration", "production/GA"]
+}

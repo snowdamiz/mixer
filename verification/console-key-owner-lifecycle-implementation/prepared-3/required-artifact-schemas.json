@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "status": "independent-source-derived-required-schemas-for-runner-correction",
+  "producer_execution_plan_sha256": "3e9f39f19848f0ab36a524907d73c17fd7b68eaf96546e0185aad281c0496d01",
+  "rules": {
+    "key_set": "exact, reject missing or unknown keys",
+    "integer": "Python type(value) is int; booleans and floats rejected",
+    "true": "value is True",
+    "false": "value is False",
+    "string": "Python type(value) is str and matches enumerated values",
+    "scope": "Artifact validation only; no extra product tests or runtime scope"
+  },
+  "schemas": {
+    "original/original-regression.json": {
+      "original_defect_reproduced": {"type": "boolean", "value": true},
+      "component_stopped": {"type": "boolean", "value": true},
+      "owner_stopped": {"type": "boolean", "value": true},
+      "workers_stopped": {"type": "boolean", "value": true},
+      "table_gone": {"type": "boolean", "value": true},
+      "public_denial": {"type": "boolean", "value": true},
+      "product_application_not_started": {"type": "boolean", "value": true}
+    },
+    "original/original-cleanup.json": {
+      "component_stopped": {"type": "boolean", "value": true},
+      "owner_stopped": {"type": "boolean", "value": true},
+      "workers_stopped": {"type": "boolean", "value": true},
+      "table_gone": {"type": "boolean", "value": true},
+      "dead_pointer_intentionally_retained_until_vm_exit": {"type": "boolean", "value": true}
+    },
+    "corrected/exunit-result.json": {
+      "total": {"type": "integer", "value": 7},
+      "failures": {"type": "integer", "value": 0},
+      "skipped": {"type": "integer", "value": 0},
+      "excluded": {"type": "integer", "value": 0}
+    },
+    "corrected/postconditions.json": {
+      "test_owners_absent": {"type": "boolean", "value": true},
+      "test_workers_absent": {"type": "boolean", "value": true},
+      "test_admission_absent": {"type": "boolean", "value": true},
+      "default_owner_absent": {"type": "boolean", "value": true},
+      "default_repo_absent": {"type": "boolean", "value": true},
+      "product_application_not_started": {"type": "boolean", "value": true},
+      "cleanup_receipts": {"type": "integer", "value": 7}
+    },
+    "corrected/KOL04-cleanup.json": {
+      "admission_absent": {"type": "boolean", "value": true},
+      "exact_tables_deleted": {"type": "boolean", "value": true}
+    },
+    "corrected/KOL06-cleanup.json": {
+      "owner_absent": {"type": "boolean", "value": true},
+      "workers_absent": {"type": "boolean", "value": true},
+      "admission_absent": {"type": "boolean", "value": true}
+    }
+  },
+  "shared_schemas": {
+    "ordinary_component_cleanup": {
+      "component_stopped": {"type": "boolean", "value": true},
+      "observed_exact_children_stopped": {"type": "boolean", "value": true},
+      "owner_absent": {"type": "boolean", "value": true},
+      "workers_absent": {"type": "boolean", "value": true},
+      "admission_absent": {"type": "boolean", "value": true},
+      "resume_result": {"type": "string", "enum": [":ok", ":already_stopped"]},
+      "stop_result": {"type": "string", "enum": [":ok", ":already_stopped"]}
+    },
+    "runtime": {
+      "elixir": {"type": "string", "value": "1.20.4"},
+      "otp_release": {"type": "string", "value": "29"},
+      "node": {"type": "string", "value": "nonode@nohost"},
+      "schedulers_online": {"type": "integer", "value": 2},
+      "product_application_started": {"type": "boolean", "value": false}
+    }
+  },
+  "shared_schema_bindings": {
+    "ordinary_component_cleanup": [
+      "corrected/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL01Owner-cleanup.json",
+      "corrected/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL02Owner-cleanup.json",
+      "corrected/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL03Owner-cleanup.json",
+      "corrected/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL05Owner-cleanup.json",
+      "corrected/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL07Owner-cleanup.json"
+    ],
+    "runtime": ["original/runtime.json", "corrected/runtime.json"]
+  },
+  "required_artifacts": 13,
+  "note": "Six specific schemas plus five ordinary component cleanup bindings plus two runtime bindings equals thirteen required artifacts. Source-derived counterexamples were not executed against the runner in this review."
+}
