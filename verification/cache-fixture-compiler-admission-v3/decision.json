@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "status": "source-candidate-for-root-review; no remote invocation selected by this lane",
+  "role": {
+    "model": "gpt-6-astra",
+    "reasoning_effort": "xhigh",
+    "context": "fresh; parent assigned bounded challenge and implementation"
+  },
+  "source_revision": "28cb1e27ed2eb504e6fb4c6002ad0157efefbeea",
+  "source_tree": "31259b2657ff92d428e36c8067d5ff1de4e86cff",
+  "revision_provenance": "parent supplied; no local Git command",
+  "hypotheses": [
+    {
+      "name": "missing explicit toolchain provisioning",
+      "evidence": "v2 controlled fixture first child fails toolchain not installed; RUSTUP_AUTO_INSTALL=0",
+      "test": "one explicit bounded remote installation before unchanged fixture"
+    },
+    {
+      "name": "declared public Rust release does not exist",
+      "evidence": "contradicted by official release notes and announcement; target manifest unavailable via web tool",
+      "decision": "preserve declared exact compiler; actual target installation still pending"
+    },
+    {
+      "name": "fixture controls or compiler identity mismatch persists after provisioning",
+      "evidence": "all 45 remote controls passed in v2; actual compiler identity not established",
+      "test": "repeat exact controls, then unchanged compiler identity checks and all 103 commands once"
+    }
+  ],
+  "bindings": {
+    "v2_seal_sha256": "dd0dc7c030eb19e9763b547c2b9a45601997545e1e94a82f2a38ee76ca1bd591",
+    "v2_member_count": 29,
+    "v2_total_bytes": 286447,
+    "accepted_rust_sha256": "f7d62c01e251642677e22f7595af9683f9c451f1db43683be5d2ef86fedba141",
+    "frozen_base_manifest_sha256": "d1caf2069e17ac1beff6707d6e084ea49d18382bc959d73d5184ec49cb7886b9",
+    "actual_v2_result_sha256": "eb4a043d2db5ec33026699df120dd4ee7e474bbf1a6d1c180d9531abe088966c",
+    "canonical_capacity_workflow_sha256": "370b57185345a18670e315e74e823cb5596a1543c86dae64fea6763f9e694e99",
+    "canonical_capacity_precedent": "two-minute explicit rustup install of 1.99.0; evidence for provisioning pattern only, not compiler substitution"
+  },
+  "compiler": {
+    "toolchain": "1.98.1-aarch64-apple-darwin",
+    "automatic_install": false,
+    "fallback": false,
+    "install_commands": 1,
+    "provisioning_step_seconds": 120,
+    "isolated_job_home": true,
+    "official_dist_server": "https://static.rust-lang.org",
+    "release_published": true,
+    "release_sources": [
+      "https://doc.rust-lang.org/releases.html",
+      "https://blog.rust-lang.org/2026/09/03/Rust-1.98.1/"
+    ],
+    "manifest_observation": "web tool could not access https://static.rust-lang.org/dist/channel-rust-1.98.1.toml; no HTTP status or artifact availability established"
+  },
+  "fixture": {
+    "invocations": 1,
+    "commands": 103,
+    "per_child_seconds": 60,
+    "active_seconds": 600,
+    "cleanup_seconds": 60,
+    "context_vectors": 1003,
+    "stream_cap_bytes": 8388608,
+    "semantics_or_memory_safeguards_changed": false
+  },
+  "pending": [
+    "real rustup installation and target availability",
+    "remote workflow/Bash execution",
+    "compiler sysroot/identity",
+    "unchanged complete fixture and metrics"
+  ],
+  "cleanup": {
+    "local": "only owned pure-control scratch; no compiler or native process",
+    "remote_toolchain": "job-owned home retained for provider disposal; disposal unverified",
+    "rustup_descendants": "not independently proved reaped",
+    "fixture": "original v2 custody and cleanup unchanged"
+  },
+  "scope": "no canonical/global/Git/push/dispatch/local compiler/runtime/probe changes; frozen v1/v2 preserved",
+  "preparation_failure": {
+    "preserved": "prior-pure-controls-failure.json and .stdout",
+    "tests_passed": 17,
+    "tests_error": 1,
+    "cause": "adapter expected total_bytes in frozen v2 seal, which omits it",
+    "correction": "adapter independently binds parent-supplied 286447 aggregate bytes without editing v2"
+  },
+  "pure_controls": {
+    "passed": 18,
+    "total": 18,
+    "forbidden_operations_attempted": 0,
+    "control_scratch_absent": true
+  },
+  "rustup_primary_documentation": [
+    "https://rust-lang.github.io/rustup/concepts/toolchains.html",
+    "https://rust-lang.github.io/rustup/environment-variables.html",
+    "https://github.com/rust-lang/rustup/blob/main/doc/user-guide/src/basics.md"
+  ]
+}

@@ -1,0 +1,122 @@
+--- frozen-v2/workflow.yml
++++ candidate-v3/workflow.yml
+@@ -1,4 +1,4 @@
+-name: Shared-input cache fixture controls v2
++name: Cache fixture exact compiler admission v3
+ 
+ on:
+   workflow_dispatch:
+@@ -7,7 +7,7 @@
+   contents: read
+ 
+ concurrency:
+-  group: shared-input-cache-fixture-controls-v2-${{ github.ref }}
++  group: cache-fixture-compiler-admission-v3-${{ github.ref }}
+   cancel-in-progress: false
+ 
+ jobs:
+@@ -17,6 +17,9 @@
+     env:
+       RUSTUP_AUTO_INSTALL: '0'
+       RUSTUP_TOOLCHAIN: '1.98.1-aarch64-apple-darwin'
++      RUSTUP_DIST_SERVER: 'https://static.rust-lang.org'
++      RUSTUP_UPDATE_ROOT: 'https://static.rust-lang.org/rustup'
++      RUSTUP_HOME: ${{ runner.temp }}/mixer-fixture-rustup-${{ github.run_id }}-${{ github.run_attempt }}
+     steps:
+       - uses: actions/checkout@v4
+         with:
+@@ -25,21 +28,24 @@
+           sparse-checkout: |
+             /verification/swift-cache-state-ci/
+             /verification/cache-fixture-shared-input-candidate-v2/
++            /verification/cache-fixture-compiler-admission-v3/
+             /verification/cache-fixture-shared-input-review/
+             /.github/workflows/cache-fixture-shared-input-controls-v2.yml
++            /.github/workflows/cache-fixture-compiler-admission-v3.yml
+       - name: Bind checkout, candidate and owned materialization
+         timeout-minutes: 2
+         shell: bash
+         run: |
+           set -euo pipefail
+           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+-          mkdir -p "$MIXER_SHARED_INPUT_DIR/logs" "$MIXER_SHARED_INPUT_DIR/runs"
++          MIXER_COMPILER_ADMISSION_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-compiler-admission-v3"
++          mkdir -p "$MIXER_SHARED_INPUT_DIR/logs" "$MIXER_SHARED_INPUT_DIR/runs" "$MIXER_COMPILER_ADMISSION_DIR/logs"
+           {
+             test "$GITHUB_RUN_ATTEMPT" = 1
+             git rev-parse HEAD HEAD^{tree}
+             python3 --version
+             uname -srm
+-            python3 -B "$MIXER_SHARED_INPUT_DIR/verify_candidate.py" --workflow-installed
++            python3 -B "$MIXER_COMPILER_ADMISSION_DIR/verify_candidate.py" --workflow-installed
+             python3 -B "$MIXER_SHARED_INPUT_DIR/materialize_pack.py"
+           } > "$MIXER_SHARED_INPUT_DIR/logs/materialization.stdout" \
+             2> "$MIXER_SHARED_INPUT_DIR/logs/materialization.stderr"
+@@ -49,19 +55,39 @@
+         run: |
+           set -euo pipefail
+           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
++          MIXER_COMPILER_ADMISSION_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-compiler-admission-v3"
++          python3 -B "$MIXER_COMPILER_ADMISSION_DIR/test_admission.py"
+           python3 -B "$MIXER_SHARED_INPUT_DIR/test_materializer.py" -v \
+             > "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stdout" \
+             2> "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stderr"
+           python3 -B "$MIXER_SHARED_INPUT_DIR/test_runner.py" -v \
+             > "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stdout" \
+             2> "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stderr"
++      - name: Explicitly provision the exact declared compiler once
++        timeout-minutes: 2
++        shell: bash
++        run: |
++          set -euo pipefail
++          MIXER_COMPILER_ADMISSION_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-compiler-admission-v3"
++          python3 -B "$MIXER_COMPILER_ADMISSION_DIR/compiler_admission.py" begin
++          rustup --version > "$MIXER_COMPILER_ADMISSION_DIR/logs/rustup-version.stdout" \
++            2> "$MIXER_COMPILER_ADMISSION_DIR/logs/rustup-version.stderr"
++          set +e
++          rustup toolchain install 1.98.1-aarch64-apple-darwin --profile minimal --no-self-update \
++            > "$MIXER_COMPILER_ADMISSION_DIR/logs/rustup-install.stdout" \
++            2> "$MIXER_COMPILER_ADMISSION_DIR/logs/rustup-install.stderr"
++          MIXER_RUSTUP_STATUS=$?
++          set -e
++          python3 -B "$MIXER_COMPILER_ADMISSION_DIR/compiler_admission.py" finish --status "$MIXER_RUSTUP_STATUS"
+       - name: One complete fixture invocation, fixed compiler and limits
+         timeout-minutes: 12
+         shell: bash
+         run: |
+           set -euo pipefail
+           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
++          MIXER_COMPILER_ADMISSION_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-compiler-admission-v3"
+           {
++            python3 -B "$MIXER_COMPILER_ADMISSION_DIR/compiler_admission.py" claim
+             MIXER_SHARED_INPUT_RUSTC="$(command -v rustc)"
+             python3 -B "$MIXER_SHARED_INPUT_DIR/check_cache_state.py" \
+               --rustc "$MIXER_SHARED_INPUT_RUSTC" \
+@@ -75,7 +101,8 @@
+         run: |
+           set -euo pipefail
+           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+-          python3 -B "$MIXER_SHARED_INPUT_DIR/verify_candidate.py" --workflow-installed \
++          MIXER_COMPILER_ADMISSION_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-compiler-admission-v3"
++          python3 -B "$MIXER_COMPILER_ADMISSION_DIR/verify_candidate.py" --workflow-installed \
+             > "$MIXER_SHARED_INPUT_DIR/logs/candidate-postflight.stdout" \
+             2> "$MIXER_SHARED_INPUT_DIR/logs/candidate-postflight.stderr"
+       - name: Preserve complete diagnostic, failed inputs and custody receipts
+@@ -83,14 +110,16 @@
+         timeout-minutes: 5
+         uses: actions/upload-artifact@v4
+         with:
+-          name: cache-fixture-shared-input-controls-v2-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
++          name: cache-fixture-compiler-admission-v3-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+           retention-days: 14
+           if-no-files-found: warn
+           include-hidden-files: true
+           path: |
+             ${{ github.workspace }}/verification/cache-fixture-shared-input-candidate-v2/
++            ${{ github.workspace }}/verification/cache-fixture-compiler-admission-v3/
+             ${{ github.workspace }}/verification/cache-fixture-shared-input-review/
+             ${{ github.workspace }}/verification/swift-cache-state-ci/pack/manifest.json
+             ${{ github.workspace }}/verification/swift-cache-state-ci/check_cache_state.py
+             ${{ github.workspace }}/verification/swift-cache-state-ci/test_runner.py
+             ${{ github.workspace }}/.github/workflows/cache-fixture-shared-input-controls-v2.yml
++            ${{ github.workspace }}/.github/workflows/cache-fixture-compiler-admission-v3.yml
