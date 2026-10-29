@@ -9,38 +9,44 @@ This index does not narrow or replace that specification. Use
 is preserved byte for byte in [the prior index](PLAN.history-2026-10-25.md);
 its older pending/selected statements do not override the current state.
 
-## Selected shared-input fixture diagnostic
+## Selected shared-input fixture controls v2
 
-Root selects the exact independently reviewed shared-input fixture harness for one
-manual diagnostic. The thin overlay borrows 83 unchanged frozen members into the
-complete 86-member pack. It preserves all 1,003 original vectors, assertions and
-fresh arenas. Offline evidence passes 28 runner controls, nine materializer groups
-and six additional independent integration controls; eight real-child/signal
-controls remain unrun locally. Remote CI must pass all 36 runner controls before
-one complete 103-command fixture, with 60 seconds per child, 600 active seconds
-and 60 cleanup seconds on exact Rust `1.98.1-aarch64-apple-darwin`. Compiler
-unavailability is a failure; no retry, compiler fallback or default-pack promotion
-is selected. [Selection and immutable seals](verification/github-delivery-shared-input-fixture/selection.json)
-bind the source-only acceptance. Current ordinary fixture CI is green; no
-regression or speedup is claimed. Actual compiler availability and fixture results
-remain pending.
+Root selects the exact cwd-corrected thin fixture v2 for one bounded manual
+diagnostic. Prior run [40790391653](https://github.com/snowdamiz/mixer/actions/runs/40790391653)
+passed nine materializer groups and 35 of 36 runner controls, then failed the
+optimized-Python import control and skipped the complete fixture. v2 adds only
+the control subprocess working directory and required sibling/hash bindings;
+accepted Rust, all 1,003 vectors and original assertions remain unchanged. The
+[selection](verification/github-delivery-shared-input-v2/selection.json) binds
+29 sealed members. Pure evidence passes 28 runner, nine materializer and six
+same-agent integration controls plus an in-process optimized differential.
+The real 36 controls, declared Rust `1.98.1-aarch64-apple-darwin` and complete
+103-command fixture remain pending, with 60 seconds per child, 600 active and
+60 cleanup seconds. No fallback, retry or default-pack promotion is selected.
+Prior ordinary Engine run 40790385107 passed all six jobs. No fixture speedup,
+runtime release or GA result is claimed.
 
-The separate capacity-window run [40788458735](https://github.com/snowdamiz/mixer/actions/runs/40788458735)
-at exact Mixer `e5670519` remains in progress at the latest read-only observation.
-Its limits and spent prior campaigns remain unchanged.
+The separate capacity run [40788458735](https://github.com/snowdamiz/mixer/actions/runs/40788458735)
+is closed: both arms matched all eleven original Corpus 1 fields and entered
+Corpus 2, then reached the unchanged 600-second cumulative Runtime deadline.
+All eleven command groups closed; final counters and tickets are zero and
+owned scratch was removed. [Small sealed result](verification/github-delivery-shared-input-v2/capacity-window-result.json)
+records no endpoint-performance or full two-corpus feasibility claim. Its two
+attempts are spent. A separate one-arm dense-512 completion experiment is under
+preparation; no run is selected.
 
 FieldLog public `496399f8` run [40788707965](https://github.com/snowdamiz/fieldlog/actions/runs/40788707965)
-passes exact public 73-blob hydration and the requested app-read allowlist, then
-fails the Executor process-group inheritance guard before the inner Git child.
-SwiftPM resolve fails; build and all 38 tests are unreached. Cleanup evidence
-covers 12 recorded outer groups and 29 acquisition children. The rejected
-adapter's actual process group was not recorded, so absence of unrecorded detached
-descendants is unproven; eight initial local bounded reads had no separate group
-custody receipt. A fresh Astra ownership candidate is under preparation; no
-further FieldLog run is selected. The [small latest result](verification/github-delivery-shared-input-fixture/fieldlog-app-read-result.json)
-preserves these limitations. Gates stay **8 running, 30 planned, 0 verified**;
-all native/UI/capture, phone, local compiler/custody, Unit A and broad hosted
-holds remain.
+passed 73-blob public hydration and the app-read allowlist, then failed the
+Executor process-group guard before the inner Git child. Build and all 38 tests
+remain unreached. Cleanup covers 12 outer groups and 29 acquisition children;
+the rejected adapter's actual PGID is unknown, and eight earlier local reads
+ lack separate group receipts. The selected two-script nested-group candidate
+with corrected final nomination drain is delivered at public FieldLog `3b492947`;
+its one host run [40792980271](https://github.com/snowdamiz/fieldlog/actions/runs/40792980271)
+awaits actual review. Source evidence passes 19 producer and five acceptance
+controls; actual ownership/build and 38 tests remain pending. No FieldLog source or raw CI is
+copied here. Gates stay **8 running, 30 planned, 0 verified**; all native/UI/capture,
+phone, local compiler/custody, Unit A and broad hosted holds remain.
 
 ## Closed public host campaigns
 

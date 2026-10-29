@@ -1,0 +1,11 @@
+--- a/verification/cache-fixture-shared-input-candidate/test_runner.py
++++ b/verification/cache-fixture-shared-input-candidate-v2/test_runner.py
+@@ -46,7 +46,7 @@
+    alias=self.base/'alias';alias.symlink_to(runs,target_is_directory=True);self.bad(r.fresh_output,alias/'child')
+  def test_checks_active_under_optimized_python(self):
+   code="import runpy;d=runpy.run_path(%r);d['member']('../escape')"%str(HERE/'check_cache_state.py')
+-  p=subprocess.run([sys.executable,'-B','-O','-c',code],capture_output=True,timeout=15);self.assertNotEqual(p.returncode,0);self.assertIn(b'Noncanonical member path',p.stderr)
++  p=subprocess.run([sys.executable,'-B','-O','-c',code],capture_output=True,timeout=15,cwd=HERE);self.assertNotEqual(p.returncode,0);self.assertIn(b'Noncanonical member path',p.stderr)
+  def test_environment_scrubs_all_test_flags_and_caller_scratch(self):
+   bad={'RUSTFLAGS':'bad','RUST_TEST_SHUFFLE':'1','RUST_TEST_NEW_OPTION':'bad','RUST_MIN_STACK':'bad','RUSTC_BOOTSTRAP':'bad','RUSTUP_AUTO_INSTALL':'1','RUSTC_WRAPPER':'bad','CARGO_ENCODED_RUSTFLAGS':'bad','MIXER_CACHE_FIXTURE_EVIDENCE':'bad','MIXER_OTHER':'bad','REVIEW_SCRATCH':'bad','TMPDIR':'bad','TMP':'bad','TEMP':'bad'}
+   with mock.patch.dict(os.environ,bad):

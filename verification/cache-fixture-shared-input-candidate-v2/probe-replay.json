@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "scope": "Exact delivered Python control and one-keyword proposal, in-process imports plus optimize=1 guard; no actual -O child or full 36-control rerun",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "source_sha256": "c87eb1a698baa2beb4105301de2d38b00d2325460fb6781660113bc30d69ff93",
+  "proposed_source_sha256": "e7ce50d89ef974d26d8c7a449f84964d6df36d7a279df6013dba932937f4e257",
+  "actual_v2_control_sha256": "e7ce50d89ef974d26d8c7a449f84964d6df36d7a279df6013dba932937f4e257",
+  "patch_sha256": "a35cc9b03160742567b28b99492773176e2d7776b7da74f31ea021fe16916e79",
+  "change": "Add cwd=HERE to only the optimized-Python test subprocess invocation",
+  "observations": [
+    {
+      "case": "delivered-baseline",
+      "passed": false,
+      "exception_type": "AssertionError",
+      "message": "b'Noncanonical member path' not found in b'Traceback (most recent call last):\\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-shared-input-candidate-v2/probe_replay.py\", line 67, in emulate_python_command\\n    exec(compile(argv[4], \\'<in-process Python -c replay>\\', \\'exec\\', optimize=1), {})\\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"<in-process Python -c replay>\", line 1, in <module>\\n  File \"<frozen runpy>\", line 294, in run_path\\n  File \"<frozen runpy>\", line 98, in _run_module_code\\n  File \"<frozen runpy>\", line 88, in _run_code\\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-shared-input-candidate-v2/check_cache_state.py\", line 5, in <module>\\n    import materialize_pack as overlay\\nModuleNotFoundError: No module named \\'materialize_pack\\'\\n'"
+    },
+    {
+      "case": "proposed-cwd-only",
+      "passed": true
+    }
+  ],
+  "in_process_calls": [
+    {
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "argv_flags": [
+        "-B",
+        "-O",
+        "-c"
+      ],
+      "mode": "in-process import replay; no Python child",
+      "returncode": 1,
+      "stderr": "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-shared-input-candidate-v2/probe_replay.py\", line 67, in emulate_python_command\n    exec(compile(argv[4], '<in-process Python -c replay>', 'exec', optimize=1), {})\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<in-process Python -c replay>\", line 1, in <module>\n  File \"<frozen runpy>\", line 294, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-shared-input-candidate-v2/check_cache_state.py\", line 5, in <module>\n    import materialize_pack as overlay\nModuleNotFoundError: No module named 'materialize_pack'\n"
+    },
+    {
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-shared-input-candidate-v2",
+      "argv_flags": [
+        "-B",
+        "-O",
+        "-c"
+      ],
+      "mode": "in-process import replay; no Python child",
+      "returncode": 1,
+      "stderr": "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-shared-input-candidate-v2/probe_replay.py\", line 67, in emulate_python_command\n    exec(compile(argv[4], '<in-process Python -c replay>', 'exec', optimize=1), {})\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<in-process Python -c replay>\", line 1, in <module>\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-shared-input-candidate-v2/check_cache_state.py\", line 48, in member\n    need(name and name==str(p)and name!='.'and not p.is_absolute()and not any(v in p.parts for v in ['..','.git'])and '\\\\'not in name and '\\x00'not in name,'Noncanonical member path')\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-shared-input-candidate-v2/check_cache_state.py\", line 28, in need\n    if not value:raise RuntimeError(message)\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Noncanonical member path\n"
+    }
+  ],
+  "explicit_optimized_runner_guard": {
+    "optimize": 1,
+    "exception_type": "RuntimeError",
+    "message": "Noncanonical member path"
+  },
+  "denied_api_invocations": [],
+  "native_or_compiler_executed": false,
+  "child_processes_started": 0,
+  "signals_registered": 0,
+  "actual_remote_corrected_test_pending": true
+}

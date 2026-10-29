@@ -1,0 +1,96 @@
+name: Shared-input cache fixture controls v2
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shared-input-cache-fixture-controls-v2-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  complete-fixture-on-declared-compiler:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      RUSTUP_AUTO_INSTALL: '0'
+      RUSTUP_TOOLCHAIN: '1.98.1-aarch64-apple-darwin'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /verification/swift-cache-state-ci/
+            /verification/cache-fixture-shared-input-candidate-v2/
+            /verification/cache-fixture-shared-input-review/
+            /.github/workflows/cache-fixture-shared-input-controls-v2.yml
+      - name: Bind checkout, candidate and owned materialization
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+          mkdir -p "$MIXER_SHARED_INPUT_DIR/logs" "$MIXER_SHARED_INPUT_DIR/runs"
+          {
+            test "$GITHUB_RUN_ATTEMPT" = 1
+            git rev-parse HEAD HEAD^{tree}
+            python3 --version
+            uname -srm
+            python3 -B "$MIXER_SHARED_INPUT_DIR/verify_candidate.py" --workflow-installed
+            python3 -B "$MIXER_SHARED_INPUT_DIR/materialize_pack.py"
+          } > "$MIXER_SHARED_INPUT_DIR/logs/materialization.stdout" \
+            2> "$MIXER_SHARED_INPUT_DIR/logs/materialization.stderr"
+      - name: Runner and materializer focused controls
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+          python3 -B "$MIXER_SHARED_INPUT_DIR/test_materializer.py" -v \
+            > "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stdout" \
+            2> "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stderr"
+          python3 -B "$MIXER_SHARED_INPUT_DIR/test_runner.py" -v \
+            > "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stdout" \
+            2> "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stderr"
+      - name: One complete fixture invocation, fixed compiler and limits
+        timeout-minutes: 12
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+          {
+            MIXER_SHARED_INPUT_RUSTC="$(command -v rustc)"
+            python3 -B "$MIXER_SHARED_INPUT_DIR/check_cache_state.py" \
+              --rustc "$MIXER_SHARED_INPUT_RUSTC" \
+              --out "$MIXER_SHARED_INPUT_DIR/runs/ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          } > "$MIXER_SHARED_INPUT_DIR/logs/fixture.stdout" \
+            2> "$MIXER_SHARED_INPUT_DIR/logs/fixture.stderr"
+      - name: Verify candidate postflight without starting another fixture
+        if: always()
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+          python3 -B "$MIXER_SHARED_INPUT_DIR/verify_candidate.py" --workflow-installed \
+            > "$MIXER_SHARED_INPUT_DIR/logs/candidate-postflight.stdout" \
+            2> "$MIXER_SHARED_INPUT_DIR/logs/candidate-postflight.stderr"
+      - name: Preserve complete diagnostic, failed inputs and custody receipts
+        if: always()
+        timeout-minutes: 5
+        uses: actions/upload-artifact@v4
+        with:
+          name: cache-fixture-shared-input-controls-v2-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          include-hidden-files: true
+          path: |
+            ${{ github.workspace }}/verification/cache-fixture-shared-input-candidate-v2/
+            ${{ github.workspace }}/verification/cache-fixture-shared-input-review/
+            ${{ github.workspace }}/verification/swift-cache-state-ci/pack/manifest.json
+            ${{ github.workspace }}/verification/swift-cache-state-ci/check_cache_state.py
+            ${{ github.workspace }}/verification/swift-cache-state-ci/test_runner.py
+            ${{ github.workspace }}/.github/workflows/cache-fixture-shared-input-controls-v2.yml
