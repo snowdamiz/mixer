@@ -1,0 +1,41 @@
+# Policy-neutral pin-bookkeeping source candidate
+
+Decision: propose the three-file candidate in candidate/vm for independent source/accounting review and one bounded host regression sequence. It is not installed in vm/. No compiler, product runtime, native instance, capture, process inventory, held process, Git mutation or dispatch was started by this lane.
+
+The accepted Linux result at run 40794706922 is real scoped feasibility evidence: both original eleven-field corpora completed on one initialized owner in 599.150431397 seconds, with cumulative fuel/work and consuming cleanup. It is an experimental generated closure, not the canonical engine. This lane reconstructed all 133 generated members from the sealed source archive and patch and matched each accepted per-file SHA256. Its closure is 066789f44a39300a33e7583ab039086589576e3c8701ecfdd19dc4717ebab567. The actual review receipt and seal were rehashed to the parent-supplied identities.
+
+## Small source slice
+
+The selected slice extracts the reviewed 64-pin bitmap hooks from the predecessor of the successful two-word/128-pin experiment. It keeps the canonical resident hash-chain representation, 64-resident/pin/frame envelope, 86 reservation tickets and all seventeen run-budget fields. No control.rs, frame_operations.rs, WASI defaults, public exports, wire contracts or signature paths change.
+
+- vm/src/experimental/cache/borrowed.rs adds private mode hooks for selecting a free pin, publishing its bookkeeping and validating/completing release. Frozen-mode defaults keep the original first-free scan and work trace. Actual pin records still own nonce/entry identity. Token publication occurs after record plus bitmap publication; release validates owner/nonce/entry first and changes the bit only after release effects succeed.
+- vm/src/experimental_swift_reactor/cache.rs carries one u64 through Partial, actual cache ownership and the borrowed scratch. The mask helper is total for invalid lengths. Admission and release independently reject lengths above64. All new helper storage is included as three complete DensePinInventory copies in cleanup, construction and operation envelopes, while existing size_of owner/Scratch/generic inventories grow with their actual types. No heap payload or reservation ticket is added. Exact compiled ABI sizes remain unmeasured.
+- vm/src/experimental_swift_reactor/cache_tests.rs adds seven actual-owner tests and changes only three inherited work expectations and their observation literals. Constructor work becomes4929 from4928, a first-slot warm hit becomes12 from8, and the full64-node resident-chain warm hit becomes264 from260. These are source-derived expectations awaiting actual host execution; original canonical fixtures remain untouched.
+
+The changed pin selection charge is5 credits regardless of successful selected slot; the old scan charged slot+1. A shallow first-slot hit costs four more credits, while selection beyond slot4 saves credits. This is not a measured speedup or whole-reactor work reduction. Terminal release adds no fuel/work or cancellation poll, so the actual owner can still drain after a latched failure. All counters stay cumulative; no scheduling/reset policy is invented.
+
+## Evidence and next executable test
+
+pure-result.json records150 exact file bindings,10 source-contract groups, three killed source mutations, and103712 independent pure model assertions over6205 bitmap states,14336 transitions and191 corruptions. The model runs in an isolated JavaScript context without process, require, module, fetch, WebSocket or timer APIs. All live process/session/group/signal/wait/socket operations are absent. The first mutation-guard failure is preserved in first-pure-failure.json; the correction checks both admission and release bounds. The persistent Node REPL does not expose a Node/V8 version, so no version is fabricated.
+
+Seven actual Rust test methods cover masks/narrowing and unchanged policy; all65 capacities including bit63 and full rejection; hole reuse and measured constant selection work; corrupt masks and retained release tokens; existing exhaustive work/cancellation/allocation/owner controls; terminal cancellation and release; complete finite frame/cache geometry and zero cleanup. They are authored, not executed. Source analysis does not authorize any runtime or OTA release.
+
+host-plan.json provides the exact first command after fresh source materialization and approved command custody:
+
+    CARGO_TARGET_DIR="$RUNNER_TEMP/swift-pin-bitmap-v1-target" cargo +1.99.0 test --manifest-path "$RUNNER_TEMP/swift-pin-bitmap-v1/Cargo.toml" --offline --release --no-default-features --features experimental-swift-reactor --lib pin_bitmap_integration_ -- --nocapture --test-threads=1
+
+Expected: exactly seven focused tests, not a zero-test success. materialize.mjs checks all136 canonical members and protected contracts before copying the three-file overlay into a fresh external scratch directory; it never overwrites or edits canonical files. Root must use the existing bounded child/group/sink custody driver. The finite sequence is capped at six Cargo commands; there is no whole-reactor attempt, retry, compiler fallback or new workflow here. Full cache, actual frame, Frozen compatibility, and all-feature debug/release regressions remain required, as do precise compiled geometry, formatting/lint and cleanup receipts. Exact unrun commands/filters are in host-plan.json.
+
+## Remaining choices after this slice
+
+The complete source mapping is source-mapping.json. The successful private experiment additionally changed resident index u8 hash chains to an80000-cell u16 direct map, added a128-bit pin inventory, raised residents to512, frames/pins to128, tickets to534, cache work/fuel to4B, execution work to16B and runtime/WASI clocks to1200s. Its conservative combined geometry266806334 fits268435456, but that measured geometry belongs to the accepted generated closure, not this new candidate.
+
+Choice A, selected here: integrate only pin bookkeeping at the existing envelope after exact host regressions. It unlocks tested cache/frame plumbing without changing policy and does not claim the full Swift target now completes under canonical defaults.
+
+Choice B, subsequent independent experimental slice: transplant dense resident lookup with its full representation/lifetime accounting while keeping canonical run limits. Affected implementation paths are experimental/cache/mod.rs and experimental_swift_reactor/cache.rs, plus exact cache tests; the smallest executable experiment is finite collision/missing-map/identity/exhaustion comparison under identical64 residents. It must account for the160000-byte dense map and its bounded initialization, audit misses, helper temporaries and unchanged combined ceiling. No new full-reactor run is required to decide whether that implementation is sound.
+
+Choice C, separate policy work: select an explicitly versioned private runtime profile for512 residents/128 frames, and design sustained-use scheduling/replenishment. Affected paths are control.rs, frame_operations.rs, experimental/cache/mod.rs, cache.rs and experimental_wasi/mod.rs plus their tests; any installed/public route additionally requires actual identity/resource_policy, signed narrowing, capability and validation joins. The1200s/4B lifetime values remain experimental. Neither a reset per call nor one Linux completion supplies latency, energy, responsiveness, abuse-budget, mobile or whole-app policy evidence.
+
+Public signed limits remain byte-identical. Runtime identity v2 explicitly binds the installed resource policy, and signed release-v3 grants only narrow installed limits; its independently fixed base fuel/memory/startup constraints are not Swift diagnostic budgets. This candidate adds no public Swift invocation, no route from an unverified DTO/profile to execution authority, no signing/publication authority, and no OTA/FieldLog/D3/GA acceptance.
+
+Protected hosted.yml/store.ex bindings were rechecked. .wrangler, all held groups20745/20770/20780/20817/20842/20851/20866, oldFieldLogfetch, UnitA and broad hosted state were not read/probed/mutated. No new runtime checks were attempted; native/UI/capture holds remain active.

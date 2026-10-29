@@ -1,0 +1,175 @@
+{
+  "schema": 1,
+  "selected": false,
+  "status": "source candidate only; root independent review and bounded host admission required",
+  "environment": "fresh GitHub-hosted Linux x86_64; Rust 1.99.0 exact; offline Cargo; no native/UI/device execution",
+  "candidateTreeSHA256": "4f9968797133b17520e5387e8ea9870bad779159968357cd31c50abbeb8c8bbd",
+  "baselineFiles": 136,
+  "scratch": "$RUNNER_TEMP/swift-pin-bitmap-v1",
+  "target": "$RUNNER_TEMP/swift-pin-bitmap-v1-target",
+  "preparationCommand": "node --input-type=module -e \"const m = await import('./verification/swift-dense512-product-integration/materialize.mjs'); console.log(JSON.stringify(await m.materialize(process.env.RUNNER_TEMP + '/swift-pin-bitmap-v1')));\"",
+  "firstExecutableCommand": "CARGO_TARGET_DIR=\"$RUNNER_TEMP/swift-pin-bitmap-v1-target\" cargo +1.99.0 test --manifest-path \"$RUNNER_TEMP/swift-pin-bitmap-v1/Cargo.toml\" --offline --release --no-default-features --features experimental-swift-reactor --lib pin_bitmap_integration_ -- --nocapture --test-threads=1",
+  "firstExecutable": {
+    "argv": [
+      "cargo",
+      "+1.99.0",
+      "test",
+      "--manifest-path",
+      "$RUNNER_TEMP/swift-pin-bitmap-v1/Cargo.toml",
+      "--offline",
+      "--release",
+      "--no-default-features",
+      "--features",
+      "experimental-swift-reactor",
+      "--lib",
+      "pin_bitmap_integration_",
+      "--",
+      "--nocapture",
+      "--test-threads=1"
+    ],
+    "expectedFocusedMethods": 7,
+    "commandSeconds": 300,
+    "cwd": "$RUNNER_TEMP/swift-pin-bitmap-v1"
+  },
+  "followupCommands": [
+    {
+      "purpose": "complete Swift cache regression including expected work-trace changes",
+      "filter": "experimental_swift_reactor::cache_tests::",
+      "profile": "release",
+      "features": "experimental-swift-reactor",
+      "commandSeconds": 300,
+      "argv": [
+        "cargo",
+        "+1.99.0",
+        "test",
+        "--manifest-path",
+        "$RUNNER_TEMP/swift-pin-bitmap-v1/Cargo.toml",
+        "--offline",
+        "--release",
+        "--no-default-features",
+        "--features",
+        "experimental-swift-reactor",
+        "--lib",
+        "experimental_swift_reactor::cache_tests::",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "requireNonzeroTests": true,
+      "cwd": "$RUNNER_TEMP/swift-pin-bitmap-v1"
+    },
+    {
+      "purpose": "unchanged actual frame ownership/depth/drain/rollback matrix joined to candidate pin hooks",
+      "filter": "frame_operations::tests::",
+      "profile": "release",
+      "features": "experimental-swift-reactor",
+      "commandSeconds": 180,
+      "argv": [
+        "cargo",
+        "+1.99.0",
+        "test",
+        "--manifest-path",
+        "$RUNNER_TEMP/swift-pin-bitmap-v1/Cargo.toml",
+        "--offline",
+        "--release",
+        "--no-default-features",
+        "--features",
+        "experimental-swift-reactor",
+        "--lib",
+        "frame_operations::tests::",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "requireNonzeroTests": true,
+      "cwd": "$RUNNER_TEMP/swift-pin-bitmap-v1"
+    },
+    {
+      "purpose": "Frozen compatibility default hooks retain original work trace",
+      "filter": "experimental::cache::tests::",
+      "profile": "release",
+      "features": "experimental-function-cache",
+      "commandSeconds": 180,
+      "argv": [
+        "cargo",
+        "+1.99.0",
+        "test",
+        "--manifest-path",
+        "$RUNNER_TEMP/swift-pin-bitmap-v1/Cargo.toml",
+        "--offline",
+        "--release",
+        "--no-default-features",
+        "--features",
+        "experimental-function-cache",
+        "--lib",
+        "experimental::cache::tests::",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "requireNonzeroTests": true,
+      "cwd": "$RUNNER_TEMP/swift-pin-bitmap-v1"
+    },
+    {
+      "purpose": "full all-feature host regressions",
+      "argv": [
+        "cargo",
+        "+1.99.0",
+        "test",
+        "--manifest-path",
+        "$RUNNER_TEMP/swift-pin-bitmap-v1/Cargo.toml",
+        "--offline",
+        "--all-features",
+        "--",
+        "--test-threads=1"
+      ],
+      "commandSeconds": 600,
+      "cwd": "$RUNNER_TEMP/swift-pin-bitmap-v1"
+    },
+    {
+      "purpose": "full all-feature optimized host regressions",
+      "argv": [
+        "cargo",
+        "+1.99.0",
+        "test",
+        "--manifest-path",
+        "$RUNNER_TEMP/swift-pin-bitmap-v1/Cargo.toml",
+        "--offline",
+        "--release",
+        "--all-features",
+        "--",
+        "--test-threads=1"
+      ],
+      "commandSeconds": 600,
+      "cwd": "$RUNNER_TEMP/swift-pin-bitmap-v1"
+    }
+  ],
+  "requiredBeforeIntegration": [
+    "independent source/accounting review of this exact candidate closure",
+    "actual Rust compilation and seven focused owner tests",
+    "unchanged complete cache and frame regression joins",
+    "Frozen default mode compatibility tests",
+    "exact finite conservative combined geometry <=268435456; all final ledgers/tickets zero",
+    "all-feature debug/release host regressions and exact Rust formatting/lint check"
+  ],
+  "custody": {
+    "maxCargoCommands": 6,
+    "maxWholeReactorAttempts": 0,
+    "retry": false,
+    "fallback": false,
+    "processInventory": false,
+    "commandDriver": "root must place the exact argv behind existing reviewed bounded child/group/sink custody; no new runner provided here",
+    "cleanup": "reap direct children, prove owned groups absent, close/hash regular output sinks, remove only owned scratch and target after evidence; stop on unresolved custody"
+  },
+  "limitations": [
+    "Commands have not run. Source/model passes are not Rust/compiler/runtime evidence.",
+    "This candidate does not make the original full reactor complete within canonical limits.",
+    "No per-call reset, yield/replenishment scheme or public runtime route is introduced.",
+    "No installed/signed limit policy, native/mobile/energy/latency or GA acceptance."
+  ],
+  "commandEnvironment": {
+    "CARGO_TARGET_DIR": "$RUNNER_TEMP/swift-pin-bitmap-v1-target",
+    "RUSTUP_TOOLCHAIN": "1.99.0",
+    "CARGO_NET_OFFLINE": "true"
+  }
+}
