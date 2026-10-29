@@ -1,0 +1,84 @@
+--- a/.github/workflows/verify.yml
++++ b/.github/workflows/verify.yml
+@@ -84,6 +84,12 @@
+             /verification/swift-ordered-retention-analyzer-library/
+             /verification/swift-ordered-retention-analyzer-library-review/
+             /verification/swift-envelope-ci-pack/
++            /verification/envelope-producer-timeout-experiment/candidate_runner.py
++            /verification/envelope-producer-timeout-experiment/overlay.json
++            /verification/envelope-producer-timeout-experiment/producer-partition.json
++            /verification/envelope-partition-default-ci-adoption/
++            /verification/swift-envelope-ci-root-review/compiler-qualification-selection-amendment.json
++            /verification/swift-envelope-ci-root-review/test-lint-selection-amendment.json
+             /verification/android-default-appearance-packaging/run-2/created-descriptor.json
+             /verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json
+             /verification/ui-shared-appearance-contract/v2/mixer-default-appearance-v1.json
+@@ -117,20 +123,63 @@
+             ${{ runner.temp }}/analyzer-framing/source/collector.py
+             ${{ runner.temp }}/analyzer-framing/inputs/historical/*
+             ${{ runner.temp }}/analyzer-framing/retained/**/*
++      - name: Bind reviewed envelope partition source and ordinary compiler policy
++        timeout-minutes: 2
++        shell: bash
++        run: |
++          set -euo pipefail
++          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-partition-default-ci-adoption"
++          mkdir -p "$MIXER_ADOPTION_DIR/logs"
++          python3 -B "$MIXER_ADOPTION_DIR/adopt_envelope.py" verify --workflow-installed \
++            > "$MIXER_ADOPTION_DIR/logs/preflight.stdout" \
++            2> "$MIXER_ADOPTION_DIR/logs/preflight.stderr"
++      - name: Guarded envelope partition and ordinary adoption controls
++        timeout-minutes: 3
++        shell: bash
++        run: |
++          set -euo pipefail
++          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-partition-default-ci-adoption"
++          python3 -B "$MIXER_ADOPTION_DIR/test_adoption.py" -v \
++            > "$MIXER_ADOPTION_DIR/logs/controls.stdout" \
++            2> "$MIXER_ADOPTION_DIR/logs/controls.stderr"
+       - name: Accepted standalone analyzer fixture envelope
+-        timeout-minutes: 10
+-        run: |
+-          python3 -B scripts/ci/check-analyzer-envelope.py \
+-            --out "$RUNNER_TEMP/analyzer-envelope"
++        # 480 active + 60 retention/cleanup seconds; 180 seconds startup margin.
++        timeout-minutes: 12
++        shell: bash
++        run: |
++          set -euo pipefail
++          export RUSTUP_AUTO_INSTALL=0
++          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-partition-default-ci-adoption"
++          MIXER_ENVELOPE_RUSTC_LAUNCHER="$(command -v rustc)"
++          python3 -B "$MIXER_ADOPTION_DIR/adopt_envelope.py" run \
++            --rustc "$MIXER_ENVELOPE_RUSTC_LAUNCHER" \
++            --out "$RUNNER_TEMP/analyzer-envelope" \
++            > "$MIXER_ADOPTION_DIR/logs/fixture.stdout" \
++            2> "$MIXER_ADOPTION_DIR/logs/fixture.stderr"
++      - name: Verify envelope partition adoption source postflight
++        if: always()
++        timeout-minutes: 2
++        shell: bash
++        run: |
++          set -euo pipefail
++          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-partition-default-ci-adoption"
++          mkdir -p "$MIXER_ADOPTION_DIR/logs"
++          python3 -B "$MIXER_ADOPTION_DIR/adopt_envelope.py" verify --workflow-installed \
++            > "$MIXER_ADOPTION_DIR/logs/postflight.stdout" \
++            2> "$MIXER_ADOPTION_DIR/logs/postflight.stderr"
+       - name: Preserve standalone analyzer envelope receipts
+         if: always()
++        timeout-minutes: 5
+         uses: actions/upload-artifact@v4
+         with:
+           name: analyzer-envelope-host-${{ github.sha }}
+           retention-days: 14
+           if-no-files-found: ignore
+           include-hidden-files: true
+-          path: ${{ runner.temp }}/analyzer-envelope/
++          path: |
++            ${{ runner.temp }}/analyzer-envelope/
++            ${{ github.workspace }}/verification/envelope-partition-default-ci-adoption/
++            ${{ github.workspace }}/.github/workflows/verify.yml
+       - name: Generated capability schema and host lifecycle
+         run: |
+           python3 capabilities/tools/generate.py --check

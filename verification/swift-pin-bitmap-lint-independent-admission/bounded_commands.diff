@@ -1,0 +1,22 @@
+--- reviewed/bounded_commands.py
++++ proposal/bounded_commands.py
+@@ -5,8 +5,8 @@
+ from pathlib import Path,PurePosixPath
+ OUTPUT_CAP=8*1024*1024
+ AGGREGATE_OUTPUT_CAP=32*1024*1024
+-CHILD_SECONDS=300
+-MAX_COMMANDS=5
++CHILD_SECONDS=600
++MAX_COMMANDS=6
+ def need(value,message):
+  if not value:raise RuntimeError(message)
+ def now():return datetime.now(timezone.utc).isoformat()
+@@ -85,7 +85,7 @@
+   row['owned_group_gone']=self.gone(proc.pid)
+  def run(self,name,argv,cwd,env=None,negative=False,seconds=30,accepted_exits=(0,)):
+   need(self.active is None,'One child group only');need(re.fullmatch('[A-Za-z0-9_-]+',name),'Command name')
+-  need(len(self.receipt['commands'])<MAX_COMMANDS,'Command count cap');need(type(seconds)is int and seconds in (30,300),'Fixed child limit required')
++  need(len(self.receipt['commands'])<MAX_COMMANDS,'Command count cap');need(type(seconds)is int and seconds in (30,60,300,600),'Fixed child limit required')
+   need(not negative and accepted_exits in ((0,),(0,101)),'Fixed diagnostic exit policy required')
+   start=time.monotonic();need(start+seconds+20<self.deadline,'Complete next command does not fit aggregate budget');budget=seconds;env=self.child_environment(env)
+   row={'name':name,'argv':list(map(str,argv)),'cwd':str(cwd),'started_utc':now(),'per_child_limit_seconds':seconds,'effective_timeout_seconds':budget,'per_stream_cap_bytes':OUTPUT_CAP,'environment_overrides':env or {},'exit':None,'timed_out':False,'output_capped':False,'child_returned':False,'owned_group_gone':False,'errors':[]}

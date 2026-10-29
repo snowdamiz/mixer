@@ -1,0 +1,46 @@
+{
+  "cleanup": {
+    "liveAPIAttempts": [],
+    "remaining": [],
+    "removedFailedPureDirectories": [
+      "pure-0f6f1xhp",
+      "pure-ykhmo9g5",
+      "pure-1qjuuu67",
+      "pure-uph3d4x_",
+      "pure-mbrh38wx",
+      "pure-zcl8_hi0",
+      "pure-1alr3c6t",
+      "pure-jv4wmv_u",
+      "pure-1tyl97xu",
+      "pure-i2w0saqz",
+      "pure-kyl8lx2p",
+      "pure-or8x2b98",
+      "pure-ga6kkecx",
+      "pure-qrt6t9hh",
+      "pure-aocy6578",
+      "pure-4so2k5ti",
+      "pure-f1ijztux"
+    ]
+  },
+  "failures": [
+    {
+      "command": "python3 -B verification/swift-pin-bitmap-lint-independent-admission/host_controls.py",
+      "correction": "Preload unittest.mock standard-library definitions before guard installation; keep admit and bounded_commands imports after the guard. No permission or live API allowance added.",
+      "error": "TypeError constructing ssl.SSLSocket because socket.socket was already replaced by the deny function",
+      "realProcessOrSocketCalls": 0,
+      "stage": "standard-library unittest.mock import after socket guard installation",
+      "subjectImported": false
+    },
+    {
+      "cause": "The guard correctly refused shutil fd-relative unlink because its relative filename did not establish folder ownership; 17 teardown failures plus a guard-attempt assertion.",
+      "correction": "Use absolute-path local teardown with the guard unchanged; no opaque dir_fd exception added.",
+      "errors": 0,
+      "failures": 18,
+      "realProcessOrSocketCalls": 0,
+      "retainedResult": "local/failed-host-controls-fd-cleanup.json",
+      "stage": "pure fixture teardown",
+      "tests": 24
+    }
+  ],
+  "schema": 1
+}

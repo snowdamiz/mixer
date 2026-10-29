@@ -1,0 +1,3080 @@
+--- canonical/vm/src/experimental/cache/borrowed.rs
++++ candidate/vm/src/experimental/cache/borrowed.rs
+@@ -438,6 +438,31 @@
+     ) -> Self::Meter<'a, 'op>
+     where
+         'op: 'a;
++    // Frozen defaults preserve literal first-free search and original work trace.
++    fn available_pin(
++        pins: &[PinRecord],
++        _: &mut Self::Scratch<'_>,
++        meter: &mut Self::Meter<'_, '_>,
++    ) -> Result<usize, Self::Failure> {
++        for (index, record) in pins.iter().enumerate() {
++            meter.work(1)?;
++            if record.nonce == 0 {
++                return Ok(index);
++            }
++        }
++        Err(meter.error(CacheFailureKind::PinExhausted, "pin_slots_exhausted"))
++    }
++    fn pin_published(_: &mut Self::Scratch<'_>, _: usize) {}
++    fn validate_pin_release(
++        _: &[PinRecord],
++        _: &mut Self::Scratch<'_>,
++        _: usize,
++        _: &mut impl PinDiagnostic<Self::Failure>,
++    ) -> Result<(), Self::Failure> {
++        Ok(())
++    }
++    fn pin_released(_: &mut Self::Scratch<'_>, _: usize) {}
++
+     // Defaults deliberately preserve the literal frozen lookup and work trace.
+     fn resident_lookup(
+         slots: &[Self::Slot],
+@@ -676,7 +701,7 @@
+     })
+ }
+ pub(crate) fn release<M: CacheMode>(
+-    parts: CacheParts<'_, M>,
++    mut parts: CacheParts<'_, M>,
+     pin: M::Pin,
+     operation: &mut impl ReleaseControl<M::Failure>,
+ ) -> Result<(), (M::Failure, M::Pin)> {
+@@ -692,6 +717,9 @@
+         Ok(r) => r,
+         Err(e) => return Err((e, pin)),
+     };
++    if let Err(e) = M::validate_pin_release(parts.pins, &mut parts.scratch, pin.slot(), operation) {
++        return Err((e, pin));
++    }
+     if let Err(e) = operation.release_pin() {
+         return Err((e, pin));
+     }
+@@ -701,6 +729,7 @@
+         .release(slot.entry().expect("checked entry").bytes, slot.pins() == 1);
+     slot.set_pins(slot.pins() - 1);
+     parts.pins[pin.slot()] = PinRecord::default();
++    M::pin_released(&mut parts.scratch, pin.slot());
+     Ok(())
+ }
+ pub(crate) fn pin<M: CacheMode>(
+@@ -737,16 +766,7 @@
+         .next_nonce
+         .checked_add(1)
+         .ok_or_else(|| meter.error(CacheFailureKind::NonceExhausted, "pin_nonce_exhausted"))?;
+-    let mut pin_slot = None;
+-    for (index, record) in parts.pins.iter().enumerate() {
+-        meter.work(1)?;
+-        if record.nonce == 0 {
+-            pin_slot = Some(index);
+-            break;
+-        }
+-    }
+-    let pin_slot = pin_slot
+-        .ok_or_else(|| meter.error(CacheFailureKind::PinExhausted, "pin_slots_exhausted"))?;
++    let pin_slot = M::available_pin(parts.pins, &mut parts.scratch, &mut meter)?;
+     meter.acquire_pin()?;
+     let result = pin_acquired::<M>(&mut parts, &mut meter, defined, pin_slot, nonce);
+     if result.is_err() {
+@@ -891,6 +911,7 @@
+         nonce: *parts.next_nonce,
+         entry: index,
+     };
++    M::pin_published(&mut parts.scratch, pin_slot);
+     let pin = M::Pin::new(parts.owner, pin_slot, *parts.next_nonce);
+     *parts.next_nonce = nonce;
+     Ok(pin)
+--- canonical/vm/src/experimental_swift_reactor/bulk_memory_operations_tests.rs
++++ candidate/vm/src/experimental_swift_reactor/bulk_memory_operations_tests.rs
+@@ -31,14 +31,15 @@
+ fn push(p: &mut FrameOperationPhase<'_>, v: &[Value]) { for x in v {p.phase.push_value(*x).unwrap();} }
+ pub(super) fn check_checkpoint(control:&RuntimeControl){let n=CHECKS.with(|v|{let n=v.get();v.set(n+1);n});if CHECK_CANCEL.with(Cell::get)==Some(n){control.cancellation().cancel();}}
+ fn op(p:&mut FrameOperationPhase<'_>, operation:Operation)->Result<(),SwiftRunFailure>{STEPS.with(|n|n.set(n.get()+1));let before=observed(p);let mut slot=None;p.bulk_memory_operation(operation,&mut slot).unwrap();assert_eq!(observed(p).instructions,before.instructions);if !p.cleanup.live_unreconciled{assert_eq!(observed(p).live.values.current,p.phase.parts.values.len());}slot.unwrap()}
+-fn seed(p:&mut FrameOperationPhase<'_>){for (i,byte)in p.phase.parts.memory[..4*CHUNK].iter_mut().enumerate(){*byte=(i.wrapping_mul(37)^i/251)as u8;}}
++fn seed(p:&mut FrameOperationPhase<'_>){for (i,byte)in p.phase.parts.memory[..4*CHUNK].iter_mut().enumerate(){*byte=(i.wrapping_mul(37)^(i/251))as u8;}}
+ const COPY:Operation=Operation::MemoryCopy; const FILL:Operation=Operation::MemoryFill; const SIZE:Operation=Operation::MemorySize;
+ const BODY:&[u8]=&[0x41,0,0x41,3,0x41,8,0xfc,10,0,0,0x0b];
+ fn pinned(p:&mut FrameOperationPhase<'_>,s:&mut FrameOperationStorage<'_>)->Result<(),SwiftRunFailure>{STEPS.with(|n|n.set(n.get()+1));bulk_memory_pinned_caller(p,s)}
+ #[test] fn bm01_copy_overlap_and_chunks(){let _b=Bounds::new();for (src,dst,len)in[(0,0,0),(1,2,1),(0,1,2*CHUNK+17),(1,0,2*CHUNK+17),(0,3*CHUNK,17),(0,0,CHUNK+1)]{fixture(true,None,|p|{seed(p);let mut expected=p.phase.parts.memory[..4*CHUNK].to_vec();expected.copy_within(src..src+len,dst);push(p,&[Value::I32(dst as i32),Value::I32(src as i32),Value::I32(len as i32)]);let before=observed(p);op(p,COPY).unwrap();assert_eq!(&p.phase.parts.memory[..4*CHUNK],expected.as_slice());assert!(p.phase.parts.values.is_empty());assert_eq!(observed(p).execution_work-before.execution_work,3+len as u64);assert_eq!(observed(p).instruction_fuel-before.instruction_fuel,len.div_ceil(64)as u64);assert_eq!(CHECKS.with(Cell::get),len.div_ceil(CHUNK));});}}
+ #[test] fn bm02_fill_low_byte_and_chunks(){let _b=Bounds::new();for value in [0,255,256,-1,0x1234]{for len in[0,1,CHUNK,CHUNK+1]{fixture(true,None,|p|{seed(p);let mut expected=p.phase.parts.memory[..4*CHUNK].to_vec();expected[3..3+len].fill(value as u8);push(p,&[Value::I32(3),Value::I32(value),Value::I32(len as i32)]);let before=observed(p);op(p,FILL).unwrap();assert_eq!(&p.phase.parts.memory[..4*CHUNK],expected.as_slice());assert_eq!(observed(p).execution_work-before.execution_work,3+len as u64);assert_eq!(observed(p).instruction_fuel-before.instruction_fuel,len.div_ceil(64)as u64);});}}}
+ #[test] fn bm03_zero_and_bounds(){let _b=Bounds::new();let end=584*65536;for operation in[COPY,FILL]{for(dst,second,len,pass)in[(end,end,0,true),(end+1,0,0,false),(end-1,end-1,1,true),(end,0,1,false),(-1,0,0,false),(0,-1,1,false),(0,0,-1,false)]{fixture(true,None,|p|{push(p,&[Value::I32(dst),Value::I32(second),Value::I32(len)]);let before=observed(p);let result=op(p,operation);let actual_pass=pass||(matches!(operation,Operation::MemoryFill)&&second==-1&&dst==0&&len==1);assert_eq!(result.is_ok(),actual_pass);if let Err(e)=result{assert_eq!(e.code,"memory_out_of_bounds");assert_eq!(observed(p).instruction_fuel,before.instruction_fuel);}assert!(p.phase.parts.values.is_empty());});}}}
+-#[test] fn bm04_preflight_floor_type_and_pages(){let _b=Bounds::new();for fault in 0..9{fixture(true,None,|p|{push(p,&[Value::I32(0),Value::I32(0),Value::I32(1)]);let f=&p.phase.parts.frames[0];let original=(f.base,f.operands,f.controls);match fault{0=>p.phase.parts.frames[0].base=1,1=>p.phase.parts.frames[0].operands=4,2=>p.phase.parts.frames[0].operands=1,3=>p.phase.parts.frames[0].controls=99,4..=6=>p.phase.parts.values[fault-4]=Value::I64(0),7=>{p.phase.parts.memory.truncate(583*PAGE);},_=>{p.phase.parts.memory.pop();}}let before=observed(p);let memory=p.phase.parts.memory[..8].to_vec();assert!(op(p,COPY).is_err());assert_eq!(p.phase.parts.values.len(),3);assert_eq!(observed(p).execution_work,before.execution_work);assert_eq!(&p.phase.parts.memory[..8],memory.as_slice());let f=&mut p.phase.parts.frames[0];(f.base,f.operands,f.controls)=original;if fault==7{p.phase.parts.memory.resize(584*PAGE,0);}if fault==8{p.phase.parts.memory.push(0);}});}
++#[test] fn bm04_preflight_floor_type_and_pages(){let _b=Bounds::new();for fault in 0..9{fixture(true,None,|p|{push(p,&[Value::I32(0),Value::I32(0),Value::I32(1)]);let f=&p.phase.parts.frames[0];let original=(f.base,f.operands,f.controls);match fault{0=>p.phase.parts.frames[0].base=1,1=>p.phase.parts.frames[0].operands=4,2=>p.phase.parts.frames[0].operands=1,3=>p.phase.parts.frames[0].controls=99,4..=6=>p.phase.parts.values[fault-4]=Value::I64(0),7=>{p.phase.parts.memory.truncate(583*PAGE);},_=>{p.phase.parts.memory.pop();}}let before=observed(p);let memory=p.phase.parts.memory[..8].to_vec();assert!(op(p,COPY).is_err());assert_eq!(p.phase.parts.values.len(),3);assert_eq!(observed(p).execution_work,before.execution_work);assert_eq!(&p.phase.parts.memory[..8],memory.as_slice());let f=&mut p.phase.parts.frames[0];(f.base,f.operands,f.controls)=original;if fault==7{p.phase.parts.memory.resize(584*PAGE,0);}
++if fault==8{p.phase.parts.memory.push(0);}});}
+  fixture(false,None,|p|{assert_eq!(op(p,COPY).unwrap_err().code,"swift_bulk_memory_frame_missing");});}
+ #[test] fn bm05_work_prefix(){let _b=Bounds::new();for operation in[COPY,FILL]{for allowed in[0,1,2,3,4,67]{fixture(true,None,|p|{push(p,&[Value::I32(0),Value::I32(9),Value::I32(64)]);let before=observed(p);let old=p.phase.operation.control.test_replace_execution_work_limit(before.execution_work+allowed);let result=op(p,operation);p.phase.operation.control.test_replace_execution_work_limit(old);assert_eq!(p.phase.parts.values.len(),3-allowed.min(3)as usize);assert_eq!(result.is_ok(),allowed>=67);assert_eq!(observed(p).execution_work-before.execution_work,if allowed<3{allowed}else if allowed<67{3}else{67});assert_eq!(observed(p).instruction_fuel-before.instruction_fuel,if allowed>=3{1}else{0});if allowed<67{assert!(p.phase.parts.memory[..64].iter().all(|b|*b==0));}});}}}
+ #[test] fn bm06_fuel_prefix(){let _b=Bounds::new();for len in[0usize,1,63,64,65,129]{for fuel in[0,1,2]{FIXTURES.with(|n|n.set(n.get()+1));let mut own=body_owner(&[0x0b],false,&[],SwiftRunBudget{instruction_fuel:fuel,..SwiftRunBudget::default()});let mut prep=Some(own.prepare_frames(cursor()));let mut p=prep.take().unwrap().unwrap();p.enter(34).unwrap();push(&mut p,&[Value::I32(0),Value::I32(9),Value::I32(len as i32)]);let before=observed(&p);let result=op(&mut p,FILL);let pass=fuel>=len.div_ceil(64)as u64;assert_eq!(result.is_ok(),pass);if let Err(failure)=result{assert_eq!(failure.kind,SwiftRunFailureKind::FuelExhausted);}assert_eq!(observed(&p).execution_work-before.execution_work,3+if pass{len as u64}else{0});assert_eq!(observed(&p).instruction_fuel-before.instruction_fuel,if pass{len.div_ceil(64)as u64}else{0});assert!(p.phase.parts.values.is_empty());assert_eq!(p.phase.parts.memory[0],if pass&&len!=0{9}else{0});p.drain();assert!(matches!(p.complete(FrameOperationStorage{preparation:prep,..storage()}),FrameCompletion::Completed));retire(own);}}}
+@@ -46,7 +47,9 @@
+ #[test] fn bm08_cancel_chunk_effect_prefix(){let _b=Bounds::new();for (operation,src,dst)in[(COPY,0,1),(COPY,1,0),(FILL,77,3)]{for checks in 0..=3{fixture(true,None,|p|{seed(p);let len=2*CHUNK+17;let mut expected=p.phase.parts.memory[..4*CHUNK].to_vec();if matches!(operation,Operation::MemoryFill){let n=checks.min(3)*CHUNK;expected[dst..dst+len.min(n)].fill(src as u8);}else if dst>src{let n=len.min(checks*CHUNK);expected.copy_within(src+len-n..src+len,dst+len-n);}else{let n=len.min(checks*CHUNK);expected.copy_within(src..src+n,dst);}push(p,&[Value::I32(dst as i32),Value::I32(src as i32),Value::I32(len as i32)]);CHECK_CANCEL.with(|v|v.set(Some(checks)));let before=observed(p);let result=op(p,operation);assert_eq!(result.is_ok(),checks>=3);assert_eq!(&p.phase.parts.memory[..4*CHUNK],expected.as_slice());assert!(p.phase.parts.values.is_empty());assert_eq!(observed(p).execution_work-before.execution_work,3+len as u64);assert_eq!(observed(p).instruction_fuel-before.instruction_fuel,len.div_ceil(64)as u64);assert_eq!(CHECKS.with(Cell::get),checks.min(2)+1);});}}}
+ #[test] fn bm09_size_observed_and_capacity(){let _b=Bounds::new();fixture(true,None,|p|{let before=observed(p);op(p,SIZE).unwrap();assert_eq!(p.phase.parts.values.as_slice(),&[Value::I32(584)]);assert_eq!(observed(p).execution_work-before.execution_work,1);assert_eq!(observed(p).instruction_fuel,before.instruction_fuel);assert_eq!(observed(p).live.values.current,before.live.values.current+1);});for fault in[2,4]{fixture(true,None,|p|{hooks(Hooks{push_fault:fault,..Hooks::default()});assert_eq!(op(p,SIZE).unwrap_err().kind,SwiftRunFailureKind::ValueLimit);assert!(p.phase.parts.values.is_empty());assert_eq!(observed(p).live.values.current,0);});}}
+ #[test] fn bm10_pinned_caller_success(){let _b=Bounds::new();for(operation,body,pc)in[(COPY,BODY,3),(FILL,&[0x41,0,0x41,3,0x41,8,0xfc,11,0,0x0b][..],3),(SIZE,&[0x3f,0,0x1a,0x0b][..],0)]{fixture(true,Some(body),|p|{seed(p);let expected=p.phase.parts.memory[3..11].to_vec();if !matches!(operation,Operation::MemorySize){push(p,&[Value::I32(0),Value::I32(3),Value::I32(8)]);}p.phase.parts.frames[0].pc=pc;let pin=pin_ids(p);let actual={let f=&p.phase.parts.frames[0];p.phase.parts.cache.view(&f.pin,p.phase.operation.control,Some(&*p.phase.operation.wasi)).unwrap().instructions[pc]};let before=observed(p);let mut s=storage();pinned(p,&mut s).unwrap();assert_eq!(s.entry.take(),Some(Ok(())));assert_eq!(p.phase.parts.frames[0].pc,pc+1);assert_eq!(pin_ids(p),pin);assert_eq!(p.phase.operation.cursor.function,Some(34));assert_eq!(p.phase.operation.cursor.offset,Some(actual.offset));assert_eq!(observed(p).instructions-before.instructions,1);let size=matches!(operation,Operation::MemorySize);assert_eq!(observed(p).instruction_fuel-before.instruction_fuel,if size{1}else{2});assert_eq!(observed(p).execution_work-before.execution_work,if size{2}else{12});match operation{Operation::MemorySize=>assert_eq!(p.phase.parts.values.as_slice(),&[Value::I32(584)]),Operation::MemoryCopy=>assert_eq!(&p.phase.parts.memory[..8],expected.as_slice()),Operation::MemoryFill=>assert_eq!(&p.phase.parts.memory[..8],&[3;8]),_=>unreachable!()}});}}
+-#[test] fn bm11_pinned_early_errors(){let _b=Bounds::new();for fault in 0..7{fixture(true,Some(BODY),|p|{push(p,&[Value::I32(0),Value::I32(0),Value::I32(1)]);p.phase.parts.frames[0].pc=3;let old=if fault==2{Some(p.phase.operation.control.test_replace_execution_work_limit(observed(p).execution_work))}else{None};match fault{0=>p.terminal(),1=>p.phase.parts.frames[0].pc=usize::MAX,3=>PC_OVERFLOW.with(|v|v.set(true)),4=>p.phase.operation.control.cancellation().cancel(),5=>hooks(Hooks{push_fault:6,cancel_local:Some(0),..Hooks::default()}),6=>p.phase.parts.frames[0].pc=0,_=>{}}let before=observed(p);let mut s=storage();pinned(p,&mut s).unwrap();assert!(s.entry.unwrap().is_err());assert!(matches!(p.lifecycle,Lifecycle::Terminal));assert!(matches!(p.cleanup.disposition,FrameDisposition::Draining));assert_eq!(p.phase.parts.values.len(),3);if fault==4{assert_eq!(observed(p).instruction_fuel,before.instruction_fuel);}if fault==5{assert_eq!(observed(p).instruction_fuel,before.instruction_fuel+1);assert_eq!(p.phase.parts.frames[0].pc,3);}if let Some(old)=old{p.phase.operation.control.test_replace_execution_work_limit(old);}});}fixture(false,None,|p|{let mut s=storage();pinned(p,&mut s).unwrap();assert_eq!(s.entry.unwrap().unwrap_err().code,"swift_bulk_memory_caller_frame");});for fuel in[0,1]{FIXTURES.with(|n|n.set(n.get()+1));let mut own=body_owner(BODY,false,&[],SwiftRunBudget{instruction_fuel:fuel,..SwiftRunBudget::default()});let mut prep=Some(own.prepare_frames(cursor()));let mut p=prep.take().unwrap().unwrap();p.enter(34).unwrap();push(&mut p,&[Value::I32(0),Value::I32(0),Value::I32(1)]);p.phase.parts.frames[0].pc=3;let before=observed(&p);let mut s=storage();pinned(&mut p,&mut s).unwrap();assert_eq!(s.entry.unwrap().unwrap_err().kind,SwiftRunFailureKind::FuelExhausted);assert_eq!(p.phase.parts.frames[0].pc,if fuel==0{3}else{4});assert_eq!(p.phase.parts.values.len(),if fuel==0{3}else{0});assert_eq!(observed(&p).instructions-before.instructions,fuel);assert_eq!(observed(&p).instruction_fuel-before.instruction_fuel,fuel);assert_eq!(observed(&p).execution_work-before.execution_work,if fuel==0{0}else{4});assert_eq!(p.phase.parts.memory[0],0);p.drain();assert!(matches!(p.complete(FrameOperationStorage{preparation:prep,..s}),FrameCompletion::Completed));retire(own);}
++#[test] fn bm11_pinned_early_errors(){let _b=Bounds::new();for fault in 0..7{fixture(true,Some(BODY),|p|{push(p,&[Value::I32(0),Value::I32(0),Value::I32(1)]);p.phase.parts.frames[0].pc=3;let old=if fault==2{Some(p.phase.operation.control.test_replace_execution_work_limit(observed(p).execution_work))}else{None};match fault{0=>p.terminal(),1=>p.phase.parts.frames[0].pc=usize::MAX,3=>PC_OVERFLOW.with(|v|v.set(true)),4=>p.phase.operation.control.cancellation().cancel(),5=>hooks(Hooks{push_fault:6,cancel_local:Some(0),..Hooks::default()}),6=>p.phase.parts.frames[0].pc=0,_=>{}}let before=observed(p);let mut s=storage();pinned(p,&mut s).unwrap();assert!(s.entry.unwrap().is_err());assert!(matches!(p.lifecycle,Lifecycle::Terminal));assert!(matches!(p.cleanup.disposition,FrameDisposition::Draining));assert_eq!(p.phase.parts.values.len(),3);if fault==4{assert_eq!(observed(p).instruction_fuel,before.instruction_fuel);}
++if fault==5{assert_eq!(observed(p).instruction_fuel,before.instruction_fuel+1);assert_eq!(p.phase.parts.frames[0].pc,3);}
++if let Some(old)=old{p.phase.operation.control.test_replace_execution_work_limit(old);}});}fixture(false,None,|p|{let mut s=storage();pinned(p,&mut s).unwrap();assert_eq!(s.entry.unwrap().unwrap_err().code,"swift_bulk_memory_caller_frame");});for fuel in[0,1]{FIXTURES.with(|n|n.set(n.get()+1));let mut own=body_owner(BODY,false,&[],SwiftRunBudget{instruction_fuel:fuel,..SwiftRunBudget::default()});let mut prep=Some(own.prepare_frames(cursor()));let mut p=prep.take().unwrap().unwrap();p.enter(34).unwrap();push(&mut p,&[Value::I32(0),Value::I32(0),Value::I32(1)]);p.phase.parts.frames[0].pc=3;let before=observed(&p);let mut s=storage();pinned(&mut p,&mut s).unwrap();assert_eq!(s.entry.unwrap().unwrap_err().kind,SwiftRunFailureKind::FuelExhausted);assert_eq!(p.phase.parts.frames[0].pc,if fuel==0{3}else{4});assert_eq!(p.phase.parts.values.len(),if fuel==0{3}else{0});assert_eq!(observed(&p).instructions-before.instructions,fuel);assert_eq!(observed(&p).instruction_fuel-before.instruction_fuel,fuel);assert_eq!(observed(&p).execution_work-before.execution_work,if fuel==0{0}else{4});assert_eq!(p.phase.parts.memory[0],0);p.drain();assert!(matches!(p.complete(FrameOperationStorage{preparation:prep,..s}),FrameCompletion::Completed));retire(own);}
+ FIXTURES.with(|n|n.set(n.get()+1));let mut foreign=owner();fixture(true,Some(BODY),|p|{push(p,&[Value::I32(0),Value::I32(0),Value::I32(1)]);p.phase.parts.frames[0].pc=3;let other=crate::experimental_swift_reactor::cache::inspection::replace_header(foreign.cache.as_mut().unwrap(),None);let original=crate::experimental_swift_reactor::cache::inspection::replace_header(p.phase.parts.cache,other);let before=observed(p);let mut s=storage();pinned(p,&mut s).unwrap();assert!(s.entry.unwrap().is_err());assert_eq!(p.phase.parts.frames[0].pc,3);assert_eq!(p.phase.parts.values.len(),3);assert_eq!(observed(p).instruction_fuel,before.instruction_fuel);assert_eq!(observed(p).execution_work,before.execution_work);let other=crate::experimental_swift_reactor::cache::inspection::replace_header(p.phase.parts.cache,original);assert!(crate::experimental_swift_reactor::cache::inspection::replace_header(foreign.cache.as_mut().unwrap(),other).is_none());});retire(foreign);}
+ #[test] fn bm12_slot_and_fixed_completion(){let _b=Bounds::new();for direct in[false,true]{for failed in[false,true]{fixture(true,Some(BODY),|p|{push(p,&[Value::I32(0),Value::I32(0),Value::I32(1)]);p.phase.parts.frames[0].pc=3;let mut s=storage();let saved=if failed{Err(p.invariant("bulk_first"))}else{Ok(())};s.entry=Some(saved);let before=observed(p);assert!(if direct{p.bulk_memory_operation(COPY,&mut s.entry)}else{pinned(p,&mut s)}.is_err());assert_eq!(s.entry,Some(saved));assert_eq!(observed(p).instructions,before.instructions);assert_eq!(observed(p).execution_work,before.execution_work);assert_eq!(p.phase.parts.frames[0].pc,3);assert_eq!(p.phase.parts.values.len(),3);});}}FIXTURES.with(|n|n.set(n.get()+1));let mut own=owner();let mut s=storage();s.preparation=Some(own.prepare_frames(cursor()));let mut p=s.preparation.take().unwrap().unwrap();p.enter(34).unwrap();push(&mut p,&[Value::I32(-1),Value::I32(0),Value::I32(1)]);p.bulk_memory_operation(COPY,&mut s.entry).unwrap();let error=s.entry.unwrap().unwrap_err();s.drained=Some(p.drain());assert_eq!(s.drained.as_ref().unwrap().first_failure.unwrap().code,error.code);assert!(matches!(p.complete(s),FrameCompletion::Completed));retire(own);}
+ #[test] fn bm13_debt_and_cleanup_retry(){let _b=Bounds::new();fixture(true,None,|p|{push(p,&[Value::I32(0),Value::I32(9),Value::I32(1)]);hooks(Hooks{push_fault:5,..Hooks::default()});let failure=op(p,FILL).unwrap_err();assert_eq!(failure.code,"swift_run_live_underflow");assert!(p.cleanup.live_unreconciled);assert_eq!(p.phase.parts.values.len(),2);});FIXTURES.with(|n|n.set(n.get()+2));let mut foreign=owner();install_foreign(&mut foreign);let mut own=owner();let mut prep=Some(own.prepare_frames(cursor()));let mut p=prep.take().unwrap().unwrap();p.enter(34).unwrap();p.enter(36).unwrap();p.enter(34).unwrap();let pins=pin_ids(&p);push(&mut p,&[Value::I32(-1),Value::I32(0),Value::I32(1)]);let failure=op(&mut p,COPY).unwrap_err();hooks(Hooks{release_mask:7,..Hooks::default()});assert_eq!(p.drain().retained_frames,3);assert_eq!(pin_ids(&p),pins);hooks(Hooks::default());assert!(matches!(p.complete(FrameOperationStorage{preparation:prep,..storage()}),FrameCompletion::Retained(_)));let mut resumed=Some(own.resume_frame_cleanup());let mut p=resumed.take().unwrap().unwrap();let report=p.drain();assert_eq!(report.retained_frames,0);assert_eq!(report.first_failure.unwrap().code,failure.code);assert!(matches!(p.complete(FrameOperationStorage{preparation:resumed,..storage()}),FrameCompletion::Completed));restore_foreign(&mut foreign);retire(foreign);retire(own);}
+--- canonical/vm/src/experimental_swift_reactor/cache.rs
++++ candidate/vm/src/experimental_swift_reactor/cache.rs
+@@ -49,7 +49,38 @@
+     patches: &'a mut [decode::Patch],
+     index: &'a mut [u8],
+     plans: &'a mut [Option<ScanPlan>],
+-}
++    free_pins: &'a mut u64,
++}
++struct DensePinInventory {
++    pins: &'static [PinRecord],
++    scratch: &'static mut SwiftScratch<'static>,
++    mask: u64,
++    permitted: u64,
++    slot: usize,
++    len: usize,
++    remaining: usize,
++    active: usize,
++    record: &'static PinRecord,
++    record_option: Option<&'static PinRecord>,
++    free_bits: &'static mut u64,
++    meter: &'static mut SwiftMeter<'static, 'static>,
++    diagnostic: &'static mut CacheControl<'static>,
++    iter: std::slice::Iter<'static, PinRecord>,
++    slot_return: Result<usize, SwiftRunFailure>,
++    check_return: Result<(), SwiftRunFailure>,
++    outcome: SwiftRunFailure,
++}
++// No selected budget may exceed the canonical 64-pin/frame ceiling.
++// The helper remains total even for corrupt lengths; admission still rejects them.
++fn dense_allowed_pins(len: usize) -> u64 {
++    match len {
++        0 => 0,
++        1..=63 => (1u64 << len) - 1,
++        64 => u64::MAX,
++        _ => 0,
++    }
++}
++
+ // Original fixed hash. The key always remains the actual decoded slot value.
+ fn resident_bucket(function: u32) -> usize {
+     (function.wrapping_mul(0x9e37_79b9) >> 25) as usize
+@@ -272,6 +303,7 @@
+     next_nonce: u64,
+     slots: Vec<SwiftSlot>,
+     pins: Vec<PinRecord>,
++    free_pins: u64,
+     patches: Vec<decode::Patch>,
+     index: Vec<u8>,
+     plans: Vec<Option<ScanPlan>>,
+@@ -312,6 +344,7 @@
+     adopted: Option<AdoptedProof>,
+     slots: Vec<SwiftSlot>,
+     pins: Vec<PinRecord>,
++    free_pins: u64,
+     patches: Vec<decode::Patch>,
+     index: Vec<u8>,
+     plans: Vec<Option<ScanPlan>>,
+@@ -324,6 +357,7 @@
+             adopted: Some(adopted),
+             slots: Vec::new(),
+             pins: Vec::new(),
++            free_pins: 0,
+             patches: Vec::new(),
+             index: Vec::new(),
+             plans: Vec::new(),
+@@ -1051,6 +1085,7 @@
+ /// CacheCleanupTail::complete has consumed the caller's empty owner/Result slots.
+ const fn compute_cache_cleanup_temporary_bytes() -> Option<usize> {
+     sum_named!(&[
++        (3, size_of::<DensePinInventory>()),
+         (3, size_of::<Result<Option<WasiUsage>, SwiftRunFailure>>()),
+         (3, size_of::<Option<Result<WasiUsage, SwiftRunFailure>>>()),
+         (3, size_of::<Result<WasiUsage, SwiftRunFailure>>()),
+@@ -1135,6 +1170,7 @@
+ }
+ const fn compute_cache_construction_bytes() -> Option<usize> {
+     sum_named!(&[
++        (3, size_of::<DensePinInventory>()),
+         (3, size_of::<Result<Option<WasiUsage>, SwiftRunFailure>>()),
+         (3, size_of::<Option<Result<WasiUsage, SwiftRunFailure>>>()),
+         (3, size_of::<Result<WasiUsage, SwiftRunFailure>>()),
+@@ -1193,6 +1229,7 @@
+ }
+ const fn compute_cache_operation_bytes() -> Option<usize> {
+     sum_named!(&[
++        (3, size_of::<DensePinInventory>()),
+         (3, size_of::<Result<Option<WasiUsage>, SwiftRunFailure>>()),
+         (3, size_of::<Option<Result<WasiUsage, SwiftRunFailure>>>()),
+         (3, size_of::<Result<WasiUsage, SwiftRunFailure>>()),
+@@ -1596,6 +1633,7 @@
+                     patches: &mut self.patches,
+                     index: &mut self.index,
+                     plans: &mut self.plans,
++                    free_pins: &mut self.free_pins,
+                 },
+             },
+             pin,
+@@ -1790,6 +1828,7 @@
+                 next_nonce: 1,
+                 slots: take(&mut partial.slots),
+                 pins: take(&mut partial.pins),
++                free_pins: partial.free_pins,
+                 patches: take(&mut partial.patches),
+                 index: take(&mut partial.index),
+                 plans: take(&mut partial.plans),
+@@ -1851,6 +1890,8 @@
+             self.control.work(1)?;
+             partial.pins.push(PinRecord::default());
+         }
++        self.control.work(1)?;
++        partial.free_pins = dense_allowed_pins(budget.active_pins);
+         let buffer_bytes = PATCH_CAPACITY
+             .checked_mul(size_of::<decode::Patch>())
+             .ok_or_else(|| {
+@@ -1940,6 +1981,7 @@
+                     patches: &mut cache.patches,
+                     index: &mut cache.index,
+                     plans: &mut cache.plans,
++                    free_pins: &mut cache.free_pins,
+                 },
+             },
+             function,
+@@ -2121,6 +2163,58 @@
+             offset: Some(0),
+         };
+         SwiftMeter { operation, usage }
++    }
++    fn available_pin(
++        pins: &[PinRecord],
++        scratch: &mut SwiftScratch<'_>,
++        meter: &mut SwiftMeter<'_, '_>,
++    ) -> Result<usize, SwiftRunFailure> {
++        meter.work(3)?; // layout, availability word, live-count agreement
++        if pins.len() > 64
++            || *scratch.free_pins & !dense_allowed_pins(pins.len()) != 0
++            || (*scratch.free_pins).count_ones() as usize + meter.usage().active_pins != pins.len()
++        {
++            return Err(meter.error(CacheFailureKind::InvalidPin, "swift_dense_pin_mask"));
++        }
++        if *scratch.free_pins == 0 {
++            for record in pins {
++                meter.work(1)?;
++                if record.nonce == 0 {
++                    return Err(meter.error(CacheFailureKind::InvalidPin, "swift_dense_pin_orphan"));
++                }
++            }
++            return Err(meter.error(CacheFailureKind::PinExhausted, "pin_slots_exhausted"));
++        }
++        let slot = (*scratch.free_pins).trailing_zeros() as usize;
++        meter.work(2)?; // selected record and eventual single mask write
++        if pins.get(slot).is_none_or(|record| record.nonce != 0) {
++            return Err(meter.error(CacheFailureKind::InvalidPin, "swift_dense_pin_occupied"));
++        }
++        Ok(slot)
++    }
++    fn pin_published(scratch: &mut SwiftScratch<'_>, slot: usize) {
++        // Exclusive borrow retains the preflight bit; record publication is adjacent.
++        *scratch.free_pins &= !(1u64 << slot);
++    }
++    fn validate_pin_release(
++        pins: &[PinRecord],
++        scratch: &mut SwiftScratch<'_>,
++        slot: usize,
++        diagnostic: &mut impl PinDiagnostic<SwiftRunFailure>,
++    ) -> Result<(), SwiftRunFailure> {
++        // Original checked_record validated owner/nonce/entry. No stop polling
++        // here: terminal-owner cleanup must still be able to release its pins.
++        if pins.len() > 64
++            || slot >= pins.len()
++            || *scratch.free_pins & !dense_allowed_pins(pins.len()) != 0
++            || *scratch.free_pins & (1u64 << slot) != 0
++        {
++            return Err(diagnostic.invalid("swift_dense_release_mask"));
++        }
++        Ok(())
++    }
++    fn pin_released(scratch: &mut SwiftScratch<'_>, slot: usize) {
++        *scratch.free_pins |= 1u64 << slot;
+     }
+     fn resident_lookup(
+         slots: &[SwiftSlot],
+@@ -2351,6 +2445,21 @@
+ pub(super) mod inspection {
+     use super::*;
+     // Test-only snapshots of the actual owner, never stored in production state.
++    pub fn dense_pin_mask(cache: &SwiftFunctionCache) -> u64 {
++        cache.free_pins
++    }
++    pub fn dense_set_pin_mask(cache: &mut SwiftFunctionCache, value: u64) {
++        cache.free_pins = value;
++    }
++    pub fn dense_pin_records(cache: &SwiftFunctionCache) -> Vec<(u64, usize)> {
++        cache.pins.iter().map(|p| (p.nonce, p.entry)).collect()
++    }
++    pub fn dense_allowed_mask(len: usize) -> u64 {
++        dense_allowed_pins(len)
++    }
++    pub fn dense_pin_inventory_bytes() -> usize {
++        size_of::<DensePinInventory>()
++    }
+     pub fn resident_index(cache: &SwiftFunctionCache) -> &[u8] {
+         &cache.index
+     }
+@@ -2407,8 +2516,7 @@
+             },
+             None,
+         )
+-        .err()
+-        .expect("malformed scan must fail");
++        .expect_err("malformed scan must fail");
+         // Independent generous exact capacities from a valid finite body;
+         // malformed syntax must fail before count/build agreement is reached.
+         const VALID: &[u8] = &[0, 1, 1, 1, 1, 1, 1, 1, 1, 0x0b];
+@@ -2539,6 +2647,7 @@
+                 patches: &mut cache.patches,
+                 index: &mut cache.index,
+                 plans: &mut cache.plans,
++                free_pins: &mut cache.free_pins,
+             },
+             &mut meter,
+         )
+@@ -2551,6 +2660,7 @@
+                 patches: &mut cache.patches,
+                 index: &mut cache.index,
+                 plans: &mut cache.plans,
++                free_pins: &mut cache.free_pins,
+             },
+             &mut meter,
+         );
+--- canonical/vm/src/experimental_swift_reactor/cache_tests.rs
++++ candidate/vm/src/experimental_swift_reactor/cache_tests.rs
+@@ -221,7 +221,8 @@
+     control: &mut RuntimeControl,
+     adopted: AdoptedProof,
+     wasi: Option<&AccountedWasi>,
+-) -> Result<SwiftFunctionCache, SwiftRunFailure> {
++    outcome: &mut Option<Result<SwiftFunctionCache, SwiftRunFailure>>,
++) {
+     let failure = match SwiftFunctionCache::prepare(control, wasi, &adopted, cache_cursor()) {
+         Ok(mut phase) => {
+             let mut returned = Some(phase.construct(adopted));
+@@ -236,19 +237,29 @@
+                     }
+                 }
+             };
+-            phase.complete(returned)?;
+-            return result;
++            *outcome = Some(match phase.complete(returned) {
++                Ok(()) => result,
++                Err(failure) => Err(failure),
++            });
++            return;
+         }
+         Err(failure) => failure,
+     };
+     // Prepare only borrowed the caller's owner. It must still be explicitly
+     // destroyed/refunded against its original ledger on rejected preparation.
+-    control.drop_proof_with_wasi(adopted, wasi.map(AccountedWasi::usage))?;
+-    Err(failure)
++    if let Err(cleanup_failure) = control.drop_proof_with_wasi(adopted, wasi.map(AccountedWasi::usage)) {
++        *outcome = Some(Err(cleanup_failure));
++        return;
++    }
++    *outcome = Some(Err(failure));
+ }
+ fn new(bytes: &[u8], budget: SwiftRunBudget) -> (RuntimeControl, SwiftFunctionCache) {
+     let (mut c, p) = adopt(bytes, budget);
+-    let cache = construct(&mut c, p, None).unwrap();
++    let cache = {
++        let mut returned = None;
++        construct(&mut c, p, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     (c, cache)
+ }
+ fn pin(
+@@ -256,12 +267,21 @@
+     control: &mut RuntimeControl,
+     function: u32,
+     wasi: Option<&AccountedWasi>,
+-) -> Result<SwiftFunctionPin, SwiftRunFailure> {
+-    let mut phase = cache.prepare_operation(control, wasi, cache_cursor())?;
++    outcome: &mut Option<Result<SwiftFunctionPin, SwiftRunFailure>>,
++) {
++    let mut phase = match cache.prepare_operation(control, wasi, cache_cursor()) {
++        Ok(phase) => phase,
++        Err(failure) => {
++            *outcome = Some(Err(failure));
++            return;
++        }
++    };
+     let mut returned = Some(phase.pin(cache, function));
+     let result = returned.take().unwrap();
+-    phase.complete(returned)?;
+-    result
++    *outcome = Some(match phase.complete(returned) {
++        Ok(()) => result,
++        Err(failure) => Err(failure),
++    });
+ }
+ fn cleanup(
+     cache: SwiftFunctionCache,
+@@ -310,20 +330,30 @@
+     for rejected_owner in 0..3 {
+         let (mut control, adopted) = adopt(&bytes, SwiftRunBudget::default());
+         let context = wasi(&mut control);
+-        let cache = construct(&mut control, adopted, Some(&context)).unwrap();
++        let cache = {
++            let mut returned = None;
++            construct(&mut control, adopted, Some(&context), &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         let (mut other, other_adopted) = adopt(&bytes, SwiftRunBudget::default());
+         let other_context = wasi(&mut other);
+-        let other_cache = construct(&mut other, other_adopted, Some(&other_context)).unwrap();
++        let other_cache = {
++            let mut returned = None;
++            construct(&mut other, other_adopted, Some(&other_context), &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         let source = cache.proof().source().as_ptr();
+         let identity = cache.identity();
+         let before = control.usage(Some(context.usage()));
+         control.cancellation().cancel();
+         hooks(Hooks::default());
+-        let (result, allocations) = measure(|| match rejected_owner {
++        let mut result = None;
++        let ((), allocations) = measure(|| { result = Some(match rejected_owner {
+             0 => cache.check_owner(&mut control, Some(&context), cache_cursor()),
+             1 => cache.check_owner(&mut control, Some(&other_context), cache_cursor()),
+             _ => other_cache.check_owner(&mut control, Some(&context), cache_cursor()),
+-        });
++        }); });
++        let result = result.unwrap();
+         assert_eq!(allocations.attempts, 0);
+         assert_eq!(allocations.deallocations, 0);
+         assert_eq!(HOOKS.with(|h| h.get().checks), 0);
+@@ -344,8 +374,9 @@
+                 Fault::new(SwiftRunFailureKind::GuestTrap, "owner_preflight_prior_trap"),
+                 Some(context.usage()),
+             );
+-            let (result, allocations) =
+-                measure(|| cache.check_owner(&mut control, Some(&context), cache_cursor()));
++            let mut result = None;
++            let ((), allocations) = measure(|| { result = Some(cache.check_owner(&mut control, Some(&context), cache_cursor())); });
++            let result = result.unwrap();
+             result.unwrap();
+             assert_eq!(allocations.attempts, 0);
+             assert_eq!(HOOKS.with(|h| h.get().checks), 0);
+@@ -398,7 +429,11 @@
+         Cancellation::default(),
+     )
+     .unwrap();
+-    let (cache, alloc) = measure(|| construct(&mut c, a, None).unwrap());
++    let (cache, alloc) = measure(|| {
++        let mut returned = None;
++        construct(&mut c, a, None, &mut returned);
++        returned.unwrap()
++    }.unwrap());
+     assert_eq!(cache.proof().source().as_ptr(), source);
+     assert_eq!(cache.proof().source(), bytes);
+     assert_eq!(cache.proof().execution_imports(), &WasiFunction::ALL);
+@@ -428,7 +463,7 @@
+     }
+     code.extend([0, 0x3f, 0, 0, 0x40, 0, 0, 0x41, 0x7f, 0, 0x42, 0x80, 0x7f]);
+     for opcode in 0x45..=0xc4 {
+-        if matches!(opcode,0x45..=0x5a|0x67..=0x8a|0xa7|0xac|0xad|0xc0..=0xc4|0x5b..=0x66|0x8b..=0xa6|0xa8..=0xab|0xae..=0xbf)
++        if matches!(opcode,0x45..=0xc4)
+         {
+             code.extend([0, opcode]);
+         }
+@@ -444,7 +479,11 @@
+     let helper = body(1, &code);
+     let bytes = fixture(0, &helper, 100);
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-    let p = pin(&mut cache, &mut c, 34, None).unwrap();
++    let p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let view = cache.view(&p, &mut c, None).unwrap();
+     assert_eq!(view.locals, &[Type::I32]);
+     assert_eq!(view.branch_targets, &[0, 0, 0]);
+@@ -484,7 +523,11 @@
+     for (params, locals) in [(128, 128), (1, 255), (0, 256)] {
+         let bytes = fixture(params, &body(locals, &[0x0b]), 100);
+         let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-        let p = pin(&mut cache, &mut c, 34, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         assert_eq!(cache.view(&p, &mut c, None).unwrap().locals.len(), locals);
+         finish(cache, c);
+     }
+@@ -503,7 +546,11 @@
+         code.extend(std::iter::repeat_n(0x0b, depth));
+         let bytes = fixture(0, &body(0, &code), 100);
+         let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-        let p = pin(&mut cache, &mut c, 34, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         assert_eq!(
+             cache.view(&p, &mut c, None).unwrap().instructions.len(),
+             2 * depth - 1
+@@ -527,7 +574,11 @@
+ fn permanent_patch_arena_exact_requests() {
+     let bytes = fixture(0, &[0, 0x0b], 100);
+     let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+-    let (cache, s) = measure(|| construct(&mut c, a, None).unwrap());
++    let (cache, s) = measure(|| {
++        let mut returned = None;
++        construct(&mut c, a, None, &mut returned);
++        returned.unwrap()
++    }.unwrap());
+     assert_eq!(s.allocations, 5);
+     println!("permanent fixed requested allocations {:?}", s);
+     let expected = 64 * size_of::<super::cache::SwiftSlot>()
+@@ -553,7 +604,9 @@
+             ..SwiftRunBudget::default()
+         },
+     );
+-    let (result, s) = measure(|| pin(&mut cache, &mut c, 34, None));
++    let mut result = None;
++    let ((), s) = measure(|| pin(&mut cache, &mut c, 34, None, &mut result));
++    let result = result.unwrap();
+     let f = result.unwrap_err();
+     println!("entry admission failure {f:?}");
+     assert_eq!(f.resource, Some(SwiftRunResource::CacheEntryBytes));
+@@ -563,7 +616,11 @@
+     finish(cache, c);
+     let bytes = fixture(0, &body(1, &[vec![1; 3000], vec![0x0b]].concat()), 100);
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-    let p = pin(&mut cache, &mut c, 34, None).unwrap();
++    let p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let _entry = cache.usage().resident_bytes;
+     cache
+         .release(p, &mut c, None)
+@@ -578,9 +635,15 @@
+             ..SwiftRunBudget::default()
+         },
+     );
+-    let cache = construct(&mut c, a, None).unwrap();
++    let cache = {
++        let mut returned = None;
++        construct(&mut c, a, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let mut cache = cache;
+-    let (result, s) = measure(|| pin(&mut cache, &mut c, 34, None));
++    let mut result = None;
++    let ((), s) = measure(|| pin(&mut cache, &mut c, 34, None, &mut result));
++    let result = result.unwrap();
+     assert!(result.is_err());
+     assert_eq!(s.attempts, 0);
+     finish(cache, c);
+@@ -597,7 +660,11 @@
+                 ..SwiftRunBudget::default()
+             },
+         );
+-        assert!(pin(&mut cache, &mut c, 34, None).is_err());
++        assert!({
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.is_err());
+         assert_eq!(cache.usage().active_pins, 0);
+         finish(cache, c);
+     }
+@@ -612,7 +679,11 @@
+         },
+     ] {
+         let (mut c, a) = adopt(&bytes, budget);
+-        assert!(construct(&mut c, a, None).is_err());
++        assert!({
++            let mut returned = None;
++            construct(&mut c, a, None, &mut returned);
++            returned.unwrap()
++        }.is_err());
+         assert_eq!(c.usage(None).reservations.cache.current, 0);
+         assert_eq!(
+             c.finish_owned_cleanup(None).reservations.combined.current,
+@@ -627,7 +698,11 @@
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+     let mut pins = Vec::new();
+     for _ in 0..64 {
+-        pins.push(pin(&mut cache, &mut c, 34, None).unwrap());
++        pins.push({
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap());
+     }
+     assert_eq!(cache.usage().active_pins, 64);
+     assert_eq!(cache.usage().hits, 63);
+@@ -651,7 +726,11 @@
+         },
+     );
+     for f in [34, 35, 34, 36] {
+-        let p = pin(&mut cache, &mut c, f, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, f, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         cache
+             .release(p, &mut c, None)
+             .map_err(|e| e.failure)
+@@ -667,15 +746,27 @@
+             ..SwiftRunBudget::default()
+         },
+     );
+-    let _p = pin(&mut cache, &mut c, 34, None).unwrap();
++    let _p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     assert_eq!(
+-        pin(&mut cache, &mut c, 35, None).unwrap_err().code,
++        {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 35, None, &mut returned);
++            returned.unwrap()
++        }.unwrap_err().code,
+         "all_entries_pinned"
+     );
+     finish(cache, c);
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+     for function in 34..98 {
+-        let p = pin(&mut cache, &mut c, function, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, function, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         cache
+             .release(p, &mut c, None)
+             .map_err(|e| e.failure)
+@@ -684,7 +775,11 @@
+     assert_eq!(c.usage(None).live.cache_entries.current, 64);
+     assert_eq!(c.usage(None).reservations.live_tickets, 73);
+     assert!(c.usage(None).reservations.peak_tickets <= MAX_RESERVATION_TICKETS);
+-    let p = pin(&mut cache, &mut c, 98, None).unwrap();
++    let p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 98, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     cache
+         .release(p, &mut c, None)
+         .map_err(|e| e.failure)
+@@ -695,8 +790,16 @@
+     // Actual release is admission/work/cancellation independent, including the
+     // last recursive pin's subset-byte transition.
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-    let p = pin(&mut cache, &mut c, 34, None).unwrap();
+-    let q = pin(&mut cache, &mut c, 34, None).unwrap();
++    let p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
++    let q = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let work = c.usage(None).cache_work;
+     c.cancellation().cancel();
+     let (_, stats) = measure(|| {
+@@ -719,7 +822,11 @@
+     review_owner_allocator_exhaustion();
+     let bytes = fixture(0, &[0, 0x0b], 100);
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-    let p = pin(&mut cache, &mut c, 34, None).unwrap();
++    let p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let stale = inspection::stale(&p);
+     cache
+         .release(p, &mut c, None)
+@@ -733,7 +840,11 @@
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+     inspection::set_nonce(&mut cache, u64::MAX);
+     assert_eq!(
+-        pin(&mut cache, &mut c, 34, None).unwrap_err().code,
++        {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap_err().code,
+         "pin_nonce_exhausted"
+     );
+     finish(cache, c);
+@@ -741,7 +852,9 @@
+     let (mut foreign, p) = adopt(&bytes, SwiftRunBudget::default());
+     let before = c.usage(None).reservations;
+     let mut owned = Some(cache);
+-    let (result, s) = measure(|| SwiftFunctionCache::cleanup(&mut owned, &mut foreign, None));
++    let mut result = None;
++    let ((), s) = measure(|| { result = Some(SwiftFunctionCache::cleanup(&mut owned, &mut foreign, None)); });
++    let result = result.unwrap();
+     assert!(result.is_err());
+     drop(result);
+     assert!(owned.is_some());
+@@ -764,7 +877,11 @@
+         0
+     );
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-    let p = pin(&mut cache, &mut c, 34, None).unwrap();
++    let p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let (mut other, mut other_cache) = new(&bytes, SwiftRunBudget::default());
+     let before = other.usage(None);
+     let (rejected, stats) = measure(|| other_cache.release(p, &mut other, None).err().unwrap());
+@@ -806,17 +923,19 @@
+         .unwrap();
+     finish(cache, c);
+     let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+-    let phase = SwiftFunctionCache::prepare(&mut c, None, &a, cache_cursor()).unwrap();
+-    drop(phase);
++    {
++        let _phase = SwiftFunctionCache::prepare(&mut c, None, &a, cache_cursor()).unwrap();
++    }
+     assert!(c.usage(None).reservations.construction.current > previous);
+     c.drop_proof(a).unwrap();
+     assert!(c.finish_owned_cleanup(None).reservations.combined.current > 0);
+     let (mut c, cache) = new(&bytes, SwiftRunBudget::default());
+     let floor = c.usage(None).reservations.construction.current;
+-    let operation = cache
+-        .prepare_operation(&mut c, None, cache_cursor())
+-        .unwrap();
+-    drop(operation);
++    {
++        let _operation = cache
++            .prepare_operation(&mut c, None, cache_cursor())
++            .unwrap();
++    }
+     assert!(c.usage(None).reservations.construction.current > floor);
+     cleanup(cache, &mut c, None);
+     assert!(c.finish_owned_cleanup(None).reservations.combined.current > 0);
+@@ -851,7 +970,11 @@
+ fn every_constructor_allocation_ordinal() {
+     let bytes = fixture(0, &[0, 0x0b], 100);
+     let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+-    let (cache, s) = measure(|| construct(&mut c, a, None).unwrap());
++    let (cache, s) = measure(|| {
++        let mut returned = None;
++        construct(&mut c, a, None, &mut returned);
++        returned.unwrap()
++    }.unwrap());
+     let n = s.attempts;
+     assert_eq!(n, 5);
+     finish(cache, c);
+@@ -860,7 +983,9 @@
+     let _ = base_control.finish_owned_cleanup(None);
+     for ordinal in 0..n {
+         let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+-        let (result, s) = measure_extended(Some(ordinal), || construct(&mut c, a, None));
++        let mut result = None;
++        let ((), s) = measure_extended(Some(ordinal), || construct(&mut c, a, None, &mut result));
++        let result = result.unwrap();
+         assert!(result.is_err());
+         assert_eq!(s.injected_failures, 1);
+         assert_eq!(
+@@ -881,7 +1006,11 @@
+             capacity: Some(ordinal),
+             ..Hooks::default()
+         });
+-        let f = construct(&mut c, a, None).err().unwrap();
++        let f = {
++            let mut returned = None;
++            construct(&mut c, a, None, &mut returned);
++            returned.unwrap()
++        }.err().unwrap();
+         hooks(Hooks::default());
+         assert_eq!(f.resource, Some(SwiftRunResource::ExactCapacity));
+         assert_eq!(f.observed_capacity, Some(f.attempted as usize + 1));
+@@ -901,7 +1030,11 @@
+     ] {
+         let bytes = fixture(0, &helper, 100);
+         let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-        let (p, s) = measure(|| pin(&mut cache, &mut c, 34, None).unwrap());
++        let (p, s) = measure(|| {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap());
+         let n = s.attempts;
+         assert!((1..=3).contains(&n));
+         cache
+@@ -911,7 +1044,9 @@
+         finish(cache, c);
+         for ordinal in 0..n {
+             let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-            let (result, s) = measure_extended(Some(ordinal), || pin(&mut cache, &mut c, 34, None));
++            let mut result = None;
++            let ((), s) = measure_extended(Some(ordinal), || pin(&mut cache, &mut c, 34, None, &mut result));
++            let result = result.unwrap();
+             assert!(result.is_err());
+             assert_eq!(s.injected_failures, 1);
+             assert_eq!(c.usage(None).live.cache_entries.current, 0);
+@@ -926,7 +1061,11 @@
+         capacity: Some(0),
+         ..Hooks::default()
+     });
+-    let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
++    let f = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap_err();
+     hooks(Hooks::default());
+     assert_eq!(f.resource, Some(SwiftRunResource::ExactCapacity));
+     assert_eq!(f.observed_capacity, Some(f.attempted as usize + 1));
+@@ -939,7 +1078,11 @@
+             capacity: Some(ordinal),
+             ..Hooks::default()
+         });
+-        let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
++        let f = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap_err();
+         hooks(Hooks::default());
+         assert_eq!(f.resource, Some(SwiftRunResource::ExactCapacity));
+         assert_eq!(c.usage(None).live.cache_entries.current, 0);
+@@ -955,13 +1098,19 @@
+                 ..SwiftRunBudget::default()
+             },
+         );
+-        let p = pin(&mut cache, &mut c, 35, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 35, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         cache
+             .release(p, &mut c, None)
+             .map_err(|e| e.failure)
+             .unwrap();
+         let old = cache.usage().resident_bytes;
+-        let (result, stats) = measure_extended(Some(ordinal), || pin(&mut cache, &mut c, 34, None));
++        let mut result = None;
++        let ((), stats) = measure_extended(Some(ordinal), || pin(&mut cache, &mut c, 34, None, &mut result));
++        let result = result.unwrap();
+         assert!(result.is_err());
+         assert_eq!(stats.injected_failures, 1);
+         assert_eq!(cache.usage().evictions, 1);
+@@ -978,11 +1127,19 @@
+     let bytes = fixture(0, &body(1, &[0, 0x0e, 2, 0, 0, 0, 0x0b]), 29);
+     hooks(Hooks::default());
+     let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+-    let mut cache = construct(&mut c, a, None).unwrap();
++    let mut cache = {
++        let mut returned = None;
++        construct(&mut c, a, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let ctor_work = c.usage(None).cache_work;
+     let ctor_checks = HOOKS.with(|h| h.get().checks);
+     hooks(Hooks::default());
+-    let p = pin(&mut cache, &mut c, 34, None).unwrap();
++    let p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let final_work = c.usage(None).cache_work;
+     let miss_checks = HOOKS.with(|h| h.get().checks);
+     cache
+@@ -999,9 +1156,17 @@
+                 ..SwiftRunBudget::default()
+             },
+         );
+-        match construct(&mut c, a, None) {
++        match {
++            let mut returned = None;
++            construct(&mut c, a, None, &mut returned);
++            returned.unwrap()
++        } {
+             Ok(mut cache) => {
+-                assert!(pin(&mut cache, &mut c, 34, None).is_err());
++                assert!({
++                    let mut returned = None;
++                    pin(&mut cache, &mut c, 34, None, &mut returned);
++                    returned.unwrap()
++                }.is_err());
+                 assert!(c.usage(None).cache_work <= credits);
+                 finish(cache, c);
+             }
+@@ -1021,7 +1186,11 @@
+             ..Hooks::default()
+         });
+         let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+-        let result = construct(&mut c, a, None);
++        let result = {
++            let mut returned = None;
++            construct(&mut c, a, None, &mut returned);
++            returned.unwrap()
++        };
+         hooks(Hooks::default());
+         assert!(
+             result.is_err(),
+@@ -1040,7 +1209,11 @@
+             ..Hooks::default()
+         });
+         assert!(
+-            pin(&mut cache, &mut c, 34, None).is_err(),
++            {
++                let mut returned = None;
++                pin(&mut cache, &mut c, 34, None, &mut returned);
++                returned.unwrap()
++            }.is_err(),
+             "miss cancellation ordinal {ordinal}"
+         );
+         hooks(Hooks::default());
+@@ -1063,14 +1236,22 @@
+             ..SwiftRunBudget::default()
+         },
+     );
+-    let p = pin(&mut cache, &mut c, 34, None).unwrap();
++    let p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     cache
+         .release(p, &mut c, None)
+         .map_err(|e| e.failure)
+         .unwrap();
+     let base = c.usage(None).cache_work;
+     hooks(Hooks::default());
+-    let p = pin(&mut cache, &mut c, target, None).unwrap();
++    let p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, target, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let credits = c.usage(None).cache_work - base;
+     let checks = HOOKS.with(|h| h.get().checks);
+     hooks(Hooks::default());
+@@ -1089,12 +1270,20 @@
+                 ..SwiftRunBudget::default()
+             },
+         );
+-        let p = pin(&mut cache, &mut c, 34, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         cache
+             .release(p, &mut c, None)
+             .map_err(|e| e.failure)
+             .unwrap();
+-        assert!(pin(&mut cache, &mut c, target, None).is_err());
++        assert!({
++            let mut returned = None;
++            pin(&mut cache, &mut c, target, None, &mut returned);
++            returned.unwrap()
++        }.is_err());
+         assert!(c.usage(None).cache_work <= base + prefix);
+         assert_eq!(c.usage(None).live.active_pins.current, 0);
+         assert_eq!(
+@@ -1112,7 +1301,11 @@
+                 ..SwiftRunBudget::default()
+             },
+         );
+-        let p = pin(&mut cache, &mut c, 34, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         cache
+             .release(p, &mut c, None)
+             .map_err(|e| e.failure)
+@@ -1121,7 +1314,11 @@
+             cancel: Some(ordinal),
+             ..Hooks::default()
+         });
+-        assert!(pin(&mut cache, &mut c, target, None).is_err());
++        assert!({
++            let mut returned = None;
++            pin(&mut cache, &mut c, target, None, &mut returned);
++            returned.unwrap()
++        }.is_err());
+         hooks(Hooks::default());
+         assert_eq!(c.usage(None).live.active_pins.current, 0);
+         assert_eq!(
+@@ -1155,7 +1352,11 @@
+             pause: Some(step),
+             ..Hooks::default()
+         });
+-        let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
++        let f = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap_err();
+         let counts = HOOKS.with(|h| h.get().steps);
+         hooks(Hooks::default());
+         assert_eq!(f.kind, SwiftRunFailureKind::Deadline);
+@@ -1188,13 +1389,21 @@
+             )
+             .unwrap();
+         phase.complete().unwrap();
+-        let mut cache = construct(&mut c, a, Some(&w)).unwrap();
++        let mut cache = {
++            let mut returned = None;
++            construct(&mut c, a, Some(&w), &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         hooks(Hooks {
+             pause: Some(CacheStep::BuildReset),
+             cancel_pause: cancel,
+             ..Hooks::default()
+         });
+-        let f = pin(&mut cache, &mut c, 34, Some(&w)).unwrap_err();
++        let f = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, Some(&w), &mut returned);
++            returned.unwrap()
++        }.unwrap_err();
+         hooks(Hooks::default());
+         assert_eq!(f.deadline_origin, SwiftDeadlineOrigin::Wasi);
+         assert_eq!(
+@@ -1237,7 +1446,11 @@
+     .unwrap();
+     let actual = w.usage();
+     assert_ne!(earlier, actual);
+-    let f = construct(&mut c, a, Some(&w)).err().unwrap();
++    let f = {
++        let mut returned = None;
++        construct(&mut c, a, Some(&w), &mut returned);
++        returned.unwrap()
++    }.err().unwrap();
+     println!("first cache failure actual WASI {f:?}");
+     assert_eq!(f.at_failure.wasi, Some(actual));
+     let f2 = c
+@@ -1300,16 +1513,28 @@
+         .unwrap();
+         let actual = w.usage();
+         let failure = if case == "category" {
+-            construct(&mut c, a, Some(&w)).err().unwrap()
++            {
++                let mut returned = None;
++                construct(&mut c, a, Some(&w), &mut returned);
++                returned.unwrap()
++            }.err().unwrap()
+         } else {
+-            let mut cache = construct(&mut c, a, Some(&w)).unwrap();
++            let mut cache = {
++                let mut returned = None;
++                construct(&mut c, a, Some(&w), &mut returned);
++                returned.unwrap()
++            }.unwrap();
+             if case == "capacity" {
+                 hooks(Hooks {
+                     capacity: Some(0),
+                     ..Hooks::default()
+                 });
+             }
+-            let failure = pin(&mut cache, &mut c, 34, Some(&w)).unwrap_err();
++            let failure = {
++                let mut returned = None;
++                pin(&mut cache, &mut c, 34, Some(&w), &mut returned);
++                returned.unwrap()
++            }.unwrap_err();
+             hooks(Hooks::default());
+             cleanup(cache, &mut c, Some(&w));
+             failure
+@@ -1325,8 +1550,16 @@
+     let large = fixture(0, &body(1, &[vec![1; 3000], vec![0x0b]].concat()), 100);
+     let (mut c, a) = adopt(&large, SwiftRunBudget::default());
+     let w = wasi(&mut c);
+-    let mut cache = construct(&mut c, a, Some(&w)).unwrap();
+-    let p = pin(&mut cache, &mut c, 34, Some(&w)).unwrap();
++    let mut cache = {
++        let mut returned = None;
++        construct(&mut c, a, Some(&w), &mut returned);
++        returned.unwrap()
++    }.unwrap();
++    let p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, Some(&w), &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     cache
+         .release(p, &mut c, Some(&w))
+         .map_err(|e| e.failure)
+@@ -1351,8 +1584,16 @@
+         cache_cursor(),
+     )
+     .unwrap();
+-    let mut cache = construct(&mut c, a, Some(&w)).unwrap();
+-    let failure = pin(&mut cache, &mut c, 34, Some(&w)).unwrap_err();
++    let mut cache = {
++        let mut returned = None;
++        construct(&mut c, a, Some(&w), &mut returned);
++        returned.unwrap()
++    }.unwrap();
++    let failure = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, Some(&w), &mut returned);
++        returned.unwrap()
++    }.unwrap_err();
+     assert_eq!(failure.kind, SwiftRunFailureKind::CombinedExhausted);
+     assert_eq!(failure.at_failure.wasi, Some(w.usage()));
+     cleanup(cache, &mut c, Some(&w));
+@@ -1369,9 +1610,17 @@
+     let bytes = fixture(0, &[0, 0x0b], 100);
+     let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+     let w = wasi(&mut c);
+-    let mut cache = construct(&mut c, a, Some(&w)).unwrap();
++    let mut cache = {
++        let mut returned = None;
++        construct(&mut c, a, Some(&w), &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     for f in [34, 35, 34, 36] {
+-        let _ = pin(&mut cache, &mut c, f, Some(&w)).unwrap();
++        let _ = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, f, Some(&w), &mut returned);
++            returned.unwrap()
++        }.unwrap();
+     }
+     let work = c.usage(Some(w.usage())).cache_work;
+     c.cancellation().cancel();
+@@ -1405,7 +1654,11 @@
+     assert_eq!(c.usage(None).reservations.cache.current, header);
+     assert!(c.finish_owned_cleanup(None).reservations.combined.current >= header);
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-    let _ = pin(&mut cache, &mut c, 34, None).unwrap();
++    let _ = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let (mut other, p) = adopt(&bytes, SwiftRunBudget::default());
+     let foreign = other
+         .admit(SwiftReservationCategory::Cache, 1, cache_cursor())
+@@ -1433,7 +1686,11 @@
+     // Foreign WASI preflight must preserve the *exact* caller-owned cache slot.
+     let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+     let w = wasi(&mut c);
+-    let cache = construct(&mut c, a, Some(&w)).unwrap();
++    let cache = {
++        let mut returned = None;
++        construct(&mut c, a, Some(&w), &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let source = cache.proof().source().as_ptr();
+     let (mut other, p) = adopt(&bytes, SwiftRunBudget::default());
+     let mut foreign = wasi(&mut other);
+@@ -1486,8 +1743,16 @@
+         cache_cursor(),
+     )
+     .unwrap();
+-    let mut cache = construct(&mut c, a, Some(&w)).unwrap();
+-    let _ = pin(&mut cache, &mut c, 34, Some(&w)).unwrap();
++    let mut cache = {
++        let mut returned = None;
++        construct(&mut c, a, Some(&w), &mut returned);
++        returned.unwrap()
++    }.unwrap();
++    let _ = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, Some(&w), &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let (mut other, p) = adopt(&bytes, SwiftRunBudget::default());
+     let ticket = other
+         .admit(SwiftReservationCategory::Cache, 1, cache_cursor())
+@@ -1555,8 +1820,16 @@
+         )
+         .unwrap();
+         let actual_wasi = w.usage();
+-        let mut cache = construct(&mut c, adopted, Some(&w)).unwrap();
+-        let p = pin(&mut cache, &mut c, 34, Some(&w)).unwrap();
++        let mut cache = {
++            let mut returned = None;
++            construct(&mut c, adopted, Some(&w), &mut returned);
++            returned.unwrap()
++        }.unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, Some(&w), &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         assert_eq!(cache.usage().decodes, 1);
+         let first = {
+             let mut phase = cache
+@@ -1590,7 +1863,11 @@
+         let steps = HOOKS.with(|h| h.get().steps);
+         for function in [34, 35, 0, 35, 34] {
+             let (failure, allocations) =
+-                measure(|| pin(&mut cache, &mut c, function, Some(&w)).unwrap_err());
++                measure(|| {
++                    let mut returned = None;
++                    pin(&mut cache, &mut c, function, Some(&w), &mut returned);
++                    returned.unwrap()
++                }.unwrap_err());
+             assert_eq!(failure, first);
+             review_assert_no_allocator_effects(allocations);
+             let (failure, allocations) = measure(|| {
+@@ -1790,7 +2067,11 @@
+     external_privacy();
+     let bytes = fixture(0, &[0, 0x0b], 100);
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-    let p = pin(&mut cache, &mut c, 34, None).unwrap();
++    let p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     {
+         let view = cache.view(&p, &mut c, None).unwrap();
+         assert_eq!(view.function, 34);
+@@ -1824,7 +2105,11 @@
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+     let mut pins = Vec::with_capacity(64);
+     for function in 34..98 {
+-        let p = pin(&mut cache, &mut c, function, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, function, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         assert_eq!(cache.view(&p, &mut c, None).unwrap().function, function);
+         pins.push(p);
+         review_assert_category_sum(c.usage(None));
+@@ -1835,7 +2120,11 @@
+     assert_eq!(ledger.live.cache_entries.current, 64);
+     assert_eq!(ledger.reservations.live_tickets, 73);
+     assert_eq!(before.pinned_bytes, before.resident_bytes);
+-    let (failure, stats) = measure(|| pin(&mut cache, &mut c, 98, None).unwrap_err());
++    let (failure, stats) = measure(|| {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 98, None, &mut returned);
++        returned.unwrap()
++    }.unwrap_err());
+     assert_eq!(failure.code, "pin_slots_exhausted");
+     assert_eq!(stats.attempts, 0);
+     assert_eq!(cache.usage(), before);
+@@ -1879,8 +2168,16 @@
+                 Cancellation::default(),
+             )
+             .unwrap();
+-            let mut cache = construct(&mut c, a, None).unwrap();
+-            let p = pin(&mut cache, &mut c, 34, None).unwrap();
++            let mut cache = {
++                let mut returned = None;
++                construct(&mut c, a, None, &mut returned);
++                returned.unwrap()
++            }.unwrap();
++            let p = {
++                let mut returned = None;
++                pin(&mut cache, &mut c, 34, None, &mut returned);
++                returned.unwrap()
++            }.unwrap();
+             assert_eq!(cache.view(&p, &mut c, None).unwrap().locals.len(), locals);
+             finish(cache, c);
+         }
+@@ -1901,7 +2198,11 @@
+         assert_eq!(p.is_ok(), groups == 256);
+         if groups == 256 {
+             let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-            let p = pin(&mut cache, &mut c, 34, None).unwrap();
++            let p = {
++                let mut returned = None;
++                pin(&mut cache, &mut c, 34, None, &mut returned);
++                returned.unwrap()
++            }.unwrap();
+             assert!(cache.view(&p, &mut c, None).unwrap().locals.is_empty());
+             finish(cache, c);
+         }
+@@ -2015,7 +2316,7 @@
+         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0,
+     ]);
+     for opcode in 0x45..=0xc4 {
+-        if matches!(opcode,0x45..=0x5a|0x67..=0x8a|0xa7|0xac|0xad|0xc0..=0xc4|0x5b..=0x66|0x8b..=0xa6|0xa8..=0xab|0xae..=0xbf)
++        if matches!(opcode,0x45..=0xc4)
+         {
+             code.extend([0, opcode]);
+         }
+@@ -2037,7 +2338,11 @@
+     };
+     let owned = crate::Module::decode(&owned_bytes, &limits).unwrap();
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-    let p = pin(&mut cache, &mut c, 34, None).unwrap();
++    let p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let view = cache.view(&p, &mut c, None).unwrap();
+     let expected = &owned.functions[0];
+     assert_eq!(view.locals, expected.locals);
+@@ -2079,9 +2384,17 @@
+         )
+         .unwrap();
+         let actual = w.usage();
+-        let mut cache = construct(&mut c, a, Some(&w)).unwrap();
++        let mut cache = {
++            let mut returned = None;
++            construct(&mut c, a, Some(&w), &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         for f in [34, 34, 35, 36] {
+-            let _ = pin(&mut cache, &mut c, f, Some(&w)).unwrap();
++            let _ = {
++                let mut returned = None;
++                pin(&mut cache, &mut c, f, Some(&w), &mut returned);
++                returned.unwrap()
++            }.unwrap();
+         }
+         let first = if prior {
+             c.cancellation().cancel();
+@@ -2156,7 +2469,11 @@
+ fn review_cleanup_expired_deadline_exact_work_and_latched_terminal() {
+     let bytes = fixture(0, &[0, 0x0b], 100);
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-    let _ = pin(&mut cache, &mut c, 34, None).unwrap();
++    let _ = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let exact_work = c.usage(None).cache_work;
+     finish(cache, c);
+     for case in ["deadline", "work", "terminal"] {
+@@ -2170,7 +2487,11 @@
+             ..SwiftRunBudget::default()
+         };
+         let (mut c, mut cache) = new(&bytes, budget);
+-        let _ = pin(&mut cache, &mut c, 34, None).unwrap();
++        let _ = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         if case == "deadline" {
+             std::thread::sleep(
+                 c.deadline().saturating_duration_since(Instant::now()) + Duration::from_millis(1),
+@@ -2311,7 +2632,9 @@
+                 ..SwiftRunBudget::default()
+             },
+         );
+-        let (result, stats) = measure(|| construct(&mut c, a, None));
++        let mut result = None;
++        let ((), stats) = measure(|| construct(&mut c, a, None, &mut result));
++        let result = result.unwrap();
+         if ceiling == header + patch_bytes {
+             assert_eq!(stats.attempts, 3);
+             let cache = result.unwrap();
+@@ -2364,7 +2687,11 @@
+         for attempt in 0..3 {
+             let (mut c, adopted) = adopt(&bytes, SwiftRunBudget::default());
+             let (failure, allocations) =
+-                measure(|| construct(&mut c, adopted, None).err().unwrap());
++                measure(|| {
++                    let mut returned = None;
++                    construct(&mut c, adopted, None, &mut returned);
++                    returned.unwrap()
++                }.err().unwrap());
+             assert_eq!(failure.kind, SwiftRunFailureKind::Invariant);
+             assert_eq!(failure.code, "swift_cache_owner_exhausted");
+             assert_eq!(allocations.attempts, 5);
+@@ -2610,15 +2937,19 @@
+         hooks(Hooks::default());
+         let bytes = fixture(0, &helper, 100);
+         let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-        assert_eq!(c.usage(None).cache_work, 4_928);
++        assert_eq!(c.usage(None).cache_work, 4_929);
+         elision_enable(&c, false);
+         let before = c.usage(None).cache_work;
+-        let p = pin(&mut cache, &mut c, 34, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         let view = cache.view(&p, &mut c, None).unwrap();
+         assert_eq!(
+             view.instructions
+                 .iter()
+-                .map(|i| i.operation.clone())
++                .map(|i| i.operation)
+                 .collect::<Vec<_>>(),
+             expected
+         );
+@@ -2632,7 +2963,11 @@
+             c.usage(None).cache_work - before
+         );
+         elision_enable(&c, false);
+-        let (hit, stats) = measure(|| pin(&mut cache, &mut c, 34, None).unwrap());
++        let (hit, stats) = measure(|| {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap());
+         let (_, release_stats) = measure(|| {
+             cache
+                 .release(hit, &mut c, None)
+@@ -2642,8 +2977,8 @@
+         assert_eq!(stats.attempts, 0);
+         assert_eq!(release_stats.attempts, 0);
+         let hit = elision_finish_observation(&c);
+-        assert_eq!(hit.stage_work.iter().sum::<u64>(), 8);
+-        println!("ELISION {{\"case\":\"{label}\",\"constructorWork\":4928,\"coldWork\":{},\"coldStages\":{:?},\"hitWork\":8,\"hitStages\":{:?},\"fixedReserved\":{},\"residentBytes\":{}}}",cold.stage_work.iter().sum::<u64>(),cold.stage_work,hit.stage_work,cache.usage().fixed_reserved,cache.usage().resident_bytes);
++        assert_eq!(hit.stage_work.iter().sum::<u64>(), 12);
++        println!("ELISION {{\"case\":\"{label}\",\"constructorWork\":4929,\"coldWork\":{},\"coldStages\":{:?},\"hitWork\":12,\"hitStages\":{:?},\"fixedReserved\":{},\"residentBytes\":{}}}",cold.stage_work.iter().sum::<u64>(),cold.stage_work,hit.stage_work,cache.usage().fixed_reserved,cache.usage().resident_bytes);
+         finish(cache, c);
+     }
+     hooks(Hooks::default());
+@@ -2657,7 +2992,11 @@
+     );
+     let mut held = None;
+     for (index, function) in [34, 35, 36, 35, 37, 34, 38, 37].into_iter().enumerate() {
+-        let p = pin(&mut cache, &mut c, function, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, function, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         let parts = inspection::elision_pin_parts(&p);
+         let times = inspection::elision_times(&cache);
+         let newest = times.iter().max().copied().unwrap();
+@@ -2791,12 +3130,16 @@
+         let bytes = fixture(0, &helper, 100);
+         let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+         elision_enable(&c, true);
+-        let p = pin(&mut cache, &mut c, 34, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         let view = cache.view(&p, &mut c, None).unwrap();
+         assert_eq!(
+             view.instructions
+                 .iter()
+-                .map(|i| i.operation.clone())
++                .map(|i| i.operation)
+                 .collect::<Vec<_>>(),
+             expected,
+             "{label}"
+@@ -2828,7 +3171,11 @@
+         let bytes = fixture(0, &helper, 100);
+         let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+         elision_enable(&c, true);
+-        let p = pin(&mut cache, &mut c, 34, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         let view = cache.view(&p, &mut c, None).unwrap();
+         assert_eq!(view.instructions.len(), 2 * depth - 1);
+         for i in 0..depth - 1 {
+@@ -2853,7 +3200,11 @@
+         assert_eq!(o.dirty_passes, [1, 1]);
+         // Reuse the very same owner and deep stale arena for an ordinary flat
+         // miss. Do not redirty here: this specifically tests deep-to-shallow reuse.
+-        let p = pin(&mut cache, &mut c, 35, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 35, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         let view = cache.view(&p, &mut c, None).unwrap();
+         assert_eq!(view.instructions.len(), 1);
+         assert_eq!(view.instructions[0].operation, O::End);
+@@ -2909,7 +3260,11 @@
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+     hooks(Hooks::default());
+     elision_enable(&c, false);
+-    let p = pin(&mut cache, &mut c, 34, None).unwrap();
++    let p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let observed = elision_finish_observation(&c);
+     cache
+         .release(p, &mut c, None)
+@@ -2941,7 +3296,11 @@
+                     pause: expired.then_some(step),
+                     ..Hooks::default()
+                 });
+-                let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
++                let f = {
++                    let mut returned = None;
++                    pin(&mut cache, &mut c, 34, None, &mut returned);
++                    returned.unwrap()
++                }.unwrap_err();
+                 hooks(Hooks::default());
+                 assert_eq!(
+                     f.kind,
+@@ -2959,7 +3318,9 @@
+                 assert_eq!(cache.usage().decodes, 0);
+                 assert_eq!(c.check_with_wasi(cache_cursor(), None).unwrap_err(), f);
+                 let before = c.usage(None);
+-                let (again, stats) = measure(|| pin(&mut cache, &mut c, 34, None));
++                let mut again = None;
++                let ((), stats) = measure(|| pin(&mut cache, &mut c, 34, None, &mut again));
++                let again = again.unwrap();
+                 assert_eq!(again.unwrap_err(), f);
+                 assert_eq!(stats.attempts, 0);
+                 assert_eq!(c.usage(None).cache_work, before.cache_work);
+@@ -3007,7 +3368,11 @@
+ }
+ fn resident_seed(c: &mut RuntimeControl, cache: &mut SwiftFunctionCache) {
+     for function in [34, 178, 267] {
+-        let p = pin(cache, c, function, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(cache, c, function, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         cache.release(p, c, None).map_err(|e| e.failure).unwrap();
+         resident_assert_index(cache);
+     }
+@@ -3034,14 +3399,22 @@
+             .into_iter()
+             .filter(|f| u64::from(*f) != victim)
+         {
+-            let (p, allocations) = measure(|| pin(&mut cache, &mut c, function, None).unwrap());
++            let (p, allocations) = measure(|| {
++                let mut returned = None;
++                pin(&mut cache, &mut c, function, None, &mut returned);
++                returned.unwrap()
++            }.unwrap());
+             assert_eq!(allocations.attempts, 0);
+             cache
+                 .release(p, &mut c, None)
+                 .map_err(|e| e.failure)
+                 .unwrap();
+         }
+-        let p = pin(&mut cache, &mut c, 411, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 411, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         assert_eq!(cache.view(&p, &mut c, None).unwrap().function, 411);
+         assert_eq!(cache.usage().evictions, 1);
+         assert_eq!(
+@@ -3053,7 +3426,11 @@
+             .release(p, &mut c, None)
+             .map_err(|e| e.failure)
+             .unwrap();
+-        let p = pin(&mut cache, &mut c, victim as u32, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, victim as u32, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         assert_eq!(
+             cache.view(&p, &mut c, None).unwrap().function,
+             victim as u32
+@@ -3079,7 +3456,11 @@
+         let (mut c, mut cache) = new(&bytes, budget);
+         resident_seed(&mut c, &mut cache);
+         for function in [34, 178, 267].into_iter().filter(|f| *f != victim) {
+-            let p = pin(&mut cache, &mut c, function, None).unwrap();
++            let p = {
++                let mut returned = None;
++                pin(&mut cache, &mut c, function, None, &mut returned);
++                returned.unwrap()
++            }.unwrap();
+             cache
+                 .release(p, &mut c, None)
+                 .map_err(|e| e.failure)
+@@ -3087,7 +3468,11 @@
+         }
+         let base = c.usage(None).cache_work;
+         hooks(Hooks::default());
+-        let p = pin(&mut cache, &mut c, 411, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 411, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         let credits = c.usage(None).cache_work - base;
+         let checks = HOOKS.with(|h| h.get().checks);
+         hooks(Hooks::default());
+@@ -3107,19 +3492,31 @@
+             );
+             resident_seed(&mut c, &mut cache);
+             for function in [34, 178, 267].into_iter().filter(|f| *f != victim) {
+-                let p = pin(&mut cache, &mut c, function, None).unwrap();
++                let p = {
++                    let mut returned = None;
++                    pin(&mut cache, &mut c, function, None, &mut returned);
++                    returned.unwrap()
++                }.unwrap();
+                 cache
+                     .release(p, &mut c, None)
+                     .map_err(|e| e.failure)
+                     .unwrap();
+             }
+-            let failure = pin(&mut cache, &mut c, 411, None).unwrap_err();
++            let failure = {
++                let mut returned = None;
++                pin(&mut cache, &mut c, 411, None, &mut returned);
++                returned.unwrap()
++            }.unwrap_err();
+             assert_eq!(failure.resource, Some(SwiftRunResource::CacheWork));
+             assert_eq!(c.usage(None).live.active_pins.current, 0);
+             resident_assert_index(&cache);
+             let before = c.usage(None);
+             assert_eq!(
+-                pin(&mut cache, &mut c, 411, None).unwrap_err().kind,
++                {
++                    let mut returned = None;
++                    pin(&mut cache, &mut c, 411, None, &mut returned);
++                    returned.unwrap()
++                }.unwrap_err().kind,
+                 failure.kind
+             );
+             review_assert_same_control_effects(before, c.usage(None));
+@@ -3130,7 +3527,11 @@
+             let (mut c, mut cache) = new(&bytes, budget);
+             resident_seed(&mut c, &mut cache);
+             for function in [34, 178, 267].into_iter().filter(|f| *f != victim) {
+-                let p = pin(&mut cache, &mut c, function, None).unwrap();
++                let p = {
++                    let mut returned = None;
++                    pin(&mut cache, &mut c, function, None, &mut returned);
++                    returned.unwrap()
++                }.unwrap();
+                 cache
+                     .release(p, &mut c, None)
+                     .map_err(|e| e.failure)
+@@ -3141,7 +3542,11 @@
+                 ..Hooks::default()
+             });
+             assert_eq!(
+-                pin(&mut cache, &mut c, 411, None).unwrap_err().kind,
++                {
++                    let mut returned = None;
++                    pin(&mut cache, &mut c, 411, None, &mut returned);
++                    returned.unwrap()
++                }.unwrap_err().kind,
+                 SwiftRunFailureKind::Cancelled
+             );
+             hooks(Hooks::default());
+@@ -3166,7 +3571,11 @@
+             0 => inspection::corrupt_index(&mut cache, bucket, 255),
+             1 => inspection::corrupt_index(&mut cache, 128 + usize::from(head - 1), 64),
+             2 => {
+-                let p = pin(&mut cache, &mut c, 35, None).unwrap();
++                let p = {
++                    let mut returned = None;
++                    pin(&mut cache, &mut c, 35, None, &mut returned);
++                    returned.unwrap()
++                }.unwrap();
+                 cache
+                     .release(p, &mut c, None)
+                     .map_err(|e| e.failure)
+@@ -3175,7 +3584,11 @@
+             }
+             _ => inspection::corrupt_index(&mut cache, 128 + usize::from(head - 1), head),
+         }
+-        let failure = pin(&mut cache, &mut c, 34, None).unwrap_err();
++        let failure = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap_err();
+         assert_eq!(failure.kind, SwiftRunFailureKind::DecoderMismatch);
+         assert_eq!(cache.usage().decodes, if case == 2 { 4 } else { 3 });
+         assert_eq!(c.usage(None).live.active_pins.current, 0);
+@@ -3197,12 +3610,28 @@
+             ..SwiftRunBudget::default()
+         },
+     );
+-    let a = pin(&mut cache, &mut c, 34, None).unwrap();
+-    let b = pin(&mut cache, &mut c, 178, None).unwrap();
+-    let d = pin(&mut cache, &mut c, 267, None).unwrap();
++    let a = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
++    let b = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 178, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
++    let d = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 267, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let before = inspection::resident_index(&cache).to_vec();
+     assert_eq!(
+-        pin(&mut cache, &mut c, 411, None).unwrap_err().code,
++        {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 411, None, &mut returned);
++            returned.unwrap()
++        }.unwrap_err().code,
+         "all_entries_pinned"
+     );
+     assert_eq!(inspection::resident_index(&cache), before);
+@@ -3231,7 +3660,11 @@
+     let bytes = fixture(0, &[0, 0x0b], 12000);
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+     for function in &functions {
+-        let p = pin(&mut cache, &mut c, *function, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, *function, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         cache
+             .release(p, &mut c, None)
+             .map_err(|e| e.failure)
+@@ -3239,10 +3672,14 @@
+     }
+     resident_assert_index(&cache);
+     let before = c.usage(None).cache_work;
+-    let p = pin(&mut cache, &mut c, functions[0], None).unwrap();
++    let p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, functions[0], None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     assert_eq!(cache.view(&p, &mut c, None).unwrap().function, functions[0]);
+     let hit_work = c.usage(None).cache_work - before;
+-    assert_eq!(hit_work, 260); // two ordinary headers plus hash/head plus4*64 nodes.
++    assert_eq!(hit_work, 264); // Bitmap admission adds four credits to the original 260.
+     cache
+         .release(p, &mut c, None)
+         .map_err(|e| e.failure)
+@@ -3251,7 +3688,11 @@
+     let head = inspection::resident_index(&cache)[bucket];
+     inspection::corrupt_index(&mut cache, 128, head); // tail slot0 now closes a64-node cycle.
+     assert_eq!(
+-        pin(&mut cache, &mut c, functions[0], None)
++        {
++            let mut returned = None;
++            pin(&mut cache, &mut c, functions[0], None, &mut returned);
++            returned.unwrap()
++        }
+             .unwrap_err()
+             .code,
+         "swift_cache_index_cycle"
+@@ -3267,7 +3708,11 @@
+     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+     let constructor = c.usage(None).cache_work;
+     for function in 34..98 {
+-        let p = pin(&mut cache, &mut c, function, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, function, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         cache
+             .release(p, &mut c, None)
+             .map_err(|e| e.failure)
+@@ -3278,7 +3723,11 @@
+     let (_, allocations) = measure(|| {
+         for _ in 0..4 {
+             for function in 34..98 {
+-                let p = pin(&mut cache, &mut c, function, None).unwrap();
++                let p = {
++                    let mut returned = None;
++                    pin(&mut cache, &mut c, function, None, &mut returned);
++                    returned.unwrap()
++                }.unwrap();
+                 assert_eq!(cache.view(&p, &mut c, None).unwrap().function, function);
+                 cache
+                     .release(p, &mut c, None)
+@@ -3313,11 +3762,15 @@
+         for sweep in 0..3 {
+             let begin = c.usage(None).cache_work;
+             for f in 34..130 {
+-                let p = pin(&mut cache, &mut c, f, None).unwrap();
++                let p = {
++                    let mut returned = None;
++                    pin(&mut cache, &mut c, f, None, &mut returned);
++                    returned.unwrap()
++                }.unwrap();
+                 let v = cache.view(&p, &mut c, None).unwrap();
+                 if f == 34 {
+                     let operations: Vec<_> =
+-                        v.instructions.iter().map(|x| x.operation.clone()).collect();
++                        v.instructions.iter().map(|x| x.operation).collect();
+                     assert_eq!(v.locals, &[Type::I32]);
+                     assert_eq!(
+                         operations,
+@@ -3359,7 +3812,11 @@
+ 
+ use super::cache::plan_inspection as pi;
+ fn plan_reuse_release(cache: &mut SwiftFunctionCache, c: &mut RuntimeControl, f: u32) {
+-    let p = pin(cache, c, f, None).unwrap();
++    let p = {
++        let mut returned = None;
++        pin(cache, c, f, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     cache.release(p, c, None).map_err(|e| e.failure).unwrap();
+ }
+ fn plan_reuse_seed(bytes: &[u8], budget: SwiftRunBudget) -> (RuntimeControl, SwiftFunctionCache) {
+@@ -3395,7 +3852,9 @@
+ fn plan_reuse_shapes_and_admission() {
+     let bytes = fixture(0, &[0, 0x0b], 100);
+     let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+-    let (result, stats) = measure(|| construct(&mut c, a, None));
++    let mut result = None;
++    let ((), stats) = measure(|| construct(&mut c, a, None, &mut result));
++    let result = result.unwrap();
+     let cache = result.unwrap();
+     assert_eq!(stats.attempts, 5);
+     assert_eq!(c.budget(), SwiftRunBudget::default());
+@@ -3426,7 +3885,11 @@
+     plan_reuse_release(&mut cache, &mut c, 35);
+     let ((r, scans), stats) = measure(|| {
+         hooks(Hooks::default());
+-        let r = pin(&mut cache, &mut c, 34, None).unwrap();
++        let r = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         (r, HOOKS.with(|h| h.get().steps[CacheStep::Scan as usize]))
+     });
+     assert_eq!(scans, 0);
+@@ -3442,7 +3905,11 @@
+     for field in 0..4 {
+         let (mut c, mut cache) = plan_reuse_seed(&bytes, budget);
+         pi::corrupt(&mut cache, 34, field);
+-        let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
++        let f = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap_err();
+         assert_eq!(f.kind, SwiftRunFailureKind::DecoderMismatch);
+         assert_eq!(
+             f.code,
+@@ -3453,7 +3920,11 @@
+             }
+         );
+         let work = c.usage(None).cache_work;
+-        let second = pin(&mut cache, &mut c, 35, None).unwrap_err();
++        let second = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 35, None, &mut returned);
++            returned.unwrap()
++        }.unwrap_err();
+         plan_reuse_primary(f, second);
+         assert_eq!(c.usage(None).cache_work, work);
+         assert_eq!(c.usage(None).live.active_pins.current, 0);
+@@ -3462,7 +3933,9 @@
+     let (c, mut cache) = plan_reuse_seed(&bytes, budget);
+     let (mut other, other_cache) = new(&bytes, budget);
+     let before = pi::count(&cache);
+-    let (r, stats) = measure(|| pin(&mut cache, &mut other, 34, None));
++    let mut r = None;
++    let ((), stats) = measure(|| pin(&mut cache, &mut other, 34, None, &mut r));
++    let r = r.unwrap();
+     assert!(r.is_err());
+     assert_eq!(stats.attempts, 0);
+     assert_eq!(pi::count(&cache), before);
+@@ -3475,14 +3948,20 @@
+     hooks(Hooks::default());
+     let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+     hooks(Hooks::default());
+-    let cache = construct(&mut c, a, None).unwrap();
++    let cache = {
++        let mut returned = None;
++        construct(&mut c, a, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let checks = HOOKS.with(|h| h.get().checks);
+     let credits = c.usage(None).cache_work;
+     hooks(Hooks::default());
+     finish(cache, c);
+     for ordinal in 0..5 {
+         let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+-        let (r, s) = measure_extended(Some(ordinal), || construct(&mut c, a, None));
++        let mut r = None;
++        let ((), s) = measure_extended(Some(ordinal), || construct(&mut c, a, None, &mut r));
++        let r = r.unwrap();
+         assert!(r.is_err());
+         assert_eq!(s.injected_failures, 1);
+         assert_eq!(c.usage(None).reservations.cache.current, 0);
+@@ -3495,7 +3974,11 @@
+             capacity: Some(ordinal),
+             ..Hooks::default()
+         });
+-        let f = construct(&mut c, a, None).err().unwrap();
++        let f = {
++            let mut returned = None;
++            construct(&mut c, a, None, &mut returned);
++            returned.unwrap()
++        }.err().unwrap();
+         hooks(Hooks::default());
+         assert_eq!(f.resource, Some(SwiftRunResource::ExactCapacity));
+         assert_eq!(c.usage(None).reservations.cache.current, 0);
+@@ -3512,7 +3995,11 @@
+                 ..SwiftRunBudget::default()
+             },
+         );
+-        let r = construct(&mut c, a, None);
++        let r = {
++            let mut returned = None;
++            construct(&mut c, a, None, &mut returned);
++            returned.unwrap()
++        };
+         assert!(r.is_err(), "work {work}");
+         assert_eq!(c.usage(None).reservations.cache.current, 0);
+         assert_eq!(
+@@ -3526,7 +4013,11 @@
+             cancel: Some(ordinal),
+             ..Hooks::default()
+         });
+-        let r = construct(&mut c, a, None);
++        let r = {
++            let mut returned = None;
++            construct(&mut c, a, None, &mut returned);
++            returned.unwrap()
++        };
+         hooks(Hooks::default());
+         assert!(r.is_err(), "check {ordinal}");
+         assert_eq!(c.usage(None).reservations.cache.current, 0);
+@@ -3553,7 +4044,11 @@
+         };
+         let before = c.usage(None).cache_work;
+         hooks(Hooks::default());
+-        let p = pin(&mut cache, &mut c, 34, None).unwrap();
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
+         let checks = HOOKS.with(|h| h.get().checks);
+         let work = c.usage(None).cache_work - before;
+         hooks(Hooks::default());
+@@ -3581,12 +4076,20 @@
+                     },
+                 )
+             };
+-            let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
++            let f = {
++                let mut returned = None;
++                pin(&mut cache, &mut c, 34, None, &mut returned);
++                returned.unwrap()
++            }.unwrap_err();
+             assert_eq!(f.resource, Some(SwiftRunResource::CacheWork));
+             let retained = pi::key(&cache, 34);
+             assert!(retained.is_none() || retained == Some(34));
+             let stopped = c.usage(None).cache_work;
+-            plan_reuse_primary(f, pin(&mut cache, &mut c, 34, None).unwrap_err());
++            plan_reuse_primary(f, {
++                let mut returned = None;
++                pin(&mut cache, &mut c, 34, None, &mut returned);
++                returned.unwrap()
++            }.unwrap_err());
+             assert_eq!(c.usage(None).cache_work, stopped);
+             finish(cache, c);
+         }
+@@ -3600,11 +4103,19 @@
+                 cancel: Some(ordinal),
+                 ..Hooks::default()
+             });
+-            let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
++            let f = {
++                let mut returned = None;
++                pin(&mut cache, &mut c, 34, None, &mut returned);
++                returned.unwrap()
++            }.unwrap_err();
+             hooks(Hooks::default());
+             assert_eq!(f.kind, SwiftRunFailureKind::Cancelled);
+             assert_eq!(c.usage(None).live.active_pins.current, 0);
+-            plan_reuse_primary(f, pin(&mut cache, &mut c, 34, None).unwrap_err());
++            plan_reuse_primary(f, {
++                let mut returned = None;
++                pin(&mut cache, &mut c, 34, None, &mut returned);
++                returned.unwrap()
++            }.unwrap_err());
+             finish(cache, c);
+         }
+         for ordinal in 0..3 {
+@@ -3613,7 +4124,9 @@
+             } else {
+                 new(&bytes, base)
+             };
+-            let (r, s) = measure_extended(Some(ordinal), || pin(&mut cache, &mut c, 34, None));
++            let mut r = None;
++            let ((), s) = measure_extended(Some(ordinal), || pin(&mut cache, &mut c, 34, None, &mut r));
++            let r = r.unwrap();
+             assert!(r.is_err());
+             assert_eq!(s.injected_failures, 1);
+             assert_eq!(pi::key(&cache, 34), Some(34));
+@@ -3696,7 +4209,11 @@
+                 ..SwiftRunBudget::default()
+             },
+         );
+-        assert!(construct(&mut c, a, None).is_err());
++        assert!({
++            let mut returned = None;
++            construct(&mut c, a, None, &mut returned);
++            returned.unwrap()
++        }.is_err());
+         assert_eq!(c.usage(None).reservations.cache.current, 0);
+         assert_eq!(
+             c.finish_owned_cleanup(None).reservations.combined.current,
+@@ -3743,14 +4260,22 @@
+                     ..Hooks::default()
+                 });
+             }
+-            let f = pin(&mut cache, &mut c, 546, None).unwrap_err();
++            let f = {
++                let mut returned = None;
++                pin(&mut cache, &mut c, 546, None, &mut returned);
++                returned.unwrap()
++            }.unwrap_err();
+             hooks(Hooks::default());
+             let actual = pi::summary(&cache, 546).unwrap();
+             assert!(
+                 actual == old || actual == published,
+                 "atomic metadata publish ordinal {ordinal}"
+             );
+-            plan_reuse_primary(f, pin(&mut cache, &mut c, 34, None).unwrap_err());
++            plan_reuse_primary(f, {
++                let mut returned = None;
++                pin(&mut cache, &mut c, 34, None, &mut returned);
++                returned.unwrap()
++            }.unwrap_err());
+             finish(cache, c);
+         }
+     }
+@@ -3781,7 +4306,11 @@
+                 cancel_pause: cancel,
+                 ..Hooks::default()
+             });
+-            let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
++            let f = {
++                let mut returned = None;
++                pin(&mut cache, &mut c, 34, None, &mut returned);
++                returned.unwrap()
++            }.unwrap_err();
+             hooks(Hooks::default());
+             assert_eq!(
+                 f.kind,
+@@ -3792,7 +4321,11 @@
+                 }
+             );
+             assert_eq!(c.usage(None).live.active_pins.current, 0);
+-            plan_reuse_primary(f, pin(&mut cache, &mut c, 34, None).unwrap_err());
++            plan_reuse_primary(f, {
++                let mut returned = None;
++                pin(&mut cache, &mut c, 34, None, &mut returned);
++                returned.unwrap()
++            }.unwrap_err());
+             finish(cache, c);
+         }
+     }
+@@ -3801,45 +4334,91 @@
+ 
+ #[test]
+ fn plan_reuse_profile_envelopes_without_guest_execution() {
+-    use super::execution::{self,SwiftReactorInstance};
+-    use super::execution::frame_operations::{FrameOperationStorage,FrameCompletion};
++    use super::execution::frame_operations::{FrameCompletion, FrameOperationStorage};
++    use super::execution::{self, SwiftReactorInstance};
+     use crate::experimental_wasi::accounted::accounted_header_bytes;
+-    let bytes=fixture(0,&[0,0x0b],100);
+-    let max=SwiftRunBudget::default();
+-    let mut pair=Some(adopt(&bytes,max));
+-    let mut returned=Some(SwiftReactorInstance::construct(&mut pair,WasiGrants::default(),WasiBudget::default(),Instant::now(),cache_cursor()));
+-    let mut owner=returned.take().unwrap().unwrap();assert!(pair.is_none());drop((pair,returned));
+-    let constructed=owner.control.as_ref().unwrap().usage(owner.wasi.as_ref().map(AccountedWasi::usage));
+-    assert_eq!(constructed.reservations.live_tickets,21);
++    let bytes = fixture(0, &[0, 0x0b], 100);
++    let max = SwiftRunBudget::default();
++    let mut pair = Some(adopt(&bytes, max));
++    let mut returned = Some(SwiftReactorInstance::construct(
++        &mut pair,
++        WasiGrants::default(),
++        WasiBudget::default(),
++        Instant::now(),
++        cache_cursor(),
++    ));
++    let mut owner = returned.take().unwrap().unwrap();
++    assert!(pair.is_none());
++    drop((pair, returned));
++    let constructed = owner
++        .control
++        .as_ref()
++        .unwrap()
++        .usage(owner.wasi.as_ref().map(AccountedWasi::usage));
++    assert_eq!(constructed.reservations.live_tickets, 21);
+     for f in 34..98 {
+-        let cache=owner.cache.as_mut().unwrap();let control=owner.control.as_mut().unwrap();let wasi=owner.wasi.as_ref();
+-        let p=pin(cache,control,f,wasi).unwrap();cache.release(p,control,wasi).map_err(|e|e.failure).unwrap();
+-    }
+-    let resident=owner.control.as_ref().unwrap().usage(owner.wasi.as_ref().map(AccountedWasi::usage));
+-    assert_eq!(resident.live.cache_entries.current,64);assert_eq!(resident.reservations.live_tickets,85);
+-    let mut preparation=Some(owner.prepare_frames(cache_cursor()));
+-    let mut phase=preparation.take().unwrap().unwrap();let report=phase.drain();
+-    let bound=report.bound.unwrap();assert_eq!(report.usage.instructions,0);assert_eq!(report.usage.instruction_fuel,0);
+-    let frame_bytes=bound.admitted-bound.previous;
+-    assert!(matches!(phase.complete(FrameOperationStorage{preparation,entry:None,returned:None,drained:Some(report),controlled:None}),FrameCompletion::Completed));
+-    let floor=foundation_construction_bytes().unwrap();
+-    let construction=execution::construction_bytes().unwrap();
+-    let execution_header=execution::execution_header_bytes().unwrap();
++        let cache = owner.cache.as_mut().unwrap();
++        let control = owner.control.as_mut().unwrap();
++        let wasi = owner.wasi.as_ref();
++        let p = {
++            let mut returned = None;
++            pin(cache, control, f, wasi, &mut returned);
++            returned.unwrap()
++        }.unwrap();
++        cache
++            .release(p, control, wasi)
++            .map_err(|e| e.failure)
++            .unwrap();
++    }
++    let resident = owner
++        .control
++        .as_ref()
++        .unwrap()
++        .usage(owner.wasi.as_ref().map(AccountedWasi::usage));
++    assert_eq!(resident.live.cache_entries.current, 64);
++    assert_eq!(resident.reservations.live_tickets, 85);
++    let mut preparation = Some(owner.prepare_frames(cache_cursor()));
++    let mut phase = preparation.take().unwrap().unwrap();
++    let report = phase.drain();
++    let bound = report.bound.unwrap();
++    assert_eq!(report.usage.instructions, 0);
++    assert_eq!(report.usage.instruction_fuel, 0);
++    let frame_bytes = bound.admitted - bound.previous;
++    assert!(matches!(
++        phase.complete(FrameOperationStorage {
++            preparation,
++            entry: None,
++            returned: None,
++            drained: Some(report),
++            controlled: None
++        }),
++        FrameCompletion::Completed
++    ));
++    let floor = foundation_construction_bytes().unwrap();
++    let construction = execution::construction_bytes().unwrap();
++    let execution_header = execution::execution_header_bytes().unwrap();
+     // A conservative simultaneous ceiling calculation, not a claim that every
+     // independent category ceiling is reachable in a valid module.
+-    let categories=max.source_bytes+max.metadata_bytes+max.cache_bytes+max.state_bytes;
+-    let wasi=accounted_header_bytes().unwrap()+4*65536;
+-    let shared=constructed.reservations.shared.current;
+-    let phase_peak=floor+construction.max(frame_bytes+cache_operation_bytes().unwrap());
+-    let maximum_envelope=categories+wasi+shared+phase_peak;
++    let categories = max.source_bytes + max.metadata_bytes + max.cache_bytes + max.state_bytes;
++    let wasi = accounted_header_bytes().unwrap() + 4 * 65536;
++    let shared = constructed.reservations.shared.current;
++    let phase_peak = floor + construction.max(frame_bytes + cache_operation_bytes().unwrap());
++    let maximum_envelope = categories + wasi + shared + phase_peak;
+     println!("PLAN_PROFILE floor={floor} execution_header={execution_header} execution_construction={construction} frame_operation={frame_bytes} category_ceiling_sum={categories} wasi_max={wasi} shared={shared} conservative_combined={maximum_envelope} combined_limit={} constructed_current={} constructed_peak={} resident_current={} resident_peak={} frame_peak={} tickets={}/{}",max.combined_bytes,constructed.reservations.combined.current,constructed.reservations.combined.peak,resident.reservations.combined.current,resident.reservations.combined.peak,report.usage.reservations.combined.peak,report.usage.reservations.live_tickets,report.usage.reservations.peak_tickets);
+-    assert!(maximum_envelope<=max.combined_bytes);
+-    assert!(execution_header<=max.state_bytes);assert!(report.usage.reservations.peak_tickets<=86);
+-    assert_eq!(owner.control.as_ref().unwrap().budget(),max);
+-    let mut owned=Some(owner);let mut cleanup=Some(SwiftReactorInstance::cleanup_owned(&mut owned));
+-    let tail=cleanup.take().unwrap().unwrap();let mut failure=None;let mut usage=None;
+-    tail.complete((owned,cleanup),&mut failure,&mut usage);
+-    let final_usage=usage.unwrap();assert_eq!(final_usage.reservations.combined.current,0);assert_eq!(final_usage.reservations.live_tickets,0);assert!(failure.is_none());
++    assert!(maximum_envelope <= max.combined_bytes);
++    assert!(execution_header <= max.state_bytes);
++    assert!(report.usage.reservations.peak_tickets <= 86);
++    assert_eq!(owner.control.as_ref().unwrap().budget(), max);
++    let mut owned = Some(owner);
++    let mut cleanup = Some(SwiftReactorInstance::cleanup_owned(&mut owned));
++    let tail = cleanup.take().unwrap().unwrap();
++    let mut failure = None;
++    let mut usage = None;
++    tail.complete((owned, cleanup), &mut failure, &mut usage);
++    let final_usage = usage.unwrap();
++    assert_eq!(final_usage.reservations.combined.current, 0);
++    assert_eq!(final_usage.reservations.live_tickets, 0);
++    assert!(failure.is_none());
+     println!("PLAN_PROFILE cleanup_zero=true guest_instructions=0 initializes=0 invokes=0");
+ }
+ 
+@@ -3847,7 +4426,11 @@
+ fn full_regression_observe_cache_fixture_shapes() {
+     let bytes = fixture(0, &[0, 0x0b], 100);
+     let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+-    let (cache, stats) = measure(|| construct(&mut c, a, None).unwrap());
++    let (cache, stats) = measure(|| {
++        let mut returned = None;
++        construct(&mut c, a, None, &mut returned);
++        returned.unwrap()
++    }.unwrap());
+     println!(
+         "REGRESSION_CACHE stats={stats:?} header={} fixed={} work={}",
+         cache_header_bytes().unwrap(),
+@@ -3857,3 +4440,301 @@
+     assert_eq!(stats.reallocations, 0);
+     finish(cache, c);
+ }
++
++// Policy-neutral extraction of the reviewed pin bookkeeping. These are actual
++// owner tests; the pure model is supporting evidence, never their replacement.
++fn pin_bitmap_assert_actual(cache: &SwiftFunctionCache) {
++    let records = inspection::dense_pin_records(cache);
++    let expected = records
++        .iter()
++        .enumerate()
++        .fold(0u64, |bits, (slot, record)| {
++            bits | if record.0 == 0 { 1u64 << slot } else { 0 }
++        });
++    assert_eq!(inspection::dense_pin_mask(cache), expected);
++    assert_eq!(
++        records.iter().filter(|record| record.0 != 0).count(),
++        cache.usage().active_pins
++    );
++}
++
++#[test]
++fn pin_bitmap_integration_masks_and_unchanged_policy() {
++    for len in 0..=64 {
++        let expected = (0..len).fold(0u64, |mask, bit| mask | (1u64 << bit));
++        assert_eq!(inspection::dense_allowed_mask(len), expected);
++    }
++    for len in [65, 128, usize::MAX] {
++        assert_eq!(inspection::dense_allowed_mask(len), 0);
++    }
++    let b = SwiftRunBudget::default();
++    assert_eq!((b.cache_entries, b.active_pins, b.frames), (64, 64, 64));
++    assert_eq!(
++        (
++            b.cache_work,
++            b.instruction_fuel,
++            b.execution_work,
++            b.deadline_ms
++        ),
++        (64_000_000, 100_000_000, 1_000_000_000, 30_000)
++    );
++    assert_eq!(
++        (b.cache_bytes, b.cache_entry_bytes, b.combined_bytes),
++        (16 << 20, 8 << 20, 256 << 20)
++    );
++    assert_eq!(MAX_RESERVATION_TICKETS, 86);
++    let bytes = fixture(0, &[0, 0x0b], 100);
++    for wider in [
++        SwiftRunBudget {
++            active_pins: 65,
++            ..b
++        },
++        SwiftRunBudget { frames: 65, ..b },
++        SwiftRunBudget {
++            cache_entries: 512,
++            ..b
++        },
++        SwiftRunBudget {
++            cache_work: 4_000_000_000,
++            ..b
++        },
++        SwiftRunBudget {
++            instruction_fuel: 4_000_000_000,
++            ..b
++        },
++        SwiftRunBudget {
++            execution_work: 16_000_000_000,
++            ..b
++        },
++        SwiftRunBudget {
++            deadline_ms: 1_200_000,
++            ..b
++        },
++    ] {
++        let failure = RuntimeControl::adopt(
++            proof(&bytes),
++            wider,
++            Instant::now(),
++            Cancellation::default(),
++        )
++        .err()
++        .expect("experimental completion limits must remain inadmissible");
++        assert_eq!(failure.kind, SwiftRunFailureKind::InvalidBudget);
++    }
++}
++
++#[test]
++fn pin_bitmap_integration_every_narrow_capacity_and_last_bit() {
++    hooks(Hooks::default());
++    let bytes = fixture(0, &[0, 0x0b], 100);
++    for count in 0..=64 {
++        let (mut c, mut cache) = new(
++            &bytes,
++            SwiftRunBudget {
++                active_pins: count,
++                ..SwiftRunBudget::default()
++            },
++        );
++        let mut pins = Vec::with_capacity(count);
++        for expected in 0..count {
++            let p = {
++                let mut returned = None;
++                pin(&mut cache, &mut c, 34, None, &mut returned);
++                returned.unwrap()
++            }.unwrap();
++            assert_eq!(inspection::elision_pin_parts(&p)[0], expected as u64);
++            pins.push(p);
++            pin_bitmap_assert_actual(&cache);
++        }
++        let records = inspection::dense_pin_records(&cache);
++        let before = cache.usage();
++        let (failure, allocations) = measure(|| {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap_err());
++        assert_eq!(failure.code, "pin_slots_exhausted");
++        assert_eq!(allocations.attempts, 0);
++        assert_eq!(inspection::dense_pin_records(&cache), records);
++        assert_eq!(cache.usage(), before);
++        let work = c.usage(None).cache_work;
++        for p in pins.into_iter().rev() {
++            cache
++                .release(p, &mut c, None)
++                .map_err(|e| e.failure)
++                .unwrap();
++            pin_bitmap_assert_actual(&cache);
++        }
++        assert_eq!(c.usage(None).cache_work, work);
++        finish(cache, c);
++    }
++}
++
++#[test]
++fn pin_bitmap_integration_hole_reuse_and_constant_selection_work() {
++    hooks(Hooks::default());
++    let bytes = fixture(0, &[0, 0x0b], 100);
++    let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
++    let warm = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
++    cache
++        .release(warm, &mut c, None)
++        .map_err(|e| e.failure)
++        .unwrap();
++    let mut pins = Vec::with_capacity(64);
++    for expected in 0..64 {
++        let before = c.usage(None).cache_work;
++        let (p, allocations) = measure(|| {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap());
++        assert_eq!(allocations.attempts, 0);
++        assert_eq!(c.usage(None).cache_work - before, 12);
++        assert_eq!(inspection::elision_pin_parts(&p)[0], expected);
++        pins.push(Some(p));
++    }
++    for slot in [63, 1, 32, 0] {
++        cache
++            .release(pins[slot].take().unwrap(), &mut c, None)
++            .map_err(|e| e.failure)
++            .unwrap();
++    }
++    for slot in [0, 1, 32, 63] {
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
++        assert_eq!(inspection::elision_pin_parts(&p)[0], slot as u64);
++        pins[slot] = Some(p);
++        pin_bitmap_assert_actual(&cache);
++    }
++    for p in pins.into_iter().flatten() {
++        cache
++            .release(p, &mut c, None)
++            .map_err(|e| e.failure)
++            .unwrap();
++    }
++    finish(cache, c);
++}
++
++#[test]
++fn pin_bitmap_integration_corruption_preserves_records_and_token() {
++    hooks(Hooks::default());
++    let bytes = fixture(0, &[0, 0x0b], 100);
++    for occupied in [false, true] {
++        let (mut c, mut cache) = new(
++            &bytes,
++            SwiftRunBudget {
++                active_pins: 8,
++                ..SwiftRunBudget::default()
++            },
++        );
++        let p = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap();
++        let valid = inspection::dense_pin_mask(&cache);
++        let corrupt = if occupied {
++            valid ^ 1 ^ 2
++        } else {
++            valid | (1 << 63)
++        };
++        inspection::dense_set_pin_mask(&mut cache, corrupt);
++        let records = inspection::dense_pin_records(&cache);
++        let before = cache.usage();
++        let failure = {
++            let mut returned = None;
++            pin(&mut cache, &mut c, 34, None, &mut returned);
++            returned.unwrap()
++        }.unwrap_err();
++        assert_eq!(
++            failure.code,
++            if occupied {
++                "swift_dense_pin_occupied"
++            } else {
++                "swift_dense_pin_mask"
++            }
++        );
++        assert_eq!(inspection::dense_pin_records(&cache), records);
++        assert_eq!(inspection::dense_pin_mask(&cache), corrupt);
++        assert_eq!(cache.usage(), before);
++        inspection::dense_set_pin_mask(&mut cache, valid);
++        cache
++            .release(p, &mut c, None)
++            .map_err(|e| e.failure)
++            .unwrap();
++        finish(cache, c);
++    }
++    let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
++    let p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
++    let valid = inspection::dense_pin_mask(&cache);
++    inspection::dense_set_pin_mask(&mut cache, valid | 1);
++    let records = inspection::dense_pin_records(&cache);
++    let work = c.usage(None).cache_work;
++    let rejected = cache.release(p, &mut c, None).err().unwrap();
++    assert_eq!(rejected.failure.code, "swift_dense_release_mask");
++    assert_eq!(inspection::dense_pin_records(&cache), records);
++    assert_eq!(c.usage(None).cache_work, work);
++    inspection::dense_set_pin_mask(&mut cache, valid);
++    cache
++        .release(rejected.into_pin(), &mut c, None)
++        .map_err(|e| e.failure)
++        .unwrap();
++    finish(cache, c);
++}
++
++#[test]
++fn pin_bitmap_integration_all_failure_prefixes_and_constructor_admission() {
++    every_constructor_allocation_ordinal();
++    every_work_prefix_and_cancellation_boundary();
++    construction_and_operation_phase_boundaries();
++    foreign_stale_nonce_and_control_ownership();
++}
++
++#[test]
++fn pin_bitmap_integration_terminal_cancellation_keeps_release_available() {
++    hooks(Hooks::default());
++    let bytes = fixture(0, &[0, 0x0b], 100);
++    let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
++    let p = {
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.unwrap();
++    let records = inspection::dense_pin_records(&cache);
++    let mask = inspection::dense_pin_mask(&cache);
++    c.cancellation().cancel();
++    assert!({
++        let mut returned = None;
++        pin(&mut cache, &mut c, 34, None, &mut returned);
++        returned.unwrap()
++    }.is_err());
++    assert_eq!(inspection::dense_pin_records(&cache), records);
++    assert_eq!(inspection::dense_pin_mask(&cache), mask);
++    let work = c.usage(None).cache_work;
++    cache
++        .release(p, &mut c, None)
++        .map_err(|e| e.failure)
++        .unwrap();
++    assert_eq!(c.usage(None).cache_work, work);
++    pin_bitmap_assert_actual(&cache);
++    finish(cache, c);
++}
++
++#[test]
++fn pin_bitmap_integration_geometry_and_consuming_cleanup() {
++    assert!(inspection::dense_pin_inventory_bytes() > 0);
++    permanent_patch_arena_exact_requests();
++    plan_reuse_shapes_and_admission();
++    plan_reuse_profile_envelopes_without_guest_execution();
++}
+--- canonical/vm/src/experimental_swift_reactor/control_operations_tests.rs
++++ candidate/vm/src/experimental_swift_reactor/control_operations_tests.rs
+@@ -1616,7 +1616,7 @@
+         let report=p.drain();assert_eq!(report.live_unreconciled,opcode==0x6a);
+         let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);
+         assert_eq!(failure.at_failure.cleanup_invariant,Some(SwiftCleanupInvariant::LiveUnderflow));
+-        let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
++        let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     }
+ }
+ #[test]
+@@ -1640,5 +1640,5 @@
+     assert_eq!((failure.stage,failure.function,failure.offset,failure.resource),(SwiftRunStage::Invocation,Some(34),Some(instruction.offset),Some(SwiftRunResource::Values)));assert_eq!((failure.attempted,failure.limit),(1,0));assert_eq!(p.phase.parts.frames.len(),1);assert_eq!(p.phase.parts.cache.usage().active_pins,1);assert!(p.phase.parts.values.is_empty());
+     // finish's original saved-result error returns before its removal adapter;
+     // its original defensive latch is observed by the following cleanup pass.
+-    let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+-}
++    let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
++}
+--- canonical/vm/src/experimental_swift_reactor/diagnostic_profile_tests.rs
++++ candidate/vm/src/experimental_swift_reactor/diagnostic_profile_tests.rs
+@@ -204,7 +204,7 @@
+ }
+ fn assert_wire(bytes: &[u8], e: &Encoded) {
+     assert_eq!(bytes.len(), 2_560_000);
+-    for (absolute, row) in bytes.chunks_exact(32).enumerate() {
++    for (absolute, row) in bytes.as_chunks::<32>().0.iter().enumerate() {
+         let defined = u32::from_le_bytes(row[0..4].try_into().unwrap());
+         let ty = u32::from_le_bytes(row[4..8].try_into().unwrap());
+         let off = u64::from_le_bytes(row[8..16].try_into().unwrap());
+@@ -227,7 +227,7 @@
+     let s = validate(&e);
+     for absolute in 0..80000 {
+         let row = profile_row_v1(&s, absolute).unwrap();
+-        if absolute >= 34 && absolute < 164 {
++        if (34..164).contains(&absolute) {
+             let i = absolute as usize - 34;
+             assert_eq!(
+                 (row.type_index, row.body_offset, row.body_len),
+@@ -404,7 +404,7 @@
+     assert_eq!(actual.len(), 4103);
+     let mut expected = Vec::new();
+     for n in 0..129usize {
+-        if n >= 34 && n < 63 {
++        if (34..63).contains(&n) {
+             let i = n - 34;
+             expected.extend(1u32.to_le_bytes());
+             expected.extend(e.types[i].to_le_bytes());
+--- canonical/vm/src/experimental_swift_reactor/diagnostic_result_v1_tests.rs
++++ candidate/vm/src/experimental_swift_reactor/diagnostic_result_v1_tests.rs
+@@ -89,9 +89,9 @@
+     let u = usage();
+     assert_eq!(decode_usage(&encode_usage(&u).unwrap()).unwrap(), u);
+     let w = words::<64>(&encode_usage(&u).unwrap());
+-    for i in 0..64 {
++    for (i, word) in w.iter().enumerate() {
+         if ![35, 38, 50].contains(&i) {
+-            assert_eq!(w[i], 100 + i as u64);
++            assert_eq!(*word, 100 + i as u64);
+         }
+     }
+ }
+@@ -189,7 +189,7 @@
+     u.validation.source_bytes = usize::MAX;
+     u.cache_work = u64::MAX;
+     assert_eq!(decode_usage(&encode_usage(&u).unwrap()).unwrap(), u);
+-    assert!(usize::BITS <= 64);
++    const { assert!(usize::BITS <= 64) };
+ }
+ #[test]
+ fn unknown_and_inactive_enums_refuse() {
+--- canonical/vm/src/experimental_swift_reactor/execution_tests.rs
++++ candidate/vm/src/experimental_swift_reactor/execution_tests.rs
+@@ -576,17 +576,22 @@
+ }
+ pub(super) fn construct_owned(
+     pair: &mut Option<(RuntimeControl, AdoptedProof)>,
+-) -> Result<SwiftReactorInstance, ConstructionFailure> {
+-    SwiftReactorInstance::construct(
++    outcome: &mut Option<Result<SwiftReactorInstance, ConstructionFailure>>,
++) {
++    *outcome = Some(SwiftReactorInstance::construct(
+         pair,
+         WasiGrants::default(),
+         construction_wasi_budget(),
+         Instant::now(),
+         construction_cursor(),
+-    )
++    ));
+ }
+ fn construct_failed(mut pair: Option<(RuntimeControl, AdoptedProof)>) -> SwiftRunFailure {
+-    let mut returned = Some(construct_owned(&mut pair));
++    let mut returned = Some({
++        let mut returned = None;
++        construct_owned(&mut pair, &mut returned);
++        returned.unwrap()
++    });
+     let tail = match returned.take().unwrap() {
+         Err(ConstructionFailure::Cleanup(tail)) => tail,
+         _ => panic!("expected destructive constructor failure"),
+@@ -633,7 +638,11 @@
+         .reservations
+         .construction
+         .current;
+-    let (owner, allocations) = measure(|| construct_owned(&mut pair).unwrap());
++    let (owner, allocations) = measure(|| {
++        let mut returned = None;
++        construct_owned(&mut pair, &mut returned);
++        returned.unwrap()
++    }.unwrap());
+     assert!(pair.is_none());
+     drop(pair);
+     assert!(matches!(owner.lifecycle, Lifecycle::Uninitialized));
+@@ -760,7 +769,11 @@
+         controls: 0,
+         ..SwiftRunBudget::default()
+     });
+-    let (owner, stats) = measure(|| construct_owned(&mut pair).unwrap());
++    let (owner, stats) = measure(|| {
++        let mut returned = None;
++        construct_owned(&mut pair, &mut returned);
++        returned.unwrap()
++    }.unwrap());
+     drop(pair);
+     let state = owner.state.as_ref().unwrap();
+     assert_eq!(
+@@ -793,7 +806,9 @@
+         Fault::new(SwiftRunFailureKind::GuestTrap, "construction_prior"),
+         None,
+     );
+-    let (returned, stats) = measure(|| construct_owned(&mut pair));
++    let mut returned = None;
++    let ((), stats) = measure(|| construct_owned(&mut pair, &mut returned));
++    let returned = returned.unwrap();
+     let failure = match returned {
+         Err(ConstructionFailure::Rejected(failure)) => failure,
+         _ => panic!("expected intact-pair rejection"),
+@@ -882,7 +897,11 @@
+     }
+     construction_hooks(ConstructionHooks::default());
+     let mut pair = construction_adopt(SwiftRunBudget::default());
+-    let owner = construct_owned(&mut pair).unwrap();
++    let owner = {
++        let mut returned = None;
++        construct_owned(&mut pair, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     drop(pair);
+     let count = CONSTRUCTION_HOOKS.with(|slot| slot.get().checks);
+     construction_finish(owner);
+@@ -919,7 +938,11 @@
+ fn swift_construction_real_wasi_terminal_cleanup_and_intact_foreign_preflight() {
+     construction_hooks(ConstructionHooks::default());
+     let mut first =
+-        Some(construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap());
++        Some({
++            let mut returned = None;
++            construct_owned(&mut construction_adopt(SwiftRunBudget::default()), &mut returned);
++            returned.unwrap()
++        }.unwrap());
+     {
+         let owner = first.as_mut().unwrap();
+         owner
+@@ -943,7 +966,11 @@
+         );
+     }
+     let mut second =
+-        Some(construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap());
++        Some({
++            let mut returned = None;
++            construct_owned(&mut construction_adopt(SwiftRunBudget::default()), &mut returned);
++            returned.unwrap()
++        }.unwrap());
+     std::mem::swap(
+         &mut first.as_mut().unwrap().wasi,
+         &mut second.as_mut().unwrap().wasi,
+@@ -999,7 +1026,11 @@
+ fn swift_construction_cleanup_rejects_nonempty_state_before_take() {
+     construction_hooks(ConstructionHooks::default());
+     let mut owned =
+-        Some(construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap());
++        Some({
++            let mut returned = None;
++            construct_owned(&mut construction_adopt(SwiftRunBudget::default()), &mut returned);
++            returned.unwrap()
++        }.unwrap());
+     owned
+         .as_mut()
+         .unwrap()
+@@ -1140,7 +1171,11 @@
+         at = end;
+     }
+     let mut pair = construction_adopt_bytes(&fixture, SwiftRunBudget::default());
+-    let owner = construct_owned(&mut pair).unwrap();
++    let owner = {
++        let mut returned = None;
++        construct_owned(&mut pair, &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     drop(pair);
+     assert_eq!(
+         &owner.state.as_ref().unwrap().globals[4..],
+@@ -1191,7 +1226,11 @@
+     ] {
+         construction_hooks(ConstructionHooks::default());
+         let mut owner =
+-            construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap();
++            {
++                let mut returned = None;
++                construct_owned(&mut construction_adopt(SwiftRunBudget::default()), &mut returned);
++                returned.unwrap()
++            }.unwrap();
+         let (failure, stats) = measure(|| {
+             scalar_constant_probe(
+                 bytes,
+@@ -1212,7 +1251,11 @@
+ #[test]
+ fn swift_construction_state_phase_is_one_shot_and_restores_exact_outer_bound() {
+     construction_hooks(ConstructionHooks::default());
+-    let mut owner = construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap();
++    let mut owner = {
++        let mut returned = None;
++        construct_owned(&mut construction_adopt(SwiftRunBudget::default()), &mut returned);
++        returned.unwrap()
++    }.unwrap();
+     let floor = owner
+         .control
+         .as_ref()
+@@ -1316,17 +1359,19 @@
+     let (mut control, proof) = adopted();
+     let (mut other, other_proof) = adopted();
+     let bytes = execution_header_bytes().unwrap();
+-    let original = control
+-        .admit(SwiftReservationCategory::State, bytes, Cursor::adoption())
+-        .unwrap();
+-    let foreign = other
+-        .admit(SwiftReservationCategory::State, bytes, Cursor::adoption())
+-        .unwrap();
+-    control.drop_proof(proof).unwrap();
+-    other.drop_proof(other_proof).unwrap();
+-    // Test-only intentional ownership loss. The original charge must remain;
+-    // no test can manufacture a matching replacement token or erase the ledger.
+-    drop(original);
++    let foreign = {
++        let _original = control
++            .admit(SwiftReservationCategory::State, bytes, Cursor::adoption())
++            .unwrap();
++        let foreign = other
++            .admit(SwiftReservationCategory::State, bytes, Cursor::adoption())
++            .unwrap();
++        control.drop_proof(proof).unwrap();
++        other.drop_proof(other_proof).unwrap();
++        // Test-only intentional ownership loss. The original charge must remain;
++        // no test can manufacture a matching replacement token or erase the ledger.
++        foreign
++    };
+     let tail = {
+         let final_wasi = actual_final_observation(&mut control);
+         ExecutionCleanupTail {
+@@ -1388,7 +1433,11 @@
+ fn full_regression_observe_integrated_fixture_shapes() {
+     construction_hooks(ConstructionHooks::default());
+     let mut pair = construction_adopt(SwiftRunBudget::default());
+-    let (owner, stats) = measure(|| construct_owned(&mut pair).unwrap());
++    let (owner, stats) = measure(|| {
++        let mut returned = None;
++        construct_owned(&mut pair, &mut returned);
++        returned.unwrap()
++    }.unwrap());
+     drop(pair);
+     let (usage, cleanup) = measure(|| construction_finish(owner));
+     println!("REGRESSION_INTEGRATED stats={stats:?} cleanup={cleanup:?} final_tickets={} final_combined={}", usage.reservations.live_tickets, usage.reservations.combined.current);
+@@ -1424,7 +1473,11 @@
+         controls: 0,
+         ..SwiftRunBudget::default()
+     });
+-    let (owner, stats) = measure(|| construct_owned(&mut pair).unwrap());
++    let (owner, stats) = measure(|| {
++        let mut returned = None;
++        construct_owned(&mut pair, &mut returned);
++        returned.unwrap()
++    }.unwrap());
+     drop(pair);
+     println!("REGRESSION_ZERO_STACK stats={stats:?}");
+     construction_finish(owner);
+--- canonical/vm/src/experimental_swift_reactor/lifecycle_tests.rs
++++ candidate/vm/src/experimental_swift_reactor/lifecycle_tests.rs
+@@ -951,7 +951,8 @@
+     assert_eq!(start.live.cache_entries.current, 0);
+     // Constructor writes 29 slots, 64 pin records, 512 patches, 192 index cells
+     // and eight charged semantic cells for each of 512 scan-plan entries.
+-    assert_eq!(start.cache_work, 29 + 64 + 512 + 192 + 512 * 8);
++    // Publishing the initialized free-pin bitmap costs one additional credit.
++    assert_eq!(start.cache_work, 29 + 64 + 1 + 512 + 192 + 512 * 8);
+     assert_eq!(success(&mut o, Request::Initialize), Reply::Initialized);
+     let initialized = observed(&o);
+     // Resident Cache tickets belong to decoded entries, surviving pin release.
+@@ -961,14 +962,14 @@
+     );
+     assert_eq!(initialized.live.cache_entries.current, 1);
+     assert_eq!(initialized.instructions - start.instructions, 6);
+-    // Cold cost adds 13 actual probe/publication credits to the original
+-    // 108 + pin records + 2*encoded body bytes + 3*instructions.
+-    // Init35: B14/I6/P1; corpus62: B7/I3/P1; callee36: B19/I9/P2.
++    // Cold cost includes 13 probe/publication credits and five credits for
++    // successful bitmap pin selection: 108 + 5 + 2*body bytes + 3*instructions + 13.
++    // Init35: B14/I6; corpus62: B7/I3; callee36: B19/I9.
+     assert_eq!(
+         initialized.cache_work - start.cache_work,
+-        108 + 1 + 2 * 14 + 3 * 6 + 13
+-    );
+-    assert_eq!(initialized.cache_work, 5_061);
++        108 + 5 + 2 * 14 + 3 * 6 + 13
++    );
++    assert_eq!(initialized.cache_work, 5_066);
+     assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(2));
+     let first = observed(&o);
+     assert_eq!(
+@@ -979,9 +980,9 @@
+     let first_cache = o.cache.as_ref().unwrap().usage();
+     assert_eq!(
+         first.cache_work - initialized.cache_work,
+-        (108 + 1 + 2 * 7 + 3 * 3 + 13) + (108 + 2 + 2 * 19 + 3 * 9 + 13)
+-    );
+-    assert_eq!(first.cache_work, 5_394);
++        (108 + 5 + 2 * 7 + 3 * 3 + 13) + (108 + 5 + 2 * 19 + 3 * 9 + 13)
++    );
++    assert_eq!(first.cache_work, 5_406);
+     assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(3));
+     let second = observed(&o);
+     assert_eq!(
+@@ -998,12 +999,12 @@
+             && first.execution_work > initialized.execution_work
+     );
+     // Resident order35@0,62@1,36@2. Outer pin record0 stays live for callee.
+-    // Lookup + pin-record scan + checked index chain: outer1+1+6, nested1+2+6.
++    // Lookup + bitmap pin selection + checked index chain: both 1+5+6.
+     assert_eq!(
+         second.cache_work - first.cache_work,
+-        (1 + 1 + 6) + (1 + 2 + 6)
+-    );
+-    assert_eq!(second.cache_work, 5_411);
++        (1 + 5 + 6) + (1 + 5 + 6)
++    );
++    assert_eq!(second.cache_work, 5_430);
+     assert_eq!(second_cache.hits - first_cache.hits, 2);
+     assert_eq!(second_cache.misses, first_cache.misses);
+     assert_eq!(second_cache.decodes, first_cache.decodes);
+@@ -1228,8 +1229,10 @@
+     assert_eq!(SwiftRunBudget::default().combined_bytes, 256 * 1024 * 1024);
+     // Exact compiler position/owner/layout identities are checked by the saved
+     // compiler packet; this executable row checks actual charged formula joins.
+-    assert!(super::PERMANENT_BYTES > 0);
+-    assert!(super::ACTIVE_BYTES > 0);
++    const {
++        assert!(super::PERMANENT_BYTES > 0);
++        assert!(super::ACTIVE_BYTES > 0);
++    }
+     let mut o = owner(&[]);
+     let before = observed(&o).reservations.construction.current;
+     success(&mut o, Request::Initialize);
+@@ -1762,24 +1765,24 @@
+         .unwrap()
+         .test_replace_execution_work_limit(old);
+     retire(o);
+-    // Constructor 4,893; cold no-op init B2/I1:108+1+4+3+13=129.
++    // Constructor 4,894; cold no-op init B2/I1:108+5+4+3+13=133.
+     // Keep the synthetic limit exactly at completed initialization so the
+     // later invocation still fails without resetting cumulative work.
+     let mut o = owner_with(
+         &[],
+         &[],
+         SwiftRunBudget {
+-            cache_work: 5_022,
++            cache_work: 5_027,
+             ..SwiftRunBudget::default()
+         },
+         WasiGrants::default(),
+         WasiBudget::default(),
+     );
+     success(&mut o, Request::Initialize);
+-    assert_eq!(observed(&o).cache_work, 5_022);
++    assert_eq!(observed(&o).cache_work, 5_027);
+     let f = failed(&mut o, Request::Corpus);
+     assert_eq!(f.resource, Some(SwiftRunResource::CacheWork));
+-    assert_eq!(f.at_failure.cache_work, 5_022);
++    assert_eq!(f.at_failure.cache_work, 5_027);
+     assert_eq!(f.at_failure.instructions, 1);
+     retire(o);
+     let mut o = owner(&[]);
+--- canonical/vm/src/experimental_swift_reactor/memory_growth_operations_tests.rs
++++ candidate/vm/src/experimental_swift_reactor/memory_growth_operations_tests.rs
+@@ -423,7 +423,7 @@
+                 .operation
+                 .control
+                 .test_replace_execution_work_limit(limit);
+-            let committed = allowed >= 1 + growthwork;
++            let committed = allowed > growthwork;
+             assert_eq!(
+                 p.phase.parts.memory.len(),
+                 if committed { 585 * PAGE } else { 584 * PAGE }
+--- canonical/vm/src/experimental_swift_reactor/memory_operations_tests.rs
++++ candidate/vm/src/experimental_swift_reactor/memory_operations_tests.rs
+@@ -74,7 +74,7 @@
+ #[test] fn mm09_held_pin_cleanup(){let _b=Bounds::new();
+  for case in 0..10 {
+  FIXTURES.with(|n|n.set(n.get()+2));let mut foreign=owner();install_foreign(&mut foreign);let mut own=owner();let mut prep=Some(own.prepare_frames(cursor()));let mut p=prep.take().unwrap().unwrap();p.enter(34).unwrap();p.enter(36).unwrap();p.enter(34).unwrap();let pins=pin_ids(&p);
+- let store=case>=4&&case<=7;push(&mut p,if store{&[Value::I32(0),Value::I32(9)]}else{&[Value::I32(-1)]});
++ let store=(4..=7).contains(&case);push(&mut p,if store{&[Value::I32(0),Value::I32(9)]}else{&[Value::I32(-1)]});
+  let old=if (1..=7).contains(&case){let base=observed(&p).execution_work;Some(p.phase.operation.control.test_replace_execution_work_limit(base+match case{1|4=>0,2|5=>1,3=>5,_=>2}))}else{None};
+  if case==8{p.phase.operation.control.cancellation().cancel();}let operation=if case==9{Operation::Nop}else if store{STORE}else{LOAD};let failure=op(&mut p,operation).unwrap_err();if let Some(old)=old{p.phase.operation.control.test_replace_execution_work_limit(old);}assert_eq!(pin_ids(&p),pins);
+  hooks(Hooks{release_mask:7,..Hooks::default()});let report=p.drain();assert_eq!(report.retained_frames,3);assert_eq!(pin_ids(&p),pins);assert_eq!(p.phase.parts.cache.usage().active_pins,3);assert_eq!(report.first_failure.unwrap().code,failure.code);
+@@ -96,7 +96,8 @@
+ }
+ #[test] fn mm13_no_alloc_warm(){let _b=Bounds::new();
+  for opcode in 0x28..=0x3e {for trap in [false,true]{fixture(true,None,|p|{let address=Value::I32(if trap{-1}else{0});let store=opcode>=0x36;let value=match opcode{0x37|0x3c..=0x3e=>Value::I64(-1),0x38=>Value::F32(0x7fc12345),0x39=>Value::F64(0x7ff0123456789abc),_=>Value::I32(-1)};if store{push(p,&[address,value]);}else{push(p,&[address]);}let operation=if store{Operation::Store{opcode,offset:0}}else{Operation::Load{opcode,offset:0}};let ((outer,slot),stats)=measure_extended(Some(0),||{let mut s=None;let r=p.memory_operation(operation,&mut s);(r,s)});assert_eq!(stats.attempts,0);assert_eq!(stats.injected_failures,0);outer.unwrap();assert_eq!(slot.unwrap().is_ok(),!trap);});}}
+- for store in [false,true]{for cancel in [false,true]{for checkpoint in 0..3{fixture(true,None,|p|{if store{push(p,&[Value::I32(0),Value::I32(9)]);}else{push(p,&[Value::I32(0)]);}if cancel{hooks(Hooks{push_fault:6,cancel_local:Some(checkpoint),..Hooks::default()});}else{let base=observed(p).execution_work;p.phase.operation.control.test_replace_execution_work_limit(base+if checkpoint==2&&!store{5}else{checkpoint as u64});}let ((outer,slot),stats)=measure_extended(Some(0),||{let mut s=None;let r=p.memory_operation(if store{STORE}else{LOAD},&mut s);(r,s)});assert_eq!(stats.attempts,0);assert_eq!(stats.injected_failures,0);outer.unwrap();assert!(slot.unwrap().is_err());});}}}
++ for store in [false,true]{for cancel in [false,true]{for checkpoint in 0..3{fixture(true,None,|p|{if store{push(p,&[Value::I32(0),Value::I32(9)]);}else{push(p,&[Value::I32(0)]);}
++ if cancel{hooks(Hooks{push_fault:6,cancel_local:Some(checkpoint),..Hooks::default()});}else{let base=observed(p).execution_work;p.phase.operation.control.test_replace_execution_work_limit(base+if checkpoint==2&&!store{5}else{checkpoint as u64});}let ((outer,slot),stats)=measure_extended(Some(0),||{let mut s=None;let r=p.memory_operation(if store{STORE}else{LOAD},&mut s);(r,s)});assert_eq!(stats.attempts,0);assert_eq!(stats.injected_failures,0);outer.unwrap();assert!(slot.unwrap().is_err());});}}}
+ }
+ #[test] fn mm14_frozen_parity(){let _b=Bounds::new();
+  fixture(true,None,|p|{push(p,&[Value::I32(0),Value::I32(0x12345678)]);op(p,STORE).unwrap();push(p,&[Value::I32(0)]);op(p,LOAD).unwrap();assert_eq!(p.phase.parts.values.as_slice(),&[Value::I32(0x12345678)]);assert_eq!(&p.phase.parts.memory[..4],&[0x78,0x56,0x34,0x12]);});
+--- canonical/vm/src/experimental_swift_reactor/value_operation_tests.rs
++++ candidate/vm/src/experimental_swift_reactor/value_operation_tests.rs
+@@ -14,7 +14,11 @@
+     }
+ }
+ fn owner(budget: SwiftRunBudget) -> SwiftReactorInstance {
+-    construct_owned(&mut construction_adopt(budget)).unwrap()
++    {
++        let mut returned = None;
++        construct_owned(&mut construction_adopt(budget), &mut returned);
++        returned.unwrap()
++    }.unwrap()
+ }
+ fn finish(
+     phase: ExecutionOperationPhase<'_>,
+--- canonical/vm/src/experimental_wasi/accounted_tests.rs
++++ candidate/vm/src/experimental_wasi/accounted_tests.rs
+@@ -178,7 +178,7 @@
+         let before = control.usage(Some(observed));
+         let ((failure, expected), stats) = measure(|| {
+             let wasi = Some(owner.checked_usage(&mut control, cursor()).unwrap());
+-            let result = match point {
++            match point {
+                 0 => (
+                     control
+                         .work_with_wasi(Work::Cache, budget.cache_work + 1, cursor(), wasi)
+@@ -258,8 +258,7 @@
+                     )
+                 }
+                 _ => unreachable!(),
+-            };
+-            result
++            }
+         });
+         no_alloc(stats);
+         assert_eq!(failure.kind, expected, "boundary {point}");
+@@ -556,11 +555,12 @@
+     empty(control.finish_owned_cleanup(None));
+ 
+     let (mut control, proof) = adopt(SwiftRunBudget::default());
+-    let mut phase = AccountedWasi::prepare(&mut control, cursor()).unwrap();
+-    let owner = phase
+-        .construct(grants(), small(), Instant::now(), cursor())
+-        .unwrap();
+-    drop(phase);
++    let owner = {
++        let mut phase = AccountedWasi::prepare(&mut control, cursor()).unwrap();
++        phase
++            .construct(grants(), small(), Instant::now(), cursor())
++            .unwrap()
++    };
+     owner.cleanup(&mut control).unwrap();
+     control.drop_proof(proof).unwrap();
+     let observation = control.finish_owned_cleanup(None);
+--- canonical/vm/tests/experimental_guest_ui_allocations.rs
++++ candidate/vm/tests/experimental_guest_ui_allocations.rs
+@@ -76,8 +76,10 @@
+ }
+ #[test]
+ fn validation_has_no_instance_memory_or_retained_owner_and_creation_probe_detects_memory() {
+-    let mut p = fixture::Program::default();
+-    p.memory = Some(vec![1, 1, 32, 32]);
++    let p = fixture::Program {
++        memory: Some(vec![1, 1, 32, 32]),
++        ..fixture::Program::default()
++    };
+     let bytes = p.bytes();
+     let mut r = MixerVmReport::default();
+     let (status, validation) = measured(|| unsafe {
+--- canonical/vm/tests/experimental_guest_ui_validation.rs
++++ candidate/vm/tests/experimental_guest_ui_validation.rs
+@@ -119,13 +119,11 @@
+     let r = validate(&p.bytes(), ptr::null(), ptr::null());
+     assert_eq!((r.status, code(&r), r.function), (1, "validation", 5));
+     assert!(r.offset > 8);
+-    let mut p = Program::default();
+-    p.unknown_import = true;
++    let mut p = Program { unknown_import: true, ..Program::default() };
+     p.exports.remove(1);
+     let r = validate(&p.bytes(), ptr::null(), ptr::null());
+     assert_eq!((r.status, code(&r)), (1, "unsupported"));
+-    let mut p = Program::default();
+-    p.start_section = true;
++    let p = Program { start_section: true, ..Program::default() };
+     let r = validate(&p.bytes(), ptr::null(), ptr::null());
+     assert_eq!((r.status, code(&r)), (1, "unsupported"));
+     let mut p = Program::default();
+@@ -141,8 +139,7 @@
+ #[test]
+ fn same_limits_and_exact_zero_defined_memory_fail_closed() {
+     let _serial = SERIAL.lock().unwrap();
+-    let mut p = Program::default();
+-    p.memory = Some(vec![1, 1, 0, 0]);
++    let mut p = Program { memory: Some(vec![1, 1, 0, 0]), ..Program::default() };
+     let mut vm = vm_limits();
+     vm.memory_pages = 0;
+     assert_eq!(validate(&p.bytes(), &vm, ptr::null()).status, 0);
+@@ -157,8 +154,7 @@
+         vec![1, 3, 0, 0],
+         vec![1, 1, 2, 1],
+     ] {
+-        let mut p = Program::default();
+-        p.memory = Some(memory);
++        let p = Program { memory: Some(memory), ..Program::default() };
+         assert_eq!(validate(&p.bytes(), ptr::null(), ptr::null()).status, 1);
+     }
+     for field in 0..8 {
+@@ -222,7 +218,7 @@
+             (ptr::null(), 1, ptr::null(), ptr::null(), out),
+             (usize::MAX as *const u8, 1, ptr::null(), ptr::null(), out),
+             (
+-                1usize as *const u8,
++                ptr::with_exposed_provenance::<u8>(1),
+                 4 * 1024 * 1024 + 1,
+                 ptr::null(),
+                 ptr::null(),

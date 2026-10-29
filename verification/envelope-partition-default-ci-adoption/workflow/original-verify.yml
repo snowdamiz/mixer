@@ -1,0 +1,530 @@
+name: Owned engine checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  android-owner-host:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Host closures use Android sources and these four canonical data inputs.
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /native/android/
+            /verification/android-private-owner-effect-roster-amendment/required-host-roster.json
+            /verification/android-private-owner-integration-implementation/barrier-map.json
+            /verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json
+            /verification/android-environment-platform-root-review/selection.json
+      - name: Private Android owner orchestration on the JVM
+        timeout-minutes: 5
+        run: |
+          : "${JAVA_HOME_17_X64:?Official JDK 17 is required}"
+          python3 -B native/android/tests/run-private-owner-host.py \
+            --jdk "$JAVA_HOME_17_X64" --closure A \
+            --evidence "$RUNNER_TEMP/android-owner-orchestration"
+      - name: Private Android renderer callback matrix on the JVM
+        timeout-minutes: 7
+        run: |
+          : "${JAVA_HOME_17_X64:?Official JDK 17 is required}"
+          python3 -B native/android/tests/run-private-owner-host.py \
+            --jdk "$JAVA_HOME_17_X64" --closure B \
+            --evidence "$RUNNER_TEMP/android-owner-renderer"
+      - name: Android platform observations and observer host regressions
+        timeout-minutes: 2
+        run: |
+          : "${JAVA_HOME_17_X64:?Official JDK 17 is required}"
+          python3 -B native/android/tests/run-environment-platform-host.py \
+            --jdk "$JAVA_HOME_17_X64" \
+            --evidence "$RUNNER_TEMP/android-owner-environment"
+      # Controlled Android/JNI leaves on the JVM, with no native runtime launch.
+      - name: Preserve private Android owner host evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-owner-host-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/android-owner-*/
+  swift:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      # runner-images macos-15-arm64/20260907.0337 includes this installation;
+      # its default Xcode 16.4 supplies Swift 6.1 and cannot build the CLI.
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Builder boundary fixtures read the independently reviewed native pin.
+          fetch-depth: 0
+          # Retain source and every policy manifest; omit unrelated old receipts.
+          # Complete framing seals, envelope pack and external test inputs remain.
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/verification/*
+            /verification/**/Package.swift
+            /verification/**/Package.resolved
+            /verification/**/Cargo.toml
+            /verification/**/Cargo.lock
+            /verification/**/package.json
+            /verification/**/package-lock.json
+            /verification/**/go.mod
+            /verification/**/go.sum
+            /verification/**/build.gradle
+            /verification/**/build.gradle.kts
+            /verification/**/settings.gradle.kts
+            /verification/runtime-review/
+            /verification/guest-capability-contract/
+            /verification/swift-ordered-retention-analyzer-library/
+            /verification/swift-ordered-retention-analyzer-library-review/
+            /verification/swift-envelope-ci-pack/
+            /verification/android-default-appearance-packaging/run-2/created-descriptor.json
+            /verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json
+            /verification/ui-shared-appearance-contract/v2/mixer-default-appearance-v1.json
+            /verification/ui-appearance-foundation/design-corpus.json
+      - name: Verify and record pinned Apple toolchain
+        run: |
+          python3 scripts/ci/verify-apple-toolchain.py \
+            --developer-dir "$DEVELOPER_DIR" \
+            --xcode-version 26.3 --xcode-build 17C529 \
+            --output "$RUNNER_TEMP/apple-toolchain.json"
+      - name: CI selection regression tests
+        run: python3 -m unittest discover -s scripts/ci/tests -v
+      - name: Policy and acceptance integrity
+        run: python3 scripts/check-policy.py
+      - name: Accepted standalone analyzer fixture framing
+        run: |
+          python3 -B scripts/ci/check-analyzer-framing.py \
+            --output "$RUNNER_TEMP/analyzer-framing"
+      - name: Preserve standalone analyzer framing receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: analyzer-framing-host-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/analyzer-framing/receipt.json
+            ${{ runner.temp }}/analyzer-framing/ownership.json
+            ${{ runner.temp }}/analyzer-framing/commands/*
+            ${{ runner.temp }}/analyzer-framing/source/**/*.rs
+            ${{ runner.temp }}/analyzer-framing/source/collector.py
+            ${{ runner.temp }}/analyzer-framing/inputs/historical/*
+            ${{ runner.temp }}/analyzer-framing/retained/**/*
+      - name: Accepted standalone analyzer fixture envelope
+        timeout-minutes: 10
+        run: |
+          python3 -B scripts/ci/check-analyzer-envelope.py \
+            --out "$RUNNER_TEMP/analyzer-envelope"
+      - name: Preserve standalone analyzer envelope receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: analyzer-envelope-host-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: ignore
+          include-hidden-files: true
+          path: ${{ runner.temp }}/analyzer-envelope/
+      - name: Generated capability schema and host lifecycle
+        run: |
+          python3 capabilities/tools/generate.py --check
+          swift test --package-path capabilities
+      - name: Guest transport raw byte corpus
+        run: |
+          python3 capabilities/tools/check-guest-transport-fixtures.py --configuration debug
+          python3 capabilities/tools/check-guest-transport-fixtures.py --configuration release
+      - name: Native HTTP, deadlines and exit ownership under Thread Sanitizer
+        run: |
+          swift test --package-path capabilities \
+            --scratch-path "$RUNNER_TEMP/capability-tsan" --sanitize thread \
+            --filter 'NativeCapabilityExitTests|NativeHTTPTransportTests|CapabilityHostDeadlineTests|CapabilityCarriedDeadlineTests'
+      - name: Swift SDK, update verifier and CLI
+        run: |
+          swift --version
+          python3 scripts/ci/check-sdk-package.py
+          swift test
+          swift test --package-path updates
+          swift test --package-path cli
+          python3 -B -m unittest discover -s cli/build-tests -v
+          swift test --package-path native/android/engine
+          python3 runtime-identity/tools/vectors.py --check
+          python3 runtime-identity/tools/vectors_v2.py --check
+          swift test --package-path runtime-identity
+          python3 -B -m unittest discover -s runtime-identity/build-tools/tests -v
+      - name: Statically linked owned VM and signed startup
+        run: |
+          python3 -m unittest discover -s runtime/build-tests -v
+          python3 runtime/build-vm.py --revision "$GITHUB_SHA" --target host --output "$RUNNER_TEMP/native-vm"
+          swift test --package-path runtime -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
+          swift test --package-path activation -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
+          swift test --package-path verification/runtime-review -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
+      - name: Generated consumer integration
+        run: |
+          swift run --package-path cli mixer create VerificationApp --directory "$RUNNER_TEMP/VerificationApp"
+          swift run --package-path cli mixer test --directory "$RUNNER_TEMP/VerificationApp"
+          swift run --package-path cli mixer build --platform ios --directory "$RUNNER_TEMP/VerificationApp"
+      - name: Preserve core Apple toolchain and owned VM receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-core-toolchain-host-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/apple-toolchain.json
+            ${{ runner.temp }}/native-vm/receipt.json
+  swift-capability-native:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      # runner-images macos-15-arm64/20260907.0337 includes this installation;
+      # its default Xcode 16.4 supplies Swift 6.1 and cannot build the CLI.
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Builder boundary fixtures read the independently reviewed native pin.
+          fetch-depth: 0
+          # Keep the committed VM export, declared packages and exact host fixtures.
+          # The builder boundary tests still need the historical native pin.
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /scripts/ci/verify-apple-toolchain.py
+            /scripts/ci/check-android-binding.py
+            /experimental-capability-runtime/Package.swift
+            /experimental-capability-runtime/Package.resolved
+            /experimental-capability-runtime/Sources/
+            /experimental-capability-runtime/Tests/
+            /experimental-capability-runtime/build-vm.py
+            /experimental-capability-runtime/build-tests/
+            /experimental-capability-runtime/verification/with-loopback.py
+            /sdk/Package.swift
+            /sdk/Package.resolved
+            /sdk/Sources/
+            /sdk/Tests/
+            /runtime-identity/Package.swift
+            /runtime-identity/Package.resolved
+            /runtime-identity/Sources/
+            /runtime-identity/Tests/
+            /updates/Package.swift
+            /updates/Package.resolved
+            /updates/Sources/
+            /updates/Tests/
+            /capability-activation/Package.swift
+            /capability-activation/Package.resolved
+            /capability-activation/Sources/
+            /capability-activation/Tests/
+            /capabilities/schema/
+            /capabilities/java/mixer/capabilities/
+            /capabilities/tools/export-native-preimage.py
+            /capabilities/tools/generate.py
+            /vm/Cargo.toml
+            /vm/Cargo.lock
+            /vm/build.rs
+            /vm/src/
+            /vm/include/
+            /vm/profiles/
+            /vm/tests/
+            /vm/tools/
+            /contracts/vm-profile-v1.json
+            /contracts/vm-session-v1.json
+            /contracts/guest-capability-transport-v1.json
+            /runtime/Sources/CMixerVM/include/mixer_vm.h
+            /verification/capability-bridge-review/Package.swift
+            /verification/capability-bridge-review/Package.resolved
+            /verification/capability-bridge-review/PublicHarness/
+            /verification/capability-installed-material/test_native_preimage.py
+            /native/android/signed-guest-ui/binding/include/
+            /native/android/signed-guest-ui/transport/transport.c
+            /native/android/signed-guest-ui/transport/internal.h
+            /native/android/signed-guest-ui/transport/include/mixer_ui_transport.h
+            /verification/android-binding-stage4/HostEntry.swift
+            /verification/android-binding-stage4/HostTests.swift
+            /verification/android-binding-stage4/HoldingExecutor.swift
+            /verification/android-binding-stage4/host-bridge/host_bridge.c
+            /verification/android-binding-stage4/host-bridge/mixer_android_host_bridge.h
+            /verification/android-binding-stage4/host-bridge/host_test.h
+            /verification/android-binding-stage4/host-bridge/module.modulemap
+            /verification/android-binding-stage4/host-bridge/test.modulemap
+            /verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json
+            /verification/ui-shared-appearance-contract/v2/mixer-default-appearance-v1.json
+            /verification/ui-appearance-foundation/design-corpus.json
+      - name: Verify and record pinned Apple toolchain
+        run: |
+          python3 scripts/ci/verify-apple-toolchain.py \
+            --developer-dir "$DEVELOPER_DIR" \
+            --xcode-version 26.3 --xcode-build 17C529 \
+            --output "$RUNNER_TEMP/apple-toolchain.json"
+      - name: Isolated experimental capability archive and shared registry
+        run: |
+          rustup component add llvm-tools
+          python3 experimental-capability-runtime/build-tests/test_builder.py
+          python3 -O experimental-capability-runtime/build-tests/test_builder.py
+          python3 experimental-capability-runtime/build-vm.py \
+            --revision "$GITHUB_SHA" --target host --output "$RUNNER_TEMP/capability-vm"
+          cat "$RUNNER_TEMP/capability-vm/receipt.json"
+          capability_clang="$(xcrun --sdk macosx --find clang)"
+          capability_sdk="$(xcrun --sdk macosx --show-sdk-path)"
+          "$capability_clang" -isysroot "$capability_sdk" -std=c11 -Wall -Wextra -Werror -mmacosx-version-min=14.0 \
+            -I"$RUNNER_TEMP/capability-vm/include" \
+            "$RUNNER_TEMP/capability-vm/source/vm/tests/capability_ffi_smoke.c" \
+            "$RUNNER_TEMP/capability-vm/lib/libmixer_vm_capability_experimental.a" \
+            -lpthread -ldl -lm -o "$RUNNER_TEMP/capability-vm-smoke"
+          "$RUNNER_TEMP/capability-vm-smoke"
+          "$capability_clang" -isysroot "$capability_sdk" -std=c11 -Wall -Wextra -Werror -mmacosx-version-min=14.0 \
+            -I"$RUNNER_TEMP/capability-vm/include" \
+            experimental-capability-runtime/build-tests/mixed_registry.c \
+            "$RUNNER_TEMP/capability-vm/lib/libmixer_vm_capability_experimental.a" \
+            -lpthread -ldl -lm -o "$RUNNER_TEMP/capability-vm-registry"
+          "$RUNNER_TEMP/capability-vm-registry"
+          "$capability_clang" -isysroot "$capability_sdk" -std=c11 -Wall -Wextra -Werror -mmacosx-version-min=14.0 \
+            -I"$RUNNER_TEMP/capability-vm/include" \
+            experimental-capability-runtime/build-tests/guest_ui.c \
+            "$RUNNER_TEMP/capability-vm/lib/libmixer_vm_capability_experimental.a" \
+            -lpthread -ldl -lm -o "$RUNNER_TEMP/capability-vm-guest-ui"
+          "$RUNNER_TEMP/capability-vm-guest-ui"
+      - name: Experimental guest-to-native bridge and public consumer
+        run: |
+          for mode in debug release tsan; do
+            bridge_flags=()
+            if [[ "$mode" == release ]]; then bridge_flags=(-c release); fi
+            if [[ "$mode" == tsan ]]; then bridge_flags=(--sanitize thread); fi
+            python3 -B experimental-capability-runtime/verification/with-loopback.py \
+              --output "$RUNNER_TEMP/bridge-$mode-tls" -- \
+              swift test --package-path experimental-capability-runtime \
+              --scratch-path "$RUNNER_TEMP/bridge-$mode" "${bridge_flags[@]}" \
+              -Xcc "-I$RUNNER_TEMP/capability-vm/include" \
+              -Xlinker "-L$RUNNER_TEMP/capability-vm/lib" \
+              -Xswiftc -warnings-as-errors -Xswiftc -DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST
+          done
+          swift test --package-path verification/capability-bridge-review \
+            --scratch-path "$RUNNER_TEMP/bridge-public" \
+            -Xcc "-I$RUNNER_TEMP/capability-vm/include" \
+            -Xlinker "-L$RUNNER_TEMP/capability-vm/lib" -Xswiftc -warnings-as-errors
+      - name: Installed capability material and exact native preimage
+        run: |
+          python3 -B verification/capability-installed-material/test_native_preimage.py -v
+          swift test --package-path capability-activation \
+            --scratch-path "$RUNNER_TEMP/capability-material" \
+            -Xcc "-I$RUNNER_TEMP/capability-vm/include" \
+            -Xlinker "-L$RUNNER_TEMP/capability-vm/lib" -Xswiftc -warnings-as-errors
+      - name: Fresh private Android host binding and ownership scenarios
+        run: |
+          for mode in debug release tsan; do
+            python3 -B scripts/ci/check-android-binding.py --mode "$mode" \
+              --native-root "$RUNNER_TEMP/capability-vm" \
+              --expected-native-revision "$GITHUB_SHA" \
+              --output "$RUNNER_TEMP/android-binding-$mode"
+          done
+      - name: Preserve private Android host binding receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-binding-host-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/android-binding-*/receipt.json
+            ${{ runner.temp }}/android-binding-*/logs/*.log
+            ${{ runner.temp }}/capability-vm/receipt.json
+            ${{ runner.temp }}/apple-toolchain.json
+  vm:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Keep historical review packets out of this job's fetch/checkout.
+          # These inputs cover every VM, transport and public C-client step.
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /vm/
+            /contracts/guest-capability-transport-v1.json
+            /capabilities/schema/hashes.json
+            /scripts/ci/check-android-transport.py
+            /native/android/signed-guest-ui/transport/
+            /verification/android-transport-review/probes.c
+            /verification/android-facade-transport-review/probes.c
+            /experimental-capability-runtime/build-tests/guest_ui.c
+            /verification/capability-native-review/make-fixtures.py
+            /verification/capability-native-review/public_client.c
+      - name: Record owned VM host tools
+        run: |
+          git rev-parse HEAD
+          uname -a
+          rustc --version --verbose
+          cargo --version --verbose
+          node --version
+      - name: Owned VM debug tests
+        run: cargo test --locked --manifest-path vm/Cargo.toml
+      - name: Owned VM release tests
+        run: cargo test --locked --release --manifest-path vm/Cargo.toml
+      - name: Experimental validation, cached execution, WASI, native sessions and explicit reference checks
+        run: |
+          python3 vm/tools/generate-capability-terminals.py
+          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native
+          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native
+          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native -- --ignored
+          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native -- --ignored
+      - name: Private Swift reactor without legacy cache or execution features
+        run: |
+          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-swift-reactor
+          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-swift-reactor
+          cargo clippy --locked --manifest-path vm/Cargo.toml --lib --features experimental-swift-reactor -- -D warnings
+      - name: Allocation observer isolation under background noise
+        env:
+          MIXER_ALLOCATOR_NOISE: '1'
+        run: |
+          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-span-execution,experimental-capability-native --test span_function_cache_allocations --test span_execution_allocations --test experimental_allocations --test experimental_capability_guest_allocations --test capability_ffi_allocations -- --nocapture
+          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-span-execution,experimental-capability-native --test span_function_cache_allocations --test span_execution_allocations --test experimental_allocations --test experimental_capability_guest_allocations --test capability_ffi_allocations --release -- --nocapture
+      # Host callback/Looper simulations only; physical Android stays pending.
+      # NDK headers are provided by the GitHub-hosted Android toolchain image.
+      - name: Android facade and UI-entry transport host regressions
+        run: |
+          : "${ANDROID_NDK_HOME:?An official Android NDK is required}"
+          python3 scripts/ci/check-android-transport.py \
+            --cc cc --ndk "$ANDROID_NDK_HOME" \
+            --output "$RUNNER_TEMP/android-facade-transport"
+      - name: Public native capability C client
+        run: |
+          cargo build --locked --release --lib --manifest-path vm/Cargo.toml --features experimental-capability-native
+          cc -std=c11 -O2 -Wall -Wextra -Werror -Ivm/include \
+            vm/tests/capability_ffi_smoke.c vm/target/release/libmixer_vm.a \
+            -ldl -lpthread -lm -o "$RUNNER_TEMP/capability-native-smoke"
+          "$RUNNER_TEMP/capability-native-smoke"
+          cc -std=c11 -O2 -Wall -Wextra -Werror -Ivm/include \
+            experimental-capability-runtime/build-tests/guest_ui.c vm/target/release/libmixer_vm.a \
+            -ldl -lpthread -lm -o "$RUNNER_TEMP/capability-native-guest-ui"
+          "$RUNNER_TEMP/capability-native-guest-ui"
+          python3 verification/capability-native-review/make-fixtures.py "$RUNNER_TEMP/capability-native-fixtures"
+          cc -std=c11 -O2 -Wall -Wextra -Werror -Ivm/include \
+            verification/capability-native-review/public_client.c vm/target/release/libmixer_vm.a \
+            -pthread -ldl -lm -o "$RUNNER_TEMP/capability-native-review"
+          "$RUNNER_TEMP/capability-native-review" \
+            "$RUNNER_TEMP/capability-native-fixtures/capability.wasm" \
+            "$RUNNER_TEMP/capability-native-fixtures/legacy.wasm"
+  services:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Protocol tests also read the frozen descriptor outside services/.
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /services/
+            /contracts/release-v2.json
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.4'
+      - name: Record service host tools
+        run: |
+          git rev-parse HEAD
+          uname -a
+          go version
+          go env GOTOOLCHAIN GOROOT
+      - name: Protocol, recovery and API race tests
+        working-directory: services
+        run: |
+          go mod verify
+          go vet ./...
+          go test -race ./...
+  swift-cache-state-fixture:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      RUSTUP_AUTO_INSTALL: '0'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /verification/swift-cache-state-ci/pack/
+            /verification/swift-cache-state-ci/check_cache_state.py
+            /verification/cache-fixture-shared-input-candidate-v2/
+            /verification/cache-fixture-shared-input-review/
+            /verification/shared-fixture-default-ci-adoption/
+            /verification/shared-fixture-clock-controls-correction/
+            /.github/workflows/verify.yml
+      - name: Bind shared fixture adoption and materialize the thin overlay
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
+          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+          mkdir -p "$MIXER_ADOPTION_DIR/logs" "$MIXER_SHARED_INPUT_DIR/logs" "$MIXER_SHARED_INPUT_DIR/runs"
+          {
+            git rev-parse HEAD HEAD^{tree}
+            python3 --version
+            uname -srm
+            python3 -B "$MIXER_ADOPTION_DIR/adopt_fixture.py" verify --workflow-installed
+            python3 -B "$MIXER_SHARED_INPUT_DIR/materialize_pack.py"
+          } > "$MIXER_ADOPTION_DIR/logs/preflight.stdout" \
+            2> "$MIXER_ADOPTION_DIR/logs/preflight.stderr"
+      - name: Shared fixture runner, materializer and adoption focused controls
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
+          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+          python3 -B "$MIXER_ADOPTION_DIR/test_adoption.py" -v \
+            > "$MIXER_ADOPTION_DIR/logs/adoption-controls.stdout" \
+            2> "$MIXER_ADOPTION_DIR/logs/adoption-controls.stderr"
+          python3 -B "$MIXER_SHARED_INPUT_DIR/test_materializer.py" -v \
+            > "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stdout" \
+            2> "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stderr"
+          python3 -B "$MIXER_ADOPTION_DIR/test_runner.py" -v \
+            > "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stdout" \
+            2> "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stderr"
+      - name: One complete shared fixture on the existing admitted compiler
+        timeout-minutes: 12
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
+          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+          {
+            MIXER_CACHE_RUSTC_LAUNCHER="$(command -v rustc)"
+            python3 -B "$MIXER_ADOPTION_DIR/adopt_fixture.py" run \
+              --rustc "$MIXER_CACHE_RUSTC_LAUNCHER" \
+              --out "$MIXER_SHARED_INPUT_DIR/runs/ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          } > "$MIXER_SHARED_INPUT_DIR/logs/fixture.stdout" \
+            2> "$MIXER_SHARED_INPUT_DIR/logs/fixture.stderr"
+      - name: Verify shared fixture adoption postflight
+        if: always()
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
+          mkdir -p "$MIXER_ADOPTION_DIR/logs"
+          python3 -B "$MIXER_ADOPTION_DIR/adopt_fixture.py" verify --workflow-installed \
+            > "$MIXER_ADOPTION_DIR/logs/postflight.stdout" \
+            2> "$MIXER_ADOPTION_DIR/logs/postflight.stderr"
+      - name: Preserve complete shared fixture evidence and adoption proof
+        if: always()
+        timeout-minutes: 5
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-cache-state-fixture-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          include-hidden-files: true
+          path: |
+            ${{ github.workspace }}/verification/cache-fixture-shared-input-candidate-v2/
+            ${{ github.workspace }}/verification/cache-fixture-shared-input-review/
+            ${{ github.workspace }}/verification/shared-fixture-default-ci-adoption/
+            ${{ github.workspace }}/verification/shared-fixture-clock-controls-correction/
+            ${{ github.workspace }}/verification/swift-cache-state-ci/pack/manifest.json
+            ${{ github.workspace }}/verification/swift-cache-state-ci/check_cache_state.py
+            ${{ github.workspace }}/.github/workflows/verify.yml

@@ -1,0 +1,137 @@
+{
+  "activeSeconds": 1800,
+  "aggregateBytes": 33554432,
+  "cleanupSeconds": 60,
+  "commands": [
+    {
+      "accepted_exits": [
+        0
+      ],
+      "argv": [
+        "$RUSTUP_HOME/toolchains/1.99.0-x86_64-unknown-linux-gnu/bin/rustc",
+        "-vV"
+      ],
+      "name": "compiler-identity",
+      "seconds": 30
+    },
+    {
+      "accepted_exits": [
+        0
+      ],
+      "argv": [
+        "$NODE_REALPATH",
+        "-e",
+        "console.log(JSON.stringify({execPath:process.execPath,version:process.version,versions:process.versions,platform:process.platform,arch:process.arch}))"
+      ],
+      "name": "node-identity",
+      "seconds": 30
+    },
+    {
+      "accepted_exits": [
+        0
+      ],
+      "argv": [
+        "$RUSTUP_HOME/toolchains/1.99.0-x86_64-unknown-linux-gnu/bin/rustfmt",
+        "--edition",
+        "2021",
+        "--emit",
+        "files",
+        "--config-path",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/rustfmt.toml",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/src/experimental/cache/borrowed.rs",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/src/experimental_swift_reactor/bulk_memory_operations_tests.rs",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/src/experimental_swift_reactor/cache.rs",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/src/experimental_swift_reactor/cache_tests.rs",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/src/experimental_swift_reactor/control_operations_tests.rs",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/src/experimental_swift_reactor/diagnostic_profile_tests.rs",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/src/experimental_swift_reactor/diagnostic_result_v1_tests.rs",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/src/experimental_swift_reactor/execution_tests.rs",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/src/experimental_swift_reactor/lifecycle_tests.rs",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/src/experimental_swift_reactor/memory_growth_operations_tests.rs",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/src/experimental_swift_reactor/memory_operations_tests.rs",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/src/experimental_swift_reactor/value_operation_tests.rs",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/src/experimental_wasi/accounted_tests.rs",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/tests/experimental_guest_ui_allocations.rs",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/tests/experimental_guest_ui_validation.rs"
+      ],
+      "name": "format-candidate",
+      "seconds": 60
+    },
+    {
+      "accepted_exits": [
+        0,
+        101
+      ],
+      "argv": [
+        "$RUSTUP_HOME/toolchains/1.99.0-x86_64-unknown-linux-gnu/bin/cargo",
+        "clippy",
+        "--manifest-path",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "--message-format=json",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "name": "clippy-candidate",
+      "seconds": 300
+    },
+    {
+      "accepted_exits": [
+        0
+      ],
+      "argv": [
+        "$RUSTUP_HOME/toolchains/1.99.0-x86_64-unknown-linux-gnu/bin/cargo",
+        "test",
+        "--manifest-path",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--",
+        "--include-ignored",
+        "--test-threads=1",
+        "--show-output"
+      ],
+      "name": "debug-regression",
+      "seconds": 600
+    },
+    {
+      "accepted_exits": [
+        0
+      ],
+      "argv": [
+        "$RUSTUP_HOME/toolchains/1.99.0-x86_64-unknown-linux-gnu/bin/cargo",
+        "test",
+        "--manifest-path",
+        "$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch/source/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--",
+        "--include-ignored",
+        "--test-threads=1",
+        "--show-output"
+      ],
+      "name": "release-regression",
+      "seconds": 600
+    }
+  ],
+  "expectedDebugPassed": 699,
+  "expectedReleasePassed": 699,
+  "ignored": 0,
+  "maxChildren": 6,
+  "pathExpansions": {
+    "$NODE_REALPATH": "Sole existing Node resolution frozen before managed commands; no fallback or install",
+    "$RUNNER_TEMP": "Fresh hosted runner temporary directory, validated distinct from checkout",
+    "$RUSTUP_HOME": "$RUNNER_TEMP/swift-pin-bitmap-lint-regression-v1-toolchain"
+  },
+  "perStreamBytes": 8388608,
+  "profile": "pin-bitmap-lint-regression-v1",
+  "schema": 1,
+  "selected": false
+}

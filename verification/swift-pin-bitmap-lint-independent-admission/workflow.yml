@@ -1,0 +1,56 @@
+name: Bitmap lint and full host regression admission
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Sole reviewed candidate including explicit existing-Node oracles
+        required: true
+        type: choice
+        options:
+          - pin-bitmap-lint-regression-v1
+permissions:
+  contents: read
+concurrency:
+  group: swift-pin-bitmap-lint-regression-admission
+  cancel-in-progress: false
+jobs:
+  candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /vm/
+            /verification/swift-pin-bitmap-lint-correction/
+            /verification/swift-pin-bitmap-lint-independent-admission/
+            /verification/swift-pin-bitmap-format-lint-host-correction/admit.py
+            /verification/swift-pin-bitmap-format-lint-host-correction/bounded_commands.py
+      - name: Guarded source and mocked host controls
+        timeout-minutes: 2
+        run: python3 -B verification/swift-pin-bitmap-lint-independent-admission/host_controls.py
+      - name: Install exact hosted Rust formatting and Clippy tools
+        timeout-minutes: 2
+        env:
+          RUSTUP_HOME: ${{ runner.temp }}/swift-pin-bitmap-lint-regression-v1-toolchain
+        run: rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy
+      - name: Six bounded candidate children
+        timeout-minutes: 32
+        env:
+          RUSTUP_HOME: ${{ runner.temp }}/swift-pin-bitmap-lint-regression-v1-toolchain
+          MIXER_PIN_BITMAP_LINT_SELECTION: ${{ inputs.profile }}
+        run: python3 -B verification/swift-pin-bitmap-lint-independent-admission/admit.py run
+      - name: Retain exact source formatting, full outputs, identities and custody
+        if: always()
+        timeout-minutes: 1
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-pin-bitmap-lint-regression-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/pin-bitmap-lint-regression-v1-evidence/
+            !${{ runner.temp }}/pin-bitmap-lint-regression-v1-evidence/scratch/
+            verification/swift-pin-bitmap-lint-independent-admission/host-controls-result.json
+          if-no-files-found: error
+          retention-days: 30
