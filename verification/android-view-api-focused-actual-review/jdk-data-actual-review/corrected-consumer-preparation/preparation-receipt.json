@@ -1,0 +1,80 @@
+{
+  "schema": 1,
+  "status": "corrected-consumer-source-only-unexecuted-unselected",
+  "source": {
+    "path": "consume_selected_artifact.js",
+    "bytes": 7015,
+    "sha256": "58819982b992dbda2b932dd502c4b097e7b975d4f867ad007fbe6fbaf8bf0864"
+  },
+  "root_selection_required": true,
+  "new_connector_requests": 0,
+  "new_consumer_invocations": 0,
+  "new_body_reads": 0,
+  "new_downloads": 0,
+  "source_evaluations": 0,
+  "synthetic_executions": 0,
+  "source_text_checks": [
+    {
+      "name": "one fetch site and one bounded read site",
+      "passed": true
+    },
+    {
+      "name": "exact literal content-length equality before reader creation",
+      "passed": true
+    },
+    {
+      "name": "exact expected byte and SHA pins plus 8MiB and 20-second constants",
+      "passed": true
+    },
+    {
+      "name": "response reader controller retained in shared state covering finally",
+      "passed": true
+    },
+    {
+      "name": "cancel both reader and header-error body in finally before sole timeout clear",
+      "passed": true
+    },
+    {
+      "name": "error path releases reader and retains deadline if cancellation did not resolve",
+      "passed": true
+    },
+    {
+      "name": "payload persisted only after finally and exact identity acceptance",
+      "passed": true
+    },
+    {
+      "name": "consumer declaration only; no invocation",
+      "passed": true
+    },
+    {
+      "name": "exact exclusive destination and no raw error serialization",
+      "passed": true
+    }
+  ],
+  "source_text_checks_passed": 9,
+  "source_text_checks_scope": "Finite Node string/data checks only. They do not execute the candidate or establish runtime behavior.",
+  "cleanup_on_original_failed_transfer": {
+    "path": "../original-transfer-abort-receipt.json",
+    "bytes": 449,
+    "sha256": "b7d00a72c094e960d49fb21432566b37395d364ed332d0ba6a2953e495d0fae3",
+    "abort_calls": 1,
+    "abort_returned": true,
+    "signal_aborted": true,
+    "independent_transport_eof_confirmed": false
+  },
+  "design": {
+    "retained_handles": "correctedTransferState retains controller/response/reader/timer in memory and is never serialized. Function-local state remains in scope through finally.",
+    "header": "Exact Content-Length string comparison to 5904159; no regex.",
+    "bounds": "One 20-second rejection/abort deadline races fetch, body reads and awaited cancellation. At most 8MiB accepted and exact 5904159 bytes plus pinned SHA required.",
+    "cleanup": "Finally cancels a non-EOF reader, or a response body if header refusal preceded reader creation, and attempts reader release. If cancellation fails before the deadline, the original deadline remains armed until it fires. Success requires observed EOF and successful reader release.",
+    "retention": "Only exact accepted payload is written after cleanup using exclusive creation in local/recovery-001; errors and cleanup flags are written as a reduced receipt without raw errors/response/URL."
+  },
+  "limitations": [
+    "Source is unexecuted. Native fetch/stream/timeout/cancellation behavior remains untested and cannot be established by these text checks.",
+    "The deadline bounds the consumer await path. It does not provide independent transport/kernel EOF attestation, and local filesystem writes have no separate timer.",
+    "Timeout or cancellation failure is refused and cannot authorize an artifact audit.",
+    "No payload or artifact report has been acquired/audited. No runtime admission or prior hold change."
+  ],
+  "frozen_failure_packet_preserved": true,
+  "all_prior_holds_preserved": true
+}

@@ -1,0 +1,227 @@
+{
+  "schema": 1,
+  "phase": "dispatch-selected",
+  "preparationOnly": true,
+  "rootApprovalRequired": true,
+  "selection": {
+    "path": "verification/android-jdk-data-observation-selection-2026-10-29/selection.json",
+    "bytes": 23108,
+    "sha256": "1ddf37b0e7a2ca13c7d8d8b9755a5c8013eb9958020b053ed8c7285e5f2e0d03"
+  },
+  "helper": {
+    "path": "verification/github-delivery-android-jdk-observation/owned.py",
+    "sha256": "b7b4a4fab5ca699ded6efd65259c9e499babbe37786a108d7307dfc0d29ab043",
+    "baselineRepinEvidence": {
+      "path": "verification/github-delivery-android-jdk-observation/preparation.json",
+      "bytes": 3960,
+      "sha256": "21a6670fafaab357176dcf87fa7f56b4909c9b087d7b24866e5b1a8160ef2e9d"
+    },
+    "priorHelper": {
+      "path": "verification/github-delivery-android-view-api-boundary/owned_corrected.py",
+      "bytes": 29385,
+      "sha256": "2c874b49f95fdafaf133a3d8fd02b7a2aa6d7a44ab9e8faff207d14f978d54f2"
+    },
+    "priorCorrectionSeal": {
+      "path": "verification/github-delivery-android-view-api-boundary/preparation-correction-seal.json",
+      "sha256": "db9df0c6a412b6ee1047c6abb431941823858f08f42c07d154b5cf405659ffe3"
+    },
+    "independentReviewSeal": {
+      "path": "verification/android-view-api-git-custody-review/review-seal.json",
+      "sha256": "1c67d7aef5cc9602b6127b4fad4471eab2d2e8081b3214c0689e55646a75ed0a"
+    },
+    "guardedControlsInherited": 44,
+    "exactArgvApprovalBeforeEveryActualPhase": true,
+    "genericGhFilterNotAuthority": true,
+    "bootstrap": "-I -B -S",
+    "separateEOFAndExactKernelReapRequired": true
+  },
+  "interpreter": {
+    "flags": [
+      "-I",
+      "-B",
+      "-S"
+    ],
+    "wrapper": "verification/github-delivery-android-jdk-observation/owned.py",
+    "admissionFDAndGateFD": "fresh owned typed descriptor integers; never reused"
+  },
+  "session": {
+    "seconds": 210,
+    "count": 7,
+    "prefix": "dispatch-selected-"
+  },
+  "gitEffectivePrefix": [
+    "git",
+    "-c",
+    "gc.auto=0",
+    "-c",
+    "maintenance.auto=false"
+  ],
+  "typedBindings": {
+    "DELIVERED_SHA": "exact40 lowercase hexadecimal delivered receipt head; bound from observed successful delivery",
+    "DISPATCH_JSON": "Exact frozen template with only dispatch_selected=true, delivered_head=bound delivered40hex and admit_ambient_ubuntu_python_checkout_upload=true; all other fields unchanged and the fresh fixed nonce preserved"
+  },
+  "commands": [
+    {
+      "name": "head",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "manual-workflow-content",
+      "argv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/contents/.github/workflows/android-view-api-jdk-data-observation.yml?ref={DELIVERED_SHA}",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "{sha,size,path,type}"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/contents/.github/workflows/android-view-api-jdk-data-observation.yml?ref={DELIVERED_SHA}",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "{sha,size,path,type}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "manual-workflow-registration",
+      "argv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/android-view-api-jdk-data-observation.yml",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "{id,path,state,name}"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/android-view-api-jdk-data-observation.yml",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "{id,path,state,name}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "manual-before-runs",
+      "argv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/android-view-api-jdk-data-observation.yml/runs?event=workflow_dispatch&head_sha={DELIVERED_SHA}&per_page=5",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "[.workflow_runs[]|{id,name,head_sha,event,run_attempt,status,conclusion,workflow_id,path,html_url}]"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/android-view-api-jdk-data-observation.yml/runs?event=workflow_dispatch&head_sha={DELIVERED_SHA}&per_page=5",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "[.workflow_runs[]|{id,name,head_sha,event,run_attempt,status,conclusion,workflow_id,path,html_url}]"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "remote-predispatch",
+      "argv": [
+        "git",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "dispatch",
+      "argv": [
+        "gh",
+        "workflow",
+        "run",
+        "android-view-api-jdk-data-observation.yml",
+        "--repo",
+        "github.com/snowdamiz/mixer",
+        "--ref",
+        "main",
+        "--raw-field",
+        "root_selection_json={DISPATCH_JSON}"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "workflow",
+        "run",
+        "android-view-api-jdk-data-observation.yml",
+        "--repo",
+        "github.com/snowdamiz/mixer",
+        "--ref",
+        "main",
+        "--raw-field",
+        "root_selection_json={DISPATCH_JSON}"
+      ],
+      "kind": "one-shot-dispatch"
+    },
+    {
+      "name": "manual-after-runs",
+      "argv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/android-view-api-jdk-data-observation.yml/runs?event=workflow_dispatch&head_sha={DELIVERED_SHA}&per_page=5",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "[.workflow_runs[]|{id,name,head_sha,event,run_attempt,status,conclusion,workflow_id,path,html_url}]"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/android-view-api-jdk-data-observation.yml/runs?event=workflow_dispatch&head_sha={DELIVERED_SHA}&per_page=5",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "[.workflow_runs[]|{id,name,head_sha,event,run_attempt,status,conclusion,workflow_id,path,html_url}]"
+      ],
+      "kind": "read"
+    }
+  ],
+  "sourceDataOnly": true,
+  "basisManifest": {
+    "path": "verification/github-delivery-android-view-api-boundary/argv-dispatch-selected-corrected.json",
+    "bytes": 6275,
+    "sha256": "17e7a14d58117adea14547d3d9267df001a8a577bf913f9e02e7da2d14011f25"
+  }
+}

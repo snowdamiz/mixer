@@ -1,0 +1,80 @@
+{
+  "schema": 1,
+  "recorded_date": "2026-10-29",
+  "status": "unexecuted-guard-setup-correction",
+  "reason": "Root source review identified cp437 lazy codec import after a deny-all-except-nine-module guard. The comparator uses cp437 for flags0 ZIP names; warming it before guards avoids a setup-only denial without broadening approved imports.",
+  "original": {
+    "checker": {
+      "path": "check_synthetic.py",
+      "bytes": 33803,
+      "sha256": "cccefa4eb3a6335cc919d0da2b6847607a8c46612a6d1af3fa68812bbf78f596"
+    },
+    "review_seal": {
+      "path": "review-seal.json",
+      "bytes": 979,
+      "sha256": "1005f1fc633a34d36b2da7bb8fcdd7e29801fce539826c5682323283a8060ae0"
+    },
+    "preserved_byte_for_byte": true
+  },
+  "corrected_checker": {
+    "path": "check_synthetic_cp437.py",
+    "bytes": 34073,
+    "sha256": "31f33ba5a4d817c7176c213563eebf9a592dd4aa3c73857dea2895dfe446b4f7",
+    "only_delta": "# Warm the exact stdlib codec used for non-UTF8 ZIP names before denials.\n# This is finite in-memory setup; no subject/archive code runs here.\nif b\"\\x82\".decode(\"cp437\", \"strict\") != \"\\u00e9\":\n    raise SystemExit(\"stdlib cp437 exact nonempty warmup assertion failed\")\n\n",
+    "source_sha256_unchanged": "156ce9f6ab5d5da580c788c051cbc98229ad641bd150810ef0bb93c92c2ff8c2",
+    "same_controls_and_guards": true,
+    "root_selection_required": true
+  },
+  "source_data_controls": {
+    "passed": 8,
+    "failed": 0,
+    "checks": [
+      {
+        "name": "original checker bytes and SHA remain frozen",
+        "pass": true
+      },
+      {
+        "name": "original review seal bytes and SHA remain frozen",
+        "pass": true
+      },
+      {
+        "name": "removing exact codec insertion restores original checker byte-for-byte",
+        "pass": true
+      },
+      {
+        "name": "nonempty cp437 exact known character assertion prepared",
+        "pass": true
+      },
+      {
+        "name": "codec warmup precedes audit/import guards and subject evaluation",
+        "pass": true
+      },
+      {
+        "name": "subject source identity and all controls preserved",
+        "pass": true
+      },
+      {
+        "name": "approved import set and all denials unchanged",
+        "pass": true
+      },
+      {
+        "name": "no actual retained archive path",
+        "pass": true
+      }
+    ]
+  },
+  "actual_wrapper_requirement": "Before installing denials or evaluating the comparator, preload/warm the stdlib cp437 codec with the same nonempty exact b\"\\x82\" -> U+00E9 assertion. Do not relax import denials as a substitute. Actual bytes, bindings, guarded command and resource selection remain separately pending.",
+  "operations": {
+    "python_parse_import_execute": 0,
+    "actual_archive_open_read_hash_decompress": 0,
+    "actual_observed_raw_reads": 0,
+    "process_group_signal_wait_timer_socket_ctypes_queries": 0,
+    "native_UI_capture": 0,
+    "Git_gh": 0,
+    "frozen_original_or_producer_writes": 0
+  },
+  "runtime_evidence": false,
+  "actual_comparison_selected": false,
+  "actual_comparison_executed": false,
+  "runtime_admitted": false
+}

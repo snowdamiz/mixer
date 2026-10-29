@@ -1,0 +1,1348 @@
+{
+  "schema": 1,
+  "sourceDataOnly": true,
+  "diffs": [
+    {
+      "path": "verification/github-delivery-android-jdk-observation/selection_common_preflight.py",
+      "diff": [
+        {
+          "plus": 2,
+          "text": "raise AssertionError('PENDING_ROOT_FINAL_SELECTION_AND_SOURCE_REVIEW; source draft is not executable authority')"
+        },
+        {
+          "plus": 16,
+          "text": "BASE = 'df0d15f90f2bc5e702127bdf6ab79f3d8e3d0cce'"
+        },
+        {
+          "plus": 17,
+          "text": "TREE = '470173cc89658f13b3a94320569b44e7f56fffd3'"
+        },
+        {
+          "plus": 18,
+          "text": "SELECTION = 'verification/android-jdk-data-observation-selection-2026-10-29/selection.json'"
+        },
+        {
+          "plus": 19,
+          "text": "SELECTION_SHA = None  # PENDING exact frozen selection SHA-256"
+        },
+        {
+          "plus": 20,
+          "text": "SELECTION_BYTES = None  # PENDING exact frozen selection bytes"
+        },
+        {
+          "plus": 21,
+          "text": "SELECTED_COUNT = None  # PENDING exact selected paths including selection itself"
+        },
+        {
+          "plus": 22,
+          "text": "HELPER_SHA = 'b7b4a4fab5ca699ded6efd65259c9e499babbe37786a108d7307dfc0d29ab043'"
+        },
+        {
+          "plus": 23,
+          "text": "raw_helper = (OUT / 'owned.py').read_bytes()"
+        },
+        {
+          "minus": 15,
+          "text": "BASE = '5b6fc4f5c119cb0b2770f8ee752f6cba57761229'"
+        },
+        {
+          "minus": 16,
+          "text": "TREE = '6ba7b6693e4b63f400bcac80883bbcc42016a3da'"
+        },
+        {
+          "minus": 17,
+          "text": "SELECTION = 'verification/android-view-api-focused-host-selection-2026-10-29/selection.json'"
+        },
+        {
+          "minus": 18,
+          "text": "SELECTION_SHA = '84c2f8562d4a50fe5ed6a910265993e80fc16055c9dc0ff26af368b2a0e9f144'"
+        },
+        {
+          "minus": 19,
+          "text": "HELPER_SHA = '2c874b49f95fdafaf133a3d8fd02b7a2aa6d7a44ab9e8faff207d14f978d54f2'"
+        },
+        {
+          "minus": 20,
+          "text": "raw_helper = (OUT / 'owned_corrected.py').read_bytes()"
+        },
+        {
+          "plus": 25,
+          "text": "spec = importlib.util.spec_from_file_location('android_jdk_selected_owned', OUT / 'owned.py')"
+        },
+        {
+          "minus": 22,
+          "text": "spec = importlib.util.spec_from_file_location('android_selected_owned_corrected', OUT / 'owned_corrected.py')"
+        },
+        {
+          "plus": 42,
+          "text": "assert row(ROOT / SELECTION) == {'path': SELECTION, 'bytes': SELECTION_BYTES, 'sha256': SELECTION_SHA}"
+        },
+        {
+          "minus": 39,
+          "text": "assert row(ROOT / SELECTION) == {'path': SELECTION, 'bytes': 58745, 'sha256': SELECTION_SHA}"
+        },
+        {
+          "plus": 46,
+          "text": "assert S['includeSelectionItself'] == SELECTION and S['selectedCountIncludingSelf'] == SELECTED_COUNT"
+        },
+        {
+          "plus": 47,
+          "text": "assert len(S['selectedRows']) == SELECTED_COUNT - 1"
+        },
+        {
+          "minus": 43,
+          "text": "assert S['includeSelectionItself'] == SELECTION and S['selectedCountIncludingSelf'] == 227"
+        },
+        {
+          "minus": 44,
+          "text": "assert len(S['selectedRows']) == 226"
+        },
+        {
+          "plus": 49,
+          "text": "assert S['manualHost']['dispatchNonce'] == 'fda6cf6bedfd7897f576df54eac07bec4c80884e209647c84081124d11950cca'"
+        },
+        {
+          "plus": 50,
+          "text": "assert S['manualHost']['workflow'] == '.github/workflows/android-view-api-jdk-data-observation.yml'"
+        },
+        {
+          "plus": 51,
+          "text": "assert S['manualHost']['workflowSHA256'] == '18a7451271c17ca9fdbaae74091a859a7e49337e93d5f6a3277699f4159d6f0a'"
+        },
+        {
+          "plus": 52,
+          "text": "assert S['manualHost']['sourceManifestSHA256'] == 'f865a86fb102646eb2c25e8fab00e13651de4f950e474e7faae4561516e69fb0'"
+        },
+        {
+          "plus": 53,
+          "text": "assert S['manualHost']['diagnosticOnly'] is True"
+        },
+        {
+          "plus": 54,
+          "text": "assert S['manualHost']['attempt'] == 1 and S['manualHost']['expectedJobs'] == 1"
+        },
+        {
+          "plus": 55,
+          "text": "assert S['manualHost']['expectedOwnedJavaCommands'] == 0 and S['manualHost']['expectedOwnedChildCommands'] == 0"
+        },
+        {
+          "plus": 56,
+          "text": "assert S['manualHost']['actualDispatched'] is False"
+        },
+        {
+          "plus": 57,
+          "text": "assert S['manualHost']['bindDeliveredSHAThenEnableSelection'] is True"
+        },
+        {
+          "plus": 58,
+          "text": "assert S['manualHost']['consumeAllowanceBeforeDispatch'] is True"
+        },
+        {
+          "plus": 59,
+          "text": "assert S['manualHost']['unknownOutcomeReplay'] is False"
+        },
+        {
+          "minus": 46,
+          "text": "assert S['manualHost']['dispatchNonce'] == '01ff94d91b2bf33285cb01364d69c793d35c1932485d6e0e0a4502f790090e56'"
+        },
+        {
+          "plus": 91,
+          "text": "assert len(SELECTED) == SELECTED_COUNT"
+        },
+        {
+          "minus": 78,
+          "text": "assert len(SELECTED) == 227"
+        },
+        {
+          "plus": 155,
+          "text": "    helper_binding = S['deliveryHelper']"
+        },
+        {
+          "plus": 156,
+          "text": "    assert helper_binding['path'] == str((OUT / 'owned.py').relative_to(ROOT))"
+        },
+        {
+          "plus": 157,
+          "text": "    assert helper_binding['sha256'] == HELPER_SHA"
+        },
+        {
+          "plus": 158,
+          "text": "    assert helper_binding['baselineRepinEvidence'] == {'path':'verification/github-delivery-android-jdk-observation/preparation.json','bytes':3960,'sha256':'21a6670fafaab357176dcf87fa7f56b4909c9b087d7b24866e5b1a8160ef2e9d'}"
+        },
+        {
+          "plus": 159,
+          "text": "    assert helper_binding['priorHelper'] == {'path': 'verification/github-delivery-android-view-api-boundary/owned_corrected.py', 'bytes': 29385, 'sha256': '2c874b49f95fdafaf133a3d8fd02b7a2aa6d7a44ab9e8faff207d14f978d54f2'}"
+        },
+        {
+          "plus": 160,
+          "text": "    assert helper_binding['priorCorrectionSeal'] == {'path': 'verification/github-delivery-android-view-api-boundary/preparation-correction-seal.json', 'sha256': 'db9df0c6a412b6ee1047c6abb431941823858f08f42c07d154b5cf405659ffe3'}"
+        },
+        {
+          "plus": 161,
+          "text": "    assert helper_binding['independentReviewSeal'] == {'path': 'verification/android-view-api-git-custody-review/review-seal.json', 'sha256': '1c67d7aef5cc9602b6127b4fad4471eab2d2e8081b3214c0689e55646a75ed0a'}"
+        },
+        {
+          "plus": 162,
+          "text": "    assert row(ROOT / helper_binding['path'])['sha256'] == HELPER_SHA"
+        },
+        {
+          "plus": 163,
+          "text": "    assert row(ROOT / helper_binding['baselineRepinEvidence']['path']) == helper_binding['baselineRepinEvidence']"
+        },
+        {
+          "plus": 164,
+          "text": "    assert row(ROOT / helper_binding['priorHelper']['path']) == helper_binding['priorHelper']"
+        },
+        {
+          "plus": 165,
+          "text": "    assert row(ROOT / helper_binding['priorCorrectionSeal']['path'])['sha256'] == helper_binding['priorCorrectionSeal']['sha256']"
+        },
+        {
+          "plus": 166,
+          "text": "    assert row(ROOT / helper_binding['independentReviewSeal']['path'])['sha256'] == helper_binding['independentReviewSeal']['sha256']"
+        },
+        {
+          "plus": 167,
+          "text": "    assert helper_binding['exactArgvApprovalBeforeEveryActualPhase'] is True"
+        },
+        {
+          "minus": 142,
+          "text": "    assert row(OUT / 'owned_corrected.py')['sha256'] == S['deliveryHelper']['sha256']"
+        },
+        {
+          "minus": 143,
+          "text": "    assert row(OUT / 'preparation-correction-seal.json')['sha256'] == S['deliveryHelper']['correctionSealSHA256']"
+        },
+        {
+          "minus": 144,
+          "text": "    assert row(ROOT / 'verification/android-view-api-git-custody-review/review-seal.json')['sha256'] == S['deliveryHelper']['independentReviewSealSHA256']"
+        },
+        {
+          "plus": 171,
+          "text": "DRIVERS = ['selection_common_preflight.py', 'preflight_selected.py']"
+        },
+        {
+          "minus": 148,
+          "text": "DRIVERS = ['selection_common_delivery_corrected.py', 'deliver_selected_corrected.py', 'bind_ci_selected_corrected.py', 'dispatch_selected_corrected.py']"
+        },
+        {
+          "minus": 150,
+          "text": "ACCEPTED_PREFLIGHT_SEAL = {\"path\":\"verification/github-delivery-android-view-api-boundary/preflight-selected.seal.json\",\"bytes\":20127,\"sha256\":\"3040b195d1be0a45f548ade6b91c961f2ad841528e2495d45ccc64483ae25c91\"}"
+        },
+        {
+          "minus": 151,
+          "text": "ACCEPTED_PREFLIGHT_ROWS = [{\"path\":\"verification/github-delivery-android-view-api-boundary/preflight-selected.json\",\"bytes\":4776,\"sha256\":\"cb29965afebbeb3db998185d9c75b41bfec64ff368b2efdf67b274f1e6c6db74\"},{\"path\":\"verification/github-delivery-android-view-api-boundary/preservation-selected-local.json\",\"bytes\":789256,\"sha256\":\"8110ff6881be0bd3c64d29670828916c27e067dbf6c1f0c1919084bff4ffb611\"},{\"path\":\"verification/github-delivery-android-view-api-boundary/manifest-selected.json\",\"bytes\":55129,\"sha256\":\"7b608af9a301ceca60319dc44aac38925a777438eb57d616f67db4d7f4b23011\"},{\"path\":\"verification/github-delivery-android-view-api-boundary/authority-snapshot-preflight-selected.json\",\"bytes\":2828,\"sha256\":\"3d8c0f5992edbb97180d78558b0dfa46add08276a8863bbc411824a6b86831d3\"},{\"path\":\"verification/github-delivery-android-view-api-boundary/argv-preflight-selected.json\",\"bytes\":4955,\"sha256\":\"e783c43107c04d73c4623f61c2a79e330c4a6bcb827053623e761396f93c7358\"}]"
+        },
+        {
+          "plus": 176,
+          "text": "    return {'source': row(OUT / 'selection_common_preflight.py'),"
+        },
+        {
+          "minus": 155,
+          "text": "    return {'source': row(OUT / 'selection_common_delivery_corrected.py'),"
+        },
+        {
+          "minus": 163,
+          "text": "def accepted_preflight():"
+        },
+        {
+          "minus": 164,
+          "text": "    assert row(ROOT / ACCEPTED_PREFLIGHT_SEAL['path']) == ACCEPTED_PREFLIGHT_SEAL"
+        },
+        {
+          "minus": 165,
+          "text": "    seal = json.loads((ROOT / ACCEPTED_PREFLIGHT_SEAL['path']).read_bytes())"
+        },
+        {
+          "minus": 166,
+          "text": "    frozen_selection = row(ROOT / SELECTION)"
+        },
+        {
+          "minus": 167,
+          "text": "    assert seal['selection'] == frozen_selection"
+        },
+        {
+          "minus": 168,
+          "text": "    sealed = {value['path']: value for value in seal['sourcesAndEvidence']}"
+        },
+        {
+          "minus": 169,
+          "text": "    for expected in ACCEPTED_PREFLIGHT_ROWS:"
+        },
+        {
+          "minus": 170,
+          "text": "        assert sealed[expected['path']] == expected"
+        },
+        {
+          "minus": 171,
+          "text": "        assert row(ROOT / expected['path']) == expected"
+        },
+        {
+          "minus": 172,
+          "text": "    pre = json.loads((OUT / 'preflight-selected.json').read_bytes())"
+        },
+        {
+          "minus": 173,
+          "text": "    preservation = json.loads((OUT / 'preservation-selected-local.json').read_bytes())"
+        },
+        {
+          "minus": 174,
+          "text": "    manifest = json.loads((OUT / 'manifest-selected.json').read_bytes())"
+        },
+        {
+          "minus": 175,
+          "text": "    assert pre['selection'] == frozen_selection and pre['head'] == BASE and pre['tree'] == TREE"
+        },
+        {
+          "minus": 176,
+          "text": "    assert pre['branch'] == 'main' and pre['origin'] == 'https://github.com/snowdamiz/mixer.git' and pre['originMain'] == BASE"
+        },
+        {
+          "minus": 177,
+          "text": "    assert pre['selectedPaths'] == 227 and pre['indexEmpty'] is True and pre['selectedByteModesVerified'] is True"
+        },
+        {
+          "minus": 178,
+          "text": "    assert pre['allCommandsAdmittedDirectlyReapedOwnedGroupsAbsentSeparatePipesEOF'] is True"
+        },
+        {
+          "minus": 179,
+          "text": "    assert pre['argvManifest'] == sealed[str((OUT / 'argv-preflight-selected.json').relative_to(ROOT))]"
+        },
+        {
+          "minus": 180,
+          "text": "    assert pre['authoritySnapshot'] == sealed[str((OUT / 'authority-snapshot-preflight-selected.json').relative_to(ROOT))]"
+        },
+        {
+          "minus": 181,
+          "text": "    assert pre['helper']['sha256'] == HELPER_SHA"
+        },
+        {
+          "minus": 182,
+          "text": "    assert manifest['selection'] == frozen_selection and manifest['paths'] == 227 and manifest['members'] == ROWS"
+        },
+        {
+          "minus": 183,
+          "text": "    assert preservation['cleanTrackedSnapshot']['head'] == BASE and preservation['cleanTrackedSnapshot']['tree'] == TREE"
+        },
+        {
+          "minus": 184,
+          "text": "    assert {value['path'] for value in preservation['tracked']} == {value['path'] for value in PROTECTED}"
+        },
+        {
+          "minus": 185,
+          "text": "    assert len(seal['commandClosure']) == 9 and seal['allActualVectorsMatchRootApprovedManifest'] is True"
+        },
+        {
+          "minus": 186,
+          "text": "    return pre, preservation"
+        },
+        {
+          "minus": 187,
+          "text": ""
+        },
+        {
+          "minus": 188,
+          "text": ""
+        },
+        {
+          "plus": 185,
+          "text": "    path = OUT / 'paths-selected.nul'"
+        },
+        {
+          "minus": 190,
+          "text": "    path = OUT / 'paths-selected-corrected.nul'"
+        },
+        {
+          "minus": 204,
+          "text": "def bound_context():"
+        },
+        {
+          "minus": 205,
+          "text": "    value = json.loads((OUT / 'delivery-selected-corrected-receipt.json').read_bytes())"
+        },
+        {
+          "minus": 206,
+          "text": "    assert value['pushed'] and value['indexEmpty'] and value['selectedPaths'] == 227 and not value['force']"
+        },
+        {
+          "minus": 207,
+          "text": "    assert value['selection'] == row(ROOT / SELECTION) and value['parent'] == BASE"
+        },
+        {
+          "minus": 208,
+          "text": "    assert value['preflightSeal'] == ACCEPTED_PREFLIGHT_SEAL"
+        },
+        {
+          "minus": 209,
+          "text": "    assert value['preflight'] == ACCEPTED_PREFLIGHT_ROWS[0]"
+        },
+        {
+          "minus": 210,
+          "text": "    assert value['preservationBefore'] == ACCEPTED_PREFLIGHT_ROWS[1]"
+        },
+        {
+          "minus": 211,
+          "text": "    assert re.fullmatch('[0-9a-f]{40}', value['head']) and re.fullmatch('[0-9a-f]{40}', value['tree'])"
+        },
+        {
+          "minus": 212,
+          "text": "    return {'DELIVERED_SHA': value['head']}"
+        },
+        {
+          "minus": 213,
+          "text": ""
+        },
+        {
+          "minus": 214,
+          "text": ""
+        },
+        {
+          "plus": 201,
+          "text": "    template_path = ROOT / S['manualHost']['selectionTemplate']"
+        },
+        {
+          "plus": 202,
+          "text": "    assert S['manualHost']['selectionTemplate'] == 'verification/android-view-api-focused-actual-review/jdk-observation-preparation/root-selection-template.json'"
+        },
+        {
+          "plus": 203,
+          "text": "    assert row(template_path)['sha256'] == 'e95ce176c29b990be77d3d3f110e1252dce3d9874b7a3ab41ed8b129219668fa'"
+        },
+        {
+          "plus": 204,
+          "text": "    before = json.loads(template_path.read_bytes())"
+        },
+        {
+          "plus": 205,
+          "text": "    assert before['dispatch_selected'] is False and before['delivered_head'] is None"
+        },
+        {
+          "plus": 206,
+          "text": "    assert before['admit_ambient_ubuntu_python_checkout_upload'] is False"
+        },
+        {
+          "minus": 217,
+          "text": "    before = json.loads((ROOT / S['manualHost']['selectionTemplate']).read_bytes())"
+        },
+        {
+          "minus": 218,
+          "text": "    assert before['dispatch_selected'] is False and before['github_sha'] == 'BIND_EXACT_DELIVERED_COMMIT_BEFORE_DISPATCH'"
+        },
+        {
+          "plus": 208,
+          "text": "    assert before['workflow_path'] == '.github/workflows/android-view-api-jdk-data-observation.yml'"
+        },
+        {
+          "plus": 209,
+          "text": "    assert before['workflow_sha256'] == '18a7451271c17ca9fdbaae74091a859a7e49337e93d5f6a3277699f4159d6f0a'"
+        },
+        {
+          "plus": 210,
+          "text": "    assert before['source_manifest_sha256'] == 'f865a86fb102646eb2c25e8fab00e13651de4f950e474e7faae4561516e69fb0'"
+        },
+        {
+          "plus": 211,
+          "text": "    assert before['child_commands'] == [] and before['run_attempt'] == 1"
+        },
+        {
+          "plus": 212,
+          "text": "    assert before['allowance'] == {'new_diagnostic_runs': 1, 'attempts': 1, 'old_focused_allowance_reused': False}"
+        },
+        {
+          "plus": 213,
+          "text": "    after = {**before, 'dispatch_selected': True, 'delivered_head': head, 'admit_ambient_ubuntu_python_checkout_upload': True}"
+        },
+        {
+          "plus": 214,
+          "text": "    assert set(after) == set(before)"
+        },
+        {
+          "plus": 215,
+          "text": "    assert {key for key in before if before[key] != after[key]} == {'dispatch_selected', 'delivered_head', 'admit_ambient_ubuntu_python_checkout_upload'}"
+        },
+        {
+          "minus": 220,
+          "text": "    after = {**before, 'dispatch_selected': True, 'github_sha': head}"
+        },
+        {
+          "minus": 221,
+          "text": "    assert {key for key in before if before[key] != after[key]} == {'dispatch_selected', 'github_sha'}"
+        },
+        {
+          "plus": 236,
+          "text": "        assert phase == 'preflight-selected' and context is None"
+        },
+        {
+          "minus": 243,
+          "text": "        accepted_preflight()"
+        },
+        {
+          "plus": 248,
+          "text": "        assert self.authority['selectedPathsIncludingSelf'] == SELECTED_COUNT"
+        },
+        {
+          "minus": 254,
+          "text": "        assert self.authority['selectedPathsIncludingSelf'] == 227"
+        },
+        {
+          "plus": 279,
+          "text": "        assert self.manifest['phase'] == 'delivery-selected'"
+        },
+        {
+          "minus": 285,
+          "text": "        assert self.manifest['phase'] == 'delivery-selected-corrected'"
+        },
+        {
+          "plus": 297,
+          "text": "            assert self.manifest['phase'] == 'dispatch-selected' and name == 'dispatch'"
+        },
+        {
+          "plus": 298,
+          "text": "            assert result == ['gh', 'workflow', 'run', 'android-view-api-jdk-data-observation.yml', '--repo', 'github.com/snowdamiz/mixer', '--ref', 'main', '--raw-field', 'root_selection_json=' + dispatch_input(self.context['DELIVERED_SHA'])]"
+        },
+        {
+          "minus": 303,
+          "text": "            assert self.manifest['phase'] == 'dispatch-selected-corrected' and name == 'dispatch'"
+        },
+        {
+          "minus": 304,
+          "text": "            assert result == ['gh', 'workflow', 'run', 'android-view-api-focused-admission.yml', '--repo', 'github.com/snowdamiz/mixer', '--ref', 'main', '--raw-field', 'root_selection_json=' + dispatch_input(self.context['DELIVERED_SHA'])]"
+        },
+        {
+          "minus": 313,
+          "text": "        accepted_preflight()"
+        },
+        {
+          "plus": 310,
+          "text": "            assert self.manifest['phase'] == 'delivery-selected'"
+        },
+        {
+          "minus": 317,
+          "text": "            assert self.manifest['phase'] == 'delivery-selected-corrected'"
+        },
+        {
+          "plus": 312,
+          "text": "            save('stage-selected-pathspec-admission.json', {'at': now(),"
+        },
+        {
+          "minus": 319,
+          "text": "            save('stage-selected-corrected-pathspec-admission.json', {'at': now(),"
+        },
+        {
+          "plus": 314,
+          "text": "                'paths': SELECTED_COUNT, 'byteForByteNULAllowlistCheckedBeforeStageAdmission': True})"
+        },
+        {
+          "minus": 321,
+          "text": "                'paths': 227, 'byteForByteNULAllowlistCheckedBeforeStageAdmission': True})"
+        }
+      ]
+    },
+    {
+      "path": "verification/github-delivery-android-jdk-observation/preflight_selected.py",
+      "diff": [
+        {
+          "plus": 2,
+          "text": "raise AssertionError('PENDING_ROOT_FINAL_SELECTION_AND_SOURCE_REVIEW; source draft is not executable authority')"
+        },
+        {
+          "plus": 8,
+          "text": "spec = importlib.util.spec_from_file_location('android_selection_common', Path(__file__).with_name('selection_common_preflight.py'))"
+        },
+        {
+          "minus": 7,
+          "text": "spec = importlib.util.spec_from_file_location('android_selection_common', Path(__file__).with_name('selection_common.py'))"
+        },
+        {
+          "plus": 46,
+          "text": "     'helper': row(OUT / 'owned.py'), 'authoritySnapshot': c.authority_row,"
+        },
+        {
+          "minus": 45,
+          "text": "     'helper': row(OUT / 'owned_corrected.py'), 'authoritySnapshot': c.authority_row,"
+        }
+      ]
+    },
+    {
+      "path": "verification/github-delivery-android-jdk-observation/selection_common_delivery.py",
+      "diff": [
+        {
+          "plus": 2,
+          "text": "raise AssertionError('PENDING_ROOT_FINAL_SELECTION_AND_SOURCE_REVIEW; source draft is not executable authority')"
+        },
+        {
+          "plus": 16,
+          "text": "BASE = 'df0d15f90f2bc5e702127bdf6ab79f3d8e3d0cce'"
+        },
+        {
+          "plus": 17,
+          "text": "TREE = '470173cc89658f13b3a94320569b44e7f56fffd3'"
+        },
+        {
+          "plus": 18,
+          "text": "SELECTION = 'verification/android-jdk-data-observation-selection-2026-10-29/selection.json'"
+        },
+        {
+          "plus": 19,
+          "text": "SELECTION_SHA = None  # PENDING exact frozen selection SHA-256"
+        },
+        {
+          "plus": 20,
+          "text": "SELECTION_BYTES = None  # PENDING exact frozen selection bytes"
+        },
+        {
+          "plus": 21,
+          "text": "SELECTED_COUNT = None  # PENDING exact selected paths including selection itself"
+        },
+        {
+          "plus": 22,
+          "text": "HELPER_SHA = 'b7b4a4fab5ca699ded6efd65259c9e499babbe37786a108d7307dfc0d29ab043'"
+        },
+        {
+          "plus": 23,
+          "text": "raw_helper = (OUT / 'owned.py').read_bytes()"
+        },
+        {
+          "minus": 15,
+          "text": "BASE = '5b6fc4f5c119cb0b2770f8ee752f6cba57761229'"
+        },
+        {
+          "minus": 16,
+          "text": "TREE = '6ba7b6693e4b63f400bcac80883bbcc42016a3da'"
+        },
+        {
+          "minus": 17,
+          "text": "SELECTION = 'verification/android-view-api-focused-host-selection-2026-10-29/selection.json'"
+        },
+        {
+          "minus": 18,
+          "text": "SELECTION_SHA = '84c2f8562d4a50fe5ed6a910265993e80fc16055c9dc0ff26af368b2a0e9f144'"
+        },
+        {
+          "minus": 19,
+          "text": "HELPER_SHA = '2c874b49f95fdafaf133a3d8fd02b7a2aa6d7a44ab9e8faff207d14f978d54f2'"
+        },
+        {
+          "minus": 20,
+          "text": "raw_helper = (OUT / 'owned_corrected.py').read_bytes()"
+        },
+        {
+          "plus": 25,
+          "text": "spec = importlib.util.spec_from_file_location('android_jdk_selected_owned', OUT / 'owned.py')"
+        },
+        {
+          "minus": 22,
+          "text": "spec = importlib.util.spec_from_file_location('android_selected_owned_corrected', OUT / 'owned_corrected.py')"
+        },
+        {
+          "plus": 42,
+          "text": "assert row(ROOT / SELECTION) == {'path': SELECTION, 'bytes': SELECTION_BYTES, 'sha256': SELECTION_SHA}"
+        },
+        {
+          "minus": 39,
+          "text": "assert row(ROOT / SELECTION) == {'path': SELECTION, 'bytes': 58745, 'sha256': SELECTION_SHA}"
+        },
+        {
+          "plus": 46,
+          "text": "assert S['includeSelectionItself'] == SELECTION and S['selectedCountIncludingSelf'] == SELECTED_COUNT"
+        },
+        {
+          "plus": 47,
+          "text": "assert len(S['selectedRows']) == SELECTED_COUNT - 1"
+        },
+        {
+          "minus": 43,
+          "text": "assert S['includeSelectionItself'] == SELECTION and S['selectedCountIncludingSelf'] == 227"
+        },
+        {
+          "minus": 44,
+          "text": "assert len(S['selectedRows']) == 226"
+        },
+        {
+          "plus": 49,
+          "text": "assert S['manualHost']['dispatchNonce'] == 'fda6cf6bedfd7897f576df54eac07bec4c80884e209647c84081124d11950cca'"
+        },
+        {
+          "plus": 50,
+          "text": "assert S['manualHost']['workflow'] == '.github/workflows/android-view-api-jdk-data-observation.yml'"
+        },
+        {
+          "plus": 51,
+          "text": "assert S['manualHost']['workflowSHA256'] == '18a7451271c17ca9fdbaae74091a859a7e49337e93d5f6a3277699f4159d6f0a'"
+        },
+        {
+          "plus": 52,
+          "text": "assert S['manualHost']['sourceManifestSHA256'] == 'f865a86fb102646eb2c25e8fab00e13651de4f950e474e7faae4561516e69fb0'"
+        },
+        {
+          "plus": 53,
+          "text": "assert S['manualHost']['diagnosticOnly'] is True"
+        },
+        {
+          "plus": 54,
+          "text": "assert S['manualHost']['attempt'] == 1 and S['manualHost']['expectedJobs'] == 1"
+        },
+        {
+          "plus": 55,
+          "text": "assert S['manualHost']['expectedOwnedJavaCommands'] == 0 and S['manualHost']['expectedOwnedChildCommands'] == 0"
+        },
+        {
+          "plus": 56,
+          "text": "assert S['manualHost']['actualDispatched'] is False"
+        },
+        {
+          "plus": 57,
+          "text": "assert S['manualHost']['bindDeliveredSHAThenEnableSelection'] is True"
+        },
+        {
+          "plus": 58,
+          "text": "assert S['manualHost']['consumeAllowanceBeforeDispatch'] is True"
+        },
+        {
+          "plus": 59,
+          "text": "assert S['manualHost']['unknownOutcomeReplay'] is False"
+        },
+        {
+          "minus": 46,
+          "text": "assert S['manualHost']['dispatchNonce'] == '01ff94d91b2bf33285cb01364d69c793d35c1932485d6e0e0a4502f790090e56'"
+        },
+        {
+          "plus": 91,
+          "text": "assert len(SELECTED) == SELECTED_COUNT"
+        },
+        {
+          "minus": 78,
+          "text": "assert len(SELECTED) == 227"
+        },
+        {
+          "plus": 155,
+          "text": "    helper_binding = S['deliveryHelper']"
+        },
+        {
+          "plus": 156,
+          "text": "    assert helper_binding['path'] == str((OUT / 'owned.py').relative_to(ROOT))"
+        },
+        {
+          "plus": 157,
+          "text": "    assert helper_binding['sha256'] == HELPER_SHA"
+        },
+        {
+          "plus": 158,
+          "text": "    assert helper_binding['baselineRepinEvidence'] == {'path':'verification/github-delivery-android-jdk-observation/preparation.json','bytes':3960,'sha256':'21a6670fafaab357176dcf87fa7f56b4909c9b087d7b24866e5b1a8160ef2e9d'}"
+        },
+        {
+          "plus": 159,
+          "text": "    assert helper_binding['priorHelper'] == {'path': 'verification/github-delivery-android-view-api-boundary/owned_corrected.py', 'bytes': 29385, 'sha256': '2c874b49f95fdafaf133a3d8fd02b7a2aa6d7a44ab9e8faff207d14f978d54f2'}"
+        },
+        {
+          "plus": 160,
+          "text": "    assert helper_binding['priorCorrectionSeal'] == {'path': 'verification/github-delivery-android-view-api-boundary/preparation-correction-seal.json', 'sha256': 'db9df0c6a412b6ee1047c6abb431941823858f08f42c07d154b5cf405659ffe3'}"
+        },
+        {
+          "plus": 161,
+          "text": "    assert helper_binding['independentReviewSeal'] == {'path': 'verification/android-view-api-git-custody-review/review-seal.json', 'sha256': '1c67d7aef5cc9602b6127b4fad4471eab2d2e8081b3214c0689e55646a75ed0a'}"
+        },
+        {
+          "plus": 162,
+          "text": "    assert row(ROOT / helper_binding['path'])['sha256'] == HELPER_SHA"
+        },
+        {
+          "plus": 163,
+          "text": "    assert row(ROOT / helper_binding['baselineRepinEvidence']['path']) == helper_binding['baselineRepinEvidence']"
+        },
+        {
+          "plus": 164,
+          "text": "    assert row(ROOT / helper_binding['priorHelper']['path']) == helper_binding['priorHelper']"
+        },
+        {
+          "plus": 165,
+          "text": "    assert row(ROOT / helper_binding['priorCorrectionSeal']['path'])['sha256'] == helper_binding['priorCorrectionSeal']['sha256']"
+        },
+        {
+          "plus": 166,
+          "text": "    assert row(ROOT / helper_binding['independentReviewSeal']['path'])['sha256'] == helper_binding['independentReviewSeal']['sha256']"
+        },
+        {
+          "plus": 167,
+          "text": "    assert helper_binding['exactArgvApprovalBeforeEveryActualPhase'] is True"
+        },
+        {
+          "minus": 142,
+          "text": "    assert row(OUT / 'owned_corrected.py')['sha256'] == S['deliveryHelper']['sha256']"
+        },
+        {
+          "minus": 143,
+          "text": "    assert row(OUT / 'preparation-correction-seal.json')['sha256'] == S['deliveryHelper']['correctionSealSHA256']"
+        },
+        {
+          "minus": 144,
+          "text": "    assert row(ROOT / 'verification/android-view-api-git-custody-review/review-seal.json')['sha256'] == S['deliveryHelper']['independentReviewSealSHA256']"
+        },
+        {
+          "plus": 171,
+          "text": "DRIVERS = ['selection_common_delivery.py', 'deliver_selected.py', 'bind_ci_selected.py', 'dispatch_selected.py']"
+        },
+        {
+          "minus": 148,
+          "text": "DRIVERS = ['selection_common_delivery_corrected.py', 'deliver_selected_corrected.py', 'bind_ci_selected_corrected.py', 'dispatch_selected_corrected.py']"
+        },
+        {
+          "plus": 173,
+          "text": "ACCEPTED_PREFLIGHT_SEAL = None  # PENDING later accepted preflight seal; not a prerequisite for preflight"
+        },
+        {
+          "plus": 174,
+          "text": "ACCEPTED_PREFLIGHT_ROWS = None  # PENDING later accepted preflight five evidence rows"
+        },
+        {
+          "minus": 150,
+          "text": "ACCEPTED_PREFLIGHT_SEAL = {\"path\":\"verification/github-delivery-android-view-api-boundary/preflight-selected.seal.json\",\"bytes\":20127,\"sha256\":\"3040b195d1be0a45f548ade6b91c961f2ad841528e2495d45ccc64483ae25c91\"}"
+        },
+        {
+          "minus": 151,
+          "text": "ACCEPTED_PREFLIGHT_ROWS = [{\"path\":\"verification/github-delivery-android-view-api-boundary/preflight-selected.json\",\"bytes\":4776,\"sha256\":\"cb29965afebbeb3db998185d9c75b41bfec64ff368b2efdf67b274f1e6c6db74\"},{\"path\":\"verification/github-delivery-android-view-api-boundary/preservation-selected-local.json\",\"bytes\":789256,\"sha256\":\"8110ff6881be0bd3c64d29670828916c27e067dbf6c1f0c1919084bff4ffb611\"},{\"path\":\"verification/github-delivery-android-view-api-boundary/manifest-selected.json\",\"bytes\":55129,\"sha256\":\"7b608af9a301ceca60319dc44aac38925a777438eb57d616f67db4d7f4b23011\"},{\"path\":\"verification/github-delivery-android-view-api-boundary/authority-snapshot-preflight-selected.json\",\"bytes\":2828,\"sha256\":\"3d8c0f5992edbb97180d78558b0dfa46add08276a8863bbc411824a6b86831d3\"},{\"path\":\"verification/github-delivery-android-view-api-boundary/argv-preflight-selected.json\",\"bytes\":4955,\"sha256\":\"e783c43107c04d73c4623f61c2a79e330c4a6bcb827053623e761396f93c7358\"}]"
+        },
+        {
+          "plus": 178,
+          "text": "    return {'source': row(OUT / 'selection_common_delivery.py'),"
+        },
+        {
+          "minus": 155,
+          "text": "    return {'source': row(OUT / 'selection_common_delivery_corrected.py'),"
+        },
+        {
+          "plus": 200,
+          "text": "    assert pre['selectedPaths'] == SELECTED_COUNT and pre['indexEmpty'] is True and pre['selectedByteModesVerified'] is True"
+        },
+        {
+          "minus": 177,
+          "text": "    assert pre['selectedPaths'] == 227 and pre['indexEmpty'] is True and pre['selectedByteModesVerified'] is True"
+        },
+        {
+          "plus": 205,
+          "text": "    assert manifest['selection'] == frozen_selection and manifest['paths'] == SELECTED_COUNT and manifest['members'] == ROWS"
+        },
+        {
+          "minus": 182,
+          "text": "    assert manifest['selection'] == frozen_selection and manifest['paths'] == 227 and manifest['members'] == ROWS"
+        },
+        {
+          "plus": 213,
+          "text": "    path = OUT / 'paths-selected.nul'"
+        },
+        {
+          "minus": 190,
+          "text": "    path = OUT / 'paths-selected-corrected.nul'"
+        },
+        {
+          "plus": 228,
+          "text": "    value = json.loads((OUT / 'delivery-selected-receipt.json').read_bytes())"
+        },
+        {
+          "plus": 229,
+          "text": "    assert value['pushed'] and value['indexEmpty'] and value['selectedPaths'] == SELECTED_COUNT and not value['force']"
+        },
+        {
+          "minus": 205,
+          "text": "    value = json.loads((OUT / 'delivery-selected-corrected-receipt.json').read_bytes())"
+        },
+        {
+          "minus": 206,
+          "text": "    assert value['pushed'] and value['indexEmpty'] and value['selectedPaths'] == 227 and not value['force']"
+        },
+        {
+          "plus": 240,
+          "text": "    template_path = ROOT / S['manualHost']['selectionTemplate']"
+        },
+        {
+          "plus": 241,
+          "text": "    assert S['manualHost']['selectionTemplate'] == 'verification/android-view-api-focused-actual-review/jdk-observation-preparation/root-selection-template.json'"
+        },
+        {
+          "plus": 242,
+          "text": "    assert row(template_path)['sha256'] == 'e95ce176c29b990be77d3d3f110e1252dce3d9874b7a3ab41ed8b129219668fa'"
+        },
+        {
+          "plus": 243,
+          "text": "    before = json.loads(template_path.read_bytes())"
+        },
+        {
+          "plus": 244,
+          "text": "    assert before['dispatch_selected'] is False and before['delivered_head'] is None"
+        },
+        {
+          "plus": 245,
+          "text": "    assert before['admit_ambient_ubuntu_python_checkout_upload'] is False"
+        },
+        {
+          "minus": 217,
+          "text": "    before = json.loads((ROOT / S['manualHost']['selectionTemplate']).read_bytes())"
+        },
+        {
+          "minus": 218,
+          "text": "    assert before['dispatch_selected'] is False and before['github_sha'] == 'BIND_EXACT_DELIVERED_COMMIT_BEFORE_DISPATCH'"
+        },
+        {
+          "plus": 247,
+          "text": "    assert before['workflow_path'] == '.github/workflows/android-view-api-jdk-data-observation.yml'"
+        },
+        {
+          "plus": 248,
+          "text": "    assert before['workflow_sha256'] == '18a7451271c17ca9fdbaae74091a859a7e49337e93d5f6a3277699f4159d6f0a'"
+        },
+        {
+          "plus": 249,
+          "text": "    assert before['source_manifest_sha256'] == 'f865a86fb102646eb2c25e8fab00e13651de4f950e474e7faae4561516e69fb0'"
+        },
+        {
+          "plus": 250,
+          "text": "    assert before['child_commands'] == [] and before['run_attempt'] == 1"
+        },
+        {
+          "plus": 251,
+          "text": "    assert before['allowance'] == {'new_diagnostic_runs': 1, 'attempts': 1, 'old_focused_allowance_reused': False}"
+        },
+        {
+          "plus": 252,
+          "text": "    after = {**before, 'dispatch_selected': True, 'delivered_head': head, 'admit_ambient_ubuntu_python_checkout_upload': True}"
+        },
+        {
+          "plus": 253,
+          "text": "    assert set(after) == set(before)"
+        },
+        {
+          "plus": 254,
+          "text": "    assert {key for key in before if before[key] != after[key]} == {'dispatch_selected', 'delivered_head', 'admit_ambient_ubuntu_python_checkout_upload'}"
+        },
+        {
+          "minus": 220,
+          "text": "    after = {**before, 'dispatch_selected': True, 'github_sha': head}"
+        },
+        {
+          "minus": 221,
+          "text": "    assert {key for key in before if before[key] != after[key]} == {'dispatch_selected', 'github_sha'}"
+        },
+        {
+          "plus": 287,
+          "text": "        assert self.authority['selectedPathsIncludingSelf'] == SELECTED_COUNT"
+        },
+        {
+          "minus": 254,
+          "text": "        assert self.authority['selectedPathsIncludingSelf'] == 227"
+        },
+        {
+          "plus": 318,
+          "text": "        assert self.manifest['phase'] == 'delivery-selected'"
+        },
+        {
+          "minus": 285,
+          "text": "        assert self.manifest['phase'] == 'delivery-selected-corrected'"
+        },
+        {
+          "plus": 336,
+          "text": "            assert self.manifest['phase'] == 'dispatch-selected' and name == 'dispatch'"
+        },
+        {
+          "plus": 337,
+          "text": "            assert result == ['gh', 'workflow', 'run', 'android-view-api-jdk-data-observation.yml', '--repo', 'github.com/snowdamiz/mixer', '--ref', 'main', '--raw-field', 'root_selection_json=' + dispatch_input(self.context['DELIVERED_SHA'])]"
+        },
+        {
+          "minus": 303,
+          "text": "            assert self.manifest['phase'] == 'dispatch-selected-corrected' and name == 'dispatch'"
+        },
+        {
+          "minus": 304,
+          "text": "            assert result == ['gh', 'workflow', 'run', 'android-view-api-focused-admission.yml', '--repo', 'github.com/snowdamiz/mixer', '--ref', 'main', '--raw-field', 'root_selection_json=' + dispatch_input(self.context['DELIVERED_SHA'])]"
+        },
+        {
+          "plus": 350,
+          "text": "            assert self.manifest['phase'] == 'delivery-selected'"
+        },
+        {
+          "minus": 317,
+          "text": "            assert self.manifest['phase'] == 'delivery-selected-corrected'"
+        },
+        {
+          "plus": 352,
+          "text": "            save('stage-selected-pathspec-admission.json', {'at': now(),"
+        },
+        {
+          "minus": 319,
+          "text": "            save('stage-selected-corrected-pathspec-admission.json', {'at': now(),"
+        },
+        {
+          "plus": 354,
+          "text": "                'paths': SELECTED_COUNT, 'byteForByteNULAllowlistCheckedBeforeStageAdmission': True})"
+        },
+        {
+          "minus": 321,
+          "text": "                'paths': 227, 'byteForByteNULAllowlistCheckedBeforeStageAdmission': True})"
+        }
+      ]
+    },
+    {
+      "path": "verification/github-delivery-android-jdk-observation/deliver_selected.py",
+      "diff": [
+        {
+          "plus": 1,
+          "text": "\"\"\"One exact frozen-path commit and nonforce origin/main push; no retries.\"\"\""
+        },
+        {
+          "plus": 2,
+          "text": "raise AssertionError('PENDING_ROOT_FINAL_SELECTION_AND_SOURCE_REVIEW; source draft is not executable authority')"
+        },
+        {
+          "minus": 1,
+          "text": "\"\"\"One exact227-path commit and nonforce origin/main push; no retries.\"\"\""
+        },
+        {
+          "plus": 8,
+          "text": "spec = importlib.util.spec_from_file_location('android_selection_common', Path(__file__).with_name('selection_common_delivery.py'))"
+        },
+        {
+          "minus": 7,
+          "text": "spec = importlib.util.spec_from_file_location('android_selection_common', Path(__file__).with_name('selection_common_delivery_corrected.py'))"
+        },
+        {
+          "plus": 16,
+          "text": "AUTHORED = None  # PENDING exact root-frozen selected authored paths"
+        },
+        {
+          "minus": 15,
+          "text": "AUTHORED = [\".github/workflows/android-view-api-focused-admission.yml\",\"PLAN.md\",\"STATUS.md\",\"gates/ga.json\",\"verification/android-next-source-selection-2026-10-29/source-observation.json\",\"verification/android-view-api-boundary-bytecode-inspection/cache-cleanup.json\",\"verification/android-view-api-boundary-bytecode-inspection/check_inspector.py\",\"verification/android-view-api-boundary-bytecode-inspection/controls.json\",\"verification/android-view-api-boundary-bytecode-inspection/inspect_artifacts.py\",\"verification/android-view-api-boundary-bytecode-inspection/provenance.json\",\"verification/android-view-api-boundary-bytecode-inspection/seal.json\",\"verification/android-view-api-boundary-candidate/check-source.py\",\"verification/android-view-api-boundary-candidate/coverage-plan.json\",\"verification/android-view-api-boundary-candidate/expected-helper-topology.json\",\"verification/android-view-api-boundary-candidate/freeze.json\",\"verification/android-view-api-boundary-candidate/manifest.json\",\"verification/android-view-api-boundary-candidate/receipt.json\",\"verification/android-view-api-boundary-candidate/source-check.json\",\"verification/android-view-api-boundary-candidate/source/AppearanceDescriptorV2.java\",\"verification/android-view-api-boundary-candidate/source/AppearanceGeometryV2.java\",\"verification/android-view-api-boundary-candidate/source/AppearanceNativePathsV2.java\",\"verification/android-view-api-boundary-candidate/source/AppearanceResolverV2.java\",\"verification/android-view-api-boundary-candidate/source/AuthoredToggleInputV2.java\",\"verification/android-view-api-boundary-candidate/source/InstalledAppearanceV2.java\",\"verification/android-view-api-boundary-candidate/source/Json.java\",\"verification/android-view-api-boundary-candidate/source/NativeAppearanceViewsV2.java\",\"verification/android-view-api-boundary-candidate/source/NativeCoordinatorV2.java\",\"verification/android-view-api-boundary-candidate/source/NativeEditorConnectionV2.java\",\"verification/android-view-api-boundary-candidate/source/NativeEnvironmentPlatformV2.java\",\"verification/android-view-api-boundary-candidate/source/NativeEnvironmentV2.java\",\"verification/android-view-api-boundary-candidate/source/NativeOwnerV2.java\",\"verification/android-view-api-boundary-candidate/source/NativeRenderer.java\",\"verification/android-view-api-boundary-candidate/source/OwnerLifecycleV2.java\",\"verification/android-view-api-boundary-candidate/source/UiPacket.java\",\"verification/android-view-api-boundary-candidate/tests/ViewApiBoundaryTests.java\",\"verification/android-view-api-boundary-candidate/tests/cross-leaf/NativeBridge.java\",\"verification/android-view-api-boundary-candidate/tests/descriptor.json\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/R.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/app/Activity.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/app/UiModeManager.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/content/ClipData.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/content/ClipboardManager.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/content/ComponentCallbacks.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/content/ContentResolver.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/content/Context.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/content/res/AssetManager.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/content/res/ColorStateList.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/content/res/Configuration.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/content/res/Resources.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/database/ContentObserver.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/graphics/Canvas.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/graphics/Color.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/graphics/ColorFilter.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/graphics/Insets.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/graphics/Paint.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/graphics/Path.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/graphics/PixelFormat.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/graphics/Rect.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/graphics/RectF.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/graphics/Typeface.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/graphics/drawable/Drawable.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/net/Uri.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/os/Build.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/os/Bundle.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/os/CancellationSignal.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/os/Handler.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/os/LocaleList.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/os/Looper.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/provider/Settings.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/text/Annotation.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/text/Editable.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/text/InputFilter.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/text/InputType.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/text/Layout.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/text/SpannableStringBuilder.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/text/Spanned.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/text/SpannedString.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/text/TextUtils.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/text/TextWatcher.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/text/method/ArrowKeyMovementMethod.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/text/method/MovementMethod.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/text/method/SingleLineTransformationMethod.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/text/method/TransformationMethod.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/text/style/UnderlineSpan.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/util/DisplayMetrics.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/util/TypedValue.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/Gravity.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/KeyEvent.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/MotionEvent.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/View.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/ViewConfiguration.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/ViewGroup.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/ViewParent.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/ViewTreeObserver.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/Window.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/WindowInsets.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/accessibility/AccessibilityManager.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/accessibility/AccessibilityNodeInfo.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/inputmethod/BaseInputConnection.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/inputmethod/CompletionInfo.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/inputmethod/CorrectionInfo.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/inputmethod/EditorInfo.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/inputmethod/ExtractedText.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/inputmethod/ExtractedTextRequest.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/inputmethod/HandwritingGesture.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/inputmethod/InputConnection.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/inputmethod/InputConnectionWrapper.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/inputmethod/InputContentInfo.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/inputmethod/PreviewableHandwritingGesture.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/inputmethod/SelectGesture.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/inputmethod/SurroundingText.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/inputmethod/TextAttribute.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/inputmethod/TextBoundsInfoResult.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/view/inputmethod/TextSnapshot.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/widget/Button.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/widget/EditText.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/widget/FrameLayout.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/widget/LinearLayout.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/widget/ScrollView.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/widget/Switch.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/android/widget/TextView.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/dev/mixer/android/ConcreteHostProbe.java\",\"verification/android-view-api-boundary-candidate/tests/host-leaves/dev/mixer/android/NativeBridge.java\",\"verification/android-view-api-boundary-host-admission/admission.json\",\"verification/android-view-api-boundary-host-admission/collect.py\",\"verification/android-view-api-boundary-host-admission/custody.py\",\"verification/android-view-api-boundary-host-admission/input-manifest.json\",\"verification/android-view-api-boundary-host-admission/inspector-review.json\",\"verification/android-view-api-boundary-host-admission/jdk-runtime-members.json\",\"verification/android-view-api-boundary-host-admission/preparation-controls.json\",\"verification/android-view-api-boundary-host-admission/receipt.json\",\"verification/android-view-api-boundary-host-admission/seal.json\",\"verification/android-view-api-boundary-host-admission/selection-template.json\",\"verification/android-view-api-boundary-host-admission/test_preparation.py\",\"verification/android-view-api-boundary-host-admission/tool-profile-historical-macos.json\",\"verification/android-view-api-boundary-host-admission/tool-profile.json\",\"verification/android-view-api-boundary-host-admission/workflow-actions.json\",\"verification/android-view-api-boundary-host-admission/workflow.DRAFT.yml\",\"verification/android-view-api-boundary-host-custody-correction/admission.json\",\"verification/android-view-api-boundary-host-custody-correction/baseline.json\",\"verification/android-view-api-boundary-host-custody-correction/changes.json\",\"verification/android-view-api-boundary-host-custody-correction/collect.py\",\"verification/android-view-api-boundary-host-custody-correction/custody.py\",\"verification/android-view-api-boundary-host-custody-correction/independent-controls.json\",\"verification/android-view-api-boundary-host-custody-correction/input-manifest.json\",\"verification/android-view-api-boundary-host-custody-correction/inspector-review.json\",\"verification/android-view-api-boundary-host-custody-correction/jdk-runtime-members.json\",\"verification/android-view-api-boundary-host-custody-correction/linux-signal-abi-source-receipt.json\",\"verification/android-view-api-boundary-host-custody-correction/preparation-controls.json\",\"verification/android-view-api-boundary-host-custody-correction/receipt.json\",\"verification/android-view-api-boundary-host-custody-correction/seal.json\",\"verification/android-view-api-boundary-host-custody-correction/selection-template.json\",\"verification/android-view-api-boundary-host-custody-correction/test_preparation.py\",\"verification/android-view-api-boundary-host-custody-correction/tool-profile-historical-macos.json\",\"verification/android-view-api-boundary-host-custody-correction/tool-profile.json\",\"verification/android-view-api-boundary-host-custody-correction/workflow-actions.json\",\"verification/android-view-api-boundary-host-custody-correction/workflow.DRAFT.yml\",\"verification/android-view-api-boundary-host-independent/archive-review.json\",\"verification/android-view-api-boundary-host-independent/check_review.py\",\"verification/android-view-api-boundary-host-independent/data-checks.json\",\"verification/android-view-api-boundary-host-independent/receipt.json\",\"verification/android-view-api-boundary-host-independent/seal.json\",\"verification/android-view-api-boundary-independent/inspect_source.py\",\"verification/android-view-api-boundary-independent/receipt.json\",\"verification/android-view-api-boundary-independent/seal.json\",\"verification/android-view-api-boundary-independent/source-checks.json\",\"verification/android-view-api-boundary-linux-tool-profile/acquire_data.py\",\"verification/android-view-api-boundary-linux-tool-profile/acquisition-receipt.json\",\"verification/android-view-api-boundary-linux-tool-profile/analyze_archive.py\",\"verification/android-view-api-boundary-linux-tool-profile/archive-manifest.json\",\"verification/android-view-api-boundary-linux-tool-profile/derivation-receipt.json\",\"verification/android-view-api-boundary-linux-tool-profile/elf-dynamic-boundary.json\",\"verification/android-view-api-boundary-linux-tool-profile/packaging-sources.json\",\"verification/android-view-api-boundary-linux-tool-profile/profile-boundary.json\",\"verification/android-view-api-boundary-linux-tool-profile/release-metadata.json\",\"verification/android-view-api-boundary-linux-tool-profile/runtime-exclusions.json\",\"verification/android-view-api-boundary-linux-tool-profile/runtime-members.json\",\"verification/android-view-api-boundary-linux-tool-profile/seal.json\",\"verification/android-view-api-boundary-root-source-review/receipt.json\",\"verification/android-view-api-boundary-root-source-review/seal.json\",\"verification/android-view-api-boundary-selection-2026-10-29/contract.json\",\"verification/android-view-api-boundary-toolchain-observation/current-host-jdk-observation.json\",\"verification/android-view-api-boundary-toolchain-observation/jar-data-observation.json\",\"verification/android-view-api-boundary-toolchain-observation/provider-image-observation.json\",\"verification/android-view-api-boundary-toolchain-observation/seal.json\",\"verification/android-view-api-focused-host-selection-2026-10-29/custody-review.json\",\"verification/android-view-api-focused-host-selection-2026-10-29/host-selection-template.json\",\"verification/android-view-api-focused-host-selection-2026-10-29/preflight.json\",\"verification/android-view-api-focused-host-selection-2026-10-29/root-review.json\",\"verification/android-view-api-focused-host-selection-2026-10-29/selection.json\",\"verification/android-view-api-linux-signal-abi-correction/receipt.json\",\"verification/android-view-api-linux-signal-abi-correction/seal.json\",\"verification/android-view-api-linux-signal-abi/receipt.json\",\"verification/android-view-api-linux-signal-abi/seal.json\",\"verification/bitmap-canonical-ci-2026-10-29/receipt.json\",\"verification/bitmap-canonical-ci-2026-10-29/seal.json\",\"work-graph.json\"]"
+        },
+        {
+          "plus": 19,
+          "text": "assert pre['head'] == BASE and pre['tree'] == TREE and pre['selectedPaths'] == len(SELECTED)"
+        },
+        {
+          "plus": 20,
+          "text": "assert not (OUT / 'delivery-selected-once.json').exists()"
+        },
+        {
+          "plus": 21,
+          "text": "with (OUT / 'paths-selected.nul').open('xb') as handle:"
+        },
+        {
+          "minus": 18,
+          "text": "assert pre['head'] == BASE and pre['tree'] == TREE and pre['selectedPaths'] == 227"
+        },
+        {
+          "minus": 19,
+          "text": "assert not (OUT / 'delivery-selected-corrected-once.json').exists()"
+        },
+        {
+          "minus": 20,
+          "text": "with (OUT / 'paths-selected-corrected.nul').open('xb') as handle:"
+        },
+        {
+          "plus": 40,
+          "text": "c = StrictCommands('delivery-selected')"
+        },
+        {
+          "minus": 39,
+          "text": "c = StrictCommands('delivery-selected-corrected')"
+        },
+        {
+          "plus": 48,
+          "text": "save('delivery-selected-once.json', {'at': now(), 'selection': row(ROOT / SELECTION), 'paths': len(SELECTED),"
+        },
+        {
+          "minus": 47,
+          "text": "save('delivery-selected-corrected-once.json', {'at': now(), 'selection': row(ROOT / SELECTION), 'paths': len(SELECTED),"
+        },
+        {
+          "plus": 50,
+          "text": "c.run('stage', ['git', 'add', '--pathspec-from-file=' + str(OUT / 'paths-selected.nul'), '--pathspec-file-nul'])"
+        },
+        {
+          "minus": 49,
+          "text": "c.run('stage', ['git', 'add', '--pathspec-from-file=' + str(OUT / 'paths-selected-corrected.nul'), '--pathspec-file-nul'])"
+        },
+        {
+          "plus": 64,
+          "text": "save('staged-selected-objects-local.json', objects)"
+        },
+        {
+          "minus": 63,
+          "text": "save('staged-selected-corrected-objects-local.json', objects)"
+        },
+        {
+          "plus": 69,
+          "text": "    'commit', '-m', 'Prepare separately selected Android JDK file data observation'])"
+        },
+        {
+          "minus": 68,
+          "text": "    'commit', '-m', 'Prepare isolated Android view API boundary admission'])"
+        },
+        {
+          "plus": 73,
+          "text": "save('committed-selected.json', {'at': now(), 'head': head, 'tree': tree, 'parent': parent, 'paths': len(SELECTED)})"
+        },
+        {
+          "minus": 72,
+          "text": "save('committed-selected-corrected.json', {'at': now(), 'head': head, 'tree': tree, 'parent': parent, 'paths': len(SELECTED)})"
+        },
+        {
+          "plus": 83,
+          "text": "save('committed-selected-objects.json', committed_objects)"
+        },
+        {
+          "minus": 82,
+          "text": "save('committed-selected-corrected-objects.json', committed_objects)"
+        },
+        {
+          "plus": 87,
+          "text": "save('push-selected-once.json', {'at': now(), 'head': head, 'tree': tree, 'parent': parent,"
+        },
+        {
+          "minus": 86,
+          "text": "save('push-selected-corrected-once.json', {'at': now(), 'head': head, 'tree': tree, 'parent': parent,"
+        },
+        {
+          "plus": 104,
+          "text": "save('preservation-selected-after-local.json', {'at': now(), 'statusCollapsed': after, 'untrackedCollapsed': after_untracked,"
+        },
+        {
+          "minus": 103,
+          "text": "save('preservation-selected-corrected-after-local.json', {'at': now(), 'statusCollapsed': after, 'untrackedCollapsed': after_untracked,"
+        },
+        {
+          "plus": 107,
+          "text": "save('delivery-selected-receipt.json', {'schema': 1, 'at': now(), 'head': head, 'tree': tree, 'parent': parent,"
+        },
+        {
+          "minus": 106,
+          "text": "save('delivery-selected-corrected-receipt.json', {'schema': 1, 'at': now(), 'head': head, 'tree': tree, 'parent': parent,"
+        },
+        {
+          "plus": 111,
+          "text": "    'committedObjects': row(OUT / 'committed-selected-objects.json'),"
+        },
+        {
+          "minus": 110,
+          "text": "    'committedObjects': row(OUT / 'committed-selected-corrected-objects.json'),"
+        },
+        {
+          "plus": 120,
+          "text": "    'argvManifest': row(OUT / 'argv-delivery-selected.json'), 'commands': c.records,"
+        },
+        {
+          "minus": 119,
+          "text": "    'argvManifest': row(OUT / 'argv-delivery-selected-corrected.json'), 'commands': c.records,"
+        }
+      ]
+    },
+    {
+      "path": "verification/github-delivery-android-jdk-observation/bind_ci_selected.py",
+      "diff": [
+        {
+          "plus": 2,
+          "text": "raise AssertionError('PENDING_ROOT_FINAL_SELECTION_AND_SOURCE_REVIEW; source draft is not executable authority')"
+        },
+        {
+          "plus": 8,
+          "text": "spec = importlib.util.spec_from_file_location('android_selection_common', Path(__file__).with_name('selection_common_delivery.py'))"
+        },
+        {
+          "minus": 7,
+          "text": "spec = importlib.util.spec_from_file_location('android_selection_common', Path(__file__).with_name('selection_common_delivery_corrected.py'))"
+        },
+        {
+          "plus": 17,
+          "text": "r = json.loads((OUT / 'delivery-selected-receipt.json').read_bytes())"
+        },
+        {
+          "plus": 18,
+          "text": "c = StrictCommands('ci-binding-selected', context)"
+        },
+        {
+          "minus": 16,
+          "text": "r = json.loads((OUT / 'delivery-selected-corrected-receipt.json').read_bytes())"
+        },
+        {
+          "minus": 17,
+          "text": "c = StrictCommands('ci-binding-selected-corrected', context)"
+        },
+        {
+          "plus": 37,
+          "text": "assert registrations['manual']['name'] == 'Android JDK file data observation DRAFT'"
+        },
+        {
+          "minus": 36,
+          "text": "assert registrations['manual']['name'] == 'Android view API focused custody correction DRAFT'"
+        },
+        {
+          "plus": 48,
+          "text": "save('ci-binding-selected.json', {'schema': 1, 'at': now(), 'head': head, 'tree': r['tree'],"
+        },
+        {
+          "plus": 49,
+          "text": "    'selection': row(ROOT / SELECTION), 'delivery': row(OUT / 'delivery-selected-receipt.json'),"
+        },
+        {
+          "plus": 50,
+          "text": "    'manifest': row(OUT / 'argv-ci-binding-selected.json'), 'contents': contents,"
+        },
+        {
+          "minus": 47,
+          "text": "save('ci-binding-selected-corrected.json', {'schema': 1, 'at': now(), 'head': head, 'tree': r['tree'],"
+        },
+        {
+          "minus": 48,
+          "text": "    'selection': row(ROOT / SELECTION), 'delivery': row(OUT / 'delivery-selected-corrected-receipt.json'),"
+        },
+        {
+          "minus": 49,
+          "text": "    'manifest': row(OUT / 'argv-ci-binding-selected-corrected.json'), 'contents': contents,"
+        },
+        {
+          "plus": 52,
+          "text": "    'manualBeforeCount': 0, 'manualExpectedJobs': 1, 'manualExpectedOwnedJavaCommands': 0, 'manualExpectedChildCommands': [], 'manualJobNames': ['jdk-data'],"
+        },
+        {
+          "minus": 51,
+          "text": "    'manualBeforeCount': 0, 'manualExpectedJobs': 1, 'manualExpectedOwnedJavaCommands': 7,"
+        }
+      ]
+    },
+    {
+      "path": "verification/github-delivery-android-jdk-observation/dispatch_selected.py",
+      "diff": [
+        {
+          "plus": 2,
+          "text": "raise AssertionError('PENDING_ROOT_FINAL_SELECTION_AND_SOURCE_REVIEW; source draft is not executable authority')"
+        },
+        {
+          "plus": 8,
+          "text": "spec = importlib.util.spec_from_file_location('android_selection_common', Path(__file__).with_name('selection_common_delivery.py'))"
+        },
+        {
+          "minus": 7,
+          "text": "spec = importlib.util.spec_from_file_location('android_selection_common', Path(__file__).with_name('selection_common_delivery_corrected.py'))"
+        },
+        {
+          "plus": 15,
+          "text": "assert not (OUT / 'manual-dispatch-selected-once.json').exists()"
+        },
+        {
+          "minus": 14,
+          "text": "assert not (OUT / 'manual-dispatch-selected-corrected-once.json').exists()"
+        },
+        {
+          "plus": 18,
+          "text": "r = json.loads((OUT / 'delivery-selected-receipt.json').read_bytes())"
+        },
+        {
+          "plus": 19,
+          "text": "b = json.loads((OUT / 'ci-binding-selected.json').read_bytes())"
+        },
+        {
+          "minus": 17,
+          "text": "r = json.loads((OUT / 'delivery-selected-corrected-receipt.json').read_bytes())"
+        },
+        {
+          "minus": 18,
+          "text": "b = json.loads((OUT / 'ci-binding-selected-corrected.json').read_bytes())"
+        },
+        {
+          "plus": 21,
+          "text": "assert b['selection'] == row(ROOT / SELECTION) and b['delivery'] == row(OUT / 'delivery-selected-receipt.json')"
+        },
+        {
+          "minus": 20,
+          "text": "assert b['selection'] == row(ROOT / SELECTION) and b['delivery'] == row(OUT / 'delivery-selected-corrected-receipt.json')"
+        },
+        {
+          "plus": 24,
+          "text": "c = StrictCommands('dispatch-selected', context)"
+        },
+        {
+          "minus": 23,
+          "text": "c = StrictCommands('dispatch-selected-corrected', context)"
+        },
+        {
+          "plus": 30,
+          "text": "save('manual-dispatch-selected-input.json', json.loads(context['DISPATCH_JSON']))"
+        },
+        {
+          "minus": 29,
+          "text": "save('manual-dispatch-selected-corrected-input.json', json.loads(context['DISPATCH_JSON']))"
+        },
+        {
+          "plus": 33,
+          "text": "save('manual-dispatch-selected-once.json', {'schema': 1, 'at': now(), 'head': head,"
+        },
+        {
+          "plus": 34,
+          "text": "    'selection': row(ROOT / SELECTION), 'binding': row(OUT / 'ci-binding-selected.json'),"
+        },
+        {
+          "minus": 32,
+          "text": "save('manual-dispatch-selected-corrected-once.json', {'schema': 1, 'at': now(), 'head': head,"
+        },
+        {
+          "minus": 33,
+          "text": "    'selection': row(ROOT / SELECTION), 'binding': row(OUT / 'ci-binding-selected-corrected.json'),"
+        },
+        {
+          "plus": 36,
+          "text": "    'input': row(OUT / 'manual-dispatch-selected-input.json'), 'dispatchNonce': S['manualHost']['dispatchNonce'],"
+        },
+        {
+          "minus": 35,
+          "text": "    'input': row(OUT / 'manual-dispatch-selected-corrected-input.json'), 'dispatchNonce': S['manualHost']['dispatchNonce'],"
+        },
+        {
+          "plus": 41,
+          "text": "save('manual-dispatch-selected-submitted.json', {'schema': 1, 'at': now(), 'head': head,"
+        },
+        {
+          "plus": 42,
+          "text": "    'reservation': row(OUT / 'manual-dispatch-selected-once.json'), 'submitTerminal': c.records[-1],"
+        },
+        {
+          "minus": 40,
+          "text": "save('manual-dispatch-selected-corrected-submitted.json', {'schema': 1, 'at': now(), 'head': head,"
+        },
+        {
+          "minus": 41,
+          "text": "    'reservation': row(OUT / 'manual-dispatch-selected-corrected-once.json'), 'submitTerminal': c.records[-1],"
+        },
+        {
+          "plus": 52,
+          "text": "save('manual-run-selected-binding.json', {'schema': 1, 'at': now(), 'head': head, 'tree': r['tree'],"
+        },
+        {
+          "plus": 53,
+          "text": "    'selection': row(ROOT / SELECTION), 'reservation': row(OUT / 'manual-dispatch-selected-once.json'),"
+        },
+        {
+          "plus": 54,
+          "text": "    'submitted': row(OUT / 'manual-dispatch-selected-submitted.json'), 'manual': manual,"
+        },
+        {
+          "plus": 55,
+          "text": "    'dispatches': 1, 'retries': 0, 'expectedJobs': 1, 'expectedOwnedJavaCommands': 0, 'expectedChildCommands': [], 'jobNames': ['jdk-data'],"
+        },
+        {
+          "minus": 51,
+          "text": "save('manual-run-selected-corrected-binding.json', {'schema': 1, 'at': now(), 'head': head, 'tree': r['tree'],"
+        },
+        {
+          "minus": 52,
+          "text": "    'selection': row(ROOT / SELECTION), 'reservation': row(OUT / 'manual-dispatch-selected-corrected-once.json'),"
+        },
+        {
+          "minus": 53,
+          "text": "    'submitted': row(OUT / 'manual-dispatch-selected-corrected-submitted.json'), 'manual': manual,"
+        },
+        {
+          "minus": 54,
+          "text": "    'dispatches': 1, 'retries': 0, 'expectedJobs': 1, 'expectedOwnedJavaCommands': 7,"
+        }
+      ]
+    }
+  ]
+}

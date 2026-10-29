@@ -1,0 +1,70 @@
+"""UNBOUND SOURCE TEMPLATE ONLY: root has not frozen this followup selection.
+
+This file is not a final preflight driver. It intentionally exits before imports,
+file reads, command admission or custody activity, even if renamed to .py.
+The root must supply and review an exact new selection manifest path, byte length,
+SHA-256, member bytes/modes, helper binding, protected entries, exact nine argv
+approval, finite session limits, driver hashes, and immutable authority before
+preparing any executable driver. This template grants no authority or allowance.
+Historical drivers, selections and dispatch permissions are not reusable authority.
+"""
+raise SystemExit('UNBOUND: exact root selection manifest and hash are pending; source template only')
+
+# Unreachable source pattern for later root review. No common module is supplied.
+# BASE/TREE are recorded last-delivered values supplied by root, not fresh Git reads.
+BASE = '47b62878bae3aa3d4dff5d565b63f4a533e7abde'
+TREE = '898ebb228b5d9dbd9dc1cc012479496c468dbee2'
+SELECTION = None
+SELECTION_BYTES = None
+SELECTION_SHA256 = None
+SELECTED_COUNT = None
+HELPER_SHA256 = '30519c17fad93ddb4d70f1d217d3033f3890c2ce3b656cb25e424d102e2ddbbf'
+
+
+def unbound_preflight_source_pattern(common):
+    # The later common source must bind this exact new selection and preserve the
+    # proven helper custody machinery. Do not copy prior selected-file checks.
+    # Root must review any read-admission adapter and bind its exact fragment hash.
+    # The proven prior common source's push-URL exception is not used by these nine
+    # reads, and no exception or broader admission is authorized by this template.
+    names = ('StrictCommands', 'ROOT', 'OUT', 'S', 'ROWS', 'SELECTED', 'PROTECTED',
+             'check_sources', 'row', 'save', 'now', 'fingerprint', 'preserved_entry',
+             'raw_rows', 'collapsed')
+    for name in names:
+        globals()[name] = getattr(common, name)
+    assert SELECTION is not None and SELECTION_BYTES is not None
+    assert SELECTION_SHA256 is not None and SELECTED_COUNT is not None
+    # root common source must enforce exact path/bytes/hash and every selected mode;
+    # an unset placeholder, unselected authority, or source drift must fail closed.
+    check_sources()
+    c = StrictCommands('preflight-selected')
+    # Exactly nine commands: two versions, head/tree, branch, origin, remote main,
+    # cached-index emptiness, collapsed status, and complete raw tracked diff.
+    versions = {tool: c.run(tool + '-version', [tool, '--version']).decode().strip()
+                for tool in ('git', 'gh')}
+    assert c.run('head', ['git', 'rev-parse', 'HEAD', 'HEAD^{tree}']).decode().splitlines() == [BASE, TREE]
+    assert c.run('branch', ['git', 'branch', '--show-current']).decode().strip() == 'main'
+    origin = c.run('origin', ['git', 'remote', 'get-url', 'origin']).decode().strip()
+    assert origin in ('git@github.com:snowdamiz/mixer.git', 'https://github.com/snowdamiz/mixer.git')
+    assert c.run('remote', ['git', 'ls-remote', 'origin', 'refs/heads/main']).decode().split() == [BASE, 'refs/heads/main']
+    assert not c.run('index', ['git', 'diff', '--cached', '--name-only', '-z'])
+    status = collapsed(c.run('collapsed-status', ['git', 'status', '--porcelain=v1', '-z', '--untracked-files=normal']))
+    diff = raw_rows(c.run('complete-raw-diff', ['git', 'diff', '--raw', '--no-abbrev', '--no-renames', '-z']))
+    other = [value for value in diff if value['path'] not in SELECTED]
+    assert {value['path'] for value in PROTECTED}.issubset({value['path'] for value in other})
+    snapshots = [fingerprint(value['path']) for value in other]
+    untracked = [preserved_entry(value['path']) for value in status if value['status'] == '??']
+    check_sources()
+    save('manifest-selected.json', {'at': now(), 'selection': row(ROOT / SELECTION),
+         'members': ROWS, 'paths': len(ROWS), 'bytes': sum(value['bytes'] for value in ROWS)})
+    save('preservation-selected-local.json', {'at': now(), 'otherDirtyTracked': other,
+         'tracked': snapshots, 'statusCollapsed': status, 'untrackedCollapsed': untracked,
+         'wrangler': fingerprint('.wrangler'),
+         'protectedSnapshots': [fingerprint(value['path']) for value in PROTECTED],
+         'cleanTrackedSnapshot': {'head': BASE, 'tree': TREE,
+             'proof': 'Baseline commit/tree plus complete raw diff; no independent hashes of every clean tracked file'},
+         'untrackedScope': 'collapsed entry identity/mode only; no recursive inventory'})
+    # Later finalized receipt must record command vectors, versions, bound selection,
+    # helper/driver/authority hashes, output, source revision/tree, finite custody
+    # results, and source scope. No recursive all-clean-byte or native-runtime claim.
+    # No staging, commit, push, dispatch, CI action or publication occurs here.

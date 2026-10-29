@@ -1,0 +1,740 @@
+{
+  "schema": 1,
+  "phase": "delivery-selected-corrected",
+  "preparationOnly": true,
+  "rootApprovalRequired": true,
+  "selection": {
+    "path": "verification/android-jdk-data-observation-selection-2026-10-29/selection.json",
+    "bytes": 23108,
+    "sha256": "1ddf37b0e7a2ca13c7d8d8b9755a5c8013eb9958020b053ed8c7285e5f2e0d03"
+  },
+  "helper": {
+    "path": "verification/github-delivery-android-jdk-observation/owned.py",
+    "sha256": "b7b4a4fab5ca699ded6efd65259c9e499babbe37786a108d7307dfc0d29ab043",
+    "baselineRepinEvidence": {
+      "path": "verification/github-delivery-android-jdk-observation/preparation.json",
+      "bytes": 3960,
+      "sha256": "21a6670fafaab357176dcf87fa7f56b4909c9b087d7b24866e5b1a8160ef2e9d"
+    },
+    "priorHelper": {
+      "path": "verification/github-delivery-android-view-api-boundary/owned_corrected.py",
+      "bytes": 29385,
+      "sha256": "2c874b49f95fdafaf133a3d8fd02b7a2aa6d7a44ab9e8faff207d14f978d54f2"
+    },
+    "priorCorrectionSeal": {
+      "path": "verification/github-delivery-android-view-api-boundary/preparation-correction-seal.json",
+      "sha256": "db9df0c6a412b6ee1047c6abb431941823858f08f42c07d154b5cf405659ffe3"
+    },
+    "independentReviewSeal": {
+      "path": "verification/android-view-api-git-custody-review/review-seal.json",
+      "sha256": "1c67d7aef5cc9602b6127b4fad4471eab2d2e8081b3214c0689e55646a75ed0a"
+    },
+    "guardedControlsInherited": 44,
+    "exactArgvApprovalBeforeEveryActualPhase": true,
+    "genericGhFilterNotAuthority": true,
+    "bootstrap": "-I -B -S",
+    "separateEOFAndExactKernelReapRequired": true
+  },
+  "interpreter": {
+    "flags": [
+      "-I",
+      "-B",
+      "-S"
+    ],
+    "wrapper": "verification/github-delivery-android-jdk-observation/owned.py",
+    "admissionFDAndGateFD": "fresh owned typed descriptor integers; never reused"
+  },
+  "session": {
+    "seconds": 240,
+    "count": 22,
+    "prefix": "delivery-selected-corrected-"
+  },
+  "gitEffectivePrefix": [
+    "git",
+    "-c",
+    "gc.auto=0",
+    "-c",
+    "maintenance.auto=false"
+  ],
+  "typedBindings": {
+    "COMMITTED_SHA": "Once-bound exact lower-case 40-hex SHA observed by committed-head; the same SHA is raw-object verified and used as the sole push source"
+  },
+  "commands": [
+    {
+      "name": "head",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "branch",
+      "argv": [
+        "git",
+        "branch",
+        "--show-current"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "branch",
+        "--show-current"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "origin",
+      "argv": [
+        "git",
+        "remote",
+        "get-url",
+        "origin"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "remote",
+        "get-url",
+        "origin"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "push-url-before-stage",
+      "argv": [
+        "git",
+        "remote",
+        "get-url",
+        "--push",
+        "--all",
+        "origin"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "remote",
+        "get-url",
+        "--push",
+        "--all",
+        "origin"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "remote-before",
+      "argv": [
+        "git",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "index-before",
+      "argv": [
+        "git",
+        "diff",
+        "--cached",
+        "--name-only",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--cached",
+        "--name-only",
+        "-z"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "before-diff",
+      "argv": [
+        "git",
+        "diff",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "stage",
+      "argv": [
+        "git",
+        "add",
+        "--pathspec-from-file=/Users/andreyyurlov/Documents/dev/mixer/verification/github-delivery-android-jdk-observation/paths-selected-corrected.nul",
+        "--pathspec-file-nul"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "add",
+        "--pathspec-from-file=/Users/andreyyurlov/Documents/dev/mixer/verification/github-delivery-android-jdk-observation/paths-selected-corrected.nul",
+        "--pathspec-file-nul"
+      ],
+      "kind": "mutation"
+    },
+    {
+      "name": "index-selected",
+      "argv": [
+        "git",
+        "diff",
+        "--cached",
+        "--name-only",
+        "--no-renames",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--cached",
+        "--name-only",
+        "--no-renames",
+        "-z"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "staged-objects",
+      "argv": [
+        "git",
+        "diff",
+        "--cached",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--cached",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "authored-check",
+      "argv": [
+        "git",
+        "diff",
+        "--cached",
+        "--check",
+        "--",
+        ".github/workflows/android-view-api-jdk-data-observation.yml",
+        "PLAN.md",
+        "STATUS.md",
+        "gates/ga.json",
+        "verification/android-jdk-data-observation-selection-2026-10-29/.gitignore",
+        "verification/android-jdk-data-observation-selection-2026-10-29/README.md",
+        "verification/android-jdk-data-observation-selection-2026-10-29/helper-review.json",
+        "verification/android-jdk-data-observation-selection-2026-10-29/pure-checks.json",
+        "verification/android-jdk-data-observation-selection-2026-10-29/pure-execution.json",
+        "verification/android-jdk-data-observation-selection-2026-10-29/root-review.json",
+        "verification/android-jdk-data-observation-selection-2026-10-29/selection.json",
+        "verification/android-view-api-focused-actual-review/.gitignore",
+        "verification/android-view-api-focused-actual-review/ACTUAL-REVIEW.md",
+        "verification/android-view-api-focused-actual-review/CHECKLIST.md",
+        "verification/android-view-api-focused-actual-review/PREPARATION.md",
+        "verification/android-view-api-focused-actual-review/actual-review-seal.json",
+        "verification/android-view-api-focused-actual-review/actual-review.json",
+        "verification/android-view-api-focused-actual-review/audit_archive_actual.py",
+        "verification/android-view-api-focused-actual-review/audit_data.py",
+        "verification/android-view-api-focused-actual-review/audit_failure_actual.py",
+        "verification/android-view-api-focused-actual-review/binding-required.json",
+        "verification/android-view-api-focused-actual-review/check_data.py",
+        "verification/android-view-api-focused-actual-review/guarded_inspector.py",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/SOURCE-REVIEW.md",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/bootstrap.py",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/check_data.js",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/contract.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/expected-runtime-members.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/observe_jdk.py",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/preparation-errors.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/preparation-receipt.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/preparation-seal.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/root-selection-template.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/source-manifest.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/synthetic-checks.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/workflow-draft.yml",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/REVIEW.md",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/independent-data-checks.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/interim-review.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/pure-function-preparation/PREPARATION.md",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/pure-function-preparation/check_observer_pure.py",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/pure-function-preparation/preparation-receipt.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/pure-function-preparation/preparation-seal.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/review-seal.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/review.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/reviewed-preparation.json",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/REPORT.md",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/receipt.json",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/seal.json",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/sources.json",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/sources/adoptium-common-rules.txt",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/sources/adoptium-installation-doc.txt",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/sources/adoptium-packaging-readme.txt",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/sources/runner-install.txt",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/sources/runner-toolset.txt",
+        "verification/android-view-api-focused-actual-review/preparation.json",
+        "verification/android-view-api-focused-outcome-2026-10-29/.gitignore",
+        "verification/android-view-api-focused-outcome-2026-10-29/README.md",
+        "verification/android-view-api-focused-outcome-2026-10-29/ordinary-ci.json",
+        "verification/android-view-api-focused-outcome-2026-10-29/receipt.json",
+        "verification/android-view-api-focused-outcome-2026-10-29/seal.json",
+        "verification/android-view-api-source-pair-reconciliation/axis-refusal-candidate/DocumentSession.swift.diff",
+        "verification/android-view-api-source-pair-reconciliation/axis-refusal-candidate/README.md",
+        "verification/android-view-api-source-pair-reconciliation/axis-refusal-candidate/manifest.json",
+        "verification/android-view-api-source-pair-reconciliation/axis-refusal-candidate/receipt.json",
+        "verification/android-view-api-source-pair-reconciliation/axis-refusal-candidate/source/MixerAndroidRuntime/DocumentSession.swift",
+        "verification/android-view-api-source-pair-reconciliation/axis-refusal-candidate/tests/AndroidTextFieldAxisRefusalTests.swift",
+        "verification/android-view-api-source-pair-reconciliation/axis-refusal-review/findings.md",
+        "verification/android-view-api-source-pair-reconciliation/axis-refusal-review/receipt.json",
+        "verification/android-view-api-source-pair-reconciliation/manifest.json",
+        "verification/android-view-api-source-pair-reconciliation/proposal.md",
+        "verification/android-view-api-source-pair-reconciliation/receipt.json",
+        "work-graph.json"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--cached",
+        "--check",
+        "--",
+        ".github/workflows/android-view-api-jdk-data-observation.yml",
+        "PLAN.md",
+        "STATUS.md",
+        "gates/ga.json",
+        "verification/android-jdk-data-observation-selection-2026-10-29/.gitignore",
+        "verification/android-jdk-data-observation-selection-2026-10-29/README.md",
+        "verification/android-jdk-data-observation-selection-2026-10-29/helper-review.json",
+        "verification/android-jdk-data-observation-selection-2026-10-29/pure-checks.json",
+        "verification/android-jdk-data-observation-selection-2026-10-29/pure-execution.json",
+        "verification/android-jdk-data-observation-selection-2026-10-29/root-review.json",
+        "verification/android-jdk-data-observation-selection-2026-10-29/selection.json",
+        "verification/android-view-api-focused-actual-review/.gitignore",
+        "verification/android-view-api-focused-actual-review/ACTUAL-REVIEW.md",
+        "verification/android-view-api-focused-actual-review/CHECKLIST.md",
+        "verification/android-view-api-focused-actual-review/PREPARATION.md",
+        "verification/android-view-api-focused-actual-review/actual-review-seal.json",
+        "verification/android-view-api-focused-actual-review/actual-review.json",
+        "verification/android-view-api-focused-actual-review/audit_archive_actual.py",
+        "verification/android-view-api-focused-actual-review/audit_data.py",
+        "verification/android-view-api-focused-actual-review/audit_failure_actual.py",
+        "verification/android-view-api-focused-actual-review/binding-required.json",
+        "verification/android-view-api-focused-actual-review/check_data.py",
+        "verification/android-view-api-focused-actual-review/guarded_inspector.py",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/SOURCE-REVIEW.md",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/bootstrap.py",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/check_data.js",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/contract.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/expected-runtime-members.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/observe_jdk.py",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/preparation-errors.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/preparation-receipt.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/preparation-seal.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/root-selection-template.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/source-manifest.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/synthetic-checks.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-preparation/workflow-draft.yml",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/REVIEW.md",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/independent-data-checks.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/interim-review.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/pure-function-preparation/PREPARATION.md",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/pure-function-preparation/check_observer_pure.py",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/pure-function-preparation/preparation-receipt.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/pure-function-preparation/preparation-seal.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/review-seal.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/review.json",
+        "verification/android-view-api-focused-actual-review/jdk-observation-review/reviewed-preparation.json",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/REPORT.md",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/receipt.json",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/seal.json",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/sources.json",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/sources/adoptium-common-rules.txt",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/sources/adoptium-installation-doc.txt",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/sources/adoptium-packaging-readme.txt",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/sources/runner-install.txt",
+        "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/sources/runner-toolset.txt",
+        "verification/android-view-api-focused-actual-review/preparation.json",
+        "verification/android-view-api-focused-outcome-2026-10-29/.gitignore",
+        "verification/android-view-api-focused-outcome-2026-10-29/README.md",
+        "verification/android-view-api-focused-outcome-2026-10-29/ordinary-ci.json",
+        "verification/android-view-api-focused-outcome-2026-10-29/receipt.json",
+        "verification/android-view-api-focused-outcome-2026-10-29/seal.json",
+        "verification/android-view-api-source-pair-reconciliation/axis-refusal-candidate/DocumentSession.swift.diff",
+        "verification/android-view-api-source-pair-reconciliation/axis-refusal-candidate/README.md",
+        "verification/android-view-api-source-pair-reconciliation/axis-refusal-candidate/manifest.json",
+        "verification/android-view-api-source-pair-reconciliation/axis-refusal-candidate/receipt.json",
+        "verification/android-view-api-source-pair-reconciliation/axis-refusal-candidate/source/MixerAndroidRuntime/DocumentSession.swift",
+        "verification/android-view-api-source-pair-reconciliation/axis-refusal-candidate/tests/AndroidTextFieldAxisRefusalTests.swift",
+        "verification/android-view-api-source-pair-reconciliation/axis-refusal-review/findings.md",
+        "verification/android-view-api-source-pair-reconciliation/axis-refusal-review/receipt.json",
+        "verification/android-view-api-source-pair-reconciliation/manifest.json",
+        "verification/android-view-api-source-pair-reconciliation/proposal.md",
+        "verification/android-view-api-source-pair-reconciliation/receipt.json",
+        "work-graph.json"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "staged-diff",
+      "argv": [
+        "git",
+        "diff",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "commit",
+      "argv": [
+        "git",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "commit.gpgsign=false",
+        "commit",
+        "-m",
+        "Prepare separately selected Android JDK file data observation"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "commit.gpgsign=false",
+        "commit",
+        "-m",
+        "Prepare separately selected Android JDK file data observation"
+      ],
+      "kind": "mutation"
+    },
+    {
+      "name": "committed-head",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}",
+        "HEAD^"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}",
+        "HEAD^"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "committed-objects",
+      "argv": [
+        "git",
+        "diff-tree",
+        "--no-commit-id",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-r",
+        "-z",
+        "df0d15f90f2bc5e702127bdf6ab79f3d8e3d0cce",
+        "{COMMITTED_SHA}"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff-tree",
+        "--no-commit-id",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-r",
+        "-z",
+        "df0d15f90f2bc5e702127bdf6ab79f3d8e3d0cce",
+        "{COMMITTED_SHA}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "remote-prepush",
+      "argv": [
+        "git",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "push-url-prepush",
+      "argv": [
+        "git",
+        "remote",
+        "get-url",
+        "--push",
+        "--all",
+        "origin"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "remote",
+        "get-url",
+        "--push",
+        "--all",
+        "origin"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "push",
+      "argv": [
+        "git",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "push",
+        "--signed=false",
+        "--no-follow-tags",
+        "--recurse-submodules=no",
+        "origin",
+        "{COMMITTED_SHA}:refs/heads/main"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "push",
+        "--signed=false",
+        "--no-follow-tags",
+        "--recurse-submodules=no",
+        "origin",
+        "{COMMITTED_SHA}:refs/heads/main"
+      ],
+      "kind": "mutation"
+    },
+    {
+      "name": "remote-postpush",
+      "argv": [
+        "git",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "index-after",
+      "argv": [
+        "git",
+        "diff",
+        "--cached",
+        "--name-only",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--cached",
+        "--name-only",
+        "-z"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "after-diff",
+      "argv": [
+        "git",
+        "diff",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "collapsed-status-after",
+      "argv": [
+        "git",
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=normal"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=normal"
+      ],
+      "kind": "read"
+    }
+  ],
+  "rootSelectedAdmissionAdapter": {
+    "fragmentSHA256": "2d88ec37fed744df317fb5c933eb7f5505c852a39434273b1234416f8661a94c",
+    "exactReadOnlyException": [
+      "git",
+      "remote",
+      "get-url",
+      "--push",
+      "--all",
+      "origin"
+    ],
+    "delegateEveryOtherVectorUnchanged": true,
+    "strictExactManifestMatchFirst": true,
+    "custodyCodeChanged": false,
+    "helperCustodyUnchanged": true,
+    "helperBaselineRepinnedOnly": true
+  },
+  "sourceDataOnly": true,
+  "basisManifest": {
+    "path": "verification/github-delivery-android-view-api-boundary/argv-delivery-selected-corrected.json",
+    "bytes": 50579,
+    "sha256": "77f63412be7d88028d8236e621f82b521b225662764ac58d3f10481b2ea31607"
+  }
+}

@@ -1,0 +1,58 @@
+import {PIN,parseTestOutput,verifyBinding,verifyExecution,equal,requireThat} from './verify.mjs';
+
+// Synthetic data controls only; no compiler, subprocess, native or workflow run.
+export function runControls({roster,snapshot,template}) {
+  const results=[];
+  const test=(name,body)=>{body();results.push({name,status:'pass'});};
+  const refuse=(name,body)=>test(name,()=>{let refused=false;try{body();}catch{refused=true;}requireThat(refused,'Expected refusal: '+name);});
+  const xctest=roster.suites.find(s=>s.framework==='XCTest');
+  const swift=roster.suites.filter(s=>s.framework==='Swift Testing').flatMap(s=>s.names);
+  const stdout=Buffer.from(xctest.names.map(n=>"Test Case '-[MixerAndroidRuntimeTests.AndroidTextFieldAxisRefusalTests "+n+"]' passed (0.001 seconds).\n").join('')+"Test Suite 'AndroidTextFieldAxisRefusalTests' passed at 2026-10-29.\nExecuted 8 tests, with 0 failures (0 unexpected) in 0.010 seconds\nTest Suite 'All tests' passed at 2026-10-29.\nExecuted 8 tests, with 0 failures (0 unexpected) in 0.010 seconds\n");
+  const stderr=Buffer.from('Build complete! (1.00s)\n'+swift.map(n=>'✔ Test '+n+'() passed after 0.001 seconds.\n').join('')+'✔ Test run with 11 tests in 2 suites passed after 0.010 seconds.\n');
+  const parsed=parseTestOutput(stdout,stderr,roster);
+  test('all-19-exact-results-and-separate-8-plus-11-summaries',()=>equal(parsed.total,19,'Total'));
+  const changed=(buffer,from,to)=>Buffer.from(buffer.toString().replace(from,to));
+  refuse('missing-XCTest-name',()=>parseTestOutput(changed(stdout,xctest.names[0],'unknownXCTest'),stderr,roster));
+  refuse('missing-Swift-Testing-name',()=>parseTestOutput(stdout,changed(stderr,swift[0],'unknownSwiftTest'),roster));
+  refuse('duplicate-XCTest-name',()=>parseTestOutput(Buffer.concat([stdout,Buffer.from("Test Case '-[MixerAndroidRuntimeTests.AndroidTextFieldAxisRefusalTests "+xctest.names[0]+"]' passed (0.001 seconds).\n")]),stderr,roster));
+  refuse('duplicate-Swift-Testing-name',()=>parseTestOutput(stdout,Buffer.concat([stderr,Buffer.from('✔ Test '+swift[0]+'() passed after 0.001 seconds.\n')]),roster));
+  refuse('XCTest-only',()=>parseTestOutput(stdout,Buffer.from('Build complete! (1s)\n'),roster));
+  refuse('Swift-Testing-only',()=>parseTestOutput(Buffer.alloc(0),stderr,roster));
+  refuse('zero-XCTest-summary',()=>parseTestOutput(changed(stdout,'Executed 8','Executed 0'),stderr,roster));
+  refuse('zero-Swift-Testing-summary',()=>parseTestOutput(stdout,changed(stderr,'run with 11','run with 0'),roster));
+  refuse('wrong-Swift-summary-total',()=>parseTestOutput(stdout,changed(stderr,'run with 11','run with 12'),roster));
+  refuse('missing-Swift-summary',()=>parseTestOutput(stdout,Buffer.from(stderr.toString().split('\n').filter(x=>!x.includes('Test run with')).join('\n')),roster));
+  refuse('XCTest-failure',()=>parseTestOutput(changed(stdout,"' passed (","' failed ("),stderr,roster));
+  refuse('XCTest-skip',()=>parseTestOutput(changed(stdout,"' passed (","' skipped ("),stderr,roster));
+  refuse('Swift-Testing-failure',()=>parseTestOutput(stdout,changed(stderr,'✔ Test '+swift[0],'✘ Test '+swift[0]),roster));
+  refuse('compiler-error',()=>parseTestOutput(stdout,Buffer.concat([stderr,Buffer.from('error: cannot compile\n')]),roster));
+  refuse('missing-build-completion',()=>parseTestOutput(stdout,changed(stderr,'Build complete!','Build pending!'),roster));
+  refuse('oversized-separate-output',()=>parseTestOutput(Buffer.alloc(PIN.capturedStreamCap+1,65),stderr,roster));
+  refuse('terminal-control-output',()=>parseTestOutput(Buffer.concat([stdout,Buffer.from('\u001b[32m')]),stderr,roster));
+  test('source-and-tool-warning-retention',()=>{const value=parseTestOutput(stdout,Buffer.concat([stderr,Buffer.from('/owned/a.swift:1:2: warning: source notice\nwarning: tool notice\n')]),roster);equal(value.warnings.map(x=>x.category),['source-compiler','tool-or-SwiftPM'],'Warning classification');});
+  const selected={...structuredClone(template),selected:true,dispatch_authorized:true,source_revision:'a'.repeat(40)};
+  const context={repository:'snowdamiz/mixer',sha:'a'.repeat(40),event:'workflow_dispatch',profile:'axis-refusal-host-v1',run_id:'123456',run_attempt:'1'};
+  test('selected-exact-run-binding',()=>verifyBinding(selected,context,selected.workflow_sha256));
+  refuse('false-unbound-root-template',()=>verifyBinding(template,context,template.workflow_sha256));
+  refuse('automatic-event',()=>verifyBinding(selected,{...context,event:'push'},selected.workflow_sha256));
+  refuse('attempt-two',()=>verifyBinding(selected,{...context,run_attempt:'2'},selected.workflow_sha256));
+  refuse('wrong-source-revision',()=>verifyBinding(selected,{...context,sha:'b'.repeat(40)},selected.workflow_sha256));
+  refuse('workflow-byte-drift',()=>verifyBinding(selected,context,'b'.repeat(64)));
+  refuse('different-root-run-ID',()=>verifyBinding({...selected,run_id:'999'},context,selected.workflow_sha256));
+  refuse('budget-widening',()=>{const value=structuredClone(selected);value.budget.test_step_minutes=13;verifyBinding(value,context,selected.workflow_sha256);});
+  refuse('canonical-promotion',()=>verifyBinding({...selected,canonical_promotion:true},context,selected.workflow_sha256));
+  const record={workspace:'/workspace',runner_temp:'/runner',scratch:'/runner/android-axis-refusal-123456-1-scratch',developer_dir:PIN.developer,toolchain:PIN.toolchain,run_id:'123456',run_attempt:'1',exit_code:0,shell_completion:'returned-to-actions-shell',file_limit_blocks:65536,file_limit_unit_bytes:1024,bash_version:'source-fixture',file_limit_readback:{soft_bytes:PIN.regularFileCap,hard_bytes:PIN.regularFileCap,bash_blocks:65536,bash_version:'source-fixture'}};
+  record.argv=[PIN.swift,'test','--package-path','/workspace/'+PIN.packageRelative,'--scratch-path',record.scratch,'--jobs','2'];
+  const tool={status:'verified-installed-toolchain',xcode:'Xcode 26.3\nBuild version 17C529',developerDirectory:PIN.developer,toolchains:PIN.toolchain,swiftPath:PIN.swift,swiftVersion:[6,2,4],swiftSHA256:'a'.repeat(64),swiftFrontendSHA256:'b'.repeat(64),probeSHA256:PIN.appleVerifier,sourceRevision:context.sha};
+  const execute=(r=record,t=tool,a=snapshot)=>verifyExecution(r,t,snapshot,a,parsed,selected,context);
+  test('complete-host-evidence-retains-custody-unknowns',()=>{const value=execute();equal(value.custody.owned_group_absence,null,'No group claim');equal(value.custody.scratch_cleanup,'not-performed-or-established','No cleanup claim');});
+  refuse('nonzero-Swift-exit',()=>execute({...record,exit_code:1}));
+  refuse('missing-shell-completion',()=>execute({...record,shell_completion:'not-observed'}));
+  refuse('source-postflight-drift',()=>execute(record,tool,{...snapshot,projection:'b'.repeat(64)}));
+  refuse('wrong-Apple-build',()=>execute(record,{...tool,xcode:'Xcode 26.3\nBuild version wrong'}));
+  refuse('different-Apple-verifier',()=>execute(record,{...tool,probeSHA256:'c'.repeat(64)}));
+  refuse('wrong-command-argv',()=>execute({...record,argv:[...record.argv,'--skip-build']}));
+  refuse('wrong-owned-scratch',()=>execute({...record,scratch:'/other'}));
+  refuse('Bash-POSIX-byte-unit-mismatch',()=>execute({...record,file_limit_readback:{...record.file_limit_readback,soft_bytes:PIN.regularFileCap/2}}));
+  return {schema:1,status:'passed-data-only-controls',count:results.length,results,synthetic_output_is_not_host_evidence:true};
+}

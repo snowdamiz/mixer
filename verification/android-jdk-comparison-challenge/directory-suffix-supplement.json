@@ -1,0 +1,134 @@
+{
+  "schema": 1,
+  "status": "exact-directory-suffix-correction-supported-for-final-bounded-data-comparison",
+  "context_refusal": {
+    "path": "verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/context-refusal.json",
+    "bytes": 4880,
+    "sha256": "e0aa3fa2e373b89d32f016d03f685d1d87be24ddb39e755764ba87660f922e91",
+    "site": "official_zip",
+    "member": "lib/ct.sym",
+    "exact_name": "9/java.activation//",
+    "directory": true,
+    "name_truncated": false,
+    "zip_input_bytes": 8301486
+  },
+  "original_source": {
+    "bytes": 16443,
+    "sha256": "156ce9f6ab5d5da580c788c051cbc98229ad641bd150810ef0bb93c92c2ff8c2"
+  },
+  "corrected_source": {
+    "path": "verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/directory-slash-correction-preparation/compare_data.py",
+    "bytes": 16427,
+    "sha256": "703248739576b3d0df9b370e3cc83d9342889d630dae7a440e19e8bdd7482f9d"
+  },
+  "exact_single_line_delta": true,
+  "before": "    canonical_name = name[:-1] if directory and name.endswith(\"/\") else name",
+  "after": "    canonical_name = name.rstrip(\"/\") if directory else name",
+  "preserved_guards": [
+    {
+      "anchor": "need(canonical_name not in names and canonical_name.casefold() not in aliases, \"ZIP duplicate/case alias\")",
+      "present": true
+    },
+    {
+      "anchor": "payloads[name] = {\"directory\": directory, **payload}",
+      "present": true
+    },
+    {
+      "anchor": "compressed_map[name] = identity(compressed)",
+      "present": true
+    },
+    {
+      "anchor": "metadata[name] = {\"central_fields\": list(c[1:]), \"local_fields\": list(local[1:]),",
+      "present": true
+    },
+    {
+      "anchor": "aliases.add(canonical_name.casefold()); order.append(name)",
+      "present": true
+    },
+    {
+      "anchor": "need(not directory or usize == 0, \"ZIP directory payload refused\")",
+      "present": true
+    },
+    {
+      "anchor": "need(kind in (0, stat.S_IFDIR if directory else stat.S_IFREG), \"ZIP symlink/nonordinary node\")",
+      "present": true
+    }
+  ],
+  "independent_node_boundary_cases": [
+    {
+      "name": "9/java.activation//",
+      "directory": true,
+      "canonical": "9/java.activation",
+      "admitted": true
+    },
+    {
+      "name": "9/java.activation/",
+      "directory": true,
+      "canonical": "9/java.activation",
+      "admitted": true
+    },
+    {
+      "name": "9/java.activation///",
+      "directory": true,
+      "canonical": "9/java.activation",
+      "admitted": true
+    },
+    {
+      "name": "9//java.activation//",
+      "directory": true,
+      "canonical": "9//java.activation",
+      "admitted": false
+    },
+    {
+      "name": "9/./java.activation//",
+      "directory": true,
+      "canonical": "9/./java.activation",
+      "admitted": false
+    },
+    {
+      "name": "9/../java.activation//",
+      "directory": true,
+      "canonical": "9/../java.activation",
+      "admitted": false
+    },
+    {
+      "name": "//",
+      "directory": true,
+      "canonical": "",
+      "admitted": false
+    },
+    {
+      "name": "./",
+      "directory": true,
+      "canonical": ".",
+      "admitted": false
+    },
+    {
+      "name": "../",
+      "directory": true,
+      "canonical": "..",
+      "admitted": false
+    },
+    {
+      "name": "/9/java.activation//",
+      "directory": true,
+      "canonical": "/9/java.activation",
+      "admitted": false
+    },
+    {
+      "name": "9/java.activation//x",
+      "directory": false,
+      "canonical": "9/java.activation//x",
+      "admitted": false
+    }
+  ],
+  "explicit_directory_false_suffix_rejected": true,
+  "raw_spelling_equality_unchanged": true,
+  "canonical_duplicate_spelling_rejected_by_preserved_guard": true,
+  "comparison_invocation_allowance_remaining": 1,
+  "actual_execution_here": false,
+  "archive_or_raw_file_reads": 0,
+  "python_comparator_execution_here": false,
+  "scope": "source and in-memory string review only; guarded Python controls owned by comparator reviewer",
+  "runtime_admitted": false
+}

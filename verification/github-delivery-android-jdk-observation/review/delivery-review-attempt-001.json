@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "sourceDataOnly": true,
+  "decision": "pending-one-authored-whitespace-check-correction",
+  "executionAuthority": false,
+  "packet": {
+    "path": "verification/github-delivery-android-jdk-observation/delivery-source-packet.json",
+    "bytes": 17826,
+    "sha256": "f25884fb7ea508c7f9331035821863d4d8ff62aa1b978d061e1269db47ddf490"
+  },
+  "packetSeal": {
+    "path": "verification/github-delivery-android-jdk-observation/delivery-source-packet.seal.json",
+    "bytes": 6823,
+    "sha256": "5626fe174f2617196757c889a539cd7cc47277cbfe85e274aa4dd556a0e00eb3"
+  },
+  "preflightEvidenceReview": {
+    "path": "verification/github-delivery-android-jdk-observation/review/preflight-actual-evidence-review.json",
+    "bytes": 6865,
+    "sha256": "35a3984b08406a151c6639b585d7f3ae73f6a71882a58d29f1eba438b1a1a716"
+  },
+  "controls": {
+    "onlyFinalBindingsAndGuardRemovals": true,
+    "all37VectorsExactExpectedSubstitutions": true,
+    "phaseCountsExact": true,
+    "finiteAuthoredListEqualsSelection": true,
+    "typedBindingsNarrowed": true,
+    "preflightFivePinsExact": true,
+    "preflightSealExact": true,
+    "allPacketSealRowsMatch": true,
+    "allSelectedBytesHashModesStillMatch": true,
+    "helperStillExact": true,
+    "dispatchTemplateStillExact": true,
+    "oldPreflightSourcesStillExact": true,
+    "authoredCheckRawEOFCompatible": false
+  },
+  "findings": [
+    {
+      "priority": 2,
+      "path": "verification/android-view-api-focused-actual-review/jdk-packaging-provenance/sources/runner-readme.txt",
+      "line": 333,
+      "issue": "Immutable raw provenance snapshot has a new blank line at EOF but is included in AUTHORED and the exact git diff --cached --check vector.",
+      "evidence": {
+        "bytes": 16331,
+        "sha256": "433ac9525040ccec39fc6b1fbcbeb457cba1acd6414317f940e1ea2d9bea73c9",
+        "suffix": "\"      | 3.0-13ubuntu0.2               |\\n| zsync                  | 0.6.2-5build1                 |\\n\\n\"",
+        "preflightCollapsedUntracked": "verification/android-view-api-focused-actual-review/"
+      },
+      "impact": "Default Git blank-at-eof checking can stop delivery after staging, consuming the one-shot delivery reservation before commit.",
+      "boundedCorrection": "Keep frozen source bytes and exact74-path stage set; root may select exclusion of this one externally sourced raw snapshot from the authored whitespace check and rebind the corresponding source/vector packet."
+    }
+  ],
+  "actualCommandsByReviewer": 0,
+  "authorityCreatedByReviewer": false,
+  "limitations": [
+    "This is a source-only predicted default Git whitespace failure, not a new Git execution.",
+    "All other final source/argv comparisons passed; no broad custody changes are requested."
+  ]
+}

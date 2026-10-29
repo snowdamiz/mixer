@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "status": "source-preparation-only-unselected-unrun",
+  "entrypoint": "compare_data(official_archive_bytes, observed_raw_by_member, root_supplied_observed_identities)",
+  "purpose": "Compare only the two selected hosted raw archive data files with exact official members; distinguish entry payload/name differences, metadata/layout changes, and compressed-stream representation changes without runtime admission.",
+  "official": {
+    "retained_path": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-view-api-boundary-linux-tool-profile/local/OpenJDK17U-jdk_x64_linux_hotspot_17.0.21_9.tar.gz",
+    "bytes": 193594705,
+    "sha256": "8b9b611d917e3dfd8419d3566b5949226f69b052fed7e109c1368add1dfe8711",
+    "archive_root": "jdk-17.0.21+9",
+    "existing_metadata_path": "verification/android-view-api-boundary-linux-tool-profile/archive-manifest.json",
+    "existing_metadata_sha256": "aeca850f0f923e058be71e0d06a698466e0374a982ea20264b83226d08798a1e",
+    "reported_prior_tar_members": 543,
+    "reported_prior_decompressed_bytes": 332994560,
+    "selected_members": [
+      {
+        "bytes": 8301486,
+        "mode": 420,
+        "path": "lib/ct.sym",
+        "sha256": "76b7fa16e006d67f7a65c46f0c4d727ec4ead9d982b8f82538e0e6b255e8fdcf",
+        "type": "file"
+      },
+      {
+        "bytes": 110513,
+        "mode": 420,
+        "path": "lib/jrt-fs.jar",
+        "sha256": "09bed1c9354a0671807504f255229f0c767a02a612eb3be8675216f58cec84ce",
+        "type": "file"
+      }
+    ]
+  },
+  "proposed_limits": {
+    "gzip_actual_expanded_bytes": 402653184,
+    "tar_members": 1024,
+    "tar_member_declared_bytes": 268435456,
+    "tar_selected_retained_bytes": 8411999,
+    "tar_path_bytes": 4096,
+    "zip_raw_ct_sym_bytes": 16777216,
+    "zip_raw_jrt_fs_jar_bytes": 1048576,
+    "zip_members": 65534,
+    "zip_member_uncompressed_bytes": 8388608,
+    "zip_actual_uncompressed_bytes_each": 268435456,
+    "zip_actual_uncompressed_bytes_all": 536870912,
+    "zip_ratio": 2000,
+    "zip_path_bytes": 1024,
+    "zip_depth": 32,
+    "zip_extra_or_entry_comment_bytes": 4096,
+    "zip_metadata_bytes_each": 8388608,
+    "read_chunk_bytes": 65536,
+    "report_json_bytes": 67108864,
+    "oversize_detection_sentinel_bytes": 1,
+    "caller_proposed_address_space_bytes": 1073741824,
+    "caller_proposed_cpu_seconds": 120,
+    "caller_wall_seconds": 300
+  },
+  "zip_policy": {
+    "supported_methods": [
+      "STORED",
+      "raw DEFLATE"
+    ],
+    "unsupported_compression": true,
+    "encryption_refused": true,
+    "ZIP64_refused": true,
+    "multi_disk_refused": true,
+    "unsafe_names_duplicates_case_aliases_and_file_prefix_collisions_refused": true,
+    "unindexed_local_or_central_bytes_refused": true,
+    "trailing_deflate_bytes_or_incomplete_deflate_refused": true,
+    "normalize_timestamps_paths_metadata_or_payload": false,
+    "execute_or_load_archive_members": false
+  },
+  "caller_boundary": {
+    "root_selection_required": true,
+    "actual_diagnostic_not_bound": true,
+    "observed_identities": null,
+    "stable_regular_file_reads_required": true,
+    "official_archive_must_be_read_only_from_retained_path": true,
+    "supply_immutable_bytes_only": true,
+    "guarded_isolated_python_flags": [
+      "-I",
+      "-B",
+      "-S"
+    ],
+    "no_library_filesystem_or_process_or_network_API": true,
+    "no_cli_or_general_runner": true,
+    "resource_limits_are_proposed_not_exercised": true
+  },
+  "holds": {
+    "old_focused_allowance_consumed": true,
+    "runtime_pins_unchanged": true,
+    "actual13_or152_qualified": false,
+    "runtime_admitted": false,
+    "native_process_custody_holds_unchanged": true,
+    "release_or_GA_qualified": false
+  },
+  "limitations": [
+    "No archive file was opened, read, hashed or decompressed during this preparation. Existing identity receipts and a current lstat size/regular-file observation only locate the retained input.",
+    "No Python parsing, import or execution was performed. Proposed ZIP/gzip budgets are unexercised hypotheses and fail closed if exceeded.",
+    "The comparator is an inert pure-data library. A separately root-selected guarded wrapper must bind stable regular-file bytes, actual observed identities, command/runtime/source identities and self limits before eventual analysis.",
+    "Byte-identical payload classifications use exact per-entry names/length/CRC/SHA256; compressed representations and all indexed container bytes are compared separately. No runtime, toolchain, provenance-cause or release acceptance follows."
+  ]
+}

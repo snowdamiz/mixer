@@ -1,0 +1,152 @@
+{
+  "schema": 1,
+  "status": "source-data-only-prepared-unrun",
+  "parent": {
+    "path": "verification/android-view-api-boundary-host-custody-correction",
+    "seal": {
+      "bytes": 4587,
+      "sha256": "3e3444a4f182ca2ba85a7d8db994917e112d6639985a4a86dceaa1bb39f2ed3c"
+    }
+  },
+  "collector_delta": {
+    "lines": [
+      {
+        "line": 182,
+        "parent": "    if mode == \"official-jdk-runtime-files-v1\":",
+        "derivative": "    if mode == \"package-observed-jdk-runtime-files-v1\":"
+      },
+      {
+        "line": 207,
+        "parent": "                raise Refusal(\"official JDK runtime member changed: \" + relative)",
+        "derivative": "                raise Refusal(\"package-observed JDK runtime member changed: \" + relative)"
+      },
+      {
+        "line": 302,
+        "parent": "    if selection.get(\"purpose\") != \"android-view-api-focused-hosted-only\" or selection.get(\"dispatch_selected\") is not True:",
+        "derivative": "    if selection.get(\"purpose\") != \"android-view-api-package-runtime-focused-hosted-only\" or selection.get(\"dispatch_selected\") is not True:"
+      },
+      {
+        "line": 419,
+        "parent": "        if profile.get(\"id\") != admission.get(\"tool_profile_id\") or profile.get(\"identity_mode\") != \"official-jdk-runtime-files-v1\":",
+        "derivative": "        if profile.get(\"id\") != admission.get(\"tool_profile_id\") or profile.get(\"identity_mode\") != \"package-observed-jdk-runtime-files-v1\":"
+      }
+    ],
+    "additional_changes": 0,
+    "new_imports": 0,
+    "custody_changed": false,
+    "fixed_argv_and_d8_prefix_changed": false
+  },
+  "jdk_manifest_delta": {
+    "path": "jdk-runtime-members.json",
+    "original": {
+      "bytes": 10885,
+      "sha256": "c75e64616ebb599f7337df7d7026286f1fd2d300347b59e28fb8a1051fdef13f"
+    },
+    "derivative": {
+      "bytes": 10885,
+      "sha256": "9a52f3cf744a88b592da21022242355baec189201b9f0c4dd2d42fac5321f4ff"
+    },
+    "members": 74,
+    "bytes": 198637181,
+    "exact_changes": [
+      {
+        "path": "lib/ct.sym",
+        "original": {
+          "bytes": 8301486,
+          "path": "lib/ct.sym",
+          "sha256": "76b7fa16e006d67f7a65c46f0c4d727ec4ead9d982b8f82538e0e6b255e8fdcf"
+        },
+        "package_observed": {
+          "bytes": 8264052,
+          "path": "lib/ct.sym",
+          "sha256": "7bcc87b05b8e68f71e20c176c9af0efadc7292e0ca192f217b3f620e0c108a53"
+        }
+      },
+      {
+        "path": "lib/jrt-fs.jar",
+        "original": {
+          "bytes": 110513,
+          "path": "lib/jrt-fs.jar",
+          "sha256": "09bed1c9354a0671807504f255229f0c767a02a612eb3be8675216f58cec84ce"
+        },
+        "package_observed": {
+          "bytes": 110495,
+          "path": "lib/jrt-fs.jar",
+          "sha256": "ae34105a07841c5ecc172ccc16732cf25d5b5adbfdbf1e03463c4a2bc91b1cbf"
+        }
+      }
+    ],
+    "unchanged_whole_file_rows": 72,
+    "new_identity_mode": "package-observed-jdk-runtime-files-v1",
+    "new_profile_id": "package-observed-temurin17.0.21.0.0+9-0-amd64-sdk37-d8-084a89126ae0-exact-v1"
+  },
+  "unchanged_copies": [
+    {
+      "path": "custody.py",
+      "bytes": 20788,
+      "sha256": "395fecbf7c594c2faf9592387bfeaa53b8124c7fa3e3a5094a9b54d1e65a936d",
+      "byte_identical_to_parent": true
+    },
+    {
+      "path": "input-manifest.json",
+      "bytes": 46458,
+      "sha256": "1d15392b79211ada71f4173e1c11cf12321267ddd452c329b9a4af99fadf2f00",
+      "byte_identical_to_parent": true
+    },
+    {
+      "path": "inspector-review.json",
+      "bytes": 1837,
+      "sha256": "db953306aad97763710546fefaff83ec6524324ef6f2c04577571571dd64aad5",
+      "byte_identical_to_parent": true
+    },
+    {
+      "path": "linux-signal-abi-source-receipt.json",
+      "bytes": 2905,
+      "sha256": "27eb261ebe3024e1986801c7b279a5836bd2ec207bc5106fd4c32c724a301c9c",
+      "byte_identical_to_parent": true
+    },
+    {
+      "path": "workflow-actions.json",
+      "bytes": 754,
+      "sha256": "0f1b152e0f78702dbfae53a9db6b62864bf0abb570297603395866d882980e87",
+      "byte_identical_to_parent": true
+    },
+    {
+      "path": "tool-profile-historical-macos.json",
+      "bytes": 5833,
+      "sha256": "3355f96c30a0d7510206c320ad52783a6d8315b94d68b5eeb7cf483910edaaa4",
+      "byte_identical_to_parent": true
+    }
+  ],
+  "workflow_delta": {
+    "new_path": ".github/workflows/android-view-api-package-runtime-focused-admission.yml",
+    "installed": false,
+    "draft_only": true,
+    "bootstrap_flags": [
+      "-I",
+      "-B",
+      "-S"
+    ],
+    "actions_unchanged": true,
+    "numeric_budgets_unchanged": true,
+    "concurrency_group_unchanged": true,
+    "checkout_and_upload_scope_updated_to_derivative_only": true
+  },
+  "tests": {
+    "source": "test_preparation.py",
+    "run": false,
+    "tests_pending": true,
+    "inherited_guarded_mock_custody_scenarios_retained": true,
+    "new_controls": [
+      "exactly two changed rows and74 unchanged member names",
+      "explicit package profile mode/id/manifest SHA",
+      "minimal four-line collector delta and unchanged custody/argv/limits/SDK/D8",
+      "false unbound template and stale purpose refusal",
+      "mock positive74-file identity admission",
+      "mock official mode and both old whole-file pins refused",
+      "mock extra scope member, total and duplicate refusals"
+    ],
+    "no_runtime_pass_claim": true
+  },
+  "holds_preserved": true
+}

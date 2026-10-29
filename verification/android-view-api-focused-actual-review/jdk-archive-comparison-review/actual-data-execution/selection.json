@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "status": "selected-one-invocation-unrun",
+  "scope": "Exact five named local data inputs; no Java or product runtime",
+  "source": {
+    "path": "compare_actual_data_cpu_bound.py",
+    "bytes": 17181,
+    "sha256": "25c16c517b65f616448eb9a1c49c3f8e5d1353b932d4f3faa8be6da550726b4a"
+  },
+  "parent_source": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-bound-preparation/compare_actual_data.py",
+    "bytes": 17186,
+    "sha256": "9918fda4dbca4ef418c7b839e455bf83298347e54c302677841a70766a69e900"
+  },
+  "corrections": [
+    "Header records selected scope.",
+    "Replace proposed external_wall_seconds_required=300 with external_wall_seconds_enforced=null. Available exec tool has no hard wall deadline; root selects finite CPU120s/AS1GiB/output caps without inventing wall enforcement. No other code changes."
+  ],
+  "command": [
+    "/opt/homebrew/bin/python3",
+    "-I",
+    "-B",
+    "-S",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/compare_actual_data_cpu_bound.py"
+  ],
+  "budget": {
+    "invocations": 1,
+    "cpu_seconds": 120,
+    "address_space_bytes": 1073741824,
+    "stdout_max_bytes": 67174401,
+    "stderr_summary_max_bytes": 8193,
+    "external_wall_deadline_enforced": false
+  },
+  "guard": "Process/session/group/signal/wait/timer/socket/native-loader/filesystem denied before exact comparator source evaluation. Standard-library imports and five bounded stable input reads precede the guard.",
+  "checks": {
+    "parent_source_and_full_wrapper_reviewed": true,
+    "actual_audit_sha256": "d7f01dbbe7c163562c058342cff3a14b3a2ee4601997029adc7b2364d79369c9",
+    "prior_synthetic_controls_passed": 74
+  },
+  "limitations": [
+    "Local regular-file read latency has no external hard wall bound.",
+    "Self limits and guards are not independent kernel attestation.",
+    "No provider provenance, old mismatch cause, runtime admission, focused13/152, native, OTA or GA acceptance."
+  ],
+  "all_prior_holds_preserved": true
+}

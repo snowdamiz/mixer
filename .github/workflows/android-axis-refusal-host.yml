@@ -1,0 +1,129 @@
+name: Isolated Android axis refusal host test
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Exact root-selected isolated host profile
+        required: true
+        type: choice
+        options:
+          - axis-refusal-host-v1
+      root_selection:
+        description: Root-selected JSON from the delivered false/unbound template
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: android-axis-refusal-host
+  cancel-in-progress: false
+jobs:
+  axis-refusal:
+    if: github.event_name == 'workflow_dispatch' && github.run_attempt == 1
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
+      MIXER_AXIS_ROOT_SELECTION: ${{ inputs.root_selection }}
+      MIXER_AXIS_PROFILE: ${{ inputs.profile }}
+      MIXER_AXIS_OUT: ${{ runner.temp }}/android-axis-refusal-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+        timeout-minutes: 3
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/workflows/android-axis-refusal-host.yml
+            /scripts/ci/verify-apple-toolchain.py
+            /verification/android-axis-refusal-host-preparation/
+            /verification/android-axis-refusal-host-review/receipt.json
+            /verification/android-axis-refusal-host-admission-result-correction/
+      - name: Exact root binding and 27 source members
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          ulimit -f 65536
+          node --input-type=module - <<'NODE'
+          import {preflight} from './verification/android-axis-refusal-host-admission-result-correction/verify.mjs';
+          const e=process.env;
+          await preflight({root:e.GITHUB_WORKSPACE,outputDirectory:e.MIXER_AXIS_OUT,selection:JSON.parse(e.MIXER_AXIS_ROOT_SELECTION),context:{repository:e.GITHUB_REPOSITORY,sha:e.GITHUB_SHA,event:e.GITHUB_EVENT_NAME,profile:e.MIXER_AXIS_PROFILE,run_id:e.GITHUB_RUN_ID,run_attempt:e.GITHUB_RUN_ATTEMPT,node_version:process.version}});
+          NODE
+      - name: Existing exact Apple toolchain verifier
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          ulimit -f 65536
+          ulimit -f > "$MIXER_AXIS_OUT/apple-bash-file-limit-blocks.txt"
+          export MIXER_AXIS_BASH_VERSION="$BASH_VERSION"
+          MIXER_AXIS_LIMIT_PREFIX=apple- python3 -B verification/android-axis-refusal-host-admission-result-correction/verify-file-limit.py \
+            > "$MIXER_AXIS_OUT/apple-file-limit.stdout" 2> "$MIXER_AXIS_OUT/apple-file-limit.stderr"
+          python3 -B scripts/ci/verify-apple-toolchain.py \
+            --developer-dir "$DEVELOPER_DIR" --xcode-version 26.3 --xcode-build 17C529 \
+            --output "$MIXER_AXIS_OUT/apple-toolchain.json" \
+            > "$MIXER_AXIS_OUT/apple-toolchain.stdout" 2> "$MIXER_AXIS_OUT/apple-toolchain.stderr"
+      - name: One unfiltered isolated SwiftPM test command
+        timeout-minutes: 12
+        shell: bash
+        run: |
+          set -euo pipefail
+          ulimit -f 65536
+          ulimit -f > "$MIXER_AXIS_OUT/bash-file-limit-blocks.txt"
+          export MIXER_AXIS_BASH_VERSION="$BASH_VERSION"
+          python3 -B verification/android-axis-refusal-host-admission-result-correction/verify-file-limit.py \
+            > "$MIXER_AXIS_OUT/file-limit.stdout" 2> "$MIXER_AXIS_OUT/file-limit.stderr"
+          node --input-type=module - <<'NODE'
+          import {recordCommand} from './verification/android-axis-refusal-host-admission-result-correction/verify.mjs';
+          const e=process.env;
+          await recordCommand({workspace:e.GITHUB_WORKSPACE,runnerTemp:e.RUNNER_TEMP,outputDirectory:e.MIXER_AXIS_OUT,context:{run_id:e.GITHUB_RUN_ID},bashVersion:e.MIXER_AXIS_BASH_VERSION});
+          NODE
+          MIXER_AXIS_SCRATCH="$RUNNER_TEMP/android-axis-refusal-$GITHUB_RUN_ID-1-scratch"
+          test ! -e "$MIXER_AXIS_SCRATCH"
+          set +e
+          "$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift" test \
+            --package-path "$GITHUB_WORKSPACE/verification/android-axis-refusal-host-preparation/package" \
+            --scratch-path "$MIXER_AXIS_SCRATCH" --jobs 2 \
+            > "$MIXER_AXIS_OUT/swift.stdout" 2> "$MIXER_AXIS_OUT/swift.stderr"
+          MIXER_AXIS_EXIT="$?"
+          set -e
+          export MIXER_AXIS_EXIT
+          node --input-type=module - <<'NODE'
+          import {recordCommand} from './verification/android-axis-refusal-host-admission-result-correction/verify.mjs';
+          const e=process.env;
+          await recordCommand({workspace:e.GITHUB_WORKSPACE,runnerTemp:e.RUNNER_TEMP,outputDirectory:e.MIXER_AXIS_OUT,context:{run_id:e.GITHUB_RUN_ID},bashVersion:e.MIXER_AXIS_BASH_VERSION,exitCode:Number(e.MIXER_AXIS_EXIT)});
+          NODE
+          exit "$MIXER_AXIS_EXIT"
+      - name: Preserve all 27 postflight source identities
+        if: always()
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          ulimit -f 65536
+          node --input-type=module - <<'NODE'
+          import {postflight} from './verification/android-axis-refusal-host-admission-result-correction/verify.mjs';
+          await postflight({root:process.env.GITHUB_WORKSPACE,outputDirectory:process.env.MIXER_AXIS_OUT});
+          NODE
+      - name: Require every named result and both framework summaries
+        if: always()
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          ulimit -f 65536
+          node --input-type=module - <<'NODE'
+          import {assess} from './verification/android-axis-refusal-host-admission-result-correction/verify.mjs';
+          await assess({root:process.env.GITHUB_WORKSPACE,outputDirectory:process.env.MIXER_AXIS_OUT});
+          NODE
+      - name: Retain successful or failed evidence
+        if: always()
+        timeout-minutes: 3
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-axis-refusal-host-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/android-axis-refusal-${{ github.run_id }}-${{ github.run_attempt }}/

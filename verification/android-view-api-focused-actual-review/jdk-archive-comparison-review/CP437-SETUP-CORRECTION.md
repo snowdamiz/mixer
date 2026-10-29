@@ -1,0 +1,7 @@
+This is an unexecuted setup correction to the prepared synthetic checker. Root source review identified that flags0 ZIP-name decoding uses the stdlib cp437 codec, which may lazily import encodings.cp437 after denials. check_synthetic_cp437.py adds only a pre-guard, nonempty exact assertion: b"\x82".decode("cp437", "strict") must equal U+00E9. The approved import set, all denials, exact embedded comparator bytes and synthetic controls are unchanged. No guard is relaxed.
+
+The original check_synthetic.py and review-seal.json remain byte-for-byte intact. Removing the exact270-byte warmup insertion restores the original checker. The corrected checker is34073 bytes,SHA256 31f33ba5a4d817c7176c213563eebf9a592dd4aa3c73857dea2895dfe446b4f7. Root must review/select one corrected Python -I -B -S run before execution.
+
+Eight Node source/data checks passed. They verify the insertion and ordering only; Python has not parsed, imported or executed either checker. No archive or observed raw input was accessed and no real comparison is selected. This correction is not runtime evidence.
+
+The eventual actual data wrapper must likewise preload/warm cp437 before installing denials and evaluating the comparator, using the same nonempty exact known byte/character assertion. The actual hosted diagnostic binding, stable ordinary-file acquisition, interpreter/command identity, finite budget and real comparison remain pending. All existing native/process/custody/device/release/GA holds remain unchanged.

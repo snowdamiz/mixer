@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "status": "cause-not-proven-no-parser-policy-change",
+  "prior_inventory": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-view-api-boundary-linux-tool-profile/archive-manifest.json",
+    "bytes": 159103,
+    "sha256": "aeca850f0f923e058be71e0d06a698466e0374a982ea20264b83226d08798a1e",
+    "member_count_including_root": 543,
+    "normalized_root_relative_rows": 542,
+    "types": {
+      "file": 246,
+      "directory": 88,
+      "symlink": 208
+    },
+    "all_normalized_components_strict": true,
+    "raw_tar_names_retained": false
+  },
+  "prior_analyzer": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-view-api-boundary-linux-tool-profile/analyze_archive.py",
+    "bytes": 20021,
+    "sha256": "6eb44dba0fa52d3e7db281890f3a8c724f1107e86eb27c653f70455c9ed17491",
+    "line109": "name = member.name.rstrip(\"/\")",
+    "line112": "assert not name.startswith(\"/\") and all(p not in (\"\", \".\", \"..\") for p in parts)",
+    "line179": "all_rows omits archive root and stores normalized root-relative paths"
+  },
+  "failure002": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/local/actual-comparison-002.stdout",
+    "bytes": 207,
+    "sha256": "3290b820f7a25e1bc508efec5d90bda9321aa57d37d0e7cb602131ea50558e11",
+    "stage": "fixed-two-member-comparison",
+    "reason": "empty/dot/traversal name",
+    "scope_not_localized": "This stage includes official_members and all inspect_zip calls. Identical safe_name refusal cannot identify tar versus inner ZIP."
+  },
+  "decision": "Do not add rstrip/lstrip/dot normalization. Historical strict source validation rejects leading ./; normalized inventory cannot identify exact original tar spelling. Context-only invocation must establish site/name/type before a narrowly justified correction.",
+  "comparator_policy_changed": false
+}
