@@ -1,0 +1,42 @@
+{
+  "local_preservation_anchors_only": [
+    ".github/workflows/verify.yml",
+    ".github/workflows/hosted.yml",
+    "hosted/lib/mixer_hosted/browser_auth/store.ex",
+    "verification/github-delivery-fixture-context-v4/sanitized-result.json",
+    "verification/cache-fixture-shared-input-candidate-v2/check_cache_state.py",
+    "verification/cache-fixture-shared-input-candidate-v2/overlay-manifest.json",
+    "verification/cache-fixture-workflow-context-v4/seal.json",
+    "verification/cache-fixture-compiler-admission-v3/offline_guard.py"
+  ],
+  "reason": "These source.bindings in the producer decision are evidence/preservation anchors, not dependencies of the envelope candidate. The ordinary workflow has already changed for a separate reviewed fixture adoption. Dirty protected sources are unavailable in an ordinary committed sparse checkout. Preserve the frozen original decision; do not make this diagnostic depend on local unrelated bytes.",
+  "runtime_and_contract_dependencies": {
+    "scripts/ci/check-analyzer-envelope.py": {
+      "bytes": 39991,
+      "sha256": "4c56beec330b8118f01be3a6e7460f9857e4b1e8b61f29b4a9bce16fb6c1130c"
+    },
+    "verification/envelope-producer-timeout-experiment/candidate_runner.py": {
+      "bytes": 46890,
+      "sha256": "32c98f00c18ce365306c166bc170a7369a89e26b25105858f36e82c2ef6515d5"
+    },
+    "verification/envelope-producer-timeout-experiment/seal.json": {
+      "bytes": 2078,
+      "sha256": "1b6325654b061d9750e79548c703130a337b7cfb297bb90d195d1bb6a29ca574"
+    },
+    "verification/swift-envelope-ci-pack/manifest.json": {
+      "bytes": 17229,
+      "sha256": "4800e90fa39b81d0e6514afa087a77b93f838204883974df7fbbec4c69a21b9a"
+    },
+    "verification/swift-envelope-ci-root-review/compiler-qualification-selection-amendment.json": {
+      "bytes": 3190,
+      "sha256": "b7c482646943a34ffae810cfad38962a4b50a455b37d2deab7ea80e38d805e5b"
+    },
+    "verification/swift-envelope-ci-root-review/test-lint-selection-amendment.json": {
+      "bytes": 2387,
+      "sha256": "1684fb9a329809c8c5bb9a4af20bbceaa7e4d68123a77e54a1115e3534277e52"
+    }
+  },
+  "schema": 1,
+  "selected_commit": "pending root selection after review; workflow requires GITHUB_SHA equal supplied reviewed_sha",
+  "transitive_runtime_closure": "All 86 frozen pack members and all 12 frozen producer packet members are checked by their sealed manifests. No producer bookkeeping path is dereferenced."
+}

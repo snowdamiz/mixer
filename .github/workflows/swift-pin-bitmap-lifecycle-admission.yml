@@ -1,0 +1,58 @@
+# Authored proposal. Root must review and copy into .github/workflows/ before dispatch.
+name: Swift pin bitmap lifecycle host admission
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Run the reviewed canonical-limit pin bitmap regression sequence once
+        type: choice
+        required: true
+        options: [pin-bitmap-lifecycle-v2]
+permissions:
+  contents: read
+concurrency:
+  group: swift-pin-bitmap-lifecycle-admission
+  cancel-in-progress: false
+jobs:
+  admit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        timeout-minutes: 2
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /AGENTS.md
+            /mixer-product-plan.md
+            /vm/
+            /contracts/
+            /verification/swift-dense512-product-integration/
+            /verification/swift-pin-bitmap-independent/
+            /verification/swift-pin-bitmap-host-binding-correction/
+            /verification/swift-pin-bitmap-lifecycle-correction/
+            /verification/swift-pin-bitmap-lifecycle-host-admission/
+      - name: Pure source bindings and admission controls
+        timeout-minutes: 2
+        run: python3 -B verification/swift-pin-bitmap-lifecycle-host-admission/root_controls.py
+      - name: Install exact hosted compiler
+        timeout-minutes: 2
+        run: rustup toolchain install 1.99.0 --profile minimal
+      - name: One bounded six-Cargo admission
+        timeout-minutes: 44
+        env:
+          MIXER_PIN_BITMAP_SELECTION: ${{ inputs.profile }}
+        run: python3 -B verification/swift-pin-bitmap-lifecycle-host-admission/admit.py run
+      - name: Preserve command failures and custody receipts
+        if: always()
+        timeout-minutes: 2
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-pin-bitmap-lifecycle-admission-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/swift-pin-bitmap-lifecycle-v2-evidence/
+            !${{ runner.temp }}/swift-pin-bitmap-lifecycle-v2-evidence/scratch/
+            verification/swift-pin-bitmap-lifecycle-host-admission/root-controls-result.json
+          if-no-files-found: error
+          retention-days: 30

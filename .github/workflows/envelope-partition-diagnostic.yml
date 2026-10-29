@@ -1,0 +1,85 @@
+name: Envelope partition diagnostic
+
+on:
+  workflow_dispatch:
+    inputs:
+      reviewed_sha:
+        description: Exact root-selected 40-character commit for one diagnostic
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: envelope-partition-diagnostic
+  cancel-in-progress: false
+
+jobs:
+  one-complete-host-fixture:
+    runs-on: macos-15
+    timeout-minutes: 20
+    env:
+      MIXER_REVIEWED_SHA: ${{ inputs.reviewed_sha }}
+      RUSTUP_AUTO_INSTALL: '0'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /scripts/ci/check-analyzer-envelope.py
+            /verification/swift-envelope-ci-pack/
+            /verification/envelope-producer-timeout-experiment/
+            /verification/envelope-partition-workflow-context-correction/
+            /verification/swift-envelope-ci-root-review/compiler-qualification-selection-amendment.json
+            /verification/swift-envelope-ci-root-review/test-lint-selection-amendment.json
+            /.github/workflows/envelope-partition-diagnostic.yml
+      - name: Independent guarded source controls
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          python3 -B verification/envelope-partition-workflow-context-correction/review_controls.py
+          python3 -B verification/envelope-partition-workflow-context-correction/test_context.py
+          python3 -B verification/envelope-partition-workflow-context-correction/verify_candidate.py --installed
+      - name: Bind exact source and existing direct compiler, then invoke once
+        env:
+          MIXER_RUNNER_ENVIRONMENT: ${{ runner.environment }}
+        timeout-minutes: 11
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_ENVELOPE_OUT="$RUNNER_TEMP/envelope-partition-${GITHUB_RUN_ID}-1"
+          python3 -B verification/envelope-partition-workflow-context-correction/admission.py begin --out "$MIXER_ENVELOPE_OUT"
+          python3 -B verification/envelope-producer-timeout-experiment/candidate_runner.py \
+            --rustc "$HOME/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc" \
+            --out "$MIXER_ENVELOPE_OUT/fixture" \
+            > "$MIXER_ENVELOPE_OUT/invocation.stdout" 2> "$MIXER_ENVELOPE_OUT/invocation.stderr"
+      - name: Source postflight and complete terminal replay
+        env:
+          MIXER_RUNNER_ENVIRONMENT: ${{ runner.environment }}
+        if: always()
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B verification/envelope-partition-workflow-context-correction/admission.py finish \
+            --out "$RUNNER_TEMP/envelope-partition-${GITHUB_RUN_ID}-1"
+      - name: Retain raw diagnostic and unresolved custody without cleanup guesses
+        if: always()
+        timeout-minutes: 5
+        uses: actions/upload-artifact@v4
+        with:
+          name: envelope-partition-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          include-hidden-files: true
+          path: |
+            ${{ runner.temp }}/envelope-partition-${{ github.run_id }}-1/
+            ${{ github.workspace }}/verification/envelope-partition-workflow-context-correction/
+            ${{ github.workspace }}/verification/envelope-producer-timeout-experiment/
+            ${{ github.workspace }}/.github/workflows/envelope-partition-diagnostic.yml

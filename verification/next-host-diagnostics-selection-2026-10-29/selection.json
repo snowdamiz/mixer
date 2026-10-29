@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "at": "2026-10-29T03:02:15.293Z",
+  "decision": "One fresh lifecycle regression and one envelope partition diagnostic after exact coherent main delivery",
+  "base": {
+    "head": "c7648ab4aed1b99a6d0a338317bcdbed9e784fa4",
+    "tree": "3143f5e45b535d525c90cf0df6e9e884c225646c"
+  },
+  "rootReview": {
+    "path": "verification/next-host-diagnostics-selection-2026-10-29/root-review.json",
+    "sha256": "75e045540892337c8015e09a1e7a6a204760b1436c66deec45f1f9144893e8e7"
+  },
+  "packets": [
+    {
+      "path": "verification/envelope-producer-timeout-experiment",
+      "sealSHA256": "1b6325654b061d9750e79548c703130a337b7cfb297bb90d195d1bb6a29ca574"
+    },
+    {
+      "path": "verification/envelope-partition-independent-review",
+      "sealSHA256": "057e500afa3ee57e0469e377c3c4f947053e1fe163f258f52e57ccc80cd5be73"
+    },
+    {
+      "path": "verification/envelope-partition-workflow-context-correction",
+      "sealSHA256": "ca2b210b41c082bea7833dfdd9f42cff764b4887af8dd70faecdd4d29b73a5b2"
+    },
+    {
+      "path": "verification/swift-pin-bitmap-lifecycle-correction",
+      "sealSHA256": "b3b502ab5027615d1ff6bcb396f893554407e7f4f983ca89c2e3a499b4291ab6"
+    },
+    {
+      "path": "verification/swift-pin-bitmap-lifecycle-host-admission",
+      "sealSHA256": "36d8348b3cbeb17aaf53e273b6152faf40d421bc265e6aacd8a8524a230f1d75"
+    }
+  ],
+  "canonicalPaths": [
+    ".github/workflows/envelope-partition-diagnostic.yml",
+    ".github/workflows/swift-pin-bitmap-lifecycle-admission.yml",
+    "PLAN.md",
+    "STATUS.md",
+    "work-graph.json",
+    "gates/ga.json"
+  ],
+  "smallPaths": [
+    "verification/reviewed-host-slice-actual-results/.gitignore",
+    "verification/reviewed-host-slice-actual-results/sanitized-result.json",
+    "verification/reviewed-host-slice-actual-results/seal.json",
+    "verification/next-host-diagnostics-selection-2026-10-29/root-review.json",
+    "verification/next-host-diagnostics-selection-2026-10-29/fieldlog-resolved-checkout-result.json",
+    "verification/next-host-diagnostics-selection-2026-10-29/selection.json"
+  ],
+  "dispatches": [
+    {
+      "workflow": "swift-pin-bitmap-lifecycle-admission.yml",
+      "profile": "pin-bitmap-lifecycle-v2",
+      "workflowSHA256": "14938e1bc0132068558880c30e12473ee30542c843add5d49fd9dbca9aa95cf0",
+      "maxAttempts": 1,
+      "attempt": 1,
+      "expectedHead": "delivered main HEAD",
+      "children": 7,
+      "cargoCommands": 6,
+      "activeSeconds": 2500,
+      "cleanupSeconds": 60,
+      "wholeReactorAttempts": 0
+    },
+    {
+      "workflow": "envelope-partition-diagnostic.yml",
+      "inputs": {
+        "reviewed_sha": "exact delivered full HEAD"
+      },
+      "workflowSHA256": "067ee0e7459f684bbab1407efb600865c22a6239e68fe95ee7c1d74253239f43",
+      "maxAttempts": 1,
+      "attempt": 1,
+      "fixtureInvocations": 1,
+      "commands": 40,
+      "activeSeconds": 480,
+      "cleanupSeconds": 60,
+      "compiler": "existing admitted1.98.1 or1.99.0 ARM64; no installation/fallback"
+    }
+  ],
+  "authorization": {
+    "repository": "snowdamiz/mixer",
+    "nonforcePush": "origin/main",
+    "commitScope": "exact seal members and seals for listed packets, plus listed canonical and small paths",
+    "automaticEngineCI": true,
+    "manualInvocations": 2,
+    "noRetryOnUnknownOutcome": true,
+    "canonicalVMInstallation": false,
+    "FieldLogActions": false,
+    "releasesOrTags": false
+  },
+  "FieldLogObserved": {
+    "head": "087f502b10db906e5ce446a98e25d2152ad4a6c4",
+    "run": 40808838978,
+    "resolveAndRealCheckoutPassed": true,
+    "firstFailure": "Effective app declaration file-mirror URL/default traits differ from current public-only expected JSON",
+    "hostTestsRun": 0,
+    "outerClosed": 19,
+    "registeredAbsent": 26,
+    "innerReaped": 132,
+    "localCommandsClosed": 53,
+    "followup": "fresh source-only authenticated declaration correction; no further host attempt selected",
+    "oldHeldRun": 40802230894,
+    "oldHeldPGID": 2424,
+    "oldHeldPID": 2621,
+    "oldHeldResourcesUntouched": true
+  },
+  "protectedPaths": {
+    ".github/workflows/hosted.yml": {
+      "bytes": 5231,
+      "sha256": "fafd2560cc385a4113ea140bf2d4445d456e1f7f396539dfe2c3e7d6302e8b57"
+    },
+    "hosted/lib/mixer_hosted/browser_auth/store.ex": {
+      "bytes": 31414,
+      "sha256": "8c314b1d3ce288a6dc617251233796bd0a9d8894247ccb15b101e1292e513299"
+    }
+  },
+  "allOtherCustodyNativePhoneUnitABroadHostedHolds": "unchanged",
+  "rawCIAndHelperEvidence": "local ignored only",
+  "gates": {
+    "running": 8,
+    "planned": 30,
+    "verified": 0
+  }
+}

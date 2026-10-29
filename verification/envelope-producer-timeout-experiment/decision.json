@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "scope": "Source-only producer partition candidate; no runtime acceptance, dispatch or default promotion",
+  "status": "ready for independent source review and one explicitly selected remote host diagnostic",
+  "source": {
+    "head": "00e087210c24406aff49bcf3563bd4226e76660b",
+    "tree": "8ffa6120f3173815ff12fdcb094554f000410ffc",
+    "headProvenance": "parent supplied; no Git operation in this lane",
+    "bindings": {
+      "scripts/ci/check-analyzer-envelope.py": {
+        "bytes": 39991,
+        "sha256": "4c56beec330b8118f01be3a6e7460f9857e4b1e8b61f29b4a9bce16fb6c1130c"
+      },
+      "verification/swift-envelope-ci-pack/manifest.json": {
+        "bytes": 17229,
+        "sha256": "4800e90fa39b81d0e6514afa087a77b93f838204883974df7fbbec4c69a21b9a"
+      },
+      "verification/swift-envelope-ci-pack/inventories/expected-methods.json": {
+        "bytes": 9771,
+        "sha256": "b4397b5ef2540688762cb1b6250f2bfabe89d965366f81a806378de981082dd6"
+      },
+      "verification/swift-envelope-ci-pack/source/producer/independent_tests.rs": {
+        "bytes": 22556,
+        "sha256": "f5a56f984fb087edc86a50388a3b014902c965dae6a3787031fc1c56f269891d"
+      },
+      "verification/github-delivery-fixture-context-v4/sanitized-result.json": {
+        "bytes": 10777,
+        "sha256": "91a86d8ada3d73fa18443c60235ec1392332be74f3909b1f44147268d5b06024"
+      },
+      "verification/cache-fixture-shared-input-candidate-v2/check_cache_state.py": {
+        "bytes": 33008,
+        "sha256": "5b29269988838c8af4fdfd4858645b17837bddd8812a133ef4e6aaa709ba55ad"
+      },
+      "verification/cache-fixture-shared-input-candidate-v2/overlay-manifest.json": {
+        "bytes": 3152,
+        "sha256": "c7c4ecd65f4a92f1edd2b36fcbb54bc8e233662b9a673d6555fd36b284d201a6"
+      },
+      "verification/cache-fixture-workflow-context-v4/seal.json": {
+        "bytes": 2264,
+        "sha256": "bd0b2f025d23ed984927585915bf41fbc0ebbeec130a02f4b0648c553ecaf9a3"
+      },
+      ".github/workflows/verify.yml": {
+        "bytes": 26000,
+        "sha256": "f83defbefd14e710103f4a948f02c15eea8cfd789841d3a5e3593efdb0572eeb"
+      },
+      ".github/workflows/hosted.yml": {
+        "bytes": 5231,
+        "sha256": "fafd2560cc385a4113ea140bf2d4445d456e1f7f396539dfe2c3e7d6302e8b57"
+      },
+      "hosted/lib/mixer_hosted/browser_auth/store.ex": {
+        "bytes": 31414,
+        "sha256": "8c314b1d3ce288a6dc617251233796bd0a9d8894247ccb15b101e1292e513299"
+      },
+      "verification/cache-fixture-compiler-admission-v3/offline_guard.py": {
+        "bytes": 2323,
+        "sha256": "a9018c936ce1ca525dbe16ba60e5a62c12ee0fe4a09c6a16926fbbef77966e9f"
+      }
+    },
+    "ignoredEvidenceRead": {
+      "verification/github-delivery-fixture-context-v4/ci-review/receipt.json": {
+        "bytes": 16082,
+        "sha256": "fa8be6eb492863c6dc2fba4697c03b17a25eeb55565e821239f707f2f01186d0"
+      },
+      "verification/github-delivery-fixture-context-v4/ci-review/engine-envelope/analysis.json": {
+        "bytes": 1906,
+        "sha256": "be7fad745aeb1eab48e8688a524539ec2cea43e685040afb81e2c6c55489efd6"
+      },
+      "verification/github-delivery-fixture-context-v4/ci-review/engine-envelope/extract/receipt.json": {
+        "bytes": 52591,
+        "sha256": "2dd1c7fab094432fc62d47b60071180c607926553ac94e005f9c7c311fab01ac"
+      },
+      "verification/github-delivery-fixture-context-v4/ci-review/engine-envelope/extract/commands/producer-execute.stdout": {
+        "bytes": 9867,
+        "sha256": "5d7e187eea92deb7073cf50e2bc5a7c421692527db2965b07b619ea3b1d1a1ca"
+      }
+    }
+  },
+  "observedBaseline": {
+    "run": 40801222690,
+    "job": 123209530925,
+    "artifact": {
+      "id": 12865728709,
+      "bytes": 389721,
+      "sha256": "c215170b4608a7876afdd817134247c72c09badabf452497aa1e04ce474d0b9e"
+    },
+    "producerCommand": {
+      "limitSeconds": 120,
+      "elapsedSeconds": 120.024997,
+      "exit": -9,
+      "timedOut": true,
+      "childReturned": true,
+      "ownedGroupGone": true,
+      "ownedGroupKilled": true,
+      "stderrBytes": 0,
+      "stdoutBytes": 9867,
+      "expectedMethods": 78,
+      "startedMethods": 77,
+      "terminalOK": 76,
+      "lastIncompleteMethod": "stream_header_every_closed_scalar_reserved_and_digest",
+      "assertionOrPanicRetained": false,
+      "outputCap": "not implemented or recorded by the original envelope runner"
+    },
+    "partialInput": "producer-review/1359-header-reserved-59/stream",
+    "partialInputDoesNotProveExactInstruction": true,
+    "originalFailureUnchanged": true
+  },
+  "hypotheses": [
+    {
+      "id": "H1",
+      "claim": "The cumulative unoptimized suite consumed the single 120-second producer-command budget.",
+      "evidence": "77 method starts and 76 terminal successes; fixed timeout after120.024997 seconds, no retained panic; final method began late in the original lexical suite.",
+      "status": "best-supported proximate explanation; per-method elapsed data absent; partition is an experiment, not a proved fix",
+      "test": "Run all18 disjoint partitions once under unchanged480s active budget; inspect each command and full78-method closure."
+    },
+    {
+      "id": "H2",
+      "claim": "Repeated fixture initialization and input rewriting contribute substantial aggregate work.",
+      "evidence": "Producer Fixture::new initializes80000 profile rows (2560512 bytes). The context method has23 scalar+976 reserved+4 length vectors=1003; each constructs a freshFixture and writes stream/profile/context before analysis.",
+      "status": "source-backed workload mechanism, no causal timing measurement in original envelope run",
+      "test": "Partition records isolate each root method; keep original bodies and bytes unchanged in this candidate. Any shared-input envelope change requires a distinct later source proposal."
+    },
+    {
+      "id": "H3",
+      "claim": "The unfinished header method contains a path-specific defect or unusually slow case.",
+      "evidence": "Retained stdout ends at this method; partial stream exists for reserved word59. Its source has12 scalar+38 reserved+8 digest vectors; all loops are finite.",
+      "status": "possible but unproved; file retention is not instruction-level evidence",
+      "test": "The unchanged header method runs as producer-root-15 with its own120s bound. Failure halts later methods and preserves partial inputs."
+    },
+    {
+      "id": "H4",
+      "claim": "Output truncation, assertion failure or compiler rejection caused this recorded timeout.",
+      "evidence": "Original wrapper has no output cap, retained stdout9867 bytes/stderr0, no panic or assertion message, first8commands passed with Rust1.98.1 aarch64-apple-darwin.",
+      "status": "not supported as the recorded trigger; unexecuted later independent/API checks remain pending",
+      "test": "Candidate explicitly records8MiB/stream and64MiB/allcommands caps and actual EOF; all original independent/API checks still required."
+    }
+  ],
+  "candidate": {
+    "path": "verification/envelope-producer-timeout-experiment/candidate_runner.py",
+    "sha256": "32c98f00c18ce365306c166bc170a7369a89e26b25105858f36e82c2ef6515d5",
+    "changeCount": 10,
+    "producerGroups": 18,
+    "rootMethods": 17,
+    "embeddedMethods": 61,
+    "originalLexicalMethodOrder": true,
+    "sourceTestsFixturesOraclesInputsModified": false,
+    "firstFailureStopsLaterGroups": true,
+    "expectedSuccessfulTotalCommands": 40,
+    "limits": {
+      "perProducerOrIndependentExecutionSeconds": 120,
+      "perCompilerCommandSeconds": 60,
+      "otherCommandSeconds": 15,
+      "activeSeconds": 480,
+      "retentionCleanupSeconds": 60,
+      "perStreamBytes": 8388608,
+      "allCommandStreamsBytes": 67108864
+    },
+    "newBoundsStatus": "finite experimental safeguards; no claim these limits were present in the baseline or guarantee completion",
+    "failurePolicy": "A timeout, cap, nonzero exit, missing/duplicated/reordered method, wrong filtered count, bad oracle/layout counter or custody failure fails the invocation; no retry, fallback, method omission or continued later group."
+  },
+  "nextExecutableCheck": {
+    "name": "one complete envelope-partition host fixture diagnostic",
+    "command": "python3 -B verification/envelope-producer-timeout-experiment/candidate_runner.py --rustc \"$ENVELOPE_REVIEWED_RUSTC\" --out \"$RUNNER_TEMP/analyzer-envelope-partition\"",
+    "environment": "fresh root-owned remote macOS ARM64 job with original approved Rust1.98.1 binary identity preferred for comparison; original allowed1.98.1/1.99.0 host admission remains unchanged",
+    "preconditions": [
+      "independent source review of runner.diff and current seal",
+      "root selects exact committed source and fresh output ownership",
+      "bound existing compiler; no installation by this packet",
+      "run guarded source controls and verify_packet.py before the single invocation"
+    ],
+    "maximumInvocations": 1,
+    "selectedByThisLane": false,
+    "successRequires": "All40 commands,78 producer methods and14 independent methods,32layouts,16170+5544 finite comparisons and8negativeAPI probes; retained command outputs/source/compiler identity, all postflight checks and cleanup; replay artifact without conflating pure mocks with process evidence",
+    "decisionOnFailure": "Retain first failing command, phase and partial input with exact custody evidence. Do not extend limits or retry automatically."
+  },
+  "cacheCIAdoption": {
+    "feasibleAsSeparateReviewedIntegration": true,
+    "currentOrdinaryPath": "verification/swift-cache-state-ci/check_cache_state.py",
+    "currentOrdinaryWorkflow": "swift-cache-state-fixture in .github/workflows/verify.yml",
+    "validatedCandidate": "verification/cache-fixture-shared-input-candidate-v2/check_cache_state.py plus materialize_pack.py and fixed overlay",
+    "validatedActualRun": 40801256712,
+    "validatedActualArtifact": 12866247194,
+    "remaining": "Rewire the ordinary cache-fixture job to materialize and run the exact validated v2 source closure with v4 compiler admission/provisioning context, preserve focused controls, explicit compiler policy, fixed60/600/60limits, bounded capture, artifact/source postflight and one complete invocation. Then inspect its own ordinaryCI result. Do not overwrite or relabel the frozen cache pack, and do not claim this fixes the separately frozen envelope source.",
+    "implementedHere": false
+  },
+  "pureTests": {
+    "receipt": "source-controls.json",
+    "tests": 28,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "scope": "actual Python orchestration with fake children/streams/clock plus immutable source checks; no real process/custody/runtime verification",
+    "initialPreparationFailuresPreservedUnder": "logs/",
+    "guard": {
+      "source": "verification/cache-fixture-compiler-admission-v3/offline_guard.py",
+      "sha256": "a9018c936ce1ca525dbe16ba60e5a62c12ee0fe4a09c6a16926fbbef77966e9f",
+      "copiedByteIdentical": true
+    }
+  },
+  "holds": {
+    "untouched": [
+      "20745",
+      "20770",
+      "20780",
+      "20817",
+      "20842",
+      "20851",
+      "20866",
+      "old FieldLog fetch",
+      "UnitA",
+      "broad hosted",
+      "FieldLog40802230894 remotePGID2424 inner2621"
+    ],
+    "localCompilerRuntime": false,
+    "nativeRuntime": false,
+    "UI": false,
+    "capture": false,
+    "processInventory": false,
+    "heldProbes": false,
+    "wrangler": "untouched and uninspected",
+    "GitPushDispatch": false
+  },
+  "acceptance": {
+    "engineFix": false,
+    "performance": false,
+    "default": false,
+    "OTA": false,
+    "customer": false,
+    "GA": false
+  }
+}

@@ -1,0 +1,287 @@
+--- scripts/ci/check-analyzer-envelope.py
++++ verification/envelope-producer-timeout-experiment/candidate_runner.py
+@@ -9,6 +9,7 @@
+ from pathlib import Path, PurePosixPath
+ import platform
+ import re
++import selectors
+ import shutil
+ import signal
+ import stat
+@@ -23,6 +24,9 @@
+ PACK_TREE_SHA256 = '7a73ac6f477b6ac90db0be8444712bc195c184fb21239266c07601f9ea90ecee'
+ PARENT_SHA256 = '1ef11e06678642231f783fea0e5fe376e8b1912730a6fb696a653ab04cb2043b'
+ ENVELOPE_SHA256 = '2cd286a387ce336a18ea2872974e371ca4e772e2fd801f2186a3f62ce639bfef'
++BASE_RUNNER_SHA256 = '4c56beec330b8118f01be3a6e7460f9857e4b1e8b61f29b4a9bce16fb6c1130c'
++OUTPUT_CAP = 8 * 1024 * 1024
++TOTAL_OUTPUT_CAP = 64 * 1024 * 1024
+ REMOVED_ENV = ('RUSTFLAGS', 'CARGO_ENCODED_RUSTFLAGS', 'RUSTC_WRAPPER',
+                'RUSTC_WORKSPACE_WRAPPER', 'RUSTC', 'RUSTDOCFLAGS', 'RUST_TEST_THREADS',
+                'RUST_TEST_NOCAPTURE', 'RUST_TEST_TIME_UNIT', 'RUST_TEST_TIME_INTEGRATION',
+@@ -229,6 +233,7 @@
+     def __init__(self, out, receipt, deadline):
+         self.out, self.receipt, self.deadline = out, receipt, deadline
+         self.active = None
++        self.output_bytes = 0
+         (out / 'commands').mkdir()
+ 
+     def save(self):
+@@ -256,64 +261,117 @@
+ 
+     def run(self, name, argv, *, cwd, env=None, timeout=15, negative=False):
+         require(self.active is None, 'Only one synchronous child group allowed')
+-        budget = min(timeout, self.deadline - time.monotonic())
++        require(re.fullmatch(r'[A-Za-z0-9_-]+', name) is not None, 'Invalid command name')
++        start = time.monotonic()
++        budget = min(timeout, self.deadline - start)
+         require(budget > 0, 'Overall active deadline exhausted')
+         argv = list(map(str, argv))
+         overrides = {'RUSTUP_AUTO_INSTALL': '0', 'LC_ALL': 'C', **(env or {})}
+-        # Only a small documented environment reaches children. No dynamic-library,
+-        # compiler, test or Python injection from the caller is inherited.
+         command_env = {k: os.environ[k] for k in ('PATH', 'HOME', 'TMPDIR', 'SYSTEMROOT') if k in os.environ}
+         command_env.update(overrides)
+         row = {'name': name, 'argv': argv, 'cwd': str(cwd), 'environment': command_env,
+                'environment_policy': 'allowlist', 'caller_injection_variables_removed': list(REMOVED_ENV),
+                'started_utc': now(), 'timeout_seconds': budget, 'exit': None,
+-               'timed_out': False, 'child_returned': False, 'owned_group_gone': False}
++               'timed_out': False, 'child_returned': False, 'owned_group_gone': False,
++               'per_stream_cap_bytes': OUTPUT_CAP, 'aggregate_cap_bytes': TOTAL_OUTPUT_CAP,
++               'aggregate_bytes_before': self.output_bytes, 'output_capped': False,
++               'pipe_eof': {'stdout': False, 'stderr': False}, 'errors': []}
+         self.receipt['commands'].append(row)
+         self.save()
+-        start = time.monotonic()
+-        stdout, stderr = [self.out / 'commands' / (name + x) for x in ('.stdout', '.stderr')]
+-        proc = None
++        paths = {label: self.out / 'commands' / (name + '.' + label) for label in ('stdout', 'stderr')}
++        proc, selector, primary = None, selectors.DefaultSelector(), None
++        opened, cleanup_errors = [], []
++        def cleanup_error(phase, error):
++            cleanup_errors.append(error)
++            row['errors'].append({'phase': phase, 'type': type(error).__name__, 'message': str(error)})
+         try:
+-            with stdout.open('xb') as output, stderr.open('xb') as error:
+-                proc = subprocess.Popen(argv, cwd=cwd, env=command_env, stdout=output, stderr=error,
+-                                        start_new_session=True)
+-                self.active = proc
+-                row['pid'] = row['owned_pgid'] = proc.pid
+-                try:
+-                    proc.wait(timeout=budget)
+-                except subprocess.TimeoutExpired:
++            proc = subprocess.Popen(argv, cwd=cwd, env=command_env, stdout=subprocess.PIPE,
++                                    stderr=subprocess.PIPE, start_new_session=True)
++            self.active = proc
++            row['pid'] = row['owned_pgid'] = proc.pid
++            for label, pipe in [('stdout', proc.stdout), ('stderr', proc.stderr)]:
++                opened.append(pipe)
++                sink = paths[label].open('xb'); opened.append(sink)
++                selector.register(pipe, selectors.EVENT_READ, {'label': label, 'sink': sink, 'count': 0})
++            while selector.get_map() or proc.poll() is None:
++                if time.monotonic() - start >= budget:
+                     row['timed_out'] = True
+-                    self.stop_group(proc, row)
+-                row['exit'] = proc.returncode
+-                row['child_returned'] = True
+-                if not row['owned_group_gone']:
+-                    try:
+-                        os.killpg(proc.pid, 0)
+-                    except ProcessLookupError:
+-                        row['owned_group_gone'] = True
+-                    else:
+-                        row['descendants_outlived_direct_child'] = True
+-                        self.stop_group(proc, row)
+-        except OSError as error:
+-            row['spawn_error'] = str(error)
++                    raise TimeoutError('Command timeout: ' + name)
++                for key, _ in selector.select(.02):
++                    block = os.read(key.fileobj.fileno(), 65536)
++                    if not block:
++                        row['pipe_eof'][key.data['label']] = True
++                        selector.unregister(key.fileobj)
++                        continue
++                    available = min(OUTPUT_CAP - key.data['count'], TOTAL_OUTPUT_CAP - self.output_bytes)
++                    kept = block[:available]
++                    key.data['sink'].write(kept)
++                    key.data['count'] += len(kept); self.output_bytes += len(kept)
++                    if len(block) > available:
++                        row['output_capped'] = True
++                        raise RuntimeError('Command output cap: ' + name)
++            proc.wait(timeout=5)
++            row['exit'] = proc.returncode; row['child_returned'] = True
++            try:
++                os.killpg(proc.pid, 0)
++            except ProcessLookupError:
++                row['owned_group_gone'] = True
++            else:
++                row['descendants_outlived_direct_child'] = True
++        except BaseException as error:
++            primary = error
++            row['errors'].append({'phase': 'active', 'type': type(error).__name__, 'message': str(error)})
++            if isinstance(error, OSError) and proc is None:
++                row['spawn_error'] = str(error)
+         finally:
+             if proc is not None and (not row['child_returned'] or not row['owned_group_gone']):
+-                self.stop_group(proc, row)
+-                row['exit'] = proc.returncode
+-            self.active = None
++                try:
++                    self.stop_group(proc, row)
++                    row['exit'] = proc.returncode
++                except BaseException as error:
++                    row['owned_group_gone'] = False
++                    cleanup_error('stop-owned-group', error)
++            if proc is None or (row['child_returned'] and row['owned_group_gone']):
++                self.active = None
++            row['custody_hold'] = self.active is not None
++            for stream in opened:
++                try:
++                    stream.close()
++                except BaseException as error:
++                    cleanup_error('close-stream', error)
++            try:
++                selector.close()
++            except BaseException as error:
++                cleanup_error('close-selector', error)
+             row['finished_utc'] = now()
+             row['elapsed_seconds'] = round(time.monotonic() - start, 6)
+-            for label, path in [('stdout', stdout), ('stderr', stderr)]:
+-                if path.exists():
++            row['aggregate_bytes_after'] = self.output_bytes
++            for label, path in paths.items():
++                try:
++                    if not path.exists():
++                        path.write_bytes(b'')
+                     row[label] = {'path': str(path.relative_to(self.out)), 'bytes': path.stat().st_size,
+                                   'sha256': sha(path)}
+-            write_json(self.out / 'commands' / (name + '.json'), row)
+-            self.save()
++                except BaseException as error:
++                    cleanup_error('retain-' + label, error)
++            try:
++                write_json(self.out / 'commands' / (name + '.json'), row)
++            except BaseException as error:
++                cleanup_error('save-command', error)
++            try:
++                self.save()
++            except BaseException as error:
++                cleanup_error('save-receipt', error)
++        if primary is not None:
++            raise primary
++        if cleanup_errors:
++            raise cleanup_errors[0]
+         require(row['child_returned'] and row['owned_group_gone'] and not row['timed_out']
++                and not row['output_capped'] and all(row['pipe_eof'].values())
+                 and not row.get('descendants_outlived_direct_child')
+                 and ((row['exit'] == 1) if negative else row['exit'] == 0),
+                 'Command failed: ' + name + '; retained command receipt')
+-        return stdout.read_text(), stderr.read_text(), row
++        return paths['stdout'].read_text(), paths['stderr'].read_text(), row
+ 
+ 
+ def rustc_identity(output):
+@@ -390,15 +448,16 @@
+     return [compiler, '--edition=2024', '-Dwarnings', *allowance, '--test', sources[lane], '-o', binary]
+ 
+ 
+-def verify_methods(output, expected, executed=False):
++def verify_methods(output, expected, executed=False, filtered=0):
+     if executed:
+         # --nocapture interleaves test labels and their output. Match the label,
+         # then require its final ok and the sole complete libtest summary.
+         names = re.findall(r'^test (\S+) \.\.\. ', output, re.M)
+         summaries = re.findall(r'^test result: ok\. (\d+) passed; (\d+) failed; (\d+) ignored; (\d+) measured; (\d+) filtered out; finished in [^\n]+$', output, re.M)
+-        require(summaries == [(str(len(expected)), '0', '0', '0', '0')], 'Partial/ignored/failed test result')
++        require(summaries == [(str(len(expected)), '0', '0', '0', str(filtered))], 'Partial/ignored/failed test result')
+         require(len(re.findall(r'(?:^|\n)ok$| \.\.\. ok$', output, re.M)) == len(expected),
+                 'Executed methods missing terminal ok')
++        require(names == expected, 'Executed method order differs')
+     else:
+         names = [line[:-6] for line in output.splitlines() if line.endswith(': test')]
+         require(re.search(r'^' + str(len(expected)) + r' tests, 0 benchmarks$', output, re.M),
+@@ -406,6 +465,62 @@
+     require(len(names) == len(set(names)) == len(expected) and set(names) == set(expected),
+             'Exact method inventory differs')
+     return sorted(names)
++
++
++def producer_groups(names):
++    """Fixed shape, original lexical order, exact root filters and one embedded prefix."""
++    require(names == sorted(set(names)) and len(names) == 78, 'Producer inventory shape differs')
++    roots = [name for name in names if '::' not in name]
++    embedded = [name for name in names if name.startswith('product::')]
++    require(len(roots) == 17 and len(embedded) == 61, 'Producer partition counts differ')
++    groups = []
++    for name in names:
++        if name in roots:
++            groups.append({'name': 'root-' + str(roots.index(name)).zfill(2),
++                           'args': [name, '--exact'], 'methods': [name]})
++        elif name == embedded[0]:
++            groups.append({'name': 'embedded', 'args': ['product::'], 'methods': embedded})
++    require([name for group in groups for name in group['methods']] == names,
++            'Producer partition omission, duplicate or order change')
++    return groups
++
++
++def execute_test_groups(commands, lane, binary, pack_snapshot, scratch, env, names):
++    if lane == 'independent':
++        output = commands.run(lane + '-execute', [binary, '--test-threads=1', '--nocapture'],
++                              cwd=pack_snapshot, env=env, timeout=120)[0]
++        return output, verify_methods(output, names, executed=True)
++    require(lane == 'producer', 'Unknown test lane')
++    groups = producer_groups(names)
++    state = {'schema': 1, 'plan': groups, 'expected_methods': names, 'completed_groups': [],
++             'complete_disjoint_coverage': False, 'original_method_order_preserved': True,
++             'binary_sha256': sha(binary), 'source_pack_tree': PACK_TREE_SHA256,
++             'per_command_seconds': 120, 'aggregate_active_seconds': 480,
++             'per_stream_cap_bytes': OUTPUT_CAP, 'all_command_streams_cap_bytes': TOTAL_OUTPUT_CAP}
++    commands.receipt['producer_partition'] = state; commands.save()
++    parent = scratch / 'producer-partitions'; parent.mkdir()
++    observed, chunks = [], []
++    for group in groups:
++        work = parent / group['name']; work.mkdir()
++        for child in ('framing', 'envelope', 'review', 'tmp'):
++            (work / child).mkdir()
++        group_env = {**env, 'MIXER_ANALYZER_LIBRARY_TEST_SCRATCH': str(work / 'framing'),
++                     'MIXER_ENVELOPE_SCRATCH': str(work / 'envelope'),
++                     'MIXER_REVIEW_SCRATCH': str(work / 'review'),
++                     'TMPDIR': str(work / 'tmp'), 'TMP': str(work / 'tmp'), 'TEMP': str(work / 'tmp')}
++        # A command or verification failure escapes immediately. No later group is attempted.
++        output, _, row = commands.run('producer-' + group['name'],
++            [binary, *group['args'], '--test-threads=1', '--nocapture'],
++            cwd=pack_snapshot, env=group_env, timeout=120)
++        actual = verify_methods(output, group['methods'], executed=True,
++                                filtered=len(names) - len(group['methods']))
++        observed.extend(actual); chunks.append(output)
++        state['completed_groups'].append({'name': group['name'], 'methods': actual,
++                                          'command': row['name'], 'stdout': row['stdout']})
++        commands.save()
++    require(observed == names and len(observed) == len(set(observed)), 'Producer execution closure differs')
++    state['complete_disjoint_coverage'] = True; commands.save()
++    return '\n'.join(chunks), observed
+ 
+ 
+ def verify_layouts(output, expected):
+@@ -601,6 +716,11 @@
+                'output_ownership': {'identity': scratch_identity(out),
+                                     'marker': json.loads((out/'output-ownership.json').read_bytes())},
+                'active_deadline_seconds': 480, 'retention_cleanup_allowance_seconds': 60,
++               'candidate_base_runner_sha256': BASE_RUNNER_SHA256,
++               'output_limits': {'per_stream_bytes': OUTPUT_CAP, 'all_commands_bytes': TOTAL_OUTPUT_CAP},
++               'baseline_timeout': {'run_id': 40801222690, 'artifact_id': 12865728709,
++                   'artifact_sha256': 'c215170b4608a7876afdd817134247c72c09badabf452497aa1e04ce474d0b9e',
++                   'preserved': True, 'retry_or_performance_equivalence_claim': False},
+                'fixed_independent_test_lint_selection': {
+                    'reference': 'verification/swift-envelope-ci-root-review/test-lint-selection-amendment.json',
+                    'sha256': '1684fb9a329809c8c5bb9a4af20bbceaa7e4d68123a77e54a1115e3534277e52',
+@@ -662,9 +782,7 @@
+                 'MIXER_ANALYZER_LIBRARY_TEST_SCRATCH': str(scratch/'producer-framing'),
+                 'MIXER_ENVELOPE_SCRATCH': str(scratch/'producer-envelope'),
+                 'MIXER_REVIEW_SCRATCH': str(scratch/'producer-review')}
+-            output = commands.run(lane + '-execute', [binary, '--test-threads=1', '--nocapture'],
+-                                  cwd=pack_snapshot, env=env, timeout=120)[0]
+-            executed = verify_methods(output, names, executed=True)
++            output, executed = execute_test_groups(commands, lane, binary, pack_snapshot, scratch, env, names)
+             receipt['test_binaries'][lane] = {'sha256': sha(binary), 'listed': listed, 'executed': executed,
+                                                'source': source, 'source_pack_tree': PACK_TREE_SHA256}
+             if lane == 'producer':
