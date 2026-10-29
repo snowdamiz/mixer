@@ -11,6 +11,18 @@ its older pending/selected statements do not override the current state.
 
 ## Current delivered checkpoint
 
+Mixer `32ef6faf` [Engine CI 40828151608](https://github.com/snowdamiz/mixer/actions/runs/40828151608) passes all six jobs. The exact 53-path delivery preserves unrelated work; all 58 Git/gh admissions have recorded direct reap, owned-group absence and separate stdout/stderr EOF. These ordinary CI observations are terminal metadata; earlier full fixture/envelope audits retain their original attribution.
+
+The first [Release completion 40828181211](https://github.com/snowdamiz/mixer/actions/runs/40828181211) independently passes 699 tests across 37 groups, with zero failed or ignored tests and all nine Node oracles. [Actual review](verification/swift-pin-bitmap-release-actual-review/sanitized-result.json) verifies 937 evidence checks plus 19 parser refusal controls. Every test identity and group membership matches the prior successful Debug output. All three managed commands, source/tool postflights and scratch cleanup pass. Prior formatting, strict Clippy and Debug results remain attributed to run 40824584975, whose failed original parser admission is preserved. No such command was repeated.
+
+Root has [installed the exact tested candidate](verification/bitmap-canonical-integration-2026-10-29/installation.json): two runtime files and 13 test files, with all 136 source members matching the accepted closure and all 121 other members unchanged. [Focused semantic review](verification/swift-pin-bitmap-canonical-semantic-review/REVIEW.md) confirms that original admission already rejected more than 64 active pins. Public ABI, dependencies, all 17 defaults and production limits remain unchanged. The historical 512-resident/128-pin experiment used a separate generated source variant and is not requalified here. Canonical delivery and its ordinary CI remain pending.
+
+FieldLog `00c8fe04` [host 40820029857](https://github.com/snowdamiz/fieldlog/actions/runs/40820029857) remains independently accepted with 39 passing tests and zero source compiler warning diagnostics. Native, immutable published-package and D0-D8/GA qualification remain pending.
+
+Gates remain **8 running, 30 planned, 0 verified**. Native/UI/capture, phones, local compiler/custody, Unit A and broad hosted holds remain. FieldLog 40802230894, PGID 2424 and inner PID 2621 remain held without probes or disposal assumptions. Raw CI, archives and helper evidence stay local.
+
+## Previous delivered checkpoint at 1eec8e0f
+
 Mixer `1eec8e0f` [Engine CI 40824567237](https://github.com/snowdamiz/mixer/actions/runs/40824567237) passes all six jobs. Terminal metadata confirms this exact-head result; earlier full fixture and envelope artifact audits retain their original run attribution. The 64-path delivery preserves unrelated work, and all 65 Git/gh command admissions have recorded direct reap, owned-group absence and separate stdout/stderr EOF.
 
 The [VM attempt 40824584975](https://github.com/snowdamiz/mixer/actions/runs/40824584975) passes compiler/Node identity, formatting and strict all-target Clippy. Debug exits zero with 37 groups totaling 699 passes, zero failed or ignored tests and all nine Node oracles. The harness nevertheless fails because its terminal parser misses 11 doctest names containing spaces and six results separated by trace output. [Independent review](verification/swift-pin-bitmap-match-actual-review/sanitized-result.json) reconstructs all 699 successes with 301 artifact checks; the failed admission remains recorded. Release never starts. All five started children/groups close, every source/tool postflight passes and scratch is removed. Formatting changes no bytes; the complete candidate closure remains unchanged.

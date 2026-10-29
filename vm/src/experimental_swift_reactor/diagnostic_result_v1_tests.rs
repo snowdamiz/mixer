@@ -89,9 +89,9 @@ fn all_usage_fields_roundtrip() {
     let u = usage();
     assert_eq!(decode_usage(&encode_usage(&u).unwrap()).unwrap(), u);
     let w = words::<64>(&encode_usage(&u).unwrap());
-    for i in 0..64 {
+    for (i, word) in w.iter().enumerate() {
         if ![35, 38, 50].contains(&i) {
-            assert_eq!(w[i], 100 + i as u64);
+            assert_eq!(*word, 100 + i as u64);
         }
     }
 }
@@ -189,7 +189,7 @@ fn source_width_boundaries() {
     u.validation.source_bytes = usize::MAX;
     u.cache_work = u64::MAX;
     assert_eq!(decode_usage(&encode_usage(&u).unwrap()).unwrap(), u);
-    assert!(usize::BITS <= 64);
+    const { assert!(usize::BITS <= 64) };
 }
 #[test]
 fn unknown_and_inactive_enums_refuse() {

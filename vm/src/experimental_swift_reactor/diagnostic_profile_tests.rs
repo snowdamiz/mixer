@@ -204,7 +204,7 @@ impl Drop for OwnedDirectory {
 }
 fn assert_wire(bytes: &[u8], e: &Encoded) {
     assert_eq!(bytes.len(), 2_560_000);
-    for (absolute, row) in bytes.chunks_exact(32).enumerate() {
+    for (absolute, row) in bytes.as_chunks::<32>().0.iter().enumerate() {
         let defined = u32::from_le_bytes(row[0..4].try_into().unwrap());
         let ty = u32::from_le_bytes(row[4..8].try_into().unwrap());
         let off = u64::from_le_bytes(row[8..16].try_into().unwrap());
@@ -227,7 +227,7 @@ fn rows_absolute_offsets_and_equal_bodies() {
     let s = validate(&e);
     for absolute in 0..80000 {
         let row = profile_row_v1(&s, absolute).unwrap();
-        if absolute >= 34 && absolute < 164 {
+        if (34..164).contains(&absolute) {
             let i = absolute as usize - 34;
             assert_eq!(
                 (row.type_index, row.body_offset, row.body_len),
@@ -404,7 +404,7 @@ fn file_partial_failure_bytes_and_coordinates() {
     assert_eq!(actual.len(), 4103);
     let mut expected = Vec::new();
     for n in 0..129usize {
-        if n >= 34 && n < 63 {
+        if (34..63).contains(&n) {
             let i = n - 34;
             expected.extend(1u32.to_le_bytes());
             expected.extend(e.types[i].to_le_bytes());

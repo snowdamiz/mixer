@@ -49,7 +49,38 @@ pub(crate) struct SwiftScratch<'a> {
     patches: &'a mut [decode::Patch],
     index: &'a mut [u8],
     plans: &'a mut [Option<ScanPlan>],
+    free_pins: &'a mut u64,
 }
+struct DensePinInventory {
+    pins: &'static [PinRecord],
+    scratch: &'static mut SwiftScratch<'static>,
+    mask: u64,
+    permitted: u64,
+    slot: usize,
+    len: usize,
+    remaining: usize,
+    active: usize,
+    record: &'static PinRecord,
+    record_option: Option<&'static PinRecord>,
+    free_bits: &'static mut u64,
+    meter: &'static mut SwiftMeter<'static, 'static>,
+    diagnostic: &'static mut CacheControl<'static>,
+    iter: std::slice::Iter<'static, PinRecord>,
+    slot_return: Result<usize, SwiftRunFailure>,
+    check_return: Result<(), SwiftRunFailure>,
+    outcome: SwiftRunFailure,
+}
+// No selected budget may exceed the canonical 64-pin/frame ceiling.
+// The helper remains total even for corrupt lengths; admission still rejects them.
+fn dense_allowed_pins(len: usize) -> u64 {
+    match len {
+        0 => 0,
+        1..=63 => (1u64 << len) - 1,
+        64 => u64::MAX,
+        _ => 0,
+    }
+}
+
 // Original fixed hash. The key always remains the actual decoded slot value.
 fn resident_bucket(function: u32) -> usize {
     (function.wrapping_mul(0x9e37_79b9) >> 25) as usize
@@ -272,6 +303,7 @@ pub(crate) struct SwiftFunctionCache {
     next_nonce: u64,
     slots: Vec<SwiftSlot>,
     pins: Vec<PinRecord>,
+    free_pins: u64,
     patches: Vec<decode::Patch>,
     index: Vec<u8>,
     plans: Vec<Option<ScanPlan>>,
@@ -312,6 +344,7 @@ struct Partial {
     adopted: Option<AdoptedProof>,
     slots: Vec<SwiftSlot>,
     pins: Vec<PinRecord>,
+    free_pins: u64,
     patches: Vec<decode::Patch>,
     index: Vec<u8>,
     plans: Vec<Option<ScanPlan>>,
@@ -324,6 +357,7 @@ impl Partial {
             adopted: Some(adopted),
             slots: Vec::new(),
             pins: Vec::new(),
+            free_pins: 0,
             patches: Vec::new(),
             index: Vec::new(),
             plans: Vec::new(),
@@ -1051,6 +1085,7 @@ macro_rules! sum_named {
 /// CacheCleanupTail::complete has consumed the caller's empty owner/Result slots.
 const fn compute_cache_cleanup_temporary_bytes() -> Option<usize> {
     sum_named!(&[
+        (3, size_of::<DensePinInventory>()),
         (3, size_of::<Result<Option<WasiUsage>, SwiftRunFailure>>()),
         (3, size_of::<Option<Result<WasiUsage, SwiftRunFailure>>>()),
         (3, size_of::<Result<WasiUsage, SwiftRunFailure>>()),
@@ -1135,6 +1170,7 @@ const fn compute_cache_header_bytes() -> Option<usize> {
 }
 const fn compute_cache_construction_bytes() -> Option<usize> {
     sum_named!(&[
+        (3, size_of::<DensePinInventory>()),
         (3, size_of::<Result<Option<WasiUsage>, SwiftRunFailure>>()),
         (3, size_of::<Option<Result<WasiUsage, SwiftRunFailure>>>()),
         (3, size_of::<Result<WasiUsage, SwiftRunFailure>>()),
@@ -1193,6 +1229,7 @@ const fn compute_cache_construction_bytes() -> Option<usize> {
 }
 const fn compute_cache_operation_bytes() -> Option<usize> {
     sum_named!(&[
+        (3, size_of::<DensePinInventory>()),
         (3, size_of::<Result<Option<WasiUsage>, SwiftRunFailure>>()),
         (3, size_of::<Option<Result<WasiUsage, SwiftRunFailure>>>()),
         (3, size_of::<Result<WasiUsage, SwiftRunFailure>>()),
@@ -1596,6 +1633,7 @@ impl SwiftFunctionCache {
                     patches: &mut self.patches,
                     index: &mut self.index,
                     plans: &mut self.plans,
+                    free_pins: &mut self.free_pins,
                 },
             },
             pin,
@@ -1790,6 +1828,7 @@ impl CacheConstructionPhase<'_> {
                 next_nonce: 1,
                 slots: take(&mut partial.slots),
                 pins: take(&mut partial.pins),
+                free_pins: partial.free_pins,
                 patches: take(&mut partial.patches),
                 index: take(&mut partial.index),
                 plans: take(&mut partial.plans),
@@ -1851,6 +1890,8 @@ impl CacheConstructionPhase<'_> {
             self.control.work(1)?;
             partial.pins.push(PinRecord::default());
         }
+        self.control.work(1)?;
+        partial.free_pins = dense_allowed_pins(budget.active_pins);
         let buffer_bytes = PATCH_CAPACITY
             .checked_mul(size_of::<decode::Patch>())
             .ok_or_else(|| {
@@ -1940,6 +1981,7 @@ impl CacheOperationPhase<'_> {
                     patches: &mut cache.patches,
                     index: &mut cache.index,
                     plans: &mut cache.plans,
+                    free_pins: &mut cache.free_pins,
                 },
             },
             function,
@@ -2121,6 +2163,58 @@ impl CacheMode for SwiftMode {
             offset: Some(0),
         };
         SwiftMeter { operation, usage }
+    }
+    fn available_pin(
+        pins: &[PinRecord],
+        scratch: &mut SwiftScratch<'_>,
+        meter: &mut SwiftMeter<'_, '_>,
+    ) -> Result<usize, SwiftRunFailure> {
+        meter.work(3)?; // layout, availability word, live-count agreement
+        if pins.len() > 64
+            || *scratch.free_pins & !dense_allowed_pins(pins.len()) != 0
+            || (*scratch.free_pins).count_ones() as usize + meter.usage().active_pins != pins.len()
+        {
+            return Err(meter.error(CacheFailureKind::InvalidPin, "swift_dense_pin_mask"));
+        }
+        if *scratch.free_pins == 0 {
+            for record in pins {
+                meter.work(1)?;
+                if record.nonce == 0 {
+                    return Err(meter.error(CacheFailureKind::InvalidPin, "swift_dense_pin_orphan"));
+                }
+            }
+            return Err(meter.error(CacheFailureKind::PinExhausted, "pin_slots_exhausted"));
+        }
+        let slot = (*scratch.free_pins).trailing_zeros() as usize;
+        meter.work(2)?; // selected record and eventual single mask write
+        if pins.get(slot).is_none_or(|record| record.nonce != 0) {
+            return Err(meter.error(CacheFailureKind::InvalidPin, "swift_dense_pin_occupied"));
+        }
+        Ok(slot)
+    }
+    fn pin_published(scratch: &mut SwiftScratch<'_>, slot: usize) {
+        // Exclusive borrow retains the preflight bit; record publication is adjacent.
+        *scratch.free_pins &= !(1u64 << slot);
+    }
+    fn validate_pin_release(
+        pins: &[PinRecord],
+        scratch: &mut SwiftScratch<'_>,
+        slot: usize,
+        diagnostic: &mut impl PinDiagnostic<SwiftRunFailure>,
+    ) -> Result<(), SwiftRunFailure> {
+        // Original checked_record validated owner/nonce/entry. No stop polling
+        // here: terminal-owner cleanup must still be able to release its pins.
+        if pins.len() > 64
+            || slot >= pins.len()
+            || *scratch.free_pins & !dense_allowed_pins(pins.len()) != 0
+            || *scratch.free_pins & (1u64 << slot) != 0
+        {
+            return Err(diagnostic.invalid("swift_dense_release_mask"));
+        }
+        Ok(())
+    }
+    fn pin_released(scratch: &mut SwiftScratch<'_>, slot: usize) {
+        *scratch.free_pins |= 1u64 << slot;
     }
     fn resident_lookup(
         slots: &[SwiftSlot],
@@ -2351,6 +2445,21 @@ fn test_step(step: CacheStep) {
 pub(super) mod inspection {
     use super::*;
     // Test-only snapshots of the actual owner, never stored in production state.
+    pub fn dense_pin_mask(cache: &SwiftFunctionCache) -> u64 {
+        cache.free_pins
+    }
+    pub fn dense_set_pin_mask(cache: &mut SwiftFunctionCache, value: u64) {
+        cache.free_pins = value;
+    }
+    pub fn dense_pin_records(cache: &SwiftFunctionCache) -> Vec<(u64, usize)> {
+        cache.pins.iter().map(|p| (p.nonce, p.entry)).collect()
+    }
+    pub fn dense_allowed_mask(len: usize) -> u64 {
+        dense_allowed_pins(len)
+    }
+    pub fn dense_pin_inventory_bytes() -> usize {
+        size_of::<DensePinInventory>()
+    }
     pub fn resident_index(cache: &SwiftFunctionCache) -> &[u8] {
         &cache.index
     }
@@ -2407,8 +2516,7 @@ pub(super) mod inspection {
             },
             None,
         )
-        .err()
-        .expect("malformed scan must fail");
+        .expect_err("malformed scan must fail");
         // Independent generous exact capacities from a valid finite body;
         // malformed syntax must fail before count/build agreement is reached.
         const VALID: &[u8] = &[0, 1, 1, 1, 1, 1, 1, 1, 1, 0x0b];
@@ -2539,6 +2647,7 @@ pub(super) mod inspection {
                 patches: &mut cache.patches,
                 index: &mut cache.index,
                 plans: &mut cache.plans,
+                free_pins: &mut cache.free_pins,
             },
             &mut meter,
         )
@@ -2551,6 +2660,7 @@ pub(super) mod inspection {
                 patches: &mut cache.patches,
                 index: &mut cache.index,
                 plans: &mut cache.plans,
+                free_pins: &mut cache.free_pins,
             },
             &mut meter,
         );

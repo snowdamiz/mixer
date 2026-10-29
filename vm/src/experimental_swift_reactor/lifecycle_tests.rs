@@ -951,7 +951,8 @@ fn swift_lifecycle_sl13_cumulative_instruction_host_and_cache_usage() {
     assert_eq!(start.live.cache_entries.current, 0);
     // Constructor writes 29 slots, 64 pin records, 512 patches, 192 index cells
     // and eight charged semantic cells for each of 512 scan-plan entries.
-    assert_eq!(start.cache_work, 29 + 64 + 512 + 192 + 512 * 8);
+    // Publishing the initialized free-pin bitmap costs one additional credit.
+    assert_eq!(start.cache_work, 29 + 64 + 1 + 512 + 192 + 512 * 8);
     assert_eq!(success(&mut o, Request::Initialize), Reply::Initialized);
     let initialized = observed(&o);
     // Resident Cache tickets belong to decoded entries, surviving pin release.
@@ -961,14 +962,14 @@ fn swift_lifecycle_sl13_cumulative_instruction_host_and_cache_usage() {
     );
     assert_eq!(initialized.live.cache_entries.current, 1);
     assert_eq!(initialized.instructions - start.instructions, 6);
-    // Cold cost adds 13 actual probe/publication credits to the original
-    // 108 + pin records + 2*encoded body bytes + 3*instructions.
-    // Init35: B14/I6/P1; corpus62: B7/I3/P1; callee36: B19/I9/P2.
+    // Cold cost includes 13 probe/publication credits and five credits for
+    // successful bitmap pin selection: 108 + 5 + 2*body bytes + 3*instructions + 13.
+    // Init35: B14/I6; corpus62: B7/I3; callee36: B19/I9.
     assert_eq!(
         initialized.cache_work - start.cache_work,
-        108 + 1 + 2 * 14 + 3 * 6 + 13
+        108 + 5 + 2 * 14 + 3 * 6 + 13
     );
-    assert_eq!(initialized.cache_work, 5_061);
+    assert_eq!(initialized.cache_work, 5_066);
     assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(2));
     let first = observed(&o);
     assert_eq!(
@@ -979,9 +980,9 @@ fn swift_lifecycle_sl13_cumulative_instruction_host_and_cache_usage() {
     let first_cache = o.cache.as_ref().unwrap().usage();
     assert_eq!(
         first.cache_work - initialized.cache_work,
-        (108 + 1 + 2 * 7 + 3 * 3 + 13) + (108 + 2 + 2 * 19 + 3 * 9 + 13)
+        (108 + 5 + 2 * 7 + 3 * 3 + 13) + (108 + 5 + 2 * 19 + 3 * 9 + 13)
     );
-    assert_eq!(first.cache_work, 5_394);
+    assert_eq!(first.cache_work, 5_406);
     assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(3));
     let second = observed(&o);
     assert_eq!(
@@ -998,12 +999,12 @@ fn swift_lifecycle_sl13_cumulative_instruction_host_and_cache_usage() {
             && first.execution_work > initialized.execution_work
     );
     // Resident order35@0,62@1,36@2. Outer pin record0 stays live for callee.
-    // Lookup + pin-record scan + checked index chain: outer1+1+6, nested1+2+6.
+    // Lookup + bitmap pin selection + checked index chain: both 1+5+6.
     assert_eq!(
         second.cache_work - first.cache_work,
-        (1 + 1 + 6) + (1 + 2 + 6)
+        (1 + 5 + 6) + (1 + 5 + 6)
     );
-    assert_eq!(second.cache_work, 5_411);
+    assert_eq!(second.cache_work, 5_430);
     assert_eq!(second_cache.hits - first_cache.hits, 2);
     assert_eq!(second_cache.misses, first_cache.misses);
     assert_eq!(second_cache.decodes, first_cache.decodes);
@@ -1228,8 +1229,10 @@ fn swift_lifecycle_sl21_additive_accounting_keeps_original_limits() {
     assert_eq!(SwiftRunBudget::default().combined_bytes, 256 * 1024 * 1024);
     // Exact compiler position/owner/layout identities are checked by the saved
     // compiler packet; this executable row checks actual charged formula joins.
-    assert!(super::PERMANENT_BYTES > 0);
-    assert!(super::ACTIVE_BYTES > 0);
+    const {
+        assert!(super::PERMANENT_BYTES > 0);
+        assert!(super::ACTIVE_BYTES > 0);
+    }
     let mut o = owner(&[]);
     let before = observed(&o).reservations.construction.current;
     success(&mut o, Request::Initialize);
@@ -1762,24 +1765,24 @@ fn swift_lifecycle_sl14_later_work_cache_and_absolute_deadline_do_not_reset() {
         .unwrap()
         .test_replace_execution_work_limit(old);
     retire(o);
-    // Constructor 4,893; cold no-op init B2/I1:108+1+4+3+13=129.
+    // Constructor 4,894; cold no-op init B2/I1:108+5+4+3+13=133.
     // Keep the synthetic limit exactly at completed initialization so the
     // later invocation still fails without resetting cumulative work.
     let mut o = owner_with(
         &[],
         &[],
         SwiftRunBudget {
-            cache_work: 5_022,
+            cache_work: 5_027,
             ..SwiftRunBudget::default()
         },
         WasiGrants::default(),
         WasiBudget::default(),
     );
     success(&mut o, Request::Initialize);
-    assert_eq!(observed(&o).cache_work, 5_022);
+    assert_eq!(observed(&o).cache_work, 5_027);
     let f = failed(&mut o, Request::Corpus);
     assert_eq!(f.resource, Some(SwiftRunResource::CacheWork));
-    assert_eq!(f.at_failure.cache_work, 5_022);
+    assert_eq!(f.at_failure.cache_work, 5_027);
     assert_eq!(f.at_failure.instructions, 1);
     retire(o);
     let mut o = owner(&[]);

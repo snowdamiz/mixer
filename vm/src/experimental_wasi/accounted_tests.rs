@@ -178,7 +178,7 @@ fn cache_control_boundaries_retain_actual_dispatch_observations() {
         let before = control.usage(Some(observed));
         let ((failure, expected), stats) = measure(|| {
             let wasi = Some(owner.checked_usage(&mut control, cursor()).unwrap());
-            let result = match point {
+            match point {
                 0 => (
                     control
                         .work_with_wasi(Work::Cache, budget.cache_work + 1, cursor(), wasi)
@@ -258,8 +258,7 @@ fn cache_control_boundaries_retain_actual_dispatch_observations() {
                     )
                 }
                 _ => unreachable!(),
-            };
-            result
+            }
         });
         no_alloc(stats);
         assert_eq!(failure.kind, expected, "boundary {point}");
@@ -556,11 +555,12 @@ fn phase_completion_restores_previous_bound_and_omission_never_fakes_zero() {
     empty(control.finish_owned_cleanup(None));
 
     let (mut control, proof) = adopt(SwiftRunBudget::default());
-    let mut phase = AccountedWasi::prepare(&mut control, cursor()).unwrap();
-    let owner = phase
-        .construct(grants(), small(), Instant::now(), cursor())
-        .unwrap();
-    drop(phase);
+    let owner = {
+        let mut phase = AccountedWasi::prepare(&mut control, cursor()).unwrap();
+        phase
+            .construct(grants(), small(), Instant::now(), cursor())
+            .unwrap()
+    };
     owner.cleanup(&mut control).unwrap();
     control.drop_proof(proof).unwrap();
     let observation = control.finish_owned_cleanup(None);

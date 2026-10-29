@@ -119,13 +119,17 @@ fn complete_validation_precedes_export_checks_without_running_startup() {
     let r = validate(&p.bytes(), ptr::null(), ptr::null());
     assert_eq!((r.status, code(&r), r.function), (1, "validation", 5));
     assert!(r.offset > 8);
-    let mut p = Program::default();
-    p.unknown_import = true;
+    let mut p = Program {
+        unknown_import: true,
+        ..Program::default()
+    };
     p.exports.remove(1);
     let r = validate(&p.bytes(), ptr::null(), ptr::null());
     assert_eq!((r.status, code(&r)), (1, "unsupported"));
-    let mut p = Program::default();
-    p.start_section = true;
+    let p = Program {
+        start_section: true,
+        ..Program::default()
+    };
     let r = validate(&p.bytes(), ptr::null(), ptr::null());
     assert_eq!((r.status, code(&r)), (1, "unsupported"));
     let mut p = Program::default();
@@ -141,8 +145,10 @@ fn complete_validation_precedes_export_checks_without_running_startup() {
 #[test]
 fn same_limits_and_exact_zero_defined_memory_fail_closed() {
     let _serial = SERIAL.lock().unwrap();
-    let mut p = Program::default();
-    p.memory = Some(vec![1, 1, 0, 0]);
+    let mut p = Program {
+        memory: Some(vec![1, 1, 0, 0]),
+        ..Program::default()
+    };
     let mut vm = vm_limits();
     vm.memory_pages = 0;
     assert_eq!(validate(&p.bytes(), &vm, ptr::null()).status, 0);
@@ -157,8 +163,10 @@ fn same_limits_and_exact_zero_defined_memory_fail_closed() {
         vec![1, 3, 0, 0],
         vec![1, 1, 2, 1],
     ] {
-        let mut p = Program::default();
-        p.memory = Some(memory);
+        let p = Program {
+            memory: Some(memory),
+            ..Program::default()
+        };
         assert_eq!(validate(&p.bytes(), ptr::null(), ptr::null()).status, 1);
     }
     for field in 0..8 {
@@ -222,7 +230,7 @@ fn numeric_preflight_covers_every_pointer_before_any_write_and_accepts_unaligned
             (ptr::null(), 1, ptr::null(), ptr::null(), out),
             (usize::MAX as *const u8, 1, ptr::null(), ptr::null(), out),
             (
-                1usize as *const u8,
+                ptr::with_exposed_provenance::<u8>(1),
                 4 * 1024 * 1024 + 1,
                 ptr::null(),
                 ptr::null(),

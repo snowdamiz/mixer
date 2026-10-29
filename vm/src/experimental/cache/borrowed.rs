@@ -438,6 +438,31 @@ pub(crate) trait CacheMode: sealed::Mode {
     ) -> Self::Meter<'a, 'op>
     where
         'op: 'a;
+    // Frozen defaults preserve literal first-free search and original work trace.
+    fn available_pin(
+        pins: &[PinRecord],
+        _: &mut Self::Scratch<'_>,
+        meter: &mut Self::Meter<'_, '_>,
+    ) -> Result<usize, Self::Failure> {
+        for (index, record) in pins.iter().enumerate() {
+            meter.work(1)?;
+            if record.nonce == 0 {
+                return Ok(index);
+            }
+        }
+        Err(meter.error(CacheFailureKind::PinExhausted, "pin_slots_exhausted"))
+    }
+    fn pin_published(_: &mut Self::Scratch<'_>, _: usize) {}
+    fn validate_pin_release(
+        _: &[PinRecord],
+        _: &mut Self::Scratch<'_>,
+        _: usize,
+        _: &mut impl PinDiagnostic<Self::Failure>,
+    ) -> Result<(), Self::Failure> {
+        Ok(())
+    }
+    fn pin_released(_: &mut Self::Scratch<'_>, _: usize) {}
+
     // Defaults deliberately preserve the literal frozen lookup and work trace.
     fn resident_lookup(
         slots: &[Self::Slot],
@@ -676,7 +701,7 @@ pub(crate) fn view<'a, M: CacheMode>(
     })
 }
 pub(crate) fn release<M: CacheMode>(
-    parts: CacheParts<'_, M>,
+    mut parts: CacheParts<'_, M>,
     pin: M::Pin,
     operation: &mut impl ReleaseControl<M::Failure>,
 ) -> Result<(), (M::Failure, M::Pin)> {
@@ -692,6 +717,9 @@ pub(crate) fn release<M: CacheMode>(
         Ok(r) => r,
         Err(e) => return Err((e, pin)),
     };
+    if let Err(e) = M::validate_pin_release(parts.pins, &mut parts.scratch, pin.slot(), operation) {
+        return Err((e, pin));
+    }
     if let Err(e) = operation.release_pin() {
         return Err((e, pin));
     }
@@ -701,6 +729,7 @@ pub(crate) fn release<M: CacheMode>(
         .release(slot.entry().expect("checked entry").bytes, slot.pins() == 1);
     slot.set_pins(slot.pins() - 1);
     parts.pins[pin.slot()] = PinRecord::default();
+    M::pin_released(&mut parts.scratch, pin.slot());
     Ok(())
 }
 pub(crate) fn pin<M: CacheMode>(
@@ -737,16 +766,7 @@ pub(crate) fn pin<M: CacheMode>(
         .next_nonce
         .checked_add(1)
         .ok_or_else(|| meter.error(CacheFailureKind::NonceExhausted, "pin_nonce_exhausted"))?;
-    let mut pin_slot = None;
-    for (index, record) in parts.pins.iter().enumerate() {
-        meter.work(1)?;
-        if record.nonce == 0 {
-            pin_slot = Some(index);
-            break;
-        }
-    }
-    let pin_slot = pin_slot
-        .ok_or_else(|| meter.error(CacheFailureKind::PinExhausted, "pin_slots_exhausted"))?;
+    let pin_slot = M::available_pin(parts.pins, &mut parts.scratch, &mut meter)?;
     meter.acquire_pin()?;
     let result = pin_acquired::<M>(&mut parts, &mut meter, defined, pin_slot, nonce);
     if result.is_err() {
@@ -891,6 +911,7 @@ fn pin_acquired<M: CacheMode>(
         nonce: *parts.next_nonce,
         entry: index,
     };
+    M::pin_published(&mut parts.scratch, pin_slot);
     let pin = M::Pin::new(parts.owner, pin_slot, *parts.next_nonce);
     *parts.next_nonce = nonce;
     Ok(pin)

@@ -76,8 +76,10 @@ fn measured<F: FnOnce() -> u32>(f: F) -> (u32, Counts) {
 }
 #[test]
 fn validation_has_no_instance_memory_or_retained_owner_and_creation_probe_detects_memory() {
-    let mut p = fixture::Program::default();
-    p.memory = Some(vec![1, 1, 32, 32]);
+    let p = fixture::Program {
+        memory: Some(vec![1, 1, 32, 32]),
+        ..fixture::Program::default()
+    };
     let bytes = p.bytes();
     let mut r = MixerVmReport::default();
     let (status, validation) = measured(|| unsafe {

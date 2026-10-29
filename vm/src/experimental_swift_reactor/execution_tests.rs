@@ -576,17 +576,22 @@ fn construction_wasi_budget() -> WasiBudget {
 }
 pub(super) fn construct_owned(
     pair: &mut Option<(RuntimeControl, AdoptedProof)>,
-) -> Result<SwiftReactorInstance, ConstructionFailure> {
-    SwiftReactorInstance::construct(
+    outcome: &mut Option<Result<SwiftReactorInstance, ConstructionFailure>>,
+) {
+    *outcome = Some(SwiftReactorInstance::construct(
         pair,
         WasiGrants::default(),
         construction_wasi_budget(),
         Instant::now(),
         construction_cursor(),
-    )
+    ));
 }
 fn construct_failed(mut pair: Option<(RuntimeControl, AdoptedProof)>) -> SwiftRunFailure {
-    let mut returned = Some(construct_owned(&mut pair));
+    let mut returned = Some({
+        let mut returned = None;
+        construct_owned(&mut pair, &mut returned);
+        returned.unwrap()
+    });
     let tail = match returned.take().unwrap() {
         Err(ConstructionFailure::Cleanup(tail)) => tail,
         _ => panic!("expected destructive constructor failure"),
@@ -633,7 +638,14 @@ fn swift_construction_composed_original_proof_six_arenas_and_cleanup() {
         .reservations
         .construction
         .current;
-    let (owner, allocations) = measure(|| construct_owned(&mut pair).unwrap());
+    let (owner, allocations) = measure(|| {
+        {
+            let mut returned = None;
+            construct_owned(&mut pair, &mut returned);
+            returned.unwrap()
+        }
+        .unwrap()
+    });
     assert!(pair.is_none());
     drop(pair);
     assert!(matches!(owner.lifecycle, Lifecycle::Uninitialized));
@@ -760,7 +772,14 @@ fn swift_construction_zero_stack_capacities_and_memory_minimum() {
         controls: 0,
         ..SwiftRunBudget::default()
     });
-    let (owner, stats) = measure(|| construct_owned(&mut pair).unwrap());
+    let (owner, stats) = measure(|| {
+        {
+            let mut returned = None;
+            construct_owned(&mut pair, &mut returned);
+            returned.unwrap()
+        }
+        .unwrap()
+    });
     drop(pair);
     let state = owner.state.as_ref().unwrap();
     assert_eq!(
@@ -793,7 +812,9 @@ fn swift_construction_terminal_before_take_preserves_owner_and_first_cause() {
         Fault::new(SwiftRunFailureKind::GuestTrap, "construction_prior"),
         None,
     );
-    let (returned, stats) = measure(|| construct_owned(&mut pair));
+    let mut returned = None;
+    let ((), stats) = measure(|| construct_owned(&mut pair, &mut returned));
+    let returned = returned.unwrap();
     let failure = match returned {
         Err(ConstructionFailure::Rejected(failure)) => failure,
         _ => panic!("expected intact-pair rejection"),
@@ -882,7 +903,12 @@ fn swift_construction_base_work_prefixes_and_selected_cancellation_boundaries() 
     }
     construction_hooks(ConstructionHooks::default());
     let mut pair = construction_adopt(SwiftRunBudget::default());
-    let owner = construct_owned(&mut pair).unwrap();
+    let owner = {
+        let mut returned = None;
+        construct_owned(&mut pair, &mut returned);
+        returned.unwrap()
+    }
+    .unwrap();
     drop(pair);
     let count = CONSTRUCTION_HOOKS.with(|slot| slot.get().checks);
     construction_finish(owner);
@@ -918,8 +944,17 @@ fn swift_construction_base_work_prefixes_and_selected_cancellation_boundaries() 
 #[test]
 fn swift_construction_real_wasi_terminal_cleanup_and_intact_foreign_preflight() {
     construction_hooks(ConstructionHooks::default());
-    let mut first =
-        Some(construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap());
+    let mut first = Some(
+        {
+            let mut returned = None;
+            construct_owned(
+                &mut construction_adopt(SwiftRunBudget::default()),
+                &mut returned,
+            );
+            returned.unwrap()
+        }
+        .unwrap(),
+    );
     {
         let owner = first.as_mut().unwrap();
         owner
@@ -942,8 +977,17 @@ fn swift_construction_real_wasi_terminal_cleanup_and_intact_foreign_preflight() 
             Some(observation),
         );
     }
-    let mut second =
-        Some(construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap());
+    let mut second = Some(
+        {
+            let mut returned = None;
+            construct_owned(
+                &mut construction_adopt(SwiftRunBudget::default()),
+                &mut returned,
+            );
+            returned.unwrap()
+        }
+        .unwrap(),
+    );
     std::mem::swap(
         &mut first.as_mut().unwrap().wasi,
         &mut second.as_mut().unwrap().wasi,
@@ -998,8 +1042,17 @@ fn swift_construction_real_wasi_terminal_cleanup_and_intact_foreign_preflight() 
 #[test]
 fn swift_construction_cleanup_rejects_nonempty_state_before_take() {
     construction_hooks(ConstructionHooks::default());
-    let mut owned =
-        Some(construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap());
+    let mut owned = Some(
+        {
+            let mut returned = None;
+            construct_owned(
+                &mut construction_adopt(SwiftRunBudget::default()),
+                &mut returned,
+            );
+            returned.unwrap()
+        }
+        .unwrap(),
+    );
     owned
         .as_mut()
         .unwrap()
@@ -1140,7 +1193,12 @@ fn swift_construction_retained_minimum_and_padded_signed_constants() {
         at = end;
     }
     let mut pair = construction_adopt_bytes(&fixture, SwiftRunBudget::default());
-    let owner = construct_owned(&mut pair).unwrap();
+    let owner = {
+        let mut returned = None;
+        construct_owned(&mut pair, &mut returned);
+        returned.unwrap()
+    }
+    .unwrap();
     drop(pair);
     assert_eq!(
         &owner.state.as_ref().unwrap().globals[4..],
@@ -1190,8 +1248,15 @@ fn swift_construction_checked_scalar_rejects_exact_first_byte() {
         ),
     ] {
         construction_hooks(ConstructionHooks::default());
-        let mut owner =
-            construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap();
+        let mut owner = {
+            let mut returned = None;
+            construct_owned(
+                &mut construction_adopt(SwiftRunBudget::default()),
+                &mut returned,
+            );
+            returned.unwrap()
+        }
+        .unwrap();
         let (failure, stats) = measure(|| {
             scalar_constant_probe(
                 bytes,
@@ -1212,7 +1277,15 @@ fn swift_construction_checked_scalar_rejects_exact_first_byte() {
 #[test]
 fn swift_construction_state_phase_is_one_shot_and_restores_exact_outer_bound() {
     construction_hooks(ConstructionHooks::default());
-    let mut owner = construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap();
+    let mut owner = {
+        let mut returned = None;
+        construct_owned(
+            &mut construction_adopt(SwiftRunBudget::default()),
+            &mut returned,
+        );
+        returned.unwrap()
+    }
+    .unwrap();
     let floor = owner
         .control
         .as_ref()
@@ -1316,17 +1389,19 @@ fn swift_executor_layout_final_header_rejection_preserves_original_charge() {
     let (mut control, proof) = adopted();
     let (mut other, other_proof) = adopted();
     let bytes = execution_header_bytes().unwrap();
-    let original = control
-        .admit(SwiftReservationCategory::State, bytes, Cursor::adoption())
-        .unwrap();
-    let foreign = other
-        .admit(SwiftReservationCategory::State, bytes, Cursor::adoption())
-        .unwrap();
-    control.drop_proof(proof).unwrap();
-    other.drop_proof(other_proof).unwrap();
-    // Test-only intentional ownership loss. The original charge must remain;
-    // no test can manufacture a matching replacement token or erase the ledger.
-    drop(original);
+    let foreign = {
+        let _original = control
+            .admit(SwiftReservationCategory::State, bytes, Cursor::adoption())
+            .unwrap();
+        let foreign = other
+            .admit(SwiftReservationCategory::State, bytes, Cursor::adoption())
+            .unwrap();
+        control.drop_proof(proof).unwrap();
+        other.drop_proof(other_proof).unwrap();
+        // Test-only intentional ownership loss. The original charge must remain;
+        // no test can manufacture a matching replacement token or erase the ledger.
+        foreign
+    };
     let tail = {
         let final_wasi = actual_final_observation(&mut control);
         ExecutionCleanupTail {
@@ -1388,7 +1463,14 @@ fn swift_executor_layout_cancellation_backing_observed() {
 fn full_regression_observe_integrated_fixture_shapes() {
     construction_hooks(ConstructionHooks::default());
     let mut pair = construction_adopt(SwiftRunBudget::default());
-    let (owner, stats) = measure(|| construct_owned(&mut pair).unwrap());
+    let (owner, stats) = measure(|| {
+        {
+            let mut returned = None;
+            construct_owned(&mut pair, &mut returned);
+            returned.unwrap()
+        }
+        .unwrap()
+    });
     drop(pair);
     let (usage, cleanup) = measure(|| construction_finish(owner));
     println!("REGRESSION_INTEGRATED stats={stats:?} cleanup={cleanup:?} final_tickets={} final_combined={}", usage.reservations.live_tickets, usage.reservations.combined.current);
@@ -1424,7 +1506,14 @@ fn full_regression_observe_integrated_fixture_shapes() {
         controls: 0,
         ..SwiftRunBudget::default()
     });
-    let (owner, stats) = measure(|| construct_owned(&mut pair).unwrap());
+    let (owner, stats) = measure(|| {
+        {
+            let mut returned = None;
+            construct_owned(&mut pair, &mut returned);
+            returned.unwrap()
+        }
+        .unwrap()
+    });
     drop(pair);
     println!("REGRESSION_ZERO_STACK stats={stats:?}");
     construction_finish(owner);

@@ -423,7 +423,7 @@ fn mg06_work_prefix_and_postcommit_push() {
                 .operation
                 .control
                 .test_replace_execution_work_limit(limit);
-            let committed = allowed >= 1 + growthwork;
+            let committed = allowed > growthwork;
             assert_eq!(
                 p.phase.parts.memory.len(),
                 if committed { 585 * PAGE } else { 584 * PAGE }

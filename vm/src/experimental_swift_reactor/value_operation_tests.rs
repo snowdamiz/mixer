@@ -14,7 +14,12 @@ fn cursor() -> Cursor {
     }
 }
 fn owner(budget: SwiftRunBudget) -> SwiftReactorInstance {
-    construct_owned(&mut construction_adopt(budget)).unwrap()
+    {
+        let mut returned = None;
+        construct_owned(&mut construction_adopt(budget), &mut returned);
+        returned.unwrap()
+    }
+    .unwrap()
 }
 fn finish(
     phase: ExecutionOperationPhase<'_>,
@@ -453,7 +458,11 @@ fn swift_values_positive_operation_layout_inventory() {
         construction_bytes().unwrap()
     );
     assert_eq!(PERMANENT_BYTES, size_of::<PermanentPositions>());
-    assert_eq!(ACTIVE_BYTES, size_of::<ActivePositions>() + size_of::<super::super::frame_operations::DiagnosticValuePositions>());
+    assert_eq!(
+        ACTIVE_BYTES,
+        size_of::<ActivePositions>()
+            + size_of::<super::super::frame_operations::DiagnosticValuePositions>()
+    );
     assert_eq!(
         value_operation_bytes(),
         named_bytes("operation").unwrap().checked_add(ACTIVE_BYTES)
