@@ -1,4 +1,4 @@
-name: Cache fixture exact compiler admission v3
+name: Cache fixture workflow context v4
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: cache-fixture-compiler-admission-v3-${{ github.ref }}
+  group: cache-fixture-workflow-context-v4-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -19,7 +19,6 @@ jobs:
       RUSTUP_TOOLCHAIN: '1.98.1-aarch64-apple-darwin'
       RUSTUP_DIST_SERVER: 'https://static.rust-lang.org'
       RUSTUP_UPDATE_ROOT: 'https://static.rust-lang.org/rustup'
-      RUSTUP_HOME: ${{ runner.temp }}/mixer-fixture-rustup-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,9 +28,10 @@ jobs:
             /verification/swift-cache-state-ci/
             /verification/cache-fixture-shared-input-candidate-v2/
             /verification/cache-fixture-compiler-admission-v3/
+            /verification/cache-fixture-workflow-context-v4/
             /verification/cache-fixture-shared-input-review/
             /.github/workflows/cache-fixture-shared-input-controls-v2.yml
-            /.github/workflows/cache-fixture-compiler-admission-v3.yml
+            /.github/workflows/cache-fixture-workflow-context-v4.yml
       - name: Bind checkout, candidate and owned materialization
         timeout-minutes: 2
         shell: bash
@@ -39,13 +39,14 @@ jobs:
           set -euo pipefail
           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
           MIXER_COMPILER_ADMISSION_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-compiler-admission-v3"
-          mkdir -p "$MIXER_SHARED_INPUT_DIR/logs" "$MIXER_SHARED_INPUT_DIR/runs" "$MIXER_COMPILER_ADMISSION_DIR/logs"
+          MIXER_WORKFLOW_CONTEXT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-workflow-context-v4"
+          mkdir -p "$MIXER_SHARED_INPUT_DIR/logs" "$MIXER_SHARED_INPUT_DIR/runs" "$MIXER_COMPILER_ADMISSION_DIR/logs" "$MIXER_WORKFLOW_CONTEXT_DIR/logs"
           {
             test "$GITHUB_RUN_ATTEMPT" = 1
             git rev-parse HEAD HEAD^{tree}
             python3 --version
             uname -srm
-            python3 -B "$MIXER_COMPILER_ADMISSION_DIR/verify_candidate.py" --workflow-installed
+            python3 -B "$MIXER_WORKFLOW_CONTEXT_DIR/verify_candidate.py" --workflow-installed
             python3 -B "$MIXER_SHARED_INPUT_DIR/materialize_pack.py"
           } > "$MIXER_SHARED_INPUT_DIR/logs/materialization.stdout" \
             2> "$MIXER_SHARED_INPUT_DIR/logs/materialization.stderr"
@@ -56,6 +57,8 @@ jobs:
           set -euo pipefail
           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
           MIXER_COMPILER_ADMISSION_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-compiler-admission-v3"
+          MIXER_WORKFLOW_CONTEXT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-workflow-context-v4"
+          python3 -B "$MIXER_WORKFLOW_CONTEXT_DIR/test_context.py"
           python3 -B "$MIXER_COMPILER_ADMISSION_DIR/test_admission.py"
           python3 -B "$MIXER_SHARED_INPUT_DIR/test_materializer.py" -v \
             > "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stdout" \
@@ -64,6 +67,8 @@ jobs:
             > "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stdout" \
             2> "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stderr"
       - name: Explicitly provision the exact declared compiler once
+        env:
+          RUSTUP_HOME: ${{ runner.temp }}/mixer-fixture-rustup-${{ github.run_id }}-${{ github.run_attempt }}
         timeout-minutes: 2
         shell: bash
         run: |
@@ -80,6 +85,8 @@ jobs:
           set -e
           python3 -B "$MIXER_COMPILER_ADMISSION_DIR/compiler_admission.py" finish --status "$MIXER_RUSTUP_STATUS"
       - name: One complete fixture invocation, fixed compiler and limits
+        env:
+          RUSTUP_HOME: ${{ runner.temp }}/mixer-fixture-rustup-${{ github.run_id }}-${{ github.run_attempt }}
         timeout-minutes: 12
         shell: bash
         run: |
@@ -102,7 +109,8 @@ jobs:
           set -euo pipefail
           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
           MIXER_COMPILER_ADMISSION_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-compiler-admission-v3"
-          python3 -B "$MIXER_COMPILER_ADMISSION_DIR/verify_candidate.py" --workflow-installed \
+          MIXER_WORKFLOW_CONTEXT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-workflow-context-v4"
+          python3 -B "$MIXER_WORKFLOW_CONTEXT_DIR/verify_candidate.py" --workflow-installed \
             > "$MIXER_SHARED_INPUT_DIR/logs/candidate-postflight.stdout" \
             2> "$MIXER_SHARED_INPUT_DIR/logs/candidate-postflight.stderr"
       - name: Preserve complete diagnostic, failed inputs and custody receipts
@@ -110,16 +118,17 @@ jobs:
         timeout-minutes: 5
         uses: actions/upload-artifact@v4
         with:
-          name: cache-fixture-compiler-admission-v3-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: cache-fixture-workflow-context-v4-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           retention-days: 14
           if-no-files-found: warn
           include-hidden-files: true
           path: |
             ${{ github.workspace }}/verification/cache-fixture-shared-input-candidate-v2/
             ${{ github.workspace }}/verification/cache-fixture-compiler-admission-v3/
+            ${{ github.workspace }}/verification/cache-fixture-workflow-context-v4/
             ${{ github.workspace }}/verification/cache-fixture-shared-input-review/
             ${{ github.workspace }}/verification/swift-cache-state-ci/pack/manifest.json
             ${{ github.workspace }}/verification/swift-cache-state-ci/check_cache_state.py
             ${{ github.workspace }}/verification/swift-cache-state-ci/test_runner.py
             ${{ github.workspace }}/.github/workflows/cache-fixture-shared-input-controls-v2.yml
-            ${{ github.workspace }}/.github/workflows/cache-fixture-compiler-admission-v3.yml
+            ${{ github.workspace }}/.github/workflows/cache-fixture-workflow-context-v4.yml

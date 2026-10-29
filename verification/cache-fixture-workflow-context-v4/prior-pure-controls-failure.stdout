@@ -1,0 +1,115 @@
+test_candidate_all_context_references_allowed (__main__.WorkflowContextControls.test_candidate_all_context_references_allowed) ... ERROR
+test_changed_home_or_pin_or_install_authority_rejected (__main__.WorkflowContextControls.test_changed_home_or_pin_or_install_authority_rejected) ... ERROR
+test_duplicate_keys_rejected (__main__.WorkflowContextControls.test_duplicate_keys_rejected) ... ok
+test_exact_authorized_transform_and_bytes (__main__.WorkflowContextControls.test_exact_authorized_transform_and_bytes) ... ERROR
+test_frozen_source_closure (__main__.WorkflowContextControls.test_frozen_source_closure) ... ERROR
+test_install_and_fixture_scripts_identical_to_v3 (__main__.WorkflowContextControls.test_install_and_fixture_scripts_identical_to_v3) ... ok
+test_job_scope_regression_rejected (__main__.WorkflowContextControls.test_job_scope_regression_rejected) ... ERROR
+test_manual_trigger_and_failure_path_preserved (__main__.WorkflowContextControls.test_manual_trigger_and_failure_path_preserved) ... ok
+test_missing_fixture_home_rejected (__main__.WorkflowContextControls.test_missing_fixture_home_rejected) ... ok
+test_original_rejection_reproduced_at_job_env (__main__.WorkflowContextControls.test_original_rejection_reproduced_at_job_env) ... ok
+test_schema_and_documented_context_difference (__main__.WorkflowContextControls.test_schema_and_documented_context_difference) ... ok
+test_step_homes_identical_and_job_home_absent (__main__.WorkflowContextControls.test_step_homes_identical_and_job_home_absent) ... ERROR
+test_unsupported_expression_fails_closed (__main__.WorkflowContextControls.test_unsupported_expression_fails_closed) ... ok
+test_unsupported_yaml_fails_closed (__main__.WorkflowContextControls.test_unsupported_yaml_fails_closed) ... ok
+test_workflow_scope_regression_rejected (__main__.WorkflowContextControls.test_workflow_scope_regression_rejected) ... FAIL
+
+======================================================================
+ERROR: test_candidate_all_context_references_allowed (__main__.WorkflowContextControls.test_candidate_all_context_references_allowed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-workflow-context-v4/test_context.py", line 37, in test_candidate_all_context_references_allowed
+    result = workflow.validate(self.document)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-workflow-context-v4/workflow_context.py", line 165, in validate
+    shape(step, ['name', 'uses', 'with', 'env', 'if', 'timeout-minutes', 'shell', 'run'],
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          [], location)
+          ^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-workflow-context-v4/workflow_context.py", line 134, in shape
+    need(isinstance(value, dict) and set(value) <= set(allowed)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         and set(required) <= set(value), 'Unsupported mapping shape at ' + location)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-workflow-context-v4/workflow_context.py", line 16, in need
+    raise ValueError(message)
+ValueError: Unsupported mapping shape at jobs.complete-fixture-on-declared-compiler.steps.3
+
+======================================================================
+ERROR: test_changed_home_or_pin_or_install_authority_rejected (__main__.WorkflowContextControls.test_changed_home_or_pin_or_install_authority_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-workflow-context-v4/test_context.py", line 91, in test_changed_home_or_pin_or_install_authority_rejected
+    mutation(changed['jobs']['complete-fixture-on-declared-compiler'])
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-workflow-context-v4/test_context.py", line 83, in <lambda>
+    lambda j: j['steps'][4]['env'].update(RUSTUP_HOME='different'),
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'update'
+
+======================================================================
+ERROR: test_exact_authorized_transform_and_bytes (__main__.WorkflowContextControls.test_exact_authorized_transform_and_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-workflow-context-v4/test_context.py", line 52, in test_exact_authorized_transform_and_bytes
+    workflow.validate_contract(self.document, self.original)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-workflow-context-v4/workflow_context.py", line 233, in validate_contract
+    need(document == expected_document(original), 'Workflow exceeds the authorized v3-to-v4 transformation')
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-workflow-context-v4/workflow_context.py", line 16, in need
+    raise ValueError(message)
+ValueError: Workflow exceeds the authorized v3-to-v4 transformation
+
+======================================================================
+ERROR: test_frozen_source_closure (__main__.WorkflowContextControls.test_frozen_source_closure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-workflow-context-v4/test_context.py", line 119, in test_frozen_source_closure
+    result = verifier.verify()
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-workflow-context-v4/verify_candidate.py", line 60, in verify
+    members(HERE, own)
+    ~~~~~~~^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-workflow-context-v4/verify_candidate.py", line 37, in members
+    need(rows == sorted(rows, key=lambda row: row['path'])
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         and len({row['path'] for row in rows}) == len(rows) == seal['member_count'], 'Member order/count')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-workflow-context-v4/verify_candidate.py", line 21, in need
+    raise RuntimeError(message)
+RuntimeError: Member order/count
+
+======================================================================
+ERROR: test_job_scope_regression_rejected (__main__.WorkflowContextControls.test_job_scope_regression_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-workflow-context-v4/test_context.py", line 67, in test_job_scope_regression_rejected
+    self.job['env'].update(self.job['steps'][3].pop('env'))
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'NoneType' object is not iterable
+
+======================================================================
+ERROR: test_step_homes_identical_and_job_home_absent (__main__.WorkflowContextControls.test_step_homes_identical_and_job_home_absent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-workflow-context-v4/test_context.py", line 63, in test_step_homes_identical_and_job_home_absent
+    self.assertEqual(self.job['steps'][3]['env']['RUSTUP_HOME'],
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+
+======================================================================
+FAIL: test_workflow_scope_regression_rejected (__main__.WorkflowContextControls.test_workflow_scope_regression_rejected)
+----------------------------------------------------------------------
+ValueError: Environment must be a map
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/cache-fixture-workflow-context-v4/test_context.py", line 73, in test_workflow_scope_regression_rejected
+    with self.assertRaisesRegex(ValueError, 'Context runner unavailable at env'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "Context runner unavailable at env" does not match "Environment must be a map"
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.007s
+
+FAILED (failures=1, errors=6)

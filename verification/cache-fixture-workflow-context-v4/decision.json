@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "role": {
+    "model": "gpt-6-astra",
+    "reasoning_effort": "xhigh",
+    "context": "fresh bounded parent assignment"
+  },
+  "diagnosis": {
+    "source": "verification/github-delivery-fixture-compiler-v3/handoff.json",
+    "sourceSHA256": "726c99f20e03038f516af87beac52290ae092d5e38607c7fe10f4c5ef6d242d1",
+    "rejectedWorkflowSHA256": "eba3999e14305e3b4edcca6046536087f129a82598af195aa1db1239a453e25c",
+    "dispatchErrorSHA256": "8c24472bfdcbc3d53d13e956fc8729c325c98846674a3b251c06d11e87d95780",
+    "dispatchRefusedHTTP422": true,
+    "error": "could not create workflow dispatch event: HTTP 422: Invalid Argument - failed to parse workflow: (Line: 22, Col: 20): Unrecognized named-value: 'runner'. Located at position 1 within expression: runner.temp (https://api.github.com/repos/snowdamiz/mixer/actions/workflows/400076274/dispatches)",
+    "diagnosticRun": false,
+    "installation": false,
+    "compiler": false,
+    "validationRun": 40799062311,
+    "engineRun": 40799063645,
+    "engineStatus": "pending in parent handoff; not refreshed by this lane"
+  },
+  "correction": "Move the exact RUSTUP_HOME expression from job env into the provisioning and fixture step env maps; reuse frozen v3 helper and frozen v2 fixture unchanged.",
+  "supportedContextEvidence": "context-rules.json",
+  "validatorAvailability": {
+    "checkedFileOnly": [
+      "/opt/homebrew/bin/actionlint",
+      "/usr/local/bin/actionlint"
+    ],
+    "both": "ENOENT",
+    "installedOrBroadlySearched": false,
+    "officialValidatorExecuted": false,
+    "localPython": "3.14.8",
+    "PyYAMLAvailable": false,
+    "nodeYamlModuleAvailable": false,
+    "scope": "No actionlint or full official YAML/schema validation pass is claimed. Restricted structural checks and official context allowlists passed; GitHub service parser and Bash execution remain pending."
+  },
+  "compiler": {
+    "toolchain": "1.98.1-aarch64-apple-darwin",
+    "autoInstall": 0,
+    "officialDist": "https://static.rust-lang.org",
+    "officialUpdateRoot": "https://static.rust-lang.org/rustup",
+    "isolatedHomeExpression": "${{ runner.temp }}/mixer-fixture-rustup-${{ github.run_id }}-${{ github.run_attempt }}",
+    "installCommands": 1,
+    "installStepSeconds": 120,
+    "fallback": false
+  },
+  "fixture": {
+    "invocations": 1,
+    "originalControls": 45,
+    "commands": 103,
+    "childSeconds": 60,
+    "activeSeconds": 600,
+    "cleanupSeconds": 60,
+    "vectors": 1003,
+    "streamBytes": 8388608,
+    "semanticAndMemorySafeguardsUnchanged": true
+  },
+  "pureControls": {
+    "passed": 16,
+    "total": 16,
+    "forbiddenOperationsAttempted": [],
+    "controlScratchAbsent": true,
+    "tests": "test_context.py",
+    "receipt": "logs/pure-controls.json",
+    "preparationFailurePreserved": "preparation-correction.json"
+  },
+  "custody": {
+    "rustupDescendants": "Not independently proved reaped; unchanged v3 limitation",
+    "isolatedHome": "Retained for normal disposable GitHub runner disposal; completion not independently verified; excluded from artifacts",
+    "fixture": "Frozen v2 custody and cleanup unchanged",
+    "local": "Pure file controls only; nested process/session/group/signal/wait/socket operations denied by frozen offline_guard"
+  },
+  "pending": [
+    "GitHub parser acceptance of corrected canonical workflow",
+    "Remote Bash execution",
+    "One exact official Rustup install",
+    "Compiler sysroot and identity checks",
+    "All 45 fixture controls and one complete 103-command fixture",
+    "Rustup descendant custody and runner disposal evidence"
+  ],
+  "newDependency": "No new package or executable dependency; Python standard library and official specification references only"
+}
