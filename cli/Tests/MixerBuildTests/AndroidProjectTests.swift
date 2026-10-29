@@ -24,7 +24,7 @@ private let repository = URL(fileURLWithPath: #filePath).deletingLastPathCompone
     let java = ["Json.java", "UiPacket.java", "NativeRenderer.java", "NativeBridge.java", "MixerActivity.java", "NativeCoordinatorV2.java",
                  "AppearanceDescriptorV2.java", "AppearanceGeometryV2.java", "AppearanceResolverV2.java",
                  "AppearanceNativePathsV2.java", "InstalledAppearanceV2.java", "NativeEnvironmentV2.java", "NativeEnvironmentPlatformV2.java",
-                 "AuthoredToggleInputV2.java", "NativeAppearanceViewsV2.java", "NativeOwnerV2.java", "OwnerLifecycleV2.java"]
+                 "AuthoredToggleInputV2.java", "NativeAppearanceViewsV2.java", "NativeEditorConnectionV2.java", "NativeOwnerV2.java", "OwnerLifecycleV2.java"]
     #expect(Set(try SourceDigest.files(in: root.appendingPathComponent("app/src")).map(\.lastPathComponent)) == Set(java))
     for name in java {
         let relative = "app/src/dev/mixer/android/\(name)"
@@ -33,7 +33,9 @@ private let repository = URL(fileURLWithPath: #filePath).deletingLastPathCompone
     for relative in ["bridge/jni.c", "bridge/mixer_android.h", "bridge/mixer_android_v2.h"] {
         #expect(try Data(contentsOf: root.appendingPathComponent(relative)) == Data(contentsOf: adapter.appendingPathComponent(relative)))
     }
-    #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("app/src/dev/mixer/android/AdapterInstrumentation.java").path))
+    for name in ["AppearanceDescriptorV1.java", "AppearanceResolutionV1.java", "AdapterInstrumentation.java"] {
+        #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("app/src/dev/mixer/android/" + name).path))
+    }
     #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("Sources/MixerAndroidEngine").path))
     #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("engine/Sources/MixerAndroidEngine").path))
     try "changed".write(to: root.appendingPathComponent("bridge/jni.c"), atomically: true, encoding: .utf8)
@@ -77,7 +79,7 @@ func androidDefaultAppearanceSnapshotChangesInvalidateAdapterLock(_ change: Stri
     #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent(".mixer").path))
 }
 
-@Test(arguments: ["NativeCoordinatorV2.java", "AuthoredToggleInputV2.java", "NativeOwnerV2.java", "OwnerLifecycleV2.java", "NativeEnvironmentV2.java", "NativeEnvironmentPlatformV2.java"], ["edit", "remove", "rename"])
+@Test(arguments: ["NativeEditorConnectionV2.java", "NativeAppearanceViewsV2.java", "NativeRenderer.java", "NativeCoordinatorV2.java", "AuthoredToggleInputV2.java", "NativeOwnerV2.java", "OwnerLifecycleV2.java", "NativeEnvironmentV2.java", "NativeEnvironmentPlatformV2.java"], ["edit", "remove", "rename"])
 func androidCoordinatorAndAuthoredToggleSnapshotChangesInvalidateAdapterLock(_ filename: String, _ change: String) throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-android-coordinator-lock-\(UUID().uuidString)")
     defer { try? FileManager.default.removeItem(at: root) }

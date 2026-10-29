@@ -1,0 +1,328 @@
+raise SystemExit("UNBOUND SOURCE TEMPLATE: exact source/argv review and root materialization are required")
+"""Fixed pair7 slice only: fresh preflight, one delivery, ordinary Engine reads."""
+import sys
+sys.dont_write_bytecode = True
+assert sys.flags.isolated == 1 and sys.flags.no_site == 1 and sys.flags.optimize == 0
+import hashlib
+import importlib.util
+import json
+import os
+import re
+import stat
+from pathlib import Path, PurePosixPath
+OUT = Path(__file__).resolve().parent
+ROOT = OUT.parents[1]
+BASE = '3da0d01bd05565a6aad905997beddf6805826241'
+TREE = '89297f81773cad23c94ebba1560deccda99c551f'
+SELECTION = None  # Root freezes the final selection path after all lanes close.
+SELECTION_BYTES = None
+SELECTION_SHA = None
+SELECTED_COUNT = None
+HELPER_SHA = '7e61381cebc708870b728448271f546b1cb78cb535632bc41b30b3c2662cf7f4'
+HISTORY_SHA = 'edc47faf31dfc2fe961d65270a975deb14bac43871c5702fe0e3162327903bc3'
+assert type(SELECTION) is str and type(SELECTION_BYTES) is int
+assert re.fullmatch('[0-9a-f]{64}', SELECTION_SHA or '')
+assert type(SELECTED_COUNT) is int and 0 < SELECTED_COUNT <= 1024
+assert hashlib.sha256((OUT / 'owned.py').read_bytes()).hexdigest() == HELPER_SHA
+spec = importlib.util.spec_from_file_location('android_pair7_owned', OUT / 'owned.py')
+owned = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = owned
+spec.loader.exec_module(owned)
+row, save, now = owned.row, owned.save, owned.now
+ORIGINAL_VALIDATE_ARGV = owned.validate_argv
+PUSH_URL_READ_EXCEPTION = ('git', 'remote', 'get-url', '--push', '--all', 'origin')
+def selected_read_admission_adapter(argv):
+    if isinstance(argv, (list, tuple)) and tuple(argv) == PUSH_URL_READ_EXCEPTION:
+        return True
+    return ORIGINAL_VALIDATE_ARGV(argv)
+owned.validate_argv = selected_read_admission_adapter
+PROTECTED = [
+    {'path': '.github/workflows/hosted.yml', 'sha256': 'fafd2560cc385a4113ea140bf2d4445d456e1f7f396539dfe2c3e7d6302e8b57'},
+    {'path': 'hosted/lib/mixer_hosted/browser_auth/store.ex', 'sha256': '8c314b1d3ce288a6dc617251233796bd0a9d8894247ccb15b101e1292e513299'}]
+DRIVERS = ['selection_common_android_pair7.py', 'preflight_android_pair7.py',
+           'deliver_android_pair7.py', 'bind_engine_ci_android_pair7.py']
+PHASES = {'pair7-preflight': (210, 10), 'pair7-delivery': (240, 23),
+          'pair7-engine-ci-binding': (180, 5)}
+PUSH_URL = 'https://github.com/snowdamiz/mixer.git'
+FORMATTING_DECISION_ROW = None  # Root binds an exact decision only if it selects exceptions.
+FORMATTING_EXCLUSIONS = []  # Root-reviewed literal {path, bytes, sha256} rows only.
+PUBLIC_CONTROL_OUTPUTS_DECISION_ROW = None
+PUBLIC_CONTROL_OUTPUTS = []  # Exact reviewed stdout/stderr DATA rows only; empty by default.
+
+def safe(value):
+    assert type(value) is str and value and '\0' not in value
+    p = PurePosixPath(value)
+    assert not p.is_absolute() and str(p) == value.rstrip('/')
+    assert all(part not in ('', '.', '..', '.git') for part in p.parts)
+    assert not value.startswith(('-', ':')) and not any(c in value for c in '*?[]\\')
+    return value
+
+def absent(value):
+    p = ROOT / safe(value)
+    try: p.lstat()
+    except FileNotFoundError: return
+    raise AssertionError('Required absent path exists: ' + value)
+
+def selected_row(value):
+    safe(value['path'])
+    p = ROOT / value['path']
+    actual = row(p)
+    mode = stat.S_IMODE(p.lstat().st_mode)
+    actual['mode'] = '100755' if mode & 0o111 else '100644'
+    payload = p.read_bytes()
+    actual['oid'] = hashlib.sha1(b'blob ' + str(len(payload)).encode() + b'\0' + payload).hexdigest()
+    assert actual == value, value['path']
+    return actual
+
+def fingerprint(value):
+    p = ROOT / value.rstrip('/')
+    try: st = p.lstat()
+    except FileNotFoundError: return {'path': value, 'missing': True}
+    result = {'path': value, 'mode': stat.S_IMODE(st.st_mode), 'type': stat.S_IFMT(st.st_mode)}
+    if stat.S_ISREG(st.st_mode):
+        h = hashlib.sha256()
+        with p.open('rb') as handle:
+            for block in iter(lambda: handle.read(1024 * 1024), b''): h.update(block)
+        result.update(bytes=st.st_size, sha256=h.hexdigest())
+    elif stat.S_ISLNK(st.st_mode): result['target'] = os.readlink(p)
+    else: result.update(inode=st.st_ino, device=st.st_dev)
+    return result
+
+def preserved_entry(value):
+    st = (ROOT / value.rstrip('/')).lstat()
+    return {'path': value, 'mode': stat.S_IMODE(st.st_mode), 'type': stat.S_IFMT(st.st_mode),
+            'inode': st.st_ino, 'device': st.st_dev}
+
+def raw_rows(raw):
+    parts = raw.split(b'\0')
+    assert len(parts) % 2 == 1
+    result = []
+    for i in range(0, len(parts) - 1, 2):
+        meta, value = parts[i].decode(), parts[i + 1].decode()
+        fields = meta.split()
+        assert len(fields) == 5 and fields[-1] in ('M', 'D', 'T', 'A')
+        safe(value)
+        result.append({'path': value, 'gitRaw': meta})
+    return result
+
+def collapsed(raw):
+    result = []
+    for value in raw.split(b'\0'):
+        if not value: continue
+        decoded = value.decode()
+        assert len(decoded) > 3 and decoded[2] == ' ' and not any(c in decoded[:2] for c in 'RC')
+        safe(decoded[3:])
+        result.append({'status': decoded[:2], 'path': decoded[3:]})
+    return result
+
+def compare_collapsed(before, after):
+    def selected_projection(value):
+        value = value.rstrip('/')
+        return any(p == value or p.startswith(value + '/') for p in SELECTED)
+    def covered(value, prior): return value == prior or prior.endswith('/') and value.startswith(prior)
+    def outside(rows): return [r for r in rows if r['status'] != '??' and r['path'] not in SELECTED]
+    assert outside(after) == outside(before), 'Outside-selected tracked status changed'
+    prior = [r['path'] for r in before if r['status'] == '??']
+    current = [r['path'] for r in after if r['status'] == '??']
+    for value in current:
+        assert selected_projection(value) or any(covered(value, old) for old in prior), ('New unrelated collapsed entry', value)
+    for old in prior:
+        assert selected_projection(old) or any(covered(value, old) or covered(old, value) for value in current), ('Missing unrelated collapsed entry', old)
+    return {'outsideTrackedStatusUnchanged': True, 'untrackedTransitionsConfinedToPriorScopesOrSelectedProjections': True,
+            'recursiveUntrackedContentProof': False}
+
+assert row(ROOT / SELECTION) == {'path': SELECTION, 'bytes': SELECTION_BYTES, 'sha256': SELECTION_SHA}
+S = json.loads((ROOT / SELECTION).read_bytes())
+assert S['schema'] == 1 and S['baseline'] == {'head': BASE, 'tree': TREE}
+ROWS = [selected_row(value) for value in S['selectedRows']]
+assert SELECTION not in {value['path'] for value in ROWS}
+p = ROOT / SELECTION
+payload = p.read_bytes()
+ROWS.append({**row(p), 'mode': '100755' if stat.S_IMODE(p.lstat().st_mode) & 0o111 else '100644',
+             'oid': hashlib.sha1(b'blob ' + str(len(payload)).encode() + b'\0' + payload).hexdigest()})
+SELECTED = {value['path'] for value in ROWS}
+assert len(ROWS) == len(SELECTED) == SELECTED_COUNT
+AUTHORED = sorted(SELECTED)
+assert S['formattingExclusions'] == FORMATTING_EXCLUSIONS
+FORMATTING_EXCLUDED_PATHS = {value['path'] for value in FORMATTING_EXCLUSIONS}
+assert len(FORMATTING_EXCLUDED_PATHS) == len(FORMATTING_EXCLUSIONS) and FORMATTING_EXCLUDED_PATHS.issubset(SELECTED)
+assert (FORMATTING_DECISION_ROW is None) == (not FORMATTING_EXCLUSIONS)
+FORMATTING = [value for value in AUTHORED if value not in FORMATTING_EXCLUDED_PATHS]
+assert FORMATTING and len(FORMATTING) == len(SELECTED) - len(FORMATTING_EXCLUSIONS)
+assert not any(value['path'] in SELECTED for value in PROTECTED)
+assert all(not p.startswith(('.wrangler', '.git/')) for p in SELECTED)
+PUBLIC_CONTROL_OUTPUT_PATHS = {value['path'] for value in PUBLIC_CONTROL_OUTPUTS}
+assert len(PUBLIC_CONTROL_OUTPUT_PATHS) == len(PUBLIC_CONTROL_OUTPUTS) and PUBLIC_CONTROL_OUTPUT_PATHS.issubset(SELECTED)
+assert (PUBLIC_CONTROL_OUTPUTS_DECISION_ROW is None) == (not PUBLIC_CONTROL_OUTPUTS)
+assert all(value['path'].endswith(('.stdout', '.stderr')) for value in PUBLIC_CONTROL_OUTPUTS)
+DYNAMIC_LOCAL_NAMES = set(DRIVERS) | {'argv-' + phase + '.json' for phase in PHASES}
+DYNAMIC_LOCAL_NAMES |= {'authority-snapshot-' + phase + '.json' for phase in PHASES}
+DYNAMIC_LOCAL_NAMES |= {'authority.json', 'source-review.json', 'CUSTODY-UNRESOLVED.json',
+    'preflight-pair7.json', 'preflight-pair7-root-review.json', 'manifest-pair7.json',
+    'preservation-pair7-local.json', 'preservation-pair7-after-local.json',
+    'delivery-pair7-receipt.json', 'engine-ci-pair7-binding.json',
+    'selected-index-objects-pair7-local.json', 'changed-index-objects-pair7-local.json',
+    'committed-objects-pair7.json', 'pair7-pathspec-admission.json'}
+assert not SELECTED.intersection(str((OUT / name).relative_to(ROOT)) for name in DYNAMIC_LOCAL_NAMES)
+for p in SELECTED:
+    parts = PurePosixPath(p).parts
+    assert not any(part in ('raw', 'local', 'state', 'streams', 'extract', 'extracted', 'commands') for part in parts)
+    assert parts[-1] != 'authority.json' and not parts[-1].startswith('authority-snapshot-')
+    assert not p.endswith(('.zip', '.log', '.nul', '.plan.json', '.started.json', '.admission.json', '.command.json', '-once.json'))
+    assert not p.endswith(('.stdout', '.stderr')) or p in PUBLIC_CONTROL_OUTPUT_PATHS
+
+def check_sources():
+    assert row(ROOT / SELECTION) == {'path': SELECTION, 'bytes': SELECTION_BYTES, 'sha256': SELECTION_SHA}
+    for expected in ROWS: selected_row(expected)
+    if PUBLIC_CONTROL_OUTPUTS_DECISION_ROW is not None:
+        assert row(ROOT / PUBLIC_CONTROL_OUTPUTS_DECISION_ROW['path']) == PUBLIC_CONTROL_OUTPUTS_DECISION_ROW
+    for expected in PUBLIC_CONTROL_OUTPUTS:
+        assert row(ROOT / expected['path']) == expected
+    if FORMATTING_DECISION_ROW is not None:
+        assert row(ROOT / FORMATTING_DECISION_ROW['path']) == FORMATTING_DECISION_ROW
+    for expected in FORMATTING_EXCLUSIONS:
+        assert row(ROOT / expected['path']) == expected
+    assert row(OUT / 'owned.py')['sha256'] == HELPER_SHA
+    assert row(OUT / 'historical-closure.json')['sha256'] == HISTORY_SHA
+    history = json.loads((OUT / 'historical-closure.json').read_bytes())
+    assert history['closedCommandSeries']['total'] == 109
+    for expected in history['rows']: assert row(ROOT / expected['path']) == expected
+    for expected in PROTECTED: assert row(ROOT / expected['path'])['sha256'] == expected['sha256']
+    st = (ROOT / '.wrangler').lstat()
+    assert st.st_ino == 134689423 and st.st_dev == 16777233
+    absent('hosted/lib/mixer_hosted/artifacts/store.ex')
+    assert S['ordinaryHost']['workflow'] == '.github/workflows/verify.yml'
+    assert row(ROOT / S['ordinaryHost']['workflow']) == S['ordinaryHost']['source']
+    assert S['ordinaryHost']['name'] == 'Owned engine checks' and S['ordinaryHost']['expectedJobs'] == 6
+    assert S['ordinaryHost']['workflowID'] == 393488255
+
+RAW = ['--raw', '--no-abbrev', '--no-renames', '-z']
+def phase_vectors(phase):
+    g = lambda *v: ['git', *v]
+    if phase == 'pair7-preflight':
+        return [('git-version', g('--version')), ('gh-version', ['gh', '--version']),
+                ('head', g('rev-parse', 'HEAD', 'HEAD^{tree}')), ('branch', g('branch', '--show-current')),
+                ('origin', g('remote', 'get-url', 'origin')), ('push-url', list(PUSH_URL_READ_EXCEPTION)),
+                ('remote-main', g('ls-remote', 'origin', 'refs/heads/main')),
+                ('index-raw', g('diff', '--cached', *RAW)),
+                ('collapsed-status', g('status', '--porcelain=v1', '-z', '--untracked-files=normal')),
+                ('complete-raw-diff', g('diff', *RAW))]
+    if phase == 'pair7-delivery':
+        return [('head', g('rev-parse', 'HEAD', 'HEAD^{tree}')), ('branch', g('branch', '--show-current')),
+                ('origin', g('remote', 'get-url', 'origin')), ('push-url-before-stage', list(PUSH_URL_READ_EXCEPTION)),
+                ('remote-before', g('ls-remote', 'origin', 'refs/heads/main')), ('index-before', g('diff', '--cached', *RAW)),
+                ('before-diff', g('diff', *RAW)),
+                ('stage', g('add', '--force', '--pathspec-from-file=' + str(OUT / 'paths-pair7.nul'), '--pathspec-file-nul')),
+                ('index-selected', g('ls-files', '--stage', '-z', '--', *AUTHORED)),
+                ('staged-objects', g('diff', '--cached', *RAW)), ('authored-check', g('diff', '--cached', '--check', '--', *FORMATTING)),
+                ('staged-diff', g('diff', *RAW)),
+                ('commit', g('-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', 'commit', '-m', S['commitMessage'])),
+                ('committed-head', g('rev-parse', 'HEAD', 'HEAD^{tree}', 'HEAD^@')),
+                ('committed-objects', g('diff-tree', '--no-commit-id', *RAW[:-1], '-r', '-z', BASE, '{COMMITTED_SHA}')),
+                ('remote-prepush', g('ls-remote', 'origin', 'refs/heads/main')), ('push-url-prepush', list(PUSH_URL_READ_EXCEPTION)),
+                ('push', g('-c', 'core.hooksPath=/dev/null', 'push', '--signed=false', '--no-follow-tags', '--recurse-submodules=no', 'origin', '{COMMITTED_SHA}:refs/heads/main')),
+                ('remote-postpush', g('ls-remote', 'origin', 'refs/heads/main')), ('push-url-postpush', list(PUSH_URL_READ_EXCEPTION)),
+                ('index-after', g('diff', '--cached', *RAW)), ('after-diff', g('diff', *RAW)),
+                ('collapsed-status-after', g('status', '--porcelain=v1', '-z', '--untracked-files=normal'))]
+    assert phase == 'pair7-engine-ci-binding'
+    api = lambda endpoint, query: ['gh', 'api', 'repos/snowdamiz/mixer/' + endpoint, '--hostname', 'github.com', '--jq', query]
+    return [('head', g('rev-parse', 'HEAD', 'HEAD^{tree}')), ('remote-main', g('ls-remote', 'origin', 'refs/heads/main')),
+            ('engine-workflow-content', api('contents/.github/workflows/verify.yml?ref={DELIVERED_SHA}', '{sha,size,path,type}')),
+            ('engine-workflow-registration', api('actions/workflows/verify.yml', '{id,path,state,name}')),
+            ('engine-run', api('actions/workflows/verify.yml/runs?event=push&head_sha={DELIVERED_SHA}&per_page=5',
+             '[.workflow_runs[]|{id,name,head_sha,event,run_attempt,status,conclusion,workflow_id,path,html_url}]'))]
+
+def command_rows(phase):
+    return [{'name': name, 'argv': argv, 'effectiveArgv': ['git', '-c', 'gc.auto=0', '-c', 'maintenance.auto=false', *argv[1:]] if argv[0] == 'git' else argv,
+             'kind': 'mutation' if name in ('stage', 'commit', 'push') else 'read'} for name, argv in phase_vectors(phase)]
+
+def accepted_preflight(authority):
+    binding = authority['acceptedPreflight']
+    assert type(binding) is dict and set(binding) == {'seal', 'rows'}
+    for expected in [binding['seal'], *binding['rows']]: assert row(ROOT / expected['path']) == expected
+    assert [v['path'] for v in binding['rows']] == [str((OUT / n).relative_to(ROOT)) for n in ('preflight-pair7.json', 'preservation-pair7-local.json', 'manifest-pair7.json')]
+    seal = json.loads((ROOT / binding['seal']['path']).read_bytes())
+    assert seal['decision'] == 'accept-exact-fresh-pair7-preflight' and seal['rows'] == binding['rows']
+    pre, preservation, manifest = [json.loads((ROOT / v['path']).read_bytes()) for v in binding['rows']]
+    assert pre['head'] == BASE and pre['tree'] == TREE and pre['indexEmpty'] is True
+    assert pre['selection'] == row(ROOT / SELECTION) and manifest['members'] == ROWS
+    assert pre['allCommandsAdmittedDirectlyReapedOwnedGroupsAbsentSeparatePipesEOF'] is True
+    return pre, preservation
+
+class StrictCommands:
+    def __init__(self, phase, context=None):
+        assert phase in PHASES
+        check_sources()
+        self.phase, self.context = phase, dict(context or {})
+        assert set(self.context) == ({'DELIVERED_SHA'} if phase == 'pair7-engine-ci-binding' else set())
+        for value in self.context.values(): assert re.fullmatch('[0-9a-f]{40}', value)
+        self.manifest_name = 'argv-' + phase + '.json'
+        self.manifest_row = row(OUT / self.manifest_name)
+        self.manifest = json.loads((OUT / self.manifest_name).read_bytes())
+        assert self.manifest['schema'] == 1 and self.manifest['phase'] == phase
+        assert self.manifest['selection'] == row(ROOT / SELECTION)
+        assert self.manifest['commands'] == command_rows(phase)
+        seconds, count = PHASES[phase]
+        assert self.manifest['session'] == {'seconds': seconds, 'count': count, 'prefix': phase + '-'}
+        self.raw_authority = (OUT / 'authority.json').read_bytes()
+        self.authority = json.loads(self.raw_authority)
+        a = self.authority
+        assert a['schema'] == 1 and a['authorized'] is True and a['phase'] == phase and a['phaseLimit'] == 1
+        assert a['repository'] == 'snowdamiz/mixer' and a['branch'] == 'main'
+        assert a['baseline'] == {'head': BASE, 'tree': TREE} and a['selection'] == row(ROOT / SELECTION)
+        assert a['selectedPathsIncludingSelf'] == SELECTED_COUNT and a['helper'] == row(OUT / 'owned.py')
+        assert a['argvApproval'] == self.manifest_row and a['manualWorkflowDispatchLimit'] == 0
+        assert a['stageLimit'] == a['commitLimit'] == a['nonforcePushLimit'] == int(phase == 'pair7-delivery')
+        assert a['retryRerunFallbackAllowed'] is False and a['oldDriverReplayAllowed'] is False
+        assert a['admissionAdapter'] == {'exactReadOnlyException': list(PUSH_URL_READ_EXCEPTION), 'allOtherVectorsUseUnchangedHelperValidation': True,
+                                       'strictManifestEqualityBeforeAdapter': True, 'custodyStartupKernelWaitEOFSignalLogicChanged': False}
+        self.check_bindings()
+        if phase != 'pair7-preflight': accepted_preflight(a)
+        if phase == 'pair7-engine-ci-binding':
+            assert a['acceptedDelivery'] == row(OUT / 'delivery-pair7-receipt.json')
+        else: assert a['acceptedDelivery'] is None
+        snapshot = OUT / ('authority-snapshot-' + phase + '.json')
+        with snapshot.open('xb') as h:
+            h.write(self.raw_authority); h.flush(); os.fsync(h.fileno())
+        fd = os.open(OUT, os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0))
+        try: os.fsync(fd)
+        finally: os.close(fd)
+        self.authority_row = row(snapshot)
+        assert self.authority_row['sha256'] == owned.authority()
+        self.expected = {v['name']: v for v in self.manifest['commands']}
+        self.used = []
+        self.commands = owned.Commands(seconds, count, phase + '-')
+    def check_bindings(self):
+        a = self.authority
+        assert a['sourceReview']['path'] not in SELECTED and self.manifest_row['path'] not in SELECTED
+        assert all(value['path'] not in SELECTED for value in a['driverSources'])
+        assert {v['path'] for v in a['driverSources']} == {str((OUT / n).relative_to(ROOT)) for n in DRIVERS}
+        for expected in a['driverSources']: assert row(ROOT / expected['path']) == expected
+        assert row(ROOT / a['sourceReview']['path']) == a['sourceReview']
+        review = json.loads((ROOT / a['sourceReview']['path']).read_bytes())
+        assert review['decision'] == 'accept-exact-android-pair7-delivery-source-and-argv'
+        assert review['driverSources'] == a['driverSources'] and review['argvApprovals'][self.phase] == self.manifest_row
+        assert review['helper'] == row(OUT / 'owned.py') and review['selection'] == row(ROOT / SELECTION)
+    @property
+    def records(self): return self.commands.records
+    def bind_committed_sha(self, value):
+        assert self.phase == 'pair7-delivery' and not self.context and re.fullmatch('[0-9a-f]{40}', value)
+        self.context['COMMITTED_SHA'] = value
+    def run(self, name, argv=None, seconds=25):
+        assert list(self.expected)[len(self.used)] == name
+        assert row(OUT / self.manifest_name) == self.manifest_row
+        assert (OUT / 'authority.json').read_bytes() == self.raw_authority
+        self.check_bindings(); check_sources()
+        if self.phase != 'pair7-preflight': accepted_preflight(self.authority)
+        expected = [token.replace('{COMMITTED_SHA}', self.context.get('COMMITTED_SHA', '{COMMITTED_SHA}')).replace('{DELIVERED_SHA}', self.context.get('DELIVERED_SHA', '{DELIVERED_SHA}')) for token in self.expected[name]['argv']]
+        assert not any('{COMMITTED_SHA}' in token or '{DELIVERED_SHA}' in token for token in expected)
+        if argv is not None: assert argv == expected, 'Unapproved command vector'
+        assert expected[:2] != ['gh', 'workflow']
+        if name == 'stage':
+            pathspec = b''.join(value.encode() + b'\0' for value in AUTHORED)
+            assert (OUT / 'paths-pair7.nul').read_bytes() == pathspec
+            save('pair7-pathspec-admission.json', {'selection': row(ROOT / SELECTION), 'pathspec': row(OUT / 'paths-pair7.nul'), 'paths': SELECTED_COUNT, 'fixedNULAllowlistOnly': True, 'forceAddOnly': True})
+        self.used.append(name)
+        return self.commands.run(name, expected, seconds)
+    def complete(self):
+        assert self.used == list(self.expected) and len(self.records) == len(self.expected)

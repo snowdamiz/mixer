@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "decision": "changes-required-before-auditor-selection",
+  "scope": "Independent source/data review only; no actual artifact result or runtime qualification",
+  "baseline_preparation_seal_sha256": "5302dd2551e58ce993004e4888b233df9a026bbb8f12e071d444e6dbc2bd9620",
+  "findings": [
+    {"id": "F1", "source": "audit_actual.py:50", "required": "Bound JSON parsing and CHECKS/report expansion before rejecting unexpected JSON members"},
+    {"id": "F2", "source": "audit_actual.py:203", "required": "Validate original ZIP names and reject sanitization or Unicode-extra remapping"},
+    {"id": "F3", "source": "deny_runtime.py:53", "required": "Complete the advertised low-level active-API and descriptor-relative mutation guard"},
+    {"id": "F4", "source": "root-binding.schema.json", "required": "Bind root acquisition closure or require its exact external binding in separate root acceptance"}
+  ],
+  "commands": {
+    "source_data_inspection": "python3 -I -B -S - (one-shot standard-library AST/JSON/hash inspection supplied on stdin in the tool record)",
+    "source_data_inspection_exit": 0,
+    "subject_imports": 0,
+    "auditor_guard_invocations": 0,
+    "synthetic_control_reruns": 0,
+    "actual_artifact_or_compiler_runs": 0,
+    "read_tools": ["cat", "sed", "rg", "head", "tail", "wc", "shasum"],
+    "rg_version": "15.2.0 (rev e89fff89ac)",
+    "shasum_version": "6.02",
+    "read_command_errors": ["One rg pattern accidentally contained a NUL escape and was rejected; subsequent literal source searches supplied the evidence", "One final rg found no active API names in the auditor/replay and exited 1"]
+  },
+  "stdlib_source_evidence": [
+    {"path": "/opt/homebrew/opt/python@3.14/Frameworks/Python.framework/Versions/3.14/lib/python3.14/zipfile/__init__.py", "bytes": 94183, "sha256": "0e39a3dce18037f350f4d65dfc684c03a68d91bd75fcb1b03568e4d032b296a2", "scope": "Original-name storage, NUL sanitization, Unicode-extra filename remapping and raw local-header name comparison"},
+    {"path": "/opt/homebrew/opt/python@3.14/Frameworks/Python.framework/Versions/3.14/lib/python3.14/os.py", "bytes": 41958, "sha256": "976bdb3e24925f2fb3ce43a4d788de6dcbb88a7cc8604c60ae690fbdd6507546", "scope": "Separate public os namespace populated from posix"},
+    {"path": "/opt/homebrew/opt/python@3.14/Frameworks/Python.framework/Versions/3.14/lib/python3.14/signal.py", "bytes": 2495, "sha256": "0363c964c90ac0b3e515de5749205e6e6454051a1211058375d84d91eab6071a", "scope": "Public signal wrapper delegates to unpatched _signal"}
+  ],
+  "instructions_observed": [
+    {"path": "AGENTS.md", "bytes": 4195, "sha256": "6f9eee29960fd5e2c4b4c87f3132ef2bb607021424892011506c15a79cf47d21"},
+    {"path": "PLAN.md", "bytes": 188682, "sha256": "0ce93e65871d8118d3d9453df1afb9bda88236b378f1798d6257f11c3ace6921"}
+  ],
+  "runtime_or_release_authority": false,
+  "actual_result_accepted": false,
+  "compiler_qualified": false,
+  "historical_failure_run_40942282975_remains_failed": true
+}

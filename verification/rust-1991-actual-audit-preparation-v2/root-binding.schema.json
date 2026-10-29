@@ -1,0 +1,158 @@
+{
+  "$defs": {
+    "evidenceReference": {
+      "additionalProperties": false,
+      "properties": {
+        "bytes": {
+          "maximum": 2097152,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "path": {
+          "pattern": "^/",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "V2 unselected template intentionally does not validate. Five exact root evidence bindings include bounded acquisition completion/reader release and consumed attempt budget; external EOF/lease invalidation/provider disposal remain unproven. No runtime allowance.",
+  "properties": {
+    "artifact": {
+      "additionalProperties": false,
+      "properties": {
+        "bytes": {
+          "maximum": 67108864,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "id": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "name": {
+          "pattern": "^analyzer-envelope-host-[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "bytes",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "authority": {
+      "const": {
+        "compiler_or_product_execution": false,
+        "native_ui_capture": false,
+        "release_or_ga": false,
+        "retry_or_dispatch": false
+      }
+    },
+    "evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "acquisition": {
+          "$ref": "#/$defs/evidenceReference"
+        },
+        "artifact": {
+          "$ref": "#/$defs/evidenceReference"
+        },
+        "delivery": {
+          "$ref": "#/$defs/evidenceReference"
+        },
+        "job": {
+          "$ref": "#/$defs/evidenceReference"
+        },
+        "run": {
+          "$ref": "#/$defs/evidenceReference"
+        }
+      },
+      "required": [
+        "delivery",
+        "run",
+        "job",
+        "artifact",
+        "acquisition"
+      ],
+      "type": "object"
+    },
+    "git_tree": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "job_id": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "pins": {
+      "const": {
+        "adoption_seal_sha256": "46757940a874b44ec89330d4bbbba9feea0681123685c063283b728c807d6994",
+        "compiler_selection_sha256": "07db30ea3a63e0a30b8b5762e18255a0e0bc720945ac813b6b7e017aec9edd5c",
+        "implementation_review_seal_sha256": "8f8aa69669b2b14c19fe4bcca0cfb1aae55ceb73e2e2bd52e22366c68d391ce8",
+        "ordinary_policy_sha256": "4c56beec330b8118f01be3a6e7460f9857e4b1e8b61f29b4a9bce16fb6c1130c",
+        "runner_sha256": "32c98f00c18ce365306c166bc170a7369a89e26b25105858f36e82c2ef6515d5",
+        "swift_job_sha256": "0e3ed51a0de31b06a00fa24d1276c58790de7ccc72c72bc9633869601acb4c3f",
+        "terminal_replay_sha256": "77051730ddf0dfd0731708da97d0e2c363a4a0033f3fa2421c9822deaaa321e4",
+        "workflow_sha256": "5ce51236f178080e3301289513fa3f5a8313e3a3969b0bab3f2b1cd4668de7f5"
+      }
+    },
+    "repository": {
+      "const": "snowdamiz/mixer"
+    },
+    "revision": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "root_selected": {
+      "const": true
+    },
+    "run_attempt": {
+      "const": 1
+    },
+    "run_id": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "schema": {
+      "const": 1
+    },
+    "status": {
+      "const": "selected-first-ordinary-result-data-review"
+    }
+  },
+  "required": [
+    "schema",
+    "status",
+    "root_selected",
+    "repository",
+    "revision",
+    "git_tree",
+    "run_id",
+    "run_attempt",
+    "job_id",
+    "artifact",
+    "pins",
+    "evidence",
+    "authority"
+  ],
+  "title": "Separately root-selected first Rust1.99.1 ordinary result data binding",
+  "type": "object"
+}

@@ -116,6 +116,10 @@ final class NativeCoordinatorV2 {
                 else if (!attachAttempted) discard(candidate);
             }
             retireScalar();
+            if (candidate != null) {
+                try { renderer.completeFailedV2(candidate, ledger.primary, ledger.firstFatal); }
+                catch (RuntimeException | Error cleanup) { remember(cleanup); }
+            }
             if (ledger.firstFatal != null) throw ledger.firstFatal;
             throw failure;
         }
@@ -144,6 +148,10 @@ final class NativeCoordinatorV2 {
             }
             retireScalar();
             try { renderer.reportDeferredTerminalV2(); } catch (RuntimeException | Error cleanup) { remember(cleanup); }
+            if (candidate != null) {
+                try { renderer.completeFailedV2(candidate, ledger.primary, ledger.firstFatal); }
+                catch (RuntimeException | Error cleanup) { remember(cleanup); }
+            }
             if (ledger.firstFatal != null) throw ledger.firstFatal;
             throw failure;
         } finally { leave(); }
@@ -181,7 +189,7 @@ final class NativeCoordinatorV2 {
     boolean inputCancellationInProgress() {
         requireMain(); return cancellation || renderer.cancellationInProgressV2();
     }
-    boolean busyForOwnerDisposal() { requireMain(); return active || cancellation || fence.rendererReportActive; }
+    boolean busyForOwnerDisposal() { requireMain(); return active || cancellation || fence.rendererReportActive || renderer.editorDisposalBusyV2(); }
     boolean isRetired() { requireMain(); return retired; }
     boolean hasCommittedPresentation() { requireMain(); return !retired && committedPacket != null; }
     CleanupLedger cleanupLedger() { requireMain(); return ledger; }
@@ -216,7 +224,7 @@ final class NativeCoordinatorV2 {
         sealGatesScalar(); committedPacket = null;
     }
     private void disposeOnce() {
-        if (disposed) return;
+        if (disposed || busyForOwnerDisposal()) return;
         disposed = true;
         long owned = session; session = 0; committedPacket = null;
         ledger.renderer = Outcome.ATTEMPTED;

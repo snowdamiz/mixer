@@ -68,12 +68,12 @@ struct AndroidSDKProfile: Codable, Sendable {
 }
 
 enum AndroidSDKCompatibility {
-    // Selected frozen 22 + 23 map. Never infer or refresh from a selected SDK,
+    // Selected frozen 22 + 24 map. Never infer or refresh from a selected SDK,
     // mutable lock, resource, environment, or successful local build.
     static let profile: AndroidSDKProfile = {
         try! JSONDecoder().decode(AndroidSDKProfile.self, from: Data(#"""
         {
-          "adapter_compatibility_sha256": "7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885",
+          "adapter_compatibility_sha256": "ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e",
           "adapter_files": {
             "Sources/MixerAndroidRuntime/DocumentSession.swift": {
               "bytes": 4328,
@@ -116,16 +116,20 @@ enum AndroidSDKCompatibility {
               "sha256": "cc383f5f358714de5a55c65f205fd7e296ab8166657160c38059ca8ac7f4351c"
             },
             "app/src/dev/mixer/android/NativeAppearanceViewsV2.java": {
-              "bytes": 81532,
-              "sha256": "a217d0b178869f3e5c3fc2d80f30f559a22c76a303195e62bfcb73d3cce91cce"
+              "bytes": 127820,
+              "sha256": "d9704dab54d22347faf4d4724568db0a8aca8388b002aee8b45f896997a8d259"
             },
             "app/src/dev/mixer/android/NativeBridge.java": {
               "bytes": 1076,
               "sha256": "3e7faa3904fef5955426b9fa9993c77b61203fe605f675d73cd81bcf073306a3"
             },
             "app/src/dev/mixer/android/NativeCoordinatorV2.java": {
-              "bytes": 13468,
-              "sha256": "16597f90e5f9989404d88a94d35c531a06c964cd9a40dde94cc54c0aaaec5587"
+              "bytes": 13985,
+              "sha256": "cc7121aa496ee03de49aceb294265fe28818d77c95743087fc702fa9a931ec51"
+            },
+            "app/src/dev/mixer/android/NativeEditorConnectionV2.java": {
+              "bytes": 9528,
+              "sha256": "b0cf2beb17ed46c57466eadddfcef14c4bf56dd57b6060d9e1fe801a21726c97"
             },
             "app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java": {
               "bytes": 14154,
@@ -140,8 +144,8 @@ enum AndroidSDKCompatibility {
               "sha256": "056aa51d07e765b59a3859ce76090477a24211c973b63336406ff4b0d4102269"
             },
             "app/src/dev/mixer/android/NativeRenderer.java": {
-              "bytes": 47378,
-              "sha256": "fa523aa1c9cd2f11a77022b008a5e983c8fda697a93e2a76585c01f79f50d725"
+              "bytes": 83197,
+              "sha256": "af71e35ed21673ec01648cce73c9eab0a3b0cf2ba7c7594422b2fe5e04752b3e"
             },
             "app/src/dev/mixer/android/OwnerLifecycleV2.java": {
               "bytes": 12473,
@@ -172,7 +176,7 @@ enum AndroidSDKCompatibility {
             "bytes": 9587,
             "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
           },
-          "id": "mixer.android-source-pair.6",
+          "id": "mixer.android-source-pair.7",
           "schema": 1,
           "sdk_compatibility_sha256": "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0",
           "sdk_files": {
@@ -345,15 +349,40 @@ enum AndroidSDKCompatibility {
         _ = try path(root, "Package.swift", identity: profile.sdk_files["Package.swift"]!)
         for target in ["Sources/MixerCore", "Sources/MixerUI"] { try closed(root, target, files: profile.sdk_files) }
     }
-    private static func adapterLayout(_ root: URL, input: Bool) throws {
-        let files = Dictionary(uniqueKeysWithValues: profile.adapter_files.map { key, value in
+    // Canonical-only optional inputs. These identities are deliberately excluded
+    // from the serialized product profile, projection, export and generated tree.
+    private static let canonicalOnlyInputFiles: [String: AndroidSDKSourceIdentity] = [
+        "app/src/dev/mixer/android/AppearanceDescriptorV1.java": .init(bytes: 15759, sha256: "0b3afc54df5a8943d873c5ea3941d3843f233bf48ac9354b0ff1250d6017d009"),
+        "app/src/dev/mixer/android/AppearanceResolutionV1.java": .init(bytes: 16316, sha256: "c3737cbd05d71fb13cd4e105a212b67c946c4ebc9fbf020ba2e9bf5ceccf2934"),
+        "app/src/dev/mixer/android/AdapterInstrumentation.java": .init(bytes: 4209, sha256: "40e0d4643870aeee1c8ad5575aca89c1a026d7f243fe455c7920edde8fa1868c")
+    ]
+    @discardableResult
+    private static func adapterLayout(_ root: URL, input: Bool) throws -> [String: AndroidSDKSourceIdentity] {
+        var files = Dictionary(uniqueKeysWithValues: profile.adapter_files.map { key, value in
             (input && key.hasPrefix("Sources/") ? "engine/" + key : key, value)
         })
+        var optional: [String: AndroidSDKSourceIdentity] = [:]
+        if input {
+            let directory = try path(root, "app/src/dev/mixer/android", directory: true)
+            let names = try entries(directory)
+            guard names.allSatisfy({ $0.utf8.allSatisfy { $0 < 128 } }) else { throw failure("Non-ASCII canonical Java input entry name") }
+            for (relative, identity) in canonicalOnlyInputFiles where names.contains(String(relative.split(separator: "/").last!)) {
+                optional[relative] = identity
+                files[relative] = identity
+            }
+        }
+        // Complete every required and optional topology/type/size check before
+        // callers open any source content. The source tree is exact and ASCII.
         for (relative, identity) in files { _ = try path(root, relative, identity: identity) }
         try closed(root, input ? "engine/Sources/MixerAndroidRuntime" : "Sources/MixerAndroidRuntime", files: files)
+        try closed(root, "app/src", files: files)
         if !input {
-            for relative in ["app/src", "bridge", "contracts"] { try closed(root, relative, files: files) }
+            for relative in ["bridge", "contracts"] { try closed(root, relative, files: files) }
         }
+        return optional
+    }
+    private static func admitCanonicalExtras(_ root: URL, _ files: [String: AndroidSDKSourceIdentity]) throws {
+        for relative in files.keys.sorted() { _ = try bounded(root.appendingPathComponent(relative), files[relative]!) }
     }
     static func bounded(_ url: URL, _ identity: AndroidSDKSourceIdentity) throws -> Data {
         let handle = try FileHandle(forReadingFrom: url)
@@ -378,12 +407,15 @@ enum AndroidSDKCompatibility {
     }
     static func admitInput(sdk: URL, adapter: URL) throws {
         // Finish both layouts, including sizes, before required-source content reads.
-        try sdkLayout(sdk); try adapterLayout(adapter, input: true)
+        try sdkLayout(sdk)
+        let optional = try adapterLayout(adapter, input: true)
+        try admitCanonicalExtras(adapter, optional)
         guard try map(sdk, profile.sdk_files) == profile.sdk_compatibility_sha256,
               try map(adapter, profile.adapter_files, input: true) == profile.adapter_compatibility_sha256 else { throw failure("Input source-pair digest") }
     }
     static func admitAdapterInput(_ adapter: URL) throws {
-        try adapterLayout(adapter, input: true)
+        let optional = try adapterLayout(adapter, input: true)
+        try admitCanonicalExtras(adapter, optional)
         guard try map(adapter, profile.adapter_files, input: true) == profile.adapter_compatibility_sha256 else { throw failure("Adapter projection digest") }
     }
     private static func appearanceLayout(_ adapter: URL) throws -> URL {
@@ -393,9 +425,19 @@ enum AndroidSDKCompatibility {
               Set(try entries(adapter.appendingPathComponent("app/assets/MixerAppearanceV2"))) == ["descriptor.json"] else { throw failure("Android appearance closed asset inventory") }
         return try path(adapter, "app/assets/MixerAppearanceV2/descriptor.json", identity: profile.default_descriptor)
     }
+    private static func renderedDriverLayout(_ adapter: URL) throws -> (URL, AndroidSDKSourceIdentity) {
+        // Generic lock recomputation cannot substitute a stale or authored driver.
+        // The installed template and compiled profile determine its exact bytes.
+        let template = try String(contentsOf: AndroidProject.buildDriver(), encoding: .utf8)
+        let expected = Data(try renderDriver(template).utf8)
+        let identity = AndroidSDKSourceIdentity(bytes: expected.count, sha256: SourceDigest.sha256(expected))
+        return (try path(adapter, "android-build.py", identity: identity), identity)
+    }
     static func admitAdapter(_ adapter: URL) throws {
         let descriptor = try appearanceLayout(adapter)
         try adapterLayout(adapter, input: false)
+        let (driver, driverIdentity) = try renderedDriverLayout(adapter)
+        _ = try bounded(driver, driverIdentity)
         _ = try bounded(descriptor, profile.default_descriptor)
         guard try map(adapter, profile.adapter_files) == profile.adapter_compatibility_sha256 else { throw failure("Adapter projection digest") }
     }
@@ -405,6 +447,8 @@ enum AndroidSDKCompatibility {
         let descriptor = try appearanceLayout(adapter)
         let sdk = try path(generated, "MixerSDK", directory: true)
         try sdkLayout(sdk); try adapterLayout(adapter, input: false)
+        let (driver, driverIdentity) = try renderedDriverLayout(adapter)
+        _ = try bounded(driver, driverIdentity)
         _ = try bounded(descriptor, profile.default_descriptor)
         guard try map(sdk, profile.sdk_files) == profile.sdk_compatibility_sha256,
               try map(adapter, profile.adapter_files) == profile.adapter_compatibility_sha256 else { throw failure("Project source-pair digest") }

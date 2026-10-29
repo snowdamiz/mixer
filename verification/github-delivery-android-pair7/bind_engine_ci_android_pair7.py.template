@@ -1,0 +1,46 @@
+raise SystemExit("UNBOUND SOURCE TEMPLATE: exact source/argv review and root materialization are required")
+import sys
+sys.dont_write_bytecode = True
+assert sys.flags.isolated == 1 and sys.flags.no_site == 1 and sys.flags.optimize == 0
+import importlib.util
+from pathlib import Path
+spec = importlib.util.spec_from_file_location('android_pair7_common', Path(__file__).with_name('selection_common_android_pair7.py'))
+common = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = common
+spec.loader.exec_module(common)
+import hashlib
+import json
+for name in ('StrictCommands','BASE','TREE','S','SELECTION','ROWS','SELECTED','AUTHORED','PROTECTED','PUSH_URL','ROOT','OUT','now','row','save','fingerprint','preserved_entry','raw_rows','collapsed','compare_collapsed','check_sources','accepted_preflight'):
+    globals()[name] = getattr(common, name)
+
+r = json.loads((OUT / 'delivery-pair7-receipt.json').read_bytes())
+assert r['pushed'] is True and r['force'] is False and r['parent'] == BASE and r['indexEmpty'] is True
+assert r['selection'] == row(ROOT / SELECTION)
+head = r['head']
+c = StrictCommands('pair7-engine-ci-binding', {'DELIVERED_SHA': head})
+assert c.run('head').decode().splitlines() == [head, r['tree']]
+assert c.run('remote-main').decode().split() == [head, 'refs/heads/main']
+source = S['ordinaryHost']
+path = source['workflow']
+payload = (ROOT / path).read_bytes()
+oid = hashlib.sha1(b'blob ' + str(len(payload)).encode() + b'\0' + payload).hexdigest()
+content = json.loads(c.run('engine-workflow-content'))
+assert content == {'sha': oid, 'size': len(payload), 'path': path, 'type': 'file'}
+registration = json.loads(c.run('engine-workflow-registration'))
+assert type(registration['id']) is int and registration['id'] == 393488255
+assert registration['state'] == 'active' and registration['path'] == path and registration['name'] == source['name']
+runs = json.loads(c.run('engine-run'))
+assert len(runs) == 1, 'Automatic Engine binding pending or ambiguous; no dispatch or automatic replay'
+engine = runs[0]
+assert type(engine['id']) is int and engine['id'] > 0
+assert engine['head_sha'] == head and engine['event'] == 'push' and engine['run_attempt'] == 1
+assert engine['workflow_id'] == registration['id'] and engine['path'] == path and engine['name'] == source['name']
+c.complete(); check_sources()
+save('engine-ci-pair7-binding.json', {'schema': 1, 'at': now(), 'head': head, 'tree': r['tree'],
+     'selection': row(ROOT / SELECTION), 'delivery': row(OUT / 'delivery-pair7-receipt.json'),
+     'manifest': c.manifest_row, 'content': content, 'registration': registration, 'engine': engine,
+     'engineExpectedJobs': 6, 'manualDispatchesPerformed': 0, 'axisRegistrationRequired': False,
+     'authoritySnapshot': c.authority_row, 'commands': c.records,
+     'allCommandsAdmittedDirectlyReapedOwnedGroupsAbsentSeparatePipesEOF': True,
+     'actualJobResultsRead': False, 'runtimeResultsAccepted': False, 'artifactDownloaded': False})
+print(json.dumps({'head': head, 'engineRunID': engine['id'], 'closedCommands': len(c.records), 'runtimeResultsAccepted': False}))

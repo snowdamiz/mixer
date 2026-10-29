@@ -50,7 +50,7 @@ final class NativeRenderer {
     private void send(UiPacket source,UiPacket.Node n,String event,Object value){events.send(source.event(n.id,n.generation,event,value));}
     private void bind(Record r,UiPacket.Node n,UiPacket source){
         r.binding=true;View v=r.view;v.setTag(n.text("accessibilityIdentifier",n.id));v.setEnabled(!n.disabled);String label=n.text("accessibilityLabel",n.kind.equals("textField")?n.text("label",""):null);v.setContentDescription(label);
-        v.setTooltipText(n.text("accessibilityHint",null));if(Build.VERSION.SDK_INT>=30)v.setStateDescription(n.text("accessibilityValue",null));
+        v.setTooltipText(n.text("accessibilityHint",null));if(Build.VERSION.SDK_INT>=30)Api30.stateDescription(v,n.text("accessibilityValue",null));
         if(r.title!=null){String title=n.text("title","");r.title.setText(title);r.title.setVisibility(title.isEmpty()?View.GONE:View.VISIBLE);}
         switch(n.kind){
             case "text":TextView text=(TextView)v;text.setText(n.text("text",""));String style=n.text("style","body");text.setTextSize(style.equals("title")?26:style.equals("headline")?19:style.equals("caption")?14:16);text.setTypeface(null,style.equals("headline")||style.equals("title")?android.graphics.Typeface.BOLD:android.graphics.Typeface.NORMAL);text.setTextIsSelectable(n.flag("selectable",false));text.setMaxLines((int)n.number("maxLines",Integer.MAX_VALUE));text.setPadding(dp(4),dp(6),dp(4),dp(6));break;
@@ -61,6 +61,9 @@ final class NativeRenderer {
             case "vStack":case "hStack":LinearLayout stack=(LinearLayout)v;String alignment=n.text("alignment","center");stack.setGravity(alignment.equals("center")?(n.kind.equals("hStack")?Gravity.CENTER_VERTICAL:Gravity.CENTER_HORIZONTAL):gravity(alignment));break;
             default:break;
         }r.binding=false;
+    }
+    private static final class Api30 {
+        static void stateDescription(View view,CharSequence value){view.setStateDescription(value);}
     }
     private int gravity(String a){switch(a){case "leading":return Gravity.START;case "trailing":return Gravity.END;case "top":return Gravity.TOP;case "bottom":return Gravity.BOTTOM;case "topLeading":return Gravity.TOP|Gravity.START;case "topTrailing":return Gravity.TOP|Gravity.END;case "bottomLeading":return Gravity.BOTTOM|Gravity.START;case "bottomTrailing":return Gravity.BOTTOM|Gravity.END;default:return Gravity.CENTER;}}
     private void children(Record r,UiPacket.Node n,Map<String,Record>candidate){
@@ -87,6 +90,33 @@ final class NativeRenderer {
     private NativeAppearanceViewsV2.Mutation v2Mutation;
     private NativeAppearanceViewsV2.Record[] v2Roster=new NativeAppearanceViewsV2.Record[4096];
     private int v2RosterCount;
+    private int outstandingEditorNativeCalls,outstandingFieldPreservations;
+    private NativeAppearanceViewsV2.EditorLease editorDrain,editorFinishing;
+    private NativeAppearanceViewsV2.Replacement editorReplacement;
+    private long editorLossSerial;
+    boolean editorDisposalBusyV2(){NativeEnvironmentV2.requireMain();return outstandingEditorNativeCalls!=0||outstandingFieldPreservations!=0||editorDrain!=null||editorFinishing!=null||editorReplacement!=null;}
+    private boolean retainedEditorV2(NativeAppearanceViewsV2.Record record) {
+        if(record==null)return false;
+        for(int i=0;i<v2RosterCount;i++)if(v2Roster[i]==record)return true;
+        Candidate pending=v2Pending;
+        if(pending!=null){for(int i=0;i<pending.targetCount;i++)if(pending.targetRoster[i]==record)return true;
+            for(int i=0;i<pending.detachedCount;i++)if(pending.detachedRoster[i]==record)return true;}
+        return false;
+    }
+    private void requireEditorsAvailableV2(){
+        for(int i=0;i<v2RosterCount;i++)if(v2Roster[i]!=null)v2Roster[i].editorAvailable(true);
+        Candidate pending=v2Pending;
+        if(pending!=null){for(int i=0;i<pending.targetCount;i++)if(pending.targetRoster[i]!=null)pending.targetRoster[i].editorAvailable(true);
+            for(int i=0;i<pending.detachedCount;i++)if(pending.detachedRoster[i]!=null)pending.detachedRoster[i].editorAvailable(true);}
+    }
+    private void retireEditorsV2(){
+        NativeAppearanceViewsV2.Record[] current=v2Roster;int count=v2RosterCount;Candidate pending=v2Pending;
+        retireEditorRosterV2(current,count);
+        if(pending!=null){retireEditorRosterV2(pending.targetRoster,pending.targetCount);retireEditorRosterV2(pending.detachedRoster,pending.detachedCount);}
+    }
+    private void retireEditorRosterV2(NativeAppearanceViewsV2.Record[] records,int count){
+        for(int i=0;i<count;i++)if(records[i]!=null)try{records[i].retireEditor();}catch(RuntimeException|java.lang.Error failure){rememberV2(failure);}
+    }
     static final class CleanupLedger {
         private Throwable primary;
         private Error firstFatal;
@@ -110,6 +140,119 @@ final class NativeRenderer {
     boolean drawAllowedV2(){return v2Fence!=null&&!v2Fence.terminal&&v2Fence.drawAllowed;}
     private NativeAppearanceViewsV2.Input inputV2(){if(v2Input==null)v2Input=new NativeAppearanceViewsV2.Input(){
         public NativeAppearanceViewsV2.Mutation mutation(){return mutationV2();}
+        public boolean editorDispatchAvailable(NativeAppearanceViewsV2.Record record){NativeEnvironmentV2.requireMain();return editorReplacement==null&&retainedEditorV2(record);}
+        public boolean editorRetained(NativeAppearanceViewsV2.Record record){NativeEnvironmentV2.requireMain();return retainedEditorV2(record);}
+        public long editorLossObservation(){
+            NativeEnvironmentV2.requireMain();
+            if(editorLossSerial==Long.MAX_VALUE){IllegalStateException failure=new IllegalStateException("editor loss observation exhausted");terminalV2(NativeEnvironmentV2.RendererCause.CANCELLATION_FAILED,failure,null);throw failure;}
+            return editorLossSerial;
+        }
+        public void editorLossObserved(NativeAppearanceViewsV2.Record record){
+            NativeEnvironmentV2.requireMain();
+            if(record==null||record.editorFence!=v2Fence||!(record.view instanceof NativeAppearanceViewsV2.NativeField)||
+                !retainedEditorV2(record)&&!record.editorConstruction()||!capturedLossSuffixV2(record))throw Json.bad("foreign editor loss observation");
+            if(editorLossSerial==Long.MAX_VALUE){IllegalStateException failure=new IllegalStateException("editor loss observation exhausted");terminalV2(NativeEnvironmentV2.RendererCause.CANCELLATION_FAILED,failure,null);throw failure;}
+            editorLossSerial++;
+            if(editorReplacement!=null)editorReplacement.lost=true;
+            if(editorLossSerial==Long.MAX_VALUE){IllegalStateException failure=new IllegalStateException("editor loss observation exhausted");terminalV2(NativeEnvironmentV2.RendererCause.CANCELLATION_FAILED,failure,null);throw failure;}
+        }
+        public void fieldPreservationBegin(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.FieldPreservation preservation){
+            NativeEnvironmentV2.requireMain();
+            if(preservation==null||record==null||record.input!=this||!fieldPreservationIdentityV2(preservation.candidate,preservation.journal,record,preservation)||
+                record.fieldPreservation!=preservation||preservation.entered||preservation.ended||preservation.counted||preservation.released||
+                preservation.phase!=NativeAppearanceViewsV2.FieldPreservation.CAPTURED||preservation.callbacks!=0||!preservation.hooks.isEmpty()||preservation.checking||
+                !retainedEditorV2(record)||!preservation.field.needsFieldPreservation()||record.editorCallbackLease!=null||editorReplacement!=null||editorDrain!=null||editorFinishing!=null||v2Fence.commitFinish||
+                !preservation.original.current()||!fieldPreservationCurrent(preservation.candidate,preservation.journal,record,preservation)||
+                outstandingEditorNativeCalls<0||outstandingEditorNativeCalls==Integer.MAX_VALUE||!preservationCohortV2(preservation.candidate)||
+                preservation.candidate.heldPreservations>=preservation.journal.stateCount)
+                throw Json.bad("invalid field preservation entry");
+            // All callable validation/refusal precedes this nonthrowing scalar acquisition tail.
+            preservation.entered=true;preservation.counted=true;preservation.phase=NativeAppearanceViewsV2.FieldPreservation.ATTACHING;
+            preservation.candidate.heldPreservations++;outstandingFieldPreservations++;outstandingEditorNativeCalls++;
+        }
+        public void fieldPreservationEnd(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.FieldPreservation preservation){
+            NativeEnvironmentV2.requireMain();
+            if(preservation==null||record==null||record.input!=this||!fieldPreservationIdentityV2(preservation.candidate,preservation.journal,record,preservation)||
+                !preservationEndReadyV2(preservation)||!preservationCohortV2(preservation.candidate)||outstandingEditorNativeCalls<preservation.candidate.heldPreservations)
+                throw Json.bad("unfinished field preservation");
+            preservation.counted=false;preservation.released=true;preservation.phase=NativeAppearanceViewsV2.FieldPreservation.RELEASED;
+            preservation.candidate.heldPreservations--;outstandingFieldPreservations--;outstandingEditorNativeCalls--;
+        }
+        public void replacementEvent(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.Replacement replacement){
+            NativeEnvironmentV2.requireMain();
+            // Scalar exact provenance precedes the no-call same-operation exclusion.
+            if(replacement==null||record==null||replacement.record!=record||record.input!=this||record.view!=replacement.field||replacement.field.record!=record||
+                !replacement.completed||replacement.eventValue==null||replacement.stage!=NativeAppearanceViewsV2.Replacement.Stage.DONE||!replacement.endReady()||
+                replacement.original.fence!=v2Fence||replacement.original.editorLease!=null||replacement.original.replacementLease!=null||replacement.original.fieldLease!=null)
+                throw Json.bad("invalid completed replacement provenance");
+            if(replacement.eventEvaluating||replacement.eventClaimed)return;
+            replacement.eventEvaluating=true;
+            try{
+                if(editorReplacement!=null||!replacement.field.completedReplacementEligible(replacement))throw Json.bad("invalid completed replacement event");
+                if(!open(record)||editorReplacement!=null||!replacement.field.completedReplacementEligible(replacement))throw Json.bad("replacement event authority changed after getter");
+                replacement.eventClaimed=true;
+            }finally{replacement.eventEvaluating=false;}
+            interaction();
+            if(v2Fence.terminal||!replacement.original.current()||!replacement.unchangedLoss())throw Json.bad("replacement event interaction unavailable");
+            events.send(packet.event(record.id,record.generation,"textChange",replacement.eventValue));
+            // Delivery completed. No native observation or continuation postcheck here.
+        }
+        public void editorEnter(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.EditorLease lease){
+            NativeEnvironmentV2.requireMain();
+            if(lease==null||lease.record!=record||record.view!=lease.field||!retainedEditorV2(record)||lease.entered||lease.ended||outstandingEditorNativeCalls==Integer.MAX_VALUE)
+                throw Json.bad("invalid editor native lease entry");
+            outstandingEditorNativeCalls++;
+        }
+        public void editorLeave(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.EditorLease lease){
+            NativeEnvironmentV2.requireMain();
+            if(lease==null||lease.record!=record||!lease.entered||!lease.ended||outstandingEditorNativeCalls<=0)
+                throw Json.bad("invalid editor native lease exit");
+            outstandingEditorNativeCalls--;
+        }
+        public boolean editorCloseAllowed(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.NativeField.Attempt attempt){
+            NativeEnvironmentV2.requireMain();return outstandingEditorNativeCalls==0&&!v2Fence.commitFinish&&v2Fence.operation==null&&
+                (editorReplacement==null||editorReplacement.permitsPredecessor(record,attempt));
+        }
+        public void replacementBegin(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.Replacement replacement){
+            NativeEnvironmentV2.requireMain();
+            if(editorReplacement!=null||outstandingEditorNativeCalls!=0||editorDrain!=null||editorFinishing!=null||v2Fence.commitFinish||v2Fence.operation!=null||
+                replacement==null||replacement.record!=record||record.view!=replacement.field||!retainedEditorV2(record))throw Json.bad("replacement reservation unavailable");
+            editorReplacement=replacement;
+        }
+        public void replacementEnd(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.Replacement replacement){
+            NativeEnvironmentV2.requireMain();
+            if(editorReplacement!=replacement||replacement.record!=record||replacement.nativeExecuting||replacement.setterActive||replacement.callbacks!=0||
+                record.replacementCallback!=null||replacement.stage!=NativeAppearanceViewsV2.Replacement.Stage.DONE||!replacement.endReady()||outstandingEditorNativeCalls!=0||editorDrain!=null||editorFinishing!=null)throw Json.bad("unfinished replacement reservation");
+            editorReplacement=null;
+        }
+        public NativeAppearanceViewsV2.Mutation editorCleanupMutation(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.EditorLease lease){
+            NativeEnvironmentV2.requireMain();
+            if(lease==null||lease.record!=record||record.editorCallbackLease!=lease)throw Json.bad("foreign editor cleanup continuation");
+            lease.exact();NativeAppearanceViewsV2.Mutation scope=NativeAppearanceViewsV2.Mutation.editorCleanup(v2Fence,lease);scope.require();return scope;
+        }
+        public void editorFinishBegin(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.EditorLease lease){
+            NativeEnvironmentV2.requireMain();
+            if(editorFinishing!=null||lease==null||lease.record!=record||!lease.hook.equals("create")||record.editorCallbackLease!=lease||!lease.entered||lease.ended)
+                throw Json.bad("invalid creator finishing guard");
+            // Keep already-entered exact creator custody even if its final postcheck is uncertain.
+            editorFinishing=lease;
+        }
+        public void editorFinishEnd(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.EditorLease lease){
+            NativeEnvironmentV2.requireMain();
+            if(editorFinishing!=lease||lease.record!=record)throw Json.bad("unbalanced creator finishing guard");
+            editorFinishing=null;
+        }
+        public void editorDrainBegin(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.EditorLease lease){
+            NativeEnvironmentV2.requireMain();
+            if(editorDrain!=null||lease==null||!editorCloseAllowed(record,lease.attempt)||lease.record!=record||record.view!=lease.field||!retainedEditorV2(record))throw Json.bad("editor cleanup unavailable");
+            editorDrain=lease;
+        }
+        public void editorDrainEnd(NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.EditorLease lease){
+            NativeEnvironmentV2.requireMain();
+            if(editorDrain!=lease||lease.record!=record)throw Json.bad("unbalanced editor cleanup");
+            editorDrain=null;
+        }
+        public void editorFailure(Throwable primary,java.lang.Error fatal){NativeEnvironmentV2.requireMain();terminalV2(NativeEnvironmentV2.RendererCause.CANCELLATION_FAILED,primary,fatal);}
         public boolean draw(){return presentationCurrentV2();}
         public boolean open(NativeAppearanceViewsV2.Record record){
             NativeEnvironmentV2.requireMain();
@@ -122,20 +265,30 @@ final class NativeRenderer {
             }catch(java.lang.Error fatal){terminalV2(NativeEnvironmentV2.RendererCause.CURRENT_CHECK_FATAL,fatal,fatal);throw fatal;}
         }
         public void event(NativeAppearanceViewsV2.Record record,String name,Object value){
-            if(!open(record))return;interaction();if(open(record))events.send(packet.event(record.id,record.generation,name,value));
+            if(!record.editorEventsAllowed()||!open(record))return;interaction();if(record.editorEventsAllowed()&&open(record))events.send(packet.event(record.id,record.generation,name,value));
         }
         public void interaction(){NativeEnvironmentV2.requireMain();if(!v2Fence.inputAllowed||v2Fence.terminal||!v2Open)return;
             if(v2Interaction==Long.MAX_VALUE){terminalV2(NativeEnvironmentV2.RendererCause.INTERACTION_EXHAUSTED,null,null);return;}v2Interaction++;}
     };return v2Input;}
+    private static boolean lossHookV2(String hook){return hook.equals("focus")||hook.equals("windowFocus")||hook.equals("windowVisibility")||hook.equals("aggregate")||hook.equals("visibility")||hook.equals("detach");}
+    private boolean capturedLossSuffixV2(NativeAppearanceViewsV2.Record record){
+        if(record.editorConstruction())return true;
+        var lease=record.editorCallbackLease;
+        if(lease!=null&&lease.record==record&&lease.field==record.view&&lease.entered&&!lease.ended&&lossHookV2(lease.hook))return true;
+        var replacement=record.replacementCallback;
+        if(replacement!=null&&replacement==editorReplacement&&replacement.record==record&&replacement.nativeExecuting&&replacement.tuple())return true;
+        var field=record.fieldPreservation;
+        return field!=null&&field.record==record&&field.entered&&field.counted&&!field.ended&&field.callbacks>0&&!field.hooks.isEmpty()&&lossHookV2(field.hooks.peek())&&fieldPreservationIdentityV2(field.candidate,field.journal,record,field);
+    }
     InstalledAppearanceV2 captureInstalledV2(){
-        NativeEnvironmentV2.requireMain();requireV2Live();
+        NativeEnvironmentV2.requireMain();requireEditorsAvailableV2();requireV2Live();
         OwnerLifecycleV2.Token operation=v2Fence.operation;requireTransactionV2(operation);
         try{InstalledAppearanceV2 capture=InstalledAppearanceV2.capture(context,this);requireTransactionV2(operation);
             v2Installed=capture;return capture;
         }catch(RuntimeException|java.lang.Error failure){terminalV2(NativeEnvironmentV2.RendererCause.CAPTURE_FAILED,failure,failure instanceof java.lang.Error fatal?fatal:null);throw failure;}
     }
     NativeEnvironmentV2 captureEnvironmentV2(android.app.Activity activity,FrameLayout root){
-        NativeEnvironmentV2.requireMain();requireV2Live();
+        NativeEnvironmentV2.requireMain();requireEditorsAvailableV2();requireV2Live();
         if(v2Environment.activity!=activity||v2Environment.root!=root)throw Json.bad("foreign V2 window");
         OwnerLifecycleV2.Token operation=v2Fence.operation;requireTransactionV2(operation);
         try{NativeEnvironmentV2 capture=v2Environment.capture();requireTransactionV2(operation);return capture;}catch(RuntimeException|java.lang.Error failure){terminalV2(NativeEnvironmentV2.RendererCause.CAPTURE_FAILED,failure,failure instanceof java.lang.Error fatal?fatal:null);throw failure;}
@@ -175,7 +328,9 @@ final class NativeRenderer {
         private final int targetCount,detachedCount;
         private final NativeAppearanceViewsV2.Gate gate;
         private final AttachmentJournal journal;
-        private boolean used,attached;
+        private NativeAppearanceViewsV2.Mutation originalMutation;
+        private int heldPreservations;
+        private boolean used,attached,nativeAttachStarted;
         private Candidate(NativeRenderer owner,UiPacket next,byte[] bytes,Map<String,NativeAppearanceViewsV2.Record> targets,
                           Map<String,NativeAppearanceViewsV2.Record> detached,AppearanceResolverV2.Plan plan,
                           InstalledAppearanceV2 installed,NativeEnvironmentV2 environment,NativeAppearanceViewsV2.Gate gate){
@@ -195,18 +350,23 @@ final class NativeRenderer {
         private final View[] rootChildren;
         private final NativeAppearanceViewsV2.Gate oldGate;
         private final int rootWidth,rootHeight,oldCanvas;
+        static final int OPEN=0,SUCCESS_IN_PROGRESS=1,SUCCESS_DONE=2,FAILED_IN_PROGRESS=3,FAILED_DONE=4;
+        private final NativeState[] states;private final int stateCount;
+        private int completion=OPEN;private boolean failedInvoked;
         private boolean complete;
         private AttachmentJournal(Candidate candidate){
             this.candidate=candidate;previous=new ArrayList<>();parents=new ArrayList<>();
             for(var record:candidate.baseRecords.values()){
-                previous.add(new NativeState(record));
+                previous.add(new NativeState(this,previous.size(),record));
                 if(record.group!=null)parents.add(new ParentState(record.group));
             }
+            states=previous.toArray(new NativeState[previous.size()]);stateCount=states.length;
             FrameLayout root=candidate.environment.root();rootChildren=childrenV2(root);
             rootWidth=root.getWidth();rootHeight=root.getHeight();oldGate=candidate.owner.v2Gate;oldCanvas=oldGate==null?0:oldGate.canvasColor;if(oldGate!=null)parents.add(new ParentState(oldGate));
         }
     }
     private static final class NativeState {
+        final AttachmentJournal journal;final int position;
         final NativeAppearanceViewsV2.Record record;
         final NativeAppearanceViewsV2.Binding binding;
         final NativeAppearanceViewsV2.Geometry geometry;
@@ -216,8 +376,11 @@ final class NativeRenderer {
         final int left,top,right,bottom,measuredWidth,measuredHeight;
         final boolean enabled;
         final int selectionStart,selectionEnd,scrollX,scrollY;final boolean active,checked,focused,pressed;
-        NativeState(NativeAppearanceViewsV2.Record record){
-            this.record=record;binding=record.binding;geometry=record.geometry;active=record.view instanceof EditText e&&(e.hasFocus()||android.view.inputmethod.BaseInputConnection.getComposingSpanStart(e.getText())>=0)||record.view instanceof TextView t&&t.isTextSelectable()&&t.getSelectionStart()>=0;
+        boolean forwardPreserved;
+        NativeAppearanceViewsV2.FieldPreservation preservation;
+        private PreservationMembership membership;
+        NativeState(AttachmentJournal journal,int position,NativeAppearanceViewsV2.Record record){
+            this.journal=journal;this.position=position;this.record=record;binding=record.binding;geometry=record.geometry;active=record.view instanceof EditText e&&(e.hasFocus()||android.view.inputmethod.BaseInputConnection.getComposingSpanStart(e.getText())>=0)||record.view instanceof TextView t&&t.isTextSelectable()&&t.getSelectionStart()>=0;
             nativeBuffer=record.view instanceof TextView t?t.getText():null;
             // Copy only text value. Copying native watcher spans can notify the live editor.
             text=nativeBuffer==null?null:nativeBuffer.toString();
@@ -229,6 +392,11 @@ final class NativeRenderer {
             selectionEnd=record.view instanceof TextView t?t.getSelectionEnd():-1;
             scrollX=record.view.getScrollX();scrollY=record.view.getScrollY();checked=record.view instanceof Switch value&&value.isChecked();focused=record.view.hasFocus();pressed=record.view.isPressed();
         }
+    }
+    /** Captured once before Begin, so replacing a mutable scope slot cannot grant custody. */
+    private static final class PreservationMembership {
+        final NativeState state;final NativeAppearanceViewsV2.FieldPreservation scope;
+        PreservationMembership(NativeState state,NativeAppearanceViewsV2.FieldPreservation scope){this.state=state;this.scope=scope;}
     }
     private record CompositionSpan(Object object,int start,int end,int flags) {}
     private static List<CompositionSpan> compositionV2(CharSequence value){
@@ -272,7 +440,7 @@ final class NativeRenderer {
     }
     private static View[] childrenV2(ViewGroup parent){View[] result=new View[parent.getChildCount()];for(int i=0;i<result.length;i++)result[i]=parent.getChildAt(i);return result;}
     Candidate prepareV2(byte[] bytes,InstalledAppearanceV2 installed,NativeEnvironmentV2 environment){
-        NativeEnvironmentV2.requireMain();requireV2Live();
+        NativeEnvironmentV2.requireMain();requireEditorsAvailableV2();requireV2Live();
         OwnerLifecycleV2.Token operation=v2Fence.operation;requireTransactionV2(operation);
         NativeAppearanceViewsV2.Mutation previousMutation=v2Mutation;
         v2Mutation=NativeAppearanceViewsV2.Mutation.transaction(v2Fence,operation);
@@ -284,10 +452,12 @@ final class NativeRenderer {
         boolean environmentOnly=v2Plan!=null&&Arrays.equals(owned,v2PacketBytes);
         if(environmentOnly)next=packet;else next.requireSuccessor(packet);
         AppearanceResolverV2.Plan plan=AppearanceResolverV2.prepare(owned,installed.descriptorCopy(),environment.value,AppearanceResolverV2.Platform.android);
+        for(var node:plan.nodes)NativeAppearanceViewsV2.requireViewOperations(node,next.nodes.get(node.identity().id()));
         for(var node:plan.nodes)if(node.recipe() instanceof AppearanceResolverV2.ButtonRecipe||node.recipe() instanceof AppearanceResolverV2.FieldRecipe||node.recipe() instanceof AppearanceResolverV2.ToggleRecipe){
             String ancestor=parentV2(next,node.identity().id());while(ancestor!=null){if(plan.node(ancestor).rowPlacement()!=null)throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);ancestor=parentV2(next,ancestor);}}
         for(var node:plan.nodes)if(node.recipe() instanceof AppearanceResolverV2.NavigationRecipe){UiPacket.Node child=next.nodes.get(node.childIDs().get(0));
             if(!child.kind.equals("list")&&containsKindV2(child,"list"))throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);}
+        preflightEditorPlanV2(next,plan,installed);
         Map<String,NativeAppearanceViewsV2.Record> detached=new LinkedHashMap<>(),targets=new LinkedHashMap<>();
         for(var node:plan.nodes){UiPacket.Node source=next.nodes.get(node.identity().id());
             NativeAppearanceViewsV2.Record shadow=new NativeAppearanceViewsV2.Record(context,source,inputV2(),mutation);mutation.require();
@@ -312,6 +482,33 @@ final class NativeRenderer {
         preflightEditorsV2(candidate);
         requireTransactionV2(operation);v2Pending=candidate;return candidate;
         }finally{v2Mutation=previousMutation;}
+    }
+    /** Reject incompatible retained connection preparation before shadow View construction. */
+    private void preflightEditorPlanV2(UiPacket next,AppearanceResolverV2.Plan plan,InstalledAppearanceV2 installed){
+        for(int i=0;i<v2RosterCount;i++){
+            var old=v2Roster[i];
+            if(old==null||!(old.view instanceof NativeAppearanceViewsV2.NativeField field)||!field.hasLiveTarget())continue;
+            UiPacket.Node source=next.nodes.get(old.id);
+            if(source==null||!source.kind.equals(old.kind)||!source.generation.equals(old.generation))
+                throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
+            var proposed=plan.node(old.id);var a=old.binding;
+            if(!(a.node().recipe() instanceof AppearanceResolverV2.FieldRecipe before)||!(proposed.recipe() instanceof AppearanceResolverV2.FieldRecipe after))
+                throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
+            Map<String,Object> left=new HashMap<>(a.source().properties),right=new HashMap<>(source.properties);left.remove("value");right.remove("value");
+            boolean same=before.label().equals(after.label())&&before.metrics().equals(after.metrics())&&before.text().role()==after.text().role()&&
+                before.text().metrics().equals(after.text().metrics())&&before.text().selectable()==after.text().selectable()&&
+                Objects.equals(before.text().maximumLines(),after.text().maximumLines())&&a.node().disabled()==proposed.disabled()&&left.equals(right)&&
+                a.source().actions.equals(source.actions)&&a.plan().environment.scheme()==plan.environment.scheme()&&a.plan().environment.profile()==plan.environment.profile()&&
+                a.plan().environment.direction()==plan.environment.direction()&&a.plan().environment.density1024()==plan.environment.density1024()&&
+                a.plan().environment.localeIdentifier().equals(plan.environment.localeIdentifier())&&a.theme().equals(installed.configuration.android);
+            String current=old.id;
+            while(same&&current!=null){String beforeParent=parentV2(packet,current),afterParent=parentV2(next,current);same=Objects.equals(beforeParent,afterParent);
+                if(beforeParent!=null){UiPacket.Node beforeNode=packet.nodes.get(beforeParent),afterNode=next.nodes.get(afterParent);
+                    same=same&&afterNode!=null&&beforeNode.kind.equals(afterNode.kind)&&beforeNode.generation.equals(afterNode.generation);
+                    if(same){List<String> beforeChildren=new ArrayList<>(),afterChildren=new ArrayList<>();for(var child:beforeNode.children)beforeChildren.add(child.id);for(var child:afterNode.children)afterChildren.add(child.id);same=beforeChildren.equals(afterChildren);}}
+                current=beforeParent;}
+            if(!same)throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
+        }
     }
     private void preflightEditorsV2(Candidate c){
         for(var previous:v2Records.values()){
@@ -350,7 +547,7 @@ final class NativeRenderer {
                 List<String> ac=new ArrayList<>(),bc=new ArrayList<>();for(var n:a.children)ac.add(n.id);for(var n:b.children)bc.add(n.id);if(!ac.equals(bc))return false;}
             current=before;}return true;}
     private void validateV2(Candidate c,boolean attached){
-        NativeEnvironmentV2.requireMain();requireV2Live();
+        NativeEnvironmentV2.requireMain();requireEditorsAvailableV2();requireV2Live();
         if(c==null||c.owner!=this||v2Pending!=c||c.used||c.attached!=attached||packet!=c.base||v2Records!=c.baseRecords||v2Installed!=c.installed)throw Json.bad("stale/foreign/consumed V2 candidate");
         requireTransactionV2(c.operation);
         if(v2Interaction!=c.interaction)throw Json.bad("stale V2 native interaction epoch "+c.interaction+" -> "+v2Interaction);
@@ -358,12 +555,15 @@ final class NativeRenderer {
         if(!attached&&!sameNativeBaseV2(c.journal))throw Json.bad("stale V2 native canvas");
     }
     AttachmentJournal attachV2(Candidate c,FrameLayout root){
-        validateV2(c,false);if(root!=c.environment.root())throw Json.bad("foreign V2 root");preflightEditorsV2(c);
+        requireEditorsAvailableV2();validateV2(c,false);if(root!=c.environment.root())throw Json.bad("foreign V2 root");preflightEditorsV2(c);
         NativeAppearanceViewsV2.Mutation previousMutation=v2Mutation;
-        v2Mutation=NativeAppearanceViewsV2.Mutation.transaction(v2Fence,c.operation);
-        NativeAppearanceViewsV2.Mutation mutation=v2Mutation;
+        if(c.originalMutation!=null)throw Json.bad("V2 original mutation already captured");
+        c.originalMutation=NativeAppearanceViewsV2.Mutation.transaction(v2Fence,c.operation);
+        v2Mutation=c.originalMutation;
+        NativeAppearanceViewsV2.Mutation mutation=c.originalMutation;
         sealScalarV2();c.gate.open=false;c.gate.canvasColor=NativeAppearanceViewsV2.color(c.plan.canvas);v2Steps=0;
         try {
+            beginFieldPreservationsV2(c,mutation);c.nativeAttachStarted=true;
             for(var entry:c.targets.entrySet()){
                 var target=entry.getValue();var shadow=c.detached.get(entry.getKey());
                 if(target!=shadow){boolean preserve=target.view instanceof TextView&&sameEditorBindingV2(target,shadow);
@@ -388,45 +588,251 @@ root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));mutation.require();
             c.gate.layout(0,0,root.getWidth(),root.getHeight());mutation.require();
 
             NativeAppearanceViewsV2.layoutRoot(c.targets.get(c.next.root.id),root.getWidth(),root.getHeight(),c.environment.value.safeArea64(),mutation);
-            faultV2();c.attached=true;return c.journal;
+            checkFieldPreservationsV2(c);
+            faultV2();c.attached=true;
+            for(int i=0;i<c.journal.stateCount;i++){var scope=c.journal.states[i].preservation;if(scope!=null)scope.phase=NativeAppearanceViewsV2.FieldPreservation.ATTACHED;}
+            return c.journal;
         }catch(RuntimeException|java.lang.Error failure){
-            if(!v2Fence.terminal)try{restoreV2(c);}catch(RuntimeException|java.lang.Error rollback){
-                rememberV2(failure);rememberV2(rollback);terminalV2(NativeEnvironmentV2.RendererCause.ROLLBACK_FAILED,failure,v2Cleanup.firstFatal);}
+            // Observe native F before any restoration/report G and later coordinator abort H.
+            rememberV2(failure);
+            if(c.nativeAttachStarted&&!v2Fence.terminal)try{restoreV2(c);revokePreservationsV2(c,NativeAppearanceViewsV2.FieldPreservation.RESTORED_HELD);}
+            catch(RuntimeException|java.lang.Error rollback){
+                rememberV2(rollback);
+                try{terminalV2(NativeEnvironmentV2.RendererCause.ROLLBACK_FAILED,failure,v2Cleanup.firstFatal);}
+                catch(RuntimeException|java.lang.Error report){rememberV2(report);}
+            }
+            // Count custody survives transport to the coordinator's sole failure completion.
             c.used=true;v2Pending=null;if(v2Cleanup.firstFatal!=null)throw v2Cleanup.firstFatal;throw failure;
         }finally{v2Mutation=previousMutation;}
     }
-    /** Scalar/reference checks and prepared swaps only. Coordinator commits engine immediately before this call. */
+    private void beginFieldPreservationsV2(Candidate c,NativeAppearanceViewsV2.Mutation mutation){
+        mutation.requireMutation();
+        for(NativeState state:c.journal.previous){
+            var record=state.record;
+            if(!(record.view instanceof NativeAppearanceViewsV2.NativeField field)||!field.needsFieldPreservation())continue;
+            var shadow=c.detached.get(record.id);
+            if(record.fieldPreservation!=null||state.membership!=null||state.preservation!=null||state.forwardPreserved||
+                c.targets.get(record.id)!=record||shadow==null||!sameEditorBindingV2(record,shadow)||!sameNativeBaseV2(state))
+                throw Json.bad("incompatible settled field preservation");
+            var scope=new NativeAppearanceViewsV2.FieldPreservation(field,mutation,shadow.binding,(Editable)state.nativeBuffer,this,c,c.journal);
+            // Allocation completes before registration, acquisition, or any publication of this member.
+            PreservationMembership membership=new PreservationMembership(state,scope);
+            state.membership=membership;record.fieldPreservation=scope;state.preservation=scope;state.forwardPreserved=true;
+            try{record.input.fieldPreservationBegin(record,scope);scope.capture();
+                if(!sameNativeBaseV2(state))throw Json.bad("preserved field journal changed");scope.exact();}
+            catch(RuntimeException|java.lang.Error failure){rememberV2(failure);throw failure;}
+        }
+    }
+    private void checkFieldPreservationsV2(Candidate c){
+        for(NativeState state:c.journal.previous)if(state.preservation!=null)state.preservation.exact();
+    }
+    /** Constructor-bound ordered roster and capture-once exact scope identity; scalar only. */
+    private boolean preservationMembershipV2(AttachmentJournal journal){
+        if(journal==null||journal.states==null||journal.stateCount!=journal.states.length)return false;
+        for(int i=0;i<journal.stateCount;i++){
+            NativeState state=journal.states[i];
+            if(state==null||state.journal!=journal||state.position!=i)return false;
+            PreservationMembership membership=state.membership;
+            if(membership==null){if(state.preservation!=null||state.forwardPreserved)return false;}
+            else if(membership.state!=state||membership.scope!=state.preservation||!state.forwardPreserved||
+                membership.scope.record!=state.record||membership.scope.journal!=journal)return false;
+        }
+        return true;
+    }
+    private boolean fieldPreservationCapturedV2(Candidate c,AttachmentJournal journal,NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.FieldPreservation scope){
+        return !(c==null||c.owner!=this||journal==null||journal!=c.journal||journal.candidate!=c||scope==null||scope.renderer!=this||scope.candidate!=c||scope.journal!=journal||
+            record==null||scope.record!=record||record.view!=scope.field||scope.field.record!=record||record.input!=v2Input||record.editorFence!=v2Fence||
+            c.originalMutation==null||scope.original!=c.originalMutation||scope.original.fence!=v2Fence||scope.original.mode!=NativeAppearanceViewsV2.Mutation.Mode.TRANSACTION||
+            scope.original.token!=c.operation||scope.original.editorLease!=null||scope.original.replacementLease!=null||scope.original.fieldLease!=null);
+    }
+    /** Foreign captured authority refuses without claiming an own malformed completion. */
+    private boolean preservationProvenanceV2(Candidate c,AttachmentJournal journal){
+        if(journal.states==null)return true; // Malformed own roster, never release authority.
+        for(int i=0;i<journal.states.length;i++){
+            NativeState state=journal.states[i];if(state==null||state.journal!=journal)continue;
+            PreservationMembership membership=state.membership;
+            if(membership!=null&&!fieldPreservationCapturedV2(c,journal,state.record,membership.scope))return false;
+            var scope=state.preservation;
+            if(scope!=null&&(!fieldPreservationCapturedV2(c,journal,state.record,scope)||
+                state.record.fieldPreservation!=null&&state.record.fieldPreservation!=scope&&
+                (membership==null||state.record.fieldPreservation!=membership.scope)))return false;
+        }
+        return true;
+    }
+    boolean fieldPreservationIdentityV2(Candidate c,AttachmentJournal journal,NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.FieldPreservation scope){
+        if(!fieldPreservationCapturedV2(c,journal,record,scope)||!preservationMembershipV2(journal))return false;
+        for(int i=0;i<journal.stateCount;i++){NativeState state=journal.states[i];if(state.record==record)return state.forwardPreserved&&state.preservation==scope;}
+        return false;
+    }
+    private boolean preservationCohortV2(Candidate c){
+        if(!preservationMembershipV2(c.journal))return false;
+        int held=0;for(int i=0;i<c.journal.stateCount;i++){var scope=c.journal.states[i].preservation;if(scope!=null&&scope.counted)held++;}
+        return c.heldPreservations==held&&outstandingFieldPreservations==held&&held>=0&&held<=c.journal.stateCount&&outstandingEditorNativeCalls>=held;
+    }
+    private boolean preservationFailureFundedV2(Candidate c){
+        if(!preservationMembershipV2(c.journal))return false;
+        int represented=0;for(int i=0;i<c.journal.stateCount;i++){var scope=c.journal.states[i].preservation;if(scope!=null&&scope.counted)represented++;}
+        return c.heldPreservations>=represented&&c.heldPreservations>=0&&c.heldPreservations<=c.journal.stateCount&&
+            outstandingFieldPreservations==c.heldPreservations&&outstandingEditorNativeCalls>=c.heldPreservations;
+    }
+    private boolean preservationEndReadyV2(NativeAppearanceViewsV2.FieldPreservation scope){
+        return scope.entered&&scope.counted&&!scope.released&&scope.endReady()&&
+            (scope.phase==NativeAppearanceViewsV2.FieldPreservation.RESTORED_HELD||scope.phase==NativeAppearanceViewsV2.FieldPreservation.FAILED_HELD)&&
+            outstandingEditorNativeCalls>0;
+    }
+    boolean fieldPreservationCurrent(Candidate c,AttachmentJournal journal,NativeAppearanceViewsV2.Record record,NativeAppearanceViewsV2.FieldPreservation scope){
+        NativeEnvironmentV2.requireMain();
+        return fieldPreservationIdentityV2(c,journal,record,scope)&&v2Pending==c&&!c.used&&c.targets.get(record.id)==record&&
+            c.operation==v2Fence.operation&&!v2Fence.terminal&&journal.completion==AttachmentJournal.OPEN;
+    }
+    private void revokePreservationsV2(Candidate c,int phase){
+        if(!preservationMembershipV2(c.journal))return;
+        for(int i=0;i<c.journal.stateCount;i++){var state=c.journal.states[i];var scope=state.preservation;
+            if(scope!=null&&fieldPreservationIdentityV2(c,c.journal,state.record,scope)&&!scope.released){
+                if(state.record.fieldPreservation==scope)state.record.fieldPreservation=null;
+                scope.ended=true;scope.phase=phase;
+            }
+        }
+    }
+    /** Once-only post-interval reporting, then exact scalar release of every balanced own hold. */
+    void completeFailedV2(Candidate c,Throwable primary,java.lang.Error firstFatal){
+        NativeEnvironmentV2.requireMain();
+        if(v2Fence.commitFinish||c==null||c.owner!=this||c.journal.candidate!=c||c.journal.failedInvoked||c.journal.completion==AttachmentJournal.SUCCESS_DONE)
+            throw Json.bad("invalid V2 failed completion");
+        AttachmentJournal journal=c.journal;
+        if(!preservationProvenanceV2(c,journal))throw Json.bad("foreign V2 failed preservation provenance");
+        if(!preservationMembershipV2(journal)){
+            // The candidate is our own, but its roster cannot authorize any scope effect or retry.
+            journal.failedInvoked=true;journal.completion=AttachmentJournal.FAILED_IN_PROGRESS;
+            rememberV2(primary);rememberV2(firstFatal);
+            RuntimeException failure=Json.bad("invalid V2 failed preservation membership");rememberV2(failure);
+            try{terminalV2(NativeEnvironmentV2.RendererCause.CANCELLATION_FAILED,v2Cleanup.primary,v2Cleanup.firstFatal);}
+            catch(RuntimeException|java.lang.Error report){rememberV2(report);}
+            journal.completion=AttachmentJournal.FAILED_DONE;
+            if(v2Cleanup.firstFatal!=null)throw v2Cleanup.firstFatal;throw failure;
+        }
+        for(int i=0;i<journal.stateCount;i++){NativeState state=journal.states[i];var scope=state.preservation;
+            if(scope!=null&&(!fieldPreservationIdentityV2(c,journal,state.record,scope)||state.record.fieldPreservation!=null&&state.record.fieldPreservation!=scope))
+                throw Json.bad("foreign V2 failed preservation provenance");
+        }
+        journal.failedInvoked=true;journal.completion=AttachmentJournal.FAILED_IN_PROGRESS;
+        rememberV2(primary);rememberV2(firstFatal);
+        boolean funded=preservationFailureFundedV2(c);boolean failed=!funded;
+        for(int i=0;i<journal.stateCount;i++){
+            if(!preservationMembershipV2(journal)){rememberV2(Json.bad("changed V2 reporting preservation membership"));failed=true;break;}
+            NativeState state=journal.states[i];var scope=state.preservation;if(scope==null)continue;
+            if(!fieldPreservationIdentityV2(c,journal,state.record,scope)){rememberV2(Json.bad("foreign V2 preservation completion"));failed=true;continue;}
+            if(scope.released){if(scope.counted){rememberV2(Json.bad("released V2 scope remains counted"));failed=true;}continue;}
+            boolean registered=state.record.fieldPreservation==scope;
+            boolean cleanRegistration=registered||state.record.fieldPreservation==null;
+            boolean balanced=cleanRegistration&&scope.callbacks==0&&scope.hooks.isEmpty()&&!scope.checking;
+            if(registered)state.record.fieldPreservation=null;
+            scope.ended=true;
+            if(!scope.entered&&!scope.counted&&scope.phase==NativeAppearanceViewsV2.FieldPreservation.CAPTURED&&balanced){
+                scope.released=true;scope.phase=NativeAppearanceViewsV2.FieldPreservation.RELEASED;continue;
+            }
+            scope.phase=NativeAppearanceViewsV2.FieldPreservation.FAILED_HELD;
+            scope.releaseReady=balanced&&scope.entered&&scope.counted&&funded;
+            if(!scope.releaseReady){rememberV2(Json.bad("unbalanced V2 preservation completion"));failed=true;}
+            // No reporter executes after the release phase starts. Unentered refusal has no native prefix.
+            if(scope.entered){
+                Throwable observed=primary!=null?primary:v2Cleanup.primary;
+                if(observed!=null)try{scope.field.preservationFailure(observed);}catch(RuntimeException|java.lang.Error report){rememberV2(report);}
+            }
+        }
+        if(failed)try{terminalV2(NativeEnvironmentV2.RendererCause.CANCELLATION_FAILED,v2Cleanup.primary,v2Cleanup.firstFatal);}
+        catch(RuntimeException|java.lang.Error report){rememberV2(report);}
+        // Reporters may reenter hostile fixtures; preflight all final identities before any decrement.
+        boolean members=preservationMembershipV2(journal);
+        if(!members){
+            rememberV2(Json.bad("changed V2 failed preservation membership"));
+            try{terminalV2(NativeEnvironmentV2.RendererCause.CANCELLATION_FAILED,v2Cleanup.primary,v2Cleanup.firstFatal);}
+            catch(RuntimeException|java.lang.Error report){rememberV2(report);}
+        }
+        // An unproven roster never enters either release loop, including after reporter reentry.
+        if(members){
+        funded=preservationFailureFundedV2(c);
+        for(int i=0;i<journal.stateCount;i++){NativeState state=journal.states[i];var scope=state.preservation;
+            if(scope!=null&&scope.releaseReady&&(!funded||!fieldPreservationIdentityV2(c,journal,state.record,scope)||!preservationEndReadyV2(scope)))scope.releaseReady=false;
+        }
+        for(int i=0;i<journal.stateCount;i++){var scope=journal.states[i].preservation;if(scope!=null&&scope.releaseReady){
+            scope.releaseReady=false;scope.counted=false;scope.released=true;scope.phase=NativeAppearanceViewsV2.FieldPreservation.RELEASED;
+            c.heldPreservations--;outstandingFieldPreservations--;outstandingEditorNativeCalls--;
+        }}
+        }
+        journal.completion=AttachmentJournal.FAILED_DONE;
+        if(v2Cleanup.firstFatal!=null)throw v2Cleanup.firstFatal;
+    }
+    /** Entire cohort preflight, followed by a nonthrowing direct scalar/reference success tail. */
     void finishV2(Candidate c,AttachmentJournal journal){
-        // Main ownership was checked before entering the scalar commit/finish interval.
-        // The coordinator must call validateAttachedV2 immediately before its scalar engine commit.
-        // Never read resources or invoke native layout/setters/JNI after that commit boundary.
-        if(c==null||c.owner!=this||v2Pending!=c||c.used||!c.attached||journal!=c.journal||journal.complete)
+        if(c==null||c.owner!=this||v2Pending!=c||c.used||!c.attached||journal!=c.journal||journal.complete||journal.failedInvoked||journal.completion!=AttachmentJournal.OPEN)
             throw Json.bad("invalid V2 finish");
-        if(v2Retired||v2Fence.terminal||c.operation==null||c.operation!=v2Fence.operation){
+        if(!preservationProvenanceV2(c,journal))throw Json.bad("foreign V2 finish preservation");
+        boolean members=preservationMembershipV2(journal);
+        boolean valid=members&&!v2Retired&&!v2Fence.terminal&&c.operation!=null&&c.operation==v2Fence.operation&&preservationCohortV2(c);
+        if(members)for(int i=0;i<journal.stateCount;i++){NativeState state=journal.states[i];var scope=state.preservation;if(scope==null)continue;
+            if(!fieldPreservationIdentityV2(c,journal,state.record,scope))throw Json.bad("foreign V2 finish preservation");
+            if(!scope.entered||!scope.counted||scope.released||scope.ended||
+                scope.phase!=NativeAppearanceViewsV2.FieldPreservation.PRECOMMIT_READY||state.record.fieldPreservation!=scope||state.record.binding!=scope.selected||
+                scope.callbacks!=0||!scope.hooks.isEmpty()||scope.checking||editorLossSerial!=scope.lossObservation)valid=false;
+        }
+        if(!valid){
             v2Fence.terminal=true;v2Fence.drawAllowed=false;v2Fence.inputAllowed=false;sealScalarV2();
             if(v2Cleanup.deferredCause==null)v2Cleanup.deferredCause=NativeEnvironmentV2.RendererCause.TERMINAL_VALIDATION_FAILED;
             throw Json.bad("invalid V2 terminal finish");
         }
+        // No call, allocation, throwing guard, reporter, getter or callback below this boundary.
+        journal.completion=AttachmentJournal.SUCCESS_IN_PROGRESS;
+        for(int i=0;i<journal.stateCount;i++){var scope=journal.states[i].preservation;if(scope!=null){
+            scope.record.fieldPreservation=null;scope.ended=true;scope.phase=NativeAppearanceViewsV2.FieldPreservation.COMMITTED;
+        }}
         packet=c.next;v2PacketBytes=c.bytes;v2Records=c.targets;v2Plan=c.plan;v2Gate=c.gate;v2CommittedEnvironment=c.environment;
         c.used=true;journal.complete=true;v2Pending=null;v2Open=false;c.gate.open=false;
         v2Roster=c.targetRoster;v2RosterCount=c.targetCount;
+        for(int i=0;i<journal.stateCount;i++){var scope=journal.states[i].preservation;if(scope!=null){
+            scope.counted=false;scope.released=true;c.heldPreservations--;outstandingFieldPreservations--;outstandingEditorNativeCalls--;
+        }}
+        journal.completion=AttachmentJournal.SUCCESS_DONE;
     }
-    void validateAttachedV2(Candidate c,AttachmentJournal journal){validateV2(c,true);if(journal!=c.journal||journal.complete)throw Json.bad("foreign V2 journal");}
+    void validateAttachedV2(Candidate c,AttachmentJournal journal){
+        validateV2(c,true);
+        if(journal!=c.journal||journal.complete||journal.failedInvoked||journal.completion!=AttachmentJournal.OPEN||!preservationMembershipV2(journal))throw Json.bad("foreign V2 journal");
+        for(int i=0;i<journal.stateCount;i++){NativeState state=journal.states[i];var scope=state.preservation;if(scope==null)continue;
+            scope.exact();
+            if(!fieldPreservationIdentityV2(c,journal,state.record,scope)||!scope.original.current()||v2Pending!=c||c.used||!c.attached||
+                c.operation!=v2Fence.operation||v2Fence.terminal||state.record.binding!=scope.selected||editorLossSerial!=scope.lossObservation||
+                !scope.entered||!scope.counted||scope.ended||scope.released||scope.callbacks!=0||!scope.hooks.isEmpty()||scope.checking||!preservationCohortV2(c))
+                throw Json.bad("invalid V2 precommit preservation");
+        }
+        if(!preservationCohortV2(c))throw Json.bad("invalid V2 precommit cohort");
+        for(int i=0;i<journal.stateCount;i++){NativeState state=journal.states[i];var scope=state.preservation;if(scope!=null&&
+            (!fieldPreservationIdentityV2(c,journal,state.record,scope)||state.record.fieldPreservation!=scope||state.record.binding!=scope.selected||
+             scope.ended||scope.released||!scope.entered||!scope.counted||scope.callbacks!=0||!scope.hooks.isEmpty()||scope.checking||editorLossSerial!=scope.lossObservation))
+                throw Json.bad("changed V2 final precommit cohort");}
+        for(int i=0;i<journal.stateCount;i++){var scope=journal.states[i].preservation;if(scope!=null)scope.phase=NativeAppearanceViewsV2.FieldPreservation.PRECOMMIT_READY;}
+    }
     void rollbackV2(Candidate c,AttachmentJournal journal){
-        NativeEnvironmentV2.requireMain();if(c==null||c.owner!=this||v2Pending!=c||c.used||journal!=c.journal||journal.complete)throw Json.bad("invalid V2 rollback");
+        NativeEnvironmentV2.requireMain();if(c==null||c.owner!=this||v2Pending!=c||c.used||journal!=c.journal||journal.complete||c.originalMutation==null)throw Json.bad("invalid V2 rollback");
         NativeAppearanceViewsV2.Mutation previousMutation=v2Mutation;
-        v2Mutation=NativeAppearanceViewsV2.Mutation.transaction(v2Fence,c.operation);
+        v2Mutation=c.originalMutation;
         sealScalarV2();c.gate.open=false;
-        try{restoreV2(c);c.used=true;journal.complete=true;v2Pending=null;}
-        catch(RuntimeException|java.lang.Error failure){terminalV2(NativeEnvironmentV2.RendererCause.ROLLBACK_FAILED,failure,failure instanceof java.lang.Error fatal?fatal:null);c.used=true;v2Pending=null;throw failure;}
-        finally{v2Mutation=previousMutation;}
+        try{restoreV2(c);revokePreservationsV2(c,NativeAppearanceViewsV2.FieldPreservation.RESTORED_HELD);c.used=true;journal.complete=true;v2Pending=null;}
+        catch(RuntimeException|java.lang.Error failure){
+            rememberV2(failure);
+            try{terminalV2(NativeEnvironmentV2.RendererCause.ROLLBACK_FAILED,failure,v2Cleanup.firstFatal);}catch(RuntimeException|java.lang.Error report){rememberV2(report);}
+            c.used=true;v2Pending=null;if(v2Cleanup.firstFatal!=null)throw v2Cleanup.firstFatal;throw failure;
+        }finally{v2Mutation=previousMutation;}
     }
     void discardV2(Candidate c){NativeEnvironmentV2.requireMain();if(c==null||c.owner!=this||v2Pending!=c||c.used||c.attached)throw Json.bad("invalid V2 discard");c.used=true;v2Pending=null;}
     private void restoreV2(Candidate c){
         requireTransactionV2(c.operation);
-        NativeAppearanceViewsV2.Mutation mutation=v2Mutation;mutation.require();
+        NativeAppearanceViewsV2.Mutation mutation=c.originalMutation;
+        if(mutation==null||mutation!=v2Mutation||mutation.fence!=v2Fence||mutation.token!=c.operation)throw Json.bad("missing exact V2 restore original");
+        mutation.require();
         if(v2RollbackFault)throw new IllegalStateException("test-only rollback fault");
-        for(NativeState state:c.journal.previous){var r=state.record;boolean preserve=state.active;r.bind(state.binding,state.geometry,preserve,mutation);
+        for(NativeState state:c.journal.previous){var r=state.record;boolean preserve=state.active||state.forwardPreserved;
+            if(state.forwardPreserved){if(state.preservation==null||state.preservation.ended||r.fieldPreservation!=state.preservation)throw Json.bad("preserved field restoration authority ended");state.preservation.phase=NativeAppearanceViewsV2.FieldPreservation.RESTORING;state.preservation.exact();}
+            r.bind(state.binding,state.geometry,preserve,mutation);
             if(!preserve&&r.view instanceof TextView text&&state.text!=null){r.changing=true;try{text.setText(state.text);mutation.require();
 
                 if(text instanceof EditText edit&&state.selectionStart>=0)edit.setSelection(state.selectionStart,state.selectionEnd);mutation.require();
@@ -466,14 +872,15 @@ parent.addView(view,i);mutation.require();
         try{if(v2Gate!=null)v2Gate.setVisibility(View.INVISIBLE);}catch(RuntimeException|java.lang.Error cleanup){rememberV2(cleanup);if(failure==null)failure=cleanup;}
         try{if(v2Pending!=null&&v2Pending.gate!=v2Gate)v2Pending.gate.setVisibility(View.INVISIBLE);}catch(RuntimeException|java.lang.Error cleanup){rememberV2(cleanup);if(failure==null)failure=cleanup;}
         if(v2Cleanup.firstFatal!=null)throw v2Cleanup.firstFatal;
-        if(failure instanceof RuntimeException ordinary)throw ordinary;
+        if(v2Cleanup.primary instanceof RuntimeException ordinary)throw ordinary;
     }
     boolean cancellationInProgressV2(){NativeEnvironmentV2.requireMain();return v2Cleanup.inProgress;}
     void cancelInputV2(long serial){
         NativeEnvironmentV2.requireMain();
         if(serial!=v2Fence.sealSerial||v2Fence.drawAllowed||v2Fence.inputAllowed)throw Json.bad("unsealed V2 cancellation");
+        if(v2Fence.terminal||v2Retired)retireEditorsV2();
         if(serial>v2Cleanup.requestedSerial)v2Cleanup.requestedSerial=serial;
-        if(v2Cleanup.inProgress||serial<=v2Cleanup.consumedSerial)return;
+        if(v2Cleanup.inProgress||serial<=v2Cleanup.consumedSerial){if(v2Cleanup.firstFatal!=null)throw v2Cleanup.firstFatal;if(v2Cleanup.primary instanceof RuntimeException failure)throw failure;return;}
         v2Cleanup.inProgress=true;v2Cleanup.consumedSerial=serial;
         // Fixed snapshots and consumed record claims survive all recursive notices.
         NativeAppearanceViewsV2.Record[] current=v2Roster;

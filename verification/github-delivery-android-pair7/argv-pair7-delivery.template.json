@@ -1,0 +1,579 @@
+{
+  "schema": 1,
+  "phase": "pair7-delivery",
+  "preparationOnly": true,
+  "rootApprovalRequired": true,
+  "selection": null,
+  "helper": {
+    "path": "verification/github-delivery-android-pair7/owned.py",
+    "bytes": 29385,
+    "sha256": "7e61381cebc708870b728448271f546b1cb78cb535632bc41b30b3c2662cf7f4"
+  },
+  "session": {
+    "seconds": 240,
+    "count": 23,
+    "prefix": "pair7-delivery-"
+  },
+  "interpreter": {
+    "flags": [
+      "-I",
+      "-B",
+      "-S"
+    ],
+    "wrapper": "verification/github-delivery-android-pair7/owned.py"
+  },
+  "commands": [
+    {
+      "name": "head",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "branch",
+      "argv": [
+        "git",
+        "branch",
+        "--show-current"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "branch",
+        "--show-current"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "origin",
+      "argv": [
+        "git",
+        "remote",
+        "get-url",
+        "origin"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "remote",
+        "get-url",
+        "origin"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "push-url-before-stage",
+      "argv": [
+        "git",
+        "remote",
+        "get-url",
+        "--push",
+        "--all",
+        "origin"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "remote",
+        "get-url",
+        "--push",
+        "--all",
+        "origin"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "remote-before",
+      "argv": [
+        "git",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "index-before",
+      "argv": [
+        "git",
+        "diff",
+        "--cached",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--cached",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "before-diff",
+      "argv": [
+        "git",
+        "diff",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "stage",
+      "argv": [
+        "git",
+        "add",
+        "--force",
+        "--pathspec-from-file=/Users/andreyyurlov/Documents/dev/mixer/verification/github-delivery-android-pair7/paths-pair7.nul",
+        "--pathspec-file-nul"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "add",
+        "--force",
+        "--pathspec-from-file=/Users/andreyyurlov/Documents/dev/mixer/verification/github-delivery-android-pair7/paths-pair7.nul",
+        "--pathspec-file-nul"
+      ],
+      "kind": "mutation"
+    },
+    {
+      "name": "index-selected",
+      "argv": [
+        "git",
+        "ls-files",
+        "--stage",
+        "-z",
+        "--",
+        "{SELECTED_PATHS_EXPAND_HERE}"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "ls-files",
+        "--stage",
+        "-z",
+        "--",
+        "{SELECTED_PATHS_EXPAND_HERE}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "staged-objects",
+      "argv": [
+        "git",
+        "diff",
+        "--cached",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--cached",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "authored-check",
+      "argv": [
+        "git",
+        "diff",
+        "--cached",
+        "--check",
+        "--",
+        "{FORMATTING_PATHS_EXPAND_HERE}"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--cached",
+        "--check",
+        "--",
+        "{FORMATTING_PATHS_EXPAND_HERE}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "staged-diff",
+      "argv": [
+        "git",
+        "diff",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "commit",
+      "argv": [
+        "git",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "commit.gpgsign=false",
+        "commit",
+        "-m",
+        "{ROOT_FINAL_COMMIT_MESSAGE}"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "commit.gpgsign=false",
+        "commit",
+        "-m",
+        "{ROOT_FINAL_COMMIT_MESSAGE}"
+      ],
+      "kind": "mutation"
+    },
+    {
+      "name": "committed-head",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}",
+        "HEAD^@"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}",
+        "HEAD^@"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "committed-objects",
+      "argv": [
+        "git",
+        "diff-tree",
+        "--no-commit-id",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-r",
+        "-z",
+        "3da0d01bd05565a6aad905997beddf6805826241",
+        "{COMMITTED_SHA}"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff-tree",
+        "--no-commit-id",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-r",
+        "-z",
+        "3da0d01bd05565a6aad905997beddf6805826241",
+        "{COMMITTED_SHA}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "remote-prepush",
+      "argv": [
+        "git",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "push-url-prepush",
+      "argv": [
+        "git",
+        "remote",
+        "get-url",
+        "--push",
+        "--all",
+        "origin"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "remote",
+        "get-url",
+        "--push",
+        "--all",
+        "origin"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "push",
+      "argv": [
+        "git",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "push",
+        "--signed=false",
+        "--no-follow-tags",
+        "--recurse-submodules=no",
+        "origin",
+        "{COMMITTED_SHA}:refs/heads/main"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "push",
+        "--signed=false",
+        "--no-follow-tags",
+        "--recurse-submodules=no",
+        "origin",
+        "{COMMITTED_SHA}:refs/heads/main"
+      ],
+      "kind": "mutation"
+    },
+    {
+      "name": "remote-postpush",
+      "argv": [
+        "git",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "push-url-postpush",
+      "argv": [
+        "git",
+        "remote",
+        "get-url",
+        "--push",
+        "--all",
+        "origin"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "remote",
+        "get-url",
+        "--push",
+        "--all",
+        "origin"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "index-after",
+      "argv": [
+        "git",
+        "diff",
+        "--cached",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--cached",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "after-diff",
+      "argv": [
+        "git",
+        "diff",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "collapsed-status-after",
+      "argv": [
+        "git",
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=normal"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=normal"
+      ],
+      "kind": "read"
+    }
+  ],
+  "unboundFields": [
+    "selection",
+    "SELECTED_PATHS_EXPAND_HERE",
+    "FORMATTING_PATHS_EXPAND_HERE",
+    "ROOT_FINAL_COMMIT_MESSAGE"
+  ],
+  "manualWorkflowDispatchLimit": 0,
+  "expectedEngineWorkflowID": 393488255
+}

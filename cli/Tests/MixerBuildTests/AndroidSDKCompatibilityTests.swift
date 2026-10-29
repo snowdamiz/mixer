@@ -51,12 +51,12 @@ private func allAdmissionEntrypoints(_ root: URL, code: String = "android.sdk-co
 
 @Test func androidCompatibilityLinkedSDKAndTypedDefaultMatchCompiledPolicy() throws {
     let p = AndroidSDKCompatibility.profile
-    #expect(p.id == "mixer.android-source-pair.6")
+    #expect(p.id == "mixer.android-source-pair.7")
     #expect(p.sdk_compatibility_sha256 == "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0")
-    #expect(p.adapter_compatibility_sha256 == "7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885")
+    #expect(p.adapter_compatibility_sha256 == "ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e")
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.bytes == 4328)
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.sha256 == "cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7")
-    #expect(p.sdk_files.count == 22); #expect(p.adapter_files.count == 23)
+    #expect(p.sdk_files.count == 22); #expect(p.adapter_files.count == 24)
     try AndroidSDKCompatibility.admitInput(sdk: compatibilityRepository.appendingPathComponent("sdk"), adapter: compatibilityRepository.appendingPathComponent("native/android"))
     let value = try UIAppearanceDescriptorCodecV2.mixerDefaultV2()
     let bytes = try UIAppearanceDescriptorCodecV2.canonicalData(value)
@@ -147,7 +147,7 @@ func androidCompatibilityExactInventoryTypeLengthAndHashRefuseBeforeGenericSourc
     }
 }
 
-@Test(arguments: ["missing-file", "missing-lock", "legacy", "profile-1", "profile-2", "profile-3", "profile-4", "profile-5-current", "profile-5-prior", "broader-6-axis", "mixed-sdk", "mixed-adapter", "unknown", "digest", "default"])
+@Test(arguments: ["missing-file", "missing-lock", "legacy", "profile-1", "profile-2", "profile-3", "profile-4", "profile-5-current", "profile-5-prior", "broader-6-axis", "profile-6-current", "proposal-6-suffixed", "mixed-axis-only", "mixed-sdk", "mixed-adapter", "unknown", "digest", "default"])
 func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(_ change: String) throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-profile-lock-\(UUID().uuidString)")
     defer { try? FileManager.default.removeItem(at: root) }
@@ -173,6 +173,13 @@ func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(
         lock.android?.profile?.sdk_compatibility_sha256 = "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0"
         lock.android?.profile?.adapter_compatibility_sha256 = "ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e"
         lock.android?.profile?.default_descriptor = AndroidSDKSourceIdentity(bytes: 9587, sha256: "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3")
+    case "profile-6-current":
+        lock.android?.profile?.id = "mixer.android-source-pair.6"
+        lock.android?.profile?.adapter_compatibility_sha256 = "7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885"
+    case "proposal-6-suffixed":
+        lock.android?.profile?.id = "mixer.android-source-pair.6-editor-view-api29-30-bc03288599ec-8cd611a5b07f"
+        lock.android?.profile?.adapter_compatibility_sha256 = "8cd611a5b07fbf96adb270fa30042577789d4b87b252108697003809f00599b4"
+    case "mixed-axis-only": lock.android?.profile?.adapter_compatibility_sha256 = "7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885"
     case "mixed-sdk": lock.android?.profile?.sdk_compatibility_sha256 = "4c2e74bbdb1c060ffa2219ed378d11ed390e7a4454b95df4a2ee72074bb9b5a7"
     case "mixed-adapter": lock.android?.profile?.adapter_compatibility_sha256 = "2b001980e07e0d1c8a5139e79de6ad6ca83d8db66d386bd4f77689ab32a6325a"
     case "unknown": lock.android?.profile?.id = "unknown"
@@ -292,6 +299,231 @@ func androidCompatibilityInputAdapterAdmissionRefusesBeforeStagingAndSnapshotRea
     expectCompatibilityFailure({ _ = try AndroidProject.snapshot(adapter: adapter, destination: snapshot) })
     #expect(!fm.fileExists(atPath: snapshot.path))
     #expect(try !fm.contentsOfDirectory(atPath: base.path).contains { $0.hasPrefix(".mixer-create-") })
+}
+
+private let editorSources = ["NativeEditorConnectionV2.java", "NativeAppearanceViewsV2.java", "NativeRenderer.java", "NativeCoordinatorV2.java"]
+private let sourceChanges = ["same-size", "append", "remove", "rename", "case", "symlink", "fifo", "directory", "extra", "oversized"]
+private let optionalSources = ["AppearanceDescriptorV1.java", "AppearanceResolutionV1.java", "AdapterInstrumentation.java"]
+
+private func copyCompatibilityAdapter(to adapter: URL, extras: [String] = []) throws {
+    for relative in AndroidSDKCompatibility.profile.adapter_files.keys {
+        let source = relative.hasPrefix("Sources/") ? "engine/" + relative : relative
+        let target = adapter.appendingPathComponent(source)
+        try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try FileManager.default.copyItem(at: compatibilityRepository.appendingPathComponent("native/android/" + source), to: target)
+    }
+    for name in extras {
+        let relative = "app/src/dev/mixer/android/" + name
+        try FileManager.default.copyItem(at: compatibilityRepository.appendingPathComponent("native/android/" + relative), to: adapter.appendingPathComponent(relative))
+    }
+}
+
+private func changeCompatibilitySource(_ source: URL, _ change: String) throws {
+    let fm = FileManager.default
+    let bytes = try Data(contentsOf: source)
+    switch change {
+    case "same-size": try Data(repeating: 32, count: bytes.count).write(to: source)
+    case "append": try (bytes + Data([32])).write(to: source)
+    case "remove": try fm.removeItem(at: source)
+    case "rename": try fm.moveItem(at: source, to: source.appendingPathExtension("renamed"))
+    case "case": try fm.moveItem(at: source, to: source.deletingLastPathComponent().appendingPathComponent(source.lastPathComponent.lowercased()))
+    case "symlink": try fm.removeItem(at: source); try fm.createSymbolicLink(at: source, withDestinationURL: source.deletingLastPathComponent().appendingPathComponent("missing"))
+    case "fifo": try fm.removeItem(at: source); #expect(mkfifo(source.path, 0o600) == 0)
+    case "directory": try fm.removeItem(at: source); try fm.createDirectory(at: source, withIntermediateDirectories: true)
+    case "extra": try Data().write(to: source.deletingLastPathComponent().appendingPathComponent("unexpected.txt"))
+    case "zero": try Data().write(to: source)
+    case "short": try bytes.dropLast().write(to: source)
+    default: try Data(repeating: 32, count: 2_000_000).write(to: source)
+    }
+}
+
+@Test(arguments: editorSources, sourceChanges)
+func androidCompatibilityEditorSourceRefusalsAtInputAndCopiedEntrypoints(_ name: String, _ change: String) throws {
+    let base = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-editor-admission-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: base) }
+    let root = base.appendingPathComponent("App")
+    var lock = try compatibilityProject(root)
+    let adapter = base.appendingPathComponent("Adapter")
+    try copyCompatibilityAdapter(to: adapter)
+    let source = "app/src/dev/mixer/android/" + name
+    try changeCompatibilitySource(adapter.appendingPathComponent(source), change)
+    let copied = root.appendingPathComponent("Generated/MixerAndroid")
+    try changeCompatibilitySource(copied.appendingPathComponent(source), change)
+    // Generic tree locks can be recomputed for ordinary edits but are never authority.
+    if !["symlink", "fifo", "directory"].contains(change) {
+        lock.android?.adapterDigest = try SourceDigest.tree(copied)
+        try JSONFile.write(lock, to: root.appendingPathComponent("mixer.lock"))
+    }
+    // This excluded-root symlink is a generic-hasher sentinel. Source admission
+    // must return its own diagnostic before the generic hasher sees the link.
+    try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("Generated/MixerSDK/GenericHasherSentinel"), withDestinationURL: base.appendingPathComponent("missing"))
+    allAdmissionEntrypoints(root)
+    expectCompatibilityFailure({ _ = try AndroidProject.snapshot(adapter: adapter, destination: base.appendingPathComponent("Snapshot")) })
+    expectCompatibilityFailure({ _ = try ProjectGenerator.create(name: "Created", application: "dev.example.created", destination: base.appendingPathComponent("Created"), sdk: compatibilityRepository.appendingPathComponent("sdk"), platform: "android", androidAdapter: adapter) }, code: "create.android-sdk-compatibility")
+    #expect(!FileManager.default.fileExists(atPath: base.appendingPathComponent("Created").path))
+    #expect(!FileManager.default.fileExists(atPath: base.appendingPathComponent("Snapshot").path))
+    #expect(try !FileManager.default.contentsOfDirectory(atPath: base.path).contains { $0.hasPrefix(".mixer-create-") })
+}
+
+@Test(arguments: 0..<8)
+func androidCompatibilityCanonicalOptionalSubsetsExportOnlyExactProducts(_ mask: Int) throws {
+    let base = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-optional-input-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: base) }
+    let adapter = base.appendingPathComponent("Adapter"), snapshot = base.appendingPathComponent("Snapshot")
+    let extras = optionalSources.enumerated().filter { mask & (1 << $0.offset) != 0 }.map(\.element)
+    try copyCompatibilityAdapter(to: adapter, extras: extras)
+    try AndroidSDKCompatibility.admitInput(sdk: compatibilityRepository.appendingPathComponent("sdk"), adapter: adapter)
+    _ = try AndroidProject.snapshot(adapter: adapter, destination: snapshot)
+    let java = try SourceDigest.files(in: snapshot.appendingPathComponent("app/src"))
+    #expect(java.count == 18)
+    let expected = Set(AndroidSDKCompatibility.profile.adapter_files.keys.filter { $0.hasSuffix(".java") }.map { URL(fileURLWithPath: $0).lastPathComponent })
+    #expect(Set(java.map(\.lastPathComponent)) == expected)
+    for relative in AndroidSDKCompatibility.profile.adapter_files.keys {
+        let canonical = relative.hasPrefix("Sources/") ? "engine/" + relative : relative
+        #expect(try Data(contentsOf: snapshot.appendingPathComponent(relative)) == Data(contentsOf: adapter.appendingPathComponent(canonical)))
+    }
+    for name in optionalSources { #expect(!FileManager.default.fileExists(atPath: snapshot.appendingPathComponent("app/src/dev/mixer/android/" + name).path)) }
+    #expect(AndroidSDKCompatibility.profile.adapter_files.count == 24)
+}
+
+@Test(arguments: optionalSources, sourceChanges.filter { $0 != "remove" } + ["zero", "short"])
+func androidCompatibilityCanonicalOptionalCorruptionRefusesBeforeSnapshotAndCreate(_ name: String, _ change: String) throws {
+    let base = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-optional-negative-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: base) }
+    let adapter = base.appendingPathComponent("Adapter")
+    try copyCompatibilityAdapter(to: adapter, extras: optionalSources)
+    try changeCompatibilitySource(adapter.appendingPathComponent("app/src/dev/mixer/android/" + name), change)
+    expectCompatibilityFailure({ _ = try AndroidProject.snapshot(adapter: adapter, destination: base.appendingPathComponent("Snapshot")) })
+    expectCompatibilityFailure({ _ = try ProjectGenerator.create(name: "Created", application: "dev.example.created", destination: base.appendingPathComponent("Created"), sdk: compatibilityRepository.appendingPathComponent("sdk"), platform: "android", androidAdapter: adapter) }, code: "create.android-sdk-compatibility")
+    #expect(!FileManager.default.fileExists(atPath: base.appendingPathComponent("Snapshot").path))
+    #expect(!FileManager.default.fileExists(atPath: base.appendingPathComponent("Created").path))
+    #expect(try !FileManager.default.contentsOfDirectory(atPath: base.path).contains { $0.hasPrefix(".mixer-create-") })
+}
+
+@Test(arguments: optionalSources + ["all"])
+func androidCompatibilityCanonicalExtrasForbiddenAtEveryCopiedEntrypoint(_ name: String) throws {
+    let base = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-optional-copied-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: base) }
+    let root = base.appendingPathComponent("App")
+    var lock = try compatibilityProject(root)
+    let adapter = root.appendingPathComponent("Generated/MixerAndroid")
+    for entry in name == "all" ? optionalSources : [name] {
+        let relative = "app/src/dev/mixer/android/" + entry
+        try FileManager.default.copyItem(at: compatibilityRepository.appendingPathComponent("native/android/" + relative), to: adapter.appendingPathComponent(relative))
+    }
+    lock.android?.adapterDigest = try SourceDigest.tree(adapter)
+    try JSONFile.write(lock, to: root.appendingPathComponent("mixer.lock"))
+    try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("Generated/MixerSDK/GenericHasherSentinel"), withDestinationURL: base.appendingPathComponent("missing"))
+    allAdmissionEntrypoints(root)
+}
+
+@Test func androidCompatibilitySourcePair4IsExplicitMismatch() {
+    var record = AndroidSDKCompatibility.profile.lock
+    record.id = "mixer.android-source-pair.4"
+    expectCompatibilityFailure({ try AndroidSDKCompatibility.require(record) }, code: "android.sdk-profile-mismatch")
+}
+
+@Test(arguments: AndroidSDKCompatibility.profile.adapter_files.keys.filter { $0.hasSuffix(".java") }.sorted())
+func androidCompatibilityCanonicalExtrasNeverReplaceMissingProduct(_ relative: String) throws {
+    let base = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-optional-required-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: base) }
+    let adapter = base.appendingPathComponent("Adapter")
+    try copyCompatibilityAdapter(to: adapter, extras: optionalSources)
+    try FileManager.default.removeItem(at: adapter.appendingPathComponent(relative))
+    expectCompatibilityFailure({ _ = try AndroidProject.snapshot(adapter: adapter, destination: base.appendingPathComponent("Snapshot")) })
+    expectCompatibilityFailure({ _ = try ProjectGenerator.create(name: "Created", application: "dev.example.created", destination: base.appendingPathComponent("Created"), sdk: compatibilityRepository.appendingPathComponent("sdk"), platform: "android", androidAdapter: adapter) }, code: "create.android-sdk-compatibility")
+    #expect(!FileManager.default.fileExists(atPath: base.appendingPathComponent("Snapshot").path))
+    #expect(!FileManager.default.fileExists(atPath: base.appendingPathComponent("Created").path))
+}
+
+@Test(arguments: ["app", "app/src", "app/src/dev", "app/src/dev/mixer", "app/src/dev/mixer/android"], ["symlink", "case"])
+func androidCompatibilityCanonicalOptionalAncestorAdmission(_ relative: String, _ change: String) throws {
+    let base = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-optional-ancestor-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: base) }
+    let adapter = base.appendingPathComponent("Adapter")
+    try copyCompatibilityAdapter(to: adapter, extras: optionalSources)
+    let path = adapter.appendingPathComponent(relative)
+    let moved = path.deletingLastPathComponent().appendingPathComponent(change == "case" ? path.lastPathComponent.uppercased() : path.lastPathComponent + "-moved")
+    try FileManager.default.moveItem(at: path, to: moved)
+    if change == "symlink" { try FileManager.default.createSymbolicLink(at: path, withDestinationURL: moved) }
+    expectCompatibilityFailure({ _ = try AndroidProject.snapshot(adapter: adapter, destination: base.appendingPathComponent("Snapshot")) })
+    #expect(!FileManager.default.fileExists(atPath: base.appendingPathComponent("Snapshot").path))
+}
+
+@Test(arguments: [".hidden", "unknown.java", "unknown.txt", "nested", "unrelated-東京"])
+func androidCompatibilityCanonicalUnknownInputRefusesBeforePinnedHash(_ name: String) throws {
+    let base = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-optional-unknown-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: base) }
+    let adapter = base.appendingPathComponent("Adapter")
+    try copyCompatibilityAdapter(to: adapter, extras: optionalSources)
+    let java = adapter.appendingPathComponent("app/src/dev/mixer/android")
+    let optional = java.appendingPathComponent(optionalSources[0])
+    let count = try Data(contentsOf: optional).count
+    try Data(repeating: 32, count: count).write(to: optional)
+    if name == "nested" { try FileManager.default.createDirectory(at: java.appendingPathComponent(name), withIntermediateDirectories: true) }
+    else { try Data().write(to: java.appendingPathComponent(name)) }
+    do { try AndroidSDKCompatibility.admitInput(sdk: compatibilityRepository.appendingPathComponent("sdk"), adapter: adapter); Issue.record("Expected refusal") }
+    catch let failure as MixerFailure {
+        #expect(failure.code == "android.sdk-compatibility")
+        #expect(!failure.description.contains("Pinned bytes differ"))
+    }
+}
+
+@Test func androidCompatibilityAllLayoutsFinishBeforeOptionalOrSDKPinnedReads() throws {
+    let base = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-optional-phase-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: base) }
+    let adapter = base.appendingPathComponent("Adapter"), sdk = base.appendingPathComponent("SDK")
+    try copyCompatibilityAdapter(to: adapter, extras: optionalSources)
+    try copyCompatibilitySDK(to: sdk)
+    let optional = adapter.appendingPathComponent("app/src/dev/mixer/android/AppearanceDescriptorV1.java")
+    try Data(repeating: 32, count: 15759).write(to: optional)
+    try Data(repeating: 32, count: 935).write(to: sdk.appendingPathComponent("Sources/MixerCore/Lifecycle.swift"))
+    try Data(repeating: 32, count: 2_000_000).write(to: adapter.appendingPathComponent("app/src/dev/mixer/android/NativeEditorConnectionV2.java"))
+    do { try AndroidSDKCompatibility.admitInput(sdk: sdk, adapter: adapter); Issue.record("Expected refusal") }
+    catch let failure as MixerFailure {
+        #expect(failure.code == "android.sdk-compatibility")
+        #expect(failure.description.contains("Expected ordinary pinned-size file"))
+        #expect(failure.description.contains("NativeEditorConnectionV2.java"))
+    }
+}
+
+@Test(arguments: optionalSources)
+func androidCompatibilityCanonicalOptionalSocketRefusesWithoutOpen(_ name: String) throws {
+    let base = URL(fileURLWithPath: "/tmp").appendingPathComponent("mos-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: base) }
+    let adapter = base.appendingPathComponent("A")
+    try copyCompatibilityAdapter(to: adapter, extras: [name])
+    let file = adapter.appendingPathComponent("app/src/dev/mixer/android/" + name)
+    try FileManager.default.removeItem(at: file)
+    let result = try ProcessRunner.run(["python3", "-c", "import socket,sys; s=socket.socket(socket.AF_UNIX); s.bind(sys.argv[1])", file.path])
+    #expect(result.succeeded)
+    expectCompatibilityFailure({ _ = try AndroidProject.snapshot(adapter: adapter, destination: base.appendingPathComponent("S")) })
+    #expect(!FileManager.default.fileExists(atPath: base.appendingPathComponent("S").path))
+}
+
+@Test(arguments: ["profile4", "same-size", "append", "symlink", "fifo", "directory", "missing"])
+func androidCompatibilityCopiedDriverCannotBeReplacedByRecomputedLock(_ change: String) throws {
+    let base = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-driver-admission-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: base) }
+    let root = base.appendingPathComponent("App")
+    var lock = try compatibilityProject(root)
+    let adapter = root.appendingPathComponent("Generated/MixerAndroid")
+    let driver = adapter.appendingPathComponent("android-build.py")
+    if change == "profile4" {
+        // Preserve the installed script body while substituting the old profile
+        // ID in its decoded rendered payload; this is not a .4 migration.
+        var old = AndroidSDKCompatibility.profile
+        old.id = "mixer.android-source-pair.4"
+        let raw = try String(contentsOf: AndroidProject.buildDriver(), encoding: .utf8)
+        let hex = try JSONFile.data(old).map { String(format: "%02x", $0) }.joined()
+        try raw.replacingOccurrences(of: AndroidSDKCompatibility.marker, with: hex).write(to: driver, atomically: true, encoding: .utf8)
+    } else { try changeCompatibilitySource(driver, change == "missing" ? "remove" : change) }
+    if !["symlink", "fifo", "directory"].contains(change) {
+        lock.android?.adapterDigest = try SourceDigest.tree(adapter)
+        try JSONFile.write(lock, to: root.appendingPathComponent("mixer.lock"))
+    }
+    try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("Generated/MixerSDK/GenericHasherSentinel"), withDestinationURL: base.appendingPathComponent("missing"))
+    allAdmissionEntrypoints(root)
 }
 
 @Test(arguments: ["baseline", "same-size", "appended"])
