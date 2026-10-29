@@ -1,0 +1,107 @@
+--- accepted/NativeAppearanceViewsV2.java
++++ candidate/NativeAppearanceViewsV2.java
+@@ -41,6 +41,35 @@
+ @SuppressWarnings("deprecation")
+ final class NativeAppearanceViewsV2 {
+     private NativeAppearanceViewsV2() {}
++    /** Capability checks are pure and precede every direct construction/binding effect. */
++    static void requireViewOperations(UiPacket.Node source) {
++        requireViewOperations(source.kind.equals("textField")||
++            source.kind.equals("text")&&source.flag("selectable",false),source);
++    }
++    static void requireViewOperations(AppearanceResolverV2.Node node,UiPacket.Node source) {
++        requireViewOperations(node.recipe() instanceof FieldRecipe||
++            node.recipe() instanceof TextRecipe text&&text.text().selectable(),source);
++    }
++    private static void requireViewOperations(boolean authoredSelection,UiPacket.Node source) {
++        if(android.os.Build.VERSION.SDK_INT<29&&authoredSelection||
++            android.os.Build.VERSION.SDK_INT<30&&source.properties.containsKey("accessibilityValue"))
++            throw new Failure(Error.unsupportedNativeOperation);
++    }
++    /** Later framework method references stay in this separately emitted API29 class. */
++    private static final class Api29 {
++        static void authoredSelection(NativeField field,Record record,Mutation mutation) {
++            field.setTextCursorDrawable(new Cursor(record));mutation.require();
++            field.setTextSelectHandle(new Handle(record));mutation.require();
++            field.setTextSelectHandleLeft(new Handle(record));mutation.require();
++            field.setTextSelectHandleRight(new Handle(record));mutation.require();
++        }
++    }
++    /** Preserve the captured Mutation and check it immediately after the native call. */
++    private static final class Api30 {
++        static void stateDescription(View view,CharSequence value,Mutation mutation) {
++            view.setStateDescription(value);mutation.require();
++        }
++    }
+     interface Input {
+         boolean open(Record record);
+         boolean draw();
+@@ -210,7 +239,7 @@
+             if(view instanceof NativeField field)field.retirePermanent();
+         }
+         Record(Context context, UiPacket.Node source, Input input, Mutation mutation) {
+-            mutation.requireMutation();scoped=mutation;
++            mutation.requireMutation();requireViewOperations(source);scoped=mutation;
+             id=source.id; generation=source.generation; kind=source.kind; this.input=input;editorFence=mutation.fence;
+             try {
+             Group container=null; TextView title=null, small=null;
+@@ -296,7 +325,7 @@
+         }
+         void cancelToggleInput() { if(view instanceof NativeSwitch toggle)toggle.cancelTouch(); }
+         void bind(Binding next, Geometry measured, boolean preserveEditor, Mutation mutation) {
+-            mutation.requireMutation();editorAvailable(preserveEditor);Mutation previousScope=scoped;scoped=mutation;
++            mutation.requireMutation();requireViewOperations(next.node,next.source);editorAvailable(preserveEditor);Mutation previousScope=scoped;scoped=mutation;
+             boolean previousChanging=changing;
+             try {
+                 cancelToggleInput();mutation.require();changing=true;
+@@ -312,7 +341,7 @@
+ 
+                     view.setTooltipText(next.source.text("accessibilityHint",null));mutation.require();
+ 
+-                    if(android.os.Build.VERSION.SDK_INT>=30)view.setStateDescription(next.source.text("accessibilityValue",null));mutation.require();
++                    if(android.os.Build.VERSION.SDK_INT>=30)Api30.stateDescription(view,next.source.text("accessibilityValue",null),mutation);else mutation.require();
+ 
+                     if(next.node.recipe() instanceof TextRecipe r) {
+                         TextView text=(TextView)view; text(text,r.text(),next,mutation);text.setTextIsSelectable(r.text().selectable());mutation.require();
+@@ -338,11 +367,7 @@
+ 
+                         field.setHintTextColor(fieldColors(next,true));mutation.require();
+ 
+-                        field.setTextCursorDrawable(new Cursor(this));mutation.require();
+-
+-                        field.setTextSelectHandle(new Handle(this));mutation.require();
+-field.setTextSelectHandleLeft(new Handle(this));mutation.require();
+-field.setTextSelectHandleRight(new Handle(this));mutation.require();
++                        if(android.os.Build.VERSION.SDK_INT>=29)Api29.authoredSelection(field,this,mutation);
+ 
+                         field.refreshPaint();
+                     } else if(next.node.recipe() instanceof ToggleRecipe r) {
+--- accepted/NativeRenderer.java
++++ candidate/NativeRenderer.java
+@@ -50,7 +50,7 @@
+     private void send(UiPacket source,UiPacket.Node n,String event,Object value){events.send(source.event(n.id,n.generation,event,value));}
+     private void bind(Record r,UiPacket.Node n,UiPacket source){
+         r.binding=true;View v=r.view;v.setTag(n.text("accessibilityIdentifier",n.id));v.setEnabled(!n.disabled);String label=n.text("accessibilityLabel",n.kind.equals("textField")?n.text("label",""):null);v.setContentDescription(label);
+-        v.setTooltipText(n.text("accessibilityHint",null));if(Build.VERSION.SDK_INT>=30)v.setStateDescription(n.text("accessibilityValue",null));
++        v.setTooltipText(n.text("accessibilityHint",null));if(Build.VERSION.SDK_INT>=30)Api30.stateDescription(v,n.text("accessibilityValue",null));
+         if(r.title!=null){String title=n.text("title","");r.title.setText(title);r.title.setVisibility(title.isEmpty()?View.GONE:View.VISIBLE);}
+         switch(n.kind){
+             case "text":TextView text=(TextView)v;text.setText(n.text("text",""));String style=n.text("style","body");text.setTextSize(style.equals("title")?26:style.equals("headline")?19:style.equals("caption")?14:16);text.setTypeface(null,style.equals("headline")||style.equals("title")?android.graphics.Typeface.BOLD:android.graphics.Typeface.NORMAL);text.setTextIsSelectable(n.flag("selectable",false));text.setMaxLines((int)n.number("maxLines",Integer.MAX_VALUE));text.setPadding(dp(4),dp(6),dp(4),dp(6));break;
+@@ -61,6 +61,9 @@
+             case "vStack":case "hStack":LinearLayout stack=(LinearLayout)v;String alignment=n.text("alignment","center");stack.setGravity(alignment.equals("center")?(n.kind.equals("hStack")?Gravity.CENTER_VERTICAL:Gravity.CENTER_HORIZONTAL):gravity(alignment));break;
+             default:break;
+         }r.binding=false;
++    }
++    private static final class Api30 {
++        static void stateDescription(View view,CharSequence value){view.setStateDescription(value);}
+     }
+     private int gravity(String a){switch(a){case "leading":return Gravity.START;case "trailing":return Gravity.END;case "top":return Gravity.TOP;case "bottom":return Gravity.BOTTOM;case "topLeading":return Gravity.TOP|Gravity.START;case "topTrailing":return Gravity.TOP|Gravity.END;case "bottomLeading":return Gravity.BOTTOM|Gravity.START;case "bottomTrailing":return Gravity.BOTTOM|Gravity.END;default:return Gravity.CENTER;}}
+     private void children(Record r,UiPacket.Node n,Map<String,Record>candidate){
+@@ -449,6 +452,7 @@
+         boolean environmentOnly=v2Plan!=null&&Arrays.equals(owned,v2PacketBytes);
+         if(environmentOnly)next=packet;else next.requireSuccessor(packet);
+         AppearanceResolverV2.Plan plan=AppearanceResolverV2.prepare(owned,installed.descriptorCopy(),environment.value,AppearanceResolverV2.Platform.android);
++        for(var node:plan.nodes)NativeAppearanceViewsV2.requireViewOperations(node,next.nodes.get(node.identity().id()));
+         for(var node:plan.nodes)if(node.recipe() instanceof AppearanceResolverV2.ButtonRecipe||node.recipe() instanceof AppearanceResolverV2.FieldRecipe||node.recipe() instanceof AppearanceResolverV2.ToggleRecipe){
+             String ancestor=parentV2(next,node.identity().id());while(ancestor!=null){if(plan.node(ancestor).rowPlacement()!=null)throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);ancestor=parentV2(next,ancestor);}}
+         for(var node:plan.nodes)if(node.recipe() instanceof AppearanceResolverV2.NavigationRecipe){UiPacket.Node child=next.nodes.get(node.childIDs().get(0));

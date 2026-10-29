@@ -11,6 +11,22 @@ its older pending/selected statements do not override the current state.
 
 ## Current delivered checkpoint
 
+Mixer `5b6fc4f5` [Engine CI 40831237081](https://github.com/snowdamiz/mixer/actions/runs/40831237081) passes all six jobs after the exact 37-path canonical bitmap delivery. All 48 local Git/gh command admissions record direct reap, owned-group absence and separate stdout/stderr EOF; unrelated work remains preserved. No manual run was dispatched.
+
+[Root CI review](verification/bitmap-canonical-ci-2026-10-29/REVIEW.md) verifies 306 successful VM summary rows. All-feature Debug and Release each pass 690 regular tests plus all nine explicitly executed Node checks, 699 per mode. Every new bitmap test passes in four configurations. Defaults, private-reactor, allocation isolation and strict library Clippy also pass at their recorded scopes. Ordinary CI uses Rust 1.99.1; prior exact-candidate formatting, strict all-target Clippy and manual Debug/Release remain attributed to their original runs. Other jobs received terminal metadata inspection.
+
+The [canonical 136-member closure](verification/bitmap-canonical-integration-2026-10-29/installation.json) contains two changed runtime files and 13 changed test files; 121 others, public ABI, dependencies and defaults remain unchanged. Original admission already rejected more than 64 active pins. The historical 512-resident/128-pin source experiment is separate and not requalified.
+
+The [Android view API derivative](verification/android-view-api-boundary-root-source-review/REVIEW.md) is accepted for source and focused test design: two changed files, 14 unchanged product files, 36 source/data checks and 11 corruption controls. Thirteen test groups and 152 setter interruptions are prepared but unrun. API29/30 calls are isolated; original authority order and both below 36 guards remain. A separate bounded hosted admission and emitted-class/SDK37/D8 evidence are being prepared. Canonical source pair.5 remains 22 SDK / 23 adapter inputs; this derivative has no canonical or lower-API full V2 authority.
+
+[One focused hosted run is selected](verification/android-view-api-focused-host-selection-2026-10-29/root-review.json), pending exact delivery and command admission. It will compile 103 host inputs, run only the thirteen focused groups, then compile 17 official-SDK inputs and inspect fresh classes/DEX. The seven Java/tool commands retain 60-second active bounds. Corrected process custody passed 265 producer checks and independent 20 grouped, 43 prerequisite and 71 integrity checks; these are source/mock evidence, not executed product tests. No retry, held startup, canonical Android promotion or native run is selected.
+
+FieldLog `00c8fe04` [host 40820029857](https://github.com/snowdamiz/fieldlog/actions/runs/40820029857) remains accepted with 39 passing tests and zero source compiler warning diagnostics. Native, immutable published-package and D0–D8/GA qualification remain pending.
+
+Gates remain **8 running, 30 planned, 0 verified**. Native/UI/capture, phones, local compiler/custody, Unit A and broad hosted holds remain. The held v5 startup is not retried. FieldLog 40802230894, PGID 2424 and PID 2621 remain held without probes or disposal assumptions. Raw CI/archive/helper data stays local.
+
+## Previous delivered checkpoint at 32ef6faf
+
 Mixer `32ef6faf` [Engine CI 40828151608](https://github.com/snowdamiz/mixer/actions/runs/40828151608) passes all six jobs. The exact 53-path delivery preserves unrelated work; all 58 Git/gh admissions have recorded direct reap, owned-group absence and separate stdout/stderr EOF. These ordinary CI observations are terminal metadata; earlier full fixture/envelope audits retain their original attribution.
 
 The first [Release completion 40828181211](https://github.com/snowdamiz/mixer/actions/runs/40828181211) independently passes 699 tests across 37 groups, with zero failed or ignored tests and all nine Node oracles. [Actual review](verification/swift-pin-bitmap-release-actual-review/sanitized-result.json) verifies 937 evidence checks plus 19 parser refusal controls. Every test identity and group membership matches the prior successful Debug output. All three managed commands, source/tool postflights and scratch cleanup pass. Prior formatting, strict Clippy and Debug results remain attributed to run 40824584975, whose failed original parser admission is preserved. No such command was repeated.

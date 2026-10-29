@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "status": "prepared executable source only; all runtime outcomes pending",
+  "entry_point": "dev.mixer.android.ViewApiBoundaryTests",
+  "prepared_group_count": 13,
+  "groups": [
+    {"name": "source-presence-empty-clear", "tests": "Decoded source absence maps to null fallback; explicit empty remains present and empty"},
+    {"name": "API28-29-zero-effect-refusal", "tests": "Field/selectable API28 refusal and API28/29 present/empty value refusal before constructor or bind effects; API28 ordinary absent text"},
+    {"name": "original-authority-entry-refusals", "tests": "Stale and cleanup authority precedence in constructor/bind, including unsupported API28/29 requests", "api_levels": [28,29,30,36,37], "prepared_calls": 20},
+    {"name": "API29-direct-setter-results", "tests": "Actual direct field binds four authored drawables in order and makes no state setter call; record/receiver/drawable identity"},
+    {"name": "API29-setter-interruption", "tests": "Four setters, two throw identities plus stale and stale reentry, entry/beforeReturn", "prepared_calls": 32},
+    {"name": "API30-direct-setter-results", "tests": "Five-setter order, nonempty value, actual-null omission clear, explicit empty and drawable identity"},
+    {"name": "API30-setter-interruption", "tests": "Five setters, two throw identities plus stale and stale reentry, entry/beforeReturn", "prepared_calls": 40},
+    {"name": "API36-direct-setter-results", "tests": "Five-setter order, nonempty value, actual-null omission clear, explicit empty and drawable identity"},
+    {"name": "API36-setter-interruption", "tests": "Five setters, two throw identities plus stale and stale reentry, entry/beforeReturn", "prepared_calls": 40},
+    {"name": "API37-direct-setter-results", "tests": "Five-setter order, nonempty value, actual-null omission clear, explicit empty and drawable identity"},
+    {"name": "API37-setter-interruption", "tests": "Five setters, two throw identities plus stale and stale reentry, entry/beforeReturn", "prepared_calls": 40},
+    {"name": "observer-and-renderer-lower-API-guards", "tests": "Actual observer constructor and renderer.prepareV2 entry refusal before native/bridge preparation", "api_levels": [28,29,30,35]},
+    {"name": "V1-preserved-results-and-refusal", "tests": "Presence/empty refusal below30, actual set/null-clear/empty and same widget results on30+, five supported widget/container shapes", "api_levels": [28,29,30,36,37]}
+  ],
+  "host_closure": {
+    "product_source_count": 16,
+    "mechanical_host_leaf_count": 86,
+    "test_source_count": 1,
+    "total_javac_inputs": 103,
+    "descriptor": "tests/descriptor.json",
+    "exclude": ["tests/cross-leaf/", "all historical suites, tests and launchers"]
+  },
+  "cross_closure": {
+    "product_source_count": 16,
+    "jni_signature_leaf": "tests/cross-leaf/NativeBridge.java",
+    "total_javac_inputs": 17,
+    "exclude": ["tests/host-leaves/", "tests/ViewApiBoundaryTests.java"],
+    "platform": "pinned official SDK37",
+    "dex": "pinned D8 with min-api28; compile-only"
+  },
+  "future_admission": {
+    "selected": false,
+    "requires": "separate independent review and explicit root selection",
+    "proposed_per_child_seconds": 60,
+    "proposed_child_count": 4,
+    "children": ["host javac", "focused host JVM main", "official SDK37 javac", "D8 min-api28"],
+    "runner_or_default_matrix_included": false,
+    "held_v5_experiment_or_equivalent": false
+  },
+  "not_qualified": [
+    "Java source syntax and runtime assertions have not been tested",
+    "helper bytecode/constant pools/instructions and DEX have not been inspected",
+    "no pre36 full-renderer support, ART/class-loading/IME/TalkBack/OEM/native parity",
+    "no old BCI, 280-subject or complete-matrix transfer",
+    "no new source pair, public V2, canonical promotion, OTA/release or GA authority"
+  ]
+}

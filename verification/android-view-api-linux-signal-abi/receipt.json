@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "scope": "Offline source binding for explicitly admitted Linux x86_64 LP64 glibc sigaction layout; no native query or compiler.",
+  "sourceRelease": "glibc-2.39",
+  "sourceMirror": "bminor/glibc",
+  "sources": [
+    {
+      "name": "sigaction.h",
+      "url": "https://github.com/bminor/glibc/blob/glibc-2.39/sysdeps/unix/sysv/linux/bits/sigaction.h",
+      "bytes": 2935,
+      "sha256": "b2f76a26bbfa3668859e8e8a93af9321e14083914df0aa0367cdffaabf4ece81",
+      "localRaw": "local/sigaction.h"
+    },
+    {
+      "name": "__sigset_t.h",
+      "url": "https://github.com/bminor/glibc/blob/glibc-2.39/bits/types/__sigset_t.h",
+      "bytes": 154,
+      "sha256": "01af80448e11e2371fd016527907a3ebfdfc0cc000c075ef393307e461912e8e",
+      "localRaw": "local/__sigset_t.h"
+    },
+    {
+      "name": "wordsize.h",
+      "url": "https://github.com/bminor/glibc/blob/glibc-2.39/sysdeps/x86/bits/wordsize.h",
+      "bytes": 442,
+      "sha256": "716d8459074e2a082d65a28192b32eddbfd7587348372395b1c283a723ae4c18",
+      "localRaw": "local/wordsize.h"
+    }
+  ],
+  "layout": {
+    "pointerBytes": 8,
+    "unsignedLongBytes": 8,
+    "intBytes": 4,
+    "sigsetBits": 1024,
+    "sigsetUnsignedLongWords": 16,
+    "sigsetBytes": 128,
+    "handlerUnionOffset": 0,
+    "maskOffset": 8,
+    "flagsOffset": 136,
+    "restorerOffset": 144,
+    "structureBytes": 152,
+    "SA_NOCLDWAIT": 2
+  },
+  "derivation": "sigaction.h orders handler union, __sigset_t mask, int flags, restorer function pointer. __sigset_t.h declares1024/(8*sizeof(unsigned long)) words. x86 wordsize.h selects64 only for x86_64 without ILP32. LP64 layout with8-byte pointer/long alignment and4-byte int yields offsets0/8/136/144 and total152. The hosted inspector must validate its ctypes geometry before the readonly call.",
+  "runtimePreconditions": [
+    "Linux x86_64 LP64 only",
+    "Actual ctypes pointer/long/int sizes and field offsets match",
+    "No disposition mutation; sigaction action pointer is null",
+    "Reject ignored/custom handler, SA_NOCLDWAIT and unknown state",
+    "Provider libc and system bootstrap remain explicitly admitted infrastructure"
+  ],
+  "installedUbuntuLibcBytesOrHeaderIdentityProven": false,
+  "actualLibcQueryCompilerOrChildExecution": false,
+  "rawSourcesIgnored": true
+}

@@ -1,0 +1,261 @@
+{
+  "authored_fixtures": {
+    "class_api29": {
+      "bytes": 1088,
+      "sha256": "476820ca1c42581f9715aa20b0a11f95e9b8234fa5c0d0d093b1f2b5014d8ab4"
+    },
+    "class_guard": {
+      "bytes": 671,
+      "sha256": "f23fbcb6ff978accca07c6c57e71f7d852985b93b521d7459d6974f39623d44e"
+    },
+    "provenance": "Builder in this file authors binary bytes; no javac/JVM or generated product fixture"
+  },
+  "command": [
+    "python3",
+    "-B",
+    "verification/android-view-api-boundary-bytecode-inspection/check_inspector.py"
+  ],
+  "control_count": 33,
+  "controls": [
+    {
+      "name": "authored binary API29 helper exact object/Mutation sequence",
+      "passed": true
+    },
+    {
+      "expected_refusal": true,
+      "name": "binary changed setter order",
+      "reason": "dev/mixer/android/NativeAppearanceViewsV2$Api29: exact invocation ('dev/mixer/android/NativeAppearanceViewsV2$NativeField', 'setTextCursorDrawable', '(Landroid/graphics/drawable/Drawable;)V')"
+    },
+    {
+      "expected_refusal": true,
+      "name": "binary false Mutation require owner",
+      "reason": "dev/mixer/android/NativeAppearanceViewsV2$Api29: exact invocation ('dev/mixer/android/NativeAppearanceViewsV2$Mutation', 'require', '()V')"
+    },
+    {
+      "expected_refusal": true,
+      "name": "binary wrong original Record parameter",
+      "reason": "dev/mixer/android/NativeAppearanceViewsV2$Api29: original parameter load 1"
+    },
+    {
+      "expected_refusal": true,
+      "name": "binary wrong original Mutation parameter",
+      "reason": "dev/mixer/android/NativeAppearanceViewsV2$Api29: original parameter load 2"
+    },
+    {
+      "expected_refusal": true,
+      "name": "class truncated header",
+      "reason": "truncated binary"
+    },
+    {
+      "expected_refusal": true,
+      "name": "class trailing garbage",
+      "reason": "trailing class bytes"
+    },
+    {
+      "expected_refusal": true,
+      "name": "class wrong magic",
+      "reason": "class magic"
+    },
+    {
+      "expected_refusal": true,
+      "name": "class truncated code",
+      "reason": "truncated binary"
+    },
+    {
+      "name": "authored binary real SDK guard",
+      "passed": true
+    },
+    {
+      "expected_refusal": true,
+      "name": "binary fake SDK owner",
+      "reason": "helper SDK_INT guard/dominance proof dev/mixer/android/NativeAppearanceViewsV2$Api29"
+    },
+    {
+      "expected_refusal": true,
+      "name": "binary guard-chain jump-in",
+      "reason": "helper SDK_INT guard/dominance proof dev/mixer/android/NativeAppearanceViewsV2$Api29"
+    },
+    {
+      "expected_refusal": true,
+      "name": "binary changed threshold",
+      "reason": "helper SDK_INT guard/dominance proof dev/mixer/android/NativeAppearanceViewsV2$Api29"
+    },
+    {
+      "name": "retained historical DEX structural parse only",
+      "passed": true
+    },
+    {
+      "expected_refusal": true,
+      "name": "DEX truncated header",
+      "reason": "DEX byte bound"
+    },
+    {
+      "expected_refusal": true,
+      "name": "DEX wrong magic",
+      "reason": "selected DEX039 magic"
+    },
+    {
+      "expected_refusal": true,
+      "name": "DEX truncated body",
+      "reason": "DEX header/endianness"
+    },
+    {
+      "expected_refusal": true,
+      "name": "DEX broken SHA1",
+      "reason": "DEX SHA1"
+    },
+    {
+      "expected_refusal": true,
+      "name": "DEX broken Adler",
+      "reason": "DEX Adler32"
+    },
+    {
+      "expected_refusal": true,
+      "name": "DEX structurally invalid header with repaired checksums",
+      "reason": "DEX header/endianness"
+    },
+    {
+      "expected_refusal": true,
+      "name": "DEX reserved opcode with repaired checksums",
+      "reason": "DEX reserved/unreviewed opcode 0xff"
+    },
+    {
+      "expected_refusal": true,
+      "name": "DEX unreviewed call-site section with repaired checksums",
+      "reason": "DEX map kind/count/order"
+    },
+    {
+      "name": "DEX original Mutation move alias",
+      "passed": true
+    },
+    {
+      "name": "DEX overwritten register has no original Mutation alias",
+      "passed": true
+    },
+    {
+      "name": "authored DEX helper dataflow exact constructor/setter/postcheck order",
+      "passed": true
+    },
+    {
+      "expected_refusal": true,
+      "name": "DEX hoisted future drawable constructor refused",
+      "reason": "DEX allocation reordered around setter/postcheck"
+    },
+    {
+      "expected_refusal": true,
+      "name": "DEX missing immediate Mutation postcheck refused",
+      "reason": "DEX allocation reordered around setter/postcheck"
+    },
+    {
+      "expected_refusal": true,
+      "name": "DEX constructor invoke kind mismatch refused",
+      "reason": "DEX drawable original Record constructor"
+    },
+    {
+      "denied": true,
+      "name": "process mock active"
+    },
+    {
+      "denied": true,
+      "name": "socket mock active"
+    },
+    {
+      "denied": true,
+      "name": "timer mock active"
+    },
+    {
+      "denied": true,
+      "name": "wait mock active"
+    },
+    {
+      "denied": true,
+      "name": "signal mock active"
+    }
+  ],
+  "denied_before_subject_import": [
+    "os.system",
+    "os.popen",
+    "os.fork",
+    "os.forkpty",
+    "os.posix_spawn",
+    "os.posix_spawnp",
+    "os.kill",
+    "os.killpg",
+    "os.wait",
+    "os.waitpid",
+    "os.waitid",
+    "os.wait3",
+    "os.wait4",
+    "os.setsid",
+    "os.setpgid",
+    "os.getpgid",
+    "os.getsid",
+    "os.getpgrp",
+    "os.execl",
+    "os.execle",
+    "os.execlp",
+    "os.execlpe",
+    "os.execv",
+    "os.execve",
+    "os.execvp",
+    "os.execvpe",
+    "os.spawnl",
+    "os.spawnle",
+    "os.spawnlp",
+    "os.spawnlpe",
+    "os.spawnv",
+    "os.spawnve",
+    "os.spawnvp",
+    "os.spawnvpe",
+    "subprocess.Popen",
+    "subprocess.run",
+    "subprocess.call",
+    "subprocess.check_call",
+    "subprocess.check_output",
+    "subprocess.getoutput",
+    "subprocess.getstatusoutput",
+    "socket.socket",
+    "socket.socketpair",
+    "socket.create_connection",
+    "socket.create_server",
+    "socket.getaddrinfo",
+    "signal.signal",
+    "signal.pthread_kill",
+    "signal.raise_signal",
+    "signal.alarm",
+    "signal.setitimer",
+    "signal.pause",
+    "signal.sigwait",
+    "time.sleep",
+    "threading.Timer",
+    "threading.Thread"
+  ],
+  "failures_preserved": "setup-and-failures.md",
+  "historical_fixture": {
+    "bytes": 400424,
+    "path": "verification/android-api28-collections-prerequisite/attempt-1/actual20.classes.dex",
+    "sha256": "646c267d8230fa76757f302ac0e4effc86af910c84cdc15c0202844c8f255469"
+  },
+  "inspector": {
+    "bytes": 52483,
+    "sha256": "7e15cfa979f19a72443436dc3f64bba2a6b88c2ed652e8956e96dd454380d83b"
+  },
+  "limitations": [
+    "Finite emitted instruction/reference evidence only; no JVM verification, Android linkage, ART/OEM/native/UI/IME/TalkBack or physical-device execution.",
+    "Does not admit lower-API V2, public V2, complete matrix/BCI equivalence, source-pair promotion, OTA, release or GA.",
+    "Producer must separately bind frozen source115/product16, compiler/SDK/D8 identities, flags and immutable artifact custody.",
+    "DEX checksum/structure and exact references are separate from classfile evidence; unreviewed later-API synthetic outlining refuses.",
+    "DEX annotation/debug/encoded-value semantics and general verifier correctness are outside the finite decoder; executable references and relevant method bodies are checked."
+  ],
+  "python": {
+    "executable": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "executable_identity": {
+      "bytes": 34640,
+      "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+    },
+    "version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+  },
+  "schema": 1,
+  "source_context": "root supplied 5b6fc4f5 context only; no Git query",
+  "status": "passed data-only preparation controls; no changed product artifact exists in this lane"
+}

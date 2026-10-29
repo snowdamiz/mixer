@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "status": "expected-from-source-only; emitted-class inspection pending",
+  "new_nested_classes": [
+    {
+      "binary_name": "dev.mixer.android.NativeAppearanceViewsV2$Api29",
+      "entry": "authoredSelection(NativeField, Record, Mutation)",
+      "later_native_method_names_in_order": [
+        "setTextCursorDrawable",
+        "setTextSelectHandle",
+        "setTextSelectHandleLeft",
+        "setTextSelectHandleRight"
+      ],
+      "native_descriptor": "(Landroid/graphics/drawable/Drawable;)V",
+      "caller_guard": "android.os.Build.VERSION.SDK_INT >= 29",
+      "postcheck": "original Mutation.require() immediately after each setter"
+    },
+    {
+      "binary_name": "dev.mixer.android.NativeAppearanceViewsV2$Api30",
+      "entry": "stateDescription(View, CharSequence, Mutation)",
+      "later_native_method_names_in_order": ["setStateDescription"],
+      "native_descriptor": "(Ljava/lang/CharSequence;)V",
+      "caller_guard": "android.os.Build.VERSION.SDK_INT >= 30",
+      "postcheck": "original Mutation.require() immediately after native setter"
+    },
+    {
+      "binary_name": "dev.mixer.android.NativeRenderer$Api30",
+      "entry": "stateDescription(View, CharSequence)",
+      "later_native_method_names_in_order": ["setStateDescription"],
+      "native_descriptor": "(Ljava/lang/CharSequence;)V",
+      "caller_guard": "Build.VERSION.SDK_INT >= 30",
+      "postcheck": "legacy V1 has no Mutation contract; original result and failure behavior preserved"
+    }
+  ],
+  "forbidden_later_method_reference_locations": [
+    "NativeAppearanceViewsV2 outer class",
+    "NativeAppearanceViewsV2$Record",
+    "NativeAppearanceViewsV2$NativeField",
+    "NativeRenderer outer class",
+    "all other product emitted classes"
+  ],
+  "emitted_evidence_required_later": [
+    "Exact frozen derivative compilation with pinned JDK identity",
+    "All emitted class names and hashes, including all three added helpers",
+    "Constant-pool/instruction method references resolve only in intended helper classes",
+    "Per-setter instruction order and original Mutation postcheck in Api29 and Api30",
+    "Pinned official SDK37 product compilation and D8 min-api28 output identity"
+  ],
+  "old_bci_or_280_subject_receipt_transfer": false,
+  "new_public_or_lower_api_support_claim": false
+}

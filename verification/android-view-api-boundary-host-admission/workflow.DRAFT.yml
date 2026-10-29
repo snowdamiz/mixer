@@ -1,0 +1,69 @@
+# DRAFT ONLY. Stored outside .github/workflows; no dispatch or installation authorized.
+# Provider boundary: pre-existing exact official Linux x64 JDK/SDK37/D8 and
+# root-admitted Ubuntu Python infrastructure. No installer/download/setup fallback.
+# Root selects a
+# provider and immutable revision after independent review, then installs a new
+# reviewed workflow; installing this draft byte-for-byte is not implied.
+name: Android view API focused admission DRAFT
+on:
+  workflow_dispatch:
+    inputs:
+      root_selection_json:
+        description: Root-selected exact seal, source, inspector, revision and fresh dispatch nonce
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: android-view-api-focused-admission
+  cancel-in-progress: false
+jobs:
+  focused:
+    runs-on: ubuntu-24.04
+    # 2 checkout +1 data setup +15 collection +2 upload +2 scheduling reserve.
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        timeout-minutes: 2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/workflows/android-view-api-focused-admission.yml
+            /verification/android-view-api-boundary-host-admission/
+            /verification/android-view-api-boundary-candidate/
+            /verification/android-view-api-boundary-independent/
+            /verification/android-view-api-boundary-selection-2026-10-29/contract.json
+            /verification/android-view-api-boundary-bytecode-inspection/
+            /verification/android-view-api-boundary-linux-tool-profile/
+            /verification/android-view-api-boundary-toolchain-observation/jar-data-observation.json
+            /verification/android-view-api-boundary-toolchain-observation/provider-image-observation.json
+      - name: Materialize explicit root selection as data
+        timeout-minutes: 1
+        env:
+          MIXER_ROOT_SELECTION_JSON: ${{ inputs.root_selection_json }}
+          MIXER_SELECTION_PATH: ${{ runner.temp }}/android-view-api-root-selection.json
+        run: |
+          /usr/bin/python3 -I -B -c 'import os,pathlib; p=pathlib.Path(os.environ["MIXER_SELECTION_PATH"]); p.open("x").write(os.environ["MIXER_ROOT_SELECTION_JSON"])'
+      - name: One selected focused host and SDK37 D8 closure
+        timeout-minutes: 15
+        run: |
+          /usr/bin/python3 -I -B \
+            verification/android-view-api-boundary-host-admission/collect.py \
+            --root-selection "$RUNNER_TEMP/android-view-api-root-selection.json" \
+            --output "$RUNNER_TEMP/android-view-api-focused-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+      - name: Preserve every setup, stream, failure and retained scratch
+        if: always()
+        timeout-minutes: 2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: android-view-api-focused-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            ${{ runner.temp }}/android-view-api-focused-${{ github.run_id }}-${{ github.run_attempt }}/
+            ${{ runner.temp }}/android-view-api-root-selection.json
+            ${{ github.workspace }}/verification/android-view-api-boundary-host-admission/
+            ${{ github.workspace }}/verification/android-view-api-boundary-bytecode-inspection/

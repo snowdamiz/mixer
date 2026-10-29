@@ -1,0 +1,7 @@
+This packet selects data needed for the proposed focused Linux Android admission. Current Engine run 40831237081 supplies three agreeing hosted Java/Javac launcher identities and exact Temurin 17.0.21+9 version output. The raw owner artifact is hash-bound and kept locally; only tool metadata was inspected here, not a fresh acceptance of its full test/custody evidence.
+
+Official SDK37 android.jar and D8 9.2.4-dev jar bytes match the accepted cross-2 receipt. Three Android class samples are major52 and the D8 entry class is major55. This is bounded data inspection, not whole-archive JDK17 compatibility or compiler/runtime evidence.
+
+The official Ubuntu24.04 published inventory reports JDK17.0.21+9, SDK platform android-37.0 rev2 and build-tools37.0.0 at the fixed paths in provider-image-observation.json. That mutable main snapshot reports image20261026.354.1; the prior canonical VM log reports20261025.353.1. Neither substitutes for actual new-run path, byte and version preflight. No SDK installer or downloaded tool execution is selected.
+
+The separate Linux profile derives exact runtime members from the official archive; its library/configuration and Ubuntu provider boundaries remain explicit. All local compiler/JVM/product/native/capture holds persist. One local buffer-name data-setup error is retained; its corrected local archive read did not repeat a network download. No signed URL was retained.

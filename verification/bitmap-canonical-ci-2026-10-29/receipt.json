@@ -1,0 +1,294 @@
+{
+  "schema": 1,
+  "decision": "Accept the delivered canonical bitmap integration at ordinary-host CI scope.",
+  "head": "5b6fc4f5c119cb0b2770f8ee752f6cba57761229",
+  "tree": "6ba7b6693e4b63f400bcac80883bbcc42016a3da",
+  "run": 40831237081,
+  "attempt": 1,
+  "workflow": 393488255,
+  "workflowPath": ".github/workflows/verify.yml",
+  "workflowName": "Owned engine checks",
+  "successfulJobs": 6,
+  "conclusion": "success",
+  "terminalReceipt": {
+    "path": "verification/github-delivery-bitmap-integration/engine-terminal.json",
+    "sha256": "6142dffb06d48490bbdd0eb84ccbdccf6ce6d7f7c41157c7c8393f88b030eee1",
+    "sealSHA256": "cf025e7c02b438a7f9e7dd94508e83ebf8e39e1c29b4ca5c062296044c830e09"
+  },
+  "delivery": {
+    "paths": 37,
+    "nonforce": true,
+    "manualDispatches": 0,
+    "actualLocalGitGhCommands": 48,
+    "allDirectReapOwnedGroupAbsenceSeparateEOF": true,
+    "nonselectedDirtyTrackedPreserved": 2,
+    "collapsedPreexistingUntrackedIdentitiesPreserved": 2382,
+    "sealSHA256": "29f20bbd9ee0e760120bc5d6497153847e1a62180e7dc930a99d30a52948b873"
+  },
+  "vmLog": {
+    "job": 123305690448,
+    "acquisition": {
+      "schema": 1,
+      "run": 40831237081,
+      "job": 123305690448,
+      "head": "5b6fc4f5c119cb0b2770f8ee752f6cba57761229",
+      "source": "GitHub connector fetch_workflow_job_logs decoded log",
+      "bytes": 3851690,
+      "sha256": "4b6e930a7ce9c7f231aac57f6cee8cdcbc354d8385308b358449ccbacfbffe1a",
+      "consumerByteCap": 33554432,
+      "transportDownloadManagedByConnector": true,
+      "rawResponseRetained": false,
+      "signedURLsPrintedOrStored": false,
+      "sourceRuntime": false,
+      "setup": {
+        "genericFetchReturnedIsError": true,
+        "genericErrorTextLength": 112,
+        "genericErrorBodyNotRetained": true,
+        "oneToolMetadataLookupAbortedBeforeDispatch": true,
+        "firstLargeTransferChunkFailedBeforeWrite": true,
+        "smallerChunksSucceeded": true
+      }
+    },
+    "checkoutHeadPresent": true,
+    "strictSummaryRows": 306,
+    "failedSummaryRows": 0,
+    "perStep": [
+      {
+        "step": "cargo test --locked --manifest-path vm/Cargo.toml",
+        "summaryRows": 37,
+        "totals": {
+          "passed": 91,
+          "failed": 0,
+          "ignored": 8,
+          "measured": 0,
+          "filtered": 0
+        },
+        "commands": [
+          "cargo test --locked --manifest-path vm/Cargo.toml"
+        ]
+      },
+      {
+        "step": "cargo test --locked --release --manifest-path vm/Cargo.toml",
+        "summaryRows": 37,
+        "totals": {
+          "passed": 91,
+          "failed": 0,
+          "ignored": 8,
+          "measured": 0,
+          "filtered": 0
+        },
+        "commands": [
+          "cargo test --locked --release --manifest-path vm/Cargo.toml"
+        ]
+      },
+      {
+        "step": "python3 vm/tools/generate-capability-terminals.py",
+        "summaryRows": 148,
+        "totals": {
+          "passed": 1398,
+          "failed": 0,
+          "ignored": 18,
+          "measured": 0,
+          "filtered": 1380
+        },
+        "commands": [
+          "python3 vm/tools/generate-capability-terminals.py",
+          "cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native",
+          "cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native",
+          "cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native -- --ignored",
+          "cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native -- --ignored"
+        ]
+      },
+      {
+        "step": "cargo test --locked --manifest-path vm/Cargo.toml --features experimental-swift-reactor",
+        "summaryRows": 74,
+        "totals": {
+          "passed": 1140,
+          "failed": 0,
+          "ignored": 18,
+          "measured": 0,
+          "filtered": 0
+        },
+        "commands": [
+          "cargo test --locked --manifest-path vm/Cargo.toml --features experimental-swift-reactor",
+          "cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-swift-reactor",
+          "cargo clippy --locked --manifest-path vm/Cargo.toml --lib --features experimental-swift-reactor -- -D warnings"
+        ]
+      },
+      {
+        "step": "cargo test --locked --manifest-path vm/Cargo.toml --features experimental-span-execution,experimental-capability-native --test span_function_cache_allocations --test span_execution_allocations --test experimental_allocations --test experimental_capability_guest_allocations --test capability_ffi_allocations -- --nocapture",
+        "summaryRows": 10,
+        "totals": {
+          "passed": 10,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered": 0
+        },
+        "commands": [
+          "cargo test --locked --manifest-path vm/Cargo.toml --features experimental-span-execution,experimental-capability-native --test span_function_cache_allocations --test span_execution_allocations --test experimental_allocations --test experimental_capability_guest_allocations --test capability_ffi_allocations -- --nocapture",
+          "cargo test --locked --manifest-path vm/Cargo.toml --features experimental-span-execution,experimental-capability-native --test span_function_cache_allocations --test span_execution_allocations --test experimental_allocations --test experimental_capability_guest_allocations --test capability_ffi_allocations --release -- --nocapture"
+        ]
+      }
+    ],
+    "allFeatureModes": [
+      {
+        "name": "Debug regular",
+        "groups": 37,
+        "passed": 690,
+        "failed": 0,
+        "ignored": 9,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "name": "Release regular",
+        "groups": 37,
+        "passed": 690,
+        "failed": 0,
+        "ignored": 9,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "name": "Debug explicit ignored",
+        "groups": 37,
+        "passed": 9,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 690
+      },
+      {
+        "name": "Release explicit ignored",
+        "groups": 37,
+        "passed": 9,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 690
+      }
+    ],
+    "completeTestsPerModeAcrossRegularAndExplicitIgnored": 699,
+    "nodeOracles": [
+      {
+        "name": "accepted_mutations_are_also_valid_webassembly_in_node",
+        "passedTerminals": 2,
+        "ignoredTerminals": 6
+      },
+      {
+        "name": "conversions_reinterpret_and_saturating_boundaries",
+        "passedTerminals": 2,
+        "ignoredTerminals": 6
+      },
+      {
+        "name": "copy_fill_overlap_bounds_and_zero_length",
+        "passedTerminals": 2,
+        "ignoredTerminals": 6
+      },
+      {
+        "name": "every_float_arithmetic_comparison_rounding_and_bitwise_opcode",
+        "passedTerminals": 2,
+        "ignoredTerminals": 6
+      },
+      {
+        "name": "every_integer_opcode_matches_node",
+        "passedTerminals": 2,
+        "ignoredTerminals": 6
+      },
+      {
+        "name": "float_memory_calls_and_global_ownership_preserve_bits",
+        "passedTerminals": 2,
+        "ignoredTerminals": 6
+      },
+      {
+        "name": "indirect_types_arguments_nulls_elements_and_instantiation",
+        "passedTerminals": 2,
+        "ignoredTerminals": 6
+      },
+      {
+        "name": "node_validation_of_original_supported_subset_fixtures",
+        "passedTerminals": 2,
+        "ignoredTerminals": 4
+      },
+      {
+        "name": "structured_control_and_memory_match_node",
+        "passedTerminals": 2,
+        "ignoredTerminals": 6
+      }
+    ],
+    "sevenNewBitmapTests": [
+      {
+        "name": "pin_bitmap_integration_masks_and_unchanged_policy",
+        "successfulObservations": 4,
+        "scope": "all-feature Debug/Release and private-reactor Debug/Release"
+      },
+      {
+        "name": "pin_bitmap_integration_every_narrow_capacity_and_last_bit",
+        "successfulObservations": 4,
+        "scope": "all-feature Debug/Release and private-reactor Debug/Release"
+      },
+      {
+        "name": "pin_bitmap_integration_hole_reuse_and_constant_selection_work",
+        "successfulObservations": 4,
+        "scope": "all-feature Debug/Release and private-reactor Debug/Release"
+      },
+      {
+        "name": "pin_bitmap_integration_corruption_preserves_records_and_token",
+        "successfulObservations": 4,
+        "scope": "all-feature Debug/Release and private-reactor Debug/Release"
+      },
+      {
+        "name": "pin_bitmap_integration_all_failure_prefixes_and_constructor_admission",
+        "successfulObservations": 4,
+        "scope": "all-feature Debug/Release and private-reactor Debug/Release"
+      },
+      {
+        "name": "pin_bitmap_integration_terminal_cancellation_keeps_release_available",
+        "successfulObservations": 4,
+        "scope": "all-feature Debug/Release and private-reactor Debug/Release"
+      },
+      {
+        "name": "pin_bitmap_integration_geometry_and_consuming_cleanup",
+        "successfulObservations": 4,
+        "scope": "all-feature Debug/Release and private-reactor Debug/Release"
+      }
+    ],
+    "observedToolIdentities": [
+      "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+      "cargo 1.99.1 (5f94df478 2026-08-27)",
+      "v22.23.4"
+    ],
+    "strictLibraryClippyCompleted": true,
+    "fullAllTargetClippyScope": "Prior exact-candidate manual run 40824584975, Rust1.99.0",
+    "rawLogPath": "verification/bitmap-canonical-integration-2026-10-29/local/canonical-ci/vm-job.log"
+  },
+  "source": {
+    "members": 136,
+    "changedCanonicalFiles": 15,
+    "closure": "e9282e05cea70d4aceaf6a145fb9f971acb023dd41a7d4651216753666305ba1",
+    "productionFiles": 2,
+    "testFiles": 13,
+    "defaultLimitsHeadersDependenciesPublicABIUnchanged": true
+  },
+  "manualEvidence": {
+    "DebugRun": 40824584975,
+    "DebugCommandPasses": 699,
+    "DebugOriginalAdmissionFailed": true,
+    "ReleaseRun": 40828181211,
+    "ReleasePasses": 699,
+    "allIdentitiesAndGroupsMatch": true
+  },
+  "limitations": {
+    "otherJobsTerminalMetadataOnly": true,
+    "ordinaryRemoteProcessAndBinaryCustodyNotReaudited": true,
+    "priorManualCustodyLimitationsPreserved": true,
+    "unchangedFullFixtureEnvelopeArtifactsNotReaudited": true,
+    "historical512Resident128PinSourceVariantRequalified": false,
+    "nativeUICapturePhones": false,
+    "publishedFieldLog": false,
+    "storeCustomerGA": false,
+    "allExistingHoldsUnchanged": true
+  },
+  "newLocalSubjectRuntimeCommands": 0
+}
