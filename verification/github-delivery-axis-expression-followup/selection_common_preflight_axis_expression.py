@@ -1,0 +1,271 @@
+"""Exact frozen selection, preservation and root-reviewed argv only. No top-level commands."""
+import sys
+sys.dont_write_bytecode = True
+assert sys.flags.isolated == 1 and sys.flags.no_site == 1 and sys.flags.optimize == 0
+import hashlib
+import importlib.util
+import json
+import os
+import stat
+from pathlib import Path, PurePosixPath
+
+OUT = Path(__file__).resolve().parent
+ROOT = OUT.parents[1]
+BASE = 'c89b4d1657fc46581d8788169f9c961a2413c4f4'
+TREE = '507ff501dbb8130ce37632eb3b207f5990f3689c'
+SELECTION = 'verification/android-axis-expression-selection-2026-10-29/selection.json'
+SELECTION_SHA = 'ac7254777f365fcefb9333171f9d8948f9e9f73e6b7596f28ecdb370395f5d39'
+SELECTION_BYTES = 48000
+SELECTED_COUNT = 174
+HELPER_SHA = '5ea93ef940f854c6510b19cc2c36df39183212b5026f725ee416f2a3cac48e59'
+raw_helper = (OUT / 'owned.py').read_bytes()
+assert hashlib.sha256(raw_helper).hexdigest() == HELPER_SHA
+spec = importlib.util.spec_from_file_location('axis_expression_preflight_owned', OUT / 'owned.py')
+owned = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = owned
+spec.loader.exec_module(owned)
+ORIGINAL_VALIDATE_ARGV = owned.validate_argv
+PUSH_URL_READ_EXCEPTION = ('git', 'remote', 'get-url', '--push', '--all', 'origin')
+
+
+def selected_read_admission_adapter(argv):
+    if isinstance(argv, (list, tuple)) and tuple(argv) == PUSH_URL_READ_EXCEPTION:
+        return True
+    return ORIGINAL_VALIDATE_ARGV(argv)
+
+
+owned.validate_argv = selected_read_admission_adapter
+ADAPTER_FRAGMENT_SHA256 = '2d88ec37fed744df317fb5c933eb7f5505c852a39434273b1234416f8661a94c'
+row, save, now = owned.row, owned.save, owned.now
+assert row(ROOT / SELECTION) == {'path': SELECTION, 'bytes': SELECTION_BYTES, 'sha256': SELECTION_SHA}
+S = json.loads((ROOT / SELECTION).read_bytes())
+assert S['baseline'] == {'revision': BASE, 'tree': TREE}
+assert S['repository'] == 'snowdamiz/mixer' and S['branch'] == 'main' and S['remote'] == 'origin'
+assert S['includeSelectionItself'] == SELECTION and S['selectedCountIncludingSelf'] == SELECTED_COUNT
+assert len(S['selectedRows']) == SELECTED_COUNT - 1
+assert set(S['manualHosts']) == {'axis'}
+for source in S['manualHosts'].values():
+    assert source['dispatches'] == 1 and source['retries'] == 0 and source['attempt'] == 1
+    assert source['actualDispatched'] == 0 and source['expectedJobs'] == 1
+    assert source['consumeAllowanceBeforeDispatch'] is True and source['unknownOutcomeReplay'] is False
+    assert source['bindDeliveredSHAThenEnableSelection'] is True
+ROOT_REVIEW_SHA256 = '53d3a2d34709518f62d581151b7e04fb36810312bb6a3daa1339696f9c80fb5d'
+assert S['rootReviewSHA256'] == ROOT_REVIEW_SHA256
+assert type(ROOT_REVIEW_SHA256) is str and len(ROOT_REVIEW_SHA256) == 64
+
+
+def assert_absent(value):
+    try:
+        (ROOT / value).lstat()
+    except FileNotFoundError:
+        return
+    raise AssertionError('Required absence failed: ' + value)
+
+
+def safe(value):
+    p = PurePosixPath(value)
+    assert value and not p.is_absolute() and '..' not in p.parts and '.' not in p.parts and '\\' not in value
+    assert str(p) == value
+    assert all(not parent.is_symlink() for parent in (ROOT / value).parents)
+
+
+def selected_row(value):
+    safe(value['path'])
+    p = ROOT / value['path']
+    actual = row(p)
+    st = p.lstat()
+    actual['mode'] = '100755' if stat.S_IMODE(st.st_mode) & 0o111 else '100644'
+    assert actual == value, value['path']
+    return actual
+
+ROWS = [selected_row(value) for value in S['selectedRows']]
+selfrow = row(ROOT / SELECTION)
+selfrow['mode'] = '100755' if stat.S_IMODE((ROOT / SELECTION).stat().st_mode) & 0o111 else '100644'
+ROWS.append(selfrow)
+SELECTED = {value['path'] for value in ROWS}
+assert len(SELECTED) == SELECTED_COUNT
+assert not any(value.startswith(('vm/', 'android/', 'sdk/')) for value in SELECTED)
+assert not any(value.startswith('.wrangler') for value in SELECTED)
+PROTECTED = S['preservation']['protected']
+assert not any(value['path'] in SELECTED for value in PROTECTED)
+
+
+def fingerprint(value):
+    p = ROOT / value.rstrip('/')
+    try:
+        st = p.lstat()
+    except FileNotFoundError:
+        return {'path': value, 'missing': True}
+    result = {'path': value, 'mode': stat.S_IMODE(st.st_mode), 'type': stat.S_IFMT(st.st_mode)}
+    if stat.S_ISREG(st.st_mode):
+        h = hashlib.sha256()
+        with p.open('rb') as handle:
+            for block in iter(lambda: handle.read(1024 * 1024), b''):
+                h.update(block)
+        result.update(bytes=st.st_size, sha256=h.hexdigest())
+    elif stat.S_ISLNK(st.st_mode):
+        result['target'] = os.readlink(p)
+    else:
+        result.update(inode=st.st_ino, device=st.st_dev)
+    return result
+
+
+def preserved_entry(value):
+    st = (ROOT / value.rstrip('/')).lstat()
+    return {'path': value, 'mode': stat.S_IMODE(st.st_mode), 'type': stat.S_IFMT(st.st_mode),
+            'inode': st.st_ino, 'device': st.st_dev}
+
+
+def raw_rows(raw):
+    parts = raw.split(b'\0')
+    assert len(parts) % 2 == 1
+    result = []
+    for index in range(0, len(parts) - 1, 2):
+        meta, value = parts[index].decode(), parts[index + 1].decode()
+        fields = meta.split()
+        assert len(fields) == 5 and fields[-1] in ('M', 'D', 'T', 'A')
+        safe(value)
+        result.append({'path': value, 'gitRaw': meta})
+    return result
+
+
+def collapsed(raw):
+    result = []
+    for value in raw.split(b'\0'):
+        if not value:
+            continue
+        decoded = value.decode()
+        assert len(decoded) > 3 and decoded[2] == ' ' and not any(c in decoded[:2] for c in 'RC')
+        result.append({'status': decoded[:2], 'path': decoded[3:]})
+    return result
+
+
+def check_sources():
+    assert row(ROOT / SELECTION) == {'path': SELECTION, 'bytes': SELECTION_BYTES, 'sha256': SELECTION_SHA}
+    for expected in ROWS:
+        assert selected_row(expected) == expected
+    for expected in PROTECTED:
+        assert row(ROOT / expected['path'])['sha256'] == expected['sha256']
+    assert row(ROOT / S['ordinaryHost']['workflow'])['sha256'] == S['ordinaryHost']['workflowSHA256']
+    assert_absent('hosted/lib/mixer_hosted/artifacts/store.ex')
+    for source in S['manualHosts'].values():
+        assert source['workflow'] in SELECTED and source['selectionTemplate'] in SELECTED
+        assert row(ROOT / source['workflow'])['sha256'] == source['workflowSHA256']
+    helper_binding = S['deliveryHelper']
+    assert helper_binding['path'] == str((OUT / 'owned.py').relative_to(ROOT))
+    assert helper_binding['sha256'] == HELPER_SHA
+    assert helper_binding['priorHelper'] == {'path': 'verification/github-delivery-android-host-followup/owned.py', 'bytes': 29385, 'sha256': '30519c17fad93ddb4d70f1d217d3033f3890c2ce3b656cb25e424d102e2ddbbf'}
+    assert helper_binding['priorCorrectionSeal'] == {'path': 'verification/github-delivery-android-view-api-boundary/preparation-correction-seal.json', 'sha256': 'db9df0c6a412b6ee1047c6abb431941823858f08f42c07d154b5cf405659ffe3'}
+    assert helper_binding['independentReviewSeal'] == {'path': 'verification/android-view-api-git-custody-review/review-seal.json', 'sha256': '1c67d7aef5cc9602b6127b4fad4471eab2d2e8081b3214c0689e55646a75ed0a'}
+    assert row(ROOT / helper_binding['path'])['sha256'] == HELPER_SHA
+    assert helper_binding['guardedControlsInherited'] == 44
+    assert selected_row(helper_binding['baselineRepinEvidence']) == helper_binding['baselineRepinEvidence']
+    assert row(ROOT / helper_binding['priorHelper']['path']) == helper_binding['priorHelper']
+    assert row(ROOT / helper_binding['priorCorrectionSeal']['path'])['sha256'] == helper_binding['priorCorrectionSeal']['sha256']
+    assert row(ROOT / helper_binding['independentReviewSeal']['path'])['sha256'] == helper_binding['independentReviewSeal']['sha256']
+    assert helper_binding['currentRootReview'] == 'verification/android-axis-expression-selection-2026-10-29/helper-review.json'
+    assert helper_binding['currentRootReview'] in SELECTED
+    assert helper_binding['exactArgvApprovalBeforeEveryActualPhase'] is True
+    assert helper_binding['separateWorkflowPhaseAuthorityRequired'] is True
+
+
+DRIVERS = ["selection_common_preflight_axis_expression.py","preflight_axis_expression.py"]
+ORDINARY_NAME = 'Owned engine checks'
+
+
+def admission_adapter_evidence():
+    return {'source': row(OUT / 'selection_common_preflight_axis_expression.py'),
+            'function': 'selected_read_admission_adapter', 'fragmentSHA256': ADAPTER_FRAGMENT_SHA256,
+            'exactReadOnlyException': list(PUSH_URL_READ_EXCEPTION),
+            'otherVectorsDelegateUnchangedToHelperSHA256': HELPER_SHA,
+            'strictRootManifestMatchRequiredBeforeAdapter': True,
+            'startupCustodyClosureOrSignalingChanged': False}
+
+
+def check_driver_sources(authority):
+    expected = authority['driverSources']
+    assert {value['path'] for value in expected} == {str((OUT / name).relative_to(ROOT)) for name in DRIVERS}
+    for value in expected:
+        assert row(ROOT / value['path']) == value
+
+
+def reject_gh_read_flags(argv):
+    if argv[:2] == ['gh', 'api']:
+        assert len(argv) == 7 and argv[3:6] == ['--hostname', 'github.com', '--jq']
+        assert argv[2].startswith('repos/snowdamiz/mixer/') and not argv[2].startswith('-')
+        blocked = ('--method', '--input', '--field', '--raw-field', '-X', '-f', '-F')
+        assert not any(arg.startswith(blocked) for arg in argv[2:]), 'Read-call method/input/field forms forbidden'
+    elif argv[0] == 'gh' and argv[1] != 'workflow':
+        assert argv == ['gh', '--version']
+
+
+def require_exact_manifest_argv(expected, supplied):
+    assert supplied == expected, 'Unapproved command vector'
+    return True
+
+
+EXPECTED_PREFLIGHT_COMMANDS = json.loads("[{\"name\":\"git-version\",\"argv\":[\"git\",\"--version\"],\"effectiveArgv\":[\"git\",\"-c\",\"gc.auto=0\",\"-c\",\"maintenance.auto=false\",\"--version\"],\"kind\":\"read\"},{\"name\":\"gh-version\",\"argv\":[\"gh\",\"--version\"],\"effectiveArgv\":[\"gh\",\"--version\"],\"kind\":\"read\"},{\"name\":\"head\",\"argv\":[\"git\",\"rev-parse\",\"HEAD\",\"HEAD^{tree}\"],\"effectiveArgv\":[\"git\",\"-c\",\"gc.auto=0\",\"-c\",\"maintenance.auto=false\",\"rev-parse\",\"HEAD\",\"HEAD^{tree}\"],\"kind\":\"read\"},{\"name\":\"branch\",\"argv\":[\"git\",\"branch\",\"--show-current\"],\"effectiveArgv\":[\"git\",\"-c\",\"gc.auto=0\",\"-c\",\"maintenance.auto=false\",\"branch\",\"--show-current\"],\"kind\":\"read\"},{\"name\":\"origin\",\"argv\":[\"git\",\"remote\",\"get-url\",\"origin\"],\"effectiveArgv\":[\"git\",\"-c\",\"gc.auto=0\",\"-c\",\"maintenance.auto=false\",\"remote\",\"get-url\",\"origin\"],\"kind\":\"read\"},{\"name\":\"remote\",\"argv\":[\"git\",\"ls-remote\",\"origin\",\"refs/heads/main\"],\"effectiveArgv\":[\"git\",\"-c\",\"gc.auto=0\",\"-c\",\"maintenance.auto=false\",\"ls-remote\",\"origin\",\"refs/heads/main\"],\"kind\":\"read\"},{\"name\":\"index\",\"argv\":[\"git\",\"diff\",\"--cached\",\"--name-only\",\"-z\"],\"effectiveArgv\":[\"git\",\"-c\",\"gc.auto=0\",\"-c\",\"maintenance.auto=false\",\"diff\",\"--cached\",\"--name-only\",\"-z\"],\"kind\":\"read\"},{\"name\":\"collapsed-status\",\"argv\":[\"git\",\"status\",\"--porcelain=v1\",\"-z\",\"--untracked-files=normal\"],\"effectiveArgv\":[\"git\",\"-c\",\"gc.auto=0\",\"-c\",\"maintenance.auto=false\",\"status\",\"--porcelain=v1\",\"-z\",\"--untracked-files=normal\"],\"kind\":\"read\"},{\"name\":\"complete-raw-diff\",\"argv\":[\"git\",\"diff\",\"--raw\",\"--no-abbrev\",\"--no-renames\",\"-z\"],\"effectiveArgv\":[\"git\",\"-c\",\"gc.auto=0\",\"-c\",\"maintenance.auto=false\",\"diff\",\"--raw\",\"--no-abbrev\",\"--no-renames\",\"-z\"],\"kind\":\"read\"}]")
+
+
+class StrictCommands:
+    def __init__(self, phase, context=None):
+        assert phase == 'preflight-followup' and context is None
+        check_sources()
+        self.manifest_name = 'argv-preflight-axis-expression.json'
+        self.manifest_row = row(OUT / self.manifest_name)
+        self.manifest = json.loads((OUT / self.manifest_name).read_bytes())
+        assert self.manifest['phase'] == phase and self.manifest['selection'] == row(ROOT / SELECTION)
+        raw_authority = (OUT / 'authority.json').read_bytes()
+        self.authority = json.loads(raw_authority)
+        assert self.authority['schema'] == 1 and self.authority['authorized'] is True
+        assert self.authority['repository'] == 'snowdamiz/mixer' and self.authority['branch'] == 'main'
+        assert self.authority['selection'] == row(ROOT / SELECTION), 'Authority must select the exact frozen selection'
+        assert self.authority['baseline'] == {'head': BASE, 'tree': TREE}
+        assert self.authority['selectedPathsIncludingSelf'] == SELECTED_COUNT
+        assert self.authority['argvApprovals'][phase] == self.manifest_row, 'Root exact argv approval required'
+        check_driver_sources(self.authority)
+        self.admission_adapter = admission_adapter_evidence()
+        assert self.authority['admissionAdapter'] == self.admission_adapter, 'Root-selected exact admission adapter binding required'
+        self.context = {}
+        self.expected = {value['name']: value for value in self.manifest['commands']}
+        assert len(self.expected) == len(self.manifest['commands']) == 9
+        assert self.manifest['commands'] == EXPECTED_PREFLIGHT_COMMANDS
+        for value in self.expected.values():
+            effective = ['git', '-c', 'gc.auto=0', '-c', 'maintenance.auto=false', *value['argv'][1:]] if value['argv'][0] == 'git' else value['argv']
+            assert value['effectiveArgv'] == effective, 'Manifest effective argv disagrees with frozen helper prefix'
+        self.used = set()
+        limits = self.manifest['session']
+        assert limits == {'seconds': 210, 'count': 9, 'prefix': 'preflight-followup-'}
+        snapshot = OUT / ('authority-snapshot-' + phase + '.json')
+        with snapshot.open('xb') as handle:
+            handle.write(raw_authority)
+            handle.flush()
+            os.fsync(handle.fileno())
+        directory = os.open(OUT, os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0))
+        try: os.fsync(directory)
+        finally: os.close(directory)
+        self.authority_row = row(snapshot)
+        assert self.authority_row['sha256'] == owned.authority()
+        self.commands = owned.Commands(limits['seconds'], limits['count'], limits['prefix'])
+
+    @property
+    def records(self):
+        return self.commands.records
+
+    def vector(self, name):
+        value = self.expected[name]
+        result = list(value['argv'])
+        reject_gh_read_flags(result)
+        assert result[0] != 'gh' or result == ['gh', '--version']
+        return result
+
+    def run(self, name, argv=None, seconds=25):
+        assert name not in self.used, 'One command admission per exact vector label'
+        assert row(OUT / self.manifest_name) == self.manifest_row
+        assert json.loads((OUT / 'authority.json').read_bytes()) == self.authority
+        check_driver_sources(self.authority)
+        check_sources()
+        expected = self.vector(name)
+        if argv is not None: require_exact_manifest_argv(expected, argv)
+        self.used.add(name)
+        return self.commands.run(name, expected, seconds)

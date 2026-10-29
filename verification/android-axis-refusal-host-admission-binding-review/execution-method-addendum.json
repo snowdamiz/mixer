@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "status": "accepted-narrow-lexical-clone-normalization",
+  "date": "2026-10-29 user-provided date; clock not queried",
+  "scope": "Execution method only; candidate code, original review outputs and seal unchanged",
+  "root_reported_environment": "Before subject invocation, native structuredClone returned foreign-realm object/array prototypes. Reviewer did not reproduce that environment probe.",
+  "method": {
+    "binding": "Lexical structuredClone in ordinary literal-IIFE harness; no global override",
+    "validate_before_serializing": "Complete current-realm JSON tree only: ordinary/null-prototype objects; dense arrays; enumerable own data keys; finite numbers excluding negative zero; no symbols/accessors/cycles/repeated object identities",
+    "return": "current-realm JSON.parse(JSON.stringify(value))",
+    "boundary": "Root retains exact adapter, literal tool-code and input/helper identities. No candidate/comparator/intrinsic/global timer mutation."
+  },
+  "source_audit": {
+    "call_sites": 9,
+    "groups": [
+      {
+        "path": "controls.mjs",
+        "lines": [
+          45,
+          54
+        ],
+        "domain": "Parsed template, then selected JSON tree with scalar overrides. Budget mutation occurs after cloning."
+      },
+      {
+        "path": "binding-controls.mjs",
+        "lines": [
+          48,
+          64,
+          66,
+          68,
+          71,
+          81
+        ],
+        "domain": "Parsed template/selected trees and parsed roster.suites. Changed/type/missing/extra host-budget mutations and method-array reversal occur after cloning."
+      },
+      {
+        "path": "composed-preflight-fixture.mjs",
+        "lines": [
+          84
+        ],
+        "domain": "Root-supplied intended scalar-field context: repository/sha/event/profile/run_id/run_attempt, optional node_version. Complete validation must reject any out-of-domain context."
+      }
+    ],
+    "no_clone_calls": [
+      "verify.mjs",
+      "expression-binding-controls.mjs",
+      "expression-controls.mjs"
+    ]
+  },
+  "conclusion": [
+    "The parsed template and roster are ordinary JSON trees without aliasing, cycles, accessors, symbols or negative zero. Scalar selection overrides preserve that domain.",
+    "These callers need independent value copies. None requires preserved aliases, descriptors, null prototypes, undefined/non-JSON structured-clone types or negative zero.",
+    "After complete prevalidation, JSON round-trip preserves their exact own key sets, scalar types/values, nulls, key order and positional arrays, and supplies current-realm independent objects.",
+    "Non-JSON, sparse/accessor/exotic/cycle, shared-reference and negative-zero comparator controls bypass structuredClone. Comparator validation and raw producer-byte/rootSelectionSHA256 identity remain unchanged."
+  ],
+  "candidate_sources_rehashed_unchanged": [
+    "verify.mjs",
+    "controls.mjs",
+    "binding-controls.mjs",
+    "composed-preflight-fixture.mjs",
+    "expression-binding-controls.mjs",
+    "expression-controls.mjs"
+  ],
+  "identity_reference": {
+    "original_input_evidence_sha256": "f7e363cc88653e4d1aec579d45d6c9ba2457746619d58869e62418261cdaaafa",
+    "original_seal_sha256": "4700d54596208936e549d456f0fa0305097b7da272d4cb955d54130004eab7d4",
+    "original_seal_and_three_bound_outputs_rehashed_unchanged": true
+  },
+  "reviewer_candidate_control_fixture_adapter_invocations": 0,
+  "reviewer_CLI_process_Git_gh_network_native_UI_capture_operations": 0,
+  "authority": "Only the already selected guarded data integration; no new host selection, dispatch, retry or source architecture review"
+}

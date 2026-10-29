@@ -1,0 +1,43 @@
+"""Five axis-specific reads; automatic Engine outcome is independent."""
+import sys
+sys.dont_write_bytecode = True
+assert sys.flags.isolated == 1 and sys.flags.no_site == 1 and sys.flags.optimize == 0
+import importlib.util
+from pathlib import Path
+spec = importlib.util.spec_from_file_location('axis_expression_delivery_common', Path(__file__).with_name('selection_common_axis_expression.py'))
+common = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = common
+spec.loader.exec_module(common)
+import hashlib
+import json
+for name in ('StrictCommands', 'S', 'SELECTION', 'ROOT', 'OUT', 'now', 'row', 'save', 'check_sources', 'bound_context', 'manual_binding', 'ORDINARY_NAME'):
+    globals()[name] = getattr(common, name)
+context = bound_context()
+head = context['DELIVERED_SHA']
+r = json.loads((OUT / 'delivery-followup-receipt.json').read_bytes())
+c = StrictCommands('axis-ci-binding', context)
+assert c.run('head').decode().splitlines() == [head, r['tree']]
+assert c.run('remote-main').decode().split() == [head, 'refs/heads/main']
+label, source = 'axis', S['manualHosts']['axis']
+path = source['workflow']
+payload = (ROOT / path).read_bytes()
+assert hashlib.sha256(payload).hexdigest() == source['workflowSHA256']
+oid = hashlib.sha1(b'blob ' + str(len(payload)).encode() + b'\0' + payload).hexdigest()
+content = json.loads(c.run(label + '-workflow-content'))
+assert content == {'sha': oid, 'size': len(payload), 'path': path, 'type': 'file'}
+registration = json.loads(c.run(label + '-workflow-registration'))
+assert type(registration['id']) is int and registration['id'] > 0
+assert registration['state'] == 'active' and registration['path'] == path
+assert registration['name'] == source['workflowName'] and source['expectedJobs'] == 1
+assert json.loads(c.run('axis-before-runs')) == [], 'Existing selected axis run; never create an additional run'
+c.complete()
+check_sources()
+save('axis-ci-binding.json', {'schema': 1, 'at': now(), 'head': head, 'tree': r['tree'],
+     'selection': row(ROOT / SELECTION), 'delivery': row(OUT / 'delivery-followup-receipt.json'),
+     'manifest': row(OUT / c.manifest_name), 'contents': {'axis': content}, 'registrations': {'axis': registration},
+     'manuals': {'axis': {'beforeCount': 0, 'binding': manual_binding('axis'), 'expectedJobs': 1, 'expectedJobName': source['expectedJobName']}},
+     'manualDispatchesPerformed': 0, 'engineOutcomeRequired': False, 'admissionAdapter': c.admission_adapter,
+     'authoritySnapshot': c.authority_row, 'commands': c.records,
+     'allCommandsAdmittedDirectlyReapedOwnedGroupsAbsentSeparatePipesEOF': True,
+     'runtimeResultsAccepted': False, 'artifactDownloaded': False, 'signedArtifactURLsStoredOrPrinted': False})
+print(json.dumps({'head': head, 'axisBeforeCount': 0, 'closedCommands': len(c.records), 'runtimeResultsAccepted': False}))

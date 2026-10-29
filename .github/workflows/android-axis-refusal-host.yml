@@ -38,7 +38,7 @@ jobs:
             /scripts/ci/verify-apple-toolchain.py
             /verification/android-axis-refusal-host-preparation/
             /verification/android-axis-refusal-host-review/receipt.json
-            /verification/android-axis-refusal-host-admission-expression-correction/
+            /verification/android-axis-refusal-host-admission-binding-correction/
       - name: Exact root binding and 27 source members
         timeout-minutes: 2
         shell: bash
@@ -51,7 +51,7 @@ jobs:
           esac
           printf 'MIXER_AXIS_OUT=%s\n' "$MIXER_AXIS_OUT" >> "$GITHUB_ENV"
           node --input-type=module - <<'NODE'
-          import {preflight} from './verification/android-axis-refusal-host-admission-expression-correction/verify.mjs';
+          import {preflight} from './verification/android-axis-refusal-host-admission-binding-correction/verify.mjs';
           const e=process.env;
           await preflight({root:e.GITHUB_WORKSPACE,outputDirectory:e.MIXER_AXIS_OUT,selection:JSON.parse(e.MIXER_AXIS_ROOT_SELECTION),context:{repository:e.GITHUB_REPOSITORY,sha:e.GITHUB_SHA,event:e.GITHUB_EVENT_NAME,profile:e.MIXER_AXIS_PROFILE,run_id:e.GITHUB_RUN_ID,run_attempt:e.GITHUB_RUN_ATTEMPT,node_version:process.version}});
           NODE
@@ -63,7 +63,7 @@ jobs:
           ulimit -f 65536
           ulimit -f > "$MIXER_AXIS_OUT/apple-bash-file-limit-blocks.txt"
           export MIXER_AXIS_BASH_VERSION="$BASH_VERSION"
-          MIXER_AXIS_LIMIT_PREFIX=apple- python3 -B verification/android-axis-refusal-host-admission-expression-correction/verify-file-limit.py \
+          MIXER_AXIS_LIMIT_PREFIX=apple- python3 -B verification/android-axis-refusal-host-admission-binding-correction/verify-file-limit.py \
             > "$MIXER_AXIS_OUT/apple-file-limit.stdout" 2> "$MIXER_AXIS_OUT/apple-file-limit.stderr"
           python3 -B scripts/ci/verify-apple-toolchain.py \
             --developer-dir "$DEVELOPER_DIR" --xcode-version 26.3 --xcode-build 17C529 \
@@ -77,10 +77,10 @@ jobs:
           ulimit -f 65536
           ulimit -f > "$MIXER_AXIS_OUT/bash-file-limit-blocks.txt"
           export MIXER_AXIS_BASH_VERSION="$BASH_VERSION"
-          python3 -B verification/android-axis-refusal-host-admission-expression-correction/verify-file-limit.py \
+          python3 -B verification/android-axis-refusal-host-admission-binding-correction/verify-file-limit.py \
             > "$MIXER_AXIS_OUT/file-limit.stdout" 2> "$MIXER_AXIS_OUT/file-limit.stderr"
           node --input-type=module - <<'NODE'
-          import {recordCommand} from './verification/android-axis-refusal-host-admission-expression-correction/verify.mjs';
+          import {recordCommand} from './verification/android-axis-refusal-host-admission-binding-correction/verify.mjs';
           const e=process.env;
           await recordCommand({workspace:e.GITHUB_WORKSPACE,runnerTemp:e.RUNNER_TEMP,outputDirectory:e.MIXER_AXIS_OUT,context:{run_id:e.GITHUB_RUN_ID},bashVersion:e.MIXER_AXIS_BASH_VERSION});
           NODE
@@ -95,7 +95,7 @@ jobs:
           set -e
           export MIXER_AXIS_EXIT
           node --input-type=module - <<'NODE'
-          import {recordCommand} from './verification/android-axis-refusal-host-admission-expression-correction/verify.mjs';
+          import {recordCommand} from './verification/android-axis-refusal-host-admission-binding-correction/verify.mjs';
           const e=process.env;
           await recordCommand({workspace:e.GITHUB_WORKSPACE,runnerTemp:e.RUNNER_TEMP,outputDirectory:e.MIXER_AXIS_OUT,context:{run_id:e.GITHUB_RUN_ID},bashVersion:e.MIXER_AXIS_BASH_VERSION,exitCode:Number(e.MIXER_AXIS_EXIT)});
           NODE
@@ -108,7 +108,7 @@ jobs:
           set -euo pipefail
           ulimit -f 65536
           node --input-type=module - <<'NODE'
-          import {postflight} from './verification/android-axis-refusal-host-admission-expression-correction/verify.mjs';
+          import {postflight} from './verification/android-axis-refusal-host-admission-binding-correction/verify.mjs';
           await postflight({root:process.env.GITHUB_WORKSPACE,outputDirectory:process.env.MIXER_AXIS_OUT});
           NODE
       - name: Require every named result and both framework summaries
@@ -119,7 +119,7 @@ jobs:
           set -euo pipefail
           ulimit -f 65536
           node --input-type=module - <<'NODE'
-          import {assess} from './verification/android-axis-refusal-host-admission-expression-correction/verify.mjs';
+          import {assess} from './verification/android-axis-refusal-host-admission-binding-correction/verify.mjs';
           await assess({root:process.env.GITHUB_WORKSPACE,outputDirectory:process.env.MIXER_AXIS_OUT});
           NODE
       - name: Retain successful or failed evidence
