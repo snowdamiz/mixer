@@ -1,0 +1,217 @@
+--- accepted/admit.py
++++ release-only/admit.py
+@@ -10,10 +10,10 @@
+ SEAL_SHA = '0210ab9c252c6f7a5a3eff077e36c2811c79351d916d78b75b2cda88e2bdf85c'
+ BASELINE = 'af0db424af7b08f013d2c6a8894f4d156f76bc5f493620c6f2c0b85d3bf4c48b'
+ CANDIDATE = 'e9282e05cea70d4aceaf6a145fb9f971acb023dd41a7d4651216753666305ba1'
+-PROFILE = 'pin-bitmap-lint-regression-v1'
+-WORKFLOW_PATH = '.github/workflows/swift-pin-bitmap-lint-regression-admission.yml'
++PROFILE = 'pin-bitmap-release-completion-v1'
++WORKFLOW_PATH = '.github/workflows/swift-pin-bitmap-release-completion-admission.yml'
+ TOOLCHAIN = '1.99.0-x86_64-unknown-linux-gnu'
+-ACTIVE_SECONDS, CLEANUP_SECONDS = 1800, 60
++ACTIVE_SECONDS, CLEANUP_SECONDS = 660, 60
+ MAX_FILE_BYTES, MAX_SOURCE_BYTES = 16*1024*1024, 64*1024*1024
+ REQUIRED_HOST_COMPONENTS = ('rustfmt-preview-x86_64-unknown-linux-gnu', 'clippy-preview-x86_64-unknown-linux-gnu')
+ TOOLS = ('rustc', 'rustfmt', 'cargo', 'cargo-clippy', 'clippy-driver')
+@@ -44,6 +44,7 @@
+     'copy_fill_overlap_bounds_and_zero_length',
+     'indirect_types_arguments_nulls_elements_and_instantiation',
+ )
++PRIOR_EVIDENCE = {'schema': 1, 'scope': 'Historical independent actual review; no rerun and no reversal of failed host admission', 'reviewPath': 'verification/swift-pin-bitmap-match-actual-review', 'reviewSealSHA256': '935214e22b97e97473d32826923bebcbf68181c3166f8d55b70ec85458357552', 'runID': 40824584975, 'attempt': 1, 'head': '1eec8e0fc270c0409c8920ee22fd2374f3bd249f', 'tree': 'f20be7de5a047f1983931961cc3d774e56de80a3', 'artifactID': 12876267544, 'artifactSHA256': 'fdd1b83987eb3ecde7912814f27d9cd18d1f35d68d757eadc01b5d75f925810c', 'hostAttemptStatus': 'failed-after-successful-Debug-command-parser-refusal', 'oldAllowanceConsumed': True, 'newAttemptIsRetry': False, 'sourceClosure': 'e9282e05cea70d4aceaf6a145fb9f971acb023dd41a7d4651216753666305ba1', 'formatter': {'exit': 0, 'changedBytes': 0, 'closure': 'e9282e05cea70d4aceaf6a145fb9f971acb023dd41a7d4651216753666305ba1'}, 'clippy': {'exit': 0, 'compilerArtifacts': 38, 'buildFinished': True, 'diagnostics': []}, 'Debug': {'exit': 0, 'seconds': 402.217857, 'passed': 699, 'groups': 37, 'failed': 0, 'ignored': 0, 'measured': 0, 'filtered': 0, 'nodeOracleCounts': {'every_integer_opcode_matches_node': 1, 'structured_control_and_memory_match_node': 1, 'accepted_mutations_are_also_valid_webassembly_in_node': 1, 'node_validation_of_original_supported_subset_fixtures': 1, 'every_float_arithmetic_comparison_rounding_and_bitwise_opcode': 1, 'conversions_reinterpret_and_saturating_boundaries': 1, 'float_memory_calls_and_global_ownership_preserve_bits': 1, 'copy_fill_overlap_bounds_and_zero_length': 1, 'indirect_types_arguments_nulls_elements_and_instantiation': 1}, 'hostParserAdmitted': False, 'independentlyReconstructedTerminals': 699}, 'Release': {'status': 'previously-unrun', 'observedPasses': None}, 'newlyPlannedCommands': ['compiler-identity', 'node-identity', 'release-regression'], 'historicalResultsAreNewRuns': False, 'canonicalPromotionSelected': False, 'GAQualified': False}
+ NODE_SCRIPT = 'console.log(JSON.stringify({execPath:process.execPath,version:process.version,versions:process.versions,platform:process.platform,arch:process.arch}))'
+ 
+ 
+@@ -126,26 +127,96 @@
+     return [
+         {'name': 'compiler-identity', 'argv': [str(toolbin/'rustc'), '-vV'], 'seconds': 30, 'accepted_exits': (0,)},
+         {'name': 'node-identity', 'argv': [node['path'], '-e', NODE_SCRIPT], 'seconds': 30, 'accepted_exits': (0,)},
+-        {'name': 'format-candidate', 'argv': [str(toolbin/'rustfmt'), '--edition', '2021', '--emit', 'files', '--config-path', str(config), *[str(paths['source']/n) for n in OVERLAYS]], 'seconds': 60, 'accepted_exits': (0,)},
+-        {'name': 'clippy-candidate', 'argv': cargo+['clippy', '--manifest-path', manifest, '--locked', '--offline', '--all-features', '--all-targets', '--message-format=json', '--', '-D', 'warnings'], 'seconds': 300, 'accepted_exits': (0,101)},
+-        {'name': 'debug-regression', 'argv': cargo+tests+tail, 'seconds': 600, 'accepted_exits': (0,)},
+         {'name': 'release-regression', 'argv': cargo+tests+['--release']+tail, 'seconds': 600, 'accepted_exits': (0,)},
+     ]
+ 
+ 
+ def test_evidence(text):
+-    summary_lines = [line for line in text.splitlines() if line.lstrip().startswith('test result:')]
+-    pattern = r'test result: (ok|FAILED)\. (\d+) passed; (\d+) failed; (\d+) ignored; (\d+) measured; (\d+) filtered out;(?: finished in [^\r\n]*)?'
+-    summaries = [re.fullmatch(pattern, line) for line in summary_lines]
+-    need(summaries and all(summaries), 'Malformed or missing test summary')
+-    need(all(m[1] == 'ok' for m in summaries), 'Non-ok test summary')
+-    rows = [dict(zip(('passed', 'failed', 'ignored', 'measured', 'filtered'), map(int, m.groups()[1:]))) for m in summaries]
+-    terminals = re.findall(r'^test (\S+) \.\.\. (ok|FAILED|ignored[^\n]*)$', text, re.M)
++    # libtest writes ordinary terminals on one line, but direct stdout writes
++    # can separate a serialized test header from its standalone terminal. Bind
++    # both forms to running groups; captured --show-output text is never a test.
++    need(type(text) is str and len(text.encode('utf-8')) <= 8*1024*1024, 'Test evidence text bound')
++    need(not re.search(r'[\x00-\x08\x0b-\x1f\x7f]', text), 'Control characters in test evidence')
++    summary_pattern = r'test result: (ok|FAILED)\. (\d+) passed; (\d+) failed; (\d+) ignored; (\d+) measured; (\d+) filtered out;(?: finished in \d+(?:\.\d+)?s)?'
++    split_names = {
++        'shared_control_branch_targets_and_frame_boundary',
++        'shared_control_cancellation_and_limits',
++        'shared_control_close_partial_effects',
++        'shared_control_public_parity_trace',
++        'shared_control_warm_dispatch_allocation_free',
++        'shared_control_work_and_fuel_prefixes',
++    }
++    allocation = r'\(\d+, \d+, \d+\)'
++    usage = r'ExecutionUsage \{ [^{}\n]* \}'
++    cache = r'CacheUsage \{ [^{}\n]* \}'
++    config = r'Limits \{ [^{}\n]* \}/ExecutionBudget \{ [^{}\n]* \}/CacheBudget \{ [^{}\n]* \}/(?:true|false)/\d+/\d+'
++    trace_pattern = r'control_trace [a-z][a-z0-9-]* config=' + config + r' (?:constructor=[^\n]+ allocations=' + allocation + r'|initial=' + usage + r' first=[^\n]+ final=' + usage + r' cache=' + cache + r' allocations=' + allocation + '/' + allocation + ')'
++    warm_pattern = r'control_warm [a-z][a-z0-9-]* usage=' + usage + r' cache=' + cache + r' allocations=' + allocation
++    ceiling_pattern = r'control_validation_ceiling (operand|control) failure=Failure \{ kind: ResourceExhausted, code: "profile_\1_limit", [^\n]+ \}'
++    identifier = r'[A-Za-z_][A-Za-z0-9_]*(?:::[A-Za-z_][A-Za-z0-9_]*)*'
++    doctest = r'(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\.rs - ' + identifier + r' \(line [1-9]\d*\)(?: - compile fail)?'
++    rows, terminals, names = [], [], set()
++    group = None
++    pending = None
++    traces = 0
++    for line in text.split('\n'):
++        stripped = line.lstrip()
++        if stripped.startswith('running '):
++            match = re.fullmatch(r'running (0|[1-9]\d*) (test|tests)', line)
++            need(match is not None and group is None and pending is None, 'Malformed or overlapping running group')
++            count = int(match[1])
++            need(count <= 699 and match[2] == ('test' if count == 1 else 'tests') and len(rows) < 700, 'Running group count or grammar')
++            group = {'running': count, 'terminals': 0, 'output': False}
++        elif stripped.startswith('test result'):
++            match = re.fullmatch(summary_pattern, line)
++            need(match is not None and group is not None and pending is None, 'Malformed, orphan or unfinished test summary')
++            need(match[1] == 'ok', 'Non-ok test summary')
++            row = dict(zip(('passed', 'failed', 'ignored', 'measured', 'filtered'), map(int, match.groups()[1:])))
++            need(all(row[k] == 0 for k in ('failed', 'ignored', 'measured', 'filtered')), 'No failed, ignored, measured or filtered tests')
++            need(group['running'] == group['terminals'] == row['passed'], 'Running, terminal and summary counts disagree')
++            rows.append(row)
++            group = None
++        elif stripped.startswith('test ') and (group is None or not group['output'] or ' ... ' in line):
++            need(group is not None and not group['output'] and pending is None, 'Orphan, captured or overlapping test header')
++            need(line.startswith('test ') and line.count(' ... ') == 1, 'Malformed test header')
++            name, status = line[5:].split(' ... ', 1)
++            need(re.fullmatch(identifier, name) or re.fullmatch(doctest, name), 'Malformed test identity')
++            need(name not in names, 'Duplicate test identity')
++            need(group['terminals'] < group['running'] and len(terminals) < 699, 'Too many test headers')
++            names.add(name)
++            if status == 'control_observer serialized lane':
++                need(name in split_names, 'Unrecognized split test identity')
++                pending, traces = name, 0
++            else:
++                need(status == 'ok', 'Non-ok or malformed terminal test status')
++                terminals.append((name, status))
++                group['terminals'] += 1
++        elif pending is not None:
++            if line == 'ok':
++                need(traces > 0, 'Split terminal requires serialized trace output')
++                terminals.append((pending, 'ok'))
++                group['terminals'] += 1
++                pending = None
++            else:
++                trace = re.fullmatch(trace_pattern, line)
++                warm = pending == 'shared_control_warm_dispatch_allocation_free' and re.fullmatch(warm_pattern, line)
++                ceiling = pending == 'shared_control_cancellation_and_limits' and re.fullmatch(ceiling_pattern, line)
++                need(trace is not None or warm or ceiling, 'Malformed split trace or terminal transition')
++                traces += int(trace is not None)
++        elif stripped.startswith(('control_trace', 'control_warm', 'control_observer', 'control_validation_ceiling')):
++            need(False, 'Orphan serialized control output')
++        elif stripped == 'ok' or stripped.startswith(('FAILED', 'ignored')):
++            need(False, 'Orphan or non-ok standalone test result')
++        elif stripped == 'successes:':
++            need(line == stripped and group is not None and group['terminals'] == group['running'], 'Premature or orphan captured output')
++            group['output'] = True
++        else:
++            need(not line or (group is not None and group['output']), 'Unexpected output outside captured test output')
++    need(group is None and pending is None and rows, 'Missing summary or unfinished running group')
+     need(sum(r['passed'] for r in rows) == 699, 'Exactly 699 passed tests required')
+-    need(all(r[k] == 0 for r in rows for k in ('failed', 'ignored', 'measured', 'filtered')), 'No failed, ignored, measured or filtered tests')
+-    need(len(terminals) == 699 and all(status == 'ok' for _, status in terminals), 'Exactly 699 terminal ok lines required')
+-    names = collections.Counter(name for name, _ in terminals)
+-    need(all(names[n] == 1 for n in ORACLES), 'All nine exact Node oracles must pass once')
++    need(len(terminals) == 699, 'Exactly 699 terminal ok lines required')
++    oracle_names = collections.Counter(name for name, _ in terminals)
++    need(all(oracle_names[n] == 1 for n in ORACLES), 'All nine exact Node oracles must pass once')
+     return {'summaries': rows, 'terminals': terminals, 'passed': 699, 'ignored': 0, 'nodeOracles': list(ORACLES),
+             'scope': 'Full all-feature host Debug or Release, including explicit development Node oracles; no production Node interpreter'}
+ 
+@@ -166,10 +237,6 @@
+             need(result['execPath'] == node['path'] and result['platform'] == 'linux' and result['arch'] == 'x64' and re.fullmatch(r'v\d+\.\d+\.\d+', result['version']), 'Node identity child mismatch')
+             need(result['versions']['node'] == result['version'][1:], 'Node version identities disagree')
+             save(out/'node-identity.json', {**node, 'runtime': result})
+-        elif spec['name'] == 'clippy-candidate':
+-            result = lint_evidence(text, row['exit'], source)
+-            save(out/'clippy-candidate.json', result)
+-            need(result['lintPassed'], 'Clippy findings: regression not admitted')
+         elif spec['name'].endswith('-regression'):
+             result = test_evidence(text); save(out/(spec['name']+'.json'), result)
+     except BaseException as e:
+@@ -182,10 +249,6 @@
+         # Keep source and tool postflights independent: a source failure cannot
+         # prevent recording the binary check, or erase the primary exception.
+         try:
+-            if spec['name'] == 'format-candidate':
+-                updated, evidence = format_evidence(out, 'candidate', source, expected, raw_before)
+-                expected.clear(); expected.update(updated); row['formatEvidence'] = evidence
+-                save(out/'formatted-source-manifest.json', {'files': updated, 'treeSHA256': closure(updated)})
+             row['sourceAfter'] = exact_source(source, expected)
+             row['sourcePostflight'] = {'attempted': True, 'verified': True, 'members': 136}
+         except BaseException as e:
+@@ -207,7 +270,7 @@
+     need(os.environ.get('GITHUB_ACTIONS') == 'true' and os.environ.get('RUNNER_ENVIRONMENT') == 'github-hosted', 'GitHub hosted only')
+     need(os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch' and os.environ.get('GITHUB_RUN_ATTEMPT') == '1', 'Manual first attempt only')
+     need(os.environ.get('GITHUB_REPOSITORY') == 'snowdamiz/mixer' and re.fullmatch('[0-9a-f]{40}', os.environ.get('GITHUB_SHA','')), 'Bound source revision')
+-    need(os.environ.get('MIXER_PIN_BITMAP_LINT_SELECTION') == PROFILE, 'Exact profile selection')
++    need(os.environ.get('MIXER_PIN_BITMAP_RELEASE_SELECTION') == PROFILE, 'Exact profile selection')
+     need(platform.system() == 'Linux' and platform.machine() == 'x86_64', 'Linux x86_64 required')
+     temp = Path(os.environ['RUNNER_TEMP']); need(temp.is_absolute() and '..' not in temp.parts, 'Canonical runner temp'); identity(temp)
+     need(not temp.is_relative_to(ROOT) and not ROOT.is_relative_to(temp), 'Separate checkout and temp')
+@@ -217,14 +280,25 @@
+     return temp, toolbin
+ 
+ 
++def prior_evidence():
++    path = ROOT / 'verification/swift-pin-bitmap-match-actual-review'
++    need(sha(regular(path/'seal.json')) == '935214e22b97e97473d32826923bebcbf68181c3166f8d55b70ec85458357552', 'Prior actual review seal changed')
++    seal = json_data((path/'seal.json').read_bytes())
++    for name, expected in seal['files'].items():
++        bound(path/member(name), expected)
++    binding = json_data(regular(HERE/'prior-evidence.json').read_bytes())
++    need(binding == PRIOR_EVIDENCE, 'Prior evidence attribution changed')
++    return binding
++
++
+ def execute():
+-    temp, toolbin = hosted(); manifest, data = inputs(); node = choose_node(temp)
++    temp, toolbin = hosted(); manifest, data = inputs(); prior = prior_evidence(); node = choose_node(temp)
+     tools = {n: binary_row(toolbin/n) for n in TOOLS}
+     out = temp/(PROFILE+'-evidence'); no_symlinks(out); need(not out.exists(), 'Fresh evidence only'); out.mkdir()
+     receipt = {'schema': 1, 'status': 'running', 'sourceRevision': os.environ['GITHUB_SHA'], 'runID': os.environ.get('GITHUB_RUN_ID'), 'runAttempt': 1,
+                'profile': PROFILE, 'baselineTreeSHA256': BASELINE, 'candidateTreeSHA256': CANDIDATE, 'pythonVersion': sys.version,
+-               'activeSeconds': ACTIVE_SECONDS, 'cleanupSeconds': CLEANUP_SECONDS, 'maxChildren': 6, 'perStreamOutputCapBytes': 8*1024*1024, 'aggregateOutputCapBytes': 32*1024*1024,
+-               'commands': [], 'errors': [], 'automaticRetry': False, 'GAQualified': False, 'canonicalInstallationSelected': False,
++               'activeSeconds': ACTIVE_SECONDS, 'cleanupSeconds': CLEANUP_SECONDS, 'maxChildren': 3, 'perStreamOutputCapBytes': 8*1024*1024, 'aggregateOutputCapBytes': 32*1024*1024,
++               'commands': [], 'errors': [], 'automaticRetry': False, 'priorActualEvidence': prior, 'GAQualified': False, 'canonicalInstallationSelected': False,
+                'toolchainFiles': tools, 'node': node, 'installerCustodyEvidence': False, 'explicitPipeEOFSinkCloseFlags': False,
+                'NodeInternalPipeCaps': False, 'individualNodeGrandchildReapEvidence': False, 'descendantScope': 'same-group trusted source children only; no escaped group or whole-provider disposal proof'}
+     marker = {'purpose': PROFILE, 'token': uuid.uuid4().hex}; save(out/'ownership.json', marker); out_id = identity(out)
+@@ -255,9 +329,9 @@
+         for spec in plan:
+             result = checked_command(c, spec, paths, toolbin, tools, node, expected, out, raw_before, config)
+             if spec['name'] == 'compiler-identity': receipt.update(result)
+-        need(len(receipt['commands']) == 6, 'Exactly six managed children')
+-        receipt['formattedSourceClosure'] = closure(expected)
+-        receipt['status'] = 'host-regression-completed'; receipt['DebugPassed'] = receipt['ReleasePassed'] = 699; receipt['ignored'] = 0
++        need(len(receipt['commands']) == 3, 'Exactly three managed children')
++        receipt['unchangedSourceClosure'] = closure(expected)
++        receipt['status'] = 'host-release-completed'; receipt['ReleasePassed'] = 699; receipt['ignored'] = 0
+     except BaseException as e:
+         failure = e; receipt['status'] = 'failed'; receipt['errors'].append(exception_details(e))
+     finally:
+@@ -406,7 +480,7 @@
+ def main():
+     parser = argparse.ArgumentParser(); parser.add_argument('mode', choices=('check', 'run')); args = parser.parse_args()
+     if args.mode == 'check':
+-        m, data = inputs(); print(json.dumps({'sourceMembers': len(data), 'candidateTreeSHA256': CANDIDATE, 'overlays': len(OVERLAYS), 'plannedChildren': 6, 'runtimeRuns': 0})); return
++        m, data = inputs(); print(json.dumps({'sourceMembers': len(data), 'candidateTreeSHA256': CANDIDATE, 'overlays': len(OVERLAYS), 'plannedChildren': 3, 'runtimeRuns': 0})); return
+     print(json.dumps(execute()))
+ 
+ 

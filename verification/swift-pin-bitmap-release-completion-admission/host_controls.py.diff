@@ -1,0 +1,135 @@
+--- accepted/host_controls.py
++++ release-only/host_controls.py
+@@ -14,7 +14,7 @@
+ 
+ def passed_text():
+     names = list(a.ORACLES) + ['fixture_' + str(i) for i in range(690)]
+-    return ''.join('test '+n+' ... ok\n' for n in names)+'test result: ok. 699 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1s\n'
++    return 'running 699 tests\n'+''.join('test '+n+' ... ok\n' for n in names)+'test result: ok. 699 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1s\n'
+ 
+ 
+ class Pipe:
+@@ -95,7 +95,7 @@
+         self.assertEqual(a.digest(old.encode()), reuse['helperPreimage']['sha256'])
+         expected = old.replace('MAX_COMMANDS=5', 'MAX_COMMANDS=6').replace('seconds in (30,300)', 'seconds in (30,60,300,600)').replace('CHILD_SECONDS=300', 'CHILD_SECONDS=600')
+         self.assertEqual((HERE/'bounded_commands.py').read_text(), expected)
+-        self.assertEqual((b.MAX_COMMANDS,b.OUTPUT_CAP,b.AGGREGATE_OUTPUT_CAP,a.ACTIVE_SECONDS,a.CLEANUP_SECONDS),(6,8388608,33554432,1800,60))
++        self.assertEqual((b.MAX_COMMANDS,b.OUTPUT_CAP,b.AGGREGATE_OUTPUT_CAP,a.ACTIVE_SECONDS,a.CLEANUP_SECONDS),(6,8388608,33554432,660,60))
+ 
+     def test_generic_evidence_functions_preserve_reviewed_source(self):
+         reuse = json.loads((HERE/'reuse.json').read_text())
+@@ -107,17 +107,14 @@
+         for n in reuse['genericFunctions']:
+             self.assertEqual(before[n].replace('outside the four overlays','outside the fifteen overlays'), after[n])
+ 
+-    def test_exact_six_child_vectors_and_bounds(self):
++    def test_exact_three_child_vectors_and_bounds(self):
+         p,e,r,t,tools,node,c = self.fixture(); plan = a.command_plan(p,t,c,node)
+-        self.assertEqual([x['name'] for x in plan], ['compiler-identity','node-identity','format-candidate','clippy-candidate','debug-regression','release-regression'])
+-        self.assertEqual([x['seconds'] for x in plan], [30,30,60,300,600,600])
+-        self.assertEqual(sum(x['seconds'] for x in plan),1620)
+-        self.assertEqual(plan[2]['argv'],[str(t/'rustfmt'),'--edition','2021','--emit','files','--config-path',str(c),*[str(p['source']/n) for n in a.OVERLAYS]])
+-        self.assertEqual(plan[3]['argv'],[str(t/'cargo'),'clippy','--manifest-path',str(p['source']/'Cargo.toml'),'--locked','--offline','--all-features','--all-targets','--message-format=json','--','-D','warnings'])
+-        for spec in plan[4:]:
+-            self.assertEqual(spec['argv'][-4:], ['--','--include-ignored','--test-threads=1','--show-output'])
+-            self.assertEqual(spec['accepted_exits'],(0,))
+-        self.assertNotIn('--release',plan[4]['argv']);self.assertIn('--release',plan[5]['argv'])
++        self.assertEqual([x['name'] for x in plan], ['compiler-identity','node-identity','release-regression'])
++        self.assertEqual([x['seconds'] for x in plan], [30,30,600]);self.assertEqual(sum(x['seconds'] for x in plan),660)
++        self.assertEqual(plan[0]['argv'],[str(t/'rustc'),'-vV'])
++        self.assertEqual(plan[1]['argv'],[node['path'],'-e',a.NODE_SCRIPT])
++        self.assertEqual(plan[2]['argv'],[str(t/'cargo'),'test','--manifest-path',str(p['source']/'Cargo.toml'),'--locked','--offline','--all-features','--release','--','--include-ignored','--test-threads=1','--show-output'])
++        self.assertTrue(all(x['accepted_exits']==(0,) for x in plan))
+ 
+     def test_ambient_hooks_are_removed_and_single_node_resolves(self):
+         p,e,r,t,tools,node,c = self.fixture(); env = a.arm_environment(p,t,node)
+@@ -181,12 +178,12 @@
+         c.run=run;return c
+ 
+     def test_primary_failure_kept_with_source_and_binary_postflight(self):
+-        p,e,r,t,tools,node,config=self.fixture();spec=a.command_plan(p,t,config,node)[4];primary=RuntimeError('primary command failed');c=self.fake_command(spec,failure=primary)
++        p,e,r,t,tools,node,config=self.fixture();spec=a.command_plan(p,t,config,node)[2];primary=RuntimeError('primary command failed');c=self.fake_command(spec,failure=primary)
+         with self.assertRaisesRegex(RuntimeError,'primary command failed'):a.checked_command(c,spec,p,t,tools,node,e,self.work/'evidence',r,config)
+         row=c.receipt['commands'][0];self.assertTrue(row['sourcePostflight']['verified']);self.assertTrue(row['binaryPostflight']['verified'])
+ 
+     def test_binary_postflight_runs_when_source_postflight_fails(self):
+-        p,e,r,t,tools,node,config=self.fixture();spec=a.command_plan(p,t,config,node)[4]
++        p,e,r,t,tools,node,config=self.fixture();spec=a.command_plan(p,t,config,node)[2]
+         c=self.fake_command(spec,text=passed_text(),mutation=lambda:(p['source']/'Cargo.toml').write_text('changed'))
+         (self.work/'evidence').mkdir()
+         with self.assertRaisesRegex(RuntimeError,'source postflight mismatch'):a.checked_command(c,spec,p,t,tools,node,e,self.work/'evidence',r,config)
+@@ -198,12 +195,14 @@
+         with self.assertRaisesRegex(RuntimeError,'config changed'):a.checked_command(c,spec,p,t,tools,node,e,self.work/'evidence',r,config)
+         c.run.assert_not_called();self.assertTrue(c.receipt['unregisteredPostflights'][0]['sourcePostflight']['verified'])
+ 
+-    def test_failed_clippy_is_not_runtime_admission(self):
+-        p,e,r,t,tools,node,config=self.fixture();spec=a.command_plan(p,t,config,node)[3];(self.work/'evidence').mkdir()
+-        text=json.dumps({'reason':'compiler-message','message':{'message':'fixture lint','level':'error','code':{'code':'clippy::fixture'},'spans':[]}})+'\n'+json.dumps({'reason':'build-finished','success':False})+'\n'
+-        c=self.fake_command(spec,text=text,code=101)
+-        with self.assertRaisesRegex(RuntimeError,'regression not admitted'):a.checked_command(c,spec,p,t,tools,node,e,self.work/'evidence',r,config)
+-        self.assertFalse(json.loads((self.work/'evidence/clippy-candidate.json').read_text())['lintPassed']);self.assertTrue(c.receipt['commands'][0]['sourcePostflight']['verified'])
++    def test_prior_evidence_is_bound_and_never_represented_as_rerun(self):
++        binding=a.prior_evidence()
++        self.assertEqual(binding['runID'],40824584975);self.assertFalse(binding['historicalResultsAreNewRuns'])
++        self.assertFalse(binding['Debug']['hostParserAdmitted']);self.assertEqual(binding['Release']['status'],'previously-unrun')
++        p,e,r,t,tools,node,config=self.fixture();plan=a.command_plan(p,t,config,node)
++        self.assertEqual({x['name'] for x in plan},{'compiler-identity','node-identity','release-regression'})
++        with mock.patch.object(a,'PRIOR_EVIDENCE',{}):
++            with self.assertRaisesRegex(RuntimeError,'attribution changed'):a.prior_evidence()
+ 
+     def test_node_identity_json_exact_path_and_version(self):
+         p,e,r,t,tools,node,config=self.fixture();spec=a.command_plan(p,t,config,node)[1];(self.work/'evidence').mkdir()
+@@ -253,7 +252,7 @@
+             row={'name':name,'exit':0,'pid':987654321,'child_returned':not held,'owned_group_gone':not held}
+             c.receipt['commands'].append(row);calls.append(name)
+             if held:c.active=object()
+-            if failure and name=='clippy-candidate':raise RuntimeError(failure)
++            if failure and name=='release-regression':raise RuntimeError(failure)
+             if name=='compiler-identity':text='release: 1.99.0\nhost: x86_64-unknown-linux-gnu\n'
+             elif name=='node-identity':text=json.dumps({'execPath':node['path'],'version':'v22.20.0','versions':{'node':'22.20.0'},'platform':'linux','arch':'x64'})
+             elif name=='clippy-candidate':text=json.dumps({'reason':'build-finished','success':True})
+@@ -271,15 +270,15 @@
+ 
+     def test_mock_complete_sequence_retains_outputs_and_cleans_scratch(self):
+         result,error,record,out,calls=self.execute_mock();self.assertIsNone(error)
+-        self.assertEqual(record['status'],'host-regression-completed');self.assertEqual(len(calls),6)
+-        self.assertEqual(record['DebugPassed'],699);self.assertEqual(record['ReleasePassed'],699);self.assertEqual(record['ignored'],0)
++        self.assertEqual(record['status'],'host-release-completed');self.assertEqual(len(calls),3)
++        self.assertNotIn('DebugPassed',record);self.assertEqual(record['ReleasePassed'],699);self.assertEqual(record['ignored'],0);self.assertFalse(record['priorActualEvidence']['historicalResultsAreNewRuns'])
+         self.assertTrue(record['cleanup']['ownedScratchRemoved']);self.assertFalse((out/'scratch').exists())
+-        self.assertTrue((out/'formatted-source-manifest.json').exists());self.assertTrue((out/'node-identity.json').exists())
++        self.assertFalse((out/'formatted-source-manifest.json').exists());self.assertFalse((out/'format').exists());self.assertTrue((out/'node-identity.json').exists())
+         self.assertTrue(all(r['sourcePostflight']['verified'] and r['binaryPostflight']['verified'] for r in record['commands']))
+ 
+     def test_mock_failure_postflight_precedes_owned_cleanup(self):
+-        result,error,record,out,calls=self.execute_mock(failure='mock clippy runtime failure')
+-        self.assertIsNotNone(error);self.assertEqual(len(calls),4);self.assertNotIn('debug-regression',calls)
++        result,error,record,out,calls=self.execute_mock(failure='mock Release runtime failure')
++        self.assertIsNotNone(error);self.assertEqual(len(calls),3);self.assertNotIn('debug-regression',calls)
+         self.assertEqual(record['status'],'failed');self.assertTrue(record['commands'][-1]['sourcePostflight']['verified'])
+         self.assertTrue(record['cleanup']['ownedScratchRemoved']);self.assertFalse((out/'scratch').exists())
+ 
+@@ -292,18 +291,18 @@
+         text=(HERE/'workflow.yml').read_text()
+         self.assertEqual(text.count('rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy'),1)
+         self.assertNotIn('setup-node',text);self.assertNotIn('npm ',text);self.assertNotIn('node --',text)
+-        self.assertIn('cancel-in-progress: false',text);self.assertIn('timeout-minutes: 32',text)
+-        self.assertEqual(text.count('RUSTUP_HOME: ${{ runner.temp }}/swift-pin-bitmap-lint-regression-v1-toolchain'),2)
++        self.assertIn('cancel-in-progress: false',text);self.assertIn('timeout-minutes: 14',text)
++        self.assertEqual(text.count('RUSTUP_HOME: ${{ runner.temp }}/swift-pin-bitmap-release-completion-v1-toolchain'),2)
+         self.assertIn('/verification/swift-pin-bitmap-match-binding-correction/',text)
+         # Context validity comes from explicit step env placement; this is a
+         # source check, not official workflow validation or actual execution.
+         self.assertEqual(re.findall(r'^        run: (.+)$',text,re.M),[
+             '|',
+             'rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy',
+-            'python3 -B verification/swift-pin-bitmap-match-host-admission/admit.py run'])
++            'python3 -B verification/swift-pin-bitmap-release-completion-admission/admit.py run'])
+         self.assertEqual(re.findall(r'^          (python3 -B .+)$',text,re.M),[
+-            'python3 -B verification/swift-pin-bitmap-match-host-admission/host_controls.py',
+-            'python3 -B verification/swift-pin-bitmap-match-host-admission/controls.py'])
++            'python3 -B verification/swift-pin-bitmap-release-completion-admission/host_controls.py',
++            'python3 -B verification/swift-pin-bitmap-release-completion-admission/controls.py'])
+ 
+ 
+ if __name__=='__main__':
