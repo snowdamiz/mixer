@@ -1,0 +1,66 @@
+# DRAFT ONLY: this file is outside .github/workflows. No install or dispatch selected.
+# A separate root review must bind exact delivered SHA, these workflow bytes,
+# source-manifest hash, fresh diagnostic allowance and nonce before one attempt.
+name: Android JDK file data observation DRAFT
+on:
+  workflow_dispatch:
+    inputs:
+      root_selection_json:
+        description: Exact root-selected diagnostic-only delivery, workflow, source and fresh nonce
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: android-view-api-jdk-data-observation
+  cancel-in-progress: false
+jobs:
+  jdk-data:
+    runs-on: ubuntu-24.04
+    # Checkout2 + filesystem-only bootstrap5 + upload2 + scheduling reserve1.
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        timeout-minutes: 2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/workflows/android-view-api-jdk-data-observation.yml
+            /verification/android-view-api-focused-actual-review/jdk-observation-preparation/
+            /verification/android-view-api-boundary-linux-tool-profile/runtime-members.json
+      - name: One selected filesystem-only JDK and exact-package observation
+        timeout-minutes: 5
+        env:
+          MIXER_ROOT_SELECTION_JSON: ${{ inputs.root_selection_json }}
+        run: |
+          /usr/bin/python3 -I -B -S verification/android-view-api-focused-actual-review/jdk-observation-preparation/bootstrap.py
+      - name: Preserve bounded diagnostic data and reviewed sources
+        if: always()
+        timeout-minutes: 2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: android-jdk-data-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            ${{ runner.temp }}/mixer-jdk-observation-${{ github.run_id }}-1/bootstrap-receipt.json
+            ${{ runner.temp }}/mixer-jdk-observation-${{ github.run_id }}-1/bootstrap-refusal.json
+            ${{ runner.temp }}/mixer-jdk-observation-${{ github.run_id }}-1/nonce-reservation.json
+            ${{ runner.temp }}/mixer-jdk-observation-${{ github.run_id }}-1/root-selection.json
+            ${{ runner.temp }}/mixer-jdk-observation-${{ github.run_id }}-1/observation.json
+            ${{ runner.temp }}/mixer-jdk-observation-${{ github.run_id }}-1/ct.sym.raw-data.bin
+            ${{ runner.temp }}/mixer-jdk-observation-${{ github.run_id }}-1/jrt-fs.jar.raw-data.bin
+            ${{ runner.temp }}/mixer-jdk-observation-${{ github.run_id }}-1/.bootstrap-receipt.json.next
+            ${{ runner.temp }}/mixer-jdk-observation-${{ github.run_id }}-1/.bootstrap-refusal.json.next
+            ${{ runner.temp }}/mixer-jdk-observation-${{ github.run_id }}-1/.root-selection.json.next
+            ${{ runner.temp }}/mixer-jdk-observation-${{ github.run_id }}-1/.observation.json.next
+            ${{ github.workspace }}/verification/android-view-api-focused-actual-review/jdk-observation-preparation/bootstrap.py
+            ${{ github.workspace }}/verification/android-view-api-focused-actual-review/jdk-observation-preparation/contract.json
+            ${{ github.workspace }}/verification/android-view-api-focused-actual-review/jdk-observation-preparation/expected-runtime-members.json
+            ${{ github.workspace }}/verification/android-view-api-focused-actual-review/jdk-observation-preparation/observe_jdk.py
+            ${{ github.workspace }}/verification/android-view-api-focused-actual-review/jdk-observation-preparation/workflow-draft.yml
+            ${{ github.workspace }}/verification/android-view-api-focused-actual-review/jdk-observation-preparation/source-manifest.json
+            ${{ github.workspace }}/.github/workflows/android-view-api-jdk-data-observation.yml

@@ -1,0 +1,191 @@
+= Linux (RPM/DEB/APK) installer packages
+:page-authors: gdams, karianna, perlun, TheCrazyLex, TobiX, topaussie, sxa, tellison, luozhenyu, Ndacyayisenga-droid, ecspresso, steelhead31, xavierfacq
+:toc:
+:icons: font
+
+Eclipse Temurin RPM, DEB and APK packages are now available for installation on
+your favourite Linux distribution.
+
+[NOTE]
+====
+See link:/supported-platforms[Supported Platforms] for a list of our officially supported installers by Linux distribution / version. Other Linux distributions / versions are supported on a best-effort basis.
+====
+
+[IMPORTANT]
+====
+Repository URLs under `https://packages.adoptium.net/artifactory/` are intended for package manager configuration (`apt`, `dnf`, `yum`, `zypper`, `apk`) and may return `404` when opened directly in a browser. To browse available package trees manually, use the `https://packages.adoptium.net/ui/native/` links shown in each section below.
+====
+
+== Eclipse Temurin Package Names
+
+The following name schema is being used:
+
+[subs="attributes"]
+....
+temurin-&lt;version&gt;-jdk
+e.g temurin-{latest-lts}-jdk or temurin-8-jdk
+....
+
+== Deb installation on Debian or Ubuntu
+
+. Ensure the necessary packages are present:
++
+[source, bash]
+----
+sudo apt install -y wget apt-transport-https gpg
+----
++
+. Download the Eclipse Adoptium GPG key:
++
+[source, bash]
+----
+wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/adoptium.gpg > /dev/null
+----
++
+. Configure the Eclipse Adoptium apt repository. To check the full list of versions supported take a look at the list in the tree at https://packages.adoptium.net/ui/native/deb/dists/.
++
+[source, bash]
+----
+echo "deb https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | sudo tee /etc/apt/sources.list.d/adoptium.list
+----
+TIP: For Linux Mint (based on Ubuntu) you have to replace `VERSION_CODENAME` with `UBUNTU_CODENAME`.
++
+. Install the Temurin version you require:
++
+[source, bash, subs="attributes"]
+----
+sudo apt update # update if you haven't already
+sudo apt install temurin-{latest-lts}-jdk
+----
+
+== CentOS/RHEL/Fedora Instructions
+
+. Add the RPM repo to `/etc/yum.repos.d/adoptium.repo` making sure to change the distribution name if you are not using CentOS/RHEL/Fedora. To check the full list of versions supported take a look at the list in the tree at https://packages.adoptium.net/ui/native/rpm/.
++
+[source, bash]
+----
+# Uncomment and change the distribution name if you are not using CentOS/RHEL/Fedora
+# DISTRIBUTION_NAME=centos
+
+sudo cat <<EOF > /etc/yum.repos.d/adoptium.repo
+[Adoptium]
+name=Adoptium
+baseurl=https://packages.adoptium.net/artifactory/rpm/${DISTRIBUTION_NAME:-$(. /etc/os-release; echo $ID)}/\$releasever/\$basearch
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.adoptium.net/artifactory/api/gpg/key/public
+EOF
+----
++
+. Install the Temurin version you require using `dnf`:
++
+[source, bash, subs="attributes"]
+----
+sudo dnf install temurin-{latest-lts}-jdk
+----
+Alternatively, if you are using `yum`:
++
+[source, bash, subs="attributes"]
+----
+sudo yum install temurin-{latest-lts}-jdk
+----
+
+=== Installing the JRE
+
+If you only require the Java Runtime Environment (for running applications,
+not compiling them), install the JRE package:
+
+[source,bash]
+----
+sudo dnf install temurin-<version>-jre
+----
+
+Example:
+
+[source,bash]
+----
+sudo dnf install temurin-21-jre
+----
+
+=== Installing the Headless JRE
+
+For server environments where no graphical components are required, a
+headless JRE package is also available. This excludes GUI-related libraries
+such as AWT and reduces the overall installation footprint.
+
+[source,bash]
+----
+sudo dnf install temurin-<version>-jre-headless
+----
+
+Example:
+
+[source,bash]
+----
+sudo dnf install temurin-21-jre-headless
+----
+
+The `jre-headless` package is recommended for:
+
+- Container images
+- Minimal server installations
+- CI/CD build agents
+- Headless production workloads
+
+=== Verifying Installation
+
+[source,bash]
+----
+java -version
+----
+
+You can also confirm installed packages with:
+
+[source,bash]
+----
+rpm -qa | grep temurin
+----
+
+== openSUSE/SLES Instructions
+
+. Import the RPM repo as follows. RPM’s are also available for SLES 12 and 15. To check the full list of versions supported take a look at
+https://packages.adoptium.net/ui/native/rpm/. The repositories may work with other versions but are not guaranteed and have not been tested.
++
+[source, bash]
+----
+sudo zypper ar -f https://packages.adoptium.net/artifactory/rpm/opensuse/$(. /etc/os-release; echo $VERSION_ID)/$(uname -m) adoptium
+----
++
+. Install the Temurin version you require:
++
+[source, bash, subs="attributes"]
+----
+sudo zypper install temurin-{latest-lts}-jdk
+----
+
+
+== Alpine Linux Instructions
+
+. Download the Eclipse Adoptium RSA key:
++
+[source, bash]
+----
+sudo wget -O /etc/apk/keys/adoptium.rsa.pub https://packages.adoptium.net/artifactory/api/security/keypair/public/repositories/apk
+----
++
+. Configure the Eclipse Adoptium APK repository:
++
+[source, bash]
+----
+echo 'https://packages.adoptium.net/artifactory/apk/alpine/main' | sudo tee -a /etc/apk/repositories
+----
++
+. Install the Temurin version you require:
++
+[source, bash, subs="attributes"]
+----
+sudo apk add temurin-{latest-lts}-jdk
+----
+
+Please raise any issues over at
+https://github.com/adoptium/installer/issues.
