@@ -1,0 +1,818 @@
+{
+  "schema": 1,
+  "sourceRevision": "a3967100c5773685bbaedb964aa6e5de9838cb8a",
+  "sourceTree": "69178bebcc6f73680b28e920d798c032a51037f6",
+  "unmodifiedFieldDigests": {
+    "work-graph.json": "3efce4077a8ee5ff9d5d928985d41354b0da5a97888bf9f499acc5faa04f5430",
+    "gates/ga.json": "582b0737825bf01aa36092461af1a8e9e91d000420f8bb1274720ddece675016"
+  },
+  "scopeStatesOwnersReviewers": {
+    "work-graph.json": [
+      {
+        "id": "W01",
+        "name": "Product and contracts",
+        "state": "in_progress",
+        "owner": "Technical lead + product",
+        "deliverables": "Supported app categories, API contract, policy envelope, architecture decisions, provenance rules",
+        "dependencies": "None",
+        "acceptance": "Approved specification; no competitor code in dependencies/templates; customer interviews recorded."
+      },
+      {
+        "id": "W02",
+        "name": "Toolchain and local build",
+        "state": "in_progress",
+        "owner": "Compiler lead",
+        "deliverables": "Signed version lock, SDK installation, doctor, native project generation, local CI",
+        "dependencies": "W01",
+        "acceptance": "Clean machine builds FieldLog for both targets with reproducible input graph."
+      },
+      {
+        "id": "W03",
+        "name": "Core Swift model",
+        "state": "in_progress",
+        "owner": "Framework lead",
+        "deliverables": "Lifecycle, state, effects, navigation model, resources, errors; shared app appearance contract per section8.3",
+        "dependencies": "W01–02",
+        "acceptance": "Same state/effect tests in native targets; restoration works."
+      },
+      {
+        "id": "W04",
+        "name": "iOS UI adapter",
+        "state": "in_progress",
+        "owner": "iOS lead",
+        "deliverables": "Public MixerUI implementation, SwiftUI/UIKit mapping, input and accessibility; shared-theme component appearance per section8.3",
+        "dependencies": "W03",
+        "acceptance": "D1 and UI matrix pass on physical iOS. Shared design parity with the other platform, reviewed on physical reference screens per section8.3."
+      },
+      {
+        "id": "W05",
+        "name": "Android UI adapter",
+        "state": "in_progress",
+        "owner": "Android lead",
+        "deliverables": "JNI boundary, Compose/native controls, lifecycle, back behavior, native resources; shared-theme component appearance per section8.3",
+        "dependencies": "W02–03",
+        "acceptance": "D2 with native Android interaction and accessibility evidence. Shared design parity with the other platform, reviewed on physical reference screens per section8.3."
+      },
+      {
+        "id": "W06",
+        "name": "Capability generator",
+        "state": "in_progress",
+        "owner": "Framework/compiler lead",
+        "deliverables": "Schema, generated adapters, ownership/cancellation, permission metadata",
+        "dependencies": "W03",
+        "acceptance": "Cross-language codec and lifecycle suite; first native plugin consumed by FieldLog."
+      },
+      {
+        "id": "W07",
+        "name": "Guest compilation",
+        "state": "in_progress",
+        "owner": "Compiler lead",
+        "deliverables": "Guest libraries, module extraction, API diagnostics, source maps, dependency closure",
+        "dependencies": "W02–03, W06",
+        "acceptance": "FieldLog feature graph compiles to native and Wasm with no silent behavior loss."
+      },
+      {
+        "id": "W08",
+        "name": "Owned interpreter",
+        "state": "in_progress",
+        "owner": "Runtime lead",
+        "deliverables": "Validator/interpreter, resource controls, imports, Swift runtime integration, debugger",
+        "dependencies": "W07 profile; early work parallel",
+        "acceptance": "D3, standards-profile tests, fuzzing and differential results."
+      },
+      {
+        "id": "W09",
+        "name": "First-party integrations",
+        "state": "in_progress",
+        "owner": "iOS/Android leads",
+        "deliverables": "All capability families in Section 9, plugin authoring guide",
+        "dependencies": "W04–06",
+        "acceptance": "FieldLog flows pass on both devices; native additions correctly require binary changes."
+      },
+      {
+        "id": "W10",
+        "name": "Device updater",
+        "state": "in_progress",
+        "owner": "Runtime/release leads",
+        "deliverables": "Verifier, cache, activation, health, quarantine, recovery, key rotation",
+        "dependencies": "W07–08",
+        "acceptance": "D4–05, data-preserving rollback, offline recovery, fault matrix."
+      },
+      {
+        "id": "W11",
+        "name": "Release backend",
+        "state": "in_progress",
+        "owner": "Cloud lead",
+        "deliverables": "Elixir/Phoenix/Bandit API, Ecto/Postgrex on Neon, Oban jobs, R2/Workers delivery, compatibility, assignment signing, rollout/rollback",
+        "dependencies": "W10 protocol",
+        "acceptance": "Dual-platform release with immutable audit/correct cohorts; Go-contract parity, transactional enqueue, zero-traffic job wake, Neon recovery, and tenant-safe delivery qualified."
+      },
+      {
+        "id": "W12",
+        "name": "Build/signing service",
+        "state": "in_progress",
+        "owner": "Infrastructure lead",
+        "deliverables": "Elixir/Oban orchestration, isolated Cloudflare Linux and external macOS workers, R2 caches/artifacts, separate signer, provenance, quotas",
+        "dependencies": "W02, W11 identity",
+        "acceptance": "Cross-tenant adversarial tests and signed FieldLog builds from clean workers; Cloudflare worker sizing/lifecycle/isolation or recorded external-runner exception qualified."
+      },
+      {
+        "id": "W13",
+        "name": "Store distribution",
+        "state": "ready",
+        "owner": "DevEx/build lead",
+        "deliverables": "Store connections, submissions, status reconciliation, test links",
+        "dependencies": "W12",
+        "acceptance": "D6 with actual ready-for-testing states on both stores."
+      },
+      {
+        "id": "W14",
+        "name": "Console and commercial",
+        "state": "in_progress",
+        "owner": "Product/cloud leads",
+        "deliverables": "SolidJS/TypeScript/Vite console on Cloudflare Workers Static Assets, onboarding, permissions, SSO, usage ledger, Stripe billing, support",
+        "dependencies": "W11–13",
+        "acceptance": "New organization completes full workflow through public UX/API; Stripe duplicate/out-of-order/test-mode and usage reconciliation cases pass."
+      },
+      {
+        "id": "W15",
+        "name": "Debug/import/export",
+        "state": "in_progress",
+        "owner": "DevEx lead",
+        "deliverables": "Native/guest debug, migration reports, profiler, export/ejection guide",
+        "dependencies": "W02, W07–10",
+        "acceptance": "Original source diagnostics, external app import, independent CI export build."
+      },
+      {
+        "id": "W16",
+        "name": "Security and reliability",
+        "state": "in_progress",
+        "owner": "Security/QA/SRE",
+        "deliverables": "Threat review, audit remediation, monitoring, Neon backups/restore, Cloudflare/Oban lifecycle and R2/CDN isolation drills, Stripe recovery, load tests",
+        "dependencies": "Starts W01; final W10–14",
+        "acceptance": "No unresolved launch-blocking findings; measured service objectives across selected providers and explicit hosting exceptions."
+      },
+      {
+        "id": "W17",
+        "name": "FieldLog delivery",
+        "state": "in_progress",
+        "owner": "Dogfood app lead",
+        "deliverables": "Real product, backend, users, both stores, continuous updates",
+        "dependencies": "Starts W01; consumes all",
+        "acceptance": "D0–08 with independently reviewable evidence and no private escape routes. Physical iOS/Android reference screens meet section8.3 design parity."
+      },
+      {
+        "id": "W18",
+        "name": "External qualification and launch",
+        "state": "ready",
+        "owner": "Product + DevEx",
+        "deliverables": "Two external apps minimum, paid pilots, docs, support, migration, release train",
+        "dependencies": "W09–17",
+        "acceptance": "Section 29 gates; customers onboard and pay without bespoke engine forks."
+      }
+    ],
+    "gates/ga.json": [
+      {
+        "id": "G01",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "No Patch/Skip code, generated artifacts, tests, or engine dependencies in the product; provenance/dependency review passed."
+      },
+      {
+        "id": "G02",
+        "status": "running",
+        "reviewer": null,
+        "requirement": "Owned compiler integration, UI engine, bridges, interpreter, updater, and hosted workflow are implemented and supported."
+      },
+      {
+        "id": "G03",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Public support matrix, limitation list, version policy, licensing/notices, and migration contract match actual behavior."
+      },
+      {
+        "id": "G04",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Product naming/trademarks, customer terms, privacy material, and third-party redistribution obligations are reviewed."
+      },
+      {
+        "id": "G05",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "A new developer can create and locally run a shared Swift app on physical iOS and Android using public documentation."
+      },
+      {
+        "id": "G06",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "FieldLog's required native UI, state, navigation, input, and accessibility matrix passes on both platforms. Reference screens must meet shared-theme design parity per section8.3, reviewed side by side on physical iOS/Android devices."
+      },
+      {
+        "id": "G07",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "The published language/runtime/capability profile passes in native and guest modes without silent feature omission."
+      },
+      {
+        "id": "G08",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Compiler, guest, bridge, and native failures map to actionable original-source diagnostics."
+      },
+      {
+        "id": "G09",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "All first-party capability families in Section 9 pass their platform-specific behavior/permission tests."
+      },
+      {
+        "id": "G10",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Existing-app migration and native-screen embedding work for an independent Swift project."
+      },
+      {
+        "id": "G11",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Local/exported CI can build and maintain FieldLog independently of hosted service availability."
+      },
+      {
+        "id": "G12",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Meaningful logic and UI updates reach already-installed binaries on both platforms without reinstalling them."
+      },
+      {
+        "id": "G13",
+        "status": "running",
+        "reviewer": null,
+        "requirement": "Client and server reject wrong app, environment, runtime, signature, protocol, capability, size, and replayed assignment."
+      },
+      {
+        "id": "G14",
+        "status": "running",
+        "reviewer": null,
+        "requirement": "Interruption at every download/activation transition preserves a launchable healthy implementation."
+      },
+      {
+        "id": "G15",
+        "status": "running",
+        "reviewer": null,
+        "requirement": "Failed guest startup is quarantined; offline recovery works without an infinite crash loop."
+      },
+      {
+        "id": "G16",
+        "status": "running",
+        "reviewer": null,
+        "requirement": "Rollback preserves saved drafts, records, uploads, and compatible schema behavior; external effects are reconciled correctly."
+      },
+      {
+        "id": "G17",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Key rotation/revocation, old offline clients, and root-compromise limitations are exercised and documented."
+      },
+      {
+        "id": "G18",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Staged promotion/halt and dual-platform cohort targeting work across mixed native binary versions."
+      },
+      {
+        "id": "G19",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "New native capabilities/permissions/SDKs correctly require a store build."
+      },
+      {
+        "id": "G20",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Elixir/Oban orchestration and isolated macOS/iOS and Android builds produce signed, traceable artifacts with usable logs and debugging symbols; Cloudflare workers or recorded hosting exceptions pass resource/isolation/lifecycle qualification."
+      },
+      {
+        "id": "G21",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Store integrations reach verified ready-for-testing and available states; provider errors are accurately represented."
+      },
+      {
+        "id": "G22",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "SolidJS console on Cloudflare and Phoenix API support onboarding, teams, permissions, SSO, audit export, customer keys, and dedicated-runner workflows end to end."
+      },
+      {
+        "id": "G23",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Stripe billing, Neon usage reconciliation, usage caps, credits, cancellation, export/deletion, and support workflows pass realistic account and duplicate/out-of-order webhook cases."
+      },
+      {
+        "id": "G24",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Phoenix API/CLI/SolidJS behavior agrees; domain writes and Oban enqueue are atomic; publishing and chargeable actions remain idempotent under redelivery and worker failures, including migration parity with existing Go contracts."
+      },
+      {
+        "id": "G25",
+        "status": "running",
+        "reviewer": null,
+        "requirement": "Independent VM/bridge/update/signing/tenant-isolation review has no unresolved launch-blocking findings."
+      },
+      {
+        "id": "G26",
+        "status": "running",
+        "reviewer": null,
+        "requirement": "Applicable standards-profile conformance, differential tests, fuzzing, and resource-limit tests pass."
+      },
+      {
+        "id": "G27",
+        "status": "running",
+        "reviewer": null,
+        "requirement": "Performance, memory, patch size, sharing, and real-change OTA coverage meet the approved budgets with published methodology."
+      },
+      {
+        "id": "G28",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Device/OS/accessibility/localization matrix passes, with physical evidence for performance and native capabilities."
+      },
+      {
+        "id": "G29",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Service objectives have sufficient operating/load-test evidence, including Cloudflare container stop/wake with no user traffic and Neon/Oban reconnect behavior; low-volume uncertainty is disclosed."
+      },
+      {
+        "id": "G30",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Neon backup restoration/region-loss, R2/CDN isolation/freshness, separate worker/signer loss, Stripe reconciliation, compromised publisher, and bad-release drills are complete."
+      },
+      {
+        "id": "G31",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Alerting, accountable escalation, status page, incident communication, and security response are configured and rehearsed."
+      },
+      {
+        "id": "G32",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "D0–D8 complete; FieldLog is available through real iOS/Android store distribution with transparent update behavior."
+      },
+      {
+        "id": "G33",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "FieldLog has repeated real production use, a reviewed 20-change OTA coverage corpus, and verified recovery across the required scenarios."
+      },
+      {
+        "id": "G34",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Two independently authored external apps qualify, including an existing Swift app migration."
+      },
+      {
+        "id": "G35",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Documentation and onboarding have been tested by developers outside the engine team."
+      },
+      {
+        "id": "G36",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Paid-pilot evidence and contribution-margin model support the commercial offering; weak demand is explicitly reviewed."
+      },
+      {
+        "id": "G37",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "SDK upgrade, native release, OTA release, rollback, and customer-exit guides are complete and exercised."
+      },
+      {
+        "id": "G38",
+        "status": "planned",
+        "reviewer": null,
+        "requirement": "Every failed/blocked mandatory item is resolved; release approval references actual evidence rather than planned work."
+      }
+    ]
+  },
+  "markdownHistoricalSuffixDigests": {
+    "PLAN.md": "a3b6472f9101ca9b6233b9fcd0a684c6a60d8737fe137c9c59641886898c0974",
+    "STATUS.md": "0db1bdb08ef819cdf557cd076b7636901fbd3b8a55fd9ee92faf91409f42427b"
+  },
+  "fullProductPlanUnchanged": {
+    "path": "mixer-product-plan.md",
+    "bytes": 162104,
+    "sha256": "7433fb81563cdcbecbf1c1daeb1ef282c8cdb79eaa8714e83e191b788805ef78"
+  },
+  "W01_W18_G01_G38_D0_D8ScopePreserved": true,
+  "GA": {
+    "verified": 0,
+    "running": 8,
+    "planned": 30
+  },
+  "allUnselectedTopLevelAndEntryFieldsUnchanged": true,
+  "checks": [
+    {
+      "label": "Isolated data-only startup",
+      "passed": true
+    },
+    {
+      "label": "Ownership namespace exists before build",
+      "passed": true
+    },
+    {
+      "label": "New checkpoint not already built",
+      "passed": true
+    },
+    {
+      "label": "Baseline equals prior sealed tracking PLAN.md",
+      "passed": true
+    },
+    {
+      "label": "Baseline equals prior sealed tracking STATUS.md",
+      "passed": true
+    },
+    {
+      "label": "Baseline equals prior sealed tracking work-graph.json",
+      "passed": true
+    },
+    {
+      "label": "Baseline equals prior sealed tracking gates/ga.json",
+      "passed": true
+    },
+    {
+      "label": "Selected write verification/pair7-host-fix-tracking-checkpoint/field-scope.json",
+      "passed": true
+    },
+    {
+      "label": "Selected write verification/pair7-host-fix-tracking-checkpoint/before.json",
+      "passed": true
+    },
+    {
+      "label": "Selected write verification/pair7-host-fix-tracking-checkpoint/before-fields.json",
+      "passed": true
+    },
+    {
+      "label": "Root command series exact handoff hash",
+      "passed": true
+    },
+    {
+      "label": "Final source selection exact handoff hash",
+      "passed": true
+    },
+    {
+      "label": "Root source review exact handoff row",
+      "passed": true
+    },
+    {
+      "label": "Root accepts source only for fresh ordinary CI",
+      "passed": true
+    },
+    {
+      "label": "Closed command series head",
+      "passed": true
+    },
+    {
+      "label": "Closed command series tree",
+      "passed": true
+    },
+    {
+      "label": "Closed command series parent",
+      "passed": true
+    },
+    {
+      "label": "Closed command series totalTargetCommands",
+      "passed": true
+    },
+    {
+      "label": "Closed command series targetExitZero",
+      "passed": true
+    },
+    {
+      "label": "Closed command series signals",
+      "passed": true
+    },
+    {
+      "label": "Closed command series originalDeliveryControllerExit",
+      "passed": true
+    },
+    {
+      "label": "Closed command series originalDeliveryControllerSucceeded",
+      "passed": true
+    },
+    {
+      "label": "Closed command series combinedTargetCommands",
+      "passed": true
+    },
+    {
+      "label": "Closed command series combinedTargetExitZero",
+      "passed": true
+    },
+    {
+      "label": "Closed command series historicalClosedStageExitOne",
+      "passed": true
+    },
+    {
+      "label": "Recovery retains original failed controller",
+      "passed": true
+    },
+    {
+      "label": "Recovered Git effects head",
+      "passed": true
+    },
+    {
+      "label": "Recovered Git effects tree",
+      "passed": true
+    },
+    {
+      "label": "Recovered Git effects parent",
+      "passed": true
+    },
+    {
+      "label": "Recovered Git effects selectedPaths",
+      "passed": true
+    },
+    {
+      "label": "Recovered Git effects changedSelectedPaths",
+      "passed": true
+    },
+    {
+      "label": "Recovered Git effects force",
+      "passed": true
+    },
+    {
+      "label": "Recovered Git effects pushed",
+      "passed": true
+    },
+    {
+      "label": "Recovered Git effects indexEmpty",
+      "passed": true
+    },
+    {
+      "label": "Recovered Git effects outsideSelectionDirtyByteModeSnapshotsPreserved",
+      "passed": true
+    },
+    {
+      "label": "Recovered Git effects preexistingCollapsedEntryIdentityModesPreserved",
+      "passed": true
+    },
+    {
+      "label": "Recovery makes no recursive content claim",
+      "passed": true
+    },
+    {
+      "label": "Retained CI failure sourceRevision",
+      "passed": true
+    },
+    {
+      "label": "Retained CI failure sourceTree",
+      "passed": true
+    },
+    {
+      "label": "Retained CI failure runID",
+      "passed": true
+    },
+    {
+      "label": "Retained CI failure runAttempt",
+      "passed": true
+    },
+    {
+      "label": "Retained CI failure workflowID",
+      "passed": true
+    },
+    {
+      "label": "Retained CI failure jobID",
+      "passed": true
+    },
+    {
+      "label": "Retained CI failure jobName",
+      "passed": true
+    },
+    {
+      "label": "Retained CI failure runConclusion",
+      "passed": true
+    },
+    {
+      "label": "Retained CI failure completedJobs",
+      "passed": true
+    },
+    {
+      "label": "Retained CI failure productionRendererDeclaresBothMethods",
+      "passed": true
+    },
+    {
+      "label": "Retained CI failure pair7HostAcceptance",
+      "passed": true
+    },
+    {
+      "label": "Source-only receipt has no compiler base",
+      "passed": true
+    },
+    {
+      "label": "Source-only receipt has no product tests base",
+      "passed": true
+    },
+    {
+      "label": "Source-only receipt has no helper execution base",
+      "passed": true
+    },
+    {
+      "label": "Source-only receipt has no compiler live-roster",
+      "passed": true
+    },
+    {
+      "label": "Source-only receipt has no product tests live-roster",
+      "passed": true
+    },
+    {
+      "label": "Source-only receipt has no helper execution live-roster",
+      "passed": true
+    },
+    {
+      "label": "Source-only receipt has no compiler adapter-leaves",
+      "passed": true
+    },
+    {
+      "label": "Source-only receipt has no product tests adapter-leaves",
+      "passed": true
+    },
+    {
+      "label": "Source-only receipt has no helper execution adapter-leaves",
+      "passed": true
+    },
+    {
+      "label": "Nine new cases remain unexecuted",
+      "passed": true
+    },
+    {
+      "label": "Final canonical fix has ten test files",
+      "passed": true
+    },
+    {
+      "label": "Live canonical test row native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/ExtractedText.java",
+      "passed": true
+    },
+    {
+      "label": "Live canonical test row native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/ExtractedTextRequest.java",
+      "passed": true
+    },
+    {
+      "label": "Live canonical test row native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/InputConnection.java",
+      "passed": true
+    },
+    {
+      "label": "Live canonical test row native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/SurroundingText.java",
+      "passed": true
+    },
+    {
+      "label": "Live canonical test row native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/TextBoundsInfoResult.java",
+      "passed": true
+    },
+    {
+      "label": "Live canonical test row native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/TextSnapshot.java",
+      "passed": true
+    },
+    {
+      "label": "Live canonical test row native/android/tests/NativeOwnerV2HostLeaves/dev/mixer/android/NativeRenderer.java",
+      "passed": true
+    },
+    {
+      "label": "Live canonical test row native/android/tests/NativeOwnerV2HostTests.java",
+      "passed": true
+    },
+    {
+      "label": "Live canonical test row native/android/tests/private-owner-host-roster.json",
+      "passed": true
+    },
+    {
+      "label": "Live canonical test row native/android/tests/run-private-owner-host.py",
+      "passed": true
+    },
+    {
+      "label": "Final live roster selected counts",
+      "passed": true
+    },
+    {
+      "label": "Final B selects five independent types",
+      "passed": true
+    },
+    {
+      "label": "Final B selects actual editor connection",
+      "passed": true
+    },
+    {
+      "label": "Runner freezes roster bytes",
+      "passed": true
+    },
+    {
+      "label": "Exact SDK22 adapter24 source tuple",
+      "passed": true
+    },
+    {
+      "label": "Pair7 original installed row cli/Sources/MixerBuild/AndroidSDKCompatibility.swift",
+      "passed": true
+    },
+    {
+      "label": "Pair7 original installed row cli/Sources/MixerBuild/Resources/android-build.py",
+      "passed": true
+    },
+    {
+      "label": "Pair7 original installed row cli/Tests/MixerBuildTests/AndroidProjectTests.swift",
+      "passed": true
+    },
+    {
+      "label": "Pair7 original installed row cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift",
+      "passed": true
+    },
+    {
+      "label": "Pair7 original installed row cli/build-tests/test_android_sdk_compatibility.py",
+      "passed": true
+    },
+    {
+      "label": "Pair7 original installed row native/android/app/src/dev/mixer/android/NativeAppearanceViewsV2.java",
+      "passed": true
+    },
+    {
+      "label": "Pair7 original installed row native/android/app/src/dev/mixer/android/NativeCoordinatorV2.java",
+      "passed": true
+    },
+    {
+      "label": "Pair7 original installed row native/android/app/src/dev/mixer/android/NativeEditorConnectionV2.java",
+      "passed": true
+    },
+    {
+      "label": "Pair7 original installed row native/android/app/src/dev/mixer/android/NativeRenderer.java",
+      "passed": true
+    },
+    {
+      "label": "Pair7 original installed row native/android/engine/Sources/MixerAndroidRuntime/DocumentSession.swift",
+      "passed": true
+    },
+    {
+      "label": "Selected write verification/pair7-host-fix-tracking-checkpoint/observed-checkpoint.json",
+      "passed": true
+    },
+    {
+      "label": "Only selected JSON fields changed work-graph.json",
+      "passed": true
+    },
+    {
+      "label": "All package/gate contracts unchanged work-graph.json",
+      "passed": true
+    },
+    {
+      "label": "Selected write work-graph.json",
+      "passed": true
+    },
+    {
+      "label": "Only selected JSON fields changed gates/ga.json",
+      "passed": true
+    },
+    {
+      "label": "All package/gate contracts unchanged gates/ga.json",
+      "passed": true
+    },
+    {
+      "label": "Selected write gates/ga.json",
+      "passed": true
+    },
+    {
+      "label": "One current markdown heading PLAN.md",
+      "passed": true
+    },
+    {
+      "label": "Former current and full historical suffix preserved PLAN.md",
+      "passed": true
+    },
+    {
+      "label": "Selected write PLAN.md",
+      "passed": true
+    },
+    {
+      "label": "One current markdown heading STATUS.md",
+      "passed": true
+    },
+    {
+      "label": "Former current and full historical suffix preserved STATUS.md",
+      "passed": true
+    },
+    {
+      "label": "Selected write STATUS.md",
+      "passed": true
+    },
+    {
+      "label": "Selected write verification/pair7-host-fix-tracking-checkpoint/tracking.patch",
+      "passed": true
+    }
+  ],
+  "runtimeOrCompilerTestsExecuted": 0,
+  "subjectImports": 0,
+  "denied": []
+}

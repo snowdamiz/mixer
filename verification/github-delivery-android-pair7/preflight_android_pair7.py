@@ -1,0 +1,50 @@
+import sys
+sys.dont_write_bytecode = True
+assert sys.flags.isolated == 1 and sys.flags.no_site == 1 and sys.flags.optimize == 0
+import importlib.util
+from pathlib import Path
+spec = importlib.util.spec_from_file_location('android_pair7_common', Path(__file__).with_name('selection_common_android_pair7.py'))
+common = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = common
+spec.loader.exec_module(common)
+import hashlib
+import json
+for name in ('StrictCommands','BASE','TREE','S','SELECTION','ROWS','SELECTED','AUTHORED','PROTECTED','PUSH_URL','ROOT','OUT','now','row','save','fingerprint','preserved_entry','raw_rows','collapsed','compare_collapsed','check_sources','accepted_preflight'):
+    globals()[name] = getattr(common, name)
+
+c = StrictCommands('pair7-preflight')
+versions = {tool: c.run(tool + '-version').decode().strip() for tool in ('git', 'gh')}
+assert c.run('head').decode().splitlines() == [BASE, TREE]
+assert c.run('branch').decode().strip() == 'main'
+origin = c.run('origin').decode().strip()
+assert origin in ('git@github.com:snowdamiz/mixer.git', PUSH_URL)
+assert c.run('push-url').decode().splitlines() == [PUSH_URL]
+assert c.run('remote-main').decode().split() == [BASE, 'refs/heads/main']
+assert c.run('index-raw') == b'', 'Fresh preflight requires an empty index'
+status = collapsed(c.run('collapsed-status'))
+raw = c.run('complete-raw-diff')
+diff = raw_rows(raw)
+other = [value for value in diff if value['path'] not in SELECTED]
+assert {value['path'] for value in PROTECTED}.issubset({value['path'] for value in other})
+snapshots = [fingerprint(value['path']) for value in other]
+untracked = [preserved_entry(value['path']) for value in status if value['status'] == '??']
+c.complete(); check_sources()
+save('manifest-pair7.json', {'schema': 1, 'at': now(), 'selection': row(ROOT / SELECTION),
+     'members': ROWS, 'paths': len(ROWS), 'bytes': sum(value['bytes'] for value in ROWS)})
+save('preservation-pair7-local.json', {'schema': 1, 'at': now(), 'otherDirtyTracked': other,
+     'tracked': snapshots, 'completeWorktreeRawRows': diff, 'completeWorktreeRawSHA256': hashlib.sha256(raw).hexdigest(),
+     'statusCollapsed': status, 'untrackedCollapsed': untracked, 'wrangler': fingerprint('.wrangler'),
+     'protectedSnapshots': [fingerprint(value['path']) for value in PROTECTED],
+     'cleanTrackedSnapshot': {'head': BASE, 'tree': TREE, 'proof': 'Baseline commit/tree plus complete raw diff'},
+     'allCleanTrackedFilesIndependentlyHashed': False, 'untrackedScope': 'collapsed entry identity/mode; no recursive content inventory'})
+save('preflight-pair7.json', {'schema': 1, 'at': now(), 'head': BASE, 'tree': TREE, 'branch': 'main',
+     'origin': origin, 'pushURL': PUSH_URL, 'originMain': BASE, 'indexEmpty': True,
+     'selection': row(ROOT / SELECTION), 'selectedPaths': len(ROWS), 'selectedByteModesOIDsVerified': True,
+     'otherDirtyTrackedByteModeSnapshots': len(snapshots), 'collapsedUntrackedEntries': len(untracked),
+     'tools': {**versions, 'python': sys.version, 'interpreter': sys.executable},
+     'helper': row(OUT / 'owned.py'), 'authoritySnapshot': c.authority_row,
+     'argvManifest': c.manifest_row, 'commands': c.records,
+     'allCommandsAdmittedDirectlyReapedOwnedGroupsAbsentSeparatePipesEOF': True,
+     'stagingCommitPushDispatchPerformed': False, 'allExistingHoldsUntouched': True,
+     'nativeUICompilerCaptureProcessInventoryHeldProbesStarted': False})
+print(json.dumps({'preflight': 'passed', 'selectedPaths': len(ROWS), 'closedCommands': len(c.records)}))

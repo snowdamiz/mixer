@@ -1,0 +1,34 @@
+--- derived-baseline/native/android/tests/private-owner-host-roster.json
++++ after/native/android/tests/private-owner-host-roster.json
+@@ -3480,6 +3480,7 @@
+         "native/android/app/src/dev/mixer/android/NativeRenderer.java",
+         "native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java",
+         "native/android/app/src/dev/mixer/android/NativeAppearanceViewsV2.java",
++        "native/android/app/src/dev/mixer/android/NativeEditorConnectionV2.java",
+         "native/android/app/src/dev/mixer/android/InstalledAppearanceV2.java",
+         "native/android/app/src/dev/mixer/android/UiPacket.java",
+         "native/android/app/src/dev/mixer/android/Json.java",
+--- derived-baseline/native/android/tests/run-private-owner-host.py
++++ after/native/android/tests/run-private-owner-host.py
+@@ -3,17 +3,18 @@
+ import argparse, datetime, hashlib, json, os, shutil, signal, subprocess, sys, tempfile, time
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parents[3]
+-ROSTER=ROOT/'verification/android-private-owner-effect-roster-amendment/required-host-roster.json'
++ROSTER_SOURCE='native/android/tests/private-owner-host-roster.json'
++ROSTER=ROOT/ROSTER_SOURCE
+ STRIP=('_JAVA_OPTIONS','JAVA_TOOL_OPTIONS','JDK_JAVA_OPTIONS','CLASSPATH','JAVA_OPTS','JDK_JAVAC_OPTIONS')
+ def ident(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+ def save(p,v):p.write_text(json.dumps(v,indent=2,sort_keys=True)+'\n')
+ def main():
+  p=argparse.ArgumentParser();p.add_argument('--evidence',type=Path,required=True);p.add_argument('--closure',choices=('A','B'),default='B');p.add_argument('--skip-matrix',action='store_true');p.add_argument('--jdk',type=Path,default=Path('/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home'));a=p.parse_args()
+  evidence=a.evidence.resolve();evidence.mkdir(parents=True,exist_ok=False)
+- roster=json.loads(ROSTER.read_text());closure=roster['closures']['A-orchestration' if a.closure=='A' else 'B-concrete-renderer-views']
++ roster_bytes=ROSTER.read_bytes();roster=json.loads(roster_bytes);closure=roster['closures']['A-orchestration' if a.closure=='A' else 'B-concrete-renderer-views']
+  sources=closure['actual_production_sources']+['native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java']+[s['source'] for s in closure['substitutes']]+closure['test_support_sources']+[closure['test_source']]
+  if len(set(sources))!=len(sources):raise RuntimeError('duplicate explicit source')
+- frozen={s:(ROOT/s).read_bytes() for s in sources};frozen['native/android/tests/run-private-owner-host.py']=Path(__file__).read_bytes()
++ frozen={s:(ROOT/s).read_bytes() for s in sources};frozen[ROSTER_SOURCE]=roster_bytes;frozen['native/android/tests/run-private-owner-host.py']=Path(__file__).read_bytes()
+  mapping='verification/android-private-owner-integration-implementation/barrier-map.json';frozen[mapping]=(ROOT/mapping).read_bytes()
+  descriptor='verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json';frozen[descriptor]=(ROOT/descriptor).read_bytes()
+  save(evidence/'source-map.json',{s:ident(b) for s,b in frozen.items()});save(evidence/'roster.json',closure)

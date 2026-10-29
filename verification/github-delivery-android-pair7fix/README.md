@@ -1,0 +1,9 @@
+# Prepare the pair7 host repair for delivery
+
+This fresh packet is inert. It selects no payload, grants no authority and runs no command. The source templates stop before imports until root freezes the coherent follow-up selection and an independent reviewer accepts the exact materialized source and typed argv. The baseline is a3967100c5773685bbaedb964aa6e5de9838cb8a with tree 69178bebcc6f73680b28e920d798c032a51037f6.
+
+The owned helper changes only the two equal-length baseline literals. Custody, direct kernel wait, separate pipe EOF, group absence, permanent latches and signal handling remain unchanged. The prospective phases retain ten preflight reads, twenty-three delivery commands and five ordinary Engine reads. Delivery uses one finite NUL pathspec, every selected content/hash/blob/mode proof, one commit and one nonforce SHA-to-main push. All current runtime sources, argv, authority and records stay outside selection; no manual workflow run is dispatched.
+
+The previous 38 target commands all closed with exit zero. Its outer delivery controller failed after the push on one newly created review namespace. Independent data review preserved the failed strict comparison and accepted the narrow recovery; no old command was replayed. Combined history is 147 target commands, 146 exit zero and one older closed stage failure. The previous Engine run has five successful jobs and one Android host compile failure. No full pair7 host acceptance or new compiler qualification is claimed.
+
+Before preflight, root must establish the real files in every active untracked namespace that could become visible to Git. New work during delivery stays within those existing namespaces. Both exact formatting and public control-output exception lists start empty. Historical packets, protected user work and held processes stay untouched. Local compilers, product runtimes, native/UI/capture and devices remain unrun.

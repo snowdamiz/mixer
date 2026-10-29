@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "phase": "pair7fix-engine-ci-binding",
+  "preparationOnly": true,
+  "rootApprovalRequired": true,
+  "selection": null,
+  "helper": {
+    "path": "verification/github-delivery-android-pair7fix/owned.py",
+    "bytes": 29385,
+    "sha256": "9840ba31b885d7933244910829b7b21591a83bcc04a266c72fe42fd5da910171"
+  },
+  "session": {
+    "seconds": 180,
+    "count": 5,
+    "prefix": "pair7fix-engine-ci-binding-"
+  },
+  "interpreter": {
+    "flags": [
+      "-I",
+      "-B",
+      "-S"
+    ],
+    "wrapper": "verification/github-delivery-android-pair7fix/owned.py"
+  },
+  "commands": [
+    {
+      "name": "head",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "remote-main",
+      "argv": [
+        "git",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "engine-workflow-content",
+      "argv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/contents/.github/workflows/verify.yml?ref={DELIVERED_SHA}",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "{sha,size,path,type}"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/contents/.github/workflows/verify.yml?ref={DELIVERED_SHA}",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "{sha,size,path,type}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "engine-workflow-registration",
+      "argv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/verify.yml",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "{id,path,state,name}"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/verify.yml",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "{id,path,state,name}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "engine-run",
+      "argv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/verify.yml/runs?event=push&head_sha={DELIVERED_SHA}&per_page=5",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "[.workflow_runs[]|{id,name,head_sha,event,run_attempt,status,conclusion,workflow_id,path,html_url}]"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/verify.yml/runs?event=push&head_sha={DELIVERED_SHA}&per_page=5",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "[.workflow_runs[]|{id,name,head_sha,event,run_attempt,status,conclusion,workflow_id,path,html_url}]"
+      ],
+      "kind": "read"
+    }
+  ],
+  "unboundFields": [
+    "selection"
+  ],
+  "manualWorkflowDispatchLimit": 0,
+  "expectedEngineWorkflowID": 393488255
+}

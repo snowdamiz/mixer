@@ -1,0 +1,234 @@
+{
+  "schema": 1,
+  "phase": "pair7fix-preflight",
+  "preparationOnly": true,
+  "rootApprovalRequired": true,
+  "selection": null,
+  "helper": {
+    "path": "verification/github-delivery-android-pair7fix/owned.py",
+    "bytes": 29385,
+    "sha256": "9840ba31b885d7933244910829b7b21591a83bcc04a266c72fe42fd5da910171"
+  },
+  "session": {
+    "seconds": 210,
+    "count": 10,
+    "prefix": "pair7fix-preflight-"
+  },
+  "interpreter": {
+    "flags": [
+      "-I",
+      "-B",
+      "-S"
+    ],
+    "wrapper": "verification/github-delivery-android-pair7fix/owned.py"
+  },
+  "commands": [
+    {
+      "name": "git-version",
+      "argv": [
+        "git",
+        "--version"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "--version"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "gh-version",
+      "argv": [
+        "gh",
+        "--version"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "--version"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "head",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "branch",
+      "argv": [
+        "git",
+        "branch",
+        "--show-current"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "branch",
+        "--show-current"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "origin",
+      "argv": [
+        "git",
+        "remote",
+        "get-url",
+        "origin"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "remote",
+        "get-url",
+        "origin"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "push-url",
+      "argv": [
+        "git",
+        "remote",
+        "get-url",
+        "--push",
+        "--all",
+        "origin"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "remote",
+        "get-url",
+        "--push",
+        "--all",
+        "origin"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "remote-main",
+      "argv": [
+        "git",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "index-raw",
+      "argv": [
+        "git",
+        "diff",
+        "--cached",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--cached",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "collapsed-status",
+      "argv": [
+        "git",
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=normal"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=normal"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "complete-raw-diff",
+      "argv": [
+        "git",
+        "diff",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "kind": "read"
+    }
+  ],
+  "unboundFields": [
+    "selection"
+  ],
+  "manualWorkflowDispatchLimit": 0,
+  "expectedEngineWorkflowID": 393488255
+}

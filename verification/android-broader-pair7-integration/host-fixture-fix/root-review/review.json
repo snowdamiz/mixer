@@ -1,0 +1,188 @@
+{
+  "schema": 1,
+  "at": "2026-10-29T23:20:44.858Z",
+  "decision": "accept-source-only-host-fixture-correction-for-fresh-ordinary-CI",
+  "reviewer": "root independent from fixture author",
+  "selection": {
+    "path": "verification/android-broader-pair7-integration/host-fixture-fix/adapter-leaves/final-source-selection.json",
+    "bytes": 2730,
+    "sha256": "7369c59b0e20e90a3649a4fd647c2419f4ddfc11c5be0c338636c9f7f6b2bd37"
+  },
+  "canonicalRows": [
+    {
+      "path": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/ExtractedText.java",
+      "bytes": 144,
+      "sha256": "088a910571f840f396bd13e610f6c5f926e9336023a156f083751909704b1c32",
+      "mode": "100644"
+    },
+    {
+      "path": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/ExtractedTextRequest.java",
+      "bytes": 152,
+      "sha256": "be453b4319348460ffbc665c33ccb49914cc3f6b3c8f4c23add584886c00dc48",
+      "mode": "100644"
+    },
+    {
+      "path": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/InputConnection.java",
+      "bytes": 3063,
+      "sha256": "f52825d39a514a269dcbbdb015f345677f599451ca59ba6718424af41606c28e",
+      "mode": "100644"
+    },
+    {
+      "path": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/SurroundingText.java",
+      "bytes": 153,
+      "sha256": "eb5104f6a1e3a9a6a412f5b7c196d31c2eeb047d9548d82242b4cde416373695",
+      "mode": "100644"
+    },
+    {
+      "path": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/TextBoundsInfoResult.java",
+      "bytes": 297,
+      "sha256": "46fe7a907191761a569c077bba27a542f72d707e0b73ebe0b23449c3ff299157",
+      "mode": "100644"
+    },
+    {
+      "path": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/TextSnapshot.java",
+      "bytes": 141,
+      "sha256": "5e7764358dc78b478e1419d8fb7b114d415ad39f40768875e1341a8c0696ea64",
+      "mode": "100644"
+    },
+    {
+      "path": "native/android/tests/NativeOwnerV2HostLeaves/dev/mixer/android/NativeRenderer.java",
+      "bytes": 5967,
+      "sha256": "430dd47bc17630873f4c2d8ff12bac690cf5ee2c96cba94636ed11c81e22ad29",
+      "mode": "100644"
+    },
+    {
+      "path": "native/android/tests/NativeOwnerV2HostTests.java",
+      "bytes": 57019,
+      "sha256": "ee397492a87f8f7ed60e1bbf8ac19070b63300f3dbd261c9a412fa768d58ee11",
+      "mode": "100644"
+    },
+    {
+      "path": "native/android/tests/private-owner-host-roster.json",
+      "bytes": 152077,
+      "sha256": "932f6c9e6d1bbbe8a8c48eeaec382e55fa2bdf2f74df64dc32ff2bc68c12046a",
+      "mode": "100644"
+    },
+    {
+      "path": "native/android/tests/run-private-owner-host.py",
+      "bytes": 5748,
+      "sha256": "39c0b6f2eeed62ef745a603f9d3cb11d683106ba88cc1ec2c4d6486e346cbaab",
+      "mode": "100644"
+    }
+  ],
+  "reviewedDiffs": [
+    {
+      "path": "verification/android-broader-pair7-integration/host-fixture-fix/changes.patch",
+      "bytes": 16334,
+      "sha256": "53f977f7f89939057ca9c672e3822af2271adff23181e48b9979e2f882144c07"
+    },
+    {
+      "path": "verification/android-broader-pair7-integration/host-fixture-fix/live-roster/changes.patch",
+      "bytes": 3164,
+      "sha256": "823bfa399014ca6519a622aba86dcf94d0e7fdde90079c78a6629e773e342a0d"
+    },
+    {
+      "path": "verification/android-broader-pair7-integration/host-fixture-fix/adapter-leaves/changes.patch",
+      "bytes": 8493,
+      "sha256": "16364e76a17ebd042cb1ca65b348f31bc0abf321f922abf37e791ea560fc3a3d"
+    }
+  ],
+  "priorSourceReceipts": [
+    {
+      "path": "verification/android-broader-pair7-integration/host-fixture-fix/source-only-receipt.json",
+      "bytes": 9773,
+      "sha256": "bdd77ae8397d6d835922c86ea6092590ec74dc2167041780d431d1243c3694dd"
+    },
+    {
+      "path": "verification/android-broader-pair7-integration/host-fixture-fix/live-roster/source-only-receipt.json",
+      "bytes": 6305,
+      "sha256": "0a61f524c0515d0814a5e2d1d81a8c6465e68b2d2989d698b7e61c603bf5514b"
+    },
+    {
+      "path": "verification/android-broader-pair7-integration/host-fixture-fix/adapter-leaves/source-only-receipt.json",
+      "bytes": 7112,
+      "sha256": "4cf5170df3085d29597d243640fe628d66ac0898c15222b918e1e4405858535c"
+    }
+  ],
+  "semanticReview": {
+    "controlledRenderer": "Failure completion rejects null, foreign, already successful and repeated candidates; claims completion before hooks; retains primary and first fatal; editor holds defer owner disposal without conflating cancellation.",
+    "tests": "Nine added cases call the actual owner/coordinator through the controlled renderer: six initial/input/refresh with and without fatal cleanup, successful/null rejection, fatal reporter propagation, and two holds with deferred disposal until balanced release. Host execution remains pending.",
+    "liveRoster": "Exact original JSON semantics after removing one B production adapter and five B controlled type rows. A unchanged; no effect or required-method inventory widened.",
+    "runner": "Only live roster path, one exact byte read and frozen source-map inclusion changed. Existing postflight compares those frozen bytes. No custody behavior was changed or newly qualified.",
+    "interface": "The direct adapter can name its previously missing query/context methods and request/result types. Later interface methods have inert defaults so earlier concrete adapter classes can implement the combined fixture interface. Instrumented BaseInputConnection remains unchanged.",
+    "limits": "Controlled result/query types and refusal defaults are compile scaffolding only; this is not Android platform behavior, linkage, API-floor or device proof."
+  },
+  "closures": {
+    "A-orchestration": {
+      "sources": 87,
+      "unique": true,
+      "allExist": true
+    },
+    "B-concrete-renderer-views": {
+      "sources": 96,
+      "unique": true,
+      "allExist": true
+    }
+  },
+  "unchangedProductionRows": [
+    {
+      "path": "cli/Sources/MixerBuild/AndroidSDKCompatibility.swift",
+      "bytes": 25690,
+      "sha256": "78e6d139344484e3cf3268f49774c6fa13e8d48d3027f7aa0d3ccc9b6db12b49"
+    },
+    {
+      "path": "cli/Sources/MixerBuild/Resources/android-build.py",
+      "bytes": 30613,
+      "sha256": "cfb7981faec31f9ac9d277b3e2c93f20a5236f632eae51caa62d19248a07fe27"
+    },
+    {
+      "path": "cli/Tests/MixerBuildTests/AndroidProjectTests.swift",
+      "bytes": 14688,
+      "sha256": "a9f0aef84ade84326c5a18ff90c733b5315818e2dd26cc871bd3d6680b3d7321"
+    },
+    {
+      "path": "cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift",
+      "bytes": 43138,
+      "sha256": "9bdafab84d3a5d4d50ab94f33b5eb37a0ef130d74c9dde2934cb3e11c204ed39"
+    },
+    {
+      "path": "cli/build-tests/test_android_sdk_compatibility.py",
+      "bytes": 25635,
+      "sha256": "831f7f07a1e07d2593c98a5c05793684ce2ae08247113012a0aeb72ad80db8a4"
+    },
+    {
+      "path": "native/android/app/src/dev/mixer/android/NativeAppearanceViewsV2.java",
+      "bytes": 127820,
+      "sha256": "d9704dab54d22347faf4d4724568db0a8aca8388b002aee8b45f896997a8d259"
+    },
+    {
+      "path": "native/android/app/src/dev/mixer/android/NativeCoordinatorV2.java",
+      "bytes": 13985,
+      "sha256": "cc7121aa496ee03de49aceb294265fe28818d77c95743087fc702fa9a931ec51"
+    },
+    {
+      "path": "native/android/app/src/dev/mixer/android/NativeEditorConnectionV2.java",
+      "bytes": 9528,
+      "sha256": "b0cf2beb17ed46c57466eadddfcef14c4bf56dd57b6060d9e1fe801a21726c97"
+    },
+    {
+      "path": "native/android/app/src/dev/mixer/android/NativeRenderer.java",
+      "bytes": 83197,
+      "sha256": "af71e35ed21673ec01648cce73c9eab0a3b0cf2ba7c7594422b2fe5e04752b3e"
+    }
+  ],
+  "sourceDataOnly": true,
+  "compilerInvocations": 0,
+  "subjectTestsRun": 0,
+  "subjectHelpersImportedOrExecuted": false,
+  "nativeUIOrCaptureActions": false,
+  "heldProcessActions": false,
+  "hostAcceptance": false,
+  "releaseOrGAQualified": false,
+  "pending": [
+    "Fresh ordinary closure A javac and nine host behavioral cases",
+    "Fresh ordinary closure B javac and host renderer assertions",
+    "Generated Android consumer Java/D8 compile",
+    "Native, physical, immutable SDK, signing, store, customer and GA gates"
+  ]
+}

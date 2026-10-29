@@ -1,0 +1,146 @@
+--- before/native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/InputConnection.java
++++ after/native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/InputConnection.java
+@@ -1,24 +1,47 @@
+-package android.view.inputmethod;public interface InputConnection {int HANDWRITING_GESTURE_RESULT_UNSUPPORTED=2;
+-boolean commitText(CharSequence text,int position);
+-boolean setComposingText(CharSequence text,int position);
+-boolean commitText(CharSequence text,int position,TextAttribute attributes);
+-boolean setComposingText(CharSequence text,int position,TextAttribute attributes);
+-boolean setComposingRegion(int start,int end);
+-boolean setComposingRegion(int start,int end,TextAttribute attributes);
+-boolean finishComposingText();
+-boolean deleteSurroundingText(int before,int after);
+-boolean deleteSurroundingTextInCodePoints(int before,int after);
+-boolean setSelection(int start,int end);
+-boolean performEditorAction(int action);
+-boolean sendKeyEvent(android.view.KeyEvent event);
+-boolean replaceText(int start,int end,CharSequence text,int position,TextAttribute attributes);
+-boolean performPrivateCommand(String action,android.os.Bundle data);
+-boolean setImeConsumesInput(boolean consumes);
+-boolean previewHandwritingGesture(PreviewableHandwritingGesture gesture,android.os.CancellationSignal cancellation);
+-boolean commitCompletion(CompletionInfo value);
+-boolean commitCorrection(CorrectionInfo value);
+-boolean commitContent(InputContentInfo content,int flags,android.os.Bundle options);
+-boolean beginBatchEdit();
+-boolean endBatchEdit();
+-boolean clearMetaKeyStates(int states);
+-void performHandwritingGesture(HandwritingGesture gesture,java.util.concurrent.Executor executor,java.util.function.IntConsumer result);void closeConnection();}
++package android.view.inputmethod;
++
++/** Controlled host signatures. Unmodeled operations return refusal values. */
++public interface InputConnection {
++    int HANDWRITING_GESTURE_RESULT_UNSUPPORTED=2;
++    boolean commitText(CharSequence text,int position);
++    boolean setComposingText(CharSequence text,int position);
++    boolean setComposingRegion(int start,int end);
++    boolean finishComposingText();
++    boolean deleteSurroundingText(int before,int after);
++    boolean deleteSurroundingTextInCodePoints(int before,int after);
++    boolean setSelection(int start,int end);
++    boolean performEditorAction(int action);
++    boolean sendKeyEvent(android.view.KeyEvent event);
++    boolean performPrivateCommand(String action,android.os.Bundle data);
++    boolean commitCompletion(CompletionInfo value);
++    boolean commitCorrection(CorrectionInfo value);
++    boolean commitContent(InputContentInfo content,int flags,android.os.Bundle options);
++    boolean beginBatchEdit();
++    boolean endBatchEdit();
++    boolean clearMetaKeyStates(int states);
++    void closeConnection();
++
++    default boolean performContextMenuAction(int id){return false;}
++    default boolean reportFullscreenMode(boolean enabled){return false;}
++    default boolean requestCursorUpdates(int mode){return false;}
++    default ExtractedText getExtractedText(ExtractedTextRequest request,int flags){return null;}
++    default CharSequence getSelectedText(int flags){return null;}
++    default CharSequence getTextBeforeCursor(int length,int flags){return null;}
++    default CharSequence getTextAfterCursor(int length,int flags){return null;}
++    default int getCursorCapsMode(int modes){return 0;}
++    default android.os.Handler getHandler(){return null;}
++
++    // The host combines API levels. Defaults leave later methods unavailable to earlier adapters.
++    default SurroundingText getSurroundingText(int before,int after,int flags){return null;}
++    default boolean performSpellCheck(){return false;}
++    default boolean setImeConsumesInput(boolean consumes){return false;}
++    default boolean commitText(CharSequence text,int position,TextAttribute attributes){return false;}
++    default boolean setComposingText(CharSequence text,int position,TextAttribute attributes){return false;}
++    default boolean setComposingRegion(int start,int end,TextAttribute attributes){return false;}
++    default boolean requestCursorUpdates(int mode,int filter){return false;}
++    default TextSnapshot takeSnapshot(){return null;}
++    default boolean replaceText(int start,int end,CharSequence text,int position,TextAttribute attributes){return false;}
++    default boolean previewHandwritingGesture(PreviewableHandwritingGesture gesture,android.os.CancellationSignal cancellation){return false;}
++    default void performHandwritingGesture(HandwritingGesture gesture,java.util.concurrent.Executor executor,java.util.function.IntConsumer result){}
++    default void requestTextBoundsInfo(android.graphics.RectF bounds,java.util.concurrent.Executor executor,java.util.function.Consumer<TextBoundsInfoResult> result){}
++}
+--- before/native/android/tests/private-owner-host-roster.json
++++ after/native/android/tests/private-owner-host-roster.json
+@@ -3732,6 +3732,14 @@
+           "source": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/EditorInfo.java"
+         },
+         {
++          "fqcn": "android.view.inputmethod.ExtractedText",
++          "source": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/ExtractedText.java"
++        },
++        {
++          "fqcn": "android.view.inputmethod.ExtractedTextRequest",
++          "source": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/ExtractedTextRequest.java"
++        },
++        {
+           "fqcn": "android.view.inputmethod.HandwritingGesture",
+           "source": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/HandwritingGesture.java"
+         },
+@@ -3752,8 +3760,20 @@
+           "source": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/PreviewableHandwritingGesture.java"
+         },
+         {
++          "fqcn": "android.view.inputmethod.SurroundingText",
++          "source": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/SurroundingText.java"
++        },
++        {
+           "fqcn": "android.view.inputmethod.TextAttribute",
+           "source": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/TextAttribute.java"
++        },
++        {
++          "fqcn": "android.view.inputmethod.TextBoundsInfoResult",
++          "source": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/TextBoundsInfoResult.java"
++        },
++        {
++          "fqcn": "android.view.inputmethod.TextSnapshot",
++          "source": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/TextSnapshot.java"
+         },
+         {
+           "fqcn": "android.widget.Button",
+--- /dev/null
++++ after/native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/ExtractedText.java
+@@ -0,0 +1,3 @@
++package android.view.inputmethod;
++/** Host query result type only. No native text extraction is modeled. */
++public final class ExtractedText {}
+--- /dev/null
++++ after/native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/ExtractedTextRequest.java
+@@ -0,0 +1,3 @@
++package android.view.inputmethod;
++/** Host query request type only. No native text extraction is modeled. */
++public final class ExtractedTextRequest {}
+--- /dev/null
++++ after/native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/SurroundingText.java
+@@ -0,0 +1,3 @@
++package android.view.inputmethod;
++/** Host query result type only. No native surrounding-text query is modeled. */
++public final class SurroundingText {}
+--- /dev/null
++++ after/native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/TextSnapshot.java
+@@ -0,0 +1,3 @@
++package android.view.inputmethod;
++/** Host query result type only. No native text snapshot is modeled. */
++public final class TextSnapshot {}
+--- /dev/null
++++ after/native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/TextBoundsInfoResult.java
+@@ -0,0 +1,7 @@
++package android.view.inputmethod;
++/** Controlled unsupported-result carrier. No native text-bound query is modeled. */
++public final class TextBoundsInfoResult {
++    public static final int CODE_UNSUPPORTED=0;
++    public final int code;
++    public TextBoundsInfoResult(int code){this.code=code;}
++}
