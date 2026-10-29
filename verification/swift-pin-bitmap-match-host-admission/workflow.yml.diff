@@ -1,0 +1,43 @@
+--- accepted/workflow.yml
++++ rebound/workflow.yml
+@@ -24,17 +24,17 @@
+           sparse-checkout-cone-mode: false
+           sparse-checkout: |
+             /vm/
+-            /verification/swift-pin-bitmap-lint-correction/
++            /verification/swift-pin-bitmap-match-binding-correction/
+             /verification/swift-pin-bitmap-lint-independent-admission/
+-            /verification/swift-pin-bitmap-lint-host-selection/
++            /verification/swift-pin-bitmap-match-host-admission/
+             /verification/swift-pin-bitmap-lint-host-evidence-correction/admit.py
+             /verification/swift-pin-bitmap-format-lint-host-correction/admit.py
+             /verification/swift-pin-bitmap-format-lint-host-correction/bounded_commands.py
+       - name: Guarded source and mocked host controls
+         timeout-minutes: 2
+         run: |
+-          python3 -B verification/swift-pin-bitmap-lint-host-selection/host_controls.py
+-          python3 -B verification/swift-pin-bitmap-lint-host-selection/controls.py
++          python3 -B verification/swift-pin-bitmap-match-host-admission/host_controls.py
++          python3 -B verification/swift-pin-bitmap-match-host-admission/controls.py
+       - name: Install exact hosted Rust formatting and Clippy tools
+         timeout-minutes: 2
+         env:
+@@ -45,7 +45,7 @@
+         env:
+           RUSTUP_HOME: ${{ runner.temp }}/swift-pin-bitmap-lint-regression-v1-toolchain
+           MIXER_PIN_BITMAP_LINT_SELECTION: ${{ inputs.profile }}
+-        run: python3 -B verification/swift-pin-bitmap-lint-host-selection/admit.py run
++        run: python3 -B verification/swift-pin-bitmap-match-host-admission/admit.py run
+       - name: Retain exact source formatting, full outputs, identities and custody
+         if: always()
+         timeout-minutes: 1
+@@ -55,7 +55,7 @@
+           path: |
+             ${{ runner.temp }}/pin-bitmap-lint-regression-v1-evidence/
+             !${{ runner.temp }}/pin-bitmap-lint-regression-v1-evidence/scratch/
+-            verification/swift-pin-bitmap-lint-host-selection/host-controls-result.json
+-            verification/swift-pin-bitmap-lint-host-selection/controls-result.json
++            verification/swift-pin-bitmap-match-host-admission/host-controls-result.json
++            verification/swift-pin-bitmap-match-host-admission/controls-result.json
+           if-no-files-found: error
+           retention-days: 30

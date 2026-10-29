@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "failures": [
+    {
+      "command": "python3 -B verification/swift-pin-bitmap-match-binding-correction/prepare.py",
+      "checkerSHA256": "f47ff446d0041f9e92829e160647e242878468366247e644e7e5539b53572ddf",
+      "exit": 1,
+      "stage": "guard resource limit setup before subject imports/data reads/materialization",
+      "error": "ValueError: current limit exceeds maximum limit",
+      "line": "resource.setrlimit(resource.RLIMIT_AS, (768 * 1024 * 1024, 768 * 1024 * 1024))",
+      "subjectImports": 0,
+      "materializedOverlays": 0,
+      "liveEffects": 0,
+      "correction": "Remove unsupported AS setter; retain 20-second CPU/4 MiB per-output-file limits and cap source/data file reads at 32 MiB each."
+    }
+  ]
+}

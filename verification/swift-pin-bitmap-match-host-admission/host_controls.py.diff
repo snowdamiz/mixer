@@ -1,0 +1,23 @@
+--- accepted/host_controls.py
++++ rebound/host_controls.py
+@@ -294,16 +294,16 @@
+         self.assertNotIn('setup-node',text);self.assertNotIn('npm ',text);self.assertNotIn('node --',text)
+         self.assertIn('cancel-in-progress: false',text);self.assertIn('timeout-minutes: 32',text)
+         self.assertEqual(text.count('RUSTUP_HOME: ${{ runner.temp }}/swift-pin-bitmap-lint-regression-v1-toolchain'),2)
+-        self.assertIn('/verification/swift-pin-bitmap-lint-correction/',text)
++        self.assertIn('/verification/swift-pin-bitmap-match-binding-correction/',text)
+         # Context validity comes from explicit step env placement; this is a
+         # source check, not official workflow validation or actual execution.
+         self.assertEqual(re.findall(r'^        run: (.+)$',text,re.M),[
+             '|',
+             'rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy',
+-            'python3 -B verification/swift-pin-bitmap-lint-host-selection/admit.py run'])
++            'python3 -B verification/swift-pin-bitmap-match-host-admission/admit.py run'])
+         self.assertEqual(re.findall(r'^          (python3 -B .+)$',text,re.M),[
+-            'python3 -B verification/swift-pin-bitmap-lint-host-selection/host_controls.py',
+-            'python3 -B verification/swift-pin-bitmap-lint-host-selection/controls.py'])
++            'python3 -B verification/swift-pin-bitmap-match-host-admission/host_controls.py',
++            'python3 -B verification/swift-pin-bitmap-match-host-admission/controls.py'])
+ 
+ 
+ if __name__=='__main__':

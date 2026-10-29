@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "headParentSupplied": "88c32d7fe9a5596d269ad29eb63c380dc5e820b4",
+  "gitTreeParentSupplied": "6bca344641b9b4c9e928a460b801f8c93d2a90ad",
+  "baselineTreeSHA256": "af0db424af7b08f013d2c6a8894f4d156f76bc5f493620c6f2c0b85d3bf4c48b",
+  "priorCandidateTreeSHA256": "7f188bd7b0fe12244936bcbde3f1e4b2f9d9d3fedd43cacbf750d4ba55684748",
+  "actualFormattedTreeSHA256": "1c24099923de0e10835957cb7a8cdc744750014aae360dac5ffe8dccb3f9b60a",
+  "candidateTreeSHA256": "e9282e05cea70d4aceaf6a145fb9f971acb023dd41a7d4651216753666305ba1",
+  "inputBindings": {
+    "priorManifest": {
+      "path": "verification/swift-pin-bitmap-lint-correction/manifest.json",
+      "bytes": 83448,
+      "sha256": "3e4d218b80af972381abcdef3c251d0ed3417fcdfe13a446a31abc34479cc792"
+    },
+    "priorSeal": {
+      "path": "verification/swift-pin-bitmap-lint-correction/seal.json",
+      "bytes": 5303,
+      "sha256": "89505e8f873e5c225d711f8ae923bd8149db30a74603c49dddb523639cb11052"
+    },
+    "actualSanitizedReview": {
+      "path": "verification/swift-pin-bitmap-lint-actual-review/sanitized-result.json",
+      "bytes": 28509,
+      "sha256": "9348d09fd11c5f14c819da605f1c2992b6aae90f84b6110c9d82836513710b9b"
+    },
+    "artifactZIP": {
+      "path": "verification/swift-pin-bitmap-lint-actual-review/local/artifact.zip",
+      "bytes": 394698,
+      "sha256": "c56be30a98b59e7b300ae981a04ebfe26f80806b0070a8ab47bb44691a3acf4a"
+    },
+    "actualSourceManifest": {
+      "path": "verification/swift-pin-bitmap-lint-actual-review/local/extract/_temp/pin-bitmap-lint-regression-v1-evidence/source-manifest.json",
+      "bytes": 83448,
+      "sha256": "2b05bedd825871888bdf9b9e96754f19952cfa7a7e623ef54595b73567397ba4"
+    },
+    "actualFormattedManifest": {
+      "path": "verification/swift-pin-bitmap-lint-actual-review/local/extract/_temp/pin-bitmap-lint-regression-v1-evidence/formatted-source-manifest.json",
+      "bytes": 21699,
+      "sha256": "fcda7cd07942ea8348efee1ede8cdf7a8fa25517b23c85cf722040f5209b1fee"
+    },
+    "actualClippyDiagnostic": {
+      "path": "verification/swift-pin-bitmap-lint-actual-review/local/extract/_temp/pin-bitmap-lint-regression-v1-evidence/clippy-candidate.json",
+      "bytes": 5487,
+      "sha256": "eef204f45ee6ce0ba526e921c5f4a58414e2fd31428f90b37732e609a6688c2b"
+    }
+  },
+  "rawEvidenceCopied": false,
+  "run": {
+    "id": 40822264739,
+    "attempt": 1,
+    "conclusion": "failure",
+    "clippyExit": 101,
+    "clippySeconds": 8.642611,
+    "recordCount": 39,
+    "diagnosticCount": 1,
+    "artifactID": 12874169678
+  },
+  "diagnostic": {
+    "code": "clippy::blocks_in_conditions",
+    "path": "src/experimental_swift_reactor/cache_tests.rs",
+    "lineStart": 1219,
+    "lineEnd": 1223,
+    "suggestionApplicability": "MachineApplicable"
+  },
+  "correction": {
+    "old": "        match {\n            let mut returned = None;\n            construct(&mut c, a, None, &mut returned);\n            returned.unwrap()\n        } {",
+    "new": "        let construction_result = {\n            let mut returned = None;\n            construct(&mut c, a, None, &mut returned);\n            returned.unwrap()\n        };\n        match construction_result {",
+    "preimage": {
+      "bytes": 173073,
+      "sha256": "7bf70fba33a03ae320557d896ff925e60075fe8022f9da4d000c3517884aa972"
+    },
+    "result": {
+      "bytes": 173128,
+      "sha256": "2799acfb55a1c99eae7e332c665daaf8cbdaa366c7f15251f8e64907a5349d92"
+    },
+    "byteDelta": 55,
+    "unchangedOverlayCount": 14
+  },
+  "manualAllowance": "Prior sole manual allowance spent by immutable failed run; this packet selects no further attempt"
+}

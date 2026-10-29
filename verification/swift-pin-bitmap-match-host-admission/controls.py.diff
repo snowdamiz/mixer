@@ -1,0 +1,26 @@
+--- accepted/controls.py
++++ rebound/controls.py
+@@ -64,7 +64,13 @@
+ 
+     def test_only_two_functions_and_one_small_roster_helper_change(self):
+         old = ast.parse((FROZEN / 'admit.py').read_text())
+-        new = ast.parse((HERE / 'admit.py').read_text())
++        rebound = (HERE / 'admit.py').read_text()
++        bindings = json.loads((HERE / 'source-basis.json').read_text())['admitReplacements']
++        for binding in bindings:
++            self.assertEqual(rebound.count(binding['after']), binding['count'])
++            rebound = rebound.replace(binding['after'], binding['before'], binding['count'])
++        self.assertEqual(rebound, (HERE.parent / 'swift-pin-bitmap-lint-host-evidence-correction' / 'admit.py').read_text())
++        new = ast.parse(rebound)
+         def nodes(tree):
+             return {n.name: ast.dump(n, include_attributes=False) for n in tree.body if isinstance(n, ast.FunctionDef)}
+         before, after = nodes(old), nodes(new)
+@@ -78,7 +84,7 @@
+ 
+     def test_real_source_admission_and_exact_six_vectors_remain(self):
+         manifest, data = a.inputs()
+-        self.assertEqual((len(data), len(a.OVERLAYS), a.CANDIDATE), (136, 15, '7f188bd7b0fe12244936bcbde3f1e4b2f9d9d3fedd43cacbf750d4ba55684748'))
++        self.assertEqual((len(data), len(a.OVERLAYS), a.CANDIDATE), (136, 15, 'e9282e05cea70d4aceaf6a145fb9f971acb023dd41a7d4651216753666305ba1'))
+         self.assertEqual(a.closure(manifest['candidateFiles']), a.CANDIDATE)
+         paths = {n: Path('$RUNNER_TEMP/pin-bitmap-lint-regression-v1-evidence/scratch') / n for n in ('source', 'target', 'cargo', 'home', 'nodebin')}
+         toolbin = Path('$RUSTUP_HOME/toolchains') / a.TOOLCHAIN / 'bin'

@@ -1,0 +1,947 @@
+//! Original-owner bounded host behavior fixtures; no dispatcher or mock engine.
+use super::super::tests::{
+    self as frame_tests, cursor, hooks, install_foreign, owner, pin_ids, restore_foreign, retire,
+    Hooks,
+};
+use super::*;
+use crate::experimental_swift_reactor::allocation_tests::measure_extended;
+use frame_tests::control_tests::body_owner;
+use std::cell::Cell;
+thread_local! { pub(super) static PC_OVERFLOW: Cell<bool> = const { Cell::new(false) }; static CHECK_CANCEL: Cell<Option<usize>> = const { Cell::new(None) }; static CHECKS: Cell<usize> = const { Cell::new(0) }; static FIXTURES: Cell<usize> = const { Cell::new(0) }; static STEPS: Cell<usize> = const { Cell::new(0) }; }
+struct Bounds;
+impl Bounds {
+    fn new() -> Self {
+        FIXTURES.with(|v| v.set(0));
+        STEPS.with(|v| v.set(0));
+        Self
+    }
+}
+impl Drop for Bounds {
+    fn drop(&mut self) {
+        if !std::thread::panicking() {
+            println!("BM_BOUND fixtures={} totalSteps={} maxStepsPerFixture=64 maxFrames=3 realPages=584",FIXTURES.with(Cell::get),STEPS.with(Cell::get));
+            assert!(FIXTURES.with(Cell::get) <= 64);
+            assert!(STEPS.with(Cell::get) <= 4096);
+        }
+    }
+}
+fn observed(p: &FrameOperationPhase<'_>) -> SwiftRunUsage {
+    p.phase
+        .operation
+        .control
+        .usage(Some(p.phase.operation.wasi.usage()))
+}
+fn storage<'a>() -> FrameOperationStorage<'a> {
+    FrameOperationStorage {
+        preparation: None,
+        entry: None,
+        returned: None,
+        drained: None,
+        controlled: None,
+    }
+}
+fn fixture(enter: bool, body: Option<&[u8]>, action: impl FnOnce(&mut FrameOperationPhase<'_>)) {
+    FIXTURES.with(|n| n.set(n.get() + 1));
+    let mut owned = if let Some(b) = body {
+        body_owner(b, false, &[], SwiftRunBudget::default())
+    } else {
+        owner()
+    };
+    let before = owned
+        .control
+        .as_ref()
+        .unwrap()
+        .usage(None)
+        .reservations
+        .construction
+        .current;
+    let mut prep = Some(owned.prepare_frames(cursor()));
+    let mut phase = prep.take().unwrap().unwrap();
+    if enter {
+        phase.enter(34).unwrap();
+    }
+    assert_eq!(phase.phase.parts.memory.len(), 584 * 65536);
+    assert!(phase.phase.parts.frames.len() <= 3);
+    let start = STEPS.with(Cell::get);
+    action(&mut phase);
+    assert!(STEPS.with(Cell::get) - start <= 64);
+    hooks(Hooks::default());
+    PC_OVERFLOW.with(|v| v.set(false));
+    CHECK_CANCEL.with(|v| v.set(None));
+    CHECKS.with(|v| v.set(0));
+    let report = phase.drain();
+    assert_eq!(report.retained_frames, 0);
+    let debt = report.live_unreconciled;
+    let completion = phase.complete(FrameOperationStorage {
+        preparation: prep,
+        ..storage()
+    });
+    if debt {
+        assert!(matches!(completion, FrameCompletion::Retained(_)));
+        let mut own = Some(owned);
+        assert!(SwiftReactorInstance::cleanup_owned(&mut own).is_err());
+        assert!(own.is_some());
+        drop(own);
+    } else {
+        assert!(matches!(completion, FrameCompletion::Completed));
+        assert_eq!(
+            owned
+                .control
+                .as_ref()
+                .unwrap()
+                .usage(None)
+                .reservations
+                .construction
+                .current,
+            before
+        );
+        retire(owned);
+    }
+}
+fn push(p: &mut FrameOperationPhase<'_>, v: &[Value]) {
+    for x in v {
+        p.phase.push_value(*x).unwrap();
+    }
+}
+pub(super) fn check_checkpoint(control: &RuntimeControl) {
+    let n = CHECKS.with(|v| {
+        let n = v.get();
+        v.set(n + 1);
+        n
+    });
+    if CHECK_CANCEL.with(Cell::get) == Some(n) {
+        control.cancellation().cancel();
+    }
+}
+fn op(p: &mut FrameOperationPhase<'_>, operation: Operation) -> Result<(), SwiftRunFailure> {
+    STEPS.with(|n| n.set(n.get() + 1));
+    let before = observed(p);
+    let mut slot = None;
+    p.bulk_memory_operation(operation, &mut slot).unwrap();
+    assert_eq!(observed(p).instructions, before.instructions);
+    if !p.cleanup.live_unreconciled {
+        assert_eq!(observed(p).live.values.current, p.phase.parts.values.len());
+    }
+    slot.unwrap()
+}
+fn seed(p: &mut FrameOperationPhase<'_>) {
+    for (i, byte) in p.phase.parts.memory[..4 * CHUNK].iter_mut().enumerate() {
+        *byte = (i.wrapping_mul(37) ^ (i / 251)) as u8;
+    }
+}
+const COPY: Operation = Operation::MemoryCopy;
+const FILL: Operation = Operation::MemoryFill;
+const SIZE: Operation = Operation::MemorySize;
+const BODY: &[u8] = &[0x41, 0, 0x41, 3, 0x41, 8, 0xfc, 10, 0, 0, 0x0b];
+fn pinned(
+    p: &mut FrameOperationPhase<'_>,
+    s: &mut FrameOperationStorage<'_>,
+) -> Result<(), SwiftRunFailure> {
+    STEPS.with(|n| n.set(n.get() + 1));
+    bulk_memory_pinned_caller(p, s)
+}
+#[test]
+fn bm01_copy_overlap_and_chunks() {
+    let _b = Bounds::new();
+    for (src, dst, len) in [
+        (0, 0, 0),
+        (1, 2, 1),
+        (0, 1, 2 * CHUNK + 17),
+        (1, 0, 2 * CHUNK + 17),
+        (0, 3 * CHUNK, 17),
+        (0, 0, CHUNK + 1),
+    ] {
+        fixture(true, None, |p| {
+            seed(p);
+            let mut expected = p.phase.parts.memory[..4 * CHUNK].to_vec();
+            expected.copy_within(src..src + len, dst);
+            push(
+                p,
+                &[
+                    Value::I32(dst as i32),
+                    Value::I32(src as i32),
+                    Value::I32(len as i32),
+                ],
+            );
+            let before = observed(p);
+            op(p, COPY).unwrap();
+            assert_eq!(&p.phase.parts.memory[..4 * CHUNK], expected.as_slice());
+            assert!(p.phase.parts.values.is_empty());
+            assert_eq!(
+                observed(p).execution_work - before.execution_work,
+                3 + len as u64
+            );
+            assert_eq!(
+                observed(p).instruction_fuel - before.instruction_fuel,
+                len.div_ceil(64) as u64
+            );
+            assert_eq!(CHECKS.with(Cell::get), len.div_ceil(CHUNK));
+        });
+    }
+}
+#[test]
+fn bm02_fill_low_byte_and_chunks() {
+    let _b = Bounds::new();
+    for value in [0, 255, 256, -1, 0x1234] {
+        for len in [0, 1, CHUNK, CHUNK + 1] {
+            fixture(true, None, |p| {
+                seed(p);
+                let mut expected = p.phase.parts.memory[..4 * CHUNK].to_vec();
+                expected[3..3 + len].fill(value as u8);
+                push(
+                    p,
+                    &[Value::I32(3), Value::I32(value), Value::I32(len as i32)],
+                );
+                let before = observed(p);
+                op(p, FILL).unwrap();
+                assert_eq!(&p.phase.parts.memory[..4 * CHUNK], expected.as_slice());
+                assert_eq!(
+                    observed(p).execution_work - before.execution_work,
+                    3 + len as u64
+                );
+                assert_eq!(
+                    observed(p).instruction_fuel - before.instruction_fuel,
+                    len.div_ceil(64) as u64
+                );
+            });
+        }
+    }
+}
+#[test]
+fn bm03_zero_and_bounds() {
+    let _b = Bounds::new();
+    let end = 584 * 65536;
+    for operation in [COPY, FILL] {
+        for (dst, second, len, pass) in [
+            (end, end, 0, true),
+            (end + 1, 0, 0, false),
+            (end - 1, end - 1, 1, true),
+            (end, 0, 1, false),
+            (-1, 0, 0, false),
+            (0, -1, 1, false),
+            (0, 0, -1, false),
+        ] {
+            fixture(true, None, |p| {
+                push(p, &[Value::I32(dst), Value::I32(second), Value::I32(len)]);
+                let before = observed(p);
+                let result = op(p, operation);
+                let actual_pass = pass
+                    || (matches!(operation, Operation::MemoryFill)
+                        && second == -1
+                        && dst == 0
+                        && len == 1);
+                assert_eq!(result.is_ok(), actual_pass);
+                if let Err(e) = result {
+                    assert_eq!(e.code, "memory_out_of_bounds");
+                    assert_eq!(observed(p).instruction_fuel, before.instruction_fuel);
+                }
+                assert!(p.phase.parts.values.is_empty());
+            });
+        }
+    }
+}
+#[test]
+fn bm04_preflight_floor_type_and_pages() {
+    let _b = Bounds::new();
+    for fault in 0..9 {
+        fixture(true, None, |p| {
+            push(p, &[Value::I32(0), Value::I32(0), Value::I32(1)]);
+            let f = &p.phase.parts.frames[0];
+            let original = (f.base, f.operands, f.controls);
+            match fault {
+                0 => p.phase.parts.frames[0].base = 1,
+                1 => p.phase.parts.frames[0].operands = 4,
+                2 => p.phase.parts.frames[0].operands = 1,
+                3 => p.phase.parts.frames[0].controls = 99,
+                4..=6 => p.phase.parts.values[fault - 4] = Value::I64(0),
+                7 => {
+                    p.phase.parts.memory.truncate(583 * PAGE);
+                }
+                _ => {
+                    p.phase.parts.memory.pop();
+                }
+            }
+            let before = observed(p);
+            let memory = p.phase.parts.memory[..8].to_vec();
+            assert!(op(p, COPY).is_err());
+            assert_eq!(p.phase.parts.values.len(), 3);
+            assert_eq!(observed(p).execution_work, before.execution_work);
+            assert_eq!(&p.phase.parts.memory[..8], memory.as_slice());
+            let f = &mut p.phase.parts.frames[0];
+            (f.base, f.operands, f.controls) = original;
+            if fault == 7 {
+                p.phase.parts.memory.resize(584 * PAGE, 0);
+            }
+            if fault == 8 {
+                p.phase.parts.memory.push(0);
+            }
+        });
+    }
+    fixture(false, None, |p| {
+        assert_eq!(
+            op(p, COPY).unwrap_err().code,
+            "swift_bulk_memory_frame_missing"
+        );
+    });
+}
+#[test]
+fn bm05_work_prefix() {
+    let _b = Bounds::new();
+    for operation in [COPY, FILL] {
+        for allowed in [0, 1, 2, 3, 4, 67] {
+            fixture(true, None, |p| {
+                push(p, &[Value::I32(0), Value::I32(9), Value::I32(64)]);
+                let before = observed(p);
+                let old = p
+                    .phase
+                    .operation
+                    .control
+                    .test_replace_execution_work_limit(before.execution_work + allowed);
+                let result = op(p, operation);
+                p.phase
+                    .operation
+                    .control
+                    .test_replace_execution_work_limit(old);
+                assert_eq!(p.phase.parts.values.len(), 3 - allowed.min(3) as usize);
+                assert_eq!(result.is_ok(), allowed >= 67);
+                assert_eq!(
+                    observed(p).execution_work - before.execution_work,
+                    if allowed < 3 {
+                        allowed
+                    } else if allowed < 67 {
+                        3
+                    } else {
+                        67
+                    }
+                );
+                assert_eq!(
+                    observed(p).instruction_fuel - before.instruction_fuel,
+                    if allowed >= 3 { 1 } else { 0 }
+                );
+                if allowed < 67 {
+                    assert!(p.phase.parts.memory[..64].iter().all(|b| *b == 0));
+                }
+            });
+        }
+    }
+}
+#[test]
+fn bm06_fuel_prefix() {
+    let _b = Bounds::new();
+    for len in [0usize, 1, 63, 64, 65, 129] {
+        for fuel in [0, 1, 2] {
+            FIXTURES.with(|n| n.set(n.get() + 1));
+            let mut own = body_owner(
+                &[0x0b],
+                false,
+                &[],
+                SwiftRunBudget {
+                    instruction_fuel: fuel,
+                    ..SwiftRunBudget::default()
+                },
+            );
+            let mut prep = Some(own.prepare_frames(cursor()));
+            let mut p = prep.take().unwrap().unwrap();
+            p.enter(34).unwrap();
+            push(
+                &mut p,
+                &[Value::I32(0), Value::I32(9), Value::I32(len as i32)],
+            );
+            let before = observed(&p);
+            let result = op(&mut p, FILL);
+            let pass = fuel >= len.div_ceil(64) as u64;
+            assert_eq!(result.is_ok(), pass);
+            if let Err(failure) = result {
+                assert_eq!(failure.kind, SwiftRunFailureKind::FuelExhausted);
+            }
+            assert_eq!(
+                observed(&p).execution_work - before.execution_work,
+                3 + if pass { len as u64 } else { 0 }
+            );
+            assert_eq!(
+                observed(&p).instruction_fuel - before.instruction_fuel,
+                if pass { len.div_ceil(64) as u64 } else { 0 }
+            );
+            assert!(p.phase.parts.values.is_empty());
+            assert_eq!(
+                p.phase.parts.memory[0],
+                if pass && len != 0 { 9 } else { 0 }
+            );
+            p.drain();
+            assert!(matches!(
+                p.complete(FrameOperationStorage {
+                    preparation: prep,
+                    ..storage()
+                }),
+                FrameCompletion::Completed
+            ));
+            retire(own);
+        }
+    }
+}
+#[test]
+fn bm07_cancel_before_bulk() {
+    let _b = Bounds::new();
+    for len in [0, 64] {
+        for checkpoint in 0..=3 {
+            fixture(true, None, |p| {
+                push(p, &[Value::I32(0), Value::I32(9), Value::I32(len)]);
+                hooks(Hooks {
+                    push_fault: 6,
+                    cancel_local: Some(checkpoint),
+                    ..Hooks::default()
+                });
+                let before = observed(p);
+                assert_eq!(
+                    op(p, FILL).unwrap_err().kind,
+                    SwiftRunFailureKind::Cancelled
+                );
+                assert_eq!(p.phase.parts.values.len(), 3 - checkpoint.min(3));
+                assert_eq!(
+                    observed(p).execution_work - before.execution_work,
+                    checkpoint.min(3) as u64
+                );
+                assert_eq!(
+                    observed(p).instruction_fuel - before.instruction_fuel,
+                    if checkpoint == 3 && len != 0 { 1 } else { 0 }
+                );
+                assert!(p.phase.parts.memory[..64].iter().all(|b| *b == 0));
+            });
+        }
+    }
+}
+#[test]
+fn bm08_cancel_chunk_effect_prefix() {
+    let _b = Bounds::new();
+    for (operation, src, dst) in [(COPY, 0, 1), (COPY, 1, 0), (FILL, 77, 3)] {
+        for checks in 0..=3 {
+            fixture(true, None, |p| {
+                seed(p);
+                let len = 2 * CHUNK + 17;
+                let mut expected = p.phase.parts.memory[..4 * CHUNK].to_vec();
+                if matches!(operation, Operation::MemoryFill) {
+                    let n = checks.min(3) * CHUNK;
+                    expected[dst..dst + len.min(n)].fill(src as u8);
+                } else if dst > src {
+                    let n = len.min(checks * CHUNK);
+                    expected.copy_within(src + len - n..src + len, dst + len - n);
+                } else {
+                    let n = len.min(checks * CHUNK);
+                    expected.copy_within(src..src + n, dst);
+                }
+                push(
+                    p,
+                    &[
+                        Value::I32(dst as i32),
+                        Value::I32(src as i32),
+                        Value::I32(len as i32),
+                    ],
+                );
+                CHECK_CANCEL.with(|v| v.set(Some(checks)));
+                let before = observed(p);
+                let result = op(p, operation);
+                assert_eq!(result.is_ok(), checks >= 3);
+                assert_eq!(&p.phase.parts.memory[..4 * CHUNK], expected.as_slice());
+                assert!(p.phase.parts.values.is_empty());
+                assert_eq!(
+                    observed(p).execution_work - before.execution_work,
+                    3 + len as u64
+                );
+                assert_eq!(
+                    observed(p).instruction_fuel - before.instruction_fuel,
+                    len.div_ceil(64) as u64
+                );
+                assert_eq!(CHECKS.with(Cell::get), checks.min(2) + 1);
+            });
+        }
+    }
+}
+#[test]
+fn bm09_size_observed_and_capacity() {
+    let _b = Bounds::new();
+    fixture(true, None, |p| {
+        let before = observed(p);
+        op(p, SIZE).unwrap();
+        assert_eq!(p.phase.parts.values.as_slice(), &[Value::I32(584)]);
+        assert_eq!(observed(p).execution_work - before.execution_work, 1);
+        assert_eq!(observed(p).instruction_fuel, before.instruction_fuel);
+        assert_eq!(
+            observed(p).live.values.current,
+            before.live.values.current + 1
+        );
+    });
+    for fault in [2, 4] {
+        fixture(true, None, |p| {
+            hooks(Hooks {
+                push_fault: fault,
+                ..Hooks::default()
+            });
+            assert_eq!(
+                op(p, SIZE).unwrap_err().kind,
+                SwiftRunFailureKind::ValueLimit
+            );
+            assert!(p.phase.parts.values.is_empty());
+            assert_eq!(observed(p).live.values.current, 0);
+        });
+    }
+}
+#[test]
+fn bm10_pinned_caller_success() {
+    let _b = Bounds::new();
+    for (operation, body, pc) in [
+        (COPY, BODY, 3),
+        (FILL, &[0x41, 0, 0x41, 3, 0x41, 8, 0xfc, 11, 0, 0x0b][..], 3),
+        (SIZE, &[0x3f, 0, 0x1a, 0x0b][..], 0),
+    ] {
+        fixture(true, Some(body), |p| {
+            seed(p);
+            let expected = p.phase.parts.memory[3..11].to_vec();
+            if !matches!(operation, Operation::MemorySize) {
+                push(p, &[Value::I32(0), Value::I32(3), Value::I32(8)]);
+            }
+            p.phase.parts.frames[0].pc = pc;
+            let pin = pin_ids(p);
+            let actual = {
+                let f = &p.phase.parts.frames[0];
+                p.phase
+                    .parts
+                    .cache
+                    .view(
+                        &f.pin,
+                        p.phase.operation.control,
+                        Some(&*p.phase.operation.wasi),
+                    )
+                    .unwrap()
+                    .instructions[pc]
+            };
+            let before = observed(p);
+            let mut s = storage();
+            pinned(p, &mut s).unwrap();
+            assert_eq!(s.entry.take(), Some(Ok(())));
+            assert_eq!(p.phase.parts.frames[0].pc, pc + 1);
+            assert_eq!(pin_ids(p), pin);
+            assert_eq!(p.phase.operation.cursor.function, Some(34));
+            assert_eq!(p.phase.operation.cursor.offset, Some(actual.offset));
+            assert_eq!(observed(p).instructions - before.instructions, 1);
+            let size = matches!(operation, Operation::MemorySize);
+            assert_eq!(
+                observed(p).instruction_fuel - before.instruction_fuel,
+                if size { 1 } else { 2 }
+            );
+            assert_eq!(
+                observed(p).execution_work - before.execution_work,
+                if size { 2 } else { 12 }
+            );
+            match operation {
+                Operation::MemorySize => {
+                    assert_eq!(p.phase.parts.values.as_slice(), &[Value::I32(584)])
+                }
+                Operation::MemoryCopy => {
+                    assert_eq!(&p.phase.parts.memory[..8], expected.as_slice())
+                }
+                Operation::MemoryFill => assert_eq!(&p.phase.parts.memory[..8], &[3; 8]),
+                _ => unreachable!(),
+            }
+        });
+    }
+}
+#[test]
+fn bm11_pinned_early_errors() {
+    let _b = Bounds::new();
+    for fault in 0..7 {
+        fixture(true, Some(BODY), |p| {
+            push(p, &[Value::I32(0), Value::I32(0), Value::I32(1)]);
+            p.phase.parts.frames[0].pc = 3;
+            let old = if fault == 2 {
+                Some(
+                    p.phase
+                        .operation
+                        .control
+                        .test_replace_execution_work_limit(observed(p).execution_work),
+                )
+            } else {
+                None
+            };
+            match fault {
+                0 => p.terminal(),
+                1 => p.phase.parts.frames[0].pc = usize::MAX,
+                3 => PC_OVERFLOW.with(|v| v.set(true)),
+                4 => p.phase.operation.control.cancellation().cancel(),
+                5 => hooks(Hooks {
+                    push_fault: 6,
+                    cancel_local: Some(0),
+                    ..Hooks::default()
+                }),
+                6 => p.phase.parts.frames[0].pc = 0,
+                _ => {}
+            }
+            let before = observed(p);
+            let mut s = storage();
+            pinned(p, &mut s).unwrap();
+            assert!(s.entry.unwrap().is_err());
+            assert!(matches!(p.lifecycle, Lifecycle::Terminal));
+            assert!(matches!(p.cleanup.disposition, FrameDisposition::Draining));
+            assert_eq!(p.phase.parts.values.len(), 3);
+            if fault == 4 {
+                assert_eq!(observed(p).instruction_fuel, before.instruction_fuel);
+            }
+            if fault == 5 {
+                assert_eq!(observed(p).instruction_fuel, before.instruction_fuel + 1);
+                assert_eq!(p.phase.parts.frames[0].pc, 3);
+            }
+            if let Some(old) = old {
+                p.phase
+                    .operation
+                    .control
+                    .test_replace_execution_work_limit(old);
+            }
+        });
+    }
+    fixture(false, None, |p| {
+        let mut s = storage();
+        pinned(p, &mut s).unwrap();
+        assert_eq!(
+            s.entry.unwrap().unwrap_err().code,
+            "swift_bulk_memory_caller_frame"
+        );
+    });
+    for fuel in [0, 1] {
+        FIXTURES.with(|n| n.set(n.get() + 1));
+        let mut own = body_owner(
+            BODY,
+            false,
+            &[],
+            SwiftRunBudget {
+                instruction_fuel: fuel,
+                ..SwiftRunBudget::default()
+            },
+        );
+        let mut prep = Some(own.prepare_frames(cursor()));
+        let mut p = prep.take().unwrap().unwrap();
+        p.enter(34).unwrap();
+        push(&mut p, &[Value::I32(0), Value::I32(0), Value::I32(1)]);
+        p.phase.parts.frames[0].pc = 3;
+        let before = observed(&p);
+        let mut s = storage();
+        pinned(&mut p, &mut s).unwrap();
+        assert_eq!(
+            s.entry.unwrap().unwrap_err().kind,
+            SwiftRunFailureKind::FuelExhausted
+        );
+        assert_eq!(p.phase.parts.frames[0].pc, if fuel == 0 { 3 } else { 4 });
+        assert_eq!(p.phase.parts.values.len(), if fuel == 0 { 3 } else { 0 });
+        assert_eq!(observed(&p).instructions - before.instructions, fuel);
+        assert_eq!(
+            observed(&p).instruction_fuel - before.instruction_fuel,
+            fuel
+        );
+        assert_eq!(
+            observed(&p).execution_work - before.execution_work,
+            if fuel == 0 { 0 } else { 4 }
+        );
+        assert_eq!(p.phase.parts.memory[0], 0);
+        p.drain();
+        assert!(matches!(
+            p.complete(FrameOperationStorage {
+                preparation: prep,
+                ..s
+            }),
+            FrameCompletion::Completed
+        ));
+        retire(own);
+    }
+    FIXTURES.with(|n| n.set(n.get() + 1));
+    let mut foreign = owner();
+    fixture(true, Some(BODY), |p| {
+        push(p, &[Value::I32(0), Value::I32(0), Value::I32(1)]);
+        p.phase.parts.frames[0].pc = 3;
+        let other = crate::experimental_swift_reactor::cache::inspection::replace_header(
+            foreign.cache.as_mut().unwrap(),
+            None,
+        );
+        let original = crate::experimental_swift_reactor::cache::inspection::replace_header(
+            p.phase.parts.cache,
+            other,
+        );
+        let before = observed(p);
+        let mut s = storage();
+        pinned(p, &mut s).unwrap();
+        assert!(s.entry.unwrap().is_err());
+        assert_eq!(p.phase.parts.frames[0].pc, 3);
+        assert_eq!(p.phase.parts.values.len(), 3);
+        assert_eq!(observed(p).instruction_fuel, before.instruction_fuel);
+        assert_eq!(observed(p).execution_work, before.execution_work);
+        let other = crate::experimental_swift_reactor::cache::inspection::replace_header(
+            p.phase.parts.cache,
+            original,
+        );
+        assert!(
+            crate::experimental_swift_reactor::cache::inspection::replace_header(
+                foreign.cache.as_mut().unwrap(),
+                other
+            )
+            .is_none()
+        );
+    });
+    retire(foreign);
+}
+#[test]
+fn bm12_slot_and_fixed_completion() {
+    let _b = Bounds::new();
+    for direct in [false, true] {
+        for failed in [false, true] {
+            fixture(true, Some(BODY), |p| {
+                push(p, &[Value::I32(0), Value::I32(0), Value::I32(1)]);
+                p.phase.parts.frames[0].pc = 3;
+                let mut s = storage();
+                let saved = if failed {
+                    Err(p.invariant("bulk_first"))
+                } else {
+                    Ok(())
+                };
+                s.entry = Some(saved);
+                let before = observed(p);
+                assert!(if direct {
+                    p.bulk_memory_operation(COPY, &mut s.entry)
+                } else {
+                    pinned(p, &mut s)
+                }
+                .is_err());
+                assert_eq!(s.entry, Some(saved));
+                assert_eq!(observed(p).instructions, before.instructions);
+                assert_eq!(observed(p).execution_work, before.execution_work);
+                assert_eq!(p.phase.parts.frames[0].pc, 3);
+                assert_eq!(p.phase.parts.values.len(), 3);
+            });
+        }
+    }
+    FIXTURES.with(|n| n.set(n.get() + 1));
+    let mut own = owner();
+    let mut s = storage();
+    s.preparation = Some(own.prepare_frames(cursor()));
+    let mut p = s.preparation.take().unwrap().unwrap();
+    p.enter(34).unwrap();
+    push(&mut p, &[Value::I32(-1), Value::I32(0), Value::I32(1)]);
+    p.bulk_memory_operation(COPY, &mut s.entry).unwrap();
+    let error = s.entry.unwrap().unwrap_err();
+    s.drained = Some(p.drain());
+    assert_eq!(
+        s.drained.as_ref().unwrap().first_failure.unwrap().code,
+        error.code
+    );
+    assert!(matches!(p.complete(s), FrameCompletion::Completed));
+    retire(own);
+}
+#[test]
+fn bm13_debt_and_cleanup_retry() {
+    let _b = Bounds::new();
+    fixture(true, None, |p| {
+        push(p, &[Value::I32(0), Value::I32(9), Value::I32(1)]);
+        hooks(Hooks {
+            push_fault: 5,
+            ..Hooks::default()
+        });
+        let failure = op(p, FILL).unwrap_err();
+        assert_eq!(failure.code, "swift_run_live_underflow");
+        assert!(p.cleanup.live_unreconciled);
+        assert_eq!(p.phase.parts.values.len(), 2);
+    });
+    FIXTURES.with(|n| n.set(n.get() + 2));
+    let mut foreign = owner();
+    install_foreign(&mut foreign);
+    let mut own = owner();
+    let mut prep = Some(own.prepare_frames(cursor()));
+    let mut p = prep.take().unwrap().unwrap();
+    p.enter(34).unwrap();
+    p.enter(36).unwrap();
+    p.enter(34).unwrap();
+    let pins = pin_ids(&p);
+    push(&mut p, &[Value::I32(-1), Value::I32(0), Value::I32(1)]);
+    let failure = op(&mut p, COPY).unwrap_err();
+    hooks(Hooks {
+        release_mask: 7,
+        ..Hooks::default()
+    });
+    assert_eq!(p.drain().retained_frames, 3);
+    assert_eq!(pin_ids(&p), pins);
+    hooks(Hooks::default());
+    assert!(matches!(
+        p.complete(FrameOperationStorage {
+            preparation: prep,
+            ..storage()
+        }),
+        FrameCompletion::Retained(_)
+    ));
+    let mut resumed = Some(own.resume_frame_cleanup());
+    let mut p = resumed.take().unwrap().unwrap();
+    let report = p.drain();
+    assert_eq!(report.retained_frames, 0);
+    assert_eq!(report.first_failure.unwrap().code, failure.code);
+    assert!(matches!(
+        p.complete(FrameOperationStorage {
+            preparation: resumed,
+            ..storage()
+        }),
+        FrameCompletion::Completed
+    ));
+    restore_foreign(&mut foreign);
+    retire(foreign);
+    retire(own);
+}
+#[test]
+fn bm14_no_alloc_and_deferred() {
+    let _b = Bounds::new();
+    for operation in [COPY, FILL, SIZE] {
+        for fail in [false, true] {
+            fixture(true, None, |p| {
+                if !matches!(operation, Operation::MemorySize) {
+                    push(
+                        p,
+                        &[
+                            Value::I32(if fail { -1 } else { 0 }),
+                            Value::I32(0),
+                            Value::I32(64),
+                        ],
+                    );
+                } else if fail {
+                    hooks(Hooks {
+                        push_fault: 2,
+                        ..Hooks::default()
+                    });
+                }
+                let ((r, slot), stats) = measure_extended(Some(0), || {
+                    let mut slot = None;
+                    let r = p.bulk_memory_operation(operation, &mut slot);
+                    (r, slot)
+                });
+                assert_eq!(stats.attempts, 0);
+                r.unwrap();
+                assert_eq!(slot.unwrap().is_err(), fail);
+            });
+        }
+    }
+    for operation in [
+        Operation::MemoryGrow,
+        Operation::Load {
+            opcode: 0x28,
+            offset: 0,
+        },
+        Operation::Nop,
+        Operation::Return,
+        Operation::Call(0),
+    ] {
+        fixture(true, None, |p| {
+            push(p, &[Value::I32(0), Value::I32(0), Value::I32(1)]);
+            let before = observed(p);
+            assert_eq!(
+                op(p, operation).unwrap_err().kind,
+                SwiftRunFailureKind::UnsupportedEnvironment
+            );
+            assert_eq!(p.phase.parts.values.len(), 3);
+            assert_eq!(observed(p).execution_work, before.execution_work);
+            assert_eq!(observed(p).reservations, before.reservations);
+        });
+    }
+}
+#[test]
+fn bm15_live_and_success_reuse() {
+    let _b = Bounds::new();
+    fixture(true, None, |p| {
+        push(p, &[Value::I32(0), Value::I32(0), Value::I32(1)]);
+        p.phase
+            .operation
+            .control
+            .remove_live(Live::Values, 1)
+            .unwrap();
+        let before = observed(p);
+        assert_eq!(op(p, COPY).unwrap_err().code, "swift_frame_live_mismatch");
+        assert_eq!(observed(p).execution_work, before.execution_work);
+        assert_eq!(p.phase.parts.values.len(), 3);
+    });
+    fixture(true, None, |p| {
+        let mut s = storage();
+        p.bulk_memory_operation(SIZE, &mut s.entry).unwrap();
+        assert_eq!(s.entry.take(), Some(Ok(())));
+        p.bulk_memory_operation(SIZE, &mut s.entry).unwrap();
+        assert_eq!(s.entry, Some(Ok(())));
+        assert_eq!(
+            p.phase.parts.values.as_slice(),
+            &[Value::I32(584), Value::I32(584)]
+        );
+    });
+}
+#[test]
+fn bm16_accounting_restore() {
+    let _b = Bounds::new();
+    fixture(true, None, |p| {
+        let before = observed(p);
+        op(p, SIZE).unwrap();
+        assert_eq!(observed(p).reservations, before.reservations);
+        assert_eq!(
+            FRAME_OPERATION_BYTES.unwrap(),
+            super::super::ACTIVE_BYTES
+                + value_operations::VALUE_OPERATION_BYTES.unwrap()
+                + control_operations::ACTIVE_BYTES
+                + super::super::memory_operations::ACTIVE_BYTES
+                + ACTIVE_BYTES
+                + super::super::memory_growth_operations::ACTIVE_BYTES
+                + super::super::host_runtime_import::ACTIVE_BYTES
+                + super::super::call_dispatch::ACTIVE_BYTES.unwrap()
+        );
+        assert_eq!(SwiftRunBudget::default().state_bytes, 128 * 1024 * 1024);
+        assert_eq!(SwiftRunBudget::default().combined_bytes, 256 * 1024 * 1024);
+        println!(
+            "BM_COMPONENT acceptedMemoryActive={} addedBulkActive={} completeEnvelope={}",
+            super::super::memory_operations::ACTIVE_BYTES,
+            ACTIVE_BYTES,
+            FRAME_OPERATION_BYTES.unwrap()
+        );
+    });
+}
+
+#[test]
+fn cdr04_actual_pinned_bulk_pop_attribution() {
+    let _b = Bounds::new();
+    fixture(true, Some(BODY), |p| {
+        push(p, &[Value::I32(0), Value::I32(0), Value::I32(1)]);
+        p.phase.parts.frames[0].pc = 3;
+        let actual = {
+            let f = &p.phase.parts.frames[0];
+            p.phase
+                .parts
+                .cache
+                .view(
+                    &f.pin,
+                    p.phase.operation.control,
+                    Some(&*p.phase.operation.wasi),
+                )
+                .unwrap()
+                .instructions[3]
+        };
+        hooks(Hooks {
+            push_fault: 5,
+            ..Hooks::default()
+        });
+        let mut s = storage();
+        pinned(p, &mut s).unwrap();
+        let failure = s.entry.unwrap().unwrap_err();
+        assert_eq!(
+            (
+                failure.stage,
+                failure.function,
+                failure.offset,
+                failure.resource
+            ),
+            (
+                SwiftRunStage::Invocation,
+                Some(34),
+                Some(actual.offset),
+                Some(SwiftRunResource::Values)
+            )
+        );
+        assert_eq!((failure.attempted, failure.limit), (1, 0));
+        assert!(p.cleanup.live_unreconciled);
+        assert_eq!(p.phase.parts.values.len(), 2);
+        assert_eq!(p.phase.parts.memory[0], 0);
+    });
+}

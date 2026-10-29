@@ -1,0 +1,17 @@
+--- actual-formatted/src/experimental_swift_reactor/cache_tests.rs
++++ candidate/src/experimental_swift_reactor/cache_tests.rs
+@@ -1216,11 +1216,12 @@
+                 ..SwiftRunBudget::default()
+             },
+         );
+-        match {
++        let construction_result = {
+             let mut returned = None;
+             construct(&mut c, a, None, &mut returned);
+             returned.unwrap()
+-        } {
++        };
++        match construction_result {
+             Ok(mut cache) => {
+                 assert!({
+                     let mut returned = None;
