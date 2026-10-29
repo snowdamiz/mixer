@@ -1,0 +1,120 @@
+raise SystemExit("UNBOUND SOURCE TEMPLATE: exact source/argv review and root materialization are required")
+import sys
+sys.dont_write_bytecode = True
+assert sys.flags.isolated == 1 and sys.flags.no_site == 1 and sys.flags.optimize == 0
+import importlib.util
+from pathlib import Path
+spec = importlib.util.spec_from_file_location('axis_canonical_common', Path(__file__).with_name('selection_common_axis_canonical.py'))
+common = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = common
+spec.loader.exec_module(common)
+import hashlib
+import json
+for name in ('StrictCommands','BASE','TREE','S','SELECTION','ROWS','SELECTED','AUTHORED','FORMATTING','FORMATTING_EXCLUSIONS','FORMATTING_DECISION_ROW','PROTECTED','PUSH_URL','ROOT','OUT','now','row','save','fingerprint','preserved_entry','raw_rows','collapsed','compare_collapsed','check_sources','accepted_preflight'):
+    globals()[name] = getattr(common, name)
+
+c = StrictCommands('canonical-delivery')
+pre, preservation = accepted_preflight(c.authority)
+assert pre['selectedPaths'] == len(ROWS)
+for name in ('canonical-delivery-once.json', 'canonical-stage-once.json', 'canonical-commit-once.json', 'canonical-push-once.json'):
+    assert not (OUT / name).exists(), 'Consumed operation is never replayable'
+with (OUT / 'paths-canonical.nul').open('xb') as handle:
+    handle.write(b''.join(value.encode() + b'\0' for value in AUTHORED))
+
+def check_preservation(label):
+    check_sources()
+    for expected in preservation['tracked'] + preservation['protectedSnapshots']:
+        assert fingerprint(expected['path']) == expected, expected['path']
+    assert fingerprint('.wrangler') == preservation['wrangler']
+    raw = c.run(label + '-diff')
+    diff = raw_rows(raw)
+    if label == 'before':
+        assert diff == preservation['completeWorktreeRawRows']
+        assert hashlib.sha256(raw).hexdigest() == preservation['completeWorktreeRawSHA256']
+    assert [value for value in diff if value['path'] not in SELECTED] == preservation['otherDirtyTracked']
+    for expected in preservation['untrackedCollapsed']:
+        assert preserved_entry(expected['path']) == expected, expected['path']
+
+def changed_map(raw, expected_objects):
+    parts = raw.split(b'\0')
+    assert len(parts) % 2 == 1
+    result = {}
+    for index in range(0, len(parts) - 1, 2):
+        fields, value = parts[index].decode().split(), parts[index + 1].decode()
+        assert len(fields) == 5 and fields[-1] in ('A', 'M') and value in SELECTED and value not in result
+        result[value] = {'oid': fields[3], 'mode': fields[1]}
+        assert result[value] == expected_objects[value]
+    return result
+
+assert c.run('head').decode().splitlines() == [BASE, TREE]
+assert c.run('branch').decode().strip() == 'main'
+assert c.run('origin').decode().strip() == pre['origin']
+assert c.run('push-url-before-stage').decode().splitlines() == [PUSH_URL]
+assert c.run('remote-before').decode().split() == [BASE, 'refs/heads/main']
+assert c.run('index-before') == b'', 'New delivery starts from the fresh accepted empty index'
+check_preservation('before')
+save('canonical-delivery-once.json', {'at': now(), 'selection': row(ROOT / SELECTION), 'paths': len(ROWS), 'retryOnUnknownOutcome': False})
+save('canonical-stage-once.json', {'at': now(), 'pathspec': row(OUT / 'paths-canonical.nul'), 'stageLimit': 1, 'retryAllowed': False})
+c.run('stage')
+expected_objects = {value['path']: {'oid': value['oid'], 'mode': value['mode']} for value in ROWS}
+objects = {}
+for entry in c.run('index-selected').split(b'\0'):
+    if not entry: continue
+    meta, value = entry.split(b'\t', 1)
+    fields, value = meta.decode().split(), value.decode()
+    assert len(fields) == 3 and fields[2] == '0' and value in SELECTED and value not in objects
+    objects[value] = {'oid': fields[1], 'mode': fields[0]}
+assert objects == expected_objects, 'Finite selected index proof must cover every source hash/OID/mode'
+save('selected-index-objects-canonical-local.json', objects)
+changed = changed_map(c.run('staged-objects'), objects)
+assert changed and set(changed).issubset(SELECTED)
+save('changed-index-objects-canonical-local.json', changed)
+c.run('authored-check')  # All other selected paths; three exact immutable exceptions.
+check_preservation('staged')
+save('canonical-commit-once.json', {'at': now(), 'parentMustEqual': BASE,
+     'changedObjects': row(OUT / 'changed-index-objects-canonical-local.json'), 'commitLimit': 1, 'retryAllowed': False})
+c.run('commit')
+head, tree, parent = c.run('committed-head').decode().splitlines()
+assert parent == BASE
+c.bind_committed_sha(head)
+committed = changed_map(c.run('committed-objects'), objects)
+assert committed == changed, 'Full raw parent commit diff differs from the verified staged change set'
+save('committed-objects-canonical.json', committed)
+assert c.run('remote-prepush').decode().split() == [BASE, 'refs/heads/main']
+assert c.run('push-url-prepush').decode().splitlines() == [PUSH_URL]
+save('canonical-push-once.json', {'at': now(), 'head': head, 'tree': tree, 'parent': parent,
+     'remote': 'origin', 'ref': 'refs/heads/main', 'force': False, 'reservationConsumedBeforeSubmit': True, 'retryOnUnknownOutcome': False})
+c.run('push', seconds=45)
+assert c.run('remote-postpush').decode().split() == [head, 'refs/heads/main']
+assert c.run('push-url-postpush').decode().splitlines() == [PUSH_URL]
+assert c.run('index-after') == b''
+check_preservation('after')
+after = collapsed(c.run('collapsed-status-after'))
+collapsed_proof = compare_collapsed(preservation['statusCollapsed'], after)
+save('preservation-canonical-after-local.json', {'at': now(), 'statusCollapsed': after,
+     'untrackedCollapsed': [preserved_entry(value['path']) for value in after if value['status'] == '??'],
+     'allPreexistingCollapsedEntryIdentityModesPreserved': True})
+c.complete(); check_sources()
+save('delivery-canonical-receipt.json', {'schema': 1, 'at': now(), 'head': head, 'tree': tree, 'parent': parent,
+     'pushed': True, 'force': False, 'selectedPaths': len(ROWS), 'selection': row(ROOT / SELECTION),
+     'acceptedPreflight': c.authority['acceptedPreflight'], 'acceptedInspectionRequired': False,
+     'stageReservation': row(OUT / 'canonical-stage-once.json'), 'commitReservation': row(OUT / 'canonical-commit-once.json'),
+     'pushReservation': row(OUT / 'canonical-push-once.json'), 'changedObjects': row(OUT / 'committed-objects-canonical.json'),
+     'allSelectedIndexHashOIDModesVerified': True, 'selectedIndexObjectsLocal': row(OUT / 'selected-index-objects-canonical-local.json'),
+     'changedSelectedPaths': len(changed), 'unchangedSelectedPaths': len(ROWS) - len(changed),
+     'unchangedSelectedMembersBoundByParentTreeAndExactCommittedDiff': True,
+     'whitespaceCheckedPaths': len(FORMATTING),
+     'whitespaceCheckScope': {'rootDecision': FORMATTING_DECISION_ROW, 'checkedPaths': FORMATTING,
+                              'allOtherSelectedPathsDefaultCheck': True},
+     'immutableEvidenceFormattingExclusions': FORMATTING_EXCLUSIONS,
+     'pushURL': PUSH_URL, 'indexEmpty': True, 'collapsedStatusProof': collapsed_proof,
+     'outsideSelectionDirtyByteModeSnapshotsPreserved': len(preservation['tracked']),
+     'preexistingCollapsedEntryIdentityModesPreserved': len(preservation['untrackedCollapsed']),
+     'cleanTrackedBoundByBaselineTreeAndCompleteRawDiff': True, 'allCleanTrackedFilesIndependentlyHashed': False,
+     'protectedByteModesUnchanged': True, 'wranglerUntouched': True, 'artifactsStoreAbsent': True,
+     'authoritySnapshot': c.authority_row, 'argvManifest': c.manifest_row, 'commands': c.records,
+     'allCommandsAdmittedDirectlyReapedOwnedGroupsAbsentSeparatePipesEOF': True,
+     'oldDriverReplayed': False, 'manualWorkflowDispatchesAuthorized': 0, 'manualDispatchesPerformed': 0,
+     'runtimeCompilerNativeUICaptureProcessInventoryHeldProbesStarted': False,
+     'fieldlogRepositoryOperations': 0, 'releaseTagOrGAPromotion': False, 'allExistingHoldsUntouched': True})
+print(json.dumps({'head': head, 'tree': tree, 'parent': parent, 'pushed': True, 'closedCommands': len(c.records)}))

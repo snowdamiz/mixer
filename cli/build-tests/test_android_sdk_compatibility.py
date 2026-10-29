@@ -149,7 +149,7 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
             renamed.rename(path)
 
     def test_profile_missing_unknown_mismatched_and_configuration_missing_android_lock(self):
-        for change in ['missing-android', 'legacy', 'profile-1', 'profile-2', 'profile-3', 'profile-4', 'unknown', 'digest', 'default']:
+        for change in ['missing-android', 'legacy', 'profile-1', 'profile-2', 'profile-3', 'profile-4', 'profile-5-current', 'profile-5-prior', 'broader-6-axis', 'mixed-sdk', 'mixed-adapter', 'unknown', 'digest', 'default']:
             with self.subTest(change=change):
                 self.refresh_lock()
                 value = self.lock_value
@@ -159,11 +159,77 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
                 elif change == 'profile-2': value['android']['profile']['id'] = 'mixer.android-source-pair.2'
                 elif change == 'profile-3': value['android']['profile']['id'] = 'mixer.android-source-pair.3'
                 elif change == 'profile-4': value['android']['profile']['id'] = 'mixer.android-source-pair.4'
+                elif change == 'profile-5-current':
+                    value['android']['profile'].update(id='mixer.android-source-pair.5',
+                        sdk_compatibility_sha256='bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0',
+                        adapter_compatibility_sha256='2b001980e07e0d1c8a5139e79de6ad6ca83d8db66d386bd4f77689ab32a6325a')
+                elif change == 'profile-5-prior':
+                    value['android']['profile'].update(id='mixer.android-source-pair.5',
+                        sdk_compatibility_sha256='4c2e74bbdb1c060ffa2219ed378d11ed390e7a4454b95df4a2ee72074bb9b5a7',
+                        adapter_compatibility_sha256='9d47585c18c325888c6d87914808449f1a92e4a3839d02ce5c4ae8f15801c10c')
+                elif change == 'broader-6-axis':
+                    # The same ID cannot authorize the unselected broader adapter24 source tuple.
+                    value['android']['profile'].update(id='mixer.android-source-pair.6',
+                        sdk_compatibility_sha256='bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0',
+                        adapter_compatibility_sha256='ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e',
+                        default_descriptor={'bytes': 9587, 'sha256': '1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3'})
+                elif change == 'mixed-sdk': value['android']['profile']['sdk_compatibility_sha256'] = '4c2e74bbdb1c060ffa2219ed378d11ed390e7a4454b95df4a2ee72074bb9b5a7'
+                elif change == 'mixed-adapter': value['android']['profile']['adapter_compatibility_sha256'] = '2b001980e07e0d1c8a5139e79de6ad6ca83d8db66d386bd4f77689ab32a6325a'
                 elif change == 'unknown': value['android']['profile']['id'] = 'unknown'
                 elif change == 'digest': value['android']['profile']['sdk_compatibility_sha256'] = '0' * 64
                 else: value['android']['profile']['default_descriptor'] = {'bytes': 1, 'sha256': '0' * 64}
                 (self.root / 'mixer.lock').write_text(json.dumps(value))
                 self.reject('android.sdk-profile-required' if change in ['missing-android', 'legacy'] else 'android.sdk-profile-mismatch')
+
+    def test_axis_only_profile_and_exported_session_are_exact(self):
+        self.assertEqual(PROFILE['id'], 'mixer.android-source-pair.6')
+        self.assertEqual(len(PROFILE['sdk_files']), 22)
+        self.assertEqual(len(PROFILE['adapter_files']), 23)
+        self.assertEqual(PROFILE['sdk_compatibility_sha256'], 'bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0')
+        self.assertEqual(PROFILE['adapter_compatibility_sha256'], '7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885')
+        session = self.adapter / 'Sources/MixerAndroidRuntime/DocumentSession.swift'
+        candidate = session.read_bytes()
+        self.assertEqual(len(candidate), 4328)
+        self.assertEqual(hashlib.sha256(candidate).hexdigest(), 'cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7')
+        self.assertEqual(candidate, (REPOSITORY / 'native/android/engine/Sources/MixerAndroidRuntime/DocumentSession.swift').read_bytes())
+        self.assertEqual(self.module.source_profile(), PROFILE)
+        self.assertEqual(self.module.admit_source_pair(self.root, PROFILE), self.descriptor.read_bytes())
+
+    def test_axis_session_baseline_and_drift_refuse_recomputed_generic_locks(self):
+        session = self.adapter / 'Sources/MixerAndroidRuntime/DocumentSession.swift'
+        candidate = session.read_bytes()
+        axis_guard = (b"            // Android's native packet decoder does not admit an explicit axis key.\n"
+                      b'            if node.kind == .textField, node.properties["axis"] != nil { throw AndroidDocumentError.unsupportedUI }\n')
+        self.assertEqual(candidate.count(axis_guard), 1)
+        baseline = candidate.replace(axis_guard, b'')
+        self.assertEqual(len(baseline), 4128)
+        self.assertEqual(hashlib.sha256(baseline).hexdigest(), '701b3d82add793a2b425bfc9673583afa8be4112406071242099da7da252bd0c')
+        for changed in [baseline, b'x' * len(candidate), candidate + b'\n// drift']:
+            with self.subTest(length=len(changed)):
+                try:
+                    session.write_bytes(changed)
+                    self.refresh_lock()
+                    self.reject()
+                finally:
+                    session.write_bytes(candidate)
+                    self.refresh_lock()
+
+    def test_previous_pair5_rendered_driver_refuses_new_session_before_output(self):
+        # Reconstruct the exact immediately previous template and its old 23-member map.
+        # New-profile lock rejection is covered separately; this reaches stale-map admission.
+        previous_raw = RAW.replace("value['id'] != 'mixer.android-source-pair.6'", "value['id'] != 'mixer.android-source-pair.5'")
+        self.assertEqual(hashlib.sha256(previous_raw.encode()).hexdigest(), '0f13545e610e527fe491314194fde1aa91698e9b458b638df6094f0e789fe4f2')
+        previous = json.loads(json.dumps(PROFILE))
+        previous['id'] = 'mixer.android-source-pair.5'
+        previous['adapter_compatibility_sha256'] = '2b001980e07e0d1c8a5139e79de6ad6ca83d8db66d386bd4f77689ab32a6325a'
+        previous['adapter_files']['Sources/MixerAndroidRuntime/DocumentSession.swift'] = {
+            'bytes': 4128, 'sha256': '701b3d82add793a2b425bfc9673583afa8be4112406071242099da7da252bd0c'}
+        self.rendered.write_text(previous_raw.replace(MARKER, json.dumps(previous).encode().hex()))
+        self.module = load_driver(self.rendered, 'stale_pair5_' + self.root.name.replace('-', '_'))
+        self.refresh_lock()
+        self.lock_value['android']['profile'] = self.module.profile_lock(previous)
+        (self.root / 'mixer.lock').write_text(json.dumps(self.lock_value))
+        self.reject()
 
     def test_observer_edits_reject_even_when_generic_locks_are_recomputed(self):
         observer = self.adapter / 'app/src/dev/mixer/android/NativeEnvironmentV2.java'

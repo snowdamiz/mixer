@@ -1,0 +1,179 @@
+  swift:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      # runner-images macos-15-arm64/20260907.0337 includes this installation;
+      # its default Xcode 16.4 supplies Swift 6.1 and cannot build the CLI.
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Builder boundary fixtures read the independently reviewed native pin.
+          fetch-depth: 0
+          # Retain source and every policy manifest; omit unrelated old receipts.
+          # Complete framing seals, envelope pack and external test inputs remain.
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/verification/*
+            /verification/**/Package.swift
+            /verification/**/Package.resolved
+            /verification/**/Cargo.toml
+            /verification/**/Cargo.lock
+            /verification/**/package.json
+            /verification/**/package-lock.json
+            /verification/**/go.mod
+            /verification/**/go.sum
+            /verification/**/build.gradle
+            /verification/**/build.gradle.kts
+            /verification/**/settings.gradle.kts
+            /verification/runtime-review/
+            /verification/guest-capability-contract/
+            /verification/swift-ordered-retention-analyzer-library/
+            /verification/swift-ordered-retention-analyzer-library-review/
+            /verification/swift-envelope-ci-pack/
+            /verification/envelope-producer-timeout-experiment/candidate_runner.py
+            /verification/envelope-producer-timeout-experiment/overlay.json
+            /verification/envelope-producer-timeout-experiment/producer-partition.json
+            /verification/envelope-partition-default-ci-adoption/
+            /verification/swift-envelope-ci-root-review/compiler-qualification-selection-amendment.json
+            /verification/swift-envelope-ci-root-review/test-lint-selection-amendment.json
+            /verification/android-default-appearance-packaging/run-2/created-descriptor.json
+            /verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json
+            /verification/ui-shared-appearance-contract/v2/mixer-default-appearance-v1.json
+            /verification/ui-appearance-foundation/design-corpus.json
+      - name: Verify and record pinned Apple toolchain
+        run: |
+          python3 scripts/ci/verify-apple-toolchain.py \
+            --developer-dir "$DEVELOPER_DIR" \
+            --xcode-version 26.3 --xcode-build 17C529 \
+            --output "$RUNNER_TEMP/apple-toolchain.json"
+      - name: CI selection regression tests
+        run: python3 -m unittest discover -s scripts/ci/tests -v
+      - name: Policy and acceptance integrity
+        run: python3 scripts/check-policy.py
+      - name: Accepted standalone analyzer fixture framing
+        run: |
+          python3 -B scripts/ci/check-analyzer-framing.py \
+            --output "$RUNNER_TEMP/analyzer-framing"
+      - name: Preserve standalone analyzer framing receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: analyzer-framing-host-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/analyzer-framing/receipt.json
+            ${{ runner.temp }}/analyzer-framing/ownership.json
+            ${{ runner.temp }}/analyzer-framing/commands/*
+            ${{ runner.temp }}/analyzer-framing/source/**/*.rs
+            ${{ runner.temp }}/analyzer-framing/source/collector.py
+            ${{ runner.temp }}/analyzer-framing/inputs/historical/*
+            ${{ runner.temp }}/analyzer-framing/retained/**/*
+      - name: Bind reviewed envelope partition source and ordinary compiler policy
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-partition-default-ci-adoption"
+          mkdir -p "$MIXER_ADOPTION_DIR/logs"
+          python3 -B "$MIXER_ADOPTION_DIR/adopt_envelope.py" verify --workflow-installed \
+            > "$MIXER_ADOPTION_DIR/logs/preflight.stdout" \
+            2> "$MIXER_ADOPTION_DIR/logs/preflight.stderr"
+      - name: Guarded envelope partition and ordinary adoption controls
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-partition-default-ci-adoption"
+          python3 -B "$MIXER_ADOPTION_DIR/test_adoption.py" -v \
+            > "$MIXER_ADOPTION_DIR/logs/controls.stdout" \
+            2> "$MIXER_ADOPTION_DIR/logs/controls.stderr"
+      - name: Accepted standalone analyzer fixture envelope
+        # 480 active + 60 retention/cleanup seconds; 180 seconds startup margin.
+        timeout-minutes: 12
+        shell: bash
+        run: |
+          set -euo pipefail
+          export RUSTUP_AUTO_INSTALL=0
+          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-partition-default-ci-adoption"
+          MIXER_ENVELOPE_RUSTC_LAUNCHER="$(command -v rustc)"
+          python3 -B "$MIXER_ADOPTION_DIR/adopt_envelope.py" run \
+            --rustc "$MIXER_ENVELOPE_RUSTC_LAUNCHER" \
+            --out "$RUNNER_TEMP/analyzer-envelope" \
+            > "$MIXER_ADOPTION_DIR/logs/fixture.stdout" \
+            2> "$MIXER_ADOPTION_DIR/logs/fixture.stderr"
+      - name: Verify envelope partition adoption source postflight
+        if: always()
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-partition-default-ci-adoption"
+          mkdir -p "$MIXER_ADOPTION_DIR/logs"
+          python3 -B "$MIXER_ADOPTION_DIR/adopt_envelope.py" verify --workflow-installed \
+            > "$MIXER_ADOPTION_DIR/logs/postflight.stdout" \
+            2> "$MIXER_ADOPTION_DIR/logs/postflight.stderr"
+      - name: Preserve standalone analyzer envelope receipts
+        if: always()
+        timeout-minutes: 5
+        uses: actions/upload-artifact@v4
+        with:
+          name: analyzer-envelope-host-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: ignore
+          include-hidden-files: true
+          path: |
+            ${{ runner.temp }}/analyzer-envelope/
+            ${{ github.workspace }}/verification/envelope-partition-default-ci-adoption/
+            ${{ github.workspace }}/.github/workflows/verify.yml
+      - name: Generated capability schema and host lifecycle
+        run: |
+          python3 capabilities/tools/generate.py --check
+          swift test --package-path capabilities
+      - name: Guest transport raw byte corpus
+        run: |
+          python3 capabilities/tools/check-guest-transport-fixtures.py --configuration debug
+          python3 capabilities/tools/check-guest-transport-fixtures.py --configuration release
+      - name: Native HTTP, deadlines and exit ownership under Thread Sanitizer
+        run: |
+          swift test --package-path capabilities \
+            --scratch-path "$RUNNER_TEMP/capability-tsan" --sanitize thread \
+            --filter 'NativeCapabilityExitTests|NativeHTTPTransportTests|CapabilityHostDeadlineTests|CapabilityCarriedDeadlineTests'
+      - name: Swift SDK, update verifier and CLI
+        run: |
+          swift --version
+          python3 scripts/ci/check-sdk-package.py
+          swift test
+          swift test --package-path updates
+          swift test --package-path cli
+          python3 -B -m unittest discover -s cli/build-tests -v
+          swift test --package-path native/android/engine
+          python3 runtime-identity/tools/vectors.py --check
+          python3 runtime-identity/tools/vectors_v2.py --check
+          swift test --package-path runtime-identity
+          python3 -B -m unittest discover -s runtime-identity/build-tools/tests -v
+      - name: Statically linked owned VM and signed startup
+        run: |
+          python3 -m unittest discover -s runtime/build-tests -v
+          python3 runtime/build-vm.py --revision "$GITHUB_SHA" --target host --output "$RUNNER_TEMP/native-vm"
+          swift test --package-path runtime -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
+          swift test --package-path activation -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
+          swift test --package-path verification/runtime-review -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
+      - name: Generated consumer integration
+        run: |
+          swift run --package-path cli mixer create VerificationApp --directory "$RUNNER_TEMP/VerificationApp"
+          swift run --package-path cli mixer test --directory "$RUNNER_TEMP/VerificationApp"
+          swift run --package-path cli mixer build --platform ios --directory "$RUNNER_TEMP/VerificationApp"
+      - name: Preserve core Apple toolchain and owned VM receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-core-toolchain-host-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/apple-toolchain.json
+            ${{ runner.temp }}/native-vm/receipt.json

@@ -1,0 +1,454 @@
+diff --git a/cli/Sources/MixerBuild/AndroidSDKCompatibility.swift b/cli/Sources/MixerBuild/AndroidSDKCompatibility.swift
+--- a/cli/Sources/MixerBuild/AndroidSDKCompatibility.swift
++++ b/cli/Sources/MixerBuild/AndroidSDKCompatibility.swift
+@@ -73,11 +73,11 @@
+     static let profile: AndroidSDKProfile = {
+         try! JSONDecoder().decode(AndroidSDKProfile.self, from: Data(#"""
+         {
+-          "adapter_compatibility_sha256": "2b001980e07e0d1c8a5139e79de6ad6ca83d8db66d386bd4f77689ab32a6325a",
++          "adapter_compatibility_sha256": "7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885",
+           "adapter_files": {
+             "Sources/MixerAndroidRuntime/DocumentSession.swift": {
+-              "bytes": 4128,
+-              "sha256": "701b3d82add793a2b425bfc9673583afa8be4112406071242099da7da252bd0c"
++              "bytes": 4328,
++              "sha256": "cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7"
+             },
+             "Sources/MixerAndroidRuntime/SessionRegistry.swift": {
+               "bytes": 7730,
+@@ -172,7 +172,7 @@
+             "bytes": 9587,
+             "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
+           },
+-          "id": "mixer.android-source-pair.5",
++          "id": "mixer.android-source-pair.6",
+           "schema": 1,
+           "sdk_compatibility_sha256": "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0",
+           "sdk_files": {
+diff --git a/cli/Sources/MixerBuild/Resources/android-build.py b/cli/Sources/MixerBuild/Resources/android-build.py
+--- a/cli/Sources/MixerBuild/Resources/android-build.py
++++ b/cli/Sources/MixerBuild/Resources/android-build.py
+@@ -99,7 +99,7 @@
+         value = json.loads(bytes.fromhex(SOURCE_PROFILE_HEX), object_pairs_hook=unique)
+         keys = {'schema', 'id', 'sdk_compatibility_sha256', 'adapter_compatibility_sha256',
+                 'default_descriptor', 'sdk_files', 'adapter_files', 'wire'}
+-        if not isinstance(value, dict) or set(value) != keys or type(value['schema']) is not int or value['schema'] != 1 or value['id'] != 'mixer.android-source-pair.5':
++        if not isinstance(value, dict) or set(value) != keys or type(value['schema']) is not int or value['schema'] != 1 or value['id'] != 'mixer.android-source-pair.6':
+             raise ValueError('unsupported profile shape/id')
+         def identity(item):
+             return (isinstance(item, dict) and set(item) == {'bytes', 'sha256'} and
+diff --git a/cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift b/cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift
+--- a/cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift
++++ b/cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift
+@@ -51,7 +51,11 @@
+ 
+ @Test func androidCompatibilityLinkedSDKAndTypedDefaultMatchCompiledPolicy() throws {
+     let p = AndroidSDKCompatibility.profile
+-    #expect(p.id == "mixer.android-source-pair.5")
++    #expect(p.id == "mixer.android-source-pair.6")
++    #expect(p.sdk_compatibility_sha256 == "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0")
++    #expect(p.adapter_compatibility_sha256 == "7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885")
++    #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.bytes == 4328)
++    #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.sha256 == "cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7")
+     #expect(p.sdk_files.count == 22); #expect(p.adapter_files.count == 23)
+     try AndroidSDKCompatibility.admitInput(sdk: compatibilityRepository.appendingPathComponent("sdk"), adapter: compatibilityRepository.appendingPathComponent("native/android"))
+     let value = try UIAppearanceDescriptorCodecV2.mixerDefaultV2()
+@@ -143,7 +147,7 @@
+     }
+ }
+ 
+-@Test(arguments: ["missing-file", "missing-lock", "legacy", "profile-1", "profile-2", "profile-3", "profile-4", "unknown", "digest", "default"])
++@Test(arguments: ["missing-file", "missing-lock", "legacy", "profile-1", "profile-2", "profile-3", "profile-4", "profile-5-current", "profile-5-prior", "broader-6-axis", "mixed-sdk", "mixed-adapter", "unknown", "digest", "default"])
+ func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(_ change: String) throws {
+     let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-profile-lock-\(UUID().uuidString)")
+     defer { try? FileManager.default.removeItem(at: root) }
+@@ -155,6 +159,22 @@
+     case "profile-2": lock.android?.profile?.id = "mixer.android-source-pair.2"
+     case "profile-3": lock.android?.profile?.id = "mixer.android-source-pair.3"
+     case "profile-4": lock.android?.profile?.id = "mixer.android-source-pair.4"
++    case "profile-5-current":
++        lock.android?.profile?.id = "mixer.android-source-pair.5"
++        lock.android?.profile?.sdk_compatibility_sha256 = "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0"
++        lock.android?.profile?.adapter_compatibility_sha256 = "2b001980e07e0d1c8a5139e79de6ad6ca83d8db66d386bd4f77689ab32a6325a"
++    case "profile-5-prior":
++        lock.android?.profile?.id = "mixer.android-source-pair.5"
++        lock.android?.profile?.sdk_compatibility_sha256 = "4c2e74bbdb1c060ffa2219ed378d11ed390e7a4454b95df4a2ee72074bb9b5a7"
++        lock.android?.profile?.adapter_compatibility_sha256 = "9d47585c18c325888c6d87914808449f1a92e4a3839d02ce5c4ae8f15801c10c"
++    case "broader-6-axis":
++        // The same ID cannot authorize the unselected broader adapter24 source tuple.
++        lock.android?.profile?.id = "mixer.android-source-pair.6"
++        lock.android?.profile?.sdk_compatibility_sha256 = "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0"
++        lock.android?.profile?.adapter_compatibility_sha256 = "ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e"
++        lock.android?.profile?.default_descriptor = AndroidSDKSourceIdentity(bytes: 9587, sha256: "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3")
++    case "mixed-sdk": lock.android?.profile?.sdk_compatibility_sha256 = "4c2e74bbdb1c060ffa2219ed378d11ed390e7a4454b95df4a2ee72074bb9b5a7"
++    case "mixed-adapter": lock.android?.profile?.adapter_compatibility_sha256 = "2b001980e07e0d1c8a5139e79de6ad6ca83d8db66d386bd4f77689ab32a6325a"
+     case "unknown": lock.android?.profile?.id = "unknown"
+     case "digest": lock.android?.profile?.sdk_compatibility_sha256 = String(repeating: "0", count: 64)
+     default: lock.android?.profile?.default_descriptor.bytes += 1
+@@ -179,6 +199,13 @@
+     _ = try ProjectBuild.export(root: moved, destination: exported)
+     #expect(try ProjectBuild.verifyLock(root: exported).android?.profile == AndroidSDKCompatibility.profile.lock)
+     try AndroidSDKCompatibility.admitProject(exported)
++    let canonicalSession = try Data(contentsOf: compatibilityRepository.appendingPathComponent("native/android/engine/Sources/MixerAndroidRuntime/DocumentSession.swift"))
++    #expect(canonicalSession.count == 4328)
++    #expect(SourceDigest.sha256(canonicalSession) == "cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7")
++    for project in [moved, exported] {
++        let copied = try Data(contentsOf: project.appendingPathComponent("Generated/MixerAndroid/Sources/MixerAndroidRuntime/DocumentSession.swift"))
++        #expect(copied == canonicalSession)
++    }
+ }
+ 
+ @Test func androidCompatibilityStagingFailureRemovesOwnedScratch() throws {
+@@ -266,3 +293,29 @@
+     #expect(!fm.fileExists(atPath: snapshot.path))
+     #expect(try !fm.contentsOfDirectory(atPath: base.path).contains { $0.hasPrefix(".mixer-create-") })
+ }
++
++@Test(arguments: ["baseline", "same-size", "appended"])
++func androidCompatibilityAxisSessionDriftRefusesRecomputedLocksBeforeGenericSourcesAndTools(_ change: String) throws {
++    let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-profile-axis-drift-\(UUID().uuidString)")
++    defer { try? FileManager.default.removeItem(at: root) }
++    var lock = try compatibilityProject(root)
++    let adapter = root.appendingPathComponent("Generated/MixerAndroid")
++    let file = adapter.appendingPathComponent("Sources/MixerAndroidRuntime/DocumentSession.swift")
++    let candidate = try Data(contentsOf: file)
++    #expect(candidate.count == 4328)
++    #expect(SourceDigest.sha256(candidate) == "cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7")
++    let axisGuard = "            // Android's native packet decoder does not admit an explicit axis key.\n            if node.kind == .textField, node.properties[\"axis\"] != nil { throw AndroidDocumentError.unsupportedUI }\n"
++    let baseline = Data(try #require(String(data: candidate, encoding: .utf8)).replacingOccurrences(of: axisGuard, with: "").utf8)
++    #expect(baseline.count == 4128)
++    #expect(SourceDigest.sha256(baseline) == "701b3d82add793a2b425bfc9673583afa8be4112406071242099da7da252bd0c")
++    switch change {
++    case "baseline": try baseline.write(to: file)
++    case "same-size": try Data(repeating: 32, count: candidate.count).write(to: file)
++    default: try (candidate + Data("\n// drift".utf8)).write(to: file)
++    }
++    lock.android?.adapterDigest = try SourceDigest.tree(adapter)
++    try JSONFile.write(lock, to: root.appendingPathComponent("mixer.lock"))
++    // If source admission is skipped, generic hashing reaches this sentinel.
++    try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("Generated/MixerSDK/hash-order-sentinel"), withDestinationURL: root.appendingPathComponent("missing"))
++    allAdmissionEntrypoints(root)
++}
+diff --git a/cli/build-tests/test_android_sdk_compatibility.py b/cli/build-tests/test_android_sdk_compatibility.py
+--- a/cli/build-tests/test_android_sdk_compatibility.py
++++ b/cli/build-tests/test_android_sdk_compatibility.py
+@@ -149,7 +149,7 @@
+             renamed.rename(path)
+ 
+     def test_profile_missing_unknown_mismatched_and_configuration_missing_android_lock(self):
+-        for change in ['missing-android', 'legacy', 'profile-1', 'profile-2', 'profile-3', 'profile-4', 'unknown', 'digest', 'default']:
++        for change in ['missing-android', 'legacy', 'profile-1', 'profile-2', 'profile-3', 'profile-4', 'profile-5-current', 'profile-5-prior', 'broader-6-axis', 'mixed-sdk', 'mixed-adapter', 'unknown', 'digest', 'default']:
+             with self.subTest(change=change):
+                 self.refresh_lock()
+                 value = self.lock_value
+@@ -159,12 +159,78 @@
+                 elif change == 'profile-2': value['android']['profile']['id'] = 'mixer.android-source-pair.2'
+                 elif change == 'profile-3': value['android']['profile']['id'] = 'mixer.android-source-pair.3'
+                 elif change == 'profile-4': value['android']['profile']['id'] = 'mixer.android-source-pair.4'
++                elif change == 'profile-5-current':
++                    value['android']['profile'].update(id='mixer.android-source-pair.5',
++                        sdk_compatibility_sha256='bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0',
++                        adapter_compatibility_sha256='2b001980e07e0d1c8a5139e79de6ad6ca83d8db66d386bd4f77689ab32a6325a')
++                elif change == 'profile-5-prior':
++                    value['android']['profile'].update(id='mixer.android-source-pair.5',
++                        sdk_compatibility_sha256='4c2e74bbdb1c060ffa2219ed378d11ed390e7a4454b95df4a2ee72074bb9b5a7',
++                        adapter_compatibility_sha256='9d47585c18c325888c6d87914808449f1a92e4a3839d02ce5c4ae8f15801c10c')
++                elif change == 'broader-6-axis':
++                    # The same ID cannot authorize the unselected broader adapter24 source tuple.
++                    value['android']['profile'].update(id='mixer.android-source-pair.6',
++                        sdk_compatibility_sha256='bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0',
++                        adapter_compatibility_sha256='ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e',
++                        default_descriptor={'bytes': 9587, 'sha256': '1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3'})
++                elif change == 'mixed-sdk': value['android']['profile']['sdk_compatibility_sha256'] = '4c2e74bbdb1c060ffa2219ed378d11ed390e7a4454b95df4a2ee72074bb9b5a7'
++                elif change == 'mixed-adapter': value['android']['profile']['adapter_compatibility_sha256'] = '2b001980e07e0d1c8a5139e79de6ad6ca83d8db66d386bd4f77689ab32a6325a'
+                 elif change == 'unknown': value['android']['profile']['id'] = 'unknown'
+                 elif change == 'digest': value['android']['profile']['sdk_compatibility_sha256'] = '0' * 64
+                 else: value['android']['profile']['default_descriptor'] = {'bytes': 1, 'sha256': '0' * 64}
+                 (self.root / 'mixer.lock').write_text(json.dumps(value))
+                 self.reject('android.sdk-profile-required' if change in ['missing-android', 'legacy'] else 'android.sdk-profile-mismatch')
+ 
++    def test_axis_only_profile_and_exported_session_are_exact(self):
++        self.assertEqual(PROFILE['id'], 'mixer.android-source-pair.6')
++        self.assertEqual(len(PROFILE['sdk_files']), 22)
++        self.assertEqual(len(PROFILE['adapter_files']), 23)
++        self.assertEqual(PROFILE['sdk_compatibility_sha256'], 'bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0')
++        self.assertEqual(PROFILE['adapter_compatibility_sha256'], '7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885')
++        session = self.adapter / 'Sources/MixerAndroidRuntime/DocumentSession.swift'
++        candidate = session.read_bytes()
++        self.assertEqual(len(candidate), 4328)
++        self.assertEqual(hashlib.sha256(candidate).hexdigest(), 'cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7')
++        self.assertEqual(candidate, (REPOSITORY / 'native/android/engine/Sources/MixerAndroidRuntime/DocumentSession.swift').read_bytes())
++        self.assertEqual(self.module.source_profile(), PROFILE)
++        self.assertEqual(self.module.admit_source_pair(self.root, PROFILE), self.descriptor.read_bytes())
++
++    def test_axis_session_baseline_and_drift_refuse_recomputed_generic_locks(self):
++        session = self.adapter / 'Sources/MixerAndroidRuntime/DocumentSession.swift'
++        candidate = session.read_bytes()
++        axis_guard = (b"            // Android's native packet decoder does not admit an explicit axis key.\n"
++                      b'            if node.kind == .textField, node.properties["axis"] != nil { throw AndroidDocumentError.unsupportedUI }\n')
++        self.assertEqual(candidate.count(axis_guard), 1)
++        baseline = candidate.replace(axis_guard, b'')
++        self.assertEqual(len(baseline), 4128)
++        self.assertEqual(hashlib.sha256(baseline).hexdigest(), '701b3d82add793a2b425bfc9673583afa8be4112406071242099da7da252bd0c')
++        for changed in [baseline, b'x' * len(candidate), candidate + b'\n// drift']:
++            with self.subTest(length=len(changed)):
++                try:
++                    session.write_bytes(changed)
++                    self.refresh_lock()
++                    self.reject()
++                finally:
++                    session.write_bytes(candidate)
++                    self.refresh_lock()
++
++    def test_previous_pair5_rendered_driver_refuses_new_session_before_output(self):
++        # Reconstruct the exact immediately previous template and its old 23-member map.
++        # New-profile lock rejection is covered separately; this reaches stale-map admission.
++        previous_raw = RAW.replace("value['id'] != 'mixer.android-source-pair.6'", "value['id'] != 'mixer.android-source-pair.5'")
++        self.assertEqual(hashlib.sha256(previous_raw.encode()).hexdigest(), '0f13545e610e527fe491314194fde1aa91698e9b458b638df6094f0e789fe4f2')
++        previous = json.loads(json.dumps(PROFILE))
++        previous['id'] = 'mixer.android-source-pair.5'
++        previous['adapter_compatibility_sha256'] = '2b001980e07e0d1c8a5139e79de6ad6ca83d8db66d386bd4f77689ab32a6325a'
++        previous['adapter_files']['Sources/MixerAndroidRuntime/DocumentSession.swift'] = {
++            'bytes': 4128, 'sha256': '701b3d82add793a2b425bfc9673583afa8be4112406071242099da7da252bd0c'}
++        self.rendered.write_text(previous_raw.replace(MARKER, json.dumps(previous).encode().hex()))
++        self.module = load_driver(self.rendered, 'stale_pair5_' + self.root.name.replace('-', '_'))
++        self.refresh_lock()
++        self.lock_value['android']['profile'] = self.module.profile_lock(previous)
++        (self.root / 'mixer.lock').write_text(json.dumps(self.lock_value))
++        self.reject()
++
+     def test_observer_edits_reject_even_when_generic_locks_are_recomputed(self):
+         observer = self.adapter / 'app/src/dev/mixer/android/NativeEnvironmentV2.java'
+         original = observer.read_bytes()
+diff --git a/native/android/engine/Sources/MixerAndroidRuntime/DocumentSession.swift b/native/android/engine/Sources/MixerAndroidRuntime/DocumentSession.swift
+--- a/native/android/engine/Sources/MixerAndroidRuntime/DocumentSession.swift
++++ b/native/android/engine/Sources/MixerAndroidRuntime/DocumentSession.swift
+@@ -60,6 +60,8 @@
+         _ = try UIValidator().validate(document)
+         var pending = [(document.root, false)]
+         while let (node, inList) = pending.popLast() {
++            // Android's native packet decoder does not admit an explicit axis key.
++            if node.kind == .textField, node.properties["axis"] != nil { throw AndroidDocumentError.unsupportedUI }
+             if node.kind == .list && inList { throw AndroidDocumentError.unsupportedUI }
+             if node.kind == .hStack,
+                let alignment = node.properties["alignment"]?.string,
+diff --git a/native/android/engine/Tests/MixerAndroidRuntimeTests/AndroidTextFieldAxisRefusalTests.swift b/native/android/engine/Tests/MixerAndroidRuntimeTests/AndroidTextFieldAxisRefusalTests.swift
+--- /dev/null
++++ b/native/android/engine/Tests/MixerAndroidRuntimeTests/AndroidTextFieldAxisRefusalTests.swift
+@@ -0,0 +1,216 @@
++import Foundation
++import MixerUI
++import XCTest
++@testable import MixerAndroidRuntime
++
++/// Source-only obligations for the isolated DocumentSession candidate.
++/// Compile this file in MixerAndroidRuntimeTests with the exact candidate replacing
++/// DocumentSession.swift. No test in this file has been executed in this lane.
++final class AndroidTextFieldAxisRefusalTests: XCTestCase {
++    private struct State: Equatable, Sendable {
++        var value = "Initial"
++        var emitRawHorizontal = false
++    }
++
++    private static func typedDocument(_ state: State, revision: UInt64,
++                                      explicitHorizontal: Bool) -> UIDocument {
++        if explicitHorizontal {
++            return TextField("field", "Title", value: state.value, action: "edit",
++                             onSubmit: "save", axis: .horizontal).document(revision: revision)
++        }
++        return TextField("field", "Title", value: state.value, action: "edit",
++                         onSubmit: "save").document(revision: revision)
++    }
++
++    private static func rawField(axis: UIValue, value: String = "Initial") -> UINode {
++        UINode(id: "field", kind: .textField,
++               properties: ["label": .string("Title"), "value": .string(value), "axis": axis],
++               actions: [UIActionBinding(id: "edit", event: .textChange)])
++    }
++
++    private static func typedSession(explicitHorizontal: Bool) throws -> AndroidDocumentSession<State> {
++        try AndroidDocumentSession(state: State(), document: { state, revision in
++            Self.typedDocument(state, revision: revision, explicitHorizontal: explicitHorizontal)
++        }, reduce: { state, action in
++            guard action.actionID == "edit", case .string(let value) = action.value else {
++                throw AndroidDocumentError.invalidEvent
++            }
++            state.value = value
++        })
++    }
++
++    private static func initialSession(root: UINode) throws -> AndroidDocumentSession<State> {
++        try AndroidDocumentSession(state: State(), document: { _, revision in
++            UIDocument(revision: revision, root: root)
++        }, reduce: { _, _ in })
++    }
++
++    private func packet(_ bytes: Data) throws -> (document: UIDocument, identities: [UINodeIdentity]) {
++        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: bytes) as? [String: Any])
++        let document = try UIDocument.decode(JSONSerialization.data(withJSONObject: XCTUnwrap(object["document"])))
++        let identities = try JSONDecoder().decode([UINodeIdentity].self,
++            from: JSONSerialization.data(withJSONObject: XCTUnwrap(object["identities"])))
++        return (document, identities)
++    }
++
++    private func event(_ bytes: Data, value: String) throws -> Data {
++        let current = try packet(bytes)
++        let identity = try XCTUnwrap(current.identities.first { $0.id == "field" })
++        return try JSONEncoder().encode(UIEventEnvelope(revision: current.document.revision,
++            identity: identity, event: .textChange, value: .string(value)))
++    }
++
++    private func assertUnsupportedUI<T>(_ expression: @autoclosure () throws -> T,
++                                        file: StaticString = #filePath, line: UInt = #line) {
++        XCTAssertThrowsError(try expression(), file: file, line: line) { error in
++            guard case AndroidDocumentError.unsupportedUI = error else {
++                XCTFail("Expected AndroidDocumentError.unsupportedUI, got \(error)", file: file, line: line)
++                return
++            }
++        }
++    }
++
++    private func assertValidationError<T>(_ expected: UIValidationError,
++                                          _ expression: @autoclosure () throws -> T,
++                                          file: StaticString = #filePath, line: UInt = #line) {
++        XCTAssertThrowsError(try expression(), file: file, line: line) { error in
++            XCTAssertEqual(error as? UIValidationError, expected, file: file, line: line)
++        }
++    }
++
++    func testTypedDefaultAndExplicitHorizontalKeepEqualPacketsAndSuccessfulUpdates() throws {
++        let implicit = Self.typedDocument(State(), revision: 1, explicitHorizontal: false)
++        let explicit = Self.typedDocument(State(), revision: 1, explicitHorizontal: true)
++        XCTAssertEqual(implicit, explicit)
++        XCTAssertNil(implicit.root.properties["axis"])
++        XCTAssertNil(explicit.root.properties["axis"])
++        XCTAssertEqual(try UIValidator().encode(implicit), try UIValidator().encode(explicit))
++        var reconciler = UIReconciler()
++        try reconciler.apply(implicit)
++        let expected = try reconciler.currentSnapshot().encodeNativePacketV1()
++        var implicitSession = try Self.typedSession(explicitHorizontal: false)
++        var explicitSession = try Self.typedSession(explicitHorizontal: true)
++        let first = try implicitSession.render()
++        XCTAssertEqual(first, expected)
++        XCTAssertEqual(try explicitSession.render(), first)
++        let edit = try event(first, value: "Café 東京 🧪")
++        let implicitNext = try implicitSession.dispatch(edit)
++        let explicitNext = try explicitSession.dispatch(edit)
++        XCTAssertEqual(implicitNext, explicitNext)
++        XCTAssertEqual(implicitSession.state, State(value: "Café 東京 🧪"))
++        XCTAssertEqual(explicitSession.state, implicitSession.state)
++        XCTAssertEqual(implicitSession.revision, 2)
++        XCTAssertEqual(explicitSession.revision, 2)
++        let next = try packet(implicitNext)
++        XCTAssertEqual(next.document.revision, 2)
++        XCTAssertEqual(next.document.root.properties["value"], .string("Café 東京 🧪"))
++        XCTAssertNil(next.document.root.properties["axis"])
++        XCTAssertEqual(next.identities, try packet(first).identities)
++    }
++
++    func testRawHorizontalIsPreservedBySDKButRejectedAtAndroidInitialization() throws {
++        let raw = Data(#"{"schemaVersion":1,"revision":1,"root":{"id":"field","kind":"textField","properties":{"label":"Title","value":"Initial","axis":"horizontal"},"children":[],"actions":[{"id":"edit","event":"textChange"}]}}"#.utf8)
++        let decoded = try UIValidator().decode(raw).document
++        XCTAssertEqual(decoded.root.properties["axis"], .string("horizontal"))
++        let encoded = try UIValidator().encode(decoded)
++        XCTAssertEqual(try UIDocument.decode(encoded), decoded)
++        var reconciler = UIReconciler()
++        try reconciler.apply(decoded)
++        let snapshot = try reconciler.currentSnapshot()
++        let nativePacket = try packet(snapshot.encodeNativePacketV1())
++        XCTAssertEqual(nativePacket.document, decoded)
++        XCTAssertEqual(nativePacket.document.root.properties["axis"], .string("horizontal"))
++        XCTAssertEqual(nativePacket.identities, [try XCTUnwrap(snapshot.identity(for: "field"))])
++        assertUnsupportedUI(try Self.initialSession(root: decoded.root))
++        XCTAssertEqual(decoded.root.properties["axis"], .string("horizontal"))
++    }
++
++    func testRawHorizontalReducerCandidateRollsBackAndOriginalEventIdentityCanRecover() throws {
++        var session = try AndroidDocumentSession(state: State(), document: { state, revision in
++            var root = Self.typedDocument(state, revision: revision, explicitHorizontal: false).root
++            if state.emitRawHorizontal { root.properties["axis"] = .string("horizontal") }
++            return UIDocument(revision: revision, root: root)
++        }, reduce: { state, action in
++            guard action.actionID == "edit", case .string(let value) = action.value else {
++                throw AndroidDocumentError.invalidEvent
++            }
++            state.value = value
++            state.emitRawHorizontal = value == "reject-axis"
++        })
++        let first = try session.render()
++        let rejected = try event(first, value: "reject-axis")
++        for _ in 0..<2 {
++            assertUnsupportedUI(try session.dispatch(rejected))
++            XCTAssertEqual(session.state, State())
++            XCTAssertEqual(session.revision, 1)
++            XCTAssertEqual(try session.render(), first)
++        }
++        let accepted = try session.dispatch(event(first, value: "Accepted"))
++        XCTAssertEqual(session.state, State(value: "Accepted"))
++        XCTAssertEqual(session.revision, 2)
++        let next = try packet(accepted)
++        XCTAssertEqual(next.document.revision, 2)
++        XCTAssertEqual(next.document.root.properties["value"], .string("Accepted"))
++        XCTAssertNil(next.document.root.properties["axis"])
++        XCTAssertEqual(next.identities, try packet(first).identities)
++        XCTAssertThrowsError(try session.dispatch(rejected)) { error in
++            XCTAssertEqual(error as? UIRoutingError, .staleRevision)
++        }
++        XCTAssertEqual(session.state, State(value: "Accepted"))
++        XCTAssertEqual(session.revision, 2)
++        XCTAssertEqual(try session.render(), accepted)
++    }
++
++    func testNestedExplicitHorizontalIsRefused() throws {
++        let field = Self.rawField(axis: .string("horizontal"))
++        let root = UINode(id: "outer", kind: .vStack, children: [
++            Text("sibling", "Heading").uiNode,
++            UINode(id: "section", kind: .section, children: [
++                UINode(id: "row", kind: .hStack, children: [field])
++            ])
++        ])
++        _ = try UIValidator().validate(UIDocument(revision: 1, root: root))
++        assertUnsupportedUI(try Self.initialSession(root: root))
++        XCTAssertEqual(field.properties["axis"], .string("horizontal"))
++    }
++
++    func testMalformedAxisKeepsGenericValidationErrorPriority() {
++        let malformed: [UIValue] = [.null, .bool(true), .number(1), .string("diagonal"), .string("")]
++        for axis in malformed {
++            let field = Self.rawField(axis: axis)
++            let expected = UIValidationError.invalidProperty(node: "field", key: "axis")
++            assertValidationError(expected, try UIValidator().validate(UIDocument(revision: 1, root: field)))
++            assertValidationError(expected, try Self.initialSession(root: field))
++        }
++    }
++
++    func testWholeDocumentMalformedValidationPrecedesAndroidAxisRefusal() {
++        let root = UINode(id: "root", kind: .vStack, children: [
++            Self.rawField(axis: .string("horizontal")),
++            UINode(id: "broken", kind: .text)
++        ])
++        let expected = UIValidationError.invalidProperty(node: "broken", key: "text")
++        assertValidationError(expected, try UIValidator().validate(UIDocument(revision: 1, root: root)))
++        assertValidationError(expected, try Self.initialSession(root: root))
++    }
++
++    func testTypedAndRawVerticalKeepPortableDefaultRefusal() {
++        let typed = TextField("field", "Title", value: "Initial", action: "edit", axis: .vertical).uiNode
++        let raw = Self.rawField(axis: .string("vertical"))
++        for field in [typed, raw] {
++            assertValidationError(.unsupportedTextFieldAxis(.vertical),
++                                  try UIValidator().validate(UIDocument(revision: 1, root: field)))
++            assertValidationError(.unsupportedTextFieldAxis(.vertical), try Self.initialSession(root: field))
++        }
++    }
++
++    func testWholeDocumentVerticalValidationPrecedesAndroidAxisRefusal() {
++        let vertical = UINode(id: "vertical", kind: .textField,
++            properties: ["label": .string("Title"), "value": .string("Initial"), "axis": .string("vertical")],
++            actions: [UIActionBinding(id: "edit.vertical", event: .textChange)])
++        let root = UINode(id: "root", kind: .vStack, children: [Self.rawField(axis: .string("horizontal")), vertical])
++        assertValidationError(.unsupportedTextFieldAxis(.vertical),
++                              try UIValidator().validate(UIDocument(revision: 1, root: root)))
++        assertValidationError(.unsupportedTextFieldAxis(.vertical), try Self.initialSession(root: root))
++    }
++}

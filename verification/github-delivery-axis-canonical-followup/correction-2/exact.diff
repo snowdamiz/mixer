@@ -1,0 +1,110 @@
+--- a/verification/github-delivery-axis-canonical-followup/correction-1/selection_common_axis_canonical.py.template
++++ b/verification/github-delivery-axis-canonical-followup/correction-2/selection_common_axis_canonical.py.template
+@@ -44,6 +44,15 @@
+ PHASES = {'canonical-preflight': (210, 10), 'canonical-delivery': (240, 23),
+           'canonical-engine-ci-binding': (180, 5)}
+ PUSH_URL = 'https://github.com/snowdamiz/mixer.git'
++FORMATTING_DECISION_ROW = {'path': 'verification/github-delivery-axis-canonical-followup/correction-2/root-formatting-selection.json',
++                           'bytes': 2203, 'sha256': '478883592da9e02a79f85a13b5ef2bedaa3882d56dc5c7e1095e430ef7ac10e7'}
++FORMATTING_EXCLUSIONS = [
++    {'path': 'verification/android-axis-canonical-integration-refresh/axis-only-proposed.patch', 'bytes': 30411,
++     'sha256': 'a7633a90a1146c49c2091488672854ba69d22e64ed14a0ba8add547d285fcbff'},
++    {'path': 'verification/axis-canonical-tracking-refresh/v2/tracking.diff', 'bytes': 148890,
++     'sha256': '4b51b595e09d0f7bd048cd4931336a5b6cf2aa29106e5b74a0397426fb1c3c73'},
++    {'path': 'verification/envelope-rust-1991-default-ci-adoption/adopt_envelope.py', 'bytes': 15632,
++     'sha256': '9731b149e35d7663afa973fc8fe85d35c377c075dfdd806eb73426f3586729a5'}]
+ 
+ def safe(value):
+     assert type(value) is str and value and '\0' not in value
+@@ -139,7 +148,11 @@
+ SELECTED = {value['path'] for value in ROWS}
+ assert len(ROWS) == len(SELECTED) == SELECTED_COUNT
+ AUTHORED = sorted(SELECTED)
+-assert S['formattingExclusions'] == []
++assert S['formattingExclusions'] == FORMATTING_EXCLUSIONS
++FORMATTING_EXCLUDED_PATHS = {value['path'] for value in FORMATTING_EXCLUSIONS}
++assert len(FORMATTING_EXCLUDED_PATHS) == 3 and FORMATTING_EXCLUDED_PATHS.issubset(SELECTED)
++FORMATTING = [value for value in AUTHORED if value not in FORMATTING_EXCLUDED_PATHS]
++assert FORMATTING and len(FORMATTING) == len(SELECTED) - 3
+ assert not any(value['path'] in SELECTED for value in PROTECTED)
+ assert all(not p.startswith(('.wrangler', '.git/')) for p in SELECTED)
+ for p in SELECTED:
+@@ -149,6 +162,9 @@
+ def check_sources():
+     assert row(ROOT / SELECTION) == {'path': SELECTION, 'bytes': SELECTION_BYTES, 'sha256': SELECTION_SHA}
+     for expected in ROWS: selected_row(expected)
++    assert row(ROOT / FORMATTING_DECISION_ROW['path']) == FORMATTING_DECISION_ROW
++    for expected in FORMATTING_EXCLUSIONS:
++        assert row(ROOT / expected['path']) == expected
+     assert row(OUT / 'owned.py')['sha256'] == HELPER_SHA
+     assert row(OUT / 'historical-closure.json')['sha256'] == HISTORY_SHA
+     history = json.loads((OUT / 'historical-closure.json').read_bytes())
+@@ -180,7 +196,7 @@
+                 ('before-diff', g('diff', *RAW)),
+                 ('stage', g('add', '--force', '--pathspec-from-file=' + str(OUT / 'paths-canonical.nul'), '--pathspec-file-nul')),
+                 ('index-selected', g('ls-files', '--stage', '-z', '--', *AUTHORED)),
+-                ('staged-objects', g('diff', '--cached', *RAW)), ('authored-check', g('diff', '--cached', '--check', '--', *AUTHORED)),
++                ('staged-objects', g('diff', '--cached', *RAW)), ('authored-check', g('diff', '--cached', '--check', '--', *FORMATTING)),
+                 ('staged-diff', g('diff', *RAW)),
+                 ('commit', g('-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', 'commit', '-m', S['commitMessage'])),
+                 ('committed-head', g('rev-parse', 'HEAD', 'HEAD^{tree}', 'HEAD^@')),
+--- a/verification/github-delivery-axis-canonical-followup/deliver_axis_canonical.py.template
++++ b/verification/github-delivery-axis-canonical-followup/correction-2/deliver_axis_canonical.py.template
+@@ -10,7 +10,7 @@
+ spec.loader.exec_module(common)
+ import hashlib
+ import json
+-for name in ('StrictCommands','BASE','TREE','S','SELECTION','ROWS','SELECTED','AUTHORED','PROTECTED','PUSH_URL','ROOT','OUT','now','row','save','fingerprint','preserved_entry','raw_rows','collapsed','compare_collapsed','check_sources','accepted_preflight'):
++for name in ('StrictCommands','BASE','TREE','S','SELECTION','ROWS','SELECTED','AUTHORED','FORMATTING','FORMATTING_EXCLUSIONS','FORMATTING_DECISION_ROW','PROTECTED','PUSH_URL','ROOT','OUT','now','row','save','fingerprint','preserved_entry','raw_rows','collapsed','compare_collapsed','check_sources','accepted_preflight'):
+     globals()[name] = getattr(common, name)
+ 
+ c = StrictCommands('canonical-delivery')
+@@ -69,7 +69,7 @@
+ changed = changed_map(c.run('staged-objects'), objects)
+ assert changed and set(changed).issubset(SELECTED)
+ save('changed-index-objects-canonical-local.json', changed)
+-c.run('authored-check')  # All selected paths; no formatting exemptions.
++c.run('authored-check')  # All other selected paths; three exact immutable exceptions.
+ check_preservation('staged')
+ save('canonical-commit-once.json', {'at': now(), 'parentMustEqual': BASE,
+      'changedObjects': row(OUT / 'changed-index-objects-canonical-local.json'), 'commitLimit': 1, 'retryAllowed': False})
+@@ -103,7 +103,10 @@
+      'allSelectedIndexHashOIDModesVerified': True, 'selectedIndexObjectsLocal': row(OUT / 'selected-index-objects-canonical-local.json'),
+      'changedSelectedPaths': len(changed), 'unchangedSelectedPaths': len(ROWS) - len(changed),
+      'unchangedSelectedMembersBoundByParentTreeAndExactCommittedDiff': True,
+-     'whitespaceCheckedPaths': len(ROWS), 'immutableEvidenceFormattingExclusions': [],
++     'whitespaceCheckedPaths': len(FORMATTING),
++     'whitespaceCheckScope': {'rootDecision': FORMATTING_DECISION_ROW, 'checkedPaths': FORMATTING,
++                              'allOtherSelectedPathsDefaultCheck': True},
++     'immutableEvidenceFormattingExclusions': FORMATTING_EXCLUSIONS,
+      'pushURL': PUSH_URL, 'indexEmpty': True, 'collapsedStatusProof': collapsed_proof,
+      'outsideSelectionDirtyByteModeSnapshotsPreserved': len(preservation['tracked']),
+      'preexistingCollapsedEntryIdentityModesPreserved': len(preservation['untrackedCollapsed']),
+--- a/verification/github-delivery-axis-canonical-followup/correction-1/argv-canonical-delivery.template.json
++++ b/verification/github-delivery-axis-canonical-followup/correction-2/argv-canonical-delivery.template.json
+@@ -255,7 +255,7 @@
+         "--cached",
+         "--check",
+         "--",
+-        "{SELECTED_PATHS_EXPAND_HERE}"
++        "{FORMATTING_PATHS_EXPAND_HERE}"
+       ],
+       "effectiveArgv": [
+         "git",
+@@ -267,7 +267,7 @@
+         "--cached",
+         "--check",
+         "--",
+-        "{SELECTED_PATHS_EXPAND_HERE}"
++        "{FORMATTING_PATHS_EXPAND_HERE}"
+       ],
+       "kind": "read"
+     },
+@@ -571,6 +571,7 @@
+   "unboundFields": [
+     "selection",
+     "SELECTED_PATHS_EXPAND_HERE",
++    "FORMATTING_PATHS_EXPAND_HERE",
+     "ROOT_FINAL_COMMIT_MESSAGE"
+   ],
+   "manualWorkflowDispatchLimit": 0

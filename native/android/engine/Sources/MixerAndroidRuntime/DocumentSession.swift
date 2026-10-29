@@ -60,6 +60,8 @@ public struct AndroidDocumentSession<State: Sendable>: AndroidApplicationEngine 
         _ = try UIValidator().validate(document)
         var pending = [(document.root, false)]
         while let (node, inList) = pending.popLast() {
+            // Android's native packet decoder does not admit an explicit axis key.
+            if node.kind == .textField, node.properties["axis"] != nil { throw AndroidDocumentError.unsupportedUI }
             if node.kind == .list && inList { throw AndroidDocumentError.unsupportedUI }
             if node.kind == .hStack,
                let alignment = node.properties["alignment"]?.string,

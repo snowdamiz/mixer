@@ -51,7 +51,11 @@ private func allAdmissionEntrypoints(_ root: URL, code: String = "android.sdk-co
 
 @Test func androidCompatibilityLinkedSDKAndTypedDefaultMatchCompiledPolicy() throws {
     let p = AndroidSDKCompatibility.profile
-    #expect(p.id == "mixer.android-source-pair.5")
+    #expect(p.id == "mixer.android-source-pair.6")
+    #expect(p.sdk_compatibility_sha256 == "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0")
+    #expect(p.adapter_compatibility_sha256 == "7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885")
+    #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.bytes == 4328)
+    #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.sha256 == "cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7")
     #expect(p.sdk_files.count == 22); #expect(p.adapter_files.count == 23)
     try AndroidSDKCompatibility.admitInput(sdk: compatibilityRepository.appendingPathComponent("sdk"), adapter: compatibilityRepository.appendingPathComponent("native/android"))
     let value = try UIAppearanceDescriptorCodecV2.mixerDefaultV2()
@@ -143,7 +147,7 @@ func androidCompatibilityExactInventoryTypeLengthAndHashRefuseBeforeGenericSourc
     }
 }
 
-@Test(arguments: ["missing-file", "missing-lock", "legacy", "profile-1", "profile-2", "profile-3", "profile-4", "unknown", "digest", "default"])
+@Test(arguments: ["missing-file", "missing-lock", "legacy", "profile-1", "profile-2", "profile-3", "profile-4", "profile-5-current", "profile-5-prior", "broader-6-axis", "mixed-sdk", "mixed-adapter", "unknown", "digest", "default"])
 func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(_ change: String) throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-profile-lock-\(UUID().uuidString)")
     defer { try? FileManager.default.removeItem(at: root) }
@@ -155,6 +159,22 @@ func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(
     case "profile-2": lock.android?.profile?.id = "mixer.android-source-pair.2"
     case "profile-3": lock.android?.profile?.id = "mixer.android-source-pair.3"
     case "profile-4": lock.android?.profile?.id = "mixer.android-source-pair.4"
+    case "profile-5-current":
+        lock.android?.profile?.id = "mixer.android-source-pair.5"
+        lock.android?.profile?.sdk_compatibility_sha256 = "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0"
+        lock.android?.profile?.adapter_compatibility_sha256 = "2b001980e07e0d1c8a5139e79de6ad6ca83d8db66d386bd4f77689ab32a6325a"
+    case "profile-5-prior":
+        lock.android?.profile?.id = "mixer.android-source-pair.5"
+        lock.android?.profile?.sdk_compatibility_sha256 = "4c2e74bbdb1c060ffa2219ed378d11ed390e7a4454b95df4a2ee72074bb9b5a7"
+        lock.android?.profile?.adapter_compatibility_sha256 = "9d47585c18c325888c6d87914808449f1a92e4a3839d02ce5c4ae8f15801c10c"
+    case "broader-6-axis":
+        // The same ID cannot authorize the unselected broader adapter24 source tuple.
+        lock.android?.profile?.id = "mixer.android-source-pair.6"
+        lock.android?.profile?.sdk_compatibility_sha256 = "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0"
+        lock.android?.profile?.adapter_compatibility_sha256 = "ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e"
+        lock.android?.profile?.default_descriptor = AndroidSDKSourceIdentity(bytes: 9587, sha256: "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3")
+    case "mixed-sdk": lock.android?.profile?.sdk_compatibility_sha256 = "4c2e74bbdb1c060ffa2219ed378d11ed390e7a4454b95df4a2ee72074bb9b5a7"
+    case "mixed-adapter": lock.android?.profile?.adapter_compatibility_sha256 = "2b001980e07e0d1c8a5139e79de6ad6ca83d8db66d386bd4f77689ab32a6325a"
     case "unknown": lock.android?.profile?.id = "unknown"
     case "digest": lock.android?.profile?.sdk_compatibility_sha256 = String(repeating: "0", count: 64)
     default: lock.android?.profile?.default_descriptor.bytes += 1
@@ -179,6 +199,13 @@ func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(
     _ = try ProjectBuild.export(root: moved, destination: exported)
     #expect(try ProjectBuild.verifyLock(root: exported).android?.profile == AndroidSDKCompatibility.profile.lock)
     try AndroidSDKCompatibility.admitProject(exported)
+    let canonicalSession = try Data(contentsOf: compatibilityRepository.appendingPathComponent("native/android/engine/Sources/MixerAndroidRuntime/DocumentSession.swift"))
+    #expect(canonicalSession.count == 4328)
+    #expect(SourceDigest.sha256(canonicalSession) == "cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7")
+    for project in [moved, exported] {
+        let copied = try Data(contentsOf: project.appendingPathComponent("Generated/MixerAndroid/Sources/MixerAndroidRuntime/DocumentSession.swift"))
+        #expect(copied == canonicalSession)
+    }
 }
 
 @Test func androidCompatibilityStagingFailureRemovesOwnedScratch() throws {
@@ -265,4 +292,30 @@ func androidCompatibilityInputAdapterAdmissionRefusesBeforeStagingAndSnapshotRea
     expectCompatibilityFailure({ _ = try AndroidProject.snapshot(adapter: adapter, destination: snapshot) })
     #expect(!fm.fileExists(atPath: snapshot.path))
     #expect(try !fm.contentsOfDirectory(atPath: base.path).contains { $0.hasPrefix(".mixer-create-") })
+}
+
+@Test(arguments: ["baseline", "same-size", "appended"])
+func androidCompatibilityAxisSessionDriftRefusesRecomputedLocksBeforeGenericSourcesAndTools(_ change: String) throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-profile-axis-drift-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: root) }
+    var lock = try compatibilityProject(root)
+    let adapter = root.appendingPathComponent("Generated/MixerAndroid")
+    let file = adapter.appendingPathComponent("Sources/MixerAndroidRuntime/DocumentSession.swift")
+    let candidate = try Data(contentsOf: file)
+    #expect(candidate.count == 4328)
+    #expect(SourceDigest.sha256(candidate) == "cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7")
+    let axisGuard = "            // Android's native packet decoder does not admit an explicit axis key.\n            if node.kind == .textField, node.properties[\"axis\"] != nil { throw AndroidDocumentError.unsupportedUI }\n"
+    let baseline = Data(try #require(String(data: candidate, encoding: .utf8)).replacingOccurrences(of: axisGuard, with: "").utf8)
+    #expect(baseline.count == 4128)
+    #expect(SourceDigest.sha256(baseline) == "701b3d82add793a2b425bfc9673583afa8be4112406071242099da7da252bd0c")
+    switch change {
+    case "baseline": try baseline.write(to: file)
+    case "same-size": try Data(repeating: 32, count: candidate.count).write(to: file)
+    default: try (candidate + Data("\n// drift".utf8)).write(to: file)
+    }
+    lock.android?.adapterDigest = try SourceDigest.tree(adapter)
+    try JSONFile.write(lock, to: root.appendingPathComponent("mixer.lock"))
+    // If source admission is skipped, generic hashing reaches this sentinel.
+    try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("Generated/MixerSDK/hash-order-sentinel"), withDestinationURL: root.appendingPathComponent("missing"))
+    allAdmissionEntrypoints(root)
 }

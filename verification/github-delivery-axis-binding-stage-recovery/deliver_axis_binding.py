@@ -1,0 +1,178 @@
+"""One exact frozen-path commit and nonforce origin/main push; no retries."""
+import sys
+sys.dont_write_bytecode = True
+assert sys.flags.isolated == 1 and sys.flags.no_site == 1 and sys.flags.optimize == 0
+import importlib.util
+from pathlib import Path
+spec = importlib.util.spec_from_file_location('axis_binding_delivery_common', Path(__file__).with_name('selection_common_axis_binding.py'))
+common = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = common
+spec.loader.exec_module(common)
+import hashlib
+import json
+import stat
+for name in ('StrictCommands','BASE','TREE','S','SELECTION','ROWS','SELECTED','PROTECTED','ROOT','OUT','now','row','save','fingerprint','preserved_entry','raw_rows','collapsed','check_sources','accepted_preflight','ACCEPTED_PREFLIGHT_SEAL','ACCEPTED_PREFLIGHT_ROWS','selected_row','accepted_inspection','ACCEPTED_INSPECTION_SEAL','ACCEPTED_INSPECTION_ROWS','OBJECT_SHA','inspection','RECOVERY_INPUTS'): globals()[name] = getattr(common,name)
+# Exact frozen selection drives every staged path and all-object proof.
+AUTHORED = sorted(SELECTED)
+assert 0 < len(AUTHORED) <= 1024
+WHITESPACE_SCOPE_ROW = {"path":"verification/android-axis-binding-selection-2026-10-29/formatting-scope.json","bytes":268,"sha256":"fbb5e77c551bfc86519f9f1fb31d2ea9eb5534c85444490a27b81f00ca36af73"}
+assert S['formatting']['scope'] == WHITESPACE_SCOPE_ROW
+assert S['formatting']['allContentModeAndObjectProofRetained'] is True
+assert S['formatting']['excludeImmutablePaths'] == []
+assert row(ROOT / WHITESPACE_SCOPE_ROW['path']) == WHITESPACE_SCOPE_ROW
+IMMUTABLE_EVIDENCE_FORMATTING_EXCLUSIONS = []
+FORMATTING = list(AUTHORED)
+assert len(FORMATTING) == 123 and set(FORMATTING) == SELECTED
+pre, preservation = accepted_preflight()
+inspection_receipt, inspection_data, inspected_cached_raw = accepted_inspection()
+assert pre['allCommandsAdmittedDirectlyReapedOwnedGroupsAbsentSeparatePipesEOF']
+assert pre['head'] == BASE and pre['tree'] == TREE and pre['selectedPaths'] == len(SELECTED)
+assert not any((OUT / name).exists() for name in ('stage-recovery-delivery-once.json',
+    'stage-recovery-stage-once.json', 'stage-recovery-commit-once.json', 'stage-recovery-push-once.json'))
+with (OUT / 'paths-stage-recovery.nul').open('xb') as handle:
+    handle.write(b''.join(value.encode() + b'\0' for value in sorted(SELECTED)))
+
+
+def check_preservation(commands, label):
+    check_sources()
+    for expected in preservation['tracked']:
+        assert fingerprint(expected['path']) == expected, expected['path']
+    for expected in preservation['protectedSnapshots']:
+        assert fingerprint(expected['path']) == expected, expected['path']
+    assert fingerprint('.wrangler') == preservation['wrangler']
+    assert not (ROOT / 'hosted/lib/mixer_hosted/artifacts/store.ex').exists()
+    raw = raw_rows(commands.run(label + '-diff', ['git', 'diff', '--raw', '--no-abbrev', '--no-renames', '-z']))
+    if label == 'before':
+        assert raw == inspection_data['completeWorktreeRawRows'], 'Worktree raw diff changed after accepted inspection'
+    outside = [value for value in raw if value['path'] not in SELECTED]
+    assert outside == preservation['otherDirtyTracked'], 'Dirty tracked diff outside selection changed'
+    for expected in preservation['untrackedCollapsed']:
+        assert preserved_entry(expected['path']) == expected, expected['path']
+
+
+c = StrictCommands('stage-recovery-delivery')
+assert c.run('head', ['git', 'rev-parse', 'HEAD', 'HEAD^{tree}']).decode().splitlines() == [BASE, TREE]
+assert c.run('branch', ['git', 'branch', '--show-current']).decode().strip() == 'main'
+assert c.run('origin', ['git', 'remote', 'get-url', 'origin']).decode().strip() == pre['origin']
+assert c.run('push-url-before-stage', ['git', 'remote', 'get-url', '--push', '--all', 'origin']).decode().splitlines() == ['https://github.com/snowdamiz/mixer.git']
+assert c.run('remote-before', ['git', 'ls-remote', 'origin', 'refs/heads/main']).decode().split() == [BASE, 'refs/heads/main']
+assert c.run('index-before', ['git', 'diff', '--cached', '--raw', '--no-abbrev', '--no-renames', '-z']) == inspected_cached_raw, 'Full cached diff changed after accepted inspection'
+check_preservation(c, 'before')
+save('stage-recovery-delivery-once.json', {'at': now(), 'selection': row(ROOT / SELECTION), 'paths': len(SELECTED),
+    'oneCommitNonforcePushAuthorized': True, 'retryOnUnknownOutcome': False})
+save('stage-recovery-stage-once.json', {'at': now(), 'selection': row(ROOT / SELECTION),
+    'pathspec': row(OUT / 'paths-stage-recovery.nul'), 'stageLimit': 1, 'fullSelectedPaths': 123,
+    'forceAddConfinedToExactSelectedPaths': True, 'retryAllowed': False})
+c.run('stage', ['git', 'add', '--force', '--pathspec-from-file=' + str(OUT / 'paths-stage-recovery.nul'), '--pathspec-file-nul'])
+entries = c.run('index-selected', ['git', 'ls-files', '--stage', '-z', '--', *AUTHORED]).split(b'\0')
+objects = {}
+for entry in entries:
+    if not entry:
+        continue
+    meta, value = entry.split(b'\t', 1)
+    fields, value = meta.decode().split(), value.decode()
+    assert len(fields) == 3 and fields[2] == '0' and value in SELECTED and value not in objects
+    payload = (ROOT / value).read_bytes()
+    oid = hashlib.sha1(b'blob ' + str(len(payload)).encode() + b'\0' + payload).hexdigest()
+    mode = '100755' if stat.S_IMODE((ROOT / value).stat().st_mode) & 0o111 else '100644'
+    assert fields[0] == mode and fields[1] == oid, value
+    objects[value] = {'oid': oid, 'mode': mode}
+assert set(objects) == SELECTED
+selected_object_rows = [{'path': value, **objects[value]} for value in sorted(objects)]
+selected_object_digest = hashlib.sha256(json.dumps(selected_object_rows, separators=(',', ':')).encode()).hexdigest()
+expected_object_rows = []
+for expected in sorted(ROWS, key=lambda value: value['path']):
+    payload = (ROOT / expected['path']).read_bytes()
+    expected_object_rows.append({'path': expected['path'], 'oid': hashlib.sha1(b'blob ' + str(len(payload)).encode() + b'\0' + payload).hexdigest(), 'mode': expected['mode']})
+assert selected_object_rows == expected_object_rows
+assert selected_object_digest == hashlib.sha256(json.dumps(expected_object_rows, separators=(',', ':')).encode()).hexdigest() == OBJECT_SHA
+save('staged-stage-recovery-all-index-objects-local.json', objects)
+parts = c.run('staged-objects', ['git', 'diff', '--cached', '--raw', '--no-abbrev', '--no-renames', '-z']).split(b'\0')
+assert len(parts) % 2 == 1
+changed_objects = {}
+for index in range(0, len(parts) - 1, 2):
+    fields, value = parts[index].decode().split(), parts[index + 1].decode()
+    assert len(fields) == 5 and fields[-1] in ('A', 'M') and value in SELECTED and value not in changed_objects
+    assert {'oid': fields[3], 'mode': fields[1]} == objects[value], value
+    changed_objects[value] = objects[value]
+assert changed_objects and set(changed_objects).issubset(SELECTED)
+save('staged-stage-recovery-changed-objects-local.json', changed_objects)
+c.run('authored-check', ['git', 'diff', '--cached', '--check', '--',
+    *FORMATTING])
+check_preservation(c, 'staged')
+save('stage-recovery-commit-once.json', {'at': now(), 'selection': row(ROOT / SELECTION),
+    'changedObjects': row(OUT / 'staged-stage-recovery-changed-objects-local.json'),
+    'commitLimit': 1, 'parentMustEqual': BASE, 'retryAllowed': False})
+c.run('commit', ['git', '-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false',
+    'commit', '-m', 'Deliver corrected Android axis host admission binding'])
+head, tree, parent = c.run('committed-head', ['git', 'rev-parse', 'HEAD', 'HEAD^{tree}', 'HEAD^']).decode().splitlines()
+assert parent == BASE
+c.bind_committed_sha(head)
+save('committed-stage-recovery.json', {'at': now(), 'head': head, 'tree': tree, 'parent': parent, 'paths': len(SELECTED)})
+committed_raw = c.run('committed-objects', ['git', 'diff-tree', '--no-commit-id', '--raw', '--no-abbrev', '--no-renames', '-r', '-z', BASE, head])
+committed_parts = committed_raw.split(b'\0')
+assert len(committed_parts) % 2 == 1
+committed_objects = {}
+for index in range(0, len(committed_parts) - 1, 2):
+    fields, value = committed_parts[index].decode().split(), committed_parts[index + 1].decode()
+    assert len(fields) == 5 and fields[-1] in ('A', 'M') and value in SELECTED and value not in committed_objects
+    committed_objects[value] = {'oid': fields[3], 'mode': fields[1]}
+assert committed_objects == changed_objects, 'Committed diff differs from the verified changed-selected subset'
+assert set(committed_objects).issubset(SELECTED)
+save('committed-stage-recovery-objects.json', committed_objects)
+check_sources()
+assert c.run('remote-prepush', ['git', 'ls-remote', 'origin', 'refs/heads/main']).decode().split() == [BASE, 'refs/heads/main']
+assert c.run('push-url-prepush', ['git', 'remote', 'get-url', '--push', '--all', 'origin']).decode().splitlines() == ['https://github.com/snowdamiz/mixer.git']
+save('stage-recovery-push-once.json', {'at': now(), 'head': head, 'tree': tree, 'parent': parent,
+    'remote': 'origin', 'ref': 'refs/heads/main', 'force': False,
+    'reservationConsumedBeforeSubmit': True, 'retryOnUnknownOutcome': False})
+c.run('push', ['git', '-c', 'core.hooksPath=/dev/null', 'push', '--signed=false', '--no-follow-tags', '--recurse-submodules=no', 'origin', head + ':refs/heads/main'], seconds=45)
+assert c.run('remote-postpush', ['git', 'ls-remote', 'origin', 'refs/heads/main']).decode().split() == [head, 'refs/heads/main']
+assert c.run('push-url-postpush', ['git', 'remote', 'get-url', '--push', '--all', 'origin']).decode().splitlines() == ['https://github.com/snowdamiz/mixer.git']
+assert not c.run('index-after', ['git', 'diff', '--cached', '--name-only', '-z'])
+check_preservation(c, 'after')
+after = collapsed(c.run('collapsed-status-after', ['git', 'status', '--porcelain=v1', '-z', '--untracked-files=normal']))
+collapsed_proof = inspection.compare_collapsed(inspection_data['collapsedStatus'], after, SELECTED,
+    RECOVERY_INPUTS['newRecoveryDirectoryIdentity'])
+after_untracked = [preserved_entry(value['path']) for value in after if value['status'] == '??']
+before_paths = {value['path'] for value in inspection_data['collapsedStatus'] if value['status'] == '??'}
+after_paths = {value['path'] for value in after_untracked}
+removed = sorted(before_paths - after_paths)
+added = sorted(after_paths - before_paths)
+save('preservation-stage-recovery-after-local.json', {'at': now(), 'statusCollapsed': after, 'untrackedCollapsed': after_untracked,
+    'allPreexistingCollapsedEntryIdentityModesPreserved': True})
+c.complete()
+save('stage-recovery-delivery-receipt.json', {'schema': 1, 'at': now(), 'head': head, 'tree': tree, 'parent': parent,
+    'pushed': True, 'force': False, 'selectedPaths': len(SELECTED), 'selection': row(ROOT / SELECTION),
+    'manifest': ACCEPTED_PREFLIGHT_ROWS[2], 'preflight': ACCEPTED_PREFLIGHT_ROWS[0],
+    'acceptedInspectionSeal': ACCEPTED_INSPECTION_SEAL, 'acceptedInspectionRows': ACCEPTED_INSPECTION_ROWS,
+    'inspectedCachedRawMatchedBeforeForceAdd': True, 'originalAttemptReplayed': False,
+    'stageReservation': row(OUT / 'stage-recovery-stage-once.json'),
+    'commitReservation': row(OUT / 'stage-recovery-commit-once.json'),
+    'pushReservation': row(OUT / 'stage-recovery-push-once.json'),
+    'collapsedStatusProof': collapsed_proof,
+    'preservationBefore': ACCEPTED_PREFLIGHT_ROWS[1], 'preflightSeal': ACCEPTED_PREFLIGHT_SEAL,
+    'committedChangedObjects': row(OUT / 'committed-stage-recovery-objects.json'),
+    'selectedIndexObjectsLocal': row(OUT / 'staged-stage-recovery-all-index-objects-local.json'),
+    'allSelectedIndexBlobModesVerified': True, 'selectedIndexBlobModeDigestSHA256': selected_object_digest,
+    'changedSelectedPaths': len(changed_objects), 'unchangedSelectedPaths': len(SELECTED) - len(changed_objects),
+    'unchangedSelectedMembersBoundByParentTreeAndExactCommittedDiff': True,
+    'pushURL': 'https://github.com/snowdamiz/mixer.git', 'explicitNoTagsSigningOrSubmodulePush': True,
+    'protected': PROTECTED, 'protectedByteModesUnchanged': True,
+    'cleanTrackedBoundByBaselineTreeAndCompleteRawDiff': True,
+    'allCleanTrackedFilesIndependentlyHashed': False,
+    'outsideSelectionDirtyByteModeSnapshotsPreserved': len(preservation['tracked']),
+    'preexistingCollapsedEntryIdentityModesPreserved': len(preservation['untrackedCollapsed']),
+    'afterCollapsedUntrackedEntries': len(after_untracked), 'collapsedSelectedTransitions': {'removed': len(removed), 'added': len(added)},
+    'wranglerUntouched': True, 'artifactsStoreAbsent': True, 'indexEmpty': True, 'admissionAdapter': c.admission_adapter, 'authoritySnapshot': c.authority_row,
+    'argvManifest': row(OUT / c.manifest_name), 'commands': c.records,
+    'whitespaceCheckScope': WHITESPACE_SCOPE_ROW, 'whitespaceCheckedPaths': len(FORMATTING),
+    'immutableEvidenceFormattingExclusions': IMMUTABLE_EVIDENCE_FORMATTING_EXCLUSIONS,
+    'unchangedContentAndBlobModeProofPaths': len(SELECTED),
+    'allCommandsAdmittedDirectlyReapedOwnedGroupsAbsentSeparatePipesEOF': True,
+    'rawHelperInventoriesCommitted': False, 'manualDispatchesPending': 1, 'manualWorkflowDispatchesAuthorized': 0, 'separatelySelectedManualDispatchCeiling': 1, 'manualHostKeys': ['axis'],
+    'canonicalAndroidChanges': 0, 'productionDefaultsChanged': False, 'allExistingHoldsUntouched': True,
+    'runtimeCompilerNativeUICaptureProcessInventoryHeldProbesStarted': False,
+    'fieldlogRepositoryOperations': 0, 'releaseTagOrGAPromotion': False})
+print(json.dumps({'head': head, 'tree': tree, 'parent': parent, 'pushed': True,
+                  'paths': len(SELECTED), 'closedCommands': len(c.records)}))

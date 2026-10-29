@@ -73,11 +73,11 @@ enum AndroidSDKCompatibility {
     static let profile: AndroidSDKProfile = {
         try! JSONDecoder().decode(AndroidSDKProfile.self, from: Data(#"""
         {
-          "adapter_compatibility_sha256": "2b001980e07e0d1c8a5139e79de6ad6ca83d8db66d386bd4f77689ab32a6325a",
+          "adapter_compatibility_sha256": "7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885",
           "adapter_files": {
             "Sources/MixerAndroidRuntime/DocumentSession.swift": {
-              "bytes": 4128,
-              "sha256": "701b3d82add793a2b425bfc9673583afa8be4112406071242099da7da252bd0c"
+              "bytes": 4328,
+              "sha256": "cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7"
             },
             "Sources/MixerAndroidRuntime/SessionRegistry.swift": {
               "bytes": 7730,
@@ -172,7 +172,7 @@ enum AndroidSDKCompatibility {
             "bytes": 9587,
             "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
           },
-          "id": "mixer.android-source-pair.5",
+          "id": "mixer.android-source-pair.6",
           "schema": 1,
           "sdk_compatibility_sha256": "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0",
           "sdk_files": {

@@ -1,0 +1,31 @@
+--- a/verification/github-delivery-axis-canonical-followup/selection_common_axis_canonical.py.template
++++ b/verification/github-delivery-axis-canonical-followup/correction-1/selection_common_axis_canonical.py.template
+@@ -183,7 +183,7 @@
+                 ('staged-objects', g('diff', '--cached', *RAW)), ('authored-check', g('diff', '--cached', '--check', '--', *AUTHORED)),
+                 ('staged-diff', g('diff', *RAW)),
+                 ('commit', g('-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', 'commit', '-m', S['commitMessage'])),
+-                ('committed-head', g('rev-parse', 'HEAD', 'HEAD^{tree}', 'HEAD^')),
++                ('committed-head', g('rev-parse', 'HEAD', 'HEAD^{tree}', 'HEAD^@')),
+                 ('committed-objects', g('diff-tree', '--no-commit-id', *RAW[:-1], '-r', '-z', BASE, '{COMMITTED_SHA}')),
+                 ('remote-prepush', g('ls-remote', 'origin', 'refs/heads/main')), ('push-url-prepush', list(PUSH_URL_READ_EXCEPTION)),
+                 ('push', g('-c', 'core.hooksPath=/dev/null', 'push', '--signed=false', '--no-follow-tags', '--recurse-submodules=no', 'origin', '{COMMITTED_SHA}:refs/heads/main')),
+--- a/verification/github-delivery-axis-canonical-followup/argv-canonical-delivery.template.json
++++ b/verification/github-delivery-axis-canonical-followup/correction-1/argv-canonical-delivery.template.json
+@@ -330,7 +330,7 @@
+         "rev-parse",
+         "HEAD",
+         "HEAD^{tree}",
+-        "HEAD^"
++        "HEAD^@"
+       ],
+       "effectiveArgv": [
+         "git",
+@@ -341,7 +341,7 @@
+         "rev-parse",
+         "HEAD",
+         "HEAD^{tree}",
+-        "HEAD^"
++        "HEAD^@"
+       ],
+       "kind": "read"
+     },

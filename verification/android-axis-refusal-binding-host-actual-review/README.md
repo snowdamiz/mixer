@@ -1,0 +1,15 @@
+# Actual Android axis host evidence
+
+The guarded data audit passes the exact isolated host evidence for [run 40943215863](https://github.com/snowdamiz/mixer/actions/runs/40943215863), attempt 1 at `2c751cbbc300efc9aa766b5d4add648610ca0341`. Independent actual-data review remains pending.
+
+The archive contains all 20 required files. Both source snapshots match the frozen 27 members, 284,605 bytes, with projection `257ed4dfa93d43b15d4bfe2d51372d261e4fec5fd9e80c3f1ca62b1967a3a793`. The raw census contains all 8 XCTest and 11 Swift Testing methods once, both terminal framework summaries, and no extra success, failure, skip or Swift warning diagnostic. The complete producer result reconstructs exactly.
+
+The audit binds the actual full job API response, six successful selected steps, five shell command transcripts, exact dispatch wire, producer insertion-order digest and uploader artifact identity. The single unfiltered SwiftPM command returned to the Actions shell with exit 0. Both Bash and Python file-limit probes report 64 MiB. The runner used macOS 15.7.9, Xcode 26.3 build 17C529 and Swift 6.2.4. SDK version probes report 26.2. They do not establish a simulator runtime result.
+
+The unchanged 32,574-byte reviewed auditor ran once under Python 3.14.8 with `-I -B -S`. The outer guard preloaded cp437 and denied active process, session, group, signal, timer, wait, socket and ctypes operations before subject imports. The audit exited0 with empty stderr. These guards constrain the pinned data path and are not an OS sandbox. [The receipt](receipt.json) records the exact invocation, tool, input and output identities. [The summary](result-summary.json) retains the acceptance scope. Raw evidence remains in ignored `local/`.
+
+Binding preparation first stopped on an extra check that expected six logged selection-wire appearances. The actual log contains seven, all byte-identical to the retained wire. That failed preparation source and its streams remain preserved. Preparation then passed after correcting its own count. No auditor source changed, and the failed preparation imported no subject. Xcode Python 3.9.6 was unsuitable because it lacks `sys.orig_argv`; no subject ran with that interpreter.
+
+Host custody establishes direct Actions shell completion only. Kernel reap, group absence, separate pipe EOF, scratch cleanup and provider disposal remain unestablished. The Actions job log also retains a Node.js 20 deprecation warning for checkout and upload actions. The raw Swift streams have no warning diagnostics.
+
+Canonical source pair .5 remains 22 SDK inputs and 23 adapter inputs and was not changed by this lane. Canonical SDK, engine, C ABI and Java source-pair integration remain pending. Native UI, capture, phones, immutable published packages consumed by separate-repository FieldLog, OTA and GA acceptance remain pending. All existing holds remain. This lane used data reads and guarded data execution only, with no Git, gh, network, workflow replay, product execution, native run, UI, capture, process probe, signal or cleanup.

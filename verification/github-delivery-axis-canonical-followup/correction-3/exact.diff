@@ -1,0 +1,54 @@
+--- a/verification/github-delivery-axis-canonical-followup/correction-2/selection_common_axis_canonical.py.template
++++ b/verification/github-delivery-axis-canonical-followup/correction-3/selection_common_axis_canonical.py.template
+@@ -54,6 +54,30 @@
+     {'path': 'verification/envelope-rust-1991-default-ci-adoption/adopt_envelope.py', 'bytes': 15632,
+      'sha256': '9731b149e35d7663afa973fc8fe85d35c377c075dfdd806eb73426f3586729a5'}]
+ 
++PUBLIC_CONTROL_OUTPUTS_DECISION_ROW = {'path': 'verification/github-delivery-axis-canonical-followup/correction-3/root-public-control-outputs-selection.json',
++                                      'bytes': 2878, 'sha256': 'd776a1644122cd0d527bdb2606344e847a244617e06c5ebea0bfd2ff768c80d8'}
++PUBLIC_CONTROL_OUTPUTS = [
++    {'path': 'verification/android-axis-refusal-binding-host-actual-review/independent-review/data-check-attempt-1.stderr', 'bytes': 0,
++     'sha256': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'},
++    {'path': 'verification/android-axis-refusal-binding-host-actual-review/independent-review/data-check-attempt-1.stdout', 'bytes': 138,
++     'sha256': 'de5bc9c6b8079c6c8a9b574c7e48bb3022e5981767a2cf7c378e7e72c2821530'},
++    {'path': 'verification/android-axis-refusal-binding-host-actual-review/independent-review/data-check-attempt-2.stderr', 'bytes': 0,
++     'sha256': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'},
++    {'path': 'verification/android-axis-refusal-binding-host-actual-review/independent-review/data-check-attempt-2.stdout', 'bytes': 138,
++     'sha256': '4a2cafdc4aed8cc9027a3e0ac0ae247808cc1bdba58dddf0019a36cc93561703'},
++    {'path': 'verification/envelope-rust-1991-default-ci-adoption-review/data-audit-initial.stderr', 'bytes': 868,
++     'sha256': '74ff4f564d90ecee0aa90ba77a1aaa524c96e2dce497c7ac217cfe14d09b45c1'},
++    {'path': 'verification/envelope-rust-1991-default-ci-adoption-review/data-audit-initial.stdout', 'bytes': 0,
++     'sha256': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'},
++    {'path': 'verification/envelope-rust-1991-default-ci-adoption-review/data-audit.stderr', 'bytes': 0,
++     'sha256': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'},
++    {'path': 'verification/envelope-rust-1991-default-ci-adoption-review/data-audit.stdout', 'bytes': 1194,
++     'sha256': 'f5959812b82e56981b94710634596c44f5256798685f9296a0a13034481309f7'},
++    {'path': 'verification/envelope-rust-1991-default-ci-adoption/pure-controls.stderr', 'bytes': 5064,
++     'sha256': '82d91956ebbd4a01e0470f13a4ad5ace828d3a5f6362e9841422afcb986b1b7d'},
++    {'path': 'verification/envelope-rust-1991-default-ci-adoption/pure-controls.stdout', 'bytes': 470,
++     'sha256': '132d71a27d293b2525a17225672ffce174cde2e1032a0a31f55be88aaabb1c42'}]
++
+ def safe(value):
+     assert type(value) is str and value and '\0' not in value
+     p = PurePosixPath(value)
+@@ -155,13 +179,19 @@
+ assert FORMATTING and len(FORMATTING) == len(SELECTED) - 3
+ assert not any(value['path'] in SELECTED for value in PROTECTED)
+ assert all(not p.startswith(('.wrangler', '.git/')) for p in SELECTED)
++PUBLIC_CONTROL_OUTPUT_PATHS = {value['path'] for value in PUBLIC_CONTROL_OUTPUTS}
++assert len(PUBLIC_CONTROL_OUTPUT_PATHS) == 10 and PUBLIC_CONTROL_OUTPUT_PATHS.issubset(SELECTED)
+ for p in SELECTED:
+     assert not any(part in ('raw', 'local', 'state', 'streams') for part in PurePosixPath(p).parts)
+-    assert not p.endswith(('.zip', '.stdout', '.stderr', '.nul', '.plan.json', '.started.json', '.admission.json', '.command.json', '-once.json'))
++    assert not p.endswith(('.zip', '.nul', '.plan.json', '.started.json', '.admission.json', '.command.json', '-once.json'))
++    assert not p.endswith(('.stdout', '.stderr')) or p in PUBLIC_CONTROL_OUTPUT_PATHS
+ 
+ def check_sources():
+     assert row(ROOT / SELECTION) == {'path': SELECTION, 'bytes': SELECTION_BYTES, 'sha256': SELECTION_SHA}
+     for expected in ROWS: selected_row(expected)
++    assert row(ROOT / PUBLIC_CONTROL_OUTPUTS_DECISION_ROW['path']) == PUBLIC_CONTROL_OUTPUTS_DECISION_ROW
++    for expected in PUBLIC_CONTROL_OUTPUTS:
++        assert row(ROOT / expected['path']) == expected
+     assert row(ROOT / FORMATTING_DECISION_ROW['path']) == FORMATTING_DECISION_ROW
+     for expected in FORMATTING_EXCLUSIONS:
+         assert row(ROOT / expected['path']) == expected

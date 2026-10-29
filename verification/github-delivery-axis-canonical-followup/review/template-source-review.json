@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "decision": "template-review-complete-requires-sole-parent-fix-and-final-materialized-source-review",
+  "reviewer": "independent-axis-canonical-delivery-source-review",
+  "sourceAndDataOnly": true,
+  "authorityGranted": false,
+  "baselineSuppliedNotGitVerified": {
+    "head": "2c751cbbc300efc9aa766b5d4add648610ca0341",
+    "tree": "f2df6833ee8e9ce85306210b63dc35d45747fa0d"
+  },
+  "reviewedPreparation": {
+    "path": "verification/github-delivery-axis-canonical-followup/preparation.json",
+    "bytes": 7853,
+    "sha256": "48725c6f422b698b5bb3ba26d390cd53281ad07710967178aed4e99783149a85"
+  },
+  "initialReviewedSources": [
+    {"path": "selection_common_axis_canonical.py.template", "bytes": 18295, "sha256": "c0c05f2fac797b4dcbd0e1c68fc2fe40f24f04a12ce34f5f0c7162c209004403"},
+    {"path": "preflight_axis_canonical.py.template", "bytes": 3662, "sha256": "8290e74ba4e85f18ba42db39b94e686e4b9aaae5b991157b3e92c72f607d81b8"},
+    {"path": "deliver_axis_canonical.py.template", "bytes": 7799, "sha256": "733eccae89ab1b302676807a89ace336236ab637217809cecdfcbb617b2fee1b"},
+    {"path": "bind_engine_ci_axis_canonical.py.template", "bytes": 3102, "sha256": "589ef328b1960e95eb14829e0efc174ca467a9b5b0ec2de179ee9ae9dd4abe07"}
+  ],
+  "initialReviewedArgv": [
+    {"path": "argv-canonical-preflight.template.json", "bytes": 4232, "sha256": "cb740f9d1d6af0c6f1d83b64ae4c330a13aa30430237dc446e781bdf0e560437", "commands": 10},
+    {"path": "argv-canonical-delivery.template.json", "bytes": 11039, "sha256": "3c13a9b32e4f0550e1228d0f36f8d5761b9259c101d1b3a03b0b551c7882781d", "commands": 23},
+    {"path": "argv-canonical-engine-ci-binding.template.json", "bytes": 3213, "sha256": "efe405b4f018a0c2245ada01f48dc459d1c680ad4f3fb16b6412014cf4384675", "commands": 5}
+  ],
+  "helper": {
+    "path": "verification/github-delivery-axis-canonical-followup/owned.py",
+    "bytes": 29385,
+    "sha256": "2ed27bc68ade5b38e4cae1268d7b2eb8606417b2948227236d9da3d38fb60711",
+    "predecessorSHA256": "34f1991509d7b156f00b5cc50fcd82ebae81fb414da904c19dcdca70c3eeb987",
+    "independentByteComparison": "Only two equal-length 40-byte baseline literals on line 111 differ; restoring that line reproduces every predecessor byte.",
+    "custodyStartupKernelWaitGroupAbsenceSeparateEOFLatchesAndSignalsUnchanged": true
+  },
+  "findings": [
+    {
+      "id": "sole-direct-parent",
+      "priority": 1,
+      "status": "requires-source-and-manifest-fix",
+      "source": "selection_common_axis_canonical.py.template:186; deliver_axis_canonical.py.template:77-78; argv-canonical-delivery.template.json committed-head",
+      "problem": "HEAD^ proves only the first parent. A preexisting merge state can produce an additional parent while the first parent and full parent-to-commit diff checks still pass.",
+      "requiredChange": "Use HEAD^@ instead of HEAD^ in the committed-head typed argv and retain exact three-line unpacking. This proves exactly one parent without adding commands or changing owned.py."
+    },
+    {
+      "id": "selection-runtime-source-hash-cycle",
+      "priority": 1,
+      "status": "resolved-by-explicit-root-materialization-contract-final-selection-check-pending",
+      "problem": "Selecting the materialized common module would make its embedded selection hash depend on selection rows that hash the same common module.",
+      "rootContract": "Exclude all four materialized .py drivers, all three materialized argv manifests, dynamic authorities/receipts/state, and final source-review outputs from this delivery. Root may select the frozen initial sixteen inert preparation files, other independently frozen public evidence, product/workflow/tracking/derivative rows, and the separate selection file. Runtime sources and argv remain ignored local files, independently pinned by the reviewed authority. Do not weaken common selection pins.",
+      "finalCheck": "Verify actual selected path rows and exclusion closure after root materialization."
+    }
+  ],
+  "sourceChecks": {
+    "fourExactUnconditionalFirstLineRefusals": true,
+    "fourASTsParseIntactAndAfterOnlyExactFirstLineRemoval": true,
+    "subjectSourceExecutedOrImported": false,
+    "thirtyEightJSONVectorsTypedAndEffectivePrefixesCorrect": true,
+    "mutationRowsOnlyStageCommitPushInDelivery": true,
+    "manualWorkflowVectors": 0,
+    "wholeIndexInventoryVectors": 0,
+    "finiteAllSelectedIndexProof": true,
+    "exactNULSortedForceAddAllowlist": true,
+    "allSelectedPathsFormattingCommandScope": true,
+    "freshEmptyIndexAndNoOldInspectionResume": true,
+    "nonforceExactSHAPushAndURLChecks": true,
+    "finalEmptyIndex": true,
+    "outsideDirtyByteModeAndCollapsedUntrackedIdentityChecks": true,
+    "protectedHashesWranglerIdentityAndAbsentArtifactStoreChecks": true,
+    "runtimeSourceAndPhaseArgvBoundBeforeCommandsAndRecheckedBeforeEveryCommand": true,
+    "ordinaryWorkflowOnlyEngineBinding": true,
+    "runtimeResultsAcceptedByBinding": false,
+    "historicalClosureBoundAsDataOnly": true
+  },
+  "finalMaterializationContract": [
+    "Freeze exact selected regular-file path/byte/SHA-256/Git-blob-OID/Git-mode rows and include only the selection file through the driver's computed self-row.",
+    "Keep selected paths finite, unique, sorted for both path markers, bounded to 1024, free of raw command records, streams, local outputs, ZIP files, dynamic state, and the root-excluded runtime source/argv/review closure.",
+    "Resolve the sole-parent finding in both common source and the exact delivery argv manifest; independently hash and AST-review the resulting final sources.",
+    "Bind the final ordinary verify.yml bytes, workflow name Owned engine checks, six expected jobs, and exact commit message. No manual workflow phase is allowed.",
+    "Pin every actual runtime source, unchanged owned.py, final selection, and all three exact typed argv manifests in one independent final source review; each phase authority must bind that review and its exact phase manifest.",
+    "Use a new fresh preflight with an empty index. Root must review the actual preflight/preservation/manifest rows, including protected file modes and collapsed untracked identities, before delivery authority.",
+    "Do not admit Engine binding until the actual successful delivered receipt is accepted. Engine binding proves source/run identity only; actual job results remain a separate root review.",
+    "No command execution, release, native/UI/compiler action, process probe, signal, or authority is granted by this review."
+  ],
+  "checker": {
+    "invocation": "python3 -I -B -S with fixed inline source/data checks and active-API audit denyguard installed before non-sys imports",
+    "version": "Python 3.14.8 (main, Sep 30 2026, 17:55:09), Clang 21.0.0",
+    "interpreter": "/opt/homebrew/bin/python3",
+    "isolated": 1,
+    "noSite": 1,
+    "dontWriteBytecode": true,
+    "sourceReadBoundPerFileBytes": 262144,
+    "scope": "Read/hash/AST/JSON comparisons only. No target/helper import or execution; no Git, gh, compiler, product, oracle, network, process probe, signal, native runtime, capture, or UI action.",
+    "diagnostics": [
+      "An initial JSON import was refused by the audit guard because trusted stdlib namedtuple generates code. The guard was narrowed to permit only that namedtuple-generated stdlib code; subject execution stayed denied.",
+      "An initial helper literal-token-index assertion was corrected to the observed two changed tokens; the complete byte comparison and reverse-repin then passed."
+    ]
+  },
+  "finalMaterializedSourceReviewPending": true,
+  "actualAuthorityCreated": false,
+  "actualTargetCommandsExecuted": 0
+}

@@ -1,0 +1,209 @@
+{
+  "schema": 1,
+  "phase": "stage-recovery-engine-ci-binding",
+  "preparationOnly": true,
+  "rootApprovalRequired": true,
+  "selection": {
+    "path": "verification/android-axis-binding-selection-2026-10-29/selection.json",
+    "bytes": 36961,
+    "sha256": "6dda8a7e90a3be9b93cd3683f9038c6767896dcf986bcee5beb47472ff7299fd"
+  },
+  "helper": {
+    "path": "verification/github-delivery-axis-binding-stage-recovery/owned.py",
+    "sha256": "34f1991509d7b156f00b5cc50fcd82ebae81fb414da904c19dcdca70c3eeb987",
+    "baselineRepinEvidence": {
+      "path": "verification/github-delivery-axis-binding-followup/preparation.json",
+      "bytes": 13703,
+      "sha256": "096b4fc1dd1df00a66934e41d47265f5b8286891db16ada6ab6500152ae7a298",
+      "mode": "100644"
+    },
+    "priorHelper": {
+      "path": "verification/github-delivery-axis-expression-followup/owned.py",
+      "bytes": 29385,
+      "sha256": "5ea93ef940f854c6510b19cc2c36df39183212b5026f725ee416f2a3cac48e59"
+    },
+    "priorCorrectionSeal": {
+      "path": "verification/github-delivery-android-view-api-boundary/preparation-correction-seal.json",
+      "sha256": "db9df0c6a412b6ee1047c6abb431941823858f08f42c07d154b5cf405659ffe3"
+    },
+    "independentReviewSeal": {
+      "path": "verification/android-view-api-git-custody-review/review-seal.json",
+      "sha256": "1c67d7aef5cc9602b6127b4fad4471eab2d2e8081b3214c0689e55646a75ed0a"
+    },
+    "guardedControlsInherited": 44,
+    "exactArgvApprovalBeforeEveryActualPhase": true,
+    "genericGhFilterNotAuthority": true,
+    "bootstrap": "-I -B -S",
+    "separateEOFAndExactKernelReapRequired": true,
+    "currentRootReview": "verification/android-axis-binding-selection-2026-10-29/helper-review.json",
+    "separateWorkflowPhaseAuthorityRequired": true
+  },
+  "interpreter": {
+    "flags": [
+      "-I",
+      "-B",
+      "-S"
+    ],
+    "wrapper": "verification/github-delivery-axis-binding-stage-recovery/owned.py",
+    "admissionFDAndGateFD": "fresh owned typed descriptor integers; never reused"
+  },
+  "session": {
+    "seconds": 180,
+    "count": 5,
+    "prefix": "stage-recovery-engine-ci-binding-"
+  },
+  "gitEffectivePrefix": [
+    "git",
+    "-c",
+    "gc.auto=0",
+    "-c",
+    "maintenance.auto=false"
+  ],
+  "typedBindings": {
+    "DELIVERED_SHA": "exact40 lowercase hexadecimal head from successful immutable new delivery receipt"
+  },
+  "commands": [
+    {
+      "name": "head",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "remote-main",
+      "argv": [
+        "git",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "engine-workflow-content",
+      "argv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/contents/.github/workflows/verify.yml?ref={DELIVERED_SHA}",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "{sha,size,path,type}"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/contents/.github/workflows/verify.yml?ref={DELIVERED_SHA}",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "{sha,size,path,type}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "engine-workflow-registration",
+      "argv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/verify.yml",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "{id,path,state,name}"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/verify.yml",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "{id,path,state,name}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "engine-run",
+      "argv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/verify.yml/runs?event=push&head_sha={DELIVERED_SHA}&per_page=5",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "[.workflow_runs[]|{id,name,head_sha,event,run_attempt,status,conclusion,workflow_id,path,html_url}]"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/verify.yml/runs?event=push&head_sha={DELIVERED_SHA}&per_page=5",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "[.workflow_runs[]|{id,name,head_sha,event,run_attempt,status,conclusion,workflow_id,path,html_url}]"
+      ],
+      "kind": "read"
+    }
+  ],
+  "sourceDataOnly": true,
+  "axisRegistrationRequired": false,
+  "expectedEngineJobs": 6,
+  "originalHelperBindingPreserved": {
+    "path": "verification/github-delivery-axis-binding-followup/owned.py",
+    "sha256": "34f1991509d7b156f00b5cc50fcd82ebae81fb414da904c19dcdca70c3eeb987",
+    "baselineRepinEvidence": {
+      "path": "verification/github-delivery-axis-binding-followup/preparation.json",
+      "bytes": 13703,
+      "sha256": "096b4fc1dd1df00a66934e41d47265f5b8286891db16ada6ab6500152ae7a298",
+      "mode": "100644"
+    },
+    "priorHelper": {
+      "path": "verification/github-delivery-axis-expression-followup/owned.py",
+      "bytes": 29385,
+      "sha256": "5ea93ef940f854c6510b19cc2c36df39183212b5026f725ee416f2a3cac48e59"
+    },
+    "priorCorrectionSeal": {
+      "path": "verification/github-delivery-android-view-api-boundary/preparation-correction-seal.json",
+      "sha256": "db9df0c6a412b6ee1047c6abb431941823858f08f42c07d154b5cf405659ffe3"
+    },
+    "independentReviewSeal": {
+      "path": "verification/android-view-api-git-custody-review/review-seal.json",
+      "sha256": "1c67d7aef5cc9602b6127b4fad4471eab2d2e8081b3214c0689e55646a75ed0a"
+    },
+    "guardedControlsInherited": 44,
+    "exactArgvApprovalBeforeEveryActualPhase": true,
+    "genericGhFilterNotAuthority": true,
+    "bootstrap": "-I -B -S",
+    "separateEOFAndExactKernelReapRequired": true,
+    "currentRootReview": "verification/android-axis-binding-selection-2026-10-29/helper-review.json",
+    "separateWorkflowPhaseAuthorityRequired": true
+  },
+  "acceptedPreflightRequired": true,
+  "acceptedInspectionRequired": true,
+  "originalAttemptReplayed": false
+}
