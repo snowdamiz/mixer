@@ -1,0 +1,249 @@
+{
+  "schema": 1,
+  "phase": "preflight-followup",
+  "preparationOnly": true,
+  "rootApprovalRequired": true,
+  "selection": {
+    "path": "verification/android-host-followup-selection-2026-10-29/selection.json",
+    "bytes": 71593,
+    "sha256": "7bb6b03c7250933ec51fd18b8c748135db3fdc418705203f759bed39bd8e8dab"
+  },
+  "helper": {
+    "path": "verification/github-delivery-android-host-followup/owned.py",
+    "sha256": "30519c17fad93ddb4d70f1d217d3033f3890c2ce3b656cb25e424d102e2ddbbf",
+    "baselineRepinEvidence": {
+      "path": "verification/github-delivery-android-host-followup/preparation.json",
+      "bytes": 4984,
+      "sha256": "6bdc21383022f1868b5b08690f9ec48affd1e37ca5ae398228351a6970fb0f21",
+      "mode": "100644"
+    },
+    "priorHelper": {
+      "path": "verification/github-delivery-android-jdk-observation/owned.py",
+      "bytes": 29385,
+      "sha256": "b7b4a4fab5ca699ded6efd65259c9e499babbe37786a108d7307dfc0d29ab043"
+    },
+    "priorCorrectionSeal": {
+      "path": "verification/github-delivery-android-view-api-boundary/preparation-correction-seal.json",
+      "sha256": "db9df0c6a412b6ee1047c6abb431941823858f08f42c07d154b5cf405659ffe3"
+    },
+    "independentReviewSeal": {
+      "path": "verification/android-view-api-git-custody-review/review-seal.json",
+      "sha256": "1c67d7aef5cc9602b6127b4fad4471eab2d2e8081b3214c0689e55646a75ed0a"
+    },
+    "guardedControlsInherited": 44,
+    "exactArgvApprovalBeforeEveryActualPhase": true,
+    "genericGhFilterNotAuthority": true,
+    "bootstrap": "-I -B -S",
+    "separateEOFAndExactKernelReapRequired": true,
+    "currentRootReview": "verification/android-host-followup-selection-2026-10-29/helper-review.json",
+    "separateWorkflowPhaseAuthorityRequired": true
+  },
+  "interpreter": {
+    "flags": [
+      "-I",
+      "-B",
+      "-S"
+    ],
+    "wrapper": "verification/github-delivery-android-host-followup/owned.py",
+    "admissionFDAndGateFD": "fresh owned typed descriptor integers; never reused"
+  },
+  "session": {
+    "seconds": 210,
+    "count": 9,
+    "prefix": "preflight-followup-"
+  },
+  "gitEffectivePrefix": [
+    "git",
+    "-c",
+    "gc.auto=0",
+    "-c",
+    "maintenance.auto=false"
+  ],
+  "typedBindings": {},
+  "commands": [
+    {
+      "name": "git-version",
+      "argv": [
+        "git",
+        "--version"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "--version"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "gh-version",
+      "argv": [
+        "gh",
+        "--version"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "--version"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "head",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "branch",
+      "argv": [
+        "git",
+        "branch",
+        "--show-current"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "branch",
+        "--show-current"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "origin",
+      "argv": [
+        "git",
+        "remote",
+        "get-url",
+        "origin"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "remote",
+        "get-url",
+        "origin"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "remote",
+      "argv": [
+        "git",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "index",
+      "argv": [
+        "git",
+        "diff",
+        "--cached",
+        "--name-only",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--cached",
+        "--name-only",
+        "-z"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "collapsed-status",
+      "argv": [
+        "git",
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=normal"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=normal"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "complete-raw-diff",
+      "argv": [
+        "git",
+        "diff",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "diff",
+        "--raw",
+        "--no-abbrev",
+        "--no-renames",
+        "-z"
+      ],
+      "kind": "read"
+    }
+  ],
+  "sourceDataOnly": true,
+  "basisManifest": {
+    "path": "verification/github-delivery-android-jdk-observation/argv-preflight-selected.json",
+    "bytes": 5130,
+    "sha256": "098541321e0492fd1924b999e96a1819a18828e8c8a5dcbf542ce4b940c7e8ec"
+  },
+  "selectedManualHostsReadOnly": [
+    "axis",
+    "package"
+  ]
+}

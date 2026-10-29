@@ -1,0 +1,159 @@
+{
+  "schema": 1,
+  "status": "18-data-only-expression-controls-passed",
+  "sourceRevision": "c89b4d1657fc46581d8788169f9c961a2413c4f4",
+  "tool": {
+    "name": "mcp__node_repl__js",
+    "version": "Not exposed by tool; Node version not queried"
+  },
+  "subject": {
+    "path": "verification/android-axis-refusal-host-admission-expression-correction/expression-controls.mjs",
+    "bytes": 7569,
+    "sha256": "420c3b8a6b1d1657f27fd89c85e9b15812ce8edf2fc7ba93d6d2a0dc5b928fa9"
+  },
+  "workflow": {
+    "path": "verification/android-axis-refusal-host-admission-expression-correction/workflow.draft.yml",
+    "bytes": 6670,
+    "sha256": "8483fbf0b110ab9f1806004f51b857d47eebb46acb9521ee1ee91bbfb5a86dc5"
+  },
+  "verifier": {
+    "path": "verification/android-axis-refusal-host-admission-expression-correction/verify.mjs",
+    "bytes": 18083,
+    "sha256": "cb62acbbe45fc98d205e3b7b8dfa0d6cc83975c5e9ca3a0e5227e05d57a1dbad"
+  },
+  "inputs": {
+    "path": "verification/android-axis-refusal-host-expression-controls-actual/execution-inputs.json",
+    "bytes": 52107,
+    "sha256": "54a5ec1dc8a56441fbd59f3fd21b34f6f8d890a005db0f11bdd8282ff25ff58a"
+  },
+  "executionRecipe": {
+    "tool": "mcp__node_repl__js",
+    "exactEntryPoint": "runExpressionControls(input)",
+    "inputVariable": "execution-inputs.json decoded as JSON",
+    "sourceTransform": "Remove exactly first static import line and line-leading export prefixes from pinned expression-controls.mjs. Inject exactly these three pure helper declarations with node:crypto createHash, all inside a block after denial bindings. No full verifier module import.",
+    "pureHelperDeclarations": [
+      "function sha(bytes) { return createHash('sha256').update(bytes).digest('hex'); }",
+      "function requireThat(value, message) { if (!value) throw new Error(message); }",
+      "function equal(a, b, message) { requireThat(JSON.stringify(a) === JSON.stringify(b), message); }"
+    ],
+    "guardBindings": [
+      "process",
+      "require",
+      "fetch",
+      "WebSocket",
+      "Worker",
+      "SharedWorker",
+      "XMLHttpRequest",
+      "setTimeout",
+      "setInterval",
+      "setImmediate",
+      "clearTimeout",
+      "clearInterval",
+      "clearImmediate",
+      "queueMicrotask",
+      "fs",
+      "child_process",
+      "net",
+      "dgram",
+      "http",
+      "https",
+      "tls",
+      "worker_threads",
+      "timers",
+      "globalThis"
+    ],
+    "guardDefinition": "const denied=()=>{throw Error('active API denied in data controls');}; const deny=new Proxy(denied,{get:denied,apply:denied,construct:denied});",
+    "guardsInstalledBeforeSubjectDeclarations": true,
+    "guardScope": "Block-local denial proxies; no persistent/global timer or process API patching."
+  },
+  "results": {
+    "schema": 1,
+    "status": "passed-data-only-expression-controls",
+    "count": 18,
+    "results": [
+      {
+        "name": "exact-correction-and-all-expression-locations",
+        "status": "pass"
+      },
+      {
+        "name": "actual-prior-runner-in-job-env-defect",
+        "status": "pass"
+      },
+      {
+        "name": "reintroduced-runner-in-job-env",
+        "status": "pass"
+      },
+      {
+        "name": "missing-output-export",
+        "status": "pass"
+      },
+      {
+        "name": "missing-next-step-output-persistence",
+        "status": "pass"
+      },
+      {
+        "name": "missing-line-break-refusal",
+        "status": "pass"
+      },
+      {
+        "name": "output-path-drift",
+        "status": "pass"
+      },
+      {
+        "name": "initialization-after-preflight",
+        "status": "pass"
+      },
+      {
+        "name": "new-unreviewed-runner-expression",
+        "status": "pass"
+      },
+      {
+        "name": "runner-upload-step-expression-drift",
+        "status": "pass"
+      },
+      {
+        "name": "test-command-filter-drift",
+        "status": "pass"
+      },
+      {
+        "name": "file-limit-drift",
+        "status": "pass"
+      },
+      {
+        "name": "manual-event-guard-drift",
+        "status": "pass"
+      },
+      {
+        "name": "attempt-guard-drift",
+        "status": "pass"
+      },
+      {
+        "name": "stale-template-workflow-hash",
+        "status": "pass"
+      },
+      {
+        "name": "selected-template",
+        "status": "pass"
+      },
+      {
+        "name": "additional-dispatch-allowance",
+        "status": "pass"
+      },
+      {
+        "name": "result-parser-drift",
+        "status": "pass"
+      }
+    ],
+    "synthetic_source_controls_are_not_GitHub_or_host_evidence": true
+  },
+  "prior47ResultParserControlsRerun": false,
+  "githubWorkflowValidation": false,
+  "swiftTestsRun": 0,
+  "nativeRuns": 0,
+  "persistenceNote": "An attempted expanded tool-source recording call exceeded the64000-byte tool review limit and did not execute. This smaller call records immutable inputs, exact recipe and observed results without rerunning controls.",
+  "limitations": [
+    "Exact bounded source/data controls; no general YAML validation.",
+    "GitHub must validate the installed corrected workflow; all19 Swift tests remain pending.",
+    "No full verifier module or product runtime executed."
+  ]
+}

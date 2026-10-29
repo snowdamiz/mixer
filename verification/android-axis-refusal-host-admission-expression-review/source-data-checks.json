@@ -1,0 +1,590 @@
+{
+  "schema": 1,
+  "status": "PASS_SCOPED_INDEPENDENT_SOURCE_DATA_REVIEW_RUNTIME_UNRUN",
+  "scope": "Ordinary bounded filesystem reads, SHA256 and string/JSON comparisons; source-only workflow lifecycle and sparse read-set review; no target code imports or execution.",
+  "tool": {
+    "name": "mcp__node_repl__js",
+    "version": "Not exposed or queried; no process/compiler/tool-version probe",
+    "imports": [
+      "node:fs/promises",
+      "node:crypto",
+      "node:path"
+    ],
+    "target_module_imports": 0,
+    "target_oracle_or_helper_execution": 0,
+    "regression_script_execution": 0,
+    "shell_commands": 0
+  },
+  "commands": [
+    {
+      "operation": "bounded file read",
+      "source": "lstat: regular, nonsymlink, <=1048576 bytes; readFile; require unchanged byte length"
+    },
+    {
+      "operation": "payload and source rehash",
+      "source": "For each manifest row, compare actual Buffer.length and SHA256 against row.bytes and row.sha256; independently enumerate package directories with depth<10, <=32 entries/directory and <=27 files."
+    },
+    {
+      "operation": "projection",
+      "source": "SHA256 over ordinal-sorted path + NUL + lowercase SHA256 + LF"
+    },
+    {
+      "operation": "exact workflow transformation",
+      "source": "Remove exactly one rejected job-level MIXER_AXIS_OUT line; replace all old sibling paths; replace first existing ulimit/node marker with explicitly reviewed export/case/printf initialization using a function replacement; compare entire workflow text."
+    },
+    {
+      "operation": "verifier/template",
+      "source": "Compare entire verifier against prior with only PIN.admissionRelative string substitution. Compare entire parsed template against prior with only workflow_sha256 substituted."
+    }
+  ],
+  "source_revision": null,
+  "source_revision_note": "No Git/gh operation. Source identity below is limited to directly observed packet/source hashes; no current repository tree or new delivery revision is asserted.",
+  "observed_root_reported_historical_failure": {
+    "source": "Parent-provided actual annotation; not independently fetched in this lane",
+    "delivery_revision": "c89b4d1657fc46581d8788169f9c961a2413c4f4",
+    "delivery_tree": "507ff501dbb8130ce37632eb3b207f5990f3689c",
+    "run_id": "40883832500",
+    "run_attempt": 1,
+    "event": "push",
+    "jobs": 0,
+    "annotation": "(Line: 30, Col: 23): Unrecognized named-value: runner. Located at position 1 within expression: runner.temp"
+  },
+  "producer_closure": {
+    "manifest_sha256": "a5088be1cb5e4c304a06fa48d0129e649e88c521e9b2a5aeb59770f00d079441",
+    "receipt_sha256": "59f9736f5e20b4972066f718ed70972b401a68a7eb0a7a1b013af600df6e3eb6",
+    "files": 11,
+    "bytes": 57826,
+    "projection": "43974e2215e11ee1efcae394405a7e9345cbe6069076d720332ae015da12bea2",
+    "all_payload_rows_match": true,
+    "payload_rows": [
+      {
+        "path": ".gitignore",
+        "bytes": 60,
+        "sha256": "7ca6d81d6da4eab982749888423a7e531f5ba4cbab9efdcfacadd36c8e870f7c",
+        "matches": true
+      },
+      {
+        "path": "README.md",
+        "bytes": 5520,
+        "sha256": "2b18399e5b4d2ce5dc5b8529dfc903b2570060601794dabcd0e50ff681b606ce",
+        "matches": true
+      },
+      {
+        "path": "controls.mjs",
+        "bytes": 8650,
+        "sha256": "55fbd39c49b03f178a8f141b35441b1d2a627914b4a768f17f8fd9145f75d597",
+        "matches": true
+      },
+      {
+        "path": "expression-controls.mjs",
+        "bytes": 7569,
+        "sha256": "420c3b8a6b1d1657f27fd89c85e9b15812ce8edf2fc7ba93d6d2a0dc5b928fa9",
+        "matches": true
+      },
+      {
+        "path": "required-tests.json",
+        "bytes": 1719,
+        "sha256": "ab504f3105379b3e225f8ef1b1b65c7650ef57e3a4e21f3ef2d9cbe150a493cf",
+        "matches": true
+      },
+      {
+        "path": "root-selection.template.json",
+        "bytes": 1766,
+        "sha256": "d95cb2e7734451d61d0c9f80b03bb4fb6573c7e84fe965ea1605edf8f7cf9527",
+        "matches": true
+      },
+      {
+        "path": "source-checks.json",
+        "bytes": 5040,
+        "sha256": "9ed56aa748814f69c79d35ed887a514fa8dd2359c602528d5804aa2193cbc4e5",
+        "matches": true
+      },
+      {
+        "path": "source-delta.json",
+        "bytes": 1843,
+        "sha256": "31750a04a02eaab1f75c78c9b667493b553d9d55d81e8a30f651530bb1e6e4fd",
+        "matches": true
+      },
+      {
+        "path": "verify-file-limit.py",
+        "bytes": 906,
+        "sha256": "4e50ca6f2f8d1b0e37e4793c035ad2b146f6782912b18f539fac7c2fc8e54f07",
+        "matches": true
+      },
+      {
+        "path": "verify.mjs",
+        "bytes": 18083,
+        "sha256": "cb62acbbe45fc98d205e3b7b8dfa0d6cc83975c5e9ca3a0e5227e05d57a1dbad",
+        "matches": true
+      },
+      {
+        "path": "workflow.draft.yml",
+        "bytes": 6670,
+        "sha256": "8483fbf0b110ab9f1806004f51b857d47eebb46acb9521ee1ee91bbfb5a86dc5",
+        "matches": true
+      }
+    ]
+  },
+  "prior_closure": {
+    "manifest_sha256": "93d110c9949e2396eaeb6a4b4620883d34a22deaea878efae7c088a7dc9f2295",
+    "receipt_sha256": "93e9992f2b63075d6a9988f3c444f2491a235a7046839548f9d9b0da31f35ee9",
+    "files": 9,
+    "bytes": 52245,
+    "projection": "25efcf3b96a756dde50c4b0203fc53e848bec4188d845e67ea2b4c33608da3d2",
+    "all_payload_rows_match": true,
+    "payload_rows": [
+      {
+        "path": ".gitignore",
+        "bytes": 60,
+        "sha256": "7ca6d81d6da4eab982749888423a7e531f5ba4cbab9efdcfacadd36c8e870f7c",
+        "matches": true
+      },
+      {
+        "path": "README.md",
+        "bytes": 9834,
+        "sha256": "427c932402e0973f7055623253d8c5a15a68d6f4d497e8704b63d80999265ae0",
+        "matches": true
+      },
+      {
+        "path": "controls.mjs",
+        "bytes": 8650,
+        "sha256": "55fbd39c49b03f178a8f141b35441b1d2a627914b4a768f17f8fd9145f75d597",
+        "matches": true
+      },
+      {
+        "path": "required-tests.json",
+        "bytes": 1719,
+        "sha256": "ab504f3105379b3e225f8ef1b1b65c7650ef57e3a4e21f3ef2d9cbe150a493cf",
+        "matches": true
+      },
+      {
+        "path": "root-selection.template.json",
+        "bytes": 1766,
+        "sha256": "e474780ba7193af3a2bb02d2a0c30998c24b4ee59aa37d0b52877ffbaab58cfe",
+        "matches": true
+      },
+      {
+        "path": "source-checks.json",
+        "bytes": 4798,
+        "sha256": "ef1ad723f8d6910425fa5eebc7049275cadee84338280f906a0f1f9d3d7eadc3",
+        "matches": true
+      },
+      {
+        "path": "verify-file-limit.py",
+        "bytes": 906,
+        "sha256": "4e50ca6f2f8d1b0e37e4793c035ad2b146f6782912b18f539fac7c2fc8e54f07",
+        "matches": true
+      },
+      {
+        "path": "verify.mjs",
+        "bytes": 18079,
+        "sha256": "a7a6cfa655a7bcd784eb4048247edbfb4e74f0502ac1a9979a0b318fd0bbdbf3",
+        "matches": true
+      },
+      {
+        "path": "workflow.draft.yml",
+        "bytes": 6433,
+        "sha256": "ff3f4f99a8e99794b881fe34b8a4b4b3ac5491b98144b2df0cfc7763916bbf64",
+        "matches": true
+      }
+    ]
+  },
+  "installed_workflow": {
+    "path": ".github/workflows/android-axis-refusal-host.yml",
+    "bytes": 6433,
+    "sha256": "ff3f4f99a8e99794b881fe34b8a4b4b3ac5491b98144b2df0cfc7763916bbf64",
+    "freeze_observed": true,
+    "edited_by_reviewer": false
+  },
+  "source_package": {
+    "manifest_sha256": "601b9722df4f42c6649f0e0b6943fe5e3ad96bc6ebeeeecc186da475875e5782",
+    "files": 27,
+    "bytes": 284605,
+    "projection": "257ed4dfa93d43b15d4bfe2d51372d261e4fec5fd9e80c3f1ca62b1967a3a793",
+    "all_matches": true,
+    "inventory_matches": true,
+    "review_sha256": "7dce2a7630a22f095b0953444b214e5ee0b219213e168b0867c7d626f19ea3fa",
+    "apple_sha256": "74a3e0261a8dcd9faa075333a09d33f635e5a96351560c4a4d94d1a90b11c442",
+    "roster_matches": true,
+    "XCTest": 8,
+    "Swift_Testing": 11,
+    "rows": [
+      {
+        "path": "Package.swift",
+        "bytes": 573,
+        "sha256": "3411a33171bacf3216d4e142008aa3349b002384f74942f21b0bcb34fe857dc8",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerAndroidRuntime/DocumentSession.swift",
+        "bytes": 4328,
+        "sha256": "cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerAndroidRuntime/SessionRegistry.swift",
+        "bytes": 7730,
+        "sha256": "977bb8790cb822467c31c7a24ffebe96ea364067a3637bf90464ba4060b77b67",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerCore/FeatureStore.swift",
+        "bytes": 4358,
+        "sha256": "3fb26a1b1ce6a8863ea53d0c5751b3229ddad1113b486cb2c430d1d0dbcb385f",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerCore/JSONInputGuard.swift",
+        "bytes": 8709,
+        "sha256": "c01ae7ad973dcfc40d2b4ecef3fb8091d1c94484410621f28e77096e952de07c",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerCore/Lifecycle.swift",
+        "bytes": 935,
+        "sha256": "67d6dc636bb36ce765e5a0c4ee9db93d61ce7b17938e3d9a1a0ff84020927a91",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerCore/Navigation.swift",
+        "bytes": 3101,
+        "sha256": "6197c48eeb03aa6eeb94c3ca9a674c451deb83df9f662177014f70b866ef94d2",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerCore/Resources.swift",
+        "bytes": 3301,
+        "sha256": "2e9cd272144237f9fc76c3c7e46add88f43395a60ed83db24f5cd454ae7b7dca",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerUI/AppearanceDefaultV1.swift",
+        "bytes": 2345,
+        "sha256": "4ec1af1f904f427a17ae55e5937e017afbf3d8a4e6040749caee199e09bac1c9",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerUI/AppearanceDefaultV2.swift",
+        "bytes": 10020,
+        "sha256": "64daf8569dff496801b4886a03cce34aeb6af6fd9e5a76e3e0ea338b82dab05d",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerUI/AppearanceDescriptorV1.swift",
+        "bytes": 34130,
+        "sha256": "ad7f2b7c51041496197894829265bee7cfa8b8cb18d09abe5d816d9bf5259295",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerUI/AppearanceDescriptorV2.swift",
+        "bytes": 51011,
+        "sha256": "88683c11d8f3e22ddbb3e16601715d5761f6d677dbacc1d4dc9f66d7303512a1",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerUI/AppearanceGeometryV2.swift",
+        "bytes": 8977,
+        "sha256": "32d6a097e60e33393510a2d52df40b85d22afe7c5562504449c1f472e110cb72",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerUI/AppearanceMetricMathV1.swift",
+        "bytes": 1508,
+        "sha256": "fad0acfce796ae667bb01f6a29418298fe8197c7d79b2778d4fb3de79b348578",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerUI/AppearanceResolutionV1.swift",
+        "bytes": 17046,
+        "sha256": "cbaaeebad2ef3c4015ab4f917df3a35ed68541e52b8b12c8a27a3be07211fcf0",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerUI/AppearanceResolutionV2.swift",
+        "bytes": 26464,
+        "sha256": "4d416c443953c43ab3aab0500c392369fe369fa5ac95f086aa328da64885d50b",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerUI/AppearanceValuesV1.swift",
+        "bytes": 12170,
+        "sha256": "bb33ff6eb92603caf12e0cbd3166f291debc30ca8440696870ec523345fd6ccc",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerUI/AppearanceValuesV2.swift",
+        "bytes": 17346,
+        "sha256": "f96fe9d18ec2c2390268499c46e709e998e230d97840d02eb8e86094916ebc54",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerUI/Authoring.swift",
+        "bytes": 6559,
+        "sha256": "ef313b4f153199ce2b18d4cea75be7a61b82350dd4b17e7e3be84757898482c6",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerUI/NativePacketV1.swift",
+        "bytes": 4703,
+        "sha256": "ff099c2a1a57bd48c1cb7ed4fc6991dda7571d69457b0a3c7feb1cacb2cec18f",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerUI/Protocol.swift",
+        "bytes": 9315,
+        "sha256": "542c5076b4146f0229c89cec70848b42c0434637724f3ca9c42e1d45e2d55d42",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerUI/Reconciliation.swift",
+        "bytes": 6561,
+        "sha256": "c00a6e70b7550d0e5247b1b0bb5683f97b7fc93dbf42fe0363b4c4ceb7498403",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerUI/SharedTextProfilesV1.swift",
+        "bytes": 3644,
+        "sha256": "5547407727fc668e527f73d79765722009c9f38a931e23bfead20d979a763481",
+        "matches": true
+      },
+      {
+        "path": "Sources/MixerUI/Validation.swift",
+        "bytes": 11627,
+        "sha256": "c8b5002b0809a27a56513073c36c8b0b530f8f10678b2728ee0b308f021b6773",
+        "matches": true
+      },
+      {
+        "path": "Tests/MixerAndroidRuntimeTests/AndroidTextFieldAxisRefusalTests.swift",
+        "bytes": 11870,
+        "sha256": "7d274de5f4de44b9acf2affc7579a8d1a0bd77cc00a5afd1883b86862411553d",
+        "matches": true
+      },
+      {
+        "path": "Tests/MixerAndroidRuntimeTests/RuntimeTests.swift",
+        "bytes": 6392,
+        "sha256": "f5d7b8c2c7c00a1b726274fcb432516c24517c52ee31b128280494bfd658105e",
+        "matches": true
+      },
+      {
+        "path": "Tests/MixerAndroidRuntimeTests/TransactionTests.swift",
+        "bytes": 9882,
+        "sha256": "c3bb3b37d6582b3bef9c64f09adaaa69d2bb897649526a72948e7ffb9cff59c2",
+        "matches": true
+      }
+    ]
+  },
+  "delta": {
+    "prior_workflow_hash": "ff3f4f99a8e99794b881fe34b8a4b4b3ac5491b98144b2df0cfc7763916bbf64",
+    "new_workflow_hash": "8483fbf0b110ab9f1806004f51b857d47eebb46acb9521ee1ee91bbfb5a86dc5",
+    "job_output_assignments_removed": 1,
+    "workflow_exact_transform": true,
+    "prior_verifier_hash": "a7a6cfa655a7bcd784eb4048247edbfb4e74f0502ac1a9979a0b318fd0bbdbf3",
+    "new_verifier_hash": "cb62acbbe45fc98d205e3b7b8dfa0d6cc83975c5e9ca3a0e5227e05d57a1dbad",
+    "verifier_only_admission_relative": true,
+    "template_only_workflow_hash": true,
+    "inherited": [
+      {
+        "path": ".gitignore",
+        "identical": true,
+        "bytes": 60,
+        "sha256": "7ca6d81d6da4eab982749888423a7e531f5ba4cbab9efdcfacadd36c8e870f7c"
+      },
+      {
+        "path": "controls.mjs",
+        "identical": true,
+        "bytes": 8650,
+        "sha256": "55fbd39c49b03f178a8f141b35441b1d2a627914b4a768f17f8fd9145f75d597"
+      },
+      {
+        "path": "required-tests.json",
+        "identical": true,
+        "bytes": 1719,
+        "sha256": "ab504f3105379b3e225f8ef1b1b65c7650ef57e3a4e21f3ef2d9cbe150a493cf"
+      },
+      {
+        "path": "verify-file-limit.py",
+        "identical": true,
+        "bytes": 906,
+        "sha256": "4e50ca6f2f8d1b0e37e4793c035ad2b146f6782912b18f539fac7c2fc8e54f07"
+      }
+    ]
+  },
+  "expressions": {
+    "basis": "Full workflow indentation/key inspection plus official context availability table; explicit string inventory supplements this review and does not establish general YAML/schema/server validity.",
+    "official_context_url": "https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#context-availability",
+    "official_env_url": "https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#setting-an-environment-variable",
+    "explicit_lines": [
+      {
+        "line": 28,
+        "key": "jobs.axis-refusal.env.MIXER_AXIS_ROOT_SELECTION",
+        "contexts": [
+          "inputs"
+        ],
+        "allowed": true
+      },
+      {
+        "line": 29,
+        "key": "jobs.axis-refusal.env.MIXER_AXIS_PROFILE",
+        "contexts": [
+          "inputs"
+        ],
+        "allowed": true
+      },
+      {
+        "line": 130,
+        "key": "jobs.axis-refusal.steps.upload-artifact.with.name",
+        "contexts": [
+          "github",
+          "github",
+          "github"
+        ],
+        "allowed": true
+      },
+      {
+        "line": 133,
+        "key": "jobs.axis-refusal.steps.upload-artifact.with.path",
+        "contexts": [
+          "runner",
+          "github",
+          "github"
+        ],
+        "allowed": true
+      }
+    ],
+    "explicit_expression_count": 8,
+    "implicit_conditions": [
+      {
+        "line": 22,
+        "key": "jobs.axis-refusal.if",
+        "expression": "github.event_name == 'workflow_dispatch' && github.run_attempt == 1",
+        "allowed": true
+      },
+      {
+        "line": 104,
+        "key": "steps.postflight.if",
+        "expression": "always()",
+        "allowed": true
+      },
+      {
+        "line": 115,
+        "key": "steps.assess.if",
+        "expression": "always()",
+        "allowed": true
+      },
+      {
+        "line": 126,
+        "key": "steps.upload.if",
+        "expression": "always()",
+        "allowed": true
+      }
+    ],
+    "runtime_dollar_variables": "$RUNNER_TEMP/$GITHUB_* in quoted shell expansion and JavaScript process.env are runner-side environment access, not GitHub ${{ }} expressions."
+  },
+  "sparse_checkout": {
+    "all_repository_reads_included": true,
+    "read_set": [
+      {
+        "read": "installed workflow byte binding",
+        "path": ".github/workflows/android-axis-refusal-host.yml",
+        "included_by": "exact file pattern"
+      },
+      {
+        "read": "source manifest JSON",
+        "path": "verification/android-axis-refusal-host-preparation/source-manifest.json",
+        "included_by": "preparation directory pattern"
+      },
+      {
+        "read": "bounded inventory plus bytes of all 27 package members",
+        "path": "verification/android-axis-refusal-host-preparation/package/",
+        "included_by": "preparation directory pattern"
+      },
+      {
+        "read": "independent review receipt hash",
+        "path": "verification/android-axis-refusal-host-review/receipt.json",
+        "included_by": "exact receipt pattern"
+      },
+      {
+        "read": "Apple verifier bytes, execution source and __file__ digest",
+        "path": "scripts/ci/verify-apple-toolchain.py",
+        "included_by": "exact helper pattern"
+      },
+      {
+        "read": "preflight/postflight/assess/recordCommand module; no relative module imports",
+        "path": "verification/android-axis-refusal-host-admission-expression-correction/verify.mjs",
+        "included_by": "new sibling directory pattern"
+      },
+      {
+        "read": "required-tests JSON",
+        "path": "verification/android-axis-refusal-host-admission-expression-correction/required-tests.json",
+        "included_by": "new sibling directory pattern"
+      },
+      {
+        "read": "file-limit helper execution source",
+        "path": "verification/android-axis-refusal-host-admission-expression-correction/verify-file-limit.py",
+        "included_by": "new sibling directory pattern"
+      }
+    ],
+    "notes": [
+      "Package.swift has no external dependency or resource declaration; local target names resolve to the included Sources and Tests directories.",
+      "source_rows.source_path provenance strings are not dereferenced by the workflow verifier.",
+      "Runtime output files under RUNNER_TEMP and installed Apple/Python/Node/git tools are runner inputs/outputs, not missing repository sparse patterns. Checkout supplies Git metadata used by the unchanged Apple verifier.",
+      "This is source read-set analysis and direct local rehashing; no checkout action, Swift manifest evaluation, or GitHub execution occurred."
+    ]
+  },
+  "expression_controls": {
+    "sha256": "420c3b8a6b1d1657f27fd89c85e9b15812ce8edf2fc7ba93d6d2a0dc5b928fa9",
+    "bytes": 7569,
+    "case_count": 18,
+    "cases": [
+      "exact-correction-and-all-expression-locations",
+      "actual-prior-runner-in-job-env-defect",
+      "reintroduced-runner-in-job-env",
+      "missing-output-export",
+      "missing-next-step-output-persistence",
+      "missing-line-break-refusal",
+      "output-path-drift",
+      "initialization-after-preflight",
+      "new-unreviewed-runner-expression",
+      "runner-upload-step-expression-drift",
+      "test-command-filter-drift",
+      "file-limit-drift",
+      "manual-event-guard-drift",
+      "attempt-guard-drift",
+      "stale-template-workflow-hash",
+      "selected-template",
+      "additional-dispatch-allowance",
+      "result-parser-drift"
+    ],
+    "source_review": "ACCEPT_FOR_ROOT_SEPARATE_GUARDED_DATA_EXECUTION",
+    "execution": "UNRUN",
+    "safe_scope": "Only function declarations/constants and import of equal/requireThat/sha from verify.mjs. Those helpers are JSON equality, throw-on-false and SHA256; verify.mjs has built-in fs/crypto imports and PIN initialization but no top-level filesystem or process action. runExpressionControls and its called functions use synchronous strings/arrays/maps/JSON/hash only.",
+    "limitations": [
+      "Most negative controls intentionally test exact source drift against the pinned transformation; they do not execute Bash or simulate GitHub evaluation.",
+      "Exact line mapping is not a structural YAML parser. Manual key/indentation review and actual GitHub validation remain distinct.",
+      "The existing line-break source check asserts the CR/LF refusal clause is preserved; it does not execute newline-bearing shell cases.",
+      "No target module, checker, Python helper, Swift compiler/test, or other runtime source was imported or executed in this lane."
+    ]
+  },
+  "producer_preparation_failures_preserved": [
+    {
+      "failure": "First expression inventory found duplicated suffix from JavaScript string replacement interpreting shell literal $-quote syntax",
+      "correction": "Use function replacement; final workflow has exactly four explicit expression-bearing lines and eight expressions",
+      "scope": "source generation only; never installed or executed"
+    },
+    {
+      "failure": "Following source summary attempted to assign an undeclared REPL variable after the earlier assertion stopped its declaration",
+      "correction": "Declared the data variable explicitly and completed the bounded source summary",
+      "scope": "data tooling only; no target source change or runtime action"
+    }
+  ],
+  "execution_status": {
+    "historical_parser_controls_47": "HISTORICAL prior packet; NOT RERUN",
+    "expression_controls_18": "UNRUN",
+    "GitHub_corrected_workflow_validation": "PENDING",
+    "Swift_manifest_compiler_discovery": "UNRUN",
+    "XCTest_8": "UNRUN",
+    "Swift_Testing_11": "UNRUN",
+    "real_host_tests_19": "UNRUN"
+  },
+  "source_authority_only": true
+}

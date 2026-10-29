@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "status": "prepared-source-only-uninstalled-runtime-unrun",
+  "prior_directory": "verification/android-axis-refusal-host-admission-result-correction",
+  "corrected_directory": "verification/android-axis-refusal-host-admission-expression-correction",
+  "prior_workflow_sha256": "ff3f4f99a8e99794b881fe34b8a4b4b3ac5491b98144b2df0cfc7763916bbf64",
+  "corrected_workflow_sha256": "8483fbf0b110ab9f1806004f51b857d47eebb46acb9521ee1ee91bbfb5a86dc5",
+  "prior_verifier_sha256": "a7a6cfa655a7bcd784eb4048247edbfb4e74f0502ac1a9979a0b318fd0bbdbf3",
+  "corrected_verifier_sha256": "cb62acbbe45fc98d205e3b7b8dfa0d6cc83975c5e9ca3a0e5227e05d57a1dbad",
+  "operations": [
+    {
+      "file": "workflow.draft.yml",
+      "change": "Delete the single job-level MIXER_AXIS_OUT assignment containing runner.temp"
+    },
+    {
+      "file": "workflow.draft.yml",
+      "change": "In the existing first shell/data step, after unchanged ulimit, export the exact RUNNER_TEMP/run/attempt output path, reject CR/LF, and append the quoted single-line value to GITHUB_ENV before existing preflight"
+    },
+    {
+      "file": "workflow.draft.yml",
+      "change": "Rebind all prior admission sibling paths to this correction sibling"
+    },
+    {
+      "file": "verify.mjs",
+      "change": "Change only PIN.admissionRelative to this correction sibling"
+    },
+    {
+      "file": "root-selection.template.json",
+      "change": "Change only workflow_sha256 to corrected workflow bytes; preserve false/unbound fields and one dispatch/attempt ceiling"
+    }
+  ],
+  "inherited_files_byte_identical": [
+    ".gitignore",
+    "controls.mjs",
+    "required-tests.json",
+    "verify-file-limit.py"
+  ],
+  "frozen_installed_workflow_edited": false,
+  "frozen_prior_packet_edited": false,
+  "host_tool_source_command_output_limits_authority_unchanged": true
+}

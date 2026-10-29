@@ -1,0 +1,156 @@
+{
+  "schema": 1,
+  "status": "accepted-one-explicitly-selected-fresh-lease-recovery",
+  "reviewer": {
+    "lane": "package_artifact_invocation_astra",
+    "model_requested": "gpt-6-astra",
+    "reasoning_requested": "xhigh"
+  },
+  "scope": {
+    "operations": "Bounded file-data reads, SHA256 checks, exact text substitution comparison, timestamp arithmetic from selection data, and exclusive review writes only.",
+    "subject_execution": false,
+    "connector_calls": 0,
+    "consumer_invocations": 0,
+    "network": false,
+    "processes": false,
+    "git": false,
+    "compiler": false,
+    "native_runtime": false,
+    "ui_or_capture": false,
+    "timers_or_signals": false
+  },
+  "tool": {
+    "name": "mcp__node_repl__js",
+    "version": "not exposed by supplied tool metadata"
+  },
+  "inputs": [
+    {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-view-api-package-runtime-actual-review/artifact-consumer-recovery-001.js",
+      "bytes": 7126,
+      "sha256": "bcaeb3a80dc82d39ab60f7e0edc5624db4e1d908d0999f2d91aed8625011cf37"
+    },
+    {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-view-api-package-runtime-actual-review/artifact-recovery-001-selection.json",
+      "bytes": 1907,
+      "sha256": "581acc709429ae28ad30cb495b60e7b116f951c5fdbe3f4a1e8ecd13ad37997d"
+    },
+    {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-view-api-package-runtime-actual-review/local/acquisition.json",
+      "bytes": 1146,
+      "sha256": "b6b98b09034c757ef2bcfcbb37181a64d53a9c52460f757d9c95e6c43f0b9d6f"
+    },
+    {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-view-api-package-runtime-actual-review/consumer-invocation-once.json",
+      "bytes": 417,
+      "sha256": "c4bbaa9f2dc90d1493e15faf40f091e88adaae56ed5a722b35c0646f589c5636"
+    },
+    {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-view-api-package-runtime-actual-review/artifact-consumer-selected.js",
+      "bytes": 7097,
+      "sha256": "228c9fa959a4dec5ede86a67f68f2ce2b2ad39098cac86dd2e85589de44e8c5c"
+    },
+    {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-view-api-package-runtime-actual-review/invocation-review/receipt.json",
+      "bytes": 8640,
+      "sha256": "fdbee12cc31dc5b572c8e2e2d98875f7396df7a25965e1f260c218799293a4f7"
+    }
+  ],
+  "original_attempt": {
+    "status": "consumer-refused-no-retry",
+    "http_status": 403,
+    "bytes_received": 0,
+    "retained_payload": false,
+    "body_cancel_attempted": true,
+    "cancellation_resolved": true,
+    "cleanup_failed": false,
+    "reader_release_attempted": false,
+    "timeout_fired": false,
+    "transport_eof_independently_confirmed": false,
+    "remaining_original_invocations": 0,
+    "original_source_and_receipts_preserved": true,
+    "reader_never_created": "Root-attested and consistent with source ordering and receipt; reviewer did not inspect private runtime state.",
+    "timer_cleared": "Root-attested and consistent with the reviewed finally path; reviewer did not inspect timer state."
+  },
+  "lease_diagnosis": {
+    "metadata_origin": "Root-selected non-secret metadata; reviewer did not read the signed URL, response body, or private connector state.",
+    "signed_lease_expiry_utc": "2026-10-29T15:03:02Z",
+    "response_date_utc": "2026-10-29T15:06:42Z",
+    "elapsed_seconds_after_expiry": 220,
+    "provider_error_code": "AuthenticationFailed",
+    "assessment": "The recorded response occurred 220 seconds after the recorded lease expiry and returned AuthenticationFailed. This supports stale-lease recovery; it does not independently prove the provider response body or that expiration was the sole cause."
+  },
+  "source_review": {
+    "checks": {
+      "original_source_sha256": "228c9fa959a4dec5ede86a67f68f2ce2b2ad39098cac86dd2e85589de44e8c5c",
+      "exact_source_delta": true,
+      "changes": [
+        {
+          "from": "packageArtifactTransferStateR194",
+          "to": "packageArtifactRecoveryStateR201",
+          "count": 2
+        },
+        {
+          "from": "packageArtifactConsumerR194",
+          "to": "packageArtifactRecoveryConsumerR201",
+          "count": 2
+        },
+        {
+          "from": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-view-api-package-runtime-actual-review/local\"",
+          "to": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-view-api-package-runtime-actual-review/local/recovery-001\"",
+          "count": 1
+        }
+      ],
+      "prior_invocation_binding_matches": true,
+      "prior_refusal_binding_matches": true,
+      "consumer_binding_matches": true,
+      "expiration_precedes_response_seconds": 220,
+      "destination": {
+        "exists": false,
+        "errorCode": "ENOENT"
+      },
+      "local_entries": [
+        "acquisition.json"
+      ]
+    },
+    "artifact_id": 12907091274,
+    "run_id": 40895131023,
+    "run_attempt": 1,
+    "artifact_bytes": 1530579,
+    "artifact_sha256": "8e3665a6acb472f1ccbbb06eae0a582d5970fa17efdddecb28be405ed7e2c8eb",
+    "byte_cap": 8388608,
+    "deadline_ms": 20000,
+    "control_flow_and_native_runtime_guards_unchanged": true
+  },
+  "decision": {
+    "accepted": true,
+    "classification": "Second acquisition attempt at task scope, explicitly selected as recovery-001. It is not a reset or reuse of the consumed original attempt.",
+    "additional_connector_calls": 1,
+    "additional_consumer_invocations": 1,
+    "total_connector_ceiling": 2,
+    "total_consumer_ceiling": 2,
+    "automatic_retries": 0,
+    "additional_user_approval_required_by_this_review": false,
+    "required_order": [
+      "Finish and freeze this exact source, selection, review, and a separate once reservation before obtaining a fresh lease.",
+      "Recheck the exact source digest and original-refusal bindings before dispatch.",
+      "Within one functions.exec, request one new connector reference and immediately submit the unchanged declaration plus one direct consumer call through the documented mcp__node_repl__js entrypoint. Do not insert a model, human, or additional review round between lease issuance and consumption.",
+      "Use only the fresh HTTPS download_url at the observed connector response path and the exclusive local/recovery-001 destination; never replay the expired original URL.",
+      "Count the recovery invocation even if it fails before fetch, and count the fresh connector even if later schema or tool submission fails.",
+      "After this attempt or any refusal, stop. No connector renewal, automatic retry, alternate destination, source mutation, or widened byte/deadline limit is selected."
+    ],
+    "privacy": "Do not print or persist private URLs, full invocation source containing URLs, response objects, error stacks, or provider body data. Retain sanitized acquisition metadata only."
+  },
+  "preserved_boundaries": [
+    "Original consumed-once record and HTTP403 refusal receipt remain immutable.",
+    "The exact artifact identity, source/run selection, header and payload digest checks remain unchanged.",
+    "Native timer/abort/cancellation/release safeguards remain unchanged.",
+    "Consumer EOF remains distinct from independently confirmed transport EOF.",
+    "No native runtime, UI/capture, device, compiler, product, package-semantic, publication, or GA acceptance is supplied by this review."
+  ],
+  "limitations": [
+    "No recovery source was evaluated and no recovery connector or consumer was invoked by this reviewer.",
+    "Same-functions.exec ordering reduces review delay but cannot guarantee that a provider will return a live lease or that transport will succeed.",
+    "Directory creation and local writes retain the prior documented filesystem failure behavior; do not rerun the consumer to repair a missing receipt.",
+    "The recovery receipt consumer_transfers:1 and retries:0 fields are attempt-local. Root aggregate accounting must retain both attempts and the ceiling of two."
+  ]
+}

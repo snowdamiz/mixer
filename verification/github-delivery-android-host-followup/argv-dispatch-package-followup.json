@@ -1,0 +1,282 @@
+{
+  "schema": 1,
+  "phase": "dispatch-package-followup",
+  "preparationOnly": true,
+  "rootApprovalRequired": true,
+  "selection": {
+    "path": "verification/android-host-followup-selection-2026-10-29/selection.json",
+    "bytes": 71593,
+    "sha256": "7bb6b03c7250933ec51fd18b8c748135db3fdc418705203f759bed39bd8e8dab"
+  },
+  "helper": {
+    "path": "verification/github-delivery-android-host-followup/owned.py",
+    "sha256": "30519c17fad93ddb4d70f1d217d3033f3890c2ce3b656cb25e424d102e2ddbbf",
+    "baselineRepinEvidence": {
+      "path": "verification/github-delivery-android-host-followup/preparation.json",
+      "bytes": 4984,
+      "sha256": "6bdc21383022f1868b5b08690f9ec48affd1e37ca5ae398228351a6970fb0f21",
+      "mode": "100644"
+    },
+    "priorHelper": {
+      "path": "verification/github-delivery-android-jdk-observation/owned.py",
+      "bytes": 29385,
+      "sha256": "b7b4a4fab5ca699ded6efd65259c9e499babbe37786a108d7307dfc0d29ab043"
+    },
+    "priorCorrectionSeal": {
+      "path": "verification/github-delivery-android-view-api-boundary/preparation-correction-seal.json",
+      "sha256": "db9df0c6a412b6ee1047c6abb431941823858f08f42c07d154b5cf405659ffe3"
+    },
+    "independentReviewSeal": {
+      "path": "verification/android-view-api-git-custody-review/review-seal.json",
+      "sha256": "1c67d7aef5cc9602b6127b4fad4471eab2d2e8081b3214c0689e55646a75ed0a"
+    },
+    "guardedControlsInherited": 44,
+    "exactArgvApprovalBeforeEveryActualPhase": true,
+    "genericGhFilterNotAuthority": true,
+    "bootstrap": "-I -B -S",
+    "separateEOFAndExactKernelReapRequired": true,
+    "currentRootReview": "verification/android-host-followup-selection-2026-10-29/helper-review.json",
+    "separateWorkflowPhaseAuthorityRequired": true
+  },
+  "interpreter": {
+    "flags": [
+      "-I",
+      "-B",
+      "-S"
+    ],
+    "wrapper": "verification/github-delivery-android-host-followup/owned.py",
+    "admissionFDAndGateFD": "fresh owned typed descriptor integers; never reused"
+  },
+  "session": {
+    "seconds": 210,
+    "count": 7,
+    "prefix": "dispatch-package-followup-"
+  },
+  "gitEffectivePrefix": [
+    "git",
+    "-c",
+    "gc.auto=0",
+    "-c",
+    "maintenance.auto=false"
+  ],
+  "typedBindings": {
+    "DELIVERED_SHA": "exact40 lowercase hexadecimal head from successful immutable delivery receipt",
+    "PACKAGE_DISPATCH_JSON": "exact package frozen selected template with only root-selected binding/delta and delivered head"
+  },
+  "commands": [
+    {
+      "name": "head",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "package-workflow-content",
+      "argv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/contents/.github/workflows/android-view-api-package-runtime-focused-admission.yml?ref={DELIVERED_SHA}",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "{sha,size,path,type}"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/contents/.github/workflows/android-view-api-package-runtime-focused-admission.yml?ref={DELIVERED_SHA}",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "{sha,size,path,type}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "package-workflow-registration",
+      "argv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/android-view-api-package-runtime-focused-admission.yml",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "{id,path,state,name}"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/android-view-api-package-runtime-focused-admission.yml",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "{id,path,state,name}"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "package-before-runs",
+      "argv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/android-view-api-package-runtime-focused-admission.yml/runs?event=workflow_dispatch&head_sha={DELIVERED_SHA}&per_page=5",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "[.workflow_runs[]|{id,name,head_sha,event,run_attempt,status,conclusion,workflow_id,path,html_url}]"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/android-view-api-package-runtime-focused-admission.yml/runs?event=workflow_dispatch&head_sha={DELIVERED_SHA}&per_page=5",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "[.workflow_runs[]|{id,name,head_sha,event,run_attempt,status,conclusion,workflow_id,path,html_url}]"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "remote-predispatch",
+      "argv": [
+        "git",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "effectiveArgv": [
+        "git",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "dispatch",
+      "argv": [
+        "gh",
+        "workflow",
+        "run",
+        "android-view-api-package-runtime-focused-admission.yml",
+        "--repo",
+        "github.com/snowdamiz/mixer",
+        "--ref",
+        "main",
+        "--raw-field",
+        "root_selection_json={PACKAGE_DISPATCH_JSON}"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "workflow",
+        "run",
+        "android-view-api-package-runtime-focused-admission.yml",
+        "--repo",
+        "github.com/snowdamiz/mixer",
+        "--ref",
+        "main",
+        "--raw-field",
+        "root_selection_json={PACKAGE_DISPATCH_JSON}"
+      ],
+      "kind": "one-shot-dispatch"
+    },
+    {
+      "name": "package-after-runs",
+      "argv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/android-view-api-package-runtime-focused-admission.yml/runs?event=workflow_dispatch&head_sha={DELIVERED_SHA}&per_page=5",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "[.workflow_runs[]|{id,name,head_sha,event,run_attempt,status,conclusion,workflow_id,path,html_url}]"
+      ],
+      "effectiveArgv": [
+        "gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/workflows/android-view-api-package-runtime-focused-admission.yml/runs?event=workflow_dispatch&head_sha={DELIVERED_SHA}&per_page=5",
+        "--hostname",
+        "github.com",
+        "--jq",
+        "[.workflow_runs[]|{id,name,head_sha,event,run_attempt,status,conclusion,workflow_id,path,html_url}]"
+      ],
+      "kind": "read"
+    }
+  ],
+  "sourceDataOnly": true,
+  "basisManifest": {
+    "path": "verification/github-delivery-android-jdk-observation/argv-dispatch-selected.json",
+    "bytes": 6929,
+    "sha256": "720432958007b24d8daad2c6ea43c4ec9f4aaa447f533dba575a216179bf407a"
+  },
+  "manualHostBinding": {
+    "key": "package",
+    "descriptor": {
+      "workflow": ".github/workflows/android-view-api-package-runtime-focused-admission.yml",
+      "workflowSHA256": "720b6243fccebd95e6fcd471fa1022a77c091a3ff433af7d44dde318e05ae78f",
+      "workflowName": "Android view API package runtime focused admission DRAFT",
+      "expectedJobName": "focused",
+      "expectedJobs": 1,
+      "selectionTemplate": "verification/android-view-api-package-runtime-host-preparation/selection-template.json",
+      "inputJSONField": "root_selection_json",
+      "additionalInputs": {},
+      "dispatchNonce": "2c04076528fc4a8a3a41ee6a754dcb7941200f7f5795bb7c525497468de56b95",
+      "dispatches": 1,
+      "retries": 0,
+      "attempt": 1,
+      "actualDispatched": 0,
+      "workflowAlreadyInstalled": true,
+      "bindDeliveredSHAThenEnableSelection": true,
+      "exactSelectionBindings": {
+        "purpose": "android-view-api-package-runtime-focused-hosted-only",
+        "dispatch_selected": true,
+        "admission_seal_sha256": "9db960bff45ad877742f9809ae6af095378e104013e57d550d1eb7b4bb4bfaa4",
+        "runner_sha256": "9c9181f087fd6a6e0559eaee594c5ec03eb5bd147ca1f97ba33a561e05c0f2e6",
+        "custody_sha256": "395fecbf7c594c2faf9592387bfeaa53b8124c7fa3e3a5094a9b54d1e65a936d",
+        "workflow_draft_sha256": "720b6243fccebd95e6fcd471fa1022a77c091a3ff433af7d44dde318e05ae78f",
+        "candidate_freeze_sha256": "c458497920a6cf454433f2f96bbcdf42fbf8b6945e55e5a76c813dddb00af8ff",
+        "inspector_seal_sha256": "26b405d4e8a92120283e8e77084bde55beb2b1f37b2297d975f9b353fe472d35",
+        "github_sha": "<delivered SHA>",
+        "dispatch_nonce": "2c04076528fc4a8a3a41ee6a754dcb7941200f7f5795bb7c525497468de56b95",
+        "workflow_relative_path": ".github/workflows/android-view-api-package-runtime-focused-admission.yml",
+        "installed_workflow_sha256": "720b6243fccebd95e6fcd471fa1022a77c091a3ff433af7d44dde318e05ae78f"
+      },
+      "expectedOwnedJavaCommands": 7,
+      "preparedGroups": 13,
+      "preparedInterruptions": 152,
+      "consumeAllowanceBeforeDispatch": true,
+      "unknownOutcomeReplay": false,
+      "emptyImmediateList": "submitted-visibility-pending; allowance consumed; later read-only binding only",
+      "oldFocusedAllowanceConsumed": true,
+      "oldDataObservationAllowanceConsumed": true
+    },
+    "template": {
+      "path": "verification/android-view-api-package-runtime-host-preparation/selection-template.json",
+      "bytes": 916,
+      "sha256": "7b8d46ae60427da7c035eec3418270234731ad141d31b844c6b1eaf4229cfd13"
+    }
+  },
+  "onceMarker": "manual-package-followup-once.json",
+  "maxDispatches": 1,
+  "maxRunAttempt": 1,
+  "unknownOutcomeReplay": false,
+  "emptyImmediateList": "submitted-visibility-pending; allowance consumed; separately authorized read-only binding only"
+}

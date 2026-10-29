@@ -1,0 +1,213 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "decision": "reject-original-source-packet-pending-bounded-v2-correction",
+  "executionAuthority": false,
+  "actualCommands": [],
+  "packet": {
+    "path": "verification/github-delivery-android-host-followup/delivery-followup-preparation-seal.json",
+    "bytes": 16796,
+    "sha256": "a190e676f076e2748b298f666c2417d438e8cf44945b6f60cd7ff9aa65fdce62"
+  },
+  "sources": [
+    {
+      "path": "verification/github-delivery-android-host-followup/selection_common_delivery_followup.py",
+      "bytes": 33280,
+      "sha256": "c5e3db642c7726629fd9b8fc346cc44b4859da1bf2aefa84c3ffc202985b6a31"
+    },
+    {
+      "path": "verification/github-delivery-android-host-followup/deliver_followup.py",
+      "bytes": 34794,
+      "sha256": "cc8b257be8ee2509b60ba6f2fc16e6c9e777036b84d6e897fdb9c8a0bde36656"
+    },
+    {
+      "path": "verification/github-delivery-android-host-followup/bind_ci_followup.py",
+      "bytes": 3870,
+      "sha256": "d9dac6521029a96bd2b9d8b10d0d4c7c318a385b8501ca47f7170958e3106687"
+    },
+    {
+      "path": "verification/github-delivery-android-host-followup/dispatch_axis_followup.py",
+      "bytes": 572,
+      "sha256": "3a0f14c764e08ed6d7b99f0e1ff2dc6917b5ee81e6e99b6092136cfcc147281c"
+    },
+    {
+      "path": "verification/github-delivery-android-host-followup/dispatch_package_followup.py",
+      "bytes": 578,
+      "sha256": "52fc432c00086f765da14b992be751bb27e2d5c931c704e0a1216cd34e54f15d"
+    },
+    {
+      "path": "verification/github-delivery-android-host-followup/bind_axis_run_followup.py",
+      "bytes": 568,
+      "sha256": "67eda1878ad3c5c96e97dd6757e4cf5f09ee541b9d8be0ca184edf4cb7d08391"
+    },
+    {
+      "path": "verification/github-delivery-android-host-followup/bind_package_run_followup.py",
+      "bytes": 574,
+      "sha256": "4218b4ffd2b27b5a73dc9779d21ee7fa41af30b90a87c099df0c64d0b2093c6e"
+    }
+  ],
+  "findings": [
+    {
+      "id": "exact-finite-path-argv-order",
+      "priority": 1,
+      "source": "deliver_followup.py",
+      "lines": "15,50,78",
+      "problem": "AUTHORED has the correct256-member set in selection-row order with self appended; the exact index-selected/authored-check manifests use sorted path order. Supplied argv would fail StrictCommands.run equality at index-selected after staging.",
+      "requiredCorrection": "Use the exact sorted256 sequence in source AUTHORED.",
+      "sourceSetMatches": true,
+      "sourceOrderMatches": false,
+      "firstMismatch": {
+        "index": 200,
+        "source": "verification/github-delivery-android-jdk-observation/argv-delivery-followup-corrected.json",
+        "manifest": "verification/github-delivery-android-jdk-observation/argv-delivery-selected-corrected.json"
+      }
+    },
+    {
+      "id": "accepted-preflight-evidence-recheck",
+      "priority": 2,
+      "source": "selection_common_delivery_followup.py",
+      "lines": "378-391",
+      "problem": "StrictCommands.run omitted inherited accepted_preflight() per-command immutable evidence recheck.",
+      "requiredCorrection": "Restore immediately after check_sources().",
+      "custodyHelperChangeRequired": false
+    },
+    {
+      "id": "dispatch-authority-receipt-scope",
+      "priority": 2,
+      "source": "deliver_followup.py",
+      "lines": "141",
+      "problem": "Delivery receipt claimed manualWorkflowDispatchesAuthorized2 before separate exact dispatch phase authority.",
+      "requiredCorrection": "Record0 authorized by delivery, with separately selected manual ceiling2 if useful."
+    }
+  ],
+  "acceptedDesignFindings": [
+    "Full finite selected stage0 blob/mode map includes all256 selected paths and matches independent digestfa3e65baa251181cbe2a027ca7e1914b4d680ab3274f682836e09e756763d548.",
+    "Staged raw diff is a nonempty selected changed subset; committed raw diff must equal it exactly; unchanged selected files bind through baseline parent tree.",
+    "Separate axis/package dispatch phase schema, authority manualHostPhaseBindings, markers/inputs and readonly bind phases are present.",
+    "Correct root_selection+profile versus root_selection_json keys; package nonce exact; successful-submit empty run list persists consumed allowance and returns pending with no replay."
+  ],
+  "reviewAction": "Producer notified; preserve original packet and issue v2 source siblings. No execution or authority in this lane.",
+  "v1PhaseChecks": [
+    {
+      "phase": "delivery-followup",
+      "count": 22,
+      "namesExact": true,
+      "sessionExact": true,
+      "selectionExact": true,
+      "effectiveVectorsExact": true,
+      "helperMetadataExact": true,
+      "mutationLabels": [
+        {
+          "name": "stage",
+          "kind": "mutation"
+        },
+        {
+          "name": "commit",
+          "kind": "mutation"
+        },
+        {
+          "name": "push",
+          "kind": "mutation"
+        }
+      ],
+      "manualKey": null,
+      "manualBindingExact": null,
+      "typedBindingNames": [
+        "COMMITTED_SHA"
+      ],
+      "allApiReadsProper": true
+    },
+    {
+      "phase": "ci-binding-followup",
+      "count": 11,
+      "namesExact": true,
+      "sessionExact": true,
+      "selectionExact": true,
+      "effectiveVectorsExact": true,
+      "helperMetadataExact": true,
+      "mutationLabels": [],
+      "manualKey": null,
+      "manualBindingExact": null,
+      "typedBindingNames": [
+        "DELIVERED_SHA"
+      ],
+      "allApiReadsProper": true
+    },
+    {
+      "phase": "dispatch-axis-followup",
+      "count": 7,
+      "namesExact": true,
+      "sessionExact": true,
+      "selectionExact": true,
+      "effectiveVectorsExact": true,
+      "helperMetadataExact": true,
+      "mutationLabels": [
+        {
+          "name": "dispatch",
+          "kind": "one-shot-dispatch"
+        }
+      ],
+      "manualKey": "axis",
+      "manualBindingExact": true,
+      "typedBindingNames": [
+        "DELIVERED_SHA",
+        "AXIS_DISPATCH_JSON"
+      ],
+      "allApiReadsProper": true
+    },
+    {
+      "phase": "dispatch-package-followup",
+      "count": 7,
+      "namesExact": true,
+      "sessionExact": true,
+      "selectionExact": true,
+      "effectiveVectorsExact": true,
+      "helperMetadataExact": true,
+      "mutationLabels": [
+        {
+          "name": "dispatch",
+          "kind": "one-shot-dispatch"
+        }
+      ],
+      "manualKey": "package",
+      "manualBindingExact": true,
+      "typedBindingNames": [
+        "DELIVERED_SHA",
+        "PACKAGE_DISPATCH_JSON"
+      ],
+      "allApiReadsProper": true
+    },
+    {
+      "phase": "bind-axis-run-followup",
+      "count": 4,
+      "namesExact": true,
+      "sessionExact": true,
+      "selectionExact": true,
+      "effectiveVectorsExact": true,
+      "helperMetadataExact": true,
+      "mutationLabels": [],
+      "manualKey": "axis",
+      "manualBindingExact": true,
+      "typedBindingNames": [
+        "DELIVERED_SHA"
+      ],
+      "allApiReadsProper": true
+    },
+    {
+      "phase": "bind-package-run-followup",
+      "count": 4,
+      "namesExact": true,
+      "sessionExact": true,
+      "selectionExact": true,
+      "effectiveVectorsExact": true,
+      "helperMetadataExact": true,
+      "mutationLabels": [],
+      "manualKey": "package",
+      "manualBindingExact": true,
+      "typedBindingNames": [
+        "DELIVERED_SHA"
+      ],
+      "allApiReadsProper": true
+    }
+  ]
+}

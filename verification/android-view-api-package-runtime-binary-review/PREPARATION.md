@@ -1,0 +1,7 @@
+# Independent emitted-binary data corroboration
+
+This lane owns only this directory. It will read the root-verified run 40895131023 attempt 1 artifact (ID 12907091274, 1,530,579 bytes, SHA256 8e3665a6acb472f1ccbbb06eae0a582d5970fa17efdddecb28be405ed7e2c8eb) after root announces availability. It will independently validate archive member safety, read the three emitted binary reports, and compare them with data-only reruns of the pinned inspector (52,483 bytes, SHA256 7e15cfa979f19a72443436dc3f64bba2a6b88c2ed652e8956e96dd454380d83b) and separately decoded classfile / DEX tables and relevant invocation data.
+
+The prior jar-data-observation.json identifies the existing SDK37 jar at /opt/homebrew/share/android-commandlinetools/platforms/android-37.0/android.jar. Its full 43,044,472-byte SHA256 bf1b4387cc7ca94fc6ef684f040d9d16fbf16248e181819f020736ea2053f177 must match before use. No stale sample count is an actual-run result.
+
+Every subject import occurs after the copied guarded_inspector.py process/session/group/signal/timer/wait/socket/ctypes denials and audit hook have been installed under /opt/homebrew/bin/python3 -I -B -S. Raw extracted binaries remain ignored under local/. No Java, compiler, ART, native instance, UI, capture, network, Git, gh, signal, timer, job, or product execution is authorized here. Source/head/tool/run custody and actual hosted execution are separate root/outer-review obligations. Device, linkage, full DEX semantics, runtime parity, source-pair promotion, OTA/release and GA remain outside this data-only result.

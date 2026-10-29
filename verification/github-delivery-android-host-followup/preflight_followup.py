@@ -1,0 +1,52 @@
+"""Nine root-reviewed preflight reads only; actual authority must already exist."""
+import sys
+sys.dont_write_bytecode = True
+assert sys.flags.isolated == 1 and sys.flags.no_site == 1 and sys.flags.optimize == 0
+import importlib.util
+from pathlib import Path
+spec = importlib.util.spec_from_file_location('android_host_followup_preflight_common', Path(__file__).with_name('selection_common_preflight_followup.py'))
+common = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = common
+spec.loader.exec_module(common)
+import json
+from_types = ('StrictCommands', 'BASE', 'TREE', 'SELECTION', 'S', 'ROWS', 'SELECTED', 'PROTECTED', 'ROOT', 'OUT', 'check_sources', 'row', 'save', 'now', 'fingerprint', 'preserved_entry', 'raw_rows', 'collapsed')
+for name in from_types: globals()[name] = getattr(common, name)
+check_sources()
+c = StrictCommands('preflight-followup')
+versions = {tool: c.run(tool + '-version', [tool, '--version']).decode().strip() for tool in ('git', 'gh')}
+assert c.run('head', ['git', 'rev-parse', 'HEAD', 'HEAD^{tree}']).decode().splitlines() == [BASE, TREE]
+assert c.run('branch', ['git', 'branch', '--show-current']).decode().strip() == 'main'
+origin = c.run('origin', ['git', 'remote', 'get-url', 'origin']).decode().strip()
+assert origin in ('git@github.com:snowdamiz/mixer.git', 'https://github.com/snowdamiz/mixer.git')
+assert c.run('remote', ['git', 'ls-remote', 'origin', 'refs/heads/main']).decode().split() == [BASE, 'refs/heads/main']
+assert not c.run('index', ['git', 'diff', '--cached', '--name-only', '-z'])
+status = collapsed(c.run('collapsed-status', ['git', 'status', '--porcelain=v1', '-z', '--untracked-files=normal']))
+diff = raw_rows(c.run('complete-raw-diff', ['git', 'diff', '--raw', '--no-abbrev', '--no-renames', '-z']))
+other = [value for value in diff if value['path'] not in SELECTED]
+assert {value['path'] for value in PROTECTED}.issubset({value['path'] for value in other})
+snapshots = [fingerprint(value['path']) for value in other]
+untracked = [preserved_entry(value['path']) for value in status if value['status'] == '??']
+check_sources()
+assert len(c.records) == 9 and c.used == set(c.expected)
+save('manifest-followup.json', {'at': now(), 'selection': row(ROOT / SELECTION), 'members': ROWS,
+                      'paths': len(ROWS), 'bytes': sum(value['bytes'] for value in ROWS)})
+save('preservation-followup-local.json', {'at': now(), 'otherDirtyTracked': other, 'tracked': snapshots,
+     'statusCollapsed': status, 'untrackedCollapsed': untracked, 'wrangler': fingerprint('.wrangler'),
+     'protectedSnapshots': [fingerprint(value['path']) for value in PROTECTED],
+     'cleanTrackedSnapshot': {'head': BASE, 'tree': TREE,
+         'proof': 'Baseline commit/tree plus complete raw diff; no independent hashes of every clean tracked file'},
+     'untrackedScope': 'collapsed entry identity/mode only; no recursive inventory'})
+save('preflight-followup.json', {'schema': 1, 'at': now(), 'head': BASE, 'tree': TREE, 'branch': 'main',
+     'origin': origin, 'originMain': BASE, 'indexEmpty': True, 'selection': row(ROOT / SELECTION),
+     'selectedPaths': len(ROWS), 'selectedByteModesVerified': True,
+     'otherDirtyTrackedByteModeSnapshots': len(snapshots), 'collapsedUntrackedEntries': len(untracked),
+     'cleanTrackedBoundByBaselineTreeAndCompleteDiff': True,
+     'allCleanTrackedFilesIndependentlyHashed': False, 'protected': PROTECTED,
+     'tools': {**versions, 'python': sys.version, 'interpreter': sys.executable},
+     'helper': row(OUT / 'owned.py'), 'authoritySnapshot': c.authority_row,
+     'argvManifest': row(OUT / 'argv-preflight-followup.json'), 'commands': c.records,
+     'allCommandsAdmittedDirectlyReapedOwnedGroupsAbsentSeparatePipesEOF': True,
+     'stagingCommitPushDispatchPerformed': False, 'allExistingHoldsUntouched': True,
+     'manualHostKeysReadOnly': sorted(S['manualHosts']), 'deliveryCIAndDispatchDriversPrepared': False})
+print(json.dumps({'preflight': 'passed', 'selectedPaths': len(ROWS), 'otherDirtyTracked': len(snapshots),
+                 'collapsedUntracked': len(untracked), 'closedCommands': len(c.records)}))
