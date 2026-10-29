@@ -1,0 +1,183 @@
+--- closed-capacity-window/campaign.py
++++ dense512-completion/campaign.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""Proposed dense 256/512 retention comparison inside one unchanged 600s window.
++"""One dense512 completion hypothesis inside a cumulative 1200s window.
+ 
+ check is pure source/data work. run requires first-attempt GitHub-hosted Linux.
+ Resource exhaustion is diagnostic evidence, never campaign or product success.
+@@ -25,6 +25,8 @@
+ V1_CONTROLS_SHA = "41f3e465706101b9f8c50bf0246296bc0b88ad3a3d2202a74580d4a5dc64896e"
+ REVIEW_SEAL_SHA = "c6bde1201697149bfa84d2f31b112d14d8c1e35ac005fc908a16433941f23df8"
+ CORRECTION_BASIS = {
++    "verification/swift-cachework-128-experiment/seal.json":
++        "dce182dba6c4e4bf38738b486276596c7b0cbc17c798e8780ebd19287bced0d0",
+     "verification/swift-frame-pin-admission-candidate/seal.json":
+         "c5d0e8b29625e09bc5bc6ef73094edc4aebdc03ee5d4e27cafa34b5eda05bd6a",
+     "verification/swift-cachework-128-experiment/baseline-summary.json":
+@@ -45,13 +47,12 @@
+ spec.loader.exec_module(base)
+ require, save, sha = base.require, base.save, base.sha
+ 
+-PROFILES = (("dense-256-window", False, "::framepin_campaign_", 12),
+-            ("dense-512-window", True, "::framepin_campaign_", 12))
+-CANDIDATE_FILES = ("candidate.py", "scalar-guards.rs", "capacity-controls.rs", "baseline-summary.json")
+-CAMPAIGN_SECONDS = 2_700
+-BUILD_SECONDS, FINITE_SECONDS, HARNESS_SECONDS, FULL_SECONDS = 180, 90, 90, 750
+-MAX_FULL_ATTEMPTS = 2
+-MAX_COMMANDS = 11
++PROFILES = (("dense512-completion", True, "::framepin_campaign_", 12),)
++CANDIDATE_FILES = ("candidate.py", "scalar-guards.rs", "baseline-summary.json", "phase-evidence.json")
++CAMPAIGN_SECONDS = 2_100
++BUILD_SECONDS, FINITE_SECONDS, HARNESS_SECONDS, FULL_SECONDS = 180, 90, 90, 1_350
++MAX_FULL_ATTEMPTS = 1
++MAX_COMMANDS = 6
+ PREFIX_THRESHOLDS = (25_000_000, 50_000_000, 100_000_000, 250_000_000, 500_000_000,
+     750_000_000, 1_000_000_000, 1_250_000_000, 1_500_000_000, 1_750_000_000)
+ PREFIX_MAX_BYTES = 8_192
+@@ -109,6 +110,12 @@
+ 
+ 
+ def inputs():
++    require(sha((HERE / "baseline-summary.json").read_bytes()) == "37efcd8e160e486c8a0dc3a4cbbb0812f9c19d0843c20b763203f60b8c8148cf", "actual closed capacity summary changed")
++    closed = json.loads((HERE / "baseline-summary.json").read_text())
++    require(closed["fullAttemptsRemaining"] == 0 and closed["fullAttemptsClosed"] == 2
++        and closed["allElevenRemoteCommandsReapedAndOwnedGroupsAbsent"] is True
++        and closed["ownedScratchRemoved"] is True, "previous pair campaign is not closed")
++    require(sha((HERE / "phase-evidence.json").read_bytes()) == "1e2d875adff2a35795fa19137c8444558d02efacd519f591758646397a6749c5", "actual phase evidence changed")
+     for path, expected in CORRECTION_BASIS.items():
+         require(sha((ROOT / path).read_bytes()) == expected, "architecture correction basis changed: " + path)
+     require(sha((base.INPUTS / "bindings.json").read_bytes()) == V1_BINDINGS_SHA, "frozen v1 input bindings changed")
+@@ -141,15 +148,14 @@
+         {"exitCode": 101, "timedOut": False, "processGroupEmpty": True})
+ 
+ 
+-def expected_bounds(capacity512=False):
+-    # capacity512 selects only resident capacity here. Both use the executed dense policy.
+-    require(type(capacity512) is bool, "capacity selection must be boolean")
++def expected_bounds(capacity512=True):
++    require(capacity512 is True, "only the dense512 completion profile is admitted")
+     old = historical()
+     bounds = {n: event(old, n) for n in ("validation_budget", "run_budget", "wasi_budget", "wasi_grants")}
+-    bounds["run_budget"] |= {"cache_entries": 512 if capacity512 else 256, "cache_work": 4_000_000_000,
+-        "frames": 128, "active_pins": 128, "instruction_fuel": 2_000_000_000,
+-        "execution_work": 16_000_000_000, "deadline_ms": 600_000}
+-    bounds["wasi_budget"]["deadline_ms"] = 600_000
++    bounds["run_budget"] |= {"cache_entries": 512, "cache_work": 4_000_000_000,
++        "frames": 128, "active_pins": 128, "instruction_fuel": 4_000_000_000,
++        "execution_work": 16_000_000_000, "deadline_ms": 1_200_000}
++    bounds["wasi_budget"]["deadline_ms"] = 1_200_000
+     return bounds
+ 
+ 
+@@ -197,7 +203,7 @@
+     return True
+ 
+ 
+-def validate_result(result, full, capacity512=False):
++def validate_result(result, full, capacity512=True):
+     expected = expected_bounds(capacity512)
+     actual = {name: event(result, name) for name in expected}
+     require(typed_equal(actual, expected), "actual budgets/grants differ from selected complete bounds")
+@@ -325,7 +331,7 @@
+         "artifact": {"bytes": len(artifact), "sha256": sha(artifact)}, "maxFullAttempts": MAX_FULL_ATTEMPTS,
+         "aggregateDriverSeconds": CAMPAIGN_SECONDS, "commandSeconds": {"build": BUILD_SECONDS,
+             "finite": FINITE_SECONDS, "harness": HARNESS_SECONDS, "full": FULL_SECONDS, "cleanup": 10, "receiptMargin": 10},
+-        "maxCommands": MAX_COMMANDS, "worstCaseCommandsCleanupAndReceiptSeconds": 2_485,
++        "maxCommands": MAX_COMMANDS, "worstCaseCommandsCleanupAndReceiptSeconds": 1_810,
+         "execution": "pure source/data checks only; compilation, finite/harness controls and full attempts pending"}
+     save(output / "check.json", result)
+     return result
+@@ -388,8 +394,11 @@
+     require(sum("CACHEWINDOW scalar_limits=" in line for line in text.splitlines()) == 1, "missing or duplicate scalar marker")
+     capacity_marker = f"CACHEWINDOW capacity residents={n} highest_encoded={n} tickets={n + 22} dense_index_bytes=160000 pin_bitmap_bytes=16 above_capacity_rejected=true cleanup_zero=true"
+     require(sum(capacity_marker in line for line in text.splitlines()) == 1, "missing exact capacity geometry/control marker")
+-    scalar_marker = "CACHEWINDOW scalar_limits=4000000000,2000000000,16000000000 cumulative=true above_max_rejected=true overflow_rejected=true cleanup_zero=true"
++    scalar_marker = "CACHEWINDOW scalar_limits=4000000000,4000000000,16000000000 cumulative=true above_max_rejected=true overflow_rejected=true cleanup_zero=true"
+     require(sum(scalar_marker in line for line in text.splitlines()) == 1, "missing exact scalar guard marker")
++    deadline_marker = "COMPLETION deadline_ms=1200000 wasi_deadline_ms=1200000 earliest_absolute=true sticky_expiry=true cleanup_zero=true"
++    require(sum("COMPLETION deadline_ms=" in line for line in text.splitlines()) == 1
++        and sum(deadline_marker in line for line in text.splitlines()) == 1, "missing exact deadline guard marker")
+     operation = cache["operation"]
+     recomputed = plan["category_ceiling_sum"] + plan["wasi_max"] + plan["shared"] + plan["floor"] + max(
+         plan["execution_construction"], plan["frame_operation"] + operation)
+@@ -414,7 +423,7 @@
+ 
+ 
+ def prepare_profile(name, capacity512, finite_filter, count, original, target_input, scratch, env, output, campaign, custody):
+-    require(campaign["fullAttempts"] == 0, "both finite preparations must precede every full attempt")
++    require(campaign["fullAttempts"] == 0, "finite preparation must precede the single full attempt")
+     phase = output / name
+     phase.mkdir()
+     require(typed_equal(candidate_bindings(), campaign["candidateSourceBindings"]), "candidate inputs changed after preflight")
+@@ -461,9 +470,9 @@
+ 
+ 
+ def execute_profile(prepared, target_input, scratch, output, campaign, custody):
+-    require(campaign.get("preparationGate") == {"bothArmsPrepared": True, "fullAttemptsAtAdmission": 0, "closedPreparationCommands": 9}
++    require(campaign.get("preparationGate") == {"singleArmPrepared": True, "fullAttemptsAtAdmission": 0, "closedPreparationCommands": 5}
+         and [row["name"] for row in campaign["preparedProfiles"]] == [p[0] for p in PROFILES],
+-        "both compiled finite geometry preparations required before full admission")
++        "compiled finite geometry preparation required before full admission")
+     verify_prepared(prepared, target_input, output, campaign)
+     name, capacity512, source, record = (prepared[key] for key in ("name", "capacity512", "source", "record"))
+     phase, crate, child_env, binary, executable = (prepared[key] for key in ("phase", "crate", "childEnv", "binary", "executable"))
+@@ -496,8 +505,8 @@
+     require(os.environ.get("GITHUB_ACTIONS") == "true" and os.environ.get("RUNNER_ENVIRONMENT") == "github-hosted"
+         and os.environ.get("GITHUB_RUN_ATTEMPT") == "1" and platform.system() == "Linux",
+         "requires first-attempt GitHub-hosted Linux CI; local execution and rerun remain held")
+-    require(os.environ.get("MIXER_CACHE_WINDOW_SELECTION") == "capacity-window-v1",
+-        "root must explicitly select reviewed capacity-window-v1 bounds before remote execution")
++    require(os.environ.get("MIXER_DENSE512_COMPLETION_SELECTION") == "dense512-completion-v1",
++        "root must explicitly select reviewed dense512-completion-v1 bounds before remote execution")
+     require(not output.exists(), "fresh campaign output required; no retries/resume")
+     base.COMMAND_DEADLINE = time.monotonic() + CAMPAIGN_SECONDS
+     base.CANCEL_REQUESTED = None
+@@ -507,11 +516,11 @@
+     scratch = output / "scratch"
+     campaign = {"schema": 3, "model": "gpt-6-astra", "reasoningEffort": "xhigh", "githubSHA": os.environ.get("GITHUB_SHA"),
+         "githubRunId": os.environ.get("GITHUB_RUN_ID"), "githubRunAttempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+-        "environment": " ".join(os.uname()), "profiles": [], "preparedProfiles": [], "maxFullAttempts": MAX_FULL_ATTEMPTS, "fullAttempts": 0,
++        "environment": " ".join(os.uname()), "python": {"version": platform.python_version(), "executable": sys.executable}, "profiles": [], "preparedProfiles": [], "maxFullAttempts": MAX_FULL_ATTEMPTS, "fullAttempts": 0,
+         "maxCommands": MAX_COMMANDS,
+         "aggregateDeadlineSeconds": CAMPAIGN_SECONDS, "priorReviewSealSHA256": REVIEW_SEAL_SHA,
+-        "actualBaselineRun": 40779075333, "closedBaselineFullAttempts": 2,
+-        "candidateKind": "same dense implementation with 256 versus 512 resident capacity; shared 600s observation profile",
++        "actualBaselineRun": 40788458735, "closedBaselineFullAttempts": 2,
++        "candidateKind": "single previously executed dense512 implementation; cumulative 1200s completion hypothesis",
+         "correctionBasis": CORRECTION_BASIS,
+         "milestone": "Both corpus calls on one initialized owner match all 11 original native fields, followed by consuming zero-resource cleanup.",
+         "scope": "diagnostic host feasibility; native/public/signed OTA/FieldLog publication/GA pending", "rssLimitation": RSS_LIMITATION}
+@@ -529,22 +538,22 @@
+         env = {k: os.environ[k] for k in ("HOME", "PATH", "RUSTUP_HOME", "CARGO_HOME", "LANG") if k in os.environ}
+         env.update(CARGO_INCREMENTAL="0", CARGO_NET_OFFLINE="true", CARGO_BUILD_JOBS="2", RUSTUP_TOOLCHAIN="1.99.0",
+             MIXER_EXACT_REACTOR_INPUT=str(target_input), TMPDIR=str(scratch))
+-        for tool, argv in (("rustc", ["rustc", "-vV"]), ("cargo", ["cargo", "-V"]), ("python", [sys.executable, "--version"])):
++        for tool, argv in (("rustc", ["rustc", "-vV"]), ("cargo", ["cargo", "-V"])):
+             row = guarded_command(custody, argv, HERE, env, output / "tools" / tool, 15)
+             require(row["exitCode"] == 0 and row["timedOut"] is False, "tool identity failed")
+         prepared = [prepare_profile(*profile, original, target_input, scratch, env, output, campaign, custody) for profile in PROFILES]
+-        require(campaign["fullAttempts"] == 0 and custody["pendingCommand"] is None and custody["provenClosedCommands"] == 9
+-            and len(campaign["preparedProfiles"]) == len(prepared) == 2, "both finite preparation receipts required before admission")
+-        campaign["preparationGate"] = {"bothArmsPrepared": True, "fullAttemptsAtAdmission": 0, "closedPreparationCommands": 9}
++        require(campaign["fullAttempts"] == 0 and custody["pendingCommand"] is None and custody["provenClosedCommands"] == 5
++            and len(campaign["preparedProfiles"]) == len(prepared) == 1, "single finite preparation receipt required before admission")
++        campaign["preparationGate"] = {"singleArmPrepared": True, "fullAttemptsAtAdmission": 0, "closedPreparationCommands": 5}
+         save(output / "campaign.json", campaign)
+         for profile in prepared:
+             execute_profile(profile, target_input, scratch, output, campaign, custody)
+-        require(campaign["fullAttempts"] == MAX_FULL_ATTEMPTS and len(campaign["profiles"]) == 2,
+-            "exactly two full attempts required for a closed comparison")
+-        require(custody["provenClosedCommands"] == MAX_COMMANDS, "all eleven command closures required")
+-        campaign["status"] = "comparison-closed"
++        require(campaign["fullAttempts"] == MAX_FULL_ATTEMPTS and len(campaign["profiles"]) == 1,
++            "exactly one full attempt required for a closed experiment")
++        require(custody["provenClosedCommands"] == MAX_COMMANDS, "all six command closures required")
++        campaign["status"] = "completion-experiment-closed"
+         campaign["milestoneObservedArms"] = [row["name"] for row in campaign["profiles"] if row["hostFeasibility"]]
+-        campaign["nextDecision"] = "Root compares measured behavior and selects integration or names the next limiting resource; no production default promotion."
++        campaign["nextDecision"] = "Root decides from complete original observations or the preserved limiting failure; no automatic retry, budget increase or production default promotion."
+     except Exception as error:
+         campaign["status"] = "stopped"
+         campaign["error"] = str(error)

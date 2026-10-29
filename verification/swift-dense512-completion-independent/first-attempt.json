@@ -1,0 +1,11 @@
+{
+  "command": "python3 -B verification/swift-dense512-completion-independent/review.py",
+  "exitCode": 1,
+  "stage": "readset serialization",
+  "error": "FileNotFoundError for audit pseudo-source <unknown>; no process/runtime calls; test log preserved",
+  "testsRun": 46,
+  "subtestFailures": 61,
+  "cause": "Blanket getpid denial blocked tempfile RNG self-PID query; then readset serialization included AST pseudo-source <unknown>. Both were reviewer harness issues, not candidate failures.",
+  "fix": "Deterministic review-owned temporary names retain the full API guard; readset includes real files only.",
+  "realForbiddenOperations": 0
+}

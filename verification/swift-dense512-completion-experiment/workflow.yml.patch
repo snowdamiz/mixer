@@ -1,0 +1,71 @@
+--- closed-capacity-window/workflow.yml
++++ dense512-completion/workflow.yml
+@@ -1,13 +1,13 @@
+ # Proposal only. Root owns review, selection, integration and dispatch.
+-name: Swift cache observation window candidate
++name: Swift dense512 completion candidate
+ on:
+   workflow_dispatch:
+     inputs:
+       profile:
+-        description: Root-selected reviewed cache capacity and observation window proposal
++        description: Root-selected single dense512 completion experiment
+         type: choice
+         required: true
+-        options: [capacity-window-v1]
++        options: [dense512-completion-v1]
+ permissions:
+   contents: read
+ concurrency:
+@@ -16,7 +16,7 @@
+ jobs:
+   compare:
+     runs-on: ubuntu-24.04
+-    timeout-minutes: 55
++    timeout-minutes: 44
+     steps:
+       - uses: actions/checkout@v4
+         timeout-minutes: 1
+@@ -27,6 +27,7 @@
+             /verification/swift-execution-architecture-correction/
+             /verification/swift-frame-pin-admission-candidate/
+             /verification/swift-cachework-128-experiment/
++            /verification/swift-dense512-completion-experiment/
+             /verification/github-delivery-architecture-comparison/ci-review/seal.json
+             /verification/swift-execution-architecture-comparison/seal.json
+             /verification/swift-execution-architecture-independent/seal.json
+@@ -35,25 +36,25 @@
+             /verification/github-delivery-binary-export-and-ui/cache-deadline-review/REVIEW.md
+       - name: Pure source and decision controls
+         timeout-minutes: 1
+-        run: python3 -B verification/swift-cachework-128-experiment/test_campaign.py
++        run: python3 -B verification/swift-dense512-completion-experiment/test_campaign.py
+       - name: Install the same pinned compiler
+         timeout-minutes: 2
+         run: rustup toolchain install 1.99.0 --profile minimal
+-      - name: Prepare both finite geometry arms then run exactly two full attempts
+-        timeout-minutes: 46
++      - name: Prepare fresh finite geometry then run exactly one full attempt
++        timeout-minutes: 36
+         env:
+-          MIXER_CACHE_WINDOW_SELECTION: ${{ inputs.profile }}
++          MIXER_DENSE512_COMPLETION_SELECTION: ${{ inputs.profile }}
+         run: >-
+-          python3 -B verification/swift-cachework-128-experiment/campaign.py run
+-          --output "$RUNNER_TEMP/swift-cachework-128-experiment"
++          python3 -B verification/swift-dense512-completion-experiment/campaign.py run
++          --output "$RUNNER_TEMP/swift-dense512-completion-experiment"
+       - name: Preserve failures, original observations and separate prefix diagnostics
+         timeout-minutes: 2
+         if: always()
+         uses: actions/upload-artifact@v4
+         with:
+-          name: swift-cachework-128-experiment-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
++          name: swift-dense512-completion-experiment-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+           path: |
+-            ${{ runner.temp }}/swift-cachework-128-experiment/
+-            !${{ runner.temp }}/swift-cachework-128-experiment/scratch/
++            ${{ runner.temp }}/swift-dense512-completion-experiment/
++            !${{ runner.temp }}/swift-dense512-completion-experiment/scratch/
+           if-no-files-found: error
+           retention-days: 30

@@ -9,44 +9,15 @@ This index does not narrow or replace that specification. Use
 is preserved byte for byte in [the prior index](PLAN.history-2026-10-25.md);
 its older pending/selected statements do not override the current state.
 
-## Selected shared-input fixture controls v2
+## Current bounded host results
 
-Root selects the exact cwd-corrected thin fixture v2 for one bounded manual
-diagnostic. Prior run [40790391653](https://github.com/snowdamiz/mixer/actions/runs/40790391653)
-passed nine materializer groups and 35 of 36 runner controls, then failed the
-optimized-Python import control and skipped the complete fixture. v2 adds only
-the control subprocess working directory and required sibling/hash bindings;
-accepted Rust, all 1,003 vectors and original assertions remain unchanged. The
-[selection](verification/github-delivery-shared-input-v2/selection.json) binds
-29 sealed members. Pure evidence passes 28 runner, nine materializer and six
-same-agent integration controls plus an in-process optimized differential.
-The real 36 controls, declared Rust `1.98.1-aarch64-apple-darwin` and complete
-103-command fixture remain pending, with 60 seconds per child, 600 active and
-60 cleanup seconds. No fallback, retry or default-pack promotion is selected.
-Prior ordinary Engine run 40790385107 passed all six jobs. No fixture speedup,
-runtime release or GA result is claimed.
+Mixer fixture v2 at `28cb1e27` is closed. [Run 40793279678](https://github.com/snowdamiz/mixer/actions/runs/40793279678) passes all 36 runner and nine materializer controls, including the real optimized-Python probe. Its first fixture child rejects the absent declared Rust `1.98.1-aarch64-apple-darwin` toolchain. No Rust compilation, fixture tests or performance metrics ran. The child was reaped, its group was absent and owned scratch was removed. [Compact result](verification/github-delivery-shared-input-v2/diagnostic-result.json) records the precise custody limits. An explicit pinned-compiler provisioning candidate is under preparation; no new fixture run is selected. Ordinary Engine run 40793273875 remains in progress at the latest observation.
 
-The separate capacity run [40788458735](https://github.com/snowdamiz/mixer/actions/runs/40788458735)
-is closed: both arms matched all eleven original Corpus 1 fields and entered
-Corpus 2, then reached the unchanged 600-second cumulative Runtime deadline.
-All eleven command groups closed; final counters and tickets are zero and
-owned scratch was removed. [Small sealed result](verification/github-delivery-shared-input-v2/capacity-window-result.json)
-records no endpoint-performance or full two-corpus feasibility claim. Its two
-attempts are spent. A separate one-arm dense-512 completion experiment is under
-preparation; no run is selected.
+FieldLog public `3b492947` [run 40792980271](https://github.com/snowdamiz/fieldlog/actions/runs/40792980271) is closed after 7.689 seconds: the inherited adapter identity is PID/PGID/SID 2595, with parent SID 1, which the shared validator rejects before inner Git. All nine recorded outer groups closed and drained; zero nested groups or inner Git children were registered. All 43 local delivery commands have reap, group-absence and EOF receipts. No public fetch, build or any of the 38 tests ran. The [small result](verification/github-delivery-dense512-completion/fieldlog-nested-group-result.json) preserves the actual scope. Root selected the minimal inherited-parent-session correction for one bounded host run; delivery remains pending. Earlier unknown adapter identities and eight unreceipted local reads remain historical limitations.
 
-FieldLog public `496399f8` run [40788707965](https://github.com/snowdamiz/fieldlog/actions/runs/40788707965)
-passed 73-blob public hydration and the app-read allowlist, then failed the
-Executor process-group guard before the inner Git child. Build and all 38 tests
-remain unreached. Cleanup covers 12 outer groups and 29 acquisition children;
-the rejected adapter's actual PGID is unknown, and eight earlier local reads
- lack separate group receipts. The selected two-script nested-group candidate
-with corrected final nomination drain is delivered at public FieldLog `3b492947`;
-its one host run [40792980271](https://github.com/snowdamiz/fieldlog/actions/runs/40792980271)
-awaits actual review. Source evidence passes 19 producer and five acceptance
-controls; actual ownership/build and 38 tests remain pending. No FieldLog source or raw CI is
-copied here. Gates stay **8 running, 30 planned, 0 verified**; all native/UI/capture,
-phone, local compiler/custody, Unit A and broad hosted holds remain.
+The prior VM [capacity run 40788458735](https://github.com/snowdamiz/mixer/actions/runs/40788458735) matched all eleven Corpus 1 fields in both arms and entered Corpus 2 before the 600-second cumulative deadline. All eleven recorded command groups closed; counters and tickets reached zero and scratch was removed. The dense-512 first corpus took 419.716175 seconds. A separate one-arm candidate proposes 1,200 seconds and 4B fuel, retaining 16B execution work, 4B cache work, 128 frames/pins, 512 residents and 256MiB. The producer passes 23 source checks and 36 pure methods; independent review passes 46 methods including 36 replayed methods. Root [selects one completion run](verification/github-delivery-dense512-completion/selection.json). The exact reviewed workflow is installed, and all 121 existing sparse dependency files match their tracked blobs and frozen bindings. One manual dispatch is authorized after this delivery. Fresh compilation, twelve finite controls, the original harness and conservative geometry must admit the sole full attempt; actual execution remains pending. Neither endpoint performance nor full two-corpus feasibility is proved.
+
+Gates remain **8 running, 30 planned, 0 verified**. Native/UI/capture, disconnected phones, local compiler/custody, Unit A and broad hosted holds remain. Raw CI stays local; no runtime default, dogfood release or GA promotion is selected.
 
 ## Closed public host campaigns
 

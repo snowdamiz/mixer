@@ -1,0 +1,80 @@
+--- accepted/src/experimental_swift_reactor/cache_tests.rs
++++ campaign/src/experimental_swift_reactor/cache_tests.rs
+@@ -4281,7 +4281,7 @@
+     assert_eq!(b.cache_work, 4_000_000_000);
+     assert_eq!((b.cache_bytes, b.cache_entry_bytes, b.active_pins), (16 << 20, 8 << 20, 128));
+     assert_eq!((b.memory_pages, b.combined_bytes), (768, 256 << 20));
+-    assert_eq!((b.instruction_fuel, b.execution_work, b.deadline_ms), (2_000_000_000, 16_000_000_000, 600_000));
++    assert_eq!((b.instruction_fuel, b.execution_work, b.deadline_ms), (4_000_000_000, 16_000_000_000, 1_200_000));
+     assert_eq!(MAX_RESERVATION_TICKETS, n + 22);
+     let bytes = fixture(0, &[0, 0x0b], n + 40);
+     let (mut c, mut cache) = new(&bytes, b);
+@@ -4437,7 +4437,7 @@
+ fn dense_campaign_full_geometry_and_conservative_envelope() {
+     let budget = SwiftRunBudget::default();
+     assert_eq!((budget.cache_entries, budget.active_pins, budget.frames), (512, 128, 128));
+-    assert_eq!((budget.cache_work, budget.instruction_fuel, budget.execution_work, budget.deadline_ms), (4_000_000_000, 2_000_000_000, 16_000_000_000, 600_000));
++    assert_eq!((budget.cache_work, budget.instruction_fuel, budget.execution_work, budget.deadline_ms), (4_000_000_000, 4_000_000_000, 16_000_000_000, 1_200_000));
+     assert_eq!((budget.cache_bytes, budget.cache_entry_bytes, budget.combined_bytes), (16 << 20, 8 << 20, 256 << 20));
+     assert_eq!(MAX_RESERVATION_TICKETS, 534);
+     hooks(Hooks::default());
+--- accepted/src/experimental_swift_reactor/control.rs
++++ campaign/src/experimental_swift_reactor/control.rs
+@@ -53,10 +53,10 @@
+             memory_pages: 768,
+             state_bytes: 128 * MIB,
+             combined_bytes: 256 * MIB,
+-            instruction_fuel: 2_000_000_000,
++            instruction_fuel: 4_000_000_000,
+             execution_work: 16_000_000_000,
+             host_calls: 32_768,
+-            deadline_ms: 600_000,
++            deadline_ms: 1_200_000,
+         }
+     }
+ }
+--- accepted/src/experimental_swift_reactor/control_tests.rs
++++ campaign/src/experimental_swift_reactor/control_tests.rs
+@@ -1824,6 +1824,12 @@
+ // Actual owner controls. Charges are O(1), not synthetic guest completion.
+ #[test]
+ fn framepin_campaign_observation_window_guards_remain_finite_and_cumulative() {
++    let budget = SwiftRunBudget::default();
++    assert_eq!(budget.deadline_ms, 1_200_000);
++    assert_eq!(WasiBudget::default().deadline_ms, 1_200_000);
++    // Existing executable control proves earliest absolute deadline, sticky
++    // expiry and zero-WASI denial; phases cannot obtain a fresh window.
++    deadlines_are_carried_as_earliest_absolute_time_and_real_expiry_is_sticky();
+     all_seventeen_dimensions_reject_widening_without_allocation_and_drop_real_proof();
+     zero_is_real_in_every_budget_dimension();
+     init_and_repeated_call_counters_accumulate_and_cannot_refill();
+@@ -1845,12 +1851,13 @@
+         assert_empty(clean(control, adopted));
+     }
+     let (mut control, adopted) = adopt(SwiftRunBudget::default());
+-    control.charge_fuel(1_999_999_999, cursor(SwiftRunStage::Initialization)).unwrap();
++    control.charge_fuel(3_999_999_999, cursor(SwiftRunStage::Initialization)).unwrap();
+     control.charge_fuel(1, cursor(SwiftRunStage::Invocation)).unwrap();
+     let failure = control.charge_fuel(1, cursor(SwiftRunStage::Invocation)).unwrap_err();
+     assert_eq!(failure.resource, Some(SwiftRunResource::InstructionFuel));
+-    assert_eq!((failure.attempted, failure.limit), (2_000_000_001, 2_000_000_000));
+-    assert_eq!(control.usage(None).instruction_fuel, 2_000_000_000);
++    assert_eq!((failure.attempted, failure.limit), (4_000_000_001, 4_000_000_000));
++    assert_eq!(control.usage(None).instruction_fuel, 4_000_000_000);
+     assert_empty(clean(control, adopted));
+-    println!("CACHEWINDOW scalar_limits=4000000000,2000000000,16000000000 cumulative=true above_max_rejected=true overflow_rejected=true cleanup_zero=true");
+-}
++    println!("COMPLETION deadline_ms=1200000 wasi_deadline_ms=1200000 earliest_absolute=true sticky_expiry=true cleanup_zero=true");
++    println!("CACHEWINDOW scalar_limits=4000000000,4000000000,16000000000 cumulative=true above_max_rejected=true overflow_rejected=true cleanup_zero=true");
++}
+--- accepted/src/experimental_wasi/mod.rs
++++ campaign/src/experimental_wasi/mod.rs
+@@ -58,7 +58,7 @@
+             one_transfer_bytes: 65_536,
+             iovecs: 64,
+             log_bytes: 65_536,
+-            deadline_ms: 600_000,
++            deadline_ms: 1_200_000,
+         }
+     }
+ }
