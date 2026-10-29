@@ -1,0 +1,49 @@
+--- reviewed/bounded_commands.py
++++ proposed/bounded_commands.py
+@@ -4,8 +4,9 @@
+ import hashlib,json,os,re,resource,selectors,signal,stat,subprocess,time
+ from pathlib import Path,PurePosixPath
+ OUTPUT_CAP=8*1024*1024
+-CHILD_SECONDS=600
+-MAX_COMMANDS=7
++AGGREGATE_OUTPUT_CAP=32*1024*1024
++CHILD_SECONDS=300
++MAX_COMMANDS=5
+ def need(value,message):
+  if not value:raise RuntimeError(message)
+ def now():return datetime.now(timezone.utc).isoformat()
+@@ -82,11 +83,13 @@
+   until=time.monotonic()+5
+   while not self.gone(proc.pid)and time.monotonic()<until:time.sleep(.01)
+   row['owned_group_gone']=self.gone(proc.pid)
+- def run(self,name,argv,cwd,env=None,negative=False,seconds=60):
++ def run(self,name,argv,cwd,env=None,negative=False,seconds=30,accepted_exits=(0,)):
+   need(self.active is None,'One child group only');need(re.fullmatch('[A-Za-z0-9_-]+',name),'Command name')
+-  need(len(self.receipt['commands'])<MAX_COMMANDS,'Command count cap');need(type(seconds)is int and seconds in (30,180,300,600),'Fixed child limit required')
++  need(len(self.receipt['commands'])<MAX_COMMANDS,'Command count cap');need(type(seconds)is int and seconds in (30,300),'Fixed child limit required')
++  need(not negative and accepted_exits in ((0,),(0,101)),'Fixed diagnostic exit policy required')
+   start=time.monotonic();need(start+seconds+20<self.deadline,'Complete next command does not fit aggregate budget');budget=seconds;env=self.child_environment(env)
+   row={'name':name,'argv':list(map(str,argv)),'cwd':str(cwd),'started_utc':now(),'per_child_limit_seconds':seconds,'effective_timeout_seconds':budget,'per_stream_cap_bytes':OUTPUT_CAP,'environment_overrides':env or {},'exit':None,'timed_out':False,'output_capped':False,'child_returned':False,'owned_group_gone':False,'errors':[]}
++  row['accepted_exit_codes']=list(accepted_exits)
+   self.receipt['commands'].append(row);self.save();paths=[self.out/'commands'/(name+'.'+suffix)for suffix in ['stdout','stderr']]
+   selector=selectors.DefaultSelector();failure=None;primary=None;cleanup_errors=[];usage_before=None
+   def cleanup_error(phase,error):
+@@ -102,7 +105,9 @@
+     for key,_ in selector.select(.02):
+      b=os.read(key.fileobj.fileno(),65536)
+      if not b:key.data['file'].close();selector.unregister(key.fileobj);key.fileobj.close();continue
+-     space=OUTPUT_CAP-key.data['count'];key.data['file'].write(b[:space]);key.data['count']+=min(space,len(b))
++     total=self.receipt.get('aggregate_output_bytes',0)
++     space=min(OUTPUT_CAP-key.data['count'],AGGREGATE_OUTPUT_CAP-total);kept=min(space,len(b))
++     key.data['file'].write(b[:kept]);key.data['count']+=kept;self.receipt['aggregate_output_bytes']=total+kept
+      if len(b)>space:row['output_capped']=True;failure='output-cap'
+    proc.wait(timeout=5);row['child_returned']=True;row['exit']=proc.returncode
+    if not self.gone(proc.pid):row['descendants_outlived_child']=True
+@@ -139,6 +144,6 @@
+    except BaseException as e:cleanup_error('save-command-receipt',e)
+   if primary is not None:raise primary
+   if cleanup_errors:raise cleanup_errors[0]
+-  need(row['child_returned']and row.get('owned_group_gone')and not row.get('descendants_outlived_child')and not row['timed_out']and not row['output_capped']and row['exit']==(1 if negative else 0),'Command failed; retained receipt: '+name)
++  need(row['child_returned']and row.get('owned_group_gone')and not row.get('descendants_outlived_child')and not row['timed_out']and not row['output_capped']and row['exit'] in accepted_exits,'Command failed; retained receipt: '+name)
+   return paths[0].read_text(),paths[1].read_text(),row
+ 

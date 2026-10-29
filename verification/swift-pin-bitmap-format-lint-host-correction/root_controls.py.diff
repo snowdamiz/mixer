@@ -1,0 +1,25 @@
+--- verification/swift-pin-bitmap-format-lint-admission/root_controls.py
++++ verification/swift-pin-bitmap-format-lint-host-correction/root_controls.py
+@@ -144,7 +144,7 @@
+  def execute_mock(self,failure=None):
+   temp=self.work/'runner';temp.mkdir();toolbin=self.work/'rustup/toolchains'/a.TOOLCHAIN/'bin';toolbin.mkdir(parents=True)
+   for n in ('rustc','rustfmt','cargo','cargo-clippy','clippy-driver'):(toolbin/n).write_bytes(('guarded fake '+n).encode())
+-  component=toolbin.parent/'lib/rustlib/components';component.parent.mkdir(parents=True);component.write_text('rustfmt-preview\nclippy-preview\n')
++  component=toolbin.parent/'lib/rustlib/components';component.parent.mkdir(parents=True);component.write_text('cargo-x86_64-unknown-linux-gnu\nclippy-preview-x86_64-unknown-linux-gnu\nrustc-x86_64-unknown-linux-gnu\nrust-std-x86_64-unknown-linux-gnu\nrustfmt-preview-x86_64-unknown-linux-gnu\n')
+   data={arm:{n:('fn fixture() {} // '+arm+'\n').encode()for n in a.OVERLAYS}for arm in ('baseline','candidate')}
+   for arm in data:data[arm]['Cargo.toml']=b'[package]\n'
+   manifest={'baselineFiles':{n:a.file_row(v)for n,v in data['baseline'].items()},'candidateFiles':{n:a.file_row(v)for n,v in data['candidate'].items()}}
+@@ -193,7 +193,12 @@
+    with self.assertRaisesRegex(RuntimeError,'first attempt'):a.hosted()
+ 
+ if __name__=='__main__':
+- stream=io.StringIO();result=unittest.TextTestRunner(stream=stream,verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(Controls))
++ from correction_controls import CorrectionControls
++ suite=unittest.TestSuite((unittest.defaultTestLoader.loadTestsFromTestCase(Controls),unittest.defaultTestLoader.loadTestsFromTestCase(CorrectionControls)))
++ stream=io.StringIO();result=unittest.TextTestRunner(stream=stream,verbosity=2).run(suite)
+  record={'schema':1,'status':'passed'if result.wasSuccessful()else'failed','testsRun':result.testsRun,'failures':len(result.failures),'errors':len(result.errors),'skipped':len(result.skipped),'pythonVersion':sys.version,'actualRustRuns':0,'realNestedProcessOrSignalOperations':0,'liveCustodyEvidence':False,'scope':'guarded pure filesystem and mock controls; no formatting/lint execution','output':stream.getvalue()}
++ record.update({'priorSemanticsReplayed':26,'correctionControls':suite.countTestCases()-26,'sparseClosure':getattr(CorrectionControls,'sparse_result',None),'historicalResultsAreCurrentEvidence':False,'officialValidatorExecuted':False})
++ record['controlSourceFiles']={n:a.file_row((HERE/n).read_bytes())for n in ('admit.py','bounded_commands.py','offline.py','root_controls.py','correction_controls.py','context_check.py','context-rules.json','workflow.yml')}
++ record['controlSourceTreeSHA256']=a.closure(record['controlSourceFiles'])
+  if not result.wasSuccessful()and not(HERE/'first-control-failure.json').exists():b.save(HERE/'first-control-failure.json',record)
+  b.save(HERE/'root-controls-result.json',record);print(stream.getvalue());print(json.dumps({k:v for k,v in record.items()if k!='output'}));sys.exit(0 if result.wasSuccessful()else 1)

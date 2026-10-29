@@ -1,0 +1,61 @@
+# Source-only proposal. Root review and explicit selection precede installation.
+name: Swift pin bitmap formatting and lint diagnostic
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Compare exact baseline and corrected bitmap formatting and Clippy once
+        type: choice
+        required: true
+        options: [pin-bitmap-format-lint-v1]
+permissions:
+  contents: read
+concurrency:
+  group: swift-pin-bitmap-format-lint-admission
+  cancel-in-progress: false
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      RUSTUP_HOME: ${{ runner.temp }}/swift-pin-bitmap-format-lint-v1-toolchain
+    steps:
+      - uses: actions/checkout@v4
+        timeout-minutes: 2
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /AGENTS.md
+            /mixer-product-plan.md
+            /vm/
+            /contracts/
+            /verification/swift-dense512-product-integration/
+            /verification/swift-pin-bitmap-independent/
+            /verification/swift-pin-bitmap-host-binding-correction/
+            /verification/swift-pin-bitmap-lifecycle-correction/
+            /verification/swift-pin-bitmap-lifecycle-host-admission/
+            /verification/swift-pin-bitmap-format-lint-admission/
+      - name: Guarded source and mocked command controls
+        timeout-minutes: 2
+        run: python3 -B verification/swift-pin-bitmap-format-lint-admission/root_controls.py
+      - name: Install exact hosted formatting and Clippy tools
+        timeout-minutes: 2
+        run: rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy
+      - name: Five bounded formatting and lint children
+        timeout-minutes: 17
+        env:
+          MIXER_PIN_BITMAP_FORMAT_LINT_SELECTION: ${{ inputs.profile }}
+        run: python3 -B verification/swift-pin-bitmap-format-lint-admission/admit.py run
+      - name: Preserve diagnostics, exact formatted overlays and custody receipts
+        if: always()
+        timeout-minutes: 1
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-pin-bitmap-format-lint-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/pin-bitmap-format-lint-v1-evidence/
+            !${{ runner.temp }}/pin-bitmap-format-lint-v1-evidence/scratch/
+            verification/swift-pin-bitmap-format-lint-admission/root-controls-result.json
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,33 @@
+--- verification/swift-pin-bitmap-format-lint-admission/admit.py
++++ verification/swift-pin-bitmap-format-lint-host-correction/admit.py
+@@ -18,6 +18,7 @@
+ MAX_FILE_BYTES=16*1024*1024
+ MAX_SOURCE_BYTES=64*1024*1024
+ TOOLCHAIN='1.99.0-x86_64-unknown-linux-gnu'
++REQUIRED_HOST_COMPONENTS=('rustfmt-preview-x86_64-unknown-linux-gnu','clippy-preview-x86_64-unknown-linux-gnu')
+ 
+ def digest(raw):return hashlib.sha256(raw).hexdigest()
+ def closure(rows):return digest(''.join(n+'\0'+rows[n]['sha256']+'\n'for n in sorted(rows)).encode())
+@@ -152,6 +153,12 @@
+  for n in ('rustc','rustfmt','cargo','cargo-clippy','clippy-driver'):regular(toolbin/n)
+  return temp,toolbin
+ 
++def component_evidence(component):
++ raw=regular(component).read_bytes();text=raw.decode()
++ need(set(REQUIRED_HOST_COMPONENTS)<=set(text.splitlines()),'Required pinned host components absent')
++ return {'sha256':digest(raw),'text':text,'requiredHostComponents':list(REQUIRED_HOST_COMPONENTS),
++         'sha256Scope':'raw manifest observation; ordering is not a reproducibility identity'}
++
+ def execute():
+  temp,toolbin=hosted();m,data=inputs();out=temp/(PROFILE+'-evidence');no_symlinks(out);need(not out.exists(),'Fresh evidence only');out.mkdir()
+  receipt={'schema':1,'status':'running','sourceRevision':os.environ['GITHUB_SHA'],'runID':os.environ.get('GITHUB_RUN_ID'),'runAttempt':1,
+@@ -166,8 +173,7 @@
+  receipt['harnessFiles']={n:sha(HERE/n)for n in ('admit.py','bounded_commands.py')}
+  receipt['toolchainFiles']={n:{'path':str(toolbin/n),'sha256':sha(toolbin/n)}for n in ('rustc','rustfmt','cargo','cargo-clippy','clippy-driver')}
+  save(out/'receipt.json',receipt)
+- component=regular(toolbin.parent/'lib/rustlib/components');receipt['components']={'sha256':sha(component),'text':component.read_text()}
+- need({'rustfmt-preview','clippy-preview'}<=set(component.read_text().splitlines()),'Required pinned components absent')
++ receipt['components']=component_evidence(toolbin.parent/'lib/rustlib/components')
+  c=Commands(out,receipt,time.monotonic()+ACTIVE_SECONDS);scratch=out/'scratch';owned=None;failure=None
+  handlers={s:signal.getsignal(s)for s in (signal.SIGALRM,signal.SIGINT,signal.SIGTERM)}
+  def alarm(signum,frame):raise TimeoutError('Finite diagnostic budget expired')
