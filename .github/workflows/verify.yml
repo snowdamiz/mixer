@@ -600,3 +600,44 @@ jobs:
             ${{ github.workspace }}/verification/swift-cache-state-ci/check_cache_state.py
             ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-fix/
             ${{ github.workspace }}/.github/workflows/verify.yml
+  android-generated-java:
+    runs-on: macos-26-intel
+    permissions:
+      contents: read
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          # checkout v4 selects blob:none when sparse-checkout is set.
+          # Keep filter unset so that official sparse partial-fetch path applies.
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /cli/
+            /sdk/
+            /updates/
+            /native/android/
+            /scripts/ci/
+            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/
+      - name: Bootstrap policy controls without native tools
+        timeout-minutes: 2
+        run: |
+          python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py -v
+          python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v
+      - name: Actual generated Java six-consumer integration
+        timeout-minutes: 62
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py \
+            --output "$RUNNER_TEMP/generated-java-ci" --execute
+      - name: Preserve all bootstrap, Java, DEX and refusal evidence
+        if: always()
+        timeout-minutes: 5
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-java-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          include-hidden-files: true
+          path: ${{ runner.temp }}/generated-java-ci/

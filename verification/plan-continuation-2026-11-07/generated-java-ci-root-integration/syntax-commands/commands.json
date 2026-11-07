@@ -1,0 +1,103 @@
+[
+  {
+    "argv": [
+      "/usr/bin/ruby",
+      "--version"
+    ],
+    "cleanup_errors": [],
+    "cleanup_seconds_limit": 5,
+    "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4",
+    "direct_child_reaped": true,
+    "elapsed_seconds": 0.017,
+    "exit_code": 0,
+    "group_observation": {
+      "attempts": 1,
+      "elapsed_seconds": 0.0,
+      "outcome": "absent"
+    },
+    "label": "ruby-version",
+    "logs": {
+      "stderr": {
+        "bytes": 0,
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/generated-java-ci-root-integration/syntax-commands/000-ruby-version.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 72,
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/generated-java-ci-root-integration/syntax-commands/000-ruby-version.stdout",
+        "sha256": "1d3829ff24d6a937a101027f67597375dcbef35fe351955a13fe3adccaeb0da4"
+      }
+    },
+    "output_bytes_before": 0,
+    "owned_group_absent": true,
+    "owned_pgid": 7888,
+    "pid": 7888,
+    "signal": {
+      "attempted": true,
+      "name": "SIGKILL",
+      "outcome": "already-absent"
+    },
+    "started_utc": "2026-11-07T23:52:24.041298+00:00",
+    "stderr_eof": true,
+    "stdout_eof": true,
+    "stop": null,
+    "stream_output_limits": {
+      "stderr": 4194304,
+      "stdout": 4194304
+    },
+    "terminal_custody": true,
+    "total_output_limit": 67108864
+  },
+  {
+    "argv": [
+      "/usr/bin/ruby",
+      "-e",
+      "require \"yaml\"; require \"json\"; a=YAML.safe_load(File.read(ARGV[0]), aliases: true); b=YAML.safe_load(File.read(ARGV[1]), aliases: true); old=a.fetch(\"jobs\"); jobs=b.fetch(\"jobs\"); raise \"Unexpected job selection\" unless jobs.keys.sort == (old.keys + [\"android-generated-java\"]).sort; old.each { |k,v| raise \"Prior job changed\" unless jobs[k] == v }; raise \"Top-level keys changed\" unless a.keys.sort_by(&:to_s) == b.keys.sort_by(&:to_s); a.each { |k,v| raise \"Top-level value changed\" unless k == \"jobs\" || b[k] == v }; puts JSON.generate({old_jobs: old.length, new_jobs: jobs.length, sole_added_job: \"android-generated-java\", preserved_existing_jobs: true})",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/.github/workflows/verify.yml",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/generated-java-ci-root-integration/verify.proposed.yml"
+    ],
+    "cleanup_errors": [],
+    "cleanup_seconds_limit": 5,
+    "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4",
+    "direct_child_reaped": true,
+    "elapsed_seconds": 0.084,
+    "exit_code": 0,
+    "group_observation": {
+      "attempts": 1,
+      "elapsed_seconds": 0.0,
+      "outcome": "absent"
+    },
+    "label": "validate-workflow",
+    "logs": {
+      "stderr": {
+        "bytes": 0,
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/generated-java-ci-root-integration/syntax-commands/001-validate-workflow.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 101,
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/generated-java-ci-root-integration/syntax-commands/001-validate-workflow.stdout",
+        "sha256": "d7bb195b2481a003a11806b396dc05de42d476f29b03bed0a199f70ba9ee8e90"
+      }
+    },
+    "output_bytes_before": 72,
+    "owned_group_absent": true,
+    "owned_pgid": 7889,
+    "pid": 7889,
+    "signal": {
+      "attempted": true,
+      "name": "SIGKILL",
+      "outcome": "already-absent"
+    },
+    "started_utc": "2026-11-07T23:52:24.059081+00:00",
+    "stderr_eof": true,
+    "stdout_eof": true,
+    "stop": null,
+    "stream_output_limits": {
+      "stderr": 4194304,
+      "stdout": 4194304
+    },
+    "terminal_custody": true,
+    "total_output_limit": 67108864
+  }
+]

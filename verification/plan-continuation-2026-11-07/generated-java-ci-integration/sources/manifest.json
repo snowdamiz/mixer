@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "observed_date": "2026-11-07",
+  "read_only_sources": [
+    {
+      "file": "macos-15-intel.md",
+      "repository": "actions/runner-images",
+      "path": "images/macos/macos-15-Readme.md",
+      "tool": "mcp__codex_apps__github_fetch_file",
+      "blob_sha": "7b7aa2607800f9735b3062b0229bca92376e7bd2",
+      "url": "https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md"
+    },
+    {
+      "file": "macos-26-intel.md",
+      "repository": "actions/runner-images",
+      "path": "images/macos/macos-26-Readme.md",
+      "tool": "mcp__codex_apps__github_fetch_file",
+      "blob_sha": "46488458459c316ca463633b5d3e2c17fc50e5d3",
+      "url": "https://github.com/actions/runner-images/blob/main/images/macos/macos-26-Readme.md"
+    },
+    {
+      "file": "macos-26-arm64.md",
+      "repository": "actions/runner-images",
+      "path": "images/macos/macos-26-arm64-Readme.md",
+      "tool": "mcp__codex_apps__github_fetch_file",
+      "blob_sha": "52372b6571987d5a0ce75869ad2ee17c1113e168",
+      "url": "https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md"
+    },
+    {
+      "file": "runner-labels.md",
+      "repository": "actions/runner-images",
+      "path": "README.md",
+      "line_range": [
+        15,
+        60
+      ],
+      "tool": "mcp__codex_apps__github_fetch_file",
+      "blob_sha": "cbb0ec6433933cd83d6c749bffbb24a2513388be",
+      "url": "https://github.com/actions/runner-images/blob/main/README.md"
+    },
+    {
+      "file": "swift-releases.yml",
+      "repository": "swiftlang/swift-org-website",
+      "path": "_data/builds/swift_releases.yml",
+      "tool": "mcp__codex_apps__github_fetch_file",
+      "blob_sha": "6f228136f65af420fa5ef3b882ffde55635f489f",
+      "url": "https://github.com/swiftlang/swift-org-website/blob/main/_data/builds/swift_releases.yml"
+    },
+    {
+      "file": "swift-android-instructions-202606.md",
+      "repository": "swiftlang/swift-org-website",
+      "path": "documentation/articles/swift-sdk-for-android-getting-started.md",
+      "ref": "926dc07e07bca5c4ed204f8d0b5cbf6c9155c0e6",
+      "tool": "mcp__codex_apps__github_fetch_file",
+      "blob_sha": "13700640828f3e589133082e833dec2f2453e7d3",
+      "url": "https://github.com/swiftlang/swift-org-website/blob/926dc07e07bca5c4ed204f8d0b5cbf6c9155c0e6/documentation/articles/swift-sdk-for-android-getting-started.md"
+    }
+  ],
+  "official_web_sources": [
+    {
+      "url": "https://docs.github.com/en/actions/reference/runners/github-hosted-runners",
+      "fact": "Standard public and private hosted lists include macos-26-intel (Intel), separate from macos-26 (arm64)."
+    },
+    {
+      "url": "https://www.swift.org/install/macos/",
+      "fact": "Swift 6.3.3 previous-release package link resolves to the pinned HOST_URL; no archive fetched."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/java/openjdk/download",
+      "fact": "Official OpenJDK25 macOS x64 and arm64 package/archive downloads include SHA256 links. Proposal reuses image-supplied JDK25_X64 instead of downloading a second JDK."
+    },
+    {
+      "url": "https://developer.android.com/ndk/downloads/older_releases",
+      "fact": "Official r27d identity is 27.3.13750724. Proposal copies the image-supplied NDK into its private Swift Android bundle."
+    }
+  ],
+  "download_admission": {
+    "host": "Official Swift URL + exact observed byte length + macOS trusted pkg signature before extraction, following official Swiftly private-install source. Download SHA256 recorded at execution; no published host SHA256 pin is claimed.",
+    "android_sdk": "Pinned SHA256 from official swift_releases.yml, exact observed byte length, then canonical full distribution inspection.",
+    "jdk_platform_build_tools_ndk": "Trusted GitHub image inventory; canonical metadata/version/executable/distribution hashing at execution. No invented external archive hashes or substitution for official inspect."
+  },
+  "negative_findings": [
+    "macos-15 Intel inventory has Xcode26.3/macOS26.2 and cannot establish the requested producer selection.",
+    "macos-26 is ARM64 in current labels; choose standard macos-26-intel and JAVA_HOME_25_X64 explicitly.",
+    "Latest Swift Android documentation now describes NDK30; pinned June source documents setup-android-sdk.sh and NDK27d for this older bundle.",
+    "GitHub metadata requests to guessed Swift release paths returned404; actual _data/builds/swift_releases.yml was discovered and used.",
+    "jdk.java.net/archive was denied by the web fetch; official Microsoft OpenJDK download source was consulted instead."
+  ]
+}

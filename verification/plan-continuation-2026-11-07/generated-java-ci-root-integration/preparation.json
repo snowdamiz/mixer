@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "state": "PREPARED_NOT_INSTALLED",
+  "sourceRevision": "528419182e138eeb7bf0163eea6fe12af7b928a7",
+  "proposalSHA256": "6b3d18ff334833a807de7af3a4f468caa1a751b349cd82a53414b10ab134a364",
+  "originalSHA256": "5cc067d90adaadbb4741e8e0e25bf1ecace4fa2d5ce87cbe13cfddb92fc67325",
+  "candidateSHA256": "38292821070d24d4c8c13ad28c6abc08e532eaa65a56c020a18b0f1b04131a64",
+  "rubyVersion": "ruby 2.6.10p210 (2022-04-12 revision 67958) [universal.arm64e-darwin26]",
+  "syntax": {
+    "old_jobs": 6,
+    "new_jobs": 7,
+    "sole_added_job": "android-generated-java",
+    "preserved_existing_jobs": true
+  },
+  "status": "PASS",
+  "terminalCustody": true,
+  "commands": [
+    {
+      "label": "ruby-version",
+      "argv": [
+        "/usr/bin/ruby",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4",
+      "exit_code": 0,
+      "stream_output_limits": {
+        "stdout": 4194304,
+        "stderr": 4194304
+      },
+      "total_output_limit": 67108864,
+      "output_bytes_before": 0,
+      "started_utc": "2026-11-07T23:52:24.041298+00:00",
+      "stop": null,
+      "pid": 7888,
+      "owned_pgid": 7888,
+      "direct_child_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "owned_group_absent": true,
+      "signal": {
+        "name": "SIGKILL",
+        "attempted": true,
+        "outcome": "already-absent"
+      },
+      "group_observation": {
+        "outcome": "absent",
+        "attempts": 1,
+        "elapsed_seconds": 0.0
+      },
+      "cleanup_errors": [],
+      "terminal_custody": true,
+      "cleanup_seconds_limit": 5,
+      "elapsed_seconds": 0.017,
+      "logs": {
+        "stdout": {
+          "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/generated-java-ci-root-integration/syntax-commands/000-ruby-version.stdout",
+          "bytes": 72,
+          "sha256": "1d3829ff24d6a937a101027f67597375dcbef35fe351955a13fe3adccaeb0da4"
+        },
+        "stderr": {
+          "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/generated-java-ci-root-integration/syntax-commands/000-ruby-version.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    {
+      "label": "validate-workflow",
+      "argv": [
+        "/usr/bin/ruby",
+        "-e",
+        "require \"yaml\"; require \"json\"; a=YAML.safe_load(File.read(ARGV[0]), aliases: true); b=YAML.safe_load(File.read(ARGV[1]), aliases: true); old=a.fetch(\"jobs\"); jobs=b.fetch(\"jobs\"); raise \"Unexpected job selection\" unless jobs.keys.sort == (old.keys + [\"android-generated-java\"]).sort; old.each { |k,v| raise \"Prior job changed\" unless jobs[k] == v }; raise \"Top-level keys changed\" unless a.keys.sort_by(&:to_s) == b.keys.sort_by(&:to_s); a.each { |k,v| raise \"Top-level value changed\" unless k == \"jobs\" || b[k] == v }; puts JSON.generate({old_jobs: old.length, new_jobs: jobs.length, sole_added_job: \"android-generated-java\", preserved_existing_jobs: true})",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/.github/workflows/verify.yml",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/generated-java-ci-root-integration/verify.proposed.yml"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4",
+      "exit_code": 0,
+      "stream_output_limits": {
+        "stdout": 4194304,
+        "stderr": 4194304
+      },
+      "total_output_limit": 67108864,
+      "output_bytes_before": 72,
+      "started_utc": "2026-11-07T23:52:24.059081+00:00",
+      "stop": null,
+      "pid": 7889,
+      "owned_pgid": 7889,
+      "direct_child_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "owned_group_absent": true,
+      "signal": {
+        "name": "SIGKILL",
+        "attempted": true,
+        "outcome": "already-absent"
+      },
+      "group_observation": {
+        "outcome": "absent",
+        "attempts": 1,
+        "elapsed_seconds": 0.0
+      },
+      "cleanup_errors": [],
+      "terminal_custody": true,
+      "cleanup_seconds_limit": 5,
+      "elapsed_seconds": 0.084,
+      "logs": {
+        "stdout": {
+          "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/generated-java-ci-root-integration/syntax-commands/001-validate-workflow.stdout",
+          "bytes": 101,
+          "sha256": "d7bb195b2481a003a11806b396dc05de42d476f29b03bed0a199f70ba9ee8e90"
+        },
+        "stderr": {
+          "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/generated-java-ci-root-integration/syntax-commands/001-validate-workflow.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    }
+  ]
+}
