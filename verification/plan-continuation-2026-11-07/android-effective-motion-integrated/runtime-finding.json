@@ -1,0 +1,50 @@
+{
+  "abi": "arm64-v8a",
+  "api": 37,
+  "attempts": 1,
+  "classification": "A separate smoke/oracle boundary is now reached; not enough runtime evidence to claim either a failed or successful toggle transaction.",
+  "environment": {
+    "ro.boot.qemu.avd_name": "mixer_20261107_effective_motion_dnz4q8kb",
+    "ro.build.fingerprint": "google/sdk_gphone64_arm64/emu64a:17/CE2A.260420.019/15611780:userdebug/dev-keys",
+    "ro.build.version.release": "17",
+    "ro.build.version.sdk": "37",
+    "ro.kernel.qemu": "1",
+    "ro.product.cpu.abi": "arm64-v8a",
+    "ro.product.model": "sdk_gphone64_arm64"
+  },
+  "evidence": [
+    "canonical-instrumentation.log",
+    "app-logcat-before-startup.log",
+    "receipt.json",
+    "canonical-inputs/native/android/tests/NativeCoordinatorV2IntegrationInstrumentation.java"
+  ],
+  "failure": "java.lang.AssertionError: actual native click accepted",
+  "failureLocation": "native/android/tests/NativeCoordinatorV2IntegrationInstrumentation.java:112",
+  "failureStage": "runtime-toggle-oracle",
+  "nextExecutableGate": "Canonical native-owner initial/pause/resume/toggle smoke with exact new source pair; investigate click-return contract while retaining packet revision, Swift value and native checked-state postconditions.",
+  "noFurtherNativeAttempt": true,
+  "notReached": [
+    "decode post-click packet",
+    "assert document revision advanced",
+    "assert Swift toggle value changed",
+    "assert native checked state agrees with committed packet",
+    "final post-toggle pause assertion"
+  ],
+  "observed": "NativeSwitch.performClick() returned false. Failure snapshot: LIVE owner epoch9, draw/input allowed, committed packet, live nonretired observer and coordinator, session1, no primary/fatal owner failure.",
+  "passedStages": [
+    "initial-presentation (100 x 20ms maximum)",
+    "initial native JNI/Swift committed checklist packet contains task.1",
+    "post-pause-presentation (100 x 20ms maximum)",
+    "post-resume-presentation (100 x 20ms maximum)",
+    "environment-only refresh retains exact packet reference and bytes",
+    "attached/shown/enabled/window-focused native Switch eligibility"
+  ],
+  "readinessBudgetAndPacketToggleAssertions": "Preserved byte-for-byte from parent diagnostic tests; all three awaits executed successfully.",
+  "sourceFollowup": {
+    "hostMismatch": "NativeOwnerV2ConcreteHostLeaves/android/widget/Switch.java returns true unconditionally after calling super.performClick; official CompoundButton docs define the boolean as whether OnClickListener ran. Existing fixture unchanged in this task.",
+    "inference": "The boolean assertion may be an oracle mismatch. This run stopped before post-click packet/value observation, so no accepted toggle outcome is inferred.",
+    "officialURL": "https://developer.android.com/reference/android/widget/CompoundButton#performClick()",
+    "production": "NativeAppearanceViewsV2.NativeSwitch.performClick forwards super.performClick through Mutation.result; only button records install OnClickListener while Switch records use OnCheckedChangeListener."
+  },
+  "status": "effective-motion-initial-capture-unblocked; canonical-smoke-still-fails"
+}

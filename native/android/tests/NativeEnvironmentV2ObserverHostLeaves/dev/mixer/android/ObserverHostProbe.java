@@ -12,6 +12,7 @@ public final class ObserverHostProbe {
     public static Runnable readHook;
     public static float animator=1,contrast,dp=1,sp=17;
     public static boolean highContrast,animatorMissing;
+    public static boolean motionAdd=true,motionRemove=true;
     public static final Object[] executors=new Object[8];
     public static void read(String name,int floor) {
         if(android.os.Build.VERSION.SDK_INT<floor) throw new AssertionError("new API read below floor "+name);
@@ -26,6 +27,7 @@ public final class ObserverHostProbe {
     public static void reset() {
         calls.clear(); reads = tokenReads = 0;
         readCounts.clear();failingRead=null;readFailure=null;readHook=null;
+        motionAdd=motionRemove=true;
         animator=1;contrast=0;dp=1;sp=17;highContrast=false;animatorMissing=false;
         java.util.Arrays.fill(executors,null);
         android.os.Build.VERSION.SDK_INT=36;

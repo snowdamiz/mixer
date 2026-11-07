@@ -1,0 +1,100 @@
+--- check-android-generated-java.py.before
++++ check-android-generated-java.py
+@@ -12,6 +12,7 @@
+ import json
+ import os
+ from pathlib import Path
++import plistlib
+ import selectors
+ import shutil
+ import signal
+@@ -29,6 +30,7 @@
+ MODES = ('debug', 'release')
+ FORMS = ('original', 'relocated', 'exported')
+ PRODUCER_JOBS = 2
++JAVAP_STDOUT_BYTES = 8_388_608
+ 
+ 
+ def require(condition, message):
+@@ -174,13 +176,20 @@
+     def custody_terminal(self):
+         return bool(self.records) and all(r['terminal_custody'] for r in self.records)
+ 
+-    def run(self, label, argv, *, cwd=ROOT, expected_failure=False, diagnostics=False):
++    def run(self, label, argv, *, cwd=ROOT, expected_failure=False, diagnostics=False,
++            stdout_bytes=None):
++        require(stdout_bytes is None or type(stdout_bytes) is int and 0 < stdout_bytes <= JAVAP_STDOUT_BYTES,
++                'Invalid explicit stdout budget')
++        stream_limits = {'stdout': self.output_bytes if stdout_bytes is None else stdout_bytes,
++                         'stderr': self.output_bytes}
+         require(len(self.records) < 160, 'Command count budget exhausted')
+         require(time.monotonic() < self.deadline, 'Run time budget exhausted')
+         require(not self.records or self.custody_terminal(), 'Prior command custody remains unknown')
+         argv = list(map(str, argv))
+         number = len(self.records)
+         record = {'label': label, 'argv': argv, 'cwd': str(cwd), 'exit_code': None,
++                  'stream_output_limits': stream_limits, 'total_output_limit': self.total_output_bytes,
++                  'output_bytes_before': self.used_output,
+                   'started_utc': datetime.now(timezone.utc).isoformat(), 'stop': None,
+                   'pid': None, 'owned_pgid': None, 'direct_child_reaped': False,
+                   'stdout_eof': False, 'stderr_eof': False, 'owned_group_absent': False,
+@@ -209,7 +218,7 @@
+                 if selector is not None and pipe.fileno() in selector.get_map():
+                     selector.unregister(pipe)
+                 return
+-            room = min(self.output_bytes - len(buffers[name]),
++            room = min(stream_limits[name] - len(buffers[name]),
+                        self.total_output_bytes - self.used_output)
+             kept = chunk[:max(room, 0)]
+             buffers[name].extend(kept)
+@@ -370,7 +379,7 @@
+     require(all(p.relative_to(classes).as_posix().startswith('dev/mixer/android/') for p in class_files),
+             'Unexpected emitted class package')
+     javap_argv = [jdk / 'bin/javap', '-v', '-p', '-c', '-s', *class_files]
+-    member_dump = run(label + '-javap-members', javap_argv)
++    member_dump = run(label + '-javap-members', javap_argv, stdout_bytes=JAVAP_STDOUT_BYTES)
+     raw = destination / 'member-references.javap.txt'
+     raw.write_bytes(member_dump.encode('utf-8'))
+     references = member_references(member_dump, class_files)
+@@ -483,6 +492,24 @@
+     return paths, env
+ 
+ 
++def apple_producer_provenance(env):
++    selection = {k: env.get(k) for k in ('DEVELOPER_DIR', 'SDKROOT')}
++    require(all(isinstance(v, str) and v and Path(v).is_absolute() for v in selection.values()),
++            'Explicit per-command DEVELOPER_DIR and SDKROOT required for the Apple producer')
++    developer, sdk = (Path(selection[k]).resolve(strict=True) for k in ('DEVELOPER_DIR', 'SDKROOT'))
++    require(developer.is_dir() and sdk.is_dir() and
++            sdk.is_relative_to(developer / 'Platforms/MacOSX.platform/Developer/SDKs'),
++            'Apple producer SDK must belong to the selected developer directory')
++    version_file, settings_file = developer.parent / 'version.plist', sdk / 'SDKSettings.json'
++    version, settings = plistlib.loads(version_file.read_bytes()), unique_json(settings_file.read_text())
++    require(settings['CanonicalName'].startswith('macosx'), 'Apple producer requires a macOS SDK')
++    return {'selection': selection, 'resolved_developer_dir': str(developer), 'resolved_sdkroot': str(sdk),
++            'xcode_version': version['CFBundleShortVersionString'], 'xcode_build': version['ProductBuildVersion'],
++            'sdk_version': settings['Version'], 'sdk_canonical_name': settings['CanonicalName'],
++            'xcode_version_plist': identity(version_file), 'sdk_settings': identity(settings_file),
++            'selection_scope': 'Child process environment only; no global xcode-select change'}
++
++
+ def source_inputs(profile):
+     paths = {Path(__file__).relative_to(ROOT).as_posix(), POLICY, DRIVER,
+              'scripts/ci/check-android-binding.py'}
+@@ -511,6 +538,7 @@
+         require(sys.platform == 'darwin', 'Canonical Android inspection requires a macOS toolchain host')
+         paths, env = tool_environment(args)
+         receipt['selected_paths'] = {k: str(v) for k, v in paths.items()}
++        receipt['apple_producer'] = apple_producer_provenance(env)
+         commands = Commands(commands_dir, env)
+         run = commands.run
+         receipt['revision'] = run('revision', ['git', 'rev-parse', 'HEAD']).strip()
+@@ -596,6 +624,8 @@
+             receipt['producers'][mode]['dependencies_postflight'] = dependencies.dependency_checkouts(
+                 ROOT / 'cli', build, run, mode + '-post-dependency')
+         require(source_inputs(profile) == initial, 'Owning source changed during integration')
++        require(apple_producer_provenance(env) == receipt['apple_producer'],
++                'Selected Apple producer SDK changed during integration')
+         require(unique_json(run('official-inspect-postflight', [sys.executable, '-B', ROOT / DRIVER, 'inspect'])) == inspection,
+                 'Installed official distributions changed during integration')
+         require(identity(paths['jdk'] / 'bin/javap') == {k: receipt['javap_tool'][k] for k in ('bytes', 'sha256')} and

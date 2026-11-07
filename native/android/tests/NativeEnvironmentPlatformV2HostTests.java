@@ -33,13 +33,15 @@ public final class NativeEnvironmentPlatformV2HostTests {
     private static void sdkMatrix(){
         for(int sdk=28;sdk<=36;sdk++)try(Fixture f=new Fixture()){
             Build.VERSION.SDK_INT=sdk;NativeEnvironmentPlatformV2.Snapshot s=f.snapshot();
-            status(s.frame,KNOWN);status(s.dark,KNOWN);status(s.rtl,KNOWN);status(s.locale,KNOWN);status(s.density1024,KNOWN);status(s.bodyProfile,KNOWN);status(s.animator,KNOWN);
+            status(s.frame,KNOWN);status(s.dark,KNOWN);status(s.rtl,KNOWN);status(s.locale,KNOWN);status(s.density1024,KNOWN);status(s.bodyProfile,KNOWN);status(s.animator,sdk<33?UNAVAILABLE_API:KNOWN);
             status(s.insets,sdk<30?UNAVAILABLE_SEMANTICS:KNOWN);status(s.fontAdjustment,sdk<31?UNAVAILABLE_API:KNOWN);
             status(s.contrast,sdk<34?UNAVAILABLE_API:KNOWN);status(s.highContrast,sdk<36?UNAVAILABLE_API:KNOWN);
             check(ObserverHostProbe.calls.isEmpty(),"diagnostics subscribed");
             check(ObserverHostProbe.readCounts.containsKey("insets")== (sdk>=30),"typed insets branch");
             check(ObserverHostProbe.readCounts.containsKey("contrast")== (sdk>=34),"contrast branch");
             check(ObserverHostProbe.readCounts.containsKey("high")== (sdk>=36),"high branch");
+            check(ObserverHostProbe.readCounts.containsKey("animator")== (sdk>=33),"effective animator API branch");
+            if(sdk<33)check(thrown(()->NativeEnvironmentPlatformV2.motionListener(()->{})) instanceof IllegalStateException,"early motion handle");
             if(sdk<34)check(thrown(()->NativeEnvironmentPlatformV2.contrastListener(f.activity,()->{})) instanceof IllegalStateException,"early contrast handle");
             if(sdk<36){check(thrown(()->NativeEnvironmentPlatformV2.highContrastListener(f.activity,()->{})) instanceof IllegalStateException,"early high handle");check(thrown(f::open) instanceof AppearanceDescriptorV2.Failure,"pre36 admission opened");check(ObserverHostProbe.calls.isEmpty(),"pre36 admission acquired");}
             else{f.open();check(f.observer.capture().current(f.renderer),"known neutral API36");}
@@ -65,7 +67,9 @@ public final class NativeEnvironmentPlatformV2HostTests {
             for(float value:new float[]{-1,0,1}){ObserverHostProbe.contrast=value;status(f.snapshot().contrast,KNOWN);check(f.snapshot().contrast.value==value,"contrast fabricated");cases++;}
             for(float value:new float[]{-1,Float.NaN,Float.NEGATIVE_INFINITY,Float.POSITIVE_INFINITY}){ObserverHostProbe.animator=value;status(f.snapshot().animator,UNDEFINED);cases++;}
             for(float value:new float[]{0,.25f,1,100}){ObserverHostProbe.animator=value;status(f.snapshot().animator,KNOWN);check(f.snapshot().animator.value==value,"motion fabricated");cases++;}
-            ObserverHostProbe.animatorMissing=true;status(f.snapshot().animator,UNDEFINED);cases++;
+            ObserverHostProbe.animatorMissing=true;
+            for(float value:new float[]{0,.25f,1,100}){ObserverHostProbe.animator=value;status(f.snapshot().animator,KNOWN);check(f.snapshot().animator.value==value,"missing raw row changed effective scale");cases++;}
+            check(!ObserverHostProbe.readCounts.containsKey("rawAnimator"),"raw row consulted");
         }
         for(String invalid:List.of("","\u0000","\u202e","\ud800","\udc00","x".repeat(129),"é".repeat(65))){
             try{Method m=NativeEnvironmentPlatformV2.class.getDeclaredMethod("validLocale",String.class);m.setAccessible(true);check(!(Boolean)m.invoke(null,invalid),"bad Unicode locale accepted");}catch(ReflectiveOperationException e){throw new AssertionError(e);}cases++;
@@ -115,7 +119,7 @@ public final class NativeEnvironmentPlatformV2HostTests {
             f->f.activity.getResources().config.fontWeightAdjustment=1,
             f->ObserverHostProbe.contrast=-1, f->ObserverHostProbe.contrast=1,
             f->ObserverHostProbe.contrast=Float.NaN, f->ObserverHostProbe.highContrast=true,
-            f->ObserverHostProbe.animatorMissing=true, f->ObserverHostProbe.animator=-1,
+            f->ObserverHostProbe.animator=Float.NaN, f->ObserverHostProbe.animator=-1,
             f->f.root.rootInsets=null, f->f.activity.getResources().config.locales.empty=true);
         for(java.util.function.Consumer<Fixture> mutation:rejected)try(Fixture f=new Fixture()){
             f.open();NativeEnvironmentV2 capture=f.observer.capture();int before=ObserverHostProbe.reads;

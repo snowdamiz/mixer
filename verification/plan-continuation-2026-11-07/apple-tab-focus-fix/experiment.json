@@ -1,0 +1,119 @@
+{
+  "GAQualified": false,
+  "bindings": {
+    "acceptedDispatchPacket": {
+      "path": "verification/plan-continuation-2026-11-07/apple-settings-runtime-r2/packet.json",
+      "sha256": "38850f4a1f9fe8326c101d398823249ad25711c9e5113e6ac3bc95891624cef5"
+    },
+    "acceptedRuntimeSourceTreeSHA256": "02e26e6868ef0949c3c0757c0691281817489dabbffa699090a1a2cc88bf2652",
+    "baselineRawManifest": {
+      "path": "verification/plan-continuation-2026-11-07/apple-settings-runtime-r2/raw-artifacts.json",
+      "sha256": "d956310d45f61af5a0628698c3cc7cfc0ac261b4cafd7cf30dbcde6103d7a138"
+    },
+    "candidatePacket": {
+      "path": "verification/plan-continuation-2026-11-07/apple-settings-fix/candidate-packet.json",
+      "sha256": "76d499c09102741e1975ef6dd8a48b7c4b4897c3dc6a5a8fa64dfb7dd2345618"
+    },
+    "compiledSourceTreeSHA256": "f402eba7b6fa8abf2671e3a95441351dace37f291a9d55024232c9112b2720fb",
+    "retainedProducts": {
+      "bytes": 8977170,
+      "path": "verification/apple-passive-lifecycle-sendable-correction/build-attempt-1/products.tar.gz",
+      "sha256": "495f83c4702f7b229be495756f0a524c700f07159c5e21975dea471d118a8904"
+    },
+    "review": {
+      "path": "verification/plan-continuation-2026-11-07/apple-settings-review/handoff.json",
+      "sha256": "c81db0d3c29f21d629f127358178d7592060a1980a4109561fa20fa8082261b6"
+    },
+    "runtimeArchive": {
+      "bytes": 93444,
+      "path": "verification/plan-continuation-2026-11-07/apple-settings-fix/candidate-runtime-sources.tar.gz",
+      "sha256": "4adaecd0194bfef54f293c0939d7489c19f81c8fe5df03dff83439445dacc7e9"
+    },
+    "selectionTemplate": {
+      "bytes": 23870,
+      "path": "verification/plan-continuation-2026-11-07/apple-settings-fix/candidate-selection-template.json",
+      "sha256": "4468517e8ad7b6e8ad7914fe725db1115dbfc0987a15f1fa8f60c9d5009cd202"
+    }
+  },
+  "budget": {
+    "automaticRetry": false,
+    "builds": 0,
+    "originalMaximum": 2,
+    "previouslyConsumed": 1,
+    "proposedNativeAttempts": 1,
+    "remaining": 1
+  },
+  "buildsConsumedByThisTask": 0,
+  "candidateCorrection": "Owned simulator environment only; no source, product, oracle, key injection, focus or timeout changes",
+  "causeProven": false,
+  "environment": {
+    "delta": "Simulator frontend attached to only owned device; documented Connect Hardware Keyboard selected before Settings and kept through Tab",
+    "developerDirectory": "/Applications/Xcode_26.6.app/Contents/Developer",
+    "device": "one new uniquely named root-owned simulator",
+    "deviceType": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+    "frontendCustody": "Capture original host baseline separately; selected frontend identity goes in inner root baselineFrontends; root closes only newly owned frontend/window after inner cleanup and reconciles original baseline.",
+    "proof": "Retain selected-window/device identity and current menu checked state before dispatch. Do not change global preferences or touch other devices.",
+    "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-5",
+    "runtimeBuild": "23F77"
+  },
+  "gate": [
+    "MixerToggleUITests/ToggleUITests/test000PublicSettingsFullKeyboardAccess",
+    "MixerToggleUITests/ToggleUITests/test010ReferenceFirstTab"
+  ],
+  "holds": {
+    "heldPGIDs": [
+      20745,
+      20770,
+      20780,
+      20817,
+      20842,
+      20851,
+      20866,
+      2424
+    ],
+    "heldPID": 2621,
+    "heldV5": "no retry",
+    "hostedLanes": "frozen",
+    "phones": "disconnected",
+    "protectedSimulators": [
+      "CE7E80FC-64BF-41A0-B07B-60F4D8711808",
+      "D55C87E9-F349-49AC-BCD3-3B4B5BE9E010"
+    ]
+  },
+  "hypothesis": "Keeping a simulated hardware keyboard connected prevents scene focus-system teardown during the original XCTest Tab",
+  "nativeAttemptsConsumedByThisTask": 0,
+  "nativeDispatchAuthorized": false,
+  "outcomeRules": {
+    "ineligible": "Connection cannot be verified/isolated or preparation needs unreviewed runtime changes; stop before XCTest and preserve remaining attempt.",
+    "otherFailure": "Focus system remains available but Tab fails: preserve the new failure and distinguish ordering/eligibility from availability; no oracle waiver.",
+    "refutesSufficiency": "Verified connected configuration still loses focus-system availability or fails strict Tab; keep failure, no automatic retry.",
+    "supportsHypothesis": "Settings and original strict Tab pass with stable available focus system and a changed fixed target, official import and cleanup pass. This supports the tested environment correction only."
+  },
+  "requiredReview": "Any new runtime/compiled/launcher packet requires fresh existing source+binding review before dispatch; this proposal waives nothing.",
+  "schema": "mixer.apple-tab-focus-environment-experiment.1",
+  "sequence": [
+    "Parent selects this exact environment experiment and retains original failed baseline.",
+    "Create one fresh owned simulator; boot/open only its window and verify keyboard connection through current public Simulator UI. No preparatory key or touch actions inside the target app.",
+    "Record fresh runID, UUID and concrete source/product/packet identities using existing root selection contract. Do not retry run_r2.py or reuse historical one-attempt markers.",
+    "Run unchanged accepted Settings then original reference-first Tab methods once.",
+    "Export official xcresult and retain before/after app focus, focus-system identities, native AX, key witness, timing and media.",
+    "Perform all five existing cleanup checks, then reconcile outer frontend and original simulator baselines."
+  ],
+  "status": "parent-selection-required",
+  "xctestCommandTemplate": [
+    "/Applications/Xcode_26.6.app/Contents/Developer/usr/bin/xcodebuild",
+    "test-without-building",
+    "-xctestrun",
+    "<fresh reviewed session.xctestrun>",
+    "-destination",
+    "platform=iOS Simulator,id=<fresh owned UUID>",
+    "-parallel-testing-enabled",
+    "NO",
+    "-maximum-concurrent-test-simulator-destinations",
+    "1",
+    "-resultBundlePath",
+    "<fresh owned session.xcresult>",
+    "-only-testing:MixerToggleUITests/ToggleUITests/test000PublicSettingsFullKeyboardAccess",
+    "-only-testing:MixerToggleUITests/ToggleUITests/test010ReferenceFirstTab"
+  ]
+}

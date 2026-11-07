@@ -2,11 +2,9 @@ package dev.mixer.android;
 
 import android.app.Activity;
 import android.app.UiModeManager;
-import android.content.ContentResolver;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
-import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
@@ -135,13 +133,7 @@ final class NativeEnvironmentPlatformV2 {
             config.status!=Status.KNOWN ? missing(config) : attempt(() -> Api31.weight(config.value));
         Observed<Float> contrast=Build.VERSION.SDK_INT<34 ? absent(Status.UNAVAILABLE_API,"system contrast requires API34") : attempt(() -> Api34.contrast(activity));
         Observed<Boolean> high=Build.VERSION.SDK_INT<36 ? absent(Status.UNAVAILABLE_API,"high contrast requires API36") : attempt(() -> Api36.highContrast(activity));
-        Observed<Float> animator=attempt(() -> {
-            ContentResolver resolver=Objects.requireNonNull(activity.getContentResolver());
-            final float value;
-            try { value=Settings.Global.getFloat(resolver,Settings.Global.ANIMATOR_DURATION_SCALE); }
-            catch (Settings.SettingNotFoundException missing) { return absent(Status.UNDEFINED,"missing or nonnumeric animator scale"); }
-            return Float.isFinite(value) && value>=0 ? known(value) : absent(Status.UNDEFINED,"invalid animator scale");
-        });
+        Observed<Float> animator=Build.VERSION.SDK_INT<33 ? absent(Status.UNAVAILABLE_API,"effective animator scale requires API33") : attempt(Api33::animator);
         return new Snapshot(frame,dark,rtl,locale,density,body,insets,weight,contrast,high,animator);
     }
     private static boolean validLocale(String value) {
@@ -161,6 +153,11 @@ final class NativeEnvironmentPlatformV2 {
     }
     /** Immutable exact target/listener/executor; only Observer decides when add/remove is attempted. */
     interface Listener { void add(); void remove(); }
+    static Listener motionListener(Runnable changed) {
+        NativeEnvironmentV2.requireMain();
+        if(Build.VERSION.SDK_INT<33) throw new IllegalStateException("effective animator listener requires API33");
+        return new Api33(Objects.requireNonNull(changed));
+    }
     static Listener contrastListener(Activity activity, Runnable changed) {
         if(Build.VERSION.SDK_INT<34) throw new IllegalStateException("contrast listener requires API34");
         return Api34.listener(activity,changed);
@@ -183,6 +180,24 @@ final class NativeEnvironmentPlatformV2 {
         static Observed<Integer> weight(Configuration config) {
             int value=config.fontWeightAdjustment;
             return value==Configuration.FONT_WEIGHT_ADJUSTMENT_UNDEFINED ? absent(Status.UNDEFINED,"undefined font adjustment") : known(value);
+        }
+    }
+    private static final class Api33 implements Listener {
+        private final android.animation.ValueAnimator.DurationScaleChangeListener listener;
+        private Api33(Runnable changed) { listener=ignored -> changed.run(); }
+        static Observed<Float> animator() {
+            float value=android.animation.ValueAnimator.getDurationScale();
+            return Float.isFinite(value) && value>=0 ? known(value) : absent(Status.UNDEFINED,"invalid effective animator scale");
+        }
+        public void add() {
+            NativeEnvironmentV2.requireMain();
+            if(!android.animation.ValueAnimator.registerDurationScaleChangeListener(listener))
+                throw new IllegalStateException("effective animator listener registration failed");
+        }
+        public void remove() {
+            NativeEnvironmentV2.requireMain();
+            if(!android.animation.ValueAnimator.unregisterDurationScaleChangeListener(listener))
+                throw new IllegalStateException("effective animator listener removal failed");
         }
     }
     private static final class Api34 implements Listener {

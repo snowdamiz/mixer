@@ -1,0 +1,130 @@
+--- test_android_generated_java_runner.py.before
++++ test_android_generated_java_runner.py
+@@ -5,6 +5,7 @@
+ import json
+ import os
+ from pathlib import Path
++import plistlib
+ import signal
+ import subprocess
+ import sys
+@@ -173,8 +174,10 @@
+                      omit_member_class=False, omit_members=False):
+         root, profile, _, _ = self.consumer()
+         calls = []
+-        def run(label, argv):
++        def run(label, argv, **options):
+             calls.append((label, argv))
++            self.assertEqual(options, {'stdout_bytes': M.JAVAP_STDOUT_BYTES}
++                             if label.endswith('-javap-members') else {})
+             if label.endswith('-javac'):
+                 self.assertEqual(argv[1:9], ['--release', '17', '-Xlint:all', '-Werror',
+                                            '-proc:none', '-sourcepath', '', '-classpath'])
+@@ -331,6 +334,65 @@
+         with self.assertRaisesRegex(RuntimeError, 'output-limit'):
+             commands.run('second', [sys.executable, '-B', '-c', 'print("abc")'])
+         self.assertEqual(commands.used_output, 6)
++
++    def test_explicit_stdout_budget_captures_complete_large_output_without_changing_defaults(self):
++        commands = M.Commands(self.root, os.environ.copy(), seconds=15, command_seconds=2)
++        self.assertEqual(commands.output_bytes, 4_194_304)
++        self.assertEqual(commands.total_output_bytes, 67_108_864)
++        size = 4_194_305
++        output = commands.run('large-inventory', [sys.executable, '-B', '-c',
++            'import sys; sys.stdout.buffer.write(b"x"*' + str(size) + ')'],
++            stdout_bytes=M.JAVAP_STDOUT_BYTES)
++        self.assertEqual(output, 'x' * size)
++        self.terminal_record(commands.records[-1])
++        self.assertEqual(commands.records[-1]['stream_output_limits'],
++                         {'stdout': 8_388_608, 'stderr': 4_194_304})
++        with self.assertRaisesRegex(RuntimeError, 'output-limit'):
++            commands.run('default-still-bounded', [sys.executable, '-B', '-c',
++                'import sys; sys.stdout.buffer.write(b"x"*' + str(size) + ')'])
++        self.assertEqual(commands.records[-1]['logs']['stdout']['bytes'], 4_194_304)
++        self.terminal_record(commands.records[-1])
++
++    def test_javap_stdout_ceiling_refuses_one_extra_byte_without_silent_success(self):
++        commands = M.Commands(self.root, os.environ.copy(), seconds=15, command_seconds=2)
++        with self.assertRaisesRegex(RuntimeError, 'output-limit'):
++            commands.run('javap-budget-overflow', [sys.executable, '-B', '-c',
++                'import sys; sys.stdout.buffer.write(b"x"*' + str(M.JAVAP_STDOUT_BYTES + 1) + ')'],
++                stdout_bytes=M.JAVAP_STDOUT_BYTES)
++        record = commands.records[-1]
++        self.assertEqual(record['logs']['stdout']['bytes'], M.JAVAP_STDOUT_BYTES)
++        self.assertEqual(record['stop'], 'output-limit')
++        self.terminal_record(record)
++
++    def test_stdout_override_is_exact_and_does_not_expand_stderr_or_aggregate(self):
++        commands = M.Commands(self.root, os.environ.copy(), seconds=15, command_seconds=2,
++                              output_bytes=16, total_output_bytes=100)
++        self.assertEqual(commands.run('exact', [sys.executable, '-B', '-c',
++            'import os; os.write(1,b"x"*32)'], stdout_bytes=32), 'x' * 32)
++        with self.assertRaisesRegex(RuntimeError, 'output-limit'):
++            commands.run('one-over', [sys.executable, '-B', '-c',
++                'import os; os.write(1,b"x"*33)'], stdout_bytes=32)
++        self.assertEqual(commands.records[-1]['logs']['stdout']['bytes'], 32)
++        self.terminal_record(commands.records[-1])
++        with self.assertRaisesRegex(RuntimeError, 'output-limit'):
++            commands.run('stderr-default', [sys.executable, '-B', '-c',
++                'import os; os.write(2,b"e"*17)'], stdout_bytes=32)
++        self.assertEqual(commands.records[-1]['logs']['stderr']['bytes'], 16)
++        self.terminal_record(commands.records[-1])
++        with self.assertRaisesRegex(RuntimeError, 'output-limit'):
++            commands.run('aggregate', [sys.executable, '-B', '-c',
++                'import os; os.write(1,b"x"*32)'], stdout_bytes=32)
++        self.assertEqual(commands.used_output, 100)
++        self.assertEqual(commands.records[-1]['logs']['stdout']['bytes'], 20)
++        self.terminal_record(commands.records[-1])
++
++    def test_invalid_stdout_budgets_fail_before_spawning(self):
++        commands = self.commands()
++        with mock.patch.object(M.subprocess, 'Popen', side_effect=AssertionError('unexpected child')):
++            for value in (0, -1, True, 1.5, '8000000', M.JAVAP_STDOUT_BYTES + 1):
++                with self.subTest(value=value), self.assertRaisesRegex(RuntimeError, 'Invalid explicit stdout budget'):
++                    commands.run('invalid', ['unused'], stdout_bytes=value)
++        self.assertEqual(commands.records, [])
+ 
+     def test_exited_fake_parent_with_inherited_pipes_cannot_hang_runner(self):
+         commands = M.Commands(self.root, os.environ.copy(), seconds=3, command_seconds=0.3, cleanup_seconds=0.2)
+@@ -552,6 +614,7 @@
+         def commands(*args, **kwargs):
+             return real_commands(*args, **kwargs, cleanup_seconds=0.1)
+         with mock.patch.object(M, 'tool_environment', return_value=(paths, {})), \
++             mock.patch.object(M, 'apple_producer_provenance', return_value={'fake_boundary': True}), \
+              mock.patch.object(M.sys, 'platform', 'darwin'), \
+              mock.patch.object(M.Commands, 'run', run), \
+              mock.patch.object(M, 'Commands', side_effect=commands):
+@@ -638,6 +701,33 @@
+         self.assertEqual(env['MIXER_SWIFT'], str(launcher))
+         self.assertEqual(env['PATH'].split(os.pathsep)[0], str(launcher.parent))
+ 
++    def test_apple_producer_selection_is_explicit_scoped_and_records_metadata(self):
++        developer = self.root / 'Xcode.app/Contents/Developer'
++        sdk = developer / 'Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk'
++        sdk.mkdir(parents=True)
++        version = developer.parent / 'version.plist'
++        version.write_bytes(plistlib.dumps({'CFBundleShortVersionString': '26.6', 'ProductBuildVersion': 'test-only'}))
++        settings = sdk / 'SDKSettings.json'
++        M.save(settings, {'CanonicalName': 'macosx26.5', 'Version': '26.5'})
++        env = {'DEVELOPER_DIR': str(developer), 'SDKROOT': str(sdk)}
++        original = os.environ.copy()
++        with mock.patch.object(M.subprocess, 'Popen', side_effect=AssertionError('unexpected child')):
++            result = M.apple_producer_provenance(env)
++            self.assertEqual(result['selection'], env)
++            self.assertEqual(result['xcode_version'], '26.6')
++            self.assertEqual(result['sdk_version'], '26.5')
++            self.assertEqual(result['sdk_settings'], M.identity(settings))
++            self.assertEqual(result['xcode_version_plist'], M.identity(version))
++            for invalid in ({}, {'SDKROOT': str(sdk)}, {'DEVELOPER_DIR': str(developer)},
++                            {'DEVELOPER_DIR': 'relative', 'SDKROOT': str(sdk)}):
++                with self.assertRaisesRegex(RuntimeError, 'Explicit per-command'):
++                    M.apple_producer_provenance(invalid)
++            with self.assertRaisesRegex(RuntimeError, 'must belong'):
++                M.apple_producer_provenance({**env, 'SDKROOT': str(self.root)})
++            M.save(settings, {'CanonicalName': 'macosx26.5', 'Version': 'changed'})
++            self.assertNotEqual(M.apple_producer_provenance(env), result)
++        self.assertEqual(os.environ, original)
++
+     def test_relative_or_incomplete_tool_paths_fail_closed(self):
+         with mock.patch.object(M.subprocess, 'Popen', side_effect=AssertionError('unexpected child')):
+             with self.assertRaisesRegex(RuntimeError, 'must be absolute'):

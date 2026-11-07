@@ -149,7 +149,7 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
             renamed.rename(path)
 
     def test_profile_missing_unknown_mismatched_and_configuration_missing_android_lock(self):
-        for change in ['missing-android', 'legacy', 'profile-1', 'profile-2', 'profile-3', 'profile-4', 'profile-5-current', 'profile-5-prior', 'broader-6-axis', 'profile-6-current', 'proposal-6-suffixed', 'mixed-axis-only', 'mixed-sdk', 'mixed-adapter', 'unknown', 'digest', 'default']:
+        for change in ['missing-android', 'legacy', 'profile-1', 'profile-2', 'profile-3', 'profile-4', 'profile-5-current', 'profile-5-prior', 'broader-6-axis', 'profile-6-current', 'profile-7-current', 'pair8-old-tuple', 'proposal-6-suffixed', 'mixed-axis-only', 'mixed-sdk', 'mixed-adapter', 'unknown', 'digest', 'default']:
             with self.subTest(change=change):
                 self.refresh_lock()
                 value = self.lock_value
@@ -175,6 +175,10 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
                         default_descriptor={'bytes': 9587, 'sha256': '1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3'})
                 elif change == 'profile-6-current':
                     value['android']['profile'].update(id='mixer.android-source-pair.6', adapter_compatibility_sha256='7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885')
+                elif change == 'profile-7-current':
+                    value['android']['profile'].update(id='mixer.android-source-pair.7', adapter_compatibility_sha256='ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e')
+                elif change == 'pair8-old-tuple':
+                    value['android']['profile']['adapter_compatibility_sha256'] = 'ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e'
                 elif change == 'proposal-6-suffixed':
                     value['android']['profile'].update(id='mixer.android-source-pair.6-editor-view-api29-30-bc03288599ec-8cd611a5b07f',
                         adapter_compatibility_sha256='8cd611a5b07fbf96adb270fa30042577789d4b87b252108697003809f00599b4')
@@ -247,12 +251,12 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
         self.assertFalse((self.root / '.mixer').exists())
 
 
-    def test_broader_pair7_profile_preserves_exact_axis_session(self):
-        self.assertEqual(PROFILE['id'], 'mixer.android-source-pair.7')
+    def test_effective_motion_pair8_preserves_exact_axis_session(self):
+        self.assertEqual(PROFILE['id'], 'mixer.android-source-pair.8')
         self.assertEqual(len(PROFILE['sdk_files']), 22)
         self.assertEqual(len(PROFILE['adapter_files']), 24)
         self.assertEqual(PROFILE['sdk_compatibility_sha256'], 'bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0')
-        self.assertEqual(PROFILE['adapter_compatibility_sha256'], 'ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e')
+        self.assertEqual(PROFILE['adapter_compatibility_sha256'], 'a2e1508c6dc0ad714ae3af6d39c334311876456cf577932a530a543480e7c015')
         session = self.adapter / 'Sources/MixerAndroidRuntime/DocumentSession.swift'
         candidate = session.read_bytes()
         self.assertEqual(len(candidate), 4328)
@@ -282,9 +286,23 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
                     self.refresh_lock()
 
 
+    def test_previous_pair7_driver_refuses_effective_motion_sources(self):
+        previous = json.loads(json.dumps(PROFILE))
+        previous['id'] = 'mixer.android-source-pair.7'
+        previous['adapter_compatibility_sha256'] = 'ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e'
+        previous['adapter_files']['app/src/dev/mixer/android/NativeEnvironmentV2.java'] = {'bytes': 15696, 'sha256': '2cff6cc20d1c3c9ae751e217bba3192e315125f438312f29e933d0c79d339eb1'}
+        previous['adapter_files']['app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java'] = {'bytes': 14154, 'sha256': '2f871e9813380b2d645b3ee636f67a7b3eae072f140163e14c7ec7ed60c562b2'}
+        previous_raw = RAW.replace("value['id'] != 'mixer.android-source-pair.8'", "value['id'] != 'mixer.android-source-pair.7'")
+        self.rendered.write_text(previous_raw.replace(MARKER, json.dumps(previous).encode().hex()))
+        self.module = load_driver(self.rendered, 'stale_pair7_' + self.root.name.replace('-', '_'))
+        self.refresh_lock()
+        self.lock_value['android']['profile'] = self.module.profile_lock(previous)
+        (self.root / 'mixer.lock').write_text(json.dumps(self.lock_value))
+        self.reject()
+
     def test_previous_pair6_rendered_driver_refuses_broader_sources_before_output(self):
         # Reconstruct exact canonical6 template/map as data, then reach its stale-map admission.
-        previous_raw = RAW.replace("value['id'] != 'mixer.android-source-pair.7'", "value['id'] != 'mixer.android-source-pair.6'")
+        previous_raw = RAW.replace("value['id'] != 'mixer.android-source-pair.8'", "value['id'] != 'mixer.android-source-pair.6'")
         previous_raw = previous_raw.replace("('adapter', 24)", "('adapter', 23)")
         previous_raw = previous_raw.replace("'-proc:none', '-sourcepath', '', ", "")
         self.assertEqual(hashlib.sha256(previous_raw.encode()).hexdigest(), 'e1e1c57e56d71fe2cadcf9e0b43d8760a5745587f76a8326068a7b8363493a13')
@@ -292,6 +310,8 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
         previous['id'] = 'mixer.android-source-pair.6'
         previous['adapter_compatibility_sha256'] = '7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885'
         previous['adapter_files'].pop('app/src/dev/mixer/android/NativeEditorConnectionV2.java')
+        previous['adapter_files']['app/src/dev/mixer/android/NativeEnvironmentV2.java'] = {'bytes': 15696, 'sha256': '2cff6cc20d1c3c9ae751e217bba3192e315125f438312f29e933d0c79d339eb1'}
+        previous['adapter_files']['app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java'] = {'bytes': 14154, 'sha256': '2f871e9813380b2d645b3ee636f67a7b3eae072f140163e14c7ec7ed60c562b2'}
         previous['adapter_files']['app/src/dev/mixer/android/NativeAppearanceViewsV2.java'] = {'bytes': 81532, 'sha256': 'a217d0b178869f3e5c3fc2d80f30f559a22c76a303195e62bfcb73d3cce91cce'}
         previous['adapter_files']['app/src/dev/mixer/android/NativeCoordinatorV2.java'] = {'bytes': 13468, 'sha256': '16597f90e5f9989404d88a94d35c531a06c964cd9a40dde94cc54c0aaaec5587'}
         previous['adapter_files']['app/src/dev/mixer/android/NativeRenderer.java'] = {'bytes': 47378, 'sha256': 'fa523aa1c9cd2f11a77022b008a5e983c8fda697a93e2a76585c01f79f50d725'}

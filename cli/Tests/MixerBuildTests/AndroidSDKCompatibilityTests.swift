@@ -51,9 +51,9 @@ private func allAdmissionEntrypoints(_ root: URL, code: String = "android.sdk-co
 
 @Test func androidCompatibilityLinkedSDKAndTypedDefaultMatchCompiledPolicy() throws {
     let p = AndroidSDKCompatibility.profile
-    #expect(p.id == "mixer.android-source-pair.7")
+    #expect(p.id == "mixer.android-source-pair.8")
     #expect(p.sdk_compatibility_sha256 == "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0")
-    #expect(p.adapter_compatibility_sha256 == "ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e")
+    #expect(p.adapter_compatibility_sha256 == "a2e1508c6dc0ad714ae3af6d39c334311876456cf577932a530a543480e7c015")
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.bytes == 4328)
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.sha256 == "cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7")
     #expect(p.sdk_files.count == 22); #expect(p.adapter_files.count == 24)
@@ -147,7 +147,7 @@ func androidCompatibilityExactInventoryTypeLengthAndHashRefuseBeforeGenericSourc
     }
 }
 
-@Test(arguments: ["missing-file", "missing-lock", "legacy", "profile-1", "profile-2", "profile-3", "profile-4", "profile-5-current", "profile-5-prior", "broader-6-axis", "profile-6-current", "proposal-6-suffixed", "mixed-axis-only", "mixed-sdk", "mixed-adapter", "unknown", "digest", "default"])
+@Test(arguments: ["missing-file", "missing-lock", "legacy", "profile-1", "profile-2", "profile-3", "profile-4", "profile-5-current", "profile-5-prior", "broader-6-axis", "profile-6-current", "profile-7-current", "pair8-old-tuple", "proposal-6-suffixed", "mixed-axis-only", "mixed-sdk", "mixed-adapter", "unknown", "digest", "default"])
 func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(_ change: String) throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-profile-lock-\(UUID().uuidString)")
     defer { try? FileManager.default.removeItem(at: root) }
@@ -176,6 +176,11 @@ func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(
     case "profile-6-current":
         lock.android?.profile?.id = "mixer.android-source-pair.6"
         lock.android?.profile?.adapter_compatibility_sha256 = "7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885"
+    case "profile-7-current":
+        lock.android?.profile?.id = "mixer.android-source-pair.7"
+        lock.android?.profile?.adapter_compatibility_sha256 = "ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e"
+    case "pair8-old-tuple":
+        lock.android?.profile?.adapter_compatibility_sha256 = "ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e"
     case "proposal-6-suffixed":
         lock.android?.profile?.id = "mixer.android-source-pair.6-editor-view-api29-30-bc03288599ec-8cd611a5b07f"
         lock.android?.profile?.adapter_compatibility_sha256 = "8cd611a5b07fbf96adb270fa30042577789d4b87b252108697003809f00599b4"

@@ -1,0 +1,619 @@
+diff --git a/cli/Sources/MixerBuild/AndroidSDKCompatibility.swift b/cli/Sources/MixerBuild/AndroidSDKCompatibility.swift
+index d3a125ae4..1bf025fb1 100644
+--- a/cli/Sources/MixerBuild/AndroidSDKCompatibility.swift
++++ b/cli/Sources/MixerBuild/AndroidSDKCompatibility.swift
+@@ -73,7 +73,7 @@ enum AndroidSDKCompatibility {
+     static let profile: AndroidSDKProfile = {
+         try! JSONDecoder().decode(AndroidSDKProfile.self, from: Data(#"""
+         {
+-          "adapter_compatibility_sha256": "ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e",
++          "adapter_compatibility_sha256": "a2e1508c6dc0ad714ae3af6d39c334311876456cf577932a530a543480e7c015",
+           "adapter_files": {
+             "Sources/MixerAndroidRuntime/DocumentSession.swift": {
+               "bytes": 4328,
+@@ -132,12 +132,12 @@ enum AndroidSDKCompatibility {
+               "sha256": "b0cf2beb17ed46c57466eadddfcef14c4bf56dd57b6060d9e1fe801a21726c97"
+             },
+             "app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java": {
+-              "bytes": 14154,
+-              "sha256": "2f871e9813380b2d645b3ee636f67a7b3eae072f140163e14c7ec7ed60c562b2"
++              "bytes": 15032,
++              "sha256": "04173e90ffb79ea87f9553691c95e26dbf627f5d269b60630daa7871eec793c6"
+             },
+             "app/src/dev/mixer/android/NativeEnvironmentV2.java": {
+-              "bytes": 15696,
+-              "sha256": "2cff6cc20d1c3c9ae751e217bba3192e315125f438312f29e933d0c79d339eb1"
++              "bytes": 15229,
++              "sha256": "7a072fbf56ed128ffe2f580195a6856afc8cf34c31585e1a61443c0f7d84e119"
+             },
+             "app/src/dev/mixer/android/NativeOwnerV2.java": {
+               "bytes": 23743,
+@@ -176,7 +176,7 @@ enum AndroidSDKCompatibility {
+             "bytes": 9587,
+             "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
+           },
+-          "id": "mixer.android-source-pair.7",
++          "id": "mixer.android-source-pair.8",
+           "schema": 1,
+           "sdk_compatibility_sha256": "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0",
+           "sdk_files": {
+diff --git a/cli/Sources/MixerBuild/Resources/android-build.py b/cli/Sources/MixerBuild/Resources/android-build.py
+index 7c2e24b4a..e66a1ef1a 100644
+--- a/cli/Sources/MixerBuild/Resources/android-build.py
++++ b/cli/Sources/MixerBuild/Resources/android-build.py
+@@ -99,7 +99,7 @@ def source_profile():
+         value = json.loads(bytes.fromhex(SOURCE_PROFILE_HEX), object_pairs_hook=unique)
+         keys = {'schema', 'id', 'sdk_compatibility_sha256', 'adapter_compatibility_sha256',
+                 'default_descriptor', 'sdk_files', 'adapter_files', 'wire'}
+-        if not isinstance(value, dict) or set(value) != keys or type(value['schema']) is not int or value['schema'] != 1 or value['id'] != 'mixer.android-source-pair.7':
++        if not isinstance(value, dict) or set(value) != keys or type(value['schema']) is not int or value['schema'] != 1 or value['id'] != 'mixer.android-source-pair.8':
+             raise ValueError('unsupported profile shape/id')
+         def identity(item):
+             return (isinstance(item, dict) and set(item) == {'bytes', 'sha256'} and
+diff --git a/cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift b/cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift
+index 20b601c80..8568bdec1 100644
+--- a/cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift
++++ b/cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift
+@@ -51,9 +51,9 @@ private func allAdmissionEntrypoints(_ root: URL, code: String = "android.sdk-co
+ 
+ @Test func androidCompatibilityLinkedSDKAndTypedDefaultMatchCompiledPolicy() throws {
+     let p = AndroidSDKCompatibility.profile
+-    #expect(p.id == "mixer.android-source-pair.7")
++    #expect(p.id == "mixer.android-source-pair.8")
+     #expect(p.sdk_compatibility_sha256 == "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0")
+-    #expect(p.adapter_compatibility_sha256 == "ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e")
++    #expect(p.adapter_compatibility_sha256 == "a2e1508c6dc0ad714ae3af6d39c334311876456cf577932a530a543480e7c015")
+     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.bytes == 4328)
+     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.sha256 == "cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7")
+     #expect(p.sdk_files.count == 22); #expect(p.adapter_files.count == 24)
+@@ -147,7 +147,7 @@ func androidCompatibilityExactInventoryTypeLengthAndHashRefuseBeforeGenericSourc
+     }
+ }
+ 
+-@Test(arguments: ["missing-file", "missing-lock", "legacy", "profile-1", "profile-2", "profile-3", "profile-4", "profile-5-current", "profile-5-prior", "broader-6-axis", "profile-6-current", "proposal-6-suffixed", "mixed-axis-only", "mixed-sdk", "mixed-adapter", "unknown", "digest", "default"])
++@Test(arguments: ["missing-file", "missing-lock", "legacy", "profile-1", "profile-2", "profile-3", "profile-4", "profile-5-current", "profile-5-prior", "broader-6-axis", "profile-6-current", "profile-7-current", "pair8-old-tuple", "proposal-6-suffixed", "mixed-axis-only", "mixed-sdk", "mixed-adapter", "unknown", "digest", "default"])
+ func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(_ change: String) throws {
+     let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-profile-lock-\(UUID().uuidString)")
+     defer { try? FileManager.default.removeItem(at: root) }
+@@ -176,6 +176,11 @@ func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(
+     case "profile-6-current":
+         lock.android?.profile?.id = "mixer.android-source-pair.6"
+         lock.android?.profile?.adapter_compatibility_sha256 = "7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885"
++    case "profile-7-current":
++        lock.android?.profile?.id = "mixer.android-source-pair.7"
++        lock.android?.profile?.adapter_compatibility_sha256 = "ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e"
++    case "pair8-old-tuple":
++        lock.android?.profile?.adapter_compatibility_sha256 = "ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e"
+     case "proposal-6-suffixed":
+         lock.android?.profile?.id = "mixer.android-source-pair.6-editor-view-api29-30-bc03288599ec-8cd611a5b07f"
+         lock.android?.profile?.adapter_compatibility_sha256 = "8cd611a5b07fbf96adb270fa30042577789d4b87b252108697003809f00599b4"
+diff --git a/cli/build-tests/test_android_sdk_compatibility.py b/cli/build-tests/test_android_sdk_compatibility.py
+index 69ae196fb..a69e8cbfc 100644
+--- a/cli/build-tests/test_android_sdk_compatibility.py
++++ b/cli/build-tests/test_android_sdk_compatibility.py
+@@ -149,7 +149,7 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
+             renamed.rename(path)
+ 
+     def test_profile_missing_unknown_mismatched_and_configuration_missing_android_lock(self):
+-        for change in ['missing-android', 'legacy', 'profile-1', 'profile-2', 'profile-3', 'profile-4', 'profile-5-current', 'profile-5-prior', 'broader-6-axis', 'profile-6-current', 'proposal-6-suffixed', 'mixed-axis-only', 'mixed-sdk', 'mixed-adapter', 'unknown', 'digest', 'default']:
++        for change in ['missing-android', 'legacy', 'profile-1', 'profile-2', 'profile-3', 'profile-4', 'profile-5-current', 'profile-5-prior', 'broader-6-axis', 'profile-6-current', 'profile-7-current', 'pair8-old-tuple', 'proposal-6-suffixed', 'mixed-axis-only', 'mixed-sdk', 'mixed-adapter', 'unknown', 'digest', 'default']:
+             with self.subTest(change=change):
+                 self.refresh_lock()
+                 value = self.lock_value
+@@ -175,6 +175,10 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
+                         default_descriptor={'bytes': 9587, 'sha256': '1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3'})
+                 elif change == 'profile-6-current':
+                     value['android']['profile'].update(id='mixer.android-source-pair.6', adapter_compatibility_sha256='7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885')
++                elif change == 'profile-7-current':
++                    value['android']['profile'].update(id='mixer.android-source-pair.7', adapter_compatibility_sha256='ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e')
++                elif change == 'pair8-old-tuple':
++                    value['android']['profile']['adapter_compatibility_sha256'] = 'ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e'
+                 elif change == 'proposal-6-suffixed':
+                     value['android']['profile'].update(id='mixer.android-source-pair.6-editor-view-api29-30-bc03288599ec-8cd611a5b07f',
+                         adapter_compatibility_sha256='8cd611a5b07fbf96adb270fa30042577789d4b87b252108697003809f00599b4')
+@@ -247,12 +251,12 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
+         self.assertFalse((self.root / '.mixer').exists())
+ 
+ 
+-    def test_broader_pair7_profile_preserves_exact_axis_session(self):
+-        self.assertEqual(PROFILE['id'], 'mixer.android-source-pair.7')
++    def test_effective_motion_pair8_preserves_exact_axis_session(self):
++        self.assertEqual(PROFILE['id'], 'mixer.android-source-pair.8')
+         self.assertEqual(len(PROFILE['sdk_files']), 22)
+         self.assertEqual(len(PROFILE['adapter_files']), 24)
+         self.assertEqual(PROFILE['sdk_compatibility_sha256'], 'bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0')
+-        self.assertEqual(PROFILE['adapter_compatibility_sha256'], 'ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e')
++        self.assertEqual(PROFILE['adapter_compatibility_sha256'], 'a2e1508c6dc0ad714ae3af6d39c334311876456cf577932a530a543480e7c015')
+         session = self.adapter / 'Sources/MixerAndroidRuntime/DocumentSession.swift'
+         candidate = session.read_bytes()
+         self.assertEqual(len(candidate), 4328)
+@@ -282,9 +286,23 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
+                     self.refresh_lock()
+ 
+ 
++    def test_previous_pair7_driver_refuses_effective_motion_sources(self):
++        previous = json.loads(json.dumps(PROFILE))
++        previous['id'] = 'mixer.android-source-pair.7'
++        previous['adapter_compatibility_sha256'] = 'ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e'
++        previous['adapter_files']['app/src/dev/mixer/android/NativeEnvironmentV2.java'] = {'bytes': 15696, 'sha256': '2cff6cc20d1c3c9ae751e217bba3192e315125f438312f29e933d0c79d339eb1'}
++        previous['adapter_files']['app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java'] = {'bytes': 14154, 'sha256': '2f871e9813380b2d645b3ee636f67a7b3eae072f140163e14c7ec7ed60c562b2'}
++        previous_raw = RAW.replace("value['id'] != 'mixer.android-source-pair.8'", "value['id'] != 'mixer.android-source-pair.7'")
++        self.rendered.write_text(previous_raw.replace(MARKER, json.dumps(previous).encode().hex()))
++        self.module = load_driver(self.rendered, 'stale_pair7_' + self.root.name.replace('-', '_'))
++        self.refresh_lock()
++        self.lock_value['android']['profile'] = self.module.profile_lock(previous)
++        (self.root / 'mixer.lock').write_text(json.dumps(self.lock_value))
++        self.reject()
++
+     def test_previous_pair6_rendered_driver_refuses_broader_sources_before_output(self):
+         # Reconstruct exact canonical6 template/map as data, then reach its stale-map admission.
+-        previous_raw = RAW.replace("value['id'] != 'mixer.android-source-pair.7'", "value['id'] != 'mixer.android-source-pair.6'")
++        previous_raw = RAW.replace("value['id'] != 'mixer.android-source-pair.8'", "value['id'] != 'mixer.android-source-pair.6'")
+         previous_raw = previous_raw.replace("('adapter', 24)", "('adapter', 23)")
+         previous_raw = previous_raw.replace("'-proc:none', '-sourcepath', '', ", "")
+         self.assertEqual(hashlib.sha256(previous_raw.encode()).hexdigest(), 'e1e1c57e56d71fe2cadcf9e0b43d8760a5745587f76a8326068a7b8363493a13')
+@@ -292,6 +310,8 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
+         previous['id'] = 'mixer.android-source-pair.6'
+         previous['adapter_compatibility_sha256'] = '7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885'
+         previous['adapter_files'].pop('app/src/dev/mixer/android/NativeEditorConnectionV2.java')
++        previous['adapter_files']['app/src/dev/mixer/android/NativeEnvironmentV2.java'] = {'bytes': 15696, 'sha256': '2cff6cc20d1c3c9ae751e217bba3192e315125f438312f29e933d0c79d339eb1'}
++        previous['adapter_files']['app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java'] = {'bytes': 14154, 'sha256': '2f871e9813380b2d645b3ee636f67a7b3eae072f140163e14c7ec7ed60c562b2'}
+         previous['adapter_files']['app/src/dev/mixer/android/NativeAppearanceViewsV2.java'] = {'bytes': 81532, 'sha256': 'a217d0b178869f3e5c3fc2d80f30f559a22c76a303195e62bfcb73d3cce91cce'}
+         previous['adapter_files']['app/src/dev/mixer/android/NativeCoordinatorV2.java'] = {'bytes': 13468, 'sha256': '16597f90e5f9989404d88a94d35c531a06c964cd9a40dde94cc54c0aaaec5587'}
+         previous['adapter_files']['app/src/dev/mixer/android/NativeRenderer.java'] = {'bytes': 47378, 'sha256': 'fa523aa1c9cd2f11a77022b008a5e983c8fda697a93e2a76585c01f79f50d725'}
+diff --git a/native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java b/native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java
+index 3b2b0a72e..5f87f9a31 100644
+--- a/native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java
++++ b/native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java
+@@ -2,11 +2,9 @@ package dev.mixer.android;
+ 
+ import android.app.Activity;
+ import android.app.UiModeManager;
+-import android.content.ContentResolver;
+ import android.content.res.Configuration;
+ import android.content.res.Resources;
+ import android.os.Build;
+-import android.provider.Settings;
+ import android.util.DisplayMetrics;
+ import android.util.TypedValue;
+ import android.view.View;
+@@ -135,13 +133,7 @@ final class NativeEnvironmentPlatformV2 {
+             config.status!=Status.KNOWN ? missing(config) : attempt(() -> Api31.weight(config.value));
+         Observed<Float> contrast=Build.VERSION.SDK_INT<34 ? absent(Status.UNAVAILABLE_API,"system contrast requires API34") : attempt(() -> Api34.contrast(activity));
+         Observed<Boolean> high=Build.VERSION.SDK_INT<36 ? absent(Status.UNAVAILABLE_API,"high contrast requires API36") : attempt(() -> Api36.highContrast(activity));
+-        Observed<Float> animator=attempt(() -> {
+-            ContentResolver resolver=Objects.requireNonNull(activity.getContentResolver());
+-            final float value;
+-            try { value=Settings.Global.getFloat(resolver,Settings.Global.ANIMATOR_DURATION_SCALE); }
+-            catch (Settings.SettingNotFoundException missing) { return absent(Status.UNDEFINED,"missing or nonnumeric animator scale"); }
+-            return Float.isFinite(value) && value>=0 ? known(value) : absent(Status.UNDEFINED,"invalid animator scale");
+-        });
++        Observed<Float> animator=Build.VERSION.SDK_INT<33 ? absent(Status.UNAVAILABLE_API,"effective animator scale requires API33") : attempt(Api33::animator);
+         return new Snapshot(frame,dark,rtl,locale,density,body,insets,weight,contrast,high,animator);
+     }
+     private static boolean validLocale(String value) {
+@@ -161,6 +153,11 @@ final class NativeEnvironmentPlatformV2 {
+     }
+     /** Immutable exact target/listener/executor; only Observer decides when add/remove is attempted. */
+     interface Listener { void add(); void remove(); }
++    static Listener motionListener(Runnable changed) {
++        NativeEnvironmentV2.requireMain();
++        if(Build.VERSION.SDK_INT<33) throw new IllegalStateException("effective animator listener requires API33");
++        return new Api33(Objects.requireNonNull(changed));
++    }
+     static Listener contrastListener(Activity activity, Runnable changed) {
+         if(Build.VERSION.SDK_INT<34) throw new IllegalStateException("contrast listener requires API34");
+         return Api34.listener(activity,changed);
+@@ -185,6 +182,24 @@ final class NativeEnvironmentPlatformV2 {
+             return value==Configuration.FONT_WEIGHT_ADJUSTMENT_UNDEFINED ? absent(Status.UNDEFINED,"undefined font adjustment") : known(value);
+         }
+     }
++    private static final class Api33 implements Listener {
++        private final android.animation.ValueAnimator.DurationScaleChangeListener listener;
++        private Api33(Runnable changed) { listener=ignored -> changed.run(); }
++        static Observed<Float> animator() {
++            float value=android.animation.ValueAnimator.getDurationScale();
++            return Float.isFinite(value) && value>=0 ? known(value) : absent(Status.UNDEFINED,"invalid effective animator scale");
++        }
++        public void add() {
++            NativeEnvironmentV2.requireMain();
++            if(!android.animation.ValueAnimator.registerDurationScaleChangeListener(listener))
++                throw new IllegalStateException("effective animator listener registration failed");
++        }
++        public void remove() {
++            NativeEnvironmentV2.requireMain();
++            if(!android.animation.ValueAnimator.unregisterDurationScaleChangeListener(listener))
++                throw new IllegalStateException("effective animator listener removal failed");
++        }
++    }
+     private static final class Api34 implements Listener {
+         private final UiModeManager target;
+         private final Executor executor;
+diff --git a/native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java b/native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java
+index 160a7b2c6..698f63e32 100644
+--- a/native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java
++++ b/native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java
+@@ -2,13 +2,9 @@ package dev.mixer.android;
+ 
+ import android.app.Activity;
+ import android.content.ComponentCallbacks;
+-import android.content.ContentResolver;
+ import android.content.res.Configuration;
+-import android.database.ContentObserver;
+ import android.os.Build;
+-import android.os.Handler;
+ import android.os.Looper;
+-import android.provider.Settings;
+ import android.view.View;
+ import android.view.ViewTreeObserver;
+ import android.widget.FrameLayout;
+@@ -60,7 +56,6 @@ final class NativeEnvironmentV2 {
+         final FrameLayout root;
+         private long generation = 1;
+         private boolean retired, initialized;
+-        private final ContentResolver resolver;
+         private final ViewTreeObserver focusTarget;
+         private int pending, acquiring = -1;
+         // Fixed, bounded diagnostics: a returned removal does not establish reclamation.
+@@ -73,6 +68,7 @@ final class NativeEnvironmentV2 {
+         private boolean diagnosticsAttached;
+         private final NativeEnvironmentPlatformV2.Listener contrast;
+         private final NativeEnvironmentPlatformV2.Listener highContrast;
++        private final NativeEnvironmentPlatformV2.Listener motion;
+         private final View.OnLayoutChangeListener layout = (v,l,t,r,b,ol,ot,or,ob) -> {
+             requireMain();
+             if (retired) return;
+@@ -84,9 +80,6 @@ final class NativeEnvironmentV2 {
+         };
+         private final ViewTreeObserver.OnWindowFocusChangeListener windowFocus = focused -> invalidate();
+         private final View.OnApplyWindowInsetsListener insets = (view, value) -> { invalidate(); return value; };
+-        private final ContentObserver motion = new ContentObserver(new Handler(Looper.getMainLooper())) {
+-            @Override public void onChange(boolean selfChange) { invalidate(); }
+-        };
+ 
+         /** The private V2 root has one inset setter owner; no competing setter is permitted. */
+         Observer(Activity activity, FrameLayout root, Sink sink) {
+@@ -96,7 +89,7 @@ final class NativeEnvironmentV2 {
+             this.sink = Objects.requireNonNull(sink); this.activity = activity; this.root = root;
+             contrast = NativeEnvironmentPlatformV2.contrastListener(activity, this::invalidate);
+             highContrast = NativeEnvironmentPlatformV2.highContrastListener(activity, this::invalidate);
+-            resolver = Objects.requireNonNull(activity.getContentResolver());
++            motion = NativeEnvironmentPlatformV2.motionListener(this::invalidate);
+             focusTarget = Objects.requireNonNull(root.getViewTreeObserver());
+         }
+         void register() {
+@@ -111,8 +104,7 @@ final class NativeEnvironmentV2 {
+                 begin(4); root.setOnApplyWindowInsetsListener(insets); completed();
+                 begin(5); contrast.add(); completed();
+                 begin(6); highContrast.add(); completed();
+-                begin(7); resolver.registerContentObserver(
+-                    Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE), false, motion); completed();
++                begin(7); motion.add(); completed();
+                 initialized = true;
+             } catch (RuntimeException | Error failure) {
+                 retired = true; acquiring = -1;
+@@ -217,7 +209,7 @@ final class NativeEnvironmentV2 {
+                     case 4: root.setOnApplyWindowInsetsListener(null); break;
+                     case 5: contrast.remove(); break;
+                     case 6: highContrast.remove(); break;
+-                    case 7: resolver.unregisterContentObserver(motion); break;
++                    case 7: motion.remove(); break;
+                     default: throw new AssertionError("Unknown observer slot");
+                     }
+                     cleanup[slot] = RETURNED;
+diff --git a/native/android/tests/NativeEnvironmentPlatformV2HostTests.java b/native/android/tests/NativeEnvironmentPlatformV2HostTests.java
+index a8b3d0cc0..fbfbfb8bd 100644
+--- a/native/android/tests/NativeEnvironmentPlatformV2HostTests.java
++++ b/native/android/tests/NativeEnvironmentPlatformV2HostTests.java
+@@ -33,13 +33,15 @@ public final class NativeEnvironmentPlatformV2HostTests {
+     private static void sdkMatrix(){
+         for(int sdk=28;sdk<=36;sdk++)try(Fixture f=new Fixture()){
+             Build.VERSION.SDK_INT=sdk;NativeEnvironmentPlatformV2.Snapshot s=f.snapshot();
+-            status(s.frame,KNOWN);status(s.dark,KNOWN);status(s.rtl,KNOWN);status(s.locale,KNOWN);status(s.density1024,KNOWN);status(s.bodyProfile,KNOWN);status(s.animator,KNOWN);
++            status(s.frame,KNOWN);status(s.dark,KNOWN);status(s.rtl,KNOWN);status(s.locale,KNOWN);status(s.density1024,KNOWN);status(s.bodyProfile,KNOWN);status(s.animator,sdk<33?UNAVAILABLE_API:KNOWN);
+             status(s.insets,sdk<30?UNAVAILABLE_SEMANTICS:KNOWN);status(s.fontAdjustment,sdk<31?UNAVAILABLE_API:KNOWN);
+             status(s.contrast,sdk<34?UNAVAILABLE_API:KNOWN);status(s.highContrast,sdk<36?UNAVAILABLE_API:KNOWN);
+             check(ObserverHostProbe.calls.isEmpty(),"diagnostics subscribed");
+             check(ObserverHostProbe.readCounts.containsKey("insets")== (sdk>=30),"typed insets branch");
+             check(ObserverHostProbe.readCounts.containsKey("contrast")== (sdk>=34),"contrast branch");
+             check(ObserverHostProbe.readCounts.containsKey("high")== (sdk>=36),"high branch");
++            check(ObserverHostProbe.readCounts.containsKey("animator")== (sdk>=33),"effective animator API branch");
++            if(sdk<33)check(thrown(()->NativeEnvironmentPlatformV2.motionListener(()->{})) instanceof IllegalStateException,"early motion handle");
+             if(sdk<34)check(thrown(()->NativeEnvironmentPlatformV2.contrastListener(f.activity,()->{})) instanceof IllegalStateException,"early contrast handle");
+             if(sdk<36){check(thrown(()->NativeEnvironmentPlatformV2.highContrastListener(f.activity,()->{})) instanceof IllegalStateException,"early high handle");check(thrown(f::open) instanceof AppearanceDescriptorV2.Failure,"pre36 admission opened");check(ObserverHostProbe.calls.isEmpty(),"pre36 admission acquired");}
+             else{f.open();check(f.observer.capture().current(f.renderer),"known neutral API36");}
+@@ -65,7 +67,9 @@ public final class NativeEnvironmentPlatformV2HostTests {
+             for(float value:new float[]{-1,0,1}){ObserverHostProbe.contrast=value;status(f.snapshot().contrast,KNOWN);check(f.snapshot().contrast.value==value,"contrast fabricated");cases++;}
+             for(float value:new float[]{-1,Float.NaN,Float.NEGATIVE_INFINITY,Float.POSITIVE_INFINITY}){ObserverHostProbe.animator=value;status(f.snapshot().animator,UNDEFINED);cases++;}
+             for(float value:new float[]{0,.25f,1,100}){ObserverHostProbe.animator=value;status(f.snapshot().animator,KNOWN);check(f.snapshot().animator.value==value,"motion fabricated");cases++;}
+-            ObserverHostProbe.animatorMissing=true;status(f.snapshot().animator,UNDEFINED);cases++;
++            ObserverHostProbe.animatorMissing=true;
++            for(float value:new float[]{0,.25f,1,100}){ObserverHostProbe.animator=value;status(f.snapshot().animator,KNOWN);check(f.snapshot().animator.value==value,"missing raw row changed effective scale");cases++;}
++            check(!ObserverHostProbe.readCounts.containsKey("rawAnimator"),"raw row consulted");
+         }
+         for(String invalid:List.of("","\u0000","\u202e","\ud800","\udc00","x".repeat(129),"é".repeat(65))){
+             try{Method m=NativeEnvironmentPlatformV2.class.getDeclaredMethod("validLocale",String.class);m.setAccessible(true);check(!(Boolean)m.invoke(null,invalid),"bad Unicode locale accepted");}catch(ReflectiveOperationException e){throw new AssertionError(e);}cases++;
+@@ -115,7 +119,7 @@ public final class NativeEnvironmentPlatformV2HostTests {
+             f->f.activity.getResources().config.fontWeightAdjustment=1,
+             f->ObserverHostProbe.contrast=-1, f->ObserverHostProbe.contrast=1,
+             f->ObserverHostProbe.contrast=Float.NaN, f->ObserverHostProbe.highContrast=true,
+-            f->ObserverHostProbe.animatorMissing=true, f->ObserverHostProbe.animator=-1,
++            f->ObserverHostProbe.animator=Float.NaN, f->ObserverHostProbe.animator=-1,
+             f->f.root.rootInsets=null, f->f.activity.getResources().config.locales.empty=true);
+         for(java.util.function.Consumer<Fixture> mutation:rejected)try(Fixture f=new Fixture()){
+             f.open();NativeEnvironmentV2 capture=f.observer.capture();int before=ObserverHostProbe.reads;
+diff --git a/native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/provider/Settings.java b/native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/provider/Settings.java
+index 412ca3834..7fc64f449 100644
+--- a/native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/provider/Settings.java
++++ b/native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/provider/Settings.java
+@@ -8,7 +8,7 @@ public final class Settings {
+         public static final String ANIMATOR_DURATION_SCALE="animator";
+         public static android.net.Uri getUriFor(String name) { return new android.net.Uri(); }
+         public static float getFloat(android.content.ContentResolver resolver,String name) throws SettingNotFoundException {
+-            dev.mixer.android.ObserverHostProbe.read("animator",28);
++            dev.mixer.android.ObserverHostProbe.read("rawAnimator",28);
+             if(dev.mixer.android.ObserverHostProbe.animatorMissing) throw new SettingNotFoundException(name);
+             return dev.mixer.android.ObserverHostProbe.animator;
+         }
+diff --git a/native/android/tests/NativeEnvironmentV2ObserverHostLeaves/dev/mixer/android/ObserverHostProbe.java b/native/android/tests/NativeEnvironmentV2ObserverHostLeaves/dev/mixer/android/ObserverHostProbe.java
+index 6f0bfb330..53f8100fa 100644
+--- a/native/android/tests/NativeEnvironmentV2ObserverHostLeaves/dev/mixer/android/ObserverHostProbe.java
++++ b/native/android/tests/NativeEnvironmentV2ObserverHostLeaves/dev/mixer/android/ObserverHostProbe.java
+@@ -12,6 +12,7 @@ public final class ObserverHostProbe {
+     public static Runnable readHook;
+     public static float animator=1,contrast,dp=1,sp=17;
+     public static boolean highContrast,animatorMissing;
++    public static boolean motionAdd=true,motionRemove=true;
+     public static final Object[] executors=new Object[8];
+     public static void read(String name,int floor) {
+         if(android.os.Build.VERSION.SDK_INT<floor) throw new AssertionError("new API read below floor "+name);
+@@ -26,6 +27,7 @@ public final class ObserverHostProbe {
+     public static void reset() {
+         calls.clear(); reads = tokenReads = 0;
+         readCounts.clear();failingRead=null;readFailure=null;readHook=null;
++        motionAdd=motionRemove=true;
+         animator=1;contrast=0;dp=1;sp=17;highContrast=false;animatorMissing=false;
+         java.util.Arrays.fill(executors,null);
+         android.os.Build.VERSION.SDK_INT=36;
+diff --git a/native/android/tests/NativeEnvironmentV2ObserverHostTests.java b/native/android/tests/NativeEnvironmentV2ObserverHostTests.java
+index 362cb28ee..211c155c6 100644
+--- a/native/android/tests/NativeEnvironmentV2ObserverHostTests.java
++++ b/native/android/tests/NativeEnvironmentV2ObserverHostTests.java
+@@ -3,7 +3,7 @@ package dev.mixer.android;
+ import android.app.Activity;
+ import android.content.ComponentCallbacks;
+ import android.content.res.Configuration;
+-import android.database.ContentObserver;
++import android.animation.ValueAnimator;
+ import android.os.Looper;
+ import android.view.View;
+ import android.view.ViewTreeObserver;
+@@ -66,13 +66,13 @@ public final class NativeEnvironmentV2ObserverHostTests {
+         View.OnApplyWindowInsetsListener insets = (View.OnApplyWindowInsetsListener)field(observer,"insets");
+         android.app.UiModeManager.ContrastChangeListener contrast = (android.app.UiModeManager.ContrastChangeListener)field(field(observer,"contrast"),"listener");
+         android.view.accessibility.AccessibilityManager.HighContrastTextStateChangeListener high = (android.view.accessibility.AccessibilityManager.HighContrastTextStateChangeListener)field(field(observer,"highContrast"),"listener");
+-        ContentObserver motion = (ContentObserver)field(observer,"motion");
++        ValueAnimator.DurationScaleChangeListener motion = (ValueAnimator.DurationScaleChangeListener)field(field(observer,"motion"),"listener");
+         return List.of(() -> observer.onConfigurationChanged(new Configuration()), observer::onLowMemory,
+             () -> layout.onLayoutChange(observer.root,1,0,0,0,0,0,0,0),
+             () -> layout.onLayoutChange(observer.root,0,0,0,0,0,0,0,0),
+             () -> attach.onViewAttachedToWindow(observer.root), () -> attach.onViewDetachedFromWindow(observer.root),
+             () -> focus.onWindowFocusChanged(false), () -> insets.onApplyWindowInsets(observer.root,new WindowInsets()),
+-            () -> contrast.onContrastChanged(1), () -> high.onHighContrastTextStateChanged(true), () -> motion.onChange(false), observer::invalidate);
++            () -> contrast.onContrastChanged(1), () -> high.onHighContrastTextStateChanged(true), () -> motion.onChanged(0), observer::invalidate);
+     }
+     private static void twoPhase() {
+         ObserverHostProbe.reset();Fixture f=new Fixture();NativeEnvironmentV2.Observer o=f.allocate();
+@@ -169,8 +169,8 @@ public final class NativeEnvironmentV2ObserverHostTests {
+         ObserverHostProbe.reset();f=new Fixture();o=f.open();NativeEnvironmentV2.Observer detached=o;
+         f.renderer.notification=()->{retired(detached);};detach(o);removed(7);cases++;
+         ObserverHostProbe.reset();f=new Fixture();o=f.open();ViewTreeObserver original=f.root.tree;f.root.tree=new ViewTreeObserver();
+-        android.content.ContentResolver resolver=f.activity.resolver;f.activity.resolver=new android.content.ContentResolver();o.close();
+-        check(original.removes==1&&f.root.tree.removes==0,"replacement focus target used");check(ObserverHostProbe.targets[7]==resolver,"resolver target replaced");cases++;
++        f.activity.resolver=new android.content.ContentResolver();o.close();
++        check(original.removes==1&&f.root.tree.removes==0,"replacement focus target used");check(ObserverHostProbe.targets[7]==ValueAnimator.class,"effective animator target replaced");cases++;
+         ObserverHostProbe.reset();f=new Fixture();o=f.open();original=f.root.tree;original.alive=false;f.root.tree=new ViewTreeObserver();o.close();
+         check(original.removes==0&&f.root.tree.removes==0,"dead target removal claimed");
+         check(((int[])field(o,"cleanup"))[3]==NativeEnvironmentV2.Observer.DEAD_TARGET_UNCERTAIN,"dead diagnostic missing");
+@@ -181,8 +181,29 @@ public final class NativeEnvironmentV2ObserverHostTests {
+             check(thrown(o::invalidate)==primary,"owner failure changed");retired(o);removed(7);cases++;
+         }
+     }
++    private static void motionResults() {
++        ObserverHostProbe.reset();Fixture f=new Fixture();ObserverHostProbe.motionAdd=false;
++        check(thrown(f::open) instanceof IllegalStateException,"false registration accepted");
++        retired(current());removed(7);check(!current().ready(),"failed registration ready");cases++;
++        ObserverHostProbe.reset();f=new Fixture();ObserverHostProbe.motionAdd=false;ObserverHostProbe.motionRemove=false;
++        Throwable rejected=thrown(f::open);check(rejected instanceof IllegalStateException,"false registration/removal accepted");
++        retired(current());removed(7);
++        check(current().cleanupLedger().primary()==rejected,"registration primary replaced");
++        check(current().cleanupLedger().state(7)==NativeEnvironmentV2.Observer.FAILED_UNCERTAIN,"failed cleanup claimed returned");cases++;
++        ObserverHostProbe.reset();f=new Fixture();NativeEnvironmentV2.Observer o=f.open();
++        NativeEnvironmentV2 capture=o.capture();
++        ValueAnimator.DurationScaleChangeListener listener=(ValueAnimator.DurationScaleChangeListener)ObserverHostProbe.live[7];
++        check(field(field(o,"motion"),"listener")==listener,"listener not strongly owned");
++        ObserverHostProbe.animator=0;listener.onChanged(0);
++        check(!capture.current(f.renderer),"effective motion callback did not invalidate capture");
++        check(f.renderer.invalidations==1,"effective change notification missing");cases++;
++        ObserverHostProbe.motionRemove=false;
++        Throwable failure=thrown(o::close);check(failure instanceof IllegalStateException,"false removal accepted");
++        check(o.cleanupLedger().state(7)==NativeEnvironmentV2.Observer.FAILED_UNCERTAIN,"false removal claimed returned");
++        removed(7);check(thrown(o::close)==failure,"uncertain removal retried/lost");removed(7);cases++;
++    }
+     public static void main(String[] args) {
+-        twoPhase();clean();acquisitionFailures();cleanupFailures();reentry();lateAndThreads();terminalsAndTargets();
++        motionResults();twoPhase();clean();acquisitionFailures();cleanupFailures();reentry();lateAndThreads();terminalsAndTargets();
+         System.out.println("PASS " + cases + " production Observer host cases; faulting Android leaves only; native runtime pending");
+     }
+ }
+diff --git a/native/android/tests/private-owner-host-roster.json b/native/android/tests/private-owner-host-roster.json
+index fa1120abd..fc3551a8e 100644
+--- a/native/android/tests/private-owner-host-roster.json
++++ b/native/android/tests/private-owner-host-roster.json
+@@ -3174,6 +3174,10 @@
+           "fqcn": "android.R",
+           "source": "native/android/tests/NativeOwnerV2HostLeaves/android/R.java"
+         },
++        {
++          "fqcn": "android.animation.ValueAnimator",
++          "source": "native/android/tests/NativeOwnerV2HostLeaves/android/animation/ValueAnimator.java"
++        },
+         {
+           "fqcn": "android.app.Activity",
+           "source": "native/android/tests/NativeOwnerV2HostLeaves/android/app/Activity.java"
+@@ -3499,6 +3503,10 @@
+           "fqcn": "android.R",
+           "source": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/R.java"
+         },
++        {
++          "fqcn": "android.animation.ValueAnimator",
++          "source": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/animation/ValueAnimator.java"
++        },
+         {
+           "fqcn": "android.app.Activity",
+           "source": "native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/app/Activity.java"
+diff --git a/native/android/tests/run-environment-observer-host.py b/native/android/tests/run-environment-observer-host.py
+index 3e6884cd5..a62a27c37 100644
+--- a/native/android/tests/run-environment-observer-host.py
++++ b/native/android/tests/run-environment-observer-host.py
+@@ -16,7 +16,7 @@ import time
+ REPOSITORY = Path(__file__).resolve().parents[3]
+ BASE = 'native/android/tests/NativeEnvironmentV2ObserverHostLeaves/'
+ LEAVES = (
+-    'android/app/Activity.java', 'android/app/UiModeManager.java',
++    'android/animation/ValueAnimator.java','android/app/Activity.java', 'android/app/UiModeManager.java',
+     'android/content/ComponentCallbacks.java', 'android/content/ContentResolver.java',
+     'android/content/Context.java', 'android/content/res/Configuration.java',
+     'android/content/res/Resources.java', 'android/database/ContentObserver.java',
+diff --git a/native/android/tests/run-environment-platform-host.py b/native/android/tests/run-environment-platform-host.py
+index 3526881da..814da738a 100644
+--- a/native/android/tests/run-environment-platform-host.py
++++ b/native/android/tests/run-environment-platform-host.py
+@@ -7,10 +7,10 @@ PLATFORM='native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.j
+ ENV='native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java'
+ SELF='native/android/tests/run-environment-platform-host.py'
+ SELECTION='verification/android-environment-platform-root-review/selection.json'
+-ROSTER='verification/android-private-owner-effect-roster-amendment/required-host-roster.json'
++ROSTER='native/android/tests/private-owner-host-roster.json'
+ LEAF='native/android/tests/NativeEnvironmentV2ObserverHostLeaves/'
+ # Deliberately finite leaf closure. The shared descriptor/resolver/geometry are actual sources.
+-LEAVES=('android/app/Activity.java','android/app/UiModeManager.java','android/content/ComponentCallbacks.java','android/content/ContentResolver.java','android/content/Context.java','android/content/res/Configuration.java','android/content/res/Resources.java','android/database/ContentObserver.java','android/graphics/Insets.java','android/net/Uri.java','android/os/Build.java','android/os/Handler.java','android/os/LocaleList.java','android/os/Looper.java','android/provider/Settings.java','android/util/DisplayMetrics.java','android/util/TypedValue.java','android/view/View.java','android/view/ViewTreeObserver.java','android/view/Window.java','android/view/WindowInsets.java','android/view/accessibility/AccessibilityManager.java','android/widget/FrameLayout.java','dev/mixer/android/NativeRenderer.java','dev/mixer/android/ObserverHostProbe.java')
++LEAVES=('android/animation/ValueAnimator.java','android/app/Activity.java','android/app/UiModeManager.java','android/content/ComponentCallbacks.java','android/content/ContentResolver.java','android/content/Context.java','android/content/res/Configuration.java','android/content/res/Resources.java','android/database/ContentObserver.java','android/graphics/Insets.java','android/net/Uri.java','android/os/Build.java','android/os/Handler.java','android/os/LocaleList.java','android/os/Looper.java','android/provider/Settings.java','android/util/DisplayMetrics.java','android/util/TypedValue.java','android/view/View.java','android/view/ViewTreeObserver.java','android/view/Window.java','android/view/WindowInsets.java','android/view/accessibility/AccessibilityManager.java','android/widget/FrameLayout.java','dev/mixer/android/NativeRenderer.java','dev/mixer/android/ObserverHostProbe.java')
+ def ident(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+ def save(p,v):p.write_text(json.dumps(v,indent=2,sort_keys=True)+'\n')
+ def main():
+@@ -23,7 +23,7 @@ def main():
+   closure=roster['closures']['A-orchestration' if a.closure=='A' else 'B-concrete-renderer-views'];sources=closure['actual_production_sources']+[PLATFORM]
+   if a.closure=='cross':sources+=['native/android/app/src/dev/mixer/android/NativeBridge.java']
+   else:sources += [s['source'] for s in closure['substitutes']]+closure['test_support_sources']+[closure['test_source']]
+- auxiliary=[SELF,SELECTION,ROSTER,'verification/android-private-owner-integration-implementation/barrier-map.json','verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json']
++ auxiliary=[SELF,SELECTION,ROSTER,'native/android/tests/private-owner-barrier-map.json','verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json']
+  if len(sources)!=len(set(sources)):raise RuntimeError('duplicate finite source')
+  frozen={s:(ROOT/s).read_bytes() for s in sources+auxiliary}
+  for s,b in frozen.items():
+@@ -65,7 +65,7 @@ def main():
+    if f.stem in ('NativeEnvironmentV2','NativeEnvironmentPlatformV2') or f.name.startswith(('NativeEnvironmentV2$','NativeEnvironmentPlatformV2$')):
+     name=str(f.relative_to(classes)).removesuffix('.class').replace('/','.')
+     inspection[name]=run('javap-'+f.stem,[javap,'-v','-c','-p','-classpath',classes,name]).decode()
+-  forbidden=('android/graphics/Insets','android/view/WindowInsets$Type','fontWeightAdjustment','ContrastChangeListener','HighContrastTextStateChangeListener','getContrast:','isHighContrastTextEnabled:','getInsets:')
++  forbidden=('android/animation/ValueAnimator','DurationScaleChangeListener','android/graphics/Insets','android/view/WindowInsets$Type','fontWeightAdjustment','ContrastChangeListener','HighContrastTextStateChangeListener','getContrast:','isHighContrastTextEnabled:','getInsets:')
+   isolated=[]
+   for name,dump in inspection.items():
+    if '$Api' in name:continue
+@@ -83,7 +83,7 @@ def main():
+      if not result.startswith(b'PASS '):raise RuntimeError('missing PASS '+name)
+      print(result.decode().strip())
+    else:
+-    descriptor=evidence/'inputs/verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json';mapping=evidence/'inputs/verification/android-private-owner-integration-implementation/barrier-map.json'
++    descriptor=evidence/'inputs/verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json';mapping=evidence/'inputs/native/android/tests/private-owner-barrier-map.json'
+     name='NativeOwnerV2'+('Concrete' if a.closure=='B' else '')+'HostTests'
+     result=run('host',[java,'-ea','-Xmx256m','-cp',classes,'dev.mixer.android.'+name,descriptor,evidence/'observed-sites.txt',mapping,evidence/'barrier-cases.json'],300)
+     if not result.startswith(b'PASS '):raise RuntimeError('missing PASS')
+diff --git a/native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/animation/ValueAnimator.java b/native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/animation/ValueAnimator.java
+new file mode 100644
+index 000000000..9357baec1
+--- /dev/null
++++ b/native/android/tests/NativeEnvironmentV2ObserverHostLeaves/android/animation/ValueAnimator.java
+@@ -0,0 +1,18 @@
++package android.animation;
++import dev.mixer.android.ObserverHostProbe;
++public final class ValueAnimator {
++    public interface DurationScaleChangeListener { void onChanged(float scale); }
++    private static void main() {
++        if (!android.os.Looper.mainThread || android.os.Build.VERSION.SDK_INT < 33)
++            throw new AssertionError("effective animator API/thread guard");
++    }
++    public static float getDurationScale() {
++        main(); ObserverHostProbe.read("animator",33); return ObserverHostProbe.animator;
++    }
++    public static boolean registerDurationScaleChangeListener(DurationScaleChangeListener listener) {
++        main(); ObserverHostProbe.add(7,ValueAnimator.class,listener); return ObserverHostProbe.motionAdd;
++    }
++    public static boolean unregisterDurationScaleChangeListener(DurationScaleChangeListener listener) {
++        main(); ObserverHostProbe.remove(7,ValueAnimator.class,listener); return ObserverHostProbe.motionRemove;
++    }
++}
+diff --git a/native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/animation/ValueAnimator.java b/native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/animation/ValueAnimator.java
+new file mode 100644
+index 000000000..c81fe76ee
+--- /dev/null
++++ b/native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/animation/ValueAnimator.java
+@@ -0,0 +1,26 @@
++package android.animation;
++import java.util.ArrayList;
++import java.util.List;
++import dev.mixer.android.ConcreteHostProbe;
++public final class ValueAnimator {
++    public interface DurationScaleChangeListener { void onChanged(float scale); }
++    private static final List<DurationScaleChangeListener> listeners=new ArrayList<>();
++    public static float getDurationScale() {
++        ConcreteHostProbe.hit("ValueAnimator.getDurationScale");
++        float value=1;
++        ConcreteHostProbe.hit("ValueAnimator.getDurationScale","beforeReturn");
++        return value;
++    }
++    public static boolean registerDurationScaleChangeListener(DurationScaleChangeListener listener) {
++        ConcreteHostProbe.hit("ValueAnimator.registerDurationScaleChangeListener","entry",ValueAnimator.class);
++        boolean added=!listeners.contains(listener);if(added)listeners.add(listener);
++        ConcreteHostProbe.hit("ValueAnimator.registerDurationScaleChangeListener","beforeReturn",ValueAnimator.class);
++        return added;
++    }
++    public static boolean unregisterDurationScaleChangeListener(DurationScaleChangeListener listener) {
++        ConcreteHostProbe.hit("ValueAnimator.unregisterDurationScaleChangeListener","entry",ValueAnimator.class);
++        boolean removed=listeners.remove(listener);
++        ConcreteHostProbe.hit("ValueAnimator.unregisterDurationScaleChangeListener","beforeReturn",ValueAnimator.class);
++        return removed;
++    }
++}
+diff --git a/native/android/tests/NativeOwnerV2HostLeaves/android/animation/ValueAnimator.java b/native/android/tests/NativeOwnerV2HostLeaves/android/animation/ValueAnimator.java
+new file mode 100644
+index 000000000..7f82c6922
+--- /dev/null
++++ b/native/android/tests/NativeOwnerV2HostLeaves/android/animation/ValueAnimator.java
+@@ -0,0 +1,26 @@
++package android.animation;
++import java.util.ArrayList;
++import java.util.List;
++import dev.mixer.android.OwnerHostProbe;
++public final class ValueAnimator {
++    public interface DurationScaleChangeListener { void onChanged(float scale); }
++    private static final List<DurationScaleChangeListener> listeners=new ArrayList<>();
++    public static float getDurationScale() {
++        OwnerHostProbe.hit("ValueAnimator.getDurationScale");
++        float value=1;
++        OwnerHostProbe.hit("ValueAnimator.getDurationScale","beforeReturn");
++        return value;
++    }
++    public static boolean registerDurationScaleChangeListener(DurationScaleChangeListener listener) {
++        OwnerHostProbe.hit("ValueAnimator.registerDurationScaleChangeListener","entry",ValueAnimator.class);
++        boolean added=!listeners.contains(listener);if(added)listeners.add(listener);
++        OwnerHostProbe.hit("ValueAnimator.registerDurationScaleChangeListener","beforeReturn",ValueAnimator.class);
++        return added;
++    }
++    public static boolean unregisterDurationScaleChangeListener(DurationScaleChangeListener listener) {
++        OwnerHostProbe.hit("ValueAnimator.unregisterDurationScaleChangeListener","entry",ValueAnimator.class);
++        boolean removed=listeners.remove(listener);
++        OwnerHostProbe.hit("ValueAnimator.unregisterDurationScaleChangeListener","beforeReturn",ValueAnimator.class);
++        return removed;
++    }
++}

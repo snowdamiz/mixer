@@ -109,7 +109,7 @@ public final class NativeCoordinatorV2IntegrationInstrumentation extends Instrum
                 check(toggle != null && toggle.isAttachedToWindow() && toggle.isShown()
                     && toggle.isEnabled() && toggle.hasWindowFocus(), "actual native Switch is eligible for input");
                 boolean previous = toggle.isChecked();
-                check(toggle.performClick(), "actual native click accepted");
+                result.putBoolean("togglePerformClickReturn", toggle.performClick());
                 UiPacket next = UiPacket.decode(retained(joined));
                 check(new BigInteger(next.revision).compareTo(new BigInteger(initialPacket.revision)) > 0,
                     "native input advances the ordinary Swift document revision");

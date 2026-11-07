@@ -2,13 +2,9 @@ package dev.mixer.android;
 
 import android.app.Activity;
 import android.content.ComponentCallbacks;
-import android.content.ContentResolver;
 import android.content.res.Configuration;
-import android.database.ContentObserver;
 import android.os.Build;
-import android.os.Handler;
 import android.os.Looper;
-import android.provider.Settings;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
@@ -60,7 +56,6 @@ final class NativeEnvironmentV2 {
         final FrameLayout root;
         private long generation = 1;
         private boolean retired, initialized;
-        private final ContentResolver resolver;
         private final ViewTreeObserver focusTarget;
         private int pending, acquiring = -1;
         // Fixed, bounded diagnostics: a returned removal does not establish reclamation.
@@ -73,6 +68,7 @@ final class NativeEnvironmentV2 {
         private boolean diagnosticsAttached;
         private final NativeEnvironmentPlatformV2.Listener contrast;
         private final NativeEnvironmentPlatformV2.Listener highContrast;
+        private final NativeEnvironmentPlatformV2.Listener motion;
         private final View.OnLayoutChangeListener layout = (v,l,t,r,b,ol,ot,or,ob) -> {
             requireMain();
             if (retired) return;
@@ -84,9 +80,6 @@ final class NativeEnvironmentV2 {
         };
         private final ViewTreeObserver.OnWindowFocusChangeListener windowFocus = focused -> invalidate();
         private final View.OnApplyWindowInsetsListener insets = (view, value) -> { invalidate(); return value; };
-        private final ContentObserver motion = new ContentObserver(new Handler(Looper.getMainLooper())) {
-            @Override public void onChange(boolean selfChange) { invalidate(); }
-        };
 
         /** The private V2 root has one inset setter owner; no competing setter is permitted. */
         Observer(Activity activity, FrameLayout root, Sink sink) {
@@ -96,7 +89,7 @@ final class NativeEnvironmentV2 {
             this.sink = Objects.requireNonNull(sink); this.activity = activity; this.root = root;
             contrast = NativeEnvironmentPlatformV2.contrastListener(activity, this::invalidate);
             highContrast = NativeEnvironmentPlatformV2.highContrastListener(activity, this::invalidate);
-            resolver = Objects.requireNonNull(activity.getContentResolver());
+            motion = NativeEnvironmentPlatformV2.motionListener(this::invalidate);
             focusTarget = Objects.requireNonNull(root.getViewTreeObserver());
         }
         void register() {
@@ -111,8 +104,7 @@ final class NativeEnvironmentV2 {
                 begin(4); root.setOnApplyWindowInsetsListener(insets); completed();
                 begin(5); contrast.add(); completed();
                 begin(6); highContrast.add(); completed();
-                begin(7); resolver.registerContentObserver(
-                    Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE), false, motion); completed();
+                begin(7); motion.add(); completed();
                 initialized = true;
             } catch (RuntimeException | Error failure) {
                 retired = true; acquiring = -1;
@@ -217,7 +209,7 @@ final class NativeEnvironmentV2 {
                     case 4: root.setOnApplyWindowInsetsListener(null); break;
                     case 5: contrast.remove(); break;
                     case 6: highContrast.remove(); break;
-                    case 7: resolver.unregisterContentObserver(motion); break;
+                    case 7: motion.remove(); break;
                     default: throw new AssertionError("Unknown observer slot");
                     }
                     cleanup[slot] = RETURNED;

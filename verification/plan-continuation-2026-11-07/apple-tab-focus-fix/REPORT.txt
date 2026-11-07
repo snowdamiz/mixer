@@ -1,0 +1,110 @@
+W04 retained native first-Tab diagnosis — 2026-11-07
+
+Decision: select one concrete environment experiment before changing product or
+oracle code. The observed first failure is loss of the scene/window focus system
+during the real XCTest Tab call, not an ineligible fixed control. The underlying
+platform/input cause is still a hypothesis; this is not a native fix or pass.
+
+Evidence from accepted run 44c60fae-a897-4a6e-ad42-7b9dbfb1d6a1:
+  Settings Passed; original test010ReferenceFirstTab Failed. Exact unchanged
+  oracle replay reproduces only actualNativeFocusTraversal=False; all 19 other
+  predicates remain true. Original import and five cleanup checks remain valid.
+  Key API interval: 323891.77225954167 .. 323892.09398158337 (0.321722 s).
+  At +0.101874 s, controller focus changes reference -> nil, heading=0.
+  At +0.114773 s, BOTH UIFocusSystem.focusSystem(for: window) and
+  windowScene.focusSystem are unavailable, not merely focusedItem=nil.
+  At +0.313502 s, the reference regains focus in a NEW system instance:
+  ObjectIdentifier(0x105a08240) -> ObjectIdentifier(0x109366700).
+  At +0.316307 s, reference -> nil again, heading=0.
+  At +0.323886 s (just after API return), BOTH systems are unavailable again.
+  All three controls are attached and canBecomeFocused=true in these samples.
+  All five corresponding lifecycle samples retain the same active app, key
+  window and foreground-active scene. No focus/lifecycle diagnostic overflow.
+  Original primary AX sample completes 3.414881 s after key return, with no fixed
+  target focused. The independent 29 ms focus-only follow-up also finds none.
+  No callback reaches the authored toggle or next button. No semantic/touch/pan
+  event occurs. Native XCTest event archive identifies Tab, zero modifiers and
+  target PID 72990, matching the app PID in the passive lifecycle samples.
+
+Competing hypotheses:
+  Delivery/configuration: leading, not proven. The complete focus system is
+  torn down/recreated during key injection while the app remains active. The
+  baseline had no pinned Simulator frontend; retained commands only boot the
+  device with simctl and run XCTest. No retained hardware-connection receipt
+  exists. A correctly targeted event record proves dispatch intent, not that a
+  persistent keyboard remained connected or that UIKit received a normal press.
+  Incomplete observation: cannot justify changing the oracle. The retained app
+  and AX streams agree on no target; a late follow-up agrees; context history
+  has no skipped fixed destination. The transient return to the SAME reference
+  is not a successful traversal. The snapshot stream does not continuously
+  sample the post-key interval, so unobserved platform behavior remains possible.
+  View focus eligibility: the simple eligibility theory is contradicted by all
+  three controls reporting true and remaining attached. Focus-group policy is
+  not fully disproven, but changing canBecomeFocused or forcing preferred focus
+  would not explain disappearance of the entire scene focus system.
+
+Media: exact decoded source frames 84 (PTS 2.075 s) show a reference highlight
+inside the scroll outline; 85/86 (5.705/5.706667 s) and 87 (5.960 s) show its
+removal. Frame 88 is PTS 10.063333 s, after test teardown starts at t=10.00 s.
+The recording has a four-second gap, so constant-fps resampling can misleadingly
+show the later Home screen early. Only exact indexed frames are retained here;
+there is no claim of app backgrounding during Tab. Native timestamps are the
+authoritative timing source; video PTS alignment is corroborative only.
+
+Minimal next experiment: experiment.json binds the unchanged accepted source,
+runtime, products, review and both original test methods. Root should select ONE
+fresh owned iPhone-17-Pro / iOS26.5(23F77) attempt with the documented Simulator
+Connect Hardware Keyboard option verified on that owned simulator before
+dispatch. Keep the frontend/connection alive across Settings and original Tab.
+Do not send preparatory Tab/Space, synthesize callbacks, change focus policy,
+change timeouts, retry the old runner or consume another attempt automatically.
+This tests whether persistent keyboard connection prevents the observed focus
+system teardown. Parent selection is required by the task brief. This report
+does not supply dispatch authority. If any runtime/compiled/launcher packet
+changes are needed, retain fresh source/binding review before native dispatch.
+
+Use the existing root-selection frontend baseline contract: orchestration.py
+accepts an already booted root-owned device; the immutable cleanup compares
+frontend identities with root['baselineFrontends']. Record original host state
+first, then record the selected frontend identity for the inner run. Outer root
+cleanup must close only its newly owned simulator window/frontend, shut down and
+delete only its owned simulator, and reconcile the original external baseline.
+Never erase a frontend difference or claim cleanup passed by changing evidence.
+If keyboard configuration cannot be isolated to the selected owned window,
+stop before XCTest; do not alter the two protected simulators or global settings.
+
+Gate unlocked by a successful experiment:
+  MixerToggleUITests/ToggleUITests/test000PublicSettingsFullKeyboardAccess
+  -> MixerToggleUITests/ToggleUITests/test010ReferenceFirstTab
+Both original methods, original 20 predicates and official provenance/import
+must pass with all five existing cleanup checks. This is a single Tab diagnostic,
+not the full keyboard matrix, physical-device, FieldLog, package, or GA gate.
+If focus-system loss repeats, preserve failure and do not mark the task passed.
+No product requirement contradiction has been established. Apple's documented
+FKA Tab behavior and shared focus system are compatible with the original
+semantic requirement; this run fails to demonstrate that behavior.
+
+Host execution: analyze.py verifies the complete retained raw manifest,
+accepted bindings, exact original oracle replay and two fail-closed controls,
+plus focus/lifecycle/event hypotheses (14 checks). Native process/socket calls
+are forbidden during replay. All bound input bytes are rechecked afterward.
+No builds, new native attempts, phones, child agents, held-process probes,
+signals, V5 retries, canonical/source edits, commits or pushes occurred.
+Only this new directory and one owned /tmp prefix hold new artifacts. An empty
+default tempfile directory initially created outside /tmp was immediately
+removed and replaced; environment.json records that correction. Replay scratch
+is removed; media scratch is removed after selected frames and receipts are
+retained. No simulator was created, booted, contacted, or shut down in this task.
+
+Official references (not third-party implementation):
+https://developer.apple.com/documentation/uikit/uiwindowscene/focussystem
+  A nil scene focusSystem means the scene does not support focus.
+https://developer.apple.com/videos/play/wwdc2021/10120/
+  FKA shares the platform focus system; avoid broad canBecomeFocused overrides
+  merely to change FKA behavior.
+https://developer.apple.com/library/archive/documentation/IDEs/Conceptual/iOS_Simulator_Guide/InteractingwithiOSandwatchOS/InteractingwithiOSandwatchOS.html
+  Connect Hardware Keyboard simulates a keyboard dock/wireless keyboard. This
+  archived guide establishes behavior, not the exact Xcode26.6 menu location;
+  root must read the current UI before changing the owned window's option.
+https://support.apple.com/guide/iphone/control-iphone-with-an-external-keyboard-ipha4375873f/ios
+  Full Keyboard Access supports forward movement with Tab.

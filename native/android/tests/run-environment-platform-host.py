@@ -7,10 +7,10 @@ PLATFORM='native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.j
 ENV='native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java'
 SELF='native/android/tests/run-environment-platform-host.py'
 SELECTION='verification/android-environment-platform-root-review/selection.json'
-ROSTER='verification/android-private-owner-effect-roster-amendment/required-host-roster.json'
+ROSTER='native/android/tests/private-owner-host-roster.json'
 LEAF='native/android/tests/NativeEnvironmentV2ObserverHostLeaves/'
 # Deliberately finite leaf closure. The shared descriptor/resolver/geometry are actual sources.
-LEAVES=('android/app/Activity.java','android/app/UiModeManager.java','android/content/ComponentCallbacks.java','android/content/ContentResolver.java','android/content/Context.java','android/content/res/Configuration.java','android/content/res/Resources.java','android/database/ContentObserver.java','android/graphics/Insets.java','android/net/Uri.java','android/os/Build.java','android/os/Handler.java','android/os/LocaleList.java','android/os/Looper.java','android/provider/Settings.java','android/util/DisplayMetrics.java','android/util/TypedValue.java','android/view/View.java','android/view/ViewTreeObserver.java','android/view/Window.java','android/view/WindowInsets.java','android/view/accessibility/AccessibilityManager.java','android/widget/FrameLayout.java','dev/mixer/android/NativeRenderer.java','dev/mixer/android/ObserverHostProbe.java')
+LEAVES=('android/animation/ValueAnimator.java','android/app/Activity.java','android/app/UiModeManager.java','android/content/ComponentCallbacks.java','android/content/ContentResolver.java','android/content/Context.java','android/content/res/Configuration.java','android/content/res/Resources.java','android/database/ContentObserver.java','android/graphics/Insets.java','android/net/Uri.java','android/os/Build.java','android/os/Handler.java','android/os/LocaleList.java','android/os/Looper.java','android/provider/Settings.java','android/util/DisplayMetrics.java','android/util/TypedValue.java','android/view/View.java','android/view/ViewTreeObserver.java','android/view/Window.java','android/view/WindowInsets.java','android/view/accessibility/AccessibilityManager.java','android/widget/FrameLayout.java','dev/mixer/android/NativeRenderer.java','dev/mixer/android/ObserverHostProbe.java')
 def ident(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
 def save(p,v):p.write_text(json.dumps(v,indent=2,sort_keys=True)+'\n')
 def main():
@@ -23,7 +23,7 @@ def main():
   closure=roster['closures']['A-orchestration' if a.closure=='A' else 'B-concrete-renderer-views'];sources=closure['actual_production_sources']+[PLATFORM]
   if a.closure=='cross':sources+=['native/android/app/src/dev/mixer/android/NativeBridge.java']
   else:sources += [s['source'] for s in closure['substitutes']]+closure['test_support_sources']+[closure['test_source']]
- auxiliary=[SELF,SELECTION,ROSTER,'verification/android-private-owner-integration-implementation/barrier-map.json','verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json']
+ auxiliary=[SELF,SELECTION,ROSTER,'native/android/tests/private-owner-barrier-map.json','verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json']
  if len(sources)!=len(set(sources)):raise RuntimeError('duplicate finite source')
  frozen={s:(ROOT/s).read_bytes() for s in sources+auxiliary}
  for s,b in frozen.items():
@@ -65,7 +65,7 @@ def main():
    if f.stem in ('NativeEnvironmentV2','NativeEnvironmentPlatformV2') or f.name.startswith(('NativeEnvironmentV2$','NativeEnvironmentPlatformV2$')):
     name=str(f.relative_to(classes)).removesuffix('.class').replace('/','.')
     inspection[name]=run('javap-'+f.stem,[javap,'-v','-c','-p','-classpath',classes,name]).decode()
-  forbidden=('android/graphics/Insets','android/view/WindowInsets$Type','fontWeightAdjustment','ContrastChangeListener','HighContrastTextStateChangeListener','getContrast:','isHighContrastTextEnabled:','getInsets:')
+  forbidden=('android/animation/ValueAnimator','DurationScaleChangeListener','android/graphics/Insets','android/view/WindowInsets$Type','fontWeightAdjustment','ContrastChangeListener','HighContrastTextStateChangeListener','getContrast:','isHighContrastTextEnabled:','getInsets:')
   isolated=[]
   for name,dump in inspection.items():
    if '$Api' in name:continue
@@ -83,7 +83,7 @@ def main():
      if not result.startswith(b'PASS '):raise RuntimeError('missing PASS '+name)
      print(result.decode().strip())
    else:
-    descriptor=evidence/'inputs/verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json';mapping=evidence/'inputs/verification/android-private-owner-integration-implementation/barrier-map.json'
+    descriptor=evidence/'inputs/verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json';mapping=evidence/'inputs/native/android/tests/private-owner-barrier-map.json'
     name='NativeOwnerV2'+('Concrete' if a.closure=='B' else '')+'HostTests'
     result=run('host',[java,'-ea','-Xmx256m','-cp',classes,'dev.mixer.android.'+name,descriptor,evidence/'observed-sites.txt',mapping,evidence/'barrier-cases.json'],300)
     if not result.startswith(b'PASS '):raise RuntimeError('missing PASS')

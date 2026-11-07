@@ -13,6 +13,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Switch;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -123,11 +124,25 @@ public final class NativeAndroidFixtureHostTests {
         try{check(editor.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SET_TEXT,arguments)&&editor.getEditableText()==old,"no-effect control did not preserve identity");}
         finally{TextView.accessibilitySetTextBehavior=0;}
     }
+    private static void switchClickContract() {
+        Switch toggle=new Switch(new Activity());
+        check(!toggle.performClick()&&toggle.isChecked(),"no click listener still toggles but returns false");
+        List<String> callbacks=new ArrayList<>();
+        toggle.setOnCheckedChangeListener((view,value)->callbacks.add("checked:"+value));
+        check(!toggle.performClick()&&!toggle.isChecked(),"checked listener is not a click listener");
+        check(callbacks.equals(List.of("checked:false")),"checked listener missing or duplicated");
+        toggle.setOnClickListener(view->callbacks.add("click:"+toggle.isChecked()));
+        check(toggle.performClick()&&toggle.isChecked(),"assigned click listener returns true");
+        check(callbacks.equals(List.of("checked:false","checked:true","click:true")),"click callback must follow checked callback exactly once");
+        toggle.setOnClickListener(null);
+        check(!toggle.performClick()&&!toggle.isChecked(),"removed click listener returns false while toggling");
+        check(callbacks.equals(List.of("checked:false","checked:true","click:true","checked:false")),"checked callback must survive click listener removal");
+    }
     static int run() {
         checks=0;
         for(Runnable test:List.<Runnable>of(NativeAndroidFixtureHostTests::snapshots,NativeAndroidFixtureHostTests::replacementCallbacks,
                 NativeAndroidFixtureHostTests::editorOutput,NativeAndroidFixtureHostTests::configurationAndLifecycle,
-                NativeAndroidFixtureHostTests::accessibilityReplacement)) {
+                NativeAndroidFixtureHostTests::accessibilityReplacement,NativeAndroidFixtureHostTests::switchClickContract)) {
             ConcreteHostProbe.reset();try{test.run();}finally{ConcreteHostProbe.reset();}
         }
         return checks;

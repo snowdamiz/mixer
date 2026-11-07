@@ -16,7 +16,7 @@ import time
 REPOSITORY = Path(__file__).resolve().parents[3]
 BASE = 'native/android/tests/NativeEnvironmentV2ObserverHostLeaves/'
 LEAVES = (
-    'android/app/Activity.java', 'android/app/UiModeManager.java',
+    'android/animation/ValueAnimator.java','android/app/Activity.java', 'android/app/UiModeManager.java',
     'android/content/ComponentCallbacks.java', 'android/content/ContentResolver.java',
     'android/content/Context.java', 'android/content/res/Configuration.java',
     'android/content/res/Resources.java', 'android/database/ContentObserver.java',

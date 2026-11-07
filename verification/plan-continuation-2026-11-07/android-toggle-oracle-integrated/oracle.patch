@@ -1,0 +1,53 @@
+--- a/native/android/tests/NativeCoordinatorV2IntegrationInstrumentation.java
++++ b/native/android/tests/NativeCoordinatorV2IntegrationInstrumentation.java
+@@ -109,7 +109,7 @@
+                 check(toggle != null && toggle.isAttachedToWindow() && toggle.isShown()
+                     && toggle.isEnabled() && toggle.hasWindowFocus(), "actual native Switch is eligible for input");
+                 boolean previous = toggle.isChecked();
+-                check(toggle.performClick(), "actual native click accepted");
++                result.putBoolean("togglePerformClickReturn", toggle.performClick());
+                 UiPacket next = UiPacket.decode(retained(joined));
+                 check(new BigInteger(next.revision).compareTo(new BigInteger(initialPacket.revision)) > 0,
+                     "native input advances the ordinary Swift document revision");
+--- a/native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/widget/Switch.java
++++ b/native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/widget/Switch.java
+@@ -1 +1 @@
+-package android.widget;import android.content.Context;import android.graphics.drawable.Drawable;@SuppressWarnings("this-escape") public class Switch extends Button {public interface OnCheckedChangeListener {void onCheckedChanged(Switch view,boolean value);}private boolean checked;public OnCheckedChangeListener checkedListener;public int switchMinWidth,switchPadding,thumbTextPadding;public Drawable thumbDrawable,trackDrawable;public boolean splitTrack=true,showText=true;public Switch(Context context){super(context);hit("Switch.<init>");done("Switch.<init>");}public boolean isChecked(){return checked;}public void setChecked(boolean value){hit("Switch.setChecked");boolean changed=checked!=value;checked=value;if(changed&&checkedListener!=null)checkedListener.onCheckedChanged(this,value);drawableStateChanged();done("Switch.setChecked");}public void setOnCheckedChangeListener(OnCheckedChangeListener value){hit("Switch.setOnCheckedChangeListener");checkedListener=value;done("Switch.setOnCheckedChangeListener");}@Override public boolean performClick(){hit("Switch.performClick");setChecked(!checked);super.performClick();done("Switch.performClick");return true;}public void setSwitchMinWidth(int value){hit("Switch.setSwitchMinWidth");switchMinWidth=value;done("Switch.setSwitchMinWidth");}public void setSwitchPadding(int value){hit("Switch.setSwitchPadding");switchPadding=value;done("Switch.setSwitchPadding");}@Override protected int nativeExtraWidth(){return switchMinWidth+switchPadding;}public void setThumbDrawable(Drawable value){hit("Switch.setThumbDrawable");thumbDrawable=value;done("Switch.setThumbDrawable");}public void setTrackDrawable(Drawable value){hit("Switch.setTrackDrawable");trackDrawable=value;done("Switch.setTrackDrawable");}public void setSplitTrack(boolean value){hit("Switch.setSplitTrack");splitTrack=value;done("Switch.setSplitTrack");}public void setShowText(boolean value){hit("Switch.setShowText");showText=value;done("Switch.setShowText");}public void setThumbTextPadding(int value){hit("Switch.setThumbTextPadding");thumbTextPadding=value;done("Switch.setThumbTextPadding");}}
++package android.widget;import android.content.Context;import android.graphics.drawable.Drawable;@SuppressWarnings("this-escape") public class Switch extends Button {public interface OnCheckedChangeListener {void onCheckedChanged(Switch view,boolean value);}private boolean checked;public OnCheckedChangeListener checkedListener;public int switchMinWidth,switchPadding,thumbTextPadding;public Drawable thumbDrawable,trackDrawable;public boolean splitTrack=true,showText=true;public Switch(Context context){super(context);hit("Switch.<init>");done("Switch.<init>");}public boolean isChecked(){return checked;}public void setChecked(boolean value){hit("Switch.setChecked");boolean changed=checked!=value;checked=value;if(changed&&checkedListener!=null)checkedListener.onCheckedChanged(this,value);drawableStateChanged();done("Switch.setChecked");}public void setOnCheckedChangeListener(OnCheckedChangeListener value){hit("Switch.setOnCheckedChangeListener");checkedListener=value;done("Switch.setOnCheckedChangeListener");}@Override public boolean performClick(){hit("Switch.performClick");setChecked(!checked);boolean result=super.performClick();done("Switch.performClick");return result;}public void setSwitchMinWidth(int value){hit("Switch.setSwitchMinWidth");switchMinWidth=value;done("Switch.setSwitchMinWidth");}public void setSwitchPadding(int value){hit("Switch.setSwitchPadding");switchPadding=value;done("Switch.setSwitchPadding");}@Override protected int nativeExtraWidth(){return switchMinWidth+switchPadding;}public void setThumbDrawable(Drawable value){hit("Switch.setThumbDrawable");thumbDrawable=value;done("Switch.setThumbDrawable");}public void setTrackDrawable(Drawable value){hit("Switch.setTrackDrawable");trackDrawable=value;done("Switch.setTrackDrawable");}public void setSplitTrack(boolean value){hit("Switch.setSplitTrack");splitTrack=value;done("Switch.setSplitTrack");}public void setShowText(boolean value){hit("Switch.setShowText");showText=value;done("Switch.setShowText");}public void setThumbTextPadding(int value){hit("Switch.setThumbTextPadding");thumbTextPadding=value;done("Switch.setThumbTextPadding");}}
+--- a/native/android/tests/NativeAndroidFixtureHostTests.java
++++ b/native/android/tests/NativeAndroidFixtureHostTests.java
+@@ -13,6 +13,7 @@
+ import android.view.inputmethod.EditorInfo;
+ import android.widget.EditText;
+ import android.widget.TextView;
++import android.widget.Switch;
+ import java.util.ArrayList;
+ import java.util.List;
+ import java.util.Set;
+@@ -123,11 +124,25 @@
+         try{check(editor.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SET_TEXT,arguments)&&editor.getEditableText()==old,"no-effect control did not preserve identity");}
+         finally{TextView.accessibilitySetTextBehavior=0;}
+     }
++    private static void switchClickContract() {
++        Switch toggle=new Switch(new Activity());
++        check(!toggle.performClick()&&toggle.isChecked(),"no click listener still toggles but returns false");
++        List<String> callbacks=new ArrayList<>();
++        toggle.setOnCheckedChangeListener((view,value)->callbacks.add("checked:"+value));
++        check(!toggle.performClick()&&!toggle.isChecked(),"checked listener is not a click listener");
++        check(callbacks.equals(List.of("checked:false")),"checked listener missing or duplicated");
++        toggle.setOnClickListener(view->callbacks.add("click:"+toggle.isChecked()));
++        check(toggle.performClick()&&toggle.isChecked(),"assigned click listener returns true");
++        check(callbacks.equals(List.of("checked:false","checked:true","click:true")),"click callback must follow checked callback exactly once");
++        toggle.setOnClickListener(null);
++        check(!toggle.performClick()&&!toggle.isChecked(),"removed click listener returns false while toggling");
++        check(callbacks.equals(List.of("checked:false","checked:true","click:true","checked:false")),"checked callback must survive click listener removal");
++    }
+     static int run() {
+         checks=0;
+         for(Runnable test:List.<Runnable>of(NativeAndroidFixtureHostTests::snapshots,NativeAndroidFixtureHostTests::replacementCallbacks,
+                 NativeAndroidFixtureHostTests::editorOutput,NativeAndroidFixtureHostTests::configurationAndLifecycle,
+-                NativeAndroidFixtureHostTests::accessibilityReplacement)) {
++                NativeAndroidFixtureHostTests::accessibilityReplacement,NativeAndroidFixtureHostTests::switchClickContract)) {
+             ConcreteHostProbe.reset();try{test.run();}finally{ConcreteHostProbe.reset();}
+         }
+         return checks;

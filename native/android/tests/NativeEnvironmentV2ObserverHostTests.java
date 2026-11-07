@@ -3,7 +3,7 @@ package dev.mixer.android;
 import android.app.Activity;
 import android.content.ComponentCallbacks;
 import android.content.res.Configuration;
-import android.database.ContentObserver;
+import android.animation.ValueAnimator;
 import android.os.Looper;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -66,13 +66,13 @@ public final class NativeEnvironmentV2ObserverHostTests {
         View.OnApplyWindowInsetsListener insets = (View.OnApplyWindowInsetsListener)field(observer,"insets");
         android.app.UiModeManager.ContrastChangeListener contrast = (android.app.UiModeManager.ContrastChangeListener)field(field(observer,"contrast"),"listener");
         android.view.accessibility.AccessibilityManager.HighContrastTextStateChangeListener high = (android.view.accessibility.AccessibilityManager.HighContrastTextStateChangeListener)field(field(observer,"highContrast"),"listener");
-        ContentObserver motion = (ContentObserver)field(observer,"motion");
+        ValueAnimator.DurationScaleChangeListener motion = (ValueAnimator.DurationScaleChangeListener)field(field(observer,"motion"),"listener");
         return List.of(() -> observer.onConfigurationChanged(new Configuration()), observer::onLowMemory,
             () -> layout.onLayoutChange(observer.root,1,0,0,0,0,0,0,0),
             () -> layout.onLayoutChange(observer.root,0,0,0,0,0,0,0,0),
             () -> attach.onViewAttachedToWindow(observer.root), () -> attach.onViewDetachedFromWindow(observer.root),
             () -> focus.onWindowFocusChanged(false), () -> insets.onApplyWindowInsets(observer.root,new WindowInsets()),
-            () -> contrast.onContrastChanged(1), () -> high.onHighContrastTextStateChanged(true), () -> motion.onChange(false), observer::invalidate);
+            () -> contrast.onContrastChanged(1), () -> high.onHighContrastTextStateChanged(true), () -> motion.onChanged(0), observer::invalidate);
     }
     private static void twoPhase() {
         ObserverHostProbe.reset();Fixture f=new Fixture();NativeEnvironmentV2.Observer o=f.allocate();
@@ -169,8 +169,8 @@ public final class NativeEnvironmentV2ObserverHostTests {
         ObserverHostProbe.reset();f=new Fixture();o=f.open();NativeEnvironmentV2.Observer detached=o;
         f.renderer.notification=()->{retired(detached);};detach(o);removed(7);cases++;
         ObserverHostProbe.reset();f=new Fixture();o=f.open();ViewTreeObserver original=f.root.tree;f.root.tree=new ViewTreeObserver();
-        android.content.ContentResolver resolver=f.activity.resolver;f.activity.resolver=new android.content.ContentResolver();o.close();
-        check(original.removes==1&&f.root.tree.removes==0,"replacement focus target used");check(ObserverHostProbe.targets[7]==resolver,"resolver target replaced");cases++;
+        f.activity.resolver=new android.content.ContentResolver();o.close();
+        check(original.removes==1&&f.root.tree.removes==0,"replacement focus target used");check(ObserverHostProbe.targets[7]==ValueAnimator.class,"effective animator target replaced");cases++;
         ObserverHostProbe.reset();f=new Fixture();o=f.open();original=f.root.tree;original.alive=false;f.root.tree=new ViewTreeObserver();o.close();
         check(original.removes==0&&f.root.tree.removes==0,"dead target removal claimed");
         check(((int[])field(o,"cleanup"))[3]==NativeEnvironmentV2.Observer.DEAD_TARGET_UNCERTAIN,"dead diagnostic missing");
@@ -181,8 +181,29 @@ public final class NativeEnvironmentV2ObserverHostTests {
             check(thrown(o::invalidate)==primary,"owner failure changed");retired(o);removed(7);cases++;
         }
     }
+    private static void motionResults() {
+        ObserverHostProbe.reset();Fixture f=new Fixture();ObserverHostProbe.motionAdd=false;
+        check(thrown(f::open) instanceof IllegalStateException,"false registration accepted");
+        retired(current());removed(7);check(!current().ready(),"failed registration ready");cases++;
+        ObserverHostProbe.reset();f=new Fixture();ObserverHostProbe.motionAdd=false;ObserverHostProbe.motionRemove=false;
+        Throwable rejected=thrown(f::open);check(rejected instanceof IllegalStateException,"false registration/removal accepted");
+        retired(current());removed(7);
+        check(current().cleanupLedger().primary()==rejected,"registration primary replaced");
+        check(current().cleanupLedger().state(7)==NativeEnvironmentV2.Observer.FAILED_UNCERTAIN,"failed cleanup claimed returned");cases++;
+        ObserverHostProbe.reset();f=new Fixture();NativeEnvironmentV2.Observer o=f.open();
+        NativeEnvironmentV2 capture=o.capture();
+        ValueAnimator.DurationScaleChangeListener listener=(ValueAnimator.DurationScaleChangeListener)ObserverHostProbe.live[7];
+        check(field(field(o,"motion"),"listener")==listener,"listener not strongly owned");
+        ObserverHostProbe.animator=0;listener.onChanged(0);
+        check(!capture.current(f.renderer),"effective motion callback did not invalidate capture");
+        check(f.renderer.invalidations==1,"effective change notification missing");cases++;
+        ObserverHostProbe.motionRemove=false;
+        Throwable failure=thrown(o::close);check(failure instanceof IllegalStateException,"false removal accepted");
+        check(o.cleanupLedger().state(7)==NativeEnvironmentV2.Observer.FAILED_UNCERTAIN,"false removal claimed returned");
+        removed(7);check(thrown(o::close)==failure,"uncertain removal retried/lost");removed(7);cases++;
+    }
     public static void main(String[] args) {
-        twoPhase();clean();acquisitionFailures();cleanupFailures();reentry();lateAndThreads();terminalsAndTargets();
+        motionResults();twoPhase();clean();acquisitionFailures();cleanupFailures();reentry();lateAndThreads();terminalsAndTargets();
         System.out.println("PASS " + cases + " production Observer host cases; faulting Android leaves only; native runtime pending");
     }
 }
