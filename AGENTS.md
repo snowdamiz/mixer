@@ -48,6 +48,13 @@ and shut down disposable test instances after evidence collection, including
 failed runs. Record cleanup; preserve other projects' active instances and their
 data. The user explicitly requested cleanup of unused simulators.
 
+Before frontend-dependent Simulator tests, verify macOS Accessibility access
+before creating or booting a device. If access is unavailable, keep that test
+pending. Never quit or terminate Simulator.app while unrelated devices are
+booted: even a newly owned frontend can shut them down. Use exact owned-device
+UUIDs and individually owned windows for cleanup. A changed external baseline
+is a cleanup failure; record it and coordinate recovery before further actions.
+
 Latest direct user instruction on November 7 — “you can do native stuff, update
 agents file” — resumes native simulator/emulator tests and related UI verification
 and screen capture, superseding the previously supplied pause. Fresh bounded

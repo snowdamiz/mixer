@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "/usr/bin/osascript",
+    "-l",
+    "JavaScript",
+    "-e",
+    "function run(args) {\n      var se=Application('System Events');\n      var found=se.applicationProcesses.whose({unixId:Number(args[0])})();\n      if(found.length!==1)throw Error('Exact owned frontend unavailable');\n      var p=found[0];\n      function safe(f){try{return f()}catch(e){return String(e)}}\n      function item(x,depth){\n        var o={name:safe(()=>x.name()),role:safe(()=>x.role()),enabled:safe(()=>x.enabled())};\n        o.attributes=safe(()=>x.attributes().map(a=>({name:a.name(),value:safe(()=>a.value())})));\n        if(depth>0)o.menus=safe(()=>x.menus().map(m=>({name:safe(()=>m.name()),items:m.menuItems().map(y=>item(y,depth-1))})));\n        return o;\n      }\n      return JSON.stringify({pid:p.unixId(),name:p.name(),frontmost:p.frontmost(),windows:p.windows().map(w=>({name:w.name(),role:w.role(),attributes:safe(()=>w.attributes().map(a=>({name:a.name(),value:safe(()=>a.value())})))})),menuBar:p.menuBars[0].menuBarItems().map(x=>item(x,3))});\n    }",
+    "96597"
+  ],
+  "atUTC": "2026-11-07T23:07:44.542724+00:00",
+  "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4",
+  "developerDirectory": "/Applications/Xcode_26.6.app/Contents/Developer",
+  "exitCode": 1,
+  "scope": "Complete command output",
+  "seconds": 2.502569499949459,
+  "stderrSHA256": "e88ebdd6f7dbbf913fa36e508b18f8db7f2ff5a2fbd1ee863cf1ebb432b3d350",
+  "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

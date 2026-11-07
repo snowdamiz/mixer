@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "verdict": "INCOMPLETE",
+  "scope": "API28 runtime compatibility; static six-consumer emitted-reference and guard/isolation review complete",
+  "static_review_verdict": "ACCEPT",
+  "source_changes_requested": [],
+  "concrete_unguarded_supported_path_defects": [],
+  "reviewer": "gpt-6-astra xhigh review sub-agent",
+  "finished_utc": "2026-11-07T23:14:57.080051+00:00",
+  "source_revision": "8d98d2d86b63b8aaf99554e29ca843b2707e5e40",
+  "git_tree": "aff930b27bcd0dbaab3f1f7f165f44f249823e17",
+  "source_inputs_sha256": "53ad5501dcaa0168ec8196c8816d07a246e6b04bcd0160edadd22ecafd4ff815",
+  "source_inputs_checked": 101,
+  "source_mismatches": [],
+  "six_consumers_match": true,
+  "references_per_consumer": 4946,
+  "classes_per_consumer": 215,
+  "logical_inventory_sha256": "40d52e11cdf5c9cd6d4d820a797269d38fcaaf5f92f1b43ff587aa2d75d297c3",
+  "dex_sha256": "5ab1fbfcb805ee0ce43a8c131ffe51ef66f64d4614d9c13bffe7f86283e65c67",
+  "dex_bytes": 417304,
+  "dex_definitions": 387,
+  "newer_java_classfile_instructions": 115,
+  "newer_java_dex_member_ids": 0,
+  "newer_android_dex_instructions": 48,
+  "newer_android_unique_members": 39,
+  "modern_type_ids": 12,
+  "unresolved_direct_member_ids": 0,
+  "both_below36_refusals_retained": true,
+  "motion_api33_guard_and_helper_isolation_retained": true,
+  "guard_proof_limit": "Source and emitted-bytecode branch/isolation inspection; no claim of old ART verifier/class-loading execution or whole-program formal reachability proof.",
+  "next_gate": {
+    "id": "PAIR8-LOWER-API-ART-LINKAGE",
+    "status": "not-run",
+    "minimum_runtime_cases": [
+      "API28 real Activity/main-thread snapshot and legacy renderer construction/render, real Observer unsupportedNativeOperation refusal, no verifier/linkage errors",
+      "API28 actual generated MixerActivity.onCreate in actual JNI-containing pair8 APK; exact DEX rebind required",
+      "API32 motion unavailable and listener factory refusal; API33 effective-scale getter, actual listener registration/callback/removal, restoration"
+    ],
+    "additional_claim_dependent_cases": "API29/30/31/34 observation transitions and API35 V2 refusal before claiming complete lower-platform observation coverage",
+    "trace": "REVIEW.md and focused dex-*.json; NativeEnvironmentPlatformV2:136,156-201, NativeEnvironmentV2:88, NativeRenderer:925, MixerActivity:12",
+    "execution_owner": "parent; no execution authorized in this review"
+  },
+  "validation": {
+    "command": "python3 -B verification/plan-continuation-2026-11-07/generated-java-pair8-api-floor-review/audit.py",
+    "exit_code": 0,
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "script": {
+      "bytes": 18448,
+      "sha256": "5f6384560b9e7a9998350cd0e34c810c5d3e78ce035492a9c0f1dbc83ba3da59"
+    },
+    "stdout": {
+      "bytes": 11115,
+      "sha256": "8bf8059e73da08473222504d9f2b5ab5c72906720862116acd6a05fd1467a1fc"
+    },
+    "stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "audit_receipt": {
+      "bytes": 5298,
+      "sha256": "deba2d324987c50e51fe5508185b1fe09e4bfcef9c9b7cef70d687e63601a5f4"
+    },
+    "fresh_binary_parsing": true,
+    "prior_api28_collection_proof_inherited": false,
+    "successful_d8_treated_as_floor_proof": false
+  },
+  "limitations": [
+    "No old ART runtime or APK/JNI execution",
+    "No API28-35 full V2 support; refusal remains required",
+    "No native callback dynamic behavior proof",
+    "External reflection/framework/JNI paths outside static inventory",
+    "No physical-device, immutable-package, FieldLog, release, or GA qualification"
+  ],
+  "preservation": {
+    "write_ownership": "verification/plan-continuation-2026-11-07/generated-java-pair8-api-floor-review",
+    "product_runner_edits": 0,
+    "children": 0,
+    "commits": 0,
+    "pushes": 0,
+    "compiler_jvm_javap_native_runs": 0,
+    "tool_installs": 0,
+    "network_archive_downloads": 0,
+    "physical_device_access": 0,
+    "held_process_probes_or_signals": 0,
+    "held_pgids": [
+      20745,
+      20770,
+      20780,
+      20817,
+      20842,
+      20851,
+      20866,
+      2424
+    ],
+    "held_pid": 2621,
+    "held_v5_retries": 0,
+    "frozen_hosted_changes": 0
+  }
+}
