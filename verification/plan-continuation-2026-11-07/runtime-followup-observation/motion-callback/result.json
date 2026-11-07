@@ -1,0 +1,63 @@
+{
+  "gate": "PAIR8-MOTION-CALLBACK-NATIVE",
+  "status": "FAIL",
+  "attemptCount": 1,
+  "runtimeScope": "API37 arm64 only",
+  "nativeElapsedSeconds": 64.49,
+  "apkSHA256": "9630fc937d5f9c92c780576e6ef64c65111ad1a5bce245a685ccba5bb81ce379",
+  "sourceRevision": "c531cfc81cf89cdd591835fedd1dba5a414d31c9",
+  "instrumentationSHA256": "f696730c6763a793582c4c850a8dd0ccb9c921639c75950bf8194fe6bdad3e0a",
+  "productFailure": {
+    "proven": true,
+    "summary": "Real settings-driven platform duration-scale callback enters Observer.invalidate on Binder thread, where requireMain throws before owner invalidation",
+    "log": "app-logcat-before-startup.log",
+    "lineRange": [
+      36,
+      63
+    ],
+    "pid": 3710,
+    "mainTid": 3710,
+    "callbackTid": 3824,
+    "firstTimestamp": "11-07 18:32:54.718",
+    "restorationTimestamp": "11-07 18:33:01.741",
+    "stack": [
+      "IWindowSessionCallback$Stub.onTransact",
+      "WindowManagerGlobal.onAnimatorScaleChanged",
+      "ValueAnimator.setDurationScale",
+      "NativeEnvironmentPlatformV2$Api33.lambda$new$0",
+      "NativeEnvironmentV2$Observer.invalidate",
+      "NativeEnvironmentV2.requireMain"
+    ],
+    "error": "java.lang.IllegalStateException: V2 requires UI owner thread"
+  },
+  "primaryTestFailure": "motionChanged-callback-and-drain timed out within 300 x 20ms iterations",
+  "finalTestFailure": "motion-effective-restoration timed out within 300 x 20ms iterations",
+  "verified": {
+    "strictJava17SDK37Compilation": true,
+    "D8Min28": true,
+    "all18OriginalNativeLibrariesReused": true,
+    "newSwiftBuilds": 0,
+    "original11AssertionsRetained": true,
+    "originalThreeReadinessWaitsRan": true,
+    "exactRawSettingAbsenceRestored": true,
+    "allTestListenerHandlesClosed": true,
+    "ownerMotionListenerRemovalReturned": true,
+    "terminalCleanup": true
+  },
+  "unverified": [
+    "changed effective getter value receipt",
+    "main-thread delivery",
+    "owner epoch/drain/presentation refresh with retained packet",
+    "effective restoration to original 1.0",
+    "bounded no-callback-after-removal",
+    "original final toggle/Swift revision/native checked/final pause assertions did not execute after earlier motion failure",
+    "API28/32/33 behavior",
+    "GA or physical phones"
+  ],
+  "followup": {
+    "productFixOutsideOwnedScope": "marshal duration-scale notices to the main Looper, preserving removal and lifetime semantics",
+    "restorationInvestigation": "keep exact raw restoration; separately determine why deletion of an originally absent row did not restore effective 1.0; do not weaken that oracle",
+    "retry": "none; requires parent decision/new bounded attempt"
+  },
+  "noRetry": true
+}

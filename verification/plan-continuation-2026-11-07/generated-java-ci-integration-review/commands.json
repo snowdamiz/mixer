@@ -1,0 +1,126 @@
+{
+  "scope": "Read-only metadata/source inspection plus bounded Python pure/fake-child tests. No compiler/JVM/native executable invocation.",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "source_revision": "c531cfc81cf89cdd591835fedd1dba5a414d31c9",
+  "source_tree": "66b94c7f77e1bc5b8efc3a8f455d48bac9b5885a",
+  "tests": [
+    {
+      "command": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "verification/plan-continuation-2026-11-07/generated-java-ci-integration-review/run_controls.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.10010595800122246,
+      "stdout": "normal.stdout",
+      "stderr": "normal.stderr"
+    },
+    {
+      "command": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "-O",
+        "verification/plan-continuation-2026-11-07/generated-java-ci-integration-review/run_controls.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.09106679202523082,
+      "stdout": "optimized.stdout",
+      "stderr": "optimized.stderr"
+    },
+    {
+      "command": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "verification/plan-continuation-2026-11-07/generated-java-ci-integration-review/test_failure_paths.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.13005062501179054,
+      "stdout": "failure-normal.stdout",
+      "stderr": "failure-normal.stderr"
+    },
+    {
+      "command": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "-O",
+        "verification/plan-continuation-2026-11-07/generated-java-ci-integration-review/test_failure_paths.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.10321883397409692,
+      "stdout": "failure-optimized.stdout",
+      "stderr": "failure-optimized.stderr"
+    }
+  ],
+  "read_only_commands": [
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "output": "c531cfc81cf89cdd591835fedd1dba5a414d31c9"
+    },
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "output": "66b94c7f77e1bc5b8efc3a8f455d48bac9b5885a"
+    },
+    {
+      "argv": [
+        "git",
+        "ls-tree",
+        "-rl",
+        "HEAD"
+      ],
+      "output_summary": "checkout-size.json",
+      "reproducer": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "verification/plan-continuation-2026-11-07/generated-java-ci-integration-review/measure_checkout.py"
+      ]
+    }
+  ],
+  "file_probes": [
+    "SHA256 and lengths of every candidate artifact",
+    "Canonical source_inputs/load_profile read only",
+    "Read first512 bytes of existing local official compiler files; no executable invocation",
+    "Read existing installed Android bundle info/setup/SDK/toolset JSON"
+  ],
+  "official_fetches": [
+    {
+      "repository": "actions/runner-images",
+      "path": "images/macos/macos-26-Readme.md",
+      "blob_sha": "46488458459c316ca463633b5d3e2c17fc50e5d3"
+    },
+    {
+      "repository": "actions/checkout",
+      "ref": "v4",
+      "path": "src/git-source-provider.ts",
+      "blob_sha": "2d3513897655e0ea2eb4efc2b2c9d6132a69549f"
+    },
+    {
+      "repository": "swiftlang/swift-docker",
+      "ref": "39cc6f4e2dbaf968efd1a5722f45b6b47f89f7df",
+      "path": "swift-ci/sdks/android/scripts/build.sh",
+      "evidence": "official-android-generator.json"
+    },
+    {
+      "repository": "swiftlang/swiftly",
+      "path": "Sources/MacOSPlatform/MacOS.swift",
+      "evidence": "official-swiftly-extraction.json"
+    }
+  ]
+}

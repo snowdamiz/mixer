@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-11-07T23:44:31.821045+00:00",
+  "kind": "source-supported hypothesis; not exact API37 image proof",
+  "primarySource": {
+    "url": "https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/services/core/java/com/android/server/wm/WindowManagerService.java",
+    "blob": "1dbb6099f7504ed20d4715ecdc16d6bb86c97989",
+    "method": "getAnimatorDurationScaleSetting",
+    "observation": "Settings.Global.getFloat uses current mAnimatorDurationScaleSetting as missing-row fallback"
+  },
+  "hypothesis": "Deleting originally absent row after changing scale retains changed effective setting; absence is not an effective reset",
+  "proposedTestRestoration": "Restore captured effective scale and verify callback/owner state, then restore exact original raw presence/value and verify both independently",
+  "deviceVerification": "pending",
+  "productWorkaround": "No hidden API or fabricated effective getter; product still uses public getter and UI dispatch"
+}
