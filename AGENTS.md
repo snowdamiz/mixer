@@ -48,9 +48,10 @@ and shut down disposable test instances after evidence collection, including
 failed runs. Record cleanup; preserve other projects' active instances and their
 data. The user explicitly requested cleanup of unused simulators.
 
-Latest direct user instruction on November 7 resumes native simulator/emulator
-tests and related UI verification and screen capture. Fresh bounded owned builds
-and runtime attempts may proceed under the one-instance-per-lane and cleanup
+Latest direct user instruction on November 7 — “you can do native stuff, update
+agents file” — resumes native simulator/emulator tests and related UI verification
+and screen capture, superseding the previously supplied pause. Fresh bounded
+owned builds and runtime attempts may proceed under the one-instance-per-lane and cleanup
 rules above. Preserve other projects' processes, devices and data, and keep
 physical phones disconnected. This does not authorize probing, signalling or
 retrying the specifically held historical processes, the held v5 startup, or

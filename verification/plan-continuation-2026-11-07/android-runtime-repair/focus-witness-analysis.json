@@ -1,0 +1,19 @@
+{
+  "failure": "NativeRenderer:L344:C98:1 has no witness after 188 other sites / 1316 cases pass",
+  "old_scenario": "rollbackState controls focuses field, then clears its focus during attachV2",
+  "source_cause": {
+    "NativeAppearanceViewsV2.java:1305": "onFocusChanged(false) routes through lifecycle loss",
+    "NativeAppearanceViewsV2.java:1292": "active field preservation routes its lifecycle callback",
+    "NativeAppearanceViewsV2.java:901-908": "FieldPreservation.lifecycle records actual loss then calls exact",
+    "NativeAppearanceViewsV2.java:884-891": "tuple requires unchanged loss observation; exact throws on mismatch",
+    "NativeRenderer.java:833-834": "restoreV2 checks preserved field exactness before generic requestFocus loop at852"
+  },
+  "correction": "retain controls/editor and navigation scenarios; add buttonFocus scenario to reach valid non-editor restoration at the same product callsite",
+  "new_behavior_assertions": [
+    "selected button has focus after attachment fault rollback",
+    "View.requestFocus beforeReturn was emitted for that exact button from actual NativeRenderer.restoreV2 with nonnegative BCI"
+  ],
+  "scope": "Source-derived old witness loss; full B now executes all7 cases at actual restoreV2 focus callsite",
+  "product_and_other_fixture_edits": false,
+  "runtime_result": "dev.mixer.android.NativeRenderer#restoreV2(Ldev/mixer/android/NativeRenderer$Candidate;)V@756"
+}

@@ -1,3 +1,1 @@
-package android.view.inputmethod;
-/** Host query result type only. No native surrounding-text query is modeled. */
-public final class SurroundingText {}
+package android.view.inputmethod;public final class SurroundingText {private final CharSequence text;private final int start,end,offset;public SurroundingText(CharSequence text,int start,int end,int offset){this.text=text;this.start=start;this.end=end;this.offset=offset;}public CharSequence getText(){return text;}public int getSelectionStart(){return start;}public int getSelectionEnd(){return end;}public int getOffset(){return offset;}}

@@ -1,0 +1,50 @@
+--- before/native/android/tests/NativeOwnerV2ConcreteHostTests.java
++++ after/native/android/tests/NativeOwnerV2ConcreteHostTests.java
+@@ -206,16 +206,20 @@
+         collect();
+     }
+     private static void rollbackStateControls(){
+-        for(String scene:List.of("controls","navigation"))try(Fixture f=new Fixture(scene)){
+-            f.ready();NativeRenderer renderer=f.renderer();View selected=renderer.view(scene.equals("controls")?"field":"list");
+-            if(scene.equals("controls"))selected.requestFocus();
++        for(String scene:List.of("controls","navigation","buttonFocus"))try(Fixture f=new Fixture(scene.equals("navigation")?"navigation":"controls")){
++            f.ready();NativeRenderer renderer=f.renderer();View selected=renderer.view(scene.equals("controls")?"field":scene.equals("buttonFocus")?"button":"list");
++            if(!scene.equals("navigation"))selected.requestFocus();
+             renderer.testFaultV2(renderer.inspectV2().size()*2,false);
+             f.owner.onPause();
+             final boolean[] fired={false};
+             java.util.function.BiConsumer<String,String> previousHook=ConcreteHostProbe.hook;
+-            ConcreteHostProbe.hook=(method,phase)->{if(previousHook!=null)previousHook.accept(method,phase);var event=ConcreteHostProbe.lastEvent();if(!f.fence().terminal&&!fired[0]&&phase.equals("entry")&&method.equals("View.setTag")&&event.productionFrames.stream().anyMatch(site->site.className().equals("dev.mixer.android.NativeRenderer")&&site.methodName().equals("attachV2"))){fired[0]=true;ConcreteHostProbe.hook=previousHook;if(scene.equals("controls"))selected.clearFocus();else selected.scrollTo(0,10);}};
++            ConcreteHostProbe.hook=(method,phase)->{if(previousHook!=null)previousHook.accept(method,phase);var event=ConcreteHostProbe.lastEvent();if(!f.fence().terminal&&!fired[0]&&phase.equals("entry")&&method.equals("View.setTag")&&event.productionFrames.stream().anyMatch(site->site.className().equals("dev.mixer.android.NativeRenderer")&&site.methodName().equals("attachV2"))){fired[0]=true;ConcreteHostProbe.hook=previousHook;if(!scene.equals("navigation"))selected.clearFocus();else selected.scrollTo(0,10);}};
+             safe(()->f.queue.drainAll(4));ConcreteHostProbe.hook=previousHook;
+             check(fired[0],"rollback native state mutation hook missed");check(f.fence().terminal,"rollback failure did not retire lifetime");
++            if(scene.equals("buttonFocus")){
++                check(selected.hasFocus(),"rollback did not restore non-editor native focus");
++                check(ConcreteHostProbe.events().stream().anyMatch(event->event.receiver==selected&&event.method.equals("View.requestFocus")&&event.phase.equals("beforeReturn")&&event.productionFrames.stream().anyMatch(frame->frame.className().equals("dev.mixer.android.NativeRenderer")&&frame.methodName().equals("restoreV2")&&frame.bytecodeIndex()>=0)),"rollback native focus restoration boundary not reached");
++            }
+         }collect();
+         try(Fixture f=new Fixture()){
+             java.util.function.BiConsumer<String,String> previousHook=ConcreteHostProbe.hook;
+@@ -684,8 +688,10 @@
+                 if(name.equals("clean")&&(barrier.boundaryMode().contains("helper")||barrier.boundaryMode().contains("constructor"))){
+                     ConcreteHostProbe.Event last=null;
+                     for(var event:matrix.dynamic){
+-                        helperSequence.add(Json.map("nativeMethod",event.method,"phase",event.phase));last=event;
++                        helperSequence.add(Json.map("nativeMethod",event.method,"phase",event.phase,"receiverId",receiverId(event.receiver),"receiverClass",event.receiver==null?null:event.receiver.getClass().getSimpleName(),"productionFrames",event.productionFrames.stream().map(frame->Json.map("class",frame.className(),"method",frame.methodName(),"descriptor",frame.descriptor(),"bytecodeIndex",new Json.Num(Integer.toString(frame.bytecodeIndex())),"line",new Json.Num(Integer.toString(frame.line())))).toList()));last=event;
+                     }
++                    StringBuilder helperReport=new StringBuilder();write(helperReport,Json.map("site",barrier.id(),"scenario",witness,"exactCaller",exactKey,"helperNativeSequence",helperSequence,"helperSequenceEnd",matrix.traceEnd,"finalAnchorMatches",last!=null&&last.phase.equals("beforeReturn")&&barrier.matches(last)));
++                    Files.writeString(output.resolveSibling("helper-boundaries.jsonl"),helperReport+"\n",java.nio.file.StandardOpenOption.CREATE,java.nio.file.StandardOpenOption.APPEND);
+                     check(last!=null&&last.phase.equals("beforeReturn")&&barrier.matches(last),"helper final native return anchor is not final dynamic boundary "+barrier.id()+" / "+last);
+                 }
+                 results.add(Json.map("site",barrier.id(),"case",name,"stimulus",name.startsWith("dirty")?"actual owner onPause lifecycle invalidation":"selected concrete callback", "scenario",witness,"hit",true,"boundaryMode",barrier.boundaryMode(),"boundaryEquivalence",barrier.equivalence(),"nativeMethod",matrix.reached.method,"nativePhase",matrix.reached.phase,"exactCaller",exactKey,"helperNativeSequence",helperSequence,"helperSequenceEnd",matrix.traceEnd,"selectedFrames",selectedFrames.stream().map(frame->Json.map("class",frame.className(),"method",frame.methodName(),"descriptor",frame.descriptor(),"bytecodeIndex",new Json.Num(Integer.toString(frame.bytecodeIndex())),"line",new Json.Num(Integer.toString(frame.line())))).toList(),"escaped",escaped==null?null:escaped.getClass().getName()));
+--- before/native/android/tests/private-owner-barrier-map.json
++++ after/native/android/tests/private-owner-barrier-map.json
+@@ -94,7 +94,7 @@
+         "mode": "product-helper-final-native-anchor",
+         "return_receiver_id": "toggle",
+         "return_receiver_class": "NativeSwitch",
+-        "return_frame_line": 826,
++        "return_frame_line": 521,
+         "equivalence": "controls measure root: final toggle exact-size measure, then checked scalar aggregation only"
+       }
+     },

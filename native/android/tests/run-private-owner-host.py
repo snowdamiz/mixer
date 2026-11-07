@@ -15,7 +15,10 @@ def main():
  sources=closure['actual_production_sources']+['native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java']+[s['source'] for s in closure['substitutes']]+closure['test_support_sources']+[closure['test_source']]
  if len(set(sources))!=len(sources):raise RuntimeError('duplicate explicit source')
  frozen={s:(ROOT/s).read_bytes() for s in sources};frozen[ROSTER_SOURCE]=roster_bytes;frozen['native/android/tests/run-private-owner-host.py']=Path(__file__).read_bytes()
- mapping='verification/android-private-owner-integration-implementation/barrier-map.json';frozen[mapping]=(ROOT/mapping).read_bytes()
+ mapping='native/android/tests/private-owner-barrier-map.json';frozen[mapping]=(ROOT/mapping).read_bytes()
+ if a.closure=='B':
+  for source,digest in json.loads(frozen[mapping])['source_sha256'].items():
+   if ident(frozen[source])['sha256']!=digest:raise RuntimeError('callback map source changed: '+source)
  descriptor='verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json';frozen[descriptor]=(ROOT/descriptor).read_bytes()
  save(evidence/'source-map.json',{s:ident(b) for s,b in frozen.items()});save(evidence/'roster.json',closure)
  env=dict(os.environ)

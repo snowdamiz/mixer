@@ -41,7 +41,14 @@ public final class NativeOwnerV2ConcreteHostTests {
         return null;
     }
     private record Barrier(String id,String className,int line,String entryMethod,String returnMethod,
-                           String returnReceiverId,String returnReceiverClass,Integer returnFrameLine,String boundaryMode,String equivalence) {
+                           String returnReceiverId,String returnReceiverClass,Integer returnFrameLine,String boundaryMode,String equivalence,
+                           String callerMethodPrefix,boolean innermostCaller) {
+        List<ConcreteHostProbe.Site> frames(ConcreteHostProbe.Event event){
+            var frames=event.productionFrames.stream().filter(frame->frame.line()==line&&
+                (frame.className().equals(className)||frame.className().startsWith(className+"$"))&&
+                (callerMethodPrefix==null||frame.methodName().startsWith(callerMethodPrefix))).toList();
+            return innermostCaller&&!frames.isEmpty()?List.of(frames.get(0)):frames;
+        }
         boolean matches(ConcreteHostProbe.Event event){
             boolean returning=event.phase.equals("beforeReturn");String target=returning?returnMethod:entryMethod;
             if(!target.equals("*")&&!(target.contains(".")?event.method.equals(target):event.method.endsWith("."+target)))return false;
@@ -50,8 +57,7 @@ public final class NativeOwnerV2ConcreteHostTests {
                 if(returnReceiverClass!=null&&(event.receiver==null||!event.receiver.getClass().getSimpleName().equals(returnReceiverClass)))return false;
                 if(returnFrameLine!=null&&event.productionFrames.stream().noneMatch(frame->frame.line()==returnFrameLine&&frame.className().equals("dev.mixer.android.NativeAppearanceViewsV2")))return false;
             }
-            for(var frame:event.productionFrames)if(frame.line()==line&&(frame.className().equals(className)||frame.className().startsWith(className+"$")))return true;
-            return false;
+            return !frames(event).isEmpty();
         }
     }
     private static final class MatrixCase {
@@ -73,7 +79,7 @@ public final class NativeOwnerV2ConcreteHostTests {
             check(fixture.queue.queued()<=1,"second owned runnable during reentry");
             validated=true;
             if(name.equals("clean")){
-                var frame=event.productionFrames.stream().filter(site->site.line()==barrier.line()&&(site.className().equals(barrier.className())||site.className().startsWith(barrier.className()+"$"))).findFirst().orElseThrow();
+                var frame=barrier.frames(event).get(0);
                 traceKey=frame.className()+"#"+frame.methodName()+frame.descriptor()+"@"+frame.bytecodeIndex();traceOperation=fence.operation;tracePresentation=fence.presentation;dynamic.add(event);ConcreteHostProbe.hook=this::trace;
             }
             if(name.equals("ordinary-throw-after-callback"))throw ordinary;
@@ -200,16 +206,20 @@ public final class NativeOwnerV2ConcreteHostTests {
         collect();
     }
     private static void rollbackStateControls(){
-        for(String scene:List.of("controls","navigation"))try(Fixture f=new Fixture(scene)){
-            f.ready();NativeRenderer renderer=f.renderer();View selected=renderer.view(scene.equals("controls")?"field":"list");
-            if(scene.equals("controls"))selected.requestFocus();
+        for(String scene:List.of("controls","navigation","buttonFocus"))try(Fixture f=new Fixture(scene.equals("navigation")?"navigation":"controls")){
+            f.ready();NativeRenderer renderer=f.renderer();View selected=renderer.view(scene.equals("controls")?"field":scene.equals("buttonFocus")?"button":"list");
+            if(!scene.equals("navigation"))selected.requestFocus();
             renderer.testFaultV2(renderer.inspectV2().size()*2,false);
             f.owner.onPause();
             final boolean[] fired={false};
             java.util.function.BiConsumer<String,String> previousHook=ConcreteHostProbe.hook;
-            ConcreteHostProbe.hook=(method,phase)->{if(previousHook!=null)previousHook.accept(method,phase);var event=ConcreteHostProbe.lastEvent();if(!f.fence().terminal&&!fired[0]&&phase.equals("entry")&&method.equals("View.setTag")&&event.productionFrames.stream().anyMatch(site->site.className().equals("dev.mixer.android.NativeRenderer")&&site.methodName().equals("attachV2"))){fired[0]=true;ConcreteHostProbe.hook=previousHook;if(scene.equals("controls"))selected.clearFocus();else selected.scrollTo(0,10);}};
+            ConcreteHostProbe.hook=(method,phase)->{if(previousHook!=null)previousHook.accept(method,phase);var event=ConcreteHostProbe.lastEvent();if(!f.fence().terminal&&!fired[0]&&phase.equals("entry")&&method.equals("View.setTag")&&event.productionFrames.stream().anyMatch(site->site.className().equals("dev.mixer.android.NativeRenderer")&&site.methodName().equals("attachV2"))){fired[0]=true;ConcreteHostProbe.hook=previousHook;if(!scene.equals("navigation"))selected.clearFocus();else selected.scrollTo(0,10);}};
             safe(()->f.queue.drainAll(4));ConcreteHostProbe.hook=previousHook;
             check(fired[0],"rollback native state mutation hook missed");check(f.fence().terminal,"rollback failure did not retire lifetime");
+            if(scene.equals("buttonFocus")){
+                check(selected.hasFocus(),"rollback did not restore non-editor native focus");
+                check(ConcreteHostProbe.events().stream().anyMatch(event->event.receiver==selected&&event.method.equals("View.requestFocus")&&event.phase.equals("beforeReturn")&&event.productionFrames.stream().anyMatch(frame->frame.className().equals("dev.mixer.android.NativeRenderer")&&frame.methodName().equals("restoreV2")&&frame.bytecodeIndex()>=0)),"rollback native focus restoration boundary not reached");
+            }
         }collect();
         try(Fixture f=new Fixture()){
             java.util.function.BiConsumer<String,String> previousHook=ConcreteHostProbe.hook;
@@ -220,7 +230,7 @@ public final class NativeOwnerV2ConcreteHostTests {
     }
     private static void imeSuccessor(){
         try(Fixture f=new Fixture("field")){
-            f.ready();EditText editor=(EditText)f.renderer().view("field");editor.requestFocus();
+            f.ready();EditText editor=(EditText)f.renderer().view("field");editor.requestFocus();editor.setSelection(editor.getText().length());
             InputConnection connection=editor.onCreateInputConnection(new EditorInfo());
             NativeAppearanceViewsV2.Mutation original=NativeAppearanceViewsV2.Mutation.live(f.fence());
             OwnerLifecycleV2.Token before=f.fence().presentation;NativeBridge.preparedPacket=packet(2,"field","helloz");
@@ -231,10 +241,10 @@ public final class NativeOwnerV2ConcreteHostTests {
             check(NativeBridge.prepareCalls==2&&NativeBridge.lastInput!=null,"ordinary edit not synchronous");
             boolean previousWouldFail=false;try{original.require();}catch(IllegalStateException expected){previousWouldFail=true;}
             check(previousWouldFail,"pre-fix old-scope postcheck witness missing");
-            f.owner.onPause();int forwarded=ConcreteHostProbe.count("InputConnectionWrapper.commitText","entry");
+            f.owner.onPause();int forwarded=ConcreteHostProbe.count("BaseInputConnection.commitText","entry");
             check(!connection.commitText("!",1),"retained sealed IME committed");
             check(editor.onCreateInputConnection(new EditorInfo())==null,"sealed new IME acquired native delegate");
-            check(ConcreteHostProbe.count("InputConnectionWrapper.commitText","entry")==forwarded,"sealed edit reached native wrapper");
+            check(ConcreteHostProbe.count("BaseInputConnection.commitText","entry")==forwarded,"sealed edit reached native target");
         }collect();
     }
     private static Throwable captureFailure(Runnable call){try{call.run();return null;}catch(RuntimeException|Error failure){return failure;}}
@@ -499,18 +509,26 @@ public final class NativeOwnerV2ConcreteHostTests {
         new ImeFamily("deleteSurroundingTextInCodePoints","deleteSurroundingTextInCodePoints",c->c.deleteSurroundingTextInCodePoints(1,0)),
         new ImeFamily("setSelection","setSelection",c->c.setSelection(0,1)),
         new ImeFamily("performEditorAction","performEditorAction",c->c.performEditorAction(EditorInfo.IME_ACTION_DONE)),
-        new ImeFamily("sendKeyEvent","sendKeyEvent",c->c.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_SPACE))),
         new ImeFamily("setImeConsumesInput","setImeConsumesInput",c->c.setImeConsumesInput(true)),
         new ImeFamily("commitCompletion","commitCompletion",c->c.commitCompletion(new android.view.inputmethod.CompletionInfo(1,0,"z"))));}
     private static void imeControls(){
+        sendKeyEventRefusalControls();
+        try(Fixture f=new Fixture("field")){
+            f.ready();EditText editor=(EditText)f.renderer().view("field");editor.requestFocus();InputConnection connection=editor.onCreateInputConnection(new EditorInfo());
+            check(connection!=null,"changing guard needs an acquired adapter");
+            NativeAppearanceViewsV2.Record record=f.renderer().inspectV2().get("field");int before=ConcreteHostProbe.count("BaseInputConnection.commitText","entry");
+            record.changing=true;
+            try{check(!connection.commitText("blocked",1)&&ConcreteHostProbe.count("BaseInputConnection.commitText","entry")==before,"changing record forwarded IME edit");}
+            finally{record.changing=false;}
+        }collect();
         for(ImeFamily family:imeFamilies())for(String state:List.of("current","successor","terminal","dirty","stale","fatal")){
+            Fatal fatal=new Fatal("IME "+family.name());
             try(Fixture f=new Fixture("field")){
                 f.ready();EditText editor=(EditText)f.renderer().view("field");editor.requestFocus();InputConnection connection=editor.onCreateInputConnection(new EditorInfo());
-                NativeAppearanceViewsV2.Record record=f.renderer().inspectV2().get("field");
-                // Controlled native delegates can complete without notifying a feature callback. Keep the real binding guard.
-                record.changing=!state.equals("successor");if(!state.equals("successor"))editor.editorListener=null;
+                // Select a non-notifying native delegate for isolated return checks; keep actual product admission live.
+                editor.hostNotifyEditorCallbacks=state.equals("successor");if(!state.equals("successor"))editor.editorListener=null;
                 OwnerLifecycleV2.Token captured=f.fence().presentation;NativeAppearanceViewsV2.Mutation old=NativeAppearanceViewsV2.Mutation.live(f.fence());
-                String nativeMethod="BaseInputConnection."+family.leaf();int before=ConcreteHostProbe.count(nativeMethod,"entry");Fatal fatal=new Fatal("IME "+family.name());boolean[] reached={false};
+                String nativeMethod="BaseInputConnection."+family.leaf();int before=ConcreteHostProbe.count(nativeMethod,"entry");boolean[] reached={false};
                 java.util.function.BiConsumer<String,String> previous=ConcreteHostProbe.hook;
                 if(state.equals("successor")||state.equals("fatal"))ConcreteHostProbe.hook=(method,phase)->{
                     if(previous!=null)previous.accept(method,phase);
@@ -518,17 +536,17 @@ public final class NativeOwnerV2ConcreteHostTests {
                     if(!reached[0]&&method.equals(nativeMethod)&&phase.equals("beforeReturn")){
                         reached[0]=true;ConcreteHostProbe.hook=previous;
                         if(state.equals("fatal"))throw fatal;
-                        if(f.fence().presentation==captured){record.changing=false;NativeBridge.preparedPacket=packet(2,"field",editor.getText().toString());editor.hostReplace(0,editor.getText().length(),editor.getText().toString());}
+                        if(f.fence().presentation==captured){NativeBridge.preparedPacket=packet(2,"field",editor.getText().toString());editor.hostReplace(0,editor.getText().length(),editor.getText().toString());}
                     }};
                 if(state.equals("terminal"))f.owner.close();else if(state.equals("dirty"))f.owner.onPause();else if(state.equals("stale"))f.activity.getResources().configuration.uiMode=android.content.res.Configuration.UI_MODE_NIGHT_YES;
-                Throwable escaped=null;boolean returned=false;try{returned=family.call().call(connection);}catch(RuntimeException|Error failure){escaped=failure;}finally{ConcreteHostProbe.hook=previous;record.changing=false;}
+                Throwable escaped=null;boolean returned=false;try{returned=family.call().call(connection);}catch(RuntimeException|Error failure){escaped=failure;}finally{ConcreteHostProbe.hook=previous;editor.hostNotifyEditorCallbacks=true;}
                 if(state.equals("current"))check(returned!=family.name().equals("performEditorAction")&&escaped==null&&f.fence().presentation==captured,"IME exact current "+family.name());
                 else if(state.equals("successor")){
                     check(reached[0]&&returned&&escaped==null&&f.fence().presentation!=captured&&!f.fence().terminal,"IME completed successor "+family.name());
                     boolean rejects=false;try{old.require();}catch(IllegalStateException expected){rejects=true;}check(rejects,"pre-fix stale scope witness "+family.name());
                 }else if(state.equals("fatal"))check(reached[0]&&escaped==fatal,"IME fatal swallowed "+family.name());
                 else check(!returned&&escaped==null&&ConcreteHostProbe.count(nativeMethod,"entry")==before,"sealed/stale IME forwarded "+state+" / "+family.name());
-            }collect();
+            }catch(Fatal expected){check(state.equals("fatal")&&expected==fatal,"wrong retained IME cleanup fatal "+family.name());}collect();
         }
         for(String state:List.of("current","terminal","dirty","stale"))try(Fixture f=new Fixture("field")){
             f.ready();EditText editor=(EditText)f.renderer().view("field");editor.requestFocus();InputConnection connection=editor.onCreateInputConnection(new EditorInfo());
@@ -544,6 +562,33 @@ public final class NativeOwnerV2ConcreteHostTests {
             check(((android.view.inputmethod.BaseInputConnection)editor.lastConnection).closed,"closeConnection delegate not reached");
             check(ConcreteHostProbe.events().stream().anyMatch(event->event.method.equals("BaseInputConnection.closeConnection")&&event.productionFrames.stream().anyMatch(frame->frame.methodName().equals("closeConnection")&&frame.descriptor().equals("()V")&&frame.bytecodeIndex()>=0)),"closeConnection product descriptor/BCI missing");
         }collect();
+    }
+    private static void sendKeyEventRefusalControls(){
+        for(String state:List.of("current","successor","terminal","dirty","stale","fatal")){
+            try(Fixture f=new Fixture("field")){
+                f.ready();EditText editor=(EditText)f.renderer().view("field");editor.requestFocus();InputConnection connection=editor.onCreateInputConnection(new EditorInfo());
+                check(connection!=null,"refusal control needs an acquired adapter");
+                if(state.equals("terminal"))f.owner.close();else if(state.equals("dirty"))f.owner.onPause();else if(state.equals("stale"))f.activity.getResources().configuration.uiMode=android.content.res.Configuration.UI_MODE_NIGHT_YES;
+                OwnerLifecycleV2.Token captured=f.fence().presentation;String text=editor.getText().toString();int start=editor.getSelectionStart(),end=editor.getSelectionEnd();
+                int delegated=ConcreteHostProbe.count("BaseInputConnection.sendKeyEvent","entry"),prepared=NativeBridge.prepareCalls,committed=NativeBridge.commitCalls;
+                boolean[] reached={false};Fatal fatal=new Fatal("refused key must not reach target");
+                var previous=ConcreteHostProbe.hook;
+                ConcreteHostProbe.hook=(method,phase)->{
+                    if(previous!=null)previous.accept(method,phase);
+                    if(method.equals("BaseInputConnection.sendKeyEvent")&&phase.equals("entry")){
+                        reached[0]=true;
+                        if(state.equals("fatal"))throw fatal;
+                        if(state.equals("successor")){NativeBridge.preparedPacket=packet(2,"field",text);editor.hostReplace(0,text.length(),text);}
+                    }
+                };
+                boolean returned;
+                try{returned=connection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_SPACE));}
+                finally{ConcreteHostProbe.hook=previous;}
+                check(!returned&&!reached[0]&&ConcreteHostProbe.count("BaseInputConnection.sendKeyEvent","entry")==delegated,"sendKeyEvent reached refused target: "+state);
+                check(f.fence().presentation==captured&&NativeBridge.prepareCalls==prepared&&NativeBridge.commitCalls==committed,"refused key published successor: "+state);
+                check(editor.getText().toString().equals(text)&&editor.getSelectionStart()==start&&editor.getSelectionEnd()==end,"refused key mutated editor: "+state);
+            }collect();
+        }
     }
     private static void actualObserverControls(){
         for(String phase:List.of("before-capture","after-capture","attach","commit-after-last-validation","refresh","input"))try(Fixture f=new Fixture()){
@@ -565,7 +610,7 @@ public final class NativeOwnerV2ConcreteHostTests {
             collect();
         }collect();
         try(Fixture f=new Fixture("field")){
-            f.ready();EditText editor=(EditText)f.renderer().view("field");editor.requestFocus();InputConnection connection=editor.onCreateInputConnection(new EditorInfo());NativeBridge.preparedPacket=packet(2,"field","helloz");NativeBridge.commitStatus=1;
+            f.ready();EditText editor=(EditText)f.renderer().view("field");editor.requestFocus();editor.setSelection(editor.getText().length());InputConnection connection=editor.onCreateInputConnection(new EditorInfo());NativeBridge.preparedPacket=packet(2,"field","helloz");NativeBridge.commitStatus=1;
             check(!connection.commitText("z",1),"rejected edit returned authority");check(f.fence().terminal&&editor.getText().toString().equals("helloz"),"rejected native buffer was synthesized back");
         }collect();
         try(Fixture f=new Fixture()){
@@ -608,10 +653,13 @@ public final class NativeOwnerV2ConcreteHostTests {
         var root=Json.object(Json.parse(Files.readAllBytes(path)));List<Barrier> selected=new ArrayList<>();
         for(Object value:Json.array(root.get("records"))){
             var record=Json.object(value);var candidate=Json.object(Json.array(record.get("candidates")).get(0));var boundary=Json.object(record.get("boundary"));
+            if(record.get("caller_frame")!=null&&!"innermost-at-anchor".equals(record.get("caller_frame")))throw new AssertionError("unsupported caller frame selection");
+            if(record.get("caller_frame")!=null&&record.get("caller_method_prefix")==null)throw new AssertionError("innermost caller needs explicit method prefix");
             selected.add(new Barrier(Json.string(record.get("baseline")),"dev.mixer.android."+Json.string(record.get("class")),Integer.parseInt(((Json.Num)candidate.get("line")).raw),
                 Json.string(boundary.get("entry_native_suffix")),Json.string(boundary.get("return_native_suffix")),
                 (String)boundary.get("return_receiver_id"),(String)boundary.get("return_receiver_class"),boundary.get("return_frame_line")==null?null:Integer.valueOf(((Json.Num)boundary.get("return_frame_line")).raw),
-                Json.string(boundary.get("mode")),Json.string(boundary.get("equivalence"))));
+                Json.string(boundary.get("mode")),Json.string(boundary.get("equivalence")),
+                (String)record.get("caller_method_prefix"),"innermost-at-anchor".equals(record.get("caller_frame"))));
         }
         barriers=List.copyOf(selected);
     }
@@ -632,7 +680,7 @@ public final class NativeOwnerV2ConcreteHostTests {
                 if(escaped instanceof AssertionError failure&&!name.startsWith("clean")&&matrix.fired){
                     // The original positive scenario is expected to reject live publication after deliberate reentry.
                 }else if(name.equals("clean")&&escaped!=null&&escaped!=matrix.done)throw new AssertionError("clean scenario failed "+barrier.id(),escaped);
-                var selectedFrames=matrix.reached.productionFrames.stream().filter(frame->frame.line()==barrier.line()&&(frame.className().equals(barrier.className())||frame.className().startsWith(barrier.className()+"$"))).toList();
+                var selectedFrames=barrier.frames(matrix.reached);
                 check(selectedFrames.size()==1,"ambiguous runtime caller frame "+barrier.id()+" / "+selectedFrames);
                 var exact=selectedFrames.get(0);String exactKey=exact.className()+"#"+exact.methodName()+exact.descriptor()+"@"+exact.bytecodeIndex();
                 if(name.equals("clean")){String previous=distinctSites.putIfAbsent(exactKey,barrier.id());check(previous==null||previous.equals(barrier.id()),"two selected sites collapsed to one actual descriptor/BCI: "+previous+" / "+barrier.id());}
@@ -640,18 +688,21 @@ public final class NativeOwnerV2ConcreteHostTests {
                 if(name.equals("clean")&&(barrier.boundaryMode().contains("helper")||barrier.boundaryMode().contains("constructor"))){
                     ConcreteHostProbe.Event last=null;
                     for(var event:matrix.dynamic){
-                        helperSequence.add(Json.map("nativeMethod",event.method,"phase",event.phase));last=event;
+                        helperSequence.add(Json.map("nativeMethod",event.method,"phase",event.phase,"receiverId",receiverId(event.receiver),"receiverClass",event.receiver==null?null:event.receiver.getClass().getSimpleName(),"productionFrames",event.productionFrames.stream().map(frame->Json.map("class",frame.className(),"method",frame.methodName(),"descriptor",frame.descriptor(),"bytecodeIndex",new Json.Num(Integer.toString(frame.bytecodeIndex())),"line",new Json.Num(Integer.toString(frame.line())))).toList()));last=event;
                     }
+                    StringBuilder helperReport=new StringBuilder();write(helperReport,Json.map("site",barrier.id(),"scenario",witness,"exactCaller",exactKey,"helperNativeSequence",helperSequence,"helperSequenceEnd",matrix.traceEnd,"finalAnchorMatches",last!=null&&last.phase.equals("beforeReturn")&&barrier.matches(last)));
+                    Files.writeString(output.resolveSibling("helper-boundaries.jsonl"),helperReport+"\n",java.nio.file.StandardOpenOption.CREATE,java.nio.file.StandardOpenOption.APPEND);
                     check(last!=null&&last.phase.equals("beforeReturn")&&barrier.matches(last),"helper final native return anchor is not final dynamic boundary "+barrier.id()+" / "+last);
                 }
-                results.add(Json.map("site",barrier.id(),"case",name,"stimulus",name.startsWith("dirty")?"actual owner onPause lifecycle invalidation":"selected concrete callback", "scenario",witness,"hit",true,"boundaryMode",barrier.boundaryMode(),"boundaryEquivalence",barrier.equivalence(),"nativeMethod",matrix.reached.method,"nativePhase",matrix.reached.phase,"exactCaller",exactKey,"helperNativeSequence",helperSequence,"helperSequenceEnd",matrix.traceEnd,"selectedFrames",matrix.reached.productionFrames.stream().filter(frame->frame.line()==barrier.line()&&(frame.className().equals(barrier.className())||frame.className().startsWith(barrier.className()+"$"))).map(frame->Json.map("class",frame.className(),"method",frame.methodName(),"descriptor",frame.descriptor(),"bytecodeIndex",new Json.Num(Integer.toString(frame.bytecodeIndex())),"line",new Json.Num(Integer.toString(frame.line())))).toList(),"escaped",escaped==null?null:escaped.getClass().getName()));
+                results.add(Json.map("site",barrier.id(),"case",name,"stimulus",name.startsWith("dirty")?"actual owner onPause lifecycle invalidation":"selected concrete callback", "scenario",witness,"hit",true,"boundaryMode",barrier.boundaryMode(),"boundaryEquivalence",barrier.equivalence(),"nativeMethod",matrix.reached.method,"nativePhase",matrix.reached.phase,"exactCaller",exactKey,"helperNativeSequence",helperSequence,"helperSequenceEnd",matrix.traceEnd,"selectedFrames",selectedFrames.stream().map(frame->Json.map("class",frame.className(),"method",frame.methodName(),"descriptor",frame.descriptor(),"bytecodeIndex",new Json.Num(Integer.toString(frame.bytecodeIndex())),"line",new Json.Num(Integer.toString(frame.line())))).toList(),"escaped",escaped==null?null:escaped.getClass().getName()));
                 matrix=null;collect();
             }
         }
-        StringBuilder report=new StringBuilder();write(report,Json.map("scope","actual fourteen product subjects with explicit mechanical leaves; lifecycle dirty is separate from actual observer invalidation","baselineSites",new Json.Num("184"),"introducedSites",new Json.Num(Integer.toString(barriers.size()-184)),"missing",missed,"cases",results));Files.writeString(output,report);
+        StringBuilder report=new StringBuilder();write(report,Json.map("scope","actual sixteen product subjects with explicit mechanical leaves; lifecycle dirty is separate from actual observer invalidation","baselineSites",new Json.Num("184"),"introducedSites",new Json.Num(Integer.toString(barriers.size()-184)),"missing",missed,"cases",results));Files.writeString(output,report);
         check(missed.isEmpty(),"missing actual baseline sites "+missed);
     }
     public static void main(String[] args)throws Exception{
+        checks+=NativeAndroidFixtureHostTests.run();
         descriptor=Files.readAllBytes(Path.of(args[0]));if(args.length>2)loadBarriers(Path.of(args[2]));
         for(String selected:List.of("smoke","positive","hierarchy","rollback","rollbackState","imeSuccessor","imeClose"))runScenario(selected);
         scenario="imeControls";imeControls();scenario="v1";v1Baselines();scenario="cancellation";cancellationControls();scenario="rendererReports";rendererReportControls();scenario="actualObserver";actualObserverControls();scenario="reportTail";reportTailControls();scenario="pendingRosters";pendingRosterControls();scenario="fatalDeferred";concreteFatalAndDeferredControls();scenario="cancellationLedger";cancellationLedgerControls();scenario="focusAdmission";focusAdmissionControls();scenario="explicitScopes";explicitScopeControls();scenario="terminalContinuation";terminalContinuationControls();scenario="latePost";latePostControls();scenario="completionPublication";completionPublicationControls();collect();
@@ -659,6 +710,6 @@ public final class NativeOwnerV2ConcreteHostTests {
 
         if(args.length>1){StringBuilder report=new StringBuilder();for(var e:sites.entrySet())report.append(e.getKey()).append('|').append(e.getValue()).append('\n');Files.writeString(Path.of(args[1]),report);}
 
-        System.out.println("PASS concrete actual14 host checks="+checks+"; platform/JNI leaves, native runtime pending");
+        System.out.println("PASS concrete actual16 host checks="+checks+"; platform/JNI leaves, native runtime pending");
     }
 }
